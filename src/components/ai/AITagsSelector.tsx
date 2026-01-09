@@ -126,6 +126,7 @@ export function AITagsSelector({
               {t("admin.ai.suggestedTags", "AI Suggested Tags:")}
             </span>
             <Button
+              type="button"
               variant="ghost"
               size="sm"
               className="h-6 gap-1 text-xs"
