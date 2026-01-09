@@ -1778,6 +1778,9 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
     includeActionEvidence: fullLegalMode,
     includeEvidenceUploaders: fullLegalMode,
     showPropertyDamages: incident.has_damage && (accessLevel === 'hsse_full' || isLegalDocument),
+    showEnvironmentalContaminations: (incident.event_type === 'environmental' || incident.event_type === 'environment' || 
+      ['oil_chemical_spill_land', 'spill_to_water', 'air_emission', 'soil_contamination', 'waste_mismanagement', 'wildlife_impact', 'non_compliant_discharge'].includes(incident.subtype || '')) &&
+      (accessLevel === 'hsse_full' || isLegalDocument),
   };
 
   // Fetch data based on sections needed
@@ -1791,6 +1794,7 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
   let contractorViolation: ContractorViolationData | null = null;
   let upgradeHistory: UpgradeHistoryData | null = null;
   let propertyDamages: PropertyDamageData[] = [];
+  let environmentalContaminations: EnvironmentalContaminationData[] = [];
 
   // Parallel data fetching
   const fetchPromises: Promise<unknown>[] = [];
@@ -1845,6 +1849,11 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
       fetchPropertyDamages(incident.id).then(r => { propertyDamages = r; })
     );
   }
+  if (sections.showEnvironmentalContaminations) {
+    fetchPromises.push(
+      fetchEnvironmentalContaminations(incident.id).then(r => { environmentalContaminations = r; })
+    );
+  }
 
   await Promise.all(fetchPromises);
 
@@ -1868,6 +1877,7 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
     : (sections.showActionsBasic ? buildManagerActionsHtml(actions, isRTL) : '');
   const auditLogHtml = sections.showAuditLog ? buildAuditLogHtml(auditLogs, accessLevel, isRTL, includeFullAuditLog) : '';
   const propertyDamagesHtml = sections.showPropertyDamages ? buildPropertyDamagesHtml(propertyDamages, isRTL) : '';
+  const environmentalContaminationsHtml = sections.showEnvironmentalContaminations ? buildEnvironmentalContaminationsHtml(environmentalContaminations, isRTL) : '';
   const documentIntegrityHtml = sections.showDocumentIntegrity ? buildDocumentIntegrityFooter(incident, isRTL) : '';
 
   // Report type badge for title section
@@ -1915,6 +1925,7 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
       ${contractorViolationHtml}
       ${investigationHtml}
       ${propertyDamagesHtml}
+      ${environmentalContaminationsHtml}
       ${evidenceHtml}
       ${witnessesHtml}
       ${rcaHtml}
