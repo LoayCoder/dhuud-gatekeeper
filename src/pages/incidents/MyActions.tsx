@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle, FileCheck, PlayCircle, RotateCcw, CalendarPlus, HardHat, Truck, ClipboardList, X, Search, ChevronDown, FileText, Eye } from 'lucide-react';
+import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle, FileCheck, PlayCircle, RotateCcw, CalendarPlus, HardHat, Truck, ClipboardList, X, Search as SearchIcon, ChevronDown, FileText, Eye, Calendar, Shield, Users } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -32,6 +32,17 @@ import { ActionProgressDialog, ExtensionRequestDialog, ExtensionApprovalCard, Ac
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
+// NEW: Unified workflow hooks with tenant isolation
+import { 
+  useMyAssignedInvestigations, 
+  useMyScheduledInspections,
+  useMyWorkflowStats 
+} from '@/hooks/use-my-workflow-tasks';
+import { 
+  InvestigationCard, 
+  ScheduledInspectionCard,
+  WorkflowEmptyState 
+} from '@/components/my-actions/WorkflowTaskCard';
 
 const getStatusIcon = (status: string | null) => {
   switch (status) {
@@ -538,7 +549,7 @@ export default function MyActions() {
           {/* Search Bar and Filters */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <SearchIcon className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
                 placeholder={t('search.placeholder', 'Search by title, description, or reference...')}
                 value={searchQuery}
@@ -870,7 +881,7 @@ export default function MyActions() {
               <CardContent className="flex flex-col items-center justify-center text-center">
                 {searchQuery || priorityFilter !== 'all' ? (
                   <>
-                    <Search className="h-12 w-12 text-muted-foreground mb-4" />
+                    <SearchIcon className="h-12 w-12 text-muted-foreground mb-4" />
                     <h3 className="text-lg font-medium mb-2">{t('search.noResults', 'No Results Found')}</h3>
                     <p className="text-muted-foreground">{t('search.tryDifferent', 'Try adjusting your search or filter criteria.')}</p>
                   </>
