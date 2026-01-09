@@ -142,7 +142,7 @@ export function IncidentAISettingsTab() {
                   key={type}
                   className="rounded-full bg-background px-3 py-1 text-xs border"
                 >
-                  {t(`incidents.types.${type}`, type)}
+                  {t(`incidents.hsseEventTypes.${type}`, type)}
                 </span>
               ))}
             </div>
@@ -158,7 +158,7 @@ export function IncidentAISettingsTab() {
                   key={level}
                   className="rounded-full bg-background px-3 py-1 text-xs border"
                 >
-                  {t(`severity.${level}`, level)}
+                  {t(`severity.${level}.label`, level.replace(/_/g, " "))}
                 </span>
               ))}
             </div>

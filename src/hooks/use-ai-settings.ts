@@ -83,8 +83,12 @@ export const DEFAULT_INCIDENT_SETTINGS: IncidentAISettings = {
     target_language: "en",
   },
   classification: {
-    incident_types: ["safety", "health", "environment", "security", "quality"],
-    severity_levels: ["low", "medium", "high", "critical"],
+    incident_types: [
+      "safety", "health", "processSafety", "environment", "security",
+      "propertyAssetDamage", "roadTrafficVehicle", "qualityService",
+      "communityThirdParty", "complianceRegulatory", "emergencyCrisis"
+    ],
+    severity_levels: ["level_1", "level_2", "level_3", "level_4", "level_5"],
   },
   injury_extraction: {
     enabled: true,
