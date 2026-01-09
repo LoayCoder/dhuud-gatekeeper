@@ -85,6 +85,10 @@ export default function MyActions() {
   const { data: witnessStatements, isLoading: witnessLoading, refetch: refetchWitness } = useMyAssignedWitnessStatements();
   const { data: myReportedIncidents, isLoading: reportedLoading } = useMyReportedIncidents();
   
+  // NEW: Unified workflow hooks for investigations and inspections
+  const { data: myInvestigations, isLoading: investigationsLoading } = useMyAssignedInvestigations();
+  const { data: myInspections, isLoading: inspectionsLoading } = useMyScheduledInspections();
+  
   const updateStatus = useUpdateMyActionStatus();
   const updateInspectionStatus = useUpdateInspectionActionStatus();
   const uploadEvidence = useUploadActionEvidence();
@@ -518,6 +522,18 @@ export default function MyActions() {
               <span className="sm:hidden">{t('investigation.actions', 'Actions')}</span>
               <span className="ms-1">({allActions?.length || 0})</span>
             </TabsTrigger>
+            <TabsTrigger value="investigations" className="whitespace-nowrap">
+              <SearchIcon className="h-4 w-4 me-2 flex-shrink-0" />
+              <span className="hidden sm:inline">{t('investigation.assignedInvestigations', 'Assigned Investigations')}</span>
+              <span className="sm:hidden">{t('investigation.investigations', 'Investigations')}</span>
+              <span className="ms-1">({myInvestigations?.length || 0})</span>
+            </TabsTrigger>
+            <TabsTrigger value="inspections" className="whitespace-nowrap">
+              <Calendar className="h-4 w-4 me-2 flex-shrink-0" />
+              <span className="hidden sm:inline">{t('inspections.scheduledInspections', 'Scheduled Inspections')}</span>
+              <span className="sm:hidden">{t('inspections.inspections', 'Inspections')}</span>
+              <span className="ms-1">({myInspections?.length || 0})</span>
+            </TabsTrigger>
             <TabsTrigger value="witness" className="whitespace-nowrap">
               <MessageSquare className="h-4 w-4 me-2 flex-shrink-0" />
               <span className="hidden sm:inline">{t('investigation.witnesses.title', 'Witness Statements')}</span>
@@ -894,6 +910,60 @@ export default function MyActions() {
                 )}
               </CardContent>
             </Card>
+          )}
+        </TabsContent>
+
+        {/* Investigations Tab */}
+        <TabsContent value="investigations" className="mt-4">
+          {investigationsLoading ? (
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <Card key={i}>
+                  <CardHeader>
+                    <Skeleton className="h-5 w-48" />
+                    <Skeleton className="h-4 w-32" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-4 w-full" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : myInvestigations && myInvestigations.length > 0 ? (
+            <div className="space-y-4">
+              {myInvestigations.map((investigation) => (
+                <InvestigationCard key={investigation.id} investigation={investigation} />
+              ))}
+            </div>
+          ) : (
+            <WorkflowEmptyState type="investigations" />
+          )}
+        </TabsContent>
+
+        {/* Scheduled Inspections Tab */}
+        <TabsContent value="inspections" className="mt-4">
+          {inspectionsLoading ? (
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <Card key={i}>
+                  <CardHeader>
+                    <Skeleton className="h-5 w-48" />
+                    <Skeleton className="h-4 w-32" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-4 w-full" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : myInspections && myInspections.length > 0 ? (
+            <div className="space-y-4">
+              {myInspections.map((inspection) => (
+                <ScheduledInspectionCard key={inspection.id} schedule={inspection} />
+              ))}
+            </div>
+          ) : (
+            <WorkflowEmptyState type="inspections" />
           )}
         </TabsContent>
 
