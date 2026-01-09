@@ -74,11 +74,16 @@ export function useCreateIncident() {
 
   return useMutation({
     mutationFn: async (data: IncidentFormData) => {
+      // FIRST: Get fresh auth session to avoid stale user ID
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session?.user?.id) {
+        throw new Error('Your session has expired. Please refresh the page and try again.');
+      }
+      
+      const freshUserId = sessionData.session.user.id;
+
       if (!profile?.tenant_id) {
         throw new Error('User tenant not found');
-      }
-      if (!user?.id) {
-        throw new Error('User not authenticated');
       }
 
       // Determine if this is an observation (simplified workflow)
@@ -106,7 +111,7 @@ export function useCreateIncident() {
       
       const insertData: IncidentInsert & { risk_rating?: string; severity_v2?: string; severity_override_reason?: string; erp_activated?: boolean } = {
         tenant_id: profile.tenant_id,
-        reporter_id: user.id,
+        reporter_id: freshUserId,
         title: data.title,
         description: data.description,
         event_type: data.event_type,
