@@ -23740,6 +23740,15 @@ export type Database = {
         Args: { p_code_hash: string; p_user_id: string }
         Returns: boolean
       }
+      verify_tenant_isolation: {
+        Args: never
+        Returns: {
+          details: string
+          issue_type: string
+          recommendation: string
+          table_name: string
+        }[]
+      }
     }
     Enums: {
       activity_event_type:
