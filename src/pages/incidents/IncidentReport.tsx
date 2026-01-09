@@ -21,6 +21,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import MediaUploadSection from '@/components/incidents/MediaUploadSection';
 import { ClosedOnSpotSection, ClosedOnSpotConfirmDialog } from '@/components/incidents/ClosedOnSpotSection';
+import { SubmissionSuccessDialog } from '@/components/incidents/SubmissionSuccessDialog';
 import { AssetSelectionSection, SelectedAsset } from '@/components/incidents/AssetSelectionSection';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -164,6 +165,8 @@ export default function IncidentReport() {
   const [isConfirmSubmitting, setIsConfirmSubmitting] = useState(false);
   // Asset selection state
   const [selectedAsset, setSelectedAsset] = useState<SelectedAsset | null>(null);
+  // Success dialog state
+  const [submittedIncident, setSubmittedIncident] = useState<{ id: string; referenceId: string } | null>(null);
   
   const createIncident = useCreateIncident();
   const linkAsset = useLinkAssetToIncident();
@@ -705,7 +708,15 @@ export default function IncidentReport() {
           }
         }
         
-        navigate('/incidents');
+        // Show success dialog and auto-redirect after 3 seconds
+        setSubmittedIncident({
+          id: data.id,
+          referenceId: data.reference_id || '',
+        });
+        
+        setTimeout(() => {
+          navigate(`/incidents/${data.id}`);
+        }, 3000);
       },
     });
   };
@@ -1766,6 +1777,14 @@ export default function IncidentReport() {
         onOpenChange={setShowClosedOnSpotConfirm}
         onConfirm={handleClosedOnSpotConfirm}
         direction={direction}
+      />
+
+      {/* Submission Success Dialog */}
+      <SubmissionSuccessDialog
+        open={!!submittedIncident}
+        referenceId={submittedIncident?.referenceId || ''}
+        incidentId={submittedIncident?.id || ''}
+        onViewIncident={() => submittedIncident && navigate(`/incidents/${submittedIncident.id}`)}
       />
     </div>
   );

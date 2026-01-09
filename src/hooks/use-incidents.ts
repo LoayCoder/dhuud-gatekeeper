@@ -215,10 +215,7 @@ export function useCreateIncident() {
     },
     onSuccess: (incident) => {
       queryClient.invalidateQueries({ queryKey: ['incidents'] });
-      toast({
-        title: t('incidents.successTitle'),
-        description: t('incidents.successMessage', { referenceId: incident.reference_id }),
-      });
+      // Toast removed - SubmissionSuccessDialog handles success feedback now
       
       // Trigger matrix-based notification dispatcher (fire and forget)
       supabase.functions.invoke('dispatch-incident-notification', {
