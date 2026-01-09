@@ -792,7 +792,95 @@
       "evidence": "Evidence",
       "witnesses": "Witnesses",
       "rca": "Root Cause Analysis",
-      "actions": "Corrective Actions"
+      "actions": "Corrective Actions",
+      "propertyDamage": "Property Damage",
+      "injuries": "Injuries"
+    },
+    "propertyDamage": {
+      "title": "Property Damage",
+      "addDamage": "Add Property Damage",
+      "editDamage": "Edit Property Damage",
+      "noDamages": "No property damage records",
+      "noDamagesDescription": "No property damage records have been added for this incident yet.",
+      "addFirstDamage": "Add First Property Damage Record",
+      "created": "Property damage record created",
+      "updated": "Property damage record updated",
+      "deleted": "Property damage record deleted",
+      "deleteConfirmTitle": "Delete Property Damage Record",
+      "deleteConfirmDescription": "Are you sure you want to delete this property damage record?",
+      "entryNumber": "Entry #{{number}}",
+      "summary": {
+        "totalDamaged": "Total Damaged",
+        "estimatedCost": "Estimated Cost",
+        "totalDowntime": "Total Downtime",
+        "bySeverity": "By Severity",
+        "hours": "hours"
+      },
+      "sections": {
+        "identification": "Property Identification",
+        "damageDetails": "Damage Details",
+        "costEstimation": "Cost Estimation",
+        "impactAssessment": "Impact Assessment",
+        "resolution": "Resolution Tracking"
+      },
+      "fields": {
+        "propertyName": "Property Name",
+        "propertyNamePlaceholder": "Enter property/asset name",
+        "propertyType": "Property Type",
+        "selectPropertyType": "Select property type",
+        "assetTag": "Asset Tag",
+        "assetTagPlaceholder": "Optional asset ID",
+        "locationDescription": "Location",
+        "locationPlaceholder": "Where is this property located?",
+        "damageDate": "Damage Date",
+        "damageSeverity": "Severity",
+        "selectSeverity": "Select severity",
+        "damageDescription": "Damage Description",
+        "damageDescriptionPlaceholder": "Describe the damage in detail...",
+        "repairCostEstimate": "Repair Cost Estimate",
+        "replacementCostEstimate": "Replacement Cost Estimate",
+        "costCurrency": "Currency",
+        "costAssessedBy": "Assessed By",
+        "costAssessedByPlaceholder": "Who assessed the cost?",
+        "costAssessmentDate": "Assessment Date",
+        "operationalImpact": "Operational Impact",
+        "selectImpact": "Select impact level",
+        "downtimeHours": "Downtime (hours)",
+        "safetyHazardCreated": "Safety Hazard Created",
+        "safetyHazardDescription": "Hazard Description",
+        "safetyHazardPlaceholder": "Describe the safety hazard...",
+        "repairStatus": "Repair Status",
+        "selectRepairStatus": "Select repair status",
+        "repairCompletedDate": "Repair Completed Date",
+        "actualRepairCost": "Actual Repair Cost"
+      },
+      "propertyTypes": {
+        "equipment": "Equipment",
+        "vehicle": "Vehicle",
+        "structure": "Structure",
+        "infrastructure": "Infrastructure",
+        "material": "Material",
+        "other": "Other"
+      },
+      "severityLevels": {
+        "minor": "Minor",
+        "moderate": "Moderate",
+        "major": "Major",
+        "total_loss": "Total Loss"
+      },
+      "impactLevels": {
+        "none": "None",
+        "minimal": "Minimal",
+        "moderate": "Moderate",
+        "significant": "Significant",
+        "critical": "Critical"
+      },
+      "repairStatuses": {
+        "pending": "Pending",
+        "in_progress": "In Progress",
+        "completed": "Completed",
+        "not_repairable": "Not Repairable"
+      }
     },
     "evidence": {
       "title": "Evidence Management",
