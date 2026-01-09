@@ -8893,6 +8893,147 @@ export type Database = {
           },
         ]
       }
+      incident_injuries: {
+        Row: {
+          body_diagram_data: Json | null
+          body_parts_affected: string[] | null
+          created_at: string | null
+          days_lost: number | null
+          deleted_at: string | null
+          first_aid_description: string | null
+          first_aid_provided: boolean | null
+          hospitalized: boolean | null
+          id: string
+          incident_id: string
+          injured_person_name: string
+          injury_date: string | null
+          injury_description: string | null
+          injury_severity: string | null
+          injury_type: string[] | null
+          is_platform_user: boolean | null
+          linked_contractor_worker_id: string | null
+          linked_user_id: string | null
+          medical_attention_required: boolean | null
+          national_id: string | null
+          recorded_by: string | null
+          recorder_role: string | null
+          restricted_duty_days: number | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          body_diagram_data?: Json | null
+          body_parts_affected?: string[] | null
+          created_at?: string | null
+          days_lost?: number | null
+          deleted_at?: string | null
+          first_aid_description?: string | null
+          first_aid_provided?: boolean | null
+          hospitalized?: boolean | null
+          id?: string
+          incident_id: string
+          injured_person_name: string
+          injury_date?: string | null
+          injury_description?: string | null
+          injury_severity?: string | null
+          injury_type?: string[] | null
+          is_platform_user?: boolean | null
+          linked_contractor_worker_id?: string | null
+          linked_user_id?: string | null
+          medical_attention_required?: boolean | null
+          national_id?: string | null
+          recorded_by?: string | null
+          recorder_role?: string | null
+          restricted_duty_days?: number | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          body_diagram_data?: Json | null
+          body_parts_affected?: string[] | null
+          created_at?: string | null
+          days_lost?: number | null
+          deleted_at?: string | null
+          first_aid_description?: string | null
+          first_aid_provided?: boolean | null
+          hospitalized?: boolean | null
+          id?: string
+          incident_id?: string
+          injured_person_name?: string
+          injury_date?: string | null
+          injury_description?: string | null
+          injury_severity?: string | null
+          injury_type?: string[] | null
+          is_platform_user?: boolean | null
+          linked_contractor_worker_id?: string | null
+          linked_user_id?: string | null
+          medical_attention_required?: boolean | null
+          national_id?: string | null
+          recorded_by?: string | null
+          recorder_role?: string | null
+          restricted_duty_days?: number | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_injuries_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_injuries_linked_contractor_worker_id_fkey"
+            columns: ["linked_contractor_worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_injuries_linked_contractor_worker_id_fkey"
+            columns: ["linked_contractor_worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_injuries_linked_user_id_fkey"
+            columns: ["linked_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_injuries_linked_user_id_fkey"
+            columns: ["linked_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_injuries_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_injuries_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_injuries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incident_notification_matrix: {
         Row: {
           channels: string[]
