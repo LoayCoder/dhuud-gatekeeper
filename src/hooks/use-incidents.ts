@@ -223,15 +223,17 @@ export function useCreateIncident() {
       }).catch(err => console.warn('Failed to dispatch incident notification:', err));
     },
     onError: (error) => {
-      // Check for duplicate key error on reference_id (race condition)
-      const isDuplicateRef = error.message?.includes('duplicate key') && 
-                             error.message?.includes('reference_id');
+      // Check for duplicate key error on reference_id (both old global and new per-tenant constraints)
+      const errorMsg = error.message?.toLowerCase() || '';
+      const isDuplicateRef = errorMsg.includes('duplicate key') && 
+                             (errorMsg.includes('reference_id') || 
+                              errorMsg.includes('tenant_reference_id'));
       
       if (isDuplicateRef) {
-        // Race condition - ask user to retry
+        // Race condition - this should be extremely rare after the advisory lock fix
         toast({
           title: t('incidents.submissionConflict', 'Submission Conflict'),
-          description: t('incidents.submissionConflictMessage', 'Another report was being submitted at the same time. Please try again.'),
+          description: t('incidents.submissionConflictRetry', 'A timing issue occurred. Please try submitting again.'),
           variant: 'default',
         });
       } else {
