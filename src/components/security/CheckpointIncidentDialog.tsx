@@ -54,16 +54,24 @@ export function CheckpointIncidentDialog({
   const [severity, setSeverity] = useState<SeverityLevelV2>("level_1");
 
   const handleSubmit = async () => {
-    if (!profile?.tenant_id || !user?.id || !title.trim()) return;
+    if (!profile?.tenant_id || !title.trim()) return;
 
     setIsSubmitting(true);
     try {
+      // Get fresh session to avoid stale user ID
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session?.user?.id) {
+        toast.error(t('common.sessionExpired', 'Session expired. Please refresh the page.'));
+        return;
+      }
+      const freshUserId = sessionData.session.user.id;
+
       // Create incident linked to patrol checkpoint using severity_v2
       const { data, error } = await supabase
         .from('incidents')
         .insert({
           tenant_id: profile.tenant_id,
-          reporter_id: user.id,
+          reporter_id: freshUserId,
           title: title.trim(),
           description: description.trim() || title.trim(),
           event_type: 'security',

@@ -84,13 +84,17 @@ export function QuickIncidentReport({ onSuccess, onCancel, className }: QuickInc
 
     setIsSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      // Get fresh session to avoid stale user ID
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session?.user?.id) {
+        throw new Error('Session expired. Please refresh the page and try again.');
+      }
+      const freshUserId = sessionData.session.user.id;
 
       const { data: profile } = await supabase
         .from('profiles')
         .select('tenant_id')
-        .eq('id', user.id)
+        .eq('id', freshUserId)
         .single();
 
       if (!profile?.tenant_id) throw new Error('No tenant found');
@@ -121,12 +125,12 @@ export function QuickIncidentReport({ onSuccess, onCancel, className }: QuickInc
         }
       }
 
-      // Create incident record
+      // Create incident record with fresh user ID
       const { error: insertError } = await supabase
         .from('incidents')
         .insert([{
           tenant_id: profile.tenant_id,
-          reporter_id: user.id,
+          reporter_id: freshUserId,
           title: `Quick Report: ${selectedType.charAt(0).toUpperCase() + selectedType.slice(1)} Incident`,
           description: notes || `Quick incident report - ${selectedType}`,
           event_type: 'incident',
