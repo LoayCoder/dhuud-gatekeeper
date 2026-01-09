@@ -9131,6 +9131,122 @@ export type Database = {
           },
         ]
       }
+      incident_property_damages: {
+        Row: {
+          actual_repair_cost: number | null
+          asset_tag: string | null
+          cost_assessment_by: string | null
+          cost_assessment_date: string | null
+          cost_currency: string | null
+          created_at: string | null
+          damage_date: string | null
+          damage_description: string | null
+          damage_severity: string | null
+          deleted_at: string | null
+          downtime_hours: number | null
+          id: string
+          incident_id: string
+          location_description: string | null
+          operational_impact: string | null
+          property_name: string
+          property_type: string | null
+          recorded_by: string | null
+          repair_completed_date: string | null
+          repair_cost_estimate: number | null
+          repair_status: string | null
+          replacement_cost_estimate: number | null
+          safety_hazard_created: boolean | null
+          safety_hazard_description: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          actual_repair_cost?: number | null
+          asset_tag?: string | null
+          cost_assessment_by?: string | null
+          cost_assessment_date?: string | null
+          cost_currency?: string | null
+          created_at?: string | null
+          damage_date?: string | null
+          damage_description?: string | null
+          damage_severity?: string | null
+          deleted_at?: string | null
+          downtime_hours?: number | null
+          id?: string
+          incident_id: string
+          location_description?: string | null
+          operational_impact?: string | null
+          property_name: string
+          property_type?: string | null
+          recorded_by?: string | null
+          repair_completed_date?: string | null
+          repair_cost_estimate?: number | null
+          repair_status?: string | null
+          replacement_cost_estimate?: number | null
+          safety_hazard_created?: boolean | null
+          safety_hazard_description?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          actual_repair_cost?: number | null
+          asset_tag?: string | null
+          cost_assessment_by?: string | null
+          cost_assessment_date?: string | null
+          cost_currency?: string | null
+          created_at?: string | null
+          damage_date?: string | null
+          damage_description?: string | null
+          damage_severity?: string | null
+          deleted_at?: string | null
+          downtime_hours?: number | null
+          id?: string
+          incident_id?: string
+          location_description?: string | null
+          operational_impact?: string | null
+          property_name?: string
+          property_type?: string | null
+          recorded_by?: string | null
+          repair_completed_date?: string | null
+          repair_cost_estimate?: number | null
+          repair_status?: string | null
+          replacement_cost_estimate?: number | null
+          safety_hazard_created?: boolean | null
+          safety_hazard_description?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_property_damages_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_property_damages_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_property_damages_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_property_damages_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incident_reference_sequences: {
         Row: {
           current_value: number

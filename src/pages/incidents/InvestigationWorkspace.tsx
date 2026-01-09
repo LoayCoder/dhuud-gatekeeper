@@ -24,6 +24,7 @@ import {
   RotateCcw,
   FileText,
   RefreshCw,
+  Wrench,
   ArrowLeft,
   UserCheck,
   HeartPulse
@@ -72,6 +73,7 @@ import {
 } from "@/components/investigation";
 import { ReopenIncidentDialog } from "@/components/investigation/ReopenIncidentDialog";
 import { InjuryPanel } from "@/components/investigation/InjuryPanel";
+import { PropertyDamagePanel } from "@/components/investigation/property-damage";
 import { IncidentStatusBadge } from "@/components/incidents/IncidentStatusBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -775,6 +777,14 @@ export default function InvestigationWorkspace() {
                       label={t('investigation.tabs.injuries', 'Injuries')} 
                     />
                   )}
+                  {/* Property Damage Tab - Only shows when incident has damage */}
+                  {selectedIncident?.has_damage && (
+                    <LockedTabTrigger 
+                      value="property-damage" 
+                      icon={Wrench} 
+                      label={t('investigation.tabs.propertyDamage', 'Property Damage')} 
+                    />
+                  )}
                 </TabsList>
               </div>
 
@@ -850,6 +860,16 @@ export default function InvestigationWorkspace() {
                 <TabsContent value="injuries" className="mt-0">
                   {investigationAllowed && selectedIncident?.has_injury ? (
                     <InjuryPanel 
+                      incidentId={selectedIncidentId!}
+                      canEdit={editAccess.canEdit}
+                    />
+                  ) : null}
+                </TabsContent>
+
+                {/* Property Damage Tab Content */}
+                <TabsContent value="property-damage" className="mt-0">
+                  {investigationAllowed && selectedIncident?.has_damage ? (
+                    <PropertyDamagePanel 
                       incidentId={selectedIncidentId!}
                       canEdit={editAccess.canEdit}
                     />
