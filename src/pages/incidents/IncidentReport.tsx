@@ -314,12 +314,23 @@ export default function IncidentReport() {
     const fieldsToValidate: (keyof FormValues)[] = [];
     
     if (step === 1) {
-      fieldsToValidate.push('title', 'description', 'event_type', 'subtype', 'occurred_at');
+      fieldsToValidate.push('title', 'description', 'event_type', 'incident_type', 'subtype', 'occurred_at');
+    } else if (step === 2) {
+      fieldsToValidate.push('site_id', 'branch_id', 'department_id', 'location');
+    } else if (step === 3) {
+      fieldsToValidate.push('severity', 'immediate_actions');
     }
-    // Steps 2 and 3 have optional fields, so always valid
     
     if (fieldsToValidate.length > 0) {
       const result = await form.trigger(fieldsToValidate);
+      if (!result) {
+        // Show first validation error as toast
+        const errors = form.formState.errors;
+        const firstErrorKey = fieldsToValidate.find(f => errors[f]);
+        if (firstErrorKey && errors[firstErrorKey]) {
+          toast.error(errors[firstErrorKey]?.message as string);
+        }
+      }
       return result;
     }
     return true;
@@ -1718,7 +1729,18 @@ export default function IncidentReport() {
                 setIsConfirmSubmitting(true);
                 setShowConfirmation(false); // Close dialog immediately to prevent re-click
                 try {
-                  await form.handleSubmit(onSubmit)();
+                  await form.handleSubmit(
+                    onSubmit,
+                    // Handle validation errors - show toast with first error
+                    (errors) => {
+                      console.error('Form validation errors:', errors);
+                      const firstError = Object.values(errors)[0];
+                      toast.error(
+                        t('incidents.validation.formIncomplete', 'Please complete all required fields'),
+                        { description: firstError?.message as string || t('incidents.validation.checkFields', 'Check the form for errors') }
+                      );
+                    }
+                  )();
                 } finally {
                   setIsConfirmSubmitting(false);
                 }
