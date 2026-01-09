@@ -25,7 +25,7 @@ interface PersonOption {
   type: 'user' | 'contractor';
   name: string;
   nationalId?: string | null;
-  department?: string | null;
+  jobTitle?: string | null;
   company?: string | null;
 }
 
@@ -50,7 +50,7 @@ export function PersonLookup({ value, onSelect, disabled }: PersonLookupProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, department')
+        .select('id, full_name, job_title')
         .is('deleted_at', null)
         .order('full_name');
 
@@ -59,7 +59,7 @@ export function PersonLookup({ value, onSelect, disabled }: PersonLookupProps) {
         id: u.id,
         type: 'user',
         name: u.full_name || '',
-        department: u.department,
+        jobTitle: u.job_title,
       }));
     },
   });
@@ -95,7 +95,7 @@ export function PersonLookup({ value, onSelect, disabled }: PersonLookupProps) {
       (option) =>
         option.name.toLowerCase().includes(searchLower) ||
         option.nationalId?.toLowerCase().includes(searchLower) ||
-        option.department?.toLowerCase().includes(searchLower) ||
+        option.jobTitle?.toLowerCase().includes(searchLower) ||
         option.company?.toLowerCase().includes(searchLower)
     );
   }, [users, contractors, search]);
@@ -192,9 +192,9 @@ export function PersonLookup({ value, onSelect, disabled }: PersonLookupProps) {
                               <User className="h-3 w-3 text-muted-foreground" />
                               <span className="truncate">{person.name}</span>
                             </div>
-                            {(person.nationalId || person.department) && (
+                            {(person.nationalId || person.jobTitle) && (
                               <span className="text-xs text-muted-foreground truncate">
-                                {[person.nationalId, person.department].filter(Boolean).join(' • ')}
+                                {[person.nationalId, person.jobTitle].filter(Boolean).join(' • ')}
                               </span>
                             )}
                           </div>

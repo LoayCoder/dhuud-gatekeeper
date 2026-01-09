@@ -56,3 +56,5 @@ export { InvestigatorViolationIdentificationCard } from './InvestigatorViolation
 export { InvestigatorViolationSubmissionCard } from './InvestigatorViolationSubmissionCard';
 export { IncidentClosurePrerequisitesCard } from './IncidentClosurePrerequisitesCard';
 export { HSSEIncidentValidationCard } from './HSSEIncidentValidationCard';
+// Injury Tab Components
+export { InjuryPanel } from './InjuryPanel';

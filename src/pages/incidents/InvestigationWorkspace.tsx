@@ -25,7 +25,8 @@ import {
   FileText,
   RefreshCw,
   ArrowLeft,
-  UserCheck
+  UserCheck,
+  HeartPulse
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -70,6 +71,7 @@ import {
   ContractorDisputeCard
 } from "@/components/investigation";
 import { ReopenIncidentDialog } from "@/components/investigation/ReopenIncidentDialog";
+import { InjuryPanel } from "@/components/investigation/InjuryPanel";
 import { IncidentStatusBadge } from "@/components/incidents/IncidentStatusBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -765,6 +767,14 @@ export default function InvestigationWorkspace() {
                     icon={ListChecks} 
                     label={t('investigation.tabs.actions', 'Actions')} 
                   />
+                  {/* Injuries Tab - Only shows when incident has injury */}
+                  {selectedIncident?.has_injury && (
+                    <LockedTabTrigger 
+                      value="injuries" 
+                      icon={HeartPulse} 
+                      label={t('investigation.tabs.injuries', 'Injuries')} 
+                    />
+                  )}
                 </TabsList>
               </div>
 
@@ -833,6 +843,16 @@ export default function InvestigationWorkspace() {
                         />
                       )}
                     </>
+                  ) : null}
+                </TabsContent>
+
+                {/* Injuries Tab Content */}
+                <TabsContent value="injuries" className="mt-0">
+                  {investigationAllowed && selectedIncident?.has_injury ? (
+                    <InjuryPanel 
+                      incidentId={selectedIncidentId!}
+                      canEdit={editAccess.canEdit}
+                    />
                   ) : null}
                 </TabsContent>
               </div>

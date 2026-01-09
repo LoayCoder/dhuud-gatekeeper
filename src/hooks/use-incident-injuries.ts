@@ -155,7 +155,7 @@ export function useCreateIncidentInjury() {
 
       const { data, error } = await supabase
         .from('incident_injuries')
-        .insert(insertData)
+        .insert(insertData as never)
         .select()
         .single();
 
@@ -207,7 +207,7 @@ export function useUpdateIncidentInjury() {
 
       const { data, error } = await supabase
         .from('incident_injuries')
-        .update(updateData)
+        .update(updateData as never)
         .eq('id', id)
         .select()
         .single();
