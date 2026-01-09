@@ -9131,6 +9131,38 @@ export type Database = {
           },
         ]
       }
+      incident_reference_sequences: {
+        Row: {
+          current_value: number
+          prefix: string
+          tenant_id: string
+          updated_at: string | null
+          year: string
+        }
+        Insert: {
+          current_value?: number
+          prefix: string
+          tenant_id: string
+          updated_at?: string | null
+          year: string
+        }
+        Update: {
+          current_value?: number
+          prefix?: string
+          tenant_id?: string
+          updated_at?: string | null
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_reference_sequences_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incident_violation_lifecycle: {
         Row: {
           contract_controller_decision_at: string | null
