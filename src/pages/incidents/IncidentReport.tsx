@@ -160,6 +160,8 @@ export default function IncidentReport() {
   const [closedOnSpotPhotos, setClosedOnSpotPhotos] = useState<File[]>([]);
   const [showClosedOnSpotConfirm, setShowClosedOnSpotConfirm] = useState(false);
   const [pendingSubmitData, setPendingSubmitData] = useState<FormValues | null>(null);
+  // Prevent double-submission on confirmation dialog
+  const [isConfirmSubmitting, setIsConfirmSubmitting] = useState(false);
   // Asset selection state
   const [selectedAsset, setSelectedAsset] = useState<SelectedAsset | null>(null);
   
@@ -1696,7 +1698,10 @@ export default function IncidentReport() {
       </Form>
 
       {/* Confirmation Dialog */}
-      <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+      <AlertDialog open={showConfirmation} onOpenChange={(open) => {
+        // Only allow closing if not currently submitting
+        if (!isConfirmSubmitting) setShowConfirmation(open);
+      }}>
         <AlertDialogContent dir={direction}>
           <AlertDialogHeader>
             <AlertDialogTitle>{t('incidents.confirmSubmission')}</AlertDialogTitle>
@@ -1705,9 +1710,29 @@ export default function IncidentReport() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={form.handleSubmit(onSubmit)}>
-              {t('incidents.confirmAndSubmit')}
+            <AlertDialogCancel disabled={isConfirmSubmitting}>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={async (e) => {
+                e.preventDefault();
+                if (isConfirmSubmitting || createIncident.isPending) return;
+                setIsConfirmSubmitting(true);
+                setShowConfirmation(false); // Close dialog immediately to prevent re-click
+                try {
+                  await form.handleSubmit(onSubmit)();
+                } finally {
+                  setIsConfirmSubmitting(false);
+                }
+              }}
+              disabled={isConfirmSubmitting || createIncident.isPending}
+            >
+              {isConfirmSubmitting ? (
+                <>
+                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                  {t('common.submitting')}
+                </>
+              ) : (
+                t('incidents.confirmAndSubmit')
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
