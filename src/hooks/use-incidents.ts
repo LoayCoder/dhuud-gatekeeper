@@ -223,19 +223,24 @@ export function useCreateIncident() {
       }).catch(err => console.warn('Failed to dispatch incident notification:', err));
     },
     onError: (error) => {
-      // Check for duplicate key error on reference_id
+      // Check for duplicate key error on reference_id (race condition)
       const isDuplicateRef = error.message?.includes('duplicate key') && 
                              error.message?.includes('reference_id');
       
-      toast({
-        title: isDuplicateRef 
-          ? t('incidents.alreadySubmittedTitle', 'Already Submitted')
-          : t('common.error'),
-        description: isDuplicateRef 
-          ? t('incidents.alreadySubmittedMessage', 'This incident has already been submitted successfully.')
-          : error.message,
-        variant: isDuplicateRef ? 'default' : 'destructive',
-      });
+      if (isDuplicateRef) {
+        // Race condition - ask user to retry
+        toast({
+          title: t('incidents.submissionConflict', 'Submission Conflict'),
+          description: t('incidents.submissionConflictMessage', 'Another report was being submitted at the same time. Please try again.'),
+          variant: 'default',
+        });
+      } else {
+        toast({
+          title: t('common.error'),
+          description: error.message,
+          variant: 'destructive',
+        });
+      }
     },
   });
 }
