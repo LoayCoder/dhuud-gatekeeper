@@ -167,6 +167,22 @@ interface UpgradeHistoryData {
   escalation_decision_notes?: string | null;
 }
 
+interface PropertyDamageData {
+  property_name: string;
+  property_type: string | null;
+  damage_severity: string | null;
+  repair_cost_estimate: number | null;
+  replacement_cost_estimate: number | null;
+  cost_currency: string;
+  damage_description: string | null;
+  operational_impact: string | null;
+  downtime_hours: number;
+  repair_status: string;
+  location_description: string | null;
+  safety_hazard_created: boolean;
+  safety_hazard_description: string | null;
+}
+
 // ============= Data Fetching Functions =============
 
 async function fetchTenantInfo(tenantId: string): Promise<TenantInfo | null> {
@@ -529,6 +545,16 @@ async function fetchWorkflowDecisions(incidentId: string): Promise<WorkflowDecis
   }
   
   return decisions;
+}
+
+async function fetchPropertyDamages(incidentId: string): Promise<PropertyDamageData[]> {
+  const { data } = await supabase
+    .from('incident_property_damages')
+    .select('property_name, property_type, damage_severity, repair_cost_estimate, replacement_cost_estimate, cost_currency, damage_description, operational_impact, downtime_hours, repair_status, location_description, safety_hazard_created, safety_hazard_description')
+    .eq('incident_id', incidentId)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: true });
+  return (data || []) as PropertyDamageData[];
 }
 
 async function fetchWitnessStatements(incidentId: string): Promise<WitnessStatement[]> {
@@ -1428,6 +1454,157 @@ function buildInvestigationHtml(investigation: InvestigationData, isRTL: boolean
   `;
 }
 
+// Property damage severity and impact labels for PDF
+const PROPERTY_DAMAGE_LABELS: Record<string, { en: string; ar: string }> = {
+  // Property types
+  equipment: { en: 'Equipment', ar: 'معدات' },
+  vehicle: { en: 'Vehicle', ar: 'مركبة' },
+  structure: { en: 'Structure', ar: 'مبنى' },
+  infrastructure: { en: 'Infrastructure', ar: 'بنية تحتية' },
+  material: { en: 'Material', ar: 'مواد' },
+  other: { en: 'Other', ar: 'أخرى' },
+  // Severity
+  minor: { en: 'Minor', ar: 'طفيف' },
+  moderate: { en: 'Moderate', ar: 'متوسط' },
+  major: { en: 'Major', ar: 'كبير' },
+  total_loss: { en: 'Total Loss', ar: 'خسارة كلية' },
+  // Impact
+  none: { en: 'None', ar: 'لا يوجد' },
+  minimal: { en: 'Minimal', ar: 'ضئيل' },
+  significant: { en: 'Significant', ar: 'كبير' },
+  critical: { en: 'Critical', ar: 'حرج' },
+  // Status
+  pending: { en: 'Pending', ar: 'قيد الانتظار' },
+  in_progress: { en: 'In Progress', ar: 'جاري الإصلاح' },
+  completed: { en: 'Completed', ar: 'مكتمل' },
+  not_repairable: { en: 'Not Repairable', ar: 'غير قابل للإصلاح' },
+};
+
+function getPropertyDamageLabel(code: string | null, isRTL: boolean): string {
+  if (!code) return '-';
+  const label = PROPERTY_DAMAGE_LABELS[code];
+  return label ? (isRTL ? label.ar : label.en) : code.replace(/_/g, ' ');
+}
+
+function getSeverityBadgeStyle(severity: string | null): string {
+  switch (severity) {
+    case 'total_loss': return 'background: #fecaca; color: #991b1b;';
+    case 'major': return 'background: #fee2e2; color: #dc2626;';
+    case 'moderate': return 'background: #ffedd5; color: #ea580c;';
+    case 'minor': return 'background: #fef3c7; color: #d97706;';
+    default: return 'background: #e2e8f0; color: #475569;';
+  }
+}
+
+function buildPropertyDamagesHtml(damages: PropertyDamageData[], isRTL: boolean): string {
+  if (damages.length === 0) return '';
+  
+  const textAlign = isRTL ? 'right' : 'left';
+  const totalRepairCost = damages.reduce((sum, d) => sum + (d.repair_cost_estimate || 0), 0);
+  const totalReplacementCost = damages.reduce((sum, d) => sum + (d.replacement_cost_estimate || 0), 0);
+  const totalDowntime = damages.reduce((sum, d) => sum + (d.downtime_hours || 0), 0);
+  const currency = damages[0]?.cost_currency || 'SAR';
+  
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat(isRTL ? 'ar-SA' : 'en-US', { 
+      style: 'currency', 
+      currency: currency,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+  
+  return `
+    <h3 style="margin: 24px 0 10px; font-size: 14px; font-weight: 600; color: #ea580c; border-top: 2px solid #e5e7eb; padding-top: 16px;">
+      🔧 ${isRTL ? 'أضرار الممتلكات' : 'Property Damage'} (${damages.length})
+    </h3>
+    
+    <!-- Summary Stats -->
+    <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 120px; padding: 10px; background: #fff7ed; border: 1px solid #fb923c; border-radius: 6px; text-align: center;">
+        <div style="font-size: 18px; font-weight: 700; color: #ea580c;">${damages.length}</div>
+        <div style="font-size: 10px; color: #9a3412;">${isRTL ? 'إجمالي المتضرر' : 'Total Damaged'}</div>
+      </div>
+      <div style="flex: 1; min-width: 120px; padding: 10px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; text-align: center;">
+        <div style="font-size: 14px; font-weight: 700; color: #dc2626;">${formatCurrency(totalRepairCost + totalReplacementCost)}</div>
+        <div style="font-size: 10px; color: #991b1b;">${isRTL ? 'التكلفة التقديرية' : 'Est. Cost'}</div>
+      </div>
+      <div style="flex: 1; min-width: 120px; padding: 10px; background: #f0f9ff; border: 1px solid #7dd3fc; border-radius: 6px; text-align: center;">
+        <div style="font-size: 18px; font-weight: 700; color: #0369a1;">${totalDowntime}h</div>
+        <div style="font-size: 10px; color: #0c4a6e;">${isRTL ? 'إجمالي التوقف' : 'Total Downtime'}</div>
+      </div>
+    </div>
+    
+    <!-- Damage Details Table -->
+    <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 8px;">
+      <thead>
+        <tr style="background: #f5f5f5;">
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 5%;">#</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: ${textAlign}; width: 22%;">${isRTL ? 'الممتلكات' : 'Property'}</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 12%;">${isRTL ? 'النوع' : 'Type'}</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 12%;">${isRTL ? 'الخطورة' : 'Severity'}</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 15%;">${isRTL ? 'تكلفة الإصلاح' : 'Repair Cost'}</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 10%;">${isRTL ? 'الأثر' : 'Impact'}</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 12%;">${isRTL ? 'الحالة' : 'Status'}</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${damages.map((d, i) => `
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: center; font-weight: 600;">${i + 1}</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">
+              <div style="font-weight: 600;">${d.property_name}</div>
+              ${d.location_description ? `<div style="font-size: 10px; color: #6b7280;">${d.location_description}</div>` : ''}
+            </td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
+              <span style="padding: 2px 6px; border-radius: 4px; font-size: 10px; background: #e2e8f0; color: #475569;">
+                ${getPropertyDamageLabel(d.property_type, isRTL)}
+              </span>
+            </td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
+              <span style="padding: 2px 6px; border-radius: 4px; font-size: 10px; ${getSeverityBadgeStyle(d.damage_severity)}">
+                ${getPropertyDamageLabel(d.damage_severity, isRTL)}
+              </span>
+            </td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: center; font-weight: 500;">
+              ${d.repair_cost_estimate ? formatCurrency(d.repair_cost_estimate) : '-'}
+            </td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
+              ${getPropertyDamageLabel(d.operational_impact, isRTL)}
+              ${d.downtime_hours > 0 ? `<div style="font-size: 9px; color: #6b7280;">${d.downtime_hours}h</div>` : ''}
+            </td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
+              <span style="padding: 2px 6px; border-radius: 4px; font-size: 10px; ${
+                d.repair_status === 'completed' ? 'background: #dcfce7; color: #166534;' :
+                d.repair_status === 'in_progress' ? 'background: #dbeafe; color: #1e40af;' :
+                d.repair_status === 'not_repairable' ? 'background: #fee2e2; color: #991b1b;' :
+                'background: #f3f4f6; color: #6b7280;'
+              }">
+                ${getPropertyDamageLabel(d.repair_status, isRTL)}
+              </span>
+            </td>
+          </tr>
+          ${d.damage_description ? `
+          <tr>
+            <td style="border: 1px solid #ddd;"></td>
+            <td style="padding: 6px 8px; border: 1px solid #ddd; font-size: 10px; color: #4b5563; background: #fafafa;" colspan="6">
+              <strong>${isRTL ? 'الوصف:' : 'Description:'}</strong> ${d.damage_description}
+              ${d.safety_hazard_created ? `<span style="margin-inline-start: 8px; padding: 2px 6px; background: #fef2f2; color: #dc2626; border-radius: 4px; font-size: 9px;">⚠️ ${isRTL ? 'خطر سلامة' : 'Safety Hazard'}</span>` : ''}
+            </td>
+          </tr>
+          ` : ''}
+        `).join('')}
+      </tbody>
+    </table>
+    
+    <!-- Total Row -->
+    <div style="padding: 10px; background: #f9fafb; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; display: flex; justify-content: space-between;">
+      <span style="font-weight: 600;">${isRTL ? 'إجمالي التكلفة التقديرية:' : 'Total Estimated Cost:'}</span>
+      <span style="font-weight: 700; color: #dc2626;">${formatCurrency(totalRepairCost + totalReplacementCost)}</span>
+    </div>
+  `;
+}
+
 function buildDocumentIntegrityFooter(incident: IncidentReportData['incident'], isRTL: boolean): string {
   const now = new Date();
   const documentId = `${incident.reference_id || incident.id}-${now.getTime()}`;
@@ -1500,6 +1677,7 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
     showDocumentIntegrity: isLegalDocument,
     includeActionEvidence: fullLegalMode,
     includeEvidenceUploaders: fullLegalMode,
+    showPropertyDamages: incident.has_damage && (accessLevel === 'hsse_full' || isLegalDocument),
   };
 
   // Fetch data based on sections needed
@@ -1512,6 +1690,7 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
   let workflowDecisions: WorkflowDecision[] = [];
   let contractorViolation: ContractorViolationData | null = null;
   let upgradeHistory: UpgradeHistoryData | null = null;
+  let propertyDamages: PropertyDamageData[] = [];
 
   // Parallel data fetching
   const fetchPromises: Promise<unknown>[] = [];
@@ -1561,6 +1740,11 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
       fetchUpgradeHistory(incident.id).then(r => { upgradeHistory = r; })
     );
   }
+  if (sections.showPropertyDamages) {
+    fetchPromises.push(
+      fetchPropertyDamages(incident.id).then(r => { propertyDamages = r; })
+    );
+  }
 
   await Promise.all(fetchPromises);
 
@@ -1583,6 +1767,7 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
     ? buildFullActionsHtml(actions, isRTL, sections.includeActionEvidence) 
     : (sections.showActionsBasic ? buildManagerActionsHtml(actions, isRTL) : '');
   const auditLogHtml = sections.showAuditLog ? buildAuditLogHtml(auditLogs, accessLevel, isRTL, includeFullAuditLog) : '';
+  const propertyDamagesHtml = sections.showPropertyDamages ? buildPropertyDamagesHtml(propertyDamages, isRTL) : '';
   const documentIntegrityHtml = sections.showDocumentIntegrity ? buildDocumentIntegrityFooter(incident, isRTL) : '';
 
   // Report type badge for title section
@@ -1629,6 +1814,7 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
       ${workflowDecisionsHtml}
       ${contractorViolationHtml}
       ${investigationHtml}
+      ${propertyDamagesHtml}
       ${evidenceHtml}
       ${witnessesHtml}
       ${rcaHtml}

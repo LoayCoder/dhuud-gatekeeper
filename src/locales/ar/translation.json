@@ -724,7 +724,95 @@
       "evidence": "الأدلة",
       "witnesses": "الشهود",
       "rca": "تحليل السبب الجذري",
-      "actions": "الإجراءات التصحيحية"
+      "actions": "الإجراءات التصحيحية",
+      "propertyDamage": "أضرار الممتلكات",
+      "injuries": "الإصابات"
+    },
+    "propertyDamage": {
+      "title": "أضرار الممتلكات",
+      "addDamage": "إضافة ضرر ممتلكات",
+      "editDamage": "تعديل ضرر الممتلكات",
+      "noDamages": "لا توجد سجلات أضرار ممتلكات",
+      "noDamagesDescription": "لم يتم إضافة أي سجلات أضرار ممتلكات لهذا الحادث بعد.",
+      "addFirstDamage": "إضافة أول سجل ضرر ممتلكات",
+      "created": "تم إنشاء سجل ضرر الممتلكات",
+      "updated": "تم تحديث سجل ضرر الممتلكات",
+      "deleted": "تم حذف سجل ضرر الممتلكات",
+      "deleteConfirmTitle": "حذف سجل ضرر الممتلكات",
+      "deleteConfirmDescription": "هل أنت متأكد من حذف سجل ضرر الممتلكات هذا؟",
+      "entryNumber": "السجل #{{number}}",
+      "summary": {
+        "totalDamaged": "إجمالي المتضرر",
+        "estimatedCost": "التكلفة التقديرية",
+        "totalDowntime": "إجمالي التوقف",
+        "bySeverity": "حسب الخطورة",
+        "hours": "ساعات"
+      },
+      "sections": {
+        "identification": "تحديد الممتلكات",
+        "damageDetails": "تفاصيل الضرر",
+        "costEstimation": "تقدير التكلفة",
+        "impactAssessment": "تقييم الأثر",
+        "resolution": "تتبع الإصلاح"
+      },
+      "fields": {
+        "propertyName": "اسم الممتلكات",
+        "propertyNamePlaceholder": "أدخل اسم الممتلكات/الأصل",
+        "propertyType": "نوع الممتلكات",
+        "selectPropertyType": "اختر نوع الممتلكات",
+        "assetTag": "رقم الأصل",
+        "assetTagPlaceholder": "معرف الأصل (اختياري)",
+        "locationDescription": "الموقع",
+        "locationPlaceholder": "أين توجد هذه الممتلكات؟",
+        "damageDate": "تاريخ الضرر",
+        "damageSeverity": "الخطورة",
+        "selectSeverity": "اختر الخطورة",
+        "damageDescription": "وصف الضرر",
+        "damageDescriptionPlaceholder": "صف الضرر بالتفصيل...",
+        "repairCostEstimate": "تكلفة الإصلاح التقديرية",
+        "replacementCostEstimate": "تكلفة الاستبدال التقديرية",
+        "costCurrency": "العملة",
+        "costAssessedBy": "تم التقييم بواسطة",
+        "costAssessedByPlaceholder": "من قام بتقييم التكلفة؟",
+        "costAssessmentDate": "تاريخ التقييم",
+        "operationalImpact": "الأثر التشغيلي",
+        "selectImpact": "اختر مستوى الأثر",
+        "downtimeHours": "ساعات التوقف",
+        "safetyHazardCreated": "تم إنشاء خطر سلامة",
+        "safetyHazardDescription": "وصف الخطر",
+        "safetyHazardPlaceholder": "صف خطر السلامة...",
+        "repairStatus": "حالة الإصلاح",
+        "selectRepairStatus": "اختر حالة الإصلاح",
+        "repairCompletedDate": "تاريخ إكمال الإصلاح",
+        "actualRepairCost": "تكلفة الإصلاح الفعلية"
+      },
+      "propertyTypes": {
+        "equipment": "معدات",
+        "vehicle": "مركبة",
+        "structure": "مبنى",
+        "infrastructure": "بنية تحتية",
+        "material": "مواد",
+        "other": "أخرى"
+      },
+      "severityLevels": {
+        "minor": "طفيف",
+        "moderate": "متوسط",
+        "major": "كبير",
+        "total_loss": "خسارة كلية"
+      },
+      "impactLevels": {
+        "none": "لا يوجد",
+        "minimal": "ضئيل",
+        "moderate": "متوسط",
+        "significant": "كبير",
+        "critical": "حرج"
+      },
+      "repairStatuses": {
+        "pending": "قيد الانتظار",
+        "in_progress": "جاري الإصلاح",
+        "completed": "مكتمل",
+        "not_repairable": "غير قابل للإصلاح"
+      }
     },
     "evidence": {
       "title": "إدارة الأدلة",
