@@ -20,6 +20,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,17 +31,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Loader2, Users, LogIn, UserX, AlertCircle, AlertTriangle } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Loader2, Users, LogIn, UserX, AlertCircle, AlertTriangle, User, Shield, Building2, Briefcase, Check } from 'lucide-react';
 import { UserType, isContractorType, userTypeHasLogin, getUserTypeLabel } from '@/lib/license-utils';
 import { cn } from '@/lib/utils';
 import { useLicensedUserQuota } from '@/hooks/use-licensed-user-quota';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { RoleSelector } from '@/components/roles/RoleSelector';
+import { RoleSelectorEnhanced } from '@/components/roles/RoleSelectorEnhanced';
 import { useUserRoles } from '@/hooks/use-user-roles';
 import { TeamAssignmentDialog } from '@/components/hierarchy/TeamAssignmentDialog';
+import { Badge } from '@/components/ui/badge';
 
 const userFormSchema = z.object({
   full_name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -50,28 +52,22 @@ const userFormSchema = z.object({
   has_login: z.boolean().default(true),
   is_active: z.boolean().default(true),
   delivery_channel: z.enum(['email', 'whatsapp', 'both']).default('email'),
-  // Employee fields
   employee_id: z.string().optional(),
   job_title: z.string().optional(),
-  // Contractor fields
   contractor_company_name: z.string().optional(),
   contract_start: z.string().optional(),
   contract_end: z.string().optional(),
-  // Member fields
   membership_id: z.string().optional(),
   membership_start: z.string().optional(),
   membership_end: z.string().optional(),
-  // Hierarchy
   has_full_branch_access: z.boolean().default(false),
   assigned_branch_id: z.string().optional().nullable(),
   assigned_division_id: z.string().optional().nullable(),
   assigned_department_id: z.string().optional().nullable(),
   assigned_section_id: z.string().optional().nullable(),
 }).refine((data) => {
-  // If has_login is true, email is required and must be valid
   if (data.has_login) {
     if (!data.email || data.email === '') return false;
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(data.email);
   }
@@ -80,7 +76,6 @@ const userFormSchema = z.object({
   message: 'Email is required when login is enabled',
   path: ['email'],
 }).refine((data) => {
-  // If delivery_channel includes whatsapp, phone is required
   if ((data.delivery_channel === 'whatsapp' || data.delivery_channel === 'both') && data.has_login) {
     return data.phone_number && data.phone_number.length > 0;
   }
@@ -99,6 +94,14 @@ interface UserFormDialogProps {
   onSave: (data: UserFormValues, selectedRoleIds: string[], emailChanged: boolean, originalEmail: string | null) => Promise<void>;
 }
 
+const userTypeCards = [
+  { value: 'employee', icon: '👤', color: 'bg-blue-500/10 border-blue-500/30' },
+  { value: 'contractor_longterm', icon: '🔧', color: 'bg-amber-500/10 border-amber-500/30' },
+  { value: 'contractor_shortterm', icon: '⚡', color: 'bg-orange-500/10 border-orange-500/30' },
+  { value: 'member', icon: '🏅', color: 'bg-purple-500/10 border-purple-500/30' },
+  { value: 'visitor', icon: '👋', color: 'bg-gray-500/10 border-gray-500/30' },
+];
+
 export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDialogProps) {
   const { t, i18n } = useTranslation();
   const { profile, isAdmin } = useAuth();
@@ -109,7 +112,9 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
   const [showTeamAssignment, setShowTeamAssignment] = useState(false);
   const [currentManagerId, setCurrentManagerId] = useState<string | null>(null);
   const [originalEmail, setOriginalEmail] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('basic');
   const direction = i18n.dir();
+  
   const [hierarchy, setHierarchy] = useState<{
     branches: any[];
     divisions: any[];
@@ -203,14 +208,10 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
           assigned_section_id: user.assigned_section_id || null,
         });
 
-        // Store original email for change detection
         setOriginalEmail(user.email || null);
-
-        // Load user's roles
         const userRoles = await fetchUserRoles(user.id);
         setSelectedRoleIds(userRoles.map(r => r.role_id));
 
-        // Load manager assignment
         const { data: teamAssignment } = await supabase
           .from('manager_team')
           .select('manager_id')
@@ -220,36 +221,32 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
       } else {
         form.reset();
         setOriginalEmail(null);
-        // Set default normal_user role for new users
         const normalUserRole = roles.find(r => r.code === 'normal_user');
         setSelectedRoleIds(normalUserRole ? [normalUserRole.id] : []);
         setCurrentManagerId(null);
       }
+      setActiveTab('basic');
     }
     loadUserData();
   }, [user, form, fetchUserRoles, roles]);
 
-  // Auto-set has_login based on user type (only for new users)
   useEffect(() => {
-    if (!user) { // Only auto-set for new users
+    if (!user) {
       const shouldHaveLogin = userTypeHasLogin(userType);
       form.setValue('has_login', shouldHaveLogin);
     }
   }, [userType, form, user]);
 
-  // Filter departments by selected division (cascade filtering)
   const filteredDepartments = useMemo(() => {
     if (!selectedDivisionId) return [];
     return hierarchy.departments.filter((d) => d.division_id === selectedDivisionId);
   }, [hierarchy.departments, selectedDivisionId]);
 
-  // Filter sections by selected department (cascade filtering)
   const filteredSections = useMemo(() => {
     if (!selectedDepartmentId) return [];
     return hierarchy.sections.filter((s) => s.department_id === selectedDepartmentId);
   }, [hierarchy.sections, selectedDepartmentId]);
 
-  // Clear child selections when parent changes
   useEffect(() => {
     const currentDeptId = form.getValues('assigned_department_id');
     if (currentDeptId && selectedDivisionId) {
@@ -275,19 +272,16 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
     }
   }, [selectedDepartmentId, hierarchy.sections, form]);
 
-  // Track if email has changed (for editing existing users)
   const currentEmail = form.watch('email');
   const emailHasChanged = user && originalEmail && currentEmail !== originalEmail;
 
   const onSubmit = async (data: UserFormValues) => {
-    // Check quota for new users with login
     if (!user && data.has_login && !checkCanAddUser()) {
       return;
     }
 
     setIsLoading(true);
     try {
-      // Pass selectedRoleIds and email change info to parent for proper handling
       const emailChanged = !!(user && originalEmail && data.email !== originalEmail);
       await onSave(data, selectedRoleIds, emailChanged, originalEmail);
       onOpenChange(false);
@@ -296,17 +290,36 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
     }
   };
 
-  // Check if user has manager role
   const hasManagerRole = selectedRoleIds.some(roleId => {
     const role = roles.find(r => r.id === roleId);
     return role?.code === 'manager';
   });
 
+  // Determine which type-specific tab to show
+  const showTypeSpecificTab = userType === 'employee' || isContractorType(userType) || userType === 'member';
+
+  // Tab progress indicators
+  const getTabStatus = (tabId: string) => {
+    const values = form.getValues();
+    switch (tabId) {
+      case 'basic':
+        return values.full_name && (values.has_login ? values.email : true);
+      case 'roles':
+        return selectedRoleIds.length > 0;
+      case 'organization':
+        return values.has_full_branch_access || values.assigned_branch_id;
+      case 'details':
+        return true;
+      default:
+        return false;
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto overflow-x-hidden" dir={direction}>
-        <DialogHeader className="text-start">
-          <DialogTitle className="text-start">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col" dir={direction}>
+        <DialogHeader className="text-start pb-2">
+          <DialogTitle className="text-start text-xl">
             {user ? t('userManagement.editUser') : t('userManagement.addUser')}
           </DialogTitle>
           <DialogDescription className="text-start">
@@ -319,571 +332,585 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* Basic Info */}
-            <div className="grid grid-cols-2 gap-3" dir={direction}>
-              <FormField
-                control={form.control}
-                name="full_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('profile.fullName')}</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 overflow-hidden">
+              {/* Tab Navigation */}
+              <TabsList className="grid w-full grid-cols-4 mb-4">
+                <TabsTrigger value="basic" className="gap-2 text-xs sm:text-sm">
+                  <User className="h-4 w-4 hidden sm:block" />
+                  {t('userManagement.tabBasic', 'Basic')}
+                  {getTabStatus('basic') && <Check className="h-3 w-3 text-green-500" />}
+                </TabsTrigger>
+                <TabsTrigger value="roles" className="gap-2 text-xs sm:text-sm">
+                  <Shield className="h-4 w-4 hidden sm:block" />
+                  {t('userManagement.tabRoles', 'Roles')}
+                  {getTabStatus('roles') && <Check className="h-3 w-3 text-green-500" />}
+                </TabsTrigger>
+                <TabsTrigger value="organization" className="gap-2 text-xs sm:text-sm">
+                  <Building2 className="h-4 w-4 hidden sm:block" />
+                  {t('userManagement.tabOrg', 'Org')}
+                </TabsTrigger>
+                {showTypeSpecificTab && (
+                  <TabsTrigger value="details" className="gap-2 text-xs sm:text-sm">
+                    <Briefcase className="h-4 w-4 hidden sm:block" />
+                    {t('userManagement.tabDetails', 'Details')}
+                  </TabsTrigger>
                 )}
-              />
+              </TabsList>
 
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center gap-2">
-                      {t('auth.email')}
-                      {emailHasChanged && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-                          <AlertTriangle className="h-3 w-3" />
-                          {t('userManagement.emailChangeWarning', 'Login credentials will change')}
-                        </span>
-                      )}
-                    </FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="email" 
-                        {...field} 
-                        className={cn(emailHasChanged && "border-amber-500 focus:ring-amber-500")}
-                      />
-                    </FormControl>
-                    {emailHasChanged && (
-                      <p className="text-xs text-amber-600 dark:text-amber-400">
-                        {t('userManagement.emailChangeNote', 'Changing email will update login credentials. Old email ({{oldEmail}}) will no longer work.', { oldEmail: originalEmail })}
-                      </p>
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3" dir={direction}>
-              <FormField
-                control={form.control}
-                name="phone_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('profile.phoneNumber')}</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="user_type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('userManagement.userType')}</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} dir={direction}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent dir={direction}>
-                        <SelectItem value="employee">{t('userTypes.employee')}</SelectItem>
-                        <SelectItem value="contractor_longterm">{t('userTypes.contractorLongterm')}</SelectItem>
-                        <SelectItem value="contractor_shortterm">{t('userTypes.contractorShortterm')}</SelectItem>
-                        <SelectItem value="member">{t('userTypes.member')}</SelectItem>
-                        <SelectItem value="visitor">{t('userTypes.visitor')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Platform Access Section - Prominent Card */}
-            <div 
-              className={cn(
-                "p-4 border-2 rounded-lg transition-all",
-                hasLogin 
-                  ? "border-primary bg-primary/5" 
-                  : "border-muted bg-muted/30"
-              )}
-              dir={direction}
-            >
-              <FormField
-                control={form.control}
-                name="has_login"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between space-y-0">
-                    <div className="space-y-1.5">
-                      <FormLabel className="text-base font-semibold flex items-center gap-2">
-                        {hasLogin ? (
-                          <LogIn className="h-4 w-4 text-primary" />
-                        ) : (
-                          <UserX className="h-4 w-4 text-muted-foreground" />
-                        )}
-                        {t('userManagement.platformAccess', 'Platform Access')}
-                      </FormLabel>
-                      <FormDescription className="text-sm">
-                        {hasLogin 
-                          ? t('userManagement.loginEnabled', 'This user can log in to the platform')
-                          : t('userManagement.loginDisabled', 'Profile only - no login access')}
-                      </FormDescription>
-                      {/* Billing indicator badge */}
-                      <span className={cn(
-                        "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
-                        hasLogin 
-                          ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" 
-                          : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-                      )}>
-                        {hasLogin 
-                          ? t('userManagement.licensedUser', '🔐 Licensed User')
-                          : t('userManagement.billableProfile', '📋 Billable Profile')}
-                      </span>
-                    </div>
-                    <FormControl>
-                      <Switch 
-                        checked={field.value} 
-                        onCheckedChange={field.onChange}
-                        className="scale-125"
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              {/* Contextual warning when login enabled for non-typical user type */}
-              {!userTypeHasLogin(userType) && hasLogin && (
-                <div className="flex items-start gap-2 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded mt-3">
-                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                  <span>
-                    {t('userManagement.loginNotTypical', 
-                      'Note: {{userType}} users typically don\'t need login access. Enable only if required.',
-                      { userType: t(getUserTypeLabel(userType)) }
-                    )}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Delivery Channel for new users with login */}
-            {!user && hasLogin && (
-              <div className="p-3 border rounded-lg bg-muted/30" dir={direction}>
-                <FormField
-                  control={form.control}
-                  name="delivery_channel"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        {t('invitations.deliveryChannel', 'Invitation Delivery')}
-                      </FormLabel>
-                      <FormDescription className="text-xs">
-                        {t('invitations.deliveryChannelDesc', 'How should the invitation code be sent?')}
-                      </FormDescription>
-                      <Select onValueChange={field.onChange} value={field.value || 'email'} dir={direction}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent dir={direction}>
-                          <SelectItem value="email">
-                            <span className="flex items-center gap-2">
-                              📧 {t('invitations.viaEmail', 'Email Only')}
-                            </span>
-                          </SelectItem>
-                          <SelectItem value="whatsapp">
-                            <span className="flex items-center gap-2">
-                              💬 {t('invitations.viaWhatsApp', 'WhatsApp Only')}
-                            </span>
-                          </SelectItem>
-                          <SelectItem value="both">
-                            <span className="flex items-center gap-2">
-                              📧💬 {t('invitations.viaBoth', 'Email & WhatsApp')}
-                            </span>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {(form.watch('delivery_channel') === 'whatsapp' || form.watch('delivery_channel') === 'both') && !form.watch('phone_number') && (
-                  <p className="text-xs text-warning mt-2 flex items-center gap-1">
-                    <AlertTriangle className="h-3 w-3" />
-                    {t('invitations.phoneRequired', 'Phone number is required for WhatsApp delivery')}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Active Status */}
-            <div className="flex items-center gap-4" dir={direction}>
-              <FormField
-                control={form.control}
-                name="is_active"
-                render={({ field }) => (
-                  <FormItem className="flex items-center gap-3 space-y-0">
-                    <FormControl>
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
-                    </FormControl>
-                    <FormLabel className="!mt-0 cursor-pointer">{t('userManagement.isActive')}</FormLabel>
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Role Assignment (Admin Only) */}
-            {isAdmin && (
-              <div className="space-y-2 p-3 border rounded-lg" dir={direction}>
-                <Label className="font-medium text-start block">{t('roles.roleAssignment')}</Label>
-                <p className="text-xs text-muted-foreground mb-2 text-start">{t('roles.roleAssignmentDescription')}</p>
-                <RoleSelector
-                  selectedRoleIds={selectedRoleIds}
-                  onChange={setSelectedRoleIds}
-                  userId={user?.id}
-                />
-              </div>
-            )}
-
-            {/* Team Assignment (Admin Only, for editing existing users) */}
-            {isAdmin && user && (
-              <div className="space-y-2 p-3 border rounded-lg" dir={direction}>
-                <div className="flex items-center justify-between">
-                  <div className="text-start">
-                    <Label className="font-medium">{t('hierarchy.teamAssignment')}</Label>
-                    <p className="text-xs text-muted-foreground">{t('hierarchy.teamAssignmentDescription')}</p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowTeamAssignment(true)}
-                    className="gap-2"
-                  >
-                    <Users className="h-4 w-4" />
-                    {currentManagerId ? t('hierarchy.changeManager') : t('hierarchy.assignToTeam')}
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Employee Fields */}
-            {userType === 'employee' && (
-              <div className="grid grid-cols-2 gap-3 p-3 border rounded-lg" dir={direction}>
-                <FormField
-                  control={form.control}
-                  name="employee_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('userManagement.employeeId')}</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="job_title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('userManagement.jobTitle')}</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            )}
-
-            {/* Contractor Fields */}
-            {isContractorType(userType) && (
-              <div className="grid grid-cols-3 gap-4 p-4 border rounded-lg">
-                <FormField
-                  control={form.control}
-                  name="contractor_company_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('userManagement.companyName')}</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="contract_start"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('userManagement.contractStart')}</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="contract_end"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('userManagement.contractEnd')}</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            )}
-
-            {/* Member Fields */}
-            {userType === 'member' && (
-              <div className="grid grid-cols-3 gap-4 p-4 border rounded-lg">
-                <FormField
-                  control={form.control}
-                  name="membership_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('userManagement.membershipId')}</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="membership_start"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('userManagement.membershipStart')}</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="membership_end"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('userManagement.membershipEnd')}</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            )}
-
-            {/* Organizational Hierarchy */}
-            <div className="space-y-3 p-3 border rounded-lg" dir={direction}>
-              <h4 className="font-medium text-start">{t('userManagement.organizationalAssignment')}</h4>
-              
-              {/* Full Branch Access Toggle */}
-              <FormField
-                control={form.control}
-                name="has_full_branch_access"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between p-3 border rounded-md bg-muted/30">
-                    <div className="space-y-0.5">
-                      <FormLabel className="font-medium">{t('userManagement.fullBranchAccess')}</FormLabel>
-                      <FormDescription className="text-xs">
-                        {t('userManagement.fullBranchAccessDescription')}
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch 
-                        checked={field.value} 
-                        onCheckedChange={(checked) => {
-                          field.onChange(checked);
-                          if (checked) {
-                            form.setValue('assigned_branch_id', null);
-                          }
-                        }} 
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              <div className="grid grid-cols-2 gap-3">
-                <FormField
-                  control={form.control}
-                  name="assigned_branch_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('orgStructure.branch')}</FormLabel>
-                      <Select 
-                        onValueChange={(v) => {
-                          field.onChange(v === 'none' ? null : v);
-                          form.setValue('assigned_division_id', null);
-                          form.setValue('assigned_department_id', null);
-                          form.setValue('assigned_section_id', null);
-                        }} 
-                        value={hasFullBranchAccess ? 'all' : (field.value || 'none')}
-                        disabled={hasFullBranchAccess}
-                        dir={direction}
-                      >
-                        <FormControl>
-                          <SelectTrigger className={hasFullBranchAccess ? 'bg-muted' : ''}>
-                            <SelectValue placeholder={t('common.select')} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent dir={direction}>
-                          {hasFullBranchAccess ? (
-                            <SelectItem value="all">{t('userManagement.allBranches')}</SelectItem>
-                          ) : (
-                            <>
-                              <SelectItem value="none">{t('common.none')}</SelectItem>
-                              {hierarchy.branches.map((b) => (
-                                <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                              ))}
-                            </>
+              {/* Tab Content - Scrollable */}
+              <div className="flex-1 overflow-y-auto px-1">
+                {/* Tab 1: Basic Info */}
+                <TabsContent value="basic" className="space-y-4 mt-0">
+                  {/* User Type Selection - Visual Cards */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">{t('userManagement.userType')}</Label>
+                    <div className="grid grid-cols-5 gap-2">
+                      {userTypeCards.map(({ value, icon, color }) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => form.setValue('user_type', value as UserFormValues['user_type'])}
+                          className={cn(
+                            "flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all text-center",
+                            userType === value 
+                              ? `${color} border-primary ring-2 ring-primary/20` 
+                              : "border-border hover:border-primary/50"
                           )}
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  )}
-                />
+                        >
+                          <span className="text-xl">{icon}</span>
+                          <span className="text-[10px] font-medium truncate w-full">
+                            {t(`userTypes.${value.replace('_', '')}`, t(`userTypes.${value}`))}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-                <FormField
-                  control={form.control}
-                  name="assigned_division_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('orgStructure.division')}</FormLabel>
-                      <Select 
-                        onValueChange={(v) => {
-                          field.onChange(v === 'none' ? null : v);
-                          form.setValue('assigned_department_id', null);
-                          form.setValue('assigned_section_id', null);
-                        }} 
-                        value={field.value || 'none'}
-                        dir={direction}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={t('common.select')} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent dir={direction}>
-                          <SelectItem value="none">{t('common.none')}</SelectItem>
-                          {hierarchy.divisions.map((d) => (
-                            <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  )}
-                />
+                  {/* Platform Access Card */}
+                  <Card className={cn(
+                    "transition-all",
+                    hasLogin ? "border-primary/50 bg-primary/5" : "bg-muted/30"
+                  )}>
+                    <CardContent className="p-4">
+                      <FormField
+                        control={form.control}
+                        name="has_login"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center justify-between space-y-0">
+                            <div className="space-y-1">
+                              <FormLabel className="text-base font-semibold flex items-center gap-2">
+                                {hasLogin ? (
+                                  <LogIn className="h-4 w-4 text-primary" />
+                                ) : (
+                                  <UserX className="h-4 w-4 text-muted-foreground" />
+                                )}
+                                {t('userManagement.platformAccess', 'Platform Access')}
+                              </FormLabel>
+                              <FormDescription className="text-sm">
+                                {hasLogin 
+                                  ? t('userManagement.loginEnabled', 'This user can log in to the platform')
+                                  : t('userManagement.loginDisabled', 'Profile only - no login access')}
+                              </FormDescription>
+                              <Badge variant={hasLogin ? "default" : "secondary"} className="text-xs">
+                                {hasLogin 
+                                  ? t('userManagement.licensedUser', '🔐 Licensed User')
+                                  : t('userManagement.billableProfile', '📋 Profile Only')}
+                              </Badge>
+                            </div>
+                            <FormControl>
+                              <Switch checked={field.value} onCheckedChange={field.onChange} className="scale-125" />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
 
-                <FormField
-                  control={form.control}
-                  name="assigned_department_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('orgStructure.department')}</FormLabel>
-                      <Select 
-                        onValueChange={(v) => {
-                          field.onChange(v === 'none' ? null : v);
-                          form.setValue('assigned_section_id', null);
-                        }} 
-                        value={field.value || 'none'}
-                        dir={direction}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={t('common.select')} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent dir={direction}>
-                          <SelectItem value="none">{t('common.none')}</SelectItem>
-                          {filteredDepartments.map((d) => (
-                            <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  )}
-                />
+                  {/* Name & Contact */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="full_name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('profile.fullName')} *</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="phone_number"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('profile.phoneNumber')}</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-                <FormField
-                  control={form.control}
-                  name="assigned_section_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('orgStructure.section')}</FormLabel>
-                      <Select 
-                        onValueChange={(v) => field.onChange(v === 'none' ? null : v)} 
-                        value={field.value || 'none'}
-                        dir={direction}
-                      >
+                  {/* Email with change warning */}
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          {t('auth.email')} {hasLogin && '*'}
+                          {emailHasChanged && (
+                            <Badge variant="outline" className="text-amber-600 border-amber-500">
+                              <AlertTriangle className="h-3 w-3 me-1" />
+                              {t('userManagement.emailChangeWarning', 'Credentials will change')}
+                            </Badge>
+                          )}
+                        </FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={t('common.select')} />
-                          </SelectTrigger>
+                          <Input type="email" {...field} className={cn(emailHasChanged && "border-amber-500")} />
                         </FormControl>
-                        <SelectContent dir={direction}>
-                          <SelectItem value="none">{t('common.none')}</SelectItem>
-                          {filteredSections.map((s) => (
-                            <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Delivery Channel for new users */}
+                  {!user && hasLogin && (
+                    <FormField
+                      control={form.control}
+                      name="delivery_channel"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('invitations.deliveryChannel', 'Invitation Delivery')}</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value || 'email'} dir={direction}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent dir={direction} className="bg-popover">
+                              <SelectItem value="email">📧 {t('invitations.viaEmail', 'Email Only')}</SelectItem>
+                              <SelectItem value="whatsapp">💬 {t('invitations.viaWhatsApp', 'WhatsApp Only')}</SelectItem>
+                              <SelectItem value="both">📧💬 {t('invitations.viaBoth', 'Email & WhatsApp')}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
                   )}
-                />
+
+                  {/* Active Status */}
+                  <FormField
+                    control={form.control}
+                    name="is_active"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center gap-3 space-y-0 p-3 rounded-lg border">
+                        <FormControl>
+                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <FormLabel className="!mt-0 cursor-pointer">{t('userManagement.isActive')}</FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                </TabsContent>
+
+                {/* Tab 2: Roles & Permissions */}
+                <TabsContent value="roles" className="space-y-4 mt-0">
+                  {isAdmin ? (
+                    <>
+                      <Card>
+                        <CardContent className="p-4 space-y-3">
+                          <div className="text-start">
+                            <Label className="font-medium text-base">{t('roles.roleAssignment')}</Label>
+                            <p className="text-sm text-muted-foreground">{t('roles.roleAssignmentDescription')}</p>
+                          </div>
+                          <RoleSelectorEnhanced
+                            selectedRoleIds={selectedRoleIds}
+                            onChange={setSelectedRoleIds}
+                            userId={user?.id}
+                          />
+                        </CardContent>
+                      </Card>
+
+                      {/* Team Assignment for existing users */}
+                      {user && (
+                        <Card>
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="text-start">
+                                <Label className="font-medium">{t('hierarchy.teamAssignment')}</Label>
+                                <p className="text-sm text-muted-foreground">{t('hierarchy.teamAssignmentDescription')}</p>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowTeamAssignment(true)}
+                                className="gap-2"
+                              >
+                                <Users className="h-4 w-4" />
+                                {currentManagerId ? t('hierarchy.changeManager') : t('hierarchy.assignToTeam')}
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </>
+                  ) : (
+                    <Card>
+                      <CardContent className="p-8 text-center text-muted-foreground">
+                        <Shield className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p>{t('roles.adminOnlyAccess', 'Role management requires admin privileges')}</p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </TabsContent>
+
+                {/* Tab 3: Organization */}
+                <TabsContent value="organization" className="space-y-4 mt-0">
+                  <Card>
+                    <CardContent className="p-4 space-y-4">
+                      {/* Full Branch Access Toggle */}
+                      <FormField
+                        control={form.control}
+                        name="has_full_branch_access"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+                            <div className="space-y-0.5">
+                              <FormLabel className="font-medium">{t('userManagement.fullBranchAccess')}</FormLabel>
+                              <FormDescription className="text-xs">
+                                {t('userManagement.fullBranchAccessDescription')}
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch 
+                                checked={field.value} 
+                                onCheckedChange={(checked) => {
+                                  field.onChange(checked);
+                                  if (checked) form.setValue('assigned_branch_id', null);
+                                }} 
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      
+                      {/* Hierarchy Selects */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="assigned_branch_id"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{t('orgStructure.branch')}</FormLabel>
+                              <Select 
+                                onValueChange={(v) => {
+                                  field.onChange(v === 'none' ? null : v);
+                                  form.setValue('assigned_division_id', null);
+                                  form.setValue('assigned_department_id', null);
+                                  form.setValue('assigned_section_id', null);
+                                }} 
+                                value={hasFullBranchAccess ? 'all' : (field.value || 'none')}
+                                disabled={hasFullBranchAccess}
+                                dir={direction}
+                              >
+                                <FormControl>
+                                  <SelectTrigger className={hasFullBranchAccess ? 'bg-muted' : ''}>
+                                    <SelectValue placeholder={t('common.select')} />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent dir={direction} className="bg-popover">
+                                  {hasFullBranchAccess ? (
+                                    <SelectItem value="all">{t('userManagement.allBranches')}</SelectItem>
+                                  ) : (
+                                    <>
+                                      <SelectItem value="none">{t('common.none')}</SelectItem>
+                                      {hierarchy.branches.map((b) => (
+                                        <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                                      ))}
+                                    </>
+                                  )}
+                                </SelectContent>
+                              </Select>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="assigned_division_id"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{t('orgStructure.division')}</FormLabel>
+                              <Select 
+                                onValueChange={(v) => {
+                                  field.onChange(v === 'none' ? null : v);
+                                  form.setValue('assigned_department_id', null);
+                                  form.setValue('assigned_section_id', null);
+                                }} 
+                                value={field.value || 'none'}
+                                dir={direction}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder={t('common.select')} />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent dir={direction} className="bg-popover">
+                                  <SelectItem value="none">{t('common.none')}</SelectItem>
+                                  {hierarchy.divisions.map((d) => (
+                                    <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="assigned_department_id"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{t('orgStructure.department')}</FormLabel>
+                              <Select 
+                                onValueChange={(v) => {
+                                  field.onChange(v === 'none' ? null : v);
+                                  form.setValue('assigned_section_id', null);
+                                }} 
+                                value={field.value || 'none'}
+                                dir={direction}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder={t('common.select')} />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent dir={direction} className="bg-popover">
+                                  <SelectItem value="none">{t('common.none')}</SelectItem>
+                                  {filteredDepartments.map((d) => (
+                                    <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="assigned_section_id"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{t('orgStructure.section')}</FormLabel>
+                              <Select 
+                                onValueChange={(v) => field.onChange(v === 'none' ? null : v)} 
+                                value={field.value || 'none'}
+                                dir={direction}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder={t('common.select')} />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent dir={direction} className="bg-popover">
+                                  <SelectItem value="none">{t('common.none')}</SelectItem>
+                                  {filteredSections.map((s) => (
+                                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Tab 4: Type-Specific Details */}
+                <TabsContent value="details" className="space-y-4 mt-0">
+                  {userType === 'employee' && (
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2 mb-4">
+                          <span className="text-xl">👤</span>
+                          <h3 className="font-medium">{t('userManagement.employeeDetails', 'Employee Details')}</h3>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="employee_id"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{t('userManagement.employeeId')}</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="job_title"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{t('userManagement.jobTitle')}</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {isContractorType(userType) && (
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2 mb-4">
+                          <span className="text-xl">🔧</span>
+                          <h3 className="font-medium">{t('userManagement.contractorDetails', 'Contractor Details')}</h3>
+                        </div>
+                        <div className="grid grid-cols-1 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="contractor_company_name"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{t('userManagement.companyName')}</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="contract_start"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t('userManagement.contractStart')}</FormLabel>
+                                  <FormControl>
+                                    <Input type="date" {...field} />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="contract_end"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t('userManagement.contractEnd')}</FormLabel>
+                                  <FormControl>
+                                    <Input type="date" {...field} />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {userType === 'member' && (
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2 mb-4">
+                          <span className="text-xl">🏅</span>
+                          <h3 className="font-medium">{t('userManagement.memberDetails', 'Member Details')}</h3>
+                        </div>
+                        <div className="grid grid-cols-1 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="membership_id"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{t('userManagement.membershipId')}</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="membership_start"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t('userManagement.membershipStart')}</FormLabel>
+                                  <FormControl>
+                                    <Input type="date" {...field} />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="membership_end"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t('userManagement.membershipEnd')}</FormLabel>
+                                  <FormControl>
+                                    <Input type="date" {...field} />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </TabsContent>
               </div>
-            </div>
+            </Tabs>
 
-            <DialogFooter>
+            {/* Sticky Footer */}
+            <DialogFooter className="pt-4 border-t mt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 {t('common.cancel')}
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-                {t('common.save')}
+                {isLoading && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+                {user ? t('common.save') : t('userManagement.sendInvitation')}
               </Button>
             </DialogFooter>
           </form>
         </Form>
-      </DialogContent>
 
-      {/* Team Assignment Dialog */}
-      {user && (
-        <TeamAssignmentDialog
-          open={showTeamAssignment}
-          onOpenChange={setShowTeamAssignment}
-          userId={user.id}
-          userName={user.full_name || ''}
-          currentManagerId={currentManagerId}
-          onAssigned={() => {
-            // Refresh manager assignment
-            supabase
-              .from('manager_team')
-              .select('manager_id')
-              .eq('user_id', user.id)
-              .maybeSingle()
-              .then(({ data }) => setCurrentManagerId(data?.manager_id || null));
-          }}
-        />
-      )}
+        {/* Team Assignment Dialog */}
+        {showTeamAssignment && user && (
+          <TeamAssignmentDialog
+            open={showTeamAssignment}
+            onOpenChange={setShowTeamAssignment}
+            userId={user.id}
+            userName={user.full_name}
+            currentManagerId={currentManagerId}
+            onAssigned={() => {
+              // Refetch manager assignment
+              supabase
+                .from('manager_team')
+                .select('manager_id')
+                .eq('user_id', user.id)
+                .maybeSingle()
+                .then(({ data }) => setCurrentManagerId(data?.manager_id || null));
+            }}
+          />
+        )}
+      </DialogContent>
     </Dialog>
   );
 }
