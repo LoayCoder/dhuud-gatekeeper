@@ -26,6 +26,7 @@ import { useActiveEvent } from '@/hooks/use-special-events';
 import { findNearestSite, type NearestSiteResult } from '@/lib/geo-utils';
 import { uploadFilesParallel } from '@/lib/upload-utils';
 import { UploadProgressOverlay } from '@/components/ui/upload-progress';
+import { SubmissionSuccessDialog } from '@/components/incidents/SubmissionSuccessDialog';
 import { HSSE_SEVERITY_LEVELS, canCloseOnSpot, type SeverityLevelV2 } from '@/lib/hsse-severity-levels';
 import { useObservationAIValidator } from '@/hooks/use-observation-ai-validator';
 import { AIAnalysisPanel } from '@/components/observations/AIAnalysisPanel';
@@ -92,6 +93,10 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
   const [closedOnSpotPhotos, setClosedOnSpotPhotos] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  // Success dialog state
+  const [submittedObservation, setSubmittedObservation] = useState<{ id: string; referenceId: string } | null>(null);
+  // Prevent double-submission
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   
   // AI Validation hook
   const aiValidator = useObservationAIValidator();
@@ -265,6 +270,10 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
   };
   
   const onSubmit = async (values: FormValues) => {
+    // Prevent double-submission
+    if (hasSubmitted) return;
+    setHasSubmitted(true);
+    
     // Build closed_on_spot_data
     let closedOnSpotData: ClosedOnSpotPayload | undefined;
     if (values.closed_on_spot) {
@@ -368,7 +377,19 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
           }
         }
         
-        navigate('/incidents');
+        // Show success dialog and auto-redirect after 3 seconds
+        setSubmittedObservation({
+          id: data.id,
+          referenceId: data.reference_id || '',
+        });
+        
+        setTimeout(() => {
+          navigate(`/incidents/${data.id}`);
+        }, 3000);
+      },
+      onError: () => {
+        // Reset submission guard on error
+        setHasSubmitted(false);
       },
     });
   };
@@ -920,6 +941,14 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
           </Form>
         </CardContent>
       </Card>
+      
+      {/* Success Dialog */}
+      <SubmissionSuccessDialog
+        open={!!submittedObservation}
+        referenceId={submittedObservation?.referenceId || ''}
+        incidentId={submittedObservation?.id || ''}
+        onViewIncident={() => submittedObservation && navigate(`/incidents/${submittedObservation.id}`)}
+      />
     </div>
   );
 }
