@@ -50,6 +50,13 @@ export const menuGroups: MenuGroup[] = [
     sortOrder: 1,
   },
   {
+    code: "my_actions",
+    title: { en: "My Actions", ar: "إجراءاتي" },
+    translationKey: "navigation.myActions",
+    icon: ClipboardCheck,
+    sortOrder: 2,
+  },
+  {
     code: "hsse_management",
     title: { en: "HSSE Management", ar: "إدارة HSSE" },
     translationKey: "navigation.hsseManagement",
