@@ -8,29 +8,36 @@ interface HSSEContact {
   role_name: string;
   role_code: string;
   avatar_url: string | null;
+  match_scope: 'site' | 'branch' | 'organization';
 }
 
 /**
- * Fetch HSSE contact person for a specific branch location
- * Priority: hsse_officer > hsse_expert > hsse_manager
+ * Fetch HSSE contact person with smart fallback resolution
+ * Priority: Site → Branch → Organization (tenant-wide)
  */
-export function useHSSEContact(branchId: string | null) {
+export function useHSSEContact(branchId: string | null, siteId: string | null = null) {
   return useQuery({
-    queryKey: ['hsse-contact', branchId],
+    queryKey: ['hsse-contact', branchId, siteId],
     queryFn: async (): Promise<HSSEContact | null> => {
-      if (!branchId) return null;
-
       const { data, error } = await supabase
-        .rpc('get_hsse_contact_for_location', { p_branch_id: branchId });
+        .rpc('get_hsse_contact_for_location', { 
+          p_branch_id: branchId,
+          p_site_id: siteId 
+        });
 
       if (error) {
         console.error('Error fetching HSSE contact:', error);
         return null;
       }
 
-      return data?.[0] || null;
+      if (!data?.[0]) return null;
+      
+      return {
+        ...data[0],
+        match_scope: data[0].match_scope as 'site' | 'branch' | 'organization'
+      };
     },
-    enabled: !!branchId,
+    enabled: true, // Always enabled - let DB handle fallback
     staleTime: 5 * 60 * 1000, // 5 minutes cache
     gcTime: 30 * 60 * 1000,
   });
