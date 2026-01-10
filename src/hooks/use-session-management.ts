@@ -28,6 +28,9 @@ export function useSessionManagement() {
   // Track if we've already registered a session for the current user
   const hasRegisteredSession = useRef(false);
   const lastUserId = useRef<string | null>(null);
+  
+  // CRITICAL: Track logout state to prevent race conditions with pending operations
+  const isLoggingOut = useRef(false);
 
   // Get device info for session tracking
   const getDeviceInfo = useCallback(() => {
@@ -43,6 +46,12 @@ export function useSessionManagement() {
 
   // Helper to check if we have a valid auth session before making edge function calls
   const hasValidAuthSession = useCallback(async (): Promise<boolean> => {
+    // CRITICAL: Check logout flag first to prevent race conditions
+    if (isLoggingOut.current) {
+      console.log('Logout in progress, skipping auth check');
+      return false;
+    }
+    
     try {
       // First check local session state (fast, no network)
       const { data: { session } } = await supabase.auth.getSession();
@@ -129,6 +138,12 @@ export function useSessionManagement() {
 
   // Validate the current session
   const validateSession = useCallback(async (): Promise<SessionValidationResult> => {
+    // CRITICAL: Check logout flag first to prevent race conditions
+    if (isLoggingOut.current) {
+      console.log('Logout in progress, skipping validation');
+      return { valid: false, reason: 'logout_in_progress' };
+    }
+    
     // Don't validate if not authenticated
     if (!isAuthenticated || !user?.id) {
       return { valid: false, reason: 'not_authenticated' };
@@ -179,6 +194,19 @@ export function useSessionManagement() {
 
   // Handle session invalidation (forced logout)
   const handleSessionInvalid = useCallback(async (reason: string, details?: Record<string, string>) => {
+    // CRITICAL: Set logout flag FIRST to prevent any further edge function calls
+    isLoggingOut.current = true;
+    
+    // Clear intervals immediately to prevent race conditions
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+      heartbeatIntervalRef.current = null;
+    }
+    if (validateIntervalRef.current) {
+      clearInterval(validateIntervalRef.current);
+      validateIntervalRef.current = null;
+    }
+    
     localStorage.removeItem(SESSION_TOKEN_KEY);
     
     // Reset registration tracking
@@ -220,10 +248,22 @@ export function useSessionManagement() {
     }
 
     navigate('/login');
+    
+    // Reset logout flag after navigation (for potential re-login)
+    // Use setTimeout to ensure navigation completes first
+    setTimeout(() => {
+      isLoggingOut.current = false;
+    }, 100);
   }, [navigate]);
 
   // Send heartbeat to keep session alive
   const sendHeartbeat = useCallback(async () => {
+    // CRITICAL: Check logout flag first to prevent race conditions
+    if (isLoggingOut.current) {
+      console.log('Logout in progress, skipping heartbeat');
+      return;
+    }
+    
     // Don't send heartbeat if not authenticated
     if (!isAuthenticated || !user?.id) {
       return;
