@@ -121,6 +121,8 @@ export function useInspectionTemplates(templateType?: 'asset' | 'area' | 'audit'
       return data as unknown as InspectionTemplate[];
     },
     enabled: !!profile?.tenant_id,
+    staleTime: 0, // Always refetch on mount - fixes caching issues
+    gcTime: 0,    // Don't cache results
   });
 }
 
@@ -325,7 +327,8 @@ export function useDeleteTemplate() {
       console.log('[DeleteTemplate] Success');
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['inspection-templates'] });
+      // Force hard refetch, not just invalidation - fixes caching issues
+      queryClient.resetQueries({ queryKey: ['inspection-templates'] });
       toast.success(t('inspections.templateDeleted'));
     },
     onError: (error: Error) => {
