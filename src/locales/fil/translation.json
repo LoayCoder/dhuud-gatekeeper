@@ -1299,6 +1299,7 @@
     "activate": "I-activate",
     "deactivate": "I-deactivate",
     "requiredFields": "Pakipunan ang lahat ng kinakailangang field",
+    "confirmDelete": "Sigurado ka bang gusto mong tanggalin ang item na ito?",
     "seedTestData": "Magdagdag ng Test Data",
     "seedSuccess": "Naidagdag ang {{count}} test projects",
     "seedError": "Hindi naidagdag ang test data",
