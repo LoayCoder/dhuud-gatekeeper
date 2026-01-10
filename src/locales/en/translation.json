@@ -1846,6 +1846,7 @@
     "reject": "Reject",
     "current": "(current)",
     "reason": "Reason",
+    "confirmDelete": "Are you sure you want to delete this item?",
     "seedTestData": "Seed Test Data",
     "seedSuccess": "Seeded {{count}} test projects",
     "seedError": "Failed to seed test data"
