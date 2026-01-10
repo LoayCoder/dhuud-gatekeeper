@@ -200,6 +200,8 @@ export function useCreateTemplate() {
         .from('profiles')
         .select('id, tenant_id')
         .eq('user_id', user.id)
+        .eq('is_deleted', false)
+        .eq('is_active', true)
         .single();
 
       if (!profile?.tenant_id) throw new Error('No tenant found');
@@ -336,6 +338,8 @@ export function useCreateTemplateItem() {
         .from('profiles')
         .select('tenant_id')
         .eq('user_id', user.id)
+        .eq('is_deleted', false)
+        .eq('is_active', true)
         .single();
 
       if (!profile?.tenant_id) throw new Error('No tenant found');
@@ -513,6 +517,8 @@ export function useStartInspection() {
         .from('profiles')
         .select('tenant_id')
         .eq('user_id', user.id)
+        .eq('is_deleted', false)
+        .eq('is_active', true)
         .single();
 
       if (!profile?.tenant_id) throw new Error('No tenant found');
