@@ -24,3 +24,5 @@ export { AuditScoringCard } from './AuditScoringCard';
 export { ActionVerificationDialog } from './ActionVerificationDialog';
 export { SessionActionsPanel } from './SessionActionsPanel';
 export { ActionEvidenceSection } from './ActionEvidenceSection';
+export { SwipeInspectionItem } from './SwipeInspectionItem';
+export { BulkSwipeInspection } from './BulkSwipeInspection';
