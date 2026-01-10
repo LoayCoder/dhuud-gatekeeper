@@ -22823,6 +22823,10 @@ export type Database = {
       }
       can_manage_access_list: { Args: { _user_id: string }; Returns: boolean }
       can_manage_data: { Args: { _user_id: string }; Returns: boolean }
+      can_manage_inspection_templates: {
+        Args: { _template_tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_perform_expert_screening: {
         Args: { _user_id: string }
         Returns: boolean
