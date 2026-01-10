@@ -296,3 +296,26 @@ export function useCheckExpiredContracts() {
     },
   });
 }
+
+export function useDeleteContractorCompany() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (companyId: string) => {
+      // Use SECURITY DEFINER function to bypass RLS issues
+      // This also cascades soft-delete to workers, documents, and representatives
+      const { error } = await supabase
+        .rpc('soft_delete_contractor_company', { p_company_id: companyId });
+
+      if (error) throw error;
+      return companyId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contractor-companies"] });
+      toast.success("Company deleted");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}

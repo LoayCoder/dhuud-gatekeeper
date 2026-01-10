@@ -325,3 +325,26 @@ export function useActivePermitsForMap() {
     enabled: !!tenantId,
   });
 }
+
+export function useDeletePTWPermit() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (permitId: string) => {
+      // Use SECURITY DEFINER function to bypass RLS issues
+      // This also cascades soft-delete to clearance checks and safety requirements
+      const { error } = await supabase
+        .rpc('soft_delete_ptw_permit', { p_permit_id: permitId });
+
+      if (error) throw error;
+      return permitId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ptw-permits"] });
+      toast.success("Permit deleted");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}

@@ -78,10 +78,9 @@ export function useDeleteSecurityShift() {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      // Use SECURITY DEFINER function to bypass RLS issues
       const { error } = await supabase
-        .from('security_shifts')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', id);
+        .rpc('soft_delete_security_shift', { p_shift_id: id });
       if (error) throw error;
     },
     onSuccess: () => {

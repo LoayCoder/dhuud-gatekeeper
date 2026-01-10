@@ -245,3 +245,27 @@ export function useRejectRiskAssessment() {
     },
   });
 }
+
+export function useDeleteRiskAssessment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (assessmentId: string) => {
+      // Use SECURITY DEFINER function to bypass RLS issues
+      // This also cascades soft-delete to team and details
+      const { error } = await supabase
+        .rpc('soft_delete_risk_assessment', { p_assessment_id: assessmentId });
+
+      if (error) throw error;
+      return assessmentId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["risk-assessments"] });
+      toast.success("Risk assessment deleted");
+    },
+    onError: (error) => {
+      console.error("Error deleting risk assessment:", error);
+      toast.error("Failed to delete risk assessment");
+    },
+  });
+}

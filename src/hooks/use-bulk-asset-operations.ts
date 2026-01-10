@@ -113,54 +113,21 @@ export function useBulkDelete() {
       if (!profile?.tenant_id || !user?.id) throw new Error('No tenant or user');
       if (assetIds.length === 0) throw new Error('No assets selected');
 
-      const deletedAt = new Date().toISOString();
+      // Use SECURITY DEFINER function for each asset
+      // This handles cascading soft-delete of all related records
+      const results = await Promise.all(
+        assetIds.map(assetId => 
+          supabase.rpc('soft_delete_hsse_asset', { p_asset_id: assetId })
+        )
+      );
 
-      // Step 1: Soft-delete all linked records in parallel
-      await Promise.all([
-        supabase
-          .from('asset_maintenance_schedules')
-          .update({ deleted_at: deletedAt })
-          .in('asset_id', assetIds)
-          .is('deleted_at', null),
-        supabase
-          .from('asset_cost_transactions')
-          .update({ deleted_at: deletedAt })
-          .in('asset_id', assetIds)
-          .is('deleted_at', null),
-        supabase
-          .from('asset_inspections')
-          .update({ deleted_at: deletedAt })
-          .in('asset_id', assetIds)
-          .is('deleted_at', null),
-        supabase
-          .from('asset_documents')
-          .update({ deleted_at: deletedAt })
-          .in('asset_id', assetIds)
-          .is('deleted_at', null),
-        supabase
-          .from('asset_photos')
-          .update({ deleted_at: deletedAt })
-          .in('asset_id', assetIds)
-          .is('deleted_at', null),
-        supabase
-          .from('asset_maintenance_history')
-          .update({ deleted_at: deletedAt })
-          .in('asset_id', assetIds)
-          .is('deleted_at', null),
-      ]);
+      // Check for errors
+      const errors = results.filter(r => r.error);
+      if (errors.length > 0) {
+        console.error('Bulk delete errors:', errors);
+        throw new Error(`Failed to delete ${errors.length} assets`);
+      }
 
-      // Step 2: Soft-delete the assets themselves
-      const { error } = await supabase
-        .from('hsse_assets')
-        .update({
-          deleted_at: deletedAt,
-          updated_by: user.id,
-        })
-        .in('id', assetIds)
-        .eq('tenant_id', profile.tenant_id)
-        .is('deleted_at', null);
-
-      if (error) throw error;
       return { count: assetIds.length };
     },
     onSuccess: ({ count }) => {
