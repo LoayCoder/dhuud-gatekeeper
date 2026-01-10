@@ -315,6 +315,61 @@ export function useDeleteTemplate() {
   });
 }
 
+// ============= Bulk Template Hooks =============
+
+export function useBulkUpdateTemplateStatus() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
+  
+  return useMutation({
+    mutationFn: async ({ ids, is_active }: { ids: string[]; is_active: boolean }) => {
+      const { error } = await supabase
+        .from('inspection_templates')
+        .update({ is_active })
+        .in('id', ids);
+      
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.resetQueries({ queryKey: ['inspection-templates'] });
+      const message = variables.is_active 
+        ? t('inspections.templatesActivated', { count: variables.ids.length })
+        : t('inspections.templatesDeactivated', { count: variables.ids.length });
+      toast.success(message);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+export function useBulkDeleteTemplates() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
+  
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      // Call SECURITY DEFINER function for each template
+      for (const id of ids) {
+        const { error } = await supabase
+          .rpc('soft_delete_inspection_template', { p_template_id: id });
+        
+        if (error) {
+          console.error('[BulkDeleteTemplate] Error for id:', id, error);
+          throw error;
+        }
+      }
+    },
+    onSuccess: (_, ids) => {
+      queryClient.resetQueries({ queryKey: ['inspection-templates'] });
+      toast.success(t('inspections.templatesDeleted', { count: ids.length }));
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
 export function useCreateTemplateItem() {
   const queryClient = useQueryClient();
   
