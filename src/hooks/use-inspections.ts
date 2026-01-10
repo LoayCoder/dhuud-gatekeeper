@@ -312,19 +312,17 @@ export function useDeleteTemplate() {
         .single();
       console.log('[DeleteTemplate] Template:', template);
       
-      const { error, data } = await supabase
+      const { error } = await supabase
         .from('inspection_templates')
         .update({ deleted_at: new Date().toISOString() })
-        .eq('id', id)
-        .select();
+        .eq('id', id);
       
       if (error) {
         console.error('[DeleteTemplate] Error:', error);
-        console.error('[DeleteTemplate] Template ID:', id);
         throw error;
       }
       
-      console.log('[DeleteTemplate] Success:', data);
+      console.log('[DeleteTemplate] Success');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inspection-templates'] });
