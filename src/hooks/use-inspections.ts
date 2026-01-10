@@ -295,36 +295,14 @@ export function useDeleteTemplate() {
   
   return useMutation({
     mutationFn: async (id: string) => {
-      // Debug logging
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log('[DeleteTemplate] User:', user?.id);
-      
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id, tenant_id, full_name')
-        .eq('user_id', user?.id)
-        .single();
-      console.log('[DeleteTemplate] Profile:', profile);
-      
-      // Fetch template info for debugging
-      const { data: template } = await supabase
-        .from('inspection_templates')
-        .select('id, tenant_id, name, deleted_at')
-        .eq('id', id)
-        .single();
-      console.log('[DeleteTemplate] Template:', template);
-      
+      // Use SECURITY DEFINER function to bypass RLS issues
       const { error } = await supabase
-        .from('inspection_templates')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', id);
+        .rpc('soft_delete_inspection_template', { p_template_id: id });
       
       if (error) {
         console.error('[DeleteTemplate] Error:', error);
         throw error;
       }
-      
-      console.log('[DeleteTemplate] Success');
     },
     onSuccess: () => {
       // Force hard refetch, not just invalidation - fixes caching issues
