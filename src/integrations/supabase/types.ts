@@ -23704,6 +23704,10 @@ export type Database = {
       }
       soft_delete_evidence: { Args: { p_evidence_id: string }; Returns: string }
       soft_delete_incident: { Args: { p_incident_id: string }; Returns: string }
+      soft_delete_inspection_template: {
+        Args: { p_template_id: string }
+        Returns: string
+      }
       submit_contractor_violation: {
         Args: {
           p_incident_id: string
