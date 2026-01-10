@@ -621,3 +621,26 @@ export function useResendVisitorInvitation() {
     },
   });
 }
+
+export function useDeleteVisitRequest() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (requestId: string) => {
+      // Use SECURITY DEFINER function to bypass RLS issues
+      const { error } = await supabase
+        .rpc('soft_delete_visit_request', { p_request_id: requestId });
+
+      if (error) throw error;
+      return requestId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['visit-requests'] });
+      toast({ title: 'Visit request deleted' });
+    },
+    onError: (error) => {
+      toast({ title: 'Failed to delete visit request', description: error.message, variant: 'destructive' });
+    },
+  });
+}

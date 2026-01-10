@@ -541,17 +541,16 @@ export function useUpdateSession() {
   });
 }
 
-// Soft delete an inspection session
+// Soft delete an inspection session using SECURITY DEFINER function
 export function useDeleteSession() {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async (sessionId: string) => {
-      // Soft delete the session
+      // Use SECURITY DEFINER function to bypass RLS issues
+      // This also cascades soft-delete to responses, findings, and photos
       const { error } = await supabase
-        .from('inspection_sessions')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', sessionId);
+        .rpc('soft_delete_inspection_session', { p_session_id: sessionId });
       
       if (error) throw error;
       return sessionId;

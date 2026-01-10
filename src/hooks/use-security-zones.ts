@@ -191,10 +191,9 @@ export function useDeleteSecurityZone() {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      // Use SECURITY DEFINER function to bypass RLS issues
       const { error } = await supabase
-        .from('security_zones')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', id);
+        .rpc('soft_delete_security_zone', { p_zone_id: id });
       if (error) throw error;
     },
     onSuccess: () => {

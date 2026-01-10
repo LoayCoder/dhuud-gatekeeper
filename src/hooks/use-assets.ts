@@ -286,23 +286,19 @@ export function useUpdateAsset() {
 export function useDeleteAsset() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      if (!profile?.tenant_id) throw new Error('No tenant');
-
-      // Soft delete
+      // Use SECURITY DEFINER function to bypass RLS issues
+      // This also cascades soft-delete to all related records
       const { error } = await supabase
-        .from('hsse_assets')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', id)
-        .eq('tenant_id', profile.tenant_id);
+        .rpc('soft_delete_hsse_asset', { p_asset_id: id });
 
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
+      queryClient.invalidateQueries({ queryKey: ['asset-dashboard-stats'] });
       toast.success(t('assets.deleteSuccess'));
     },
     onError: (error) => {

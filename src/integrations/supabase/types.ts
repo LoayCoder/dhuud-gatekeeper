@@ -23694,18 +23694,51 @@ export type Database = {
         Args: { p_tenant_id: string }
         Returns: undefined
       }
+      soft_delete_branch: { Args: { p_branch_id: string }; Returns: string }
+      soft_delete_building: { Args: { p_building_id: string }; Returns: string }
       soft_delete_closed_incident: {
         Args: { p_incident_id: string; p_password_hash: string }
+        Returns: string
+      }
+      soft_delete_contractor_company: {
+        Args: { p_company_id: string }
         Returns: string
       }
       soft_delete_corrective_action: {
         Args: { p_action_id: string }
         Returns: string
       }
+      soft_delete_emergency_alert: {
+        Args: { p_alert_id: string }
+        Returns: string
+      }
       soft_delete_evidence: { Args: { p_evidence_id: string }; Returns: string }
+      soft_delete_floor_zone: { Args: { p_zone_id: string }; Returns: string }
+      soft_delete_hsse_asset: { Args: { p_asset_id: string }; Returns: string }
       soft_delete_incident: { Args: { p_incident_id: string }; Returns: string }
+      soft_delete_inspection_session: {
+        Args: { p_session_id: string }
+        Returns: string
+      }
       soft_delete_inspection_template: {
         Args: { p_template_id: string }
+        Returns: string
+      }
+      soft_delete_ptw_permit: { Args: { p_permit_id: string }; Returns: string }
+      soft_delete_risk_assessment: {
+        Args: { p_assessment_id: string }
+        Returns: string
+      }
+      soft_delete_security_shift: {
+        Args: { p_shift_id: string }
+        Returns: string
+      }
+      soft_delete_security_zone: {
+        Args: { p_zone_id: string }
+        Returns: string
+      }
+      soft_delete_visit_request: {
+        Args: { p_request_id: string }
         Returns: string
       }
       submit_contractor_violation: {
