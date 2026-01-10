@@ -196,6 +196,8 @@ function AreaSessionWorkspaceContent() {
               session={session}
               responses={responses}
               findings={[]}
+              templateItems={templateItems}
+              isAreaSession={true}
             />
           )}
           {session.status !== 'closed' && (
