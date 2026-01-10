@@ -315,10 +315,29 @@ export function useSessionManagement() {
 
   // Invalidate session on logout
   const invalidateSession = useCallback(async () => {
+    // CRITICAL: Check logout flag first to prevent race conditions
+    if (isLoggingOut.current) {
+      console.log('Logout in progress, skipping invalidation call');
+      localStorage.removeItem(SESSION_TOKEN_KEY);
+      hasRegisteredSession.current = false;
+      lastUserId.current = null;
+      return;
+    }
+
     const sessionToken = localStorage.getItem(SESSION_TOKEN_KEY);
     if (!sessionToken) return;
 
     try {
+      // Validate we have a valid auth session before calling edge function
+      const isValid = await hasValidAuthSession();
+      if (!isValid) {
+        console.log('No valid auth session, skipping session invalidation call');
+        localStorage.removeItem(SESSION_TOKEN_KEY);
+        hasRegisteredSession.current = false;
+        lastUserId.current = null;
+        return;
+      }
+
       await supabase.functions.invoke('manage-session', {
         body: {
           action: 'invalidate',
@@ -333,7 +352,7 @@ export function useSessionManagement() {
       hasRegisteredSession.current = false;
       lastUserId.current = null;
     }
-  }, []);
+  }, [hasValidAuthSession]);
 
   // Store handlers in refs to avoid effect re-runs from callback recreation
   // Update synchronously during render (safe for refs, avoids useEffect ordering issues)
