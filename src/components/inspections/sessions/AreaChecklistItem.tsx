@@ -116,6 +116,11 @@ export function AreaChecklistItem({
   const handleResultClick = (newResult: 'pass' | 'fail' | 'na') => {
     if (isLocked) return;
     setResult(newResult);
+    
+    // Auto-show notes section when result is FAIL to prompt for comment
+    if (newResult === 'fail' && !showNotes) {
+      setShowNotes(true);
+    }
   };
   
   const handleCaptureGps = async () => {
