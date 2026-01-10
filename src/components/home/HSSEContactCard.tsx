@@ -19,7 +19,8 @@ export function HSSEContactCard() {
   const { t } = useTranslation();
   const { data: profile, isLoading: profileLoading } = useCachedProfile();
   const { data: contact, isLoading: contactLoading } = useHSSEContact(
-    profile?.assigned_branch_id || null
+    profile?.assigned_branch_id || null,
+    profile?.assigned_site_id || null
   );
 
   const isLoading = profileLoading || contactLoading;
@@ -53,6 +54,15 @@ export function HSSEContactCard() {
       hsse_manager: t('roles.hsseManager', 'HSSE Manager'),
     };
     return roleMap[roleCode] || roleCode;
+  };
+
+  const getScopeLabel = (scope: string) => {
+    const scopeMap: Record<string, string> = {
+      site: t('home.siteContact', 'Site Contact'),
+      branch: t('home.branchContact', 'Branch Contact'),
+      organization: t('home.organizationContact', 'Organization Contact'),
+    };
+    return scopeMap[scope] || '';
   };
 
   if (isLoading) {
@@ -116,9 +126,16 @@ export function HSSEContactCard() {
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{contact.full_name}</p>
-                  <Badge variant="secondary" className="text-xs mt-1">
-                    {getRoleLabel(contact.role_code)}
-                  </Badge>
+                  <div className="flex flex-wrap items-center gap-1 mt-1">
+                    <Badge variant="secondary" className="text-xs">
+                      {getRoleLabel(contact.role_code)}
+                    </Badge>
+                    {contact.match_scope === 'organization' && (
+                      <span className="text-xs text-muted-foreground">
+                        • {getScopeLabel(contact.match_scope)}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <ChevronRight className="h-5 w-5 text-muted-foreground rtl:rotate-180" />
               </div>
