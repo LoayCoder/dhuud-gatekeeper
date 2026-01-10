@@ -23124,30 +23124,18 @@ export type Database = {
           weekly_trend: Json
         }[]
       }
-      get_hsse_contact_for_location:
-        | {
-            Args: { p_branch_id: string }
-            Returns: {
-              avatar_url: string
-              full_name: string
-              id: string
-              phone_number: string
-              role_code: string
-              role_name: string
-            }[]
-          }
-        | {
-            Args: { p_branch_id?: string; p_site_id?: string }
-            Returns: {
-              avatar_url: string
-              full_name: string
-              id: string
-              match_scope: string
-              phone_number: string
-              role_code: string
-              role_name: string
-            }[]
-          }
+      get_hsse_contact_for_location: {
+        Args: { p_branch_id?: string; p_site_id?: string }
+        Returns: {
+          avatar_url: string
+          full_name: string
+          id: string
+          match_scope: string
+          phone_number: string
+          role_code: string
+          role_name: string
+        }[]
+      }
       get_hsse_event_dashboard_stats:
         | {
             Args: { p_end_date?: string; p_start_date?: string }
