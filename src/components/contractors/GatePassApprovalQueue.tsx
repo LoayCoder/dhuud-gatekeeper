@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Check, X, Truck, Clock } from "lucide-react";
+import { Check, X, Truck, Clock, User } from "lucide-react";
 import { useState } from "react";
 import { MaterialGatePass, useApproveGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
 import { GatePassRejectionDialog } from "./GatePassRejectionDialog";
@@ -56,8 +56,28 @@ export function GatePassApprovalQueue({ passes }: GatePassApprovalQueueProps) {
               </div>
               <CardContent className="pt-4 space-y-3">
                 <div>
-                  <p className="text-sm text-muted-foreground">{pass.project?.project_name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {pass.is_internal_request 
+                      ? t("contractors.gatePasses.internalRequest", "Internal Request")
+                      : pass.project?.project_name}
+                  </p>
                   <p className="text-sm font-medium mt-1">{pass.material_description}</p>
+                </div>
+
+                {/* Requester and Designated Approver Info */}
+                <div className="space-y-1 text-sm">
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <User className="h-3.5 w-3.5" />
+                    <span>{t("contractors.gatePasses.requestedBy", "Requested by")}:</span>
+                    <span className="font-medium text-foreground">{pass.requester?.full_name || "-"}</span>
+                  </div>
+                  {pass.is_internal_request && pass.approval_from && (
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Check className="h-3.5 w-3.5" />
+                      <span>{t("contractors.gatePasses.designatedApprover", "Designated approver")}:</span>
+                      <span className="font-medium text-foreground">{pass.approval_from.full_name}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
