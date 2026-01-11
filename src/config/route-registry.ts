@@ -1041,6 +1041,16 @@ export const routeRegistry: RouteDefinition[] = [
     hidden: true,
     hiddenReason: "External portal for contractor users only",
   },
+  {
+    path: "/contractor-portal/activity-log",
+    menuCode: "contractor_portal_activity_log",
+    title: { en: "Activity Log", ar: "سجل النشاط" },
+    icon: History,
+    component: lazyWithRetry(() => import("@/pages/contractor-portal/ActivityLog")),
+    protection: "protected",
+    hidden: true,
+    hiddenReason: "External portal for contractor users only",
+  },
 
   // Client Site Representative
   {

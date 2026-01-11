@@ -1,12 +1,13 @@
 import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Building2, Users, FolderKanban, Truck, LayoutDashboard, LogOut } from "lucide-react";
+import { Building2, Users, FolderKanban, Truck, LayoutDashboard, LogOut, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { supabase } from "@/integrations/supabase/client";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 
 interface ContractorPortalLayoutProps {
   children: ReactNode;
@@ -17,6 +18,7 @@ const navItems = [
   { path: "/contractor-portal/workers", icon: Users, labelKey: "contractorPortal.nav.workers" },
   { path: "/contractor-portal/projects", icon: FolderKanban, labelKey: "contractorPortal.nav.projects" },
   { path: "/contractor-portal/gate-passes", icon: Truck, labelKey: "contractorPortal.nav.gatePasses" },
+  { path: "/contractor-portal/activity-log", icon: History, labelKey: "contractorPortal.nav.activityLog" },
 ];
 
 export default function ContractorPortalLayout({ children }: ContractorPortalLayoutProps) {
@@ -74,10 +76,13 @@ export default function ContractorPortalLayout({ children }: ContractorPortalLay
             ))}
           </nav>
 
-          <Button variant="ghost" size="sm" onClick={handleLogout}>
-            <LogOut className="h-4 w-4 me-2" />
-            {t("common.logout", "Logout")}
-          </Button>
+          <div className="flex items-center gap-2">
+            <NotificationCenter />
+            <Button variant="ghost" size="sm" onClick={handleLogout}>
+              <LogOut className="h-4 w-4 me-2" />
+              {t("common.logout", "Logout")}
+            </Button>
+          </div>
         </div>
       </header>
 
