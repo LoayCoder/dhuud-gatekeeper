@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,18 +9,14 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Users, Search, Filter, Shield, Phone, MapPin, Briefcase, Plus, Network, Crown, Eye, UsersRound, ExternalLink, Info } from 'lucide-react';
-import { useSecurityTeam, type SecurityTeamMember } from '@/hooks/use-security-team';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { Users, Search, Filter, Shield, Phone, MapPin, Briefcase, Plus, Network, Crown, Eye, UsersRound } from 'lucide-react';
+import { useSecurityTeam } from '@/hooks/use-security-team';
 import { GuardRegistrationForm } from '@/components/security/GuardRegistrationForm';
 import { TeamHierarchyView } from '@/components/security/TeamHierarchyView';
 import { TeamsTab } from '@/components/security/TeamsTab';
 
 export default function SecurityTeam() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [roleFilter, setRoleFilter] = useState<string>('all');
@@ -29,15 +24,6 @@ export default function SecurityTeam() {
 
   const { data: teamMembers, isLoading } = useSecurityTeam({
     isActive: statusFilter === 'all' ? undefined : statusFilter === 'active',
-  });
-
-  // Fetch sites for assignment
-  const { data: sites } = useQuery({
-    queryKey: ['sites-list'],
-    queryFn: async () => {
-      const { data } = await supabase.from('sites').select('id, name').is('deleted_at', null).order('name');
-      return data || [];
-    },
   });
 
   // Apply filters
@@ -57,9 +43,6 @@ export default function SecurityTeam() {
   const activeCount = teamMembers?.filter(m => m.is_active).length || 0;
   const totalCount = teamMembers?.length || 0;
 
-  const handleViewInUserManagement = (memberId: string) => {
-    navigate(`/admin/user-management?userId=${memberId}`);
-  };
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
@@ -216,13 +199,6 @@ export default function SecurityTeam() {
               </div>
             </CardHeader>
             <CardContent>
-              {/* Info banner about User Management */}
-              <Alert className="mb-4">
-                <Info className="h-4 w-4" />
-                <AlertDescription>
-                  {t('security.team.managedInUserManagement', 'Role, Site, and other profile settings are managed in User Management.')}
-                </AlertDescription>
-              </Alert>
               
               {isLoading ? (
                 <div className="animate-pulse space-y-2">{[...Array(5)].map((_, i) => <div key={i} className="h-16 bg-muted rounded" />)}</div>
@@ -236,7 +212,7 @@ export default function SecurityTeam() {
                       <TableHead>{t('security.team.contact', 'Contact')}</TableHead>
                       <TableHead>{t('security.team.site', 'Site')}</TableHead>
                       <TableHead>{t('common.status', 'Status')}</TableHead>
-                      <TableHead className="text-end">{t('common.actions', 'Actions')}</TableHead>
+                      
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -256,16 +232,6 @@ export default function SecurityTeam() {
                         <TableCell>{member.phone_number ? <span className="flex items-center gap-1 text-sm"><Phone className="h-3 w-3" />{member.phone_number}</span> : '-'}</TableCell>
                         <TableCell>{member.sites?.name ? <span className="flex items-center gap-1 text-sm"><MapPin className="h-3 w-3" />{member.sites.name}</span> : '-'}</TableCell>
                         <TableCell><Badge variant={member.is_active ? 'default' : 'secondary'}>{member.is_active ? t('common.active', 'Active') : t('common.inactive', 'Inactive')}</Badge></TableCell>
-                        <TableCell className="text-end">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => handleViewInUserManagement(member.id)}
-                            title={t('security.team.editInUserManagement', 'Edit in User Management')}
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
