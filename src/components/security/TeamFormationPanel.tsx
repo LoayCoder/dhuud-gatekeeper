@@ -201,20 +201,18 @@ export function TeamFormationPanel() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {supervisors.map((supervisor) => (
-                        <SelectItem key={supervisor.id} value={supervisor.id}>
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-6 w-6">
-                              <AvatarImage src={supervisor.avatar_url || undefined} />
-                              <AvatarFallback className="text-xs">
-                                {getInitials(supervisor.full_name)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span>{supervisor.full_name}</span>
-                            {getRoleBadge(supervisor.role)}
-                          </div>
-                        </SelectItem>
-                      ))}
+                      {supervisors.map((supervisor) => {
+                        const roleLabel = supervisor.role === 'security_shift_leader' 
+                          ? t('security.team.roles.shiftLeader', 'Shift Leader')
+                          : supervisor.role === 'security_supervisor'
+                          ? t('security.team.roles.supervisor', 'Supervisor')
+                          : t('security.team.roles.manager', 'Manager');
+                        return (
+                          <SelectItem key={supervisor.id} value={supervisor.id}>
+                            {supervisor.full_name} ({roleLabel})
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                   <FormMessage />
