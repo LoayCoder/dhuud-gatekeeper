@@ -1833,7 +1833,16 @@
     "tenantAccessDenied": "ليس لديك صلاحية الوصول إلى هذه المنظمة",
     "sessionInvalidated": "انتهت الجلسة",
     "sessionInvalidatedDesc": "تم إنهاء جلستك. يرجى تسجيل الدخول مرة أخرى.",
-    "mfaRequiredForTenant": "المصادقة الثنائية مطلوبة لهذه المنظمة"
+    "mfaRequiredForTenant": "المصادقة الثنائية مطلوبة لهذه المنظمة",
+    "orContinueWith": "أو تابع باستخدام",
+    "signInWithGoogle": "تسجيل الدخول بحساب Google",
+    "signingInWithGoogle": "جاري تسجيل الدخول...",
+    "invitationRequired": "الدعوة مطلوبة",
+    "invitationRequiredDesc": "تحتاج إلى دعوة للوصول إلى هذه المنصة. يرجى التواصل مع المسؤول للحصول على رمز دعوة.",
+    "enterInvitationCode": "أدخل رمز الدعوة",
+    "backToLogin": "العودة إلى تسجيل الدخول",
+    "oauthError": "خطأ في المصادقة",
+    "oauthErrorDesc": "حدثت مشكلة في تسجيل الدخول بحساب Google. يرجى المحاولة مرة أخرى."
   },
   "forgotPassword": {
     "title": "نسيت كلمة المرور",
@@ -4386,7 +4395,8 @@
     "ptw": "تصاريح العمل",
     "security": "الأمن",
     "audit": "التدقيق",
-    "food_safety": "سلامة الغذاء"
+    "food_safety": "سلامة الغذاء",
+    "contractor": "المقاولون"
   },
   "roleDescriptions": {
     "admin": "التحكم الكامل في جميع ميزات النظام",

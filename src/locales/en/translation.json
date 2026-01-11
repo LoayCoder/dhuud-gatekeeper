@@ -1966,7 +1966,16 @@
     "tenantAccessDenied": "You don't have access to this organization",
     "sessionInvalidated": "Session Ended",
     "sessionInvalidatedDesc": "Your session has been terminated. Please log in again.",
-    "mfaRequiredForTenant": "Two-factor authentication is required for this organization"
+    "mfaRequiredForTenant": "Two-factor authentication is required for this organization",
+    "orContinueWith": "Or continue with",
+    "signInWithGoogle": "Sign in with Google",
+    "signingInWithGoogle": "Signing in...",
+    "invitationRequired": "Invitation Required",
+    "invitationRequiredDesc": "You need an invitation to access this platform. Please contact your administrator for an invitation code.",
+    "enterInvitationCode": "Enter Invitation Code",
+    "backToLogin": "Back to Login",
+    "oauthError": "Authentication Error",
+    "oauthErrorDesc": "There was a problem signing in with Google. Please try again."
   },
   "hsseNotifications": {
     "title": "Notifications",
@@ -4571,7 +4580,8 @@
     "ptw": "PTW",
     "security": "Security",
     "audit": "Audit",
-    "food_safety": "Food Safety"
+    "food_safety": "Food Safety",
+    "contractor": "Contractors"
   },
   "hierarchy": {
     "teamStructure": "Team Structure",

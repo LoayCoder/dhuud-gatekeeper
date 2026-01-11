@@ -17,6 +17,7 @@ const categoryColors: Record<RoleCategory, string> = {
   security: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20',
   audit: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
   food_safety: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+  contractor: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20',
 };
 
 export function RoleBadge({ code, name, category, size = 'md' }: RoleBadgeProps) {

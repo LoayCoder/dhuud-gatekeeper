@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-export type RoleCategory = 'general' | 'hsse' | 'environmental' | 'ptw' | 'security' | 'audit' | 'food_safety';
+export type RoleCategory = 'general' | 'hsse' | 'environmental' | 'ptw' | 'security' | 'audit' | 'food_safety' | 'contractor';
 
 export interface Role {
   id: string;

@@ -6,6 +6,7 @@ import { useLocation } from 'react-router-dom';
 const PUBLIC_ROUTES = [
   '/login',
   '/signup',
+  '/auth/callback',
   '/forgot-password',
   '/reset-password',
   '/invite',

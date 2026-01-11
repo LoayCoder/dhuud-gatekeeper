@@ -37,6 +37,7 @@ const categoryOrder: RoleCategory[] = [
   'security',
   'audit',
   'food_safety',
+  'contractor',
 ];
 
 export function RoleSelector({ selectedRoleIds, onChange, disabled, userId }: RoleSelectorProps) {
