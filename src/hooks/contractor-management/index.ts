@@ -19,3 +19,4 @@ export * from "./use-gate-pass-approvers";
 export * from "./use-gate-pass-details";
 export * from "./use-my-gate-passes";
 export * from "./use-gate-pass-guard-actions";
+export * from "./use-gate-pass-pdf";

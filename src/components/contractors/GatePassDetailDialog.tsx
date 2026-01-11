@@ -34,6 +34,7 @@ import {
   GatePassApproverProfile,
 } from "@/hooks/contractor-management/use-gate-pass-details";
 import { cn } from "@/lib/utils";
+import { GatePassPDFExportButton } from "./GatePassPDFExportButton";
 
 interface GatePassDetailDialogProps {
   pass: MaterialGatePass | null;
@@ -88,10 +89,15 @@ export function GatePassDetailDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            {t("contractors.gatePassDetail.title", "Gate Pass Details")}
-          </DialogTitle>
+          <div className="flex items-center justify-between gap-4">
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              {t("contractors.gatePassDetail.title", "Gate Pass Details")}
+            </DialogTitle>
+            {pass?.status === 'approved' && (
+              <GatePassPDFExportButton passId={pass.id} />
+            )}
+          </div>
         </DialogHeader>
 
         <Tabs defaultValue="details" className="flex-1 flex flex-col min-h-0">
