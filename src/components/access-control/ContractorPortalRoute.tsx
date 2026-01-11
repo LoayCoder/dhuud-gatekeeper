@@ -5,6 +5,9 @@ import { ShieldAlert, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ContractorPortalRouteProps {
   children: ReactNode;
@@ -13,15 +16,33 @@ interface ContractorPortalRouteProps {
 /**
  * Access control wrapper for /contractor-portal routes.
  * Only allows access to users linked via contractor_representatives.user_id
+ * Super admins bypass this check.
  */
 export function ContractorPortalRoute({ children }: ContractorPortalRouteProps) {
   const { data: rep, isLoading, error } = useContractorRepresentative();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
 
-  if (isLoading) {
+  // Check if user is super admin (bypasses contractor rep check)
+  const { data: isSuperAdmin, isLoading: isAdminLoading } = useQuery({
+    queryKey: ["is-super-admin", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return false;
+      const { data } = await supabase.rpc("is_super_admin", { _user_id: user.id });
+      return data === true;
+    },
+    enabled: !!user?.id,
+  });
+
+  if (isLoading || isAdminLoading) {
     return <PageLoader />;
+  }
+
+  // Super admin can access everything
+  if (isSuperAdmin) {
+    return <>{children}</>;
   }
 
   // User is not a contractor representative
