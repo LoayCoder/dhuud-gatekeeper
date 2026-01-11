@@ -13248,7 +13248,14 @@ export type Database = {
             foreignKeyName: "material_gate_passes_requested_by_fkey"
             columns: ["requested_by"]
             isOneToOne: false
-            referencedRelation: "contractor_representatives"
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_gate_passes_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
