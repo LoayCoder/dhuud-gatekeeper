@@ -38,8 +38,14 @@ import { useSecurityTeam } from '@/hooks/use-security-team';
 import { useCreateSecurityTeam } from '@/hooks/use-security-teams';
 
 const formSchema = z.object({
-  name: z.string().min(1, 'Team name is required'),
-  description: z.string().optional(),
+  name: z.string()
+    .trim()
+    .min(1, 'Team name is required')
+    .max(100, 'Team name must be less than 100 characters'),
+  description: z.string()
+    .trim()
+    .max(500, 'Description must be less than 500 characters')
+    .optional(),
   supervisor_id: z.string().min(1, 'Supervisor is required'),
   member_ids: z.array(z.string()).optional(),
 });
@@ -115,15 +121,25 @@ export function TeamFormationPanel() {
     }
   };
 
+  const handleOpenChange = (isOpen: boolean) => {
+    // Prevent closing while submitting
+    if (createTeam.isPending) return;
+    setOpen(isOpen);
+    if (!isOpen) {
+      form.reset();
+      setSelectedMembers([]);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button className="gap-2">
           <Plus className="h-4 w-4" />
           {t('security.createTeam')}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px]" onInteractOutside={(e) => createTeam.isPending && e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
@@ -140,10 +156,14 @@ export function TeamFormationPanel() {
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('security.teamName')}</FormLabel>
+              <FormItem>
+                  <FormLabel>{t('security.teamName')} <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
-                    <Input placeholder={t('security.teamNamePlaceholder')} {...field} />
+                    <Input 
+                      placeholder={t('security.teamNamePlaceholder')} 
+                      disabled={createTeam.isPending}
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -154,11 +174,12 @@ export function TeamFormationPanel() {
               control={form.control}
               name="description"
               render={({ field }) => (
-                <FormItem>
+              <FormItem>
                   <FormLabel>{t('common.description')}</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder={t('security.teamDescriptionPlaceholder')}
+                      disabled={createTeam.isPending}
                       {...field}
                     />
                   </FormControl>
@@ -171,9 +192,9 @@ export function TeamFormationPanel() {
               control={form.control}
               name="supervisor_id"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('security.selectTeamLead', 'Select Team Lead')}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+              <FormItem>
+                  <FormLabel>{t('security.selectTeamLead', 'Select Team Lead')} <span className="text-destructive">*</span></FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value} disabled={createTeam.isPending}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={t('security.selectTeamLeadPlaceholder', 'Choose a supervisor or shift leader')} />
@@ -252,7 +273,8 @@ export function TeamFormationPanel() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setOpen(false)}
+                onClick={() => handleOpenChange(false)}
+                disabled={createTeam.isPending}
               >
                 {t('common.cancel')}
               </Button>
