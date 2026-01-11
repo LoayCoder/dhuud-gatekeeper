@@ -199,6 +199,7 @@ export default function UserManagement() {
         assigned_division_id: data.assigned_division_id,
         assigned_department_id: data.assigned_department_id,
         assigned_section_id: data.assigned_section_id,
+        assigned_site_id: data.assigned_site_id || null,
       };
 
       if (editingUser) {

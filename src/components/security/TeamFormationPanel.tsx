@@ -32,6 +32,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Plus, Users, Loader2 } from 'lucide-react';
 import { useSecurityTeam } from '@/hooks/use-security-team';
 import { useCreateSecurityTeam } from '@/hooks/use-security-teams';
@@ -101,6 +102,19 @@ export function TeamFormationPanel() {
       .slice(0, 2);
   };
 
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case 'security_manager':
+        return <Badge variant="default" className="text-[10px] px-1.5 py-0">{t('security.team.roles.manager', 'Manager')}</Badge>;
+      case 'security_supervisor':
+        return <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t('security.team.roles.supervisor', 'Supervisor')}</Badge>;
+      case 'security_shift_leader':
+        return <Badge className="text-[10px] px-1.5 py-0 bg-orange-500/10 text-orange-600 border-orange-500/30">{t('security.team.roles.shiftLeader', 'Shift Leader')}</Badge>;
+      default:
+        return null;
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -158,11 +172,11 @@ export function TeamFormationPanel() {
               name="supervisor_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('security.selectSupervisor')}</FormLabel>
+                  <FormLabel>{t('security.selectTeamLead', 'Select Team Lead')}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t('security.selectSupervisorPlaceholder')} />
+                        <SelectValue placeholder={t('security.selectTeamLeadPlaceholder', 'Choose a supervisor or shift leader')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -176,9 +190,7 @@ export function TeamFormationPanel() {
                               </AvatarFallback>
                             </Avatar>
                             <span>{supervisor.full_name}</span>
-                            <span className="text-muted-foreground text-xs">
-                              ({supervisor.role_name})
-                            </span>
+                            {getRoleBadge(supervisor.role)}
                           </div>
                         </SelectItem>
                       ))}

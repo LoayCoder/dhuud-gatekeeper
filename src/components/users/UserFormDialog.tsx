@@ -65,6 +65,7 @@ const userFormSchema = z.object({
   assigned_division_id: z.string().optional().nullable(),
   assigned_department_id: z.string().optional().nullable(),
   assigned_section_id: z.string().optional().nullable(),
+  assigned_site_id: z.string().optional().nullable(),
 }).refine((data) => {
   if (data.has_login) {
     if (!data.email || data.email === '') return false;
@@ -120,11 +121,13 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
     divisions: any[];
     departments: any[];
     sections: any[];
+    sites: any[];
   }>({
     branches: [],
     divisions: [],
     departments: [],
     sections: [],
+    sites: [],
   });
 
   const form = useForm<UserFormValues>({
@@ -150,6 +153,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
       assigned_division_id: null,
       assigned_department_id: null,
       assigned_section_id: null,
+      assigned_site_id: null,
     },
   });
 
@@ -165,11 +169,12 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
     async function loadHierarchy() {
       if (!profile?.tenant_id) return;
 
-      const [branchesRes, divisionsRes, departmentsRes, sectionsRes] = await Promise.all([
+      const [branchesRes, divisionsRes, departmentsRes, sectionsRes, sitesRes] = await Promise.all([
         supabase.from('branches').select('*').eq('tenant_id', profile.tenant_id),
         supabase.from('divisions').select('*').eq('tenant_id', profile.tenant_id),
         supabase.from('departments').select('*').eq('tenant_id', profile.tenant_id),
         supabase.from('sections').select('*').eq('tenant_id', profile.tenant_id),
+        supabase.from('sites').select('id, name, branch_id').eq('tenant_id', profile.tenant_id).is('deleted_at', null),
       ]);
 
       setHierarchy({
@@ -177,6 +182,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
         divisions: divisionsRes.data || [],
         departments: departmentsRes.data || [],
         sections: sectionsRes.data || [],
+        sites: sitesRes.data || [],
       });
     }
     loadHierarchy();
@@ -206,6 +212,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
           assigned_division_id: user.assigned_division_id || null,
           assigned_department_id: user.assigned_department_id || null,
           assigned_section_id: user.assigned_section_id || null,
+          assigned_site_id: user.assigned_site_id || null,
         });
 
         setOriginalEmail(user.email || null);
@@ -246,6 +253,12 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
     if (!selectedDepartmentId) return [];
     return hierarchy.sections.filter((s) => s.department_id === selectedDepartmentId);
   }, [hierarchy.sections, selectedDepartmentId]);
+
+  // Filter sites by selected branch
+  const filteredSites = useMemo(() => {
+    if (!selectedBranchId) return hierarchy.sites;
+    return hierarchy.sites.filter((s) => s.branch_id === selectedBranchId);
+  }, [hierarchy.sites, selectedBranchId]);
 
   useEffect(() => {
     const currentDeptId = form.getValues('assigned_department_id');
@@ -730,6 +743,37 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                           )}
                         />
                       </div>
+
+                      {/* Site Assignment */}
+                      <FormField
+                        control={form.control}
+                        name="assigned_site_id"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t('userManagement.assignedSite', 'Assigned Site')}</FormLabel>
+                            <Select 
+                              onValueChange={(v) => field.onChange(v === 'none' ? null : v)} 
+                              value={field.value || 'none'}
+                              dir={direction}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder={t('common.select')} />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent dir={direction} className="bg-popover">
+                                <SelectItem value="none">{t('common.none')}</SelectItem>
+                                {filteredSites.map((s) => (
+                                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormDescription className="text-xs">
+                              {t('userManagement.assignedSiteDescription', 'Physical work location for this user')}
+                            </FormDescription>
+                          </FormItem>
+                        )}
+                      />
                     </CardContent>
                   </Card>
                 </TabsContent>
