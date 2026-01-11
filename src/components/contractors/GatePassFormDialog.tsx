@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useState, useRef, useEffect } from "react";
 import { useCreateGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
 import { useEmployeeApprovers } from "@/hooks/contractor-management/use-gate-pass-approvers";
+import { useGatePassTypes } from "@/hooks/contractor-management/use-gate-pass-types";
 import { useCachedProfile } from "@/hooks/use-cached-profile";
 import { ContractorProject } from "@/hooks/contractor-management/use-contractor-projects";
 import { Plus, Trash2, X, ImageIcon, User, Building2 } from "lucide-react";
@@ -55,7 +56,7 @@ const createEmptyItem = (): GatePassItem => ({
 });
 
 export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFormDialogProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const createPass = useCreateGatePass();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -65,6 +66,14 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
   
   // Fetch employee approvers for internal requests
   const { data: employeeApprovers = [] } = useEmployeeApprovers();
+  
+  // Determine scope for pass types based on request type
+  const [isInternalScope, setIsInternalScope] = useState(false);
+  const passTypeScope = isInternalScope ? "internal" : "external";
+  const { data: passTypes = [] } = useGatePassTypes(passTypeScope);
+  
+  // Determine if current language is Arabic
+  const isArabic = i18n.language === 'ar';
 
   const [formData, setFormData] = useState({
     project_id: "",
@@ -89,12 +98,19 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
     const actualProjectId = projectId === "_none_" ? "" : projectId;
     const project = actualProjectId ? projects.find((p) => p.id === actualProjectId) : null;
     setSelectedProject(project || null);
+    
+    // Update internal scope based on project selection
+    const newIsInternalScope = isInternalUser && !actualProjectId;
+    setIsInternalScope(newIsInternalScope);
+    
     setFormData({
       ...formData,
       project_id: actualProjectId,
       company_id: project?.company_id || "",
       // Clear approver when project is selected
       approval_from_id: actualProjectId ? "" : formData.approval_from_id,
+      // Reset pass type when scope changes
+      pass_type: passTypes.length > 0 ? passTypes[0].code : "material_in",
     });
   };
 
@@ -306,13 +322,23 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
               <Label>{t("contractors.gatePasses.type", "Pass Type")} *</Label>
               <Select value={formData.pass_type} onValueChange={(v) => setFormData({ ...formData, pass_type: v })}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder={t("contractors.gatePasses.selectPassType", "Select pass type")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="material_in">{t("contractors.gatePasses.materialIn", "Material In")}</SelectItem>
-                  <SelectItem value="material_out">{t("contractors.gatePasses.materialOut", "Material Out")}</SelectItem>
-                  <SelectItem value="equipment_in">{t("contractors.gatePasses.equipmentIn", "Equipment In")}</SelectItem>
-                  <SelectItem value="equipment_out">{t("contractors.gatePasses.equipmentOut", "Equipment Out")}</SelectItem>
+                  {passTypes.length > 0 ? (
+                    passTypes.map((pt) => (
+                      <SelectItem key={pt.id} value={pt.code}>
+                        {isArabic && pt.name_ar ? pt.name_ar : pt.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <>
+                      <SelectItem value="material_in">{t("contractors.gatePasses.materialIn", "Material In")}</SelectItem>
+                      <SelectItem value="material_out">{t("contractors.gatePasses.materialOut", "Material Out")}</SelectItem>
+                      <SelectItem value="equipment_in">{t("contractors.gatePasses.equipmentIn", "Equipment In")}</SelectItem>
+                      <SelectItem value="equipment_out">{t("contractors.gatePasses.equipmentOut", "Equipment Out")}</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             </div>
