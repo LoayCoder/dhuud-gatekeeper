@@ -15,3 +15,4 @@ export * from "./use-contractor-audit-log";
 export * from "./use-client-site-rep-data";
 export * from "./use-client-site-rep-export-data";
 export * from "./use-gate-pass-types";
+export * from "./use-gate-pass-approvers";

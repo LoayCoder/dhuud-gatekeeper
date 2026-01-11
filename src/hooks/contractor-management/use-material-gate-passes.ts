@@ -126,23 +126,26 @@ export function useMaterialGatePasses(filters: GatePassFilters = {}) {
 }
 
 export function usePendingGatePassApprovals() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const tenantId = profile?.tenant_id;
 
   return useQuery({
-    queryKey: ["pending-gate-pass-approvals", tenantId],
+    queryKey: ["pending-gate-pass-approvals", tenantId, user?.id],
     queryFn: async () => {
-      if (!tenantId) return [];
+      if (!tenantId || !user?.id) return [];
 
-      const { data, error } = await supabase
+      // Fetch all pending passes with approval_from_id for filtering
+      const { data: allPasses, error } = await supabase
         .from("material_gate_passes")
         .select(`
           id, reference_number, project_id, company_id, pass_type, material_description,
           quantity, vehicle_plate, driver_name, driver_mobile, pass_date,
           time_window_start, time_window_end, status, requested_by, created_at,
+          is_internal_request, approval_from_id,
           project:contractor_projects(project_name, company:contractor_companies(company_name)),
           company:contractor_companies(company_name),
-          requester:profiles!requested_by(full_name)
+          requester:profiles!requested_by(full_name),
+          approval_from:profiles!material_gate_passes_approval_from_id_fkey(full_name)
         `)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
@@ -150,9 +153,38 @@ export function usePendingGatePassApprovals() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return (data || []) as MaterialGatePass[];
+
+      // Check if user is in approval sources
+      const { data: approverRecord } = await supabase
+        .from("gate_pass_approvers")
+        .select("user_id, approver_scope")
+        .eq("user_id", user.id)
+        .is("deleted_at", null)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      // Filter passes based on what user can approve
+      const filteredPasses = (allPasses || []).filter((pass: any) => {
+        // 1. Cannot approve own request (self-approval prevention)
+        if (pass.requested_by === user.id) return false;
+
+        // 2. For internal requests at PM stage: only designated approver can approve
+        if (pass.status === "pending_pm_approval" && pass.is_internal_request && pass.approval_from_id) {
+          return pass.approval_from_id === user.id;
+        }
+
+        // 3. For safety stage or external requests: must be in approval sources
+        if (!approverRecord) return false;
+        
+        const scope = approverRecord.approver_scope;
+        const passScope = pass.is_internal_request ? "internal" : "external";
+        
+        return scope === "both" || scope === passScope;
+      });
+
+      return filteredPasses as MaterialGatePass[];
     },
-    enabled: !!tenantId,
+    enabled: !!tenantId && !!user?.id,
   });
 }
 
@@ -318,6 +350,45 @@ export function useApproveGatePass() {
   return useMutation({
     mutationFn: async ({ passId, approvalType, notes }: { passId: string; approvalType: "pm" | "safety"; notes?: string }) => {
       if (!user?.id) throw new Error("Not authenticated");
+
+      // 1. Fetch the gate pass details for validation
+      const { data: pass, error: fetchError } = await supabase
+        .from("material_gate_passes")
+        .select("requested_by, is_internal_request, approval_from_id, status")
+        .eq("id", passId)
+        .single();
+
+      if (fetchError || !pass) throw new Error("Gate pass not found");
+
+      // 2. PREVENT SELF-APPROVAL
+      if (pass.requested_by === user.id) {
+        throw new Error("You cannot approve your own request");
+      }
+
+      // 3. FOR INTERNAL REQUESTS AT PM STAGE - VALIDATE DESIGNATED APPROVER
+      if (approvalType === "pm" && pass.is_internal_request && pass.approval_from_id) {
+        if (pass.approval_from_id !== user.id) {
+          throw new Error("Only the designated approver can approve this internal request");
+        }
+      }
+
+      // 4. FOR SAFETY STAGE OR EXTERNAL REQUESTS - VALIDATE AGAINST APPROVAL SOURCES
+      if (!pass.is_internal_request || approvalType === "safety") {
+        const scope = pass.is_internal_request ? "internal" : "external";
+        
+        const { data: approvers } = await supabase
+          .from("gate_pass_approvers")
+          .select("user_id")
+          .is("deleted_at", null)
+          .eq("is_active", true)
+          .or(`approver_scope.eq.${scope},approver_scope.eq.both`);
+        
+        const approverIds = (approvers || []).map((a: any) => a.user_id);
+        
+        if (!approverIds.includes(user.id)) {
+          throw new Error("You are not authorized to approve this gate pass");
+        }
+      }
 
       const now = new Date().toISOString();
       let updateData: Record<string, unknown> = {};
