@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { sendEmail, wrapEmailHtml } from '../_shared/email-sender.ts';
+import { sendWaSenderTextMessage } from '../_shared/wasender-whatsapp.ts';
 
 interface NotificationRequest {
   workerId: string;
@@ -379,10 +380,107 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Send WhatsApp notifications
+    let whatsappSentCount = 0;
+    const wasenderApiKey = Deno.env.get('WASENDER_API_KEY');
+    
+    if (wasenderApiKey && insertedCount > 0) {
+      console.log('[WhatsApp] WaSender API key configured, sending WhatsApp notifications...');
+      
+      // Get profiles with phone numbers and contractor reps with mobile numbers
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, phone_number, preferred_language, full_name")
+        .in("id", recipientUserIds);
+
+      // Also get contractor rep mobile numbers
+      let repMobileNumbers: { user_id: string; mobile_number: string; full_name: string }[] = [];
+      if (requestData.companyId) {
+        const { data: reps } = await supabase
+          .from("contractor_representatives")
+          .select("user_id, mobile_number, full_name")
+          .eq("company_id", requestData.companyId)
+          .is("deleted_at", null)
+          .not("mobile_number", "is", null);
+        
+        if (reps) {
+          repMobileNumbers = reps;
+        }
+      }
+
+      // Build a map of phone numbers to send to (avoid duplicates)
+      const phoneMap = new Map<string, { phone: string; lang: string; name: string }>();
+      
+      // Add profile phone numbers
+      if (profiles) {
+        for (const profile of profiles) {
+          if (profile.phone_number) {
+            const lang = profile.preferred_language?.toLowerCase().startsWith("ar") ? "ar" : "en";
+            phoneMap.set(profile.id, { 
+              phone: profile.phone_number, 
+              lang, 
+              name: profile.full_name || '' 
+            });
+          }
+        }
+      }
+
+      // Add contractor rep mobile numbers (may override profile phone)
+      for (const rep of repMobileNumbers) {
+        if (rep.mobile_number && rep.user_id) {
+          const existing = phoneMap.get(rep.user_id);
+          phoneMap.set(rep.user_id, { 
+            phone: rep.mobile_number, 
+            lang: existing?.lang || 'en', 
+            name: rep.full_name || existing?.name || '' 
+          });
+        }
+      }
+
+      // Send WhatsApp to each recipient
+      const phoneEntries = Array.from(phoneMap.entries());
+      for (let i = 0; i < phoneEntries.length; i++) {
+        const [userId, { phone, lang }] = phoneEntries[i];
+        
+        // Wait 10 seconds between WhatsApp messages (except for the first one)
+        if (i > 0) {
+          console.log(`[WhatsApp] Waiting 10 seconds before sending WhatsApp ${i + 1}...`);
+          await delay(10000);
+        }
+
+        // Build bilingual WhatsApp message
+        const whatsAppMessage = buildWhatsAppMessage(requestData.action, {
+          name: requestData.workerName,
+          reason: requestData.rejectionReason,
+          approver: requestData.approverName,
+          lang,
+        });
+
+        try {
+          console.log(`[WhatsApp] Sending to ${phone} (user: ${userId}, lang: ${lang})`);
+          const result = await sendWaSenderTextMessage(phone, whatsAppMessage);
+          
+          if (result.success) {
+            whatsappSentCount++;
+            console.log(`[WhatsApp] Message sent successfully to ${phone}, messageId: ${result.messageId}`);
+          } else {
+            console.error(`[WhatsApp] Failed to send to ${phone}:`, result.error);
+          }
+        } catch (whatsAppError) {
+          console.error(`[WhatsApp] Exception sending to ${phone}:`, whatsAppError);
+        }
+      }
+
+      console.log(`[WhatsApp] Sent ${whatsappSentCount}/${phoneEntries.length} WhatsApp messages`);
+    } else if (!wasenderApiKey) {
+      console.log('[WhatsApp] WaSender API key not configured, skipping WhatsApp notifications');
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
         notificationsSent: insertedCount,
+        whatsappSent: whatsappSentCount,
         action: requestData.action,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -396,3 +494,187 @@ Deno.serve(async (req) => {
     );
   }
 });
+
+// Helper function to build WhatsApp messages based on action type
+function buildWhatsAppMessage(
+  action: NotificationRequest['action'],
+  params: {
+    name: string;
+    reason?: string;
+    approver?: string;
+    lang: string;
+  }
+): string {
+  const { name, reason, approver, lang } = params;
+  const isArabic = lang === 'ar';
+
+  const messages: Record<NotificationRequest['action'], { en: string; ar: string }> = {
+    company_approved: {
+      en: `✅ *Company Registration Approved*
+
+Hello,
+
+Your company *${name}* has been approved${approver ? ` by ${approver}` : ''}.
+
+You can now:
+• Add workers for site access
+• Submit gate pass requests
+• Manage your company profile
+
+Login to your portal to get started.
+
+— HSSE Management Team`,
+      ar: `✅ *تمت الموافقة على تسجيل الشركة*
+
+مرحباً،
+
+تمت الموافقة على شركتك *${name}*${approver ? ` من قبل ${approver}` : ''}.
+
+يمكنك الآن:
+• إضافة عمال للوصول إلى الموقع
+• تقديم طلبات تصاريح المرور
+• إدارة ملف شركتك
+
+قم بتسجيل الدخول إلى البوابة للبدء.
+
+— فريق إدارة الصحة والسلامة`,
+    },
+    company_rejected: {
+      en: `❌ *Company Registration Rejected*
+
+Hello,
+
+Your company registration for *${name}* was not approved.
+
+${reason ? `*Reason:* ${reason}` : ''}
+
+Please address the concerns and resubmit your application.
+
+— HSSE Management Team`,
+      ar: `❌ *تم رفض تسجيل الشركة*
+
+مرحباً،
+
+لم تتم الموافقة على تسجيل شركتك *${name}*.
+
+${reason ? `*السبب:* ${reason}` : ''}
+
+يرجى معالجة المخاوف وإعادة تقديم طلبك.
+
+— فريق إدارة الصحة والسلامة`,
+    },
+    worker_stage1_approved: {
+      en: `🔄 *Worker Approved - Security Review Pending*
+
+Hello,
+
+Worker *${name}* has been approved by ${approver || 'Contractor Admin'}.
+
+*Next Step:* Security supervisor review is in progress.
+You will be notified once security approval is complete.
+
+— HSSE Management Team`,
+      ar: `🔄 *تمت الموافقة على العامل - المراجعة الأمنية قيد الانتظار*
+
+مرحباً،
+
+تمت الموافقة على العامل *${name}* من قبل ${approver || 'مسؤول المقاولين'}.
+
+*الخطوة التالية:* المراجعة الأمنية قيد التنفيذ.
+سيتم إبلاغك عند اكتمال الموافقة الأمنية.
+
+— فريق إدارة الصحة والسلامة`,
+    },
+    worker_approved: {
+      en: `✅ *Worker Fully Approved*
+
+Hello,
+
+Worker *${name}* has received full approval.
+
+The worker will receive a safety induction shortly and can then present their QR code at the gate for entry.
+
+— HSSE Management Team`,
+      ar: `✅ *تمت الموافقة الكاملة على العامل*
+
+مرحباً،
+
+حصل العامل *${name}* على الموافقة الكاملة.
+
+سيتلقى العامل التعريف بالسلامة قريباً ويمكنه بعد ذلك تقديم رمز QR الخاص به عند البوابة للدخول.
+
+— فريق إدارة الصحة والسلامة`,
+    },
+    worker_security_approved: {
+      en: `✅ *Worker Security Approved*
+
+Hello,
+
+Worker *${name}* has received security approval${approver ? ` from ${approver}` : ''}.
+
+The worker will receive a safety induction shortly and can then present their QR code at the gate for entry.
+
+— HSSE Management Team`,
+      ar: `✅ *تمت الموافقة الأمنية على العامل*
+
+مرحباً،
+
+حصل العامل *${name}* على الموافقة الأمنية${approver ? ` من ${approver}` : ''}.
+
+سيتلقى العامل التعريف بالسلامة قريباً ويمكنه بعد ذلك تقديم رمز QR الخاص به عند البوابة للدخول.
+
+— فريق إدارة الصحة والسلامة`,
+    },
+    worker_rejected: {
+      en: `❌ *Worker Rejected*
+
+Hello,
+
+Worker *${name}* has been rejected${approver ? ` by ${approver}` : ''}.
+
+${reason ? `*Reason:* ${reason}` : ''}
+
+Please address the concerns and resubmit the worker application.
+
+— HSSE Management Team`,
+      ar: `❌ *تم رفض العامل*
+
+مرحباً،
+
+تم رفض العامل *${name}*${approver ? ` من قبل ${approver}` : ''}.
+
+${reason ? `*السبب:* ${reason}` : ''}
+
+يرجى معالجة المخاوف وإعادة تقديم طلب العامل.
+
+— فريق إدارة الصحة والسلامة`,
+    },
+    worker_security_rejected: {
+      en: `🔄 *Worker Returned - Security Review*
+
+Hello,
+
+Worker *${name}* has been returned with security comments.
+
+${reason ? `*Comments:* ${reason}` : ''}
+
+Please address the concerns and resubmit.
+
+— HSSE Management Team`,
+      ar: `🔄 *تم إرجاع العامل - المراجعة الأمنية*
+
+مرحباً،
+
+تم إرجاع العامل *${name}* مع ملاحظات أمنية.
+
+${reason ? `*الملاحظات:* ${reason}` : ''}
+
+يرجى معالجة المخاوف وإعادة التقديم.
+
+— فريق إدارة الصحة والسلامة`,
+    },
+  };
+
+  const template = messages[action];
+  return isArabic ? template.ar : template.en;
+}
