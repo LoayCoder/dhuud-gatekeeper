@@ -102,7 +102,7 @@ export function TeamEditDialog({ team, open, onOpenChange }: TeamEditDialogProps
       setMembersToAdd([]);
       setMembersToRemove([]);
     }
-  }, [team, form]);
+  }, [team]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onSubmit = async (data: FormData) => {
     if (!team) return;
