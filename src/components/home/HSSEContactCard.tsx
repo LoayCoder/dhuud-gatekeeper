@@ -25,15 +25,21 @@ export function HSSEContactCard() {
 
   const isLoading = profileLoading || contactLoading;
 
-  // Format phone number for WhatsApp link
+  // Format phone number for WhatsApp link (wa.me requires no + sign, no spaces)
   const formatWhatsAppNumber = (phone: string | null) => {
     if (!phone) return '';
-    // Remove spaces, dashes, and add country code if not present
-    let cleaned = phone.replace(/[\s-]/g, '');
-    if (!cleaned.startsWith('+')) {
-      // Assume Saudi Arabia if no country code
-      cleaned = '+966' + cleaned.replace(/^0/, '');
+    // Remove ALL non-numeric characters (spaces, dashes, plus signs, parentheses)
+    let cleaned = phone.replace(/[^\d]/g, '');
+    
+    // Handle Saudi numbers starting with 0 (e.g., 0560838063 -> 966560838063)
+    if (cleaned.startsWith('0')) {
+      cleaned = '966' + cleaned.slice(1);
     }
+    // If number doesn't start with country code, assume Saudi Arabia
+    else if (!cleaned.startsWith('966') && !cleaned.startsWith('1') && cleaned.length <= 10) {
+      cleaned = '966' + cleaned;
+    }
+    
     return cleaned;
   };
 
