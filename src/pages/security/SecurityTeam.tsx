@@ -1,18 +1,18 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Search, Filter, Pencil, Shield, Phone, MapPin, Briefcase, Plus, Network, Crown, Eye, UsersRound } from 'lucide-react';
-import { useSecurityTeam, useUpdateSecurityTeamMember, type SecurityTeamMember } from '@/hooks/use-security-team';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Users, Search, Filter, Shield, Phone, MapPin, Briefcase, Plus, Network, Crown, Eye, UsersRound, ExternalLink, Info } from 'lucide-react';
+import { useSecurityTeam, type SecurityTeamMember } from '@/hooks/use-security-team';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { GuardRegistrationForm } from '@/components/security/GuardRegistrationForm';
@@ -21,17 +21,15 @@ import { TeamsTab } from '@/components/security/TeamsTab';
 
 export default function SecurityTeam() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [roleFilter, setRoleFilter] = useState<string>('all');
-  const [editingMember, setEditingMember] = useState<SecurityTeamMember | null>(null);
-  const [editForm, setEditForm] = useState({ is_active: true, job_title: '' });
   const [showAddGuard, setShowAddGuard] = useState(false);
 
   const { data: teamMembers, isLoading } = useSecurityTeam({
     isActive: statusFilter === 'all' ? undefined : statusFilter === 'active',
   });
-  const updateMember = useUpdateSecurityTeamMember();
 
   // Fetch sites for assignment
   const { data: sites } = useQuery({
@@ -59,21 +57,8 @@ export default function SecurityTeam() {
   const activeCount = teamMembers?.filter(m => m.is_active).length || 0;
   const totalCount = teamMembers?.length || 0;
 
-  const handleEditClick = (member: SecurityTeamMember) => {
-    setEditingMember(member);
-    setEditForm({
-      is_active: member.is_active ?? true,
-      job_title: member.job_title || '',
-    });
-  };
-
-  const handleEditSubmit = async () => {
-    if (!editingMember) return;
-    await updateMember.mutateAsync({
-      id: editingMember.id,
-      ...editForm,
-    });
-    setEditingMember(null);
+  const handleViewInUserManagement = (memberId: string) => {
+    navigate(`/admin/user-management?userId=${memberId}`);
   };
 
   const getRoleBadgeVariant = (role: string) => {
@@ -231,6 +216,14 @@ export default function SecurityTeam() {
               </div>
             </CardHeader>
             <CardContent>
+              {/* Info banner about User Management */}
+              <Alert className="mb-4">
+                <Info className="h-4 w-4" />
+                <AlertDescription>
+                  {t('security.team.managedInUserManagement', 'Role, Site, and other profile settings are managed in User Management.')}
+                </AlertDescription>
+              </Alert>
+              
               {isLoading ? (
                 <div className="animate-pulse space-y-2">{[...Array(5)].map((_, i) => <div key={i} className="h-16 bg-muted rounded" />)}</div>
               ) : (
@@ -263,7 +256,16 @@ export default function SecurityTeam() {
                         <TableCell>{member.phone_number ? <span className="flex items-center gap-1 text-sm"><Phone className="h-3 w-3" />{member.phone_number}</span> : '-'}</TableCell>
                         <TableCell>{member.sites?.name ? <span className="flex items-center gap-1 text-sm"><MapPin className="h-3 w-3" />{member.sites.name}</span> : '-'}</TableCell>
                         <TableCell><Badge variant={member.is_active ? 'default' : 'secondary'}>{member.is_active ? t('common.active', 'Active') : t('common.inactive', 'Inactive')}</Badge></TableCell>
-                        <TableCell className="text-end"><Button variant="ghost" size="sm" onClick={() => handleEditClick(member)}><Pencil className="h-4 w-4" /></Button></TableCell>
+                        <TableCell className="text-end">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleViewInUserManagement(member.id)}
+                            title={t('security.team.editInUserManagement', 'Edit in User Management')}
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -296,29 +298,6 @@ export default function SecurityTeam() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
-      <Dialog open={!!editingMember} onOpenChange={(open) => !open && setEditingMember(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('security.team.editMember', 'Edit Team Member')}</DialogTitle>
-            <DialogDescription>{editingMember?.full_name}</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>{t('security.team.jobTitle', 'Job Title')}</Label>
-              <Input value={editForm.job_title} onChange={(e) => setEditForm({ ...editForm, job_title: e.target.value })} placeholder={t('security.team.jobTitlePlaceholder', 'e.g., Security Guard')} />
-            </div>
-            <div className="flex items-center justify-between">
-              <Label>{t('common.active', 'Active')}</Label>
-              <Switch checked={editForm.is_active} onCheckedChange={(c) => setEditForm({ ...editForm, is_active: c })} />
-            </div>
-            <div className="flex justify-end gap-2 pt-4">
-              <Button variant="outline" onClick={() => setEditingMember(null)}>{t('common.cancel', 'Cancel')}</Button>
-              <Button onClick={handleEditSubmit} disabled={updateMember.isPending}>{t('common.save', 'Save')}</Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -146,6 +146,8 @@
       "supervisor": "Supervisor",
       "guards": "guards",
       "shiftLeaders": "Shift Leaders",
+      "managedInUserManagement": "Role, Site, and other profile settings are managed in User Management.",
+      "editInUserManagement": "Edit in User Management",
       "roles": {
         "manager": "Manager",
         "supervisor": "Supervisor",
@@ -153,6 +155,8 @@
         "guard": "Guard"
       }
     },
+    "selectTeamLead": "Select Team Lead",
+    "selectTeamLeadPlaceholder": "Choose a supervisor or shift leader",
     "roster": {
       "supervisor": "Shift Supervisor",
       "selectSupervisor": "Select Supervisor"
@@ -3879,7 +3883,9 @@
       "roleNotFound": "Role '{{code}}' not found",
       "emailProvidedNoLogin": "Email provided but user has no login access",
       "importUsers": "Import {{count}} Users"
-    }
+    },
+    "assignedSite": "Assigned Site",
+    "assignedSiteDescription": "Physical work location for this user"
   },
   "tenantManagement": {
     "title": "Tenant Management",

@@ -121,6 +121,8 @@
       "supervisor": "المشرف",
       "guards": "حراس",
       "shiftLeaders": "قادة الورديات",
+      "managedInUserManagement": "الدور والموقع وإعدادات الملف الشخصي الأخرى تُدار في إدارة المستخدمين.",
+      "editInUserManagement": "تعديل في إدارة المستخدمين",
       "roles": {
         "manager": "مدير",
         "supervisor": "مشرف",
@@ -128,6 +130,8 @@
         "guard": "حارس"
       }
     },
+    "selectTeamLead": "اختر قائد الفريق",
+    "selectTeamLeadPlaceholder": "اختر مشرف أو قائد وردية",
     "roster": {
       "supervisor": "مشرف الوردية",
       "selectSupervisor": "اختر المشرف"
@@ -3697,7 +3701,9 @@
       "roleNotFound": "الدور '{{code}}' غير موجود",
       "emailProvidedNoLogin": "تم توفير بريد إلكتروني لكن المستخدم ليس لديه تسجيل دخول",
       "importUsers": "استيراد {{count}} مستخدم"
-    }
+    },
+    "assignedSite": "الموقع المُعين",
+    "assignedSiteDescription": "موقع العمل الفعلي لهذا المستخدم"
   },
   "tenantManagement": {
     "title": "إدارة المستأجرين",
