@@ -7302,6 +7302,31 @@
       "addWorker": "إضافة عامل",
       "createGatePass": "إنشاء تصريح بوابة",
       "manageInductions": "إدارة التعريفات"
+    },
+    "gatePasses": {
+      "tabs": {
+        "myPasses": "تصاريحي",
+        "pmApproval": "موافقة مدير المشروع",
+        "securityApproval": "موافقة الأمن",
+        "approvalHistory": "سجل الموافقات",
+        "qrScanner": "ماسح QR"
+      },
+      "myPasses": {
+        "title": "تصاريحي",
+        "description": "تصاريح البوابة التي طلبتها",
+        "noPasses": "لم تطلب أي تصاريح بوابة بعد",
+        "requestNew": "طلب تصريح جديد"
+      },
+      "history": {
+        "title": "سجل الموافقات",
+        "description": "تصاريح البوابة التي وافقت عليها أو رفضتها",
+        "noHistory": "لا يوجد سجل موافقات",
+        "approvedBy": "وافقت عليه",
+        "rejectedBy": "رفضته",
+        "approvedAt": "تمت الموافقة في",
+        "rejectedAt": "تم الرفض في",
+        "action": "الإجراء"
+      }
     }
   },
   "ptw": {
