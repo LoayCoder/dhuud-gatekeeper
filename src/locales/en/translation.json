@@ -4565,6 +4565,9 @@
     "food_safety_supervisor": "Food Safety Supervisor",
     "food_safety_manager": "Food Safety Manager",
     "department_representative": "Department Representative",
+    "contractor_admin": "Contractor Admin",
+    "contractor_site_rep": "Contractor Site Representative",
+    "contractor_safety_officer": "Contractor Safety Officer",
     "cannotRemoveOwnAdmin": "Cannot Remove Admin Role",
     "cannotRemoveOwnAdminDescription": "You cannot remove your own admin role. Please ask another admin to do this.",
     "selfProtected": "Protected role",
@@ -4582,6 +4585,14 @@
     "audit": "Audit",
     "food_safety": "Food Safety",
     "contractor": "Contractors"
+  },
+  "roleDescriptions": {
+    "admin": "Full control over all system features",
+    "normal_user": "Default role for all users",
+    "manager": "View-only access to team hierarchy",
+    "contractor_admin": "Full administrative access to contractor management",
+    "contractor_site_rep": "On-site representative for contractor company",
+    "contractor_safety_officer": "Safety oversight for contractor operations"
   },
   "hierarchy": {
     "teamStructure": "Team Structure",
