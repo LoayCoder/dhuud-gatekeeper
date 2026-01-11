@@ -145,9 +145,11 @@
       "allTeams": "All Teams",
       "supervisor": "Supervisor",
       "guards": "guards",
+      "shiftLeaders": "Shift Leaders",
       "roles": {
         "manager": "Manager",
         "supervisor": "Supervisor",
+        "shiftLeader": "Shift Leader",
         "guard": "Guard"
       }
     },

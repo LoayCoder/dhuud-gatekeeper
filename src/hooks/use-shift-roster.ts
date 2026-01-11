@@ -152,8 +152,8 @@ export function useSupervisors() {
 
       if (error) throw error;
       
-      // Filter to security supervisor/manager roles
-      const supervisorRoles = ['security_supervisor', 'security_manager'];
+      // Filter to security supervisor/manager/shift leader roles
+      const supervisorRoles = ['security_supervisor', 'security_manager', 'security_shift_leader'];
       const supervisorAssignments = (roleAssignments || []).filter(ra => {
         const roleCode = (ra.role as { code: string } | null)?.code;
         return roleCode && supervisorRoles.includes(roleCode);

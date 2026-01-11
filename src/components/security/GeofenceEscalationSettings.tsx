@@ -19,6 +19,7 @@ import {
 import { useSecurityZones } from '@/hooks/use-security-zones';
 
 const NOTIFY_ROLES = [
+  { value: 'security_shift_leader', label: 'Security Shift Leader' },
   { value: 'security_supervisor', label: 'Security Supervisor' },
   { value: 'security_manager', label: 'Security Manager' },
   { value: 'hsse_manager', label: 'HSSE Manager' },

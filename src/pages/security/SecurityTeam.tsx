@@ -54,6 +54,7 @@ export default function SecurityTeam() {
   // Calculate stats by role
   const managersCount = teamMembers?.filter(m => m.role === 'security_manager').length || 0;
   const supervisorsCount = teamMembers?.filter(m => m.role === 'security_supervisor').length || 0;
+  const shiftLeadersCount = teamMembers?.filter(m => m.role === 'security_shift_leader').length || 0;
   const guardsCount = teamMembers?.filter(m => m.role === 'security_guard').length || 0;
   const activeCount = teamMembers?.filter(m => m.is_active).length || 0;
   const totalCount = teamMembers?.length || 0;
@@ -79,6 +80,7 @@ export default function SecurityTeam() {
     switch (role) {
       case 'security_manager': return 'default';
       case 'security_supervisor': return 'secondary';
+      case 'security_shift_leader': return 'secondary';
       case 'security_guard': return 'outline';
       default: return 'outline';
     }
@@ -88,6 +90,7 @@ export default function SecurityTeam() {
     switch (role) {
       case 'security_manager': return t('security.team.roles.manager', 'Manager');
       case 'security_supervisor': return t('security.team.roles.supervisor', 'Supervisor');
+      case 'security_shift_leader': return t('security.team.roles.shiftLeader', 'Shift Leader');
       case 'security_guard': return t('security.team.roles.guard', 'Guard');
       default: return t('security.team.roles.member', 'Member');
     }
@@ -108,7 +111,7 @@ export default function SecurityTeam() {
       </div>
 
       {/* Stats Cards - Role-based */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-5">
         <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => setRoleFilter('all')}>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
@@ -144,6 +147,19 @@ export default function SecurityTeam() {
               <div>
                 <p className="text-2xl font-bold">{supervisorsCount}</p>
                 <p className="text-sm text-muted-foreground">{t('security.team.supervisors', 'Supervisors')}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="cursor-pointer hover:border-orange-500/50 transition-colors" onClick={() => setRoleFilter('security_shift_leader')}>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-full bg-orange-500/10">
+                <Users className="h-6 w-6 text-orange-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{shiftLeadersCount}</p>
+                <p className="text-sm text-muted-foreground">{t('security.team.shiftLeaders', 'Shift Leaders')}</p>
               </div>
             </div>
           </CardContent>
@@ -199,6 +215,7 @@ export default function SecurityTeam() {
                       <SelectItem value="all">{t('security.team.allRoles', 'All Roles')}</SelectItem>
                       <SelectItem value="security_manager">{t('security.team.roles.manager', 'Manager')}</SelectItem>
                       <SelectItem value="security_supervisor">{t('security.team.roles.supervisor', 'Supervisor')}</SelectItem>
+                      <SelectItem value="security_shift_leader">{t('security.team.roles.shiftLeader', 'Shift Leader')}</SelectItem>
                       <SelectItem value="security_guard">{t('security.team.roles.guard', 'Guard')}</SelectItem>
                     </SelectContent>
                   </Select>
