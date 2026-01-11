@@ -23,6 +23,12 @@ export interface ContractorCompany {
   updated_at: string;
   deleted_at: string | null;
   assigned_client_pm?: { full_name: string } | null;
+  // Approval workflow fields
+  approval_status?: string;
+  approved_by?: string | null;
+  approved_at?: string | null;
+  approval_requested_at?: string | null;
+  rejection_reason?: string | null;
 }
 
 export interface ContractorCompanyFilters {
@@ -89,7 +95,8 @@ export function useCreateContractorCompany() {
           address: data.address,
           city: data.city,
           tenant_id: profile.tenant_id,
-          status: "active",
+          status: "pending_approval",
+          approval_requested_at: new Date().toISOString(),
           scope_of_work: data.scope_of_work,
           contract_start_date: data.contract_start_date,
           contract_end_date: data.contract_end_date,
@@ -313,6 +320,115 @@ export function useDeleteContractorCompany() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contractor-companies"] });
       toast.success("Company deleted");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+// ============= COMPANY APPROVAL WORKFLOW HOOKS =============
+
+export function usePendingCompanyApprovals() {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
+  return useQuery({
+    queryKey: ["pending-company-approvals", tenantId],
+    queryFn: async () => {
+      if (!tenantId) return [];
+
+      const { data, error } = await supabase
+        .from("contractor_companies")
+        .select(`
+          id, tenant_id, company_name, company_name_ar, commercial_registration_number,
+          vat_number, email, phone, address, city, status, assigned_client_pm_id,
+          suspension_reason, suspended_at, created_at, updated_at,
+          contractor_site_rep_name, contractor_site_rep_email, contractor_site_rep_phone,
+          scope_of_work, contract_start_date, contract_end_date,
+          approval_requested_at, approved_by, approved_at, rejection_reason
+        `)
+        .eq("tenant_id", tenantId)
+        .eq("status", "pending_approval")
+        .is("deleted_at", null)
+        .order("approval_requested_at", { ascending: true });
+
+      if (error) throw error;
+      return (data || []) as unknown as ContractorCompany[];
+    },
+    enabled: !!tenantId,
+  });
+}
+
+export function useApproveCompany() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (companyId: string) => {
+      const { data, error } = await supabase
+        .from("contractor_companies")
+        .update({
+          status: "active",
+          approved_by: user?.id,
+          approved_at: new Date().toISOString(),
+        })
+        .eq("id", companyId)
+        .select("id, company_name, tenant_id")
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: async (data) => {
+      queryClient.invalidateQueries({ queryKey: ["contractor-companies"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-company-approvals"] });
+      toast.success("Company approved and activated");
+
+      // Trigger post-approval automation (user creation, role assignment)
+      try {
+        await supabase.functions.invoke("process-company-approval", {
+          body: {
+            company_id: data.id,
+            action: "approved",
+            tenant_id: data.tenant_id,
+          },
+        });
+      } catch (e) {
+        console.error("Failed to process post-approval:", e);
+      }
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+export function useRejectCompany() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ companyId, reason }: { companyId: string; reason: string }) => {
+      const { data, error } = await supabase
+        .from("contractor_companies")
+        .update({
+          status: "rejected",
+          approved_by: user?.id,
+          approved_at: new Date().toISOString(),
+          rejection_reason: reason,
+        })
+        .eq("id", companyId)
+        .select("id, company_name, tenant_id")
+        .single();
+
+      if (error) throw error;
+      return { ...data, reason };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["contractor-companies"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-company-approvals"] });
+      toast.success("Company rejected");
     },
     onError: (error: Error) => {
       toast.error(error.message);
