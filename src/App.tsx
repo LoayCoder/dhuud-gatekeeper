@@ -347,14 +347,14 @@ const App = () => (
                       <Route path="/contractors/settings" element={<MenuBasedAdminRoute menuCode="contractor_settings"><GatePassSettings /></MenuBasedAdminRoute>} />
 
                       {/* Contractor Portal Routes (for external contractor reps) */}
-                      <Route path="/contractor-portal" element={<ContractorPortalDashboard />} />
-                      <Route path="/contractor-portal/workers" element={<ContractorPortalWorkers />} />
-                      <Route path="/contractor-portal/projects" element={<ContractorPortalProjects />} />
-                      <Route path="/contractor-portal/gate-passes" element={<ContractorPortalGatePasses />} />
-                      <Route path="/contractor-portal/activity-log" element={<ContractorPortalActivityLog />} />
+                      <Route path="/contractor-portal" element={<ContractorPortalRoute><ContractorPortalDashboard /></ContractorPortalRoute>} />
+                      <Route path="/contractor-portal/workers" element={<ContractorPortalRoute><ContractorPortalWorkers /></ContractorPortalRoute>} />
+                      <Route path="/contractor-portal/projects" element={<ContractorPortalRoute><ContractorPortalProjects /></ContractorPortalRoute>} />
+                      <Route path="/contractor-portal/gate-passes" element={<ContractorPortalRoute><ContractorPortalGatePasses /></ContractorPortalRoute>} />
+                      <Route path="/contractor-portal/activity-log" element={<ContractorPortalRoute><ContractorPortalActivityLog /></ContractorPortalRoute>} />
 
                       {/* Client Site Representative Routes */}
-                      <Route path="/client-site-rep" element={<ClientSiteRepDashboard />} />
+                      <Route path="/client-site-rep" element={<ClientSiteRepRoute><ClientSiteRepDashboard /></ClientSiteRepRoute>} />
 
                       {/* PTW (Permit to Work) Routes */}
                       <Route path="/ptw" element={<HSSERoute><PTWDashboard /></HSSERoute>} />

@@ -5,6 +5,9 @@ import { ShieldAlert, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ClientSiteRepRouteProps {
   children: ReactNode;
@@ -13,15 +16,33 @@ interface ClientSiteRepRouteProps {
 /**
  * Access control wrapper for /client-site-rep routes.
  * Only allows access to users with companies assigned via contractor_companies.client_site_rep_id
+ * Super admins bypass this check.
  */
 export function ClientSiteRepRoute({ children }: ClientSiteRepRouteProps) {
   const { data: companies, isLoading, error } = useClientSiteRepCompanies();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
 
-  if (isLoading) {
+  // Check if user is super admin (bypasses client site rep check)
+  const { data: isSuperAdmin, isLoading: isAdminLoading } = useQuery({
+    queryKey: ["is-super-admin", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return false;
+      const { data } = await supabase.rpc("is_super_admin", { _user_id: user.id });
+      return data === true;
+    },
+    enabled: !!user?.id,
+  });
+
+  if (isLoading || isAdminLoading) {
     return <PageLoader />;
+  }
+
+  // Super admin can access everything
+  if (isSuperAdmin) {
+    return <>{children}</>;
   }
 
   // User has no companies assigned as client site rep

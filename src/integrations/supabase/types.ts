@@ -3738,6 +3738,10 @@ export type Database = {
       contractor_companies: {
         Row: {
           address: string | null
+          approval_requested_at: string | null
+          approval_status: string | null
+          approved_at: string | null
+          approved_by: string | null
           assigned_branch_id: string | null
           assigned_client_pm_id: string | null
           assigned_department_id: string | null
@@ -3765,6 +3769,7 @@ export type Database = {
           email: string | null
           id: string
           phone: string | null
+          rejection_reason: string | null
           safety_officers_count: number | null
           scope_of_work: string | null
           status: string
@@ -3778,6 +3783,10 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          approval_requested_at?: string | null
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           assigned_branch_id?: string | null
           assigned_client_pm_id?: string | null
           assigned_department_id?: string | null
@@ -3805,6 +3814,7 @@ export type Database = {
           email?: string | null
           id?: string
           phone?: string | null
+          rejection_reason?: string | null
           safety_officers_count?: number | null
           scope_of_work?: string | null
           status?: string
@@ -3818,6 +3828,10 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          approval_requested_at?: string | null
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           assigned_branch_id?: string | null
           assigned_client_pm_id?: string | null
           assigned_department_id?: string | null
@@ -3845,6 +3859,7 @@ export type Database = {
           email?: string | null
           id?: string
           phone?: string | null
+          rejection_reason?: string | null
           safety_officers_count?: number | null
           scope_of_work?: string | null
           status?: string
@@ -4999,6 +5014,10 @@ export type Database = {
           preferred_language: string
           rejection_reason: string | null
           safety_officer_id: string | null
+          security_approval_status: string | null
+          security_approved_at: string | null
+          security_approved_by: string | null
+          security_rejection_reason: string | null
           tenant_id: string
           updated_at: string
           worker_type: string | null
@@ -5024,6 +5043,10 @@ export type Database = {
           preferred_language?: string
           rejection_reason?: string | null
           safety_officer_id?: string | null
+          security_approval_status?: string | null
+          security_approved_at?: string | null
+          security_approved_by?: string | null
+          security_rejection_reason?: string | null
           tenant_id: string
           updated_at?: string
           worker_type?: string | null
@@ -5049,6 +5072,10 @@ export type Database = {
           preferred_language?: string
           rejection_reason?: string | null
           safety_officer_id?: string | null
+          security_approval_status?: string | null
+          security_approved_at?: string | null
+          security_approved_by?: string | null
+          security_rejection_reason?: string | null
           tenant_id?: string
           updated_at?: string
           worker_type?: string | null
@@ -12893,6 +12920,10 @@ export type Database = {
         Row: {
           approval_from_id: string | null
           company_id: string
+          contractor_approval_notes: string | null
+          contractor_approval_status: string | null
+          contractor_approved_at: string | null
+          contractor_approved_by: string | null
           created_at: string
           deleted_at: string | null
           driver_id: string | null
@@ -12909,6 +12940,7 @@ export type Database = {
           guard_verified_at: string | null
           guard_verified_by: string | null
           id: string
+          is_internal_request: boolean | null
           material_description: string
           pass_date: string
           pass_type: string
@@ -12927,6 +12959,10 @@ export type Database = {
           safety_approved_at: string | null
           safety_approved_by: string | null
           safety_notes: string | null
+          security_approval_notes: string | null
+          security_approval_status: string | null
+          security_approved_at: string | null
+          security_approved_by: string | null
           status: string
           tenant_id: string
           time_window_end: string | null
@@ -12937,6 +12973,10 @@ export type Database = {
         Insert: {
           approval_from_id?: string | null
           company_id: string
+          contractor_approval_notes?: string | null
+          contractor_approval_status?: string | null
+          contractor_approved_at?: string | null
+          contractor_approved_by?: string | null
           created_at?: string
           deleted_at?: string | null
           driver_id?: string | null
@@ -12953,6 +12993,7 @@ export type Database = {
           guard_verified_at?: string | null
           guard_verified_by?: string | null
           id?: string
+          is_internal_request?: boolean | null
           material_description: string
           pass_date: string
           pass_type?: string
@@ -12971,6 +13012,10 @@ export type Database = {
           safety_approved_at?: string | null
           safety_approved_by?: string | null
           safety_notes?: string | null
+          security_approval_notes?: string | null
+          security_approval_status?: string | null
+          security_approved_at?: string | null
+          security_approved_by?: string | null
           status?: string
           tenant_id: string
           time_window_end?: string | null
@@ -12981,6 +13026,10 @@ export type Database = {
         Update: {
           approval_from_id?: string | null
           company_id?: string
+          contractor_approval_notes?: string | null
+          contractor_approval_status?: string | null
+          contractor_approved_at?: string | null
+          contractor_approved_by?: string | null
           created_at?: string
           deleted_at?: string | null
           driver_id?: string | null
@@ -12997,6 +13046,7 @@ export type Database = {
           guard_verified_at?: string | null
           guard_verified_by?: string | null
           id?: string
+          is_internal_request?: boolean | null
           material_description?: string
           pass_date?: string
           pass_type?: string
@@ -13015,6 +13065,10 @@ export type Database = {
           safety_approved_at?: string | null
           safety_approved_by?: string | null
           safety_notes?: string | null
+          security_approval_notes?: string | null
+          security_approval_status?: string | null
+          security_approved_at?: string | null
+          security_approved_by?: string | null
           status?: string
           tenant_id?: string
           time_window_end?: string | null
@@ -23534,11 +23588,19 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      has_client_site_rep_access: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       has_confidentiality_access: {
         Args: { _incident_id: string; _user_id: string }
         Returns: boolean
       }
       has_contractor_admin_access: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
+      has_contractor_consultant_access: {
         Args: { p_user_id: string }
         Returns: boolean
       }
