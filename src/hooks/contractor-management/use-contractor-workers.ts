@@ -34,6 +34,8 @@ export interface ContractorWorker {
   security_approved_by?: string | null;
   security_approved_at?: string | null;
   security_rejection_reason?: string | null;
+  // Who submitted the worker
+  submitted_by?: string | null;
 }
 
 export interface ContractorWorkerFilters {
@@ -112,7 +114,7 @@ export function usePendingWorkerApprovals() {
 
       const { data, error } = await supabase
         .from("contractor_workers")
-        .select(`id, full_name, national_id, nationality, mobile_number, created_at, company:contractor_companies(company_name)`)
+        .select(`id, full_name, national_id, nationality, mobile_number, created_at, company_id, company:contractor_companies(company_name)`)
         .eq("tenant_id", tenantId)
         .eq("approval_status", "pending")
         .is("deleted_at", null)
@@ -127,7 +129,7 @@ export function usePendingWorkerApprovals() {
 
 export function useCreateContractorWorker() {
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
 
   return useMutation({
     mutationFn: async (data: Partial<ContractorWorker>) => {
@@ -163,13 +165,72 @@ export function useCreateContractorWorker() {
   });
 }
 
-// Stage 1: Contractor Admin/Consultant approves worker -> moves to pending_security
+// ============= CONTRACTOR ADMIN/CONSULTANT ACCESS CHECK =============
+
+export function useHasContractorApprovalAccess() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["contractor-approval-access", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return false;
+      
+      const { data, error } = await supabase.rpc("has_contractor_approval_access", {
+        p_user_id: user.id,
+      });
+      
+      if (error) {
+        console.error("Failed to check Contractor approval access:", error);
+        return false;
+      }
+      
+      return data === true;
+    },
+    enabled: !!user?.id,
+  });
+}
+
+// ============= SECURITY APPROVAL ACCESS CHECK =============
+
+export function useHasSecurityApprovalAccess() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["security-approval-access", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return false;
+      
+      const { data, error } = await supabase.rpc("has_security_approval_access", {
+        p_user_id: user.id,
+      });
+      
+      if (error) {
+        console.error("Failed to check Security approval access:", error);
+        return false;
+      }
+      
+      return data === true;
+    },
+    enabled: !!user?.id,
+  });
+}
+
+// Stage 1: Contractor Consultant OR Contractor Admin approves worker -> moves to pending_security
 export function useApproveWorker() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   return useMutation({
     mutationFn: async (workerId: string) => {
+      // Validate Contractor Admin/Consultant role before approving
+      const { data: hasAccess } = await supabase.rpc("has_contractor_approval_access", {
+        p_user_id: user?.id,
+      });
+
+      if (!hasAccess) {
+        throw new Error("Only Contractor Consultants or Contractor Admins can approve workers at this stage");
+      }
+
       const { data, error } = await supabase
         .from("contractor_workers")
         .update({ 
@@ -178,7 +239,7 @@ export function useApproveWorker() {
           approved_by: user?.id,
         })
         .eq("id", workerId)
-        .select("id, full_name, tenant_id")
+        .select("id, full_name, tenant_id, company_id")
         .single();
 
       if (error) throw error;
@@ -212,13 +273,22 @@ export function useApproveWorker() {
   });
 }
 
-// Stage 2: Security Supervisor final approval
+// Stage 2: Security Supervisor OR Security Manager final approval
 export function useSecurityApproveWorker() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   return useMutation({
     mutationFn: async (workerId: string) => {
+      // Validate Security Supervisor/Manager role before approving
+      const { data: hasAccess } = await supabase.rpc("has_security_approval_access", {
+        p_user_id: user?.id,
+      });
+
+      if (!hasAccess) {
+        throw new Error("Only Security Supervisors or Security Managers can approve workers at this stage");
+      }
+
       const { data, error } = await supabase
         .from("contractor_workers")
         .update({ 
@@ -228,7 +298,7 @@ export function useSecurityApproveWorker() {
           security_approved_by: user?.id,
         })
         .eq("id", workerId)
-        .select("id, full_name, tenant_id")
+        .select("id, full_name, tenant_id, company_id, mobile_number, preferred_language")
         .single();
 
       if (error) throw error;
@@ -269,6 +339,22 @@ export function useSecurityApproveWorker() {
       } catch (e) {
         console.error("Failed to send notification:", e);
       }
+
+      // Send safety induction video to the worker after approval
+      try {
+        await supabase.functions.invoke("send-induction-video", {
+          body: {
+            workerId: data.id,
+            workerName: data.full_name,
+            workerMobile: data.mobile_number,
+            workerLanguage: data.preferred_language || "en",
+            tenant_id: data.tenant_id,
+          },
+        });
+        toast.info("Safety induction sent to worker");
+      } catch (e) {
+        console.error("Failed to send induction video:", e);
+      }
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -276,34 +362,54 @@ export function useSecurityApproveWorker() {
   });
 }
 
-// Security Supervisor rejection
+// Security Supervisor/Manager rejection - Returns to PENDING status (not security_rejected)
 export function useSecurityRejectWorker() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   return useMutation({
     mutationFn: async ({ workerId, reason }: { workerId: string; reason: string }) => {
+      // Validate Security Supervisor/Manager role before rejecting
+      const { data: hasAccess } = await supabase.rpc("has_security_approval_access", {
+        p_user_id: user?.id,
+      });
+
+      if (!hasAccess) {
+        throw new Error("Only Security Supervisors or Security Managers can reject workers at this stage");
+      }
+
+      // Get worker info including company_id for finding the contractor rep
+      const { data: workerInfo } = await supabase
+        .from("contractor_workers")
+        .select("company_id")
+        .eq("id", workerId)
+        .single();
+
+      // Return to PENDING status so contractor can address issues and resubmit
       const { data, error } = await supabase
         .from("contractor_workers")
         .update({ 
-          approval_status: "security_rejected",
+          approval_status: "pending", // Return to pending, NOT security_rejected
           security_approval_status: "rejected",
           security_approved_by: user?.id,
           security_approved_at: new Date().toISOString(),
           security_rejection_reason: reason,
+          // Clear stage 1 approval so it goes through the whole flow again
+          approved_at: null,
+          approved_by: null,
         })
         .eq("id", workerId)
         .select("id, full_name, tenant_id")
         .single();
 
       if (error) throw error;
-      return { ...data, reason };
+      return { ...data, reason, companyId: workerInfo?.company_id };
     },
     onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
       queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
       queryClient.invalidateQueries({ queryKey: ["pending-security-approvals"] });
-      toast.success("Worker rejected by security");
+      toast.success("Worker returned to pending with security comments");
 
       // Log audit event
       try {
@@ -314,7 +420,7 @@ export function useSecurityRejectWorker() {
             action: "worker_security_rejected",
             old_value: { approval_status: "pending_security" },
             new_value: { 
-              approval_status: "security_rejected", 
+              approval_status: "pending", // Returned to pending
               security_rejection_reason: data.reason,
               full_name: data.full_name 
             },
@@ -323,6 +429,22 @@ export function useSecurityRejectWorker() {
         });
       } catch (e) {
         console.error("Failed to log audit event:", e);
+      }
+
+      // Send rejection notification back to contractor representative
+      try {
+        await supabase.functions.invoke("send-contractor-notification", {
+          body: {
+            workerId: data.id,
+            workerName: data.full_name,
+            action: "worker_security_rejected",
+            rejectionReason: data.reason,
+            tenant_id: data.tenant_id,
+            companyId: data.companyId,
+          },
+        });
+      } catch (e) {
+        console.error("Failed to send rejection notification:", e);
       }
     },
     onError: (error: Error) => {
@@ -345,7 +467,7 @@ export function usePendingSecurityApprovals() {
         .from("contractor_workers")
         .select(`
           id, full_name, full_name_ar, national_id, nationality, mobile_number, 
-          created_at, approved_at, photo_path, worker_type,
+          created_at, approved_at, photo_path, worker_type, company_id,
           company:contractor_companies(company_name)
         `)
         .eq("tenant_id", tenantId)
@@ -360,12 +482,29 @@ export function usePendingSecurityApprovals() {
   });
 }
 
+// Stage 1 Rejection by Contractor Consultant/Admin
 export function useRejectWorker() {
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
 
   return useMutation({
     mutationFn: async ({ workerId, reason }: { workerId: string; reason: string }) => {
+      // Validate Contractor Admin/Consultant role before rejecting
+      const { data: hasAccess } = await supabase.rpc("has_contractor_approval_access", {
+        p_user_id: user?.id,
+      });
+
+      if (!hasAccess) {
+        throw new Error("Only Contractor Consultants or Contractor Admins can reject workers at this stage");
+      }
+
+      // Get worker info for notification
+      const { data: workerInfo } = await supabase
+        .from("contractor_workers")
+        .select("company_id")
+        .eq("id", workerId)
+        .single();
+
       const { data, error } = await supabase
         .from("contractor_workers")
         .update({ approval_status: "rejected", rejection_reason: reason })
@@ -374,7 +513,7 @@ export function useRejectWorker() {
         .single();
 
       if (error) throw error;
-      return { ...data, reason };
+      return { ...data, reason, companyId: workerInfo?.company_id };
     },
     onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
@@ -397,7 +536,7 @@ export function useRejectWorker() {
         console.error("Failed to log audit event:", e);
       }
 
-      // Send notification to contractor representatives
+      // Send notification to contractor representatives with rejection reason
       try {
         await supabase.functions.invoke("send-contractor-notification", {
           body: {
@@ -406,6 +545,7 @@ export function useRejectWorker() {
             action: "worker_rejected",
             rejectionReason: data.reason,
             tenant_id: data.tenant_id,
+            companyId: data.companyId,
           },
         });
       } catch (e) {

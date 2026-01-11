@@ -29,6 +29,7 @@ export interface ContractorCompany {
   approved_at?: string | null;
   approval_requested_at?: string | null;
   rejection_reason?: string | null;
+  created_by?: string | null;
 }
 
 export interface ContractorCompanyFilters {
@@ -77,7 +78,7 @@ export function useContractorCompanies(filters: ContractorCompanyFilters = {}) {
 
 export function useCreateContractorCompany() {
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
 
   return useMutation({
     mutationFn: async (data: Partial<ContractorCompany> & Record<string, any>) => {
@@ -97,6 +98,7 @@ export function useCreateContractorCompany() {
           tenant_id: profile.tenant_id,
           status: "pending_approval",
           approval_requested_at: new Date().toISOString(),
+          created_by: user?.id, // Track who created the company for rejection notification
           scope_of_work: data.scope_of_work,
           contract_start_date: data.contract_start_date,
           contract_end_date: data.contract_end_date,
@@ -327,6 +329,31 @@ export function useDeleteContractorCompany() {
   });
 }
 
+// ============= HSSE MANAGER ACCESS CHECK =============
+
+export function useHasHSSEManagerAccess() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["hsse-manager-access", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return false;
+      
+      const { data, error } = await supabase.rpc("has_hsse_manager_access", {
+        p_user_id: user.id,
+      });
+      
+      if (error) {
+        console.error("Failed to check HSSE Manager access:", error);
+        return false;
+      }
+      
+      return data === true;
+    },
+    enabled: !!user?.id,
+  });
+}
+
 // ============= COMPANY APPROVAL WORKFLOW HOOKS =============
 
 export function usePendingCompanyApprovals() {
@@ -343,7 +370,7 @@ export function usePendingCompanyApprovals() {
         .select(`
           id, tenant_id, company_name, company_name_ar, commercial_registration_number,
           vat_number, email, phone, address, city, status, assigned_client_pm_id,
-          suspension_reason, suspended_at, created_at, updated_at,
+          suspension_reason, suspended_at, created_at, updated_at, created_by,
           contractor_site_rep_name, contractor_site_rep_email, contractor_site_rep_phone,
           scope_of_work, contract_start_date, contract_end_date,
           approval_requested_at, approved_by, approved_at, rejection_reason
@@ -366,6 +393,15 @@ export function useApproveCompany() {
 
   return useMutation({
     mutationFn: async (companyId: string) => {
+      // Validate HSSE Manager role before approving
+      const { data: hasAccess } = await supabase.rpc("has_hsse_manager_access", {
+        p_user_id: user?.id,
+      });
+
+      if (!hasAccess) {
+        throw new Error("Only HSSE Managers can approve company registrations");
+      }
+
       const { data, error } = await supabase
         .from("contractor_companies")
         .update({
@@ -406,10 +442,26 @@ export function useApproveCompany() {
 
 export function useRejectCompany() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   return useMutation({
     mutationFn: async ({ companyId, reason }: { companyId: string; reason: string }) => {
+      // Validate HSSE Manager role before rejecting
+      const { data: hasAccess } = await supabase.rpc("has_hsse_manager_access", {
+        p_user_id: user?.id,
+      });
+
+      if (!hasAccess) {
+        throw new Error("Only HSSE Managers can reject company registrations");
+      }
+
+      // Get the company details including who created it
+      const { data: companyData } = await supabase
+        .from("contractor_companies")
+        .select("id, company_name, tenant_id, created_by")
+        .eq("id", companyId)
+        .single();
+
       const { data, error } = await supabase
         .from("contractor_companies")
         .update({
@@ -423,12 +475,30 @@ export function useRejectCompany() {
         .single();
 
       if (error) throw error;
-      return { ...data, reason };
+      return { ...data, reason, createdBy: companyData?.created_by };
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["contractor-companies"] });
       queryClient.invalidateQueries({ queryKey: ["pending-company-approvals"] });
       toast.success("Company rejected");
+
+      // Send rejection notification to the requestor
+      if (data.createdBy && profile?.tenant_id) {
+        try {
+          await supabase.functions.invoke("send-contractor-notification", {
+            body: {
+              workerId: data.id, // Reusing field for company ID
+              workerName: data.company_name,
+              action: "company_rejected",
+              rejectionReason: data.reason,
+              tenant_id: profile.tenant_id,
+              targetUserId: data.createdBy, // Notify the original requestor
+            },
+          });
+        } catch (e) {
+          console.error("Failed to send rejection notification:", e);
+        }
+      }
     },
     onError: (error: Error) => {
       toast.error(error.message);

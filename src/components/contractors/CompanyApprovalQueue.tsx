@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -12,12 +13,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Building2, Calendar, Mail, Phone, User, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Building2, Calendar, Mail, Phone, User, CheckCircle, XCircle, Clock, ShieldAlert } from "lucide-react";
 import { format } from "date-fns";
 import {
   usePendingCompanyApprovals,
   useApproveCompany,
   useRejectCompany,
+  useHasHSSEManagerAccess,
   type ContractorCompany,
 } from "@/hooks/contractor-management/use-contractor-companies";
 import { PageLoader } from "@/components/ui/page-loader";
@@ -27,6 +29,7 @@ export function CompanyApprovalQueue() {
   const isRTL = i18n.language === "ar";
   
   const { data: pendingCompanies, isLoading } = usePendingCompanyApprovals();
+  const { data: hasHSSEManagerAccess, isLoading: accessLoading } = useHasHSSEManagerAccess();
   const approveCompany = useApproveCompany();
   const rejectCompany = useRejectCompany();
 
@@ -59,8 +62,25 @@ export function CompanyApprovalQueue() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || accessLoading) {
     return <PageLoader />;
+  }
+
+  // Access control: Only HSSE Manager can approve companies
+  if (!hasHSSEManagerAccess) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <ShieldAlert className="mx-auto h-12 w-12 text-destructive/50 mb-4" />
+          <p className="text-muted-foreground font-medium">
+            {t("contractors.hsseManagerOnly", "Only HSSE Managers can approve company registrations")}
+          </p>
+          <p className="text-sm text-muted-foreground mt-2">
+            {t("contractors.contactHSSEManager", "Please contact your HSSE Manager if you need to approve a company.")}
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
 
   if (!pendingCompanies || pendingCompanies.length === 0) {
@@ -79,13 +99,28 @@ export function CompanyApprovalQueue() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">
-          {t("contractors.pendingApprovals", "Pending Approvals")}
-        </h2>
+        <div>
+          <h2 className="text-xl font-semibold">
+            {t("contractors.pendingApprovals", "Pending Approvals")}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {t("contractors.hsseManagerApprovalRequired", "HSSE Manager approval required")}
+          </p>
+        </div>
         <Badge variant="secondary" className="text-sm">
           {pendingCompanies.length} {t("contractors.pending", "pending")}
         </Badge>
       </div>
+
+      <Alert>
+        <ShieldAlert className="h-4 w-4" />
+        <AlertDescription>
+          {t(
+            "contractors.companyApprovalNote",
+            "Approving a company will automatically create user accounts for their site representatives."
+          )}
+        </AlertDescription>
+      </Alert>
 
       <div className="grid gap-4">
         {pendingCompanies.map((company) => (
@@ -199,7 +234,7 @@ export function CompanyApprovalQueue() {
             <DialogDescription>
               {t(
                 "contractors.rejectCompanyDescription",
-                "Please provide a reason for rejecting this company registration."
+                "Please provide a reason for rejecting this company registration. The requestor will be notified."
               )}
             </DialogDescription>
           </DialogHeader>

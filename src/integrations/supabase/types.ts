@@ -23600,6 +23600,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: boolean
       }
+      has_contractor_approval_access: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       has_contractor_consultant_access: {
         Args: { p_user_id: string }
         Returns: boolean
@@ -23610,6 +23614,7 @@ export type Database = {
         Returns: boolean
       }
       has_hsse_incident_access: { Args: { _user_id: string }; Returns: boolean }
+      has_hsse_manager_access: { Args: { p_user_id: string }; Returns: boolean }
       has_ptw_access: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
@@ -23623,6 +23628,10 @@ export type Database = {
         Returns: boolean
       }
       has_security_access: { Args: { _user_id: string }; Returns: boolean }
+      has_security_approval_access: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       haversine_distance: {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
