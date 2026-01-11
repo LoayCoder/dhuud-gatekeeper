@@ -3806,6 +3806,8 @@
     "createInvitation": "إنشاء دعوة",
     "existingInvitations": "الدعوات الحالية",
     "noInvitations": "لا توجد رموز دعوة بعد. أنشئ واحدة لدعوة المستخدمين.",
+    "pendingInvitations": "الدعوات المعلقة",
+    "noPending": "لا توجد دعوات معلقة",
     "fields": {
       "email": "البريد الإلكتروني",
       "expiryDays": "تنتهي خلال (أيام)"
@@ -3818,6 +3820,15 @@
       "email": "البريد الإلكتروني",
       "expires": "ينتهي في"
     },
+    "statusLabel": "الحالة",
+    "channel": "القناة",
+    "code": "الرمز",
+    "expires": "ينتهي في",
+    "expired": "منتهي",
+    "sent": "تم الإرسال",
+    "failed": "فشل",
+    "pending": "قيد الانتظار",
+    "expiresSoon": "ينتهي قريباً",
     "status": {
       "pending": "قيد الانتظار",
       "used": "مستخدم",
@@ -3839,6 +3850,20 @@
       "emailResent": "تم إعادة إرسال البريد",
       "emailResentDescription": "تم إعادة إرسال بريد الدعوة إلى {{email}}."
     },
+    "codeCopied": "تم نسخ الرمز",
+    "linkCopied": "تم نسخ رابط الدعوة",
+    "emailResent": "تم إعادة إرسال بريد الدعوة",
+    "emailFailed": "فشل في إرسال البريد",
+    "whatsappSent": "تم إرسال دعوة واتساب",
+    "whatsappFailed": "فشل في إرسال واتساب",
+    "revoked": "تم إلغاء الدعوة",
+    "fetchFailed": "فشل في تحميل الدعوات",
+    "editEmail": "تعديل البريد",
+    "noPhone": "لا يوجد رقم هاتف",
+    "deliveryChannel": "قناة توصيل الدعوة",
+    "viaEmail": "البريد فقط",
+    "viaWhatsApp": "واتساب فقط",
+    "viaBoth": "البريد وواتساب",
     "sendEmailOnCreate": "إرسال بريد إلكتروني للدعوة",
     "resendEmail": "إعادة إرسال بريد الدعوة"
   },

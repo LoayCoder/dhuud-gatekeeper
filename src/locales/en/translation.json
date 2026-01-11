@@ -3988,6 +3988,8 @@
     "createInvitation": "Create Invitation",
     "existingInvitations": "Existing Invitations",
     "noInvitations": "No invitation codes yet. Create one to invite users.",
+    "pendingInvitations": "Pending Invitations",
+    "noPending": "No pending invitations",
     "fields": {
       "email": "Email Address",
       "expiryDays": "Expires In (Days)"
@@ -4000,6 +4002,15 @@
       "email": "Email",
       "expires": "Expires"
     },
+    "statusLabel": "Status",
+    "channel": "Channel",
+    "code": "Code",
+    "expires": "Expires",
+    "expired": "Expired",
+    "sent": "Sent",
+    "failed": "Failed",
+    "pending": "Pending",
+    "expiresSoon": "Expires soon",
     "status": {
       "pending": "Pending",
       "used": "Used",
@@ -4021,6 +4032,20 @@
       "emailResent": "Email Resent",
       "emailResentDescription": "Invitation email resent to {{email}}."
     },
+    "codeCopied": "Code copied to clipboard",
+    "linkCopied": "Invitation link copied",
+    "emailResent": "Invitation email resent",
+    "emailFailed": "Failed to send email",
+    "whatsappSent": "WhatsApp invitation sent",
+    "whatsappFailed": "Failed to send WhatsApp",
+    "revoked": "Invitation revoked",
+    "fetchFailed": "Failed to load invitations",
+    "editEmail": "Edit Email",
+    "noPhone": "No phone number available",
+    "deliveryChannel": "Invitation Delivery",
+    "viaEmail": "Email Only",
+    "viaWhatsApp": "WhatsApp Only",
+    "viaBoth": "Email & WhatsApp",
     "sendEmailOnCreate": "Send invitation email",
     "resendEmail": "Resend invitation email"
   },
