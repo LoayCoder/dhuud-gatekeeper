@@ -2116,6 +2116,22 @@
       "contractorAccess": "ठेकेदार पहुंच नियंत्रण",
       "gateDashboard": "गेट डैशबोर्ड"
     },
+    "team": {
+      "hierarchy": "टीम पदानुक्रम",
+      "myTeam": "मेरी टीम",
+      "allTeams": "सभी टीमें",
+      "supervisor": "पर्यवेक्षक",
+      "guards": "गार्ड",
+      "shiftLeaders": "शिफ्ट लीडर",
+      "managedInUserManagement": "भूमिका, साइट, और अन्य प्रोफ़ाइल सेटिंग्स उपयोगकर्ता प्रबंधन में प्रबंधित हैं।",
+      "editInUserManagement": "उपयोगकर्ता प्रबंधन में संपादित करें",
+      "roles": {
+        "manager": "प्रबंधक",
+        "supervisor": "पर्यवेक्षक",
+        "shiftLeader": "शिफ्ट लीडर",
+        "guard": "गार्ड"
+      }
+    },
     "gateDashboard": {
       "title": "गेट गार्ड डैशबोर्ड",
       "description": "सभी गेट संचालन का केंद्रीय नियंत्रण",
