@@ -50,15 +50,16 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get gate pass details
+    // Get gate pass details with correct column names
     const { data: gatePass, error: passError } = await supabase
       .from('material_gate_passes')
       .select(`
         id,
         reference_number,
         status,
-        pm_approval_status,
-        safety_approval_status,
+        is_internal_request,
+        contractor_approval_status,
+        security_approval_status,
         project:contractor_projects(project_name, company_id),
         company:contractor_companies(company_name)
       `)
@@ -85,56 +86,101 @@ Deno.serve(async (req) => {
       .eq('user_id', user.id);
 
     const roleCodes = userRoles?.map(r => (r.role as any)?.code) || [];
-    const isProjectManager = roleCodes.includes('manager') || roleCodes.includes('admin');
-    const isSafetySupervisor = roleCodes.includes('hsse_officer') || roleCodes.includes('hsse_manager') || roleCodes.includes('admin');
+    
+    // Role checks for dual-path approval
+    const isContractorConsultant = roleCodes.includes('contractor_consultant') || roleCodes.includes('admin');
+    const isSecuritySupervisor = roleCodes.includes('hsse_officer') || 
+                                  roleCodes.includes('hsse_manager') || 
+                                  roleCodes.includes('security_supervisor') ||
+                                  roleCodes.includes('admin');
 
-    if (gatePass.pm_approval_status === 'pending' && isProjectManager) {
-      // First approval stage: Project Manager
-      if (approval_action === 'approve') {
-        updateData = {
-          pm_approval_status: 'approved',
-          pm_approved_by: user.id,
-          pm_approved_at: new Date().toISOString(),
-          pm_approval_notes: approval_notes,
-          status: 'pending_safety_approval',
-        };
-        newStatus = 'pending_safety_approval';
+    // DUAL-PATH APPROVAL LOGIC
+    // Path 1: External requests (from contractor) - needs contractor_consultant approval first
+    // Path 2: Internal requests - skip to security approval directly
+
+    const isInternalRequest = gatePass.is_internal_request === true;
+
+    if (isInternalRequest) {
+      // INTERNAL PATH: Direct to Security Supervisor approval
+      if (gatePass.security_approval_status === 'pending' && isSecuritySupervisor) {
+        if (approval_action === 'approve') {
+          updateData = {
+            security_approval_status: 'approved',
+            security_approved_by: user.id,
+            security_approved_at: new Date().toISOString(),
+            security_approval_notes: approval_notes,
+            status: 'approved',
+          };
+          newStatus = 'approved';
+        } else {
+          updateData = {
+            security_approval_status: 'rejected',
+            security_approved_by: user.id,
+            security_approved_at: new Date().toISOString(),
+            security_approval_notes: approval_notes,
+            status: 'rejected',
+          };
+          newStatus = 'rejected';
+        }
       } else {
-        updateData = {
-          pm_approval_status: 'rejected',
-          pm_approved_by: user.id,
-          pm_approved_at: new Date().toISOString(),
-          pm_approval_notes: approval_notes,
-          status: 'rejected',
-        };
-        newStatus = 'rejected';
-      }
-    } else if (gatePass.pm_approval_status === 'approved' && gatePass.safety_approval_status === 'pending' && isSafetySupervisor) {
-      // Second approval stage: Safety Supervisor
-      if (approval_action === 'approve') {
-        updateData = {
-          safety_approval_status: 'approved',
-          safety_approved_by: user.id,
-          safety_approved_at: new Date().toISOString(),
-          safety_approval_notes: approval_notes,
-          status: 'approved',
-        };
-        newStatus = 'approved';
-      } else {
-        updateData = {
-          safety_approval_status: 'rejected',
-          safety_approved_by: user.id,
-          safety_approved_at: new Date().toISOString(),
-          safety_approval_notes: approval_notes,
-          status: 'rejected',
-        };
-        newStatus = 'rejected';
+        return new Response(
+          JSON.stringify({ error: 'You are not authorized to approve this gate pass at this stage' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
     } else {
-      return new Response(
-        JSON.stringify({ error: 'You are not authorized to approve this gate pass at this stage' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      // EXTERNAL PATH: Two-stage approval
+      // Stage 1: Contractor Consultant approval
+      if (gatePass.contractor_approval_status === 'pending' && isContractorConsultant) {
+        if (approval_action === 'approve') {
+          updateData = {
+            contractor_approval_status: 'approved',
+            contractor_approved_by: user.id,
+            contractor_approved_at: new Date().toISOString(),
+            contractor_approval_notes: approval_notes,
+            status: 'pending_security_approval',
+          };
+          newStatus = 'pending_security_approval';
+        } else {
+          updateData = {
+            contractor_approval_status: 'rejected',
+            contractor_approved_by: user.id,
+            contractor_approved_at: new Date().toISOString(),
+            contractor_approval_notes: approval_notes,
+            status: 'rejected',
+          };
+          newStatus = 'rejected';
+        }
+      } 
+      // Stage 2: Security Supervisor approval (after contractor approval)
+      else if (gatePass.contractor_approval_status === 'approved' && 
+               gatePass.security_approval_status === 'pending' && 
+               isSecuritySupervisor) {
+        if (approval_action === 'approve') {
+          updateData = {
+            security_approval_status: 'approved',
+            security_approved_by: user.id,
+            security_approved_at: new Date().toISOString(),
+            security_approval_notes: approval_notes,
+            status: 'approved',
+          };
+          newStatus = 'approved';
+        } else {
+          updateData = {
+            security_approval_status: 'rejected',
+            security_approved_by: user.id,
+            security_approved_at: new Date().toISOString(),
+            security_approval_notes: approval_notes,
+            status: 'rejected',
+          };
+          newStatus = 'rejected';
+        }
+      } else {
+        return new Response(
+          JSON.stringify({ error: 'You are not authorized to approve this gate pass at this stage' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Update gate pass
@@ -162,7 +208,7 @@ Deno.serve(async (req) => {
       new_value: { status: newStatus, notes: approval_notes },
     });
 
-    console.log(`Gate pass ${gatePass.reference_number} ${approval_action}ed by ${user.id}`);
+    console.log(`Gate pass ${gatePass.reference_number} ${approval_action}ed by ${user.id} (${isInternalRequest ? 'internal' : 'external'} path)`);
 
     return new Response(
       JSON.stringify({
@@ -171,6 +217,7 @@ Deno.serve(async (req) => {
         new_status: newStatus,
         approval_action,
         approved_by: user.id,
+        approval_path: isInternalRequest ? 'internal' : 'external',
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

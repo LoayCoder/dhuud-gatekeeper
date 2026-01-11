@@ -22,12 +22,18 @@ export interface ContractorWorker {
   preferred_language: string;
   approval_status: string;
   approved_at: string | null;
+  approved_by?: string | null;
   rejection_reason: string | null;
   created_at: string;
   worker_type?: string; // 'worker' | 'site_representative' | 'safety_officer'
   safety_officer_id?: string | null;
   company?: { company_name: string } | null;
   latest_induction?: WorkerInduction | null;
+  // Security approval stage fields
+  security_approval_status?: string;
+  security_approved_by?: string | null;
+  security_approved_at?: string | null;
+  security_rejection_reason?: string | null;
 }
 
 export interface ContractorWorkerFilters {
@@ -157,15 +163,20 @@ export function useCreateContractorWorker() {
   });
 }
 
+// Stage 1: Contractor Admin/Consultant approves worker -> moves to pending_security
 export function useApproveWorker() {
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (workerId: string) => {
       const { data, error } = await supabase
         .from("contractor_workers")
-        .update({ approval_status: "approved", approved_at: new Date().toISOString() })
+        .update({ 
+          approval_status: "pending_security",
+          approved_at: new Date().toISOString(),
+          approved_by: user?.id,
+        })
         .eq("id", workerId)
         .select("id, full_name, tenant_id")
         .single();
@@ -176,7 +187,8 @@ export function useApproveWorker() {
     onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
       queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
-      toast.success("Worker approved");
+      queryClient.invalidateQueries({ queryKey: ["pending-security-approvals"] });
+      toast.success("Worker approved - pending security review");
 
       // Log audit event
       try {
@@ -184,8 +196,58 @@ export function useApproveWorker() {
           body: {
             entity_type: "contractor_worker",
             entity_id: data.id,
-            action: "worker_approved",
+            action: "worker_stage1_approved",
             old_value: { approval_status: "pending" },
+            new_value: { approval_status: "pending_security", full_name: data.full_name },
+            tenant_id: data.tenant_id,
+          },
+        });
+      } catch (e) {
+        console.error("Failed to log audit event:", e);
+      }
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+// Stage 2: Security Supervisor final approval
+export function useSecurityApproveWorker() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (workerId: string) => {
+      const { data, error } = await supabase
+        .from("contractor_workers")
+        .update({ 
+          approval_status: "approved",
+          security_approval_status: "approved",
+          security_approved_at: new Date().toISOString(),
+          security_approved_by: user?.id,
+        })
+        .eq("id", workerId)
+        .select("id, full_name, tenant_id")
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: async (data) => {
+      queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-security-approvals"] });
+      toast.success("Worker approved by security");
+
+      // Log audit event
+      try {
+        await supabase.functions.invoke("contractor-audit-log", {
+          body: {
+            entity_type: "contractor_worker",
+            entity_id: data.id,
+            action: "worker_security_approved",
+            old_value: { approval_status: "pending_security" },
             new_value: { approval_status: "approved", full_name: data.full_name },
             tenant_id: data.tenant_id,
           },
@@ -211,6 +273,90 @@ export function useApproveWorker() {
     onError: (error: Error) => {
       toast.error(error.message);
     },
+  });
+}
+
+// Security Supervisor rejection
+export function useSecurityRejectWorker() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ workerId, reason }: { workerId: string; reason: string }) => {
+      const { data, error } = await supabase
+        .from("contractor_workers")
+        .update({ 
+          approval_status: "security_rejected",
+          security_approval_status: "rejected",
+          security_approved_by: user?.id,
+          security_approved_at: new Date().toISOString(),
+          security_rejection_reason: reason,
+        })
+        .eq("id", workerId)
+        .select("id, full_name, tenant_id")
+        .single();
+
+      if (error) throw error;
+      return { ...data, reason };
+    },
+    onSuccess: async (data) => {
+      queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-security-approvals"] });
+      toast.success("Worker rejected by security");
+
+      // Log audit event
+      try {
+        await supabase.functions.invoke("contractor-audit-log", {
+          body: {
+            entity_type: "contractor_worker",
+            entity_id: data.id,
+            action: "worker_security_rejected",
+            old_value: { approval_status: "pending_security" },
+            new_value: { 
+              approval_status: "security_rejected", 
+              security_rejection_reason: data.reason,
+              full_name: data.full_name 
+            },
+            tenant_id: data.tenant_id,
+          },
+        });
+      } catch (e) {
+        console.error("Failed to log audit event:", e);
+      }
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+// Fetch workers pending security approval (Stage 2)
+export function usePendingSecurityApprovals() {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
+  return useQuery({
+    queryKey: ["pending-security-approvals", tenantId],
+    queryFn: async () => {
+      if (!tenantId) return [];
+
+      const { data, error } = await supabase
+        .from("contractor_workers")
+        .select(`
+          id, full_name, full_name_ar, national_id, nationality, mobile_number, 
+          created_at, approved_at, photo_path, worker_type,
+          company:contractor_companies(company_name)
+        `)
+        .eq("tenant_id", tenantId)
+        .eq("approval_status", "pending_security")
+        .is("deleted_at", null)
+        .order("approved_at", { ascending: true });
+
+      if (error) throw error;
+      return data as ContractorWorker[];
+    },
+    enabled: !!tenantId,
   });
 }
 
