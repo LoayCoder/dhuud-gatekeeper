@@ -59,7 +59,7 @@ export interface CreateGatePassData {
   project_id?: string; // Optional for internal users
   company_id?: string; // Optional for internal users
   pass_type: string;
-  pm_approval_by?: string;
+  pm_approved_by?: string;
   approval_from_id?: string; // For internal requests - selected approver
   is_internal_request?: boolean;
   vehicle_plate?: string;
@@ -222,7 +222,7 @@ export function useCreateGatePass() {
           project_id: data.project_id || null,
           company_id: data.company_id || null,
           pass_type: data.pass_type,
-          pm_approval_by: data.pm_approval_by || null,
+          pm_approved_by: data.pm_approved_by || null,
           approval_from_id: data.approval_from_id || null,
           is_internal_request: data.is_internal_request || false,
           material_description: materialDescription,
