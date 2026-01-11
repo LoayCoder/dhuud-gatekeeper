@@ -54,7 +54,7 @@ export function TeamFormationPanel() {
   const createTeam = useCreateSecurityTeam();
 
   const supervisors = securityTeam?.filter(
-    (m) => m.role === 'security_supervisor' || m.role === 'security_manager'
+    (m) => m.role === 'security_supervisor' || m.role === 'security_manager' || m.role === 'security_shift_leader'
   ) || [];
 
   const guards = securityTeam?.filter(

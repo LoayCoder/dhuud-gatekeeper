@@ -120,9 +120,11 @@
       "allTeams": "جميع الفرق",
       "supervisor": "المشرف",
       "guards": "حراس",
+      "shiftLeaders": "قادة الورديات",
       "roles": {
         "manager": "مدير",
         "supervisor": "مشرف",
+        "shiftLeader": "قائد الوردية",
         "guard": "حارس"
       }
     },
