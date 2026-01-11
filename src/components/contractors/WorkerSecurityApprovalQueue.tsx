@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -13,12 +14,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ShieldCheck, CheckCircle, XCircle, Clock, Building2, Phone, CreditCard, User } from "lucide-react";
+import { ShieldCheck, CheckCircle, XCircle, Clock, Building2, Phone, CreditCard, User, ShieldAlert, Video } from "lucide-react";
 import { format } from "date-fns";
 import {
   usePendingSecurityApprovals,
   useSecurityApproveWorker,
   useSecurityRejectWorker,
+  useHasSecurityApprovalAccess,
   type ContractorWorker,
 } from "@/hooks/contractor-management/use-contractor-workers";
 import { PageLoader } from "@/components/ui/page-loader";
@@ -29,6 +31,7 @@ export function WorkerSecurityApprovalQueue() {
   const isRTL = i18n.language === "ar";
   
   const { data: pendingWorkers, isLoading } = usePendingSecurityApprovals();
+  const { data: hasSecurityAccess, isLoading: accessLoading } = useHasSecurityApprovalAccess();
   const approveWorker = useSecurityApproveWorker();
   const rejectWorker = useSecurityRejectWorker();
 
@@ -76,8 +79,25 @@ export function WorkerSecurityApprovalQueue() {
       .slice(0, 2);
   };
 
-  if (isLoading) {
+  if (isLoading || accessLoading) {
     return <PageLoader />;
+  }
+
+  // Access control: Only Security Supervisor or Security Manager can approve
+  if (!hasSecurityAccess) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <ShieldAlert className="mx-auto h-12 w-12 text-destructive/50 mb-4" />
+          <p className="text-muted-foreground font-medium">
+            {t("contractors.securityRoleOnly", "Only Security Supervisors or Security Managers can approve workers")}
+          </p>
+          <p className="text-sm text-muted-foreground mt-2">
+            {t("contractors.contactSecurity", "Please contact your Security team if you need to approve a worker.")}
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
 
   if (!pendingWorkers || pendingWorkers.length === 0) {
@@ -98,14 +118,29 @@ export function WorkerSecurityApprovalQueue() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-semibold">
-            {t("contractors.securityApprovalQueue", "Security Approval Queue")}
-          </h2>
+          <div>
+            <h2 className="text-xl font-semibold">
+              {t("contractors.securityApprovalQueue", "Security Approval Queue")}
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              {t("contractors.securityApproverRoles", "Security Supervisor / Security Manager")}
+            </p>
+          </div>
         </div>
         <Badge variant="secondary" className="text-sm">
           {pendingWorkers.length} {t("contractors.pending", "pending")}
         </Badge>
       </div>
+
+      <Alert>
+        <Video className="h-4 w-4" />
+        <AlertDescription>
+          {t(
+            "contractors.securityApprovalNote",
+            "After approval, a safety induction video will be automatically sent to the worker."
+          )}
+        </AlertDescription>
+      </Alert>
 
       <p className="text-sm text-muted-foreground">
         {t(
@@ -177,7 +212,7 @@ export function WorkerSecurityApprovalQueue() {
               {/* Stage 1 Approval Info */}
               {worker.approved_at && (
                 <p className="text-xs text-muted-foreground">
-                  {t("contractors.preApprovedAt", "Pre-approved")}:{" "}
+                  {t("contractors.preApprovedAt", "Pre-approved by Contractor Admin/Consultant")}:{" "}
                   {format(new Date(worker.approved_at), "PPp")}
                 </p>
               )}
@@ -199,7 +234,7 @@ export function WorkerSecurityApprovalQueue() {
                   className="flex-1"
                 >
                   <XCircle className="h-4 w-4 me-2" />
-                  {t("contractors.denyAccess", "Deny Access")}
+                  {t("contractors.returnToPending", "Return with Comments")}
                 </Button>
               </div>
             </CardContent>
@@ -211,18 +246,18 @@ export function WorkerSecurityApprovalQueue() {
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("contractors.denySecurityClearance", "Deny Security Clearance")}</DialogTitle>
+            <DialogTitle>{t("contractors.returnWorkerToPending", "Return Worker to Pending")}</DialogTitle>
             <DialogDescription>
               {t(
-                "contractors.denySecurityDescription",
-                "Please provide a reason for denying security clearance to this worker."
+                "contractors.returnWorkerDescription",
+                "Please provide comments explaining the security concerns. The contractor will be notified and can address the issues."
               )}
             </DialogDescription>
           </DialogHeader>
           <Textarea
             value={rejectionReason}
             onChange={(e) => setRejectionReason(e.target.value)}
-            placeholder={t("contractors.securityRejectionPlaceholder", "Enter security rejection reason...")}
+            placeholder={t("contractors.securityCommentsPlaceholder", "Enter security comments/concerns...")}
             rows={4}
           />
           <DialogFooter>
@@ -234,7 +269,7 @@ export function WorkerSecurityApprovalQueue() {
               onClick={handleReject}
               disabled={!rejectionReason.trim() || rejectWorker.isPending}
             >
-              {t("contractors.denyAccess", "Deny Access")}
+              {t("contractors.returnToPending", "Return with Comments")}
             </Button>
           </DialogFooter>
         </DialogContent>
