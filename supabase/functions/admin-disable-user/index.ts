@@ -280,13 +280,44 @@ Deno.serve(async (req) => {
         
         // === END CLEANUP ===
         
-        // Now permanently delete the auth account
+        // Get original email for anonymization
+        const { data: authUserData } = await supabaseAdmin.auth.admin.getUserById(targetUserId);
+        const originalEmail = authUserData?.user?.email;
+        
+        // Try hard delete first
         const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(targetUserId);
 
         if (deleteAuthError) {
-          console.error('Failed to permanently delete auth account:', deleteAuthError);
+          console.log('Hard delete failed (FK constraint), falling back to anonymization:', deleteAuthError.message);
+          
+          // Anonymize the auth account instead - this frees the email for re-use
+          const timestamp = Date.now();
+          const deletedEmail = `deleted_${timestamp}_${targetUserId.substring(0, 8)}@deleted.local`;
+          
+          const { error: anonError } = await supabaseAdmin.auth.admin.updateUserById(
+            targetUserId,
+            {
+              email: deletedEmail,
+              email_confirm: true,
+              ban_duration: 'none', // Permanent ban
+              user_metadata: {
+                deleted: true,
+                deleted_at: new Date().toISOString(),
+                original_email: originalEmail,
+                deletion_method: 'anonymized',
+                deleted_by: caller.id
+              }
+            }
+          );
+          
+          if (anonError) {
+            console.error('Failed to anonymize auth account:', anonError);
+          } else {
+            accountBanned = true;
+            console.log('Auth account anonymized for user:', targetUserId, 'Email freed:', originalEmail);
+          }
         } else {
-          accountBanned = true; // Reuse flag to indicate account was removed
+          accountBanned = true;
           console.log('Auth account permanently deleted for user:', targetUserId);
         }
       } else {

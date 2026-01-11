@@ -437,7 +437,8 @@ export default function UserManagement() {
         body: { 
           user_id: userId,
           tenant_id: profile?.tenant_id, // Explicitly specify which tenant
-          reason: 'admin_deleted'
+          reason: 'admin_deleted',
+          delete_permanently: true // Hard delete auth account so user can be re-invited
         }
       });
 
