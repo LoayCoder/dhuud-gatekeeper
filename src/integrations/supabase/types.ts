@@ -12995,7 +12995,7 @@ export type Database = {
       material_gate_passes: {
         Row: {
           approval_from_id: string | null
-          company_id: string
+          company_id: string | null
           contractor_approval_notes: string | null
           contractor_approval_status: string | null
           contractor_approved_at: string | null
@@ -13023,7 +13023,7 @@ export type Database = {
           pm_approved_at: string | null
           pm_approved_by: string | null
           pm_notes: string | null
-          project_id: string
+          project_id: string | null
           qr_code_token: string | null
           qr_generated_at: string | null
           quantity: string | null
@@ -13048,7 +13048,7 @@ export type Database = {
         }
         Insert: {
           approval_from_id?: string | null
-          company_id: string
+          company_id?: string | null
           contractor_approval_notes?: string | null
           contractor_approval_status?: string | null
           contractor_approved_at?: string | null
@@ -13076,7 +13076,7 @@ export type Database = {
           pm_approved_at?: string | null
           pm_approved_by?: string | null
           pm_notes?: string | null
-          project_id: string
+          project_id?: string | null
           qr_code_token?: string | null
           qr_generated_at?: string | null
           quantity?: string | null
@@ -13101,7 +13101,7 @@ export type Database = {
         }
         Update: {
           approval_from_id?: string | null
-          company_id?: string
+          company_id?: string | null
           contractor_approval_notes?: string | null
           contractor_approval_status?: string | null
           contractor_approved_at?: string | null
@@ -13129,7 +13129,7 @@ export type Database = {
           pm_approved_at?: string | null
           pm_approved_by?: string | null
           pm_notes?: string | null
-          project_id?: string
+          project_id?: string | null
           qr_code_token?: string | null
           qr_generated_at?: string | null
           quantity?: string | null
