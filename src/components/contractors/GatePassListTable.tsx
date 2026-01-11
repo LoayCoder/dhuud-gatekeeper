@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MaterialGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
+import { GatePassDetailDialog } from "./GatePassDetailDialog";
 import { format } from "date-fns";
 import { Clock, Truck, Building2, User } from "lucide-react";
 
@@ -13,6 +15,7 @@ interface GatePassListTableProps {
 
 export function GatePassListTable({ gatePasses, isLoading }: GatePassListTableProps) {
   const { t } = useTranslation();
+  const [selectedPass, setSelectedPass] = useState<MaterialGatePass | null>(null);
 
   if (isLoading) {
     return (
@@ -61,7 +64,10 @@ export function GatePassListTable({ gatePasses, isLoading }: GatePassListTablePr
 
   // Mobile Card Component
   const MobilePassCard = ({ pass }: { pass: MaterialGatePass }) => (
-    <div className="p-3 rounded-lg border bg-card space-y-2">
+    <div 
+      className="p-3 rounded-lg border bg-card space-y-2 cursor-pointer hover:bg-accent/50 transition-colors"
+      onClick={() => setSelectedPass(pass)}
+    >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <p className="font-mono text-xs text-muted-foreground">{pass.reference_number}</p>
@@ -134,7 +140,11 @@ export function GatePassListTable({ gatePasses, isLoading }: GatePassListTablePr
           </TableHeader>
           <TableBody>
             {gatePasses.map((pass) => (
-              <TableRow key={pass.id}>
+              <TableRow 
+                key={pass.id} 
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => setSelectedPass(pass)}
+              >
                 <TableCell className="font-mono text-sm">{pass.reference_number}</TableCell>
                 <TableCell>
                   <Badge variant="outline">{t(`contractors.passType.${pass.pass_type}`, pass.pass_type)}</Badge>
@@ -159,6 +169,13 @@ export function GatePassListTable({ gatePasses, isLoading }: GatePassListTablePr
           </TableBody>
         </Table>
       </div>
+
+      {/* Detail Dialog */}
+      <GatePassDetailDialog
+        pass={selectedPass}
+        open={!!selectedPass}
+        onOpenChange={(open) => !open && setSelectedPass(null)}
+      />
     </>
   );
 }

@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LogIn, LogOut, Truck, Clock, CheckCircle } from "lucide-react";
 import { MaterialGatePass, useVerifyGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
+import { GatePassDetailDialog } from "./GatePassDetailDialog";
 import { format } from "date-fns";
 
 interface TodayGatePassesProps {
@@ -13,6 +15,7 @@ interface TodayGatePassesProps {
 export function TodayGatePasses({ passes }: TodayGatePassesProps) {
   const { t } = useTranslation();
   const verifyPass = useVerifyGatePass();
+  const [selectedPass, setSelectedPass] = useState<MaterialGatePass | null>(null);
 
   if (passes.length === 0) {
     return (
@@ -34,6 +37,12 @@ export function TodayGatePasses({ passes }: TodayGatePassesProps) {
     return now >= pass.time_window_start && now <= pass.time_window_end;
   };
 
+  const handleCardClick = (pass: MaterialGatePass, e: React.MouseEvent) => {
+    // Prevent opening dialog when clicking on buttons
+    if ((e.target as HTMLElement).closest('button')) return;
+    setSelectedPass(pass);
+  };
+
   return (
     <div className="space-y-4">
       <Card>
@@ -53,9 +62,10 @@ export function TodayGatePasses({ passes }: TodayGatePassesProps) {
               return (
                 <div
                   key={pass.id}
-                  className={`flex items-center justify-between p-4 rounded-lg border ${
+                  className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer hover:bg-accent/50 transition-colors ${
                     !withinWindow && !pass.entry_time ? "border-destructive/50 bg-destructive/5" : ""
                   }`}
+                  onClick={(e) => handleCardClick(pass, e)}
                 >
                   <div className="space-y-1 flex-1">
                     <div className="flex items-center gap-2">
@@ -120,6 +130,13 @@ export function TodayGatePasses({ passes }: TodayGatePassesProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Detail Dialog */}
+      <GatePassDetailDialog
+        pass={selectedPass}
+        open={!!selectedPass}
+        onOpenChange={(open) => !open && setSelectedPass(null)}
+      />
     </div>
   );
 }
