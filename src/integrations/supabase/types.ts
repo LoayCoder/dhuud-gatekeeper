@@ -23538,6 +23538,10 @@ export type Database = {
         Args: { _incident_id: string; _user_id: string }
         Returns: boolean
       }
+      has_contractor_admin_access: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       has_dept_rep_role: { Args: { _user_id: string }; Returns: boolean }
       has_document_controller_access: {
         Args: { p_user_id: string }
