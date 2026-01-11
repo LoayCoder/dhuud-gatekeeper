@@ -337,14 +337,14 @@ const App = () => (
                       <Route path="/security/team" element={<SecurityRoute><SecurityTeam /></SecurityRoute>} />
 
                       {/* Contractor Management Routes */}
-                      <Route path="/contractors" element={<AdminRoute><ContractorDashboard /></AdminRoute>} />
-                      <Route path="/contractors/companies" element={<AdminRoute><ContractorCompanies /></AdminRoute>} />
-                      <Route path="/contractors/projects" element={<AdminRoute><ContractorProjects /></AdminRoute>} />
-                      <Route path="/contractors/workers" element={<AdminRoute><ContractorWorkers /></AdminRoute>} />
-                      <Route path="/contractors/gate-passes" element={<AdminRoute><ContractorGatePasses /></AdminRoute>} />
-                      <Route path="/contractors/induction-videos" element={<AdminRoute><InductionVideos /></AdminRoute>} />
-                      <Route path="/contractors/analytics" element={<AdminRoute><ContractorAnalytics /></AdminRoute>} />
-                      <Route path="/contractors/settings" element={<AdminRoute><GatePassSettings /></AdminRoute>} />
+                      <Route path="/contractors" element={<MenuBasedAdminRoute menuCode="contractor_dashboard"><ContractorDashboard /></MenuBasedAdminRoute>} />
+                      <Route path="/contractors/companies" element={<MenuBasedAdminRoute menuCode="contractor_companies"><ContractorCompanies /></MenuBasedAdminRoute>} />
+                      <Route path="/contractors/projects" element={<MenuBasedAdminRoute menuCode="contractor_projects"><ContractorProjects /></MenuBasedAdminRoute>} />
+                      <Route path="/contractors/workers" element={<MenuBasedAdminRoute menuCode="contractor_workers"><ContractorWorkers /></MenuBasedAdminRoute>} />
+                      <Route path="/contractors/gate-passes" element={<MenuBasedAdminRoute menuCode="contractor_gate_passes"><ContractorGatePasses /></MenuBasedAdminRoute>} />
+                      <Route path="/contractors/induction-videos" element={<MenuBasedAdminRoute menuCode="contractor_induction_videos"><InductionVideos /></MenuBasedAdminRoute>} />
+                      <Route path="/contractors/analytics" element={<MenuBasedAdminRoute menuCode="contractor_analytics"><ContractorAnalytics /></MenuBasedAdminRoute>} />
+                      <Route path="/contractors/settings" element={<MenuBasedAdminRoute menuCode="contractor_settings"><GatePassSettings /></MenuBasedAdminRoute>} />
 
                       {/* Contractor Portal Routes (for external contractor reps) */}
                       <Route path="/contractor-portal" element={<ContractorPortalDashboard />} />
