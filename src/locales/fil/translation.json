@@ -2105,6 +2105,22 @@
       "contractorAccess": "Contractor Access Control",
       "gateDashboard": "Gate Dashboard"
     },
+    "team": {
+      "hierarchy": "Team Hierarchy",
+      "myTeam": "Aking Team",
+      "allTeams": "Lahat ng Teams",
+      "supervisor": "Superbisor",
+      "guards": "mga guard",
+      "shiftLeaders": "Mga Shift Leader",
+      "managedInUserManagement": "Ang Role, Site, at iba pang mga setting ng profile ay pinamamahalaan sa User Management.",
+      "editInUserManagement": "I-edit sa User Management",
+      "roles": {
+        "manager": "Manager",
+        "supervisor": "Superbisor",
+        "shiftLeader": "Shift Leader",
+        "guard": "Guard"
+      }
+    },
     "gateDashboard": {
       "title": "Gate Guard Dashboard",
       "description": "Sentral na kontrol para sa lahat ng gate operations",

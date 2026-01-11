@@ -23,6 +23,22 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 export default function ShiftRoster() {
   const { t } = useTranslation();
+  
+  // Helper to translate role codes to user-friendly labels
+  const getRoleLabel = (roleCode: string): string => {
+    switch (roleCode) {
+      case 'security_manager': 
+        return t('security.team.roles.manager', 'Manager');
+      case 'security_supervisor': 
+        return t('security.team.roles.supervisor', 'Supervisor');
+      case 'security_shift_leader': 
+        return t('security.team.roles.shiftLeader', 'Shift Leader');
+      case 'security_guard': 
+        return t('security.team.roles.guard', 'Guard');
+      default: 
+        return t(`roles.${roleCode}`, roleCode.replace(/_/g, ' '));
+    }
+  };
   const [dialogOpen, setDialogOpen] = useState(false);
   const [teamDialogOpen, setTeamDialogOpen] = useState(false);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 0 }));
@@ -139,7 +155,7 @@ export default function ShiftRoster() {
                     {supervisors?.map(s => (
                       <SelectItem key={s.id} value={s.id}>
                         <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">{s.role}</Badge>
+                          <Badge variant="outline" className="text-xs">{getRoleLabel(s.role)}</Badge>
                           {s.full_name}
                         </div>
                       </SelectItem>

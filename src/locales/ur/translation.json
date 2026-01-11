@@ -2116,6 +2116,22 @@
       "contractorAccess": "ٹھیکیدار رسائی کنٹرول",
       "gateDashboard": "گیٹ ڈیش بورڈ"
     },
+    "team": {
+      "hierarchy": "ٹیم کا درجہ بندی",
+      "myTeam": "میری ٹیم",
+      "allTeams": "تمام ٹیمیں",
+      "supervisor": "سپروائزر",
+      "guards": "گارڈز",
+      "shiftLeaders": "شفٹ لیڈرز",
+      "managedInUserManagement": "کردار، سائٹ، اور دیگر پروفائل ترتیبات صارف کے انتظام میں منظم ہیں۔",
+      "editInUserManagement": "صارف کے انتظام میں ترمیم کریں",
+      "roles": {
+        "manager": "مینیجر",
+        "supervisor": "سپروائزر",
+        "shiftLeader": "شفٹ لیڈر",
+        "guard": "گارڈ"
+      }
+    },
     "gateDashboard": {
       "title": "گیٹ گارڈ ڈیش بورڈ",
       "description": "تمام گیٹ آپریشنز کا مرکزی کنٹرول",
