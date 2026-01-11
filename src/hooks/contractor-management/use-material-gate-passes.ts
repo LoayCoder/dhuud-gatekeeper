@@ -6,8 +6,8 @@ import { toast } from "sonner";
 export interface MaterialGatePass {
   id: string;
   reference_number: string;
-  project_id: string;
-  company_id: string;
+  project_id: string | null;
+  company_id: string | null;
   pass_type: string;
   material_description: string;
   quantity: string | null;
@@ -33,8 +33,11 @@ export interface MaterialGatePass {
   entry_time: string | null;
   exit_time: string | null;
   created_at: string;
+  is_internal_request: boolean;
+  approval_from_id: string | null;
   project?: { project_name: string; company?: { company_name: string } } | null;
   company?: { company_name: string } | null;
+  approval_from?: { full_name: string } | null;
 }
 
 export interface GatePassFilters {
@@ -53,10 +56,12 @@ export interface GatePassItemInput {
 }
 
 export interface CreateGatePassData {
-  project_id: string;
-  company_id: string;
+  project_id?: string; // Optional for internal users
+  company_id?: string; // Optional for internal users
   pass_type: string;
   pm_approval_by?: string;
+  approval_from_id?: string; // For internal requests - selected approver
+  is_internal_request?: boolean;
   vehicle_plate?: string;
   driver_name?: string;
   driver_mobile?: string;
@@ -86,6 +91,7 @@ export function useMaterialGatePasses(filters: GatePassFilters = {}) {
           safety_approved_by, safety_approved_at, safety_notes,
           rejected_by, rejected_at, rejection_reason,
           guard_verified_by, guard_verified_at, entry_time, exit_time, created_at,
+          is_internal_request, approval_from_id,
           project:contractor_projects(project_name, company:contractor_companies(company_name)),
           company:contractor_companies(company_name)
         `)
@@ -213,10 +219,12 @@ export function useCreateGatePass() {
       const { data: result, error } = await supabase
         .from("material_gate_passes")
         .insert({
-          project_id: data.project_id,
-          company_id: data.company_id,
+          project_id: data.project_id || null,
+          company_id: data.company_id || null,
           pass_type: data.pass_type,
           pm_approval_by: data.pm_approval_by || null,
+          approval_from_id: data.approval_from_id || null,
+          is_internal_request: data.is_internal_request || false,
           material_description: materialDescription,
           quantity: data.items.length > 1 ? `${data.items.length} items` : data.items[0]?.quantity || null,
           vehicle_plate: data.vehicle_plate || null,

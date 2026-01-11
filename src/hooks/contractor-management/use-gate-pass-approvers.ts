@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface GatePassApprover {
   id: string;
@@ -15,7 +16,13 @@ export interface GatePassApprover {
   updated_at: string;
 }
 
-// Fetch active approvers for dropdown
+export interface EmployeeApprover {
+  id: string;
+  full_name: string;
+  job_title: string | null;
+}
+
+// Fetch active approvers for dropdown (from gate_pass_approvers table)
 export function useGatePassApprovers() {
   return useQuery({
     queryKey: ["gate-pass-approvers", "active"],
@@ -30,6 +37,38 @@ export function useGatePassApprovers() {
       if (error) throw error;
       return data as Pick<GatePassApprover, "id" | "name" | "name_ar" | "code" | "sort_order">[];
     },
+  });
+}
+
+/**
+ * Fetches potential gate pass approvers from employees
+ * Used for internal requests when no project is selected
+ */
+export function useEmployeeApprovers() {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
+  return useQuery({
+    queryKey: ["employee-approvers", tenantId],
+    queryFn: async () => {
+      if (!tenantId) return [];
+
+      // Get employees who can approve gate passes
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, job_title")
+        .eq("tenant_id", tenantId)
+        .eq("is_deleted", false)
+        .eq("is_active", true)
+        .eq("user_type", "employee")
+        .not("full_name", "is", null)
+        .order("full_name", { ascending: true });
+
+      if (error) throw error;
+      return (data || []) as EmployeeApprover[];
+    },
+    enabled: !!tenantId,
+    staleTime: 5 * 60 * 1000,
   });
 }
 

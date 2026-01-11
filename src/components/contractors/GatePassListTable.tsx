@@ -80,6 +80,11 @@ export function GatePassListTable({ gatePasses, isLoading }: GatePassListTablePr
             {pass.project.project_name}
           </span>
         )}
+        {pass.is_internal_request && !pass.project?.project_name && (
+          <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/20">
+            Internal Request
+          </Badge>
+        )}
       </div>
 
       <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground pt-1 border-t">
@@ -130,7 +135,15 @@ export function GatePassListTable({ gatePasses, isLoading }: GatePassListTablePr
                   <Badge variant="outline">{t(`contractors.passType.${pass.pass_type}`, pass.pass_type)}</Badge>
                 </TableCell>
                 <TableCell className="max-w-[200px] truncate">{pass.material_description}</TableCell>
-                <TableCell>{pass.project?.project_name || "-"}</TableCell>
+                <TableCell>
+                  {pass.project?.project_name || (
+                    pass.is_internal_request ? (
+                      <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/20">
+                        Internal
+                      </Badge>
+                    ) : "-"
+                  )}
+                </TableCell>
                 <TableCell>{pass.vehicle_plate || "-"}</TableCell>
                 <TableCell>{format(new Date(pass.pass_date), "dd/MM/yyyy")}</TableCell>
                 <TableCell className="text-sm">{formatTimeWindow(pass.time_window_start, pass.time_window_end)}</TableCell>
