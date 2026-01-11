@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import ContractorPortalLayout from "@/components/contractor-portal/ContractorPortalLayout";
 import { useContractorPortalData, useContractorGatePasses } from "@/hooks/contractor-management";
+import { ContractorPortalRoute } from "@/components/access-control";
 
-export default function ContractorPortalDashboard() {
+function ContractorPortalDashboardContent() {
   const { t } = useTranslation();
   const { company, projects, workers, isLoading } = useContractorPortalData();
   const { data: gatePasses } = useContractorGatePasses(company?.id);
@@ -187,5 +188,14 @@ export default function ContractorPortalDashboard() {
         </div>
       </div>
     </ContractorPortalLayout>
+  );
+}
+
+// Wrapped export with access control
+export default function ContractorPortalDashboard() {
+  return (
+    <ContractorPortalRoute>
+      <ContractorPortalDashboardContent />
+    </ContractorPortalRoute>
   );
 }

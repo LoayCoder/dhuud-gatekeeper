@@ -5,8 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import ContractorPortalLayout from "@/components/contractor-portal/ContractorPortalLayout";
 import { useContractorPortalData } from "@/hooks/contractor-management";
 import { format } from "date-fns";
+import { ContractorPortalRoute } from "@/components/access-control";
 
-export default function ContractorPortalProjects() {
+function ContractorPortalProjectsContent() {
   const { t } = useTranslation();
   const { projects, isLoading } = useContractorPortalData();
 
@@ -71,5 +72,14 @@ export default function ContractorPortalProjects() {
         )}
       </div>
     </ContractorPortalLayout>
+  );
+}
+
+// Wrapped export with access control
+export default function ContractorPortalProjects() {
+  return (
+    <ContractorPortalRoute>
+      <ContractorPortalProjectsContent />
+    </ContractorPortalRoute>
   );
 }

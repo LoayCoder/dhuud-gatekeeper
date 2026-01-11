@@ -12,6 +12,7 @@ import ContractorWorkerForm from "@/components/contractor-portal/ContractorWorke
 import ContractorWorkerEditForm from "@/components/contractor-portal/ContractorWorkerEditForm";
 import ContractorWorkerBulkImport from "@/components/contractor-portal/ContractorWorkerBulkImport";
 import { useContractorPortalData } from "@/hooks/contractor-management";
+import { ContractorPortalRoute } from "@/components/access-control";
 
 interface PortalWorker {
   id: string;
@@ -25,7 +26,7 @@ interface PortalWorker {
   edit_pending_approval?: boolean;
 }
 
-export default function ContractorPortalWorkers() {
+function ContractorPortalWorkersContent() {
   const { t } = useTranslation();
   const { company, workers, isLoading } = useContractorPortalData();
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -197,5 +198,14 @@ export default function ContractorPortalWorkers() {
         )}
       </div>
     </ContractorPortalLayout>
+  );
+}
+
+// Wrapped export with access control
+export default function ContractorPortalWorkers() {
+  return (
+    <ContractorPortalRoute>
+      <ContractorPortalWorkersContent />
+    </ContractorPortalRoute>
   );
 }

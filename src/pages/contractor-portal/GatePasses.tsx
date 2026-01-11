@@ -10,8 +10,9 @@ import ContractorPortalLayout from "@/components/contractor-portal/ContractorPor
 import ContractorGatePassRequest from "@/components/contractor-portal/ContractorGatePassRequest";
 import { useContractorPortalData, useContractorGatePasses } from "@/hooks/contractor-management";
 import { format } from "date-fns";
+import { ContractorPortalRoute } from "@/components/access-control";
 
-export default function ContractorPortalGatePasses() {
+function ContractorPortalGatePassesContent() {
   const { t } = useTranslation();
   const { company, projects, isLoading } = useContractorPortalData();
   const { data: gatePasses } = useContractorGatePasses(company?.id);
@@ -109,5 +110,14 @@ export default function ContractorPortalGatePasses() {
         {company && <ContractorGatePassRequest open={isFormOpen} onOpenChange={setIsFormOpen} companyId={company.id} projects={activeProjects} />}
       </div>
     </ContractorPortalLayout>
+  );
+}
+
+// Wrapped export with access control
+export default function ContractorPortalGatePasses() {
+  return (
+    <ContractorPortalRoute>
+      <ContractorPortalGatePassesContent />
+    </ContractorPortalRoute>
   );
 }
