@@ -159,6 +159,7 @@ export function useCreateContractorWorker() {
 
 export function useApproveWorker() {
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
 
   return useMutation({
     mutationFn: async (workerId: string) => {
@@ -166,16 +167,46 @@ export function useApproveWorker() {
         .from("contractor_workers")
         .update({ approval_status: "approved", approved_at: new Date().toISOString() })
         .eq("id", workerId)
-        .select()
+        .select("id, full_name, tenant_id")
         .single();
 
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
       queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
       toast.success("Worker approved");
+
+      // Log audit event
+      try {
+        await supabase.functions.invoke("contractor-audit-log", {
+          body: {
+            entity_type: "contractor_worker",
+            entity_id: data.id,
+            action: "worker_approved",
+            old_value: { approval_status: "pending" },
+            new_value: { approval_status: "approved", full_name: data.full_name },
+            tenant_id: data.tenant_id,
+          },
+        });
+      } catch (e) {
+        console.error("Failed to log audit event:", e);
+      }
+
+      // Send notification to contractor representatives
+      try {
+        await supabase.functions.invoke("send-contractor-notification", {
+          body: {
+            workerId: data.id,
+            workerName: data.full_name,
+            action: "worker_approved",
+            tenant_id: data.tenant_id,
+          },
+        });
+      } catch (e) {
+        console.error("Failed to send notification:", e);
+      }
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -185,6 +216,7 @@ export function useApproveWorker() {
 
 export function useRejectWorker() {
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
 
   return useMutation({
     mutationFn: async ({ workerId, reason }: { workerId: string; reason: string }) => {
@@ -192,16 +224,47 @@ export function useRejectWorker() {
         .from("contractor_workers")
         .update({ approval_status: "rejected", rejection_reason: reason })
         .eq("id", workerId)
-        .select()
+        .select("id, full_name, tenant_id")
         .single();
 
       if (error) throw error;
-      return data;
+      return { ...data, reason };
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
       queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
       toast.success("Worker rejected");
+
+      // Log audit event
+      try {
+        await supabase.functions.invoke("contractor-audit-log", {
+          body: {
+            entity_type: "contractor_worker",
+            entity_id: data.id,
+            action: "worker_rejected",
+            old_value: { approval_status: "pending" },
+            new_value: { approval_status: "rejected", rejection_reason: data.reason, full_name: data.full_name },
+            tenant_id: data.tenant_id,
+          },
+        });
+      } catch (e) {
+        console.error("Failed to log audit event:", e);
+      }
+
+      // Send notification to contractor representatives
+      try {
+        await supabase.functions.invoke("send-contractor-notification", {
+          body: {
+            workerId: data.id,
+            workerName: data.full_name,
+            action: "worker_rejected",
+            rejectionReason: data.reason,
+            tenant_id: data.tenant_id,
+          },
+        });
+      } catch (e) {
+        console.error("Failed to send notification:", e);
+      }
     },
     onError: (error: Error) => {
       toast.error(error.message);
