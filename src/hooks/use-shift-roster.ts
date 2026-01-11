@@ -246,14 +246,12 @@ export function useGuardCheckIn() {
 
   return useMutation({
     mutationFn: async ({ id, lat, lng }: { id: string; lat: number; lng: number }) => {
-      const { data, error } = await supabase
-        .from('shift_roster')
-        .update({ status: 'checked_in', check_in_time: new Date().toISOString(), check_in_lat: lat, check_in_lng: lng })
-        .eq('id', id)
-        .select()
-        .single();
+      const { error } = await supabase.rpc('guard_check_in', {
+        p_roster_id: id,
+        p_lat: lat,
+        p_lng: lng
+      });
       if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shift-roster'] });
@@ -272,14 +270,12 @@ export function useGuardCheckOut() {
 
   return useMutation({
     mutationFn: async ({ id, lat, lng }: { id: string; lat: number; lng: number }) => {
-      const { data, error } = await supabase
-        .from('shift_roster')
-        .update({ status: 'completed', check_out_time: new Date().toISOString(), check_out_lat: lat, check_out_lng: lng })
-        .eq('id', id)
-        .select()
-        .single();
+      const { error } = await supabase.rpc('guard_check_out', {
+        p_roster_id: id,
+        p_lat: lat,
+        p_lng: lng
+      });
       if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shift-roster'] });
