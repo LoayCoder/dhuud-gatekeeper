@@ -316,10 +316,9 @@ export function useRemoveTeamMember() {
 
   return useMutation({
     mutationFn: async (memberId: string) => {
-      const { error } = await supabase
-        .from('security_team_members')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', memberId);
+      const { error } = await supabase.rpc('remove_team_member', {
+        p_member_id: memberId
+      });
 
       if (error) throw error;
     },
