@@ -23682,6 +23682,14 @@ export type Database = {
         Args: { p_incident_id: string; p_violation_type_id: string }
         Returns: Json
       }
+      guard_check_in: {
+        Args: { p_lat: number; p_lng: number; p_roster_id: string }
+        Returns: undefined
+      }
+      guard_check_out: {
+        Args: { p_lat: number; p_lng: number; p_roster_id: string }
+        Returns: undefined
+      }
       has_asset_management_access: {
         Args: { _user_id: string }
         Returns: boolean
