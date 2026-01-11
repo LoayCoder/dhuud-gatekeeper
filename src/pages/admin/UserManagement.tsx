@@ -46,6 +46,9 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserFormDialog, UserDetailPopover, UserImportDialog, InvitationManagementPanel } from "@/components/users";
+import { UserDiagnosticPanel } from "@/components/users/UserDiagnosticPanel";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Stethoscope } from "lucide-react";
 import { EmailSyncBanner } from "@/components/users/EmailSyncBanner";
 import { LicensedUserQuotaCard } from "@/components/billing/LicensedUserQuotaCard";
 import { useLicensedUserQuota } from "@/hooks/use-licensed-user-quota";
@@ -739,6 +742,22 @@ export default function UserManagement() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Stethoscope className="h-4 w-4" />
+                {t('userManagement.diagnostics', 'Diagnostics')}
+              </Button>
+            </SheetTrigger>
+            <SheetContent side={direction === 'rtl' ? 'left' : 'right'} className="w-full sm:max-w-xl">
+              <SheetHeader>
+                <SheetTitle>{t('userManagement.accountDiagnostics', 'Account Diagnostics')}</SheetTitle>
+              </SheetHeader>
+              <div className="mt-4">
+                <UserDiagnosticPanel />
+              </div>
+            </SheetContent>
+          </Sheet>
           <Button variant="outline" onClick={() => setIsImportDialogOpen(true)} className="gap-2">
             <Upload className="h-4 w-4" />
             {t('userManagement.importUsers')}
