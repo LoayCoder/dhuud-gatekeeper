@@ -204,7 +204,7 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
         project_id: formData.project_id,
         company_id: formData.company_id,
         pass_type: formData.pass_type,
-        pm_approval_by: pmId,
+        pm_approved_by: pmId,
         is_internal_request: false,
         vehicle_plate: formData.vehicle_plate || undefined,
         driver_name: formData.driver_name || undefined,
