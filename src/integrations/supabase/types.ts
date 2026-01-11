@@ -13157,7 +13157,14 @@ export type Database = {
             foreignKeyName: "material_gate_passes_approval_from_id_fkey"
             columns: ["approval_from_id"]
             isOneToOne: false
-            referencedRelation: "gate_pass_approvers"
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_gate_passes_approval_from_id_fkey"
+            columns: ["approval_from_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
