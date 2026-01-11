@@ -23856,6 +23856,7 @@ export type Database = {
         Args: { p_tenant_id?: string }
         Returns: Json
       }
+      remove_team_member: { Args: { p_member_id: string }; Returns: undefined }
       reopen_closed_incident: {
         Args: { p_incident_id: string; p_reason: string }
         Returns: undefined
