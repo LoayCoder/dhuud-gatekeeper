@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Pencil, Building2, Mail, Phone, MapPin, FolderOpen, Info, Users, ShieldCheck, Calendar, Briefcase, User, Building, Star, Send, Loader2 } from "lucide-react";
+import { Pencil, Building2, Mail, Phone, MapPin, FolderOpen, Info, Users, ShieldCheck, Calendar, Briefcase, User, Building, Star, Send, Loader2, Link2 } from "lucide-react";
 import { ContractorCompany } from "@/hooks/contractor-management/use-contractor-companies";
 import { useContractorCompanyDetails } from "@/hooks/contractor-management/use-contractor-company-details";
 import { useContractorSafetyOfficers } from "@/hooks/contractor-management/use-contractor-safety-officers";
@@ -14,6 +14,7 @@ import { useContractorSiteRep } from "@/hooks/contractor-management/use-contract
 import { useSendContractorIdCard } from "@/hooks/contractor-management/use-contractor-id-cards";
 import { ContractorDocumentUpload } from "./ContractorDocumentUpload";
 import { SafetyRatioAlert } from "./SafetyRatioAlert";
+import { ContractorRepUserLink } from "./ContractorRepUserLink";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -26,11 +27,31 @@ interface CompanyDetailDialogProps {
 
 export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: CompanyDetailDialogProps) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const { data: details } = useContractorCompanyDetails(company?.id ?? null);
   const { data: safetyOfficersFromTable = [] } = useContractorSafetyOfficers(company?.id ?? null);
   const { data: siteRepFromTable } = useContractorSiteRep(company?.id ?? null);
   const sendIdCard = useSendContractorIdCard();
   const [sendingPersonId, setSendingPersonId] = useState<string | null>(null);
+
+  // Fetch contractor representatives for user linking
+  const { data: representatives = [] } = useQuery({
+    queryKey: ["contractor-representatives-for-linking", company?.id],
+    queryFn: async () => {
+      if (!company?.id) return [];
+      const { data, error } = await supabase
+        .from("contractor_representatives")
+        .select("id, full_name, email, user_id, is_primary")
+        .eq("company_id", company.id)
+        .is("deleted_at", null);
+      if (error) throw error;
+      return (data || []).map(rep => ({
+        ...rep,
+        representative_type: rep.is_primary ? 'site_rep' : 'other'
+      }));
+    },
+    enabled: !!company?.id && open,
+  });
 
   // Fallback: fetch safety officers from contractor_workers if contractor_safety_officers is empty
   const { data: workerOfficers = [] } = useQuery({
@@ -390,6 +411,42 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
                 )}
               </CardContent>
             </Card>
+
+            {/* User Account Linking */}
+            {representatives.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Link2 className="h-4 w-4" />
+                    {t("contractors.companies.userAccountLinking", "User Account Linking")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {representatives.map((rep) => (
+                    <div key={rep.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-md">
+                      <div>
+                        <p className="text-sm font-medium">{rep.full_name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {rep.representative_type === 'site_rep' 
+                            ? t("contractors.companies.siteRepresentative", "Site Representative")
+                            : t("contractors.companies.safetyOfficer", "Safety Officer")}
+                        </p>
+                      </div>
+                      <ContractorRepUserLink
+                        representativeId={rep.id}
+                        representativeName={rep.full_name}
+                        representativeEmail={rep.email}
+                        currentUserId={rep.user_id}
+                        companyId={company.id}
+                        onLinked={() => {
+                          queryClient.invalidateQueries({ queryKey: ["contractor-representatives-for-linking"] });
+                        }}
+                      />
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Client Site Representative */}
             <Card>
