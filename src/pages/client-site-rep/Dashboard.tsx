@@ -10,8 +10,9 @@ import { PersonnelCard } from "@/components/client-site-rep/PersonnelCard";
 import { ViolationsCard } from "@/components/client-site-rep/ViolationsCard";
 import { ClientSiteRepExport } from "@/components/client-site-rep/ClientSiteRepExport";
 import { useAuth } from "@/contexts/AuthContext";
+import { ClientSiteRepRoute } from "@/components/access-control";
 
-export default function ClientSiteRepDashboard() {
+function ClientSiteRepDashboardContent() {
   const { t } = useTranslation();
   const { profile } = useAuth();
   const {
@@ -94,5 +95,14 @@ export default function ClientSiteRepDashboard() {
       {/* Violations Section - Full Width */}
       <ViolationsCard violations={violations} />
     </div>
+  );
+}
+
+// Wrapped export with access control
+export default function ClientSiteRepDashboard() {
+  return (
+    <ClientSiteRepRoute>
+      <ClientSiteRepDashboardContent />
+    </ClientSiteRepRoute>
   );
 }
