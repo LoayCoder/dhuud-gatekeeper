@@ -4,11 +4,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Check, X, Truck, Clock, User, Eye } from "lucide-react";
 import { MaterialGatePass, useApproveGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
 import { GatePassRejectionDialog } from "./GatePassRejectionDialog";
 import { GatePassDetailDialog } from "./GatePassDetailDialog";
+import { GatePassBulkActionsToolbar } from "./GatePassBulkActionsToolbar";
+import { GatePassBulkApprovalDialog } from "./GatePassBulkApprovalDialog";
+import { GatePassBulkRejectionDialog } from "./GatePassBulkRejectionDialog";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface GatePassApprovalQueueProps {
   passes: MaterialGatePass[];
@@ -20,6 +25,37 @@ export function GatePassApprovalQueue({ passes }: GatePassApprovalQueueProps) {
   const [approvalNotes, setApprovalNotes] = useState<Record<string, string>>({});
   const [rejectingPass, setRejectingPass] = useState<MaterialGatePass | null>(null);
   const [viewingPass, setViewingPass] = useState<MaterialGatePass | null>(null);
+  
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBulkApproveDialog, setShowBulkApproveDialog] = useState(false);
+  const [showBulkRejectDialog, setShowBulkRejectDialog] = useState(false);
+
+  const toggleSelection = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === passes.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(passes.map((p) => p.id)));
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+  };
+
+  const selectedPasses = passes.filter((p) => selectedIds.has(p.id));
 
   if (passes.length === 0) {
     return (
@@ -47,13 +83,49 @@ export function GatePassApprovalQueue({ passes }: GatePassApprovalQueueProps) {
 
   return (
     <>
+      {/* Select All Header */}
+      {passes.length > 1 && (
+        <div className="flex items-center gap-3 mb-4 p-2 bg-muted/30 rounded-lg">
+          <Checkbox
+            id="select-all"
+            checked={selectedIds.size === passes.length && passes.length > 0}
+            onCheckedChange={toggleSelectAll}
+          />
+          <label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
+            {t("contractors.gatePasses.bulk.selectAll", "Select All")} ({passes.length})
+          </label>
+        </div>
+      )}
+
+      {/* Bulk Actions Toolbar */}
+      <GatePassBulkActionsToolbar
+        selectedCount={selectedIds.size}
+        onApprove={() => setShowBulkApproveDialog(true)}
+        onReject={() => setShowBulkRejectDialog(true)}
+        onClear={clearSelection}
+      />
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {passes.map((pass) => {
           const stage = getApprovalStage(pass.status);
+          const isSelected = selectedIds.has(pass.id);
           return (
-            <Card key={pass.id} className="overflow-hidden">
+            <Card 
+              key={pass.id} 
+              className={cn(
+                "overflow-hidden transition-all",
+                isSelected && "ring-2 ring-primary"
+              )}
+            >
               <div className="bg-muted/50 px-4 py-2 border-b flex items-center justify-between">
-                <span className="font-mono text-sm font-medium">{pass.reference_number}</span>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => toggleSelection(pass.id)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <span className="font-mono text-sm font-medium">{pass.reference_number}</span>
+                </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">{stage.label}</Badge>
                   <Button
@@ -150,6 +222,22 @@ export function GatePassApprovalQueue({ passes }: GatePassApprovalQueueProps) {
         pass={viewingPass}
         open={!!viewingPass}
         onOpenChange={(open) => !open && setViewingPass(null)}
+      />
+
+      {/* Bulk Approval Dialog */}
+      <GatePassBulkApprovalDialog
+        open={showBulkApproveDialog}
+        onOpenChange={setShowBulkApproveDialog}
+        passes={selectedPasses}
+        onSuccess={clearSelection}
+      />
+
+      {/* Bulk Rejection Dialog */}
+      <GatePassBulkRejectionDialog
+        open={showBulkRejectDialog}
+        onOpenChange={setShowBulkRejectDialog}
+        passes={selectedPasses}
+        onSuccess={clearSelection}
       />
     </>
   );
