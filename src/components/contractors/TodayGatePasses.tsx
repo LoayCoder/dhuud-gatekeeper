@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LogIn, LogOut, Truck, Clock, CheckCircle } from "lucide-react";
-import { MaterialGatePass, useVerifyGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
+import { Truck, Clock, CheckCircle } from "lucide-react";
+import { MaterialGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
 import { GatePassDetailDialog } from "./GatePassDetailDialog";
 import { format } from "date-fns";
 
@@ -14,7 +13,6 @@ interface TodayGatePassesProps {
 
 export function TodayGatePasses({ passes }: TodayGatePassesProps) {
   const { t } = useTranslation();
-  const verifyPass = useVerifyGatePass();
   const [selectedPass, setSelectedPass] = useState<MaterialGatePass | null>(null);
 
   if (passes.length === 0) {
@@ -95,27 +93,17 @@ export function TodayGatePasses({ passes }: TodayGatePassesProps) {
                     )}
                   </div>
 
+                  {/* Read-only status badges - Entry/Exit actions restricted to Security Guards at Gate Dashboard */}
                   <div className="flex gap-2">
                     {!pass.entry_time && (
-                      <Button
-                        size="sm"
-                        onClick={() => verifyPass.mutate({ passId: pass.id, action: "entry" })}
-                        disabled={verifyPass.isPending}
-                      >
-                        <LogIn className="h-4 w-4 me-1" />
-                        {t("contractors.gatePasses.entry", "Entry")}
-                      </Button>
+                      <Badge variant="secondary" className="self-center">
+                        {t("contractors.gatePasses.awaitingEntry", "Awaiting Entry")}
+                      </Badge>
                     )}
                     {pass.entry_time && !pass.exit_time && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => verifyPass.mutate({ passId: pass.id, action: "exit" })}
-                        disabled={verifyPass.isPending}
-                      >
-                        <LogOut className="h-4 w-4 me-1" />
-                        {t("contractors.gatePasses.exit", "Exit")}
-                      </Button>
+                      <Badge variant="default" className="self-center">
+                        {t("contractors.gatePasses.onSite", "On Site")}
+                      </Badge>
                     )}
                     {pass.exit_time && (
                       <Badge variant="outline" className="self-center">
