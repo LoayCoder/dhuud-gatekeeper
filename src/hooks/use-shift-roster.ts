@@ -131,57 +131,17 @@ export function useSupervisors() {
   return useQuery({
     queryKey: ['security-supervisors'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
-      
-      const { data: profile } = await supabase.from('profiles').select('tenant_id').eq('id', user.id).single();
-      if (!profile?.tenant_id) return [];
+      const { data, error } = await supabase.rpc('get_tenant_supervisors');
 
-      // Get users with supervisor or manager roles from user_role_assignments
-      const { data: roleAssignments, error } = await supabase
-        .from('user_role_assignments')
-        .select(`
-          user_id,
-          role:roles!inner (
-            code,
-            name
-          )
-        `)
-        .eq('tenant_id', profile.tenant_id)
-        .is('deleted_at', null);
+      if (error) {
+        console.error('Error fetching supervisors:', error);
+        return [];
+      }
 
-      if (error) throw error;
-      
-      // Filter to security supervisor/manager/shift leader roles
-      const supervisorRoles = ['security_supervisor', 'security_manager', 'security_shift_leader'];
-      const supervisorAssignments = (roleAssignments || []).filter(ra => {
-        const roleCode = (ra.role as { code: string } | null)?.code;
-        return roleCode && supervisorRoles.includes(roleCode);
-      });
-
-      // Get unique user IDs
-      const userIds = [...new Set(supervisorAssignments.map(r => r.user_id))];
-      if (!userIds.length) return [];
-      
-      // Get profile info for these users
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, full_name')
-        .in('id', userIds)
-        .eq('tenant_id', profile.tenant_id)
-        .is('deleted_at', null);
-      
-      // Map with roles
-      const roleMap = new Map<string, string>();
-      supervisorAssignments.forEach(r => {
-        const roleCode = (r.role as { code: string } | null)?.code || 'supervisor';
-        roleMap.set(r.user_id, roleCode);
-      });
-      
-      return (profiles || []).map(p => ({
-        id: p.id,
-        full_name: p.full_name || 'Unknown',
-        role: roleMap.get(p.id) || 'supervisor'
+      return (data || []).map((s: { id: string; full_name: string | null; role_code: string }) => ({
+        id: s.id,
+        full_name: s.full_name || 'Unknown',
+        role: s.role_code
       }));
     },
   });

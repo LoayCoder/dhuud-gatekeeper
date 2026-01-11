@@ -23568,6 +23568,14 @@ export type Database = {
           source: string
         }[]
       }
+      get_tenant_supervisors: {
+        Args: never
+        Returns: {
+          full_name: string
+          id: string
+          role_code: string
+        }[]
+      }
       get_tenant_user_counts: {
         Args: { p_tenant_ids: string[] }
         Returns: {
