@@ -4,15 +4,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
 import { 
   Truck, QrCode, Package, Clock, CheckCircle2, XCircle, 
-  AlertTriangle, LogIn, LogOut, Phone, Car
+  AlertTriangle, LogIn, LogOut, Phone, Car, Hash, ShieldAlert
 } from 'lucide-react';
 import { ScannerDialog } from '@/components/ui/scanner-dialog';
-import { useVerifyGatePass } from '@/hooks/contractor-management/use-material-gate-passes';
+import { useGuardGateAction, useVerifyPassByReference } from '@/hooks/contractor-management/use-gate-pass-guard-actions';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRoles } from '@/hooks/use-user-roles';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface MaterialPassResult {
   is_valid: boolean;
@@ -47,15 +50,63 @@ interface MaterialPassResult {
 export function MaterialPassVerificationPanel() {
   const { t } = useTranslation();
   const { profile } = useAuth();
+  const { hasRole } = useUserRoles();
   const [scannerOpen, setScannerOpen] = useState(false);
   const [result, setResult] = useState<MaterialPassResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const verifyGatePass = useVerifyGatePass();
+  const [manualRef, setManualRef] = useState('');
+  const [actionRecorded, setActionRecorded] = useState<'entry' | 'exit' | null>(null);
+
+  const guardAction = useGuardGateAction();
+  const verifyByRef = useVerifyPassByReference();
+
+  // Role check: Only security guards can use this panel
+  const isGuard = hasRole('security_guard');
+
+  // Auto-record action helper
+  const autoRecordAction = async (passData: MaterialPassResult['pass'], validationMethod: 'qr_scan' | 'manual_entry') => {
+    if (!passData) return;
+
+    // Determine action based on current state
+    const action: 'entry' | 'exit' = passData.entry_time ? 'exit' : 'entry';
+
+    try {
+      await guardAction.mutateAsync({
+        passId: passData.id,
+        passReference: passData.reference_number,
+        action,
+        validationMethod,
+        metadata: {
+          vehicle_plate: passData.vehicle_plate,
+          pass_date: passData.pass_date,
+        },
+      });
+
+      setActionRecorded(action);
+
+      // Update local result to reflect the action
+      setResult(prev => {
+        if (!prev || !prev.pass) return prev;
+        return {
+          ...prev,
+          pass: {
+            ...prev.pass,
+            entry_time: action === 'entry' ? new Date().toISOString() : prev.pass.entry_time,
+            exit_time: action === 'exit' ? new Date().toISOString() : prev.pass.exit_time,
+          },
+        };
+      });
+    } catch (error) {
+      // Error already handled by mutation's onError
+      console.error('Auto-action failed:', error);
+    }
+  };
 
   const handleScan = async (code: string) => {
     setScannerOpen(false);
     setIsLoading(true);
     setResult(null);
+    setActionRecorded(null);
 
     try {
       // Extract token from MGP: prefix
@@ -70,6 +121,16 @@ export function MaterialPassVerificationPanel() {
 
       if (error) throw error;
       setResult(data);
+
+      // AUTO-ACTION: If valid and guard, automatically record entry/exit
+      if (data.is_valid && data.pass && isGuard) {
+        // Check if already completed
+        if (data.pass.entry_time && data.pass.exit_time) {
+          toast.info(t('security.materialPass.passCompleted', 'Pass already completed'));
+        } else {
+          await autoRecordAction(data.pass, 'qr_scan');
+        }
+      }
     } catch (error) {
       console.error('Material QR validation error:', error);
       setResult({
@@ -82,24 +143,63 @@ export function MaterialPassVerificationPanel() {
     }
   };
 
-  const handleEntry = () => {
-    if (result?.pass?.id) {
-      verifyGatePass.mutate({ passId: result.pass.id, action: 'entry' });
-      setResult(prev => prev ? {
-        ...prev,
-        pass: prev.pass ? { ...prev.pass, entry_time: new Date().toISOString() } : undefined,
-      } : null);
+  const handleManualVerify = async () => {
+    if (!manualRef.trim()) {
+      toast.error(t('security.materialPass.enterReference', 'Please enter a gate pass number'));
+      return;
+    }
+
+    setIsLoading(true);
+    setResult(null);
+    setActionRecorded(null);
+
+    try {
+      const data = await verifyByRef.mutateAsync(manualRef.trim());
+      setResult(data as MaterialPassResult);
+
+      // AUTO-ACTION: If valid and guard, automatically record entry/exit
+      if (data.is_valid && data.pass && isGuard) {
+        if (data.pass.entry_time && data.pass.exit_time) {
+          toast.info(t('security.materialPass.passCompleted', 'Pass already completed'));
+        } else {
+          await autoRecordAction(data.pass, 'manual_entry');
+        }
+      }
+    } catch (error: any) {
+      setResult({
+        is_valid: false,
+        errors: [error.message || 'Failed to verify gate pass'],
+        warnings: [],
+      });
+    } finally {
+      setIsLoading(false);
+      setManualRef('');
     }
   };
 
-  const handleExit = () => {
-    if (result?.pass?.id) {
-      verifyGatePass.mutate({ passId: result.pass.id, action: 'exit' });
-      setResult(null);
-    }
+  const clearResult = () => {
+    setResult(null);
+    setActionRecorded(null);
   };
 
-  const clearResult = () => setResult(null);
+  // ACCESS DENIED: Show restricted message for non-guards
+  if (!isGuard) {
+    return (
+      <Card className="border-destructive/50">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg text-destructive">
+            <ShieldAlert className="h-5 w-5" />
+            {t('security.materialPass.accessDenied', 'Access Restricted')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            {t('security.materialPass.guardOnlyMessage', 'Only security guards can record gate entry and exit.')}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -120,6 +220,32 @@ export function MaterialPassVerificationPanel() {
           <QrCode className="h-5 w-5" />
           {t('security.materialPass.scanQR', 'Scan Gate Pass QR')}
         </Button>
+
+        {/* Manual Reference Entry */}
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Hash className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={t('security.materialPass.manualEntryPlaceholder', 'e.g. GP-2026-00123')}
+              value={manualRef}
+              onChange={(e) => setManualRef(e.target.value.toUpperCase())}
+              onKeyDown={(e) => e.key === 'Enter' && handleManualVerify()}
+              className="ps-9 font-mono"
+              disabled={isLoading}
+            />
+          </div>
+          <Button
+            onClick={handleManualVerify}
+            variant="outline"
+            disabled={isLoading || !manualRef.trim()}
+          >
+            {t('security.materialPass.verify', 'Verify')}
+          </Button>
+        </div>
+
+        <p className="text-xs text-muted-foreground text-center">
+          {t('security.materialPass.autoActionHint', 'Entry/Exit is recorded automatically after verification')}
+        </p>
 
         {/* Loading State */}
         {isLoading && (
@@ -163,6 +289,27 @@ export function MaterialPassVerificationPanel() {
                 )}
               </div>
             </div>
+
+            {/* Action Recorded Confirmation */}
+            {actionRecorded && (
+              <div className="p-3 rounded-lg bg-green-500/20 border border-green-500/40 flex items-center gap-2">
+                {actionRecorded === 'entry' ? (
+                  <>
+                    <LogIn className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <span className="font-medium text-green-700 dark:text-green-300">
+                      {t('security.materialPass.autoEntryRecorded', 'Entry recorded automatically')}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <LogOut className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <span className="font-medium text-green-700 dark:text-green-300">
+                      {t('security.materialPass.autoExitRecorded', 'Exit recorded - Pass completed')}
+                    </span>
+                  </>
+                )}
+              </div>
+            )}
 
             {/* Errors */}
             {result.errors.length > 0 && (
@@ -284,8 +431,8 @@ export function MaterialPassVerificationPanel() {
                   </>
                 )}
 
-                {/* Entry/Exit Status */}
-                {result.pass.entry_time && (
+                {/* Entry/Exit Status (read-only, no buttons) */}
+                {result.pass.entry_time && !actionRecorded && (
                   <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
                     <LogIn className="h-4 w-4" />
                     {t('security.materialPass.entryRecorded', 'Entry recorded at')}{' '}
@@ -293,31 +440,15 @@ export function MaterialPassVerificationPanel() {
                   </div>
                 )}
 
-                {/* Action Buttons */}
-                {result.is_valid && (
-                  <div className="flex gap-2 pt-2">
-                    {!result.pass.entry_time ? (
-                      <Button
-                        onClick={handleEntry}
-                        className="flex-1 gap-2"
-                        disabled={verifyGatePass.isPending}
-                      >
-                        <LogIn className="h-4 w-4" />
-                        {t('security.materialPass.recordEntry', 'Record Entry')}
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={handleExit}
-                        variant="outline"
-                        className="flex-1 gap-2"
-                        disabled={verifyGatePass.isPending}
-                      >
-                        <LogOut className="h-4 w-4" />
-                        {t('security.materialPass.recordExit', 'Record Exit')}
-                      </Button>
-                    )}
+                {result.pass.exit_time && !actionRecorded && (
+                  <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
+                    <LogOut className="h-4 w-4" />
+                    {t('security.materialPass.exitRecorded', 'Exit recorded at')}{' '}
+                    {new Date(result.pass.exit_time).toLocaleTimeString()}
                   </div>
                 )}
+
+                {/* NO MANUAL BUTTONS - Action is automatic after scan */}
 
                 <Button variant="ghost" onClick={clearResult} className="w-full">
                   {t('common.clear', 'Clear')}

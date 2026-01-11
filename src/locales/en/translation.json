@@ -154,6 +154,33 @@
     "roster": {
       "supervisor": "Shift Supervisor",
       "selectSupervisor": "Select Supervisor"
+    },
+    "materialPass": {
+      "title": "Material Gate Pass",
+      "scanQR": "Scan Gate Pass QR",
+      "scanTitle": "Scan Gate Pass QR",
+      "scanDescription": "Point camera at material gate pass QR code",
+      "valid": "VALID PASS",
+      "invalid": "INVALID PASS",
+      "type": "Type",
+      "project": "Project",
+      "company": "Company",
+      "timeWindow": "Time Window",
+      "driver": "Driver",
+      "items": "Items",
+      "entryRecorded": "Entry recorded at",
+      "exitRecorded": "Exit recorded at",
+      "recordEntry": "Record Entry",
+      "recordExit": "Record Exit",
+      "autoEntryRecorded": "Entry recorded automatically",
+      "autoExitRecorded": "Exit recorded - Pass completed",
+      "passCompleted": "Pass already completed",
+      "manualEntryPlaceholder": "e.g. GP-2026-00123",
+      "verify": "Verify",
+      "enterReference": "Please enter a gate pass number",
+      "autoActionHint": "Entry/Exit is recorded automatically after verification",
+      "accessDenied": "Access Restricted",
+      "guardOnlyMessage": "Only security guards can record gate entry and exit."
     }
   },
   "hsseDashboard": {
