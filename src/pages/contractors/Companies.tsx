@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Building2, Plus, Search, Filter } from "lucide-react";
+import { Building2, Plus, Search, Filter, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,13 +12,19 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { CompanyListTable } from "@/components/contractors/CompanyListTable";
 import { CompanyFormDialog } from "@/components/contractors/CompanyFormDialog";
 import { CompanyDetailDialog } from "@/components/contractors/CompanyDetailDialog";
 import { ContractorCompanyKPICards } from "@/components/contractors/ContractorCompanyKPICards";
 import { WorkersByCompanyChart } from "@/components/contractors/WorkersByCompanyChart";
 import { StatusByBranchChart } from "@/components/contractors/StatusByBranchChart";
-import { useContractorCompanies, ContractorCompany } from "@/hooks/contractor-management/use-contractor-companies";
+import { CompanyApprovalQueue } from "@/components/contractors/CompanyApprovalQueue";
+import { 
+  useContractorCompanies, 
+  usePendingCompanyApprovals,
+  ContractorCompany 
+} from "@/hooks/contractor-management/use-contractor-companies";
 import { useContractorCompanyStats } from "@/hooks/contractor-management/use-contractor-company-stats";
 
 export default function Companies() {
@@ -32,6 +38,9 @@ export default function Companies() {
 
   // Fetch stats for KPI cards and charts
   const { data: stats, isLoading: statsLoading } = useContractorCompanyStats();
+  
+  // Pending company approvals
+  const { data: pendingApprovals = [] } = usePendingCompanyApprovals();
 
   // Build status filter based on active tab
   const getStatusForTab = () => {
@@ -126,6 +135,15 @@ export default function Companies() {
                     {stats?.totalCompanies || 0}
                   </span>
                 </TabsTrigger>
+                <TabsTrigger value="pending" className="gap-1">
+                  <Clock className="h-4 w-4" />
+                  {t("contractors.status.pendingApproval", "Pending")}
+                  {pendingApprovals.length > 0 && (
+                    <Badge variant="destructive" className="ms-1">
+                      {pendingApprovals.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
                 <TabsTrigger value="active">
                   {t("contractors.status.active", "Active")}
                   <span className="ms-1.5 text-xs bg-chart-3/20 text-chart-3 px-1.5 py-0.5 rounded">
@@ -184,6 +202,9 @@ export default function Companies() {
                 onView={(company) => setSelectedCompany(company)}
                 onEdit={(company) => setEditingCompany(company)}
               />
+            </TabsContent>
+            <TabsContent value="pending" className="mt-4">
+              <CompanyApprovalQueue />
             </TabsContent>
             <TabsContent value="active" className="mt-4">
               <CompanyListTable

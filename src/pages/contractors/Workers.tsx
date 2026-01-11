@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { WorkerListTable } from "@/components/contractors/WorkerListTable";
 import { WorkerFormDialog } from "@/components/contractors/WorkerFormDialog";
 import { WorkerApprovalQueue } from "@/components/contractors/WorkerApprovalQueue";
+import { WorkerSecurityApprovalQueue } from "@/components/contractors/WorkerSecurityApprovalQueue";
 import { WorkerBulkImportDialog } from "@/components/contractors/WorkerBulkImportDialog";
 import { WorkerBulkActionsToolbar } from "@/components/contractors/WorkerBulkActionsToolbar";
 import { BulkRejectDialog } from "@/components/contractors/BulkRejectDialog";
@@ -28,6 +29,7 @@ import { ChangeWorkerStatusDialog } from "@/components/contractors/ChangeWorkerS
 import {
   useContractorWorkers,
   usePendingWorkerApprovals,
+  usePendingSecurityApprovals,
   useBulkApproveWorkers,
   useBulkRejectWorkers,
   useDeleteContractorWorker,
@@ -36,6 +38,7 @@ import {
 } from "@/hooks/contractor-management/use-contractor-workers";
 import { useContractorCompanies } from "@/hooks/contractor-management/use-contractor-companies";
 import { useSecurityBlacklist, useAddToBlacklist } from "@/hooks/use-security-blacklist";
+import { ShieldCheck } from "lucide-react";
 
 export default function Workers() {
   const { t } = useTranslation();
@@ -76,6 +79,7 @@ export default function Workers() {
   });
 
   const { data: pendingApprovals = [] } = usePendingWorkerApprovals();
+  const { data: pendingSecurityApprovals = [] } = usePendingSecurityApprovals();
   const { data: companies = [] } = useContractorCompanies({ status: "active" });
   const { data: blacklistEntries = [] } = useSecurityBlacklist();
   
@@ -205,6 +209,15 @@ export default function Workers() {
               </Badge>
             )}
           </TabsTrigger>
+          <TabsTrigger value="security" className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4" />
+            {t("contractors.workers.securityApprovals", "Security Approvals")}
+            {pendingSecurityApprovals.length > 0 && (
+              <Badge variant="default" className="ms-1">
+                {pendingSecurityApprovals.length}
+              </Badge>
+            )}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="mt-4">
@@ -288,6 +301,10 @@ export default function Workers() {
             blacklistedIds={blacklistedIds}
             blacklistReasons={blacklistReasons}
           />
+        </TabsContent>
+
+        <TabsContent value="security" className="mt-4">
+          <WorkerSecurityApprovalQueue />
         </TabsContent>
       </Tabs>
 

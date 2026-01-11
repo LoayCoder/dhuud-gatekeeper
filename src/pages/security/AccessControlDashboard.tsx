@@ -18,13 +18,14 @@ import { cn } from '@/lib/utils';
 
 import { useUnifiedAccessStats, useUnifiedAccessLogs, useRecordUnifiedExit, type EntityType } from '@/hooks/use-unified-access';
 import { usePendingSecurityRequests } from '@/hooks/use-visit-requests';
-import { usePendingWorkerApprovals } from '@/hooks/contractor-management/use-contractor-workers';
+import { usePendingWorkerApprovals, usePendingSecurityApprovals } from '@/hooks/contractor-management/use-contractor-workers';
 import { usePendingGatePassApprovals } from '@/hooks/contractor-management/use-material-gate-passes';
 
 import { UniversalQRScanner, type ScanResult } from '@/components/security/UniversalQRScanner';
 import { UnifiedAccessLogTable } from '@/components/security/UnifiedAccessLogTable';
 import { VisitorApprovalQueue } from '@/components/security/VisitorApprovalQueue';
 import { WorkerApprovalQueue } from '@/components/contractors/WorkerApprovalQueue';
+import { WorkerSecurityApprovalQueue } from '@/components/contractors/WorkerSecurityApprovalQueue';
 import { GatePassApprovalQueue } from '@/components/contractors/GatePassApprovalQueue';
 
 export default function AccessControlDashboard() {
@@ -41,6 +42,7 @@ export default function AccessControlDashboard() {
   // Pending approvals
   const { data: pendingVisitorApprovals = [] } = usePendingSecurityRequests();
   const { data: pendingWorkerApprovals = [] } = usePendingWorkerApprovals();
+  const { data: pendingSecurityApprovals = [] } = usePendingSecurityApprovals();
   const { data: pendingGatePassApprovals = [] } = usePendingGatePassApprovals();
 
   // Calculate date range based on filter
@@ -92,7 +94,7 @@ export default function AccessControlDashboard() {
     recordExit.mutate({ entryId, source });
   };
 
-  const totalPendingApprovals = pendingVisitorApprovals.length + pendingWorkerApprovals.length + pendingGatePassApprovals.length;
+  const totalPendingApprovals = pendingVisitorApprovals.length + pendingWorkerApprovals.length + pendingSecurityApprovals.length + pendingGatePassApprovals.length;
 
   const statCards = [
     {
@@ -267,7 +269,7 @@ export default function AccessControlDashboard() {
               </CardContent>
             </Card>
 
-            {/* Worker Approvals */}
+            {/* Worker Approvals (Stage 1) */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
@@ -283,6 +285,22 @@ export default function AccessControlDashboard() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Security Approvals (Stage 2) */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Shield className="h-5 w-5 text-primary" />
+                {t('security.accessControl.securityApprovals', 'Security Approvals')}
+                {pendingSecurityApprovals.length > 0 && (
+                  <Badge variant="default">{pendingSecurityApprovals.length}</Badge>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <WorkerSecurityApprovalQueue />
+            </CardContent>
+          </Card>
 
           {/* Gate Pass Approvals */}
           <Card>
