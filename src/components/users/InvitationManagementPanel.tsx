@@ -382,7 +382,7 @@ export function InvitationManagementPanel() {
                         <TableHead>{t('profile.phoneNumber', 'Phone')}</TableHead>
                         <TableHead>{t('invitations.code', 'Code')}</TableHead>
                         <TableHead className="text-center">{t('invitations.channel', 'Channel')}</TableHead>
-                        <TableHead>{t('invitations.status', 'Status')}</TableHead>
+                        <TableHead>{t('invitations.statusLabel', 'Status')}</TableHead>
                         <TableHead>{t('invitations.expires', 'Expires')}</TableHead>
                         <TableHead className="text-end">{t('common.actions', 'Actions')}</TableHead>
                       </TableRow>
