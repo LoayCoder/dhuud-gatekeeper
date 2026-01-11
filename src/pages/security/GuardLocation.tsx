@@ -5,8 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { MapPin, Clock, CheckCircle, LogOut, RefreshCw, Navigation, AlertTriangle, Shield } from 'lucide-react';
-import { useMyRosterAssignment, useGuardCheckIn, useGuardCheckOut } from '@/hooks/use-shift-roster';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
+import { MapPin, Clock, CheckCircle, LogOut, RefreshCw, Navigation, AlertTriangle, Shield, User, Phone } from 'lucide-react';
+import { useMyRosterAssignment, useGuardCheckIn, useGuardCheckOut, useMySupervisor } from '@/hooks/use-shift-roster';
 import { useTrackMyLocation } from '@/hooks/use-live-tracking';
 import { useSecurityZones } from '@/hooks/use-security-zones';
 import { useQuery } from '@tanstack/react-query';
@@ -23,6 +25,7 @@ export default function GuardLocation() {
   const [isTracking, setIsTracking] = useState(false);
 
   const { data: assignment, isLoading, refetch } = useMyRosterAssignment();
+  const { data: supervisor, isLoading: supervisorLoading } = useMySupervisor();
   const checkIn = useGuardCheckIn();
   const checkOut = useGuardCheckOut();
   const trackLocation = useTrackMyLocation();
@@ -207,6 +210,53 @@ export default function GuardLocation() {
           zone_code: zoneDetails.zone_code || undefined,
         } : undefined}
       />
+
+      {/* Supervisor Card */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <User className="h-5 w-5" />
+            {t('security.myLocation.supervisor', 'My Supervisor')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {supervisorLoading ? (
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </div>
+          ) : supervisor ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Avatar>
+                  <AvatarFallback>{supervisor.full_name?.charAt(0) || 'S'}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">{supervisor.full_name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t('security.role.supervisor', 'Supervisor')}
+                  </p>
+                </div>
+              </div>
+              {supervisor.phone_number && (
+                <Button variant="outline" size="sm" asChild>
+                  <a href={`tel:${supervisor.phone_number}`}>
+                    <Phone className="h-4 w-4 me-2" />
+                    {t('common.call', 'Call')}
+                  </a>
+                </Button>
+              )}
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">
+              {t('security.myLocation.noSupervisor', 'No supervisor assigned')}
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* GPS Status */}
       <Card>
