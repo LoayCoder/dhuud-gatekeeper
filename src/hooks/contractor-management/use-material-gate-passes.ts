@@ -38,6 +38,7 @@ export interface MaterialGatePass {
   project?: { project_name: string; company?: { company_name: string } } | null;
   company?: { company_name: string } | null;
   approval_from?: { full_name: string } | null;
+  requester?: { full_name: string } | null;
 }
 
 export interface GatePassFilters {
@@ -93,7 +94,8 @@ export function useMaterialGatePasses(filters: GatePassFilters = {}) {
           guard_verified_by, guard_verified_at, entry_time, exit_time, created_at,
           is_internal_request, approval_from_id,
           project:contractor_projects(project_name, company:contractor_companies(company_name)),
-          company:contractor_companies(company_name)
+          company:contractor_companies(company_name),
+          requester:profiles!requested_by(full_name)
         `)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
@@ -139,7 +141,8 @@ export function usePendingGatePassApprovals() {
           quantity, vehicle_plate, driver_name, driver_mobile, pass_date,
           time_window_start, time_window_end, status, requested_by, created_at,
           project:contractor_projects(project_name, company:contractor_companies(company_name)),
-          company:contractor_companies(company_name)
+          company:contractor_companies(company_name),
+          requester:profiles!requested_by(full_name)
         `)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
