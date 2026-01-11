@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Settings, Plus, Pencil, Trash2, Check, X } from "lucide-react";
+import { Settings, Plus, Pencil, Trash2, Check, X, Building2, Users, Globe } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Table,
   TableBody,
@@ -13,6 +14,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,15 +38,53 @@ import {
   useDeleteGatePassApprover,
   GatePassApprover,
 } from "@/hooks/contractor-management/use-gate-pass-approvers";
+import { UserSearchCombobox } from "@/components/admin/UserSearchCombobox";
+
+type ApproverScope = "external" | "internal" | "both";
 
 interface EditingApprover {
   id: string | null;
-  name: string;
-  name_ar: string;
-  code: string;
+  user_id: string;
+  approver_scope: ApproverScope;
   is_active: boolean;
-  sort_order: number;
 }
+
+const getInitials = (name: string | null | undefined) => {
+  if (!name) return "?";
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+};
+
+const getScopeBadge = (scope: ApproverScope, t: (key: string, fallback: string) => string) => {
+  switch (scope) {
+    case "external":
+      return (
+        <Badge variant="outline" className="gap-1 border-orange-500/50 text-orange-600 dark:text-orange-400">
+          <Building2 className="h-3 w-3" />
+          {t("contractors.gatePasses.scopeExternal", "External")}
+        </Badge>
+      );
+    case "internal":
+      return (
+        <Badge variant="outline" className="gap-1 border-blue-500/50 text-blue-600 dark:text-blue-400">
+          <Users className="h-3 w-3" />
+          {t("contractors.gatePasses.scopeInternal", "Internal")}
+        </Badge>
+      );
+    case "both":
+    default:
+      return (
+        <Badge variant="outline" className="gap-1 border-green-500/50 text-green-600 dark:text-green-400">
+          <Globe className="h-3 w-3" />
+          {t("contractors.gatePasses.scopeBoth", "Both")}
+        </Badge>
+      );
+  }
+};
 
 const GatePassSettings = () => {
   const { t } = useTranslation();
@@ -53,33 +99,27 @@ const GatePassSettings = () => {
 
   const [newApprover, setNewApprover] = useState<EditingApprover>({
     id: null,
-    name: "",
-    name_ar: "",
-    code: "",
+    user_id: "",
+    approver_scope: "both",
     is_active: true,
-    sort_order: 0,
   });
 
   const handleStartEdit = (approver: GatePassApprover) => {
     setEditing({
       id: approver.id,
-      name: approver.name,
-      name_ar: approver.name_ar || "",
-      code: approver.code,
+      user_id: approver.user_id || "",
+      approver_scope: approver.approver_scope || "both",
       is_active: approver.is_active,
-      sort_order: approver.sort_order,
     });
   };
 
   const handleSaveEdit = async () => {
-    if (!editing?.id) return;
+    if (!editing?.id || !editing.user_id) return;
     await updateApprover.mutateAsync({
       id: editing.id,
-      name: editing.name,
-      name_ar: editing.name_ar || null,
-      code: editing.code,
+      user_id: editing.user_id,
+      approver_scope: editing.approver_scope,
       is_active: editing.is_active,
-      sort_order: editing.sort_order,
     });
     setEditing(null);
   };
@@ -89,21 +129,24 @@ const GatePassSettings = () => {
   };
 
   const handleAddNew = async () => {
-    if (!newApprover.name || !newApprover.code) return;
+    if (!newApprover.user_id) return;
+    
+    // Generate a code from timestamp for uniqueness
+    const code = `approver_${Date.now()}`;
+    
     await createApprover.mutateAsync({
-      name: newApprover.name,
-      name_ar: newApprover.name_ar || undefined,
-      code: newApprover.code.toLowerCase().replace(/\s+/g, "_"),
+      name: "Approver", // Will be displayed from user profile
+      code: code,
+      user_id: newApprover.user_id,
+      approver_scope: newApprover.approver_scope,
       is_active: newApprover.is_active,
       sort_order: approvers.length + 1,
     });
     setNewApprover({
       id: null,
-      name: "",
-      name_ar: "",
-      code: "",
+      user_id: "",
+      approver_scope: "both",
       is_active: true,
-      sort_order: 0,
     });
     setIsAdding(false);
   };
@@ -154,14 +197,11 @@ const GatePassSettings = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">
-                  {t("contractors.gatePasses.approverCode", "Code")}
+                <TableHead className="w-[300px]">
+                  {t("contractors.gatePasses.approverUser", "User")}
                 </TableHead>
-                <TableHead>
-                  {t("contractors.gatePasses.approverName", "Name")}
-                </TableHead>
-                <TableHead>
-                  {t("contractors.gatePasses.approverNameAr", "Name (Arabic)")}
+                <TableHead className="w-[150px]">
+                  {t("contractors.gatePasses.approverScope", "Scope")}
                 </TableHead>
                 <TableHead className="w-[80px] text-center">
                   {t("common.active", "Active")}
@@ -175,29 +215,43 @@ const GatePassSettings = () => {
               {isAdding && (
                 <TableRow>
                   <TableCell>
-                    <Input
-                      value={newApprover.code}
-                      onChange={(e) => setNewApprover({ ...newApprover, code: e.target.value })}
-                      placeholder="pm"
-                      className="h-8"
+                    <UserSearchCombobox
+                      value={newApprover.user_id}
+                      onSelect={(userId) => setNewApprover({ ...newApprover, user_id: userId || "" })}
+                      placeholder={t("contractors.gatePasses.selectUser", "Select user...")}
                     />
                   </TableCell>
                   <TableCell>
-                    <Input
-                      value={newApprover.name}
-                      onChange={(e) => setNewApprover({ ...newApprover, name: e.target.value })}
-                      placeholder="Project Manager"
-                      className="h-8"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      value={newApprover.name_ar}
-                      onChange={(e) => setNewApprover({ ...newApprover, name_ar: e.target.value })}
-                      placeholder="مدير المشروع"
-                      className="h-8"
-                      dir="rtl"
-                    />
+                    <Select
+                      value={newApprover.approver_scope}
+                      onValueChange={(value: ApproverScope) => 
+                        setNewApprover({ ...newApprover, approver_scope: value })
+                      }
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="external">
+                          <div className="flex items-center gap-2">
+                            <Building2 className="h-4 w-4 text-orange-500" />
+                            {t("contractors.gatePasses.scopeExternal", "External")}
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="internal">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-blue-500" />
+                            {t("contractors.gatePasses.scopeInternal", "Internal")}
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="both">
+                          <div className="flex items-center gap-2">
+                            <Globe className="h-4 w-4 text-green-500" />
+                            {t("contractors.gatePasses.scopeBoth", "Both")}
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </TableCell>
                   <TableCell className="text-center">
                     <Switch
@@ -212,7 +266,7 @@ const GatePassSettings = () => {
                         variant="ghost"
                         className="h-8 w-8 text-green-600"
                         onClick={handleAddNew}
-                        disabled={!newApprover.name || !newApprover.code}
+                        disabled={!newApprover.user_id}
                       >
                         <Check className="h-4 w-4" />
                       </Button>
@@ -230,13 +284,13 @@ const GatePassSettings = () => {
               )}
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                     {t("common.loading", "Loading...")}
                   </TableCell>
                 </TableRow>
               ) : approvers.length === 0 && !isAdding ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                     {t("contractors.gatePasses.noApprovers", "No approvers configured. Add one to get started.")}
                   </TableCell>
                 </TableRow>
@@ -246,26 +300,43 @@ const GatePassSettings = () => {
                     {editing?.id === approver.id ? (
                       <>
                         <TableCell>
-                          <Input
-                            value={editing.code}
-                            onChange={(e) => setEditing({ ...editing, code: e.target.value })}
-                            className="h-8"
+                          <UserSearchCombobox
+                            value={editing.user_id}
+                            onSelect={(userId) => setEditing({ ...editing, user_id: userId || "" })}
+                            placeholder={t("contractors.gatePasses.selectUser", "Select user...")}
                           />
                         </TableCell>
                         <TableCell>
-                          <Input
-                            value={editing.name}
-                            onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                            className="h-8"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            value={editing.name_ar}
-                            onChange={(e) => setEditing({ ...editing, name_ar: e.target.value })}
-                            className="h-8"
-                            dir="rtl"
-                          />
+                          <Select
+                            value={editing.approver_scope}
+                            onValueChange={(value: ApproverScope) => 
+                              setEditing({ ...editing, approver_scope: value })
+                            }
+                          >
+                            <SelectTrigger className="h-9">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="external">
+                                <div className="flex items-center gap-2">
+                                  <Building2 className="h-4 w-4 text-orange-500" />
+                                  {t("contractors.gatePasses.scopeExternal", "External")}
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="internal">
+                                <div className="flex items-center gap-2">
+                                  <Users className="h-4 w-4 text-blue-500" />
+                                  {t("contractors.gatePasses.scopeInternal", "Internal")}
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="both">
+                                <div className="flex items-center gap-2">
+                                  <Globe className="h-4 w-4 text-green-500" />
+                                  {t("contractors.gatePasses.scopeBoth", "Both")}
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
                         </TableCell>
                         <TableCell className="text-center">
                           <Switch
@@ -280,6 +351,7 @@ const GatePassSettings = () => {
                               variant="ghost"
                               className="h-8 w-8 text-green-600"
                               onClick={handleSaveEdit}
+                              disabled={!editing.user_id}
                             >
                               <Check className="h-4 w-4" />
                             </Button>
@@ -296,9 +368,29 @@ const GatePassSettings = () => {
                       </>
                     ) : (
                       <>
-                        <TableCell className="font-mono text-sm">{approver.code}</TableCell>
-                        <TableCell>{approver.name}</TableCell>
-                        <TableCell dir="rtl">{approver.name_ar || "-"}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-9 w-9">
+                              <AvatarImage src={approver.user?.avatar_url || undefined} />
+                              <AvatarFallback className="text-xs">
+                                {getInitials(approver.user?.full_name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium">
+                                {approver.user?.full_name || approver.name}
+                              </p>
+                              {approver.user?.job_title && (
+                                <p className="text-sm text-muted-foreground">
+                                  {approver.user.job_title}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {getScopeBadge(approver.approver_scope, t)}
+                        </TableCell>
                         <TableCell className="text-center">
                           <Switch
                             checked={approver.is_active}
