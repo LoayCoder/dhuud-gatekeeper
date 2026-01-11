@@ -18,6 +18,7 @@ import { AuthHeroImage } from '@/components/ui/optimized-image';
 import { z } from 'zod';
 import { logUserActivity, startSessionTracking } from '@/lib/activity-logger';
 import { MFAVerificationDialog } from '@/components/auth/MFAVerificationDialog';
+import { GoogleOAuthButton } from '@/components/auth/GoogleOAuthButton';
 import { DHUUD_LOGO_LIGHT, DHUUD_LOGO_DARK, DHUUD_TENANT_NAME } from '@/constants/branding';
 
 export default function Login() {
@@ -502,6 +503,21 @@ export default function Login() {
                 </Button>
               </>
             )}
+
+            {/* Google OAuth Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  {t('auth.orContinueWith', 'Or continue with')}
+                </span>
+              </div>
+            </div>
+
+            {/* Google OAuth Button */}
+            <GoogleOAuthButton disabled={loading || biometricLoading} />
 
             <div className="flex flex-col items-center gap-2">
               <Button

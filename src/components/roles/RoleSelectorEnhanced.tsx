@@ -31,6 +31,7 @@ const categoryOrder: RoleCategory[] = [
   'security',
   'audit',
   'food_safety',
+  'contractor',
 ];
 
 const categoryIcons: Record<RoleCategory, string> = {
@@ -41,6 +42,7 @@ const categoryIcons: Record<RoleCategory, string> = {
   security: '🔐',
   audit: '📊',
   food_safety: '🍽️',
+  contractor: '🏗️',
 };
 
 export function RoleSelectorEnhanced({ selectedRoleIds, onChange, disabled, userId }: RoleSelectorEnhancedProps) {

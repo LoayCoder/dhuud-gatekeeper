@@ -52,6 +52,7 @@ const ServiceLevelAgreement = lazyWithRetry(() => import("./pages/legal/ServiceL
 const Signup = lazyWithRetry(() => import("./pages/Signup"));
 const ForgotPassword = lazyWithRetry(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
+const AuthCallback = lazyWithRetry(() => import("./pages/AuthCallback"));
 const Profile = lazyWithRetry(() => import("./pages/Profile"));
 const MFASetup = lazyWithRetry(() => import("./pages/MFASetup"));
 const Support = lazyWithRetry(() => import("./pages/Support"));
@@ -143,6 +144,7 @@ const ContractorPortalDashboard = lazyWithRetry(() => import("./pages/contractor
 const ContractorPortalWorkers = lazyWithRetry(() => import("./pages/contractor-portal/Workers"));
 const ContractorPortalProjects = lazyWithRetry(() => import("./pages/contractor-portal/Projects"));
 const ContractorPortalGatePasses = lazyWithRetry(() => import("./pages/contractor-portal/GatePasses"));
+const ContractorPortalActivityLog = lazyWithRetry(() => import("./pages/contractor-portal/ActivityLog"));
 
 // Client Site Representative pages
 const ClientSiteRepDashboard = lazyWithRetry(() => import("./pages/client-site-rep/Dashboard"));
@@ -261,6 +263,7 @@ const App = () => (
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="/register" element={<Navigate to="/invite" replace />} />
+                    <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/install" element={<Install />} />
                     <Route path="/mfa-setup" element={<Suspense fallback={<PageLoader />}><MFASetup /></Suspense>} />
                     <Route path="/visitor-pass/:token" element={<Suspense fallback={<PageLoader />}><VisitorPass /></Suspense>} />
@@ -348,6 +351,7 @@ const App = () => (
                       <Route path="/contractor-portal/workers" element={<ContractorPortalWorkers />} />
                       <Route path="/contractor-portal/projects" element={<ContractorPortalProjects />} />
                       <Route path="/contractor-portal/gate-passes" element={<ContractorPortalGatePasses />} />
+                      <Route path="/contractor-portal/activity-log" element={<ContractorPortalActivityLog />} />
 
                       {/* Client Site Representative Routes */}
                       <Route path="/client-site-rep" element={<ClientSiteRepDashboard />} />
