@@ -19,7 +19,10 @@ import { usePendingExtensionRequests } from '@/hooks/use-action-extensions';
 import { useUploadActionEvidence } from '@/hooks/use-action-evidence';
 import { useMyInspectionActions, useUpdateInspectionActionStatus } from '@/hooks/use-inspection-actions';
 import { usePendingWorkerApprovals } from '@/hooks/contractor-management/use-contractor-workers';
-import { usePendingGatePassApprovals } from '@/hooks/contractor-management/use-material-gate-passes';
+import { usePendingGatePassApprovals, useApproveGatePass, MaterialGatePass } from '@/hooks/contractor-management/use-material-gate-passes';
+import { GatePassRejectionDialog } from '@/components/contractors/GatePassRejectionDialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Check } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useEffect } from 'react';
 import { WitnessDirectEntry } from '@/components/investigation/WitnessDirectEntry';
@@ -128,6 +131,21 @@ export default function MyActions() {
   const { data: pendingGatePasses, isLoading: gatePassesLoading } = usePendingGatePassApprovals();
   const canApproveWorkers = hasRole('admin') || hasRole('security_supervisor') || hasRole('security_manager');
   const canApproveGatePasses = hasRole('admin') || hasRole('security_supervisor') || hasRole('project_manager');
+  
+  // Gate pass inline approval state
+  const [gatePassApprovalNotes, setGatePassApprovalNotes] = useState<Record<string, string>>({});
+  const [rejectingGatePass, setRejectingGatePass] = useState<MaterialGatePass | null>(null);
+  const approveGatePass = useApproveGatePass();
+  
+  // Handle gate pass approval inline
+  const handleApproveGatePass = (pass: MaterialGatePass) => {
+    const approvalType = pass.status === "pending_pm_approval" ? "pm" : "safety";
+    approveGatePass.mutate({
+      passId: pass.id,
+      approvalType,
+      notes: gatePassApprovalNotes[pass.id],
+    });
+  };
   
   // Check if user can approve closures (HSSE Manager or Admin)
   const canApproveClosures = hasRole('admin') || hasRole('hsse_manager');
@@ -1588,12 +1606,41 @@ export default function MyActions() {
                               </div>
                             </div>
                             
-                            <Button asChild size="sm">
-                              <Link to="/contractors/gate-passes?tab=pending" className="gap-2">
-                                {t('contractors.gatePasses.reviewPass', 'Review & Approve')}
-                                <ArrowRight className="h-4 w-4 rtl:rotate-180" />
-                              </Link>
-                            </Button>
+                            <div className="space-y-3">
+                              <Textarea
+                                placeholder={t('contractors.gatePasses.approvalNotes', 'Approval notes (optional)...')}
+                                value={gatePassApprovalNotes[pass.id] || ""}
+                                onChange={(e) => setGatePassApprovalNotes({ 
+                                  ...gatePassApprovalNotes, 
+                                  [pass.id]: e.target.value 
+                                })}
+                                className="text-sm"
+                                rows={2}
+                              />
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm" 
+                                  className="flex-1"
+                                  onClick={() => handleApproveGatePass(pass)}
+                                  disabled={approveGatePass.isPending}
+                                >
+                                  <Check className="h-4 w-4 me-1" />
+                                  {pass.status === 'pending_pm_approval' 
+                                    ? t('contractors.gatePasses.approvePM', 'PM Approve')
+                                    : t('contractors.gatePasses.approveSafety', 'Safety Approve')
+                                  }
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="destructive"
+                                  className="flex-1"
+                                  onClick={() => setRejectingGatePass(pass)}
+                                >
+                                  <X className="h-4 w-4 me-1" />
+                                  {t('common.reject', 'Reject')}
+                                </Button>
+                              </div>
+                            </div>
                           </CardContent>
                         </Card>
                       ))}
@@ -1668,6 +1715,13 @@ export default function MyActions() {
           onOpenChange={(open) => !open && setExtensionRequestAction(null)}
         />
       )}
+
+      {/* Gate Pass Rejection Dialog */}
+      <GatePassRejectionDialog
+        open={!!rejectingGatePass}
+        onOpenChange={(open) => !open && setRejectingGatePass(null)}
+        pass={rejectingGatePass}
+      />
     </div>
   );
 }
