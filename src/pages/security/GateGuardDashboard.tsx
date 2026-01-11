@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from 'react-i18next';
-import { RefreshCw, Users, Truck, HardHat, AlertTriangle, Activity, Search, Filter, Package, ClipboardCheck } from 'lucide-react';
+import { RefreshCw, Users, Truck, HardHat, AlertTriangle, Activity, Search, Filter, Package, ClipboardCheck, History, FileText } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGateGuardStats, useGateAlerts } from '@/hooks/use-gate-guard-stats';
 import { usePendingSecurityRequests } from '@/hooks/use-visit-requests';
+import { useUserRoles } from '@/hooks/use-user-roles';
 import { GateAlertCards } from '@/components/security/GateAlertCards';
 import { VisitorVerificationPanel } from '@/components/security/VisitorVerificationPanel';
 import { VisitorApprovalQueue } from '@/components/security/VisitorApprovalQueue';
@@ -24,7 +25,10 @@ import { GatePassListTable } from '@/components/contractors/GatePassListTable';
 import { GatePassApprovalQueue } from '@/components/contractors/GatePassApprovalQueue';
 import { MaterialPassVerificationPanel } from '@/components/security/MaterialPassVerificationPanel';
 import { ZoneSelector } from '@/components/security/ZoneSelector';
+import { MyGatePassesTab } from '@/components/contractors/MyGatePassesTab';
+import { GatePassApprovalHistoryTab } from '@/components/contractors/GatePassApprovalHistoryTab';
 import { useMaterialGatePasses, usePendingGatePassApprovals } from '@/hooks/contractor-management/use-material-gate-passes';
+import { useIsGatePassApprover } from '@/hooks/contractor-management/use-my-gate-passes';
 import { useContractorProjects } from '@/hooks/contractor-management/use-contractor-projects';
 import { GateOfflineStatusBar } from '@/components/security/GateOfflineStatusBar';
 import { EmergencyAlertBanner } from '@/components/security/EmergencyAlertBanner';
@@ -55,6 +59,13 @@ const GateGuardDashboard = () => {
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useGateGuardStats();
   const { data: alerts = [], refetch: refetchAlerts } = useGateAlerts();
   const { data: pendingVisitorApprovals = [] } = usePendingSecurityRequests();
+  
+  // Role detection for conditional tabs
+  const { hasRole } = useUserRoles();
+  const { data: isApprover = false } = useIsGatePassApprover();
+  
+  const isSecuritySupervisor = hasRole('security_supervisor') || hasRole('hsse_officer') || hasRole('hsse_manager');
+  const isAdmin = hasRole('admin');
   
   // Gate pass data
   const { data: allGatePasses = [], isLoading: passesLoading } = useMaterialGatePasses({
@@ -363,24 +374,49 @@ const GateGuardDashboard = () => {
         <TabsContent value="gatePasses" className="space-y-3 sm:space-y-4 mt-3 sm:mt-4">
           <Tabs value={gatePassTab} onValueChange={setGatePassTab}>
             <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 scrollbar-hide">
-              <TabsList className="inline-flex w-max sm:w-auto sm:grid sm:grid-cols-3">
+              <TabsList className="inline-flex w-max sm:w-auto">
+                {/* My Passes - visible to all */}
+                <TabsTrigger value="myPasses" className="gap-1 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
+                  <FileText className="h-3.5 w-3.5 sm:hidden" />
+                  <span className="hidden sm:inline">{t('contractors.gatePasses.tabs.myPasses', 'My Passes')}</span>
+                  <span className="sm:hidden">{t('contractors.gatePasses.tabs.my', 'Mine')}</span>
+                </TabsTrigger>
                 <TabsTrigger value="today" className="whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
                   {t('contractors.gatePasses.todayPasses', "Today's Passes")}
                 </TabsTrigger>
-                <TabsTrigger value="pending" className="gap-1 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
-                  <span className="hidden sm:inline">{t('contractors.gatePasses.pendingApprovals', 'Pending Approvals')}</span>
-                  <span className="sm:hidden">{t('contractors.gatePasses.pending', 'Pending')}</span>
-                  {pendingApprovals.length > 0 && (
-                    <Badge variant="secondary" className="ms-1 text-[10px] sm:text-xs h-4 sm:h-5 px-1 sm:px-1.5">
-                      {pendingApprovals.length}
-                    </Badge>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="all" className="whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
-                  {t('contractors.gatePasses.allPasses', 'All Passes')}
-                </TabsTrigger>
+                {/* Pending Approvals - visible to approvers, supervisors, admin */}
+                {(isApprover || isSecuritySupervisor || isAdmin) && (
+                  <TabsTrigger value="pending" className="gap-1 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
+                    <span className="hidden sm:inline">{t('contractors.gatePasses.pendingApprovals', 'Pending Approvals')}</span>
+                    <span className="sm:hidden">{t('contractors.gatePasses.pending', 'Pending')}</span>
+                    {pendingApprovals.length > 0 && (
+                      <Badge variant="secondary" className="ms-1 text-[10px] sm:text-xs h-4 sm:h-5 px-1 sm:px-1.5">
+                        {pendingApprovals.length}
+                      </Badge>
+                    )}
+                  </TabsTrigger>
+                )}
+                {/* All Passes - visible to supervisors, admin */}
+                {(isSecuritySupervisor || isAdmin) && (
+                  <TabsTrigger value="all" className="whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
+                    {t('contractors.gatePasses.allPasses', 'All Passes')}
+                  </TabsTrigger>
+                )}
+                {/* Approval History - visible to supervisors, admin */}
+                {(isSecuritySupervisor || isAdmin) && (
+                  <TabsTrigger value="history" className="gap-1 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
+                    <History className="h-3.5 w-3.5 sm:hidden" />
+                    <span className="hidden sm:inline">{t('contractors.gatePasses.tabs.approvalHistory', 'Approval History')}</span>
+                    <span className="sm:hidden">{t('contractors.gatePasses.tabs.history', 'History')}</span>
+                  </TabsTrigger>
+                )}
               </TabsList>
             </div>
+
+            {/* My Passes Sub-Tab */}
+            <TabsContent value="myPasses" className="mt-3 sm:mt-4">
+              <MyGatePassesTab />
+            </TabsContent>
 
             {/* Today's Passes Sub-Tab */}
             <TabsContent value="today" className="mt-3 sm:mt-4">
@@ -436,6 +472,11 @@ const GateGuardDashboard = () => {
               
               {/* Gate Pass Table */}
               <GatePassListTable gatePasses={allGatePasses} isLoading={passesLoading} />
+            </TabsContent>
+
+            {/* Approval History Sub-Tab */}
+            <TabsContent value="history" className="mt-3 sm:mt-4">
+              <GatePassApprovalHistoryTab />
             </TabsContent>
           </Tabs>
         </TabsContent>

@@ -7170,12 +7170,34 @@
       "analytics": "Analytics"
     },
     "gatePasses": {
+      "tabs": {
+        "myPasses": "My Passes",
+        "my": "Mine",
+        "approvalHistory": "Approval History",
+        "history": "History"
+      },
+      "myPasses": {
+        "title": "My Gate Passes",
+        "description": "Gate passes you have requested",
+        "noPasses": "You haven't requested any gate passes yet",
+        "requestNew": "Request New Pass"
+      },
+      "history": {
+        "title": "Approval History",
+        "description": "Gate passes you have approved or rejected",
+        "noHistory": "No approval history",
+        "approvedBy": "Approved by you",
+        "rejectedBy": "Rejected by you",
+        "action": "Action",
+        "actionDate": "Date"
+      },
       "status": {
         "pendingPm": "Pending PM",
         "pendingSafety": "Pending Safety",
         "approved": "Approved",
         "rejected": "Rejected",
-        "completed": "Completed"
+        "completed": "Completed",
+        "label": "Current Status"
       },
       "filterByProject": "Filter by Project"
     },
