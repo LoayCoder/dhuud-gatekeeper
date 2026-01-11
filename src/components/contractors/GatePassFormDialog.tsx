@@ -6,10 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useRef, useEffect } from "react";
 import { useCreateGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
+import { useEmployeeApprovers } from "@/hooks/contractor-management/use-gate-pass-approvers";
+import { useCachedProfile } from "@/hooks/use-cached-profile";
 import { ContractorProject } from "@/hooks/contractor-management/use-contractor-projects";
-import { Plus, Trash2, X, ImageIcon, User } from "lucide-react";
+import { Plus, Trash2, X, ImageIcon, User, Building2 } from "lucide-react";
 import { compressImage } from "@/lib/upload-utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 interface GatePassFormDialogProps {
   open: boolean;
@@ -55,6 +58,13 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
   const { t } = useTranslation();
   const createPass = useCreateGatePass();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Get user profile to determine if internal user
+  const { data: profile } = useCachedProfile();
+  const isInternalUser = profile?.user_type === 'employee';
+  
+  // Fetch employee approvers for internal requests
+  const { data: employeeApprovers = [] } = useEmployeeApprovers();
 
   const [formData, setFormData] = useState({
     project_id: "",
@@ -66,6 +76,7 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
     pass_date: new Date().toISOString().split("T")[0],
     time_window_start: "",
     time_window_end: "",
+    approval_from_id: "", // For internal requests
   });
 
   const [selectedProject, setSelectedProject] = useState<ContractorProject | null>(null);
@@ -74,12 +85,14 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
   const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([]);
 
   const handleProjectChange = (projectId: string) => {
-    const project = projects.find((p) => p.id === projectId);
+    const project = projectId ? projects.find((p) => p.id === projectId) : null;
     setSelectedProject(project || null);
     setFormData({
       ...formData,
       project_id: projectId,
       company_id: project?.company_id || "",
+      // Clear approver when project is selected
+      approval_from_id: projectId ? "" : formData.approval_from_id,
     });
   };
 
@@ -145,6 +158,7 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
       pass_date: new Date().toISOString().split("T")[0],
       time_window_start: "",
       time_window_end: "",
+      approval_from_id: "",
     });
     setSelectedProject(null);
     setItems([createEmptyItem()]);
@@ -159,29 +173,58 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
     const validItems = items.filter((item) => item.item_name.trim() !== "");
     if (validItems.length === 0) return;
 
-    // Project manager ID comes from the selected project
-    const pmId = selectedProject?.project_manager_id;
-    if (!pmId) return;
-
-    await createPass.mutateAsync({
-      project_id: formData.project_id,
-      company_id: formData.company_id,
-      pass_type: formData.pass_type,
-      pm_approval_by: pmId, // Auto-set to project's PM
-      vehicle_plate: formData.vehicle_plate || undefined,
-      driver_name: formData.driver_name || undefined,
-      driver_mobile: formData.driver_mobile || undefined,
-      pass_date: formData.pass_date,
-      time_window_start: formData.time_window_start || undefined,
-      time_window_end: formData.time_window_end || undefined,
-      items: validItems.map(({ item_name, description, quantity, unit }) => ({
-        item_name,
-        description: description || undefined,
-        quantity: quantity || undefined,
-        unit: unit || undefined,
-      })),
-      photos,
-    });
+    // Determine if this is an internal request (no project selected)
+    const isInternalRequest = isInternalUser && !formData.project_id;
+    
+    // For external users or project-based requests: need PM
+    // For internal requests: need approval_from_id
+    if (!isInternalRequest) {
+      const pmId = selectedProject?.project_manager_id;
+      if (!pmId) return;
+      
+      await createPass.mutateAsync({
+        project_id: formData.project_id,
+        company_id: formData.company_id,
+        pass_type: formData.pass_type,
+        pm_approval_by: pmId,
+        is_internal_request: false,
+        vehicle_plate: formData.vehicle_plate || undefined,
+        driver_name: formData.driver_name || undefined,
+        driver_mobile: formData.driver_mobile || undefined,
+        pass_date: formData.pass_date,
+        time_window_start: formData.time_window_start || undefined,
+        time_window_end: formData.time_window_end || undefined,
+        items: validItems.map(({ item_name, description, quantity, unit }) => ({
+          item_name,
+          description: description || undefined,
+          quantity: quantity || undefined,
+          unit: unit || undefined,
+        })),
+        photos,
+      });
+    } else {
+      // Internal request - needs approver selection
+      if (!formData.approval_from_id) return;
+      
+      await createPass.mutateAsync({
+        pass_type: formData.pass_type,
+        approval_from_id: formData.approval_from_id,
+        is_internal_request: true,
+        vehicle_plate: formData.vehicle_plate || undefined,
+        driver_name: formData.driver_name || undefined,
+        driver_mobile: formData.driver_mobile || undefined,
+        pass_date: formData.pass_date,
+        time_window_start: formData.time_window_start || undefined,
+        time_window_end: formData.time_window_end || undefined,
+        items: validItems.map(({ item_name, description, quantity, unit }) => ({
+          item_name,
+          description: description || undefined,
+          quantity: quantity || undefined,
+          unit: unit || undefined,
+        })),
+        photos,
+      });
+    }
 
     resetForm();
     onOpenChange(false);
@@ -189,6 +232,17 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
 
   const hasValidItem = items.some((item) => item.item_name.trim() !== "");
   const hasProjectManager = !!selectedProject?.project_manager_id;
+  
+  // Determine if internal request mode (employee with no project selected)
+  const isInternalRequestMode = isInternalUser && !formData.project_id;
+  
+  // Can submit if:
+  // 1. Has valid items AND
+  // 2. Either has project with PM OR is internal request with approver
+  const canSubmit = hasValidItem && (
+    (!isInternalRequestMode && hasProjectManager) ||
+    (isInternalRequestMode && !!formData.approval_from_id)
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -197,15 +251,46 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
           <DialogTitle>{t("contractors.gatePasses.createPass", "Create Gate Pass")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Internal Request Badge */}
+          {isInternalRequestMode && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 border border-primary/20">
+              <Building2 className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium text-primary">
+                {t("contractors.gatePasses.internalRequest", "Internal Request")}
+              </span>
+              <Badge variant="secondary" className="text-xs">
+                {t("contractors.gatePasses.noProjectRequired", "No Project Required")}
+              </Badge>
+            </div>
+          )}
+
           {/* Project & Pass Type */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>{t("contractors.gatePasses.project", "Project")} *</Label>
-              <Select value={formData.project_id} onValueChange={handleProjectChange}>
+              <Label>
+                {t("contractors.gatePasses.project", "Project")}
+                {!isInternalUser && " *"}
+                {isInternalUser && (
+                  <span className="text-muted-foreground text-xs ms-1">
+                    ({t("common.optional", "Optional")})
+                  </span>
+                )}
+              </Label>
+              <Select 
+                value={formData.project_id} 
+                onValueChange={handleProjectChange}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder={t("contractors.gatePasses.selectProject", "Select project")} />
                 </SelectTrigger>
                 <SelectContent>
+                  {isInternalUser && (
+                    <SelectItem value="">
+                      <span className="text-muted-foreground">
+                        {t("contractors.gatePasses.noProject", "-- No Project (Internal) --")}
+                      </span>
+                    </SelectItem>
+                  )}
                   {projects.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.project_name}
@@ -231,7 +316,7 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
             </div>
           </div>
 
-          {/* Project Manager (Auto-selected, Read-only) */}
+          {/* Project Manager (Auto-selected, Read-only) - shown when project is selected */}
           {selectedProject && (
             <div className="p-3 rounded-lg bg-muted/50 border">
               <div className="flex items-center gap-2 text-sm">
@@ -248,6 +333,36 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
                   {t("contractors.gatePasses.assignPMFirst", "Please assign a project manager to this project first.")}
                 </p>
               )}
+            </div>
+          )}
+
+          {/* Approver Selection - shown for internal requests without project */}
+          {isInternalRequestMode && (
+            <div className="space-y-2">
+              <Label>{t("contractors.gatePasses.selectApprover", "Select Approver")} *</Label>
+              <Select 
+                value={formData.approval_from_id} 
+                onValueChange={(v) => setFormData({ ...formData, approval_from_id: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t("contractors.gatePasses.selectApproverPlaceholder", "Select an approver")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {employeeApprovers.map((approver) => (
+                    <SelectItem key={approver.id} value={approver.id}>
+                      <div className="flex items-center gap-2">
+                        <span>{approver.full_name}</span>
+                        {approver.job_title && (
+                          <span className="text-muted-foreground text-xs">({approver.job_title})</span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {t("contractors.gatePasses.internalApproverNote", "For internal requests, select a manager or supervisor to approve this gate pass.")}
+              </p>
             </div>
           )}
 
@@ -437,7 +552,7 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t("common.cancel", "Cancel")}
             </Button>
-            <Button type="submit" disabled={createPass.isPending || !formData.project_id || !hasValidItem || !hasProjectManager}>
+            <Button type="submit" disabled={createPass.isPending || !canSubmit}>
               {t("common.create", "Create")}
             </Button>
           </div>
