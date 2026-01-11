@@ -305,6 +305,7 @@ export function TeamEditDialog({ team, open, onOpenChange }: TeamEditDialogProps
                         <Checkbox
                           checked={membersToAdd.includes(guard.id)}
                           onCheckedChange={() => toggleAddMember(guard.id)}
+                          onClick={(e) => e.stopPropagation()}
                         />
                         <Avatar className="h-7 w-7">
                           <AvatarImage src={guard.avatar_url || undefined} />

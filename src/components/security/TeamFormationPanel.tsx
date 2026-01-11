@@ -242,6 +242,7 @@ export function TeamFormationPanel() {
                         <Checkbox
                           checked={selectedMembers.includes(guard.id)}
                           onCheckedChange={() => toggleMember(guard.id)}
+                          onClick={(e) => e.stopPropagation()}
                         />
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={guard.avatar_url || undefined} />
