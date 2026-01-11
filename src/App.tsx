@@ -19,6 +19,7 @@ import { AdminRoute } from "./components/AdminRoute";
 import { MenuBasedAdminRoute } from "./components/MenuBasedAdminRoute";
 import { HSSERoute } from "./components/HSSERoute";
 import { SecurityRoute } from "./components/SecurityRoute";
+import { ContractorPortalRoute, ClientSiteRepRoute } from "./components/access-control";
 import MainLayout from "./components/layout/MainLayout";
 import { PlaceholderPage } from "./components/PlaceholderPage";
 import { PageLoader } from "./components/ui/page-loader";
