@@ -4380,6 +4380,9 @@
     "food_safety_supervisor": "مشرف سلامة الغذاء",
     "food_safety_manager": "مدير سلامة الغذاء",
     "department_representative": "ممثل القسم",
+    "contractor_admin": "مسؤول المقاولين",
+    "contractor_site_rep": "ممثل موقع المقاول",
+    "contractor_safety_officer": "مسؤول سلامة المقاول",
     "cannotRemoveOwnAdmin": "لا يمكن إزالة دور المسؤول",
     "cannotRemoveOwnAdminDescription": "لا يمكنك إزالة دور المسؤول الخاص بك. يرجى طلب ذلك من مسؤول آخر.",
     "selfProtected": "دور محمي",
@@ -4401,7 +4404,10 @@
   "roleDescriptions": {
     "admin": "التحكم الكامل في جميع ميزات النظام",
     "normal_user": "الدور الافتراضي لجميع المستخدمين",
-    "manager": "الوصول للعرض فقط للتسلسل الهرمي للفريق"
+    "manager": "الوصول للعرض فقط للتسلسل الهرمي للفريق",
+    "contractor_admin": "صلاحيات إدارية كاملة لإدارة المقاولين",
+    "contractor_site_rep": "ممثل في الموقع لشركة المقاولات",
+    "contractor_safety_officer": "الإشراف على السلامة لعمليات المقاولين"
   },
   "hierarchy": {
     "teamHierarchy": "التسلسل الهرمي للفريق",
