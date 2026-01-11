@@ -1,12 +1,13 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Check, X, Truck, Clock, User } from "lucide-react";
-import { useState } from "react";
+import { Check, X, Truck, Clock, User, Eye } from "lucide-react";
 import { MaterialGatePass, useApproveGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
 import { GatePassRejectionDialog } from "./GatePassRejectionDialog";
+import { GatePassDetailDialog } from "./GatePassDetailDialog";
 import { format } from "date-fns";
 
 interface GatePassApprovalQueueProps {
@@ -18,6 +19,7 @@ export function GatePassApprovalQueue({ passes }: GatePassApprovalQueueProps) {
   const approvePass = useApproveGatePass();
   const [approvalNotes, setApprovalNotes] = useState<Record<string, string>>({});
   const [rejectingPass, setRejectingPass] = useState<MaterialGatePass | null>(null);
+  const [viewingPass, setViewingPass] = useState<MaterialGatePass | null>(null);
 
   if (passes.length === 0) {
     return (
@@ -52,7 +54,17 @@ export function GatePassApprovalQueue({ passes }: GatePassApprovalQueueProps) {
             <Card key={pass.id} className="overflow-hidden">
               <div className="bg-muted/50 px-4 py-2 border-b flex items-center justify-between">
                 <span className="font-mono text-sm font-medium">{pass.reference_number}</span>
-                <Badge variant="secondary">{stage.label}</Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">{stage.label}</Badge>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => setViewingPass(pass)}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
               <CardContent className="pt-4 space-y-3">
                 <div>
@@ -132,6 +144,12 @@ export function GatePassApprovalQueue({ passes }: GatePassApprovalQueueProps) {
         open={!!rejectingPass}
         onOpenChange={(open) => !open && setRejectingPass(null)}
         pass={rejectingPass}
+      />
+
+      <GatePassDetailDialog
+        pass={viewingPass}
+        open={!!viewingPass}
+        onOpenChange={(open) => !open && setViewingPass(null)}
       />
     </>
   );

@@ -16,3 +16,4 @@ export * from "./use-client-site-rep-data";
 export * from "./use-client-site-rep-export-data";
 export * from "./use-gate-pass-types";
 export * from "./use-gate-pass-approvers";
+export * from "./use-gate-pass-details";
