@@ -85,14 +85,16 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
   const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([]);
 
   const handleProjectChange = (projectId: string) => {
-    const project = projectId ? projects.find((p) => p.id === projectId) : null;
+    // Treat "_none_" as empty (no project selected)
+    const actualProjectId = projectId === "_none_" ? "" : projectId;
+    const project = actualProjectId ? projects.find((p) => p.id === actualProjectId) : null;
     setSelectedProject(project || null);
     setFormData({
       ...formData,
-      project_id: projectId,
+      project_id: actualProjectId,
       company_id: project?.company_id || "",
       // Clear approver when project is selected
-      approval_from_id: projectId ? "" : formData.approval_from_id,
+      approval_from_id: actualProjectId ? "" : formData.approval_from_id,
     });
   };
 
@@ -277,7 +279,7 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
                 )}
               </Label>
               <Select 
-                value={formData.project_id} 
+                value={formData.project_id || (isInternalUser ? "_none_" : "")} 
                 onValueChange={handleProjectChange}
               >
                 <SelectTrigger>
@@ -285,7 +287,7 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
                 </SelectTrigger>
                 <SelectContent>
                   {isInternalUser && (
-                    <SelectItem value="">
+                    <SelectItem value="_none_">
                       <span className="text-muted-foreground">
                         {t("contractors.gatePasses.noProject", "-- No Project (Internal) --")}
                       </span>
