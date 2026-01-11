@@ -220,15 +220,7 @@ export function TeamEditDialog({ team, open, onOpenChange }: TeamEditDialogProps
                       <SelectContent>
                         {supervisors.map((supervisor) => (
                           <SelectItem key={supervisor.id} value={supervisor.id}>
-                            <div className="flex items-center gap-2">
-                              <Avatar className="h-6 w-6">
-                                <AvatarImage src={supervisor.avatar_url || undefined} />
-                                <AvatarFallback className="text-xs">
-                                  {getInitials(supervisor.full_name)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span>{supervisor.full_name}</span>
-                            </div>
+                            {supervisor.full_name}
                           </SelectItem>
                         ))}
                       </SelectContent>
