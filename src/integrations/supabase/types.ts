@@ -7166,6 +7166,62 @@ export type Database = {
           },
         ]
       }
+      gate_pass_types: {
+        Row: {
+          allowed_scope: string | null
+          code: string
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          name: string
+          name_ar: string | null
+          sort_order: number | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          allowed_scope?: string | null
+          code: string
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          name_ar?: string | null
+          sort_order?: number | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          allowed_scope?: string | null
+          code?: string
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_ar?: string | null
+          sort_order?: number | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gate_pass_types_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       geofence_alerts: {
         Row: {
           acknowledged_at: string | null

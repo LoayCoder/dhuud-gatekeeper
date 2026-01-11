@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Settings, Plus, Pencil, Trash2, Check, X, Building2, Users, Globe } from "lucide-react";
+import { Settings, Plus, Pencil, Trash2, Check, X, Building2, Users, Globe, Package } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -38,6 +39,14 @@ import {
   useDeleteGatePassApprover,
   GatePassApprover,
 } from "@/hooks/contractor-management/use-gate-pass-approvers";
+import {
+  useAllGatePassTypes,
+  useCreateGatePassType,
+  useUpdateGatePassType,
+  useDeleteGatePassType,
+  GatePassType,
+  PassTypeScope,
+} from "@/hooks/contractor-management/use-gate-pass-types";
 import { UserSearchCombobox } from "@/components/admin/UserSearchCombobox";
 
 type ApproverScope = "external" | "internal" | "both";
@@ -46,6 +55,15 @@ interface EditingApprover {
   id: string | null;
   user_id: string;
   approver_scope: ApproverScope;
+  is_active: boolean;
+}
+
+interface EditingPassType {
+  id: string | null;
+  code: string;
+  name: string;
+  name_ar: string;
+  allowed_scope: PassTypeScope;
   is_active: boolean;
 }
 
@@ -88,6 +106,8 @@ const getScopeBadge = (scope: ApproverScope, t: (key: string, fallback: string) 
 
 const GatePassSettings = () => {
   const { t } = useTranslation();
+  
+  // Approvers state and hooks
   const { data: approvers = [], isLoading } = useAllGatePassApprovers();
   const createApprover = useCreateGatePassApprover();
   const updateApprover = useUpdateGatePassApprover();
@@ -101,6 +121,25 @@ const GatePassSettings = () => {
     id: null,
     user_id: "",
     approver_scope: "both",
+    is_active: true,
+  });
+  
+  // Pass Types state and hooks
+  const { data: passTypes = [], isLoading: isLoadingTypes } = useAllGatePassTypes();
+  const createPassType = useCreateGatePassType();
+  const updatePassType = useUpdateGatePassType();
+  const deletePassType = useDeleteGatePassType();
+  
+  const [editingType, setEditingType] = useState<EditingPassType | null>(null);
+  const [isAddingType, setIsAddingType] = useState(false);
+  const [deleteTypeId, setDeleteTypeId] = useState<string | null>(null);
+  
+  const [newPassType, setNewPassType] = useState<EditingPassType>({
+    id: null,
+    code: "",
+    name: "",
+    name_ar: "",
+    allowed_scope: "both",
     is_active: true,
   });
 
@@ -161,6 +200,70 @@ const GatePassSettings = () => {
     await updateApprover.mutateAsync({
       id: approver.id,
       is_active: !approver.is_active,
+    });
+  };
+
+  // Pass Type handlers
+  const handleStartEditType = (passType: GatePassType) => {
+    setEditingType({
+      id: passType.id,
+      code: passType.code,
+      name: passType.name,
+      name_ar: passType.name_ar || "",
+      allowed_scope: passType.allowed_scope,
+      is_active: passType.is_active,
+    });
+  };
+
+  const handleSaveEditType = async () => {
+    if (!editingType?.id || !editingType.name || !editingType.code) return;
+    await updatePassType.mutateAsync({
+      id: editingType.id,
+      code: editingType.code,
+      name: editingType.name,
+      name_ar: editingType.name_ar || undefined,
+      allowed_scope: editingType.allowed_scope,
+      is_active: editingType.is_active,
+    });
+    setEditingType(null);
+  };
+
+  const handleCancelEditType = () => {
+    setEditingType(null);
+  };
+
+  const handleAddNewType = async () => {
+    if (!newPassType.name || !newPassType.code) return;
+    
+    await createPassType.mutateAsync({
+      code: newPassType.code,
+      name: newPassType.name,
+      name_ar: newPassType.name_ar || undefined,
+      allowed_scope: newPassType.allowed_scope,
+      is_active: newPassType.is_active,
+      sort_order: passTypes.length + 1,
+    });
+    setNewPassType({
+      id: null,
+      code: "",
+      name: "",
+      name_ar: "",
+      allowed_scope: "both",
+      is_active: true,
+    });
+    setIsAddingType(false);
+  };
+
+  const handleDeleteType = async () => {
+    if (!deleteTypeId) return;
+    await deletePassType.mutateAsync(deleteTypeId);
+    setDeleteTypeId(null);
+  };
+
+  const handleToggleTypeActive = async (passType: GatePassType) => {
+    await updatePassType.mutateAsync({
+      id: passType.id,
+      is_active: !passType.is_active,
     });
   };
 
@@ -427,6 +530,288 @@ const GatePassSettings = () => {
         </CardContent>
       </Card>
 
+      {/* Pass Type Control Card */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              {t("contractors.gatePasses.passTypeControl", "Pass Type Control")}
+            </CardTitle>
+            <CardDescription>
+              {t("contractors.gatePasses.passTypeControlDescription", "Configure which pass types are available for different user groups")}
+            </CardDescription>
+          </div>
+          <Button onClick={() => setIsAddingType(true)} disabled={isAddingType}>
+            <Plus className="h-4 w-4 me-2" />
+            {t("contractors.gatePasses.addPassType", "Add Pass Type")}
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[120px]">
+                  {t("contractors.gatePasses.code", "Code")}
+                </TableHead>
+                <TableHead className="w-[180px]">
+                  {t("contractors.gatePasses.passTypeName", "Name")}
+                </TableHead>
+                <TableHead className="w-[180px]">
+                  {t("contractors.gatePasses.passTypeNameAr", "Name (Arabic)")}
+                </TableHead>
+                <TableHead className="w-[150px]">
+                  {t("contractors.gatePasses.approverScope", "Scope")}
+                </TableHead>
+                <TableHead className="w-[80px] text-center">
+                  {t("common.active", "Active")}
+                </TableHead>
+                <TableHead className="w-[100px] text-end">
+                  {t("common.actions", "Actions")}
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isAddingType && (
+                <TableRow>
+                  <TableCell>
+                    <Input
+                      value={newPassType.code}
+                      onChange={(e) => setNewPassType({ ...newPassType, code: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
+                      placeholder="e.g., material_in"
+                      className="h-9"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      value={newPassType.name}
+                      onChange={(e) => setNewPassType({ ...newPassType, name: e.target.value })}
+                      placeholder="e.g., Material In"
+                      className="h-9"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      value={newPassType.name_ar}
+                      onChange={(e) => setNewPassType({ ...newPassType, name_ar: e.target.value })}
+                      placeholder="e.g., دخول مواد"
+                      className="h-9"
+                      dir="rtl"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={newPassType.allowed_scope}
+                      onValueChange={(value: PassTypeScope) => 
+                        setNewPassType({ ...newPassType, allowed_scope: value })
+                      }
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="external">
+                          <div className="flex items-center gap-2">
+                            <Building2 className="h-4 w-4 text-orange-500" />
+                            {t("contractors.gatePasses.scopeExternal", "External")}
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="internal">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-blue-500" />
+                            {t("contractors.gatePasses.scopeInternal", "Internal")}
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="both">
+                          <div className="flex items-center gap-2">
+                            <Globe className="h-4 w-4 text-green-500" />
+                            {t("contractors.gatePasses.scopeBoth", "Both")}
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Switch
+                      checked={newPassType.is_active}
+                      onCheckedChange={(checked) => setNewPassType({ ...newPassType, is_active: checked })}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex justify-end gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-green-600"
+                        onClick={handleAddNewType}
+                        disabled={!newPassType.code || !newPassType.name}
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-destructive"
+                        onClick={() => setIsAddingType(false)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+              {isLoadingTypes ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    {t("common.loading", "Loading...")}
+                  </TableCell>
+                </TableRow>
+              ) : passTypes.length === 0 && !isAddingType ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    {t("contractors.gatePasses.noPassTypes", "No pass types configured. Add one to get started.")}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                passTypes.map((passType) => (
+                  <TableRow key={passType.id}>
+                    {editingType?.id === passType.id ? (
+                      <>
+                        <TableCell>
+                          <Input
+                            value={editingType.code}
+                            onChange={(e) => setEditingType({ ...editingType, code: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
+                            className="h-9"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            value={editingType.name}
+                            onChange={(e) => setEditingType({ ...editingType, name: e.target.value })}
+                            className="h-9"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            value={editingType.name_ar}
+                            onChange={(e) => setEditingType({ ...editingType, name_ar: e.target.value })}
+                            className="h-9"
+                            dir="rtl"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={editingType.allowed_scope}
+                            onValueChange={(value: PassTypeScope) => 
+                              setEditingType({ ...editingType, allowed_scope: value })
+                            }
+                          >
+                            <SelectTrigger className="h-9">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="external">
+                                <div className="flex items-center gap-2">
+                                  <Building2 className="h-4 w-4 text-orange-500" />
+                                  {t("contractors.gatePasses.scopeExternal", "External")}
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="internal">
+                                <div className="flex items-center gap-2">
+                                  <Users className="h-4 w-4 text-blue-500" />
+                                  {t("contractors.gatePasses.scopeInternal", "Internal")}
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="both">
+                                <div className="flex items-center gap-2">
+                                  <Globe className="h-4 w-4 text-green-500" />
+                                  {t("contractors.gatePasses.scopeBoth", "Both")}
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Switch
+                            checked={editingType.is_active}
+                            onCheckedChange={(checked) => setEditingType({ ...editingType, is_active: checked })}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-end gap-1">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 text-green-600"
+                              onClick={handleSaveEditType}
+                              disabled={!editingType.code || !editingType.name}
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 text-destructive"
+                              onClick={handleCancelEditType}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </>
+                    ) : (
+                      <>
+                        <TableCell>
+                          <code className="text-xs bg-muted px-2 py-1 rounded">
+                            {passType.code}
+                          </code>
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {passType.name}
+                        </TableCell>
+                        <TableCell dir="rtl" className="text-muted-foreground">
+                          {passType.name_ar || "-"}
+                        </TableCell>
+                        <TableCell>
+                          {getScopeBadge(passType.allowed_scope, t)}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Switch
+                            checked={passType.is_active}
+                            onCheckedChange={() => handleToggleTypeActive(passType)}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-end gap-1">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8"
+                              onClick={() => handleStartEditType(passType)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 text-destructive"
+                              onClick={() => setDeleteTypeId(passType.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </>
+                    )}
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Delete Approver Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -440,6 +825,26 @@ const GatePassSettings = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.cancel", "Cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+              {t("common.delete", "Delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Pass Type Dialog */}
+      <AlertDialog open={!!deleteTypeId} onOpenChange={() => setDeleteTypeId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("contractors.gatePasses.deletePassTypeTitle", "Delete Pass Type?")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("contractors.gatePasses.deletePassTypeDescription", "This pass type will be removed from the list. Existing gate passes using this type will not be affected.")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel", "Cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteType} className="bg-destructive text-destructive-foreground">
               {t("common.delete", "Delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
