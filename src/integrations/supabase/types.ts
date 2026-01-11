@@ -6979,6 +6979,7 @@ export type Database = {
       }
       gate_pass_approvers: {
         Row: {
+          approver_scope: string | null
           code: string
           created_at: string | null
           deleted_at: string | null
@@ -6990,8 +6991,10 @@ export type Database = {
           sort_order: number | null
           tenant_id: string
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
+          approver_scope?: string | null
           code: string
           created_at?: string | null
           deleted_at?: string | null
@@ -7003,8 +7006,10 @@ export type Database = {
           sort_order?: number | null
           tenant_id: string
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
+          approver_scope?: string | null
           code?: string
           created_at?: string | null
           deleted_at?: string | null
@@ -7016,6 +7021,7 @@ export type Database = {
           sort_order?: number | null
           tenant_id?: string
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -7023,6 +7029,20 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_pass_approvers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_pass_approvers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
         ]

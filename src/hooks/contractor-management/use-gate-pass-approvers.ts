@@ -12,6 +12,14 @@ export interface GatePassApprover {
   description: string | null;
   is_active: boolean;
   sort_order: number;
+  user_id: string | null;
+  approver_scope: "external" | "internal" | "both";
+  user?: {
+    id: string;
+    full_name: string;
+    job_title: string | null;
+    avatar_url: string | null;
+  };
   created_at: string;
   updated_at: string;
 }
@@ -23,19 +31,33 @@ export interface EmployeeApprover {
 }
 
 // Fetch active approvers for dropdown (from gate_pass_approvers table)
-export function useGatePassApprovers() {
+// Now with user details and scope filtering
+export function useGatePassApprovers(scope?: "external" | "internal") {
   return useQuery({
-    queryKey: ["gate-pass-approvers", "active"],
+    queryKey: ["gate-pass-approvers", "active", scope],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("gate_pass_approvers")
-        .select("id, name, name_ar, code, sort_order")
+        .select(`
+          id, name, name_ar, code, sort_order, user_id, approver_scope,
+          user:profiles!gate_pass_approvers_user_id_fkey(id, full_name, job_title, avatar_url)
+        `)
         .eq("is_active", true)
         .is("deleted_at", null)
         .order("sort_order", { ascending: true });
 
+      // Filter by scope if provided
+      if (scope) {
+        query = query.or(`approver_scope.eq.${scope},approver_scope.eq.both`);
+      }
+
+      const { data, error } = await query;
+
       if (error) throw error;
-      return data as Pick<GatePassApprover, "id" | "name" | "name_ar" | "code" | "sort_order">[];
+      return (data || []).map((item: any) => ({
+        ...item,
+        user: item.user || null,
+      })) as Pick<GatePassApprover, "id" | "name" | "name_ar" | "code" | "sort_order" | "user_id" | "approver_scope" | "user">[];
     },
   });
 }
@@ -72,19 +94,27 @@ export function useEmployeeApprovers() {
   });
 }
 
-// Fetch all approvers for admin settings page
+// Fetch all approvers for admin settings page (with user details)
 export function useAllGatePassApprovers() {
   return useQuery({
     queryKey: ["gate-pass-approvers", "all"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("gate_pass_approvers")
-        .select("id, tenant_id, name, name_ar, code, description, is_active, sort_order, created_at, updated_at")
+        .select(`
+          id, tenant_id, name, name_ar, code, description, is_active, sort_order, 
+          user_id, approver_scope, created_at, updated_at,
+          user:profiles!gate_pass_approvers_user_id_fkey(id, full_name, job_title, avatar_url)
+        `)
         .is("deleted_at", null)
         .order("sort_order", { ascending: true });
 
       if (error) throw error;
-      return data as GatePassApprover[];
+      return (data || []).map((item: any) => ({
+        ...item,
+        approver_scope: item.approver_scope || "both",
+        user: item.user || null,
+      })) as GatePassApprover[];
     },
   });
 }
@@ -101,6 +131,8 @@ export function useCreateGatePassApprover() {
       description?: string;
       is_active?: boolean;
       sort_order?: number;
+      user_id?: string;
+      approver_scope?: "external" | "internal" | "both";
     }) => {
       // Get tenant_id from profile
       const { data: profile } = await supabase
@@ -116,6 +148,7 @@ export function useCreateGatePassApprover() {
         .insert({
           ...approver,
           tenant_id: profile.tenant_id,
+          approver_scope: approver.approver_scope || "both",
         })
         .select()
         .single();
@@ -142,9 +175,12 @@ export function useUpdateGatePassApprover() {
       id,
       ...updates
     }: Partial<GatePassApprover> & { id: string }) => {
+      // Remove user object from updates as it's a joined field
+      const { user, ...updateData } = updates as any;
+      
       const { data, error } = await supabase
         .from("gate_pass_approvers")
-        .update(updates)
+        .update(updateData)
         .eq("id", id)
         .select()
         .single();
