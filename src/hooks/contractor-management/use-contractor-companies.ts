@@ -421,6 +421,20 @@ export function useApproveCompany() {
       queryClient.invalidateQueries({ queryKey: ["pending-company-approvals"] });
       toast.success("Company approved and activated");
 
+      // Send approval notification with templated email
+      try {
+        await supabase.functions.invoke("send-contractor-notification", {
+          body: {
+            workerId: data.id,
+            workerName: data.company_name,
+            action: "company_approved",
+            tenant_id: data.tenant_id,
+          },
+        });
+      } catch (e) {
+        console.error("Failed to send approval notification:", e);
+      }
+
       // Trigger post-approval automation (user creation, role assignment)
       try {
         await supabase.functions.invoke("process-company-approval", {
