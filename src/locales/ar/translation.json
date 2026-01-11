@@ -129,6 +129,33 @@
     "roster": {
       "supervisor": "مشرف الوردية",
       "selectSupervisor": "اختر المشرف"
+    },
+    "materialPass": {
+      "title": "تصريح مرور المواد",
+      "scanQR": "مسح رمز التصريح",
+      "scanTitle": "مسح رمز تصريح المواد",
+      "scanDescription": "وجه الكاميرا نحو رمز QR لتصريح المواد",
+      "valid": "تصريح صالح",
+      "invalid": "تصريح غير صالح",
+      "type": "النوع",
+      "project": "المشروع",
+      "company": "الشركة",
+      "timeWindow": "النافذة الزمنية",
+      "driver": "السائق",
+      "items": "المواد",
+      "entryRecorded": "تم تسجيل الدخول في",
+      "exitRecorded": "تم تسجيل الخروج في",
+      "recordEntry": "تسجيل الدخول",
+      "recordExit": "تسجيل الخروج",
+      "autoEntryRecorded": "تم تسجيل الدخول تلقائياً",
+      "autoExitRecorded": "تم تسجيل الخروج - اكتمل التصريح",
+      "passCompleted": "التصريح مكتمل بالفعل",
+      "manualEntryPlaceholder": "مثال: GP-2026-00123",
+      "verify": "تحقق",
+      "enterReference": "الرجاء إدخال رقم التصريح",
+      "autoActionHint": "يتم تسجيل الدخول/الخروج تلقائياً بعد التحقق",
+      "accessDenied": "وصول مقيد",
+      "guardOnlyMessage": "فقط حراس الأمن يمكنهم تسجيل الدخول والخروج."
     }
   },
   "hsseDashboard": {
