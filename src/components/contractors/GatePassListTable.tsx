@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MaterialGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
 import { format } from "date-fns";
-import { Clock, Truck, Building2 } from "lucide-react";
+import { Clock, Truck, Building2, User } from "lucide-react";
 
 interface GatePassListTableProps {
   gatePasses: MaterialGatePass[];
@@ -89,6 +89,10 @@ export function GatePassListTable({ gatePasses, isLoading }: GatePassListTablePr
 
       <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground pt-1 border-t">
         <span className="flex items-center gap-1">
+          <User className="h-3 w-3" />
+          {pass.requester?.full_name || "-"}
+        </span>
+        <span className="flex items-center gap-1">
           <Clock className="h-3 w-3" />
           {format(new Date(pass.pass_date), "dd/MM/yyyy")}
         </span>
@@ -120,6 +124,7 @@ export function GatePassListTable({ gatePasses, isLoading }: GatePassListTablePr
               <TableHead>{t("contractors.gatePasses.reference", "Reference")}</TableHead>
               <TableHead>{t("contractors.gatePasses.type", "Type")}</TableHead>
               <TableHead>{t("contractors.gatePasses.material", "Material")}</TableHead>
+              <TableHead>{t("contractors.gatePasses.requestedBy", "Requested By")}</TableHead>
               <TableHead>{t("contractors.gatePasses.project", "Project")}</TableHead>
               <TableHead>{t("contractors.gatePasses.vehiclePlate", "Vehicle")}</TableHead>
               <TableHead>{t("contractors.gatePasses.passDate", "Date")}</TableHead>
@@ -135,6 +140,7 @@ export function GatePassListTable({ gatePasses, isLoading }: GatePassListTablePr
                   <Badge variant="outline">{t(`contractors.passType.${pass.pass_type}`, pass.pass_type)}</Badge>
                 </TableCell>
                 <TableCell className="max-w-[200px] truncate">{pass.material_description}</TableCell>
+                <TableCell className="text-sm">{pass.requester?.full_name || "-"}</TableCell>
                 <TableCell>
                   {pass.project?.project_name || (
                     pass.is_internal_request ? (
