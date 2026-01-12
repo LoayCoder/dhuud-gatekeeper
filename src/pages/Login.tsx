@@ -160,7 +160,7 @@ export default function Login() {
       
       return response.data;
     } catch (error) {
-      console.error('Failed to detect suspicious login:', error);
+      logger.error('Failed to detect suspicious login:', error);
       return null;
     }
   };
@@ -269,7 +269,7 @@ export default function Login() {
       if (pendingMfaReset) {
         try {
           const resetData = JSON.parse(pendingMfaReset);
-          console.log('Pending MFA reset detected for reactivated user:', resetData);
+          logger.debug('Pending MFA reset detected for reactivated user:', resetData);
           
           // Call the reset-user-mfa edge function to clear any old MFA data
           const { error: resetError } = await supabase.functions.invoke('reset-user-mfa', {
@@ -281,9 +281,9 @@ export default function Login() {
           });
           
           if (resetError) {
-            console.warn('MFA reset for reactivated user failed (non-blocking):', resetError);
+            logger.warn('MFA reset for reactivated user failed (non-blocking):', resetError);
           } else {
-            console.log('MFA reset successful for reactivated user');
+            logger.debug('MFA reset successful for reactivated user');
           }
           
           // Clear the pending reset flag

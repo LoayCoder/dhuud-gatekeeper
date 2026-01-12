@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { GitBranch, Sparkles } from 'lucide-react';
+import { logger } from '@/lib/logger';
 import {
   allWorkflows,
   getWorkflowsByCategory,
@@ -62,7 +63,7 @@ export default function WorkflowDiagrams() {
         description: isRtl ? selectedWorkflow.nameAr : selectedWorkflow.name,
       });
     } catch (error) {
-      console.error('Export failed:', error);
+      logger.error('Export failed:', error);
       toast({
         title: t('common.error', 'Error'),
         description: String(error),
@@ -89,7 +90,7 @@ export default function WorkflowDiagrams() {
         description: `${workflows.length} ${t('workflowDiagrams.workflows', 'workflows')}`,
       });
     } catch (error) {
-      console.error('Bulk export failed:', error);
+      logger.error('Bulk export failed:', error);
       toast({
         title: t('common.error', 'Error'),
         description: String(error),
@@ -113,7 +114,7 @@ export default function WorkflowDiagrams() {
   }, []);
 
   const handleNodeClick = useCallback((nodeId: string) => {
-    console.log('Node clicked:', nodeId);
+    logger.debug('Node clicked:', nodeId);
     // Future: Open node details or highlight step
   }, []);
 

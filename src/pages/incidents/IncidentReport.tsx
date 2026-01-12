@@ -559,11 +559,11 @@ export default function IncidentReport() {
   const performSubmit = async (values: FormValues) => {
     // Prevent double-submission
     if (hasSubmitted) {
-      console.log('[Incident Submit] Blocked - already submitted');
+      logger.debug('[Incident Submit] Blocked - already submitted');
       return;
     }
     setHasSubmitted(true);
-    console.log('[Incident Submit] Lock acquired, proceeding...');
+    logger.debug('[Incident Submit] Lock acquired, proceeding...');
     
     const isObs = values.event_type === 'observation';
     
@@ -621,7 +621,7 @@ export default function IncidentReport() {
 
     createIncident.mutate(formData, {
       onSuccess: async (data) => {
-        console.log('[Incident Submit] Success - incident created:', data.id, data.reference_id);
+        logger.debug('[Incident Submit] Success - incident created:', data.id, data.reference_id);
         // Upload media attachments in parallel with compression
         if ((uploadedPhotos.length > 0 || uploadedVideo || closedOnSpotPhotos.length > 0) && profile?.tenant_id && data?.id) {
           setIsUploading(true);
@@ -629,7 +629,7 @@ export default function IncidentReport() {
           try {
             // Upload photos in parallel with image compression
             if (uploadedPhotos.length > 0) {
-              console.log(`Uploading ${uploadedPhotos.length} photos for incident ${data.id}`);
+              logger.debug(`Uploading ${uploadedPhotos.length} photos for incident ${data.id}`);
               await uploadFilesParallel(
                 uploadedPhotos, 
                 async (file, index) => {
@@ -647,7 +647,7 @@ export default function IncidentReport() {
 
             // Upload video separately (no compression)
             if (uploadedVideo) {
-              console.log(`Uploading video for incident ${data.id}`);
+              logger.debug(`Uploading video for incident ${data.id}`);
               await uploadFilesParallel(
                 [uploadedVideo], 
                 async (file, index) => {
@@ -665,7 +665,7 @@ export default function IncidentReport() {
 
             // Upload closed-on-spot evidence photos with compression
             if (closedOnSpot && closedOnSpotPhotos.length > 0) {
-              console.log(`Uploading ${closedOnSpotPhotos.length} closed-on-spot photos for incident ${data.id}`);
+              logger.debug(`Uploading ${closedOnSpotPhotos.length} closed-on-spot photos for incident ${data.id}`);
               const closedOnSpotPaths: string[] = [];
               await uploadFilesParallel(
                 closedOnSpotPhotos,
@@ -732,7 +732,7 @@ export default function IncidentReport() {
         }, 3000);
       },
       onError: (error) => {
-        console.log('[Incident Submit] Error - resetting lock:', error);
+        logger.error('[Incident Submit] Error - resetting lock:', error);
         setHasSubmitted(false);
         setIsConfirmSubmitting(false);
       },

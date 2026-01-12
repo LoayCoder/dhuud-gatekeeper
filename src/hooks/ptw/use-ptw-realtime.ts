@@ -47,7 +47,7 @@ export function usePTWRealtime(options: PTWRealtimeOptions = {}) {
           ...(permitId ? { filter: `id=eq.${permitId}` } : {}),
         },
         (payload) => {
-          console.log('[PTW Realtime] Permit change:', payload);
+          logger.debug('[PTW Realtime] Permit change:', payload);
           
           setStatus((prev) => ({
             ...prev,
@@ -87,7 +87,7 @@ export function usePTWRealtime(options: PTWRealtimeOptions = {}) {
           ...(permitId ? { filter: `permit_id=eq.${permitId}` } : {}),
         },
         (payload) => {
-          console.log('[PTW Realtime] New signature:', payload);
+          logger.debug('[PTW Realtime] New signature:', payload);
           
           setStatus((prev) => ({
             ...prev,
@@ -103,7 +103,7 @@ export function usePTWRealtime(options: PTWRealtimeOptions = {}) {
         }
       )
       .subscribe((subscriptionStatus) => {
-        console.log('[PTW Realtime] Subscription status:', subscriptionStatus);
+        logger.debug('[PTW Realtime] Subscription status:', subscriptionStatus);
         setStatus((prev) => ({
           ...prev,
           isConnected: subscriptionStatus === 'SUBSCRIBED',

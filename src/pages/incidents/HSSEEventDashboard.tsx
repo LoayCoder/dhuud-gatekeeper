@@ -242,7 +242,7 @@ export default function HSSEEventDashboard() {
   };
 
   const handleGenerateAIInsights = () => {
-    console.log("Generate AI Insights clicked", { dashboardData: !!dashboardData, locationData: !!locationData });
+    logger.debug("Generate AI Insights clicked", { dashboardData: !!dashboardData, locationData: !!locationData });
     
     // Allow generation even if locationData is null - use empty defaults
     if (dashboardData) {
@@ -268,10 +268,10 @@ export default function HSSEEventDashboard() {
           rate: `${dashboardData.summary?.near_miss_rate || 0}%`,
         },
       };
-      console.log("Calling generateInsights with context", Object.keys(aiContext));
+      logger.debug("Calling generateInsights with context", Object.keys(aiContext));
       generateInsights(aiContext);
     } else {
-      console.warn("Cannot generate insights: dashboardData is null");
+      logger.warn("Cannot generate insights: dashboardData is null");
     }
   };
 
