@@ -33,8 +33,8 @@ export default function Home() {
             )}
           </div>
 
-          {/* Compact Welcome - hidden on mobile, shown on larger screens */}
-          <div className="hidden sm:block flex-1">
+          {/* Compact Welcome - always visible */}
+          <div className="flex-1 min-w-0">
             <WelcomeCompact />
           </div>
 
