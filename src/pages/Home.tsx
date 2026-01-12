@@ -1,51 +1,50 @@
-import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/ThemeContext';
-import { WelcomeHeader } from '@/components/home/WelcomeHeader';
-import { HSSEContactCard } from '@/components/home/HSSEContactCard';
-import { HomeQuickActions } from '@/components/home/HomeQuickActions';
-import { OpenDashboardButton } from '@/components/home/OpenDashboardButton';
+import { WelcomeCompact } from '@/components/home/WelcomeCompact';
+import { HSSEContactCompact } from '@/components/home/HSSEContactCompact';
+import { RoleBasedActionGrid } from '@/components/home/RoleBasedActionGrid';
 
 export default function Home() {
-  const { t } = useTranslation();
   const { activeLogoUrl, tenantName } = useTheme();
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header with Logo */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container max-w-lg mx-auto px-4 py-3 flex justify-center">
-          {activeLogoUrl && (
-            <img
-              src={activeLogoUrl}
-              alt={tenantName || 'Logo'}
-              className="h-10 w-auto object-contain"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-            />
-          )}
+    <div 
+      className="flex flex-col bg-background"
+      style={{
+        minHeight: 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))',
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+      }}
+    >
+      {/* Compact Header with Logo */}
+      <header className="shrink-0 border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
+        <div className="container max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+          {/* Logo */}
+          <div className="shrink-0">
+            {activeLogoUrl && (
+              <img
+                src={activeLogoUrl}
+                alt={tenantName || 'Logo'}
+                className="h-8 w-auto object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            )}
+          </div>
+
+          {/* Compact Welcome */}
+          <WelcomeCompact />
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 container max-w-lg mx-auto px-4 py-6 space-y-6">
-        {/* Welcome Section */}
-        <WelcomeHeader />
-
-        {/* HSSE Contact Card */}
-        <HSSEContactCard />
-
-        {/* Quick Actions */}
-        <HomeQuickActions />
-
-        {/* Open Dashboard Button */}
-        <div className="pt-2">
-          <OpenDashboardButton />
-        </div>
+      <main className="flex-1 container max-w-4xl mx-auto px-4 py-4 flex flex-col gap-4 min-h-0">
+        {/* HSSE Contact - Compact version */}
+        <HSSEContactCompact className="shrink-0" />
+        
+        {/* Role-Based Action Cards Grid */}
+        <RoleBasedActionGrid className="flex-1" />
       </main>
-
-      {/* Footer spacer for safe area */}
-      <div className="h-safe-area-inset-bottom" />
     </div>
   );
 }

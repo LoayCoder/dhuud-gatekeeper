@@ -7611,7 +7611,29 @@
     "reportEvent": "الإبلاغ عن حدث",
     "startInspection": "بدء التفتيش",
     "myActions": "إجراءاتي",
-    "myApprovals": "موافقاتي"
+    "myApprovals": "موافقاتي",
+    "cards": {
+      "reportings": "البلاغات",
+      "reportingsDesc": "الإبلاغ عن الحوادث والملاحظات",
+      "myActions": "إجراءاتي",
+      "myActionsDesc": "عرض وإدارة الإجراءات المكلف بها",
+      "emergencyResponse": "الاستجابة للطوارئ",
+      "emergencyResponseDesc": "الوصول لبروتوكولات الطوارئ",
+      "dashboards": "لوحات المعلومات",
+      "dashboardsDesc": "عرض التحليلات والتقارير",
+      "shiftPlan": "جدول الورديات",
+      "shiftPlanDesc": "عرض جدول ورديتك",
+      "myLocations": "مواقعي",
+      "myLocationsDesc": "عرض المناطق المكلف بها",
+      "gateOperation": "عمليات البوابة",
+      "gateOperationDesc": "إدارة الدخول والخروج",
+      "patrol": "الدورية",
+      "patrolDesc": "بدء أو عرض الدوريات",
+      "myApprovals": "موافقاتي",
+      "myApprovalsDesc": "مراجعة الموافقات المعلقة",
+      "inspections": "التفتيشات",
+      "inspectionsDesc": "إجراء التفتيشات"
+    }
   },
   "platformSettings": {
     "title": "إعدادات المنصة",
