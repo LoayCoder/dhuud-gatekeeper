@@ -23050,6 +23050,10 @@ export type Database = {
         }[]
       }
       check_sla_breaches: { Args: never; Returns: undefined }
+      check_subscription_limits: {
+        Args: { p_limit_type: string; p_tenant_id: string }
+        Returns: Json
+      }
       check_tenant_isolation_status: {
         Args: never
         Returns: {
@@ -23120,6 +23124,10 @@ export type Database = {
           site_id: string
           site_name: string
         }[]
+      }
+      generate_backup_codes: {
+        Args: { p_count?: number; p_user_id: string }
+        Returns: string[]
       }
       generate_mfa_backup_codes: {
         Args: { p_code_hashes: string[]; p_user_id: string }
@@ -23554,6 +23562,7 @@ export type Database = {
         }
         Returns: Json
       }
+      get_tenant_hierarchy: { Args: { p_tenant_id: string }; Returns: Json }
       get_tenant_modules: {
         Args: { p_tenant_id: string }
         Returns: Database["public"]["Enums"]["module_code"][]
