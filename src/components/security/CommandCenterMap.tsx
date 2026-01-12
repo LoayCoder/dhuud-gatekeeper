@@ -1,14 +1,22 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Radio, Maximize2, Minimize2 } from 'lucide-react';
+import { Radio, Maximize2, Minimize2, Focus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MapStyleSwitcher } from '@/components/maps/MapStyleSwitcher';
 import { useMapStyle } from '@/hooks/use-map-style';
+
+// Fix Leaflet default icon issue
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
 
 interface GuardLocation {
   id: string;
@@ -80,7 +88,44 @@ export function CommandCenterMap({
   const zonesLayer = useRef<L.LayerGroup | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isMapReady, setIsMapReady] = useState(false);
+  const hasInitialFit = useRef(false);
   const { mapStyle, setMapStyle, tileLayerConfig } = useMapStyle('command-center-map-style');
+
+  // Fit to view handler - fits map to show all zones and guards
+  const handleFitToView = useCallback(() => {
+    if (!map.current || !zonesLayer.current) return;
+    
+    const allBounds: L.LatLngBounds[] = [];
+    
+    // Include zone bounds
+    zonesLayer.current.getLayers().forEach(layer => {
+      if (layer instanceof L.Polygon) {
+        allBounds.push(layer.getBounds());
+      }
+    });
+    
+    // Include guard location bounds
+    guardLocations.forEach(loc => {
+      if (loc.latitude && loc.longitude) {
+        allBounds.push(L.latLngBounds(
+          [loc.latitude, loc.longitude],
+          [loc.latitude, loc.longitude]
+        ));
+      }
+    });
+    
+    if (allBounds.length > 0) {
+      const combinedBounds = allBounds.reduce((acc, bounds) => acc.extend(bounds), allBounds[0]);
+      if (combinedBounds.isValid()) {
+        map.current.fitBounds(combinedBounds, { 
+          padding: [50, 50],
+          animate: true,
+          duration: 0.5
+        });
+      }
+    }
+  }, [guardLocations]);
 
   // Initialize map
   useEffect(() => {
@@ -93,7 +138,16 @@ export function CommandCenterMap({
       center: defaultCenter,
       zoom: 12,
       zoomControl: true,
+      scrollWheelZoom: true,
+      doubleClickZoom: true,
+      touchZoom: true,
+      zoomAnimation: true,
+      fadeAnimation: true,
+      markerZoomAnimation: true,
     });
+
+    // Position zoom control appropriately (end for RTL support)
+    map.current.zoomControl.setPosition('topright');
 
     // Add initial tile layer
     tileLayerRef.current = L.tileLayer(tileLayerConfig.url, {
@@ -104,15 +158,42 @@ export function CommandCenterMap({
     markersLayer.current = L.layerGroup().addTo(map.current);
     zonesLayer.current = L.layerGroup().addTo(map.current);
 
+    setIsMapReady(true);
+
     return () => {
       map.current?.remove();
       map.current = null;
+      setIsMapReady(false);
+      hasInitialFit.current = false;
     };
   }, []);
 
+  // Handle resize when expanded/collapsed or window resized
+  useEffect(() => {
+    if (!map.current) return;
+    
+    const handleResize = () => {
+      setTimeout(() => map.current?.invalidateSize(), 100);
+    };
+    
+    // Invalidate on expand change with multiple delays for smooth transition
+    const timers = [
+      setTimeout(() => map.current?.invalidateSize(), 100),
+      setTimeout(() => map.current?.invalidateSize(), 300),
+      setTimeout(() => map.current?.invalidateSize(), 500),
+    ];
+    
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      timers.forEach(clearTimeout);
+    };
+  }, [isExpanded]);
+
   // Update zones
   useEffect(() => {
-    if (!map.current || !zonesLayer.current) return;
+    if (!map.current || !zonesLayer.current || !isMapReady) return;
 
     zonesLayer.current.clearLayers();
 
@@ -144,8 +225,8 @@ export function CommandCenterMap({
       zonesLayer.current?.addLayer(polygon);
     });
 
-    // Fit bounds to zones if available
-    if (zones.length > 0 && zonesLayer.current.getLayers().length > 0) {
+    // Only fit bounds on INITIAL load, not on every update
+    if (!hasInitialFit.current && zones.length > 0 && zonesLayer.current.getLayers().length > 0) {
       const layers = zonesLayer.current.getLayers();
       const allBounds: L.LatLngBounds[] = [];
       layers.forEach(layer => {
@@ -156,15 +237,20 @@ export function CommandCenterMap({
       if (allBounds.length > 0) {
         const combinedBounds = allBounds.reduce((acc, bounds) => acc.extend(bounds), allBounds[0]);
         if (combinedBounds.isValid()) {
-          map.current.fitBounds(combinedBounds, { padding: [50, 50] });
+          map.current.fitBounds(combinedBounds, { 
+            padding: [50, 50],
+            animate: true,
+            duration: 0.5
+          });
+          hasInitialFit.current = true;
         }
       }
     }
-  }, [zones]);
+  }, [zones, isMapReady]);
 
   // Update guard markers
   useEffect(() => {
-    if (!map.current || !markersLayer.current) return;
+    if (!map.current || !markersLayer.current || !isMapReady) return;
 
     markersLayer.current.clearLayers();
 
@@ -251,23 +337,26 @@ export function CommandCenterMap({
 
       markersLayer.current?.addLayer(marker);
     });
-  }, [guardLocations, alerts, onGuardClick, onAlertClick]);
+  }, [guardLocations, alerts, onGuardClick, onAlertClick, isMapReady]);
 
   // Update tile layer when style changes
   useEffect(() => {
-    if (!map.current) return;
+    if (!map.current || !isMapReady) return;
 
     // Remove old tile layer
     if (tileLayerRef.current) {
       map.current.removeLayer(tileLayerRef.current);
     }
 
-    // Add new tile layer
+    // Add new tile layer at the bottom
     tileLayerRef.current = L.tileLayer(tileLayerConfig.url, {
       attribution: tileLayerConfig.attribution,
       maxZoom: 19,
     }).addTo(map.current);
-  }, [tileLayerConfig]);
+    
+    // Ensure tile layer is at the bottom (behind markers/zones)
+    tileLayerRef.current.bringToBack();
+  }, [tileLayerConfig, isMapReady]);
 
   return (
     <Card className={cn(isExpanded && "fixed inset-4 z-50")}>
@@ -281,6 +370,14 @@ export function CommandCenterMap({
             <Badge variant="outline" className="text-xs">
               {guardLocations.length} {t('security.commandCenter.guardsActive', 'active')}
             </Badge>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleFitToView}
+              title={t('security.commandCenter.fitToView', 'Fit to View')}
+            >
+              <Focus className="h-4 w-4" />
+            </Button>
             <MapStyleSwitcher value={mapStyle} onChange={setMapStyle} compact />
             <Button
               variant="ghost"
