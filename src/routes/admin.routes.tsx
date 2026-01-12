@@ -100,7 +100,7 @@ export const adminRoutes: RouteObject[] = [
   { path: "admin/ai-settings", element: <AdminRoute><AISettings /></AdminRoute> },
   { path: "admin/training-center", element: <ProtectedRoute><TrainingCenter /></ProtectedRoute> },
   { path: "admin/event-categories", element: <AdminRoute><EventCategorySettings /></AdminRoute> },
-  { path: "admin/asset-categories", element: <AdminRoute><AssetCategorySettings /></AdminRoute> },
+  { path: "admin/asset-categories", element: <MenuBasedAdminRoute menuCode="admin_asset_categories"><AssetCategorySettings /></MenuBasedAdminRoute> },
   { path: "admin/hsse-validation", element: <HSSERoute><HSSEValidationDashboard /></HSSERoute> },
   { path: "admin/app-updates", element: <AdminRoute><AppUpdates /></AdminRoute> },
   { path: "admin/test-push", element: <AdminRoute><TestPushNotifications /></AdminRoute> },
