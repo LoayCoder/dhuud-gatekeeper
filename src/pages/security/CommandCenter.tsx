@@ -23,7 +23,7 @@ import { cn } from '@/lib/utils';
 import { SecurityScoreCard } from '@/components/security/SecurityScoreCard';
 import { EmergencyAlertBanner } from '@/components/security/EmergencyAlertBanner';
 import { Link } from 'react-router-dom';
-
+import { GuardDetailPanel } from '@/components/security/GuardDetailPanel';
 export default function CommandCenter() {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -32,6 +32,8 @@ export default function CommandCenter() {
   const [resolutionNotes, setResolutionNotes] = useState('');
   const [currentTime, setCurrentTime] = useState(new Date());
   const [generatingReport, setGeneratingReport] = useState(false);
+  const [selectedGuardId, setSelectedGuardId] = useState<string | null>(null);
+  const [guardPanelOpen, setGuardPanelOpen] = useState(false);
 
   const { data: guardLocations, isLoading: locationsLoading, refetch: refetchLocations } = useGuardLocations();
   const { data: alerts } = useGeofenceAlerts('pending');
@@ -168,6 +170,10 @@ export default function CommandCenter() {
 
   const currentIntervalValue = trackingSettings?.current || trackingSettings?.default || 5;
 
+  const handleGuardClick = (guardId: string) => {
+    setSelectedGuardId(guardId);
+    setGuardPanelOpen(true);
+  };
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -265,6 +271,7 @@ export default function CommandCenter() {
             guardLocations={mapGuardLocations}
             zones={mapZones}
             alerts={mapAlerts}
+            onGuardClick={handleGuardClick}
           />
         </div>
 
@@ -426,6 +433,13 @@ export default function CommandCenter() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Guard Detail Panel */}
+      <GuardDetailPanel
+        guardId={selectedGuardId}
+        open={guardPanelOpen}
+        onOpenChange={setGuardPanelOpen}
+      />
     </div>
   );
 }
