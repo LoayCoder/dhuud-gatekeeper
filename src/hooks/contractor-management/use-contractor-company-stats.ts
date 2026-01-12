@@ -63,6 +63,7 @@ export function useContractorCompanyStats() {
         suspended: 0,
         inactive: 0,
         expired: 0,
+        pending_approval: 0,
       };
 
       const now = new Date();
@@ -129,6 +130,7 @@ export function useContractorCompanyStats() {
       // Status distribution for pie chart with HSSA colors
       const statusDistribution = [
         { name: "Active", value: statusCounts.active, fill: "hsl(142 71% 45%)" },
+        { name: "Pending", value: statusCounts.pending_approval, fill: "hsl(45 93% 47%)" },
         { name: "Suspended", value: statusCounts.suspended, fill: "hsl(0 84% 60%)" },
         { name: "Inactive", value: statusCounts.inactive, fill: "hsl(215 16% 47%)" },
         { name: "Expired", value: statusCounts.expired, fill: "hsl(27 96% 61%)" },
