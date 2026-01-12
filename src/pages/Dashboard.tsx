@@ -56,25 +56,25 @@ export default function Dashboard() {
         <MyReportingStatsCard />
       </section>
 
-      {/* Achievements & Badges */}
-      <section className="space-y-3">
-        <SectionHeader title={t('dashboard.badges.sectionTitle', 'My Achievements')} />
-        <MyBadgesSection />
-      </section>
-
       {/* Quick Actions */}
       <section className="space-y-3">
         <SectionHeader title={t('dashboard.quickActions.sectionTitle', 'Quick Actions')} />
         <QuickReportButtons />
       </section>
 
-      {/* Ranking & AI Insights */}
+      {/* Recognition & Achievements - Side by Side */}
       <section className="space-y-3">
-        <SectionHeader title={t('dashboard.insights.sectionTitle', 'Insights & Performance')} />
+        <SectionHeader title={t('dashboard.recognition.sectionTitle', 'Recognition & Achievements')} />
         <div className="grid gap-4 md:grid-cols-2">
           <MyRankCard />
-          <AIInsightsCard />
+          <MyBadgesSection />
         </div>
+      </section>
+
+      {/* AI Insights */}
+      <section className="space-y-3">
+        <SectionHeader title={t('dashboard.insights.sectionTitle', 'AI Insights')} />
+        <AIInsightsCard />
       </section>
 
       {/* Actions & Tasks (if user has access) */}
