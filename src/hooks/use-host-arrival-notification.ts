@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/lib/logger';
 
 interface HostArrivalNotificationParams {
   entryId: string;
@@ -25,7 +26,7 @@ export function useHostArrivalNotification() {
       entryTime,
       tenantId,
     }: HostArrivalNotificationParams) => {
-      console.log('[HostNotify] Sending arrival notification to host:', hostPhone);
+      logger.debug('[HostNotify] Sending arrival notification to host:', hostPhone);
 
       // Call the edge function with host_arrival notification type
       const { data, error } = await supabase.functions.invoke('send-gate-whatsapp', {
@@ -50,7 +51,7 @@ export function useHostArrivalNotification() {
         throw new Error(data?.error || 'Failed to send notification');
       }
 
-      console.log('[HostNotify] Notification sent successfully:', data);
+      logger.debug('[HostNotify] Notification sent successfully:', data);
       return data;
     },
     onSuccess: () => {

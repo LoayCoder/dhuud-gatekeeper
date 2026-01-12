@@ -15,6 +15,7 @@ import { useHostArrivalNotification } from '@/hooks/use-host-arrival-notificatio
 import { WorkerPhotoGallery } from './WorkerPhotoGallery';
 import { GateActionConfirmDialog, GateActionType } from './GateActionConfirmDialog';
 import { format, differenceInMinutes } from 'date-fns';
+import { logger } from '@/lib/logger';
 
 interface GateQRScannerProps {
   open: boolean;
@@ -70,7 +71,7 @@ const playAudioFeedback = (type: 'success' | 'warning' | 'error') => {
     oscillator.stop(audioContext.currentTime + 0.2);
   } catch (e) {
     // Audio not supported, fail silently
-    console.log('[GateQR] Audio feedback not available');
+    logger.debug('[GateQR] Audio feedback not available');
   }
 };
 
@@ -672,7 +673,7 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
 
           // Send host arrival notification (async, non-blocking)
           if (hostPhone && newEntry?.id && scanResult.type === 'visitor') {
-            console.log('[GateQR] Sending host arrival notification to:', hostPhone);
+            logger.debug('[GateQR] Sending host arrival notification to:', hostPhone);
             hostArrivalNotification.mutate({
               entryId: newEntry.id,
               visitorName: scanResult.data?.name || 'Visitor',
@@ -690,7 +691,7 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
                 .eq('id', visitRequestId);
             }
           } else if (scanResult.type === 'visitor' && !hostPhone) {
-            console.log('[GateQR] No host phone available, skipping notification');
+            logger.debug('[GateQR] No host phone available, skipping notification');
           }
 
           // Invalidate queries to refresh active visitors lists

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
+import { logger } from "@/lib/logger";
 
 export interface HSSENotification {
   id: string;
@@ -135,7 +136,7 @@ export function useHSSENotificationsAdmin() {
         data.include_visitors_on_site
       )) {
         try {
-          console.log('[HSSE] Triggering send-hsse-notification for:', newNotification.id);
+          logger.debug('[HSSE] Triggering send-hsse-notification for:', newNotification.id);
           const { error: sendError } = await supabase.functions.invoke('send-hsse-notification', {
             body: { 
               notification_id: newNotification.id,
@@ -143,9 +144,9 @@ export function useHSSENotificationsAdmin() {
             },
           });
           if (sendError) {
-            console.error('[HSSE] Send function error:', sendError);
+            logger.error('[HSSE] Send function error:', sendError);
           } else {
-            console.log('[HSSE] Send function triggered successfully');
+            logger.debug('[HSSE] Send function triggered successfully');
           }
         } catch (sendError) {
           console.error('[HSSE] Failed to trigger send function:', sendError);
@@ -184,7 +185,7 @@ export function useHSSENotificationsAdmin() {
         notification.include_visitors_on_site
       )) {
         try {
-          console.log('[HSSE] Triggering send on publish for:', notificationId);
+          logger.debug('[HSSE] Triggering send on publish for:', notificationId);
           const { error: sendError } = await supabase.functions.invoke('send-hsse-notification', {
             body: { 
               notification_id: notificationId,
@@ -192,7 +193,7 @@ export function useHSSENotificationsAdmin() {
             },
           });
           if (sendError) {
-            console.error('[HSSE] Send function error:', sendError);
+            logger.error('[HSSE] Send function error:', sendError);
           }
         } catch (sendError) {
           console.error('[HSSE] Failed to trigger send:', sendError);
