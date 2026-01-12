@@ -475,7 +475,6 @@ const SidebarMenuButton = React.forwardRef<
 >(({ asChild = false, isActive = false, variant = "default", size = "default", tooltip, className, ...props }, ref) => {
   const Comp = asChild ? Slot : "button";
   const { isMobile, state } = useSidebar();
-  const isRtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl';
 
   const button = (
     <Comp
@@ -498,10 +497,12 @@ const SidebarMenuButton = React.forwardRef<
     };
   }
 
+  // Use CSS logical positioning - tooltip appears on inline-end side (right in LTR, left in RTL)
+  // The Sheet component already handles RTL via CSS logical properties (end-0, start-0)
   return (
     <Tooltip>
       <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent side={isRtl ? "left" : "right"} align="center" hidden={state !== "collapsed" || isMobile} {...tooltip} />
+      <TooltipContent sideOffset={8} align="center" hidden={state !== "collapsed" || isMobile} className="z-50" {...tooltip} />
     </Tooltip>
   );
 });

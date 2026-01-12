@@ -750,7 +750,7 @@ export default function UserManagement() {
                 {t('userManagement.diagnostics', 'Diagnostics')}
               </Button>
             </SheetTrigger>
-            <SheetContent side={direction === 'rtl' ? 'left' : 'right'} className="w-full sm:max-w-xl">
+            <SheetContent side="right" className="w-full sm:max-w-xl">
               <SheetHeader>
                 <SheetTitle>{t('userManagement.accountDiagnostics', 'Account Diagnostics')}</SheetTitle>
               </SheetHeader>

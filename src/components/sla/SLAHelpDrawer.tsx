@@ -23,8 +23,7 @@ interface SLAHelpDrawerProps {
 }
 
 export function SLAHelpDrawer({ open, onOpenChange }: SLAHelpDrawerProps) {
-  const { t, i18n } = useTranslation();
-  const direction = i18n.dir();
+  const { t } = useTranslation();
 
   const sections = [
     {
@@ -169,7 +168,7 @@ export function SLAHelpDrawer({ open, onOpenChange }: SLAHelpDrawerProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side={direction === 'rtl' ? 'left' : 'right'} className="w-full sm:max-w-lg overflow-y-auto">
+      <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader className="text-start">
           <SheetTitle className="flex items-center gap-2">
             <HelpCircle className="h-5 w-5 text-primary" />

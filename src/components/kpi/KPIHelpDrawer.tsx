@@ -20,8 +20,7 @@ interface KPIHelpDrawerProps {
 }
 
 export function KPIHelpDrawer({ open, onOpenChange }: KPIHelpDrawerProps) {
-  const { t, i18n } = useTranslation();
-  const isRTL = i18n.dir() === 'rtl';
+  const { t } = useTranslation();
 
   const sections = [
     {
@@ -83,7 +82,7 @@ export function KPIHelpDrawer({ open, onOpenChange }: KPIHelpDrawerProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side={isRTL ? 'left' : 'right'} className="w-full sm:max-w-md overflow-y-auto">
+      <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader className="text-start">
           <SheetTitle className="flex items-center gap-2">
             <Target className="h-5 w-5 text-primary" />
