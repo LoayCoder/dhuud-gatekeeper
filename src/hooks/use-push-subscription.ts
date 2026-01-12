@@ -376,7 +376,7 @@ export function usePushSubscription() {
     if (!user?.id || !profile?.tenant_id || !state.subscription) return;
     
     const subscriptionJSON = state.subscription.toJSON();
-    console.log('[Push] Syncing subscription with database...');
+    logger.debug('[Push] Syncing subscription with database...');
     
     // Re-activate subscription if exists in browser
     const saved = await saveSubscriptionToDatabase(
@@ -386,7 +386,7 @@ export function usePushSubscription() {
     );
     
     if (saved) {
-      console.log('[Push] Subscription synced/reactivated in database');
+      logger.debug('[Push] Subscription synced/reactivated in database');
     }
   }, [user?.id, profile?.tenant_id, state.subscription]);
 
@@ -408,7 +408,7 @@ export function usePushSubscription() {
       navigator.permissions.query({ name: 'notifications' as PermissionName })
         .then(permissionStatus => {
           permissionStatus.onchange = () => {
-            console.log('[Push] Permission status changed:', permissionStatus.state);
+            logger.debug('[Push] Permission status changed:', permissionStatus.state);
             checkSubscription();
           };
         })

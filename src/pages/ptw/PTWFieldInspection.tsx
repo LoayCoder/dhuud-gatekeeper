@@ -170,7 +170,7 @@ export default function PTWFieldInspection() {
         completedAt: new Date().toISOString(),
       };
 
-      console.log('Submitting inspection:', inspectionData);
+      logger.debug('Submitting inspection:', inspectionData);
       
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -182,7 +182,7 @@ export default function PTWFieldInspection() {
 
       navigate(`/ptw/permits/${id}`);
     } catch (error) {
-      console.error('Submit error:', error);
+      logger.error('Submit error:', error);
       toast({
         title: t('common.error', 'Error'),
         description: t('ptw.mobile.submitError', 'Failed to submit inspection'),

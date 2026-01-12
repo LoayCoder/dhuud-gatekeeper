@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { usePushSubscription, usePushNotificationStatus } from './use-push-subscription';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 // Security roles that should receive emergency alerts
 const SECURITY_ROLES = ['security_guard', 'supervisor', 'hsse_manager', 'admin'];
@@ -70,7 +71,7 @@ function playAlertSound() {
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + 0.6);
   } catch (e) {
-    console.log('Could not play alert sound:', e);
+    logger.debug('Could not play alert sound:', e);
   }
 }
 

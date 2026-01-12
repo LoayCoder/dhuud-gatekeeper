@@ -108,7 +108,7 @@ export function useSessionManagement() {
                               errorMsg.includes('auth_session_expired') ||
                               errorMsg.includes('AUTH_SESSION_EXPIRED');
         if (isAuthExpired) {
-          console.log('Auth session expired during registration, clearing local state');
+          logger.debug('Auth session expired during registration, clearing local state');
           localStorage.removeItem(SESSION_TOKEN_KEY);
           // Force clear the stale session from Supabase client
           await supabase.auth.signOut({ scope: 'local' });
@@ -120,7 +120,7 @@ export function useSessionManagement() {
 
       if (data?.success && data?.sessionToken) {
         localStorage.setItem(SESSION_TOKEN_KEY, data.sessionToken);
-        console.log('Session registered successfully');
+        logger.debug('Session registered successfully');
 
         // Notify if other sessions were invalidated
         if (data.invalidatedSessions > 0) {
@@ -141,7 +141,7 @@ export function useSessionManagement() {
   const validateSession = useCallback(async (): Promise<SessionValidationResult> => {
     // CRITICAL: Check logout flag first to prevent race conditions
     if (isLoggingOut.current) {
-      console.log('Logout in progress, skipping validation');
+      logger.debug('Logout in progress, skipping validation');
       return { valid: false, reason: 'logout_in_progress' };
     }
     
@@ -219,7 +219,7 @@ export function useSessionManagement() {
       await supabase.auth.signOut({ scope: 'local' });
     } catch (err) {
       // Ignore errors - session may already be gone
-      console.log('SignOut during handleSessionInvalid failed (likely already signed out):', err);
+      logger.debug('SignOut during handleSessionInvalid failed (likely already signed out):', err);
     }
 
     // Only show toast for non-auth-expired reasons (auth-expired is handled silently)
@@ -261,7 +261,7 @@ export function useSessionManagement() {
   const sendHeartbeat = useCallback(async () => {
     // CRITICAL: Check logout flag first to prevent race conditions
     if (isLoggingOut.current) {
-      console.log('Logout in progress, skipping heartbeat');
+      logger.debug('Logout in progress, skipping heartbeat');
       return;
     }
     
@@ -277,7 +277,7 @@ export function useSessionManagement() {
       // Validate we have a valid auth session before calling edge function
       const isValid = await hasValidAuthSession();
       if (!isValid) {
-        console.log('No valid auth session, skipping heartbeat');
+        logger.debug('No valid auth session, skipping heartbeat');
         return;
       }
 
@@ -295,7 +295,7 @@ export function useSessionManagement() {
                               error.message?.includes('auth_session_expired') ||
                               error.message?.includes('AUTH_SESSION_EXPIRED');
         if (isAuthExpired) {
-          console.log('Auth session expired during heartbeat, clearing local state');
+          logger.debug('Auth session expired during heartbeat, clearing local state');
           localStorage.removeItem(SESSION_TOKEN_KEY);
           // Force clear the stale session from Supabase client
           await supabase.auth.signOut({ scope: 'local' });
@@ -318,7 +318,7 @@ export function useSessionManagement() {
   const invalidateSession = useCallback(async () => {
     // CRITICAL: Check logout flag first to prevent race conditions
     if (isLoggingOut.current) {
-      console.log('Logout in progress, skipping invalidation call');
+      logger.debug('Logout in progress, skipping invalidation call');
       localStorage.removeItem(SESSION_TOKEN_KEY);
       hasRegisteredSession.current = false;
       lastUserId.current = null;
@@ -332,7 +332,7 @@ export function useSessionManagement() {
       // Validate we have a valid auth session before calling edge function
       const isValid = await hasValidAuthSession();
       if (!isValid) {
-        console.log('No valid auth session, skipping session invalidation call');
+        logger.debug('No valid auth session, skipping session invalidation call');
         localStorage.removeItem(SESSION_TOKEN_KEY);
         hasRegisteredSession.current = false;
         lastUserId.current = null;

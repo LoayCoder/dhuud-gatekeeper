@@ -212,7 +212,7 @@ export default function SecurityAuditLog() {
             table: 'login_history',
           },
           async (payload) => {
-            console.log('New login history entry:', payload);
+            logger.debug('New login history entry:', payload);
             
             // Fetch user name for the new entry
             const newEntry = payload.new as LoginHistoryRecord;

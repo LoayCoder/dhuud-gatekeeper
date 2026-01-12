@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/lib/logger';
 import { 
   startRegistration, 
   startAuthentication,
@@ -141,10 +142,10 @@ export function useWebAuthn(): UseWebAuthnReturn {
   // Authenticate with biometrics
   const authenticate = useCallback(async (email: string): Promise<boolean> => {
     try {
-      console.log('[WebAuthn] Starting authentication for:', email);
+      logger.debug('[WebAuthn] Starting authentication for:', email);
       
       if (!isSupported) {
-        console.log('[WebAuthn] Browser does not support WebAuthn');
+        logger.debug('[WebAuthn] Browser does not support WebAuthn');
         toast({
           title: t('biometric.notSupported'),
           description: t('biometric.notSupportedDesc'),
@@ -154,7 +155,7 @@ export function useWebAuthn(): UseWebAuthnReturn {
       }
 
       // Get authentication options from server
-      console.log('[WebAuthn] Fetching auth options...');
+      logger.debug('[WebAuthn] Fetching auth options...');
       const { data: optionsData, error: optionsError } = await supabase.functions.invoke(
         'webauthn-auth-options',
         {
@@ -162,7 +163,7 @@ export function useWebAuthn(): UseWebAuthnReturn {
         }
       );
 
-      console.log('[WebAuthn] Auth options response:', { optionsData, optionsError });
+      logger.debug('[WebAuthn] Auth options response:', { optionsData, optionsError });
 
       if (optionsError) {
         console.error('[WebAuthn] Auth options error:', optionsError);
