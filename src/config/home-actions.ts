@@ -69,7 +69,7 @@ export const ALL_HOME_CARDS: HomeActionCard[] = [
     categories: ['base'],
   },
   
-  // Security cards
+  // Security cards - shown based on security role only (no module requirement)
   {
     id: 'shift-plan',
     labelKey: 'home.cards.shiftPlan',
@@ -78,7 +78,6 @@ export const ALL_HOME_CARDS: HomeActionCard[] = [
     path: '/security/shifts',
     colorScheme: 'primary',
     categories: ['security'],
-    requiredModule: 'security',
   },
   {
     id: 'my-locations',
@@ -88,7 +87,6 @@ export const ALL_HOME_CARDS: HomeActionCard[] = [
     path: '/security/my-zones',
     colorScheme: 'success',
     categories: ['security'],
-    requiredModule: 'security',
   },
   {
     id: 'gate-operation',
@@ -98,7 +96,6 @@ export const ALL_HOME_CARDS: HomeActionCard[] = [
     path: '/security/gate',
     colorScheme: 'default',
     categories: ['security', 'hsse'],
-    requiredModule: 'security',
   },
   {
     id: 'patrol',
@@ -108,7 +105,6 @@ export const ALL_HOME_CARDS: HomeActionCard[] = [
     path: '/security/patrol',
     colorScheme: 'info',
     categories: ['security'],
-    requiredModule: 'security',
   },
   
   // HSSE cards
