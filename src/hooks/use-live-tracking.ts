@@ -7,7 +7,7 @@ export function useGuardLocations() {
   const trackingIntervalMs = useTrackingIntervalMs();
   
   return useQuery({
-    queryKey: ['guard-locations'],
+    queryKey: ['guard-locations', trackingIntervalMs],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('guard_tracking_history')
@@ -43,7 +43,7 @@ export function useGeofenceAlerts(statusFilter?: 'pending' | 'acknowledged' | 'r
   const alertRefreshInterval = Math.max(5000, Math.floor(trackingIntervalMs / 2));
   
   return useQuery({
-    queryKey: ['geofence-alerts', statusFilter],
+    queryKey: ['geofence-alerts', statusFilter, alertRefreshInterval],
     queryFn: async (): Promise<any[]> => {
       const { data, error } = await supabase
         .from('geofence_alerts')
