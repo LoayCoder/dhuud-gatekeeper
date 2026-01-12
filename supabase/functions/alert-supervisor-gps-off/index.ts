@@ -37,6 +37,31 @@ serve(async (req) => {
     
     const guardName = guard?.full_name || guard?.employee_id || 'Unknown Guard';
     
+    // DEDUPLICATION: Check if we already have an unresolved gps_disabled alert for this guard
+    // within the last 30 minutes to prevent duplicate alerts
+    const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000).toISOString();
+    const { data: existingAlert } = await supabase
+      .from('geofence_alerts')
+      .select('id')
+      .eq('guard_id', guard_id)
+      .eq('alert_type', 'gps_disabled')
+      .is('resolved_at', null)
+      .gte('created_at', thirtyMinutesAgo)
+      .limit(1);
+    
+    if (existingAlert && existingAlert.length > 0) {
+      console.log(`[GPS Off Alert] Alert already exists for guard ${guard_id}: ${existingAlert[0].id}`);
+      return new Response(
+        JSON.stringify({
+          success: true,
+          alert_created: false,
+          existing_alert_id: existingAlert[0].id,
+          reason: 'Unresolved alert already exists',
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     // Get supervisor(s) for this tenant who should receive alerts
     // Look for users with security_supervisor or security_manager role
     const { data: supervisors } = await supabase
@@ -50,7 +75,7 @@ serve(async (req) => {
     console.log(`[GPS Off Alert] Found ${supervisors?.length || 0} supervisors to notify`);
     
     // Create geofence alert record (status is derived from acknowledged_at and resolved_at timestamps)
-    const { error: alertError } = await supabase
+    const { data: alertData, error: alertError } = await supabase
       .from('geofence_alerts')
       .insert({
         guard_id,
@@ -58,10 +83,14 @@ serve(async (req) => {
         alert_type: 'gps_disabled',
         severity: 'critical',
         alert_message: `Guard ${guardName} has disabled GPS during active shift. Zone: ${zone_name || 'Unknown'}`,
-      });
+      })
+      .select('id')
+      .single();
     
     if (alertError) {
       console.error('[GPS Off Alert] Failed to create alert record:', alertError);
+    } else {
+      console.log(`[GPS Off Alert] Created alert ${alertData?.id} for guard ${guard_id}`);
     }
     
     // Check WhatsApp provider

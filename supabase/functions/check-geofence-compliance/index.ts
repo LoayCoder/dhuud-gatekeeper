@@ -90,7 +90,31 @@ serve(async (req) => {
     const now = new Date();
     const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
     const currentTime = now.toTimeString().substring(0, 5);
-    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+    
+    // Fetch configurable tracking interval from platform_settings
+    let trackingIntervalMinutes = 5; // Default to 5 minutes
+    try {
+      const { data: settingData } = await supabase
+        .from('platform_settings')
+        .select('value')
+        .eq('setting_key', 'guard_tracking_interval_minutes')
+        .limit(1);
+      
+      if (settingData?.[0]?.value) {
+        const parsed = typeof settingData[0].value === 'string' 
+          ? JSON.parse(settingData[0].value) 
+          : settingData[0].value;
+        trackingIntervalMinutes = parsed?.current ?? parsed?.default ?? 5;
+      }
+    } catch (e) {
+      console.warn('Could not fetch tracking interval, using default 5 minutes:', e);
+    }
+    
+    // Use 2x the interval as tolerance for "no signal" detection
+    const noSignalThresholdMs = trackingIntervalMinutes * 60 * 1000 * 2;
+    const signalThresholdTime = new Date(now.getTime() - noSignalThresholdMs);
+    
+    console.log(`Using tracking interval: ${trackingIntervalMinutes} min, no-signal threshold: ${noSignalThresholdMs / 60000} min`);
     
     // Get all active shift assignments
     const { data: activeRosters, error: rosterError } = await supabase
@@ -144,12 +168,12 @@ serve(async (req) => {
       
       guardsChecked++;
       
-      // Get latest location for this guard
+      // Get latest location for this guard within the threshold time
       const { data: latestLocation } = await supabase
         .from('guard_tracking_history')
         .select('latitude, longitude, recorded_at')
         .eq('guard_id', roster.guard_id)
-        .gte('recorded_at', fiveMinutesAgo.toISOString())
+        .gte('recorded_at', signalThresholdTime.toISOString())
         .order('recorded_at', { ascending: false })
         .limit(1)
         .single();
@@ -176,9 +200,10 @@ serve(async (req) => {
               zone_id: zone.id,
               alert_type: 'no_signal',
               severity: 'medium',
-              alert_message: `No GPS signal from guard for 5+ minutes`
+              alert_message: `No GPS signal from guard for ${trackingIntervalMinutes * 2}+ minutes`
             });
           alertsCreated++;
+          console.log(`ALERT: No signal from guard ${roster.guard_id} for ${trackingIntervalMinutes * 2}+ minutes`);
         }
         continue;
       }

@@ -1,8 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useTrackingIntervalMs } from '@/hooks/use-tracking-settings';
 
 export function useGuardLocations() {
+  const trackingIntervalMs = useTrackingIntervalMs();
+  
   return useQuery({
     queryKey: ['guard-locations'],
     queryFn: async () => {
@@ -30,11 +33,15 @@ export function useGuardLocations() {
       
       return Array.from(latestByGuard.values());
     },
-    refetchInterval: 15000, // Update every 15 seconds for real-time feel
+    refetchInterval: trackingIntervalMs, // Dynamic: uses configured tracking interval
   });
 }
 
 export function useGeofenceAlerts(statusFilter?: 'pending' | 'acknowledged' | 'resolved') {
+  const trackingIntervalMs = useTrackingIntervalMs();
+  // Use half the tracking interval for alerts (more responsive), minimum 5 seconds
+  const alertRefreshInterval = Math.max(5000, Math.floor(trackingIntervalMs / 2));
+  
   return useQuery({
     queryKey: ['geofence-alerts', statusFilter],
     queryFn: async (): Promise<any[]> => {
@@ -68,7 +75,7 @@ export function useGeofenceAlerts(statusFilter?: 'pending' | 'acknowledged' | 'r
       }
       return enriched;
     },
-    refetchInterval: 10000, // 10 seconds for faster alert response
+    refetchInterval: alertRefreshInterval, // Dynamic: half of tracking interval for faster response
   });
 }
 
