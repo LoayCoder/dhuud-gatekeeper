@@ -124,17 +124,66 @@ export function useTrackMyLocation() {
       return data;
     },
     onSuccess: (data) => {
-      // Show warning if zone violation detected
-      if (data && !data.is_compliant) {
-        toast({
-          title: 'Zone Violation Warning',
-          description: `You have left your assigned zone: ${data.zone_violation?.zone_name}`,
-          variant: 'destructive',
-        });
+      // Show warning based on boundary status
+      if (data) {
+        if (data.boundary_warning_level === 'danger') {
+          toast({
+            title: 'تحذير: حدود المنطقة | Boundary Warning',
+            description: `You are very close to the edge of your zone (${data.boundary_distance_meters?.toFixed(0) || '<20'}m)`,
+            variant: 'destructive',
+          });
+        } else if (data.boundary_warning_level === 'warning') {
+          toast({
+            title: 'تنبيه: اقتراب من الحد | Approaching Boundary',
+            description: `You are approaching the edge of your zone (${data.boundary_distance_meters?.toFixed(0) || '<50'}m)`,
+          });
+        } else if (!data.is_compliant) {
+          toast({
+            title: 'مخالفة المنطقة | Zone Violation',
+            description: `You have left your assigned zone: ${data.zone_violation?.zone_name}`,
+            variant: 'destructive',
+          });
+        }
       }
     },
     onError: (error) => {
       toast({ title: 'Failed to track', description: error.message, variant: 'destructive' });
+    },
+  });
+}
+
+/**
+ * Hook to alert supervisor when guard's GPS is disabled
+ */
+export function useAlertSupervisorGpsOff() {
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ zoneName, reason }: { zoneName?: string; reason: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, tenant_id')
+        .eq('id', user.id)
+        .single();
+      if (!profile) throw new Error('Profile not found');
+
+      const { data, error } = await supabase.functions.invoke('alert-supervisor-gps-off', {
+        body: {
+          guard_id: profile.id,
+          tenant_id: profile.tenant_id,
+          zone_name: zoneName,
+          reason,
+        },
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onError: (error) => {
+      console.error('Failed to alert supervisor:', error);
     },
   });
 }

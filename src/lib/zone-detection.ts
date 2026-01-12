@@ -18,6 +18,15 @@ export interface CurrentZoneResult {
   distanceToCenter: number;
 }
 
+export type BoundaryProximityLevel = 'safe' | 'warning' | 'danger' | 'outside';
+
+export interface BoundaryProximityResult {
+  level: BoundaryProximityLevel;
+  distanceToEdge: number;
+  warningThreshold: number;
+  dangerThreshold: number;
+}
+
 /**
  * Calculate distance between two GPS coordinates using Haversine formula
  * @returns Distance in meters
@@ -76,6 +85,118 @@ export function getPolygonCentroid(polygon: [number, number][]): [number, number
     sumLng += lng;
   }
   return [sumLat / polygon.length, sumLng / polygon.length];
+}
+
+/**
+ * Calculate the perpendicular distance from a point to a line segment
+ */
+function distanceToLineSegment(
+  px: number, py: number,
+  x1: number, y1: number,
+  x2: number, y2: number
+): number {
+  const A = px - x1;
+  const B = py - y1;
+  const C = x2 - x1;
+  const D = y2 - y1;
+
+  const dot = A * C + B * D;
+  const lenSq = C * C + D * D;
+  let param = -1;
+
+  if (lenSq !== 0) param = dot / lenSq;
+
+  let xx, yy;
+
+  if (param < 0) {
+    xx = x1;
+    yy = y1;
+  } else if (param > 1) {
+    xx = x2;
+    yy = y2;
+  } else {
+    xx = x1 + param * C;
+    yy = y1 + param * D;
+  }
+
+  return calculateDistance(px, py, xx, yy);
+}
+
+/**
+ * Calculate the minimum distance from a point to any edge of the polygon
+ * @returns Distance in meters to the nearest edge
+ */
+export function calculateDistanceToBoundary(
+  lat: number,
+  lng: number,
+  polygon: [number, number][]
+): number {
+  if (!polygon || polygon.length < 3) return Infinity;
+
+  let minDistance = Infinity;
+
+  for (let i = 0; i < polygon.length; i++) {
+    const j = (i + 1) % polygon.length;
+    const [lat1, lng1] = polygon[i];
+    const [lat2, lng2] = polygon[j];
+    
+    const distance = distanceToLineSegment(lat, lng, lat1, lng1, lat2, lng2);
+    if (distance < minDistance) {
+      minDistance = distance;
+    }
+  }
+
+  return minDistance;
+}
+
+/**
+ * Check boundary proximity level for warning system
+ * @param warningThresholdMeters Distance for warning (default 50m)
+ * @param dangerThresholdMeters Distance for danger (default 20m)
+ */
+export function checkBoundaryProximity(
+  lat: number,
+  lng: number,
+  polygon: [number, number][],
+  warningThresholdMeters: number = 50,
+  dangerThresholdMeters: number = 20
+): BoundaryProximityResult {
+  if (!polygon || polygon.length < 3) {
+    return {
+      level: 'safe',
+      distanceToEdge: Infinity,
+      warningThreshold: warningThresholdMeters,
+      dangerThreshold: dangerThresholdMeters,
+    };
+  }
+
+  const isInside = isPointInsidePolygon(lat, lng, polygon);
+  const distanceToEdge = calculateDistanceToBoundary(lat, lng, polygon);
+
+  if (!isInside) {
+    return {
+      level: 'outside',
+      distanceToEdge: -distanceToEdge, // Negative to indicate outside
+      warningThreshold: warningThresholdMeters,
+      dangerThreshold: dangerThresholdMeters,
+    };
+  }
+
+  let level: BoundaryProximityLevel;
+  if (distanceToEdge <= dangerThresholdMeters) {
+    level = 'danger';
+  } else if (distanceToEdge <= warningThresholdMeters) {
+    level = 'warning';
+  } else {
+    level = 'safe';
+  }
+
+  return {
+    level,
+    distanceToEdge,
+    warningThreshold: warningThresholdMeters,
+    dangerThreshold: dangerThresholdMeters,
+  };
 }
 
 /**
