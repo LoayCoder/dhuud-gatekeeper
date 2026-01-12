@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -28,6 +28,7 @@ interface GuardLocation {
   accuracy?: number;
   battery_level?: number;
   is_within_zone?: boolean;
+  distance_from_zone?: number;
 }
 
 interface SecurityZone {
@@ -54,9 +55,29 @@ interface CommandCenterMapProps {
   guardLocations: GuardLocation[];
   zones: SecurityZone[];
   alerts: GeofenceAlert[];
+  trackingIntervalMinutes?: number;
   onGuardClick?: (guardId: string) => void;
   onAlertClick?: (alertId: string) => void;
 }
+
+// Guard status types
+type GuardStatus = 'active' | 'warning' | 'alert' | 'offline' | 'unknown';
+
+const statusColors: Record<GuardStatus, string> = {
+  active: '#22c55e',   // Green - online and in zone
+  warning: '#f59e0b',  // Amber - outside zone or boundary warning
+  alert: '#ef4444',    // Red - has active alert
+  offline: '#6b7280',  // Gray - stale/no GPS
+  unknown: '#9ca3af',  // Light Gray
+};
+
+const statusLabels: Record<GuardStatus, string> = {
+  active: 'In Zone',
+  warning: 'Outside Zone',
+  alert: 'Alert Active',
+  offline: 'GPS Offline',
+  unknown: 'Unknown',
+};
 
 const riskColors: Record<string, string> = {
   high: '#ef4444',
@@ -74,10 +95,37 @@ const zoneTypeColors: Record<string, string> = {
   public: '#22c55e',
 };
 
+/**
+ * Calculate guard status based on multiple factors:
+ * - Staleness (is the data old?)
+ * - Alerts (does guard have active alert?)
+ * - Zone compliance (is guard within zone?)
+ */
+function calculateGuardStatus(
+  loc: GuardLocation,
+  alerts: GeofenceAlert[],
+  trackingIntervalMinutes: number
+): GuardStatus {
+  const hasActiveAlert = alerts.some(a => a.guard_id === loc.guard_id);
+  const recordedAt = new Date(loc.recorded_at);
+  const now = new Date();
+  
+  // Consider data stale if older than 2x tracking interval
+  const staleThresholdMs = trackingIntervalMinutes * 60 * 1000 * 2;
+  const isStale = (now.getTime() - recordedAt.getTime()) > staleThresholdMs;
+  
+  // Priority order: Offline > Alert > Warning > Active
+  if (isStale) return 'offline';
+  if (hasActiveAlert) return 'alert';
+  if (loc.is_within_zone === false) return 'warning';
+  return 'active';
+}
+
 export function CommandCenterMap({
   guardLocations,
   zones,
   alerts,
+  trackingIntervalMinutes = 5,
   onGuardClick,
   onAlertClick,
 }: CommandCenterMapProps) {
@@ -91,6 +139,18 @@ export function CommandCenterMap({
   const [isMapReady, setIsMapReady] = useState(false);
   const hasInitialFit = useRef(false);
   const { mapStyle, setMapStyle, tileLayerConfig } = useMapStyle('command-center-map-style');
+
+  // Calculate status counts for display
+  const statusCounts = useMemo(() => {
+    const counts: Record<GuardStatus, number> = {
+      active: 0, warning: 0, alert: 0, offline: 0, unknown: 0
+    };
+    guardLocations.forEach(loc => {
+      const status = calculateGuardStatus(loc, alerts, trackingIntervalMinutes);
+      counts[status]++;
+    });
+    return counts;
+  }, [guardLocations, alerts, trackingIntervalMinutes]);
 
   // Fit to view handler - fits map to show all zones and guards
   const handleFitToView = useCallback(() => {
@@ -254,22 +314,21 @@ export function CommandCenterMap({
 
     markersLayer.current.clearLayers();
 
-    // Add guard markers
+    // Add guard markers with status-based coloring
     guardLocations.forEach((loc) => {
       if (!loc.latitude || !loc.longitude) return;
 
-      // Check if guard has active alert
-      const hasAlert = alerts.some(a => a.guard_id === loc.guard_id);
-      
-      const markerColor = hasAlert ? '#ef4444' : '#22c55e';
-      const pulseClass = hasAlert ? 'pulse-red' : 'pulse-green';
+      const status = calculateGuardStatus(loc, alerts, trackingIntervalMinutes);
+      const markerColor = statusColors[status];
+      const isOnline = status !== 'offline';
+      const showPulse = status === 'active' || status === 'alert';
 
       const icon = L.divIcon({
         className: 'custom-guard-marker',
         html: `
           <div class="relative">
-            <div class="absolute -inset-2 rounded-full ${pulseClass} animate-ping opacity-75" style="background-color: ${markerColor}40;"></div>
-            <div class="relative w-4 h-4 rounded-full border-2 border-white shadow-lg" style="background-color: ${markerColor};"></div>
+            ${showPulse ? `<div class="absolute -inset-2 rounded-full animate-ping opacity-75" style="background-color: ${markerColor}40;"></div>` : ''}
+            <div class="relative w-4 h-4 rounded-full border-2 border-white shadow-lg ${!isOnline ? 'opacity-50' : ''}" style="background-color: ${markerColor};"></div>
           </div>
         `,
         iconSize: [20, 20],
@@ -279,19 +338,27 @@ export function CommandCenterMap({
       const marker = L.marker([loc.latitude, loc.longitude], { icon });
 
       const guardDisplayName = loc.guard_name || `Guard ${loc.guard_id?.slice(0, 8)}`;
-      const zoneStatus = loc.is_within_zone === false ? '🔴 Outside Zone' : '🟢 In Zone';
+      const statusLabel = t(`security.commandCenter.status.${status}`, statusLabels[status]);
+      const statusEmoji = status === 'active' ? '🟢' : status === 'warning' ? '🟠' : status === 'alert' ? '🔴' : '⚫';
+      
+      // Calculate time ago
+      const recordedAt = new Date(loc.recorded_at);
+      const now = new Date();
+      const minutesAgo = Math.floor((now.getTime() - recordedAt.getTime()) / (1000 * 60));
+      const timeAgoText = minutesAgo < 1 ? 'Just now' : minutesAgo < 60 ? `${minutesAgo}m ago` : `${Math.floor(minutesAgo / 60)}h ago`;
       
       const popupContent = `
-        <div class="p-2 min-w-[160px]">
+        <div class="p-2 min-w-[180px]">
           <strong class="text-sm">${guardDisplayName}</strong>
           <br/>
+          <span class="text-xs font-medium" style="color: ${markerColor};">${statusEmoji} ${statusLabel}</span>
+          <br/>
           <span class="text-xs text-gray-500">
-            ${new Date(loc.recorded_at).toLocaleTimeString()}
+            ${new Date(loc.recorded_at).toLocaleTimeString()} (${timeAgoText})
           </span>
-          <br/><span class="text-xs">${zoneStatus}</span>
           ${loc.battery_level ? `<br/><span class="text-xs">🔋 ${loc.battery_level}%</span>` : ''}
           ${loc.accuracy ? `<br/><span class="text-xs">📍 ±${loc.accuracy.toFixed(0)}m</span>` : ''}
-          ${hasAlert ? '<br/><span class="text-xs text-red-500 font-medium">⚠️ Alert Active</span>' : ''}
+          ${loc.distance_from_zone != null && loc.is_within_zone === false ? `<br/><span class="text-xs text-orange-500">📏 ${loc.distance_from_zone.toFixed(0)}m outside zone</span>` : ''}
         </div>
       `;
 
@@ -337,7 +404,7 @@ export function CommandCenterMap({
 
       markersLayer.current?.addLayer(marker);
     });
-  }, [guardLocations, alerts, onGuardClick, onAlertClick, isMapReady]);
+  }, [guardLocations, alerts, trackingIntervalMinutes, onGuardClick, onAlertClick, isMapReady, t]);
 
   // Update tile layer when style changes
   useEffect(() => {
@@ -389,7 +456,7 @@ export function CommandCenterMap({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent className="p-0 relative">
         <div
           ref={mapContainer}
           className={cn(
@@ -397,15 +464,28 @@ export function CommandCenterMap({
             isExpanded ? "h-[calc(100vh-8rem)]" : "h-[400px]"
           )}
         />
-        {/* Legend */}
-        <div className="absolute bottom-4 start-4 bg-background/90 backdrop-blur-sm rounded-lg p-2 text-xs space-y-1 z-[1000]">
+        {/* Legend with status indicators */}
+        <div className="absolute bottom-4 start-4 bg-background/95 backdrop-blur-sm rounded-lg p-3 text-xs space-y-1.5 z-[1000] shadow-lg">
+          <div className="font-medium mb-2 text-foreground">{t('security.commandCenter.guardStatus', 'Guard Status')}</div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-green-500" />
-            <span>{t('security.commandCenter.inZone', 'In Zone')}</span>
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: statusColors.active }} />
+            <span className="text-foreground">{t('security.commandCenter.status.active', 'In Zone')}</span>
+            {statusCounts.active > 0 && <Badge variant="secondary" className="text-[10px] px-1 h-4">{statusCounts.active}</Badge>}
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-500" />
-            <span>{t('security.commandCenter.zoneViolation', 'Zone Violation')}</span>
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: statusColors.warning }} />
+            <span className="text-foreground">{t('security.commandCenter.status.warning', 'Outside Zone')}</span>
+            {statusCounts.warning > 0 && <Badge variant="outline" className="text-[10px] px-1 h-4 text-amber-600 border-amber-300">{statusCounts.warning}</Badge>}
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: statusColors.alert }} />
+            <span className="text-foreground">{t('security.commandCenter.status.alert', 'Alert Active')}</span>
+            {statusCounts.alert > 0 && <Badge variant="destructive" className="text-[10px] px-1 h-4">{statusCounts.alert}</Badge>}
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full opacity-50" style={{ backgroundColor: statusColors.offline }} />
+            <span className="text-muted-foreground">{t('security.commandCenter.status.offline', 'GPS Offline')}</span>
+            {statusCounts.offline > 0 && <Badge variant="outline" className="text-[10px] px-1 h-4 text-muted-foreground">{statusCounts.offline}</Badge>}
           </div>
         </div>
       </CardContent>
