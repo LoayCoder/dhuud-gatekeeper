@@ -224,8 +224,8 @@ async function syncSingleReport(report: OfflineReport): Promise<{ id: string; re
 
   // 3. Link asset if specified
   if (form_data.linked_asset_id && incident.id) {
-    const { error: linkError } = await (supabase
-      .from('incident_assets') as any)
+    const { error: linkError } = await (supabase as any)
+      .from('incident_assets')
       .insert({
         incident_id: incident.id,
         asset_id: form_data.linked_asset_id,
@@ -247,8 +247,8 @@ async function syncSingleReport(report: OfflineReport): Promise<{ id: string; re
       tenant_id,
     }));
 
-    const { error: tagsError } = await (supabase
-      .from('incident_tags') as any)
+    const { error: tagsError } = await (supabase as any)
+      .from('incident_tags')
       .insert(tagInserts);
 
     if (tagsError) {
