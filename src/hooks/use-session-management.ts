@@ -89,6 +89,9 @@ export function useSessionManagement() {
       const isValid = await hasValidAuthSession();
       if (!isValid) {
         logger.debug('No valid auth session, skipping session registration');
+        // Clear any stale session token from localStorage
+        localStorage.removeItem(SESSION_TOKEN_KEY);
+        hasRegisteredSession.current = false;
         return;
       }
 
@@ -105,16 +108,18 @@ export function useSessionManagement() {
         const errorMsg = error.message || '';
         const isAuthExpired = errorMsg.includes('401') || 
                               errorMsg.includes('Invalid token') ||
+                              errorMsg.includes('INVALID_TOKEN') ||
                               errorMsg.includes('auth_session_expired') ||
                               errorMsg.includes('AUTH_SESSION_EXPIRED');
         if (isAuthExpired) {
           logger.debug('Auth session expired during registration, clearing local state');
           localStorage.removeItem(SESSION_TOKEN_KEY);
-          // Force clear the stale session from Supabase client
+          hasRegisteredSession.current = false;
+          // Force clear the stale session from Supabase client - this triggers AuthContext update
           await supabase.auth.signOut({ scope: 'local' });
           return;
         }
-        console.error('Session registration failed:', error);
+        logger.error('Session registration failed:', error);
         return;
       }
 
@@ -131,7 +136,7 @@ export function useSessionManagement() {
         }
       }
     } catch (err) {
-      console.error('Session registration error:', err);
+      logger.error('Session registration error:', err);
     } finally {
       isRegistering.current = false;
     }
@@ -182,13 +187,13 @@ export function useSessionManagement() {
           await supabase.auth.signOut({ scope: 'local' });
           return { valid: false, reason: 'auth_session_expired' };
         }
-        console.error('Session validation failed:', error);
+        logger.error('Session validation failed:', error);
         return { valid: false, reason: 'validation_error' };
       }
 
       return data as SessionValidationResult;
     } catch (err) {
-      console.error('Session validation error:', err);
+      logger.error('Session validation error:', err);
       return { valid: false, reason: 'network_error' };
     }
   }, [hasValidAuthSession, isAuthenticated, user?.id]);
@@ -301,7 +306,7 @@ export function useSessionManagement() {
           await supabase.auth.signOut({ scope: 'local' });
           return;
         }
-        console.error('Session heartbeat error:', error);
+        logger.error('Session heartbeat error:', error);
         return;
       }
 
@@ -310,7 +315,7 @@ export function useSessionManagement() {
         handleSessionInvalid(data.reason || 'session_invalid');
       }
     } catch (err) {
-      console.error('Session heartbeat error:', err);
+      logger.error('Session heartbeat error:', err);
     }
   }, [handleSessionInvalid, hasValidAuthSession, isAuthenticated, user?.id]);
 
@@ -346,7 +351,7 @@ export function useSessionManagement() {
         },
       });
     } catch (err) {
-      console.error('Session invalidation error:', err);
+      logger.error('Session invalidation error:', err);
     } finally {
       localStorage.removeItem(SESSION_TOKEN_KEY);
       // Reset registration tracking on logout
