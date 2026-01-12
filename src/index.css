@@ -563,4 +563,324 @@ All colors MUST be HSL.
   .status-neutral {
     @apply bg-muted border-muted text-muted-foreground;
   }
+
+  /* ========================================
+     TACTICAL COMMAND CENTER THEME
+     Military-grade dark interface styling
+     ======================================== */
+
+  /* Tactical color variables */
+  :root {
+    --tactical-bg: 220 18% 8%;
+    --tactical-surface: 220 15% 12%;
+    --tactical-surface-elevated: 220 14% 16%;
+    --tactical-accent: 165 100% 40%;
+    --tactical-accent-dim: 165 70% 25%;
+    --tactical-warning: 45 100% 50%;
+    --tactical-critical: 0 85% 55%;
+    --tactical-info: 200 100% 50%;
+    --tactical-border: 220 15% 20%;
+    --tactical-border-glow: 165 100% 40%;
+    --tactical-text: 210 40% 96%;
+    --tactical-text-dim: 215 20% 65%;
+  }
+
+  /* Tactical background with grid pattern */
+  .tactical-bg {
+    background: 
+      linear-gradient(to bottom, hsl(var(--tactical-bg)) 0%, hsl(220 18% 6%) 100%),
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 49px,
+        hsl(var(--tactical-border) / 0.3) 49px,
+        hsl(var(--tactical-border) / 0.3) 50px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 49px,
+        hsl(var(--tactical-border) / 0.3) 49px,
+        hsl(var(--tactical-border) / 0.3) 50px
+      );
+  }
+
+  /* Tactical card with beveled edges */
+  .tactical-card {
+    @apply rounded-lg border;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--tactical-surface)) 0%,
+      hsl(var(--tactical-surface-elevated)) 100%
+    );
+    border-color: hsl(var(--tactical-border));
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tactical-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--tactical-accent) / 0.5) 50%,
+      transparent 100%
+    );
+  }
+
+  /* Tactical glow effect */
+  .tactical-glow {
+    box-shadow: 
+      0 0 20px hsl(var(--tactical-accent) / 0.15),
+      inset 0 1px 0 hsl(var(--tactical-accent) / 0.1);
+  }
+
+  .tactical-glow-critical {
+    box-shadow: 
+      0 0 20px hsl(var(--tactical-critical) / 0.3),
+      inset 0 1px 0 hsl(var(--tactical-critical) / 0.1);
+  }
+
+  .tactical-glow-warning {
+    box-shadow: 
+      0 0 20px hsl(var(--tactical-warning) / 0.2),
+      inset 0 1px 0 hsl(var(--tactical-warning) / 0.1);
+  }
+
+  /* Tactical border styles */
+  .tactical-border {
+    border: 1px solid hsl(var(--tactical-border));
+  }
+
+  .tactical-border-accent {
+    border: 1px solid hsl(var(--tactical-accent) / 0.4);
+  }
+
+  .tactical-border-critical {
+    border: 1px solid hsl(var(--tactical-critical) / 0.5);
+  }
+
+  /* Tactical text styles */
+  .tactical-text {
+    color: hsl(var(--tactical-text));
+  }
+
+  .tactical-text-accent {
+    color: hsl(var(--tactical-accent));
+  }
+
+  .tactical-text-dim {
+    color: hsl(var(--tactical-text-dim));
+  }
+
+  .tactical-text-warning {
+    color: hsl(var(--tactical-warning));
+  }
+
+  .tactical-text-critical {
+    color: hsl(var(--tactical-critical));
+  }
+
+  /* Tactical animations */
+  @keyframes tactical-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  @keyframes tactical-scan {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+
+  @keyframes tactical-glow-pulse {
+    0%, 100% { box-shadow: 0 0 10px hsl(var(--tactical-accent) / 0.3); }
+    50% { box-shadow: 0 0 20px hsl(var(--tactical-accent) / 0.5); }
+  }
+
+  @keyframes threat-pulse {
+    0%, 100% { box-shadow: 0 0 10px hsl(var(--tactical-critical) / 0.4); }
+    50% { box-shadow: 0 0 25px hsl(var(--tactical-critical) / 0.7); }
+  }
+
+  .animate-tactical-pulse {
+    animation: tactical-pulse 2s ease-in-out infinite;
+  }
+
+  .animate-tactical-scan {
+    animation: tactical-scan 3s linear infinite;
+  }
+
+  .animate-tactical-glow {
+    animation: tactical-glow-pulse 2s ease-in-out infinite;
+  }
+
+  .animate-threat-pulse {
+    animation: threat-pulse 1s ease-in-out infinite;
+  }
+
+  /* Tactical monospace for data */
+  .tactical-mono {
+    font-family: 'Roboto Mono', 'Consolas', 'Monaco', monospace;
+    letter-spacing: 0.05em;
+  }
+
+  /* Tactical stat display */
+  .tactical-stat {
+    @apply relative p-4;
+    background: linear-gradient(
+      180deg,
+      hsl(var(--tactical-surface-elevated)) 0%,
+      hsl(var(--tactical-surface)) 100%
+    );
+  }
+
+  .tactical-stat-value {
+    @apply text-3xl font-bold tracking-wider;
+    font-family: 'Roboto Mono', 'Consolas', monospace;
+    text-shadow: 0 0 10px currentColor;
+  }
+
+  /* Tactical header bar */
+  .tactical-header {
+    @apply flex items-center justify-between px-6 py-4;
+    background: linear-gradient(
+      180deg,
+      hsl(var(--tactical-surface-elevated)) 0%,
+      hsl(var(--tactical-bg)) 100%
+    );
+    border-bottom: 1px solid hsl(var(--tactical-border));
+  }
+
+  /* Tactical map overlay styling */
+  .tactical-map-overlay {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--tactical-bg) / 0.9) 0%,
+      transparent 30%,
+      transparent 70%,
+      hsl(var(--tactical-bg) / 0.9) 100%
+    );
+    pointer-events: none;
+  }
+
+  /* Tactical button styles */
+  .tactical-btn {
+    @apply px-4 py-2 font-medium uppercase tracking-wider text-xs;
+    background: linear-gradient(
+      180deg,
+      hsl(var(--tactical-surface-elevated)) 0%,
+      hsl(var(--tactical-surface)) 100%
+    );
+    border: 1px solid hsl(var(--tactical-border));
+    color: hsl(var(--tactical-text));
+    transition: all 0.2s ease;
+  }
+
+  .tactical-btn:hover {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--tactical-accent) / 0.2) 0%,
+      hsl(var(--tactical-surface)) 100%
+    );
+    border-color: hsl(var(--tactical-accent) / 0.5);
+  }
+
+  .tactical-btn-primary {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--tactical-accent)) 0%,
+      hsl(var(--tactical-accent-dim)) 100%
+    );
+    border-color: hsl(var(--tactical-accent));
+    color: hsl(220 18% 8%);
+  }
+
+  .tactical-btn-primary:hover {
+    box-shadow: 0 0 15px hsl(var(--tactical-accent) / 0.5);
+  }
+
+  .tactical-btn-critical {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--tactical-critical)) 0%,
+      hsl(0 85% 40%) 100%
+    );
+    border-color: hsl(var(--tactical-critical));
+    color: white;
+  }
+
+  /* Threat level indicator */
+  .threat-level {
+    @apply px-3 py-1 rounded text-xs font-bold uppercase tracking-widest;
+    font-family: 'Roboto Mono', monospace;
+  }
+
+  .threat-level-low {
+    background: hsl(var(--tactical-accent) / 0.2);
+    color: hsl(var(--tactical-accent));
+    border: 1px solid hsl(var(--tactical-accent) / 0.5);
+  }
+
+  .threat-level-elevated {
+    background: hsl(var(--tactical-warning) / 0.2);
+    color: hsl(var(--tactical-warning));
+    border: 1px solid hsl(var(--tactical-warning) / 0.5);
+  }
+
+  .threat-level-high {
+    background: hsl(27 96% 61% / 0.2);
+    color: hsl(27 96% 61%);
+    border: 1px solid hsl(27 96% 61% / 0.5);
+  }
+
+  .threat-level-critical {
+    background: hsl(var(--tactical-critical) / 0.2);
+    color: hsl(var(--tactical-critical));
+    border: 1px solid hsl(var(--tactical-critical) / 0.5);
+    animation: threat-pulse 1s ease-in-out infinite;
+  }
+
+  /* Connection status indicator */
+  .connection-status {
+    @apply flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium;
+  }
+
+  .connection-status-live {
+    background: hsl(var(--tactical-accent) / 0.15);
+    color: hsl(var(--tactical-accent));
+    border: 1px solid hsl(var(--tactical-accent) / 0.3);
+  }
+
+  .connection-status-offline {
+    background: hsl(var(--tactical-critical) / 0.15);
+    color: hsl(var(--tactical-critical));
+    border: 1px solid hsl(var(--tactical-critical) / 0.3);
+  }
+
+  /* Compass rose styling */
+  .compass-rose {
+    @apply absolute w-12 h-12;
+    background: radial-gradient(
+      circle,
+      hsl(var(--tactical-surface) / 0.9) 0%,
+      transparent 70%
+    );
+  }
+
+  /* Scanline effect overlay */
+  .scanline-overlay {
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      hsl(var(--tactical-accent) / 0.03) 2px,
+      hsl(var(--tactical-accent) / 0.03) 4px
+    );
+    pointer-events: none;
+  }
 }
