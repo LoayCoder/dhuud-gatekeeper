@@ -119,6 +119,7 @@ export function useAuditLog() {
               old_value: entry.old_value ? JSON.parse(JSON.stringify(entry.old_value)) : null,
               new_value: entry.new_value ? JSON.parse(JSON.stringify(entry.new_value)) : null,
               ip_address,
+              result: 'success',
             }]);
 
           if (error) {
