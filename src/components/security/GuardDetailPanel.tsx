@@ -16,6 +16,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Phone,
   MessageCircle,
@@ -29,8 +30,10 @@ import {
   AlertTriangle,
   Calendar,
   User,
+  History,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { GuardActivityTimeline } from './GuardActivityTimeline';
 
 interface GuardDetailPanelProps {
   guardId: string | null;
@@ -272,183 +275,210 @@ export function GuardDetailPanel({ guardId, open, onOpenChange }: GuardDetailPan
           </div>
         </SheetHeader>
 
-        <ScrollArea className="h-[calc(100vh-12rem)]">
-          <div className="p-6 space-y-6">
-            {/* Quick Actions */}
-            <div className="flex gap-3">
-              <Button
-                className="flex-1"
-                variant="default"
-                onClick={handleWhatsApp}
-              >
-                <MessageCircle className="h-4 w-4 me-2" />
-                WhatsApp
-              </Button>
-              <Button
-                className="flex-1"
-                variant="outline"
-                onClick={handlePhoneCall}
-              >
-                <Phone className="h-4 w-4 me-2" />
-                {t('common.call', 'Call')}
-              </Button>
-            </div>
+        <div className="flex-1 overflow-hidden">
+          <Tabs defaultValue="overview" className="h-full flex flex-col">
+            <TabsList className="mx-6 mt-4 grid w-auto grid-cols-2">
+              <TabsTrigger value="overview" className="text-xs">
+                <User className="h-3 w-3 me-1" />
+                {t('security.guard.overview', 'Overview')}
+              </TabsTrigger>
+              <TabsTrigger value="activity" className="text-xs">
+                <History className="h-3 w-3 me-1" />
+                {t('security.guard.activity', 'Activity')}
+              </TabsTrigger>
+            </TabsList>
 
-            {/* Current Status */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  {t('security.guard.currentStatus', 'Current Status')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {location ? (
-                  <>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">{t('security.guard.lastSeen', 'Last Seen')}</span>
-                      <span className="font-medium">
-                        {formatDistanceToNow(new Date(location.recorded_at), { addSuffix: true })}
-                      </span>
-                    </div>
-                    {location.battery_level !== null && location.battery_level !== undefined && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground flex items-center gap-1">
-                          <Battery className="h-3 w-3" />
-                          {t('security.guard.battery', 'Battery')}
-                        </span>
-                        <span className={cn(
-                          'font-medium',
-                          location.battery_level < 20 && 'text-destructive'
-                        )}>
-                          {location.battery_level}%
-                        </span>
-                      </div>
-                    )}
-                    {location.accuracy && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">{t('security.guard.gpsAccuracy', 'GPS Accuracy')}</span>
-                        <span className="font-medium">±{location.accuracy.toFixed(0)}m</span>
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">{t('security.guard.zoneStatus', 'Zone Status')}</span>
-                      {location.is_within_zone === false ? (
-                        <Badge variant="destructive" className="text-xs">
-                          <XCircle className="h-3 w-3 me-1" />
-                          {t('security.guard.outsideZone', 'Outside')}
-                          {location.distance_from_zone && ` (${location.distance_from_zone.toFixed(0)}m)`}
-                        </Badge>
-                      ) : (
-                        <Badge variant="default" className="text-xs bg-green-500">
-                          <CheckCircle className="h-3 w-3 me-1" />
-                          {t('security.guard.insideZone', 'Inside Zone')}
-                        </Badge>
-                      )}
-                    </div>
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-2">
-                    {t('security.guard.noLocation', 'No location data available')}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+            <TabsContent value="overview" className="flex-1 overflow-hidden mt-0">
+              <ScrollArea className="h-[calc(100vh-16rem)]">
+                <div className="p-6 space-y-6">
+                  {/* Quick Actions */}
+                  <div className="flex gap-3">
+                    <Button
+                      className="flex-1"
+                      variant="default"
+                      onClick={handleWhatsApp}
+                    >
+                      <MessageCircle className="h-4 w-4 me-2" />
+                      WhatsApp
+                    </Button>
+                    <Button
+                      className="flex-1"
+                      variant="outline"
+                      onClick={handlePhoneCall}
+                    >
+                      <Phone className="h-4 w-4 me-2" />
+                      {t('common.call', 'Call')}
+                    </Button>
+                  </div>
 
-            {/* Shift Info */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  {t('security.guard.todayShift', "Today's Shift")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {shift ? (
-                  <>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">{t('security.guard.shift', 'Shift')}</span>
-                      <span className="font-medium">{shift.shift?.name || 'N/A'}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">{t('security.guard.time', 'Time')}</span>
-                      <span className="font-medium">
-                        {shift.shift?.start_time?.slice(0, 5)} - {shift.shift?.end_time?.slice(0, 5)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">{t('security.guard.zone', 'Zone')}</span>
-                      <Badge variant="secondary">{shift.zone_name || 'N/A'}</Badge>
-                    </div>
-                    {shift.check_in_time && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">{t('security.guard.checkedInAt', 'Checked In')}</span>
-                        <span className="font-medium">
-                          {format(new Date(shift.check_in_time), 'HH:mm')}
-                        </span>
-                      </div>
-                    )}
-                    {shift.check_out_time && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">{t('security.guard.checkedOutAt', 'Checked Out')}</span>
-                        <span className="font-medium">
-                          {format(new Date(shift.check_out_time), 'HH:mm')}
-                        </span>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-2">
-                    {t('security.guard.noShift', 'No shift assigned today')}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Patrol History */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Route className="h-4 w-4" />
-                  {t('security.guard.recentPatrols', 'Recent Patrol Scans')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {patrols.length > 0 ? (
-                  <div className="space-y-2">
-                    {patrols.map((log) => (
-                      <div
-                        key={log.id}
-                        className="flex items-center justify-between py-2 border-b last:border-0"
-                      >
-                        <div className="flex items-center gap-2">
-                          {log.result === 'success' ? (
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                          ) : (
-                            <XCircle className="h-4 w-4 text-destructive" />
+                  {/* Current Status */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <MapPin className="h-4 w-4" />
+                        {t('security.guard.currentStatus', 'Current Status')}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {location ? (
+                        <>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">{t('security.guard.lastSeen', 'Last Seen')}</span>
+                            <span className="font-medium">
+                              {formatDistanceToNow(new Date(location.recorded_at), { addSuffix: true })}
+                            </span>
+                          </div>
+                          {location.battery_level !== null && location.battery_level !== undefined && (
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground flex items-center gap-1">
+                                <Battery className="h-3 w-3" />
+                                {t('security.guard.battery', 'Battery')}
+                              </span>
+                              <span className={cn(
+                                'font-medium',
+                                location.battery_level < 20 && 'text-destructive'
+                              )}>
+                                {location.battery_level}%
+                              </span>
+                            </div>
                           )}
-                          <div>
-                            <p className="text-sm font-medium">{log.checkpoint_name}</p>
-                            {log.notes && (
-                              <p className="text-xs text-muted-foreground line-clamp-1">{log.notes}</p>
+                          {location.accuracy && (
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">{t('security.guard.gpsAccuracy', 'GPS Accuracy')}</span>
+                              <span className="font-medium">±{location.accuracy.toFixed(0)}m</span>
+                            </div>
+                          )}
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">{t('security.guard.zoneStatus', 'Zone Status')}</span>
+                            {location.is_within_zone === false ? (
+                              <Badge variant="destructive" className="text-xs">
+                                <XCircle className="h-3 w-3 me-1" />
+                                {t('security.guard.outsideZone', 'Outside')}
+                                {location.distance_from_zone && ` (${location.distance_from_zone.toFixed(0)}m)`}
+                              </Badge>
+                            ) : (
+                              <Badge variant="default" className="text-xs bg-green-500">
+                                <CheckCircle className="h-3 w-3 me-1" />
+                                {t('security.guard.insideZone', 'Inside Zone')}
+                              </Badge>
                             )}
                           </div>
+                        </>
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-2">
+                          {t('security.guard.noLocation', 'No location data available')}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Shift Info */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        {t('security.guard.todayShift', "Today's Shift")}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {shift ? (
+                        <>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">{t('security.guard.shift', 'Shift')}</span>
+                            <span className="font-medium">{shift.shift?.name || 'N/A'}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">{t('security.guard.time', 'Time')}</span>
+                            <span className="font-medium">
+                              {shift.shift?.start_time?.slice(0, 5)} - {shift.shift?.end_time?.slice(0, 5)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">{t('security.guard.zone', 'Zone')}</span>
+                            <Badge variant="secondary">{shift.zone_name || 'N/A'}</Badge>
+                          </div>
+                          {shift.check_in_time && (
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">{t('security.guard.checkedInAt', 'Checked In')}</span>
+                              <span className="font-medium">
+                                {format(new Date(shift.check_in_time), 'HH:mm')}
+                              </span>
+                            </div>
+                          )}
+                          {shift.check_out_time && (
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">{t('security.guard.checkedOutAt', 'Checked Out')}</span>
+                              <span className="font-medium">
+                                {format(new Date(shift.check_out_time), 'HH:mm')}
+                              </span>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-2">
+                          {t('security.guard.noShift', 'No shift assigned today')}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Patrol History */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Route className="h-4 w-4" />
+                        {t('security.guard.recentPatrols', 'Recent Patrol Scans')}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {patrols.length > 0 ? (
+                        <div className="space-y-2">
+                          {patrols.map((log) => (
+                            <div
+                              key={log.id}
+                              className="flex items-center justify-between py-2 border-b last:border-0"
+                            >
+                              <div className="flex items-center gap-2">
+                                {log.result === 'success' ? (
+                                  <CheckCircle className="h-4 w-4 text-green-500" />
+                                ) : (
+                                  <XCircle className="h-4 w-4 text-destructive" />
+                                )}
+                                <div>
+                                  <p className="text-sm font-medium">{log.checkpoint_name}</p>
+                                  {log.notes && (
+                                    <p className="text-xs text-muted-foreground line-clamp-1">{log.notes}</p>
+                                  )}
+                                </div>
+                              </div>
+                              <span className="text-xs text-muted-foreground">
+                                {format(new Date(log.scanned_at), 'HH:mm')}
+                              </span>
+                            </div>
+                          ))}
                         </div>
-                        <span className="text-xs text-muted-foreground">
-                          {format(new Date(log.scanned_at), 'HH:mm')}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    {t('security.guard.noPatrols', 'No patrol scans recorded')}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </ScrollArea>
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          {t('security.guard.noPatrols', 'No patrol scans recorded')}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </ScrollArea>
+            </TabsContent>
+
+            <TabsContent value="activity" className="flex-1 overflow-hidden mt-0">
+              <div className="p-6 h-[calc(100vh-16rem)]">
+                <GuardActivityTimeline 
+                  guardId={guardId} 
+                  maxHeight="calc(100vh - 18rem)"
+                  showHeader={true}
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
       </SheetContent>
     </Sheet>
   );
