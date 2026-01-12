@@ -329,6 +329,29 @@ export function useDeleteContractorCompany() {
   });
 }
 
+// Hard delete for pending_approval companies only
+export function useHardDeleteContractorCompany() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (companyId: string) => {
+      const { error } = await supabase
+        .rpc('hard_delete_contractor_company', { p_company_id: companyId });
+
+      if (error) throw error;
+      return companyId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contractor-companies"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-company-approvals"] });
+      toast.success("Company permanently deleted");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
 // ============= HSSE MANAGER ACCESS CHECK =============
 
 export function useHasHSSEManagerAccess() {

@@ -23690,6 +23690,10 @@ export type Database = {
         Args: { p_lat: number; p_lng: number; p_roster_id: string }
         Returns: undefined
       }
+      hard_delete_contractor_company: {
+        Args: { p_company_id: string }
+        Returns: string
+      }
       has_asset_management_access: {
         Args: { _user_id: string }
         Returns: boolean

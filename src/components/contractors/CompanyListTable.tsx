@@ -1,12 +1,13 @@
 import { useTranslation } from "react-i18next";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Eye, Pencil, MoreHorizontal, CheckCircle, XCircle, PauseCircle, AlertTriangle } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Eye, Pencil, MoreHorizontal, CheckCircle, XCircle, PauseCircle, AlertTriangle, Trash2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ContractorCompany, useChangeContractorStatus, useCheckExpiredContracts } from "@/hooks/contractor-management/use-contractor-companies";
+import { ContractorCompany, useChangeContractorStatus, useCheckExpiredContracts, useDeleteContractorCompany, useHardDeleteContractorCompany } from "@/hooks/contractor-management/use-contractor-companies";
 
 interface CompanyListTableProps {
   companies: ContractorCompany[];
@@ -19,6 +20,11 @@ export function CompanyListTable({ companies, isLoading, onView, onEdit }: Compa
   const { t } = useTranslation();
   const changeStatus = useChangeContractorStatus();
   const checkExpired = useCheckExpiredContracts();
+  const softDelete = useDeleteContractorCompany();
+  const hardDelete = useHardDeleteContractorCompany();
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [companyToDelete, setCompanyToDelete] = useState<ContractorCompany | null>(null);
 
   // Check for expired contracts on mount
   useEffect(() => {
@@ -47,7 +53,36 @@ export function CompanyListTable({ companies, isLoading, onView, onEdit }: Compa
     changeStatus.mutate({ id: companyId, status: newStatus });
   };
 
+  const openDeleteDialog = (company: ContractorCompany) => {
+    setCompanyToDelete(company);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = () => {
+    if (!companyToDelete) return;
+    
+    // Hard delete for pending_approval, soft delete for others
+    if (companyToDelete.status === "pending_approval") {
+      hardDelete.mutate(companyToDelete.id, {
+        onSuccess: () => {
+          setDeleteDialogOpen(false);
+          setCompanyToDelete(null);
+        },
+      });
+    } else {
+      softDelete.mutate(companyToDelete.id, {
+        onSuccess: () => {
+          setDeleteDialogOpen(false);
+          setCompanyToDelete(null);
+        },
+      });
+    }
+  };
+
+  const isPendingApproval = companyToDelete?.status === "pending_approval";
+
   return (
+    <>
     <Table>
       <TableHeader>
         <TableRow>
@@ -109,6 +144,17 @@ export function CompanyListTable({ companies, isLoading, onView, onEdit }: Compa
                       {t("contractors.status.expired", "Expired")}
                     </DropdownMenuItem>
                   )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={() => openDeleteDialog(company)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 me-2" />
+                    {company.status === "pending_approval" 
+                      ? t("common.deletePermanently", "Delete Permanently")
+                      : t("common.delete", "Delete")
+                    }
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </TableCell>
@@ -116,5 +162,38 @@ export function CompanyListTable({ companies, isLoading, onView, onEdit }: Compa
         ))}
       </TableBody>
     </Table>
+
+    {/* Delete Confirmation Dialog */}
+    <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            {isPendingApproval 
+              ? t("contractors.deletePermanentlyTitle", "Delete Company Permanently?")
+              : t("contractors.deleteCompanyTitle", "Delete Company?")
+            }
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {isPendingApproval 
+              ? t("contractors.deletePermanentlyDescription", "This will permanently remove the company and all related data. This action cannot be undone.")
+              : t("contractors.deleteCompanyDescription", "This will archive the company. You can restore it later if needed.")
+            }
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t("common.cancel", "Cancel")}</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleDelete}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {isPendingApproval 
+              ? t("common.deletePermanently", "Delete Permanently")
+              : t("common.delete", "Delete")
+            }
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }

@@ -13,13 +13,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Building2, Calendar, Mail, Phone, User, CheckCircle, XCircle, Clock, ShieldAlert } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Building2, Calendar, Mail, Phone, User, CheckCircle, XCircle, Clock, ShieldAlert, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import {
   usePendingCompanyApprovals,
   useApproveCompany,
   useRejectCompany,
   useHasHSSEManagerAccess,
+  useHardDeleteContractorCompany,
   type ContractorCompany,
 } from "@/hooks/contractor-management/use-contractor-companies";
 import { PageLoader } from "@/components/ui/page-loader";
@@ -32,9 +43,12 @@ export function CompanyApprovalQueue() {
   const { data: hasHSSEManagerAccess, isLoading: accessLoading } = useHasHSSEManagerAccess();
   const approveCompany = useApproveCompany();
   const rejectCompany = useRejectCompany();
+  const hardDelete = useHardDeleteContractorCompany();
 
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<ContractorCompany | null>(null);
+  const [companyToDelete, setCompanyToDelete] = useState<ContractorCompany | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
   const handleApprove = (company: ContractorCompany) => {
@@ -59,6 +73,22 @@ export function CompanyApprovalQueue() {
           },
         }
       );
+    }
+  };
+
+  const openDeleteDialog = (company: ContractorCompany) => {
+    setCompanyToDelete(company);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = () => {
+    if (companyToDelete) {
+      hardDelete.mutate(companyToDelete.id, {
+        onSuccess: () => {
+          setDeleteDialogOpen(false);
+          setCompanyToDelete(null);
+        },
+      });
     }
   };
 
@@ -220,6 +250,15 @@ export function CompanyApprovalQueue() {
                   <XCircle className="h-4 w-4 me-2" />
                   {t("common.reject", "Reject")}
                 </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => openDeleteDialog(company)}
+                  disabled={hardDelete.isPending}
+                  title={t("common.deletePermanently", "Delete Permanently")}
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -258,6 +297,29 @@ export function CompanyApprovalQueue() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("contractors.deletePermanentlyTitle", "Delete Company Permanently?")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("contractors.deletePermanentlyDescription", "This will permanently remove the company and all related data. This action cannot be undone.")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel", "Cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t("common.deletePermanently", "Delete Permanently")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
