@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
 import {
   Table,
   TableBody,
@@ -210,7 +211,7 @@ export default function UserManagement() {
         
         // If email has changed, use the secure edge function to update auth.users first
         if (emailChanged && originalEmail && data.email && data.email !== originalEmail) {
-          console.log('Email change detected, calling admin-update-user edge function...');
+          logger.debug('Email change detected, calling admin-update-user edge function...');
           
           const { data: edgeFnResult, error: edgeFnError } = await supabase.functions.invoke('admin-update-user', {
             body: {
@@ -222,16 +223,16 @@ export default function UserManagement() {
           });
           
           if (edgeFnError) {
-            console.error('Edge function error:', edgeFnError);
+            logger.error('Edge function error:', edgeFnError);
             throw new Error(edgeFnError.message || t('userManagement.emailUpdateFailed', 'Failed to update login credentials'));
           }
           
           if (edgeFnResult?.error) {
-            console.error('Edge function returned error:', edgeFnResult.error);
+            logger.error('Edge function returned error:', edgeFnResult.error);
             throw new Error(edgeFnResult.error);
           }
           
-          console.log('Email update successful via edge function:', edgeFnResult);
+          logger.debug('Email update successful via edge function:', edgeFnResult);
           
           // Edge function already updated profiles, so we just need to handle roles
           if (profile?.tenant_id) {
@@ -317,7 +318,7 @@ export default function UserManagement() {
             });
             
             if (emailError) {
-              console.error('Failed to send invitation email:', emailError);
+              logger.error('Failed to send invitation email:', emailError);
             } else {
               emailSent = true;
               await supabase.from('invitations')
@@ -341,7 +342,7 @@ export default function UserManagement() {
             });
             
             if (waError || !waResult?.success) {
-              console.error('Failed to send WhatsApp invitation:', waError || waResult?.error);
+              logger.error('Failed to send WhatsApp invitation:', waError || waResult?.error);
             } else {
               whatsappSent = true;
             }
@@ -389,8 +390,8 @@ export default function UserManagement() {
       refetchUsers();
       refetchQuota();
     } catch (error: any) {
-      console.error('Error saving user:', error);
-      toast({ 
+      logger.error('Error saving user:', error);
+      toast({
         title: t('common.error'), 
         description: error.message || t('userManagement.saveFailed'),
         variant: 'destructive' 
@@ -447,7 +448,7 @@ export default function UserManagement() {
       });
 
       if (disableError) {
-        console.error('Failed to disable user:', disableError);
+        logger.error('Failed to disable user:', disableError);
         throw new Error(disableError.message || 'Failed to delete user');
       }
 
@@ -473,8 +474,8 @@ export default function UserManagement() {
       refetchUsers();
       refetchQuota();
     } catch (err: any) {
-      console.error('Error deleting user:', err);
-      toast({ 
+      logger.error('Error deleting user:', err);
+      toast({
         title: t('common.error'), 
         description: err.message,
         variant: 'destructive' 
@@ -491,7 +492,7 @@ export default function UserManagement() {
       });
 
       if (error) {
-        console.error('Sync error:', error);
+        logger.error('Sync error:', error);
         throw new Error(error.message || t('userManagement.syncFailed', 'Failed to sync email'));
       }
 
@@ -568,7 +569,7 @@ export default function UserManagement() {
           
           if (error || !data?.success) {
             errors.push(targetUser?.full_name || userId);
-            console.error('Failed to delete user:', userId, error || data?.error);
+            logger.error('Failed to delete user:', userId, error || data?.error);
           } else {
             successCount++;
             if (targetUser) await logUserDeleted(userId, targetUser.full_name || '');

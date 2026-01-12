@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Activity, AlertTriangle, Wrench, TrendingUp, RefreshCw } from 'lucide-react';
+import { logger } from '@/lib/logger';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -43,7 +44,7 @@ function AssetHealthContent() {
         description: String(t('assets.healthRecalculated', 'Health score recalculated successfully')),
       });
     } catch (error) {
-      console.error('Failed to recalculate health:', error);
+      logger.error('Failed to recalculate health:', error);
     }
   };
 

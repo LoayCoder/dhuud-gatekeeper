@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/lib/logger';
 
 export interface InvestigationSLAConfig {
   id: string;
@@ -57,7 +58,7 @@ export function useInvestigationSLAConfig() {
       toast.success(t('adminActions.slaUpdated', 'SLA configuration updated successfully'));
     },
     onError: (error) => {
-      console.error('Error updating investigation SLA config:', error);
+      logger.error('Error updating investigation SLA config:', error);
       toast.error(t('adminActions.slaUpdateError', 'Failed to update SLA configuration'));
     },
   });

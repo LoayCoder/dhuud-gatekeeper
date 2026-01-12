@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { offlineDataCache, CACHE_STORES } from '@/lib/offline-data-cache';
 import { useNetworkStatus } from './use-network-status';
 import type { AssetWithRelations } from './use-assets';
+import { logger } from '@/lib/logger';
 
 const ASSETS_CACHE_KEY = 'all_assets';
 const ASSET_DETAIL_PREFIX = 'asset_';
@@ -43,7 +44,7 @@ export function useOfflineAssets(): UseOfflineAssetsReturn {
           setCacheCount(result.data.length);
         }
       } catch (error) {
-        console.error('Failed to load cached assets:', error);
+        logger.error('Failed to load cached assets:', error);
       }
     };
 
@@ -118,7 +119,7 @@ export function useOfflineAssets(): UseOfflineAssetsReturn {
       
       queryClient.setQueryData(['assets', 'offline'], assets);
     } catch (error) {
-      console.error('Failed to cache assets:', error);
+      logger.error('Failed to cache assets:', error);
     } finally {
       setIsCaching(false);
     }
@@ -134,7 +135,7 @@ export function useOfflineAssets(): UseOfflineAssetsReturn {
       
       return result.data || null;
     } catch (error) {
-      console.error('Failed to get cached asset:', error);
+      logger.error('Failed to get cached asset:', error);
       return null;
     }
   }, []);
@@ -147,7 +148,7 @@ export function useOfflineAssets(): UseOfflineAssetsReturn {
       setCacheCount(0);
       setLastCachedAt(null);
     } catch (error) {
-      console.error('Failed to clear asset cache:', error);
+      logger.error('Failed to clear asset cache:', error);
     }
   }, []);
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Loader2, UserPlus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { logger } from '@/lib/logger';
 import {
   Dialog,
   DialogContent,
@@ -70,14 +71,14 @@ export function TeamAssignmentDialog({
           });
 
         if (error) {
-          console.error('Error fetching managers:', error);
+          logger.error('Error fetching managers:', error);
           setManagers([]);
           return;
         }
 
         setManagers(data || []);
       } catch (error) {
-        console.error('Error fetching managers:', error);
+        logger.error('Error fetching managers:', error);
         setManagers([]);
       } finally {
         setIsFetching(false);

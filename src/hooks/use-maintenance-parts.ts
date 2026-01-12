@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Database } from '@/integrations/supabase/types';
+import { logger } from '@/lib/logger';
 
 // Use database types directly
 type MaintenancePartRow = Database['public']['Tables']['maintenance_parts']['Row'];
@@ -97,7 +98,7 @@ export function useCreateMaintenancePart() {
       toast.success('Part created successfully');
     },
     onError: (error) => {
-      console.error('Failed to create part:', error);
+      logger.error('Failed to create part:', error);
       toast.error('Failed to create part');
     },
   });
@@ -124,7 +125,7 @@ export function useUpdateMaintenancePart() {
       toast.success('Part updated successfully');
     },
     onError: (error) => {
-      console.error('Failed to update part:', error);
+      logger.error('Failed to update part:', error);
       toast.error('Failed to update part');
     },
   });
@@ -147,7 +148,7 @@ export function useDeleteMaintenancePart() {
       toast.success('Part deleted successfully');
     },
     onError: (error) => {
-      console.error('Failed to delete part:', error);
+      logger.error('Failed to delete part:', error);
       toast.error('Failed to delete part');
     },
   });

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FileText, Download, Loader2, ChevronDown, ImageIcon, History, DollarSign } from 'lucide-react';
+import { logger } from '@/lib/logger';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -75,7 +76,7 @@ export function AssetReportExportButton({
 
       toast.success(t('assets.report.exportSuccess'));
     } catch (error) {
-      console.error('PDF generation error:', error);
+      logger.error('PDF generation error:', error);
       toast.error(t('assets.report.exportError'));
     } finally {
       setIsGenerating(false);

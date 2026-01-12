@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { logger } from '@/lib/logger';
 
 export interface SLAAction {
   id: string;
@@ -86,7 +87,7 @@ export function useSLADashboard() {
           filter: `tenant_id=eq.${profile.tenant_id}`,
         },
         (payload) => {
-          console.log('Realtime SLA update:', payload);
+          logger.debug('Realtime SLA update:', payload);
           refetch();
         }
       )
