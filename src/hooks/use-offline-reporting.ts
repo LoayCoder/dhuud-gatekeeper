@@ -152,20 +152,20 @@ export function useOfflineReporting() {
           .eq('is_active', true)) as any,
 
         // Branches
-        (supabase
+        (supabase as any)
           .from('branches')
           .select('id, name')
           .eq('tenant_id', profile.tenant_id)
           .is('deleted_at', null)
-          .eq('is_active', true)) as any,
+          .eq('is_active', true),
 
         // Departments
-        (supabase
+        (supabase as any)
           .from('departments')
           .select('id, name, branch_id')
           .eq('tenant_id', profile.tenant_id)
           .is('deleted_at', null)
-          .eq('is_active', true)) as any,
+          .eq('is_active', true),
 
         // Buildings
         (supabase
@@ -184,22 +184,22 @@ export function useOfflineReporting() {
           .eq('status', 'active')) as any,
 
         // Event types (categories)
-        (supabase
+        (supabase as any)
           .from('hsse_event_types')
           .select('id, name, name_ar, code, category')
           .eq('tenant_id', profile.tenant_id)
           .is('deleted_at', null)
           .eq('is_active', true)
-          .is('parent_type_id', null)) as any,
+          .is('parent_type_id', null),
 
         // Event subtypes
-        (supabase
+        (supabase as any)
           .from('hsse_event_types')
           .select('id, name, name_ar, code, parent_type_id')
           .eq('tenant_id', profile.tenant_id)
           .is('deleted_at', null)
           .eq('is_active', true)
-          .not('parent_type_id', 'is', null)) as any,
+          .not('parent_type_id', 'is', null),
       ]);
 
       // Check for errors
