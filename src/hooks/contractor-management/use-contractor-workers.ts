@@ -631,6 +631,28 @@ export function useCheckDuplicateNationalId() {
   };
 }
 
+// Check if a worker is a site representative
+export function useCheckWorkerIsSiteRep() {
+  return async (workerId: string): Promise<{ 
+    isSiteRep: boolean; 
+    companyName?: string;
+    companyId?: string;
+  }> => {
+    const { data } = await supabase
+      .from("contractor_site_representatives")
+      .select("id, company_id, company:contractor_companies(company_name)")
+      .eq("worker_id", workerId)
+      .is("deleted_at", null)
+      .maybeSingle();
+    
+    return {
+      isSiteRep: !!data,
+      companyName: (data?.company as any)?.company_name,
+      companyId: data?.company_id,
+    };
+  };
+}
+
 export function useDeleteContractorWorker() {
   const queryClient = useQueryClient();
 
@@ -646,10 +668,16 @@ export function useDeleteContractorWorker() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
       queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
+      queryClient.invalidateQueries({ queryKey: ["contractor-site-rep"] });
       toast.success("Worker deleted");
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      // Handle FK constraint error with a user-friendly message
+      if (error.message.includes('contractor_site_representatives_worker_id_fkey')) {
+        toast.error("Cannot delete: This worker is a Site Representative. Please change the company status to Expired first.");
+      } else {
+        toast.error(error.message);
+      }
     },
   });
 }
