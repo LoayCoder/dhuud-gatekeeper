@@ -2,6 +2,7 @@ import { useSessionManagement } from '@/hooks/use-session-management';
 import { useTokenRefresh } from '@/hooks/use-token-refresh';
 import { SessionErrorBoundary } from './SessionErrorBoundary';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Public routes where session management should not run
 const PUBLIC_ROUTES = [
@@ -48,17 +49,21 @@ function SessionManagementCore() {
  * - IP country change detection and session invalidation
  * - Periodic heartbeats to keep sessions alive
  * 
- * Note: Skips session management on public routes to prevent stale token errors.
+ * Note: Skips session management on public routes and when not authenticated
+ * to prevent stale token errors after logout.
  */
 export function SessionManagementProvider() {
   const location = useLocation();
+  const { isAuthenticated, session } = useAuth();
   
   // Skip session management on public routes
   const isPublicRoute = PUBLIC_ROUTES.some(route => 
     location.pathname === route || location.pathname.startsWith(route + '/')
   );
   
-  if (isPublicRoute) {
+  // CRITICAL: Don't render session management at all when not authenticated
+  // This prevents any hook operations from running with stale tokens after logout
+  if (isPublicRoute || !isAuthenticated || !session?.access_token) {
     return null;
   }
   
