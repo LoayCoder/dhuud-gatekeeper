@@ -8,6 +8,7 @@
 export * from '../use-session-management';
 export * from '../use-session-lifecycle';
 export * from '../use-idle-timeout';
+export * from '../use-token-refresh';
 
 // MFA
 export * from '../useMFA';

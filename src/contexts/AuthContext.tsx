@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import i18n from '@/i18n';
 import { useProfileEmailWatcher } from '@/hooks/use-profile-email-watcher';
+import { logger } from '@/lib/logger';
 
 // Prevent HMR from creating multiple contexts
 if (import.meta.hot) {
@@ -160,6 +161,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
+        // Log token refresh events for debugging
+        if (event === 'TOKEN_REFRESHED') {
+          logger.debug('Auth event: TOKEN_REFRESHED - access token renewed');
+        }
+        
         setSession(newSession);
         setUser(newSession?.user ?? null);
         
