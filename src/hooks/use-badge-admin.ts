@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 
@@ -77,12 +78,23 @@ export function useBadgeStatistics() {
 export function useCreateBadge() {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (input: CreateBadgeInput) => {
+      // Get user's tenant_id
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', user?.id)
+        .single();
+
+      if (!profile?.tenant_id) throw new Error('Tenant not found');
+
       const { data, error } = await supabase
         .from('badge_definitions')
-        .insert({
+        .insert([{
+          tenant_id: profile.tenant_id,
           badge_key: input.badge_key,
           name: input.name,
           name_ar: input.name_ar || null,
@@ -93,9 +105,8 @@ export function useCreateBadge() {
           category: input.category,
           tier: input.tier,
           points: input.points,
-          unlock_criteria: input.unlock_criteria ? JSON.parse(JSON.stringify(input.unlock_criteria)) : {},
           is_active: true,
-        })
+        }])
         .select()
         .single();
 
@@ -131,7 +142,6 @@ export function useUpdateBadge() {
           category: input.category,
           tier: input.tier,
           points: input.points,
-          unlock_criteria: input.unlock_criteria ? JSON.parse(JSON.stringify(input.unlock_criteria)) : {},
         })
         .eq('id', id)
         .select()

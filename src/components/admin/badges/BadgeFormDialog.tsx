@@ -117,13 +117,26 @@ export function BadgeFormDialog({ open, onOpenChange, badge }: BadgeFormDialogPr
   }, [badge, form]);
 
   const onSubmit = (data: BadgeFormData) => {
+    const payload = {
+      badge_key: data.badge_key,
+      name: data.name,
+      name_ar: data.name_ar,
+      description: data.description,
+      description_ar: data.description_ar,
+      icon_name: data.icon_name,
+      color_scheme: data.color_scheme,
+      category: data.category,
+      tier: data.tier,
+      points: data.points,
+    };
+    
     if (badge) {
       updateBadge(
-        { ...data, id: badge.id },
+        { ...payload, id: badge.id },
         { onSuccess: () => onOpenChange(false) }
       );
     } else {
-      createBadge(data, { onSuccess: () => onOpenChange(false) });
+      createBadge(payload, { onSuccess: () => onOpenChange(false) });
     }
   };
 

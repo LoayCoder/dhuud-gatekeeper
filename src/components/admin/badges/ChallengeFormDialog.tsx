@@ -98,10 +98,17 @@ export function ChallengeFormDialog({ open, onOpenChange, challenge }: Challenge
 
   const onSubmit = (data: ChallengeFormData) => {
     const payload = {
-      ...data,
+      title: data.title,
+      title_ar: data.title_ar,
+      description: data.description,
+      description_ar: data.description_ar,
+      challenge_type: data.challenge_type,
+      metric_type: data.metric_type,
+      target_count: data.target_count,
       start_date: new Date(data.start_date).toISOString(),
       end_date: new Date(data.end_date).toISOString(),
       badge_id: data.badge_id || undefined,
+      points_reward: data.points_reward,
     };
 
     if (challenge) {

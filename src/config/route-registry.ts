@@ -92,6 +92,8 @@ import {
   Camera,
   Search,
   Sparkles,
+  Award,
+  Trophy,
 } from "lucide-react";
 import type { RouteDefinition } from "./route-registry-types";
 import { lazyWithRetry } from "@/lib/lazy-with-retry";
@@ -326,6 +328,16 @@ export const routeRegistry: RouteDefinition[] = [
     protection: "protected",
     hidden: true,
     hiddenReason: "User profile - accessed via header dropdown",
+  },
+  {
+    path: "/leaderboard",
+    menuCode: "leaderboard",
+    title: { en: "Leaderboard", ar: "لوحة المتصدرين" },
+    icon: BarChart3,
+    component: lazyWithRetry(() => import("@/pages/Leaderboard")),
+    protection: "protected",
+    parentCode: "dashboard",
+    sortOrder: 2,
   },
 
   // -------------------------------------------------------------------------
@@ -1513,6 +1525,16 @@ export const routeRegistry: RouteDefinition[] = [
     protection: "admin",
     parentCode: "admin_system_config",
     sortOrder: 10,
+  },
+  {
+    path: "/admin/badges",
+    menuCode: "admin_badges",
+    title: { en: "Badge Management", ar: "إدارة الشارات" },
+    icon: Award,
+    component: lazyWithRetry(() => import("@/pages/admin/BadgeManagement")),
+    protection: "admin",
+    parentCode: "admin_system_config",
+    sortOrder: 11,
   },
 
   // Inspection & Asset Config
