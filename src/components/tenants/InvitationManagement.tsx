@@ -30,6 +30,7 @@ import { Plus, Trash2, Copy, CheckCircle2, XCircle, Clock, Loader2, Mail, Send }
 import { format, addDays, isPast } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Tables } from '@/integrations/supabase/types';
+import { logger } from '@/lib/logger';
 
 type Tenant = Tables<'tenants'>;
 type Invitation = Tables<'invitations'>;
@@ -115,7 +116,7 @@ export function InvitationManagement({ tenant }: InvitationManagementProps) {
             console.error('Failed to send invitation email:', emailError);
             // Don't throw - invitation was created successfully
           } else {
-            console.log('Invitation email sent:', emailResult);
+            logger.debug('Invitation email sent:', emailResult);
           }
         } catch (e) {
           console.error('Error invoking email function:', e);

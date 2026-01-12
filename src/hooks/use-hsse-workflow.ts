@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { logger } from "@/lib/logger";
 
 export type ExpertRecommendation = 'investigate' | 'no_investigation' | 'return' | 'reject' | 'assign_actions';
 export type ManagerDecision = 'approved' | 'rejected';
@@ -668,7 +669,7 @@ export function useDeptRepApproval() {
         if (releasedActions && releasedActions.length > 0) {
           // Has actions: set to pending status, will auto-close when all verified
           newStatus = 'observation_actions_pending';
-          console.log(`Released ${releasedActions.length} corrective actions for incident ${incidentId}`);
+          logger.debug(`Released ${releasedActions.length} corrective actions for incident ${incidentId}`);
           
           // Log action release audit entry
           await supabase.from('incident_audit_logs').insert({

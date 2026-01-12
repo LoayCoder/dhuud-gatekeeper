@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { logger } from '@/lib/logger';
 
 interface UseProfileEmailWatcherOptions {
   userId: string | undefined;
@@ -48,7 +49,7 @@ export function useProfileEmailWatcher({
 
           // Check if new email differs from session email
           if (newEmail.toLowerCase() !== sessionEmail.toLowerCase()) {
-            console.log('[ProfileEmailWatcher] Email mismatch detected:', {
+            logger.debug('[ProfileEmailWatcher] Email mismatch detected:', {
               sessionEmail,
               newProfileEmail: newEmail
             });
@@ -63,7 +64,7 @@ export function useProfileEmailWatcher({
             // Check if refresh fixed the mismatch
             const refreshedEmail = refreshData?.user?.email;
             if (refreshedEmail?.toLowerCase() === newEmail.toLowerCase()) {
-              console.log('[ProfileEmailWatcher] Session refreshed successfully');
+              logger.debug('[ProfileEmailWatcher] Session refreshed successfully');
               toast({
                 title: t('profile.emailUpdatedTitle', { defaultValue: 'Email Updated' }),
                 description: t('profile.emailUpdatedSuccess', { 

@@ -49,7 +49,7 @@ export function useSessionManagement() {
   const hasValidAuthSession = useCallback(async (): Promise<boolean> => {
     // CRITICAL: Check logout flag first to prevent race conditions
     if (isLoggingOut.current) {
-      console.log('Logout in progress, skipping auth check');
+      logger.debug('Logout in progress, skipping auth check');
       return false;
     }
     
@@ -78,7 +78,7 @@ export function useSessionManagement() {
     
     // Don't try to register if not authenticated
     if (!isAuthenticated || !user?.id) {
-      console.log('User not authenticated, skipping session registration');
+      logger.debug('User not authenticated, skipping session registration');
       return;
     }
     
@@ -88,7 +88,7 @@ export function useSessionManagement() {
       // Validate we have a valid auth session before calling edge function
       const isValid = await hasValidAuthSession();
       if (!isValid) {
-        console.log('No valid auth session, skipping session registration');
+        logger.debug('No valid auth session, skipping session registration');
         return;
       }
 

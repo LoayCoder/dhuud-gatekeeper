@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
 import { playNotificationSound } from '@/lib/notification-history';
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/lib/logger';
 
 interface RealtimeNotification {
   id: string;
@@ -64,7 +65,7 @@ export function useRealtimeNotifications() {
   useEffect(() => {
     if (!user?.id) return;
 
-    console.log('[Realtime] Subscribing to notifications for user:', user.id);
+    logger.debug('[Realtime] Subscribing to notifications for user:', user.id);
 
     // Subscribe to INSERT events on user_notifications table
     const channel = supabase
@@ -78,16 +79,16 @@ export function useRealtimeNotifications() {
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
-          console.log('[Realtime] New notification received:', payload.new);
+          logger.debug('[Realtime] New notification received:', payload.new);
           showInAppNotification(payload.new as RealtimeNotification);
         }
       )
       .subscribe((status) => {
-        console.log('[Realtime] Subscription status:', status);
+        logger.debug('[Realtime] Subscription status:', status);
       });
 
     return () => {
-      console.log('[Realtime] Unsubscribing from notifications');
+      logger.debug('[Realtime] Unsubscribing from notifications');
       supabase.removeChannel(channel);
     };
   }, [user?.id, showInAppNotification]);

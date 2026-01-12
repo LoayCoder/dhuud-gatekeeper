@@ -258,6 +258,6 @@ export function playNotificationSound(type: NotificationSoundType): void {
         oscillator.stop(ctx.currentTime + 0.2);
     }
   } catch (error) {
-    console.log('Could not play notification sound:', error);
+    logger.debug('Could not play notification sound:', error);
   }
 }

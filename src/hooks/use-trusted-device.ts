@@ -64,7 +64,7 @@ export function useTrustedDevice() {
   const checkTrustedDevice = async (userId: string): Promise<boolean> => {
     const storedToken = localStorage.getItem(TRUST_STORAGE_KEY);
     const deviceName = getDeviceName();
-    console.log('[TrustedDevice] Checking trust status, token exists:', !!storedToken, 'device:', deviceName);
+    logger.debug('[TrustedDevice] Checking trust status, token exists:', !!storedToken, 'device:', deviceName);
 
     try {
       // First: Try exact token match from localStorage
@@ -79,7 +79,7 @@ export function useTrustedDevice() {
         if (!error && data) {
           // Check if trust has expired
           if (new Date(data.trusted_until) < new Date()) {
-            console.log('[TrustedDevice] Trust has expired, cleaning up');
+            logger.debug('[TrustedDevice] Trust has expired, cleaning up');
             localStorage.removeItem(TRUST_STORAGE_KEY);
             await supabase.from('trusted_devices').delete().eq('id', data.id);
           } else {
@@ -88,14 +88,14 @@ export function useTrustedDevice() {
               .from('trusted_devices')
               .update({ last_used_at: new Date().toISOString() })
               .eq('id', data.id);
-            console.log('[TrustedDevice] Device is trusted via token match, valid until:', data.trusted_until);
+            logger.debug('[TrustedDevice] Device is trusted via token match, valid until:', data.trusted_until);
             return true;
           }
         }
       }
 
       // Fallback: Check by device name (same browser/OS combo) - handles domain switches
-      console.log('[TrustedDevice] Token match failed, trying device name fallback');
+      logger.debug('[TrustedDevice] Token match failed, trying device name fallback');
       const { data: deviceMatch } = await supabase
         .from('trusted_devices')
         .select('id, device_token, trusted_until')
@@ -109,7 +109,7 @@ export function useTrustedDevice() {
       if (deviceMatch) {
         // Resync localStorage with the valid token from database
         localStorage.setItem(TRUST_STORAGE_KEY, deviceMatch.device_token);
-        console.log('[TrustedDevice] Resynced token from device name match, valid until:', deviceMatch.trusted_until);
+        logger.debug('[TrustedDevice] Resynced token from device name match, valid until:', deviceMatch.trusted_until);
         
         // Update last_used_at
         await supabase
@@ -120,7 +120,7 @@ export function useTrustedDevice() {
         return true;
       }
 
-      console.log('[TrustedDevice] No valid trusted device found');
+      logger.debug('[TrustedDevice] No valid trusted device found');
       localStorage.removeItem(TRUST_STORAGE_KEY);
       return false;
     } catch (err) {
@@ -135,7 +135,7 @@ export function useTrustedDevice() {
     trustedUntil.setDate(trustedUntil.getDate() + trustDays);
     const deviceName = getDeviceName();
 
-    console.log('[TrustedDevice] Trusting device for', trustDays, 'days, device:', deviceName);
+    logger.debug('[TrustedDevice] Trusting device for', trustDays, 'days, device:', deviceName);
 
     try {
       // Step 1: Clean up ALL existing tokens for same user + device name
@@ -147,14 +147,14 @@ export function useTrustedDevice() {
         .eq('device_name', deviceName);
       
       if (deleteError) {
-        console.log('[TrustedDevice] Cleanup of old tokens failed (may be none):', deleteError.message);
+        logger.debug('[TrustedDevice] Cleanup of old tokens failed (may be none):', deleteError.message);
       } else {
-        console.log('[TrustedDevice] Cleaned up existing tokens for this device');
+        logger.debug('[TrustedDevice] Cleaned up existing tokens for this device');
       }
 
       // Step 2: Create fresh trusted device record
       const token = generateToken();
-      console.log('[TrustedDevice] Creating new trusted device record');
+      logger.debug('[TrustedDevice] Creating new trusted device record');
       
       const { error } = await supabase.from('trusted_devices').insert({
         user_id: userId,
@@ -178,7 +178,7 @@ export function useTrustedDevice() {
         return false;
       }
       
-      console.log('[TrustedDevice] New device trusted successfully, token saved');
+      logger.debug('[TrustedDevice] New device trusted successfully, token saved');
       return true;
     } catch (err) {
       console.error('[TrustedDevice] Unexpected error trusting device:', err);
