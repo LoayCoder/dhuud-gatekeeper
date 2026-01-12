@@ -3102,6 +3102,74 @@ export type Database = {
           },
         ]
       }
+      badge_definitions: {
+        Row: {
+          badge_key: string
+          category: string
+          color_scheme: string
+          created_at: string | null
+          deleted_at: string | null
+          description: string
+          description_ar: string | null
+          icon_name: string
+          id: string
+          is_active: boolean | null
+          name: string
+          name_ar: string | null
+          points: number
+          sort_order: number | null
+          tenant_id: string
+          tier: string
+          unlock_criteria: Json
+        }
+        Insert: {
+          badge_key: string
+          category?: string
+          color_scheme?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          description: string
+          description_ar?: string | null
+          icon_name?: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          name_ar?: string | null
+          points?: number
+          sort_order?: number | null
+          tenant_id: string
+          tier?: string
+          unlock_criteria?: Json
+        }
+        Update: {
+          badge_key?: string
+          category?: string
+          color_scheme?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string
+          description_ar?: string | null
+          icon_name?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          name_ar?: string | null
+          points?: number
+          sort_order?: number | null
+          tenant_id?: string
+          tier?: string
+          unlock_criteria?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "badge_definitions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       branches: {
         Row: {
           created_at: string | null
@@ -20772,6 +20840,65 @@ export type Database = {
         }
         Relationships: []
       }
+      user_badges: {
+        Row: {
+          badge_id: string
+          created_at: string | null
+          earned_at: string
+          id: string
+          notified: boolean | null
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          created_at?: string | null
+          earned_at?: string
+          id?: string
+          notified?: boolean | null
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          created_at?: string | null
+          earned_at?: string
+          id?: string
+          notified?: boolean | null
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badge_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_badges_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_badges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_badges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_menu_access: {
         Row: {
           deleted_at: string | null
@@ -23076,6 +23203,7 @@ export type Database = {
         Returns: boolean
       }
       can_view_visitor_pii: { Args: never; Returns: boolean }
+      check_and_award_badges: { Args: never; Returns: Json }
       check_data_integrity: {
         Args: never
         Returns: {
@@ -23546,6 +23674,7 @@ export type Database = {
         Args: { p_month?: string; p_tenant_id: string }
         Returns: Json
       }
+      get_my_badges_and_progress: { Args: never; Returns: Json }
       get_my_reporting_stats: { Args: never; Returns: Json }
       get_notification_acknowledgment_stats: {
         Args: { p_notification_id: string }
@@ -23701,6 +23830,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: number
       }
+      get_user_badge_stats: { Args: { p_user_id: string }; Returns: Json }
       get_user_menu_access: {
         Args: { _user_id: string }
         Returns: {
@@ -23987,6 +24117,10 @@ export type Database = {
         Returns: string
       }
       lookup_invitation: { Args: { lookup_code: string }; Returns: Json }
+      mark_badges_notified: {
+        Args: { p_badge_ids: string[] }
+        Returns: undefined
+      }
       point_in_polygon: {
         Args: { p_lat: number; p_lng: number; p_polygon: Json }
         Returns: boolean
@@ -24030,6 +24164,7 @@ export type Database = {
         Args: { p_tenant_id: string }
         Returns: undefined
       }
+      seed_tenant_badges: { Args: { p_tenant_id: string }; Returns: undefined }
       soft_delete_branch: { Args: { p_branch_id: string }; Returns: string }
       soft_delete_building: { Args: { p_building_id: string }; Returns: string }
       soft_delete_closed_incident: {
