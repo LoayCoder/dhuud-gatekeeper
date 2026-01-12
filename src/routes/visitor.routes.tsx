@@ -4,7 +4,7 @@
  */
 import { Navigate } from "react-router-dom";
 import type { RouteObject } from "react-router-dom";
-import { SecurityRoute } from "@/components/SecurityRoute";
+import { SecurityRoute } from "@/components";
 import { lazyWithRetry } from "@/lib/lazy-with-retry";
 
 // Visitor pages

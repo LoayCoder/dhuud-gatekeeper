@@ -3,7 +3,7 @@
  * Permits, projects, clearances, and field inspections
  */
 import type { RouteObject } from "react-router-dom";
-import { HSSERoute } from "@/components/HSSERoute";
+import { HSSERoute } from "@/components";
 import { lazyWithRetry } from "@/lib/lazy-with-retry";
 
 // PTW pages

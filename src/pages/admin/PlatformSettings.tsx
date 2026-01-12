@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2, Settings, Smartphone, Eye, Save, Database, Trash2, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
 import { clearSplashCache, type SplashSettings } from '@/hooks/use-splash-settings';
-import { SplashScreen } from '@/components/SplashScreen';
+import { SplashScreen } from '@/components';
 import { cn } from '@/lib/utils';
 import type { Json } from '@/integrations/supabase/types';
 import {

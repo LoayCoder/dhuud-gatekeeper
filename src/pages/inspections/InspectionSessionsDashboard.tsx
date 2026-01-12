@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { ModuleGate } from '@/components/ModuleGate';
+import { ModuleGate } from '@/components';
 import { useInspectionSessions, useDeleteSession, type InspectionSession } from '@/hooks/use-inspection-sessions';
 import { CreateSessionDialog, CreateAreaSessionDialog, EditSessionDialog, SessionStatusBadge } from '@/components/inspections/sessions';
 import { toast } from 'sonner';

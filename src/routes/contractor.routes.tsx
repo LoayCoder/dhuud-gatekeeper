@@ -3,7 +3,7 @@
  * Companies, projects, workers, gate passes, and portal access
  */
 import type { RouteObject } from "react-router-dom";
-import { MenuBasedAdminRoute } from "@/components/MenuBasedAdminRoute";
+import { MenuBasedAdminRoute } from "@/components";
 import { ContractorPortalRoute, ClientSiteRepRoute } from "@/components/access-control";
 import { lazyWithRetry } from "@/lib/lazy-with-retry";
 

@@ -10,8 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building2, CreditCard, TrendingUp, Clock, AlertTriangle, FileText, Inbox } from "lucide-react";
 import { formatDate } from "@/lib/date-utils";
-import { PlanComparisonModal } from "@/components/PlanComparisonModal";
-import { SubscriptionAuditLog } from "@/components/SubscriptionAuditLog";
+import { PlanComparisonModal, SubscriptionAuditLog } from "@/components/subscription";
 import { SubscriptionRequestsTable } from "@/components/subscription/SubscriptionRequestsTable";
 import { RequestReviewDialog } from "@/components/subscription/RequestReviewDialog";
 

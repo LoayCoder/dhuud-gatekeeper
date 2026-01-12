@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AssetQRScanner } from '@/components/assets/AssetQRScanner';
 import { AssetBarcodeScanner } from '@/components/assets/AssetBarcodeScanner';
 import { AssetScanResult } from '@/components/assets/AssetScanResult';
-import { ModuleGate } from '@/components/ModuleGate';
+import { ModuleGate } from '@/components';
 import { useState, useEffect } from 'react';
 import { useAssetByCode } from '@/hooks/use-asset-by-code';
 import { Alert, AlertDescription } from '@/components/ui/alert';

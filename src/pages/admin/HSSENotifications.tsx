@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AdminRoute } from '@/components/AdminRoute';
+import { AdminRoute } from '@/components';
 import { useHSSENotificationsAdmin, useNotificationStats, CreateNotificationData, HSSENotification } from '@/hooks/use-hsse-notifications';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';

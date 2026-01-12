@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { AdminRoute } from '@/components/AdminRoute';
+import { AdminRoute } from '@/components';
 import { 
   useHSSEComplianceMetrics, 
   useHSSEAcknowledgmentRates,

@@ -8,8 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AssetQRCode } from '@/components/assets/AssetQRCode';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { ModuleGate } from '@/components/ModuleGate';
-import { HSSERoute } from '@/components/HSSERoute';
+import { ModuleGate, HSSERoute } from '@/components';
 
 interface BulkAsset {
   id: string;

@@ -3,7 +3,7 @@
  * HSSE event tracking, investigations, and corrective actions
  */
 import type { RouteObject } from "react-router-dom";
-import { HSSERoute } from "@/components/HSSERoute";
+import { HSSERoute } from "@/components";
 import { lazyWithRetry } from "@/lib/lazy-with-retry";
 
 // Incident pages - lazy loaded

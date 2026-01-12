@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ModuleGate } from '@/components/ModuleGate';
+import { ModuleGate } from '@/components';
 import { 
   DepreciationScheduleTable, 
   DepreciationChart, 
