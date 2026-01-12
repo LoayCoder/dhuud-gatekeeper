@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { logger } from '@/lib/logger';
 
 interface RealtimeTrackingState {
   isConnected: boolean;
@@ -39,7 +40,7 @@ export function useRealtimeTracking(enabled: boolean = true) {
             table: 'guard_tracking_history',
           },
           (payload) => {
-            console.log('New guard location:', payload);
+            logger.debug('New guard location:', payload);
             queryClient.invalidateQueries({ queryKey: ['guard-locations'] });
             setState(prev => ({
               ...prev,
@@ -55,7 +56,7 @@ export function useRealtimeTracking(enabled: boolean = true) {
             table: 'geofence_alerts',
           },
           (payload) => {
-            console.log('New geofence alert:', payload);
+            logger.debug('New geofence alert:', payload);
             queryClient.invalidateQueries({ queryKey: ['geofence-alerts'] });
             setState(prev => ({
               ...prev,
@@ -79,7 +80,7 @@ export function useRealtimeTracking(enabled: boolean = true) {
             table: 'geofence_alerts',
           },
           (payload) => {
-            console.log('Alert updated:', payload);
+            logger.debug('Alert updated:', payload);
             queryClient.invalidateQueries({ queryKey: ['geofence-alerts'] });
           }
         )
@@ -91,13 +92,13 @@ export function useRealtimeTracking(enabled: boolean = true) {
             table: 'shift_roster',
           },
           (payload) => {
-            console.log('Roster change:', payload);
+            logger.debug('Roster change:', payload);
             queryClient.invalidateQueries({ queryKey: ['shift-roster'] });
             queryClient.invalidateQueries({ queryKey: ['my-roster-assignment'] });
           }
         )
         .subscribe((status) => {
-          console.log('Realtime subscription status:', status);
+          logger.debug('Realtime subscription status:', status);
           setState(prev => ({
             ...prev,
             isConnected: status === 'SUBSCRIBED',
@@ -136,7 +137,7 @@ export function useRealtimePatrols(enabled: boolean = true) {
           table: 'patrol_checkpoint_logs',
         },
         (payload) => {
-          console.log('Patrol checkpoint logged:', payload);
+          logger.debug('Patrol checkpoint logged:', payload);
           queryClient.invalidateQueries({ queryKey: ['patrol-executions'] });
           queryClient.invalidateQueries({ queryKey: ['patrol-history'] });
         }
@@ -149,7 +150,7 @@ export function useRealtimePatrols(enabled: boolean = true) {
           table: 'patrol_executions',
         },
         (payload) => {
-          console.log('Patrol execution updated:', payload);
+          logger.debug('Patrol execution updated:', payload);
           queryClient.invalidateQueries({ queryKey: ['patrol-executions'] });
         }
       )

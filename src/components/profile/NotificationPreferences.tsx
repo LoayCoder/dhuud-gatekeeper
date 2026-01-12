@@ -17,6 +17,7 @@ import { AssetNotificationPreferences } from "@/components/settings/AssetNotific
 import { usePushSubscription } from "@/hooks/use-push-subscription";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
 
 const RTL_LANGUAGES = ['ar', 'ur'];
 
@@ -63,7 +64,7 @@ export function NotificationPreferences() {
             await registration.periodicSync.unregister('server-updates-sync');
           }
         } catch (error) {
-          console.log('Periodic sync not available:', error);
+          logger.debug('Periodic sync not available:', error);
         }
       });
     }
@@ -136,7 +137,7 @@ export function NotificationPreferences() {
 
     setIsSendingTest(true);
     try {
-      console.log('[TestPush] Sending test notification to user:', user.id);
+      logger.debug('[TestPush] Sending test notification to user:', user.id);
       
       const response = await supabase.functions.invoke('send-push-notification', {
         body: {
@@ -150,7 +151,7 @@ export function NotificationPreferences() {
         }
       });
 
-      console.log('[TestPush] Response:', response);
+      logger.debug('[TestPush] Response:', response);
 
       if (response.error) {
         console.error('[TestPush] Error from edge function:', response.error);
@@ -158,7 +159,7 @@ export function NotificationPreferences() {
       }
 
       const result = response.data;
-      console.log('[TestPush] Result:', result);
+      logger.debug('[TestPush] Result:', result);
 
       if (result?.sent > 0) {
         toast({

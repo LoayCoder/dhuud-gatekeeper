@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { sendPushNotification, addNotificationToHistory, playNotificationSound } from '@/lib/notification-history';
+import { logger } from '@/lib/logger';
 
 /**
  * Hook to listen for urgent SLA escalation broadcasts via Supabase Realtime
@@ -56,7 +57,7 @@ export function useSLAEscalationListener() {
               });
             }
 
-            console.log('SLA Escalation detected:', { 
+            logger.debug('SLA Escalation detected:', { 
               from: oldRecord.escalation_level, 
               to: level, 
               title: newRecord.title 
