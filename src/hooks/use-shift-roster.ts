@@ -55,7 +55,9 @@ export function useMyRosterAssignment() {
       if (!user) return null;
 
       const today = new Date().toISOString().split('T')[0];
-      const { data, error } = await supabase
+      
+      // First: Try to get today's assignment
+      const { data: todayAssignment, error: todayError } = await supabase
         .from('shift_roster')
         .select(`
           id, guard_id, zone_id, shift_id, roster_date, supervisor_id, status, notes,
@@ -69,8 +71,29 @@ export function useMyRosterAssignment() {
         .is('deleted_at', null)
         .maybeSingle();
 
-      if (error) throw error;
-      return data;
+      if (todayError) throw todayError;
+      if (todayAssignment) return todayAssignment;
+      
+      // Fallback: Check for any active (checked_in) assignment from previous days
+      // This handles guards who haven't checked out yet (e.g., overnight shifts)
+      const { data: activeAssignment, error: activeError } = await supabase
+        .from('shift_roster')
+        .select(`
+          id, guard_id, zone_id, shift_id, roster_date, supervisor_id, status, notes,
+          check_in_time, check_out_time,
+          supervisor:profiles!shift_roster_supervisor_id_fkey(full_name, phone_number),
+          zone:security_zones(zone_name, zone_code),
+          shift:security_shifts(shift_name, start_time, end_time)
+        `)
+        .eq('guard_id', user.id)
+        .eq('status', 'checked_in')
+        .is('deleted_at', null)
+        .order('roster_date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (activeError) throw activeError;
+      return activeAssignment;
     },
   });
 }
@@ -85,7 +108,8 @@ export function useMySupervisor() {
       const today = new Date().toISOString().split('T')[0];
 
       // 1. Try to get supervisor from today's roster assignment
-      const { data: roster } = await supabase
+      let roster = null;
+      const { data: todayRoster } = await supabase
         .from('shift_roster')
         .select(`
           supervisor_id,
@@ -95,6 +119,25 @@ export function useMySupervisor() {
         .eq('roster_date', today)
         .is('deleted_at', null)
         .maybeSingle();
+      
+      roster = todayRoster;
+
+      // 1b. Fallback to active (checked_in) roster from previous days
+      if (!roster) {
+        const { data: activeRoster } = await supabase
+          .from('shift_roster')
+          .select(`
+            supervisor_id,
+            supervisor:profiles!shift_roster_supervisor_id_fkey(id, full_name, phone_number)
+          `)
+          .eq('guard_id', user.id)
+          .eq('status', 'checked_in')
+          .is('deleted_at', null)
+          .order('roster_date', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        roster = activeRoster;
+      }
 
       if (roster?.supervisor) {
         const sup = roster.supervisor as { id: string; full_name: string | null; phone_number: string | null };
