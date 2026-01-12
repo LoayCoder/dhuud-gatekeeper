@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { useUserRoles } from '@/hooks/use-user-roles';
+import { logger } from '@/lib/logger';
 
 // Pending incident approvals for managers
 export interface PendingIncidentApproval {

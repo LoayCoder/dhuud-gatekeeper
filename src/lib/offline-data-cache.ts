@@ -2,6 +2,7 @@
  * Offline Data Cache using IndexedDB
  * Provides structured data caching for critical HSSE data
  */
+import { logger } from '@/lib/logger';
 
 const DB_NAME = 'dhuud-offline-cache';
 const DB_VERSION = 4; // Incremented to trigger onupgradeneeded for new stores (added Area Inspection stores)
@@ -275,7 +276,7 @@ if (typeof window !== 'undefined') {
   setInterval(() => {
     offlineDataCache.cleanupExpired().then((count) => {
       if (count > 0) {
-        console.log(`Cleaned up ${count} expired cache entries`);
+        logger.debug(`Cleaned up ${count} expired cache entries`);
       }
     });
   }, 60 * 60 * 1000); // Every hour

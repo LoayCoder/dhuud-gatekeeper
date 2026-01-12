@@ -207,7 +207,7 @@ export default function MFASetup() {
           onConflict: 'user_id,tenant_id'
         });
 
-      console.log('Tenant MFA status recorded for:', profile.tenant_id);
+      logger.debug('Tenant MFA status recorded for:', profile.tenant_id);
     } catch (error) {
       console.error('Failed to record tenant MFA status:', error);
     }

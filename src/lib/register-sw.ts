@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 export function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) {
     return;
@@ -8,7 +10,7 @@ export function registerServiceWorker() {
     navigator.serviceWorker.getRegistrations().then(registrations => {
       registrations.forEach(registration => {
         registration.unregister();
-        console.log('[SW] Unregistered service worker in development mode');
+        logger.debug('[SW] Unregistered service worker in development mode');
       });
     });
     return;
@@ -18,12 +20,12 @@ export function registerServiceWorker() {
   window.addEventListener('load', async () => {
     try {
       const registration = await navigator.serviceWorker.register('/sw.js');
-      console.log('SW registered:', registration.scope);
+      logger.info('SW registered:', registration.scope);
       
       // Register periodic background sync if supported and enabled
       await registerPeriodicSync(registration);
     } catch (error) {
-      console.log('SW registration failed:', error);
+      logger.warn('SW registration failed:', error);
     }
   });
 }
@@ -31,20 +33,20 @@ export function registerServiceWorker() {
 async function registerPeriodicSync(registration: ServiceWorkerRegistration) {
   // Check if periodic sync is supported
   if (!('periodicSync' in registration)) {
-    console.log('Periodic Background Sync not supported');
+    logger.debug('Periodic Background Sync not supported');
     return;
   }
 
   // Check if we have a valid window context (required for periodic sync)
   if (typeof window === 'undefined' || !window.document) {
-    console.log('Periodic sync requires a window context');
+    logger.debug('Periodic sync requires a window context');
     return;
   }
 
   // Check if user has enabled periodic sync
   const periodicSyncEnabled = localStorage.getItem('periodic-sync-enabled') !== 'false';
   if (!periodicSyncEnabled) {
-    console.log('Periodic sync disabled by user preference');
+    logger.debug('Periodic sync disabled by user preference');
     return;
   }
 
@@ -57,12 +59,12 @@ async function registerPeriodicSync(registration: ServiceWorkerRegistration) {
       permissionGranted = status.state === 'granted';
       
       if (!permissionGranted) {
-        console.log('Periodic sync permission not granted:', status.state);
+        logger.info('Periodic sync permission not granted:', status.state);
         return;
       }
     } catch (permError) {
       // Permission API may not support periodic-background-sync query
-      console.log('Could not query periodic sync permission:', permError);
+      logger.debug('Could not query periodic sync permission:', permError);
       return;
     }
     
@@ -72,14 +74,14 @@ async function registerPeriodicSync(registration: ServiceWorkerRegistration) {
       await registration.periodicSync.register('server-updates-sync', {
         minInterval: 4 * 60 * 60 * 1000, // 4 hours in milliseconds
       });
-      console.log('Periodic sync registered for server updates');
+      logger.info('Periodic sync registered for server updates');
     } else {
-      console.log('Service worker not yet active, skipping periodic sync registration');
+      logger.debug('Service worker not yet active, skipping periodic sync registration');
     }
   } catch (error) {
     // Silently handle errors - periodic sync is a progressive enhancement
     if (import.meta.env.DEV) {
-      console.log('Periodic sync registration failed:', error);
+      logger.debug('Periodic sync registration failed:', error);
     }
   }
 }
@@ -93,9 +95,9 @@ export async function unregisterPeriodicSync() {
     if ('periodicSync' in registration) {
       // @ts-ignore
       await registration.periodicSync.unregister('server-updates-sync');
-      console.log('Periodic sync unregistered');
+      logger.info('Periodic sync unregistered');
     }
   } catch (error) {
-    console.log('Failed to unregister periodic sync:', error);
+    logger.warn('Failed to unregister periodic sync:', error);
   }
 }

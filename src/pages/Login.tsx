@@ -20,6 +20,7 @@ import { logUserActivity, startSessionTracking } from '@/lib/activity-logger';
 import { MFAVerificationDialog } from '@/components/auth/MFAVerificationDialog';
 import { GoogleOAuthButton } from '@/components/auth/GoogleOAuthButton';
 import { DHUUD_LOGO_LIGHT, DHUUD_LOGO_DARK, DHUUD_TENANT_NAME } from '@/constants/branding';
+import { logger } from '@/lib/logger';
 
 export default function Login() {
   const { t } = useTranslation();
