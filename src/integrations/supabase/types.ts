@@ -3539,6 +3539,71 @@ export type Database = {
           },
         ]
       }
+      challenge_participants: {
+        Row: {
+          badge_awarded: boolean | null
+          challenge_id: string
+          completed_at: string | null
+          current_progress: number | null
+          id: string
+          joined_at: string | null
+          points_awarded: boolean | null
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          badge_awarded?: boolean | null
+          challenge_id: string
+          completed_at?: string | null
+          current_progress?: number | null
+          id?: string
+          joined_at?: string | null
+          points_awarded?: boolean | null
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          badge_awarded?: boolean | null
+          challenge_id?: string
+          completed_at?: string | null
+          current_progress?: number | null
+          id?: string
+          joined_at?: string | null
+          points_awarded?: boolean | null
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_participants_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "safety_challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_participants_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clearance_template_items: {
         Row: {
           competency_required: Json | null
@@ -17650,6 +17715,98 @@ export type Database = {
         }
         Relationships: []
       }
+      safety_challenges: {
+        Row: {
+          badge_id: string | null
+          challenge_type: string
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          description_ar: string | null
+          end_date: string
+          id: string
+          is_active: boolean | null
+          metric_type: string
+          points_reward: number | null
+          start_date: string
+          target_count: number
+          tenant_id: string
+          title: string
+          title_ar: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          badge_id?: string | null
+          challenge_type?: string
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          description_ar?: string | null
+          end_date: string
+          id?: string
+          is_active?: boolean | null
+          metric_type: string
+          points_reward?: number | null
+          start_date: string
+          target_count: number
+          tenant_id: string
+          title: string
+          title_ar?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          badge_id?: string | null
+          challenge_type?: string
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          description_ar?: string | null
+          end_date?: string
+          id?: string
+          is_active?: boolean | null
+          metric_type?: string
+          points_reward?: number | null
+          start_date?: string
+          target_count?: number
+          tenant_id?: string
+          title?: string
+          title_ar?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "safety_challenges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badge_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_challenges_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_challenges_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_challenges_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_report_templates: {
         Row: {
           columns: Json
@@ -23358,6 +23515,29 @@ export type Database = {
           sort_order: number
         }[]
       }
+      get_active_challenges: {
+        Args: never
+        Returns: {
+          badge_icon: string
+          badge_name: string
+          badge_name_ar: string
+          badge_tier: string
+          challenge_id: string
+          challenge_type: string
+          description: string
+          description_ar: string
+          end_date: string
+          is_completed: boolean
+          is_joined: boolean
+          metric_type: string
+          points_reward: number
+          start_date: string
+          target_count: number
+          title: string
+          title_ar: string
+          user_progress: number
+        }[]
+      }
       get_active_event_categories: {
         Args: { p_tenant_id: string }
         Returns: {
@@ -23388,6 +23568,20 @@ export type Database = {
           total_active: number
         }[]
       }
+      get_anonymous_leaderboard: {
+        Args: { p_category?: string; p_period?: string }
+        Returns: {
+          anonymous_id: string
+          badge_count: number
+          completed_actions: number
+          incidents_count: number
+          is_current_user: boolean
+          observations_count: number
+          rank_position: number
+          total_points: number
+          total_reports: number
+        }[]
+      }
       get_asset_category_distribution: {
         Args: { p_tenant_id: string }
         Returns: {
@@ -23414,6 +23608,21 @@ export type Database = {
       }
       get_auth_tenant_id: { Args: never; Returns: string }
       get_auth_tenant_id_bypass: { Args: never; Returns: string }
+      get_badge_statistics: {
+        Args: never
+        Returns: {
+          awarded_this_month: number
+          badge_id: string
+          badge_key: string
+          category: string
+          name: string
+          name_ar: string
+          points: number
+          tier: string
+          total_awarded: number
+          unique_earners: number
+        }[]
+      }
       get_client_site_rep_company_ids: {
         Args: { p_user_id: string }
         Returns: string[]
@@ -24091,6 +24300,7 @@ export type Database = {
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_tenant_admin: { Args: { _user_id: string }; Returns: boolean }
+      join_challenge: { Args: { p_challenge_id: string }; Returns: Json }
       log_email_delivery: {
         Args: {
           p_email_type: string
