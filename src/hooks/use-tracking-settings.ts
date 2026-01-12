@@ -15,43 +15,48 @@ const DEFAULT_SETTINGS: TrackingIntervalSettings = {
   max: 30,
 };
 
+async function fetchTrackingSettings(): Promise<TrackingIntervalSettings> {
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData?.user) return DEFAULT_SETTINGS;
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('tenant_id')
+    .eq('id', userData.user.id)
+    .single();
+
+  if (!profile?.tenant_id) return DEFAULT_SETTINGS;
+
+  // Use type assertion to bypass deep type inference
+  const client = supabase as any;
+  const { data } = await client
+    .from('platform_settings')
+    .select('value')
+    .eq('setting_key', 'guard_tracking_interval_minutes')
+    .eq('tenant_id', profile.tenant_id)
+    .is('deleted_at', null)
+    .limit(1);
+
+  const row = data?.[0];
+  if (row?.value) {
+    try {
+      const parsed = typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
+      return { ...DEFAULT_SETTINGS, ...parsed };
+    } catch {
+      return DEFAULT_SETTINGS;
+    }
+  }
+
+  return DEFAULT_SETTINGS;
+}
+
 /**
- * Hook to fetch the guard tracking interval setting from platform_settings
+ * Hook to fetch the guard tracking interval setting
  */
 export function useTrackingInterval() {
   return useQuery({
     queryKey: ['tracking-interval-settings'],
-    queryFn: async (): Promise<TrackingIntervalSettings> => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return DEFAULT_SETTINGS;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('tenant_id')
-        .eq('id', user.id)
-        .single();
-
-      if (!profile?.tenant_id) return DEFAULT_SETTINGS;
-
-      const { data } = await supabase
-        .from('platform_settings')
-        .select('value')
-        .eq('setting_key', 'guard_tracking_interval_minutes')
-        .eq('tenant_id', profile.tenant_id)
-        .is('deleted_at', null)
-        .maybeSingle();
-
-      if (data?.value) {
-        try {
-          const parsed = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
-          return { ...DEFAULT_SETTINGS, ...parsed };
-        } catch {
-          return DEFAULT_SETTINGS;
-        }
-      }
-
-      return DEFAULT_SETTINGS;
-    },
+    queryFn: fetchTrackingSettings,
     staleTime: 5 * 60 * 1000,
   });
 }
@@ -74,13 +79,13 @@ export function useUpdateTrackingInterval() {
 
   return useMutation({
     mutationFn: async (minutes: number) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) throw new Error('Not authenticated');
 
       const { data: profile } = await supabase
         .from('profiles')
         .select('tenant_id')
-        .eq('id', user.id)
+        .eq('id', userData.user.id)
         .single();
 
       if (!profile?.tenant_id) throw new Error('Tenant not found');
@@ -89,13 +94,16 @@ export function useUpdateTrackingInterval() {
         throw new Error('Interval must be between 1 and 30 minutes');
       }
 
-      const { data: existing } = await supabase
+      const client = supabase as any;
+      const { data: existingData } = await client
         .from('platform_settings')
         .select('id')
         .eq('setting_key', 'guard_tracking_interval_minutes')
         .eq('tenant_id', profile.tenant_id)
         .is('deleted_at', null)
-        .maybeSingle();
+        .limit(1);
+
+      const existing = existingData?.[0];
 
       const settingValue = JSON.stringify({
         default: 5,
@@ -105,13 +113,13 @@ export function useUpdateTrackingInterval() {
       });
 
       if (existing) {
-        const { error } = await supabase
+        const { error } = await client
           .from('platform_settings')
           .update({ value: settingValue })
           .eq('id', existing.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await client
           .from('platform_settings')
           .insert({
             setting_key: 'guard_tracking_interval_minutes',
@@ -127,7 +135,7 @@ export function useUpdateTrackingInterval() {
       queryClient.invalidateQueries({ queryKey: ['tracking-interval-settings'] });
       toast({ title: 'Settings Updated', description: `Tracking interval set to ${minutes} minutes` });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({ title: 'Failed to update', description: error.message, variant: 'destructive' });
     },
   });
