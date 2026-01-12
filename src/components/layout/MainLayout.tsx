@@ -1,10 +1,10 @@
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
+import { AppSidebar } from "@/components/layout";
 import { Separator } from "@/components/ui/separator";
 import { Outlet } from "react-router-dom";
 import { useTheme } from "@/contexts/ThemeContext";
-import { LanguageSelector } from "@/components/LanguageSelector";
-import { TrialBanner } from "@/components/TrialBanner";
+import { LanguageSelector } from "@/components/settings";
+import { TrialBanner } from "@/components/subscription";
 import { OfflineStatusBanner } from "@/components/offline/OfflineStatusBanner";
 import { OfflineStatusBadge } from "@/components/layout/OfflineStatusBadge";
 import { HSSENotificationCenter } from "@/components/notifications/HSSENotificationCenter";

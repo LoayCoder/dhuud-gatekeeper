@@ -75,12 +75,12 @@ import {
   History,
   Sparkles,
 } from "lucide-react";
-import { NotificationPopover } from "@/components/NotificationPopover";
+import { NotificationPopover } from "@/components/notifications";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useLocation } from "react-router-dom";
-import { NavLink } from "@/components/NavLink";
+import { NavLink } from "@/components/layout/NavLink";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -91,7 +91,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { logUserActivity, getSessionDurationSeconds, clearSessionTracking } from "@/lib/activity-logger";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { ThemeToggle } from "@/components/settings";
 import { prefetchRoute, prefetchRoutes } from "@/hooks/use-prefetch";
 import { useMenuAccess } from "@/hooks/use-menu-access";
 import { usePWAInstall } from "@/hooks/use-pwa-install";

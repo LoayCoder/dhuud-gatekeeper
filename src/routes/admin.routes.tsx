@@ -3,10 +3,7 @@
  * System configuration, user management, SLA, notifications, and settings
  */
 import type { RouteObject } from "react-router-dom";
-import { AdminRoute } from "@/components/AdminRoute";
-import { MenuBasedAdminRoute } from "@/components/MenuBasedAdminRoute";
-import { HSSERoute } from "@/components/HSSERoute";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AdminRoute, MenuBasedAdminRoute, HSSERoute, ProtectedRoute } from "@/components/auth";
 import { lazyWithRetry } from "@/lib/lazy-with-retry";
 
 // Admin pages

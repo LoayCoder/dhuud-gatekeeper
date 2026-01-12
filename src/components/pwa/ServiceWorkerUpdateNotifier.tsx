@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { RefreshCw, X, AlertTriangle, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppUpdateCheck } from '@/hooks/use-app-update-check';
-import { WhatsNewDialog } from '@/components/WhatsNewDialog';
+import { WhatsNewDialog } from './WhatsNewDialog';
 import { cn } from '@/lib/utils';
 
 export function ServiceWorkerUpdateNotifier() {

@@ -3,8 +3,7 @@
  * Asset tracking, maintenance, inspections, and financials
  */
 import type { RouteObject } from "react-router-dom";
-import { HSSERoute } from "@/components/HSSERoute";
-import { AdminRoute } from "@/components/AdminRoute";
+import { HSSERoute, AdminRoute } from "@/components/auth";
 import { lazyWithRetry } from "@/lib/lazy-with-retry";
 
 // Asset pages - lazy loaded

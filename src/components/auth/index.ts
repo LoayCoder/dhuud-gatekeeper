@@ -1,0 +1,10 @@
+// Auth/access control components barrel file
+export { AdminRoute } from './AdminRoute';
+export { ProtectedRoute } from './ProtectedRoute';
+export { HSSERoute } from './HSSERoute';
+export { SecurityRoute } from './SecurityRoute';
+export { MenuBasedAdminRoute } from './MenuBasedAdminRoute';
+export { ModuleGate } from './ModuleGate';
+export { GoogleOAuthButton } from './GoogleOAuthButton';
+export { MFAVerificationDialog } from './MFAVerificationDialog';
+export { PasswordStrengthMeter } from './PasswordStrengthMeter';
