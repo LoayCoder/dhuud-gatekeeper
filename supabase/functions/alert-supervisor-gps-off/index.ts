@@ -49,7 +49,7 @@ serve(async (req) => {
     
     console.log(`[GPS Off Alert] Found ${supervisors?.length || 0} supervisors to notify`);
     
-    // Create geofence alert record
+    // Create geofence alert record (status is derived from acknowledged_at and resolved_at timestamps)
     const { error: alertError } = await supabase
       .from('geofence_alerts')
       .insert({
@@ -58,7 +58,6 @@ serve(async (req) => {
         alert_type: 'gps_disabled',
         severity: 'critical',
         alert_message: `Guard ${guardName} has disabled GPS during active shift. Zone: ${zone_name || 'Unknown'}`,
-        alert_status: 'pending',
       });
     
     if (alertError) {
