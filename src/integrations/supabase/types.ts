@@ -8039,6 +8039,82 @@ export type Database = {
           },
         ]
       }
+      hse_weekly_messages: {
+        Row: {
+          color_scheme: string | null
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          display_from: string
+          display_until: string
+          icon_name: string | null
+          id: string
+          is_active: boolean | null
+          message: string
+          message_ar: string | null
+          priority: number | null
+          tenant_id: string
+          title: string
+          title_ar: string | null
+        }
+        Insert: {
+          color_scheme?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          display_from: string
+          display_until: string
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          message: string
+          message_ar?: string | null
+          priority?: number | null
+          tenant_id: string
+          title: string
+          title_ar?: string | null
+        }
+        Update: {
+          color_scheme?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          display_from?: string
+          display_until?: string
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          message?: string
+          message_ar?: string | null
+          priority?: number | null
+          tenant_id?: string
+          title?: string
+          title_ar?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hse_weekly_messages_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hse_weekly_messages_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hse_weekly_messages_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hsse_assets: {
         Row: {
           asset_code: string
@@ -23470,6 +23546,7 @@ export type Database = {
         Args: { p_month?: string; p_tenant_id: string }
         Returns: Json
       }
+      get_my_reporting_stats: { Args: never; Returns: Json }
       get_notification_acknowledgment_stats: {
         Args: { p_notification_id: string }
         Returns: Json
