@@ -5,6 +5,18 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+/**
+ * Decode base64url encoded userHandle to get the original user ID
+ */
+function decodeUserHandle(userHandle: string): string {
+  // Add padding if needed
+  let base64 = userHandle.replace(/-/g, '+').replace(/_/g, '/');
+  while (base64.length % 4 !== 0) {
+    base64 += '=';
+  }
+  return atob(base64);
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -15,40 +27,96 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { email, credential } = await req.json();
+    const { email, credential, challengeId } = await req.json();
 
-    if (!email || !credential || !credential.id) {
+    if (!credential || !credential.id) {
       return new Response(
         JSON.stringify({ error: 'Invalid request data' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Find user by email
-    const { data: users } = await supabaseAdmin.auth.admin.listUsers();
-    const user = users?.users?.find(u => u.email?.toLowerCase() === email.toLowerCase());
+    let user;
+    let challengeData;
 
-    if (!user) {
+    // Check if this is a discoverable credential authentication (no email provided)
+    if (!email && credential.response?.userHandle) {
+      // Discoverable credential flow - extract user ID from userHandle
+      const userId = decodeUserHandle(credential.response.userHandle);
+      console.log('[WebAuthn] Discoverable auth - decoded userId:', userId);
+
+      // Verify challenge exists using challengeId
+      if (!challengeId) {
+        return new Response(
+          JSON.stringify({ error: 'Challenge ID required for discoverable authentication' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const { data: discoverableChallenge, error: challengeError } = await supabaseAdmin
+        .from('webauthn_challenges')
+        .select('*')
+        .eq('id', challengeId)
+        .eq('type', 'discoverable_authentication')
+        .gt('expires_at', new Date().toISOString())
+        .single();
+
+      if (challengeError || !discoverableChallenge) {
+        console.error('[WebAuthn] Challenge error:', challengeError);
+        return new Response(
+          JSON.stringify({ error: 'Challenge expired or not found' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      challengeData = discoverableChallenge;
+
+      // Get user by ID from auth
+      const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
+      
+      if (userError || !userData?.user) {
+        console.error('[WebAuthn] User not found:', userError);
+        return new Response(
+          JSON.stringify({ error: 'Authentication failed' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      user = userData.user;
+    } else if (email) {
+      // Legacy email-based flow
+      const { data: users } = await supabaseAdmin.auth.admin.listUsers();
+      user = users?.users?.find(u => u.email?.toLowerCase() === email.toLowerCase());
+
+      if (!user) {
+        return new Response(
+          JSON.stringify({ error: 'Authentication failed' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Verify challenge exists and hasn't expired
+      const { data: emailChallengeData, error: challengeError } = await supabaseAdmin
+        .from('webauthn_challenges')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('type', 'authentication')
+        .gt('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (challengeError || !emailChallengeData) {
+        return new Response(
+          JSON.stringify({ error: 'Challenge expired or not found' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      challengeData = emailChallengeData;
+    } else {
       return new Response(
-        JSON.stringify({ error: 'Authentication failed' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Verify challenge exists and hasn't expired
-    const { data: challengeData, error: challengeError } = await supabaseAdmin
-      .from('webauthn_challenges')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('type', 'authentication')
-      .gt('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (challengeError || !challengeData) {
-      return new Response(
-        JSON.stringify({ error: 'Challenge expired or not found' }),
+        JSON.stringify({ error: 'Email or discoverable credential required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

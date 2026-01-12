@@ -82,8 +82,10 @@ Deno.serve(async (req) => {
         { alg: -257, type: 'public-key' }, // RS256
       ],
       authenticatorSelection: {
-        userVerification: 'preferred',
-        residentKey: 'preferred',
+        authenticatorAttachment: 'platform',
+        userVerification: 'required',
+        residentKey: 'required',        // Make it a passkey (discoverable credential)
+        requireResidentKey: true,       // Backward compatibility flag
       },
       timeout: 60000,
       attestation: 'none',

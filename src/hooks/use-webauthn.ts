@@ -24,6 +24,7 @@ interface UseWebAuthnReturn {
   isLoading: boolean;
   registerCredential: (deviceName?: string) => Promise<boolean>;
   authenticate: (email: string) => Promise<boolean>;
+  authenticateDiscoverable: () => Promise<boolean>;
   removeCredential: (credentialId: string) => Promise<boolean>;
   refreshCredentials: () => Promise<void>;
 }
@@ -241,6 +242,114 @@ export function useWebAuthn(): UseWebAuthnReturn {
     }
   }, [isSupported, t]);
 
+  // Authenticate with discoverable credentials (passkeys) - no email required
+  const authenticateDiscoverable = useCallback(async (): Promise<boolean> => {
+    try {
+      logger.debug('[WebAuthn] Starting discoverable credential authentication');
+      
+      if (!isSupported) {
+        logger.debug('[WebAuthn] Browser does not support WebAuthn');
+        toast({
+          title: t('biometric.notSupported'),
+          description: t('biometric.notSupportedDesc'),
+          variant: 'destructive',
+        });
+        return false;
+      }
+
+      // Get authentication options for discoverable credentials
+      logger.debug('[WebAuthn] Fetching discoverable auth options...');
+      const { data: optionsData, error: optionsError } = await supabase.functions.invoke(
+        'webauthn-auth-options-discoverable'
+      );
+
+      logger.debug('[WebAuthn] Discoverable auth options response:', { optionsData, optionsError });
+
+      if (optionsError) {
+        console.error('[WebAuthn] Discoverable auth options error:', optionsError);
+        toast({
+          title: t('biometric.authFailed'),
+          description: optionsError.message || t('biometric.authFailedDesc'),
+          variant: 'destructive',
+        });
+        return false;
+      }
+
+      if (!optionsData?.options) {
+        console.error('[WebAuthn] No options in response:', optionsData);
+        toast({
+          title: t('biometric.authFailed'),
+          description: t('biometric.authFailedDesc'),
+          variant: 'destructive',
+        });
+        return false;
+      }
+
+      // Start authentication with the browser - will show passkey picker
+      const credential = await startAuthentication({
+        optionsJSON: optionsData.options,
+      });
+
+      // Verify authentication with server - no email needed, user ID comes from credential
+      const { data: verifyData, error: verifyError } = await supabase.functions.invoke(
+        'webauthn-auth-verify',
+        {
+          body: { 
+            credential,
+            challengeId: optionsData.challengeId, // Send challenge ID for verification
+          },
+        }
+      );
+
+      if (verifyError || !verifyData?.success) {
+        throw new Error(verifyError?.message || 'Authentication failed');
+      }
+
+      // Use the magic link token to sign in
+      if (verifyData.token && verifyData.tokenType) {
+        const { error: signInError } = await supabase.auth.verifyOtp({
+          token_hash: verifyData.token,
+          type: verifyData.tokenType,
+        });
+
+        if (signInError) {
+          throw signInError;
+        }
+      }
+
+      toast({
+        title: t('biometric.authSuccess'),
+        description: t('biometric.authSuccessDesc'),
+      });
+
+      return true;
+    } catch (err: any) {
+      console.error('WebAuthn discoverable authentication error:', err);
+      
+      // Handle user cancellation gracefully
+      if (err.name === 'NotAllowedError') {
+        toast({
+          title: t('biometric.authCancelled'),
+          description: t('biometric.authCancelledDesc'),
+          variant: 'destructive',
+        });
+      } else if (err.name === 'NotReadableError' || err.message?.includes('No credentials')) {
+        toast({
+          title: t('biometric.noPasskeys', 'No Passkeys Found'),
+          description: t('biometric.noPasskeysDesc', 'No passkeys are registered on this device. Please sign in with email and password first, then register a passkey in your profile settings.'),
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: t('biometric.authFailed'),
+          description: err.message || t('biometric.authFailedDesc'),
+          variant: 'destructive',
+        });
+      }
+      return false;
+    }
+  }, [isSupported, t]);
+
   // Remove a credential
   const removeCredential = useCallback(async (credentialId: string): Promise<boolean> => {
     try {
@@ -276,6 +385,7 @@ export function useWebAuthn(): UseWebAuthnReturn {
     isLoading,
     registerCredential,
     authenticate,
+    authenticateDiscoverable,
     removeCredential,
     refreshCredentials,
   };
