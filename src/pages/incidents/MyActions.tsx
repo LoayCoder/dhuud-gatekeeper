@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle, FileCheck, PlayCircle, RotateCcw, CalendarPlus, HardHat, Truck, ClipboardList, X, Search as SearchIcon, ChevronDown, FileText, Eye, Calendar, Shield, Users } from 'lucide-react';
+import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle, FileCheck, PlayCircle, RotateCcw, CalendarPlus, HardHat, Truck, ClipboardList, X, Search as SearchIcon, ChevronDown, FileText, Eye, Calendar, Shield, Users, Building2 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -20,6 +20,7 @@ import { useUploadActionEvidence } from '@/hooks/use-action-evidence';
 import { useMyInspectionActions, useUpdateInspectionActionStatus } from '@/hooks/use-inspection-actions';
 import { usePendingWorkerApprovals } from '@/hooks/contractor-management/use-contractor-workers';
 import { usePendingGatePassApprovals, useApproveGatePass, MaterialGatePass } from '@/hooks/contractor-management/use-material-gate-passes';
+import { usePendingCompanyApprovals, useApproveCompany, useRejectCompany, ContractorCompany } from '@/hooks/contractor-management/use-contractor-companies';
 import { GatePassRejectionDialog } from '@/components/contractors/GatePassRejectionDialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Check } from 'lucide-react';
@@ -136,6 +137,13 @@ export default function MyActions() {
   const [gatePassApprovalNotes, setGatePassApprovalNotes] = useState<Record<string, string>>({});
   const [rejectingGatePass, setRejectingGatePass] = useState<MaterialGatePass | null>(null);
   const approveGatePass = useApproveGatePass();
+  
+  // Company approval hooks and state
+  const { data: pendingCompanies, isLoading: companiesLoading } = usePendingCompanyApprovals();
+  const approveCompany = useApproveCompany();
+  const rejectCompany = useRejectCompany();
+  const [rejectingCompany, setRejectingCompany] = useState<ContractorCompany | null>(null);
+  const [companyRejectionReason, setCompanyRejectionReason] = useState("");
   
   // Handle gate pass approval inline
   const handleApproveGatePass = (pass: MaterialGatePass) => {
@@ -1648,6 +1656,90 @@ export default function MyActions() {
                   </div>
                 )}
 
+                {/* Pending Company Registrations Section (HSSE Manager only) */}
+                {isHSSEManager && pendingCompanies && pendingCompanies.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Building2 className="h-5 w-5 text-warning" />
+                      {t('contractors.pendingApprovals', 'Pending Company Registrations')}
+                      <Badge variant="secondary">{pendingCompanies.length}</Badge>
+                    </h3>
+                    <div className="space-y-4">
+                      {pendingCompanies.map((company) => (
+                        <Card key={company.id} className="hover:shadow-md transition-shadow border-warning/30">
+                          <CardHeader className="pb-3">
+                            <div className="space-y-3">
+                              {/* Badge */}
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Badge variant="outline" className="whitespace-nowrap">
+                                  {t('contractors.pendingApproval', 'Pending Approval')}
+                                </Badge>
+                              </div>
+                              
+                              {/* Company Name and City */}
+                              <div className="flex items-start gap-2">
+                                <Building2 className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+                                <div className="min-w-0 flex-1">
+                                  <CardTitle className="text-base line-clamp-2">{company.company_name}</CardTitle>
+                                  {company.city && (
+                                    <CardDescription className="mt-1 line-clamp-1">
+                                      {company.city}
+                                    </CardDescription>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                              {(company as any).contractor_site_rep_name && (
+                                <div>
+                                  <span className="font-medium">{t('contractors.siteRepresentative', 'Site Rep')}:</span>{' '}
+                                  {(company as any).contractor_site_rep_name}
+                                </div>
+                              )}
+                              {company.email && (
+                                <div>
+                                  <span className="font-medium">{t('common.email', 'Email')}:</span>{' '}
+                                  {company.email}
+                                </div>
+                              )}
+                              {company.approval_requested_at && (
+                                <div>
+                                  <span className="font-medium">{t('common.submitted', 'Submitted')}:</span>{' '}
+                                  {formatDistanceToNow(new Date(company.approval_requested_at), { addSuffix: true })}
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div className="flex gap-2">
+                              <Button 
+                                size="sm" 
+                                className="flex-1"
+                                onClick={() => approveCompany.mutate(company.id)}
+                                disabled={approveCompany.isPending}
+                              >
+                                <Check className="h-4 w-4 me-1" />
+                                {t('common.approve', 'Approve')}
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="destructive"
+                                className="flex-1"
+                                onClick={() => setRejectingCompany(company)}
+                                disabled={rejectCompany.isPending}
+                              >
+                                <X className="h-4 w-4 me-1" />
+                                {t('common.reject', 'Reject')}
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Empty State */}
                 {(!pendingApprovals || pendingApprovals.length === 0) && 
                  (!canApproveSeverity || !pendingSeverity || pendingSeverity.length === 0) &&
@@ -1655,7 +1747,8 @@ export default function MyActions() {
                  (!canApproveClosures || !pendingClosures || pendingClosures.length === 0) &&
                  (!pendingExtensions || pendingExtensions.length === 0) &&
                  (!canApproveWorkers || !pendingWorkers || pendingWorkers.length === 0) &&
-                 (!canApproveGatePasses || !pendingGatePasses || pendingGatePasses.length === 0) && (
+                 (!canApproveGatePasses || !pendingGatePasses || pendingGatePasses.length === 0) &&
+                 (!isHSSEManager || !pendingCompanies || pendingCompanies.length === 0) && (
                   <Card className="py-12">
                     <CardContent className="flex flex-col items-center justify-center text-center">
                       <ShieldCheck className="h-12 w-12 text-muted-foreground mb-4" />
@@ -1722,6 +1815,50 @@ export default function MyActions() {
         onOpenChange={(open) => !open && setRejectingGatePass(null)}
         pass={rejectingGatePass}
       />
+
+      {/* Company Rejection Dialog */}
+      <Dialog open={!!rejectingCompany} onOpenChange={(open) => !open && setRejectingCompany(null)}>
+        <DialogContent dir={direction}>
+          <DialogHeader>
+            <DialogTitle>{t('contractors.rejectCompany', 'Reject Company Registration')}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              {t('contractors.rejectCompanyNote', 'Please provide a reason for rejecting this company registration. The requestor will be notified.')}
+            </p>
+            <Textarea
+              value={companyRejectionReason}
+              onChange={(e) => setCompanyRejectionReason(e.target.value)}
+              placeholder={t('contractors.rejectionReasonPlaceholder', 'Enter rejection reason...')}
+              rows={4}
+            />
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setRejectingCompany(null)}>
+                {t('common.cancel', 'Cancel')}
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (rejectingCompany && companyRejectionReason.trim()) {
+                    rejectCompany.mutate(
+                      { companyId: rejectingCompany.id, reason: companyRejectionReason },
+                      {
+                        onSuccess: () => {
+                          setRejectingCompany(null);
+                          setCompanyRejectionReason("");
+                        },
+                      }
+                    );
+                  }
+                }}
+                disabled={!companyRejectionReason.trim() || rejectCompany.isPending}
+              >
+                {t('common.reject', 'Reject')}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
