@@ -18,6 +18,7 @@ import {
   MyInspectionsWidget,
   MyBadgesSection,
 } from '@/components/dashboard/personal';
+import { ActiveChallengeCard } from '@/components/dashboard/personal/ActiveChallengeCard';
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -70,6 +71,9 @@ export default function Dashboard() {
           <MyBadgesSection />
         </div>
       </section>
+
+      {/* Active Challenge */}
+      <ActiveChallengeCard />
 
       {/* AI Insights */}
       <section className="space-y-3">
