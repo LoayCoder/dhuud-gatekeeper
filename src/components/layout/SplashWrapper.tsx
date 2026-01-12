@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { SplashScreen } from './SplashScreen';
 import { useTheme } from '@/contexts/ThemeContext';
-import { PageLoader } from './ui/page-loader';
+import { PageLoader } from '@/components/ui/page-loader';
 
 interface SplashWrapperProps {
   children: React.ReactNode;
