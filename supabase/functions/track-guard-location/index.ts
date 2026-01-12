@@ -27,6 +27,7 @@ function isPointInPolygon(lat: number, lng: number, polygon: number[][]): boolea
 interface RosterData {
   id: string;
   zone_id: string;
+  roster_date: string;
   security_zones: {
     id: string;
     zone_name: string;
@@ -38,7 +39,7 @@ interface RosterData {
     shift_name: string;
     start_time: string;
     end_time: string;
-    days_of_week: string[];
+    is_overnight: boolean | null;
   };
 }
 
@@ -80,19 +81,17 @@ serve(async (req) => {
     }
     
     // Check if guard has active shift assignment
-    const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-    const currentTime = now.toTimeString().substring(0, 5); // HH:MM format
-    
     const { data: activeRoster } = await supabase
       .from('shift_roster')
       .select(`
         id,
         zone_id,
+        roster_date,
         security_zones!inner (
           id, zone_name, polygon_coords, zone_type
         ),
         security_shifts!inner (
-          id, shift_name, start_time, end_time, days_of_week
+          id, shift_name, start_time, end_time, is_overnight
         )
       `)
       .eq('guard_id', guard_id)
@@ -104,30 +103,43 @@ serve(async (req) => {
     let zoneViolation = null;
     
     // Check each active assignment
+    console.log(`Found ${(activeRoster || []).length} active roster entries for guard ${guard_id}`);
+    
     for (const roster of (activeRoster || []) as unknown as RosterData[]) {
       const shift = roster.security_shifts;
       const zone = roster.security_zones;
       
-      // Check if current time is within shift
-      if (!shift?.days_of_week?.includes(currentDay)) continue;
+      console.log(`Checking roster ${roster.id}: zone=${zone.zone_name}, shift=${shift.shift_name}`);
       
-      const shiftStart = shift.start_time;
-      const shiftEnd = shift.end_time;
+      // Build shift start and end as full Date objects using roster_date
+      const rosterDate = roster.roster_date;
+      const startDateTime = new Date(`${rosterDate}T${shift.start_time}`);
+      let endDateTime = new Date(`${rosterDate}T${shift.end_time}`);
       
-      // Handle overnight shifts
-      let isInShift = false;
-      if (shiftStart > shiftEnd) {
-        isInShift = currentTime >= shiftStart || currentTime <= shiftEnd;
-      } else {
-        isInShift = currentTime >= shiftStart && currentTime <= shiftEnd;
+      // Handle overnight shifts (end time is next day)
+      if (shift.is_overnight || endDateTime < startDateTime) {
+        endDateTime.setDate(endDateTime.getDate() + 1);
       }
       
-      if (!isInShift) continue;
+      // Check if we're currently within the shift window
+      // Allow 30 min buffer before/after for check-in/out
+      const bufferMs = 30 * 60 * 1000;
+      const isInShiftWindow = now >= new Date(startDateTime.getTime() - bufferMs) 
+                           && now <= new Date(endDateTime.getTime() + bufferMs);
+      
+      console.log(`Shift window: ${startDateTime.toISOString()} - ${endDateTime.toISOString()}, now=${now.toISOString()}, inWindow=${isInShiftWindow}`);
+      
+      if (!isInShiftWindow) {
+        console.log(`Guard ${guard_id} not in shift window, skipping zone check`);
+        continue;
+      }
       
       // Check if guard is within assigned zone
-      if (zone.polygon_coords && Array.isArray(zone.polygon_coords)) {
+      if (zone.polygon_coords && Array.isArray(zone.polygon_coords) && zone.polygon_coords.length > 0) {
         const polygon = zone.polygon_coords as number[][];
         const inZone = isPointInPolygon(latitude, longitude, polygon);
+        
+        console.log(`Zone check: Guard at (${latitude}, ${longitude}), Zone: ${zone.zone_name} with ${polygon.length} vertices, In zone: ${inZone}`);
         
         if (!inZone) {
           isCompliant = false;
@@ -155,6 +167,8 @@ serve(async (req) => {
           
           console.log(`ALERT: Guard ${guard_id} outside zone ${zone.zone_name}`);
         }
+      } else {
+        console.log(`Zone ${zone.zone_name} has no polygon defined (coords: ${JSON.stringify(zone.polygon_coords)}), skipping compliance check`);
       }
     }
     
