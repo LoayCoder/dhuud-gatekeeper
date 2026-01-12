@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 import { offlineDataCache, CACHE_STORES } from '@/lib/offline-data-cache';
 import type { OfflineReport, OfflineReportSyncStatus } from '@/hooks/use-offline-report-queue';
 import type { IncidentFormData } from '@/hooks/use-incidents';
@@ -39,11 +40,11 @@ export async function syncOfflineReports(): Promise<SyncResult> {
       );
 
     if (pendingReports.length === 0) {
-      console.log('[OfflineSync] No pending reports to sync');
+      logger.debug('[OfflineSync] No pending reports to sync');
       return result;
     }
 
-    console.log(`[OfflineSync] Starting sync of ${pendingReports.length} reports`);
+    logger.debug(`[OfflineSync] Starting sync of ${pendingReports.length} reports`);
 
     // Process reports sequentially to avoid conflicts
     for (const { key, report } of pendingReports) {
@@ -62,10 +63,10 @@ export async function syncOfflineReports(): Promise<SyncResult> {
         });
 
         result.success++;
-        console.log(`[OfflineSync] Synced report ${report.id} -> ${syncedReport.reference_id}`);
+        logger.info(`[OfflineSync] Synced report ${report.id} -> ${syncedReport.reference_id}`);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-        console.error(`[OfflineSync] Failed to sync report ${report.id}:`, err);
+        logger.error(`[OfflineSync] Failed to sync report ${report.id}:`, err);
 
         // Update status to failed
         await updateReportStatus(key, report, 'failed', {
@@ -77,10 +78,10 @@ export async function syncOfflineReports(): Promise<SyncResult> {
       }
     }
 
-    console.log(`[OfflineSync] Sync complete: ${result.success} success, ${result.failed} failed`);
+    logger.info(`[OfflineSync] Sync complete: ${result.success} success, ${result.failed} failed`);
     return result;
   } catch (err) {
-    console.error('[OfflineSync] Sync process failed:', err);
+    logger.error('[OfflineSync] Sync process failed:', err);
     throw err;
   }
 }
@@ -111,7 +112,7 @@ async function syncSingleReport(report: OfflineReport): Promise<{ id: string; re
       });
 
     if (error) {
-      console.error(`[OfflineSync] Failed to upload photo ${i}:`, error);
+      logger.error(`[OfflineSync] Failed to upload photo ${i}:`, error);
       throw new Error(`Failed to upload photo: ${error.message}`);
     }
 
@@ -131,7 +132,7 @@ async function syncSingleReport(report: OfflineReport): Promise<{ id: string; re
       });
 
     if (error) {
-      console.error(`[OfflineSync] Failed to upload closed-on-spot photo ${i}:`, error);
+      logger.error(`[OfflineSync] Failed to upload closed-on-spot photo ${i}:`, error);
       throw new Error(`Failed to upload photo: ${error.message}`);
     }
 
