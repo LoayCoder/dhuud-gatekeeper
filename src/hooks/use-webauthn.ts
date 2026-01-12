@@ -77,7 +77,10 @@ export function useWebAuthn(): UseWebAuthnReturn {
   // Register a new credential
   const registerCredential = useCallback(async (deviceName?: string): Promise<boolean> => {
     try {
+      console.log('[WebAuthn] Starting registration...');
+      
       if (!isSupported || !isPlatformAvailable) {
+        console.log('[WebAuthn] Not supported or no platform authenticator');
         toast({
           title: t('biometric.notSupported'),
           description: t('biometric.notSupportedDesc'),
@@ -87,19 +90,25 @@ export function useWebAuthn(): UseWebAuthnReturn {
       }
 
       // Get registration options from server
+      console.log('[WebAuthn] Fetching registration options...');
       const { data: optionsData, error: optionsError } = await supabase.functions.invoke(
         'webauthn-registration-options'
       );
 
       if (optionsError || !optionsData?.options) {
+        console.error('[WebAuthn] Options error:', optionsError);
         throw new Error(optionsError?.message || 'Failed to get registration options');
       }
 
+      console.log('[WebAuthn] Got options, starting registration with browser...');
+      
       // Start registration with the browser
       const credential = await startRegistration({
         optionsJSON: optionsData.options,
       });
 
+      console.log('[WebAuthn] Registration successful, verifying...');
+      
       // Verify registration with server
       const { data: verifyData, error: verifyError } = await supabase.functions.invoke(
         'webauthn-registration-verify',
@@ -120,13 +129,30 @@ export function useWebAuthn(): UseWebAuthnReturn {
       await refreshCredentials();
       return true;
     } catch (err: any) {
-      console.error('WebAuthn registration error:', err);
+      console.error('[WebAuthn] Registration error name:', err.name);
+      console.error('[WebAuthn] Registration error message:', err.message);
+      console.error('[WebAuthn] Full error:', err);
       
-      // Handle user cancellation gracefully
+      // Handle specific error types
       if (err.name === 'NotAllowedError') {
+        // User cancelled or denied the prompt
         toast({
           title: t('biometric.registrationCancelled'),
           description: t('biometric.registrationCancelledDesc'),
+          variant: 'destructive',
+        });
+      } else if (err.name === 'InvalidStateError') {
+        // Credential already exists on device
+        toast({
+          title: t('biometric.alreadyRegistered'),
+          description: t('biometric.alreadyRegisteredDesc'),
+          variant: 'destructive',
+        });
+      } else if (err.name === 'SecurityError') {
+        // Security restriction (wrong domain, etc.)
+        toast({
+          title: t('biometric.securityError'),
+          description: t('biometric.securityErrorDesc'),
           variant: 'destructive',
         });
       } else {
