@@ -13,6 +13,7 @@ import { Shield, Smartphone, Copy, Check, Loader2, ChevronRight, ChevronLeft } f
 import { toast } from '@/hooks/use-toast';
 import { logUserActivity } from '@/lib/activity-logger';
 import { AuthHeroImage } from '@/components/ui/optimized-image';
+import { logger } from '@/lib/logger';
 
 type Step = 'intro' | 'qrcode' | 'verify' | 'tenant-verify' | 'success';
 
