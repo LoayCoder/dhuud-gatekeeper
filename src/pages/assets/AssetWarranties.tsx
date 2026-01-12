@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format, differenceInDays } from 'date-fns';
-import { ModuleGate } from '@/components/ModuleGate';
+import { ModuleGate } from '@/components';
 import {
   useAssetsWithActiveWarranty,
   useAssetsWithExpiringWarranty,

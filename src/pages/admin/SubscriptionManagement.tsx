@@ -11,9 +11,8 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Send, Clock, CheckCircle2, XCircle, AlertCircle, FileText, History } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { UserLimitIndicator } from "@/components/UserLimitIndicator";
+import { UserLimitIndicator, PlanComparisonModal } from "@/components/subscription";
 import { useModuleAccess } from "@/hooks/use-module-access";
-import { PlanComparisonModal } from "@/components/PlanComparisonModal";
 import { usePriceCalculator, formatPrice } from "@/hooks/use-price-calculator";
 import { PlanSelector, UserCountSlider, ModuleSelector, PriceBreakdown, BillingPeriodToggle } from "@/components/subscription";
 export default function SubscriptionManagement() {

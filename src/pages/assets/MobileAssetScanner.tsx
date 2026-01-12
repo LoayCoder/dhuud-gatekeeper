@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Smartphone } from 'lucide-react';
 import { MobileAssetScannerUI } from '@/components/assets/MobileAssetScannerUI';
-import { ModuleGate } from '@/components/ModuleGate';
+import { ModuleGate } from '@/components';
 
 function MobileAssetScannerContent() {
   const { t } = useTranslation();

@@ -35,7 +35,7 @@ import {
   type OrphanedRecord,
   type DataIntegrityIssue
 } from '@/hooks/use-database-health';
-import { AdminRoute } from '@/components/AdminRoute';
+import { AdminRoute } from '@/components';
 import { cn } from '@/lib/utils';
 
 // Status badge component

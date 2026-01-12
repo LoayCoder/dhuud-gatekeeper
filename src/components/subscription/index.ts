@@ -6,3 +6,7 @@ export { SubscriptionRequestsTable } from './SubscriptionRequestsTable';
 export { RequestReviewDialog } from './RequestReviewDialog';
 export { BillingPeriodToggle } from './BillingPeriodToggle';
 export { SelectionSummary } from './SelectionSummary';
+export { TrialBanner } from './TrialBanner';
+export { UserLimitIndicator } from './UserLimitIndicator';
+export { PlanComparisonModal } from './PlanComparisonModal';
+export { SubscriptionAuditLog } from './SubscriptionAuditLog';

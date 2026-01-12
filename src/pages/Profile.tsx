@@ -10,7 +10,7 @@ import { RoleInfo } from "@/components/profile/RoleInfo";
 import { ManagerInfo } from "@/components/profile/ManagerInfo";
 import { TeamInfo } from "@/components/profile/TeamInfo";
 import { ProfileData } from "@/components/profile/types";
-import { RTLWrapper } from "@/components/RTLWrapper";
+import { RTLWrapper } from "@/components";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCachedProfile } from "@/hooks/use-cached-profile";
 import { useUserRoles } from "@/hooks/use-user-roles";
