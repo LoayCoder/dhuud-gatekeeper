@@ -23088,6 +23088,17 @@ export type Database = {
         }
         Returns: Json
       }
+      create_notification: {
+        Args: {
+          p_link?: string
+          p_message: string
+          p_tenant_id: string
+          p_title: string
+          p_type?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       dept_manager_approve_violation: {
         Args: {
           p_decision: string
@@ -23873,6 +23884,31 @@ export type Database = {
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_tenant_admin: { Args: { _user_id: string }; Returns: boolean }
+      log_email_delivery: {
+        Args: {
+          p_email_type: string
+          p_function_name: string
+          p_provider_message_id?: string
+          p_recipient_email: string
+          p_recipient_name?: string
+          p_status?: string
+          p_subject?: string
+          p_tenant_id: string
+        }
+        Returns: string
+      }
+      log_login_attempt: {
+        Args: {
+          p_email?: string
+          p_failure_reason?: string
+          p_ip_address?: string
+          p_login_success?: boolean
+          p_tenant_id: string
+          p_user_agent?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       lookup_invitation: { Args: { lookup_code: string }; Returns: Json }
       point_in_polygon: {
         Args: { p_lat: number; p_lng: number; p_polygon: Json }
@@ -23964,6 +24000,10 @@ export type Database = {
         Args: { p_request_id: string }
         Returns: string
       }
+      store_mfa_backup_codes: {
+        Args: { p_codes: string[]; p_user_id: string }
+        Returns: undefined
+      }
       submit_contractor_violation: {
         Args: {
           p_incident_id: string
@@ -23986,6 +24026,18 @@ export type Database = {
           p_subtype_id: string
           p_tenant_id: string
         }
+        Returns: undefined
+      }
+      update_email_status: {
+        Args: {
+          p_error_message?: string
+          p_message_id: string
+          p_status: string
+        }
+        Returns: undefined
+      }
+      update_push_subscription: {
+        Args: { p_endpoint: string; p_is_active?: boolean; p_user_id: string }
         Returns: undefined
       }
       upgrade_observation_to_incident: {
@@ -24021,6 +24073,10 @@ export type Database = {
             }
             Returns: string
           }
+      use_mfa_backup_code: {
+        Args: { p_code_hash: string; p_user_id: string }
+        Returns: boolean
+      }
       validate_dept_rep_observation_approval: {
         Args: { p_incident_id: string; p_user_id: string }
         Returns: Json
