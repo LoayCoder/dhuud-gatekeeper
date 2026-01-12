@@ -60,7 +60,14 @@ export function useContractorCompanies(filters: ContractorCompanyFilters = {}) {
 
       if (filters.search) {
         query = query.or(
-          `company_name.ilike.%${filters.search}%,company_name_ar.ilike.%${filters.search}%`
+          `company_name.ilike.%${filters.search}%,` +
+          `company_name_ar.ilike.%${filters.search}%,` +
+          `commercial_registration_number.ilike.%${filters.search}%,` +
+          `vat_number.ilike.%${filters.search}%,` +
+          `email.ilike.%${filters.search}%,` +
+          `phone.ilike.%${filters.search}%,` +
+          `address.ilike.%${filters.search}%,` +
+          `city.ilike.%${filters.search}%`
         );
       }
 
