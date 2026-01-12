@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { Camera, MapPin, Loader2, CheckCircle2, AlertTriangle, Send, X, Trophy, User, Building2, HardHat, Sparkles, RefreshCw } from 'lucide-react';
+import { Camera, MapPin, Loader2, CheckCircle2, AlertTriangle, Send, X, Trophy, User, Building2, HardHat, Sparkles, RefreshCw, Tags, WifiOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,7 +32,11 @@ import { useObservationAIValidator } from '@/hooks/use-observation-ai-validator'
 import { AIAnalysisPanel } from '@/components/observations/AIAnalysisPanel';
 import { useAITags } from '@/hooks/use-ai-tags';
 import { AITagsSelector } from '@/components/ai/AITagsSelector';
-import { Tags } from 'lucide-react';
+// Offline mode imports
+import { useNetworkStatus } from '@/hooks/use-network-status';
+import { useOfflineReporting } from '@/hooks/use-offline-reporting';
+import { useOfflineReportQueue, type OfflineReportFormData, type OfflineReportGPSData } from '@/hooks/use-offline-report-queue';
+import { OfflineReportingBanner } from '@/components/offline/OfflineReportingBanner';
 
 const OBSERVATION_TYPES = [
   { value: 'unsafe_act', labelKey: 'incidents.observationTypes.unsafeAct', isPositive: false },
@@ -86,6 +90,17 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
   
   const schema = createQuickObservationSchema(t);
   
+  // Offline mode hooks
+  const { isOnline } = useNetworkStatus();
+  const { 
+    isCacheReady, 
+    getOfflineSites, 
+    getOfflineDepartments, 
+    getOfflineContractorCompanies,
+    prefetchReportingData 
+  } = useOfflineReporting();
+  const { addReport, pendingCount } = useOfflineReportQueue();
+  
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [gpsDetectedSite, setGpsDetectedSite] = useState<NearestSiteResult | null>(null);
   const [gpsError, setGpsError] = useState<'none' | 'not_supported' | 'permission_denied' | 'unavailable' | 'timeout' | 'no_nearby_site'>('none');
@@ -97,6 +112,10 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
   const [submittedObservation, setSubmittedObservation] = useState<{ id: string; referenceId: string } | null>(null);
   // Prevent double-submission
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  // Offline-specific state
+  const [offlineSites, setOfflineSites] = useState<any[]>([]);
+  const [offlineDepartments, setOfflineDepartments] = useState<any[]>([]);
+  const [offlineContractorCompanies, setOfflineContractorCompanies] = useState<any[]>([]);
   
   // AI Validation hook
   const aiValidator = useObservationAIValidator();
@@ -106,12 +125,42 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   
   const createIncident = useCreateIncident();
-  const { data: sites = [] } = useTenantSites();
-  const { data: departments = [] } = useTenantDepartments();
+  const { data: onlineSites = [] } = useTenantSites();
+  const { data: onlineDepartments = [] } = useTenantDepartments();
   const { data: tenantUsers = [] } = useTenantUsers();
   const { data: contractorWorkers = [] } = useContractorWorkers();
-  const { data: contractorCompanies = [] } = useContractorCompanies();
+  const { data: onlineContractorCompanies = [] } = useContractorCompanies();
   const { data: activeEvent } = useActiveEvent();
+  
+  // Load cached data when offline
+  useEffect(() => {
+    if (!isOnline && isCacheReady) {
+      loadCachedData();
+    }
+  }, [isOnline, isCacheReady]);
+  
+  // Prefetch on mount for offline readiness
+  useEffect(() => {
+    if (isOnline) {
+      prefetchReportingData();
+    }
+  }, [isOnline, prefetchReportingData]);
+  
+  const loadCachedData = useCallback(async () => {
+    const [cachedSites, cachedDepts, cachedCompanies] = await Promise.all([
+      getOfflineSites(),
+      getOfflineDepartments(),
+      getOfflineContractorCompanies(),
+    ]);
+    setOfflineSites(cachedSites);
+    setOfflineDepartments(cachedDepts);
+    setOfflineContractorCompanies(cachedCompanies);
+  }, [getOfflineSites, getOfflineDepartments, getOfflineContractorCompanies]);
+  
+  // Use online or cached data based on network status
+  const sites = isOnline ? onlineSites : offlineSites;
+  const departments = isOnline ? onlineDepartments : offlineDepartments;
+  const contractorCompanies = isOnline ? onlineContractorCompanies : offlineContractorCompanies;
   
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -283,6 +332,57 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
       };
     }
     
+    // Prepare GPS data for offline storage
+    const gpsData: OfflineReportGPSData | null = values.latitude && values.longitude ? {
+      latitude: values.latitude,
+      longitude: values.longitude,
+      accuracy: 10, // Default accuracy
+      captured_at: new Date().toISOString(),
+    } : null;
+    
+    // OFFLINE MODE: Store locally and show success
+    if (!isOnline) {
+      const offlineFormData: OfflineReportFormData = {
+        title: values.description.slice(0, 80) + (values.description.length > 80 ? '...' : ''),
+        description: values.description,
+        event_type: 'observation',
+        subtype: values.subtype,
+        occurred_at: new Date().toISOString(),
+        site_id: values.site_id || undefined,
+        severity: values.severity_v2,
+        risk_rating: values.severity_v2 === 'level_1' ? 'low' : values.severity_v2 === 'level_2' ? 'medium' : 'high',
+        location: '',
+        immediate_actions: '',
+        has_injury: false,
+        has_damage: false,
+        is_against_contractor: values.is_against_contractor,
+        related_contractor_company_id: values.is_against_contractor ? values.related_contractor_company_id : undefined,
+        selected_tags: selectedTags.length > 0 ? selectedTags : undefined,
+        closed_on_spot: values.closed_on_spot,
+        department_id: values.recognition_type === 'department' ? values.recognized_department_id : profile?.assigned_department_id,
+      };
+      
+      const offlineId = await addReport(offlineFormData, gpsData, photos, closedOnSpotPhotos, null);
+      
+      if (offlineId) {
+        // Show offline success with special messaging
+        setSubmittedObservation({
+          id: offlineId,
+          referenceId: t('offline.pendingSync'),
+        });
+        
+        // Navigate back after delay
+        setTimeout(() => {
+          onCancel();
+        }, 3000);
+      } else {
+        setHasSubmitted(false);
+        toast.error(t('offline.failedToSaveOffline'));
+      }
+      return;
+    }
+    
+    // ONLINE MODE: Normal submission flow
     const formData: IncidentFormData = {
       title: values.description.slice(0, 80) + (values.description.length > 80 ? '...' : ''),
       description: values.description,
@@ -398,10 +498,16 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
     <div className="container max-w-lg py-6" dir={direction}>
       {isUploading && <UploadProgressOverlay isUploading={isUploading} current={Math.round(uploadProgress / 10)} total={10} />}
       
+      {/* Offline Mode Banner */}
+      {(!isOnline || pendingCount > 0) && (
+        <OfflineReportingBanner compact className="mb-4" />
+      )}
+      
       <Card className="shadow-lg border-2">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-xl">
+              {!isOnline && <WifiOff className="h-5 w-5 text-warning" />}
               <AlertTriangle className="h-5 w-5 text-yellow-500" />
               {t('quickObservation.title')}
             </CardTitle>
@@ -410,7 +516,9 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
             </Button>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
-            {t('quickObservation.subtitle')}
+            {!isOnline 
+              ? t('offline.offlineModeDescription', 'Your observation will be saved and synced when online')
+              : t('quickObservation.subtitle')}
           </p>
         </CardHeader>
         
@@ -483,21 +591,23 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                   <FormItem>
                     <div className="flex items-center justify-between">
                       <FormLabel>{t('quickObservation.whatDidYouObserve')}</FormLabel>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleAnalyzeDescription}
-                        disabled={aiValidator.validationState === 'analyzing' || field.value.length < 10}
-                        className="gap-1.5 h-7 text-xs"
-                      >
-                        {aiValidator.validationState === 'analyzing' ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <Sparkles className="h-3.5 w-3.5" />
-                        )}
-                        {aiValidator.validationState === 'analyzing' ? t('quickObservation.analyzing') : t('quickObservation.aiAnalyze')}
-                      </Button>
+                      {isOnline && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleAnalyzeDescription}
+                          disabled={aiValidator.validationState === 'analyzing' || field.value.length < 10}
+                          className="gap-1.5 h-7 text-xs"
+                        >
+                          {aiValidator.validationState === 'analyzing' ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Sparkles className="h-3.5 w-3.5" />
+                          )}
+                          {aiValidator.validationState === 'analyzing' ? t('quickObservation.analyzing') : t('quickObservation.aiAnalyze')}
+                        </Button>
+                      )}
                     </div>
                     <FormControl>
                       <Textarea
@@ -518,19 +628,21 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                 )}
               />
               
-              {/* AI Analysis Panel */}
-              <AIAnalysisPanel
-                validationState={aiValidator.validationState}
-                analysisResult={aiValidator.analysisResult}
-                processingTime={aiValidator.processingTime}
-                blockingReason={aiValidator.blockingReason}
-                onConfirmTranslation={handleConfirmTranslation}
-                onConfirmAnalysis={handleConfirmAnalysis}
-                availableTags={availableObservationTags}
-                selectedTags={selectedTags}
-                suggestedTags={aiValidator.analysisResult?.suggestedTags}
-                onTagsChange={setSelectedTags}
-              />
+              {/* AI Analysis Panel - Only show when online */}
+              {isOnline && (
+                <AIAnalysisPanel
+                  validationState={aiValidator.validationState}
+                  analysisResult={aiValidator.analysisResult}
+                  processingTime={aiValidator.processingTime}
+                  blockingReason={aiValidator.blockingReason}
+                  onConfirmTranslation={handleConfirmTranslation}
+                  onConfirmAnalysis={handleConfirmAnalysis}
+                  availableTags={availableObservationTags}
+                  selectedTags={selectedTags}
+                  suggestedTags={aiValidator.analysisResult?.suggestedTags}
+                  onTagsChange={setSelectedTags}
+                />
+              )}
 
               {/* Tags Section - Always visible for manual tag management */}
               {availableObservationTags.length > 0 && (
@@ -918,12 +1030,22 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
               <Button
                 type="submit"
                 className="w-full h-12 text-base"
-                disabled={createIncident.isPending || isUploading || photos.length === 0 || aiValidator.isBlocked || !aiValidator.canSubmit}
+                disabled={
+                  createIncident.isPending || 
+                  isUploading || 
+                  photos.length === 0 || 
+                  (isOnline && (aiValidator.isBlocked || !aiValidator.canSubmit))
+                }
               >
                 {createIncident.isPending || isUploading ? (
                   <>
                     <Loader2 className="h-5 w-5 animate-spin me-2" />
                     {t('quickObservation.submitting')}
+                  </>
+                ) : !isOnline ? (
+                  <>
+                    <WifiOff className="h-5 w-5 me-2" />
+                    {t('offline.saveOffline', 'Save Offline')}
                   </>
                 ) : aiValidator.isBlocked ? (
                   <>
@@ -947,7 +1069,11 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
         open={!!submittedObservation}
         referenceId={submittedObservation?.referenceId || ''}
         incidentId={submittedObservation?.id || ''}
-        onViewIncident={() => submittedObservation && navigate(`/incidents/${submittedObservation.id}`)}
+        onViewIncident={
+          submittedObservation?.id.startsWith('offline_') 
+            ? undefined // Don't allow viewing offline reports
+            : () => submittedObservation && navigate(`/incidents/${submittedObservation.id}`)
+        }
       />
     </div>
   );
