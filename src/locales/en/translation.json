@@ -4201,7 +4201,10 @@
   "moduleGate": {
     "featureLocked": "Feature Not Available",
     "upgradeRequired": "Upgrade your plan to access {{module}}.",
-    "upgradePlan": "Upgrade Plan"
+    "upgradePlan": "Upgrade Plan",
+    "roleAccessRequired": "Access Restricted",
+    "contactAdminForAccess": "Your role doesn't have access to {{module}}",
+    "askAdminToAssignRole": "Please contact your administrator to request access to this feature."
   },
   "modules": {
     "hsse_core": "HSSE Core",
