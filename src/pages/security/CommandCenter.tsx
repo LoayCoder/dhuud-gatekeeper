@@ -9,12 +9,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Slider } from '@/components/ui/slider';
-import { MapPin, AlertTriangle, Users, Clock, RefreshCw, CheckCircle, Radio, Eye, Shield, FileText, Download, ShieldAlert, Settings, Timer } from 'lucide-react';
-import { useGuardLocations, useGeofenceAlerts, useAcknowledgeAlert, useResolveAlert } from '@/hooks/use-live-tracking';
+import { MapPin, AlertTriangle, Users, Clock, RefreshCw, CheckCircle, Radio, Eye, Shield, FileText, Download, ShieldAlert, Settings, Timer, Bell, Volume2 } from 'lucide-react';
+import { useGuardLocations } from '@/hooks/use-live-tracking';
+import { useRealtimeGeofenceAlerts } from '@/hooks/use-realtime-geofence-alerts';
 import { useShiftRoster } from '@/hooks/use-shift-roster';
 import { useSecurityZones } from '@/hooks/use-security-zones';
-import { useRealtimeTracking } from '@/hooks/use-realtime-tracking';
 import { useTrackingInterval, useUpdateTrackingInterval } from '@/hooks/use-tracking-settings';
+import { initializeAudio, testAlertSound } from '@/lib/alert-sounds';
 import { CommandCenterMap } from '@/components/security/CommandCenterMap';
 import { generateShiftReportPDF } from '@/lib/shift-report-pdf';
 import { supabase } from '@/integrations/supabase/client';
@@ -36,29 +37,39 @@ export default function CommandCenter() {
   const [guardPanelOpen, setGuardPanelOpen] = useState(false);
 
   const { data: guardLocations, isLoading: locationsLoading, refetch: refetchLocations } = useGuardLocations();
-  const { data: alerts } = useGeofenceAlerts('pending');
-  const { data: acknowledgedAlerts } = useGeofenceAlerts('acknowledged');
   const { data: todayRoster } = useShiftRoster({ date: format(new Date(), 'yyyy-MM-dd') });
   const { data: zones } = useSecurityZones({ isActive: true });
-
-  const acknowledgeAlert = useAcknowledgeAlert();
-  const resolveAlert = useResolveAlert();
+  
+  // Real-time alerts (WebSocket - no polling)
+  const { 
+    pendingAlerts: alerts, 
+    acknowledgedAlerts, 
+    isConnected, 
+    newAlertCount,
+    clearNewAlertCount,
+    acknowledgeAlert,
+    resolveAlert,
+  } = useRealtimeGeofenceAlerts();
   
   // Tracking settings
   const { data: trackingSettings, isLoading: settingsLoading } = useTrackingInterval();
   const updateInterval = useUpdateTrackingInterval();
-  
-  // Real-time updates
-  const { isConnected, lastUpdate, newAlertCount, acknowledgeAlerts } = useRealtimeTracking(true);
+
+  // Initialize audio on component mount
+  useEffect(() => {
+    initializeAudio();
+  }, []);
 
   useEffect(() => { const i = setInterval(() => setCurrentTime(new Date()), 1000); return () => clearInterval(i); }, []);
 
-  // Acknowledge new alerts when viewed
+  // Clear new alert count when viewing alerts
   useEffect(() => {
-    if (newAlertCount > 0) {
-      acknowledgeAlerts();
+    if (newAlertCount > 0 && alerts.length > 0) {
+      // Auto-clear after 3 seconds of viewing
+      const timer = setTimeout(() => clearNewAlertCount(), 3000);
+      return () => clearTimeout(timer);
     }
-  }, [newAlertCount, acknowledgeAlerts]);
+  }, [newAlertCount, alerts.length, clearNewAlertCount]);
 
   const handleResolve = async () => {
     if (!selectedAlertId) return;
@@ -66,6 +77,10 @@ export default function CommandCenter() {
     setResolveDialogOpen(false);
     setSelectedAlertId(null);
     setResolutionNotes('');
+  };
+
+  const handleTestSound = () => {
+    testAlertSound('high');
   };
 
   const handleGenerateReport = async () => {
@@ -158,7 +173,7 @@ export default function CommandCenter() {
     };
   }) || [];
 
-  const mapAlerts = alerts?.map((alert: any) => ({
+  const mapAlerts = alerts.map((alert) => ({
     id: alert.id,
     guard_id: alert.guard_id || '',
     guard_name: alert.guard_name || 'Unknown',
@@ -166,7 +181,7 @@ export default function CommandCenter() {
     severity: alert.severity,
     latitude: alert.latitude,
     longitude: alert.longitude,
-  })) || [];
+  }));
 
   const currentIntervalValue = trackingSettings?.current || trackingSettings?.default || 5;
 
@@ -182,6 +197,13 @@ export default function CommandCenter() {
           <p className="text-muted-foreground">{t('security.commandCenter.description', 'Real-time monitoring')}</p>
         </div>
         <div className="flex items-center gap-4">
+          {/* New alert indicator */}
+          {newAlertCount > 0 && (
+            <Badge variant="destructive" className="animate-bounce">
+              <Bell className="h-3 w-3 me-1" />
+              {newAlertCount} {t('security.commandCenter.new', 'New')}
+            </Badge>
+          )}
           {/* Connection status */}
           <Badge variant={isConnected ? 'default' : 'outline'} className={cn(isConnected && 'bg-green-500')}>
             <Radio className={cn("h-3 w-3 me-1", isConnected && "animate-pulse")} />
@@ -241,12 +263,12 @@ export default function CommandCenter() {
             </div>
           </CardContent>
         </Card>
-        <Card className={cn((alerts?.length || 0) > 0 && "border-destructive bg-destructive/5")}>
+        <Card className={cn(alerts.length > 0 && "border-destructive bg-destructive/5")}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{t('security.commandCenter.activeAlerts', 'Alerts')}</p>
-                <p className="text-3xl font-bold text-destructive">{alerts?.length || 0}</p>
+                <p className="text-3xl font-bold text-destructive">{alerts.length}</p>
               </div>
               <AlertTriangle className="h-8 w-8 text-destructive" />
             </div>
@@ -275,18 +297,21 @@ export default function CommandCenter() {
           />
         </div>
 
-        <Card className={cn((alerts?.length || 0) > 0 && "border-destructive")}>
-          <CardHeader>
+        <Card className={cn(alerts.length > 0 && "border-destructive")}>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className={cn("h-5 w-5", (alerts?.length || 0) > 0 ? "text-destructive animate-pulse" : "text-muted-foreground")} />
+              <AlertTriangle className={cn("h-5 w-5", alerts.length > 0 ? "text-destructive animate-pulse" : "text-muted-foreground")} />
               {t('security.commandCenter.alerts', 'Alerts')}
             </CardTitle>
+            <Button variant="ghost" size="sm" onClick={handleTestSound} title={t('security.commandCenter.testSound', 'Test sound')}>
+              <Volume2 className="h-4 w-4" />
+            </Button>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[400px]">
-              {(alerts?.length || 0) > 0 || (acknowledgedAlerts?.length || 0) > 0 ? (
+              {alerts.length > 0 || acknowledgedAlerts.length > 0 ? (
                 <div className="space-y-3">
-                  {alerts?.map((alert: any) => (
+                  {alerts.map((alert) => (
                     <div key={alert.id} className="p-3 rounded-lg border border-destructive bg-destructive/5">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
@@ -311,7 +336,7 @@ export default function CommandCenter() {
                       </div>
                     </div>
                   ))}
-                  {acknowledgedAlerts?.map((alert: any) => (
+                  {acknowledgedAlerts.map((alert) => (
                     <div key={alert.id} className="p-3 rounded-lg border border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
@@ -376,13 +401,16 @@ export default function CommandCenter() {
                 <span>30 {t('common.min', 'min')}</span>
               </div>
             </div>
-            {lastUpdate && (
-              <div className="pt-2 border-t">
+            <div className="pt-2 border-t">
+              <div className="flex items-center gap-2">
+                <div className={cn("h-2 w-2 rounded-full", isConnected ? "bg-green-500" : "bg-muted")} />
                 <p className="text-xs text-muted-foreground">
-                  {t('security.commandCenter.lastUpdate', 'Last update')}: {format(lastUpdate, 'HH:mm:ss')}
+                  {isConnected 
+                    ? t('security.commandCenter.realtimeActive', 'Real-time updates active')
+                    : t('security.commandCenter.realtimeInactive', 'Connecting...')}
                 </p>
               </div>
-            )}
+            </div>
           </CardContent>
         </Card>
 
