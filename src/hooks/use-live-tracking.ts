@@ -81,9 +81,13 @@ export function useAcknowledgeAlert() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // Only update acknowledged_at and acknowledged_by (no alert_status column exists)
       const { data, error } = await supabase
         .from('geofence_alerts')
-        .update({ alert_status: 'acknowledged', acknowledged_at: new Date().toISOString(), acknowledged_by: user.id })
+        .update({ 
+          acknowledged_at: new Date().toISOString(), 
+          acknowledged_by: user.id 
+        })
         .eq('id', alertId)
         .select()
         .single();
@@ -109,9 +113,14 @@ export function useResolveAlert() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // Only update resolved_at, resolved_by, and notes (no alert_status column exists)
       const { data, error } = await supabase
         .from('geofence_alerts')
-        .update({ alert_status: 'resolved', resolved_at: new Date().toISOString(), resolved_by: user.id, resolution_notes: notes })
+        .update({ 
+          resolved_at: new Date().toISOString(), 
+          resolved_by: user.id, 
+          resolution_notes: notes 
+        })
         .eq('id', alertId)
         .select()
         .single();
