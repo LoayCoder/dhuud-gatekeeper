@@ -78,14 +78,7 @@ export function useUpdateTrackingInterval() {
       }
 
       const client = supabase as any;
-      const { data: existingData } = await client
-        .from('platform_settings')
-        .select('id')
-        .eq('setting_key', 'guard_tracking_interval_minutes')
-        .limit(1);
-
-      const existing = existingData?.[0];
-
+      
       const settingValue = JSON.stringify({
         default: 5,
         min: 1,
@@ -93,30 +86,57 @@ export function useUpdateTrackingInterval() {
         current: minutes,
       });
 
-      if (existing) {
-        const { error } = await client
-          .from('platform_settings')
-          .update({ value: settingValue })
-          .eq('id', existing.id);
-        if (error) throw error;
-      } else {
-        const { error } = await client
-          .from('platform_settings')
-          .insert({
-            setting_key: 'guard_tracking_interval_minutes',
-            value: settingValue,
-          });
-        if (error) throw error;
-      }
+      // Update the existing record (created by migration)
+      const { error } = await client
+        .from('platform_settings')
+        .update({ value: settingValue })
+        .eq('setting_key', 'guard_tracking_interval_minutes');
+      
+      if (error) throw error;
 
       return minutes;
     },
+    onMutate: async (minutes) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['tracking-interval-settings'] });
+      
+      // Snapshot previous value
+      const previousSettings = queryClient.getQueryData(['tracking-interval-settings']);
+      
+      // Optimistically update
+      queryClient.setQueryData(['tracking-interval-settings'], (old: TrackingIntervalSettings | undefined) => ({
+        ...DEFAULT_SETTINGS,
+        ...old,
+        current: minutes,
+      }));
+      
+      return { previousSettings };
+    },
     onSuccess: (minutes) => {
-      queryClient.invalidateQueries({ queryKey: ['tracking-interval-settings'] });
       toast({ title: 'Settings Updated', description: `Tracking interval set to ${minutes} minutes` });
     },
-    onError: (error: Error) => {
-      toast({ title: 'Failed to update', description: error.message, variant: 'destructive' });
+    onError: (error: Error, _variables, context) => {
+      // Rollback on error
+      if (context?.previousSettings) {
+        queryClient.setQueryData(['tracking-interval-settings'], context.previousSettings);
+      }
+      
+      // Check if it's a permissions error
+      if (error.message?.includes('row-level security') || error.message?.includes('policy')) {
+        toast({ 
+          title: 'Permission Denied', 
+          description: 'You do not have permission to change tracking settings. Please contact an administrator.', 
+          variant: 'destructive' 
+        });
+      } else {
+        toast({ title: 'Failed to update', description: error.message, variant: 'destructive' });
+      }
+    },
+    onSettled: () => {
+      // Always refetch after mutation
+      queryClient.invalidateQueries({ queryKey: ['tracking-interval-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['guard-locations'] });
+      queryClient.invalidateQueries({ queryKey: ['geofence-alerts'] });
     },
   });
 }
