@@ -331,6 +331,36 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SLA_ESCALATION_URGENT') {
     showUrgentSLANotification(event.data);
   }
+  
+  // Handle app shell caching request
+  if (event.data && event.data.type === 'CACHE_APP_SHELL') {
+    const assets = event.data.assets || [];
+    const version = event.data.version || 'unknown';
+    console.log(`[SW] Caching app shell v${version} with ${assets.length} assets`);
+    
+    event.waitUntil(
+      caches.open(CACHE_NAME).then(async (cache) => {
+        for (const url of assets) {
+          try {
+            // Skip external URLs
+            if (url.startsWith('http') && !url.includes(self.location.origin)) {
+              continue;
+            }
+            
+            const fullUrl = url.startsWith('/') ? url : `/${url}`;
+            const response = await fetch(fullUrl, { cache: 'no-cache' });
+            if (response.ok) {
+              await cache.put(fullUrl, response);
+              console.log('[SW] Cached:', fullUrl);
+            }
+          } catch (e) {
+            console.log('[SW] Failed to cache asset:', url, e.message);
+          }
+        }
+        console.log('[SW] App shell caching complete');
+      })
+    );
+  }
 });
 
 // Push event handler - receive and display server push notifications
@@ -788,8 +818,43 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // STRATEGY 4: Stale-While-Revalidate for HTML pages
-  // Fast initial load, background refresh for SPA navigation
+  // STRATEGY 4: App Shell pattern for navigation requests (SPA)
+  // Serve cached index.html for all routes when offline
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok && url.origin === self.location.origin) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        })
+        .catch(async () => {
+          // Network failed - serve cached app shell for SPA navigation
+          // Try the exact URL first, then fall back to root index.html
+          const cached = await caches.match(request);
+          if (cached) {
+            console.log('[SW] Serving cached page:', url.pathname);
+            return cached;
+          }
+          
+          // For SPA, serve the root index.html for any route
+          const indexCached = await caches.match('/');
+          if (indexCached) {
+            console.log('[SW] Serving app shell for:', url.pathname);
+            return indexCached;
+          }
+          
+          // Last resort - offline page
+          return caches.match(OFFLINE_URL);
+        })
+    );
+    return;
+  }
+
+  // STRATEGY 5: Stale-While-Revalidate for other HTML pages
+  // Fast initial load, background refresh
   event.respondWith(
     caches.match(request).then((cached) => {
       const fetchPromise = fetch(request)
