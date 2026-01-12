@@ -293,6 +293,7 @@ export default function CommandCenter() {
             guardLocations={mapGuardLocations}
             zones={mapZones}
             alerts={mapAlerts}
+            trackingIntervalMinutes={currentIntervalValue}
             onGuardClick={handleGuardClick}
           />
         </div>

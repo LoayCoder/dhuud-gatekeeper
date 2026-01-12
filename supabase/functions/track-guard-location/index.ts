@@ -155,21 +155,7 @@ serve(async (req) => {
     
     const now = new Date();
     
-    // Store tracking history using SECURITY DEFINER function
-    const { error: insertError } = await supabase.rpc('insert_guard_tracking', {
-      p_guard_id: guard_id,
-      p_tenant_id: tenant_id,
-      p_latitude: latitude,
-      p_longitude: longitude,
-      p_accuracy: accuracy,
-      p_battery_level: battery_level
-    });
-    
-    if (insertError) {
-      console.error('Error inserting tracking data:', insertError);
-    }
-    
-    // Check if guard has active shift assignment
+    // Check if guard has active shift assignment FIRST to get zone compliance data
     const { data: activeRoster } = await supabase
       .from('shift_roster')
       .select(`
@@ -187,11 +173,12 @@ serve(async (req) => {
       .eq('tenant_id', tenant_id)
       .eq('status', 'checked_in')
       .is('deleted_at', null);
-    
+
     let isCompliant = true;
     let zoneViolation = null;
     let boundaryWarningLevel: 'safe' | 'warning' | 'danger' | 'outside' = 'safe';
     let boundaryDistanceMeters: number | null = null;
+    let activeRosterId: string | null = null;
     
     // Check each active assignment
     console.log(`Found ${(activeRoster || []).length} active roster entries for guard ${guard_id}`);
@@ -225,6 +212,8 @@ serve(async (req) => {
         continue;
       }
       
+      activeRosterId = roster.id;
+      
       // Check if guard is within assigned zone
       if (zone.polygon_coords && Array.isArray(zone.polygon_coords) && zone.polygon_coords.length > 0) {
         const polygon = zone.polygon_coords as number[][];
@@ -236,8 +225,63 @@ serve(async (req) => {
         
         console.log(`Boundary check: Guard at (${latitude}, ${longitude}), Zone: ${zone.zone_name}, Level: ${boundaryWarningLevel}, Distance: ${boundaryDistanceMeters.toFixed(1)}m`);
         
+        if (boundaryWarningLevel === 'outside') {
+          isCompliant = false;
+          zoneViolation = {
+            roster_id: roster.id,
+            zone_id: zone.id,
+            zone_name: zone.zone_name,
+            zone_type: zone.zone_type
+          };
+        }
+      } else {
+        console.log(`Zone ${zone.zone_name} has no polygon defined (coords: ${JSON.stringify(zone.polygon_coords)}), skipping compliance check`);
+      }
+    }
+
+    // Store tracking history using SECURITY DEFINER function - NOW with zone compliance data
+    const { error: insertError } = await supabase.rpc('insert_guard_tracking', {
+      p_guard_id: guard_id,
+      p_tenant_id: tenant_id,
+      p_latitude: latitude,
+      p_longitude: longitude,
+      p_accuracy: accuracy,
+      p_battery_level: battery_level,
+      p_roster_id: activeRosterId,
+      p_is_within_zone: isCompliant,
+      p_distance_from_zone: boundaryDistanceMeters
+    });
+    
+    if (insertError) {
+      console.error('Error inserting tracking data:', insertError);
+    }
+
+    // Now handle alerts for boundary warnings and violations
+    for (const roster of (activeRoster || []) as unknown as RosterData[]) {
+      const shift = roster.security_shifts;
+      const zone = roster.security_zones;
+      
+      // Recalculate shift window for alert logic
+      const rosterDate = roster.roster_date;
+      const startDateTime = new Date(`${rosterDate}T${shift.start_time}`);
+      let endDateTime = new Date(`${rosterDate}T${shift.end_time}`);
+      if (shift.is_overnight || endDateTime < startDateTime) {
+        endDateTime.setDate(endDateTime.getDate() + 1);
+      }
+      const bufferMs = 30 * 60 * 1000;
+      const isInShiftWindow = now >= new Date(startDateTime.getTime() - bufferMs) 
+                           && now <= new Date(endDateTime.getTime() + bufferMs);
+      
+      if (!isInShiftWindow) continue;
+      
+      if (zone.polygon_coords && Array.isArray(zone.polygon_coords) && zone.polygon_coords.length > 0) {
+        const polygon = zone.polygon_coords as number[][];
+        const proximityResult = checkBoundaryProximity(latitude, longitude, polygon);
+        const currentWarningLevel = proximityResult.level;
+        const currentDistance = Math.abs(proximityResult.distance);
+    
         // Create boundary warning alert if approaching edge
-        if (boundaryWarningLevel === 'warning' || boundaryWarningLevel === 'danger') {
+        if (currentWarningLevel === 'warning' || currentWarningLevel === 'danger') {
           // Check if we already have a recent boundary warning (within 5 minutes)
           const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000).toISOString();
           const { data: recentAlert } = await supabase
@@ -257,27 +301,19 @@ serve(async (req) => {
                 roster_id: roster.id,
                 zone_id: zone.id,
                 alert_type: 'boundary_warning',
-                severity: boundaryWarningLevel === 'danger' ? 'high' : 'medium',
+                severity: currentWarningLevel === 'danger' ? 'high' : 'medium',
                 guard_lat: latitude,
                 guard_lng: longitude,
-                alert_message: `Guard approaching zone boundary: ${zone.zone_name} (${boundaryDistanceMeters.toFixed(0)}m from edge)`
+                alert_message: `Guard approaching zone boundary: ${zone.zone_name} (${currentDistance.toFixed(0)}m from edge)`
               });
             
-            console.log(`BOUNDARY WARNING: Guard ${guard_id} at ${boundaryDistanceMeters.toFixed(0)}m from edge of ${zone.zone_name}`);
+            console.log(`BOUNDARY WARNING: Guard ${guard_id} at ${currentDistance.toFixed(0)}m from edge of ${zone.zone_name}`);
           }
         }
         
         // Check if outside zone completely
-        if (boundaryWarningLevel === 'outside') {
-          isCompliant = false;
-          zoneViolation = {
-            roster_id: roster.id,
-            zone_id: zone.id,
-            zone_name: zone.zone_name,
-            zone_type: zone.zone_type
-          };
-          
-          // Create geofence alert
+        if (currentWarningLevel === 'outside') {
+          // Create geofence alert for zone exit
           await supabase
             .from('geofence_alerts')
             .insert({
@@ -294,8 +330,6 @@ serve(async (req) => {
           
           console.log(`ALERT: Guard ${guard_id} outside zone ${zone.zone_name}`);
         }
-      } else {
-        console.log(`Zone ${zone.zone_name} has no polygon defined (coords: ${JSON.stringify(zone.polygon_coords)}), skipping compliance check`);
       }
     }
     
