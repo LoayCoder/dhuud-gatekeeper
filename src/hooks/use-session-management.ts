@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { logger } from '@/lib/logger';
 
 const SESSION_TOKEN_KEY = 'app_session_token';
 const HEARTBEAT_INTERVAL = 5 * 60 * 1000; // 5 minutes

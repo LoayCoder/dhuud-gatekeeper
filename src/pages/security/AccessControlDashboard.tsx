@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { logger } from '@/lib/logger';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { startOfDay, startOfWeek, subDays } from 'date-fns';
@@ -79,7 +80,7 @@ export default function AccessControlDashboard() {
     setScannerOpen(false);
     // Navigate to appropriate verification based on entity type
     // For now, just log and handle in a toast or redirect
-    console.log('Scanned:', result);
+    logger.debug('Scanned:', result);
     // Could redirect to gate dashboard with pre-filled data
     if (result.entityType === 'worker') {
       window.location.href = `/security/gate-dashboard?tab=workers&token=${result.token}`;

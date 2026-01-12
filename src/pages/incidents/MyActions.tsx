@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/lib/logger';
 import { Link } from 'react-router-dom';
 import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle, FileCheck, PlayCircle, RotateCcw, CalendarPlus, HardHat, Truck, ClipboardList, X, Search as SearchIcon, ChevronDown, FileText, Eye, Calendar, Shield, Users, Building2, Trash2 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -418,7 +419,7 @@ export default function MyActions() {
           table: 'corrective_actions',
         },
         (payload) => {
-          console.log('Action changed:', payload);
+          logger.debug('Action changed:', payload);
           // Invalidate queries to refresh data
           queryClient.invalidateQueries({ queryKey: ['my-corrective-actions'] });
           queryClient.invalidateQueries({ queryKey: ['my-inspection-actions'] });

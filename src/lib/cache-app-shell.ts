@@ -2,6 +2,7 @@
  * Cache App Shell utility
  * Triggers caching of critical JS/CSS assets for offline app access
  */
+import { logger } from '@/lib/logger';
 
 const APP_SHELL_CACHE_KEY = 'app-shell-cached';
 const APP_SHELL_CACHE_VERSION = '2025.01.25.001';
@@ -41,13 +42,13 @@ export async function cacheAppShell(): Promise<void> {
 
   // Skip if already cached for this version
   if (isAppShellCached()) {
-    console.log('[App Shell] Already cached for version', APP_SHELL_CACHE_VERSION);
+    logger.info('[App Shell] Already cached for version', APP_SHELL_CACHE_VERSION);
     return;
   }
 
   // Skip if offline
   if (!navigator.onLine) {
-    console.log('[App Shell] Skipping cache - offline');
+    logger.debug('[App Shell] Skipping cache - offline');
     return;
   }
 
@@ -55,7 +56,7 @@ export async function cacheAppShell(): Promise<void> {
     const registration = await navigator.serviceWorker.ready;
     
     if (!registration.active) {
-      console.log('[App Shell] Service worker not active yet');
+      logger.debug('[App Shell] Service worker not active yet');
       return;
     }
 
@@ -78,11 +79,11 @@ export async function cacheAppShell(): Promise<void> {
     const assets = [...new Set([...scripts, ...stylesheets, ...modulePreloads])];
 
     if (assets.length === 0) {
-      console.log('[App Shell] No assets to cache');
+      logger.debug('[App Shell] No assets to cache');
       return;
     }
 
-    console.log('[App Shell] Caching', assets.length, 'assets for offline use');
+    logger.info('[App Shell] Caching', assets.length, 'assets for offline use');
 
     // Send to service worker for caching
     registration.active.postMessage({
@@ -94,7 +95,7 @@ export async function cacheAppShell(): Promise<void> {
     // Mark as cached after a short delay to allow SW to process
     setTimeout(() => {
       markAppShellCached();
-      console.log('[App Shell] Marked as cached');
+      logger.debug('[App Shell] Marked as cached');
       
       // Dispatch event for UI components to react
       window.dispatchEvent(new CustomEvent('app-shell-cached', {

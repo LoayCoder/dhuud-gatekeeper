@@ -1,5 +1,5 @@
 // Notification history storage utility
-
+import { logger } from '@/lib/logger';
 export interface NotificationHistoryItem {
   id: string;
   title: string;
@@ -147,13 +147,13 @@ export async function sendPushNotification(
 ): Promise<boolean> {
   // Check if category is enabled
   if (!isCategoryEnabled(type)) {
-    console.log(`Notification category "${type}" is disabled, skipping push`);
+    logger.debug(`Notification category "${type}" is disabled, skipping push`);
     return false;
   }
 
   // Check if notifications are supported and granted
   if (!('Notification' in window) || Notification.permission !== 'granted') {
-    console.log('Push notifications not available or not granted');
+    logger.debug('Push notifications not available or not granted');
     // Still add to history
     addNotificationToHistory({ title, body, type });
     return false;

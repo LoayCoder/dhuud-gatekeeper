@@ -1,4 +1,5 @@
 import { lazy, ComponentType } from 'react';
+import { logger } from '@/lib/logger';
 
 /**
  * Wraps a dynamic import with retry logic to handle transient network failures
@@ -18,7 +19,7 @@ export function lazyWithRetry<T extends ComponentType<unknown>>(
         if (attempt > 0) {
           // Clear module cache by reloading on retry
           const cacheBuster = `?retry=${attempt}&t=${Date.now()}`;
-          console.log(`[LazyRetry] Attempt ${attempt + 1}/${retries} with cache bust`);
+          logger.debug(`[LazyRetry] Attempt ${attempt + 1}/${retries} with cache bust`);
           
           // Force a fresh fetch by modifying the import
           return await importFn();
@@ -27,7 +28,7 @@ export function lazyWithRetry<T extends ComponentType<unknown>>(
         return await importFn();
       } catch (error) {
         lastError = error as Error;
-        console.warn(`[LazyRetry] Failed to load module (attempt ${attempt + 1}/${retries}):`, error);
+        logger.warn(`[LazyRetry] Failed to load module (attempt ${attempt + 1}/${retries}):`, error);
         
         // Check if it's a chunk load error
         if (error instanceof Error && error.message.includes('Failed to fetch dynamically imported module')) {
@@ -43,7 +44,7 @@ export function lazyWithRetry<T extends ComponentType<unknown>>(
                 await Promise.all(
                   cacheNames.map(name => caches.delete(name))
                 );
-                console.log('[LazyRetry] Cleared caches before final retry');
+                logger.debug('[LazyRetry] Cleared caches before final retry');
               }
             }
           }
@@ -55,7 +56,7 @@ export function lazyWithRetry<T extends ComponentType<unknown>>(
     }
     
     // All retries failed - suggest page reload
-    console.error('[LazyRetry] All retry attempts failed. Suggesting page reload.');
+    logger.error('[LazyRetry] All retry attempts failed. Suggesting page reload.');
     
     // Throw a more informative error
     throw new Error(

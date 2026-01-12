@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 const TRUST_STORAGE_KEY = 'mfa_trusted_device_token';
 const DEFAULT_TRUST_DAYS = 15;
