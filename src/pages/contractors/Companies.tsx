@@ -78,6 +78,10 @@ export default function Companies() {
         (c: ContractorCompany) => c.status === "suspended" || c.status === "inactive" || c.status === "expired"
       );
     }
+    if (activeTab === "active") {
+      return companies.filter((c: ContractorCompany) => c.status === "active");
+    }
+    // "all" tab - show everything including pending_approval
     return companies;
   };
 

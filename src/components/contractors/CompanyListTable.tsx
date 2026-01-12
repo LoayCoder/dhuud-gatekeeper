@@ -40,11 +40,12 @@ export function CompanyListTable({ companies, isLoading, onView, onEdit }: Compa
   }
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+    const variants: Record<string, "default" | "secondary" | "destructive" | "outline" | "warning"> = {
       active: "default", 
       suspended: "destructive", 
       inactive: "secondary",
       expired: "outline",
+      pending_approval: "warning",
     };
     return <Badge variant={variants[status] || "secondary"}>{t(`contractors.status.${status}`, status)}</Badge>;
   };
