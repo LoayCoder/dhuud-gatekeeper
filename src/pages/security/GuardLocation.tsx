@@ -21,6 +21,11 @@ export default function GuardLocation() {
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
   const [isTracking, setIsTracking] = useState(false);
+  const [zoneCompliance, setZoneCompliance] = useState<{
+    isCompliant: boolean;
+    zoneName?: string;
+    checkedAt?: Date;
+  } | null>(null);
 
   const { data: assignment, isLoading, refetch } = useMyRosterAssignment();
   const checkIn = useGuardCheckIn();
@@ -94,18 +99,60 @@ export default function GuardLocation() {
 
     const interval = setInterval(async () => {
       if (currentPosition) {
-        await trackLocation.mutateAsync({
-          lat: currentPosition.latitude,
-          lng: currentPosition.longitude,
-          accuracy: currentPosition.accuracy,
-          batteryLevel: batteryLevel || undefined,
-        });
+        try {
+          const result = await trackLocation.mutateAsync({
+            lat: currentPosition.latitude,
+            lng: currentPosition.longitude,
+            accuracy: currentPosition.accuracy,
+            batteryLevel: batteryLevel || undefined,
+          });
+          // Update zone compliance from tracking response
+          if (result) {
+            setZoneCompliance({
+              isCompliant: result.is_compliant !== false,
+              zoneName: result.zone_violation?.zone_name,
+              checkedAt: new Date(),
+            });
+          }
+        } catch (e) {
+          console.error('Tracking error:', e);
+        }
       }
       getCurrentPosition();
     }, 30000); // Track every 30 seconds
 
     return () => clearInterval(interval);
   }, [assignment?.status, isTracking, currentPosition, batteryLevel, trackLocation, getCurrentPosition]);
+
+  // Handle manual refresh - refetch data and check zone compliance
+  const handleRefresh = useCallback(async () => {
+    // 1. Get new GPS position
+    getCurrentPosition();
+    
+    // 2. Refetch assignment data
+    await refetch();
+    
+    // 3. If checked in and have position, send to server for zone check
+    if (assignment?.status === 'checked_in' && currentPosition) {
+      try {
+        const result = await trackLocation.mutateAsync({
+          lat: currentPosition.latitude,
+          lng: currentPosition.longitude,
+          accuracy: currentPosition.accuracy,
+          batteryLevel: batteryLevel || undefined,
+        });
+        if (result) {
+          setZoneCompliance({
+            isCompliant: result.is_compliant !== false,
+            zoneName: result.zone_violation?.zone_name,
+            checkedAt: new Date(),
+          });
+        }
+      } catch (e) {
+        console.error('Refresh tracking error:', e);
+      }
+    }
+  }, [getCurrentPosition, refetch, assignment?.status, currentPosition, trackLocation, batteryLevel]);
 
   const handleCheckIn = async () => {
     if (!assignment || !currentPosition) return;
@@ -208,6 +255,51 @@ export default function GuardLocation() {
         } : undefined}
       />
 
+      {/* Zone Compliance Status - Only show when checked in */}
+      {assignment.status === 'checked_in' && (
+        <Card className={cn(
+          zoneCompliance?.isCompliant === false && "border-destructive"
+        )}>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              {t('security.myLocation.zoneStatus', 'Zone Status')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <div className={cn(
+                "h-3 w-3 rounded-full",
+                zoneCompliance?.isCompliant !== false ? "bg-green-500" : "bg-red-500 animate-pulse"
+              )} />
+              <span className={cn(
+                "font-medium",
+                zoneCompliance?.isCompliant !== false ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+              )}>
+                {zoneCompliance?.isCompliant !== false
+                  ? t('security.myLocation.insideZone', 'Inside Assigned Zone')
+                  : t('security.myLocation.outsideZone', 'Outside Assigned Zone!')
+                }
+              </span>
+            </div>
+            {zoneCompliance?.checkedAt && (
+              <p className="text-xs text-muted-foreground mt-2">
+                {t('security.myLocation.lastChecked', 'Last checked')}: {format(zoneCompliance.checkedAt, 'HH:mm:ss')}
+              </p>
+            )}
+            {zoneCompliance?.isCompliant === false && (
+              <Alert variant="destructive" className="mt-4">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>{t('security.myLocation.zoneViolation', 'Zone Violation')}</AlertTitle>
+                <AlertDescription>
+                  {t('security.myLocation.returnToZone', 'Please return to your assigned zone immediately.')}
+                </AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* GPS Status */}
       <Card>
         <CardHeader>
@@ -232,8 +324,13 @@ export default function GuardLocation() {
                     {t('security.myLocation.gpsActive', 'GPS Active')}
                   </span>
                 </div>
-                <Button variant="ghost" size="sm" onClick={getCurrentPosition}>
-                  <RefreshCw className="h-4 w-4 me-2" />
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleRefresh}
+                  disabled={trackLocation.isPending}
+                >
+                  <RefreshCw className={cn("h-4 w-4 me-2", trackLocation.isPending && "animate-spin")} />
                   {t('common.refresh', 'Refresh')}
                 </Button>
               </div>

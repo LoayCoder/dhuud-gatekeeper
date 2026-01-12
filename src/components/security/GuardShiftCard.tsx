@@ -52,11 +52,12 @@ export function GuardShiftCard({
     }
 
     const now = new Date();
-    const today = format(new Date(), 'yyyy-MM-dd');
-    const startTime = new Date(`${today}T${shiftDetails.start_time}`);
-    const endTime = new Date(`${today}T${shiftDetails.end_time}`);
+    // Use roster_date instead of today for correct overnight shift handling
+    const rosterDate = assignment.roster_date;
+    const startTime = new Date(`${rosterDate}T${shiftDetails.start_time}`);
+    const endTime = new Date(`${rosterDate}T${shiftDetails.end_time}`);
     
-    // Handle overnight shifts
+    // Handle overnight shifts - end time is next day
     if (endTime < startTime) {
       endTime.setDate(endTime.getDate() + 1);
     }
@@ -71,13 +72,14 @@ export function GuardShiftCard({
     if (!shiftDetails?.end_time) return null;
 
     const now = new Date();
-    const today = format(new Date(), 'yyyy-MM-dd');
-    const endTime = new Date(`${today}T${shiftDetails.end_time}`);
-    
-    // Handle overnight shifts
+    // Use roster_date instead of today for correct overnight shift handling
+    const rosterDate = assignment.roster_date;
     const startTime = shiftDetails?.start_time 
-      ? new Date(`${today}T${shiftDetails.start_time}`)
+      ? new Date(`${rosterDate}T${shiftDetails.start_time}`)
       : null;
+    const endTime = new Date(`${rosterDate}T${shiftDetails.end_time}`);
+    
+    // Handle overnight shifts - end time is next day
     if (startTime && endTime < startTime) {
       endTime.setDate(endTime.getDate() + 1);
     }
@@ -85,9 +87,10 @@ export function GuardShiftCard({
     const hoursRemaining = differenceInHours(endTime, now);
     const minutesRemaining = differenceInMinutes(endTime, now) % 60;
 
-    if (hoursRemaining < 0) return null;
+    // Return null if shift already ended
+    if (hoursRemaining < 0 || (hoursRemaining === 0 && minutesRemaining < 0)) return null;
     
-    return `${hoursRemaining}h ${minutesRemaining}m`;
+    return `${hoursRemaining}h ${Math.abs(minutesRemaining)}m`;
   };
 
   const getStatusColor = () => {
