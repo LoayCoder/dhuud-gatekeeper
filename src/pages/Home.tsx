@@ -2,6 +2,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { WelcomeCompact } from '@/components/home/WelcomeCompact';
 import { HSSEContactCompact } from '@/components/home/HSSEContactCompact';
 import { RoleBasedActionGrid } from '@/components/home/RoleBasedActionGrid';
+import { HeaderControls } from '@/components/home/HeaderControls';
 
 export default function Home() {
   const { activeLogoUrl, tenantName } = useTheme();
@@ -17,7 +18,7 @@ export default function Home() {
     >
       {/* Compact Header with Logo */}
       <header className="shrink-0 border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+        <div className="container max-w-4xl mx-auto px-4 py-2 flex items-center justify-between gap-2">
           {/* Logo */}
           <div className="shrink-0">
             {activeLogoUrl && (
@@ -32,8 +33,13 @@ export default function Home() {
             )}
           </div>
 
-          {/* Compact Welcome */}
-          <WelcomeCompact />
+          {/* Compact Welcome - hidden on mobile, shown on larger screens */}
+          <div className="hidden sm:block flex-1">
+            <WelcomeCompact />
+          </div>
+
+          {/* Header Controls (Language + Theme) */}
+          <HeaderControls />
         </div>
       </header>
 
