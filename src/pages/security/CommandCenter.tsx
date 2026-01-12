@@ -1,36 +1,37 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { MapPin, AlertTriangle, Users, Clock, RefreshCw, CheckCircle, Radio, Eye, Shield, FileText, Download, ShieldAlert, Settings, Timer } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle, ShieldAlert, Timer, Shield, MapPin } from 'lucide-react';
 import { useGuardLocations, useGeofenceAlerts, useAcknowledgeAlert, useResolveAlert } from '@/hooks/use-live-tracking';
 import { useShiftRoster } from '@/hooks/use-shift-roster';
 import { useSecurityZones } from '@/hooks/use-security-zones';
 import { useRealtimeTracking } from '@/hooks/use-realtime-tracking';
 import { useTrackingInterval, useUpdateTrackingInterval } from '@/hooks/use-tracking-settings';
-import { CommandCenterMap } from '@/components/security/CommandCenterMap';
 import { generateShiftReportPDF } from '@/lib/shift-report-pdf';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { SecurityScoreCard } from '@/components/security/SecurityScoreCard';
-import { EmergencyAlertBanner } from '@/components/security/EmergencyAlertBanner';
 import { Link } from 'react-router-dom';
 import { GuardDetailPanel } from '@/components/security/GuardDetailPanel';
+import { EmergencyAlertBanner } from '@/components/security/EmergencyAlertBanner';
+import { TacticalHeader } from '@/components/security/TacticalHeader';
+import { TacticalStatsGrid } from '@/components/security/TacticalStatsGrid';
+import { TacticalAlertPanel } from '@/components/security/TacticalAlertPanel';
+import { TacticalMap } from '@/components/security/TacticalMap';
+
+
 export default function CommandCenter() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const [resolveDialogOpen, setResolveDialogOpen] = useState(false);
   const [selectedAlertId, setSelectedAlertId] = useState<string | null>(null);
   const [resolutionNotes, setResolutionNotes] = useState('');
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [generatingReport, setGeneratingReport] = useState(false);
   const [selectedGuardId, setSelectedGuardId] = useState<string | null>(null);
   const [guardPanelOpen, setGuardPanelOpen] = useState(false);
@@ -40,6 +41,7 @@ export default function CommandCenter() {
   const { data: acknowledgedAlerts } = useGeofenceAlerts('acknowledged');
   const { data: todayRoster } = useShiftRoster({ date: format(new Date(), 'yyyy-MM-dd') });
   const { data: zones } = useSecurityZones({ isActive: true });
+  
 
   const acknowledgeAlert = useAcknowledgeAlert();
   const resolveAlert = useResolveAlert();
@@ -50,8 +52,6 @@ export default function CommandCenter() {
   
   // Real-time updates
   const { isConnected, lastUpdate, newAlertCount, acknowledgeAlerts } = useRealtimeTracking(true);
-
-  useEffect(() => { const i = setInterval(() => setCurrentTime(new Date()), 1000); return () => clearInterval(i); }, []);
 
   // Acknowledge new alerts when viewed
   useEffect(() => {
@@ -76,13 +76,11 @@ export default function CommandCenter() {
 
     setGeneratingReport(true);
     try {
-      // Get tenant info
       const { data: profile } = await supabase.from('profiles').select('tenant_id').single();
       if (!profile?.tenant_id) throw new Error('No tenant');
 
       const { data: tenant } = await supabase.from('tenants').select('name').eq('id', profile.tenant_id).single();
 
-      // Call edge function
       const { data, error } = await supabase.functions.invoke('generate-shift-report', {
         body: {
           shift_id: todayRoster[0].shift_id,
@@ -94,12 +92,10 @@ export default function CommandCenter() {
       if (error) throw error;
       if (!data?.success || !data?.report) throw new Error('Failed to generate report');
 
-      // Generate PDF
       const pdfBlob = await generateShiftReportPDF(data.report, {
         tenantName: tenant?.name || 'Security',
       });
 
-      // Download
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
       link.href = url;
@@ -136,7 +132,6 @@ export default function CommandCenter() {
   })) || [];
 
   const mapZones = zones?.map(zone => {
-    // Parse polygon_coords from JSONB - it could be stored as array or need parsing
     let coords: number[][] = [];
     if (zone.polygon_coords) {
       try {
@@ -174,192 +169,93 @@ export default function CommandCenter() {
     setSelectedGuardId(guardId);
     setGuardPanelOpen(true);
   };
+
+  const handleAcknowledge = (alertId: string) => {
+    acknowledgeAlert.mutate(alertId);
+  };
+
+  const handleResolveClick = (alertId: string) => {
+    setSelectedAlertId(alertId);
+    setResolveDialogOpen(true);
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{t('security.commandCenter.title', 'Command Center')}</h1>
-          <p className="text-muted-foreground">{t('security.commandCenter.description', 'Real-time monitoring')}</p>
-        </div>
-        <div className="flex items-center gap-4">
-          {/* Connection status */}
-          <Badge variant={isConnected ? 'default' : 'outline'} className={cn(isConnected && 'bg-green-500')}>
-            <Radio className={cn("h-3 w-3 me-1", isConnected && "animate-pulse")} />
-            {isConnected ? t('security.commandCenter.live', 'Live') : t('security.commandCenter.connecting', 'Connecting...')}
-          </Badge>
-          <div className="flex items-center gap-2 text-lg font-mono">
-            <Clock className="h-5 w-5" />
-            {format(currentTime, 'HH:mm:ss')}
-          </div>
-          <Button variant="outline" onClick={() => refetchLocations()}>
-            <RefreshCw className="h-4 w-4 me-2" />
-            {t('common.refresh', 'Refresh')}
-          </Button>
-          <Button onClick={handleGenerateReport} disabled={generatingReport}>
-            <FileText className="h-4 w-4 me-2" />
-            {generatingReport ? t('common.generating', 'Generating...') : t('security.commandCenter.generateReport', 'Report')}
-          </Button>
-        </div>
-      </div>
+    <div className="tactical-bg min-h-screen -m-6 p-6">
+      {/* Tactical Header */}
+      <TacticalHeader
+        isConnected={isConnected}
+        alertCount={alerts?.length || 0}
+        onRefresh={() => refetchLocations()}
+        onGenerateReport={handleGenerateReport}
+        generatingReport={generatingReport}
+      />
 
-      {/* Emergency Alert Banner */}
-      <EmergencyAlertBanner />
+      <div className="space-y-6 mt-6">
+        {/* Emergency Alert Banner */}
+        <EmergencyAlertBanner />
 
-      {/* Stats cards */}
-      <div className="grid gap-4 md:grid-cols-5">
-        <SecurityScoreCard compact className="md:col-span-1" />
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">{t('security.commandCenter.onDuty', 'On Duty')}</p>
-                <p className="text-3xl font-bold text-green-600">{checkedInCount}</p>
-              </div>
-              <Users className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">{t('security.commandCenter.scheduled', 'Scheduled')}</p>
-                <p className="text-3xl font-bold text-blue-600">{scheduledCount}</p>
-              </div>
-              <Clock className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">{t('security.commandCenter.completed', 'Completed')}</p>
-                <p className="text-3xl font-bold text-muted-foreground">{completedCount}</p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className={cn((alerts?.length || 0) > 0 && "border-destructive bg-destructive/5")}>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">{t('security.commandCenter.activeAlerts', 'Alerts')}</p>
-                <p className="text-3xl font-bold text-destructive">{alerts?.length || 0}</p>
-              </div>
-              <AlertTriangle className="h-8 w-8 text-destructive" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        {/* Stats Grid */}
+        <TacticalStatsGrid
+          onDuty={checkedInCount}
+          scheduled={scheduledCount}
+          completed={completedCount}
+          alerts={alerts?.length || 0}
+          securityScore={85}
+        />
 
-      {/* Quick Access Links */}
-      <div className="flex gap-3 flex-wrap">
-        <Button variant="outline" asChild>
-          <Link to="/security/blacklist" className="gap-2">
+        {/* Quick Access Links */}
+        <div className="flex gap-3 flex-wrap">
+          <Link 
+            to="/security/blacklist" 
+            className="tactical-btn flex items-center gap-2"
+          >
             <ShieldAlert className="h-4 w-4" />
             {t('security.commandCenter.blacklist', 'Blacklist Management')}
           </Link>
-        </Button>
-      </div>
+        </div>
 
-      {/* Map and Alerts */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <CommandCenterMap
-            guardLocations={mapGuardLocations}
-            zones={mapZones}
-            alerts={mapAlerts}
-            onGuardClick={handleGuardClick}
+        {/* Map and Alerts */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <TacticalMap
+              guardLocations={mapGuardLocations}
+              zones={mapZones}
+              alerts={mapAlerts}
+              onGuardClick={handleGuardClick}
+            />
+          </div>
+
+          <TacticalAlertPanel
+            pendingAlerts={alerts || []}
+            acknowledgedAlerts={acknowledgedAlerts || []}
+            onAcknowledge={handleAcknowledge}
+            onResolve={handleResolveClick}
+            isAcknowledging={acknowledgeAlert.isPending}
           />
         </div>
 
-        <Card className={cn((alerts?.length || 0) > 0 && "border-destructive")}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className={cn("h-5 w-5", (alerts?.length || 0) > 0 ? "text-destructive animate-pulse" : "text-muted-foreground")} />
-              {t('security.commandCenter.alerts', 'Alerts')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[400px]">
-              {(alerts?.length || 0) > 0 || (acknowledgedAlerts?.length || 0) > 0 ? (
-                <div className="space-y-3">
-                  {alerts?.map((alert: any) => (
-                    <div key={alert.id} className="p-3 rounded-lg border border-destructive bg-destructive/5">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-medium text-destructive">{alert.alert_type}</p>
-                            {alert.severity && (
-                              <Badge variant="destructive" className="text-xs uppercase">
-                                {alert.severity}
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm font-medium truncate">{alert.guard_name}</p>
-                          <p className="text-xs text-muted-foreground">{format(new Date(alert.created_at), 'HH:mm:ss')}</p>
-                          {alert.alert_message && (
-                            <p className="text-xs mt-1 text-muted-foreground line-clamp-2">{alert.alert_message}</p>
-                          )}
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => acknowledgeAlert.mutate(alert.id)} disabled={acknowledgeAlert.isPending}>
-                          <Eye className="h-3 w-3 me-1" />
-                          {t('security.commandCenter.acknowledge', 'Ack')}
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                  {acknowledgedAlerts?.map((alert: any) => (
-                    <div key={alert.id} className="p-3 rounded-lg border border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-medium text-yellow-700 dark:text-yellow-500">{alert.alert_type}</p>
-                            <Badge variant="outline" className="text-xs">{t('security.commandCenter.acknowledged', 'Acknowledged')}</Badge>
-                          </div>
-                          <p className="text-sm font-medium truncate">{alert.guard_name}</p>
-                        </div>
-                        <Button size="sm" onClick={() => { setSelectedAlertId(alert.id); setResolveDialogOpen(true); }}>
-                          <CheckCircle className="h-3 w-3 me-1" />
-                          {t('security.commandCenter.resolve', 'Resolve')}
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center py-12">
-                  <CheckCircle className="h-12 w-12 text-green-500 mb-4" />
-                  <p className="text-muted-foreground">{t('security.commandCenter.noAlerts', 'No alerts')}</p>
-                </div>
-              )}
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Settings and Zone Coverage */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Tracking Settings */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Timer className="h-5 w-5" />
-              {t('security.commandCenter.trackingSettings', 'Tracking Settings')}
-            </CardTitle>
-            <CardDescription className="text-xs">
+        {/* Settings and Zone Coverage */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Tracking Settings */}
+          <div className="tactical-card p-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Timer className="h-5 w-5 tactical-text-accent" />
+              <span className="text-sm font-medium uppercase tracking-wider tactical-text">
+                {t('security.tactical.trackingSettings', 'Tracking Settings')}
+              </span>
+            </div>
+            <p className="text-xs tactical-text-dim mb-4">
               {t('security.commandCenter.trackingDescription', 'Configure guard location update frequency')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
+            </p>
+            
+            <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm">{t('security.commandCenter.updateInterval', 'Update Interval')}</span>
-                <Badge variant="secondary" className="font-mono">
+                <span className="text-sm tactical-text-dim">
+                  {t('security.commandCenter.updateInterval', 'Update Interval')}
+                </span>
+                <span className="px-2 py-1 rounded tactical-mono text-sm bg-[hsl(var(--tactical-accent)/0.2)] tactical-text-accent">
                   {currentIntervalValue} {t('common.min', 'min')}
-                </Badge>
+                </span>
               </div>
               <Slider
                 value={[currentIntervalValue]}
@@ -370,63 +266,93 @@ export default function CommandCenter() {
                 disabled={updateInterval.isPending || settingsLoading}
                 className="w-full"
               />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>1 {t('common.min', 'min')}</span>
-                <span>15 {t('common.min', 'min')}</span>
-                <span>30 {t('common.min', 'min')}</span>
+              <div className="flex justify-between text-[10px] tactical-text-dim tactical-mono">
+                <span>1 MIN</span>
+                <span>15 MIN</span>
+                <span>30 MIN</span>
               </div>
+              {lastUpdate && (
+                <div className="pt-3 border-t border-[hsl(var(--tactical-border))]">
+                  <p className="text-xs tactical-text-dim">
+                    {t('security.commandCenter.lastUpdate', 'Last update')}: 
+                    <span className="tactical-mono ms-1 tactical-text-accent">
+                      {format(lastUpdate, 'HH:mm:ss')}
+                    </span>
+                  </p>
+                </div>
+              )}
             </div>
-            {lastUpdate && (
-              <div className="pt-2 border-t">
-                <p className="text-xs text-muted-foreground">
-                  {t('security.commandCenter.lastUpdate', 'Last update')}: {format(lastUpdate, 'HH:mm:ss')}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Zone Coverage */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Shield className="h-5 w-5" />
-              {t('security.commandCenter.zoneCoverage', 'Zone Coverage')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+          {/* Zone Coverage */}
+          <div className="tactical-card p-4 lg:col-span-2">
+            <div className="flex items-center gap-2 mb-4">
+              <Shield className="h-5 w-5 tactical-text-accent" />
+              <span className="text-sm font-medium uppercase tracking-wider tactical-text">
+                {t('security.tactical.zoneCoverage', 'Zone Coverage')}
+              </span>
+            </div>
+            
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {zones?.slice(0, 6).map(zone => (
-                <div key={zone.id} className="p-3 rounded-lg border bg-muted/50">
+                <div 
+                  key={zone.id} 
+                  className="p-3 rounded-lg border border-[hsl(var(--tactical-border))] bg-[hsl(var(--tactical-surface))]"
+                >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-sm truncate">{zone.zone_name}</span>
-                    <Badge variant="secondary" className="text-xs">{zone.zone_code}</Badge>
+                    <span className="font-medium text-sm tactical-text truncate">{zone.zone_name}</span>
+                    <span className="px-1.5 py-0.5 text-[9px] rounded tactical-mono bg-[hsl(var(--tactical-accent)/0.2)] tactical-text-accent">
+                      {zone.zone_code}
+                    </span>
                   </div>
-                  <div className="text-xs text-muted-foreground">{zone.zone_type} • {zone.risk_level}</div>
+                  <div className="flex items-center gap-2 text-[10px] tactical-text-dim">
+                    <MapPin className="h-3 w-3" />
+                    <span className="uppercase">{zone.zone_type}</span>
+                    <span>•</span>
+                    <span className={cn(
+                      'uppercase font-medium',
+                      zone.risk_level === 'high' && 'tactical-text-critical',
+                      zone.risk_level === 'medium' && 'tactical-text-warning',
+                      zone.risk_level === 'low' && 'tactical-text-accent'
+                    )}>
+                      {zone.risk_level}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Resolve Dialog */}
       <Dialog open={resolveDialogOpen} onOpenChange={setResolveDialogOpen}>
-        <DialogContent>
+        <DialogContent className="bg-[hsl(var(--tactical-surface))] border-[hsl(var(--tactical-border))]">
           <DialogHeader>
-            <DialogTitle>{t('security.commandCenter.resolveAlert', 'Resolve Alert')}</DialogTitle>
+            <DialogTitle className="tactical-text">
+              {t('security.commandCenter.resolveAlert', 'Resolve Alert')}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>{t('security.commandCenter.resolutionNotes', 'Resolution Notes')}</Label>
-              <Textarea value={resolutionNotes} onChange={(e) => setResolutionNotes(e.target.value)} rows={4} />
+              <Label className="tactical-text-dim">{t('security.commandCenter.resolutionNotes', 'Resolution Notes')}</Label>
+              <Textarea 
+                value={resolutionNotes} 
+                onChange={(e) => setResolutionNotes(e.target.value)} 
+                rows={4}
+                className="bg-[hsl(var(--tactical-bg))] border-[hsl(var(--tactical-border))] tactical-text"
+              />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setResolveDialogOpen(false)}>
               {t('common.cancel', 'Cancel')}
             </Button>
-            <Button onClick={handleResolve} disabled={!resolutionNotes.trim() || resolveAlert.isPending}>
+            <Button 
+              onClick={handleResolve} 
+              disabled={!resolutionNotes.trim() || resolveAlert.isPending}
+              className="tactical-btn-primary"
+            >
               <CheckCircle className="h-4 w-4 me-2" />
               {t('security.commandCenter.markResolved', 'Mark Resolved')}
             </Button>
