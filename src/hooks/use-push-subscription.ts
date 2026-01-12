@@ -67,18 +67,18 @@ function urlBase64ToUint8Array(base64String: string): ArrayBuffer | null {
 
 // Log VAPID key info when module loads (for debugging)
 if (typeof window !== 'undefined') {
-  console.log('[Push] 🔑 VAPID Key Check:');
-  console.log('[Push]   - Key loaded:', VAPID_PUBLIC_KEY ? 'Yes' : 'No');
-  console.log('[Push]   - Key length:', VAPID_PUBLIC_KEY?.length || 0);
+  logger.debug('[Push] 🔑 VAPID Key Check:');
+  logger.debug('[Push]   - Key loaded:', VAPID_PUBLIC_KEY ? 'Yes' : 'No');
+  logger.debug('[Push]   - Key length:', VAPID_PUBLIC_KEY?.length || 0);
   
   if (VAPID_PUBLIC_KEY) {
     const isValid = isValidVapidPublicKey(VAPID_PUBLIC_KEY);
-    console.log('[Push]   - Format valid:', isValid);
+    logger.debug('[Push]   - Format valid:', isValid);
     if (isValid) {
       const testDecode = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
-      console.log('[Push]   - Decode test:', testDecode ? 'Passed' : 'Failed');
-      console.log('[Push]   - Expected key: BGNgPMHETSMk09BaEp4zcplZAuBi3WM_TQIN_uleDqOyxMo_BZsQjLSd0kbeITiNC4SclPMqLEn_jBzoju3eI_Y');
-      console.log('[Push]   - Match:', VAPID_PUBLIC_KEY === 'BGNgPMHETSMk09BaEp4zcplZAuBi3WM_TQIN_uleDqOyxMo_BZsQjLSd0kbeITiNC4SclPMqLEn_jBzoju3eI_Y');
+      logger.debug('[Push]   - Decode test:', testDecode ? 'Passed' : 'Failed');
+      logger.debug('[Push]   - Expected key: BGNgPMHETSMk09BaEp4zcplZAuBi3WM_TQIN_uleDqOyxMo_BZsQjLSd0kbeITiNC4SclPMqLEn_jBzoju3eI_Y');
+      logger.debug('[Push]   - Match:', VAPID_PUBLIC_KEY === 'BGNgPMHETSMk09BaEp4zcplZAuBi3WM_TQIN_uleDqOyxMo_BZsQjLSd0kbeITiNC4SclPMqLEn_jBzoju3eI_Y');
     }
   }
 }
@@ -216,7 +216,7 @@ export function usePushSubscription() {
       
       // Log mobile PWA status for debugging
       if (isMobile) {
-        console.log('[Push] Mobile PWA status:', { isStandalone, hasSubscription: !!subscription });
+        logger.debug('[Push] Mobile PWA status:', { isStandalone, hasSubscription: !!subscription });
       }
     } catch (error) {
       console.error('Error checking push subscription:', error);
@@ -230,8 +230,8 @@ export function usePushSubscription() {
   }, [isSupported, isMobile, isStandalone]);
 
   const subscribe = useCallback(async (): Promise<boolean> => {
-    console.log('[Push] Starting subscription process...');
-    console.log('[Push] isSupported:', isSupported);
+    logger.debug('[Push] Starting subscription process...');
+    logger.debug('[Push] isSupported:', isSupported);
     
     // Validate browser support
     if (!isSupported) {
@@ -267,13 +267,13 @@ export function usePushSubscription() {
       return false;
     }
 
-    console.log('[Push] User ID:', user.id, 'Tenant ID:', profile.tenant_id);
+    logger.debug('[Push] User ID:', user.id, 'Tenant ID:', profile.tenant_id);
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      console.log('[Push] Requesting notification permission...');
+      logger.debug('[Push] Requesting notification permission...');
       const permission = await Notification.requestPermission();
-      console.log('[Push] Permission result:', permission);
+      logger.debug('[Push] Permission result:', permission);
       
       if (permission !== 'granted') {
         setState((prev) => ({
@@ -284,21 +284,21 @@ export function usePushSubscription() {
         return false;
       }
 
-      console.log('[Push] Waiting for service worker...');
+      logger.debug('[Push] Waiting for service worker...');
       const registration = await navigator.serviceWorker.ready;
-      console.log('[Push] Service worker ready:', registration.scope);
+      logger.debug('[Push] Service worker ready:', registration.scope);
 
-      console.log('[Push] Subscribing to push manager...');
+      logger.debug('[Push] Subscribing to push manager...');
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey,
       });
-      console.log('[Push] Push subscription created:', subscription.endpoint);
+      logger.debug('[Push] Push subscription created:', subscription.endpoint);
 
       const subscriptionJSON = subscription.toJSON();
 
       // Save to Supabase database for server-side push
-      console.log('[Push] Saving subscription to database...');
+      logger.debug('[Push] Saving subscription to database...');
       const saved = await saveSubscriptionToDatabase(
         user.id,
         profile.tenant_id,
@@ -306,9 +306,9 @@ export function usePushSubscription() {
       );
 
       if (!saved) {
-        console.warn('[Push] Subscription created but failed to save to database');
+        logger.warn('[Push] Subscription created but failed to save to database');
       } else {
-        console.log('[Push] Subscription saved to database successfully');
+        logger.debug('[Push] Subscription saved to database successfully');
       }
 
       // Also keep in localStorage as backup

@@ -5,6 +5,7 @@ import {
   NotificationSoundType,
   isCategoryEnabled 
 } from '@/lib/notification-history';
+import { logger } from '@/lib/logger';
 
 export function useSwNotificationListener() {
   useEffect(() => {
@@ -15,7 +16,7 @@ export function useSwNotificationListener() {
         
         // Check if this category is enabled
         if (!isCategoryEnabled(notificationType)) {
-          console.log(`Notification category "${notificationType}" is disabled, skipping`);
+          logger.debug(`Notification category "${notificationType}" is disabled, skipping`);
           return;
         }
         

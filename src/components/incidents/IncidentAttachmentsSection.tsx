@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { logger } from "@/lib/logger";
 
 interface MediaAttachment {
   url: string;
@@ -115,8 +116,8 @@ export function IncidentAttachmentsSection({
       const storagePath = `${profile.tenant_id}/${incidentId}`;
       const allFiles: StorageFile[] = [];
       
-      console.log(`[Attachments] Fetching attachments for incident: ${incidentId}, tenant: ${profile.tenant_id}`);
-      console.log(`[Attachments] Storage path: ${storagePath}`);
+      logger.debug(`[Attachments] Fetching attachments for incident: ${incidentId}, tenant: ${profile.tenant_id}`);
+      logger.debug(`[Attachments] Storage path: ${storagePath}`);
       
       // Known subfolders where files are uploaded
       const subfolders = ['photos', 'video', 'closed-on-spot', 'evidence', ''];
@@ -133,13 +134,13 @@ export function IncidentAttachmentsSection({
           continue;
         }
 
-        console.log(`[Attachments] Files found in "${subfolder || 'root'}":`, files?.length || 0, files?.map(f => f.name));
+        logger.debug(`[Attachments] Files found in "${subfolder || 'root'}":`, files?.length || 0, files?.map(f => f.name));
 
         if (!files || files.length === 0) continue;
 
         // Filter out folder entries (they have null id in some cases or no metadata)
         const actualFiles = files.filter(f => f.name && !f.name.endsWith('/') && f.id);
-        console.log(`[Attachments] Actual files after filter in "${subfolder || 'root'}":`, actualFiles.length);
+        logger.debug(`[Attachments] Actual files after filter in "${subfolder || 'root'}":`, actualFiles.length);
 
         // Get signed URLs for all files in this subfolder
         const filesWithUrls = await Promise.all(
@@ -167,7 +168,7 @@ export function IncidentAttachmentsSection({
         allFiles.push(...filesWithUrls.filter(f => f.url));
       }
 
-      console.log(`[Attachments] Total files found:`, allFiles.length);
+      logger.debug(`[Attachments] Total files found:`, allFiles.length);
       return allFiles;
     },
     enabled: !!profile?.tenant_id && !!incidentId
