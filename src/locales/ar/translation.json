@@ -4019,7 +4019,10 @@
   "moduleGate": {
     "featureLocked": "الميزة غير متاحة",
     "upgradeRequired": "قم بترقية خطتك للوصول إلى {{module}}.",
-    "upgradePlan": "ترقية الخطة"
+    "upgradePlan": "ترقية الخطة",
+    "roleAccessRequired": "الوصول مقيد",
+    "contactAdminForAccess": "دورك لا يملك صلاحية الوصول إلى {{module}}",
+    "askAdminToAssignRole": "يرجى التواصل مع المسؤول لطلب الوصول إلى هذه الميزة."
   },
   "modules": {
     "hsse_core": "نظام HSSE الأساسي",

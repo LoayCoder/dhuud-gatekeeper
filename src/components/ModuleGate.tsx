@@ -5,7 +5,7 @@ import { useUserRoles } from '@/hooks/use-user-roles';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Lock, Sparkles } from 'lucide-react';
+import { Lock, Sparkles, UserX } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface ModuleGateProps {
@@ -58,8 +58,31 @@ export function ModuleGate({
     return <>{fallback}</>;
   }
 
-  // Show upgrade prompt
+  // Show context-aware access denied messages
   if (showUpgradePrompt) {
+    // Case 1: Tenant has module but user's role doesn't have access
+    if (hasTenantAccess && !hasRoleAccess) {
+      return (
+        <Card className="border-dashed border-amber-500/50">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
+              <UserX className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+            </div>
+            <CardTitle>{t('moduleGate.roleAccessRequired')}</CardTitle>
+            <CardDescription>
+              {t('moduleGate.contactAdminForAccess', { module: t(`modules.${module}`) })}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-sm text-muted-foreground">
+              {t('moduleGate.askAdminToAssignRole')}
+            </p>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    // Case 2: Tenant doesn't have module - show upgrade prompt
     return (
       <Card className="border-dashed">
         <CardHeader className="text-center">
