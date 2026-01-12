@@ -16,6 +16,7 @@ import {
   MyVisitorsWidget,
   MyGatePassesWidget,
   MyInspectionsWidget,
+  MyBadgesSection,
 } from '@/components/dashboard/personal';
 
 export default function Dashboard() {
@@ -53,6 +54,12 @@ export default function Dashboard() {
       <section className="space-y-3">
         <SectionHeader title={t('dashboard.stats.sectionTitle', 'My Statistics')} />
         <MyReportingStatsCard />
+      </section>
+
+      {/* Achievements & Badges */}
+      <section className="space-y-3">
+        <SectionHeader title={t('dashboard.badges.sectionTitle', 'My Achievements')} />
+        <MyBadgesSection />
       </section>
 
       {/* Quick Actions */}

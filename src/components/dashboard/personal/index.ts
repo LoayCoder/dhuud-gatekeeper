@@ -10,3 +10,5 @@ export { MyRankCard } from './MyRankCard';
 export { AIInsightsCard } from './AIInsightsCard';
 export { QuickReportButtons } from './QuickReportButtons';
 export { RecentActivityFeed } from './RecentActivityFeed';
+export { MyBadgesSection } from './MyBadgesSection';
+export * from './badges';
