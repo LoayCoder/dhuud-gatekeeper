@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle, FileCheck, PlayCircle, RotateCcw, CalendarPlus, HardHat, Truck, ClipboardList, X, Search as SearchIcon, ChevronDown, FileText, Eye, Calendar, Shield, Users, Building2 } from 'lucide-react';
+import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle, FileCheck, PlayCircle, RotateCcw, CalendarPlus, HardHat, Truck, ClipboardList, X, Search as SearchIcon, ChevronDown, FileText, Eye, Calendar, Shield, Users, Building2, Trash2 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -20,7 +20,7 @@ import { useUploadActionEvidence } from '@/hooks/use-action-evidence';
 import { useMyInspectionActions, useUpdateInspectionActionStatus } from '@/hooks/use-inspection-actions';
 import { usePendingWorkerApprovals } from '@/hooks/contractor-management/use-contractor-workers';
 import { usePendingGatePassApprovals, useApproveGatePass, MaterialGatePass } from '@/hooks/contractor-management/use-material-gate-passes';
-import { usePendingCompanyApprovals, useApproveCompany, useRejectCompany, ContractorCompany } from '@/hooks/contractor-management/use-contractor-companies';
+import { usePendingCompanyApprovals, useApproveCompany, useRejectCompany, useHardDeleteContractorCompany, ContractorCompany } from '@/hooks/contractor-management/use-contractor-companies';
 import { GatePassRejectionDialog } from '@/components/contractors/GatePassRejectionDialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Check } from 'lucide-react';
@@ -142,8 +142,10 @@ export default function MyActions() {
   const { data: pendingCompanies, isLoading: companiesLoading } = usePendingCompanyApprovals();
   const approveCompany = useApproveCompany();
   const rejectCompany = useRejectCompany();
+  const hardDeleteCompany = useHardDeleteContractorCompany();
   const [rejectingCompany, setRejectingCompany] = useState<ContractorCompany | null>(null);
   const [companyRejectionReason, setCompanyRejectionReason] = useState("");
+  const [deletingCompany, setDeletingCompany] = useState<ContractorCompany | null>(null);
   
   // Handle gate pass approval inline
   const handleApproveGatePass = (pass: MaterialGatePass) => {
@@ -1732,6 +1734,15 @@ export default function MyActions() {
                                 <X className="h-4 w-4 me-1" />
                                 {t('common.reject', 'Reject')}
                               </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setDeletingCompany(company)}
+                                disabled={hardDeleteCompany.isPending}
+                                title={t('common.deletePermanently', 'Delete Permanently')}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
                             </div>
                           </CardContent>
                         </Card>
@@ -1854,6 +1865,40 @@ export default function MyActions() {
                 disabled={!companyRejectionReason.trim() || rejectCompany.isPending}
               >
                 {t('common.reject', 'Reject')}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Company Delete Confirmation Dialog */}
+      <Dialog open={!!deletingCompany} onOpenChange={(open) => !open && setDeletingCompany(null)}>
+        <DialogContent dir={direction}>
+          <DialogHeader>
+            <DialogTitle>{t('contractors.deletePermanentlyTitle', 'Delete Company Permanently?')}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              {t('contractors.deletePermanentlyDescription', 'This will permanently remove the company and all related data. This action cannot be undone.')}
+            </p>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setDeletingCompany(null)}>
+                {t('common.cancel', 'Cancel')}
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (deletingCompany) {
+                    hardDeleteCompany.mutate(deletingCompany.id, {
+                      onSuccess: () => {
+                        setDeletingCompany(null);
+                      },
+                    });
+                  }
+                }}
+                disabled={hardDeleteCompany.isPending}
+              >
+                {t('common.deletePermanently', 'Delete Permanently')}
               </Button>
             </div>
           </div>
