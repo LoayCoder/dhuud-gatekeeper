@@ -4,7 +4,7 @@ import { useWebAuthn } from '@/hooks/use-webauthn';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Fingerprint, Smartphone, Trash2, Plus, AlertCircle, Loader2 } from 'lucide-react';
+import { Fingerprint, Smartphone, Trash2, Plus, AlertCircle, Loader2, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   AlertDialog,
@@ -18,6 +18,11 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 
 export function BiometricSettings() {
   const { t } = useTranslation();
@@ -31,6 +36,7 @@ export function BiometricSettings() {
   } = useWebAuthn();
   const [isRegistering, setIsRegistering] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   const handleRegister = async () => {
     setIsRegistering(true);
@@ -180,6 +186,46 @@ export function BiometricSettings() {
                 <p className="text-sm">{t('biometric.noDevices')}</p>
               </div>
             )}
+
+            {/* Help Section */}
+            <Collapsible open={isHelpOpen} onOpenChange={setIsHelpOpen} className="mt-4">
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between text-muted-foreground hover:text-foreground">
+                  <span className="flex items-center gap-2">
+                    <HelpCircle className="h-4 w-4" />
+                    {t('biometric.helpTitle', 'Need Help?')}
+                  </span>
+                  {isHelpOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2 space-y-3 text-sm text-muted-foreground">
+                <div className="p-3 rounded-lg bg-muted/50 space-y-2">
+                  <h5 className="font-medium text-foreground">{t('biometric.helpAndroidTitle', 'On Android:')}</h5>
+                  <ul className="list-disc list-inside space-y-1 ps-2">
+                    <li>{t('biometric.helpAndroid1', 'Go to Settings → Passwords & accounts → Google Password Manager')}</li>
+                    <li>{t('biometric.helpAndroid2', 'Tap "Passkeys" to view saved passkeys')}</li>
+                    <li>{t('biometric.helpAndroid3', 'Remove any old passkeys for this site before registering a new one')}</li>
+                  </ul>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/50 space-y-2">
+                  <h5 className="font-medium text-foreground">{t('biometric.helpIOSTitle', 'On iPhone/iPad:')}</h5>
+                  <ul className="list-disc list-inside space-y-1 ps-2">
+                    <li>{t('biometric.helpIOS1', 'Go to Settings → Passwords')}</li>
+                    <li>{t('biometric.helpIOS2', 'Search for this site to find saved passkeys')}</li>
+                    <li>{t('biometric.helpIOS3', 'Delete old passkeys if registration fails')}</li>
+                  </ul>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/50 space-y-2">
+                  <h5 className="font-medium text-foreground">{t('biometric.helpTroubleshootTitle', 'If Registration Fails:')}</h5>
+                  <ul className="list-disc list-inside space-y-1 ps-2">
+                    <li>{t('biometric.helpTroubleshoot1', 'Clear old passkeys from your device settings (see above)')}</li>
+                    <li>{t('biometric.helpTroubleshoot2', 'Make sure you complete the biometric prompt (don\'t cancel)')}</li>
+                    <li>{t('biometric.helpTroubleshoot3', 'Try using a different browser if issues persist')}</li>
+                    <li>{t('biometric.helpTroubleshoot4', 'Ensure your device has fingerprint or face unlock set up')}</li>
+                  </ul>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </>
         )}
       </CardContent>

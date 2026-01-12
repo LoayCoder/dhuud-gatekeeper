@@ -38,7 +38,21 @@
     "removeTitle": "Remove Device",
     "removeDescription": "This device will no longer be able to use biometric login. You can register it again later.",
     "emailRequired": "Email Required",
-    "emailRequiredDesc": "Enter your email first to use biometric login"
+    "emailRequiredDesc": "Enter your email first to use biometric login",
+    "helpTitle": "Need Help?",
+    "helpAndroidTitle": "On Android:",
+    "helpAndroid1": "Go to Settings → Passwords & accounts → Google Password Manager",
+    "helpAndroid2": "Tap \"Passkeys\" to view saved passkeys",
+    "helpAndroid3": "Remove any old passkeys for this site before registering a new one",
+    "helpIOSTitle": "On iPhone/iPad:",
+    "helpIOS1": "Go to Settings → Passwords",
+    "helpIOS2": "Search for this site to find saved passkeys",
+    "helpIOS3": "Delete old passkeys if registration fails",
+    "helpTroubleshootTitle": "If Registration Fails:",
+    "helpTroubleshoot1": "Clear old passkeys from your device settings (see above)",
+    "helpTroubleshoot2": "Make sure you complete the biometric prompt (don't cancel)",
+    "helpTroubleshoot3": "Try using a different browser if issues persist",
+    "helpTroubleshoot4": "Ensure your device has fingerprint or face unlock set up"
   },
   "scanner": {
     "scanCode": "Scan Code",
