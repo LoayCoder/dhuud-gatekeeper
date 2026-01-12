@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { logger } from '@/lib/logger';
 
 export type BlacklistEntry = Tables<'security_blacklist'>;
 export type BlacklistInsert = TablesInsert<'security_blacklist'>;
@@ -146,7 +147,7 @@ export function useAddToBlacklist() {
           .eq('tenant_id', tenantId);
 
         if (updateError) {
-          console.error('Failed to revoke worker:', updateError);
+          logger.error('Failed to revoke worker:', updateError);
         }
       }
 
@@ -159,7 +160,7 @@ export function useAddToBlacklist() {
           .eq('tenant_id', tenantId);
 
         if (visitorError) {
-          console.error('Failed to deactivate visitor:', visitorError);
+          logger.error('Failed to deactivate visitor:', visitorError);
         }
 
         // Reject all pending/approved visit requests for this visitor
@@ -174,7 +175,7 @@ export function useAddToBlacklist() {
           .in('status', ['pending_security', 'approved']);
 
         if (requestsError) {
-          console.error('Failed to reject visit requests:', requestsError);
+          logger.error('Failed to reject visit requests:', requestsError);
         }
       }
 
@@ -224,7 +225,7 @@ export function useRemoveFromBlacklist() {
 
       if (error) throw error;
       
-      console.log(`[Blacklist Audit] Entry ${id} soft-deleted by user ${user?.id}`);
+      logger.info(`[Blacklist Audit] Entry ${id} soft-deleted by user ${user?.id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['security-blacklist'] });

@@ -8,6 +8,7 @@ import { offlineDataCache, CACHE_STORES } from '@/lib/offline-data-cache';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/lib/logger';
 
 export type OfflineReportSyncStatus = 'pending' | 'syncing' | 'synced' | 'failed';
 
@@ -125,7 +126,7 @@ export function useOfflineReportQueue() {
       
       setPendingReports(reports);
     } catch (err) {
-      console.error('[OfflineQueue] Failed to load pending reports:', err);
+      logger.error('[OfflineQueue] Failed to load pending reports:', err);
     } finally {
       setIsLoading(false);
     }
@@ -139,7 +140,7 @@ export function useOfflineReportQueue() {
     video: File | null
   ): Promise<string | null> => {
     if (!profile?.tenant_id || !user?.id) {
-      console.error('[OfflineQueue] Missing tenant or user ID');
+      logger.error('[OfflineQueue] Missing tenant or user ID');
       return null;
     }
 
@@ -201,7 +202,7 @@ export function useOfflineReportQueue() {
         { maxAge: 7 * 24 * 60 * 60 * 1000 } // Keep for 7 days
       );
 
-      console.log('[OfflineQueue] Report queued:', reportId);
+      logger.debug('[OfflineQueue] Report queued:', reportId);
 
       // Update local state
       setPendingReports(prev => [...prev, offlineReport]);
@@ -212,7 +213,7 @@ export function useOfflineReportQueue() {
 
       return reportId;
     } catch (err) {
-      console.error('[OfflineQueue] Failed to queue report:', err);
+      logger.error('[OfflineQueue] Failed to queue report:', err);
       toast.error(t('offline.failedToSaveOffline'));
       return null;
     }
@@ -235,7 +236,7 @@ export function useOfflineReportQueue() {
       );
 
       if (!cached.data) {
-        console.error('[OfflineQueue] Report not found:', reportId);
+        logger.error('[OfflineQueue] Report not found:', reportId);
         return;
       }
 
@@ -259,7 +260,7 @@ export function useOfflineReportQueue() {
           .filter(r => r.sync_status !== 'synced')
       );
     } catch (err) {
-      console.error('[OfflineQueue] Failed to update report status:', err);
+      logger.error('[OfflineQueue] Failed to update report status:', err);
     }
   }, []);
 
@@ -271,9 +272,9 @@ export function useOfflineReportQueue() {
       );
 
       setPendingReports(prev => prev.filter(r => r.id !== reportId));
-      console.log('[OfflineQueue] Report removed:', reportId);
+      logger.debug('[OfflineQueue] Report removed:', reportId);
     } catch (err) {
-      console.error('[OfflineQueue] Failed to remove report:', err);
+      logger.error('[OfflineQueue] Failed to remove report:', err);
     }
   }, []);
 
@@ -285,7 +286,7 @@ export function useOfflineReportQueue() {
       );
       return cached.data;
     } catch (err) {
-      console.error('[OfflineQueue] Failed to get report:', err);
+      logger.error('[OfflineQueue] Failed to get report:', err);
       return null;
     }
   }, []);
@@ -309,9 +310,9 @@ export function useOfflineReportQueue() {
         await offlineDataCache.delete(CACHE_STORES.PENDING_ACTIONS, entry.key);
       }
 
-      console.log('[OfflineQueue] Cleared synced reports:', syncedReports.length);
+      logger.debug('[OfflineQueue] Cleared synced reports:', syncedReports.length);
     } catch (err) {
-      console.error('[OfflineQueue] Failed to clear synced reports:', err);
+      logger.error('[OfflineQueue] Failed to clear synced reports:', err);
     }
   }, []);
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 interface Factor {
   id: string;
@@ -41,7 +42,7 @@ export function useMFA(): UseMFAReturn {
       const { data, error } = await supabase.auth.mfa.listFactors();
       
       if (error) {
-        console.error('Error fetching MFA factors:', error);
+        logger.error('Error fetching MFA factors:', error);
         return;
       }
 
@@ -52,7 +53,7 @@ export function useMFA(): UseMFAReturn {
       
       setFactors(verifiedFactors);
     } catch (err) {
-      console.error('Error in refreshFactors:', err);
+      logger.error('Error in refreshFactors:', err);
     } finally {
       setIsLoading(false);
     }
@@ -71,11 +72,11 @@ export function useMFA(): UseMFAReturn {
       
       // Unenroll each unverified factor
       for (const factor of unverifiedFactors) {
-        console.log('Cleaning up unverified factor:', factor.id);
+        logger.debug('Cleaning up unverified factor:', factor.id);
         await supabase.auth.mfa.unenroll({ factorId: factor.id });
       }
     } catch (err) {
-      console.error('Error cleaning up unverified factors:', err);
+      logger.error('Error cleaning up unverified factors:', err);
     }
   }, []);
 
