@@ -8,11 +8,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MapPin, AlertTriangle, Users, Clock, RefreshCw, CheckCircle, Radio, Eye, Shield, FileText, Download, ShieldAlert } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { MapPin, AlertTriangle, Users, Clock, RefreshCw, CheckCircle, Radio, Eye, Shield, FileText, Download, ShieldAlert, Settings, Timer } from 'lucide-react';
 import { useGuardLocations, useGeofenceAlerts, useAcknowledgeAlert, useResolveAlert } from '@/hooks/use-live-tracking';
 import { useShiftRoster } from '@/hooks/use-shift-roster';
 import { useSecurityZones } from '@/hooks/use-security-zones';
 import { useRealtimeTracking } from '@/hooks/use-realtime-tracking';
+import { useTrackingInterval, useUpdateTrackingInterval } from '@/hooks/use-tracking-settings';
 import { CommandCenterMap } from '@/components/security/CommandCenterMap';
 import { generateShiftReportPDF } from '@/lib/shift-report-pdf';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,6 +41,10 @@ export default function CommandCenter() {
 
   const acknowledgeAlert = useAcknowledgeAlert();
   const resolveAlert = useResolveAlert();
+  
+  // Tracking settings
+  const { data: trackingSettings, isLoading: settingsLoading } = useTrackingInterval();
+  const updateInterval = useUpdateTrackingInterval();
   
   // Real-time updates
   const { isConnected, lastUpdate, newAlertCount, acknowledgeAlerts } = useRealtimeTracking(true);
@@ -115,14 +121,16 @@ export default function CommandCenter() {
   const completedCount = todayRoster?.filter(r => r.status === 'completed').length || 0;
 
   // Transform data for map
-  const mapGuardLocations = guardLocations?.map(loc => ({
+  const mapGuardLocations = guardLocations?.map((loc: any) => ({
     id: loc.id,
     guard_id: loc.guard_id || '',
+    guard_name: loc.guard_name || 'Unknown',
     latitude: loc.latitude || 0,
     longitude: loc.longitude || 0,
     recorded_at: loc.recorded_at,
     accuracy: loc.accuracy,
     battery_level: loc.battery_level,
+    is_within_zone: loc.is_within_zone,
   })) || [];
 
   const mapZones = zones?.map(zone => {
@@ -148,13 +156,17 @@ export default function CommandCenter() {
     };
   }) || [];
 
-  const mapAlerts = alerts?.map(alert => ({
+  const mapAlerts = alerts?.map((alert: any) => ({
     id: alert.id,
     guard_id: alert.guard_id || '',
+    guard_name: alert.guard_name || 'Unknown',
     alert_type: alert.alert_type,
+    severity: alert.severity,
     latitude: alert.latitude,
     longitude: alert.longitude,
   })) || [];
+
+  const currentIntervalValue = trackingSettings?.current || trackingSettings?.default || 5;
 
   return (
     <div className="space-y-6">
@@ -267,12 +279,23 @@ export default function CommandCenter() {
             <ScrollArea className="h-[400px]">
               {(alerts?.length || 0) > 0 || (acknowledgedAlerts?.length || 0) > 0 ? (
                 <div className="space-y-3">
-                  {alerts?.map(alert => (
+                  {alerts?.map((alert: any) => (
                     <div key={alert.id} className="p-3 rounded-lg border border-destructive bg-destructive/5">
                       <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="font-medium text-destructive">{alert.alert_type}</p>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-medium text-destructive">{alert.alert_type}</p>
+                            {alert.severity && (
+                              <Badge variant="destructive" className="text-xs uppercase">
+                                {alert.severity}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm font-medium truncate">{alert.guard_name}</p>
                           <p className="text-xs text-muted-foreground">{format(new Date(alert.created_at), 'HH:mm:ss')}</p>
+                          {alert.alert_message && (
+                            <p className="text-xs mt-1 text-muted-foreground line-clamp-2">{alert.alert_message}</p>
+                          )}
                         </div>
                         <Button size="sm" variant="outline" onClick={() => acknowledgeAlert.mutate(alert.id)} disabled={acknowledgeAlert.isPending}>
                           <Eye className="h-3 w-3 me-1" />
@@ -281,14 +304,15 @@ export default function CommandCenter() {
                       </div>
                     </div>
                   ))}
-                  {acknowledgedAlerts?.map(alert => (
+                  {acknowledgedAlerts?.map((alert: any) => (
                     <div key={alert.id} className="p-3 rounded-lg border border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20">
                       <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <div className="flex items-center gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-medium text-yellow-700 dark:text-yellow-500">{alert.alert_type}</p>
                             <Badge variant="outline" className="text-xs">{t('security.commandCenter.acknowledged', 'Acknowledged')}</Badge>
                           </div>
+                          <p className="text-sm font-medium truncate">{alert.guard_name}</p>
                         </div>
                         <Button size="sm" onClick={() => { setSelectedAlertId(alert.id); setResolveDialogOpen(true); }}>
                           <CheckCircle className="h-3 w-3 me-1" />
@@ -309,28 +333,75 @@ export default function CommandCenter() {
         </Card>
       </div>
 
-      {/* Zone Coverage */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            {t('security.commandCenter.zoneCoverage', 'Zone Coverage')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {zones?.slice(0, 8).map(zone => (
-              <div key={zone.id} className="p-3 rounded-lg border bg-muted">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">{zone.zone_name}</span>
-                  <Badge variant="secondary">{zone.zone_code}</Badge>
-                </div>
-                <div className="text-xs text-muted-foreground">{zone.zone_type} • {zone.risk_level}</div>
+      {/* Settings and Zone Coverage */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Tracking Settings */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Timer className="h-5 w-5" />
+              {t('security.commandCenter.trackingSettings', 'Tracking Settings')}
+            </CardTitle>
+            <CardDescription className="text-xs">
+              {t('security.commandCenter.trackingDescription', 'Configure guard location update frequency')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm">{t('security.commandCenter.updateInterval', 'Update Interval')}</span>
+                <Badge variant="secondary" className="font-mono">
+                  {currentIntervalValue} {t('common.min', 'min')}
+                </Badge>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              <Slider
+                value={[currentIntervalValue]}
+                min={1}
+                max={30}
+                step={1}
+                onValueCommit={(value) => updateInterval.mutate(value[0])}
+                disabled={updateInterval.isPending || settingsLoading}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>1 {t('common.min', 'min')}</span>
+                <span>15 {t('common.min', 'min')}</span>
+                <span>30 {t('common.min', 'min')}</span>
+              </div>
+            </div>
+            {lastUpdate && (
+              <div className="pt-2 border-t">
+                <p className="text-xs text-muted-foreground">
+                  {t('security.commandCenter.lastUpdate', 'Last update')}: {format(lastUpdate, 'HH:mm:ss')}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Zone Coverage */}
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Shield className="h-5 w-5" />
+              {t('security.commandCenter.zoneCoverage', 'Zone Coverage')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {zones?.slice(0, 6).map(zone => (
+                <div key={zone.id} className="p-3 rounded-lg border bg-muted/50">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-medium text-sm truncate">{zone.zone_name}</span>
+                    <Badge variant="secondary" className="text-xs">{zone.zone_code}</Badge>
+                  </div>
+                  <div className="text-xs text-muted-foreground">{zone.zone_type} • {zone.risk_level}</div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Resolve Dialog */}
       <Dialog open={resolveDialogOpen} onOpenChange={setResolveDialogOpen}>

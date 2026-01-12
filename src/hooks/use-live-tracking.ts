@@ -8,32 +8,67 @@ export function useGuardLocations() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('guard_tracking_history')
-        .select('*')
+        .select(`
+          id, guard_id, latitude, longitude, recorded_at, 
+          accuracy, battery_level, is_within_zone, distance_from_zone,
+          guard:profiles!guard_tracking_history_guard_id_fkey(full_name)
+        `)
         .order('recorded_at', { ascending: false })
-        .limit(50);
+        .limit(100);
       if (error) throw error;
-      return data || [];
+      
+      // Get latest position per guard (deduplicate)
+      const latestByGuard = new Map<string, any>();
+      (data || []).forEach((loc: any) => {
+        if (!latestByGuard.has(loc.guard_id)) {
+          latestByGuard.set(loc.guard_id, {
+            ...loc,
+            guard_name: loc.guard?.full_name || 'Unknown Guard'
+          });
+        }
+      });
+      
+      return Array.from(latestByGuard.values());
     },
-    refetchInterval: 30000,
+    refetchInterval: 15000, // Update every 15 seconds for real-time feel
   });
 }
 
-export function useGeofenceAlerts(statusFilter?: string) {
+export function useGeofenceAlerts(statusFilter?: 'pending' | 'acknowledged' | 'resolved') {
   return useQuery({
     queryKey: ['geofence-alerts', statusFilter],
     queryFn: async (): Promise<any[]> => {
       const { data, error } = await supabase
         .from('geofence_alerts')
-        .select('*')
+        .select(`
+          id, guard_id, alert_type, severity, guard_lat, guard_lng,
+          alert_message, created_at, acknowledged_at, acknowledged_by,
+          resolved_at, resolved_by, resolution_notes,
+          guard:profiles!geofence_alerts_guard_id_fkey(full_name)
+        `)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .limit(50);
+      
       if (error) throw error;
+      
+      // Derive status from timestamps (no alert_status column exists)
+      const enriched = (data || []).map((alert: any) => ({
+        ...alert,
+        status: alert.resolved_at ? 'resolved' 
+              : alert.acknowledged_at ? 'acknowledged' 
+              : 'pending',
+        latitude: alert.guard_lat,
+        longitude: alert.guard_lng,
+        guard_name: alert.guard?.full_name || 'Unknown Guard'
+      }));
+      
       if (statusFilter) {
-        return (data || []).filter((a: any) => a.alert_status === statusFilter);
+        return enriched.filter((a: any) => a.status === statusFilter);
       }
-      return data || [];
+      return enriched;
     },
-    refetchInterval: 15000,
+    refetchInterval: 10000, // 10 seconds for faster alert response
   });
 }
 
