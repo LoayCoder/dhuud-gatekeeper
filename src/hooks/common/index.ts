@@ -49,3 +49,9 @@ export * from '../use-map-style';
 
 // Cache & Profile
 export * from '../use-cached-profile';
+
+// Audit Logging
+export * from './use-audit-log';
+
+// Idle Timeout (moved from auth for broader use)
+export * from '../use-idle-timeout';
