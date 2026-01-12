@@ -272,9 +272,9 @@ export function useVerifyAction() {
                 return_count: (action.return_count || 0) + 1,
               },
             });
-            console.log('Action returned email sent to:', assignedUser.email);
+            logger.info('Action returned email sent to:', assignedUser.email);
           } catch (emailError) {
-            console.error('Failed to send action returned email:', emailError);
+            logger.error('Failed to send action returned email:', emailError);
           }
         }
       }
@@ -305,9 +305,9 @@ export function useVerifyAction() {
                 verifier_name: verifierProfile?.full_name || 'HSSE Expert',
               },
             });
-            console.log('Action closed email sent to:', assignedUser.email);
+            logger.info('Action closed email sent to:', assignedUser.email);
           } catch (emailError) {
-            console.error('Failed to send action closed email:', emailError);
+            logger.error('Failed to send action closed email:', emailError);
           }
         }
         
@@ -327,9 +327,9 @@ export function useVerifyAction() {
                 closed_by: verifierProfile?.full_name || user.id,
               },
             });
-            console.log('Audit log entry created for action closure');
+            logger.debug('Audit log entry created for action closure');
           } catch (auditError) {
-            console.error('Failed to create audit log:', auditError);
+            logger.error('Failed to create audit log:', auditError);
           }
         }
       }
@@ -534,14 +534,14 @@ export function usePendingIncidentApprovals() {
     queryFn: async () => {
       // Double-check requirements inside queryFn
       if (!profile?.tenant_id || !user?.id) {
-        console.log('[PendingApprovals] Missing tenant_id or user_id:', { 
+        logger.debug('[PendingApprovals] Missing tenant_id or user_id:', { 
           tenant_id: profile?.tenant_id, 
           user_id: user?.id 
         });
         return [];
       }
 
-      console.log('[PendingApprovals] Fetching incidents for tenant:', profile.tenant_id, 'user:', user.id);
+      logger.debug('[PendingApprovals] Fetching incidents for tenant:', profile.tenant_id, 'user:', user.id);
 
       // Get incidents that are pending manager approval or escalated to HSSE Manager
       // Use filter to bypass TypeScript strict type check for new status values
@@ -563,7 +563,7 @@ export function usePendingIncidentApprovals() {
         throw error;
       }
       
-      console.log('[PendingApprovals] Found incidents:', incidents?.length || 0, incidents);
+      logger.debug('[PendingApprovals] Found incidents:', incidents?.length || 0, incidents);
       
       if (!incidents || incidents.length === 0) return [];
 
@@ -582,7 +582,7 @@ export function usePendingIncidentApprovals() {
             continue; // Skip this incident but continue processing others
           }
           
-          console.log('[PendingApprovals] can_approve_investigation result:', incident.reference_id, canApprove);
+          logger.debug('[PendingApprovals] can_approve_investigation result:', incident.reference_id, canApprove);
           
           if (canApprove) {
             approvableIncidents.push({
@@ -602,7 +602,7 @@ export function usePendingIncidentApprovals() {
         }
       }
       
-      console.log('[PendingApprovals] Final approvable incidents:', approvableIncidents.length, approvableIncidents);
+      logger.debug('[PendingApprovals] Final approvable incidents:', approvableIncidents.length, approvableIncidents);
       return approvableIncidents;
     },
     // Only enable when auth is fully loaded AND we have the required data

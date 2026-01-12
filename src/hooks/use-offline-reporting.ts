@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { offlineDataCache, CACHE_STORES } from '@/lib/offline-data-cache';
 import { useAuth } from '@/contexts/AuthContext';
+import { logger } from '@/lib/logger';
 
 // Types for cached reference data
 export interface CachedSite {
@@ -101,7 +102,7 @@ export function useOfflineReporting() {
         setLastCachedAt(cached.data.cachedAt);
       }
     } catch (err) {
-      console.error('Failed to check cache status:', err);
+      logger.error('Failed to check cache status:', err);
     }
   }, []);
 
@@ -120,7 +121,7 @@ export function useOfflineReporting() {
       );
 
       if (cached.data && !cached.isStale) {
-        console.log('[OfflineReporting] Using fresh cache');
+        logger.debug('[OfflineReporting] Using fresh cache');
         setIsCacheReady(true);
         setLastCachedAt(cached.data.cachedAt);
         return true;
@@ -131,7 +132,7 @@ export function useOfflineReporting() {
     setError(null);
 
     try {
-      console.log('[OfflineReporting] Prefetching all reference data...');
+      logger.debug('[OfflineReporting] Prefetching all reference data...');
 
       // Fetch all reference data in parallel using type assertions for flexibility
       const [
@@ -230,7 +231,7 @@ export function useOfflineReporting() {
         { maxAge: CACHE_MAX_AGE }
       );
 
-      console.log('[OfflineReporting] Cache populated:', {
+      logger.debug('[OfflineReporting] Cache populated:', {
         sites: cacheData.sites.length,
         branches: cacheData.branches.length,
         departments: cacheData.departments.length,
@@ -244,7 +245,7 @@ export function useOfflineReporting() {
       setLastCachedAt(cacheData.cachedAt);
       return true;
     } catch (err) {
-      console.error('[OfflineReporting] Failed to prefetch:', err);
+      logger.error('[OfflineReporting] Failed to prefetch:', err);
       setError(err instanceof Error ? err.message : 'Failed to cache data');
       return false;
     } finally {
@@ -262,7 +263,7 @@ export function useOfflineReporting() {
 
       return cached.data;
     } catch (err) {
-      console.error('[OfflineReporting] Failed to get cached data:', err);
+      logger.error('[OfflineReporting] Failed to get cached data:', err);
       return null;
     }
   }, []);

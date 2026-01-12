@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/lib/logger';
 
 export interface Notification {
   id: string;
@@ -42,7 +43,7 @@ export function useNotifications(limit = 20) {
         .limit(limit);
 
       if (error) {
-        console.error('Error fetching notifications:', error);
+        logger.error('Error fetching notifications:', error);
         throw error;
       }
 
@@ -76,7 +77,7 @@ export function useUnreadNotificationCount() {
         .is('deleted_at', null);
 
       if (error) {
-        console.error('Error fetching unread count:', error);
+        logger.error('Error fetching unread count:', error);
         return 0;
       }
 
@@ -162,7 +163,7 @@ export function useNotificationSubscription(onNewNotification?: (notification: N
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
-          console.log('New notification received:', payload);
+          logger.debug('New notification received:', payload);
           const newNotification = payload.new as Notification;
           
           // Invalidate queries to refresh the list
