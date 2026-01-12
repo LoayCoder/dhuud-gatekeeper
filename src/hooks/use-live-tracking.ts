@@ -108,20 +108,30 @@ export function useTrackMyLocation() {
         .single();
       if (!profile) throw new Error('Profile not found');
 
-      const { data, error } = await supabase
-        .from('guard_tracking_history')
-        .insert({
+      // Call edge function for tracking with zone compliance checking
+      const { data, error } = await supabase.functions.invoke('track-guard-location', {
+        body: {
           guard_id: profile.id,
           tenant_id: profile.tenant_id,
           latitude: lat,
           longitude: lng,
           accuracy: accuracy || null,
           battery_level: batteryLevel || null,
-        } as any)
-        .select()
-        .single();
+        },
+      });
+
       if (error) throw error;
       return data;
+    },
+    onSuccess: (data) => {
+      // Show warning if zone violation detected
+      if (data && !data.is_compliant) {
+        toast({
+          title: 'Zone Violation Warning',
+          description: `You have left your assigned zone: ${data.zone_violation?.zone_name}`,
+          variant: 'destructive',
+        });
+      }
     },
     onError: (error) => {
       toast({ title: 'Failed to track', description: error.message, variant: 'destructive' });

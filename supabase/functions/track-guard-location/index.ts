@@ -29,8 +29,8 @@ interface RosterData {
   zone_id: string;
   security_zones: {
     id: string;
-    name: string;
-    zone_polygon: { coordinates: number[][][] } | null;
+    zone_name: string;
+    polygon_coords: number[][] | null;
     zone_type: string;
   };
   security_shifts: {
@@ -65,18 +65,15 @@ serve(async (req) => {
     
     const now = new Date();
     
-    // Store tracking history
-    const { error: insertError } = await supabase
-      .from('guard_tracking_history')
-      .insert({
-        guard_id,
-        tenant_id,
-        latitude,
-        longitude,
-        accuracy,
-        battery_level,
-        recorded_at: now.toISOString()
-      });
+    // Store tracking history using SECURITY DEFINER function
+    const { error: insertError } = await supabase.rpc('insert_guard_tracking', {
+      p_guard_id: guard_id,
+      p_tenant_id: tenant_id,
+      p_latitude: latitude,
+      p_longitude: longitude,
+      p_accuracy: accuracy,
+      p_battery_level: battery_level
+    });
     
     if (insertError) {
       console.error('Error inserting tracking data:', insertError);
@@ -92,7 +89,7 @@ serve(async (req) => {
         id,
         zone_id,
         security_zones!inner (
-          id, name, zone_polygon, zone_type
+          id, zone_name, polygon_coords, zone_type
         ),
         security_shifts!inner (
           id, shift_name, start_time, end_time, days_of_week
@@ -100,7 +97,7 @@ serve(async (req) => {
       `)
       .eq('guard_id', guard_id)
       .eq('tenant_id', tenant_id)
-      .eq('is_active', true)
+      .eq('status', 'checked_in')
       .is('deleted_at', null);
     
     let isCompliant = true;
@@ -128,8 +125,8 @@ serve(async (req) => {
       if (!isInShift) continue;
       
       // Check if guard is within assigned zone
-      if (zone.zone_polygon?.coordinates) {
-        const polygon = zone.zone_polygon.coordinates[0]; // First ring of polygon
+      if (zone.polygon_coords && Array.isArray(zone.polygon_coords)) {
+        const polygon = zone.polygon_coords as number[][];
         const inZone = isPointInPolygon(latitude, longitude, polygon);
         
         if (!inZone) {
@@ -137,7 +134,7 @@ serve(async (req) => {
           zoneViolation = {
             roster_id: roster.id,
             zone_id: zone.id,
-            zone_name: zone.name,
+            zone_name: zone.zone_name,
             zone_type: zone.zone_type
           };
           
@@ -153,10 +150,10 @@ serve(async (req) => {
               severity: 'high',
               guard_lat: latitude,
               guard_lng: longitude,
-              alert_message: `Guard left assigned zone: ${zone.name}`
+              alert_message: `Guard left assigned zone: ${zone.zone_name}`
             });
           
-          console.log(`ALERT: Guard ${guard_id} outside zone ${zone.name}`);
+          console.log(`ALERT: Guard ${guard_id} outside zone ${zone.zone_name}`);
         }
       }
     }

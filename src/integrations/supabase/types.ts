@@ -23782,6 +23782,18 @@ export type Database = {
         Args: { p_tenant_id: string }
         Returns: undefined
       }
+      insert_guard_tracking: {
+        Args: {
+          p_accuracy?: number
+          p_battery_level?: number
+          p_guard_id: string
+          p_latitude: number
+          p_longitude: number
+          p_roster_id?: string
+          p_tenant_id: string
+        }
+        Returns: string
+      }
       invalidate_other_user_sessions: {
         Args: {
           p_current_session_token: string
