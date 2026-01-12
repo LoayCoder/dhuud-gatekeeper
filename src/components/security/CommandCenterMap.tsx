@@ -13,11 +13,13 @@ import { useMapStyle } from '@/hooks/use-map-style';
 interface GuardLocation {
   id: string;
   guard_id: string;
+  guard_name?: string;
   latitude: number;
   longitude: number;
   recorded_at: string;
   accuracy?: number;
   battery_level?: number;
+  is_within_zone?: boolean;
 }
 
 interface SecurityZone {
@@ -33,7 +35,9 @@ interface SecurityZone {
 interface GeofenceAlert {
   id: string;
   guard_id: string;
+  guard_name?: string;
   alert_type: string;
+  severity?: string;
   latitude?: number;
   longitude?: number;
 }
@@ -188,16 +192,20 @@ export function CommandCenterMap({
 
       const marker = L.marker([loc.latitude, loc.longitude], { icon });
 
+      const guardDisplayName = loc.guard_name || `Guard ${loc.guard_id?.slice(0, 8)}`;
+      const zoneStatus = loc.is_within_zone === false ? '🔴 Outside Zone' : '🟢 In Zone';
+      
       const popupContent = `
-        <div class="p-2 min-w-[150px]">
-          <strong>Guard ${loc.guard_id?.slice(0, 8)}...</strong>
+        <div class="p-2 min-w-[160px]">
+          <strong class="text-sm">${guardDisplayName}</strong>
           <br/>
           <span class="text-xs text-gray-500">
             ${new Date(loc.recorded_at).toLocaleTimeString()}
           </span>
+          <br/><span class="text-xs">${zoneStatus}</span>
           ${loc.battery_level ? `<br/><span class="text-xs">🔋 ${loc.battery_level}%</span>` : ''}
           ${loc.accuracy ? `<br/><span class="text-xs">📍 ±${loc.accuracy.toFixed(0)}m</span>` : ''}
-          ${hasAlert ? '<br/><span class="text-xs text-red-500">⚠️ Zone Violation</span>' : ''}
+          ${hasAlert ? '<br/><span class="text-xs text-red-500 font-medium">⚠️ Alert Active</span>' : ''}
         </div>
       `;
 
@@ -227,11 +235,13 @@ export function CommandCenterMap({
 
       const marker = L.marker([alert.latitude, alert.longitude], { icon });
       
+      const alertGuardName = alert.guard_name || `Guard ${alert.guard_id?.slice(0, 8)}`;
       marker.bindPopup(`
-        <div class="p-2">
+        <div class="p-2 min-w-[140px]">
           <strong class="text-red-500">${alert.alert_type}</strong>
+          ${alert.severity ? `<br/><span class="text-xs uppercase font-medium text-orange-600">${alert.severity}</span>` : ''}
           <br/>
-          <span class="text-xs">Guard: ${alert.guard_id?.slice(0, 8)}...</span>
+          <span class="text-xs">Guard: ${alertGuardName}</span>
         </div>
       `);
 

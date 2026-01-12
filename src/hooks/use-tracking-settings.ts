@@ -19,22 +19,13 @@ async function fetchTrackingSettings(): Promise<TrackingIntervalSettings> {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData?.user) return DEFAULT_SETTINGS;
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('tenant_id')
-    .eq('id', userData.user.id)
-    .single();
-
-  if (!profile?.tenant_id) return DEFAULT_SETTINGS;
-
   // Use type assertion to bypass deep type inference
+  // platform_settings may not have tenant_id/deleted_at columns
   const client = supabase as any;
   const { data } = await client
     .from('platform_settings')
     .select('value')
     .eq('setting_key', 'guard_tracking_interval_minutes')
-    .eq('tenant_id', profile.tenant_id)
-    .is('deleted_at', null)
     .limit(1);
 
   const row = data?.[0];
@@ -82,14 +73,6 @@ export function useUpdateTrackingInterval() {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData?.user) throw new Error('Not authenticated');
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('tenant_id')
-        .eq('id', userData.user.id)
-        .single();
-
-      if (!profile?.tenant_id) throw new Error('Tenant not found');
-
       if (minutes < 1 || minutes > 30) {
         throw new Error('Interval must be between 1 and 30 minutes');
       }
@@ -99,8 +82,6 @@ export function useUpdateTrackingInterval() {
         .from('platform_settings')
         .select('id')
         .eq('setting_key', 'guard_tracking_interval_minutes')
-        .eq('tenant_id', profile.tenant_id)
-        .is('deleted_at', null)
         .limit(1);
 
       const existing = existingData?.[0];
@@ -124,7 +105,6 @@ export function useUpdateTrackingInterval() {
           .insert({
             setting_key: 'guard_tracking_interval_minutes',
             value: settingValue,
-            tenant_id: profile.tenant_id,
           });
         if (error) throw error;
       }
