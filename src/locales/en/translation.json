@@ -7829,7 +7829,29 @@
     "reportEvent": "Report Event",
     "startInspection": "Start Inspection",
     "myActions": "My Actions",
-    "myApprovals": "My Approvals"
+    "myApprovals": "My Approvals",
+    "cards": {
+      "reportings": "Reportings",
+      "reportingsDesc": "Report incidents and observations",
+      "myActions": "My Actions",
+      "myActionsDesc": "View and manage your assigned actions",
+      "emergencyResponse": "Emergency Response",
+      "emergencyResponseDesc": "Access emergency protocols",
+      "dashboards": "Dashboards",
+      "dashboardsDesc": "View analytics and reports",
+      "shiftPlan": "Shift Plan",
+      "shiftPlanDesc": "View your shift schedule",
+      "myLocations": "My Locations",
+      "myLocationsDesc": "View assigned zones",
+      "gateOperation": "Gate Operation",
+      "gateOperationDesc": "Manage gate access",
+      "patrol": "Patrol",
+      "patrolDesc": "Start or view patrols",
+      "myApprovals": "My Approvals",
+      "myApprovalsDesc": "Review pending approvals",
+      "inspections": "Inspections",
+      "inspectionsDesc": "Conduct inspections"
+    }
   },
   "platformSettings": {
     "title": "Platform Settings",
