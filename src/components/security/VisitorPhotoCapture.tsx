@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Camera, X, RotateCcw, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 interface VisitorPhotoCaptureProps {
   onCapture: (photoBlob: Blob) => void;
@@ -33,7 +34,7 @@ export function VisitorPhotoCapture({ onCapture, disabled }: VisitorPhotoCapture
         setIsStreaming(true);
       }
     } catch (error) {
-      console.error('Error accessing camera:', error);
+      logger.error('Error accessing camera:', error);
       toast({
         title: t('security.gate.cameraError', 'Camera Error'),
         description: t('security.gate.cameraAccessDenied', 'Unable to access camera. Please check permissions.'),

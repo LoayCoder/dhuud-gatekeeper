@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/lib/logger';
 
 interface SiteDepartment {
   id: string;
@@ -112,7 +113,7 @@ export function useSiteDepartments(siteId?: string) {
       toast.success(t('admin.orgStructure.departmentAssigned'));
     },
     onError: (error) => {
-      console.error('Error assigning department:', error);
+      logger.error('Error assigning department:', error);
       toast.error(t('common.error'));
     },
   });
@@ -131,7 +132,7 @@ export function useSiteDepartments(siteId?: string) {
       toast.success(t('admin.orgStructure.departmentRemoved'));
     },
     onError: (error) => {
-      console.error('Error removing department:', error);
+      logger.error('Error removing department:', error);
       toast.error(t('common.error'));
     },
   });
@@ -157,7 +158,7 @@ export function useSiteDepartments(siteId?: string) {
       toast.success(t('admin.orgStructure.primaryDepartmentSet'));
     },
     onError: (error) => {
-      console.error('Error setting primary department:', error);
+      logger.error('Error setting primary department:', error);
       toast.error(t('common.error'));
     },
   });

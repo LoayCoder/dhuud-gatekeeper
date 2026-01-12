@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDropzone } from 'react-dropzone';
 import { ImagePlus, Star, Trash2, Loader2, X } from 'lucide-react';
+import { logger } from '@/lib/logger';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -52,7 +53,7 @@ export function AssetPhotoUpload({ assetId, photos, canManage }: AssetPhotoUploa
       }
       toast.success(t('assets.photos.uploadSuccess'));
     } catch (error) {
-      console.error('Upload error:', error);
+      logger.error('Upload error:', error);
       toast.error(t('assets.photos.uploadError'));
     } finally {
       setUploading(false);
@@ -74,7 +75,7 @@ export function AssetPhotoUpload({ assetId, photos, canManage }: AssetPhotoUploa
       await deletePhoto.mutateAsync(photoId);
       toast.success(t('assets.photos.deleteSuccess'));
     } catch (error) {
-      console.error('Delete error:', error);
+      logger.error('Delete error:', error);
       toast.error(t('assets.photos.deleteError'));
     }
   };
@@ -84,7 +85,7 @@ export function AssetPhotoUpload({ assetId, photos, canManage }: AssetPhotoUploa
       await setPrimary.mutateAsync({ assetId, photoId });
       toast.success(t('assets.photos.primarySet'));
     } catch (error) {
-      console.error('Set primary error:', error);
+      logger.error('Set primary error:', error);
       toast.error(t('assets.photos.primaryError'));
     }
   };

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/lib/logger';
 import { useDropzone } from 'react-dropzone';
 import { FileText, Upload, Trash2, Loader2, Download, Calendar, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -92,7 +93,7 @@ export function AssetDocumentUpload({ assetId, documents, canManage }: AssetDocu
       toast.success(t('assets.documents.uploadSuccess'));
       handleCloseDialog();
     } catch (error) {
-      console.error('Upload error:', error);
+      logger.error('Upload error:', error);
       toast.error(t('assets.documents.uploadError'));
     } finally {
       setUploading(false);
@@ -112,7 +113,7 @@ export function AssetDocumentUpload({ assetId, documents, canManage }: AssetDocu
       await deleteDocument.mutateAsync(docId);
       toast.success(t('assets.documents.deleteSuccess'));
     } catch (error) {
-      console.error('Delete error:', error);
+      logger.error('Delete error:', error);
       toast.error(t('assets.documents.deleteError'));
     }
   };

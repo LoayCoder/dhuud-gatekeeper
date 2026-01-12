@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { logger } from '@/lib/logger';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -51,10 +52,10 @@ async function sendSeverityNotification(payload: {
       body: payload,
     });
     if (error) {
-      console.error('Failed to send notification:', error);
+      logger.error('Failed to send notification:', error);
     }
   } catch (err) {
-    console.error('Error invoking email function:', err);
+    logger.error('Error invoking email function:', err);
   }
 }
 

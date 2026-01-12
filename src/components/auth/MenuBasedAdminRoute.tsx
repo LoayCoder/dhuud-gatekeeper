@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageLoader } from "@/components/ui/page-loader";
 import { ShieldAlert } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { logger } from "@/lib/logger";
 
 interface MenuBasedAdminRouteProps {
   children: React.ReactNode;
@@ -49,7 +50,7 @@ export function MenuBasedAdminRoute({ children, menuCode }: MenuBasedAdminRouteP
         });
 
         if (error) {
-          console.error('Error checking menu access:', error);
+          logger.error('Error checking menu access:', error);
           setHasAccess(false);
           setLoading(false);
           return;
@@ -62,7 +63,7 @@ export function MenuBasedAdminRoute({ children, menuCode }: MenuBasedAdminRouteP
 
         setHasAccess(hasMenuAccess);
       } catch (error) {
-        console.error('Error checking access:', error);
+        logger.error('Error checking access:', error);
         setHasAccess(false);
       } finally {
         setLoading(false);

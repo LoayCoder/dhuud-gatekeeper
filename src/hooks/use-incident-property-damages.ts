@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/lib/logger';
 import type { 
   PropertyTypeCode, 
   DamageSeverityCode, 
@@ -156,7 +157,7 @@ export function useCreateIncidentPropertyDamage() {
       toast.success(t('investigation.propertyDamage.created', 'Property damage record created'));
     },
     onError: (error) => {
-      console.error('Error creating property damage:', error);
+      logger.error('Error creating property damage:', error);
       toast.error(t('common.error', 'An error occurred'));
     },
   });
@@ -210,7 +211,7 @@ export function useUpdateIncidentPropertyDamage() {
       toast.success(t('investigation.propertyDamage.updated', 'Property damage record updated'));
     },
     onError: (error) => {
-      console.error('Error updating property damage:', error);
+      logger.error('Error updating property damage:', error);
       toast.error(t('common.error', 'An error occurred'));
     },
   });
@@ -238,7 +239,7 @@ export function useDeleteIncidentPropertyDamage() {
       toast.success(t('investigation.propertyDamage.deleted', 'Property damage record deleted'));
     },
     onError: (error) => {
-      console.error('Error deleting property damage:', error);
+      logger.error('Error deleting property damage:', error);
       toast.error(t('common.error', 'An error occurred'));
     },
   });

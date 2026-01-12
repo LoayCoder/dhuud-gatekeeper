@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { logger } from '@/lib/logger';
 
 export type StatementType = "document_upload" | "direct_entry" | "voice_recording";
 export type AssignmentStatus = "pending" | "in_progress" | "completed" | "approved";
@@ -146,7 +147,7 @@ export function useCreateWitnessStatement() {
       toast.success("Witness statement created");
     },
     onError: (error) => {
-      console.error("Error creating witness statement:", error);
+      logger.error("Error creating witness statement:", error);
       toast.error("Failed to create witness statement");
     },
   });
@@ -189,7 +190,7 @@ export function useUpdateWitnessStatement() {
       toast.success("Statement updated");
     },
     onError: (error) => {
-      console.error("Error updating witness statement:", error);
+      logger.error("Error updating witness statement:", error);
       toast.error("Failed to update statement");
     },
   });
@@ -295,7 +296,7 @@ export function useReviewWitnessStatement() {
       }
     },
     onError: (error) => {
-      console.error("Error reviewing witness statement:", error);
+      logger.error("Error reviewing witness statement:", error);
       toast.error("Failed to process statement review");
     },
   });
@@ -323,7 +324,7 @@ export function useStartWitnessWork() {
       toast.success("Work started on statement");
     },
     onError: (error) => {
-      console.error("Error starting witness work:", error);
+      logger.error("Error starting witness work:", error);
       toast.error("Failed to start work");
     },
   });
