@@ -38,7 +38,7 @@ export default function Login() {
   const { checkPassword } = usePasswordBreachCheck();
   const { checkTrustedDevice } = useTrustedDevice();
   const { verifyDevice } = useVerifiedDevice();
-  const { isSupported: isBiometricSupported, authenticate: biometricAuth } = useWebAuthn();
+  const { isSupported: isBiometricSupported, authenticateDiscoverable: biometricAuthDiscoverable } = useWebAuthn();
   const [biometricLoading, setBiometricLoading] = useState(false);
 
   // Determine the logo to display with fallback
@@ -469,19 +469,11 @@ export default function Login() {
                   type="button"
                   variant="outline"
                   className="h-12 w-full"
-                  disabled={loading || biometricLoading || !email}
+                  disabled={loading || biometricLoading}
                   onClick={async () => {
-                    if (!email) {
-                      toast({
-                        title: t('biometric.emailRequired'),
-                        description: t('biometric.emailRequiredDesc'),
-                        variant: 'destructive',
-                      });
-                      return;
-                    }
                     setBiometricLoading(true);
                     try {
-                      const success = await biometricAuth(email);
+                      const success = await biometricAuthDiscoverable();
                       if (success) {
                         await refreshTenantData();
                         startSessionTracking();
