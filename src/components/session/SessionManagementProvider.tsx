@@ -1,4 +1,5 @@
 import { useSessionManagement } from '@/hooks/use-session-management';
+import { useTokenRefresh } from '@/hooks/use-token-refresh';
 import { SessionErrorBoundary } from './SessionErrorBoundary';
 import { useLocation } from 'react-router-dom';
 
@@ -22,13 +23,17 @@ const PUBLIC_ROUTES = [
 ];
 
 /**
- * Internal component that uses the session management hook.
+ * Internal component that uses the session management hooks.
  * Separated to allow error boundary to catch hook errors.
  * Renders nothing - only runs the hook logic.
  */
 function SessionManagementCore() {
-  // Initialize session management - the hook handles all logic internally
+  // Initialize session management - handles registration, validation, heartbeat
   useSessionManagement();
+  
+  // Initialize proactive token refresh - refreshes tokens before expiry
+  useTokenRefresh();
+  
   return null;
 }
 
