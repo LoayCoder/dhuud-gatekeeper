@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { MapPin, Clock, CheckCircle, LogOut, RefreshCw, Navigation, AlertTriangle, Shield, Volume2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MapPin, Clock, CheckCircle, LogOut, RefreshCw, Navigation, AlertTriangle, Shield, Volume2, Calendar } from 'lucide-react';
 import { useMyRosterAssignment, useGuardCheckIn, useGuardCheckOut } from '@/hooks/use-shift-roster';
 import { useTrackMyLocation, useAlertSupervisorGpsOff } from '@/hooks/use-live-tracking';
 import { useQuery } from '@tanstack/react-query';
@@ -13,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { GuardShiftCard } from '@/components/security/GuardShiftCard';
 import { GuardStatusIndicators, BatteryWarning } from '@/components/security/GuardStatusIndicators';
 import { GuardZoneMap } from '@/components/security/GuardZoneMap';
+import { MyShiftCalendar } from '@/components/security/MyShiftCalendar';
 import { useTrackingIntervalMs } from '@/hooks/use-tracking-settings';
 import { checkBoundaryProximity, type BoundaryProximityLevel } from '@/lib/zone-detection';
 import { cn } from '@/lib/utils';
@@ -30,6 +32,7 @@ export default function GuardLocation() {
     zoneName?: string;
     checkedAt?: Date;
   } | null>(null);
+  const [activeTab, setActiveTab] = useState('location');
   const lastWarningRef = useRef<BoundaryProximityLevel>('safe');
 
   const { data: assignment, isLoading, refetch } = useMyRosterAssignment();
@@ -227,147 +230,170 @@ export default function GuardLocation() {
     );
   }
 
-  if (!assignment) {
-    return (
-      <div className="space-y-6">
-        <div><h1 className="text-2xl font-bold">{t('security.myLocation.title', 'My Location')}</h1></div>
-        <Card>
-          <CardContent className="flex flex-col items-center py-12">
-            <Shield className="h-16 w-16 text-muted-foreground mb-4" />
-            <h2 className="text-xl font-semibold mb-2">{t('security.myLocation.noAssignment', 'No Assignment Today')}</h2>
-            <p className="text-muted-foreground text-center">{t('security.myLocation.noAssignmentDesc', 'Contact your supervisor for shift assignment.')}</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   const zonePolygon = zoneDetails?.polygon_coords as [number, number][] | null;
 
   return (
     <div className="space-y-4">
-      {/* Header with Status */}
-      <div className="flex flex-col gap-3">
+      {/* Header */}
+      <div className="flex flex-col gap-2">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold">{t('security.myLocation.title', 'My Location')}</h1>
             <p className="text-muted-foreground text-sm">{t('security.myLocation.description', 'Track your location and manage shift check-in')}</p>
           </div>
-          <GuardStatusIndicators
-            batteryLevel={batteryLevel}
-            gpsAccuracy={currentPosition?.accuracy || null}
-            isOnline={!gpsError && !!currentPosition}
-            lastUpdate={currentPosition ? new Date() : undefined}
-          />
-        </div>
-
-        {/* ACTION BUTTONS - PROMINENT AT TOP */}
-        <div className="flex flex-col gap-2 sm:flex-row sticky top-0 z-10 bg-background/95 backdrop-blur-sm py-2 -mx-4 px-4 border-b">
-          {assignment.status === 'scheduled' && (
-            <Button size="lg" className="flex-1 h-14 text-lg" onClick={handleCheckIn} disabled={!currentPosition || checkIn.isPending}>
-              <CheckCircle className="h-6 w-6 me-2" />
-              {checkIn.isPending ? t('security.myLocation.checkingIn', 'Checking In...') : t('security.myLocation.checkIn', 'Check In')}
-            </Button>
+          {assignment && (
+            <GuardStatusIndicators
+              batteryLevel={batteryLevel}
+              gpsAccuracy={currentPosition?.accuracy || null}
+              isOnline={!gpsError && !!currentPosition}
+              lastUpdate={currentPosition ? new Date() : undefined}
+            />
           )}
-          {assignment.status === 'checked_in' && (
-            <Button size="lg" variant="outline" className="flex-1 h-14 text-lg border-2" onClick={handleCheckOut} disabled={!currentPosition || checkOut.isPending}>
-              <LogOut className="h-6 w-6 me-2" />
-              {checkOut.isPending ? t('security.myLocation.checkingOut', 'Checking Out...') : t('security.myLocation.checkOut', 'Check Out')}
-            </Button>
-          )}
-          {assignment.status === 'completed' && (
-            <div className="flex-1 text-center py-4 bg-green-500/10 rounded-lg border border-green-500/20">
-              <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-1" />
-              <p className="font-medium text-green-600">{t('security.myLocation.shiftCompleted', 'Shift Completed')}</p>
-            </div>
-          )}
-          <Button variant="ghost" size="lg" onClick={handleRefresh} disabled={trackLocation.isPending} className="h-14">
-            <RefreshCw className={cn("h-5 w-5", trackLocation.isPending && "animate-spin")} />
-          </Button>
         </div>
       </div>
 
-      <BatteryWarning level={batteryLevel} />
+      {/* Tabs for Location vs Schedule */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="location" className="gap-2">
+            <MapPin className="h-4 w-4" />
+            {t('security.myLocation.location', 'Location')}
+          </TabsTrigger>
+          <TabsTrigger value="schedule" className="gap-2">
+            <Calendar className="h-4 w-4" />
+            {t('security.roster.mySchedule', 'My Schedule')}
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Boundary Warning Alert */}
-      {assignment.status === 'checked_in' && (boundaryStatus === 'warning' || boundaryStatus === 'danger') && (
-        <Alert variant={boundaryStatus === 'danger' ? 'destructive' : 'default'} className={cn(boundaryStatus === 'danger' && 'animate-pulse')}>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle className="flex items-center gap-2">
-            {boundaryStatus === 'danger'
-              ? t('security.zone.dangerTitle', 'Zone Boundary Alert!')
-              : t('security.zone.warningTitle', 'Approaching Zone Boundary')}
-            <Volume2 className="h-4 w-4" />
-          </AlertTitle>
-          <AlertDescription>
-            {boundaryStatus === 'danger'
-              ? t('security.zone.dangerDesc', `You are only ${distanceToEdge?.toFixed(0) || '<20'}m from the zone edge. Stay inside!`)
-              : t('security.zone.warningDesc', `You are ${distanceToEdge?.toFixed(0) || '<50'}m from the zone edge.`)}
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Zone Map */}
-      {assignment.status === 'checked_in' && (
-        <GuardZoneMap
-          zonePolygon={zonePolygon}
-          guardPosition={currentPosition ? { lat: currentPosition.latitude, lng: currentPosition.longitude } : null}
-          boundaryStatus={boundaryStatus}
-          distanceToEdge={distanceToEdge}
-          zoneName={zoneDetails?.zone_name || t('security.zone.assigned', 'Assigned Zone')}
-        />
-      )}
-
-      {/* Shift Card */}
-      <GuardShiftCard
-        assignment={{
-          id: assignment.id, zone_id: assignment.zone_id || '', shift_id: assignment.shift_id || '',
-          status: assignment.status || 'scheduled', check_in_time: assignment.check_in_time || undefined,
-          check_out_time: assignment.check_out_time || undefined, roster_date: assignment.roster_date,
-          notes: assignment.notes || undefined,
-        }}
-        shiftDetails={shiftDetails ? { shift_name: shiftDetails.shift_name || undefined, start_time: shiftDetails.start_time || undefined, end_time: shiftDetails.end_time || undefined } : undefined}
-        zoneDetails={zoneDetails ? { zone_name: zoneDetails.zone_name || undefined, zone_code: zoneDetails.zone_code || undefined } : undefined}
-      />
-
-      {/* GPS Status */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Navigation className="h-5 w-5" />
-            {t('security.myLocation.gpsStatus', 'GPS Status')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {gpsError ? (
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>{t('security.myLocation.gpsError', 'GPS Error')}</AlertTitle>
-              <AlertDescription>{gpsError}</AlertDescription>
-            </Alert>
-          ) : currentPosition ? (
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="p-3 bg-muted rounded-lg">
-                <p className="text-xs text-muted-foreground">{t('security.myLocation.latitude', 'Latitude')}</p>
-                <p className="font-mono text-sm">{currentPosition.latitude.toFixed(6)}</p>
-              </div>
-              <div className="p-3 bg-muted rounded-lg">
-                <p className="text-xs text-muted-foreground">{t('security.myLocation.longitude', 'Longitude')}</p>
-                <p className="font-mono text-sm">{currentPosition.longitude.toFixed(6)}</p>
-              </div>
-              <div className="p-3 bg-muted rounded-lg">
-                <p className="text-xs text-muted-foreground">{t('security.myLocation.accuracy', 'Accuracy')}</p>
-                <p className="font-mono text-sm">±{currentPosition.accuracy.toFixed(0)}m</p>
-              </div>
-            </div>
+        <TabsContent value="location" className="space-y-4">
+          {!assignment ? (
+            <Card>
+              <CardContent className="flex flex-col items-center py-12">
+                <Shield className="h-16 w-16 text-muted-foreground mb-4" />
+                <h2 className="text-xl font-semibold mb-2">{t('security.myLocation.noAssignment', 'No Assignment Today')}</h2>
+                <p className="text-muted-foreground text-center">{t('security.myLocation.noAssignmentDesc', 'Contact your supervisor for shift assignment.')}</p>
+                <Button variant="outline" className="mt-4" onClick={() => setActiveTab('schedule')}>
+                  <Calendar className="h-4 w-4 me-2" />
+                  {t('security.roster.viewSchedule', 'View Schedule')}
+                </Button>
+              </CardContent>
+            </Card>
           ) : (
-            <div className="flex items-center justify-center py-6">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
-              <span className="ms-2 text-sm">{t('security.myLocation.acquiringGps', 'Acquiring GPS...')}</span>
-            </div>
+            <>
+              {/* ACTION BUTTONS - PROMINENT AT TOP */}
+              <div className="flex flex-col gap-2 sm:flex-row sticky top-0 z-10 bg-background/95 backdrop-blur-sm py-2 -mx-4 px-4 border-b">
+                {assignment.status === 'scheduled' && (
+                  <Button size="lg" className="flex-1 h-14 text-lg" onClick={handleCheckIn} disabled={!currentPosition || checkIn.isPending}>
+                    <CheckCircle className="h-6 w-6 me-2" />
+                    {checkIn.isPending ? t('security.myLocation.checkingIn', 'Checking In...') : t('security.myLocation.checkIn', 'Check In')}
+                  </Button>
+                )}
+                {assignment.status === 'checked_in' && (
+                  <Button size="lg" variant="outline" className="flex-1 h-14 text-lg border-2" onClick={handleCheckOut} disabled={!currentPosition || checkOut.isPending}>
+                    <LogOut className="h-6 w-6 me-2" />
+                    {checkOut.isPending ? t('security.myLocation.checkingOut', 'Checking Out...') : t('security.myLocation.checkOut', 'Check Out')}
+                  </Button>
+                )}
+                {assignment.status === 'completed' && (
+                  <div className="flex-1 text-center py-4 bg-green-500/10 rounded-lg border border-green-500/20">
+                    <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-1" />
+                    <p className="font-medium text-green-600">{t('security.myLocation.shiftCompleted', 'Shift Completed')}</p>
+                  </div>
+                )}
+                <Button variant="ghost" size="lg" onClick={handleRefresh} disabled={trackLocation.isPending} className="h-14">
+                  <RefreshCw className={cn("h-5 w-5", trackLocation.isPending && "animate-spin")} />
+                </Button>
+              </div>
+
+              <BatteryWarning level={batteryLevel} />
+
+              {/* Boundary Warning Alert */}
+              {assignment.status === 'checked_in' && (boundaryStatus === 'warning' || boundaryStatus === 'danger') && (
+                <Alert variant={boundaryStatus === 'danger' ? 'destructive' : 'default'} className={cn(boundaryStatus === 'danger' && 'animate-pulse')}>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle className="flex items-center gap-2">
+                    {boundaryStatus === 'danger'
+                      ? t('security.zone.dangerTitle', 'Zone Boundary Alert!')
+                      : t('security.zone.warningTitle', 'Approaching Zone Boundary')}
+                    <Volume2 className="h-4 w-4" />
+                  </AlertTitle>
+                  <AlertDescription>
+                    {boundaryStatus === 'danger'
+                      ? t('security.zone.dangerDesc', `You are only ${distanceToEdge?.toFixed(0) || '<20'}m from the zone edge. Stay inside!`)
+                      : t('security.zone.warningDesc', `You are ${distanceToEdge?.toFixed(0) || '<50'}m from the zone edge.`)}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Zone Map */}
+              {assignment.status === 'checked_in' && (
+                <GuardZoneMap
+                  zonePolygon={zonePolygon}
+                  guardPosition={currentPosition ? { lat: currentPosition.latitude, lng: currentPosition.longitude } : null}
+                  boundaryStatus={boundaryStatus}
+                  distanceToEdge={distanceToEdge}
+                  zoneName={zoneDetails?.zone_name || t('security.zone.assigned', 'Assigned Zone')}
+                />
+              )}
+
+              {/* Shift Card */}
+              <GuardShiftCard
+                assignment={{
+                  id: assignment.id, zone_id: assignment.zone_id || '', shift_id: assignment.shift_id || '',
+                  status: assignment.status || 'scheduled', check_in_time: assignment.check_in_time || undefined,
+                  check_out_time: assignment.check_out_time || undefined, roster_date: assignment.roster_date,
+                  notes: assignment.notes || undefined,
+                }}
+                shiftDetails={shiftDetails ? { shift_name: shiftDetails.shift_name || undefined, start_time: shiftDetails.start_time || undefined, end_time: shiftDetails.end_time || undefined } : undefined}
+                zoneDetails={zoneDetails ? { zone_name: zoneDetails.zone_name || undefined, zone_code: zoneDetails.zone_code || undefined } : undefined}
+              />
+
+              {/* GPS Status */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Navigation className="h-5 w-5" />
+                    {t('security.myLocation.gpsStatus', 'GPS Status')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {gpsError ? (
+                    <Alert variant="destructive">
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertTitle>{t('security.myLocation.gpsError', 'GPS Error')}</AlertTitle>
+                      <AlertDescription>{gpsError}</AlertDescription>
+                    </Alert>
+                  ) : currentPosition ? (
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      <div className="p-3 bg-muted rounded-lg">
+                        <p className="text-xs text-muted-foreground">{t('security.myLocation.latitude', 'Latitude')}</p>
+                        <p className="font-mono text-sm">{currentPosition.latitude.toFixed(6)}</p>
+                      </div>
+                      <div className="p-3 bg-muted rounded-lg">
+                        <p className="text-xs text-muted-foreground">{t('security.myLocation.longitude', 'Longitude')}</p>
+                        <p className="font-mono text-sm">{currentPosition.longitude.toFixed(6)}</p>
+                      </div>
+                      <div className="p-3 bg-muted rounded-lg">
+                        <p className="text-xs text-muted-foreground">{t('security.myLocation.accuracy', 'Accuracy')}</p>
+                        <p className="font-mono text-sm">±{currentPosition.accuracy.toFixed(0)}m</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center py-6">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+                      <span className="ms-2 text-sm">{t('security.myLocation.acquiringGps', 'Acquiring GPS...')}</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </>
           )}
-        </CardContent>
-      </Card>
+        </TabsContent>
+
+        <TabsContent value="schedule">
+          <MyShiftCalendar />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
