@@ -3392,7 +3392,18 @@
     "syncPartial": "Partial Sync",
     "syncFailed": "{{count}} entries failed to sync",
     "syncError": "Failed to sync data",
-    "syncing": "Syncing..."
+    "syncing": "Syncing...",
+    "session": {
+      "cached": "Cached",
+      "usingCached": "Using cached session",
+      "lastVerified": "Last verified",
+      "clickToRefresh": "Click to refresh session",
+      "refreshing": "Refreshing...",
+      "connectToRefresh": "Connect to internet to refresh",
+      "unknown": "Unknown",
+      "refreshed": "Session refreshed",
+      "refreshFailed": "Failed to refresh session"
+    }
   },
   "branding": {
     "title": "Dhuud HSSE Platform",

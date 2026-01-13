@@ -40,6 +40,7 @@ interface AuthContextType {
   refreshProfile: () => Promise<void>;
   validateTenantAccess: () => Promise<boolean>; // NEW: Validate access for current tenant
   isUsingCachedSession: boolean; // NEW: Indicates if using cached session (offline mode)
+  refreshSession: () => Promise<boolean>; // NEW: Force refresh session from server
 }
 
 // Create context outside of component to ensure singleton across HMR
@@ -159,7 +160,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ]);
     }
   };
-
   // Helper to cache session data after successful fetch
   const cacheCurrentSession = useCallback(async (
     userId: string,
@@ -211,6 +211,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return false;
     }
   }, []);
+
+  // Force refresh session from server and update cache
+  const refreshSession = useCallback(async (): Promise<boolean> => {
+    if (!navigator.onLine || !user?.id) return false;
+    
+    try {
+      // Fetch fresh data from server
+      await Promise.all([
+        fetchProfile(user.id),
+        fetchUserRole(user.id),
+        checkMFA()
+      ]);
+      
+      // Update will happen via state, cache in next tick
+      setIsUsingCachedSession(false);
+      
+      // Cache the fresh session data
+      setTimeout(async () => {
+        if (profile && userRole !== null) {
+          await cacheCurrentSession(
+            user.id,
+            user.email || '',
+            profile,
+            userRole,
+            mfaEnabled,
+            tenantMfaVerified
+          );
+        }
+      }, 100);
+      
+      logger.debug('Session refreshed from server');
+      return true;
+    } catch (err) {
+      logger.error('Failed to refresh session:', err);
+      return false;
+    }
+  }, [user, profile, userRole, mfaEnabled, tenantMfaVerified, cacheCurrentSession]);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -322,6 +359,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshProfile,
     validateTenantAccess,
     isUsingCachedSession,
+    refreshSession,
   };
 
   // Watch for email changes from admin actions

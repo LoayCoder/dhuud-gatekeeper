@@ -7,6 +7,7 @@ import { LanguageSelector } from "@/components/settings";
 import { TrialBanner } from "@/components/subscription";
 import { OfflineStatusBanner } from "@/components/offline/OfflineStatusBanner";
 import { OfflineStatusBadge } from "@/components/layout/OfflineStatusBadge";
+import { OfflineSessionIndicator } from "@/components/offline/OfflineSessionIndicator";
 import { HSSENotificationCenter } from "@/components/notifications/HSSENotificationCenter";
 import { MandatoryNotificationDialog } from "@/components/notifications/MandatoryNotificationDialog";
 import { HSSEAlertBanner } from "@/components/dashboard/HSSEAlertBanner";
@@ -46,6 +47,7 @@ export default function MainLayout() {
             
             {/* Right side - Critical controls that MUST always be visible */}
             <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 shrink-0 py-2 sm:py-2.5 md:py-3">
+              <OfflineSessionIndicator />
               <OfflineStatusBadge />
               <HSSENotificationCenter />
               <LanguageSelector />

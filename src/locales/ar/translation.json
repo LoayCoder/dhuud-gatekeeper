@@ -3405,7 +3405,18 @@
     "syncPartial": "مزامنة جزئية",
     "syncFailed": "فشلت مزامنة {{count}} إدخالات",
     "syncError": "فشل في مزامنة البيانات",
-    "syncing": "جاري المزامنة..."
+    "syncing": "جاري المزامنة...",
+    "session": {
+      "cached": "مخزن مؤقتاً",
+      "usingCached": "استخدام جلسة مخزنة مؤقتاً",
+      "lastVerified": "آخر تحقق",
+      "clickToRefresh": "انقر لتحديث الجلسة",
+      "refreshing": "جاري التحديث...",
+      "connectToRefresh": "اتصل بالإنترنت للتحديث",
+      "unknown": "غير معروف",
+      "refreshed": "تم تحديث الجلسة",
+      "refreshFailed": "فشل في تحديث الجلسة"
+    }
   },
   "branding": {
     "title": "منصة ذود للصحة والسلامة",
