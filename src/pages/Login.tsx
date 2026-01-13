@@ -437,21 +437,9 @@ export default function Login() {
       {/* Main Content - flex-1 with overflow handling */}
       <main className="flex min-h-0 flex-1 items-center justify-center overflow-auto px-4 py-2">
         <Card className="w-full max-w-sm border-border/50 bg-card/80 shadow-lg backdrop-blur-sm sm:max-w-md">
-          <CardHeader className="space-y-3 pb-4 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 sm:h-14 sm:w-14">
-              <img 
-                src={displayLogo} 
-                alt={displayName} 
-                className="h-8 w-8 object-contain sm:h-10 sm:w-10"
-                onError={(e) => {
-                  e.currentTarget.src = fallbackLogo;
-                }}
-              />
-            </div>
-            <div className="space-y-1">
-              <h1 className="text-lg font-semibold tracking-tight sm:text-xl">{displayName}</h1>
-              <p className="text-xs text-muted-foreground sm:text-sm">{t('auth.signInToAccount')}</p>
-            </div>
+          <CardHeader className="space-y-2 pb-4 text-center">
+            <h1 className="text-lg font-semibold tracking-tight sm:text-xl">{displayName}</h1>
+            <p className="text-xs text-muted-foreground sm:text-sm">{t('auth.signInToAccount')}</p>
           </CardHeader>
 
           <CardContent className="space-y-4">
