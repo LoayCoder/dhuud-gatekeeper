@@ -10,15 +10,18 @@ import {
   AlertTriangle,
   CheckCircle,
   GraduationCap,
-  Building2
+  Building2,
+  Download
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import { GuardPerformanceCard } from '@/components/security/GuardPerformanceCard';
 import { GuardTrainingList } from '@/components/security/GuardTrainingList';
 import { TrainingExpiryAlerts } from '@/components/security/TrainingExpiryAlerts';
 import { GuardSiteAssignments } from '@/components/security/GuardSiteAssignments';
+import { SecurityReportExportDialog } from '@/components/security/SecurityReportExportDialog';
 import { useSecurityTeamStats, useGuardPerformanceSummary } from '@/hooks/use-guard-performance';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
@@ -26,6 +29,7 @@ import { cn } from '@/lib/utils';
 export default function GuardPerformance() {
   const { t } = useTranslation();
   const [period, setPeriod] = useState<'week' | 'month' | 'all'>('month');
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const { data: teamStats, isLoading: loadingStats } = useSecurityTeamStats();
   const { data: summaries, isLoading: loadingSummaries } = useGuardPerformanceSummary(period);
 
@@ -48,18 +52,30 @@ export default function GuardPerformance() {
             {t('security.performanceDescription', 'Track and analyze security team performance metrics')}
           </p>
         </div>
-        <Select value={period} onValueChange={(v) => setPeriod(v as any)}>
-          <SelectTrigger className="w-40">
-            <Calendar className="h-4 w-4 me-2" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="week">{t('security.thisWeek', 'This Week')}</SelectItem>
-            <SelectItem value="month">{t('security.thisMonth', 'This Month')}</SelectItem>
-            <SelectItem value="all">{t('security.allTime', 'All Time')}</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setExportDialogOpen(true)}>
+            <Download className="h-4 w-4 me-2" />
+            {t('security.exportReport', 'Export Report')}
+          </Button>
+          <Select value={period} onValueChange={(v) => setPeriod(v as any)}>
+            <SelectTrigger className="w-40">
+              <Calendar className="h-4 w-4 me-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="week">{t('security.thisWeek', 'This Week')}</SelectItem>
+              <SelectItem value="month">{t('security.thisMonth', 'This Month')}</SelectItem>
+              <SelectItem value="all">{t('security.allTime', 'All Time')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
+
+      {/* Export Dialog */}
+      <SecurityReportExportDialog 
+        open={exportDialogOpen} 
+        onOpenChange={setExportDialogOpen} 
+      />
 
       {/* Stats Overview */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
