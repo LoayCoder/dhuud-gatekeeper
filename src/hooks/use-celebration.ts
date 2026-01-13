@@ -6,10 +6,9 @@ import {
   playChallengeCompleteSound 
 } from '@/lib/celebration-sounds';
 
-export interface CelebrationOptions {
+interface CelebrationOptions {
   sound?: boolean;
   intensity?: 'low' | 'medium' | 'high';
-  duration?: number; // in milliseconds
 }
 
 // Check if sound is enabled in localStorage
@@ -18,134 +17,36 @@ function isSoundEnabled(): boolean {
   return stored === null ? true : stored === 'true';
 }
 
-// Get theme colors from CSS variables and convert to hex
-function getThemeColors(): string[] {
-  const root = document.documentElement;
-  const computedStyle = getComputedStyle(root);
-  
-  const hslToHex = (hsl: string): string => {
-    const match = hsl.trim().match(/^([\d.]+)\s+([\d.]+)%\s+([\d.]+)%$/);
-    if (!match) return '#3b82f6'; // fallback blue
-    
-    const h = parseFloat(match[1]);
-    const s = parseFloat(match[2]) / 100;
-    const l = parseFloat(match[3]) / 100;
-    
-    const c = (1 - Math.abs(2 * l - 1)) * s;
-    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
-    const m = l - c / 2;
-    
-    let r = 0, g = 0, b = 0;
-    if (h < 60) { r = c; g = x; b = 0; }
-    else if (h < 120) { r = x; g = c; b = 0; }
-    else if (h < 180) { r = 0; g = c; b = x; }
-    else if (h < 240) { r = 0; g = x; b = c; }
-    else if (h < 300) { r = x; g = 0; b = c; }
-    else { r = c; g = 0; b = x; }
-    
-    const toHex = (n: number) => Math.round((n + m) * 255).toString(16).padStart(2, '0');
-    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-  };
-  
-  // Extract theme colors
-  const colors: string[] = [];
-  const colorVars = ['--primary', '--accent', '--success', '--warning', '--info', '--chart-1', '--chart-2', '--chart-3', '--chart-4', '--chart-5'];
-  
-  colorVars.forEach(varName => {
-    const value = computedStyle.getPropertyValue(varName).trim();
-    if (value) {
-      colors.push(hslToHex(value));
-    }
-  });
-  
-  // Fallback if no colors found
-  if (colors.length === 0) {
-    return ['#3b82f6', '#f97316', '#22c55e', '#eab308', '#0ea5e9', '#8b5cf6'];
-  }
-  
-  return colors;
-}
-
-// Get gold/trophy colors for badges
-function getBadgeColors(): string[] {
-  const root = document.documentElement;
-  const computedStyle = getComputedStyle(root);
-  
-  const hslToHex = (hsl: string): string => {
-    const match = hsl.trim().match(/^([\d.]+)\s+([\d.]+)%\s+([\d.]+)%$/);
-    if (!match) return '#FFD700';
-    
-    const h = parseFloat(match[1]);
-    const s = parseFloat(match[2]) / 100;
-    const l = parseFloat(match[3]) / 100;
-    
-    const c = (1 - Math.abs(2 * l - 1)) * s;
-    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
-    const m = l - c / 2;
-    
-    let r = 0, g = 0, b = 0;
-    if (h < 60) { r = c; g = x; b = 0; }
-    else if (h < 120) { r = x; g = c; b = 0; }
-    else if (h < 180) { r = 0; g = c; b = x; }
-    else if (h < 240) { r = 0; g = x; b = c; }
-    else if (h < 300) { r = x; g = 0; b = c; }
-    else { r = c; g = 0; b = x; }
-    
-    const toHex = (n: number) => Math.round((n + m) * 255).toString(16).padStart(2, '0');
-    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-  };
-  
-  // Get warning/accent for gold tones
-  const warning = computedStyle.getPropertyValue('--warning').trim();
-  const accent = computedStyle.getPropertyValue('--accent').trim();
-  
-  const baseColors = [
-    warning ? hslToHex(warning) : '#FFD700',
-    accent ? hslToHex(accent) : '#FFA500',
-  ];
-  
-  // Add gold variations
-  return [...baseColors, '#FFD700', '#FFA500', '#FFB347', '#FFCC00', '#F4C430'];
-}
-
-// Intensity configurations
-const INTENSITY_CONFIG = {
-  low: { particles: 30, spread: 45, duration: 1000, scalar: 0.8 },
-  medium: { particles: 60, spread: 70, duration: 2000, scalar: 1.0 },
-  high: { particles: 120, spread: 100, duration: 3000, scalar: 1.3 },
-};
-
 export function useCelebration() {
-  // Badge unlock celebration - sparkles from center with theme colors
+  // Badge unlock celebration - sparkles from center
   const celebrateBadge = useCallback(async (options: CelebrationOptions = {}) => {
-    const { sound = isSoundEnabled(), intensity = 'medium', duration } = options;
-    const config = INTENSITY_CONFIG[intensity];
-    const badgeColors = getBadgeColors();
-    const effectDuration = duration ?? config.duration;
+    const { sound = isSoundEnabled(), intensity = 'medium' } = options;
     
-    // Main gold burst
+    const particleCount = intensity === 'low' ? 30 : intensity === 'high' ? 100 : 50;
+    
+    // Gold/trophy colored confetti
     confetti({
-      particleCount: config.particles,
-      spread: config.spread,
+      particleCount,
+      spread: 60,
       origin: { y: 0.6 },
-      colors: badgeColors,
+      colors: ['#FFD700', '#FFA500', '#FFB347', '#FFCC00', '#F4C430'],
       shapes: ['star', 'circle'],
-      scalar: config.scalar * 1.2,
+      scalar: 1.2,
       gravity: 0.8,
-      ticks: Math.floor(effectDuration / 10),
+      ticks: 150,
     });
 
-    // Sparkle effect with theme accent
+    // Add sparkle effect
     setTimeout(() => {
       confetti({
-        particleCount: Math.floor(config.particles / 2),
-        spread: config.spread + 30,
+        particleCount: particleCount / 2,
+        spread: 100,
         origin: { y: 0.5 },
-        colors: ['#FFFFFF', '#FFFACD', '#FFE4B5', ...badgeColors.slice(0, 2)],
+        colors: ['#FFFFFF', '#FFFACD', '#FFE4B5'],
         shapes: ['star'],
-        scalar: config.scalar * 0.8,
+        scalar: 0.8,
         gravity: 0.6,
-        ticks: Math.floor(effectDuration / 15),
+        ticks: 100,
       });
     }, 150);
 
@@ -154,31 +55,29 @@ export function useCelebration() {
     }
   }, []);
 
-  // Challenge complete celebration - full confetti blast with theme colors
+  // Challenge complete celebration - full confetti blast
   const celebrateChallenge = useCallback(async (options: CelebrationOptions = {}) => {
-    const { sound = isSoundEnabled(), intensity = 'high', duration } = options;
-    const config = INTENSITY_CONFIG[intensity];
-    const themeColors = getThemeColors();
-    const effectDuration = duration ?? config.duration;
-    const end = Date.now() + effectDuration;
+    const { sound = isSoundEnabled(), intensity = 'high' } = options;
+    
+    const particleCount = intensity === 'low' ? 50 : intensity === 'high' ? 200 : 100;
+    const duration = intensity === 'low' ? 1000 : intensity === 'high' ? 3000 : 2000;
+    const end = Date.now() + duration;
 
-    // Continuous confetti burst from sides
+    // Continuous confetti burst
     const frame = () => {
       confetti({
-        particleCount: Math.max(2, Math.floor(config.particles / 40)),
+        particleCount: 3,
         angle: 60,
         spread: 55,
         origin: { x: 0 },
-        colors: themeColors,
-        scalar: config.scalar,
+        colors: ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff'],
       });
       confetti({
-        particleCount: Math.max(2, Math.floor(config.particles / 40)),
+        particleCount: 3,
         angle: 120,
         spread: 55,
         origin: { x: 1 },
-        colors: themeColors,
-        scalar: config.scalar,
+        colors: ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff'],
       });
 
       if (Date.now() < end) {
@@ -190,13 +89,12 @@ export function useCelebration() {
     // Big center burst
     setTimeout(() => {
       confetti({
-        particleCount: config.particles,
-        spread: config.spread + 60,
+        particleCount,
+        spread: 160,
         origin: { y: 0.35 },
-        colors: themeColors,
         gravity: 0.7,
-        scalar: config.scalar * 1.5,
-        ticks: Math.floor(effectDuration / 10),
+        scalar: 1.5,
+        ticks: 200,
       });
     }, 200);
 
@@ -205,20 +103,16 @@ export function useCelebration() {
     }
   }, []);
 
-  // Generic celebration with theme colors
+  // Generic celebration
   const celebrate = useCallback(async (options: CelebrationOptions = {}) => {
-    const { sound = isSoundEnabled(), intensity = 'medium', duration } = options;
-    const config = INTENSITY_CONFIG[intensity];
-    const themeColors = getThemeColors();
-    const effectDuration = duration ?? config.duration;
+    const { sound = isSoundEnabled(), intensity = 'medium' } = options;
+    
+    const particleCount = intensity === 'low' ? 30 : intensity === 'high' ? 100 : 60;
 
     confetti({
-      particleCount: config.particles,
-      spread: config.spread,
+      particleCount,
+      spread: 70,
       origin: { y: 0.6 },
-      colors: themeColors,
-      scalar: config.scalar,
-      ticks: Math.floor(effectDuration / 10),
     });
 
     if (sound) {
