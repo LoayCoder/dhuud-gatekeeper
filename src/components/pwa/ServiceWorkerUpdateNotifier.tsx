@@ -10,14 +10,12 @@ export function ServiceWorkerUpdateNotifier() {
   const {
     hasUpdate,
     newVersion,
-    releaseNotes,
     priority,
     isIOS,
     isPWA,
     dismissCount,
     applyUpdate,
     dismissUpdate,
-    currentVersion,
   } = useAppUpdateCheck();
 
   // Determine if this is a critical update (3+ dismissals or marked as critical)
@@ -25,12 +23,8 @@ export function ServiceWorkerUpdateNotifier() {
   const isImportant = priority === 'important' || dismissCount >= 2;
 
   if (!hasUpdate) {
-    return (
-      <WhatsNewDialog 
-        version={currentVersion || ''} 
-        releaseNotes={releaseNotes} 
-      />
-    );
+    // WhatsNewDialog now fetches its own version info
+    return <WhatsNewDialog />;
   }
 
   return (
@@ -139,10 +133,7 @@ export function ServiceWorkerUpdateNotifier() {
         </div>
       </div>
       
-      <WhatsNewDialog 
-        version={currentVersion || ''} 
-        releaseNotes={releaseNotes} 
-      />
+      <WhatsNewDialog />
     </>
   );
 }
