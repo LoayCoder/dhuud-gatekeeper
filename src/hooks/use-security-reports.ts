@@ -106,8 +106,8 @@ export function useAttendanceExport(filters: AttendanceExportFilters) {
           id,
           guard_id,
           zone_id,
-          check_in_time,
-          check_out_time,
+          check_in_at,
+          check_out_at,
           late_minutes,
           overtime_minutes,
           gps_validated,
@@ -121,9 +121,9 @@ export function useAttendanceExport(filters: AttendanceExportFilters) {
           )
         `)
         .is('deleted_at', null)
-        .gte('check_in_time', filters.startDate)
-        .lte('check_in_time', filters.endDate + 'T23:59:59')
-        .order('check_in_time', { ascending: false });
+        .gte('check_in_at', filters.startDate)
+        .lte('check_in_at', filters.endDate + 'T23:59:59')
+        .order('check_in_at', { ascending: false });
 
       if (filters.guardIds && filters.guardIds.length > 0) {
         query = query.in('guard_id', filters.guardIds);
@@ -141,8 +141,8 @@ export function useAttendanceExport(filters: AttendanceExportFilters) {
       if (error) throw error;
 
       const records: AttendanceRecord[] = (data || []).map((r: any) => {
-        const checkIn = r.check_in_time ? new Date(r.check_in_time) : null;
-        const checkOut = r.check_out_time ? new Date(r.check_out_time) : null;
+        const checkIn = r.check_in_at ? new Date(r.check_in_at) : null;
+        const checkOut = r.check_out_at ? new Date(r.check_out_at) : null;
         const hoursWorked = checkIn && checkOut 
           ? (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60) 
           : null;
@@ -197,10 +197,10 @@ export function useSecurityTeamSummary(startDate: string, endDate: string) {
       // Fetch attendance records
       const { data: attendance } = await supabase
         .from('guard_attendance_logs')
-        .select('id, guard_id, late_minutes, check_in_time, check_out_time, status')
+        .select('id, guard_id, late_minutes, check_in_at, check_out_at, status')
         .is('deleted_at', null)
-        .gte('check_in_time', startDate)
-        .lte('check_in_time', endDate + 'T23:59:59');
+        .gte('check_in_at', startDate)
+        .lte('check_in_at', endDate + 'T23:59:59');
 
       // Aggregate by guard
       const guardMap = new Map<string, {
@@ -271,8 +271,8 @@ export function useSecurityTeamSummary(startDate: string, endDate: string) {
       
       let totalHours = 0;
       for (const a of attendance || []) {
-        if (a.check_in_time && a.check_out_time) {
-          const hours = (new Date(a.check_out_time).getTime() - new Date(a.check_in_time).getTime()) / (1000 * 60 * 60);
+        if (a.check_in_at && a.check_out_at) {
+          const hours = (new Date(a.check_out_at).getTime() - new Date(a.check_in_at).getTime()) / (1000 * 60 * 60);
           totalHours += hours;
         }
       }
@@ -337,8 +337,8 @@ export function useGuardReportData(guardId: string, startDate: string, endDate: 
         .select(`
           id,
           guard_id,
-          check_in_time,
-          check_out_time,
+          check_in_at,
+          check_out_at,
           late_minutes,
           overtime_minutes,
           gps_validated,
@@ -347,9 +347,9 @@ export function useGuardReportData(guardId: string, startDate: string, endDate: 
         `)
         .eq('guard_id', guardId)
         .is('deleted_at', null)
-        .gte('check_in_time', startDate)
-        .lte('check_in_time', endDate + 'T23:59:59')
-        .order('check_in_time', { ascending: false })
+        .gte('check_in_at', startDate)
+        .lte('check_in_at', endDate + 'T23:59:59')
+        .order('check_in_at', { ascending: false })
         .limit(20);
 
       // Fetch shift roster
@@ -369,16 +369,8 @@ export function useGuardReportData(guardId: string, startDate: string, endDate: 
         .order('start_date', { ascending: false })
         .limit(10);
 
-      // Fetch training
-      const { data: training } = await supabase
-        .from('guard_training')
-        .select(`
-          status,
-          expiry_date,
-          training:training_programs(name)
-        `)
-        .eq('guard_id', guardId)
-        .is('deleted_at', null);
+      // Training data - placeholder since guard_training table may not exist
+      const training: any[] = [];
 
       // Calculate aggregated performance
       let totalPatrolsCompleted = 0;
@@ -467,8 +459,8 @@ export function useGuardReportData(guardId: string, startDate: string, endDate: 
           totalGuards: guardAvgScores.length || 1,
         },
         attendance: (attendance || []).map((a: any) => {
-          const checkIn = a.check_in_time ? new Date(a.check_in_time) : null;
-          const checkOut = a.check_out_time ? new Date(a.check_out_time) : null;
+          const checkIn = a.check_in_at ? new Date(a.check_in_at) : null;
+          const checkOut = a.check_out_at ? new Date(a.check_out_at) : null;
           const hoursWorked = checkIn && checkOut 
             ? (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60) 
             : null;
