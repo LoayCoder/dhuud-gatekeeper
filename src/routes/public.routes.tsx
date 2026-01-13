@@ -51,7 +51,7 @@ export const authRoutes: RouteObject[] = [
   { path: "/signup", element: <Signup /> },
   { path: "/forgot-password", element: <ForgotPassword /> },
   { path: "/reset-password", element: <ResetPassword /> },
-  { path: "/register", element: <Navigate to="/invite" replace /> },
+  { path: "/register", element: <Navigate to="/login" replace /> },
   { path: "/auth/callback", element: <AuthCallback /> },
   { path: "/install", element: <Install /> },
   { 

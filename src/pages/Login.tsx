@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -12,14 +12,15 @@ import { useWebAuthn } from '@/hooks/use-webauthn';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Shield, Fingerprint, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { AuthHeroImage } from '@/components/ui/optimized-image';
 import { z } from 'zod';
 import { logUserActivity, startSessionTracking } from '@/lib/activity-logger';
 import { MFAVerificationDialog } from '@/components/auth/MFAVerificationDialog';
 import { DHUUD_LOGO_LIGHT, DHUUD_LOGO_DARK, DHUUD_TENANT_NAME } from '@/constants/branding';
 import { logger } from '@/lib/logger';
+import { HeaderControls } from '@/components/home/HeaderControls';
 
 export default function Login() {
   const { t } = useTranslation();
@@ -394,33 +395,72 @@ export default function Login() {
     }
   };
 
+  const handleBiometricLogin = async () => {
+    setBiometricLoading(true);
+    try {
+      const success = await biometricAuthDiscoverable();
+      if (success) {
+        toast({
+          title: t('auth.welcomeBack'),
+          description: t('auth.biometricSuccess'),
+        });
+        navigate(returnTo);
+      }
+    } catch (error) {
+      toast({
+        title: t('auth.error'),
+        description: t('auth.biometricFailed'),
+        variant: 'destructive',
+      });
+    } finally {
+      setBiometricLoading(false);
+    }
+  };
+
   return (
-    <div className="flex min-h-screen">
-      {/* Left Side - Industrial Image */}
-      <AuthHeroImage title={t('branding.title')} subtitle={t('branding.subtitle')} />
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-background via-background to-muted/30">
+      {/* Header */}
+      <header className="flex items-center justify-between px-6 py-4">
+        <div className="flex items-center gap-3">
+          <img 
+            src={displayLogo} 
+            alt={displayName} 
+            className="h-8 object-contain"
+            onError={(e) => {
+              e.currentTarget.src = fallbackLogo;
+            }}
+          />
+        </div>
+        <HeaderControls />
+      </header>
 
-      {/* Right Side - Login Form */}
-      <div className="flex w-full items-center justify-center bg-background p-8 lg:w-1/2">
-        <div className="w-full max-w-md space-y-8">
-          {/* Logo and Header */}
-          <div className="text-center">
-            <img 
-              src={displayLogo} 
-              alt={displayName} 
-              className="mx-auto mb-4 h-16 object-contain"
-              onError={(e) => {
-                e.currentTarget.src = fallbackLogo;
-              }}
-            />
-            <h2 className="text-3xl font-bold">{displayName}</h2>
-            <p className="mt-2 text-muted-foreground">{t('auth.signInToAccount')}</p>
-          </div>
+      {/* Main Content */}
+      <main className="flex flex-1 items-center justify-center px-4 py-8">
+        <Card className="w-full max-w-md border-border/50 bg-card/80 shadow-lg backdrop-blur-sm">
+          <CardHeader className="space-y-4 pb-6 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10">
+              <img 
+                src={displayLogo} 
+                alt={displayName} 
+                className="h-10 w-10 object-contain"
+                onError={(e) => {
+                  e.currentTarget.src = fallbackLogo;
+                }}
+              />
+            </div>
+            <div className="space-y-1">
+              <h1 className="text-xl font-semibold tracking-tight">{displayName}</h1>
+              <p className="text-sm text-muted-foreground">{t('auth.signInToAccount')}</p>
+            </div>
+          </CardHeader>
 
-          {/* Login Form */}
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-4">
+          <CardContent className="space-y-6">
+            {/* Login Form */}
+            <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">{t('auth.email')}</Label>
+                <Label htmlFor="email" className="text-sm font-medium">
+                  {t('auth.email')}
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -429,12 +469,22 @@ export default function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={loading}
-                  className="h-12"
+                  className="h-11"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">{t('auth.password')}</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-sm font-medium">
+                    {t('auth.password')}
+                  </Label>
+                  <Link 
+                    to="/forgot-password" 
+                    className="text-xs text-primary hover:text-primary/80 hover:underline"
+                  >
+                    {t('auth.forgotPassword')}
+                  </Link>
+                </div>
                 <Input
                   id="password"
                   type="password"
@@ -443,24 +493,35 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={loading}
-                  className="h-12"
+                  className="h-11"
                 />
               </div>
-            </div>
 
-            <Button type="submit" className="h-12 w-full text-lg" disabled={loading || biometricLoading}>
-              {loading ? t('auth.signingIn') : t('auth.signIn')}
-            </Button>
+              <Button 
+                type="submit" 
+                className="h-11 w-full font-medium" 
+                disabled={loading || biometricLoading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                    {t('auth.signingIn')}
+                  </>
+                ) : (
+                  t('auth.signIn')
+                )}
+              </Button>
+            </form>
 
             {/* Biometric Login */}
             {isBiometricSupported && (
               <>
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
+                    <span className="w-full border-t border-border/50" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">
+                    <span className="bg-card px-2 text-muted-foreground">
                       {t('auth.or')}
                     </span>
                   </div>
@@ -468,71 +529,68 @@ export default function Login() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-12 w-full"
+                  className="h-11 w-full"
                   disabled={loading || biometricLoading}
-                  onClick={async () => {
-                    setBiometricLoading(true);
-                    try {
-                      const success = await biometricAuthDiscoverable();
-                      if (success) {
-                        await refreshTenantData();
-                        startSessionTracking();
-                        await logUserActivity({ eventType: 'login' });
-                        clearInvitationData();
-                        navigate(returnTo);
-                      }
-                    } finally {
-                      setBiometricLoading(false);
-                    }
-                  }}
+                  onClick={handleBiometricLogin}
                 >
                   {biometricLoading ? (
-                    <Loader2 className="h-5 w-5 animate-spin me-2" />
+                    <Loader2 className="me-2 h-4 w-4 animate-spin" />
                   ) : (
-                    <Fingerprint className="h-5 w-5 me-2" />
+                    <Fingerprint className="me-2 h-4 w-4" />
                   )}
-                  {t('biometric.loginWith')}
+                  {t('auth.signInWithBiometric')}
                 </Button>
               </>
             )}
 
-            <div className="flex flex-col items-center gap-2">
-              <Button
-                type="button"
-                variant="link"
-                onClick={() => navigate('/forgot-password')}
-                className="text-sm"
-              >
-                {t('auth.forgotPassword')}
-              </Button>
+            {/* Invite Code Link */}
+            <div className="rounded-lg border border-dashed border-border/50 bg-muted/30 p-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                {t('invite.haveInviteCode', 'Have an invitation code?')}
+              </p>
               <Button
                 type="button"
                 variant="link"
                 onClick={() => navigate('/invite')}
-                className="text-sm"
+                className="h-auto p-0 text-sm font-medium text-primary"
               >
-                {t('auth.backToInvite')}
+                {t('invite.enterCodeHere', 'Enter your code here')}
               </Button>
             </div>
-          </form>
+          </CardContent>
+        </Card>
+      </main>
 
-          {/* Footer */}
-          <div className="mt-8 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-            <Shield className="h-4 w-4" />
-            <span>{t('security.protectedByZeroTrust')}</span>
-          </div>
+      {/* Footer */}
+      <footer className="flex flex-col items-center gap-4 px-6 py-6 text-center">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Shield className="h-4 w-4" />
+          <span>{t('security.protectedByZeroTrust')}</span>
         </div>
-      </div>
+        <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
+          <Link to="/terms" className="hover:text-foreground hover:underline">
+            {t('legal.termsOfService')}
+          </Link>
+          <span>•</span>
+          <Link to="/privacy" className="hover:text-foreground hover:underline">
+            {t('legal.privacyPolicy')}
+          </Link>
+          <span>•</span>
+          <Link to="/cookies" className="hover:text-foreground hover:underline">
+            {t('legal.cookiePolicy')}
+          </Link>
+        </div>
+      </footer>
 
       {/* MFA Verification Dialog */}
-      {mfaFactorId && (
+      {showMFADialog && mfaFactorId && (
         <MFAVerificationDialog
           open={showMFADialog}
           onOpenChange={setShowMFADialog}
           factorId={mfaFactorId}
+          userId={currentUserId}
           onSuccess={handleMFASuccess}
           onCancel={handleMFACancel}
-          userId={currentUserId || undefined}
         />
       )}
     </div>
