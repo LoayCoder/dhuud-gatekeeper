@@ -73,8 +73,8 @@ export function DeletionPasswordSettings() {
         {t('profile.deletionPassword.description')}
       </p>
       
-      <div className="flex items-center justify-between p-4 border rounded-lg">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-3 p-4 border rounded-lg sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3 flex-wrap">
           <span className="text-sm font-medium">{t('common.status')}:</span>
           {isConfigured === null ? (
             <Badge variant="outline">{t('common.loading')}</Badge>
@@ -91,7 +91,7 @@ export function DeletionPasswordSettings() {
           )}
         </div>
         
-        <Button onClick={() => setDialogOpen(true)} variant="outline">
+        <Button onClick={() => setDialogOpen(true)} variant="outline" className="w-full sm:w-auto">
           {isConfigured 
             ? t('profile.deletionPassword.changePassword') 
             : t('profile.deletionPassword.setPassword')
