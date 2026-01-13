@@ -42,12 +42,15 @@ export default function ShiftRoster() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [teamDialogOpen, setTeamDialogOpen] = useState(false);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 0 }));
+  const today = format(new Date(), 'yyyy-MM-dd');
   const [formData, setFormData] = useState({
     guard_id: '', 
     zone_id: '', 
     shift_id: '', 
     supervisor_id: '',
-    roster_date: format(new Date(), 'yyyy-MM-dd') 
+    start_date: today,
+    end_date: today,
+    excluded_days: [] as number[],
   });
 
   const weekDays = useMemo(() => eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) }), [weekStart]);

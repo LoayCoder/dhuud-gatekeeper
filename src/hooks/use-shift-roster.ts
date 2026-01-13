@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { eachDayOfInterval, parseISO, format, getDay, differenceInHours } from 'date-fns';
 
 export interface RosterAssignment {
   id: string;
@@ -13,10 +14,25 @@ export interface RosterAssignment {
   notes: string | null;
   check_in_time: string | null;
   check_out_time: string | null;
+  acknowledged_at: string | null;
+  assigned_at: string | null;
+  auto_acknowledged: boolean | null;
   guard?: { full_name: string | null };
   supervisor?: { full_name: string | null };
   zone?: { zone_name: string | null; zone_code: string | null };
   shift?: { shift_name: string | null; start_time: string | null; end_time: string | null };
+}
+
+export interface UpcomingShift {
+  id: string;
+  roster_date: string;
+  status: string | null;
+  acknowledged_at: string | null;
+  assigned_at: string | null;
+  auto_acknowledged: boolean | null;
+  zone: { zone_name: string | null; zone_code: string | null } | null;
+  shift: { shift_name: string | null; start_time: string | null; end_time: string | null } | null;
+  supervisor: { full_name: string | null } | null;
 }
 
 export function useShiftRoster(filters?: { date?: string; zoneId?: string; shiftId?: string }) {
@@ -28,6 +44,7 @@ export function useShiftRoster(filters?: { date?: string; zoneId?: string; shift
         .select(`
           id, guard_id, zone_id, shift_id, roster_date, supervisor_id, status, notes,
           check_in_time, check_out_time, check_in_lat, check_in_lng, check_out_lat, check_out_lng,
+          acknowledged_at, assigned_at, auto_acknowledged,
           guard:profiles!shift_roster_guard_id_fkey(full_name),
           supervisor:profiles!shift_roster_supervisor_id_fkey(full_name),
           zone:security_zones(zone_name, zone_code),
@@ -61,7 +78,7 @@ export function useMyRosterAssignment() {
         .from('shift_roster')
         .select(`
           id, guard_id, zone_id, shift_id, roster_date, supervisor_id, status, notes,
-          check_in_time, check_out_time,
+          check_in_time, check_out_time, acknowledged_at, assigned_at, auto_acknowledged,
           supervisor:profiles!shift_roster_supervisor_id_fkey(full_name, phone_number),
           zone:security_zones(zone_name, zone_code),
           shift:security_shifts(shift_name, start_time, end_time)
@@ -75,12 +92,11 @@ export function useMyRosterAssignment() {
       if (todayAssignment) return todayAssignment;
       
       // Fallback: Check for any active (checked_in) assignment from previous days
-      // This handles guards who haven't checked out yet (e.g., overnight shifts)
       const { data: activeAssignment, error: activeError } = await supabase
         .from('shift_roster')
         .select(`
           id, guard_id, zone_id, shift_id, roster_date, supervisor_id, status, notes,
-          check_in_time, check_out_time,
+          check_in_time, check_out_time, acknowledged_at, assigned_at, auto_acknowledged,
           supervisor:profiles!shift_roster_supervisor_id_fkey(full_name, phone_number),
           zone:security_zones(zone_name, zone_code),
           shift:security_shifts(shift_name, start_time, end_time)
@@ -94,6 +110,35 @@ export function useMyRosterAssignment() {
 
       if (activeError) throw activeError;
       return activeAssignment;
+    },
+  });
+}
+
+export function useMyUpcomingShifts() {
+  return useQuery({
+    queryKey: ['my-upcoming-shifts'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const today = format(new Date(), 'yyyy-MM-dd');
+      
+      const { data, error } = await supabase
+        .from('shift_roster')
+        .select(`
+          id, roster_date, status, acknowledged_at, assigned_at, auto_acknowledged,
+          zone:security_zones(zone_name, zone_code),
+          shift:security_shifts(shift_name, start_time, end_time),
+          supervisor:profiles!shift_roster_supervisor_id_fkey(full_name)
+        `)
+        .eq('guard_id', user.id)
+        .gte('roster_date', today)
+        .is('deleted_at', null)
+        .order('roster_date', { ascending: true })
+        .limit(30);
+
+      if (error) throw error;
+      return (data || []) as UpcomingShift[];
     },
   });
 }
@@ -190,37 +235,62 @@ export function useSupervisors() {
   });
 }
 
+export interface CreateRosterAssignmentParams {
+  guard_id: string;
+  zone_id: string;
+  shift_id: string;
+  start_date: string;
+  end_date: string;
+  excluded_days?: number[]; // 0=Sunday, 5=Friday, 6=Saturday
+  supervisor_id?: string;
+  notes?: string;
+  status?: string;
+}
+
 export function useCreateRosterAssignment() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (assignment: { 
-      guard_id: string; 
-      zone_id: string; 
-      shift_id: string; 
-      roster_date: string; 
-      supervisor_id?: string;
-      notes?: string; 
-      status?: string 
-    }) => {
+    mutationFn: async (assignment: CreateRosterAssignmentParams) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
       
       const { data: profile } = await supabase.from('profiles').select('tenant_id').eq('id', user.id).single();
       if (!profile?.tenant_id) throw new Error('No tenant found');
 
-      const { data, error } = await supabase
-        .from('shift_roster')
-        .insert({ ...assignment, tenant_id: profile.tenant_id } as any)
-        .select()
-        .single();
+      // Generate dates in range, excluding off days
+      const dates = eachDayOfInterval({
+        start: parseISO(assignment.start_date),
+        end: parseISO(assignment.end_date)
+      }).filter(date => !assignment.excluded_days?.includes(getDay(date)));
+
+      if (dates.length === 0) {
+        throw new Error('No valid dates after excluding off days');
+      }
+
+      const now = new Date().toISOString();
+      const entries = dates.map(date => ({
+        guard_id: assignment.guard_id,
+        zone_id: assignment.zone_id,
+        shift_id: assignment.shift_id,
+        supervisor_id: assignment.supervisor_id || null,
+        roster_date: format(date, 'yyyy-MM-dd'),
+        assigned_at: now,
+        tenant_id: profile.tenant_id,
+        status: assignment.status || 'scheduled',
+        notes: assignment.notes || null,
+      }));
+
+      const { error } = await supabase.from('shift_roster').insert(entries);
       if (error) throw error;
-      return data;
+      
+      return { count: entries.length, guard_id: assignment.guard_id };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['shift-roster'] });
-      toast({ title: 'Assignment created' });
+      queryClient.invalidateQueries({ queryKey: ['my-upcoming-shifts'] });
+      toast({ title: `${result.count} shift(s) assigned successfully` });
     },
     onError: (error) => {
       toast({ title: 'Failed to create assignment', description: error.message, variant: 'destructive' });
@@ -283,6 +353,106 @@ export function useDeleteRosterAssignment() {
   });
 }
 
+export function useBulkDeleteRosterAssignments() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase
+        .from('shift_roster')
+        .update({ deleted_at: new Date().toISOString() })
+        .in('id', ids);
+      if (error) throw error;
+      return { count: ids.length };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['shift-roster'] });
+      toast({ title: `${result.count} assignments deleted` });
+    },
+    onError: (error) => {
+      toast({ title: 'Failed to delete assignments', description: error.message, variant: 'destructive' });
+    },
+  });
+}
+
+export function useBulkUpdateRosterAssignments() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ ids, updates }: { 
+      ids: string[]; 
+      updates: { zone_id?: string; shift_id?: string; supervisor_id?: string } 
+    }) => {
+      const { error } = await supabase
+        .from('shift_roster')
+        .update(updates)
+        .in('id', ids);
+      if (error) throw error;
+      return { count: ids.length };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['shift-roster'] });
+      toast({ title: `${result.count} assignments updated` });
+    },
+    onError: (error) => {
+      toast({ title: 'Failed to update assignments', description: error.message, variant: 'destructive' });
+    },
+  });
+}
+
+export function useAcknowledgeShift() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('shift_roster')
+        .update({ 
+          acknowledged_at: new Date().toISOString(),
+          auto_acknowledged: false
+        })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-upcoming-shifts'] });
+      queryClient.invalidateQueries({ queryKey: ['my-roster-assignment'] });
+      toast({ title: 'Shift acknowledged' });
+    },
+    onError: (error) => {
+      toast({ title: 'Failed to acknowledge shift', description: error.message, variant: 'destructive' });
+    },
+  });
+}
+
+export function getAcknowledgmentStatus(shift: { 
+  acknowledged_at: string | null; 
+  assigned_at: string | null; 
+  auto_acknowledged: boolean | null;
+}): 'acknowledged' | 'auto_acknowledged' | 'pending' | 'expired' {
+  if (shift.acknowledged_at) {
+    return shift.auto_acknowledged ? 'auto_acknowledged' : 'acknowledged';
+  }
+  
+  if (shift.assigned_at) {
+    const hoursSinceAssigned = differenceInHours(new Date(), new Date(shift.assigned_at));
+    if (hoursSinceAssigned >= 12) {
+      return 'expired'; // Should be auto-acknowledged by edge function
+    }
+  }
+  
+  return 'pending';
+}
+
+export function getTimeUntilAutoAcknowledge(assignedAt: string | null): number | null {
+  if (!assignedAt) return null;
+  const hoursRemaining = 12 - differenceInHours(new Date(), new Date(assignedAt));
+  return hoursRemaining > 0 ? hoursRemaining : 0;
+}
+
 export function useGuardCheckIn() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -331,17 +501,21 @@ export function useGuardCheckOut() {
   });
 }
 
+export interface AssignTeamToShiftParams {
+  team_id: string;
+  zone_id: string;
+  shift_id: string;
+  start_date: string;
+  end_date: string;
+  excluded_days?: number[];
+}
+
 export function useAssignTeamToShift() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (data: {
-      team_id: string;
-      zone_id: string;
-      shift_id: string;
-      roster_date: string;
-    }) => {
+    mutationFn: async (data: AssignTeamToShiftParams) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
@@ -367,16 +541,31 @@ export function useAssignTeamToShift() {
       if (membersError) throw membersError;
       if (!members || members.length === 0) throw new Error('No team members found');
 
-      // Create roster entries for each member
-      const rosterEntries = members.map(m => ({
-        guard_id: m.guard_id,
-        zone_id: data.zone_id,
-        shift_id: data.shift_id,
-        roster_date: data.roster_date,
-        supervisor_id: team.supervisor_id,
-        tenant_id: profile.tenant_id,
-        status: 'scheduled',
-      }));
+      // Generate dates in range, excluding off days
+      const dates = eachDayOfInterval({
+        start: parseISO(data.start_date),
+        end: parseISO(data.end_date)
+      }).filter(date => !data.excluded_days?.includes(getDay(date)));
+
+      if (dates.length === 0) {
+        throw new Error('No valid dates after excluding off days');
+      }
+
+      const now = new Date().toISOString();
+
+      // Create roster entries for each member × each date
+      const rosterEntries = dates.flatMap(date => 
+        members.map(m => ({
+          guard_id: m.guard_id,
+          zone_id: data.zone_id,
+          shift_id: data.shift_id,
+          roster_date: format(date, 'yyyy-MM-dd'),
+          supervisor_id: team.supervisor_id,
+          tenant_id: profile.tenant_id,
+          status: 'scheduled',
+          assigned_at: now,
+        }))
+      );
 
       const { error: insertError } = await supabase
         .from('shift_roster')
@@ -384,11 +573,19 @@ export function useAssignTeamToShift() {
 
       if (insertError) throw insertError;
 
-      return { count: members.length };
+      return { 
+        memberCount: members.length, 
+        dayCount: dates.length, 
+        totalCount: rosterEntries.length 
+      };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['shift-roster'] });
-      toast({ title: `${result.count} team members assigned to shift` });
+      queryClient.invalidateQueries({ queryKey: ['my-upcoming-shifts'] });
+      toast({ 
+        title: `${result.totalCount} shifts assigned`,
+        description: `${result.memberCount} members × ${result.dayCount} days`
+      });
     },
     onError: (error) => {
       toast({ title: 'Failed to assign team', description: error.message, variant: 'destructive' });
