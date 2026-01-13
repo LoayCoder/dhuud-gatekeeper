@@ -30,6 +30,7 @@ const GuardAttendance = lazyWithRetry(() => import("@/pages/security/GuardAttend
 const CCTVManagement = lazyWithRetry(() => import("@/pages/security/CCTVManagement"));
 const SecurityTeam = lazyWithRetry(() => import("@/pages/security/SecurityTeam"));
 const BlacklistManagement = lazyWithRetry(() => import("@/pages/security/BlacklistManagement"));
+const ReportSchedules = lazyWithRetry(() => import("@/pages/security/ReportSchedules"));
 
 export const securityRoutes: RouteObject[] = [
   { path: "security", element: <SecurityRoute><SecurityDashboard /></SecurityRoute> },
@@ -56,4 +57,5 @@ export const securityRoutes: RouteObject[] = [
   { path: "security/cctv", element: <SecurityRoute><CCTVManagement /></SecurityRoute> },
   { path: "security/blacklist", element: <SecurityRoute><BlacklistManagement /></SecurityRoute> },
   { path: "security/team", element: <SecurityRoute><SecurityTeam /></SecurityRoute> },
+  { path: "security/report-schedules", element: <SecurityRoute><ReportSchedules /></SecurityRoute> },
 ];

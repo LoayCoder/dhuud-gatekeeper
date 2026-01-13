@@ -15,7 +15,10 @@ import {
   RefreshCw,
   Activity,
   FileText,
-  Target
+  Target,
+  Timer,
+  CheckCircle2,
+  Calendar
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSecurityStats } from '@/hooks/use-security-stats';
@@ -35,19 +38,30 @@ import {
 } from 'recharts';
 import { format } from 'date-fns';
 import { EmergencyPanicButton } from '@/components/security/EmergencyPanicButton';
-import { EmergencyAlertsList } from '@/components/security/EmergencyAlertsList';
 import { useActiveEmergencyAlerts, useRealtimeEmergencyAlerts } from '@/hooks/use-emergency-alerts';
 import { GeofenceBreachesChart } from '@/components/security/GeofenceBreachesChart';
 import { TopGuardsWidget } from '@/components/security/TopGuardsWidget';
+import { LiveGuardMapWidget } from '@/components/security/LiveGuardMapWidget';
+import { PatrolTrendsWidget } from '@/components/security/PatrolTrendsWidget';
+import { SecurityRealtimeIndicator } from '@/components/security/SecurityRealtimeIndicator';
 import { EnterprisePage } from '@/components/layout/EnterprisePage';
 import { KPIStrip, type KPIItem } from '@/components/ui/kpi-strip';
+import { useSecurityRealtime } from '@/hooks/use-security-realtime';
+import { useGuardLocations, useGeofenceAlerts } from '@/hooks/use-live-tracking';
 
 export default function SecurityDashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { stats, isLoading, refetch } = useSecurityStats();
   const { data: activeEmergencyAlerts } = useActiveEmergencyAlerts();
+  const { isConnected, lastEventTime, newEventCount, acknowledgeEvents } = useSecurityRealtime(true);
+  const { data: guardLocations = [] } = useGuardLocations();
+  const { data: pendingAlerts = [] } = useGeofenceAlerts('pending');
   useRealtimeEmergencyAlerts();
+
+  // Calculate additional real-time KPIs
+  const guardsOnZone = guardLocations.filter((g: any) => g.is_within_zone !== false).length;
+  const avgPatrolProgress = stats?.patrolCompletionRate ?? 0;
 
   const CHART_COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
 
@@ -61,6 +75,14 @@ export default function SecurityDashboard() {
       trendValue: stats?.totalGuards ? `of ${stats.totalGuards} total` : undefined,
     },
     {
+      label: t('security.dashboard.guardsOnZone', 'Guards On Zone'),
+      value: isLoading ? '...' : guardsOnZone,
+      icon: CheckCircle2,
+      status: guardsOnZone === guardLocations.length ? 'completed' : 'pending',
+      trend: 'neutral',
+      trendValue: `of ${guardLocations.length} tracked`,
+    },
+    {
       label: t('security.dashboard.visitorsToday', 'Visitors Today'),
       value: isLoading ? '...' : stats?.visitorsToday ?? 0,
       icon: Users,
@@ -70,17 +92,17 @@ export default function SecurityDashboard() {
     },
     {
       label: t('security.dashboard.openAlerts', 'Open Alerts'),
-      value: isLoading ? '...' : stats?.openAlerts ?? 0,
+      value: isLoading ? '...' : pendingAlerts.length,
       icon: AlertTriangle,
-      status: (stats?.openAlerts ?? 0) > 0 ? 'critical' : 'completed',
+      status: pendingAlerts.length > 0 ? 'critical' : 'completed',
     },
     {
-      label: t('security.dashboard.patrolsToday', 'Patrols Today'),
-      value: isLoading ? '...' : stats?.patrolsCompleted ?? 0,
+      label: t('security.dashboard.patrolProgress', 'Patrol Progress'),
+      value: isLoading ? '...' : `${avgPatrolProgress}%`,
       icon: Route,
-      status: 'informational',
+      status: avgPatrolProgress >= 80 ? 'completed' : avgPatrolProgress >= 50 ? 'pending' : 'critical',
       trend: 'neutral',
-      trendValue: stats?.patrolCompletionRate ? `${stats.patrolCompletionRate}% rate` : undefined,
+      trendValue: `${stats?.patrolsCompleted ?? 0} completed`,
     },
   ];
 
@@ -121,16 +143,34 @@ export default function SecurityDashboard() {
       path: '/security/command-center',
       variant: 'outline' as const
     },
+    { 
+      label: t('security.reportSchedules', 'Report Schedules'), 
+      icon: Calendar, 
+      path: '/security/report-schedules',
+      variant: 'outline' as const
+    },
   ];
 
   return (
     <EnterprisePage
       title={t('security.dashboard.title', 'Security Dashboard')}
       description={t('security.dashboard.subtitle', 'Overview of security operations and real-time status')}
+      summarySection={
+        <div className="flex items-center justify-end">
+          <SecurityRealtimeIndicator 
+            isConnected={isConnected} 
+            lastEventTime={lastEventTime} 
+            newEventCount={newEventCount}
+          />
+        </div>
+      }
       secondaryActions={[
         {
           label: t('common.refresh', 'Refresh'),
-          onClick: () => refetch(),
+          onClick: () => {
+            refetch();
+            acknowledgeEvents();
+          },
           icon: RefreshCw,
         },
       ]}
@@ -160,6 +200,12 @@ export default function SecurityDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Live Guard Map & Patrol Trends */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <LiveGuardMapWidget />
+        <PatrolTrendsWidget />
+      </div>
 
       {/* Charts Row */}
       <div className="grid gap-4 lg:grid-cols-2">
@@ -191,36 +237,33 @@ export default function SecurityDashboard() {
           </CardContent>
         </Card>
 
-        {/* Patrol Completion Trend */}
+        {/* Alerts by Zone */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">{t('security.dashboard.patrolTrend', 'Patrol Completion Trend')}</CardTitle>
+            <CardTitle className="text-lg">{t('security.dashboard.alertsByZone', 'Alerts by Zone')}</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <Skeleton className="h-[250px] w-full" />
             ) : (
               <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={stats?.patrolTrend ?? []}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="date" className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
-                  <YAxis className="text-xs" domain={[0, 100]} tick={{ fill: 'hsl(var(--muted-foreground))' }} />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))', 
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: 'var(--radius)'
-                    }} 
-                    formatter={(value) => [`${value}%`, t('security.dashboard.completionRate', 'Completion Rate')]}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="rate" 
-                    stroke="hsl(var(--primary))" 
-                    strokeWidth={2}
-                    dot={{ fill: 'hsl(var(--primary))' }}
-                  />
-                </LineChart>
+                <PieChart>
+                  <Pie
+                    data={stats?.alertsByZone ?? []}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={90}
+                    dataKey="count"
+                    nameKey="zone"
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {(stats?.alertsByZone ?? []).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
               </ResponsiveContainer>
             )}
           </CardContent>
