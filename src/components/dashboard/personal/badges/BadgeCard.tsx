@@ -2,7 +2,8 @@ import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { ar, enUS } from 'date-fns/locale';
-import { icons, Lock, Shield, FileText, CheckCircle, Award, Star, CalendarCheck, ClipboardList, Eye, Flag, AlertTriangle } from 'lucide-react';
+import { icons, Lock, Sparkles } from 'lucide-react';
+import { Badge as BadgePill } from '@/components/ui/badge';
 import type { EarnedBadge, AvailableBadge } from '@/hooks/use-my-badges';
 
 interface BadgeCardProps {
@@ -14,61 +15,47 @@ interface BadgeCardProps {
   onClick?: () => void;
 }
 
-// Professional tier styles - muted, enterprise-grade
+// Premium tier gradients with metallic effects
 const tierStyles = {
   bronze: {
-    bg: 'bg-stone-50 dark:bg-stone-900/40',
-    border: 'border-stone-200 dark:border-stone-700',
-    iconBg: 'bg-stone-100 dark:bg-stone-800',
-    icon: 'text-stone-600 dark:text-stone-400',
-    accent: 'text-stone-500 dark:text-stone-400',
-    tierText: 'text-stone-600 dark:text-stone-400',
+    gradient: 'from-amber-600 via-orange-500 to-amber-700',
+    glow: 'shadow-amber-500/40',
+    border: 'border-amber-400/60',
+    text: 'text-amber-600 dark:text-amber-400',
+    bg: 'bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-950/50 dark:to-orange-900/30',
+    ribbon: 'bg-gradient-to-r from-amber-600 to-amber-700',
   },
   silver: {
-    bg: 'bg-slate-50 dark:bg-slate-900/40',
-    border: 'border-slate-200 dark:border-slate-700',
-    iconBg: 'bg-slate-100 dark:bg-slate-800',
-    icon: 'text-slate-600 dark:text-slate-400',
-    accent: 'text-slate-500 dark:text-slate-400',
-    tierText: 'text-slate-600 dark:text-slate-400',
+    gradient: 'from-slate-300 via-gray-100 to-slate-400',
+    glow: 'shadow-slate-400/40',
+    border: 'border-slate-300/60',
+    text: 'text-slate-600 dark:text-slate-300',
+    bg: 'bg-gradient-to-br from-slate-50 to-gray-100 dark:from-slate-900/50 dark:to-gray-800/30',
+    ribbon: 'bg-gradient-to-r from-slate-500 to-slate-600',
   },
   gold: {
-    bg: 'bg-amber-50/70 dark:bg-amber-950/30',
-    border: 'border-amber-200 dark:border-amber-800',
-    iconBg: 'bg-amber-100 dark:bg-amber-900/50',
-    icon: 'text-amber-700 dark:text-amber-400',
-    accent: 'text-amber-600 dark:text-amber-400',
-    tierText: 'text-amber-700 dark:text-amber-400',
+    gradient: 'from-yellow-400 via-amber-300 to-yellow-500',
+    glow: 'shadow-yellow-400/50',
+    border: 'border-yellow-300/60',
+    text: 'text-yellow-600 dark:text-yellow-400',
+    bg: 'bg-gradient-to-br from-yellow-50 to-amber-100 dark:from-yellow-950/50 dark:to-amber-900/30',
+    ribbon: 'bg-gradient-to-r from-yellow-500 to-amber-500',
   },
   platinum: {
-    bg: 'bg-indigo-50/70 dark:bg-indigo-950/30',
-    border: 'border-indigo-200 dark:border-indigo-800',
-    iconBg: 'bg-indigo-100 dark:bg-indigo-900/50',
-    icon: 'text-indigo-700 dark:text-indigo-400',
-    accent: 'text-indigo-600 dark:text-indigo-400',
-    tierText: 'text-indigo-700 dark:text-indigo-400',
+    gradient: 'from-purple-400 via-indigo-300 to-violet-500',
+    glow: 'shadow-purple-400/50',
+    border: 'border-purple-300/60',
+    text: 'text-purple-600 dark:text-purple-400',
+    bg: 'bg-gradient-to-br from-purple-50 to-indigo-100 dark:from-purple-950/50 dark:to-indigo-900/30',
+    ribbon: 'bg-gradient-to-r from-purple-500 to-indigo-500',
   },
-};
-
-// Professional icon mapping
-const professionalIcons: Record<string, React.ElementType> = {
-  Shield: Shield,
-  Eye: Eye,
-  AlertTriangle: AlertTriangle,
-  FileText: FileText,
-  ClipboardList: ClipboardList,
-  CheckCircle: CheckCircle,
-  CalendarCheck: CalendarCheck,
-  Award: Award,
-  Star: Star,
-  Flag: Flag,
 };
 
 const sizeClasses = {
-  xs: { container: 'w-10 h-10', icon: 14, wrapper: 'gap-0.5', text: 'text-[8px]', padding: 'p-1.5' },
-  sm: { container: 'w-12 h-12', icon: 18, wrapper: 'gap-1', text: 'text-[10px]', padding: 'p-2' },
-  md: { container: 'w-14 h-14', icon: 22, wrapper: 'gap-1.5', text: 'text-xs', padding: 'p-2.5' },
-  lg: { container: 'w-18 h-18', icon: 28, wrapper: 'gap-2', text: 'text-sm', padding: 'p-3' },
+  xs: { container: 'w-12 h-12', icon: 16, wrapper: 'gap-1', text: 'text-[9px]' },
+  sm: { container: 'w-14 h-14', icon: 20, wrapper: 'gap-1.5', text: 'text-[10px]' },
+  md: { container: 'w-18 h-18', icon: 26, wrapper: 'gap-2', text: 'text-xs' },
+  lg: { container: 'w-22 h-22', icon: 32, wrapper: 'gap-2', text: 'text-sm' },
 };
 
 export function BadgeCard({ 
@@ -83,11 +70,7 @@ export function BadgeCard({
   const isRTL = i18n.language === 'ar';
   
   const name = isRTL && badge.name_ar ? badge.name_ar : badge.name;
-  
-  // Get icon - prefer professional icons, fall back to lucide
-  const IconComponent = professionalIcons[badge.icon_name as keyof typeof professionalIcons] 
-    || icons[badge.icon_name as keyof typeof icons] 
-    || Award;
+  const IconComponent = icons[badge.icon_name as keyof typeof icons] || icons.Award;
   
   const isEarned = earned || 'earned_at' in badge;
   const isNew = 'is_new' in badge && badge.is_new;
@@ -99,60 +82,87 @@ export function BadgeCard({
     <button
       onClick={onClick}
       className={cn(
-        'group relative flex flex-col items-center rounded-xl transition-all duration-200',
+        'group relative flex flex-col items-center p-2 rounded-xl transition-all duration-300',
+        'hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50',
         sizeConfig.wrapper,
-        sizeConfig.padding,
-        'hover:bg-muted/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
-        !isEarned && 'opacity-60'
+        !isEarned && 'opacity-70 grayscale-[30%]'
       )}
     >
-      {/* NEW indicator - subtle dot */}
+      {/* NEW indicator with sparkle */}
       {isNew && (
-        <div className="absolute -top-0.5 end-0 z-10">
-          <span className="flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-          </span>
+        <div className="absolute -top-1 end-0 z-10">
+          <BadgePill 
+            className={cn(
+              'text-[9px] px-1.5 py-0 gap-0.5',
+              'bg-gradient-to-r from-rose-500 to-pink-500 text-white border-0',
+              'animate-pulse shadow-lg shadow-rose-500/30'
+            )}
+          >
+            <Sparkles className="h-2.5 w-2.5" />
+            {t('common.new', 'NEW')}
+          </BadgePill>
         </div>
       )}
 
-      {/* Professional Badge Container */}
+      {/* Premium Badge Container */}
       <div className="relative">
-        {/* Clean circular/rounded badge */}
+        {/* Outer glow effect for earned badges */}
+        {isEarned && (
+          <div className={cn(
+            'absolute inset-0 rounded-full blur-md opacity-40 scale-110',
+            `bg-gradient-to-br ${tier.gradient}`
+          )} />
+        )}
+
+        {/* Hexagonal badge frame */}
         <div
           className={cn(
-            'relative flex items-center justify-center rounded-xl',
-            'border transition-all duration-200',
+            'relative flex items-center justify-center rounded-2xl',
+            'border-2 shadow-lg transition-all duration-300',
             sizeConfig.container,
             isEarned ? [
-              tier.bg,
+              `bg-gradient-to-br ${tier.gradient}`,
               tier.border,
-              'group-hover:shadow-md group-hover:scale-105'
+              tier.glow,
+              'group-hover:shadow-xl group-hover:scale-105'
             ] : [
-              'bg-muted/60 border-dashed border-muted-foreground/30',
-              'dark:bg-muted/30'
+              'bg-muted/80 border-dashed border-muted-foreground/30',
+              'dark:bg-muted/40'
             ]
           )}
+          style={{
+            clipPath: 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)',
+          }}
         >
-          {/* Icon */}
+          {/* Inner embossed circle */}
           <div className={cn(
-            'flex items-center justify-center rounded-lg',
-            isEarned ? tier.iconBg : 'bg-transparent'
+            'absolute inset-1 rounded-xl flex items-center justify-center',
+            isEarned 
+              ? 'bg-white/20 dark:bg-black/20 shadow-inner' 
+              : 'bg-muted/50'
           )}>
             {isEarned ? (
               <IconComponent 
                 size={sizeConfig.icon} 
-                className={cn(tier.icon)}
-                strokeWidth={1.75}
+                className="text-white drop-shadow-md"
+                strokeWidth={2.5}
               />
             ) : (
               <Lock 
                 size={sizeConfig.icon * 0.7} 
-                className="text-muted-foreground/50"
-                strokeWidth={1.5}
+                className="text-muted-foreground/60"
               />
             )}
           </div>
+
+          {/* Shimmer effect on hover for earned */}
+          {isEarned && (
+            <div className={cn(
+              'absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500',
+              'bg-gradient-to-r from-transparent via-white/30 to-transparent',
+              '-translate-x-full group-hover:translate-x-full transition-transform duration-700'
+            )} />
+          )}
         </div>
 
         {/* Progress ring for locked badges */}
@@ -167,8 +177,8 @@ export function BadgeCard({
               r="46"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
-              className="text-muted/40"
+              strokeWidth="3"
+              className="text-primary/20"
             />
             <circle
               cx="50"
@@ -176,21 +186,22 @@ export function BadgeCard({
               r="46"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="3"
               strokeDasharray={`${progress * 2.89} 289`}
               strokeLinecap="round"
-              className="text-primary/60"
+              className="text-primary transition-all duration-700"
             />
           </svg>
         )}
 
-        {/* Subtle tier indicator */}
+        {/* Tier ribbon */}
         {isEarned && size !== 'xs' && (
           <div className={cn(
-            'absolute -bottom-1 start-1/2 -translate-x-1/2 rtl:translate-x-1/2',
-            'px-1.5 py-0 rounded text-[7px] font-medium uppercase tracking-wide',
-            'bg-background border shadow-sm',
-            tier.tierText
+            'absolute -bottom-1.5 start-1/2 -translate-x-1/2 rtl:translate-x-1/2',
+            'px-2 py-0.5 rounded-full',
+            'text-[8px] font-bold uppercase tracking-wider text-white',
+            'shadow-sm',
+            tier.ribbon
           )}>
             {badge.tier}
           </div>
@@ -200,7 +211,7 @@ export function BadgeCard({
       {/* Badge Name */}
       {showDetails && (
         <span className={cn(
-          'font-medium text-center line-clamp-2 max-w-[72px] leading-tight mt-1.5',
+          'font-medium text-center line-clamp-2 max-w-[70px] leading-tight mt-1',
           sizeConfig.text,
           isEarned ? 'text-foreground' : 'text-muted-foreground'
         )}>
@@ -211,15 +222,15 @@ export function BadgeCard({
       {/* Points */}
       {showDetails && (
         <span className={cn(
-          'font-semibold tabular-nums',
+          'font-bold tabular-nums',
           sizeConfig.text,
-          tier.accent
+          tier.text
         )}>
           +{badge.points}
         </span>
       )}
 
-      {/* Earned date */}
+      {/* Earned date or progress */}
       {showDetails && 'earned_at' in badge && badge.earned_at && (
         <span className={cn('text-muted-foreground', sizeConfig.text)}>
           {format(new Date(badge.earned_at), 'MMM d', { 
@@ -228,7 +239,6 @@ export function BadgeCard({
         </span>
       )}
 
-      {/* Progress for locked badges */}
       {showDetails && !isEarned && 'current' in badge && 'threshold' in badge && (
         <span className={cn('text-muted-foreground tabular-nums', sizeConfig.text)}>
           {badge.current}/{badge.threshold}
