@@ -18,7 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { useSecurityReportExport, ReportType, ReportSections } from '@/hooks/use-security-report-export';
-import { useGuardPerformanceSummary } from '@/hooks/use-guard-performance';
+import { useSecurityGuards } from '@/hooks/use-security-guards';
 
 interface SecurityReportExportDialogProps {
   open: boolean;
@@ -43,7 +43,7 @@ export function SecurityReportExportDialog({ open, onOpenChange }: SecurityRepor
     incidents: true,
   });
   
-  const { data: guardSummaries } = useGuardPerformanceSummary('month');
+  const { data: guards, isLoading: loadingGuards } = useSecurityGuards();
   const { exportReport, isExporting } = useSecurityReportExport();
 
   const handlePresetChange = (preset: DatePreset) => {
@@ -145,12 +145,23 @@ export function SecurityReportExportDialog({ open, onOpenChange }: SecurityRepor
                   <SelectValue placeholder={t('security.chooseGuard', 'Choose a guard...')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {guardSummaries?.map((guard) => (
-                    <SelectItem key={guard.guard_id} value={guard.guard_id}>
-                      {guard.guard_name}
+                  {loadingGuards ? (
+                    <SelectItem value="_loading" disabled>
+                      <Loader2 className="h-4 w-4 animate-spin me-2 inline" />
+                      {t('common.loading', 'Loading...')}
                     </SelectItem>
-                  ))
-                  }
+                  ) : guards?.length === 0 ? (
+                    <SelectItem value="_empty" disabled>
+                      {t('security.noGuardsFound', 'No guards found')}
+                    </SelectItem>
+                  ) : (
+                    guards?.map((guard) => (
+                      <SelectItem key={guard.guard_id} value={guard.guard_id}>
+                        {guard.guard_name}
+                        {guard.team_name && ` (${guard.team_name})`}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -228,7 +239,7 @@ export function SecurityReportExportDialog({ open, onOpenChange }: SecurityRepor
                     onCheckedChange={() => toggleSection('attendance')}
                   />
                   <Label htmlFor="sec-attendance" className="cursor-pointer">
-                    {t('security.attendance', 'Attendance')}
+                    {t('security.sectionAttendance', 'Attendance')}
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 rtl:space-x-reverse">
@@ -238,7 +249,7 @@ export function SecurityReportExportDialog({ open, onOpenChange }: SecurityRepor
                     onCheckedChange={() => toggleSection('shifts')}
                   />
                   <Label htmlFor="sec-shifts" className="cursor-pointer">
-                    {t('security.shifts', 'Shifts')}
+                    {t('security.sectionShifts', 'Shifts')}
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 rtl:space-x-reverse">
@@ -248,7 +259,7 @@ export function SecurityReportExportDialog({ open, onOpenChange }: SecurityRepor
                     onCheckedChange={() => toggleSection('training')}
                   />
                   <Label htmlFor="sec-training" className="cursor-pointer">
-                    {t('security.training', 'Training')}
+                    {t('security.sectionTraining', 'Training')}
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 rtl:space-x-reverse">
@@ -258,7 +269,7 @@ export function SecurityReportExportDialog({ open, onOpenChange }: SecurityRepor
                     onCheckedChange={() => toggleSection('incidents')}
                   />
                   <Label htmlFor="sec-incidents" className="cursor-pointer">
-                    {t('security.incidents', 'Incidents')}
+                    {t('security.sectionIncidents', 'Incidents')}
                   </Label>
                 </div>
               </div>
