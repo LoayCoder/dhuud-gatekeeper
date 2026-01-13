@@ -3,6 +3,7 @@ import { useTokenRefresh } from '@/hooks/use-token-refresh';
 import { SessionErrorBoundary } from './SessionErrorBoundary';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEffect } from 'react';
 
 // Public routes where session management should not run
 const PUBLIC_ROUTES = [
@@ -22,6 +23,9 @@ const PUBLIC_ROUTES = [
   '/dpa',
   '/sla',
 ];
+
+// Session token key - must match the one in use-session-management.ts
+const SESSION_TOKEN_KEY = 'app_session_token';
 
 /**
  * Internal component that uses the session management hooks.
@@ -54,16 +58,28 @@ function SessionManagementCore() {
  */
 export function SessionManagementProvider() {
   const location = useLocation();
-  const { isAuthenticated, session } = useAuth();
+  const { isAuthenticated, session, isLoading } = useAuth();
   
   // Skip session management on public routes
   const isPublicRoute = PUBLIC_ROUTES.some(route => 
     location.pathname === route || location.pathname.startsWith(route + '/')
   );
   
-  // CRITICAL: Don't render session management at all when not authenticated
-  // This prevents any hook operations from running with stale tokens after logout
-  if (isPublicRoute || !isAuthenticated || !session?.access_token) {
+  // CRITICAL: Clear any stale session tokens when on public routes
+  // This prevents 401 errors from stale tokens after logout
+  useEffect(() => {
+    if (isPublicRoute) {
+      // Remove stale session token to prevent background API calls
+      localStorage.removeItem(SESSION_TOKEN_KEY);
+    }
+  }, [isPublicRoute]);
+  
+  // CRITICAL: Don't render session management at all when:
+  // 1. On public routes (login, signup, etc.)
+  // 2. Not authenticated
+  // 3. No valid access token
+  // 4. Still loading auth state (prevents race conditions)
+  if (isPublicRoute || isLoading || !isAuthenticated || !session?.access_token) {
     return null;
   }
   
