@@ -418,14 +418,14 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-br from-background via-background to-muted/30">
-      {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4">
+    <div className="flex h-screen flex-col overflow-hidden bg-gradient-to-br from-background via-background to-muted/30">
+      {/* Header - compact and shrink-0 */}
+      <header className="flex shrink-0 items-center justify-between px-4 py-2 sm:px-6 sm:py-3">
         <div className="flex items-center gap-3">
           <img 
             src={displayLogo} 
             alt={displayName} 
-            className="h-8 object-contain"
+            className="h-7 object-contain sm:h-8"
             onError={(e) => {
               e.currentTarget.src = fallbackLogo;
             }}
@@ -434,30 +434,30 @@ export default function Login() {
         <HeaderControls />
       </header>
 
-      {/* Main Content */}
-      <main className="flex flex-1 items-center justify-center px-4 py-8">
-        <Card className="w-full max-w-md border-border/50 bg-card/80 shadow-lg backdrop-blur-sm">
-          <CardHeader className="space-y-4 pb-6 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10">
+      {/* Main Content - flex-1 with overflow handling */}
+      <main className="flex min-h-0 flex-1 items-center justify-center overflow-auto px-4 py-2">
+        <Card className="w-full max-w-sm border-border/50 bg-card/80 shadow-lg backdrop-blur-sm sm:max-w-md">
+          <CardHeader className="space-y-3 pb-4 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 sm:h-14 sm:w-14">
               <img 
                 src={displayLogo} 
                 alt={displayName} 
-                className="h-10 w-10 object-contain"
+                className="h-8 w-8 object-contain sm:h-10 sm:w-10"
                 onError={(e) => {
                   e.currentTarget.src = fallbackLogo;
                 }}
               />
             </div>
             <div className="space-y-1">
-              <h1 className="text-xl font-semibold tracking-tight">{displayName}</h1>
-              <p className="text-sm text-muted-foreground">{t('auth.signInToAccount')}</p>
+              <h1 className="text-lg font-semibold tracking-tight sm:text-xl">{displayName}</h1>
+              <p className="text-xs text-muted-foreground sm:text-sm">{t('auth.signInToAccount')}</p>
             </div>
           </CardHeader>
 
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4">
             {/* Login Form */}
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
+            <form onSubmit={handleLogin} className="space-y-3">
+              <div className="space-y-1.5">
                 <Label htmlFor="email" className="text-sm font-medium">
                   {t('auth.email')}
                 </Label>
@@ -469,11 +469,11 @@ export default function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={loading}
-                  className="h-11"
+                  className="h-10"
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password" className="text-sm font-medium">
                     {t('auth.password')}
@@ -493,13 +493,13 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={loading}
-                  className="h-11"
+                  className="h-10"
                 />
               </div>
 
               <Button 
                 type="submit" 
-                className="h-11 w-full font-medium" 
+                className="h-10 w-full font-medium" 
                 disabled={loading || biometricLoading}
               >
                 {loading ? (
@@ -529,7 +529,7 @@ export default function Login() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-11 w-full"
+                  className="h-10 w-full"
                   disabled={loading || biometricLoading}
                   onClick={handleBiometricLogin}
                 >
@@ -544,15 +544,15 @@ export default function Login() {
             )}
 
             {/* Invite Code Link */}
-            <div className="rounded-lg border border-dashed border-border/50 bg-muted/30 p-4 text-center">
-              <p className="text-sm text-muted-foreground">
+            <div className="rounded-lg border border-dashed border-border/50 bg-muted/30 p-3 text-center">
+              <p className="text-xs text-muted-foreground sm:text-sm">
                 {t('invite.haveInviteCode', 'Have an invitation code?')}
               </p>
               <Button
                 type="button"
                 variant="link"
                 onClick={() => navigate('/invite')}
-                className="h-auto p-0 text-sm font-medium text-primary"
+                className="h-auto p-0 text-xs font-medium text-primary sm:text-sm"
               >
                 {t('invite.enterCodeHere', 'Enter your code here')}
               </Button>
@@ -561,13 +561,13 @@ export default function Login() {
         </Card>
       </main>
 
-      {/* Footer */}
-      <footer className="flex flex-col items-center gap-4 px-6 py-6 text-center">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Shield className="h-4 w-4" />
+      {/* Footer - compact and shrink-0 */}
+      <footer className="flex shrink-0 flex-col items-center gap-2 px-4 py-3 text-center sm:gap-3 sm:py-4">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground sm:text-sm">
+          <Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           <span>{t('security.protectedByZeroTrust')}</span>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground sm:gap-4">
           <Link to="/terms" className="hover:text-foreground hover:underline">
             {t('legal.termsOfService')}
           </Link>
