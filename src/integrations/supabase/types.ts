@@ -3001,6 +3001,65 @@ export type Database = {
           },
         ]
       }
+      audit_logs: {
+        Row: {
+          action_type: string
+          deleted_at: string | null
+          description: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          ip_address: unknown
+          metadata: Json | null
+          new_value: Json | null
+          old_value: Json | null
+          tenant_id: string
+          timestamp: string
+          user_agent: string | null
+          who_id: string
+        }
+        Insert: {
+          action_type: string
+          deleted_at?: string | null
+          description?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          new_value?: Json | null
+          old_value?: Json | null
+          tenant_id: string
+          timestamp?: string
+          user_agent?: string | null
+          who_id: string
+        }
+        Update: {
+          action_type?: string
+          deleted_at?: string | null
+          description?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          new_value?: Json | null
+          old_value?: Json | null
+          tenant_id?: string
+          timestamp?: string
+          user_agent?: string | null
+          who_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auto_notification_logs: {
         Row: {
           attempt_count: number | null
@@ -24310,6 +24369,18 @@ export type Database = {
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_tenant_admin: { Args: { _user_id: string }; Returns: boolean }
       join_challenge: { Args: { p_challenge_id: string }; Returns: Json }
+      log_audit: {
+        Args: {
+          p_action_type: string
+          p_description?: string
+          p_entity_id: string
+          p_entity_type: string
+          p_metadata?: Json
+          p_new_value?: Json
+          p_old_value?: Json
+        }
+        Returns: string
+      }
       log_email_delivery: {
         Args: {
           p_email_type: string
