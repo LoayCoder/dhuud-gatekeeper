@@ -21,8 +21,12 @@ const RiskAssessmentCreate = lazyWithRetry(() => import("@/pages/RiskAssessmentC
 // Dashboard pages
 const Leaderboard = lazyWithRetry(() => import("@/pages/Leaderboard"));
 
+// Profile pages
+const ProfileBadges = lazyWithRetry(() => import("@/pages/ProfileBadges"));
+
 export const incidentRoutes: RouteObject[] = [
   { path: "leaderboard", element: <ProtectedRoute><Leaderboard /></ProtectedRoute> },
+  { path: "profile/badges", element: <ProtectedRoute><ProfileBadges /></ProtectedRoute> },
   { path: "incidents", element: <IncidentList /> },
   { path: "incidents/report", element: <IncidentReport /> },
   { path: "incidents/:id", element: <IncidentDetail /> },
