@@ -3,7 +3,7 @@
  * HSSE event tracking, investigations, and corrective actions
  */
 import type { RouteObject } from "react-router-dom";
-import { HSSERoute } from "@/components";
+import { HSSERoute, ProtectedRoute } from "@/components";
 import { lazyWithRetry } from "@/lib/lazy-with-retry";
 
 // Incident pages - lazy loaded
@@ -18,7 +18,11 @@ const HSSEEventDashboard = lazyWithRetry(() => import("@/pages/incidents/HSSEEve
 const RiskAssessments = lazyWithRetry(() => import("@/pages/RiskAssessments"));
 const RiskAssessmentCreate = lazyWithRetry(() => import("@/pages/RiskAssessmentCreate"));
 
+// Dashboard pages
+const Leaderboard = lazyWithRetry(() => import("@/pages/Leaderboard"));
+
 export const incidentRoutes: RouteObject[] = [
+  { path: "leaderboard", element: <ProtectedRoute><Leaderboard /></ProtectedRoute> },
   { path: "incidents", element: <IncidentList /> },
   { path: "incidents/report", element: <IncidentReport /> },
   { path: "incidents/:id", element: <IncidentDetail /> },

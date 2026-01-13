@@ -55,6 +55,7 @@ const EventCategorySettings = lazyWithRetry(() => import("@/pages/admin/EventCat
 const InspectionCategorySettings = lazyWithRetry(() => import("@/pages/admin/InspectionCategorySettings"));
 const HSSEValidationDashboard = lazyWithRetry(() => import("@/pages/admin/HSSEValidationDashboard"));
 const AssetCategorySettings = lazyWithRetry(() => import("@/pages/admin/AssetCategorySettings"));
+const BadgeManagement = lazyWithRetry(() => import("@/pages/admin/BadgeManagement"));
 
 export const adminRoutes: RouteObject[] = [
   { path: "admin/branding", element: <AdminRoute><AdminBranding /></AdminRoute> },
@@ -105,4 +106,5 @@ export const adminRoutes: RouteObject[] = [
   { path: "admin/app-updates", element: <AdminRoute><AppUpdates /></AdminRoute> },
   { path: "admin/test-push", element: <AdminRoute><TestPushNotifications /></AdminRoute> },
   { path: "admin/database-health", element: <AdminRoute><DatabaseHealthDashboard /></AdminRoute> },
+  { path: "admin/badges", element: <AdminRoute><BadgeManagement /></AdminRoute> },
 ];
