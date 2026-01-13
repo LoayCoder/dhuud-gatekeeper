@@ -26,76 +26,76 @@ export function TeamInfo() {
 
   if (isLoading) {
     return (
-      <Card dir={direction}>
-        <CardHeader className="pb-3">
-          <Skeleton className="h-5 w-24" />
+      <Card className="border-border/50 bg-card/80 shadow-sm backdrop-blur-sm" dir={direction}>
+        <CardHeader className="pb-2">
+          <Skeleton className="h-4 w-24" />
         </CardHeader>
-        <CardContent>
-          <Skeleton className="h-24 w-full" />
+        <CardContent className="pt-0">
+          <Skeleton className="h-20 w-full" />
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card dir={direction}>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base text-start flex items-center gap-2">
-          <Users className="h-4 w-4" />
+    <Card className="border-border/50 bg-card/80 shadow-sm backdrop-blur-sm" dir={direction}>
+      <CardHeader className="pb-2 sm:pb-3">
+        <CardTitle className="text-sm sm:text-base font-semibold tracking-tight text-start flex items-center gap-2">
+          <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           {t('profile.myTeam')}
-          <Badge variant="secondary" className="ms-auto text-xs">
+          <Badge variant="secondary" className="ms-auto text-[10px] sm:text-xs h-5">
             {teamMembers.length}
           </Badge>
         </CardTitle>
-        <CardDescription className="text-start text-xs">
+        <CardDescription className="text-xs text-start">
           {t('profile.myTeamDescription')}
         </CardDescription>
       </CardHeader>
-      <CardContent className="p-0">
-        <ScrollArea className="max-h-[280px]">
-          <div className="space-y-2 px-6 pb-4">
+      <CardContent className="p-0 pt-0">
+        <ScrollArea className="max-h-[220px] sm:max-h-[260px]">
+          <div className="space-y-2 px-4 sm:px-6 pb-4">
             {teamMembers.map(member => (
               <div
                 key={member.user_id}
-                className="rounded-md border p-3 bg-muted/10"
+                className="rounded-md border p-2.5 bg-muted/10"
               >
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2.5">
                   <div className={cn(
-                    "p-1.5 rounded-full shrink-0",
+                    "p-1 rounded-full shrink-0",
                     member.is_active ? "bg-primary/10" : "bg-muted"
                   )}>
                     <User className={cn(
-                      "h-3.5 w-3.5",
+                      "h-3 w-3",
                       member.is_active ? "text-primary" : "text-muted-foreground"
                     )} />
                   </div>
-                  <div className="min-w-0 flex-1 space-y-2">
+                  <div className="min-w-0 flex-1 space-y-1.5">
                     <div>
                       <p className={cn(
-                        "font-medium text-sm",
+                        "font-medium text-xs sm:text-sm",
                         !member.is_active && "text-muted-foreground"
                       )}>
                         {member.full_name || t('common.unknown')}
                       </p>
                       {member.job_title && (
-                        <p className="text-xs text-muted-foreground">{member.job_title}</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">{member.job_title}</p>
                       )}
                     </div>
                     
                     {/* Contact info */}
-                    <div className="flex gap-2 flex-wrap">
+                    <div className="flex gap-1.5 flex-wrap">
                       {member.phone_number && (
-                        <Button asChild variant="outline" size="sm" className="h-6 text-xs px-2">
+                        <Button asChild variant="outline" size="sm" className="h-5 text-[10px] px-1.5">
                           <a href={`tel:${member.phone_number}`}>
-                            <Phone className="h-3 w-3 me-1" />
+                            <Phone className="h-2.5 w-2.5 me-0.5" />
                             {member.phone_number}
                           </a>
                         </Button>
                       )}
                       {member.email && (
-                        <Button asChild variant="outline" size="sm" className="h-6 text-xs px-2">
+                        <Button asChild variant="outline" size="sm" className="h-5 text-[10px] px-1.5">
                           <a href={`mailto:${member.email}`}>
-                            <Mail className="h-3 w-3 me-1" />
+                            <Mail className="h-2.5 w-2.5 me-0.5" />
                             {t('common.email')}
                           </a>
                         </Button>
@@ -104,7 +104,7 @@ export function TeamInfo() {
                   </div>
                   
                   {!member.is_active && (
-                    <Badge variant="outline" className="text-xs shrink-0">
+                    <Badge variant="outline" className="text-[10px] shrink-0 h-5">
                       {t('userManagement.inactive')}
                     </Badge>
                   )}
