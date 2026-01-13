@@ -8982,5 +8982,18 @@
       "assignedTo": "Assigned To",
       "override": "Override"
     }
+  },
+  "offline": {
+    "mfaRequired": "Authentication Required",
+    "mfaRequiredDesc": "Two-factor authentication verification requires an internet connection.",
+    "sessionExpired": "Session Verification Needed",
+    "sessionExpiredDesc": "Please connect to the internet to verify your session.",
+    "noConnection": "No Internet Connection",
+    "noConnectionDesc": "Some features require an internet connection to work.",
+    "cachedDataAvailable": "Your previously loaded data may still be available once you reconnect.",
+    "retry": "Retry Connection",
+    "mfaSetupUnavailable": "MFA Setup Unavailable",
+    "connectToSetupMfa": "Please connect to the internet to set up or verify two-factor authentication.",
+    "mfaRequiresConnection": "Two-factor authentication requires a secure connection to our servers."
   }
 }

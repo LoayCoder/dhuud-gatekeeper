@@ -5,6 +5,8 @@ import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from 'react-i18next';
 import { toast } from '@/hooks/use-toast';
+import { useOnlineStatus } from '@/hooks/use-online-status';
+import { OfflineAccessNotice } from '@/components/offline/OfflineAccessNotice';
 
 const VERIFIED_DEVICE_STORAGE_KEY = 'invitation_verified_device_token';
 
@@ -12,6 +14,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
   const { isAuthenticated, mfaEnabled, tenantMfaVerified, isLoading, profile, user, validateTenantAccess } = useAuth();
   const location = useLocation();
+  const isOnline = useOnlineStatus();
   const [accessValidated, setAccessValidated] = useState<boolean | null>(null);
   const [validating, setValidating] = useState(false);
 
@@ -81,15 +84,21 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
+  // If offline and MFA not fully verified, show offline notice instead of redirecting
+  // This prevents users from being stuck on MFA setup page when offline
+  if (!isOnline && (!mfaEnabled || !tenantMfaVerified)) {
+    return <OfflineAccessNotice reason="mfa_required" />;
+  }
+
   // If authenticated but MFA not enabled globally, redirect to MFA setup
-  // (unless already on the MFA setup page)
-  if (!mfaEnabled && location.pathname !== '/mfa-setup') {
+  // (unless already on the MFA setup page) - only when online
+  if (isOnline && !mfaEnabled && location.pathname !== '/mfa-setup') {
     return <Navigate to="/mfa-setup" replace />;
   }
 
   // If MFA is enabled globally but NOT verified for this tenant, also redirect to MFA setup
-  // This ensures per-tenant MFA verification
-  if (mfaEnabled && !tenantMfaVerified && location.pathname !== '/mfa-setup') {
+  // This ensures per-tenant MFA verification - only when online
+  if (isOnline && mfaEnabled && !tenantMfaVerified && location.pathname !== '/mfa-setup') {
     return <Navigate to="/mfa-setup" state={{ tenantVerification: true }} replace />;
   }
 
