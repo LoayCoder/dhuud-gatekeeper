@@ -74,6 +74,8 @@ import {
   BookOpen,
   History,
   Sparkles,
+  Trophy,
+  Award,
 } from "lucide-react";
 import { NotificationPopover } from "@/components/notifications";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -160,6 +162,12 @@ export function AppSidebar() {
       url: "/",
       icon: LayoutDashboard,
       menuCode: 'dashboard',
+    },
+    {
+      title: t('navigation.leaderboard', 'Leaderboard'),
+      url: "/leaderboard",
+      icon: Trophy,
+      menuCode: 'leaderboard',
     },
     {
       title: t('navigation.hsseManagement'),
@@ -796,7 +804,8 @@ export function AppSidebar() {
                     location.pathname === '/admin/event-categories' ||
                     location.pathname === '/admin/workflow-diagrams' ||
                     location.pathname === '/admin/manhours' ||
-                    location.pathname === '/admin/emergency-instructions',
+                    location.pathname === '/admin/emergency-instructions' ||
+                    location.pathname === '/admin/badges',
           subItems: [
             {
               title: t('navigation.brandManagement'),
@@ -857,6 +866,12 @@ export function AppSidebar() {
               url: "/admin/ai-settings",
               icon: Sparkles,
               menuCode: 'admin_ai_settings',
+            },
+            {
+              title: t('admin.badges.title', 'Badge Management'),
+              url: "/admin/badges",
+              icon: Award,
+              menuCode: 'admin_badges',
             },
           ],
         },
