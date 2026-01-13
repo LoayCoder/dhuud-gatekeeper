@@ -19084,6 +19084,9 @@ export type Database = {
       }
       shift_roster: {
         Row: {
+          acknowledged_at: string | null
+          assigned_at: string | null
+          auto_acknowledged: boolean | null
           check_in_lat: number | null
           check_in_lng: number | null
           check_in_time: string | null
@@ -19109,6 +19112,9 @@ export type Database = {
           zone_id: string
         }
         Insert: {
+          acknowledged_at?: string | null
+          assigned_at?: string | null
+          auto_acknowledged?: boolean | null
           check_in_lat?: number | null
           check_in_lng?: number | null
           check_in_time?: string | null
@@ -19134,6 +19140,9 @@ export type Database = {
           zone_id: string
         }
         Update: {
+          acknowledged_at?: string | null
+          assigned_at?: string | null
+          auto_acknowledged?: boolean | null
           check_in_lat?: number | null
           check_in_lng?: number | null
           check_in_time?: string | null

@@ -5,14 +5,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
-import { Calendar as CalendarIcon, Users, UserCheck, AlertTriangle } from 'lucide-react';
+import { Users, UserCheck, AlertTriangle } from 'lucide-react';
 import { useSecurityTeams } from '@/hooks/use-security-teams';
 import { useSecurityZones } from '@/hooks/use-security-zones';
 import { useSecurityShifts } from '@/hooks/use-security-shifts';
 import { useAssignTeamToShift } from '@/hooks/use-shift-roster';
+import { RosterDateRangePicker } from './RosterDateRangePicker';
 
 interface TeamShiftAssignmentDialogProps {
   open: boolean;
@@ -21,11 +20,14 @@ interface TeamShiftAssignmentDialogProps {
 
 export function TeamShiftAssignmentDialog({ open, onOpenChange }: TeamShiftAssignmentDialogProps) {
   const { t } = useTranslation();
+  const today = format(new Date(), 'yyyy-MM-dd');
   const [formData, setFormData] = useState({
     team_id: '',
     zone_id: '',
     shift_id: '',
-    roster_date: format(new Date(), 'yyyy-MM-dd'),
+    start_date: today,
+    end_date: today,
+    excluded_days: [] as number[],
   });
 
   const { data: teams } = useSecurityTeams();
@@ -44,15 +46,17 @@ export function TeamShiftAssignmentDialog({ open, onOpenChange }: TeamShiftAssig
       team_id: '',
       zone_id: '',
       shift_id: '',
-      roster_date: format(new Date(), 'yyyy-MM-dd'),
+      start_date: today,
+      end_date: today,
+      excluded_days: [],
     });
   };
 
-  const isValid = formData.team_id && formData.zone_id && formData.shift_id && formData.roster_date;
+  const isValid = formData.team_id && formData.zone_id && formData.shift_id && formData.start_date && formData.end_date;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
@@ -141,35 +145,15 @@ export function TeamShiftAssignmentDialog({ open, onOpenChange }: TeamShiftAssig
               </Select>
             </div>
 
-            {/* Date Selection */}
-            <div className="space-y-2">
-              <Label>{t('security.roster.date', 'Date')} *</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start">
-                    <CalendarIcon className="h-4 w-4 me-2" />
-                    {format(new Date(formData.roster_date), 'PPP')}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar 
-                    mode="single" 
-                    selected={new Date(formData.roster_date)} 
-                    onSelect={(d) => d && setFormData({ ...formData, roster_date: format(d, 'yyyy-MM-dd') })} 
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {/* Warning */}
-            {selectedTeam && isValid && (
-              <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 rounded-lg p-3">
-                <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-                <span>
-                  {t('security.roster.teamAssignmentPreview', 'This will create {{count}} roster entries', { count: selectedTeam.member_count })}
-                </span>
-              </div>
-            )}
+            {/* Date Range Picker */}
+            <RosterDateRangePicker
+              startDate={formData.start_date}
+              endDate={formData.end_date}
+              excludedDays={formData.excluded_days}
+              onStartDateChange={(d) => setFormData({ ...formData, start_date: d })}
+              onEndDateChange={(d) => setFormData({ ...formData, end_date: d })}
+              onExcludedDaysChange={(d) => setFormData({ ...formData, excluded_days: d })}
+            />
 
             {/* Actions */}
             <div className="flex justify-end gap-2 pt-2">
