@@ -25,25 +25,27 @@ export function RoleInfo({ roles }: RoleInfoProps) {
   const categoryOrder: RoleCategory[] = ['general', 'hsse', 'environmental', 'ptw', 'security', 'audit', 'food_safety'];
 
   return (
-    <Card dir={direction}>
-      <CardHeader>
-        <CardTitle className="text-lg text-start">{t('role.title')}</CardTitle>
-        <CardDescription className="text-start">
+    <Card className="border-border/50 bg-card/80 shadow-sm backdrop-blur-sm" dir={direction}>
+      <CardHeader className="pb-2 sm:pb-3">
+        <CardTitle className="text-sm sm:text-base font-semibold tracking-tight text-start">
+          {t('role.title')}
+        </CardTitle>
+        <CardDescription className="text-xs text-start">
           {t('role.roleDescription')}
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="rounded-md border p-4 bg-muted/10">
-          <div className="flex items-start gap-4">
-            <div className="p-2 bg-primary/10 rounded-full flex-shrink-0">
-              <Shield className="h-5 w-5 text-primary" />
+      <CardContent className="pt-0">
+        <div className="rounded-md border p-3 bg-muted/10">
+          <div className="flex items-start gap-2.5">
+            <div className="p-1.5 bg-primary/10 rounded-full flex-shrink-0">
+              <Shield className="h-4 w-4 text-primary" />
             </div>
-            <div className="flex-1 space-y-3">
-              <p className="text-sm font-medium leading-none">{t('role.currentRole')}</p>
+            <div className="flex-1 space-y-2">
+              <p className="text-xs sm:text-sm font-medium leading-none">{t('role.currentRole')}</p>
               {roles.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t('role.noRoles', 'No roles assigned')}</p>
+                <p className="text-xs text-muted-foreground">{t('role.noRoles', 'No roles assigned')}</p>
               ) : (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {categoryOrder.map(category => {
                     const categoryRoles = rolesByCategory[category];
                     if (!categoryRoles?.length) return null;

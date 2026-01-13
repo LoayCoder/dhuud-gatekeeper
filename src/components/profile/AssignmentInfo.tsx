@@ -26,86 +26,88 @@ export function AssignmentInfo({ profile }: AssignmentInfoProps) {
   const hasFullSiteAccess = hasFullBranchAccess;
 
   return (
-    <Card dir={direction}>
-      <CardHeader>
-        <CardTitle className="text-lg text-start">{t('assignment.title')}</CardTitle>
-        <CardDescription className="text-start">
+    <Card className="border-border/50 bg-card/80 shadow-sm backdrop-blur-sm" dir={direction}>
+      <CardHeader className="pb-2 sm:pb-3">
+        <CardTitle className="text-sm sm:text-base font-semibold tracking-tight text-start">
+          {t('assignment.title')}
+        </CardTitle>
+        <CardDescription className="text-xs text-start">
           {t('assignment.description')}
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 pt-0">
         {/* Branch Info */}
-        <div className="rounded-md border p-4 bg-muted/10">
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-primary/10 rounded-full shrink-0">
+        <div className="rounded-md border p-3 bg-muted/10">
+          <div className="flex items-start gap-2.5">
+            <div className="p-1.5 bg-primary/10 rounded-full shrink-0">
               {hasFullBranchAccess ? (
-                <Globe className="h-4 w-4 text-primary" />
+                <Globe className="h-3.5 w-3.5 text-primary" />
               ) : (
-                <Building2 className="h-4 w-4 text-primary" />
+                <Building2 className="h-3.5 w-3.5 text-primary" />
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{t('assignment.branch')}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">{t('assignment.branch')}</p>
               {hasFullBranchAccess ? (
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-medium text-primary">{t('assignment.allBranches', 'All Branches')}</p>
-                  <Badge variant="secondary" className="text-xs">
-                    <Globe className="h-3 w-3 me-1" />
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <p className="font-medium text-xs sm:text-sm text-primary">{t('assignment.allBranches', 'All Branches')}</p>
+                  <Badge variant="secondary" className="text-[10px] h-5">
+                    <Globe className="h-2.5 w-2.5 me-0.5" />
                     {t('assignment.fullAccess', 'Full Access')}
                   </Badge>
                 </div>
               ) : profile?.branches ? (
                 <>
-                  <p className="font-medium">{profile.branches.name}</p>
+                  <p className="font-medium text-xs sm:text-sm">{profile.branches.name}</p>
                   {profile.branches.location && (
-                    <p className="text-sm text-muted-foreground">{profile.branches.location}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">{profile.branches.location}</p>
                   )}
                 </>
               ) : (
-                <p className="text-muted-foreground italic">{t('assignment.notAssigned')}</p>
+                <p className="text-muted-foreground italic text-xs">{t('assignment.notAssigned')}</p>
               )}
             </div>
           </div>
         </div>
 
         {/* Site Info */}
-        <div className="rounded-md border p-4 bg-muted/10">
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-primary/10 rounded-full shrink-0">
+        <div className="rounded-md border p-3 bg-muted/10">
+          <div className="flex items-start gap-2.5">
+            <div className="p-1.5 bg-primary/10 rounded-full shrink-0">
               {hasFullSiteAccess ? (
-                <Globe className="h-4 w-4 text-primary" />
+                <Globe className="h-3.5 w-3.5 text-primary" />
               ) : (
-                <MapPin className="h-4 w-4 text-primary" />
+                <MapPin className="h-3.5 w-3.5 text-primary" />
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{t('assignment.site')}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">{t('assignment.site')}</p>
               {hasFullSiteAccess ? (
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-medium text-primary">{t('assignment.allSites', 'All Sites')}</p>
-                  <Badge variant="secondary" className="text-xs">
-                    <Globe className="h-3 w-3 me-1" />
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <p className="font-medium text-xs sm:text-sm text-primary">{t('assignment.allSites', 'All Sites')}</p>
+                  <Badge variant="secondary" className="text-[10px] h-5">
+                    <Globe className="h-2.5 w-2.5 me-0.5" />
                     {t('assignment.fullAccess', 'Full Access')}
                   </Badge>
                 </div>
               ) : profile?.sites ? (
                 <>
-                  <p className="font-medium">{profile.sites.name}</p>
+                  <p className="font-medium text-xs sm:text-sm">{profile.sites.name}</p>
                   {profile.sites.address && (
-                    <p className="text-sm text-muted-foreground">{profile.sites.address}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">{profile.sites.address}</p>
                   )}
                 </>
               ) : departmentSites.length > 0 ? (
-                <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground mb-2">
+                <div className="space-y-1.5">
+                  <p className="text-[10px] text-muted-foreground mb-1">
                     {t('assignment.sitesViaDepartment', 'Sites via department assignment:')}
                   </p>
                   {departmentSites.map(site => (
-                    <div key={site.id} className="flex items-center gap-2">
-                      <p className="font-medium">{site.name}</p>
+                    <div key={site.id} className="flex items-center gap-1.5">
+                      <p className="font-medium text-xs sm:text-sm">{site.name}</p>
                       {site.is_primary && (
-                        <Badge variant="secondary" className="text-xs">
-                          <Star className="h-3 w-3 me-1" />
+                        <Badge variant="secondary" className="text-[10px] h-5">
+                          <Star className="h-2.5 w-2.5 me-0.5" />
                           {t('common.primary', 'Primary')}
                         </Badge>
                       )}
@@ -113,13 +115,13 @@ export function AssignmentInfo({ profile }: AssignmentInfoProps) {
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground italic">{t('assignment.notAssigned')}</p>
+                <p className="text-muted-foreground italic text-xs">{t('assignment.notAssigned')}</p>
               )}
             </div>
           </div>
         </div>
 
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[10px] sm:text-xs text-muted-foreground">
           {t('assignment.managedByAdmin')}
         </p>
       </CardContent>

@@ -108,12 +108,12 @@ export function SecuritySettings() {
   };
 
   return (
-    <div className="space-y-6" dir={direction}>
+    <div className="space-y-4 sm:space-y-5" dir={direction}>
       {/* Two-Factor Authentication Section */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="text-start">
-          <h3 className="text-lg font-medium">{t('securitySettings.twoFactorAuth')}</h3>
-          <p className="text-sm text-muted-foreground">
+          <h3 className="text-sm sm:text-base font-medium">{t('securitySettings.twoFactorAuth')}</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             {t('securitySettings.twoFactorDescription')}
           </p>
         </div>
@@ -139,24 +139,24 @@ export function SecuritySettings() {
       <Separator />
 
       {/* Password Section */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="text-start">
-          <h3 className="text-lg font-medium">{t('securitySettings.changePassword')}</h3>
-          <p className="text-sm text-muted-foreground">
+          <h3 className="text-sm sm:text-base font-medium">{t('securitySettings.changePassword')}</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             {t('securitySettings.changePasswordDescription')}
           </p>
         </div>
 
         {/* Password Requirements */}
-        <div className="rounded-lg border p-4 bg-muted/5">
-          <h4 className="text-sm font-medium mb-3 text-start">{t('securitySettings.passwordRequirements')}</h4>
-          <ul className="flex flex-col space-y-2">
+        <div className="rounded-lg border p-3 bg-muted/5">
+          <h4 className="text-xs sm:text-sm font-medium mb-2 text-start">{t('securitySettings.passwordRequirements')}</h4>
+          <ul className="flex flex-col space-y-1.5">
             {requirements.map((req, index) => (
-              <li key={index} className="flex items-center gap-2 text-sm">
+              <li key={index} className="flex items-center gap-1.5 text-xs sm:text-sm">
                 {req.met ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                  <CheckCircle2 className="h-3.5 w-3.5 text-green-600 flex-shrink-0" />
                 ) : (
-                  <XCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <XCircle className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                 )}
                 <span className={req.met ? "text-green-600" : "text-muted-foreground"}>
                   {req.label}
@@ -166,61 +166,61 @@ export function SecuritySettings() {
           </ul>
         </div>
 
-        <form onSubmit={handlePasswordChange} className="space-y-4">
-          <div className="grid gap-2">
-            <Label htmlFor="new-password">{t('securitySettings.newPassword')}</Label>
+        <form onSubmit={handlePasswordChange} className="space-y-3">
+          <div className="grid gap-1.5">
+            <Label htmlFor="new-password" className="text-xs sm:text-sm">{t('securitySettings.newPassword')}</Label>
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute start-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute start-3 top-2.5 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground hover:text-foreground transition-colors"
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? <EyeOff className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
               </button>
               <Input 
                 id="new-password"
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="px-9"
+                className="px-9 h-9 sm:h-10 text-xs sm:text-sm"
                 placeholder={t('securitySettings.enterNewPassword')}
                 autoComplete="new-password"
               />
-              <Lock className="absolute end-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Lock className="absolute end-3 top-2.5 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
             </div>
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="confirm-password">{t('securitySettings.confirmNewPassword')}</Label>
+          <div className="grid gap-1.5">
+            <Label htmlFor="confirm-password" className="text-xs sm:text-sm">{t('securitySettings.confirmNewPassword')}</Label>
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute start-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute start-3 top-2.5 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground hover:text-foreground transition-colors"
               >
-                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showConfirmPassword ? <EyeOff className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
               </button>
               <Input 
                 id="confirm-password"
                 type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="px-9"
+                className="px-9 h-9 sm:h-10 text-xs sm:text-sm"
                 placeholder={t('securitySettings.confirmNewPasswordPlaceholder')}
                 autoComplete="new-password"
               />
-              <Lock className="absolute end-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Lock className="absolute end-3 top-2.5 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
             </div>
             {confirmPassword.length > 0 && (
-              <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-1.5 text-xs sm:text-sm">
                 {passwordsMatch ? (
                   <>
-                    <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    <CheckCircle2 className="h-3.5 w-3.5 text-green-600 flex-shrink-0" />
                     <span className="text-green-600">{t('securitySettings.passwordsMatch')}</span>
                   </>
                 ) : (
                   <>
-                    <XCircle className="h-4 w-4 text-destructive flex-shrink-0" />
+                    <XCircle className="h-3.5 w-3.5 text-destructive flex-shrink-0" />
                     <span className="text-destructive">{t('securitySettings.passwordsDoNotMatch')}</span>
                   </>
                 )}
@@ -230,17 +230,18 @@ export function SecuritySettings() {
 
           {breachWarning && (
             <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>{breachWarning}</AlertDescription>
+              <AlertTriangle className="h-3.5 w-3.5" />
+              <AlertDescription className="text-xs sm:text-sm">{breachWarning}</AlertDescription>
             </Alert>
           )}
 
-          <div className="flex justify-end">
+          <div className="flex justify-end pt-1">
             <Button 
               type="submit" 
               disabled={loading || isChecking || !allRequirementsMet || !passwordsMatch}
+              className="h-9 text-xs sm:text-sm"
             >
-              {(loading || isChecking) && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+              {(loading || isChecking) && <Loader2 className="me-1.5 h-3.5 w-3.5 animate-spin" />}
               {t('securitySettings.updatePassword')}
             </Button>
           </div>
