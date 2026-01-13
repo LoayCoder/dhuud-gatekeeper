@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { logger } from '@/lib/logger';
+import { sessionCache } from '@/hooks/use-cached-session';
 
 const SESSION_TOKEN_KEY = 'app_session_token';
 const HEARTBEAT_INTERVAL = 5 * 60 * 1000; // 5 minutes
@@ -214,6 +215,9 @@ export function useSessionManagement() {
     }
     
     localStorage.removeItem(SESSION_TOKEN_KEY);
+    
+    // Clear cached session from IndexedDB
+    sessionCache.clearSession();
     
     // Reset registration tracking
     hasRegisteredSession.current = false;
