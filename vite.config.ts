@@ -1,10 +1,8 @@
-// Vite configuration - Enterprise PWA + Performance optimizations
+// Vite configuration - Optimized for fast builds and reduced chunks
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
-import { visualizer } from "rollup-plugin-visualizer";
-import viteCompression from "vite-plugin-compression";
 import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
@@ -16,149 +14,103 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
-    // PWA Plugin with Workbox
+    // PWA Plugin with Workbox - simplified config
     VitePWA({
       registerType: 'prompt',
       injectRegister: 'auto',
-      includeAssets: ['favicon.ico', 'placeholder.svg', 'fonts/**/*'],
+      includeAssets: ['favicon.ico', 'placeholder.svg'],
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         cleanupOutdatedCaches: true,
-        sourcemap: mode === 'development',
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [
           {
-            // Cache Supabase API calls (Network First with fallback)
             urlPattern: /^https:\/\/xdlowvfzhvjzbtgvurzj\.supabase\.co\/rest\/v1\/.*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'supabase-api-cache',
-              expiration: {
-                maxEntries: 200,
-                maxAgeSeconds: 60 * 60 * 24, // 24 hours
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
+              expiration: { maxEntries: 200, maxAgeSeconds: 86400 },
+              cacheableResponse: { statuses: [0, 200] },
               networkTimeoutSeconds: 10,
             },
           },
           {
-            // Cache Supabase storage (images/files) - Cache First
             urlPattern: /^https:\/\/xdlowvfzhvjzbtgvurzj\.supabase\.co\/storage\/v1\/object\/.*/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'supabase-storage-cache',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
+              expiration: { maxEntries: 100, maxAgeSeconds: 604800 },
+              cacheableResponse: { statuses: [0, 200] },
             },
           },
           {
-            // Cache Google Fonts
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'google-fonts-stylesheets',
-            },
+            options: { cacheName: 'google-fonts-stylesheets' },
           },
           {
-            // Cache Google Fonts files
             urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'google-fonts-webfonts',
-              expiration: {
-                maxEntries: 30,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
+              expiration: { maxEntries: 30, maxAgeSeconds: 31536000 },
+              cacheableResponse: { statuses: [0, 200] },
             },
           },
         ],
       },
-      manifest: false, // Use existing public/manifest.json
+      manifest: false,
       devOptions: {
         enabled: mode === 'development',
         type: 'module',
       },
-    }),
-    // Bundle analyzer - generates stats.html in dist folder
-    mode === "production" && visualizer({
-      filename: "dist/stats.html",
-      open: false,
-      gzipSize: true,
-      brotliSize: true,
-    }),
-    // Gzip compression for production
-    mode === "production" && viteCompression({
-      algorithm: "gzip",
-      ext: ".gz",
-    }),
-    // Brotli compression for production
-    mode === "production" && viteCompression({
-      algorithm: "brotliCompress",
-      ext: ".br",
     }),
   ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-    dedupe: [
-      'react',
-      'react-dom',
-      'react/jsx-runtime',
-      'react/jsx-dev-runtime',
-      'react-i18next',
-      'i18next',
-      '@tanstack/react-query',
-    ],
+    dedupe: ['react', 'react-dom', 'react-i18next', 'i18next', '@tanstack/react-query'],
   },
   optimizeDeps: {
-    include: [
-      'react',
-      'react-dom',
-      'react/jsx-runtime',
-      'react/jsx-dev-runtime',
-      'react-i18next',
-      'i18next',
-      '@tanstack/react-query',
-    ],
+    include: ['react', 'react-dom', 'react-i18next', 'i18next', '@tanstack/react-query'],
   },
   build: {
     rollupOptions: {
       output: {
-        // Named chunks for better caching and debugging
-        manualChunks: {
-          // Vendor chunks
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs', '@radix-ui/react-tooltip'],
-          'vendor-query': ['@tanstack/react-query'],
-          'vendor-supabase': ['@supabase/supabase-js'],
-          'vendor-i18n': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
-          'vendor-charts': ['recharts'],
+        // Consolidated chunks - reduces 150+ chunks to ~15
+        manualChunks: (id) => {
+          // Vendor chunks by category
+          if (id.includes('node_modules')) {
+            if (id.includes('react-dom') || id.includes('react-router')) return 'vendor-react';
+            if (id.includes('@radix-ui')) return 'vendor-ui';
+            if (id.includes('@tanstack')) return 'vendor-query';
+            if (id.includes('@supabase')) return 'vendor-supabase';
+            if (id.includes('i18next')) return 'vendor-i18n';
+            if (id.includes('recharts')) return 'vendor-charts';
+            if (id.includes('date-fns')) return 'vendor-date';
+            if (id.includes('lucide')) return 'vendor-icons';
+            if (id.includes('zod') || id.includes('react-hook-form')) return 'vendor-forms';
+            return 'vendor-common';
+          }
+          // Group pages by domain - major reduction in chunk count
+          if (id.includes('/pages/admin/')) return 'pages-admin';
+          if (id.includes('/pages/security/')) return 'pages-security';
+          if (id.includes('/pages/inspections/')) return 'pages-inspections';
+          if (id.includes('/pages/incidents/')) return 'pages-incidents';
+          if (id.includes('/pages/visitors/')) return 'pages-visitors';
+          if (id.includes('/pages/contractors/')) return 'pages-contractors';
+          if (id.includes('/pages/assets/')) return 'pages-assets';
+          if (id.includes('/pages/ptw/')) return 'pages-ptw';
+          if (id.includes('/pages/settings/')) return 'pages-settings';
+          if (id.includes('/pages/')) return 'pages-common';
+          // Group app utilities
+          if (id.includes('/hooks/')) return 'app-hooks';
+          if (id.includes('/components/ui/')) return 'app-ui';
+          if (id.includes('/components/')) return 'app-components';
+          if (id.includes('/lib/')) return 'app-lib';
         },
-        // Chunk file naming pattern
-        chunkFileNames: (chunkInfo) => {
-          const facadeModuleId = chunkInfo.facadeModuleId || '';
-          // Named route chunks
-          if (facadeModuleId.includes('/pages/admin/')) {
-            return 'assets/admin-[name]-[hash].js';
-          }
-          if (facadeModuleId.includes('/pages/settings/')) {
-            return 'assets/settings-[name]-[hash].js';
-          }
-          if (facadeModuleId.includes('/pages/')) {
-            return 'assets/pages-[name]-[hash].js';
-          }
-          return 'assets/[name]-[hash].js';
-        },
+        chunkFileNames: 'assets/[name]-[hash].js',
       },
     },
   },
