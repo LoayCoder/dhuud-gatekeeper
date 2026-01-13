@@ -18,6 +18,7 @@ export * from '../use-mfa-backup-codes';
 export * from '../use-trusted-device';
 export * from '../use-verified-device';
 export * from '../use-device-fingerprint';
+export * from '../use-cached-session';
 
 // WebAuthn / Biometrics
 export * from '../use-webauthn';

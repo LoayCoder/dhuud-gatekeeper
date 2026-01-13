@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import i18n from '@/i18n';
 import { useProfileEmailWatcher } from '@/hooks/use-profile-email-watcher';
 import { logger } from '@/lib/logger';
+import { sessionCache, CachedSessionProfile } from '@/hooks/use-cached-session';
 
 // Prevent HMR from creating multiple contexts
 if (import.meta.hot) {
@@ -38,6 +39,7 @@ interface AuthContextType {
   currentTenantId: string | null; // NEW: Current tenant context
   refreshProfile: () => Promise<void>;
   validateTenantAccess: () => Promise<boolean>; // NEW: Validate access for current tenant
+  isUsingCachedSession: boolean; // NEW: Indicates if using cached session (offline mode)
 }
 
 // Create context outside of component to ensure singleton across HMR
@@ -52,6 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [tenantMfaVerified, setTenantMfaVerified] = useState(false);
   const [currentTenantId, setCurrentTenantId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUsingCachedSession, setIsUsingCachedSession] = useState(false);
 
   const fetchUserRole = async (userId: string) => {
     // Use unified is_admin() function that checks both legacy and new role systems
@@ -157,6 +160,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Helper to cache session data after successful fetch
+  const cacheCurrentSession = useCallback(async (
+    userId: string,
+    email: string,
+    profileData: Profile,
+    role: UserRole,
+    mfaStatus: boolean,
+    tenantMfaStatus: boolean
+  ) => {
+    try {
+      await sessionCache.cacheSession({
+        userId,
+        email,
+        profile: profileData as CachedSessionProfile,
+        userRole: role,
+        mfaEnabled: mfaStatus,
+        tenantMfaVerified: tenantMfaStatus,
+        currentTenantId: profileData.tenant_id,
+      });
+      setIsUsingCachedSession(false);
+    } catch (err) {
+      logger.error('Failed to cache session:', err);
+    }
+  }, []);
+
+  // Helper to restore session from cache (for offline mode)
+  const restoreFromCache = useCallback(async (userId: string) => {
+    try {
+      const cached = await sessionCache.getCachedSession();
+      if (cached && cached.userId === userId) {
+        setProfile(cached.profile as Profile);
+        setUserRole(cached.userRole);
+        setMfaEnabled(cached.mfaEnabled);
+        setTenantMfaVerified(cached.tenantMfaVerified);
+        setCurrentTenantId(cached.currentTenantId);
+        setIsUsingCachedSession(true);
+        
+        // Apply cached language preference
+        if (cached.profile.preferred_language && cached.profile.preferred_language !== i18n.language) {
+          i18n.changeLanguage(cached.profile.preferred_language);
+        }
+        
+        logger.debug('Session restored from cache (offline mode)');
+        return true;
+      }
+      return false;
+    } catch (err) {
+      logger.error('Failed to restore session from cache:', err);
+      return false;
+    }
+  }, []);
+
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -172,12 +227,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (newSession?.user) {
           // Defer Supabase calls with setTimeout to prevent deadlock
           // Use Promise.all for parallel fetching
-          setTimeout(() => {
-            Promise.all([
-              fetchProfile(newSession.user.id),
-              fetchUserRole(newSession.user.id),
-              checkMFA()
-            ]);
+          setTimeout(async () => {
+            const isOnline = navigator.onLine;
+            
+            if (isOnline) {
+              // Online: fetch fresh data and cache it
+              await Promise.all([
+                fetchProfile(newSession.user.id),
+                fetchUserRole(newSession.user.id),
+                checkMFA()
+              ]);
+              
+              // Cache the session after fetch completes
+              // Need to access state after update, so use another setTimeout
+              setTimeout(() => {
+                if (profile && userRole !== null) {
+                  cacheCurrentSession(
+                    newSession.user.id,
+                    newSession.user.email || '',
+                    profile,
+                    userRole,
+                    mfaEnabled,
+                    tenantMfaVerified
+                  );
+                }
+              }, 100);
+            } else {
+              // Offline: try to restore from cache
+              const restored = await restoreFromCache(newSession.user.id);
+              if (!restored) {
+                logger.warn('Offline and no cached session available');
+              }
+            }
           }, 0);
         } else {
           setProfile(null);
@@ -185,24 +266,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setMfaEnabled(false);
           setTenantMfaVerified(false);
           setCurrentTenantId(null);
+          setIsUsingCachedSession(false);
+          // Clear session cache on logout
+          sessionCache.clearSession();
         }
       }
     );
 
     // THEN check for existing session
     const initializeAuth = async () => {
+      const isOnline = navigator.onLine;
       const { data: { session: existingSession } } = await supabase.auth.getSession();
       
       setSession(existingSession);
       setUser(existingSession?.user ?? null);
       
       if (existingSession?.user) {
-        // Parallel fetch all data at once
-        await Promise.all([
-          fetchProfile(existingSession.user.id),
-          fetchUserRole(existingSession.user.id),
-          checkMFA()
-        ]);
+        if (isOnline) {
+          // Online: fetch fresh data
+          await Promise.all([
+            fetchProfile(existingSession.user.id),
+            fetchUserRole(existingSession.user.id),
+            checkMFA()
+          ]);
+          setIsUsingCachedSession(false);
+        } else {
+          // Offline: try to restore from cache first
+          const restored = await restoreFromCache(existingSession.user.id);
+          if (!restored) {
+            // No cache available, can't fetch online either
+            logger.warn('Offline with no cached session - limited functionality');
+          }
+        }
       }
       
       setIsLoading(false);
@@ -211,7 +306,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initializeAuth();
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [cacheCurrentSession, restoreFromCache]);
 
   const value: AuthContextType = {
     session,
@@ -226,6 +321,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     currentTenantId,
     refreshProfile,
     validateTenantAccess,
+    isUsingCachedSession,
   };
 
   // Watch for email changes from admin actions

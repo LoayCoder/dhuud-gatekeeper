@@ -7,12 +7,13 @@ import { useTranslation } from 'react-i18next';
 import { toast } from '@/hooks/use-toast';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import { OfflineAccessNotice } from '@/components/offline/OfflineAccessNotice';
+import { sessionCache } from '@/hooks/use-cached-session';
 
 const VERIFIED_DEVICE_STORAGE_KEY = 'invitation_verified_device_token';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
-  const { isAuthenticated, mfaEnabled, tenantMfaVerified, isLoading, profile, user, validateTenantAccess } = useAuth();
+  const { isAuthenticated, mfaEnabled, tenantMfaVerified, isLoading, profile, user, validateTenantAccess, isUsingCachedSession } = useAuth();
   const location = useLocation();
   const isOnline = useOnlineStatus();
   const [accessValidated, setAccessValidated] = useState<boolean | null>(null);
@@ -22,6 +23,21 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const validateAccess = async () => {
       if (!isAuthenticated || !user || isLoading) {
+        setAccessValidated(null);
+        return;
+      }
+
+      // OFFLINE MODE: Skip network validation if using cached session
+      if (!isOnline) {
+        // Check if we have a valid cached session for this user
+        const cachedSession = await sessionCache.getCachedSession();
+        if (cachedSession && cachedSession.userId === user.id) {
+          // Trust cached session for offline access
+          setAccessValidated(true);
+          setValidating(false);
+          return;
+        }
+        // No cache available offline - can't validate
         setAccessValidated(null);
         return;
       }
@@ -61,7 +77,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     };
 
     validateAccess();
-  }, [isAuthenticated, user?.id, profile?.is_deleted, profile?.is_active]);
+  }, [isAuthenticated, user?.id, profile?.is_deleted, profile?.is_active, isOnline]);
 
   if (isLoading || validating) {
     return (
@@ -84,9 +100,15 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
-  // If offline and MFA not fully verified, show offline notice instead of redirecting
-  // This prevents users from being stuck on MFA setup page when offline
+  // If offline and using cached session with MFA already verified, allow access
+  // If offline and MFA was NOT verified in cached session, show offline notice
   if (!isOnline && (!mfaEnabled || !tenantMfaVerified)) {
+    // Check if cached session has verified MFA status
+    if (isUsingCachedSession) {
+      // Cached session already has MFA status stored - if we got here,
+      // it means MFA wasn't verified when cached. Show notice.
+      return <OfflineAccessNotice reason="mfa_required" />;
+    }
     return <OfflineAccessNotice reason="mfa_required" />;
   }
 
