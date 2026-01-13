@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format, isPast, isFuture, isWithinInterval } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Target, Calendar, Trophy, Trash2 } from 'lucide-react';
+import { Plus, Calendar, Trash2, Circle } from 'lucide-react';
 import { useAdminChallenges, useDeleteChallenge, type AdminChallenge } from '@/hooks/use-challenges';
 import { ChallengeFormDialog } from './ChallengeFormDialog';
+import { cn } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,17 +31,19 @@ function getChallengeStatus(challenge: AdminChallenge) {
   return 'unknown';
 }
 
-const statusColors = {
-  active: 'bg-green-100 text-green-700 border-green-200',
-  upcoming: 'bg-blue-100 text-blue-700 border-blue-200',
-  ended: 'bg-gray-100 text-gray-600 border-gray-200',
-  unknown: 'bg-gray-100 text-gray-600 border-gray-200',
+// Professional muted status colors
+const statusStyles = {
+  active: 'bg-primary/10 text-primary',
+  upcoming: 'bg-secondary text-secondary-foreground',
+  ended: 'bg-muted text-muted-foreground',
+  unknown: 'bg-muted text-muted-foreground',
 };
 
-const typeColors = {
-  weekly: 'bg-purple-100 text-purple-700',
-  monthly: 'bg-indigo-100 text-indigo-700',
-  custom: 'bg-orange-100 text-orange-700',
+// Professional type styling
+const typeStyles = {
+  weekly: 'bg-muted text-muted-foreground',
+  monthly: 'bg-muted text-muted-foreground',
+  custom: 'bg-muted text-muted-foreground',
 };
 
 export function ChallengesTab() {
@@ -78,11 +81,11 @@ export function ChallengesTab() {
     return (
       <Card>
         <CardHeader>
-          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-6 w-48" />
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-24 w-full" />
+            <Skeleton key={i} className="h-16 w-full" />
           ))}
         </CardContent>
       </Card>
@@ -105,113 +108,125 @@ export function ChallengesTab() {
     return (
       <div
         key={challenge.id}
-        className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors cursor-pointer"
+        className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center px-4 py-4 hover:bg-muted/50 transition-colors cursor-pointer border-b last:border-b-0"
         onClick={() => handleEdit(challenge)}
       >
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <Target className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-medium">
-                {isRTL && challenge.title_ar ? challenge.title_ar : challenge.title}
-              </span>
-              <Badge className={statusColors[status]} variant="outline">
-                {status}
-              </Badge>
-              <Badge className={typeColors[challenge.challenge_type as keyof typeof typeColors]}>
-                {challenge.challenge_type}
-              </Badge>
-            </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              {t('admin.challenges.target', 'Target')}: {challenge.target_count}{' '}
-              {challenge.metric_type}
-            </p>
-            <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
-                {format(new Date(challenge.start_date), 'MMM d')} -{' '}
-                {format(new Date(challenge.end_date), 'MMM d, yyyy')}
-              </span>
-              <span className="flex items-center gap-1">
-                <Trophy className="h-3 w-3" />
-                {challenge.points_reward} pts
-              </span>
-            </div>
-          </div>
+        {/* Title */}
+        <div className="md:col-span-4">
+          <p className="font-medium text-sm">
+            {isRTL && challenge.title_ar ? challenge.title_ar : challenge.title}
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {t('admin.challenges.target', 'Target')}: {challenge.target_count} {challenge.metric_type}
+          </p>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-          onClick={(e) => {
-            e.stopPropagation();
-            setDeleteId(challenge.id);
-          }}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+
+        {/* Status and Type */}
+        <div className="md:col-span-2 flex items-center gap-2">
+          <Badge className={cn('capitalize text-xs font-normal', statusStyles[status])} variant="secondary">
+            {status}
+          </Badge>
+        </div>
+
+        <div className="md:col-span-2">
+          <Badge className={cn('capitalize text-xs font-normal', typeStyles[challenge.challenge_type as keyof typeof typeStyles])} variant="secondary">
+            {challenge.challenge_type}
+          </Badge>
+        </div>
+
+        {/* Date range */}
+        <div className="md:col-span-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Calendar className="h-3 w-3" />
+          <span>
+            {format(new Date(challenge.start_date), 'MMM d')} – {format(new Date(challenge.end_date), 'MMM d')}
+          </span>
+        </div>
+
+        {/* Points */}
+        <div className="md:col-span-1 text-sm tabular-nums text-muted-foreground">
+          {challenge.points_reward} pts
+        </div>
+
+        {/* Actions */}
+        <div className="md:col-span-1 flex justify-end">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-destructive"
+            onClick={(e) => {
+              e.stopPropagation();
+              setDeleteId(challenge.id);
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
+    );
+  };
+
+  const renderSection = (title: string, items: AdminChallenge[] | undefined, count: number) => {
+    if (!items || items.length === 0) return null;
+
+    return (
+      <Card>
+        <CardHeader className="pb-0">
+          <CardTitle className="text-base font-medium">
+            {title} ({count})
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-4">
+          {/* Table header */}
+          <div className="hidden md:grid md:grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b">
+            <div className="col-span-4">{t('admin.challenges.title', 'Title')}</div>
+            <div className="col-span-2">{t('admin.challenges.status', 'Status')}</div>
+            <div className="col-span-2">{t('admin.challenges.type', 'Type')}</div>
+            <div className="col-span-2">{t('admin.challenges.period', 'Period')}</div>
+            <div className="col-span-1">{t('admin.challenges.points', 'Points')}</div>
+            <div className="col-span-1"></div>
+          </div>
+          <div>{items.map(renderChallenge)}</div>
+        </CardContent>
+      </Card>
     );
   };
 
   return (
     <>
       <div className="space-y-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5" />
-              {t('admin.challenges.activeChallenges', 'Active Challenges')}
-              <Badge variant="secondary">{activeChallenges?.length || 0}</Badge>
-            </CardTitle>
-            <Button onClick={handleCreate} size="sm">
-              <Plus className="h-4 w-4 me-2" />
-              {t('admin.challenges.createChallenge', 'Create Challenge')}
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {activeChallenges && activeChallenges.length > 0 ? (
-              <div className="space-y-3">
-                {activeChallenges.map(renderChallenge)}
-              </div>
-            ) : (
-              <p className="text-center py-8 text-muted-foreground">
-                {t('admin.challenges.noActive', 'No active challenges')}
-              </p>
-            )}
-          </CardContent>
-        </Card>
+        {/* Header with add button */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-medium">{t('admin.challenges.objectives', 'Objectives')}</h2>
+            <p className="text-sm text-muted-foreground">
+              {t('admin.challenges.manageObjectives', 'Manage time-bound objectives and targets')}
+            </p>
+          </div>
+          <Button onClick={handleCreate} size="sm" variant="outline">
+            <Plus className="h-4 w-4 me-2" />
+            {t('admin.challenges.addObjective', 'Add Objective')}
+          </Button>
+        </div>
 
-        {upcomingChallenges && upcomingChallenges.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                {t('admin.challenges.upcomingChallenges', 'Upcoming Challenges')}
-                <Badge variant="secondary">{upcomingChallenges.length}</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {upcomingChallenges.map(renderChallenge)}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Active */}
+        {renderSection(t('admin.challenges.activeObjectives', 'Active Objectives'), activeChallenges, activeChallenges?.length || 0)}
 
-        {pastChallenges && pastChallenges.length > 0 && (
+        {/* Upcoming */}
+        {renderSection(t('admin.challenges.upcomingObjectives', 'Upcoming Objectives'), upcomingChallenges, upcomingChallenges?.length || 0)}
+
+        {/* Past */}
+        {renderSection(t('admin.challenges.pastObjectives', 'Past Objectives'), pastChallenges?.slice(0, 5), pastChallenges?.length || 0)}
+
+        {/* Empty state */}
+        {(!challenges || challenges.length === 0) && (
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                {t('admin.challenges.pastChallenges', 'Past Challenges')}
-                <Badge variant="secondary">{pastChallenges.length}</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {pastChallenges.slice(0, 5).map(renderChallenge)}
-              </div>
+            <CardContent className="py-12 text-center">
+              <Circle className="h-10 w-10 mx-auto mb-4 opacity-30" strokeWidth={1} />
+              <p className="text-sm text-muted-foreground">{t('admin.challenges.noObjectives', 'No objectives defined')}</p>
+              <Button onClick={handleCreate} variant="outline" className="mt-4">
+                <Plus className="h-4 w-4 me-2" />
+                {t('admin.challenges.addFirst', 'Add your first objective')}
+              </Button>
             </CardContent>
           </Card>
         )}
@@ -227,12 +242,12 @@ export function ChallengesTab() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {t('admin.challenges.deleteTitle', 'Delete Challenge?')}
+              {t('admin.challenges.deleteTitle', 'Delete Objective?')}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {t(
                 'admin.challenges.deleteDescription',
-                'This will permanently delete this challenge. This action cannot be undone.'
+                'This will permanently delete this objective. This action cannot be undone.'
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>

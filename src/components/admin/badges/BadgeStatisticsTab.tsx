@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { BarChart3, Award, TrendingUp, Users } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { useBadgeStatistics } from '@/hooks/use-badge-admin';
+import { cn } from '@/lib/utils';
 
 export function BadgeStatisticsTab() {
   const { t, i18n } = useTranslation();
@@ -11,14 +12,14 @@ export function BadgeStatisticsTab() {
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-3">
         {[1, 2, 3].map((i) => (
           <Card key={i}>
             <CardHeader>
-              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-5 w-32" />
             </CardHeader>
             <CardContent>
-              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-8 w-20" />
             </CardContent>
           </Card>
         ))}
@@ -32,73 +33,94 @@ export function BadgeStatisticsTab() {
 
   return (
     <div className="space-y-6">
+      {/* Summary cards */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t('admin.badges.totalAwarded', 'Total Badges Awarded')}
-            </CardTitle>
-            <Award className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="pb-2">
+            <CardDescription className="text-xs uppercase tracking-wider">
+              {t('admin.badges.totalAwarded', 'Total Awarded')}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalAwarded}</div>
+            <div className="text-2xl font-semibold">{totalAwarded}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t('admin.badges.thisMonth', 'Awarded This Month')}
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="pb-2">
+            <CardDescription className="text-xs uppercase tracking-wider">
+              {t('admin.badges.thisMonth', 'This Month')}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{thisMonthAwarded}</div>
+            <div className="text-2xl font-semibold">{thisMonthAwarded}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t('admin.badges.uniqueEarners', 'Unique Badge Earners')}
-            </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="pb-2">
+            <CardDescription className="text-xs uppercase tracking-wider">
+              {t('admin.badges.uniqueEarners', 'Unique Earners')}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{uniqueEarners}</div>
+            <div className="text-2xl font-semibold">{uniqueEarners}</div>
           </CardContent>
         </Card>
       </div>
 
+      {/* Breakdown table */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
-            {t('admin.badges.badgeBreakdown', 'Badge Breakdown')}
+          <CardTitle className="text-base font-medium">
+            {t('admin.badges.breakdown', 'Credential Breakdown')}
           </CardTitle>
+          <CardDescription>
+            {t('admin.badges.breakdownDesc', 'Distribution and award statistics by credential')}
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          {/* Table header */}
+          <div className="hidden md:grid md:grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b">
+            <div className="col-span-5">{t('admin.badges.credential', 'Credential')}</div>
+            <div className="col-span-2">{t('admin.badges.level', 'Level')}</div>
+            <div className="col-span-2">{t('admin.badges.category', 'Category')}</div>
+            <div className="col-span-1 text-end">{t('admin.badges.total', 'Total')}</div>
+            <div className="col-span-2 text-end">{t('admin.badges.thisMonth', 'This Month')}</div>
+          </div>
+
+          <div className="divide-y">
             {stats?.map((badge) => (
-              <div key={badge.badge_id} className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">
+              <div
+                key={badge.badge_id}
+                className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center px-4 py-3"
+              >
+                <div className="md:col-span-5">
+                  <p className="font-medium text-sm">
                     {isRTL && badge.name_ar ? badge.name_ar : badge.name}
                   </p>
-                  <p className="text-sm text-muted-foreground">
-                    {badge.tier} • {badge.category}
-                  </p>
                 </div>
-                <div className="text-end">
-                  <p className="font-bold">{badge.total_awarded}</p>
-                  <p className="text-xs text-muted-foreground">
-                    +{badge.awarded_this_month} this month
-                  </p>
+                <div className="md:col-span-2">
+                  <Badge variant="secondary" className="capitalize text-xs font-normal bg-muted">
+                    {badge.tier}
+                  </Badge>
+                </div>
+                <div className="md:col-span-2">
+                  <Badge variant="secondary" className="capitalize text-xs font-normal bg-muted">
+                    {badge.category}
+                  </Badge>
+                </div>
+                <div className="md:col-span-1 text-end text-sm tabular-nums">
+                  {badge.total_awarded}
+                </div>
+                <div className="md:col-span-2 text-end text-sm tabular-nums text-muted-foreground">
+                  +{badge.awarded_this_month}
                 </div>
               </div>
             ))}
+
             {(!stats || stats.length === 0) && (
-              <p className="text-center py-8 text-muted-foreground">
-                {t('admin.badges.noStats', 'No badge statistics available')}
-              </p>
+              <div className="py-12 text-center text-sm text-muted-foreground">
+                {t('admin.badges.noStats', 'No statistics available')}
+              </div>
             )}
           </div>
         </CardContent>
