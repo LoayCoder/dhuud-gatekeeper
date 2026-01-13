@@ -1,35 +1,38 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Pencil, Award } from 'lucide-react';
+import { Plus, Pencil, Circle } from 'lucide-react';
 import { useBadgeDefinitions, useToggleBadgeActive, type BadgeDefinition } from '@/hooks/use-badge-admin';
 import { BadgeFormDialog } from './BadgeFormDialog';
 import * as LucideIcons from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-const tierColors = {
-  bronze: 'bg-amber-600/20 text-amber-700 border-amber-600/30',
-  silver: 'bg-slate-400/20 text-slate-600 border-slate-400/30',
-  gold: 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30',
-  platinum: 'bg-purple-500/20 text-purple-700 border-purple-500/30',
+// Professional muted tier styling
+const tierStyles: Record<string, string> = {
+  bronze: 'bg-muted text-muted-foreground',
+  silver: 'bg-secondary text-secondary-foreground',
+  gold: 'bg-secondary text-secondary-foreground',
+  platinum: 'bg-primary/10 text-primary',
 };
 
-const categoryColors: Record<string, string> = {
-  reporting: 'bg-blue-100 text-blue-700',
-  quality: 'bg-green-100 text-green-700',
-  streak: 'bg-orange-100 text-orange-700',
-  milestone: 'bg-indigo-100 text-indigo-700',
-  special: 'bg-pink-100 text-pink-700',
+// Professional category labels
+const categoryStyles: Record<string, string> = {
+  reporting: 'bg-muted text-muted-foreground',
+  quality: 'bg-muted text-muted-foreground',
+  streak: 'bg-muted text-muted-foreground',
+  milestone: 'bg-muted text-muted-foreground',
+  special: 'bg-muted text-muted-foreground',
 };
 
 function BadgeIcon({ iconName }: { iconName: string }) {
-  const icons = LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string }>>;
+  const icons = LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>>;
   const IconComponent = icons[iconName];
-  if (!IconComponent) return <Award className="h-5 w-5" />;
-  return <IconComponent className="h-5 w-5" />;
+  if (!IconComponent) return <Circle className="h-4 w-4" strokeWidth={1.5} />;
+  return <IconComponent className="h-4 w-4" strokeWidth={1.5} />;
 }
 
 export function BadgeDefinitionsTab() {
@@ -59,9 +62,9 @@ export function BadgeDefinitionsTab() {
     return (
       <Card>
         <CardHeader>
-          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-6 w-48" />
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3">
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-16 w-full" />
           ))}
@@ -74,63 +77,85 @@ export function BadgeDefinitionsTab() {
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Award className="h-5 w-5" />
-            {t('admin.badges.allBadges', 'All Badges')}
-            <Badge variant="secondary">{badges?.length || 0}</Badge>
-          </CardTitle>
-          <Button onClick={handleCreate} size="sm">
+          <div>
+            <CardTitle className="text-lg font-medium">
+              {t('admin.badges.credentialDefinitions', 'Credential Definitions')}
+            </CardTitle>
+            <CardDescription>
+              {t('admin.badges.manageCredentials', 'Manage credential types and their criteria')}
+            </CardDescription>
+          </div>
+          <Button onClick={handleCreate} size="sm" variant="outline">
             <Plus className="h-4 w-4 me-2" />
-            {t('admin.badges.createBadge', 'Create Badge')}
+            {t('admin.badges.addCredential', 'Add Credential')}
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
+          {/* Table header */}
+          <div className="hidden md:grid md:grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b">
+            <div className="col-span-4">{t('admin.badges.name', 'Name')}</div>
+            <div className="col-span-2">{t('admin.badges.level', 'Level')}</div>
+            <div className="col-span-2">{t('admin.badges.category', 'Category')}</div>
+            <div className="col-span-1">{t('admin.badges.points', 'Points')}</div>
+            <div className="col-span-2">{t('admin.badges.status', 'Status')}</div>
+            <div className="col-span-1"></div>
+          </div>
+
+          <div className="divide-y">
             {badges?.map((badge) => (
               <div
                 key={badge.id}
-                className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+                className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center px-4 py-4 hover:bg-muted/50 transition-colors"
               >
-                <div className="flex items-center gap-4">
-                  <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: badge.color_scheme + '20' }}
-                  >
+                {/* Name and description */}
+                <div className="md:col-span-4 flex items-center gap-3">
+                  <div className="flex items-center justify-center h-9 w-9 rounded-md border bg-muted/50">
                     <BadgeIcon iconName={badge.icon_name} />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">
-                        {isRTL && badge.name_ar ? badge.name_ar : badge.name}
-                      </span>
-                      <Badge className={tierColors[badge.tier]} variant="outline">
-                        {badge.tier}
-                      </Badge>
-                      <Badge className={categoryColors[badge.category] || 'bg-gray-100'}>
-                        {badge.category}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {isRTL && badge.description_ar ? badge.description_ar : badge.description}
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm truncate">
+                      {isRTL && badge.name_ar ? badge.name_ar : badge.name}
                     </p>
-                    <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
-                      <span>Key: {badge.badge_key}</span>
-                      <span>Points: {badge.points}</span>
-                    </div>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {badge.badge_key}
+                    </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">
-                      {t('admin.badges.active', 'Active')}
-                    </span>
-                    <Switch
-                      checked={badge.is_active}
-                      onCheckedChange={(checked) =>
-                        toggleActive({ id: badge.id, is_active: checked })
-                      }
-                    />
-                  </div>
+
+                {/* Level/Tier */}
+                <div className="md:col-span-2">
+                  <Badge className={cn('capitalize text-xs font-normal', tierStyles[badge.tier])} variant="secondary">
+                    {badge.tier}
+                  </Badge>
+                </div>
+
+                {/* Category */}
+                <div className="md:col-span-2">
+                  <Badge className={cn('capitalize text-xs font-normal', categoryStyles[badge.category])} variant="secondary">
+                    {badge.category}
+                  </Badge>
+                </div>
+
+                {/* Points */}
+                <div className="md:col-span-1 text-sm tabular-nums text-muted-foreground">
+                  {badge.points}
+                </div>
+
+                {/* Status */}
+                <div className="md:col-span-2 flex items-center gap-2">
+                  <Switch
+                    checked={badge.is_active}
+                    onCheckedChange={(checked) =>
+                      toggleActive({ id: badge.id, is_active: checked })
+                    }
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    {badge.is_active ? t('common.active', 'Active') : t('common.inactive', 'Inactive')}
+                  </span>
+                </div>
+
+                {/* Actions */}
+                <div className="md:col-span-1 flex justify-end">
                   <Button variant="ghost" size="icon" onClick={() => handleEdit(badge)}>
                     <Pencil className="h-4 w-4" />
                   </Button>
@@ -140,11 +165,11 @@ export function BadgeDefinitionsTab() {
 
             {(!badges || badges.length === 0) && (
               <div className="text-center py-12 text-muted-foreground">
-                <Award className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>{t('admin.badges.noBadges', 'No badges defined yet')}</p>
-                <Button onClick={handleCreate} className="mt-4">
+                <Circle className="h-10 w-10 mx-auto mb-4 opacity-30" strokeWidth={1} />
+                <p className="text-sm">{t('admin.badges.noCredentials', 'No credentials defined')}</p>
+                <Button onClick={handleCreate} variant="outline" className="mt-4">
                   <Plus className="h-4 w-4 me-2" />
-                  {t('admin.badges.createFirst', 'Create your first badge')}
+                  {t('admin.badges.addFirst', 'Add your first credential')}
                 </Button>
               </div>
             )}
