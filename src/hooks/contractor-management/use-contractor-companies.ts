@@ -152,6 +152,8 @@ export function useUpdateContractorCompany() {
         .update({
           company_name: data.company_name,
           company_name_ar: data.company_name_ar,
+          commercial_registration_number: data.commercial_registration_number,
+          vat_number: data.vat_number,
           email: data.email,
           phone: data.phone,
           address: data.address,
