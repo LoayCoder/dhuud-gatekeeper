@@ -114,7 +114,8 @@ export const routeRegistry: RouteDefinition[] = [
     menuCode: "invite_gatekeeper",
     title: { en: "Welcome", ar: "مرحباً" },
     icon: LogIn,
-    component: lazy(() => import("@/pages/InviteGatekeeper")),
+    // Component loaded statically in public.routes.tsx - no dynamic import needed
+    component: null,
     protection: "public",
     hidden: true,
     hiddenReason: "Entry point - not a navigable page",
@@ -124,7 +125,8 @@ export const routeRegistry: RouteDefinition[] = [
     menuCode: "login",
     title: { en: "Login", ar: "تسجيل الدخول" },
     icon: LogIn,
-    component: lazyWithRetry(() => import("@/pages/Login")),
+    // Component loaded statically in public.routes.tsx - no dynamic import needed
+    component: null,
     protection: "public",
     hidden: true,
     hiddenReason: "Auth page - not in sidebar",
@@ -164,7 +166,8 @@ export const routeRegistry: RouteDefinition[] = [
     menuCode: "install",
     title: { en: "Install App", ar: "تثبيت التطبيق" },
     icon: Download,
-    component: lazy(() => import("@/pages/Install")),
+    // Component loaded statically in public.routes.tsx - no dynamic import needed
+    component: null,
     protection: "public",
     hidden: true,
     hiddenReason: "PWA install page - not in sidebar",
@@ -304,7 +307,8 @@ export const routeRegistry: RouteDefinition[] = [
     menuCode: "home",
     title: { en: "Home", ar: "الرئيسية" },
     icon: Home,
-    component: lazy(() => import("@/pages/Home")),
+    // Component loaded statically in App.tsx - no dynamic import needed
+    component: null,
     protection: "protected",
     usesLayout: false,
     hidden: true,
@@ -315,7 +319,8 @@ export const routeRegistry: RouteDefinition[] = [
     menuCode: "dashboard",
     title: { en: "Dashboard", ar: "لوحة القيادة" },
     icon: LayoutDashboard,
-    component: lazy(() => import("@/pages/Dashboard")),
+    // Component loaded statically in App.tsx - no dynamic import needed
+    component: null,
     protection: "protected",
     sortOrder: 1,
   },

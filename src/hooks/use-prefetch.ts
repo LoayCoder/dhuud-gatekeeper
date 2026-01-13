@@ -1,11 +1,11 @@
 import { useCallback, useRef } from 'react';
 
 // Map of routes to their lazy component imports
+// Note: Dashboard and Home are statically imported in App.tsx, so not included here
 const routeModules: Record<string, () => Promise<unknown>> = {
   // Core user routes (high priority prefetch)
   '/profile': () => import('@/pages/Profile'),
   '/support': () => import('@/pages/Support'),
-  '/': () => import('@/pages/Dashboard'),
   // Incident routes
   '/incidents': () => import('@/pages/incidents/IncidentList'),
   '/incidents/report': () => import('@/pages/incidents/IncidentReport'),
@@ -30,7 +30,8 @@ const routeModules: Record<string, () => Promise<unknown>> = {
 };
 
 // High-priority routes to prefetch on app idle
-const PRIORITY_ROUTES = ['/profile', '/incidents', '/incidents/report', '/'];
+// Note: / and /dashboard are statically imported, so only prefetch lazy routes
+const PRIORITY_ROUTES = ['/profile', '/incidents', '/incidents/report'];
 
 // Track which routes have been prefetched to avoid duplicate requests
 const prefetchedRoutes = new Set<string>();
