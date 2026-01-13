@@ -123,59 +123,69 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
     enabled: !!company?.id && open,
   });
 
-  // Load form data from companyDetails (which has all fields) when editing
+  // Load form data when editing, OR reset when opening new form
   useEffect(() => {
-    if (companyDetails && open) {
-      setFormData({
-        company_name: companyDetails.company_name || "",
-        company_name_ar: companyDetails.company_name_ar || "",
-        email: companyDetails.email || "",
-        phone: companyDetails.phone || "",
-        address: companyDetails.address || "",
-        city: companyDetails.city || "",
-        commercial_registration_number: companyDetails.commercial_registration_number || "",
-        vat_number: companyDetails.vat_number || "",
-        scope_of_work: companyDetails.scope_of_work || "",
-        contract_start_date: companyDetails.contract_start_date || "",
-        contract_end_date: companyDetails.contract_end_date || "",
-        total_workers: companyDetails.total_workers || 0,
-        client_site_rep_id: companyDetails.client_site_rep_id || "",
-        assigned_branch_id: companyDetails.assigned_branch_id || "",
-        assigned_department_id: companyDetails.assigned_department_id || "",
-        assigned_section_id: companyDetails.assigned_section_id || "",
-      });
-      
-      // Prefer site rep from new dedicated table, fallback to company details
-      if (siteRepFromTable) {
-        setSiteRepData({
-          full_name: siteRepFromTable.full_name || "",
-          national_id: siteRepFromTable.national_id || "",
-          mobile_number: siteRepFromTable.mobile_number || "",
-          nationality: siteRepFromTable.nationality || "",
-          photo_path: siteRepFromTable.photo_path || null,
-          phone: siteRepFromTable.phone || "",
-          email: siteRepFromTable.email || "",
+    if (open) {
+      if (company && companyDetails) {
+        // EDITING: Load data from companyDetails
+        setFormData({
+          company_name: companyDetails.company_name || "",
+          company_name_ar: companyDetails.company_name_ar || "",
+          email: companyDetails.email || "",
+          phone: companyDetails.phone || "",
+          address: companyDetails.address || "",
+          city: companyDetails.city || "",
+          commercial_registration_number: companyDetails.commercial_registration_number || "",
+          vat_number: companyDetails.vat_number || "",
+          scope_of_work: companyDetails.scope_of_work || "",
+          contract_start_date: companyDetails.contract_start_date || "",
+          contract_end_date: companyDetails.contract_end_date || "",
+          total_workers: companyDetails.total_workers || 0,
+          client_site_rep_id: companyDetails.client_site_rep_id || "",
+          assigned_branch_id: companyDetails.assigned_branch_id || "",
+          assigned_department_id: companyDetails.assigned_department_id || "",
+          assigned_section_id: companyDetails.assigned_section_id || "",
         });
-      } else {
-        // Fallback to legacy columns in contractor_companies
-        setSiteRepData({
-          full_name: companyDetails.contractor_site_rep_name || "",
-          national_id: companyDetails.contractor_site_rep_national_id || "",
-          mobile_number: companyDetails.contractor_site_rep_mobile || "",
-          nationality: companyDetails.contractor_site_rep_nationality || "",
-          photo_path: companyDetails.contractor_site_rep_photo || null,
-          phone: companyDetails.contractor_site_rep_phone || "",
-          email: companyDetails.contractor_site_rep_email || "",
-        });
+        
+        // Prefer site rep from new dedicated table, fallback to company details
+        if (siteRepFromTable) {
+          setSiteRepData({
+            full_name: siteRepFromTable.full_name || "",
+            national_id: siteRepFromTable.national_id || "",
+            mobile_number: siteRepFromTable.mobile_number || "",
+            nationality: siteRepFromTable.nationality || "",
+            photo_path: siteRepFromTable.photo_path || null,
+            phone: siteRepFromTable.phone || "",
+            email: siteRepFromTable.email || "",
+          });
+        } else {
+          // Fallback to legacy columns in contractor_companies
+          setSiteRepData({
+            full_name: companyDetails.contractor_site_rep_name || "",
+            national_id: companyDetails.contractor_site_rep_national_id || "",
+            mobile_number: companyDetails.contractor_site_rep_mobile || "",
+            nationality: companyDetails.contractor_site_rep_nationality || "",
+            photo_path: companyDetails.contractor_site_rep_photo || null,
+            phone: companyDetails.contractor_site_rep_phone || "",
+            email: companyDetails.contractor_site_rep_email || "",
+          });
+        }
+        setCurrentStep("basic");
+      } else if (!company) {
+        // NEW COMPANY: Reset to initial state immediately
+        setFormData(initialFormData);
+        setSiteRepData(initialSiteRepData);
+        setSafetyOfficers([]);
+        setCurrentStep("basic");
       }
-      setCurrentStep("basic");
-    } else if (!open) {
+    } else {
+      // Dialog closed: Reset everything
       setFormData(initialFormData);
       setSiteRepData(initialSiteRepData);
       setSafetyOfficers([]);
       setCurrentStep("basic");
     }
-  }, [companyDetails, siteRepFromTable, open]);
+  }, [company, companyDetails, siteRepFromTable, open]);
 
   // Load existing safety officers when editing - with fallback to contractor_workers
   useEffect(() => {
