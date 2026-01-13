@@ -31,8 +31,8 @@ export interface RouteDefinition {
   /** Lucide icon component for sidebar */
   icon: LucideIcon;
   
-  /** Lazy-loaded component */
-  component: LazyExoticComponent<ComponentType<any>> | ComponentType<any>;
+  /** Lazy-loaded component (null for statically imported routes) */
+  component: LazyExoticComponent<ComponentType<any>> | ComponentType<any> | null;
   
   /** Protection level */
   protection: RouteProtection;
