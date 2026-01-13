@@ -78,7 +78,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     }
     
     // No verified token, require invitation code
-    return <Navigate to="/invite" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   // If authenticated but MFA not enabled globally, redirect to MFA setup
