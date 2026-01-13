@@ -9,7 +9,8 @@ import {
   AlertCircle,
   FileText,
   Loader2,
-  PenTool
+  PenTool,
+  Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +28,7 @@ import {
   parseEquipmentChecklist,
   ShiftHandover,
 } from '@/hooks/use-shift-handovers';
+import { useHandoverReport } from '@/hooks/use-handover-report';
 import { cn } from '@/lib/utils';
 
 interface ShiftHandoversListProps {
@@ -96,6 +98,7 @@ function HandoverCard({ handover }: { handover: ShiftHandover }) {
   const { t } = useTranslation();
   const acknowledge = useAcknowledgeHandover();
   const complete = useCompleteHandover();
+  const { generatePDF, isGenerating } = useHandoverReport(handover.id);
   const signaturePadRef = useRef<SignaturePadRef>(null);
   const [showSignatureDialog, setShowSignatureDialog] = useState(false);
   const [signatureError, setSignatureError] = useState(false);
@@ -324,6 +327,19 @@ function HandoverCard({ handover }: { handover: ShiftHandover }) {
                 {t('security.completeHandover', 'Complete')}
               </Button>
             )}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={generatePDF}
+              disabled={isGenerating}
+            >
+              {isGenerating ? (
+                <Loader2 className="h-4 w-4 animate-spin me-2" />
+              ) : (
+                <Download className="h-4 w-4 me-2" />
+              )}
+              {t('security.downloadPDF', 'Download PDF')}
+            </Button>
           </div>
         </AccordionContent>
       </AccordionItem>
