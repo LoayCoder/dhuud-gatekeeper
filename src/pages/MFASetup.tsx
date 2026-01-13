@@ -9,11 +9,12 @@ import { useMFA } from '@/hooks/useMFA';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { Shield, Smartphone, Copy, Check, Loader2, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Shield, Smartphone, Copy, Check, Loader2, ChevronRight, ChevronLeft, WifiOff, RefreshCw } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { logUserActivity } from '@/lib/activity-logger';
 import { AuthHeroImage } from '@/components/ui/optimized-image';
 import { logger } from '@/lib/logger';
+import { useOnlineStatus } from '@/hooks/use-online-status';
 
 type Step = 'intro' | 'qrcode' | 'verify' | 'tenant-verify' | 'success';
 
@@ -36,6 +37,7 @@ export default function MFASetup() {
   
   const navigate = useNavigate();
   const location = useLocation();
+  const isOnline = useOnlineStatus();
   const { tenantName, activeLogoUrl, activeAppIconUrl } = useTheme();
   const { enroll, challenge, verify, isEnabled, refreshFactors, factors } = useMFA();
   const { refreshProfile } = useAuth();
@@ -233,6 +235,61 @@ export default function MFASetup() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Show offline notice if user lands on MFA setup while offline
+  if (!isOnline) {
+    return (
+      <div className="flex min-h-screen">
+        {/* Left Side - Industrial Image */}
+        <AuthHeroImage 
+          title={t('mfaSetup.secureYourAccount')} 
+          subtitle={t('mfaSetup.twoFactorRequired')} 
+        />
+
+        {/* Right Side - Offline Notice */}
+        <div className="flex w-full items-center justify-center bg-background p-8 lg:w-1/2">
+          <div className="w-full max-w-md space-y-8">
+            {/* Logo and Header */}
+            <div className="text-center">
+              {activeLogoUrl ? (
+                <img src={activeLogoUrl} alt={tenantName} className="mx-auto mb-4 h-16 object-contain" />
+              ) : (
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                  <Shield className="h-8 w-8 text-primary" />
+                </div>
+              )}
+              <h2 className="text-3xl font-bold">{tenantName}</h2>
+            </div>
+
+            <Card>
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                  <WifiOff className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <CardTitle>{t('offline.mfaSetupUnavailable', 'MFA Setup Unavailable')}</CardTitle>
+                <CardDescription className="mt-2">
+                  {t('offline.connectToSetupMfa', 'Please connect to the internet to set up or verify two-factor authentication.')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="rounded-lg bg-muted/50 p-4 text-sm text-muted-foreground text-center">
+                  <p>{t('offline.mfaRequiresConnection', 'Two-factor authentication requires a secure connection to our servers.')}</p>
+                </div>
+                
+                <Button 
+                  onClick={() => window.location.reload()} 
+                  className="w-full"
+                >
+                  <RefreshCw className="h-4 w-4 me-2" />
+                  {t('offline.retry', 'Retry Connection')}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     );
   }
