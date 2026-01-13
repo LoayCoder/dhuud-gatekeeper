@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { useCelebration } from './use-celebration';
 import type { Badge } from './use-my-badges';
 
 interface NewBadgeEvent {
@@ -15,6 +16,7 @@ export function useBadgeNotifications() {
   const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
   const [newBadges, setNewBadges] = useState<Badge[]>([]);
+  const { celebrateBadge } = useCelebration();
   const isRTL = i18n.language === 'ar';
 
   const showBadgeToast = useCallback((badge: Badge) => {
@@ -31,7 +33,10 @@ export function useBadgeNotifications() {
         icon: '🏆',
       }
     );
-  }, [t, isRTL]);
+    
+    // Trigger celebration animation with confetti and sound
+    celebrateBadge({ intensity: badge.tier === 'platinum' ? 'high' : badge.tier === 'gold' ? 'medium' : 'low' });
+  }, [t, isRTL, celebrateBadge]);
 
   useEffect(() => {
     if (!user?.id) return;

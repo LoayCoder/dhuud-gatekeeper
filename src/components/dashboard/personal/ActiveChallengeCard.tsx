@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { differenceInDays, differenceInHours } from 'date-fns';
+import { useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,13 +8,16 @@ import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Target, Clock, Award, ChevronRight } from 'lucide-react';
 import { useActiveChallenges, useJoinChallenge } from '@/hooks/use-challenges';
+import { useCelebration } from '@/hooks/use-celebration';
 import { Link } from 'react-router-dom';
 
 export function ActiveChallengeCard() {
   const { t, i18n } = useTranslation();
   const { data: challenges, isLoading } = useActiveChallenges();
   const { mutate: joinChallenge, isPending } = useJoinChallenge();
+  const { celebrateChallenge } = useCelebration();
   const isRTL = i18n.language === 'ar';
+  const celebratedChallenges = useRef<Set<string>>(new Set());
 
   if (isLoading) {
     return (
@@ -37,6 +41,17 @@ export function ActiveChallengeCard() {
   const progressPercent = activeChallenge.is_joined
     ? Math.min(100, (activeChallenge.user_progress / activeChallenge.target_count) * 100)
     : 0;
+
+  // Trigger celebration when challenge is completed
+  useEffect(() => {
+    if (
+      activeChallenge.is_completed && 
+      !celebratedChallenges.current.has(activeChallenge.challenge_id)
+    ) {
+      celebratedChallenges.current.add(activeChallenge.challenge_id);
+      celebrateChallenge({ intensity: 'high' });
+    }
+  }, [activeChallenge.is_completed, activeChallenge.challenge_id, celebrateChallenge]);
 
   const getTimeRemaining = () => {
     if (daysRemaining > 0) {
