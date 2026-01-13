@@ -11,4 +11,5 @@ export { AIInsightsCard } from './AIInsightsCard';
 export { QuickReportButtons } from './QuickReportButtons';
 export { RecentActivityFeed } from './RecentActivityFeed';
 export { MyBadgesSection } from './MyBadgesSection';
+export { WeeklyTrendChart } from './WeeklyTrendChart';
 export * from './badges';
