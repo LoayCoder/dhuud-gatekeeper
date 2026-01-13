@@ -160,6 +160,46 @@ export async function notifySyncFailed(errorMessage?: string) {
   );
 }
 
+// Shift roster notifications
+export async function notifyNewShiftAssigned(
+  shiftName: string,
+  date: string,
+  zoneName: string
+) {
+  return sendPushNotification(
+    'New Shift Assigned',
+    `You've been assigned to ${shiftName} on ${date} at ${zoneName}. Tap to acknowledge.`,
+    'update'
+  );
+}
+
+export async function notifyShiftReminder(
+  shiftName: string,
+  startTime: string
+) {
+  return sendPushNotification(
+    'Shift Starting Soon',
+    `Your ${shiftName} shift starts at ${startTime}. Don't forget to check in!`,
+    'info'
+  );
+}
+
+export async function notifyShiftAutoAcknowledged(date: string) {
+  return sendPushNotification(
+    'Shift Auto-Acknowledged',
+    `Your shift on ${date} was automatically acknowledged after 12 hours.`,
+    'info'
+  );
+}
+
+export async function notifyShiftAcknowledgmentRequired(count: number) {
+  return sendPushNotification(
+    'Shifts Pending Acknowledgment',
+    `You have ${count} shift(s) that need to be acknowledged.`,
+    'info'
+  );
+}
+
 // Generic notification helper
 export async function sendAppNotification(
   title: string,

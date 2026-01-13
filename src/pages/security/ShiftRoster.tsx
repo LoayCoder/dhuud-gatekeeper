@@ -7,12 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Calendar as CalendarIcon, Users, ChevronLeft, ChevronRight, Trash2, ArrowLeftRight, UserCheck, UsersRound } from 'lucide-react';
-import { useShiftRoster, useCreateRosterAssignment, useDeleteRosterAssignment, useSupervisors } from '@/hooks/use-shift-roster';
+import { Plus, Calendar as CalendarIcon, Users, ChevronLeft, ChevronRight, Trash2, ArrowLeftRight, UserCheck, UsersRound, Edit, CheckSquare } from 'lucide-react';
+import { useShiftRoster, useCreateRosterAssignment, useDeleteRosterAssignment, useSupervisors, useBulkDeleteRosterAssignments } from '@/hooks/use-shift-roster';
 import { TeamShiftAssignmentDialog } from '@/components/security/TeamShiftAssignmentDialog';
+import { BulkRosterEditDialog } from '@/components/security/BulkRosterEditDialog';
+import { RosterDateRangePicker } from '@/components/security/RosterDateRangePicker';
 import { useSecurityZones } from '@/hooks/use-security-zones';
 import { useSecurityShifts } from '@/hooks/use-security-shifts';
 import { ShiftSwapRequestsList } from '@/components/security/ShiftSwapRequestsList';
@@ -39,9 +40,13 @@ export default function ShiftRoster() {
         return t(`roles.${roleCode}`, roleCode.replace(/_/g, ' '));
     }
   };
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [teamDialogOpen, setTeamDialogOpen] = useState(false);
+  const [bulkEditDialogOpen, setBulkEditDialogOpen] = useState(false);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 0 }));
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  
   const today = format(new Date(), 'yyyy-MM-dd');
   const [formData, setFormData] = useState({
     guard_id: '', 
@@ -61,6 +66,7 @@ export default function ShiftRoster() {
   const { data: supervisors } = useSupervisors();
   const createAssignment = useCreateRosterAssignment();
   const deleteAssignment = useDeleteRosterAssignment();
+  const bulkDelete = useBulkDeleteRosterAssignments();
 
   // Get tenant_id from current user's profile
   const { data: currentProfile } = useQuery({
@@ -96,7 +102,7 @@ export default function ShiftRoster() {
       supervisor_id: formData.supervisor_id || undefined
     });
     setDialogOpen(false);
-    setFormData({ guard_id: '', zone_id: '', shift_id: '', supervisor_id: '', roster_date: format(new Date(), 'yyyy-MM-dd') });
+    setFormData({ guard_id: '', zone_id: '', shift_id: '', supervisor_id: '', start_date: today, end_date: today, excluded_days: [] });
   };
 
   const getStatusBadge = (status: string) => {
@@ -125,6 +131,25 @@ export default function ShiftRoster() {
     return grouped;
   }, [roster]);
 
+  const toggleSelectAll = () => {
+    if (selectedIds.length === (roster?.length || 0)) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(roster?.map(r => r.id) || []);
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkDelete = async () => {
+    await bulkDelete.mutateAsync(selectedIds);
+    setSelectedIds([]);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -141,7 +166,7 @@ export default function ShiftRoster() {
             <DialogTrigger asChild>
               <Button><Plus className="h-4 w-4 me-2" />{t('security.roster.addAssignment', 'Add Assignment')}</Button>
             </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>{t('security.roster.addAssignment', 'Add Assignment')}</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Supervisor Selection - Mandatory */}
@@ -191,19 +216,15 @@ export default function ShiftRoster() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label>{t('security.roster.date', 'Date')}</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start">
-                      <CalendarIcon className="h-4 w-4 me-2" />{format(new Date(formData.roster_date), 'PPP')}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar mode="single" selected={new Date(formData.roster_date)} onSelect={(d) => d && setFormData({ ...formData, roster_date: format(d, 'yyyy-MM-dd') })} />
-                  </PopoverContent>
-                </Popover>
-              </div>
+              {/* Date Range Picker */}
+              <RosterDateRangePicker
+                startDate={formData.start_date}
+                endDate={formData.end_date}
+                excludedDays={formData.excluded_days}
+                onStartDateChange={(d) => setFormData({ ...formData, start_date: d })}
+                onEndDateChange={(d) => setFormData({ ...formData, end_date: d })}
+                onExcludedDaysChange={(d) => setFormData({ ...formData, excluded_days: d })}
+              />
 
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
@@ -215,6 +236,12 @@ export default function ShiftRoster() {
         </div>
 
         <TeamShiftAssignmentDialog open={teamDialogOpen} onOpenChange={setTeamDialogOpen} />
+        <BulkRosterEditDialog 
+          open={bulkEditDialogOpen} 
+          onOpenChange={setBulkEditDialogOpen} 
+          selectedIds={selectedIds}
+          onSuccess={() => setSelectedIds([])}
+        />
       </div>
 
       <Tabs defaultValue="schedule" className="space-y-4">
@@ -239,9 +266,9 @@ export default function ShiftRoster() {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2"><CalendarIcon className="h-5 w-5" />{t('security.roster.weeklyView', 'Weekly Schedule')}</CardTitle>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setWeekStart(addDays(weekStart, -7))}><ChevronLeft className="h-4 w-4" /></Button>
+                  <Button variant="outline" size="sm" onClick={() => setWeekStart(addDays(weekStart, -7))}><ChevronLeft className="h-4 w-4 rtl:rotate-180" /></Button>
                   <span className="text-sm font-medium min-w-[180px] text-center">{format(weekStart, 'MMM d')} - {format(addDays(weekStart, 6), 'MMM d, yyyy')}</span>
-                  <Button variant="outline" size="sm" onClick={() => setWeekStart(addDays(weekStart, 7))}><ChevronRight className="h-4 w-4" /></Button>
+                  <Button variant="outline" size="sm" onClick={() => setWeekStart(addDays(weekStart, 7))}><ChevronRight className="h-4 w-4 rtl:rotate-180" /></Button>
                 </div>
               </div>
             </CardHeader>
@@ -270,17 +297,62 @@ export default function ShiftRoster() {
           </Card>
 
           <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" />{t('security.roster.allAssignments', 'All Assignments')}</CardTitle></CardHeader>
+            <CardHeader>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" />{t('security.roster.allAssignments', 'All Assignments')}</CardTitle>
+                {selectedIds.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">{selectedIds.length} {t('common.selected', 'selected')}</span>
+                    <Button variant="outline" size="sm" onClick={() => setBulkEditDialogOpen(true)}>
+                      <Edit className="h-4 w-4 me-1" />
+                      {t('common.edit', 'Edit')}
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm">
+                          <Trash2 className="h-4 w-4 me-1" />
+                          {t('common.delete', 'Delete')}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>{t('security.roster.bulkDeleteConfirm', 'Delete {{count}} assignments?', { count: selectedIds.length })}</AlertDialogTitle>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive text-destructive-foreground">
+                            {t('common.delete', 'Delete')}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                )}
+              </div>
+            </CardHeader>
             <CardContent>
               {isLoading ? (
                 <div className="animate-pulse space-y-2">{[...Array(5)].map((_, i) => <div key={i} className="h-12 bg-muted rounded" />)}</div>
               ) : roster?.length ? (
                 <div className="space-y-2">
+                  {/* Select All */}
+                  <div className="flex items-center gap-2 p-2 border-b">
+                    <Checkbox 
+                      checked={selectedIds.length === roster.length && roster.length > 0}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                    <span className="text-sm font-medium">{t('common.selectAll', 'Select All')}</span>
+                  </div>
+                  
                   {roster.slice(0, 20).map(a => (
-                    <div key={a.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex-1">
+                    <div key={a.id} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <Checkbox 
+                        checked={selectedIds.includes(a.id)}
+                        onCheckedChange={() => toggleSelect(a.id)}
+                      />
+                      <div className="flex-1 min-w-0">
                         <div className="font-medium">{format(new Date(a.roster_date), 'PP')}</div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-sm text-muted-foreground truncate">
                           {a.guard?.full_name || 'Unknown Guard'} • {a.zone?.zone_name || 'Unknown Zone'}
                         </div>
                         {a.supervisor?.full_name && (
@@ -290,7 +362,7 @@ export default function ShiftRoster() {
                           </div>
                         )}
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-shrink-0">
                         {getStatusBadge(a.status || 'scheduled')}
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
@@ -364,7 +436,7 @@ export default function ShiftRoster() {
         </TabsContent>
 
         <TabsContent value="swaps">
-          <ShiftSwapRequestsList showSupervisorActions />
+          <ShiftSwapRequestsList />
         </TabsContent>
       </Tabs>
     </div>
