@@ -3,7 +3,7 @@ import { useMyReportingStats } from '@/hooks/use-my-reporting-stats';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Trophy, Medal, Building2, Users } from 'lucide-react';
+import { Trophy, Building2, Users, TrendingUp, Award } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function MyRankCard() {
@@ -37,39 +37,47 @@ export function MyRankCard() {
     return t('dashboard.rank.keepGoing', 'Every report counts. Keep contributing!');
   };
 
-  // Trophy/medal based on percentile
-  const getRankIcon = () => {
-    if (percentile >= 90) return <Trophy className="h-5 w-5 text-yellow-500" />;
-    if (percentile >= 75) return <Medal className="h-5 w-5 text-amber-500" />;
-    return <Medal className="h-5 w-5 text-muted-foreground" />;
+  // Get rank tier styling
+  const getRankTier = () => {
+    if (percentile >= 90) return { label: t('dashboard.rank.topTen', 'Top 10%'), color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400' };
+    if (percentile >= 75) return { label: t('dashboard.rank.topQuarter', 'Top 25%'), color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-400' };
+    if (percentile >= 50) return { label: t('dashboard.rank.topHalf', 'Top 50%'), color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400' };
+    return null;
   };
 
+  const rankTier = getRankTier();
+
   return (
-    <Card className="overflow-hidden">
+    <Card className="h-full">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base font-semibold flex items-center gap-2">
-            {getRankIcon()}
+            <div className="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/30">
+              <Trophy className="h-4 w-4 text-amber-600 dark:text-amber-400" strokeWidth={1.75} />
+            </div>
             {t('dashboard.rank.title', 'Your Safety Ranking')}
           </CardTitle>
-          {percentile >= 75 && (
-            <span className="text-xs bg-success/10 text-success px-2 py-0.5 rounded-full font-medium">
-              {t('dashboard.rank.topPercentile', 'Top {{percent}}%', { percent: Math.round(100 - percentile) })}
+          {rankTier && (
+            <span className={cn(
+              'text-xs px-2 py-0.5 rounded-md font-medium',
+              rankTier.color
+            )}>
+              {rankTier.label}
             </span>
           )}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Rank badges */}
+        {/* Rank cards */}
         <div className="grid grid-cols-2 gap-3">
           {/* Company Rank */}
-          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Building2 className="h-4 w-4 text-primary" />
+          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl border">
+            <div className="p-2 rounded-lg bg-background">
+              <Building2 className="h-4 w-4 text-primary" strokeWidth={1.75} />
             </div>
             <div>
-              <p className="text-lg font-bold">
-                {companyRank ? `#${companyRank}` : '-'}
+              <p className="text-lg font-bold tabular-nums">
+                {companyRank ? `#${companyRank}` : '—'}
               </p>
               <p className="text-xs text-muted-foreground">
                 {t('dashboard.rank.company', 'Company')}
@@ -81,13 +89,13 @@ export function MyRankCard() {
           </div>
 
           {/* Department Rank */}
-          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-            <div className="p-2 rounded-lg bg-info/10">
-              <Users className="h-4 w-4 text-info" />
+          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl border">
+            <div className="p-2 rounded-lg bg-background">
+              <Users className="h-4 w-4 text-info" strokeWidth={1.75} />
             </div>
             <div>
-              <p className="text-lg font-bold">
-                {deptRank ? `#${deptRank}` : '-'}
+              <p className="text-lg font-bold tabular-nums">
+                {deptRank ? `#${deptRank}` : '—'}
               </p>
               <p className="text-xs text-muted-foreground">
                 {t('dashboard.rank.department', 'Department')}
@@ -101,13 +109,14 @@ export function MyRankCard() {
 
         {/* Percentile progress */}
         {companyRank && (
-          <div className="space-y-2">
+          <div className="space-y-2 p-3 bg-muted/30 rounded-xl">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">
+              <span className="text-muted-foreground flex items-center gap-1.5">
+                <TrendingUp className="h-3.5 w-3.5" />
                 {t('dashboard.rank.percentileLabel', 'Your Position')}
               </span>
               <span className={cn(
-                'font-medium',
+                'font-semibold tabular-nums',
                 percentile >= 75 && 'text-success',
                 percentile >= 50 && percentile < 75 && 'text-info',
                 percentile < 50 && 'text-muted-foreground'
@@ -123,9 +132,12 @@ export function MyRankCard() {
         )}
 
         {/* Motivation message */}
-        <p className="text-sm text-muted-foreground italic text-center pt-1">
-          "{getMotivation()}"
-        </p>
+        <div className="flex items-start gap-2 pt-1">
+          <Award className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+          <p className="text-sm text-muted-foreground">
+            {getMotivation()}
+          </p>
+        </div>
       </CardContent>
     </Card>
   );

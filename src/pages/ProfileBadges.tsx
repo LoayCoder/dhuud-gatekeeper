@@ -6,16 +6,24 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Award, Star, Trophy, Target, TrendingUp, Sparkles, icons } from 'lucide-react';
+import { Award, Star, Trophy, Target, TrendingUp, icons } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMyBadges } from '@/hooks/use-my-badges';
 import { BadgeCard } from '@/components/dashboard/personal/badges/BadgeCard';
 
+// Professional muted tier colors
 const tierColors = {
-  bronze: 'from-amber-600 to-amber-800',
-  silver: 'from-slate-400 to-slate-600',
-  gold: 'from-yellow-400 to-yellow-600',
-  platinum: 'from-purple-400 to-purple-600',
+  bronze: 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300',
+  silver: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300',
+  gold: 'bg-amber-50 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300',
+  platinum: 'bg-indigo-50 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300',
+};
+
+const tierDots = {
+  bronze: 'bg-stone-500',
+  silver: 'bg-slate-500',
+  gold: 'bg-amber-500',
+  platinum: 'bg-indigo-500',
 };
 
 const categoryIcons: Record<string, React.ElementType> = {
@@ -69,21 +77,21 @@ export default function ProfileBadges() {
   return (
     <EnterprisePage title={t('profile.badges.title', 'My Badges')}>
       <div className="space-y-6">
-        {/* Stats Overview */}
-        <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
+        {/* Stats Overview - Clean Professional Design */}
+        <Card>
           <CardContent className="py-6">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="p-4 rounded-full bg-primary/20">
-                  <Trophy className="h-8 w-8 text-primary" />
+                <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/30">
+                  <Trophy className="h-8 w-8 text-amber-600 dark:text-amber-400" strokeWidth={1.5} />
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold">
                     {earnedBadges.length} {t('profile.badges.badgesEarned', 'Badges Earned')}
                   </h2>
                   <div className="flex items-center gap-2 mt-1">
-                    <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
-                    <span className="font-semibold text-amber-600">{totalPoints}</span>
+                    <Star className="h-4 w-4 text-amber-500" />
+                    <span className="font-semibold text-amber-600 dark:text-amber-400 tabular-nums">{totalPoints}</span>
                     <span className="text-muted-foreground">{t('profile.badges.totalPoints', 'total points')}</span>
                   </div>
                 </div>
@@ -93,15 +101,15 @@ export default function ProfileBadges() {
               {stats && (
                 <div className="flex gap-6 flex-wrap">
                   <div className="text-center">
-                    <p className="text-2xl font-bold">{stats.total_reports}</p>
+                    <p className="text-2xl font-bold tabular-nums">{stats.total_reports}</p>
                     <p className="text-xs text-muted-foreground">{t('profile.badges.reports', 'Reports')}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold">{stats.completed_actions}</p>
+                    <p className="text-2xl font-bold tabular-nums">{stats.completed_actions}</p>
                     <p className="text-xs text-muted-foreground">{t('profile.badges.actions', 'Actions')}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold">{stats.streak_weeks}</p>
+                    <p className="text-2xl font-bold tabular-nums">{stats.streak_weeks}</p>
                     <p className="text-xs text-muted-foreground">{t('profile.badges.weekStreak', 'Week Streak')}</p>
                   </div>
                 </div>
@@ -128,7 +136,9 @@ export default function ProfileBadges() {
             {earnedBadges.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <Sparkles className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <div className="p-4 rounded-xl bg-muted/50 w-fit mx-auto mb-4">
+                    <Award className="h-12 w-12 text-muted-foreground/60" strokeWidth={1.5} />
+                  </div>
                   <h3 className="font-semibold mb-2">{t('profile.badges.noBadgesYet', 'No badges yet')}</h3>
                   <p className="text-muted-foreground text-sm">
                     {t('profile.badges.startReporting', 'Start reporting incidents and observations to earn your first badge!')}
@@ -146,12 +156,12 @@ export default function ProfileBadges() {
                     <Card key={tier}>
                       <CardHeader className="pb-3">
                         <CardTitle className="flex items-center gap-2 text-lg capitalize">
-                          <div className={cn('w-3 h-3 rounded-full bg-gradient-to-r', tierColors[tier])} />
+                          <div className={cn('w-2.5 h-2.5 rounded-full', tierDots[tier])} />
                           {t(`profile.badges.tier.${tier}`, tier)} ({tierBadges.length})
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                        <div className="flex flex-wrap gap-2 justify-start">
                           {tierBadges.map((badge) => (
                             <BadgeCard
                               key={badge.id}
@@ -176,7 +186,9 @@ export default function ProfileBadges() {
             {availableBadges.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <Trophy className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <div className="p-4 rounded-xl bg-muted/50 w-fit mx-auto mb-4">
+                    <Trophy className="h-12 w-12 text-muted-foreground/60" strokeWidth={1.5} />
+                  </div>
                   <h3 className="font-semibold mb-2">{t('profile.badges.allEarned', 'All badges earned!')}</h3>
                   <p className="text-muted-foreground text-sm">
                     {t('profile.badges.congratulations', 'Congratulations! You have earned all available badges.')}
@@ -193,7 +205,9 @@ export default function ProfileBadges() {
                     <Card key={category}>
                       <CardHeader className="pb-3">
                         <CardTitle className="flex items-center gap-2 text-lg capitalize">
-                          <CategoryIcon className="h-5 w-5 text-primary" />
+                          <div className="p-1.5 rounded-lg bg-primary/10">
+                            <CategoryIcon className="h-4 w-4 text-primary" strokeWidth={1.75} />
+                          </div>
                           {t(`profile.badges.category.${category}`, category)} ({badges.length})
                         </CardTitle>
                       </CardHeader>
@@ -206,16 +220,16 @@ export default function ProfileBadges() {
                               <div
                                 key={badge.id}
                                 className={cn(
-                                  'relative p-4 rounded-xl border bg-card',
-                                  'hover:shadow-md transition-shadow'
+                                  'relative p-4 rounded-xl border bg-muted/30',
+                                  'hover:bg-muted/50 transition-colors'
                                 )}
                               >
                                 <div className="flex items-start gap-3">
                                   <div className={cn(
-                                    'p-2 rounded-lg bg-muted/50',
-                                    'border-2 border-dashed border-muted-foreground/30'
+                                    'p-2.5 rounded-lg bg-background',
+                                    'border border-dashed border-muted-foreground/30'
                                   )}>
-                                    <BadgeIcon className="h-6 w-6 text-muted-foreground" />
+                                    <BadgeIcon className="h-5 w-5 text-muted-foreground" strokeWidth={1.75} />
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <h4 className="font-medium text-sm truncate">
@@ -230,22 +244,25 @@ export default function ProfileBadges() {
                                 {/* Progress */}
                                 <div className="mt-3 space-y-1">
                                   <div className="flex items-center justify-between text-xs">
-                                    <span className="text-muted-foreground">
+                                    <span className="text-muted-foreground tabular-nums">
                                       {badge.current} / {badge.threshold}
                                     </span>
-                                    <span className="font-medium text-primary">{badge.progress}%</span>
+                                    <span className="font-medium text-primary tabular-nums">{badge.progress}%</span>
                                   </div>
                                   <Progress value={badge.progress} className="h-1.5" />
                                 </div>
 
                                 {/* Tier & Points */}
                                 <div className="flex items-center justify-between mt-3">
-                                  <Badge variant="outline" className="text-xs capitalize">
+                                  <Badge 
+                                    variant="outline" 
+                                    className={cn('text-xs capitalize border-0', tierColors[badge.tier as keyof typeof tierColors])}
+                                  >
                                     {badge.tier}
                                   </Badge>
                                   <span className="text-xs text-muted-foreground flex items-center gap-1">
                                     <Star className="h-3 w-3 text-amber-500" />
-                                    {badge.points} pts
+                                    <span className="tabular-nums">{badge.points}</span> pts
                                   </span>
                                 </div>
                               </div>
