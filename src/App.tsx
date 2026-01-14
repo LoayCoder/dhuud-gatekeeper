@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider } from "./contexts/AuthContext";
+import { BranchProvider } from "./contexts/BranchContext";
 import { SessionTimeoutProvider } from "./contexts/SessionTimeoutContext";
 import { SessionTimeoutWarning, SessionManagementProvider } from "./components/session";
 import { ErrorBoundary } from "./components/shared";
@@ -61,10 +62,11 @@ const App = () => (
           <AppInitializer />
           <BrowserRouter>
             <AuthProvider>
-              <SessionTimeoutProvider>
-                <ErrorBoundary fallback={<SessionFallbackUI />}>
-                  <SessionManagementProvider />
-                  <SessionTimeoutWarning />
+              <BranchProvider>
+                <SessionTimeoutProvider>
+                  <ErrorBoundary fallback={<SessionFallbackUI />}>
+                    <SessionManagementProvider />
+                    <SessionTimeoutWarning />
                   <PageLoadErrorBoundary>
                     <Suspense fallback={<PageLoader />}>
                       <Routes>
@@ -122,8 +124,9 @@ const App = () => (
                       </Routes>
                     </Suspense>
                   </PageLoadErrorBoundary>
-                </ErrorBoundary>
-              </SessionTimeoutProvider>
+                  </ErrorBoundary>
+                </SessionTimeoutProvider>
+              </BranchProvider>
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
