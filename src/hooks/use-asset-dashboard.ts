@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBranchFilter } from "@/hooks/use-branch-filter";
 
 interface AssetStats {
   total: number;
@@ -35,13 +36,15 @@ interface OverdueItem {
 export function useAssetDashboardStats() {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
+  const { queryKey: branchQueryKey } = useBranchFilter();
   
   return useQuery({
-    queryKey: ["asset-dashboard-stats", tenantId],
+    queryKey: ["asset-dashboard-stats", tenantId, ...branchQueryKey],
     queryFn: async () => {
       if (!tenantId) throw new Error("No tenant");
       
       // Use server-side RPC function for O(1) performance
+      // Note: RPC doesn't support branch filtering yet, but query key includes branch for cache invalidation
       const { data, error } = await supabase
         .rpc('get_asset_dashboard_stats', { p_tenant_id: tenantId });
       
@@ -66,9 +69,10 @@ export function useAssetDashboardStats() {
 export function useAssetConditionDistribution() {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
+  const { queryKey: branchQueryKey } = useBranchFilter();
   
   return useQuery({
-    queryKey: ["asset-condition-distribution", tenantId],
+    queryKey: ["asset-condition-distribution", tenantId, ...branchQueryKey],
     queryFn: async () => {
       if (!tenantId) throw new Error("No tenant");
       
@@ -95,13 +99,14 @@ export function useAssetConditionDistribution() {
 
 export function useAssetCategoryDistribution() {
   const { profile } = useAuth();
+  const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
   
   return useQuery({
-    queryKey: ["asset-category-distribution", profile?.tenant_id],
+    queryKey: ["asset-category-distribution", profile?.tenant_id, ...branchQueryKey],
     queryFn: async () => {
       if (!profile?.tenant_id) throw new Error("No tenant");
       
-      const { data, error } = await supabase
+      let query = supabase
         .from("hsse_assets")
         .select(`
           category_id,
@@ -110,6 +115,14 @@ export function useAssetCategoryDistribution() {
         .eq("tenant_id", profile.tenant_id)
         .is("deleted_at", null);
       
+      // Apply branch filter
+      if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
+        query = branchIds.length === 1
+          ? query.eq("branch_id", branchIds[0])
+          : query.in("branch_id", branchIds);
+      }
+      
+      const { data, error } = await query;
       if (error) throw error;
       
       // Group by category
@@ -145,15 +158,16 @@ export function useAssetCategoryDistribution() {
 
 export function useOverdueInspections() {
   const { profile } = useAuth();
+  const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
   
   return useQuery({
-    queryKey: ["overdue-inspections", profile?.tenant_id],
+    queryKey: ["overdue-inspections", profile?.tenant_id, ...branchQueryKey],
     queryFn: async () => {
       if (!profile?.tenant_id) throw new Error("No tenant");
       
       const today = new Date().toISOString().split("T")[0];
       
-      const { data, error } = await supabase
+      let query = supabase
         .from("hsse_assets")
         .select("id, name, asset_code, next_inspection_due")
         .eq("tenant_id", profile.tenant_id)
@@ -163,6 +177,14 @@ export function useOverdueInspections() {
         .order("next_inspection_due", { ascending: true })
         .limit(10);
       
+      // Apply branch filter
+      if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
+        query = branchIds.length === 1
+          ? query.eq("branch_id", branchIds[0])
+          : query.in("branch_id", branchIds);
+      }
+      
+      const { data, error } = await query;
       if (error) throw error;
       
       const overdueItems: OverdueItem[] = data.map((asset) => {
@@ -187,15 +209,16 @@ export function useOverdueInspections() {
 
 export function useOverdueMaintenance() {
   const { profile } = useAuth();
+  const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
   
   return useQuery({
-    queryKey: ["overdue-maintenance", profile?.tenant_id],
+    queryKey: ["overdue-maintenance", profile?.tenant_id, ...branchQueryKey],
     queryFn: async () => {
       if (!profile?.tenant_id) throw new Error("No tenant");
       
       const today = new Date().toISOString().split("T")[0];
       
-      const { data, error } = await supabase
+      let query = supabase
         .from("asset_maintenance_schedules")
         .select(`
           id,
@@ -210,6 +233,14 @@ export function useOverdueMaintenance() {
         .order("next_due", { ascending: true })
         .limit(10);
       
+      // Apply branch filter
+      if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
+        query = branchIds.length === 1
+          ? query.eq("branch_id", branchIds[0])
+          : query.in("branch_id", branchIds);
+      }
+      
+      const { data, error } = await query;
       if (error) throw error;
       
       const overdueItems: OverdueItem[] = data.map((schedule) => {
@@ -235,13 +266,14 @@ export function useOverdueMaintenance() {
 
 export function useRecentAssetActivity() {
   const { profile } = useAuth();
+  const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
   
   return useQuery({
-    queryKey: ["recent-asset-activity", profile?.tenant_id],
+    queryKey: ["recent-asset-activity", profile?.tenant_id, ...branchQueryKey],
     queryFn: async () => {
       if (!profile?.tenant_id) throw new Error("No tenant");
       
-      const { data, error } = await supabase
+      let query = supabase
         .from("asset_audit_logs")
         .select(`
           id,
@@ -256,6 +288,14 @@ export function useRecentAssetActivity() {
         .order("created_at", { ascending: false })
         .limit(10);
       
+      // Apply branch filter
+      if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
+        query = branchIds.length === 1
+          ? query.eq("branch_id", branchIds[0])
+          : query.in("branch_id", branchIds);
+      }
+      
+      const { data, error } = await query;
       if (error) throw error;
       
       return data.map((log) => ({
