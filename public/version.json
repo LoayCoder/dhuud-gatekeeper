@@ -1,10 +1,10 @@
 {
-  "version": "2025.01.14.002",
-  "buildDate": "2025-01-14T12:00:00Z",
+  "version": "2025.01.14.003",
+  "buildDate": "2025-01-14T14:00:00Z",
   "releaseNotes": [
-    "Critical fix: Sync React mount - no async blocking",
-    "Enhanced error diagnostics in fallback UI",
-    "Reduced timeout for faster error detection"
+    "Critical fix: React duplicate runtime resolved",
+    "All React packages now in single vendor-react chunk",
+    "Prevents __SECRET_INTERNALS error"
   ],
   "priority": "critical"
 }
