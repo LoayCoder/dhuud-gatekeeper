@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import type { IncidentWithDetails } from "@/hooks/use-incidents";
 import { IncidentAttachmentsSection } from "@/components/incidents/IncidentAttachmentsSection";
 import { getSeverityBadgeVariant } from "@/lib/hsse-severity-levels";
-import { getSubtypeTranslation } from "@/lib/hsse-translation-utils";
+import { getSubtypeTranslation, snakeToCamel } from "@/lib/hsse-translation-utils";
 import { LocationDisplay } from "@/components/shared/LocationDisplay";
 
 interface IncidentInfoCardProps {
@@ -78,9 +78,10 @@ export function IncidentInfoCard({ incident, isLocked }: IncidentInfoCardProps) 
             {incident.event_type === 'incident' && (
               <Badge variant="outline" className="bg-secondary/50">
                 {(incident as any).incident_type 
-                  ? String(t(`incidents.hsseEventTypes.${(incident as any).incident_type}`, (incident as any).incident_type))
+                  ? String(t(`incidents.hsseEventTypes.${snakeToCamel((incident as any).incident_type)}`, 
+                             { defaultValue: t(`incidents.hsseEventTypes.${(incident as any).incident_type}`, { defaultValue: (incident as any).incident_type }) as string }))
                   : incident.subtype
-                    ? String(t(`incidents.incidentTypes.${incident.subtype}`, incident.subtype))
+                    ? getSubtypeTranslation(t, incident.event_type, incident.subtype, (incident as any).incident_type)
                     : String(t('incidents.eventCategories.incident', 'Incident'))
                 }
               </Badge>
@@ -109,9 +110,10 @@ export function IncidentInfoCard({ incident, isLocked }: IncidentInfoCardProps) 
                 label={t('incidents.incidentCategory', 'Incident Category')} 
                 value={
                   (incident as any).incident_type 
-                    ? String(t(`incidents.hsseEventTypes.${(incident as any).incident_type}`, (incident as any).incident_type))
+                    ? String(t(`incidents.hsseEventTypes.${snakeToCamel((incident as any).incident_type)}`, 
+                               { defaultValue: t(`incidents.hsseEventTypes.${(incident as any).incident_type}`, { defaultValue: (incident as any).incident_type }) as string }))
                     : incident.subtype
-                      ? String(t(`incidents.incidentTypes.${incident.subtype}`, incident.subtype))
+                      ? getSubtypeTranslation(t, incident.event_type, incident.subtype, (incident as any).incident_type)
                       : String(t('incidents.eventCategories.incident', 'Incident'))
                 }
               />
