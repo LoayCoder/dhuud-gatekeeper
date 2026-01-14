@@ -1,6 +1,7 @@
 /**
  * PWA Version Manager
  * Automatically detects version mismatches and triggers cache invalidation
+ * RESILIENT: Never blocks React from mounting
  */
 
 const VERSION_STORAGE_KEY = 'app-version';
@@ -13,15 +14,35 @@ interface VersionInfo {
 
 /**
  * Fetch the current deployed version from the server
+ * RESILIENT: Returns null on any error, never throws
  */
 async function fetchServerVersion(): Promise<VersionInfo | null> {
   try {
-    const response = await fetch('/version.json', { 
+    const response = await fetch('/version.json?_=' + Date.now(), { 
       cache: 'no-store',
       headers: { 'Cache-Control': 'no-cache' }
     });
-    if (!response.ok) return null;
-    return await response.json();
+    
+    if (!response.ok) {
+      console.warn('[Version Manager] version.json not found:', response.status);
+      return null;
+    }
+    
+    // Check if response is actually JSON before parsing
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      console.warn('[Version Manager] version.json returned non-JSON content:', contentType);
+      return null;
+    }
+    
+    // Try parsing with error handling
+    const text = await response.text();
+    try {
+      return JSON.parse(text);
+    } catch (parseError) {
+      console.warn('[Version Manager] Failed to parse version.json:', parseError);
+      return null;
+    }
   } catch (error) {
     console.warn('[Version Manager] Failed to fetch version:', error);
     return null;
@@ -121,44 +142,58 @@ export async function handleVersionUpdate(): Promise<void> {
 
 /**
  * Initialize version manager - runs on app start
- * Returns true if a forced reload is happening
+ * CRITICAL: This function NEVER blocks React from mounting
+ * Returns false always to ensure React mounts
  */
 export async function initVersionManager(): Promise<boolean> {
-  // Check version on startup
-  const { hasUpdate, newVersion } = await checkForVersionUpdate();
-  
-  if (hasUpdate) {
-    console.log('[Version Manager] New version detected:', newVersion);
+  try {
+    const { hasUpdate, newVersion } = await checkForVersionUpdate();
     
-    // Clear caches automatically on version mismatch
-    await clearAllCaches();
-    
-    // Notify the service worker to skip waiting if there's one
-    if ('serviceWorker' in navigator) {
-      const registration = await navigator.serviceWorker.ready.catch(() => null);
-      if (registration?.waiting) {
-        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+    if (hasUpdate) {
+      console.log('[Version Manager] New version available:', newVersion);
+      
+      // Clear caches in background - don't block
+      clearAllCaches().catch(e => console.warn('[Version Manager] Cache clear failed:', e));
+      
+      // Notify service worker to skip waiting
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready
+          .then(registration => {
+            if (registration?.waiting) {
+              registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+            }
+          })
+          .catch(() => {});
       }
+      
+      // Dispatch event for UI notification (after React mounts)
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('app-version-update', {
+          detail: { version: newVersion }
+        }));
+      }, 2000);
     }
-    
-    // Reload to get fresh assets
-    window.location.reload();
-    return true;
+  } catch (e) {
+    console.warn('[Version Manager] Init failed:', e);
   }
   
-  // Set up periodic version checking
+  // Set up periodic version checking (production only)
   if (import.meta.env.PROD) {
     setInterval(async () => {
-      const result = await checkForVersionUpdate();
-      if (result.hasUpdate) {
-        // Dispatch event for UI to show update notification
-        window.dispatchEvent(new CustomEvent('app-version-update', {
-          detail: { version: result.newVersion }
-        }));
+      try {
+        const result = await checkForVersionUpdate();
+        if (result.hasUpdate) {
+          window.dispatchEvent(new CustomEvent('app-version-update', {
+            detail: { version: result.newVersion }
+          }));
+        }
+      } catch {
+        // Silently ignore periodic check failures
       }
     }, VERSION_CHECK_INTERVAL);
   }
   
+  // ALWAYS return false - never block React from mounting
   return false;
 }
 
