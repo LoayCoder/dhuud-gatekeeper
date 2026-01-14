@@ -11,7 +11,7 @@ import { OfflineSessionIndicator } from "@/components/offline/OfflineSessionIndi
 import { HSSENotificationCenter } from "@/components/notifications/HSSENotificationCenter";
 import { MandatoryNotificationDialog } from "@/components/notifications/MandatoryNotificationDialog";
 import { HSSEAlertBanner } from "@/components/dashboard/HSSEAlertBanner";
-import { BranchSelector } from "@/components/branch";
+import { BranchSelector, MobileBranchSelector } from "@/components/branch";
 import { useDynamicManifest } from "@/hooks/use-dynamic-manifest";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 
@@ -48,6 +48,9 @@ export default function MainLayout() {
             
             {/* Right side - Critical controls that MUST always be visible */}
             <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 shrink-0 py-2 sm:py-2.5 md:py-3">
+              {/* Mobile branch selector - shows as icon with bottom sheet */}
+              <MobileBranchSelector className="sm:hidden" />
+              {/* Desktop branch selector - shows as dropdown */}
               <BranchSelector compact showLabel={false} className="hidden sm:flex" />
               <OfflineSessionIndicator />
               <OfflineStatusBadge />
