@@ -111,55 +111,55 @@ export function useContractorDashboardStats() {
       // Helper to check if we should apply branch filter
       const shouldFilterBranch = !isAllBranchesMode && branchIds && branchIds.length > 0;
 
-      // Fetch all data in parallel
-      const companiesQuery = supabase.from("contractor_companies").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null);
-      const workersQuery = supabase.from("contractor_workers").select("id, approval_status").eq("tenant_id", tenantId).is("deleted_at", null);
-      const projectsQuery = supabase.from("contractor_projects").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null);
-      const gatePassesQuery = supabase.from("material_gate_passes").select("id, status, pass_date").eq("tenant_id", tenantId).is("deleted_at", null);
-      const safetyOfficersQuery = supabase.from("contractor_safety_officers").select("id").eq("tenant_id", tenantId).is("deleted_at", null);
-      const incidentsQuery = supabase.from("incidents").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null);
-      const permitsQuery = supabase.from("ptw_permits").select("id, status, planned_end_time").eq("tenant_id", tenantId).is("deleted_at", null);
-      const riskAssessmentsQuery = supabase.from("risk_assessments").select("id, status, overall_risk_rating, valid_until").eq("tenant_id", tenantId).is("deleted_at", null);
-      const onsiteQuery = supabase.from("gate_entry_logs").select("id").eq("tenant_id", tenantId).is("exit_time", null);
-      const blacklistQuery = supabase.from("security_blacklist").select("id, listed_at").eq("tenant_id", tenantId).is("deleted_at", null);
+      // Helper function to build branch filter
+      const addBranchFilter = (baseQuery: any, column: string) => {
+        if (!shouldFilterBranch || !branchIds) return baseQuery;
+        return branchIds.length === 1 
+          ? baseQuery.eq(column, branchIds[0]) 
+          : baseQuery.in(column, branchIds);
+      };
 
-      const [
-        companiesResult,
-        workersResult,
-        projectsResult,
-        gatePassesResult,
-        safetyOfficersResult,
-        incidentsResult,
-        permitsResult,
-        riskAssessmentsResult,
-        onsiteResult,
-        blacklistResult,
-      ] = await Promise.all([
-        shouldFilterBranch && branchIds
-          ? (branchIds.length === 1 ? companiesQuery.eq("assigned_branch_id", branchIds[0]) : companiesQuery.in("assigned_branch_id", branchIds))
-          : companiesQuery,
-        workersQuery,
-        shouldFilterBranch && branchIds
-          ? (branchIds.length === 1 ? projectsQuery.eq("branch_id", branchIds[0]) : projectsQuery.in("branch_id", branchIds))
-          : projectsQuery,
-        shouldFilterBranch && branchIds
-          ? (branchIds.length === 1 ? gatePassesQuery.eq("branch_id", branchIds[0]) : gatePassesQuery.in("branch_id", branchIds))
-          : gatePassesQuery,
-        safetyOfficersQuery,
-        shouldFilterBranch && branchIds
-          ? (branchIds.length === 1 ? incidentsQuery.eq("branch_id", branchIds[0]) : incidentsQuery.in("branch_id", branchIds))
-          : incidentsQuery,
-        permitsQuery,
-        shouldFilterBranch && branchIds
-          ? (branchIds.length === 1 ? riskAssessmentsQuery.eq("branch_id", branchIds[0]) : riskAssessmentsQuery.in("branch_id", branchIds))
-          : riskAssessmentsQuery,
-        shouldFilterBranch && branchIds
-          ? (branchIds.length === 1 ? onsiteQuery.eq("branch_id", branchIds[0]) : onsiteQuery.in("branch_id", branchIds))
-          : onsiteQuery,
-        shouldFilterBranch && branchIds
-          ? (branchIds.length === 1 ? blacklistQuery.eq("branch_id", branchIds[0]) : blacklistQuery.in("branch_id", branchIds))
-          : blacklistQuery,
-      ]);
+      // Execute all queries with type safety
+      const companiesResult = await addBranchFilter(
+        supabase.from("contractor_companies").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null),
+        "assigned_branch_id"
+      );
+
+      const workersResult = await supabase.from("contractor_workers").select("id, approval_status").eq("tenant_id", tenantId).is("deleted_at", null);
+
+      const projectsResult = await addBranchFilter(
+        supabase.from("contractor_projects").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null),
+        "branch_id"
+      );
+
+      const gatePassesResult = await addBranchFilter(
+        supabase.from("material_gate_passes").select("id, status, pass_date").eq("tenant_id", tenantId).is("deleted_at", null),
+        "branch_id"
+      );
+
+      const safetyOfficersResult = await supabase.from("contractor_safety_officers").select("id").eq("tenant_id", tenantId).is("deleted_at", null);
+
+      const incidentsResult = await addBranchFilter(
+        supabase.from("incidents").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null),
+        "branch_id"
+      );
+
+      const permitsResult = await supabase.from("ptw_permits").select("id, status, planned_end_time").eq("tenant_id", tenantId).is("deleted_at", null);
+
+      const riskAssessmentsResult = await addBranchFilter(
+        supabase.from("risk_assessments").select("id, status, overall_risk_rating, valid_until").eq("tenant_id", tenantId).is("deleted_at", null),
+        "branch_id"
+      );
+
+      const onsiteResult = await addBranchFilter(
+        supabase.from("gate_entry_logs").select("id").eq("tenant_id", tenantId).is("exit_time", null),
+        "branch_id"
+      );
+
+      const blacklistResult = await addBranchFilter(
+        supabase.from("security_blacklist").select("id, listed_at").eq("tenant_id", tenantId).is("deleted_at", null),
+        "branch_id"
+      );
 
       // Process companies
       const companies = companiesResult.data || [];

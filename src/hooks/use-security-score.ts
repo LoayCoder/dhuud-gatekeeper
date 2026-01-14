@@ -41,33 +41,39 @@ export function useSecurityScore() {
       // Helper to check if we should apply branch filter
       const shouldFilterBranch = !isAllBranchesMode && branchIds && branchIds.length > 0;
 
-      // 1. Blacklist count
-      let blacklistQuery = supabase.from('security_blacklist').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId).is('deleted_at', null);
-      if (shouldFilterBranch && branchIds) {
-        blacklistQuery = branchIds.length === 1 ? blacklistQuery.eq('branch_id', branchIds[0]) : blacklistQuery.in('branch_id', branchIds);
-      }
-      const { count: blacklistCount } = await blacklistQuery;
+      // Helper function to build branch filter
+      const addBranchFilter = (baseQuery: any, column: string) => {
+        if (!shouldFilterBranch || !branchIds) return baseQuery;
+        return branchIds.length === 1 
+          ? baseQuery.eq(column, branchIds[0]) 
+          : baseQuery.in(column, branchIds);
+      };
 
-      // 2. Gate entries count  
-      let gateEntriesQuery = supabase.from('gate_entry_logs').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId).gte('entry_time', weekAgo).is('deleted_at', null);
-      if (shouldFilterBranch && branchIds) {
-        gateEntriesQuery = branchIds.length === 1 ? gateEntriesQuery.eq('branch_id', branchIds[0]) : gateEntriesQuery.in('branch_id', branchIds);
-      }
-      const { count: gateEntriesCount } = await gateEntriesQuery;
+      // Execute queries with branch filter
+      const blacklistResult = await addBranchFilter(
+        supabase.from('security_blacklist').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId).is('deleted_at', null),
+        'branch_id'
+      );
 
-      // 3. Visit requests count
-      let visitRequestsQuery = supabase.from('visit_requests').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId).gte('created_at', weekAgo).in('status', ['approved', 'rejected']);
-      if (shouldFilterBranch && branchIds) {
-        visitRequestsQuery = branchIds.length === 1 ? visitRequestsQuery.eq('branch_id', branchIds[0]) : visitRequestsQuery.in('branch_id', branchIds);
-      }
-      const { count: visitRequestsCount } = await visitRequestsQuery;
+      const gateEntriesResult = await addBranchFilter(
+        supabase.from('gate_entry_logs').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId).gte('entry_time', weekAgo).is('deleted_at', null),
+        'branch_id'
+      );
 
-      // 4. Active emergencies
-      let emergenciesQuery = supabase.from('emergency_alerts').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId).is('resolved_at', null);
-      if (shouldFilterBranch && branchIds) {
-        emergenciesQuery = branchIds.length === 1 ? emergenciesQuery.eq('branch_id', branchIds[0]) : emergenciesQuery.in('branch_id', branchIds);
-      }
-      const { count: activeEmergencies } = await emergenciesQuery;
+      const visitRequestsResult = await addBranchFilter(
+        supabase.from('visit_requests').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId).gte('created_at', weekAgo).in('status', ['approved', 'rejected']),
+        'branch_id'
+      );
+
+      const emergenciesResult = await addBranchFilter(
+        supabase.from('emergency_alerts').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId).is('resolved_at', null),
+        'branch_id'
+      );
+
+      const blacklistCount = blacklistResult.count;
+      const gateEntriesCount = gateEntriesResult.count;
+      const visitRequestsCount = visitRequestsResult.count;
+      const activeEmergencies = emergenciesResult.count;
 
       // Calculate metrics (simplified)
       const blacklistEnforcement = 100;
