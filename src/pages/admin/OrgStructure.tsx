@@ -127,6 +127,7 @@ export default function OrgStructure() {
   const [newSiteLongitude, setNewSiteLongitude] = useState("");
   const [gettingSiteLocation, setGettingSiteLocation] = useState(false);
   const [siteSearchQuery, setSiteSearchQuery] = useState("");
+  const [localBranchFilter, setLocalBranchFilter] = useState<string>("all");
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
   const [siteDialogOpen, setSiteDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -1054,16 +1055,34 @@ export default function OrgStructure() {
                 </Button>
               </div>
 
-              {/* Search Filter */}
-              <div className="relative text-start">
-                <Search className="absolute top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground start-3" />
-                <Input
-                  placeholder={t('orgStructure.searchSites')}
-                  value={siteSearchQuery}
-                  onChange={(e) => setSiteSearchQuery(e.target.value)}
-                  className="ps-10 text-start"
-                  dir={direction}
-                />
+              {/* Filter Controls Row */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                {/* Branch Filter Dropdown */}
+                <Select value={localBranchFilter} onValueChange={setLocalBranchFilter}>
+                  <SelectTrigger className="w-full sm:w-[200px] text-start" dir={direction}>
+                    <SelectValue placeholder={t('orgStructure.filterByBranch')} />
+                  </SelectTrigger>
+                  <SelectContent dir={direction}>
+                    <SelectItem value="all" className="text-start">{t('orgStructure.allBranches')}</SelectItem>
+                    {branches.map(branch => (
+                      <SelectItem key={branch.id} value={branch.id} className="text-start">
+                        {branch.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                {/* Search Filter */}
+                <div className="relative flex-1 text-start">
+                  <Search className="absolute top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground start-3" />
+                  <Input
+                    placeholder={t('orgStructure.searchSites')}
+                    value={siteSearchQuery}
+                    onChange={(e) => setSiteSearchQuery(e.target.value)}
+                    className="ps-10 text-start"
+                    dir={direction}
+                  />
+                </div>
               </div>
 
               {/* Sites Table */}
@@ -1080,6 +1099,11 @@ export default function OrgStructure() {
                   <TableBody>
                     {(() => {
                       const filteredSites = sites.filter(site => {
+                        // Branch filter
+                        const branchFilterMatch = localBranchFilter === "all" || site.branch_id === localBranchFilter;
+                        if (!branchFilterMatch) return false;
+                        
+                        // Search filter
                         const query = siteSearchQuery.toLowerCase().trim();
                         if (!query) return true;
                         const nameMatch = site.name.toLowerCase().includes(query);

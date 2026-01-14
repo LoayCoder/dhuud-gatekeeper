@@ -3814,7 +3814,9 @@
     "selectBuildingForFloor": "Select a building to manage its floors",
     "parentBuilding": "Parent Building",
     "selectBuilding": "Select building",
-    "buildingRequired": "Please select a parent building"
+    "buildingRequired": "Please select a parent building",
+    "filterByBranch": "Filter by Branch",
+    "allBranches": "All Branches"
   },
   "userManagement": {
     "title": "User Management",
