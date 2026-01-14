@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useBranchFilter } from '@/hooks/use-branch-filter';
 
 export interface ObservationTrendData {
   by_month: Array<{
@@ -41,14 +42,18 @@ interface UseObservationTrendsParams {
 
 export function useObservationTrends(params: UseObservationTrendsParams = {}) {
   const { startDate, endDate, branchId, siteId } = params;
+  const { activeBranchId, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
+  
+  // Use explicit branchId if passed, otherwise use context branch
+  const effectiveBranchId = branchId ?? (!isAllBranchesMode ? activeBranchId : null);
 
   return useQuery({
-    queryKey: ['observation-trends', startDate?.toISOString(), endDate?.toISOString(), branchId, siteId],
+    queryKey: ['observation-trends', ...branchQueryKey, startDate?.toISOString(), endDate?.toISOString(), branchId, siteId],
     queryFn: async (): Promise<ObservationTrendData> => {
       const { data, error } = await supabase.rpc('get_observation_trend_analytics', {
         p_start_date: startDate?.toISOString() || null,
         p_end_date: endDate?.toISOString() || null,
-        p_branch_id: branchId || null,
+        p_branch_id: effectiveBranchId || null,
         p_site_id: siteId || null,
       });
 
