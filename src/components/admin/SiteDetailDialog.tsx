@@ -64,6 +64,8 @@ export function SiteDetailDialog({
   const [longitude, setLongitude] = useState<number | null>(null);
   const [boundaryPolygon, setBoundaryPolygon] = useState<Coordinate[] | null>(null);
   const [geofenceRadius, setGeofenceRadius] = useState(100);
+  const [branchId, setBranchId] = useState<string | null>(null);
+  const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
   const [saving, setSaving] = useState(false);
   const [selectedDepartmentId, setSelectedDepartmentId] = useState('');
   const [selectedSectionId, setSelectedSectionId] = useState('');
@@ -97,6 +99,19 @@ export function SiteDetailDialog({
     }
   }, [open]);
 
+  // Fetch branches on mount
+  useEffect(() => {
+    const fetchBranches = async () => {
+      const { data } = await supabase
+        .from('branches')
+        .select('id, name')
+        .is('deleted_at', null)
+        .order('name');
+      if (data) setBranches(data);
+    };
+    fetchBranches();
+  }, []);
+
   // Reset form when site changes
   useEffect(() => {
     if (site) {
@@ -105,12 +120,14 @@ export function SiteDetailDialog({
       setLongitude(site.longitude);
       setBoundaryPolygon(site.boundary_polygon ?? null);
       setGeofenceRadius(site.geofence_radius_meters ?? 100);
+      setBranchId(site.branch_id);
     } else {
       setName('');
       setLatitude(null);
       setLongitude(null);
       setBoundaryPolygon(null);
       setGeofenceRadius(100);
+      setBranchId(null);
     }
     setSelectedDepartmentId('');
     setSelectedSectionId('');
@@ -136,6 +153,7 @@ export function SiteDetailDialog({
         longitude,
         boundary_polygon: boundaryPolygon,
         geofence_radius_meters: geofenceRadius,
+        branch_id: branchId,
       };
 
       const { error } = await supabase
@@ -206,6 +224,26 @@ export function SiteDetailDialog({
               className="text-start"
               dir={isRTL ? 'rtl' : 'ltr'}
             />
+          </div>
+
+          {/* Branch Selector */}
+          <div className="space-y-2">
+            <Label className="text-start">{t('orgStructure.branch')}</Label>
+            <Select
+              value={branchId || ''}
+              onValueChange={(val) => setBranchId(val || null)}
+            >
+              <SelectTrigger className="text-start" dir={isRTL ? 'rtl' : 'ltr'}>
+                <SelectValue placeholder={t('orgStructure.selectBranch')} />
+              </SelectTrigger>
+              <SelectContent dir={isRTL ? 'rtl' : 'ltr'}>
+                {branches.map((branch) => (
+                  <SelectItem key={branch.id} value={branch.id} className="text-start">
+                    {branch.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Geofence Radius Slider */}
