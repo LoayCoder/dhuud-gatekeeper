@@ -38,7 +38,19 @@ window.addEventListener('unhandledrejection', async (event) => {
 // Global error handler for debugging blank screens
 window.addEventListener('error', (event) => {
   console.error('[App Error]', event.error?.message || event.message, event.error?.stack);
+  // Show fallback UI on critical errors
+  if (!window.__REACT_MOUNTED__) {
+    const fallback = document.getElementById('app-load-fallback');
+    if (fallback) fallback.style.display = 'flex';
+  }
 });
+
+// Declare the global flag type
+declare global {
+  interface Window {
+    __REACT_MOUNTED__?: boolean;
+  }
+}
 
 // Register service worker for offline caching
 registerServiceWorker();
@@ -60,3 +72,8 @@ createRoot(document.getElementById("root")!).render(
     </I18nextProvider>
   </StrictMode>
 );
+
+// Signal that React mounted successfully - hide fallback UI
+window.__REACT_MOUNTED__ = true;
+const fallbackEl = document.getElementById('app-load-fallback');
+if (fallbackEl) fallbackEl.style.display = 'none';
