@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useBranchFilter } from '@/hooks/use-branch-filter';
 
 export interface IncidentMetricsBySeverity {
   fatality: number;
@@ -19,14 +20,21 @@ export interface IncidentTrendDataPoint {
 }
 
 // Query incidents directly instead of using RPC (RPC doesn't exist yet)
+// Now supports automatic branch filtering via useBranchFilter
 export function useIncidentMetricsBySeverity(
   startDate: string,
   endDate: string,
   branchId?: string,
   siteId?: string
 ) {
+  const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
+  
+  // If explicit branchId is passed, use it; otherwise use the context branch filter
+  const effectiveBranchIds = branchId ? [branchId] : branchIds;
+  const shouldFilterByBranch = branchId ? true : !isAllBranchesMode;
+
   return useQuery({
-    queryKey: ['incident-metrics-severity', startDate, endDate, branchId, siteId],
+    queryKey: ['incident-metrics-severity', ...branchQueryKey, startDate, endDate, branchId, siteId],
     queryFn: async () => {
       let query = supabase
         .from('incidents')
@@ -35,7 +43,14 @@ export function useIncidentMetricsBySeverity(
         .lte('occurred_at', endDate)
         .is('deleted_at', null);
 
-      if (branchId) query = query.eq('branch_id', branchId);
+      // Apply branch filter
+      if (shouldFilterByBranch && effectiveBranchIds && effectiveBranchIds.length > 0) {
+        if (effectiveBranchIds.length === 1) {
+          query = query.eq('branch_id', effectiveBranchIds[0]);
+        } else {
+          query = query.in('branch_id', effectiveBranchIds);
+        }
+      }
       if (siteId) query = query.eq('site_id', siteId);
 
       const { data, error } = await query;
@@ -112,8 +127,14 @@ export function useIncidentFrequencyTrend(
   branchId?: string,
   siteId?: string
 ) {
+  const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
+  
+  // If explicit branchId is passed, use it; otherwise use the context branch filter
+  const effectiveBranchIds = branchId ? [branchId] : branchIds;
+  const shouldFilterByBranch = branchId ? true : !isAllBranchesMode;
+
   return useQuery({
-    queryKey: ['incident-frequency-trend', startDate, endDate, branchId, siteId],
+    queryKey: ['incident-frequency-trend', ...branchQueryKey, startDate, endDate, branchId, siteId],
     queryFn: async () => {
       let query = supabase
         .from('incidents')
@@ -123,7 +144,14 @@ export function useIncidentFrequencyTrend(
         .is('deleted_at', null)
         .not('occurred_at', 'is', null);
 
-      if (branchId) query = query.eq('branch_id', branchId);
+      // Apply branch filter
+      if (shouldFilterByBranch && effectiveBranchIds && effectiveBranchIds.length > 0) {
+        if (effectiveBranchIds.length === 1) {
+          query = query.eq('branch_id', effectiveBranchIds[0]);
+        } else {
+          query = query.in('branch_id', effectiveBranchIds);
+        }
+      }
       if (siteId) query = query.eq('site_id', siteId);
 
       const { data, error } = await query;

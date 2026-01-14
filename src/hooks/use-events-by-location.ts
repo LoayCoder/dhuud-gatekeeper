@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBranchFilter } from "@/hooks/use-branch-filter";
 
 export interface BranchEventData {
   branch_id: string;
@@ -62,9 +63,10 @@ export interface EventsByLocationData {
 
 export function useEventsByLocation(startDate?: Date, endDate?: Date) {
   const { profile } = useAuth();
+  const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
 
   return useQuery({
-    queryKey: ['events-by-location', profile?.tenant_id, startDate?.toISOString(), endDate?.toISOString()],
+    queryKey: ['events-by-location', profile?.tenant_id, ...branchQueryKey, startDate?.toISOString(), endDate?.toISOString()],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_events_by_location', {
         p_start_date: startDate?.toISOString().split('T')[0] || null,
@@ -72,7 +74,23 @@ export function useEventsByLocation(startDate?: Date, endDate?: Date) {
       });
 
       if (error) throw error;
-      return data as unknown as EventsByLocationData;
+      
+      const result = data as unknown as EventsByLocationData;
+      
+      // If not in "all branches" mode, filter the results to only show selected branch(es)
+      if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
+        return {
+          by_branch: result.by_branch?.filter(b => branchIds.includes(b.branch_id)) || [],
+          by_site: result.by_site?.filter(s => {
+            // Filter sites by checking if their branch is in the selected branches
+            const branchData = result.by_branch?.find(b => b.branch_name === s.branch_name);
+            return branchData && branchIds.includes(branchData.branch_id);
+          }) || [],
+          by_department: result.by_department || [], // Departments are tenant-level, show all
+        };
+      }
+      
+      return result;
     },
     enabled: !!profile?.tenant_id,
     // Enhanced caching for better performance
