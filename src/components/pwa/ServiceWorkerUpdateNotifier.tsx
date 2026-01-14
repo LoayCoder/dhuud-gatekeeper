@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshCw, X, AlertTriangle, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,42 +5,19 @@ import { useAppUpdateCheck } from '@/hooks/use-app-update-check';
 import { WhatsNewDialog } from './WhatsNewDialog';
 import { cn } from '@/lib/utils';
 
-// Cache validation on mount - detect stale cache scenarios
-function useCacheValidator() {
-  useEffect(() => {
-    // Check if we're in a potentially stale cache state
-    const checkCacheHealth = async () => {
-      try {
-        // Try to fetch a critical resource to verify cache is valid
-        const response = await fetch('/manifest.json', { cache: 'no-store' });
-        if (!response.ok) {
-          console.warn('[Cache Validator] manifest.json not accessible, potential cache issue');
-        }
-      } catch {
-        console.warn('[Cache Validator] Network check failed, may be offline');
-      }
-    };
-    
-    // Only run in production
-    if (import.meta.env.PROD) {
-      checkCacheHealth();
-    }
-  }, []);
-}
-
 export function ServiceWorkerUpdateNotifier() {
-  // Validate cache health on mount
-  useCacheValidator();
   const { t } = useTranslation();
   const {
     hasUpdate,
     newVersion,
+    releaseNotes,
     priority,
     isIOS,
     isPWA,
     dismissCount,
     applyUpdate,
     dismissUpdate,
+    currentVersion,
   } = useAppUpdateCheck();
 
   // Determine if this is a critical update (3+ dismissals or marked as critical)
@@ -49,8 +25,12 @@ export function ServiceWorkerUpdateNotifier() {
   const isImportant = priority === 'important' || dismissCount >= 2;
 
   if (!hasUpdate) {
-    // WhatsNewDialog now fetches its own version info
-    return <WhatsNewDialog />;
+    return (
+      <WhatsNewDialog 
+        version={currentVersion || ''} 
+        releaseNotes={releaseNotes} 
+      />
+    );
   }
 
   return (
@@ -159,7 +139,10 @@ export function ServiceWorkerUpdateNotifier() {
         </div>
       </div>
       
-      <WhatsNewDialog />
+      <WhatsNewDialog 
+        version={currentVersion || ''} 
+        releaseNotes={releaseNotes} 
+      />
     </>
   );
 }

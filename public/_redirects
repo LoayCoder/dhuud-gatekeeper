@@ -1,7 +1,1 @@
-# Serve static files directly (prevents JSON being served as HTML)
-/version.json    /version.json    200
-/manifest.json   /manifest.json   200
-/sw.js           /sw.js           200
-
-# SPA fallback - must be LAST
-/*    /index.html   200
+/* /index.html 200

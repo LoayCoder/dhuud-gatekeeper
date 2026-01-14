@@ -5,7 +5,7 @@
 import { logger } from '@/lib/logger';
 
 const APP_SHELL_CACHE_KEY = 'app-shell-cached';
-const APP_SHELL_CACHE_VERSION = '2025.01.14.001';
+const APP_SHELL_CACHE_VERSION = '2025.01.25.001';
 
 /**
  * Check if the app shell has already been cached for this version
