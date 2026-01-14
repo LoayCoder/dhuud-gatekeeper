@@ -161,27 +161,40 @@ export function IncidentInfoCard({ incident, isLocked }: IncidentInfoCardProps) 
             )}
           </div>
 
-          {/* GPS Location with Google Maps Link */}
-          {incident.latitude && incident.longitude && (
-            <div className="bg-muted/30 rounded-md p-3">
-              <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                <MapPin className="h-3.5 w-3.5" />
-                <span className="text-sm font-medium">{t('incidents.addressDetails.coordinates', 'GPS Location')}</span>
+          {/* GPS Location with Google Maps Link - with fallback to site location */}
+          {(() => {
+            const effectiveLatitude = incident.latitude || incident.site?.latitude;
+            const effectiveLongitude = incident.longitude || incident.site?.longitude;
+            const isUsingFallbackLocation = !incident.latitude && incident.site?.latitude;
+            
+            if (!effectiveLatitude || !effectiveLongitude) return null;
+            
+            return (
+              <div className="bg-muted/30 rounded-md p-3">
+                <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                  <MapPin className="h-3.5 w-3.5" />
+                  <span className="text-sm font-medium">{t('incidents.addressDetails.coordinates', 'GPS Location')}</span>
+                  {isUsingFallbackLocation && (
+                    <Badge variant="secondary" className="text-xs ms-2">
+                      {t('incidents.approximateLocation', 'Approximate Location (Site)')}
+                    </Badge>
+                  )}
+                </div>
+                <LocationDisplay
+                  latitude={effectiveLatitude}
+                  longitude={effectiveLongitude}
+                  address={{
+                    city: incident.location_city || undefined,
+                    district: incident.location_district || undefined,
+                    street: incident.location_street || undefined,
+                    country: incident.location_country || undefined,
+                    formatted_address: incident.location_formatted || undefined,
+                  }}
+                  showIcon={false}
+                />
               </div>
-              <LocationDisplay
-                latitude={incident.latitude}
-                longitude={incident.longitude}
-                address={{
-                  city: incident.location_city,
-                  district: incident.location_district,
-                  street: incident.location_street,
-                  country: incident.location_country,
-                  formatted_address: incident.location_formatted,
-                }}
-                showIcon={false}
-              />
-            </div>
-          )}
+            );
+          })()}
 
           {/* Injury & Damage */}
           {(incident.has_injury || incident.has_damage) && (

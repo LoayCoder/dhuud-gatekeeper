@@ -856,6 +856,7 @@
     "reporterHomeBranch": "Reporter's Home Branch",
     "crossBranchReport": "Cross-Branch Report",
     "viewOnMap": "View on Map",
+    "approximateLocation": "Approximate Location (Site)",
     "linkedEvent": "Linked to Special Event",
     "linkedAsset": "Asset Involved",
     "searchAsset": "Search by asset name or code...",
