@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { Camera, MapPin, Loader2, CheckCircle2, AlertTriangle, Send, X, Trophy, User, Building2, HardHat, Sparkles, RefreshCw, Tags, WifiOff, ImagePlus } from 'lucide-react';
+import { Camera, MapPin, Loader2, CheckCircle2, AlertTriangle, Send, X, Trophy, User, Building2, HardHat, Sparkles, RefreshCw, Tags, WifiOff, ImagePlus, Info } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,6 +28,7 @@ import { uploadFilesParallel } from '@/lib/upload-utils';
 import { UploadProgressOverlay } from '@/components/ui/upload-progress';
 import { SubmissionSuccessDialog } from '@/components/incidents/SubmissionSuccessDialog';
 import { HSSE_SEVERITY_LEVELS, canCloseOnSpot, type SeverityLevelV2 } from '@/lib/hsse-severity-levels';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useObservationAIValidator } from '@/hooks/use-observation-ai-validator';
 import { AIAnalysisPanel } from '@/components/observations/AIAnalysisPanel';
 import { useAITags } from '@/hooks/use-ai-tags';
@@ -186,6 +187,7 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
   const selectedSubtype = form.watch('subtype');
   const recognitionType = form.watch('recognition_type');
   const isAgainstContractor = form.watch('is_against_contractor');
+  const selectedSiteId = form.watch('site_id');
   
   // Check if close-on-spot is allowed for this severity level
   const allowCloseOnSpot = canCloseOnSpot(selectedSeverity as SeverityLevelV2);
@@ -195,6 +197,25 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
     const type = OBSERVATION_TYPES.find(t => t.value === selectedSubtype);
     return type?.isPositive ?? false;
   }, [selectedSubtype]);
+  
+  // Get the selected site and its branch (for cross-branch reporting)
+  const selectedSite = useMemo(() => {
+    return sites.find(s => s.id === selectedSiteId);
+  }, [sites, selectedSiteId]);
+  
+  const observationBranchId = selectedSite?.branch_id || null;
+  
+  // Check if user is reporting from a different branch than their assigned branch
+  const isCrossBranchReport = observationBranchId && profile?.assigned_branch_id && 
+    observationBranchId !== profile.assigned_branch_id;
+  
+  // Filter contractor companies by the OBSERVATION LOCATION's branch (not user's branch)
+  const locationFilteredContractorCompanies = useMemo(() => {
+    if (!observationBranchId) return contractorCompanies;
+    return contractorCompanies.filter(
+      company => company.assigned_branch_id === observationBranchId || !company.assigned_branch_id
+    );
+  }, [contractorCompanies, observationBranchId]);
   
   // Reset recognition fields when switching between positive/negative observations
   useEffect(() => {
@@ -393,6 +414,8 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
       // Map severity_v2 to risk_rating for backward compatibility
       risk_rating: values.severity_v2 === 'level_1' ? 'low' : values.severity_v2 === 'level_2' ? 'medium' : 'high',
       site_id: values.site_id || undefined,
+      // Set branch_id from selected site (where observation occurred)
+      branch_id: selectedSite?.branch_id || undefined,
       latitude: values.latitude,
       longitude: values.longitude,
       closed_on_spot_data: closedOnSpotData,
@@ -735,7 +758,7 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {contractorCompanies.filter(c => c.status === 'active').map((company) => (
+                              {locationFilteredContractorCompanies.filter(c => c.status === 'active').map((company) => (
                                 <SelectItem key={company.id} value={company.id}>
                                   {i18n.language === 'ar' && company.company_name_ar 
                                     ? company.company_name_ar 
@@ -916,7 +939,7 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
               />
               
               {/* GPS Location */}
-              <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+              <div className="p-3 bg-muted/50 rounded-lg space-y-3">
                 <div className="flex items-center gap-3">
                   <MapPin className={cn(
                     "h-5 w-5 shrink-0",
@@ -963,6 +986,54 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                     </Button>
                   )}
                 </div>
+                
+                {/* Manual Site Selection Dropdown - Shows ALL tenant sites */}
+                <FormField
+                  control={form.control}
+                  name="site_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs text-muted-foreground">
+                        {t('quickObservation.manualSiteSelection')}
+                      </FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        value={field.value || ''}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="h-9">
+                            <SelectValue placeholder={t('quickObservation.selectSitePlaceholder')} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {sites.map((site) => (
+                            <SelectItem key={site.id} value={site.id}>
+                              {site.name}
+                              {site.branch?.name && (
+                                <span className="text-muted-foreground ms-2">
+                                  ({site.branch.name})
+                                </span>
+                              )}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* Cross-Branch Reporting Notice */}
+                {isCrossBranchReport && selectedSite?.branch?.name && (
+                  <Alert variant="default" className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+                    <Info className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-xs">
+                      {t('quickObservation.crossBranchNote', { 
+                        branchName: selectedSite.branch.name 
+                      })}
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
               
               {/* Closed on Spot Toggle - Only for L1-L2 */}

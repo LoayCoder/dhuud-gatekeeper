@@ -11214,6 +11214,7 @@ export type Database = {
           reference_id: string | null
           rejection_return_count: number | null
           related_contractor_company_id: string | null
+          reporter_branch_id: string | null
           reporter_dispute_notes: string | null
           reporter_disputes_rejection: boolean | null
           reporter_id: string | null
@@ -11427,6 +11428,7 @@ export type Database = {
           reference_id?: string | null
           rejection_return_count?: number | null
           related_contractor_company_id?: string | null
+          reporter_branch_id?: string | null
           reporter_dispute_notes?: string | null
           reporter_disputes_rejection?: boolean | null
           reporter_id?: string | null
@@ -11640,6 +11642,7 @@ export type Database = {
           reference_id?: string | null
           rejection_return_count?: number | null
           related_contractor_company_id?: string | null
+          reporter_branch_id?: string | null
           reporter_dispute_notes?: string | null
           reporter_disputes_rejection?: boolean | null
           reporter_id?: string | null
@@ -12028,6 +12031,13 @@ export type Database = {
             columns: ["related_contractor_company_id"]
             isOneToOne: false
             referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_reporter_branch_id_fkey"
+            columns: ["reporter_branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
             referencedColumns: ["id"]
           },
           {
