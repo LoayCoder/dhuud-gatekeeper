@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import type { IncidentWithDetails } from "@/hooks/use-incidents";
 import { IncidentAttachmentsSection } from "@/components/incidents/IncidentAttachmentsSection";
 import { getSeverityBadgeVariant } from "@/lib/hsse-severity-levels";
-import { getSubtypeTranslation, snakeToCamel } from "@/lib/hsse-translation-utils";
+import { getSubtypeTranslation, snakeToCamel, getHsseEventTypeForSubtype } from "@/lib/hsse-translation-utils";
 import { LocationDisplay } from "@/components/shared/LocationDisplay";
 
 interface IncidentInfoCardProps {
@@ -71,32 +71,35 @@ export function IncidentInfoCard({ incident, isLocked }: IncidentInfoCardProps) 
           </div>
 
           {/* Category Badges Row */}
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
-              {String(t(`incidents.eventCategories.${incident.event_type}`, incident.event_type))}
-            </Badge>
-            {incident.event_type === 'incident' && (
-              <Badge variant="outline" className="bg-secondary/50">
-                {(incident as any).incident_type 
-                  ? String(t(`incidents.hsseEventTypes.${snakeToCamel((incident as any).incident_type)}`, 
-                             { defaultValue: t(`incidents.hsseEventTypes.${(incident as any).incident_type}`, { defaultValue: (incident as any).incident_type }) as string }))
-                  : incident.subtype
-                    ? getSubtypeTranslation(t, incident.event_type, incident.subtype, (incident as any).incident_type)
-                    : String(t('incidents.eventCategories.incident', 'Incident'))
-                }
-              </Badge>
-            )}
-            {incident.subtype && (
-              <Badge variant="secondary">
-                {getSubtypeTranslation(
-                  t,
-                  incident.event_type,
-                  incident.subtype,
-                  (incident as any).incident_type
+          {(() => {
+            // Derive category from incident_type OR from subtype using HSSE mapping
+            const derivedCategory = (incident as any).incident_type || 
+              (incident.subtype ? getHsseEventTypeForSubtype(incident.subtype) : null);
+            
+            return (
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
+                  {String(t(`incidents.eventCategories.${incident.event_type}`, incident.event_type))}
+                </Badge>
+                {incident.event_type === 'incident' && derivedCategory && (
+                  <Badge variant="outline" className="bg-secondary/50">
+                    {String(t(`incidents.hsseEventTypes.${snakeToCamel(derivedCategory)}`, 
+                              { defaultValue: derivedCategory }))}
+                  </Badge>
                 )}
-              </Badge>
-            )}
-          </div>
+                {incident.subtype && (
+                  <Badge variant="secondary">
+                    {getSubtypeTranslation(
+                      t,
+                      incident.event_type,
+                      incident.subtype,
+                      (incident as any).incident_type
+                    )}
+                  </Badge>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Key Details Grid */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -105,19 +108,22 @@ export function IncidentInfoCard({ incident, isLocked }: IncidentInfoCardProps) 
               label={t('incidents.eventType', 'Event Type')} 
               value={String(t(`incidents.eventCategories.${incident.event_type}`, incident.event_type))}
             />
-            {incident.event_type === 'incident' && (
-              <InfoItem 
-                label={t('incidents.incidentCategory', 'Incident Category')} 
-                value={
-                  (incident as any).incident_type 
-                    ? String(t(`incidents.hsseEventTypes.${snakeToCamel((incident as any).incident_type)}`, 
-                               { defaultValue: t(`incidents.hsseEventTypes.${(incident as any).incident_type}`, { defaultValue: (incident as any).incident_type }) as string }))
-                    : incident.subtype
-                      ? getSubtypeTranslation(t, incident.event_type, incident.subtype, (incident as any).incident_type)
-                      : String(t('incidents.eventCategories.incident', 'Incident'))
-                }
-              />
-            )}
+            {incident.event_type === 'incident' && (() => {
+              // Derive category from incident_type OR from subtype using HSSE mapping
+              const derivedCategory = (incident as any).incident_type || 
+                (incident.subtype ? getHsseEventTypeForSubtype(incident.subtype) : null);
+              
+              return (
+                <InfoItem 
+                  label={t('incidents.incidentCategory', 'Incident Category')} 
+                  value={derivedCategory 
+                    ? String(t(`incidents.hsseEventTypes.${snakeToCamel(derivedCategory)}`, 
+                               { defaultValue: derivedCategory }))
+                    : undefined
+                  }
+                />
+              );
+            })()}
             {incident.subtype && (
               <InfoItem 
                 label={t('incidents.incidentSubCategory', 'Incident Sub Category')} 
