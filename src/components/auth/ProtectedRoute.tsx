@@ -18,38 +18,6 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isOnline = useOnlineStatus();
   const [accessValidated, setAccessValidated] = useState<boolean | null>(null);
   const [validating, setValidating] = useState(false);
-  
-  // Offline MFA check state - check cached session directly to avoid race conditions
-  const [offlineMfaChecked, setOfflineMfaChecked] = useState(false);
-  const [offlineMfaValid, setOfflineMfaValid] = useState(false);
-
-  // Check cached session for MFA status when offline
-  useEffect(() => {
-    const checkOfflineMfa = async () => {
-      if (!isOnline && isAuthenticated && user) {
-        try {
-          const cached = await sessionCache.getCachedSession();
-          if (cached && cached.userId === user.id) {
-            // Check if MFA was verified in the cached session
-            const mfaValid = cached.mfaEnabled === true && cached.tenantMfaVerified === true;
-            setOfflineMfaValid(mfaValid);
-          } else {
-            // No matching cache - MFA not valid
-            setOfflineMfaValid(false);
-          }
-        } catch (err) {
-          console.error('Error checking offline MFA:', err);
-          setOfflineMfaValid(false);
-        }
-        setOfflineMfaChecked(true);
-      } else if (isOnline) {
-        // Reset when online - we'll use live state instead
-        setOfflineMfaChecked(false);
-        setOfflineMfaValid(false);
-      }
-    };
-    checkOfflineMfa();
-  }, [isOnline, isAuthenticated, user?.id]);
 
   // Validate tenant access on mount and when user/profile changes
   useEffect(() => {
@@ -111,11 +79,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     validateAccess();
   }, [isAuthenticated, user?.id, profile?.is_deleted, profile?.is_active, isOnline]);
 
-  // Show loading while:
-  // 1. Auth is loading
-  // 2. Validation is in progress  
-  // 3. Offline and waiting for cache MFA check
-  if (isLoading || validating || (!isOnline && isAuthenticated && !offlineMfaChecked)) {
+  if (isLoading || validating) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -136,24 +100,27 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
-  // OFFLINE MODE: Check cached MFA status (not React state which may be stale)
-  if (!isOnline) {
-    if (!offlineMfaValid) {
-      // Cached session doesn't have verified MFA - show offline notice
+  // If offline and using cached session with MFA already verified, allow access
+  // If offline and MFA was NOT verified in cached session, show offline notice
+  if (!isOnline && (!mfaEnabled || !tenantMfaVerified)) {
+    // Check if cached session has verified MFA status
+    if (isUsingCachedSession) {
+      // Cached session already has MFA status stored - if we got here,
+      // it means MFA wasn't verified when cached. Show notice.
       return <OfflineAccessNotice reason="mfa_required" />;
     }
-    // MFA was verified in cache - allow access, skip online-only MFA redirects
-    return <>{children}</>;
+    return <OfflineAccessNotice reason="mfa_required" />;
   }
 
-  // ONLINE MODE: Use live React state for MFA checks
-  // If MFA not enabled globally, redirect to MFA setup
-  if (!mfaEnabled && location.pathname !== '/mfa-setup') {
+  // If authenticated but MFA not enabled globally, redirect to MFA setup
+  // (unless already on the MFA setup page) - only when online
+  if (isOnline && !mfaEnabled && location.pathname !== '/mfa-setup') {
     return <Navigate to="/mfa-setup" replace />;
   }
 
-  // If MFA is enabled globally but NOT verified for this tenant, redirect to MFA setup
-  if (mfaEnabled && !tenantMfaVerified && location.pathname !== '/mfa-setup') {
+  // If MFA is enabled globally but NOT verified for this tenant, also redirect to MFA setup
+  // This ensures per-tenant MFA verification - only when online
+  if (isOnline && mfaEnabled && !tenantMfaVerified && location.pathname !== '/mfa-setup') {
     return <Navigate to="/mfa-setup" state={{ tenantVerification: true }} replace />;
   }
 
