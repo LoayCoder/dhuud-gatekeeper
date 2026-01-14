@@ -23,7 +23,7 @@ import { format } from 'date-fns';
 import { useState } from 'react';
 import { generateIncidentReportPDF } from '@/lib/generate-incident-report-pdf';
 import { toast } from 'sonner';
-import { getSubtypeTranslation, snakeToCamel } from '@/lib/hsse-translation-utils';
+import { getSubtypeTranslation, snakeToCamel, getHsseEventTypeForSubtype } from '@/lib/hsse-translation-utils';
 import { HSSEValidationCard } from '@/components/investigation/HSSEValidationCard';
 import { ObservationClosureGate } from '@/components/investigation/ObservationClosureGate';
 import { HSSEExpertRejectionReviewCard } from '@/components/investigation/HSSEExpertRejectionReviewCard';
@@ -314,20 +314,26 @@ export default function IncidentDetail() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">
-                    {t('incidents.incidentCategory', 'Incident Category')}
-                  </p>
-                  <p className="font-medium">
-                    {(incident as any).incident_type 
-                      ? String(t(`incidents.hsseEventTypes.${snakeToCamel((incident as any).incident_type)}`, 
-                                 { defaultValue: t(`incidents.hsseEventTypes.${(incident as any).incident_type}`, { defaultValue: (incident as any).incident_type }) as string }))
-                      : incident.subtype
-                        ? getSubtypeTranslation(t, incident.event_type, incident.subtype, (incident as any).incident_type)
-                        : '—'
-                    }
-                  </p>
-                </div>
+                {(() => {
+                  // Derive category from incident_type OR from subtype using HSSE mapping
+                  const derivedCategory = (incident as any).incident_type || 
+                    (incident.subtype ? getHsseEventTypeForSubtype(incident.subtype) : null);
+                  
+                  return (
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">
+                        {t('incidents.incidentCategory', 'Incident Category')}
+                      </p>
+                      <p className="font-medium">
+                        {derivedCategory 
+                          ? String(t(`incidents.hsseEventTypes.${snakeToCamel(derivedCategory)}`, 
+                                     { defaultValue: t(`incidents.hsseEventTypes.${derivedCategory}`, { defaultValue: derivedCategory }) as string }))
+                          : '—'
+                        }
+                      </p>
+                    </div>
+                  );
+                })()}
                 {incident.subtype && (
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">
