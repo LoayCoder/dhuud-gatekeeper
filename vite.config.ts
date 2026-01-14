@@ -80,42 +80,17 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        // Consolidated chunks - reduces 150+ chunks to ~15
-        // SIMPLIFIED: All React-ecosystem in ONE chunk to prevent loading order issues
-        manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            // ALL React-related packages in one chunk (React + anything using React)
-            if (
-              id.includes('/react') ||
-              id.includes('@radix-ui') ||
-              id.includes('react-hook-form') ||
-              id.includes('react-router') ||
-              id.includes('react-i18next') ||
-              id.includes('react-day-picker') ||
-              id.includes('recharts') ||
-              id.includes('embla-carousel') ||
-              id.includes('vaul') ||
-              id.includes('cmdk') ||
-              id.includes('sonner')
-            ) {
-              return 'vendor-react-all';
-            }
-            // Non-React vendors
-            if (id.includes('@supabase')) return 'vendor-supabase';
-            if (id.includes('@tanstack')) return 'vendor-query';
-            if (id.includes('i18next')) return 'vendor-i18n';
-            if (id.includes('date-fns')) return 'vendor-date';
-            if (id.includes('lucide')) return 'vendor-icons';
-            if (id.includes('zod')) return 'vendor-forms';
-            return 'vendor-common';
-          }
-          // App code - let Rollup handle dependencies naturally
-          return undefined;
-        },
-        chunkFileNames: 'assets/[name]-[hash]-v4.js',
-        entryFileNames: 'assets/[name]-[hash]-v4.js',
-        assetFileNames: 'assets/[name]-[hash]-v4.[ext]',
+        // NO manualChunks - let Rollup handle dependency order automatically
+        // This prevents ALL chunk loading order issues
+        chunkFileNames: 'assets/[name]-[hash]-v5.js',
+        entryFileNames: 'assets/[name]-[hash]-v5.js',
+        assetFileNames: 'assets/[name]-[hash]-v5.[ext]',
       },
+    },
+    // Ensure consistent module deduplication
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true,
     },
   },
 }));
