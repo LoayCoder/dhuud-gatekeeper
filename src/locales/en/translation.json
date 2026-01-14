@@ -2405,7 +2405,8 @@
     "daysRemaining": "{{days}} days remaining",
     "dueToday": "Due Today",
     "activeActions": "Active Actions",
-    "closedActions": "Closed Actions"
+    "closedActions": "Closed Actions",
+    "close": "Got it"
   },
   "inspectionSessions": {
     "title": "Inspection Sessions",
