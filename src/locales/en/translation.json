@@ -8217,7 +8217,10 @@
     "locationOptional": "Location is optional",
     "reportAgainstContractor": "Report Against Contractor",
     "contractorCompany": "Contractor Company",
-    "selectContractorCompany": "Select the contractor company..."
+    "selectContractorCompany": "Select the contractor company...",
+    "manualSiteSelection": "Or select site manually",
+    "selectSitePlaceholder": "Select a site...",
+    "crossBranchNote": "You are reporting from {{branchName}}. Workflow will follow your home branch."
   },
   "observations": {
     "ai": {

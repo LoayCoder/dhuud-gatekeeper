@@ -7911,7 +7911,10 @@
     "locationOptional": "الموقع اختياري",
     "reportAgainstContractor": "بلاغ ضد المقاول",
     "contractorCompany": "شركة المقاول",
-    "selectContractorCompany": "اختر شركة المقاول..."
+    "selectContractorCompany": "اختر شركة المقاول...",
+    "manualSiteSelection": "أو اختر الموقع يدوياً",
+    "selectSitePlaceholder": "اختر موقع...",
+    "crossBranchNote": "أنت تُبلّغ من {{branchName}}. سيتم توجيه سير العمل عبر فرعك الأصلي."
   },
   "observations": {
     "ai": {
