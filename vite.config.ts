@@ -81,41 +81,40 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         // Consolidated chunks - reduces 150+ chunks to ~15
+        // SIMPLIFIED: All React-ecosystem in ONE chunk to prevent loading order issues
         manualChunks: (id) => {
-          // Vendor chunks by category
           if (id.includes('node_modules')) {
-            // CRITICAL: All React packages MUST be in the same chunk to prevent duplicate runtime
-            if (id.includes('node_modules/react')) return 'vendor-react';
-            if (id.includes('@radix-ui')) return 'vendor-ui';
-            if (id.includes('@tanstack')) return 'vendor-query';
+            // ALL React-related packages in one chunk (React + anything using React)
+            if (
+              id.includes('/react') ||
+              id.includes('@radix-ui') ||
+              id.includes('react-hook-form') ||
+              id.includes('react-router') ||
+              id.includes('react-i18next') ||
+              id.includes('react-day-picker') ||
+              id.includes('recharts') ||
+              id.includes('embla-carousel') ||
+              id.includes('vaul') ||
+              id.includes('cmdk') ||
+              id.includes('sonner')
+            ) {
+              return 'vendor-react-all';
+            }
+            // Non-React vendors
             if (id.includes('@supabase')) return 'vendor-supabase';
+            if (id.includes('@tanstack')) return 'vendor-query';
             if (id.includes('i18next')) return 'vendor-i18n';
-            if (id.includes('recharts')) return 'vendor-charts';
             if (id.includes('date-fns')) return 'vendor-date';
             if (id.includes('lucide')) return 'vendor-icons';
-            if (id.includes('zod') || id.includes('react-hook-form')) return 'vendor-forms';
+            if (id.includes('zod')) return 'vendor-forms';
             return 'vendor-common';
           }
-          // Group pages by domain - major reduction in chunk count
-          if (id.includes('/pages/admin/')) return 'pages-admin';
-          if (id.includes('/pages/security/')) return 'pages-security';
-          if (id.includes('/pages/inspections/')) return 'pages-inspections';
-          if (id.includes('/pages/incidents/')) return 'pages-incidents';
-          if (id.includes('/pages/visitors/')) return 'pages-visitors';
-          if (id.includes('/pages/contractors/')) return 'pages-contractors';
-          if (id.includes('/pages/assets/')) return 'pages-assets';
-          if (id.includes('/pages/ptw/')) return 'pages-ptw';
-          if (id.includes('/pages/settings/')) return 'pages-settings';
-          if (id.includes('/pages/')) return 'pages-common';
-          // Group app utilities
-          if (id.includes('/hooks/')) return 'app-hooks';
-          if (id.includes('/components/ui/')) return 'app-ui';
-          if (id.includes('/components/')) return 'app-components';
-          if (id.includes('/lib/')) return 'app-lib';
+          // App code - let Rollup handle dependencies naturally
+          return undefined;
         },
-        chunkFileNames: 'assets/[name]-[hash]-v3.js',
-        entryFileNames: 'assets/[name]-[hash]-v3.js',
-        assetFileNames: 'assets/[name]-[hash]-v3.[ext]',
+        chunkFileNames: 'assets/[name]-[hash]-v4.js',
+        entryFileNames: 'assets/[name]-[hash]-v4.js',
+        assetFileNames: 'assets/[name]-[hash]-v4.[ext]',
       },
     },
   },
