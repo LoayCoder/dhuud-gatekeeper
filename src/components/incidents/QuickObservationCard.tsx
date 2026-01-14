@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { Camera, MapPin, Loader2, CheckCircle2, AlertTriangle, Send, X, Trophy, User, Building2, HardHat, Sparkles, RefreshCw, Tags, WifiOff } from 'lucide-react';
+import { Camera, MapPin, Loader2, CheckCircle2, AlertTriangle, Send, X, Trophy, User, Building2, HardHat, Sparkles, RefreshCw, Tags, WifiOff, ImagePlus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -568,17 +568,33 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                     </div>
                   ))}
                   {photos.length < 5 && (
-                    <label className="w-20 h-20 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors">
-                      <Camera className="h-6 w-6 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground mt-1">{t('quickObservation.tapToCapture')}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        capture="environment"
-                        className="hidden"
-                        onChange={(e) => handlePhotoCapture(e)}
-                      />
-                    </label>
+                    <>
+                      {/* Camera Capture Button */}
+                      <label className="w-20 h-20 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors">
+                        <Camera className="h-6 w-6 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground mt-1">{t('quickObservation.camera')}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          className="hidden"
+                          onChange={(e) => handlePhotoCapture(e)}
+                        />
+                      </label>
+                      
+                      {/* Gallery Upload Button */}
+                      <label className="w-20 h-20 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors">
+                        <ImagePlus className="h-6 w-6 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground mt-1">{t('quickObservation.gallery')}</span>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/heic,image/heif,image/webp"
+                          multiple
+                          className="hidden"
+                          onChange={(e) => handlePhotoCapture(e)}
+                        />
+                      </label>
+                    </>
                   )}
                 </div>
               </div>
@@ -1003,16 +1019,33 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                       </div>
                     ))}
                     {closedOnSpotPhotos.length < 3 && (
-                      <label className="w-16 h-16 border-2 border-dashed border-emerald-500/30 rounded-lg flex items-center justify-center cursor-pointer hover:border-emerald-500 transition-colors">
-                        <Camera className="h-5 w-5 text-emerald-600" />
-                        <input
-                          type="file"
-                          accept="image/*"
-                          capture="environment"
-                          className="hidden"
-                          onChange={(e) => handlePhotoCapture(e, true)}
-                        />
-                      </label>
+                      <>
+                        {/* Camera Capture Button */}
+                        <label className="w-16 h-16 border-2 border-dashed border-emerald-500/30 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-emerald-500 transition-colors">
+                          <Camera className="h-5 w-5 text-emerald-600" />
+                          <span className="text-[10px] text-emerald-600 mt-0.5">{t('quickObservation.camera')}</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            className="hidden"
+                            onChange={(e) => handlePhotoCapture(e, true)}
+                          />
+                        </label>
+                        
+                        {/* Gallery Upload Button */}
+                        <label className="w-16 h-16 border-2 border-dashed border-emerald-500/30 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-emerald-500 transition-colors">
+                          <ImagePlus className="h-5 w-5 text-emerald-600" />
+                          <span className="text-[10px] text-emerald-600 mt-0.5">{t('quickObservation.gallery')}</span>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/heic,image/heif,image/webp"
+                            multiple
+                            className="hidden"
+                            onChange={(e) => handlePhotoCapture(e, true)}
+                          />
+                        </label>
+                      </>
                     )}
                   </div>
                 </div>

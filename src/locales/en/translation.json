@@ -8194,6 +8194,8 @@
     "fullForm": "Detailed Form",
     "addPhoto": "Add Photo",
     "tapToCapture": "Tap",
+    "camera": "Camera",
+    "gallery": "Gallery",
     "whatDidYouObserve": "What did you observe?",
     "descriptionPlaceholder": "Describe the unsafe condition or behavior you noticed...",
     "observationType": "Type",
