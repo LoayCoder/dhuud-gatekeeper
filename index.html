@@ -170,17 +170,65 @@
     </div>
 
     <script>
-      // Track if React successfully mounted
+      // PRE-REACT DIAGNOSTICS - Runs before any modules load
       window.__REACT_MOUNTED__ = false;
+      window.__BOOT_LOG__ = [];
+      window.__BOOT_ERRORS__ = [];
+      
+      window.__logBoot__ = function(msg) {
+        var entry = new Date().toISOString().split('T')[1] + ': ' + msg;
+        window.__BOOT_LOG__.push(entry);
+        console.log('[Boot]', msg);
+      };
+      
+      window.__logBoot__('Script started');
+      
+      // Catch ALL errors including module loading failures
+      window.addEventListener('error', function(e) {
+        var errMsg = e.message || (e.error && e.error.message) || 'Unknown error';
+        var errFile = e.filename || 'unknown';
+        window.__BOOT_ERRORS__.push({ msg: errMsg, file: errFile, time: Date.now() });
+        window.__logBoot__('ERROR: ' + errMsg);
+        
+        // Update fallback UI to show the actual error
+        var hint = document.querySelector('.fallback-hint');
+        if (hint && !window.__REACT_MOUNTED__) {
+          hint.innerHTML = '<strong>Error:</strong> ' + errMsg + '<br><small>' + errFile + '</small>';
+        }
+        
+        // Show fallback immediately on critical errors
+        if (!window.__REACT_MOUNTED__ && (
+          errMsg.includes('module') || 
+          errMsg.includes('chunk') || 
+          errMsg.includes('undefined')
+        )) {
+          document.getElementById('app-load-fallback').style.display = 'flex';
+        }
+      });
+      
+      // Catch unhandled promise rejections (module loading)
+      window.addEventListener('unhandledrejection', function(e) {
+        var errMsg = (e.reason && e.reason.message) || String(e.reason) || 'Promise rejected';
+        window.__BOOT_ERRORS__.push({ msg: errMsg, type: 'promise', time: Date.now() });
+        window.__logBoot__('PROMISE ERROR: ' + errMsg);
+        
+        var hint = document.querySelector('.fallback-hint');
+        if (hint && !window.__REACT_MOUNTED__) {
+          hint.innerHTML = '<strong>Load Error:</strong> ' + errMsg;
+        }
+      });
       
       // Show fallback if React doesn't mount within timeout
       window.addEventListener('load', function() {
+        window.__logBoot__('Window loaded');
         setTimeout(function() {
           if (!window.__REACT_MOUNTED__) {
-            console.warn('[Fallback UI] React did not mount within timeout, showing fallback');
+            console.warn('[Fallback UI] React did not mount within timeout');
+            console.log('[Fallback UI] Boot log:', window.__BOOT_LOG__);
+            console.log('[Fallback UI] Boot errors:', window.__BOOT_ERRORS__);
             document.getElementById('app-load-fallback').style.display = 'flex';
           }
-        }, 10000); // 10 second timeout
+        }, 8000); // 8 second timeout (reduced from 10)
       });
       
       // Clear cache and reload function
@@ -194,19 +242,18 @@
         btnText.textContent = 'Clearing cache...';
         
         try {
-          // Clear all caches
           if ('caches' in window) {
             var names = await caches.keys();
             await Promise.all(names.map(function(n) { return caches.delete(n); }));
             console.log('[Fallback UI] Cleared', names.length, 'caches');
           }
-          
-          // Unregister service workers
           if ('serviceWorker' in navigator) {
             var regs = await navigator.serviceWorker.getRegistrations();
             await Promise.all(regs.map(function(r) { return r.unregister(); }));
             console.log('[Fallback UI] Unregistered', regs.length, 'service workers');
           }
+          // Clear localStorage version to force fresh check
+          try { localStorage.removeItem('app-version'); } catch(e) {}
           
           btnIcon.textContent = '✅';
           btnText.textContent = 'Reloading...';
@@ -216,14 +263,14 @@
           btnText.textContent = 'Reloading anyway...';
         }
         
-        // Small delay to show success state
-        setTimeout(function() {
-          window.location.reload(true);
-        }, 500);
+        setTimeout(function() { window.location.reload(true); }, 500);
       }
     </script>
 
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Preload main module -->
+    <link rel="modulepreload" href="/src/main.tsx" />
+    <script type="module" src="/src/main.tsx" onerror="window.__logBoot__('Main module failed to load')"></script>
   </body>
 </html>
