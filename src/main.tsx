@@ -7,6 +7,7 @@ import App from "./App";
 import "./index.css";
 import { registerServiceWorker } from "./lib/register-sw";
 import { cacheAppShell } from "./lib/cache-app-shell";
+import { initVersionManager } from "./lib/version-manager";
 
 // Global error handler for chunk loading failures - auto-recovery
 window.addEventListener('unhandledrejection', async (event) => {
@@ -52,28 +53,43 @@ declare global {
   }
 }
 
-// Register service worker for offline caching
-registerServiceWorker();
+// Initialize version manager - checks for updates and clears stale caches
+// This runs before React mounts to ensure fresh assets
+(async () => {
+  try {
+    const isReloading = await initVersionManager();
+    if (isReloading) {
+      // Version manager is handling reload, don't proceed
+      return;
+    }
+  } catch (e) {
+    console.warn('[Version Manager] Init failed:', e);
+  }
 
-// Cache app shell after initial load for offline access
-if (typeof window !== 'undefined') {
-  window.addEventListener('load', () => {
-    // Delay to allow critical resources to load first
-    setTimeout(() => {
-      cacheAppShell();
-    }, 3000);
-  });
-}
+  // Register service worker for offline caching
+  registerServiceWorker();
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <I18nextProvider i18n={i18n}>
-      <App />
-    </I18nextProvider>
-  </StrictMode>
-);
+  // Cache app shell after initial load for offline access
+  if (typeof window !== 'undefined') {
+    window.addEventListener('load', () => {
+      // Delay to allow critical resources to load first
+      setTimeout(() => {
+        cacheAppShell();
+      }, 3000);
+    });
+  }
 
-// Signal that React mounted successfully - hide fallback UI
-window.__REACT_MOUNTED__ = true;
-const fallbackEl = document.getElementById('app-load-fallback');
-if (fallbackEl) fallbackEl.style.display = 'none';
+  // Mount React app
+  createRoot(document.getElementById("root")!).render(
+    <StrictMode>
+      <I18nextProvider i18n={i18n}>
+        <App />
+      </I18nextProvider>
+    </StrictMode>
+  );
+
+  // Signal that React mounted successfully - hide fallback UI
+  window.__REACT_MOUNTED__ = true;
+  const fallbackEl = document.getElementById('app-load-fallback');
+  if (fallbackEl) fallbackEl.style.display = 'none';
+})();
