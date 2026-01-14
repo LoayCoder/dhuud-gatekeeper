@@ -37,7 +37,7 @@ export function useContractorCompanyStats() {
       // Fetch all companies with their status and branch
       const { data: companies, error: companiesError } = await supabase
         .from("contractor_companies")
-        .select("id, status, contract_end_date, company_name, branch:branches(id, name)")
+        .select("id, status, contract_end_date, company_name, branch:branches!branch_id(id, name)")
         .eq("tenant_id", tenantId)
         .is("deleted_at", null);
 
