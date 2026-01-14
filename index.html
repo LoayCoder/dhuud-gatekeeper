@@ -4,6 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
     
+    <!-- Cache Control - Prevent stale HTML caching -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    
     <!-- Early PWA Install Prompt Capture - Must run before React loads -->
     <script>
       window.deferredInstallPrompt = null;
@@ -87,6 +92,137 @@
   </head>
 
   <body>
+    <!-- Fallback Error UI - Shows if React fails to load -->
+    <div id="app-load-fallback" style="display: none;">
+      <style>
+        #app-load-fallback {
+          position: fixed;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+          color: white;
+          font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+          text-align: center;
+          padding: 2rem;
+          z-index: 9999;
+        }
+        #app-load-fallback .fallback-icon {
+          font-size: 4rem;
+          margin-bottom: 1rem;
+          animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.6; }
+        }
+        #app-load-fallback h1 {
+          font-size: 1.5rem;
+          font-weight: 600;
+          margin: 0 0 0.5rem 0;
+        }
+        #app-load-fallback p {
+          opacity: 0.8;
+          margin: 0 0 1.5rem 0;
+          max-width: 400px;
+          line-height: 1.5;
+        }
+        #app-load-fallback button {
+          background: #3b82f6;
+          color: white;
+          border: none;
+          padding: 0.875rem 1.5rem;
+          border-radius: 0.5rem;
+          cursor: pointer;
+          font-size: 1rem;
+          font-weight: 500;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          transition: background 0.2s, transform 0.1s;
+        }
+        #app-load-fallback button:hover {
+          background: #2563eb;
+        }
+        #app-load-fallback button:active {
+          transform: scale(0.98);
+        }
+        #app-load-fallback button:disabled {
+          background: #64748b;
+          cursor: not-allowed;
+        }
+        #app-load-fallback .fallback-hint {
+          margin-top: 1.5rem;
+          font-size: 0.875rem;
+          opacity: 0.6;
+        }
+      </style>
+      <div class="fallback-icon">⚠️</div>
+      <h1>Failed to Load Application</h1>
+      <p>There was a problem loading the app. This is usually caused by outdated cached files.</p>
+      <button id="clear-cache-btn" onclick="clearCacheAndReload()">
+        <span id="btn-icon">🔄</span>
+        <span id="btn-text">Clear Cache and Reload</span>
+      </button>
+      <div class="fallback-hint">If the problem persists, try using incognito mode</div>
+    </div>
+
+    <script>
+      // Track if React successfully mounted
+      window.__REACT_MOUNTED__ = false;
+      
+      // Show fallback if React doesn't mount within timeout
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          if (!window.__REACT_MOUNTED__) {
+            console.warn('[Fallback UI] React did not mount within timeout, showing fallback');
+            document.getElementById('app-load-fallback').style.display = 'flex';
+          }
+        }, 10000); // 10 second timeout
+      });
+      
+      // Clear cache and reload function
+      async function clearCacheAndReload() {
+        var btn = document.getElementById('clear-cache-btn');
+        var btnIcon = document.getElementById('btn-icon');
+        var btnText = document.getElementById('btn-text');
+        
+        btn.disabled = true;
+        btnIcon.textContent = '⏳';
+        btnText.textContent = 'Clearing cache...';
+        
+        try {
+          // Clear all caches
+          if ('caches' in window) {
+            var names = await caches.keys();
+            await Promise.all(names.map(function(n) { return caches.delete(n); }));
+            console.log('[Fallback UI] Cleared', names.length, 'caches');
+          }
+          
+          // Unregister service workers
+          if ('serviceWorker' in navigator) {
+            var regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map(function(r) { return r.unregister(); }));
+            console.log('[Fallback UI] Unregistered', regs.length, 'service workers');
+          }
+          
+          btnIcon.textContent = '✅';
+          btnText.textContent = 'Reloading...';
+        } catch (e) {
+          console.error('[Fallback UI] Cache clear failed:', e);
+          btnIcon.textContent = '⚠️';
+          btnText.textContent = 'Reloading anyway...';
+        }
+        
+        // Small delay to show success state
+        setTimeout(function() {
+          window.location.reload(true);
+        }, 500);
+      }
+    </script>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

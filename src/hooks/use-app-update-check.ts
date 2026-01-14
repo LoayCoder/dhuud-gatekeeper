@@ -26,6 +26,7 @@ interface AppUpdateState {
 const VERSION_STORAGE_KEY = 'app-current-version';
 const DISMISS_COUNT_KEY = 'app-update-dismiss-count';
 const DISMISS_TIME_KEY = 'app-update-dismiss-time';
+const PENDING_RELEASE_NOTES_KEY = 'app-pending-release-notes';
 const CHECK_INTERVAL = 30 * 60 * 1000; // 30 minutes
 const REMIND_LATER_DURATION = 60 * 60 * 1000; // 1 hour
 const DONT_REMIND_TODAY_DURATION = 24 * 60 * 60 * 1000; // 24 hours
@@ -145,6 +146,16 @@ export function useAppUpdateCheck(): AppUpdateState {
     localStorage.removeItem(DISMISS_COUNT_KEY);
     localStorage.removeItem(DISMISS_TIME_KEY);
     
+    // Store release notes BEFORE reloading so WhatsNew dialog can show them
+    if (newVersion && releaseNotes.length > 0) {
+      localStorage.setItem(PENDING_RELEASE_NOTES_KEY, JSON.stringify({
+        version: newVersion,
+        releaseNotes: releaseNotes,
+        buildDate: new Date().toISOString(),
+        priority: priority,
+      }));
+    }
+    
     if ('serviceWorker' in navigator && !isIOS) {
       // Standard SW update flow
       navigator.serviceWorker.ready.then((registration) => {
@@ -175,7 +186,7 @@ export function useAppUpdateCheck(): AppUpdateState {
       }
       window.location.reload();
     }
-  }, [isIOS, newVersion]);
+  }, [isIOS, newVersion, releaseNotes, priority]);
 
   const dismissUpdate = useCallback((dontRemindToday = false) => {
     const newDismissCount = dismissCount + 1;

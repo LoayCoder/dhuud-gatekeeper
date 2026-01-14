@@ -10,20 +10,18 @@ import {
 import { Button } from '@/components/ui/button';
 import { Sparkles, Check } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useVersionInfo } from '@/hooks/use-version-info';
 
 const SEEN_VERSION_KEY = 'app-whats-new-seen';
 
-interface WhatsNewDialogProps {
-  version: string;
-  releaseNotes: string[];
-  onClose?: () => void;
-}
-
-export function WhatsNewDialog({ version, releaseNotes, onClose }: WhatsNewDialogProps) {
+export function WhatsNewDialog() {
   const { t } = useTranslation();
+  const { version, releaseNotes, isLoading } = useVersionInfo();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    if (isLoading) return;
+    
     const seenVersion = localStorage.getItem(SEEN_VERSION_KEY);
     
     // Show dialog if this version hasn't been seen yet
@@ -34,15 +32,14 @@ export function WhatsNewDialog({ version, releaseNotes, onClose }: WhatsNewDialo
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [version, releaseNotes]);
+  }, [version, releaseNotes, isLoading]);
 
   const handleClose = () => {
     localStorage.setItem(SEEN_VERSION_KEY, version);
     setOpen(false);
-    onClose?.();
   };
 
-  if (!version || releaseNotes.length === 0) {
+  if (!version || releaseNotes.length === 0 || isLoading) {
     return null;
   }
 
