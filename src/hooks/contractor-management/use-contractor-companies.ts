@@ -54,7 +54,7 @@ export function useContractorCompanies(filters: ContractorCompanyFilters = {}) {
         .select(`
           id, tenant_id, company_name, company_name_ar, commercial_registration_number,
           vat_number, email, phone, address, city, status, assigned_client_pm_id,
-          suspension_reason, suspended_at, created_at, updated_at, assigned_branch_id
+          suspension_reason, suspended_at, suspended_by, created_at, updated_at, deleted_at, assigned_branch_id
         `)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
@@ -86,7 +86,7 @@ export function useContractorCompanies(filters: ContractorCompanyFilters = {}) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as ContractorCompany[];
+      return (data || []) as unknown as ContractorCompany[];
     },
     enabled: !!tenantId,
   });
