@@ -351,7 +351,7 @@ export interface IncidentWithDetails {
   reporter?: { id: string; full_name: string | null } | null;
   closure_requester?: { id: string; full_name: string | null } | null;
   branch?: { id: string; name: string } | null;
-  site?: { id: string; name: string } | null;
+  site?: { id: string; name: string; latitude?: number | null; longitude?: number | null } | null;
   department_info?: { id: string; name: string } | null;
   special_event?: { id: string; name: string } | null;
   // Related contractor for negative observations
@@ -386,7 +386,7 @@ export function useIncident(id: string | undefined) {
           reporter:profiles!incidents_reporter_id_fkey(id, full_name),
           closure_requester:profiles!incidents_closure_requested_by_fkey(id, full_name),
           branch:branches!incidents_branch_id_fkey(id, name),
-          site:sites!incidents_site_id_fkey(id, name),
+          site:sites!incidents_site_id_fkey(id, name, latitude, longitude),
           department_info:departments!incidents_department_id_fkey(id, name),
           special_event:special_events!incidents_special_event_id_fkey(id, name),
           related_contractor_company:contractor_companies!incidents_related_contractor_company_id_fkey(id, company_name)

@@ -379,28 +379,43 @@ export default function IncidentDetail() {
                   )}
                 </div>
 
-                {/* GPS Coordinates */}
-                {incident.latitude && incident.longitude && (
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-mono">
-                        {incident.latitude.toFixed(6)}, {incident.longitude.toFixed(6)}
-                      </span>
+                {/* GPS Coordinates - with fallback to site location */}
+                {(() => {
+                  const effectiveLatitude = incident.latitude || incident.site?.latitude;
+                  const effectiveLongitude = incident.longitude || incident.site?.longitude;
+                  const isUsingFallbackLocation = !incident.latitude && incident.site?.latitude;
+                  
+                  if (!effectiveLatitude || !effectiveLongitude) return null;
+                  
+                  return (
+                    <div className="space-y-2">
+                      {isUsingFallbackLocation && (
+                        <Badge variant="secondary" className="text-xs">
+                          {t('incidents.approximateLocation', 'Approximate Location (Site)')}
+                        </Badge>
+                      )}
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-mono">
+                            {effectiveLatitude.toFixed(6)}, {effectiveLongitude.toFixed(6)}
+                          </span>
+                        </div>
+                        <Button variant="outline" size="sm" asChild>
+                          <a 
+                            href={`https://www.google.com/maps?q=${effectiveLatitude},${effectiveLongitude}`}
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="gap-2"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            {t('incidents.viewOnMap')}
+                          </a>
+                        </Button>
+                      </div>
                     </div>
-                    <Button variant="outline" size="sm" asChild>
-                      <a 
-                        href={`https://www.google.com/maps?q=${incident.latitude},${incident.longitude}`}
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="gap-2"
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                        {t('incidents.viewOnMap')}
-                      </a>
-                    </Button>
-                  </div>
-                )}
+                  );
+                })()}
               </CardContent>
             </Card>
           )}
