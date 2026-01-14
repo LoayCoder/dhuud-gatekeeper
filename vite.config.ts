@@ -16,11 +16,13 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     // PWA Plugin with Workbox - simplified config
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       injectRegister: 'auto',
-      includeAssets: ['favicon.ico', 'placeholder.svg'],
+      includeAssets: ['favicon.ico', 'placeholder.svg', 'sw-version.js'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        skipWaiting: true,
+        clientsClaim: true,
         cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [
@@ -111,7 +113,9 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('/components/')) return 'app-components';
           if (id.includes('/lib/')) return 'app-lib';
         },
-        chunkFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash]-v3.js',
+        entryFileNames: 'assets/[name]-[hash]-v3.js',
+        assetFileNames: 'assets/[name]-[hash]-v3.[ext]',
       },
     },
   },
