@@ -3272,6 +3272,7 @@ export type Database = {
       }
       buildings: {
         Row: {
+          branch_id: string | null
           code: string | null
           created_at: string | null
           deleted_at: string | null
@@ -3287,6 +3288,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          branch_id?: string | null
           code?: string | null
           created_at?: string | null
           deleted_at?: string | null
@@ -3302,6 +3304,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          branch_id?: string | null
           code?: string | null
           created_at?: string | null
           deleted_at?: string | null
@@ -3317,6 +3320,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "buildings_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "buildings_site_id_fkey"
             columns: ["site_id"]
@@ -5721,6 +5731,7 @@ export type Database = {
       }
       departments: {
         Row: {
+          branch_id: string | null
           created_at: string | null
           deleted_at: string | null
           division_id: string
@@ -5729,6 +5740,7 @@ export type Database = {
           tenant_id: string
         }
         Insert: {
+          branch_id?: string | null
           created_at?: string | null
           deleted_at?: string | null
           division_id: string
@@ -5737,6 +5749,7 @@ export type Database = {
           tenant_id: string
         }
         Update: {
+          branch_id?: string | null
           created_at?: string | null
           deleted_at?: string | null
           division_id?: string
@@ -5745,6 +5758,13 @@ export type Database = {
           tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "departments_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "departments_division_id_fkey"
             columns: ["division_id"]
@@ -5763,6 +5783,7 @@ export type Database = {
       }
       divisions: {
         Row: {
+          branch_id: string | null
           created_at: string | null
           deleted_at: string | null
           id: string
@@ -5770,6 +5791,7 @@ export type Database = {
           tenant_id: string
         }
         Insert: {
+          branch_id?: string | null
           created_at?: string | null
           deleted_at?: string | null
           id?: string
@@ -5777,6 +5799,7 @@ export type Database = {
           tenant_id: string
         }
         Update: {
+          branch_id?: string | null
           created_at?: string | null
           deleted_at?: string | null
           id?: string
@@ -5784,6 +5807,13 @@ export type Database = {
           tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "divisions_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "divisions_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -6891,6 +6921,7 @@ export type Database = {
       }
       floors_zones: {
         Row: {
+          branch_id: string | null
           building_id: string
           created_at: string | null
           deleted_at: string | null
@@ -6904,6 +6935,7 @@ export type Database = {
           zone_type: string | null
         }
         Insert: {
+          branch_id?: string | null
           building_id: string
           created_at?: string | null
           deleted_at?: string | null
@@ -6917,6 +6949,7 @@ export type Database = {
           zone_type?: string | null
         }
         Update: {
+          branch_id?: string | null
           building_id?: string
           created_at?: string | null
           deleted_at?: string | null
@@ -6930,6 +6963,13 @@ export type Database = {
           zone_type?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "floors_zones_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "floors_zones_building_id_fkey"
             columns: ["building_id"]
@@ -18021,6 +18061,7 @@ export type Database = {
       }
       sections: {
         Row: {
+          branch_id: string | null
           created_at: string | null
           deleted_at: string | null
           department_id: string
@@ -18029,6 +18070,7 @@ export type Database = {
           tenant_id: string
         }
         Insert: {
+          branch_id?: string | null
           created_at?: string | null
           deleted_at?: string | null
           department_id: string
@@ -18037,6 +18079,7 @@ export type Database = {
           tenant_id: string
         }
         Update: {
+          branch_id?: string | null
           created_at?: string | null
           deleted_at?: string | null
           department_id?: string
@@ -18045,6 +18088,13 @@ export type Database = {
           tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "sections_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sections_department_id_fkey"
             columns: ["department_id"]
@@ -21124,6 +21174,60 @@ export type Database = {
           },
         ]
       }
+      user_branch_assignments: {
+        Row: {
+          access_level: string
+          branch_id: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          is_primary: boolean
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_level?: string
+          branch_id: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_primary?: boolean
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_level?: string
+          branch_id?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_primary?: boolean
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_branch_assignments_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_branch_assignments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_menu_access: {
         Row: {
           deleted_at: string | null
@@ -23368,6 +23472,10 @@ export type Database = {
             }
             Returns: Json
           }
+      can_access_branch: {
+        Args: { _branch_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_add_contractor_project: {
         Args: { p_company_id: string }
         Returns: boolean
@@ -24113,6 +24221,7 @@ export type Database = {
         Returns: number
       }
       get_user_badge_stats: { Args: { p_user_id: string }; Returns: Json }
+      get_user_branch_ids: { Args: { _user_id: string }; Returns: string[] }
       get_user_menu_access: {
         Args: { _user_id: string }
         Returns: {
@@ -24128,6 +24237,7 @@ export type Database = {
           sort_order: number
         }[]
       }
+      get_user_primary_branch: { Args: { _user_id: string }; Returns: string }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
