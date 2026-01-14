@@ -23,7 +23,7 @@ import { format } from 'date-fns';
 import { useState } from 'react';
 import { generateIncidentReportPDF } from '@/lib/generate-incident-report-pdf';
 import { toast } from 'sonner';
-import { getSubtypeTranslation } from '@/lib/hsse-translation-utils';
+import { getSubtypeTranslation, snakeToCamel } from '@/lib/hsse-translation-utils';
 import { HSSEValidationCard } from '@/components/investigation/HSSEValidationCard';
 import { ObservationClosureGate } from '@/components/investigation/ObservationClosureGate';
 import { HSSEExpertRejectionReviewCard } from '@/components/investigation/HSSEExpertRejectionReviewCard';
@@ -320,9 +320,10 @@ export default function IncidentDetail() {
                   </p>
                   <p className="font-medium">
                     {(incident as any).incident_type 
-                      ? String(t(`incidents.hsseEventTypes.${(incident as any).incident_type}`, (incident as any).incident_type))
+                      ? String(t(`incidents.hsseEventTypes.${snakeToCamel((incident as any).incident_type)}`, 
+                                 { defaultValue: t(`incidents.hsseEventTypes.${(incident as any).incident_type}`, { defaultValue: (incident as any).incident_type }) as string }))
                       : incident.subtype
-                        ? String(t(`incidents.incidentTypes.${incident.subtype}`, incident.subtype))
+                        ? getSubtypeTranslation(t, incident.event_type, incident.subtype, (incident as any).incident_type)
                         : '—'
                     }
                   </p>
