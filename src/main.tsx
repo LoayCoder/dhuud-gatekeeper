@@ -53,18 +53,18 @@ declare global {
   }
 }
 
-// Initialize version manager - checks for updates and clears stale caches
-// This runs before React mounts to ensure fresh assets
-(async () => {
-  try {
-    const isReloading = await initVersionManager();
-    if (isReloading) {
-      // Version manager is handling reload, don't proceed
-      return;
-    }
-  } catch (e) {
-    console.warn('[Version Manager] Init failed:', e);
+/**
+ * Mount React application
+ * This function ensures React only mounts once
+ */
+function mountReact() {
+  // Prevent double mounting
+  if (window.__REACT_MOUNTED__) {
+    console.log('[App] Already mounted, skipping');
+    return;
   }
+
+  console.log('[App] Mounting React application...');
 
   // Register service worker for offline caching
   registerServiceWorker();
@@ -90,6 +90,36 @@ declare global {
 
   // Signal that React mounted successfully - hide fallback UI
   window.__REACT_MOUNTED__ = true;
+  console.log('[App] React mounted successfully');
+  
   const fallbackEl = document.getElementById('app-load-fallback');
   if (fallbackEl) fallbackEl.style.display = 'none';
+}
+
+// Initialize app with failsafe timeout
+(async () => {
+  let hasTimedOut = false;
+  
+  // FAILSAFE: Ensure React mounts within 3 seconds no matter what
+  const mountTimeout = setTimeout(() => {
+    if (!window.__REACT_MOUNTED__) {
+      console.warn('[App] Version check timed out, mounting React anyway');
+      hasTimedOut = true;
+      mountReact();
+    }
+  }, 3000);
+  
+  try {
+    // Initialize version manager - this should NOT block
+    await initVersionManager();
+  } catch (e) {
+    console.warn('[App] Version manager error (non-blocking):', e);
+  }
+  
+  // Clear timeout and mount if not already done
+  clearTimeout(mountTimeout);
+  
+  if (!hasTimedOut && !window.__REACT_MOUNTED__) {
+    mountReact();
+  }
 })();
