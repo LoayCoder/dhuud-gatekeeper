@@ -1,10 +1,10 @@
 {
-  "version": "2025.01.14.001",
-  "buildDate": "2025-01-14T00:00:00Z",
+  "version": "2025.01.14.002",
+  "buildDate": "2025-01-14T12:00:00Z",
   "releaseNotes": [
-    "PWA cache versioning for automatic cache invalidation",
-    "Visual fallback error UI for load failures",
-    "Automatic service worker cache recovery"
+    "Critical fix: Sync React mount - no async blocking",
+    "Enhanced error diagnostics in fallback UI",
+    "Reduced timeout for faster error detection"
   ],
-  "priority": "normal"
+  "priority": "critical"
 }
