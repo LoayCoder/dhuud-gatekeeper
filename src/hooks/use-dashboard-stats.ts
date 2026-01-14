@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useBranchFilter } from '@/hooks/use-branch-filter';
 
 export interface DashboardModuleStats {
   ptw: {
@@ -30,8 +31,10 @@ export interface DashboardModuleStats {
 }
 
 export function useDashboardStats() {
+  const { activeBranchId, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
+
   return useQuery({
-    queryKey: ['dashboard-module-stats'],
+    queryKey: ['dashboard-module-stats', ...branchQueryKey],
     queryFn: async (): Promise<DashboardModuleStats> => {
       const defaultStats: DashboardModuleStats = {
         ptw: { active_permits: 0, pending_approvals: 0, expiring_today: 0 },
@@ -41,6 +44,8 @@ export function useDashboardStats() {
         actions: { my_pending: 0, overdue: 0, due_this_week: 0 },
       };
       
+      // Note: The RPC may not support branch filtering yet - just call it without params
+      // TODO: Update RPC to accept p_branch_id parameter when needed
       const { data, error } = await supabase.rpc('get_dashboard_module_stats');
       
       if (error) {
