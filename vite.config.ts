@@ -82,7 +82,8 @@ export default defineConfig(({ mode }) => ({
         manualChunks: (id) => {
           // Vendor chunks by category
           if (id.includes('node_modules')) {
-            if (id.includes('react-dom') || id.includes('react-router')) return 'vendor-react';
+            // CRITICAL: All React packages MUST be in the same chunk to prevent duplicate runtime
+            if (id.includes('node_modules/react')) return 'vendor-react';
             if (id.includes('@radix-ui')) return 'vendor-ui';
             if (id.includes('@tanstack')) return 'vendor-query';
             if (id.includes('@supabase')) return 'vendor-supabase';
