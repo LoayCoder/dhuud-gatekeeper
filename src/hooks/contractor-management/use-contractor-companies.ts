@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBranchFilter } from "@/hooks/use-branch-filter";
 import { toast } from "sonner";
 
 export interface ContractorCompany {
@@ -41,9 +42,10 @@ export interface ContractorCompanyFilters {
 export function useContractorCompanies(filters: ContractorCompanyFilters = {}) {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
+  const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
 
   return useQuery({
-    queryKey: ["contractor-companies", tenantId, filters],
+    queryKey: ["contractor-companies", tenantId, filters, ...branchQueryKey],
     queryFn: async () => {
       if (!tenantId) return [];
 
@@ -52,7 +54,7 @@ export function useContractorCompanies(filters: ContractorCompanyFilters = {}) {
         .select(`
           id, tenant_id, company_name, company_name_ar, commercial_registration_number,
           vat_number, email, phone, address, city, status, assigned_client_pm_id,
-          suspension_reason, suspended_at, created_at, updated_at
+          suspension_reason, suspended_at, created_at, updated_at, assigned_branch_id
         `)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
@@ -73,6 +75,13 @@ export function useContractorCompanies(filters: ContractorCompanyFilters = {}) {
 
       if (filters.status) {
         query = query.eq("status", filters.status);
+      }
+      
+      // Apply branch filter
+      if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
+        query = branchIds.length === 1
+          ? query.eq("assigned_branch_id", branchIds[0])
+          : query.in("assigned_branch_id", branchIds);
       }
 
       const { data, error } = await query;

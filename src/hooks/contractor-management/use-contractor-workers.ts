@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBranchFilter } from "@/hooks/use-branch-filter";
 import { toast } from "sonner";
 
 export interface WorkerInduction {
@@ -47,9 +48,10 @@ export interface ContractorWorkerFilters {
 export function useContractorWorkers(filters: ContractorWorkerFilters = {}) {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
+  const { queryKey: branchQueryKey } = useBranchFilter();
 
   return useQuery({
-    queryKey: ["contractor-workers", tenantId, filters],
+    queryKey: ["contractor-workers", tenantId, filters, ...branchQueryKey],
     queryFn: async () => {
       if (!tenantId) return [];
 
@@ -59,7 +61,7 @@ export function useContractorWorkers(filters: ContractorWorkerFilters = {}) {
           id, tenant_id, company_id, full_name, full_name_ar, national_id, nationality,
           mobile_number, photo_path, preferred_language, approval_status, approved_at,
           rejection_reason, created_at, worker_type, safety_officer_id,
-          company:contractor_companies(company_name),
+          company:contractor_companies(company_name, assigned_branch_id),
           latest_induction:worker_inductions(id, status, expires_at)
         `)
         .eq("tenant_id", tenantId)

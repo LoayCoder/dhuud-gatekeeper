@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBranchFilter } from "@/hooks/use-branch-filter";
 import { toast } from "sonner";
 
 export interface PTWPermit {
@@ -62,9 +63,10 @@ export interface PTWPermitFilters {
 export function usePTWPermits(filters: PTWPermitFilters = {}) {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
+  const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
 
   return useQuery({
-    queryKey: ["ptw-permits", tenantId, filters],
+    queryKey: ["ptw-permits", tenantId, filters, ...branchQueryKey],
     queryFn: async () => {
       if (!tenantId) return [];
 
@@ -85,7 +87,7 @@ export function usePTWPermits(filters: PTWPermitFilters = {}) {
           project:ptw_projects(name, reference_id),
           applicant:profiles!ptw_permits_applicant_id_fkey(full_name),
           issuer:profiles!ptw_permits_issuer_id_fkey(full_name),
-          site:sites(name)
+          site:sites(name, branch_id)
         `)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
@@ -101,6 +103,15 @@ export function usePTWPermits(filters: PTWPermitFilters = {}) {
 
       const { data, error } = await query;
       if (error) throw error;
+      
+      // Filter by branch via site relationship if branch filter is active
+      if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
+        return (data as PTWPermit[]).filter(permit => {
+          const siteBranchId = (permit.site as unknown as { branch_id?: string })?.branch_id;
+          return siteBranchId && branchIds.includes(siteBranchId);
+        });
+      }
+      
       return data as PTWPermit[];
     },
     enabled: !!tenantId,
@@ -303,9 +314,10 @@ export function useUpdatePermitStatus() {
 export function useActivePermitsForMap() {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
+  const { queryKey: branchQueryKey } = useBranchFilter();
 
   return useQuery({
-    queryKey: ["ptw-permits-map", tenantId],
+    queryKey: ["ptw-permits-map", tenantId, ...branchQueryKey],
     queryFn: async () => {
       if (!tenantId) return [];
 

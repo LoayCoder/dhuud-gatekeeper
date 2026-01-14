@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBranchFilter } from "@/hooks/use-branch-filter";
 
 export interface ContractorDashboardStats {
   // Companies
@@ -98,15 +99,30 @@ const COVERAGE_THRESHOLDS = {
 export function useContractorDashboardStats() {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
+  const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
 
   return useQuery({
-    queryKey: ["contractor-dashboard-stats", tenantId],
+    queryKey: ["contractor-dashboard-stats", tenantId, ...branchQueryKey],
     queryFn: async (): Promise<ContractorDashboardStats> => {
       if (!tenantId) {
         throw new Error("No tenant ID");
       }
 
+      // Helper to check if we should apply branch filter
+      const shouldFilterBranch = !isAllBranchesMode && branchIds && branchIds.length > 0;
+
       // Fetch all data in parallel
+      const companiesQuery = supabase.from("contractor_companies").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null);
+      const workersQuery = supabase.from("contractor_workers").select("id, approval_status").eq("tenant_id", tenantId).is("deleted_at", null);
+      const projectsQuery = supabase.from("contractor_projects").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null);
+      const gatePassesQuery = supabase.from("material_gate_passes").select("id, status, pass_date").eq("tenant_id", tenantId).is("deleted_at", null);
+      const safetyOfficersQuery = supabase.from("contractor_safety_officers").select("id").eq("tenant_id", tenantId).is("deleted_at", null);
+      const incidentsQuery = supabase.from("incidents").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null);
+      const permitsQuery = supabase.from("ptw_permits").select("id, status, planned_end_time").eq("tenant_id", tenantId).is("deleted_at", null);
+      const riskAssessmentsQuery = supabase.from("risk_assessments").select("id, status, overall_risk_rating, valid_until").eq("tenant_id", tenantId).is("deleted_at", null);
+      const onsiteQuery = supabase.from("gate_entry_logs").select("id").eq("tenant_id", tenantId).is("exit_time", null);
+      const blacklistQuery = supabase.from("security_blacklist").select("id, listed_at").eq("tenant_id", tenantId).is("deleted_at", null);
+
       const [
         companiesResult,
         workersResult,
@@ -119,75 +135,30 @@ export function useContractorDashboardStats() {
         onsiteResult,
         blacklistResult,
       ] = await Promise.all([
-        // Companies
-        supabase
-          .from("contractor_companies")
-          .select("id, status")
-          .eq("tenant_id", tenantId)
-          .is("deleted_at", null),
-
-        // Workers
-        supabase
-          .from("contractor_workers")
-          .select("id, approval_status")
-          .eq("tenant_id", tenantId)
-          .is("deleted_at", null),
-
-        // Projects
-        supabase
-          .from("contractor_projects")
-          .select("id, status")
-          .eq("tenant_id", tenantId)
-          .is("deleted_at", null),
-
-        // Gate Passes
-        supabase
-          .from("material_gate_passes")
-          .select("id, status, pass_date")
-          .eq("tenant_id", tenantId)
-          .is("deleted_at", null),
-
-        // Safety Officers (all non-deleted are considered active)
-        supabase
-          .from("contractor_safety_officers")
-          .select("id")
-          .eq("tenant_id", tenantId)
-          .is("deleted_at", null),
-
-        // Incidents (HSSE Events) - contractor related
-        supabase
-          .from("incidents")
-          .select("id, status")
-          .eq("tenant_id", tenantId)
-          .is("deleted_at", null),
-
-        // PTW Permits - use correct columns: planned_end_time instead of valid_until
-        supabase
-          .from("ptw_permits")
-          .select("id, status, planned_end_time")
-          .eq("tenant_id", tenantId)
-          .is("deleted_at", null),
-
-        // Risk Assessments - use correct columns: overall_risk_rating, valid_until
-        supabase
-          .from("risk_assessments")
-          .select("id, status, overall_risk_rating, valid_until")
-          .eq("tenant_id", tenantId)
-          .is("deleted_at", null),
-
-        // Onsite Workers (gate entries without exit)
-        supabase
-          .from("gate_entry_logs")
-          .select("id")
-          .eq("tenant_id", tenantId)
-          .is("exit_time", null),
-
-        // Blacklist - use listed_at instead of created_at
-        supabase
-          .from("security_blacklist")
-          .select("id, listed_at")
-          .eq("tenant_id", tenantId)
-          .is("deleted_at", null),
+        shouldFilterBranch && branchIds
+          ? (branchIds.length === 1 ? companiesQuery.eq("assigned_branch_id", branchIds[0]) : companiesQuery.in("assigned_branch_id", branchIds))
+          : companiesQuery,
+        workersQuery,
+        shouldFilterBranch && branchIds
+          ? (branchIds.length === 1 ? projectsQuery.eq("branch_id", branchIds[0]) : projectsQuery.in("branch_id", branchIds))
+          : projectsQuery,
+        shouldFilterBranch && branchIds
+          ? (branchIds.length === 1 ? gatePassesQuery.eq("branch_id", branchIds[0]) : gatePassesQuery.in("branch_id", branchIds))
+          : gatePassesQuery,
+        safetyOfficersQuery,
+        shouldFilterBranch && branchIds
+          ? (branchIds.length === 1 ? incidentsQuery.eq("branch_id", branchIds[0]) : incidentsQuery.in("branch_id", branchIds))
+          : incidentsQuery,
+        permitsQuery,
+        shouldFilterBranch && branchIds
+          ? (branchIds.length === 1 ? riskAssessmentsQuery.eq("branch_id", branchIds[0]) : riskAssessmentsQuery.in("branch_id", branchIds))
+          : riskAssessmentsQuery,
+        shouldFilterBranch && branchIds
+          ? (branchIds.length === 1 ? onsiteQuery.eq("branch_id", branchIds[0]) : onsiteQuery.in("branch_id", branchIds))
+          : onsiteQuery,
+        shouldFilterBranch && branchIds
+          ? (branchIds.length === 1 ? blacklistQuery.eq("branch_id", branchIds[0]) : blacklistQuery.in("branch_id", branchIds))
+          : blacklistQuery,
       ]);
 
       // Process companies
@@ -340,13 +311,22 @@ export function useContractorDashboardStats() {
       const thirtyDaysFromNow = new Date();
       thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
-      const { data: expiringCompanies } = await supabase
+      let expiringQuery = supabase
         .from("contractor_companies")
         .select("id")
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
         .lt("contract_end_date", thirtyDaysFromNow.toISOString())
         .gt("contract_end_date", now.toISOString());
+
+      // Apply branch filter to expiring contracts
+      if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
+        expiringQuery = branchIds.length === 1
+          ? expiringQuery.eq("assigned_branch_id", branchIds[0])
+          : expiringQuery.in("assigned_branch_id", branchIds);
+      }
+
+      const { data: expiringCompanies } = await expiringQuery;
 
       return {
         companies: companiesStats,

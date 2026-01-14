@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBranchFilter } from "@/hooks/use-branch-filter";
 import { toast } from "sonner";
 
 export interface PTWProject {
@@ -53,9 +54,10 @@ export interface PTWProjectFilters {
 export function usePTWProjects(filters: PTWProjectFilters = {}) {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
+  const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
 
   return useQuery({
-    queryKey: ["ptw-projects", tenantId, filters],
+    queryKey: ["ptw-projects", tenantId, filters, ...branchQueryKey],
     queryFn: async () => {
       if (!tenantId) return [];
 
@@ -66,7 +68,7 @@ export function usePTWProjects(filters: PTWProjectFilters = {}) {
           site_id, contractor_company_id, project_manager_id, linked_contractor_project_id,
           is_internal_work, start_date, end_date, status, mobilization_percentage,
           created_by, created_at, updated_at,
-          site:sites(name),
+          site:sites(name, branch_id),
           contractor_company:contractor_companies(company_name),
           project_manager:profiles!ptw_projects_project_manager_id_fkey(full_name),
           linked_contractor_project:contractor_projects(project_code, project_name)
@@ -84,6 +86,15 @@ export function usePTWProjects(filters: PTWProjectFilters = {}) {
 
       const { data, error } = await query;
       if (error) throw error;
+      
+      // Filter by branch via site relationship if branch filter is active
+      if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
+        return (data as PTWProject[]).filter(project => {
+          const siteBranchId = (project.site as unknown as { branch_id?: string })?.branch_id;
+          return siteBranchId && branchIds.includes(siteBranchId);
+        });
+      }
+      
       return data as PTWProject[];
     },
     enabled: !!tenantId,

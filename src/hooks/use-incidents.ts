@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useBranchFilter } from '@/hooks/use-branch-filter';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import type { Database } from '@/integrations/supabase/types';
@@ -249,13 +250,14 @@ export function useCreateIncident() {
 
 export function useIncidents() {
   const { profile } = useAuth();
+  const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
 
   return useQuery({
-    queryKey: ['incidents', profile?.tenant_id],
+    queryKey: ['incidents', profile?.tenant_id, ...branchQueryKey],
     queryFn: async () => {
       if (!profile?.tenant_id) return [];
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('incidents')
         .select(`
           id, reference_id, title, event_type, subtype, incident_type,
@@ -269,6 +271,14 @@ export function useIncidents() {
         .order('created_at', { ascending: false })
         .range(0, 99); // Limit to first 100 incidents for performance
 
+      // Apply branch filter
+      if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
+        query = branchIds.length === 1
+          ? query.eq('branch_id', branchIds[0])
+          : query.in('branch_id', branchIds);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
