@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBranchFilter } from "@/hooks/use-branch-filter";
 
 export interface DashboardSummary {
   total_events: number;
@@ -89,13 +90,17 @@ export interface HSSEEventDashboardData {
 
 export function useHSSEEventDashboard(startDate?: Date, endDate?: Date) {
   const { profile } = useAuth();
+  const { activeBranchId, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
 
   return useQuery({
-    queryKey: ['hsse-event-dashboard', profile?.tenant_id, startDate?.toISOString(), endDate?.toISOString()],
+    queryKey: ['hsse-event-dashboard', profile?.tenant_id, ...branchQueryKey, startDate?.toISOString(), endDate?.toISOString()],
     queryFn: async () => {
+      // Call RPC with branch_id filter if not in "all branches" mode
       const { data, error } = await supabase.rpc('get_hsse_event_dashboard_stats', {
         p_start_date: startDate?.toISOString().split('T')[0] || null,
         p_end_date: endDate?.toISOString().split('T')[0] || null,
+        // Pass branch_id if filtering by specific branch
+        ...((!isAllBranchesMode && activeBranchId) ? { p_branch_id: activeBranchId } : {}),
       });
 
       if (error) throw error;
