@@ -86,3 +86,8 @@ export {
   BarChartSkeleton, 
   LineChartSkeleton 
 } from './ChartSkeletons';
+
+// Cross-Branch Analytics
+export { CrossBranchSummaryCard } from './CrossBranchSummaryCard';
+export { CrossBranchAnalytics } from './CrossBranchAnalytics';
+export { CrossBranchHeatmap } from './CrossBranchHeatmap';

@@ -27,6 +27,7 @@ import {
   Lightbulb,
   Eye,
   Flame,
+  ArrowRightLeft,
 } from "lucide-react";
 import { subDays, subMonths, startOfYear, format } from "date-fns";
 import { useHSSEEventDashboard } from "@/hooks/use-hsse-event-dashboard";
@@ -103,6 +104,9 @@ import {
   NearMissWidget,
   HeinrichPyramid,
   DataQualityIndicator,
+  CrossBranchSummaryCard,
+  CrossBranchAnalytics,
+  CrossBranchHeatmap,
 } from "@/components/incidents/dashboard";
 import { useHSSEAlerts } from "@/hooks/use-hsse-alerts";
 
@@ -116,6 +120,8 @@ export default function HSSEEventDashboard() {
   const [kpiDateRange, setKpiDateRange] = useState<DateRange>('month');
   const [branchId, setBranchId] = useState<string>('');
   const [siteId, setSiteId] = useState<string>('');
+  const [reporterBranchFilter, setReporterBranchFilter] = useState<string>('');
+  const [locationBranchFilter, setLocationBranchFilter] = useState<string>('');
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   // Branch/Site data
@@ -765,6 +771,34 @@ export default function HSSEEventDashboard() {
             endDate={endDate}
             branchId={branchId || undefined}
             siteId={siteId || undefined}
+          />
+        </DashboardSection>
+
+        {/* ========== SECTION 7.5: Cross-Branch Analytics ========== */}
+        <DashboardSection 
+          title={t('hsseDashboard.crossBranchAnalytics', 'Cross-Branch Analytics')} 
+          icon={ArrowRightLeft}
+          defaultExpanded={false}
+        >
+          <div className="grid gap-4 lg:grid-cols-3">
+            <CrossBranchSummaryCard 
+              startDate={startDate} 
+              endDate={endDate} 
+            />
+            <div className="lg:col-span-2">
+              <CrossBranchAnalytics 
+                startDate={startDate} 
+                endDate={endDate}
+                locationBranchId={locationBranchFilter}
+                reporterBranchId={reporterBranchFilter}
+                onLocationBranchChange={setLocationBranchFilter}
+                onReporterBranchChange={setReporterBranchFilter}
+              />
+            </div>
+          </div>
+          <CrossBranchHeatmap 
+            startDate={startDate} 
+            endDate={endDate} 
           />
         </DashboardSection>
 

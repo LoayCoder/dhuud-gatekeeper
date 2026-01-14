@@ -25081,6 +25081,16 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string[]
       }
+      get_cross_branch_analytics: {
+        Args: {
+          p_end_date?: string
+          p_location_branch_id?: string
+          p_reporter_branch_id?: string
+          p_start_date?: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       get_current_month_usage: { Args: { p_tenant_id: string }; Returns: Json }
       get_dashboard_module_stats: { Args: never; Returns: Json }
       get_dashboard_quick_action_counts: { Args: never; Returns: Json }
