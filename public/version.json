@@ -1,10 +1,10 @@
 {
-  "version": "2025.01.14.003",
-  "buildDate": "2025-01-14T14:00:00Z",
+  "version": "2025.01.14.004",
+  "buildDate": "2025-01-14T16:00:00Z",
   "releaseNotes": [
-    "Critical fix: React duplicate runtime resolved",
-    "All React packages now in single vendor-react chunk",
-    "Prevents __SECRET_INTERNALS error"
+    "Force new chunk hashes to bypass all caches",
+    "React duplicate runtime permanently resolved",
+    "Aggressive service worker cache invalidation"
   ],
   "priority": "critical"
 }
