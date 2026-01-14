@@ -3578,7 +3578,9 @@
     "selectBuildingForFloor": "اختر مبنى لإدارة طوابقه",
     "parentBuilding": "المبنى الرئيسي",
     "selectBuilding": "اختر المبنى",
-    "buildingRequired": "يرجى اختيار المبنى الرئيسي"
+    "buildingRequired": "يرجى اختيار المبنى الرئيسي",
+    "filterByBranch": "تصفية حسب الفرع",
+    "allBranches": "جميع الفروع"
   },
   "userManagement": {
     "title": "إدارة المستخدمين",
