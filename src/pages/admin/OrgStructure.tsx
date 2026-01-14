@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Card,
@@ -32,6 +32,7 @@ import { SiteDetailDialog } from "@/components/admin/SiteDetailDialog";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRoles } from "@/hooks/use-user-roles";
+import { useBranchFilter } from "@/hooks/use-branch-filter";
 
 interface Branch { 
   id: string; 
@@ -40,9 +41,9 @@ interface Branch {
   latitude: number | null;
   longitude: number | null;
 }
-interface Division { id: string; name: string; }
-interface Department { id: string; name: string; division_id: string; divisions?: { name: string } | null; }
-interface Section { id: string; name: string; department_id: string; departments?: { name: string } | null; }
+interface Division { id: string; name: string; branch_id?: string | null; }
+interface Department { id: string; name: string; division_id: string; branch_id?: string | null; divisions?: { name: string } | null; }
+interface Section { id: string; name: string; department_id: string; branch_id?: string | null; departments?: { name: string } | null; }
 interface Coordinate {
   lat: number;
   lng: number;
@@ -64,6 +65,7 @@ interface Building {
   site_id: string;
   floor_count: number | null;
   is_active: boolean | null;
+  branch_id?: string | null;
   sites?: { name: string } | null;
 }
 interface FloorZone {
@@ -74,6 +76,7 @@ interface FloorZone {
   zone_type: string | null;
   level_number: number | null;
   is_active: boolean | null;
+  branch_id?: string | null;
   buildings?: { name: string } | null;
 }
 
@@ -83,6 +86,7 @@ export default function OrgStructure() {
   const { t, i18n } = useTranslation();
   const { profile } = useAuth();
   const { hasRole } = useUserRoles();
+  const { branchIds, isAllBranchesMode, activeBranchId, isLoading: branchLoading } = useBranchFilter();
   const [loading, setLoading] = useState(true);
   const direction = i18n.dir();
   
@@ -132,8 +136,19 @@ export default function OrgStructure() {
   
   const [saving, setSaving] = useState(false);
 
+  // Helper to apply branch filter to a query
+  const applyBranchFilter = useCallback((query: any, column = 'branch_id') => {
+    if (isAllBranchesMode || !branchIds || branchIds.length === 0) {
+      return query;
+    }
+    if (branchIds.length === 1) {
+      return query.eq(column, branchIds[0]);
+    }
+    return query.in(column, branchIds);
+  }, [branchIds, isAllBranchesMode]);
+
   // Fetch all hierarchy data with explicit tenant_id filtering (defense-in-depth)
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!profile?.tenant_id) {
       setLoading(false);
       return;
@@ -143,42 +158,75 @@ export default function OrgStructure() {
     setLoading(true);
     
     try {
+      // Branches query - if specific branch selected, only show that branch
+      let branchesQuery = supabase.from('branches')
+        .select('id, name, location, latitude, longitude')
+        .eq('tenant_id', tenantId)
+        .is('deleted_at', null)
+        .order('name');
+      
+      if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
+        branchesQuery = branchIds.length === 1 
+          ? branchesQuery.eq('id', branchIds[0])
+          : branchesQuery.in('id', branchIds);
+      }
+
+      // Divisions query with branch filter
+      let divisionsQuery = supabase.from('divisions')
+        .select('id, name, branch_id')
+        .eq('tenant_id', tenantId)
+        .is('deleted_at', null)
+        .order('name');
+      divisionsQuery = applyBranchFilter(divisionsQuery);
+
+      // Departments query with branch filter
+      let departmentsQuery = supabase.from('departments')
+        .select('id, name, division_id, branch_id, divisions(name)')
+        .eq('tenant_id', tenantId)
+        .is('deleted_at', null)
+        .order('name');
+      departmentsQuery = applyBranchFilter(departmentsQuery);
+
+      // Sections query with branch filter
+      let sectionsQuery = supabase.from('sections')
+        .select('id, name, department_id, branch_id, departments(name)')
+        .eq('tenant_id', tenantId)
+        .is('deleted_at', null)
+        .order('name');
+      sectionsQuery = applyBranchFilter(sectionsQuery);
+
+      // Sites query with branch filter
+      let sitesQuery = supabase.from('sites')
+        .select('id, name, latitude, longitude, branch_id, is_active, boundary_polygon, branches(name)')
+        .eq('tenant_id', tenantId)
+        .is('deleted_at', null)
+        .order('name');
+      sitesQuery = applyBranchFilter(sitesQuery);
+
+      // Buildings query with branch filter
+      let buildingsQuery = supabase.from('buildings')
+        .select('id, name, name_ar, site_id, floor_count, is_active, branch_id, sites(name)')
+        .eq('tenant_id', tenantId)
+        .is('deleted_at', null)
+        .order('name');
+      buildingsQuery = applyBranchFilter(buildingsQuery);
+
+      // Floors/Zones query with branch filter
+      let floorsZonesQuery = supabase.from('floors_zones')
+        .select('id, name, name_ar, building_id, zone_type, level_number, is_active, branch_id, buildings(name)')
+        .eq('tenant_id', tenantId)
+        .is('deleted_at', null)
+        .order('level_number');
+      floorsZonesQuery = applyBranchFilter(floorsZonesQuery);
+
       const [b, d, dep, sec, sit, bldg, fz] = await Promise.all([
-        supabase.from('branches')
-          .select('id, name, location, latitude, longitude')
-          .eq('tenant_id', tenantId)
-          .is('deleted_at', null)
-          .order('name'),
-        supabase.from('divisions')
-          .select('id, name')
-          .eq('tenant_id', tenantId)
-          .is('deleted_at', null)
-          .order('name'),
-        supabase.from('departments')
-          .select('id, name, division_id, divisions(name)')
-          .eq('tenant_id', tenantId)
-          .is('deleted_at', null)
-          .order('name'),
-        supabase.from('sections')
-          .select('id, name, department_id, departments(name)')
-          .eq('tenant_id', tenantId)
-          .is('deleted_at', null)
-          .order('name'),
-        supabase.from('sites')
-          .select('id, name, latitude, longitude, branch_id, is_active, boundary_polygon, branches(name)')
-          .eq('tenant_id', tenantId)
-          .is('deleted_at', null)
-          .order('name'),
-        supabase.from('buildings')
-          .select('id, name, name_ar, site_id, floor_count, is_active, sites(name)')
-          .eq('tenant_id', tenantId)
-          .is('deleted_at', null)
-          .order('name'),
-        supabase.from('floors_zones')
-          .select('id, name, name_ar, building_id, zone_type, level_number, is_active, buildings(name)')
-          .eq('tenant_id', tenantId)
-          .is('deleted_at', null)
-          .order('level_number'),
+        branchesQuery,
+        divisionsQuery,
+        departmentsQuery,
+        sectionsQuery,
+        sitesQuery,
+        buildingsQuery,
+        floorsZonesQuery,
       ]);
 
       if (b.data) setBranches(b.data);
@@ -193,11 +241,14 @@ export default function OrgStructure() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [profile?.tenant_id, branchIds, isAllBranchesMode, applyBranchFilter]);
 
+  // Refetch data when branch changes
   useEffect(() => {
-    fetchData();
-  }, [profile?.tenant_id]);
+    if (!branchLoading) {
+      fetchData();
+    }
+  }, [fetchData, branchLoading]);
 
   // Get current location using browser geolocation
   const getCurrentLocation = () => {
@@ -248,6 +299,11 @@ export default function OrgStructure() {
         tenant_id: profile.tenant_id
       };
 
+      // Auto-assign branch_id for tables that support it (not branches themselves)
+      if (table !== 'branches' && !isAllBranchesMode && activeBranchId) {
+        payload.branch_id = activeBranchId;
+      }
+
       // Add branch-specific fields
       if (table === 'branches') {
         if (newBranchLocation.trim()) {
@@ -259,14 +315,14 @@ export default function OrgStructure() {
         }
       }
 
-      // Add site-specific fields
+      // Add site-specific fields (override branch_id with parentId if provided)
       if (table === 'sites') {
         if (!parentId) {
           toast({ title: t('common.error'), description: t('orgStructure.branchRequired'), variant: "destructive" });
           setCreating(false);
           return;
         }
-        payload.branch_id = parentId;
+        payload.branch_id = parentId; // Site's branch is explicitly selected in the form
         if (newSiteLatitude && newSiteLongitude) {
           payload.latitude = parseFloat(newSiteLatitude);
           payload.longitude = parseFloat(newSiteLongitude);
@@ -440,13 +496,20 @@ export default function OrgStructure() {
     window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
   };
 
-  if (loading) {
+  if (loading || branchLoading) {
     return (
       <div className="p-8 flex justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
+
+  // Filtered dropdown options based on selected branch
+  const filteredBranchesForDropdown = branches; // Branches shown are already filtered by useBranchFilter
+  const filteredSitesForDropdown = sites; // Sites are already filtered
+  const filteredBuildingsForDropdown = buildings; // Buildings are already filtered
+  const filteredDivisionsForDropdown = divisions; // Divisions are already filtered
+  const filteredDepartmentsForDropdown = departments; // Departments are already filtered
 
   // Branch row component with location support
   const renderBranchRow = (item: Branch) => (
@@ -887,7 +950,7 @@ export default function OrgStructure() {
                         <SelectValue placeholder={t('orgStructure.selectBranch')} />
                       </SelectTrigger>
                       <SelectContent dir={direction}>
-                        {branches.map(b => (
+                        {filteredBranchesForDropdown.map(b => (
                           <SelectItem key={b.id} value={b.id} className="text-start">{b.name}</SelectItem>
                         ))}
                       </SelectContent>
@@ -1060,7 +1123,7 @@ export default function OrgStructure() {
                         <SelectValue placeholder={t('orgStructure.selectSite')} />
                       </SelectTrigger>
                       <SelectContent dir={direction}>
-                        {sites.map(s => (
+                        {filteredSitesForDropdown.map(s => (
                           <SelectItem key={s.id} value={s.id} className="text-start">{s.name}</SelectItem>
                         ))}
                       </SelectContent>
@@ -1192,7 +1255,7 @@ export default function OrgStructure() {
                         <SelectValue placeholder={t('orgStructure.selectBuilding')} />
                       </SelectTrigger>
                       <SelectContent dir={direction}>
-                        {buildings.map(b => (
+                        {filteredBuildingsForDropdown.map(b => (
                           <SelectItem key={b.id} value={b.id} className="text-start">{b.name}</SelectItem>
                         ))}
                       </SelectContent>
@@ -1379,7 +1442,7 @@ export default function OrgStructure() {
                       <SelectValue placeholder={t('orgStructure.selectDivision')} />
                     </SelectTrigger>
                     <SelectContent dir={direction}>
-                      {divisions.map(d => (
+                      {filteredDivisionsForDropdown.map(d => (
                         <SelectItem key={d.id} value={d.id} className="text-start">{d.name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -1443,7 +1506,7 @@ export default function OrgStructure() {
                       <SelectValue placeholder={t('orgStructure.selectDepartment')} />
                     </SelectTrigger>
                     <SelectContent dir={direction}>
-                      {departments.map(d => (
+                      {filteredDepartmentsForDropdown.map(d => (
                         <SelectItem key={d.id} value={d.id} className="text-start">{d.name}</SelectItem>
                       ))}
                     </SelectContent>
