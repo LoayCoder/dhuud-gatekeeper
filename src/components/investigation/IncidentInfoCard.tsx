@@ -143,7 +143,15 @@ export function IncidentInfoCard({ incident, isLocked }: IncidentInfoCardProps) 
             <InfoItem 
               icon={MapPin}
               label={t('incidents.location', 'Location')} 
-              value={incident.site?.name || incident.branch?.name || incident.location}
+              value={
+                incident.site?.name || 
+                incident.branch?.name || 
+                incident.location ||
+                incident.location_city ||
+                (incident.latitude && incident.longitude 
+                  ? t('incidents.gpsCoordinatesAvailable', 'GPS Coordinates Available')
+                  : undefined)
+              }
             />
             {/* Address Details from GPS */}
             {(incident.location_city || incident.location_district) && (

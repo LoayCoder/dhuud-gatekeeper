@@ -542,6 +542,7 @@
     "crossBranchReport": "إبلاغ عبر الفروع",
     "viewOnMap": "عرض على الخريطة",
     "approximateLocation": "الموقع التقريبي (الموقع)",
+    "gpsCoordinatesAvailable": "إحداثيات GPS متوفرة",
     "linkedEvent": "مرتبط بحدث خاص",
     "attachments": "المرفقات",
     "allAttachments": "جميع المرفقات",
