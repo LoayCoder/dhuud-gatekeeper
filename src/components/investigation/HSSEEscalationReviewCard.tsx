@@ -31,7 +31,9 @@ import {
   ArrowUpCircle,
   Loader2,
   AlertTriangle,
-  User
+  User,
+  MapPin,
+  ExternalLink
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -175,6 +177,36 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
             </div>
             <h4 className="font-medium">{incident.title}</h4>
             <p className="text-sm text-muted-foreground line-clamp-2">{incident.description}</p>
+            
+            {/* Location */}
+            {(incident.site?.name || incident.branch?.name || incident.location || incident.latitude) && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2 border-t border-border/50">
+                <MapPin className="h-4 w-4 flex-shrink-0" />
+                <span>
+                  {incident.site?.name || 
+                   incident.branch?.name || 
+                   incident.location || 
+                   incident.location_city ||
+                   t('incidents.gpsCoordinatesAvailable', 'GPS Coordinates Available')}
+                </span>
+                {(() => {
+                  const lat = incident.latitude || incident.site?.latitude;
+                  const lng = incident.longitude || incident.site?.longitude;
+                  if (!lat || !lng) return null;
+                  return (
+                    <a 
+                      href={`https://www.google.com/maps?q=${lat},${lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline flex items-center gap-1 ms-auto"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      {t('incidents.viewOnMap', 'View')}
+                    </a>
+                  );
+                })()}
+              </div>
+            )}
           </div>
           
           {/* Dept Rep Escalation Notes */}
