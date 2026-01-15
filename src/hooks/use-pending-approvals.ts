@@ -16,6 +16,13 @@ export interface PendingIncidentApproval {
   event_type: string | null;
   created_at: string | null;
   reporter?: { id: string; full_name: string | null } | null;
+  // Location fields
+  location?: string | null;
+  location_city?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  site?: { id: string; name: string; latitude?: number | null; longitude?: number | null } | null;
+  branch?: { id: string; name: string } | null;
 }
 
 export interface PendingActionApproval {
@@ -550,8 +557,11 @@ export function usePendingIncidentApprovals() {
         .from('incidents')
         .select(`
           id, reference_id, title, status, severity, event_type, created_at,
+          location, location_city, latitude, longitude,
           reporter:profiles!incidents_reporter_id_fkey(id, full_name),
-          reporter_id
+          reporter_id,
+          site:sites!incidents_site_id_fkey(id, name, latitude, longitude),
+          branch:branches!incidents_branch_id_fkey(id, name)
         `)
         .eq('tenant_id', profile.tenant_id)
         .filter('status', 'in', `(${pendingStatuses.join(',')})`)

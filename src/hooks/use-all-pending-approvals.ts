@@ -66,7 +66,12 @@ export function useAllPendingApprovals(minDaysPending = 0) {
       // 1. Fetch incident approvals
       const { data: incidents } = await supabase
         .from('incidents')
-        .select('id, reference_id, title, status, event_type, created_at, updated_at, department_id')
+        .select(`
+          id, reference_id, title, status, event_type, created_at, updated_at, department_id,
+          location, location_city, latitude, longitude,
+          site:sites!incidents_site_id_fkey(id, name, latitude, longitude),
+          branch:branches!incidents_branch_id_fkey(id, name)
+        `)
         .eq('tenant_id', profile.tenant_id)
         .or(INCIDENT_APPROVAL_STATUSES.map(s => `status.eq.${s}`).join(','))
         .is('deleted_at', null)
