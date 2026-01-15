@@ -370,68 +370,87 @@ export default function AssetCategoryManagement() {
                                         </div>
                                       ) : (
                                         typeSubtypes.map((subtype) => (
-                                          <div
-                                            key={subtype.id}
-                                            className="flex items-center gap-2 p-2 rounded bg-background"
-                                          >
-                                            <div className="flex-1 min-w-0">
-                                              <div className="flex items-center gap-2">
-                                                <span className="text-sm">
-                                                  {isArabic && subtype.name_ar
-                                                    ? subtype.name_ar
-                                                    : subtype.name}
-                                                </span>
-                                                <Badge variant="outline" className="text-xs">
-                                                  {subtype.code}
-                                                </Badge>
-                                                {!subtype.is_active && (
-                                                  <Badge
-                                                    variant="outline"
-                                                    className="text-xs text-muted-foreground"
+                                          <Collapsible key={subtype.id}>
+                                            <div className="rounded bg-background">
+                                              <div className="flex items-center gap-2 p-2">
+                                                <CollapsibleTrigger asChild>
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-6 w-6"
                                                   >
-                                                    {t('common.inactive')}
-                                                  </Badge>
-                                                )}
+                                                    <ChevronDown className="h-3 w-3" />
+                                                  </Button>
+                                                </CollapsibleTrigger>
+                                                <div className="flex-1 min-w-0">
+                                                  <div className="flex items-center gap-2">
+                                                    <span className="text-sm">
+                                                      {isArabic && subtype.name_ar
+                                                        ? subtype.name_ar
+                                                        : subtype.name}
+                                                    </span>
+                                                    <Badge variant="outline" className="text-xs">
+                                                      {subtype.code}
+                                                    </Badge>
+                                                    {!subtype.is_active && (
+                                                      <Badge
+                                                        variant="outline"
+                                                        className="text-xs text-muted-foreground"
+                                                      >
+                                                        {t('common.inactive')}
+                                                      </Badge>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                  <Switch
+                                                    checked={subtype.is_active ?? true}
+                                                    onCheckedChange={(checked) =>
+                                                      toggleSubtype.mutate({
+                                                        id: subtype.id,
+                                                        is_active: checked,
+                                                      })
+                                                    }
+                                                    disabled={toggleSubtype.isPending}
+                                                    className="scale-75"
+                                                  />
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-6 w-6"
+                                                    onClick={() => setEditSubtype(subtype)}
+                                                  >
+                                                    <Pencil className="h-3 w-3" />
+                                                  </Button>
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-6 w-6"
+                                                    onClick={() =>
+                                                      setDeleteTarget({
+                                                        type: 'subtype',
+                                                        id: subtype.id,
+                                                        name: isArabic && subtype.name_ar
+                                                          ? subtype.name_ar
+                                                          : subtype.name,
+                                                      })
+                                                    }
+                                                  >
+                                                    <Trash2 className="h-3 w-3" />
+                                                  </Button>
+                                                </div>
                                               </div>
+                                              <CollapsibleContent>
+                                                <div className="ps-8 pb-2">
+                                                  <AssetTypePartsSection
+                                                    subtypeId={subtype.id}
+                                                    parentName={subtype.name}
+                                                    parentNameAr={subtype.name_ar}
+                                                  />
+                                                </div>
+                                              </CollapsibleContent>
                                             </div>
-                                            <div className="flex items-center gap-1">
-                                              <Switch
-                                                checked={subtype.is_active ?? true}
-                                                onCheckedChange={(checked) =>
-                                                  toggleSubtype.mutate({
-                                                    id: subtype.id,
-                                                    is_active: checked,
-                                                  })
-                                                }
-                                                disabled={toggleSubtype.isPending}
-                                                className="scale-75"
-                                              />
-                                              <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-6 w-6"
-                                                onClick={() => setEditSubtype(subtype)}
-                                              >
-                                                <Pencil className="h-3 w-3" />
-                                              </Button>
-                                              <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-6 w-6"
-                                                onClick={() =>
-                                                  setDeleteTarget({
-                                                    type: 'subtype',
-                                                    id: subtype.id,
-                                                    name: isArabic && subtype.name_ar
-                                                      ? subtype.name_ar
-                                                      : subtype.name,
-                                                  })
-                                                }
-                                              >
-                                                <Trash2 className="h-3 w-3" />
-                                              </Button>
-                                            </div>
-                                          </div>
+                                          </Collapsible>
                                         ))
                                       )}
                                       </div>
