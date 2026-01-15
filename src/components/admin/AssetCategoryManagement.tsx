@@ -343,8 +343,8 @@ export default function AssetCategoryManagement() {
                                       {/* Parts Section */}
                                       <AssetTypePartsSection
                                         typeId={type.id}
-                                        typeName={type.name}
-                                        typeNameAr={type.name_ar}
+                                        parentName={type.name}
+                                        parentNameAr={type.name_ar}
                                       />
 
                                       {/* Subtypes Section */}

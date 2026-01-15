@@ -2,6 +2,8 @@
  * Asset Type Part Dialog
  * 
  * Dialog for adding or editing an asset type part.
+ * Supports both type-level and subtype-level parts.
+ * Code is auto-generated if not provided.
  */
 
 import { useEffect } from 'react';
@@ -36,11 +38,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Wand2 } from 'lucide-react';
 import type { AssetTypePart, CreateAssetTypePartInput, UpdateAssetTypePartInput } from '@/hooks/use-asset-type-parts';
 
 const formSchema = z.object({
-  code: z.string().min(1, 'Code is required').max(50),
+  code: z.string().max(50).optional(),
   name: z.string().min(1, 'Name is required').max(100),
   name_ar: z.string().max(100).optional(),
   description: z.string().max(500).optional(),
@@ -49,6 +51,8 @@ const formSchema = z.object({
   default_response_type: z.enum(['pass_fail', 'condition_rating', 'numeric']).default('pass_fail'),
   sort_order: z.number().min(0).default(0),
   is_active: z.boolean().default(true),
+  content_count: z.number().min(0).nullable().optional(),
+  content_count_label: z.string().max(50).optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -56,8 +60,9 @@ type FormValues = z.infer<typeof formSchema>;
 interface AssetTypePartDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  typeId: string;
-  typeName: string;
+  typeId?: string | null;
+  subtypeId?: string | null;
+  parentName: string; // Type or Subtype name for display
   part?: AssetTypePart | null;
   onSubmit: (data: CreateAssetTypePartInput | UpdateAssetTypePartInput) => void;
   isLoading?: boolean;
@@ -67,7 +72,8 @@ export function AssetTypePartDialog({
   open,
   onOpenChange,
   typeId,
-  typeName,
+  subtypeId,
+  parentName,
   part,
   onSubmit,
   isLoading,
@@ -88,6 +94,8 @@ export function AssetTypePartDialog({
       default_response_type: 'pass_fail',
       sort_order: 0,
       is_active: true,
+      content_count: null,
+      content_count_label: '',
     },
   });
 
@@ -103,6 +111,8 @@ export function AssetTypePartDialog({
         default_response_type: part.default_response_type,
         sort_order: part.sort_order,
         is_active: part.is_active,
+        content_count: part.content_count,
+        content_count_label: part.content_count_label || '',
       });
     } else {
       form.reset({
@@ -115,6 +125,8 @@ export function AssetTypePartDialog({
         default_response_type: 'pass_fail',
         sort_order: 0,
         is_active: true,
+        content_count: null,
+        content_count_label: '',
       });
     }
   }, [part, form]);
@@ -123,18 +135,32 @@ export function AssetTypePartDialog({
     if (isEditing && part) {
       onSubmit({
         id: part.id,
-        ...values,
+        code: values.code || undefined,
+        name: values.name,
         name_ar: values.name_ar || undefined,
         description: values.description || undefined,
         description_ar: values.description_ar || undefined,
+        is_critical: values.is_critical,
+        default_response_type: values.default_response_type,
+        sort_order: values.sort_order,
+        is_active: values.is_active,
+        content_count: values.content_count,
+        content_count_label: values.content_count_label || undefined,
       } as UpdateAssetTypePartInput);
     } else {
       onSubmit({
-        type_id: typeId,
-        ...values,
+        type_id: subtypeId ? null : typeId,
+        subtype_id: subtypeId || null,
+        code: values.code || undefined, // Empty triggers auto-generation
+        name: values.name,
         name_ar: values.name_ar || undefined,
         description: values.description || undefined,
         description_ar: values.description_ar || undefined,
+        is_critical: values.is_critical,
+        default_response_type: values.default_response_type,
+        sort_order: values.sort_order,
+        content_count: values.content_count,
+        content_count_label: values.content_count_label || undefined,
       } as CreateAssetTypePartInput);
     }
   };
@@ -150,23 +176,34 @@ export function AssetTypePartDialog({
             }
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
-            {t('assetParts.forAssetType', 'For asset type')}: {typeName}
+            {subtypeId 
+              ? t('assetParts.forAssetSubtype', 'For asset subtype')
+              : t('assetParts.forAssetType', 'For asset type')
+            }: {parentName}
           </p>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            {/* Code */}
+            {/* Code - Auto-generated hint */}
             <FormField
               control={form.control}
               name="code"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('assetParts.code', 'Code')}</FormLabel>
+                  <FormLabel className="flex items-center gap-2">
+                    {t('assetParts.code', 'Code')}
+                    {!isEditing && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Wand2 className="h-3 w-3" />
+                        {t('assetParts.autoCodeHint', 'Auto-generated if empty')}
+                      </span>
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <Input 
                       {...field} 
-                      placeholder="e.g., HOSE, GAUGE, LABEL"
+                      placeholder={isEditing ? field.value : t('assetParts.leaveEmptyForAuto', 'Leave empty for auto-generation')}
                       disabled={isEditing && part?.is_system}
                     />
                   </FormControl>
@@ -198,6 +235,48 @@ export function AssetTypePartDialog({
                     <FormLabel>{t('assetParts.nameAr', 'Name (Arabic)')}</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="e.g., خرطوم" dir="rtl" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Content Count (Optional) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="content_count"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('assetParts.contentCount', 'Content Count')}</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        min={0}
+                        placeholder="e.g., 10"
+                        value={field.value ?? ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          field.onChange(val === '' ? null : parseInt(val, 10));
+                        }}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {t('assetParts.contentCountHint', 'Optional quantity, e.g., 10 wipes')}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="content_count_label"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('assetParts.contentCountLabel', 'Unit Label')}</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="e.g., pieces, wipes, items" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
