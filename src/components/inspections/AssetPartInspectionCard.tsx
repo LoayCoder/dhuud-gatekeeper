@@ -2,7 +2,8 @@
  * Asset Part Inspection Card
  * 
  * Card component for inspecting individual parts of an asset during inspection.
- * Displays all defined parts for the asset's type with quick Pass/Fail/N/A toggles.
+ * Uses smart lookup to fetch parts from subtype if exists, otherwise from type.
+ * Displays all defined parts with quick Pass/Fail/N/A toggles.
  */
 
 import { useState, useEffect } from 'react';
@@ -14,7 +15,7 @@ import {
   Minus, 
   AlertTriangle,
   MessageSquare,
-  Camera,
+  Package,
   ChevronDown,
   ChevronUp,
   Loader2,
@@ -30,7 +31,7 @@ import {
 } from '@/components/ui/collapsible';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import { useActiveAssetTypeParts, type AssetTypePart } from '@/hooks/use-asset-type-parts';
+import { usePartsForAsset, type AssetTypePart } from '@/hooks/use-asset-type-parts';
 import { 
   useSavePartInspectionResult, 
   usePartInspectionResults,
@@ -40,6 +41,7 @@ import {
 interface AssetPartInspectionCardProps {
   inspectionId: string;
   assetTypeId: string;
+  assetSubtypeId?: string | null;
   assetTypeName: string;
   assetTypeNameAr?: string | null;
   readOnly?: boolean;
@@ -77,6 +79,12 @@ function PartRow({
     }
   };
 
+  const getContentCountDisplay = () => {
+    if (!part.content_count) return null;
+    const label = part.content_count_label || t('assetParts.items', 'items');
+    return `${part.content_count} ${label}`;
+  };
+
   return (
     <div className={cn(
       "border rounded-lg p-3 space-y-2 transition-colors",
@@ -86,12 +94,18 @@ function PartRow({
     )}>
       {/* Part Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="font-medium text-sm">{displayName}</span>
           {part.is_critical && (
             <Badge variant="destructive" className="text-xs gap-1">
               <AlertTriangle className="h-3 w-3" />
               {t('assetParts.critical', 'Critical')}
+            </Badge>
+          )}
+          {part.content_count && (
+            <Badge variant="outline" className="text-xs gap-1">
+              <Package className="h-3 w-3" />
+              {getContentCountDisplay()}
             </Badge>
           )}
         </div>
@@ -178,6 +192,7 @@ function PartRow({
 export function AssetPartInspectionCard({
   inspectionId,
   assetTypeId,
+  assetSubtypeId,
   assetTypeName,
   assetTypeNameAr,
   readOnly = false,
@@ -190,7 +205,8 @@ export function AssetPartInspectionCard({
 
   const displayTypeName = isRTL && assetTypeNameAr ? assetTypeNameAr : assetTypeName;
 
-  const { data: parts, isLoading: partsLoading } = useActiveAssetTypeParts(assetTypeId);
+  // Smart lookup: fetch parts from subtype if exists, otherwise from type
+  const { data: parts, isLoading: partsLoading } = usePartsForAsset(assetTypeId, assetSubtypeId || undefined);
   const { data: existingResults, isLoading: resultsLoading } = usePartInspectionResults(inspectionId);
   const saveResult = useSavePartInspectionResult();
 
@@ -275,7 +291,7 @@ export function AssetPartInspectionCard({
   }
 
   if (!parts || parts.length === 0) {
-    return null; // No parts defined for this asset type
+    return null; // No parts defined for this asset type/subtype
   }
 
   return (

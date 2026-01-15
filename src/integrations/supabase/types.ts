@@ -3227,6 +3227,8 @@ export type Database = {
         Row: {
           branch_id: string | null
           code: string
+          content_count: number | null
+          content_count_label: string | null
           created_at: string | null
           default_response_type: string | null
           deleted_at: string | null
@@ -3239,13 +3241,16 @@ export type Database = {
           name: string
           name_ar: string | null
           sort_order: number | null
+          subtype_id: string | null
           tenant_id: string
-          type_id: string
+          type_id: string | null
           updated_at: string | null
         }
         Insert: {
           branch_id?: string | null
           code: string
+          content_count?: number | null
+          content_count_label?: string | null
           created_at?: string | null
           default_response_type?: string | null
           deleted_at?: string | null
@@ -3258,13 +3263,16 @@ export type Database = {
           name: string
           name_ar?: string | null
           sort_order?: number | null
+          subtype_id?: string | null
           tenant_id: string
-          type_id: string
+          type_id?: string | null
           updated_at?: string | null
         }
         Update: {
           branch_id?: string | null
           code?: string
+          content_count?: number | null
+          content_count_label?: string | null
           created_at?: string | null
           default_response_type?: string | null
           deleted_at?: string | null
@@ -3277,8 +3285,9 @@ export type Database = {
           name?: string
           name_ar?: string | null
           sort_order?: number | null
+          subtype_id?: string | null
           tenant_id?: string
-          type_id?: string
+          type_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -3287,6 +3296,13 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_type_parts_subtype_id_fkey"
+            columns: ["subtype_id"]
+            isOneToOne: false
+            referencedRelation: "asset_subtypes"
             referencedColumns: ["id"]
           },
           {

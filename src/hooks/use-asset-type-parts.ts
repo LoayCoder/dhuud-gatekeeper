@@ -1,7 +1,8 @@
 /**
  * Asset Type Parts Hook
  * 
- * CRUD operations for managing inspectable parts attached to asset types.
+ * CRUD operations for managing inspectable parts attached to asset types or subtypes.
+ * Supports dynamic linking: parts can be on Type (if no subtype) or Subtype (if exists).
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -13,7 +14,8 @@ import { useTranslation } from 'react-i18next';
 export interface AssetTypePart {
   id: string;
   tenant_id: string;
-  type_id: string;
+  type_id: string | null;         // Nullable - parts can be on subtype instead
+  subtype_id: string | null;      // NEW: Link to subtype
   code: string;
   name: string;
   name_ar: string | null;
@@ -24,6 +26,8 @@ export interface AssetTypePart {
   sort_order: number;
   is_active: boolean;
   is_system: boolean;
+  content_count: number | null;       // NEW: Optional quantity
+  content_count_label: string | null; // NEW: e.g., "pieces", "wipes"
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -31,8 +35,9 @@ export interface AssetTypePart {
 }
 
 export interface CreateAssetTypePartInput {
-  type_id: string;
-  code: string;
+  type_id?: string | null;
+  subtype_id?: string | null;
+  code?: string; // Optional - auto-generated if not provided
   name: string;
   name_ar?: string;
   description?: string;
@@ -40,6 +45,8 @@ export interface CreateAssetTypePartInput {
   is_critical?: boolean;
   default_response_type?: 'pass_fail' | 'condition_rating' | 'numeric';
   sort_order?: number;
+  content_count?: number | null;
+  content_count_label?: string | null;
 }
 
 export interface UpdateAssetTypePartInput {
@@ -53,17 +60,19 @@ export interface UpdateAssetTypePartInput {
   default_response_type?: 'pass_fail' | 'condition_rating' | 'numeric';
   sort_order?: number;
   is_active?: boolean;
+  content_count?: number | null;
+  content_count_label?: string | null;
 }
 
 /**
- * Fetch all parts for a specific asset type
+ * Fetch all parts for a specific asset type (NOT subtypes)
  */
 export function useAssetTypeParts(typeId: string | undefined) {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
 
   return useQuery({
-    queryKey: ['asset-type-parts', typeId, tenantId],
+    queryKey: ['asset-type-parts', 'type', typeId, tenantId],
     queryFn: async () => {
       if (!typeId || !tenantId) return [];
 
@@ -72,6 +81,7 @@ export function useAssetTypeParts(typeId: string | undefined) {
         .select('*')
         .eq('type_id', typeId)
         .eq('tenant_id', tenantId)
+        .is('subtype_id', null)
         .is('deleted_at', null)
         .order('sort_order', { ascending: true })
         .order('name', { ascending: true });
@@ -84,7 +94,78 @@ export function useAssetTypeParts(typeId: string | undefined) {
 }
 
 /**
- * Fetch all active parts for a specific asset type (for inspections)
+ * Fetch all parts for a specific asset subtype
+ */
+export function useSubtypeParts(subtypeId: string | undefined) {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
+  return useQuery({
+    queryKey: ['asset-type-parts', 'subtype', subtypeId, tenantId],
+    queryFn: async () => {
+      if (!subtypeId || !tenantId) return [];
+
+      const { data, error } = await supabase
+        .from('asset_type_parts')
+        .select('*')
+        .eq('subtype_id', subtypeId)
+        .eq('tenant_id', tenantId)
+        .is('type_id', null)
+        .is('deleted_at', null)
+        .order('sort_order', { ascending: true })
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      return data as AssetTypePart[];
+    },
+    enabled: !!subtypeId && !!tenantId,
+  });
+}
+
+/**
+ * Smart fetcher: Get parts for an asset based on its type/subtype config
+ * - If subtype exists → fetch parts from subtype
+ * - If no subtype → fetch parts from type
+ */
+export function usePartsForAsset(typeId: string | undefined, subtypeId: string | undefined) {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
+  // Determine which ID to use
+  const useSubtype = !!subtypeId;
+  const targetId = useSubtype ? subtypeId : typeId;
+
+  return useQuery({
+    queryKey: ['asset-type-parts', 'smart', targetId, useSubtype, tenantId],
+    queryFn: async () => {
+      if (!targetId || !tenantId) return [];
+
+      let query = supabase
+        .from('asset_type_parts')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .eq('is_active', true)
+        .is('deleted_at', null)
+        .order('sort_order', { ascending: true })
+        .order('name', { ascending: true });
+
+      if (useSubtype) {
+        query = query.eq('subtype_id', subtypeId).is('type_id', null);
+      } else {
+        query = query.eq('type_id', typeId).is('subtype_id', null);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as AssetTypePart[];
+    },
+    enabled: !!targetId && !!tenantId,
+  });
+}
+
+/**
+ * Fetch all active parts for a specific asset type (for inspections) - LEGACY
+ * Use usePartsForAsset for smart type/subtype handling
  */
 export function useActiveAssetTypeParts(typeId: string | undefined) {
   const { profile } = useAuth();
@@ -114,6 +195,7 @@ export function useActiveAssetTypeParts(typeId: string | undefined) {
 
 /**
  * Create a new asset type part
+ * Code is auto-generated by database trigger if not provided
  */
 export function useCreateAssetTypePart() {
   const { profile } = useAuth();
@@ -125,11 +207,17 @@ export function useCreateAssetTypePart() {
   return useMutation({
     mutationFn: async (input: CreateAssetTypePartInput) => {
       if (!tenantId) throw new Error('No tenant ID');
+      
+      // Validate that either type_id or subtype_id is provided
+      if (!input.type_id && !input.subtype_id) {
+        throw new Error('Either type_id or subtype_id must be provided');
+      }
 
       const { data, error } = await supabase
         .from('asset_type_parts')
         .insert({
           ...input,
+          code: input.code || '', // Empty code triggers auto-generation
           tenant_id: tenantId,
           branch_id: branchId || null,
         })
@@ -139,8 +227,15 @@ export function useCreateAssetTypePart() {
       if (error) throw error;
       return data as AssetTypePart;
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['asset-type-parts', variables.type_id] });
+    onSuccess: (data) => {
+      // Invalidate both type and subtype queries
+      if (data.type_id) {
+        queryClient.invalidateQueries({ queryKey: ['asset-type-parts', 'type', data.type_id] });
+      }
+      if (data.subtype_id) {
+        queryClient.invalidateQueries({ queryKey: ['asset-type-parts', 'subtype', data.subtype_id] });
+      }
+      queryClient.invalidateQueries({ queryKey: ['asset-type-parts', 'smart'] });
       toast.success(t('assetParts.created', 'Part created successfully'));
     },
     onError: (error: Error) => {
@@ -175,7 +270,13 @@ export function useUpdateAssetTypePart() {
       return data as AssetTypePart;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['asset-type-parts', data.type_id] });
+      if (data.type_id) {
+        queryClient.invalidateQueries({ queryKey: ['asset-type-parts', 'type', data.type_id] });
+      }
+      if (data.subtype_id) {
+        queryClient.invalidateQueries({ queryKey: ['asset-type-parts', 'subtype', data.subtype_id] });
+      }
+      queryClient.invalidateQueries({ queryKey: ['asset-type-parts', 'smart'] });
       toast.success(t('assetParts.updated', 'Part updated successfully'));
     },
     onError: (error: Error) => {
@@ -193,17 +294,23 @@ export function useDeleteAssetTypePart() {
   const { t } = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ id, typeId }: { id: string; typeId: string }) => {
+    mutationFn: async ({ id, typeId, subtypeId }: { id: string; typeId?: string; subtypeId?: string }) => {
       const { error } = await supabase
         .from('asset_type_parts')
         .update({ deleted_at: new Date().toISOString() })
         .eq('id', id);
 
       if (error) throw error;
-      return { id, typeId };
+      return { id, typeId, subtypeId };
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['asset-type-parts', data.typeId] });
+      if (data.typeId) {
+        queryClient.invalidateQueries({ queryKey: ['asset-type-parts', 'type', data.typeId] });
+      }
+      if (data.subtypeId) {
+        queryClient.invalidateQueries({ queryKey: ['asset-type-parts', 'subtype', data.subtypeId] });
+      }
+      queryClient.invalidateQueries({ queryKey: ['asset-type-parts', 'smart'] });
       toast.success(t('assetParts.deleted', 'Part deleted successfully'));
     },
     onError: (error: Error) => {
@@ -214,13 +321,21 @@ export function useDeleteAssetTypePart() {
 }
 
 /**
- * Reorder parts within an asset type
+ * Reorder parts within an asset type or subtype
  */
 export function useReorderAssetTypeParts() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ typeId, parts }: { typeId: string; parts: { id: string; sort_order: number }[] }) => {
+    mutationFn: async ({ 
+      typeId, 
+      subtypeId, 
+      parts 
+    }: { 
+      typeId?: string; 
+      subtypeId?: string; 
+      parts: { id: string; sort_order: number }[] 
+    }) => {
       // Update each part's sort_order
       const updates = parts.map((part) =>
         supabase
@@ -230,10 +345,16 @@ export function useReorderAssetTypeParts() {
       );
 
       await Promise.all(updates);
-      return { typeId };
+      return { typeId, subtypeId };
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['asset-type-parts', data.typeId] });
+      if (data.typeId) {
+        queryClient.invalidateQueries({ queryKey: ['asset-type-parts', 'type', data.typeId] });
+      }
+      if (data.subtypeId) {
+        queryClient.invalidateQueries({ queryKey: ['asset-type-parts', 'subtype', data.subtypeId] });
+      }
+      queryClient.invalidateQueries({ queryKey: ['asset-type-parts', 'smart'] });
     },
   });
 }

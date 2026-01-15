@@ -1,7 +1,8 @@
 /**
  * Asset Type Parts Section
  * 
- * A collapsible section to manage inspectable parts for an asset type.
+ * A collapsible section to manage inspectable parts for an asset type OR subtype.
+ * Supports dynamic linking based on whether it's attached to a type or subtype.
  */
 
 import { useState } from 'react';
@@ -15,6 +16,7 @@ import {
   ChevronDown,
   ChevronUp,
   GripVertical,
+  Package,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +39,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { AssetTypePartDialog } from './AssetTypePartDialog';
 import {
   useAssetTypeParts,
+  useSubtypeParts,
   useCreateAssetTypePart,
   useUpdateAssetTypePart,
   useDeleteAssetTypePart,
@@ -46,12 +49,18 @@ import {
 } from '@/hooks/use-asset-type-parts';
 
 interface AssetTypePartsSectionProps {
-  typeId: string;
-  typeName: string;
-  typeNameAr?: string | null;
+  typeId?: string;
+  subtypeId?: string;
+  parentName: string;
+  parentNameAr?: string | null;
 }
 
-export function AssetTypePartsSection({ typeId, typeName, typeNameAr }: AssetTypePartsSectionProps) {
+export function AssetTypePartsSection({ 
+  typeId, 
+  subtypeId, 
+  parentName, 
+  parentNameAr 
+}: AssetTypePartsSectionProps) {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.dir() === 'rtl';
   const [isOpen, setIsOpen] = useState(false);
@@ -59,12 +68,18 @@ export function AssetTypePartsSection({ typeId, typeName, typeNameAr }: AssetTyp
   const [editingPart, setEditingPart] = useState<AssetTypePart | null>(null);
   const [deletingPart, setDeletingPart] = useState<AssetTypePart | null>(null);
 
-  const { data: parts, isLoading } = useAssetTypeParts(typeId);
+  // Use appropriate hook based on whether this is for type or subtype
+  const isSubtype = !!subtypeId;
+  const typePartsQuery = useAssetTypeParts(isSubtype ? undefined : typeId);
+  const subtypePartsQuery = useSubtypeParts(isSubtype ? subtypeId : undefined);
+  
+  const { data: parts, isLoading } = isSubtype ? subtypePartsQuery : typePartsQuery;
+
   const createMutation = useCreateAssetTypePart();
   const updateMutation = useUpdateAssetTypePart();
   const deleteMutation = useDeleteAssetTypePart();
 
-  const displayTypeName = isRTL && typeNameAr ? typeNameAr : typeName;
+  const displayParentName = isRTL && parentNameAr ? parentNameAr : parentName;
 
   const handleAddClick = () => {
     setEditingPart(null);
@@ -91,7 +106,11 @@ export function AssetTypePartsSection({ typeId, typeName, typeNameAr }: AssetTyp
   const handleDeleteConfirm = () => {
     if (deletingPart) {
       deleteMutation.mutate(
-        { id: deletingPart.id, typeId },
+        { 
+          id: deletingPart.id, 
+          typeId: deletingPart.type_id || undefined,
+          subtypeId: deletingPart.subtype_id || undefined,
+        },
         { onSuccess: () => setDeletingPart(null) }
       );
     }
@@ -99,6 +118,12 @@ export function AssetTypePartsSection({ typeId, typeName, typeNameAr }: AssetTyp
 
   const getPartDisplayName = (part: AssetTypePart) => {
     return isRTL && part.name_ar ? part.name_ar : part.name;
+  };
+
+  const getContentCountDisplay = (part: AssetTypePart) => {
+    if (!part.content_count) return null;
+    const label = part.content_count_label || t('assetParts.items', 'items');
+    return `${part.content_count} ${label}`;
   };
 
   return (
@@ -156,12 +181,18 @@ export function AssetTypePartsSection({ typeId, typeName, typeNameAr }: AssetTyp
                     <div className="flex items-center gap-2 min-w-0">
                       <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       <div className="min-w-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-sm font-medium truncate">
                             {getPartDisplayName(part)}
                           </span>
                           {part.is_critical && (
                             <AlertTriangle className="h-3 w-3 text-destructive flex-shrink-0" />
+                          )}
+                          {part.content_count && (
+                            <Badge variant="outline" className="text-xs gap-1">
+                              <Package className="h-3 w-3" />
+                              {getContentCountDisplay(part)}
+                            </Badge>
                           )}
                         </div>
                         <span className="text-xs text-muted-foreground">
@@ -206,7 +237,8 @@ export function AssetTypePartsSection({ typeId, typeName, typeNameAr }: AssetTyp
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         typeId={typeId}
-        typeName={displayTypeName}
+        subtypeId={subtypeId}
+        parentName={displayParentName}
         part={editingPart}
         onSubmit={handleDialogSubmit}
         isLoading={createMutation.isPending || updateMutation.isPending}
