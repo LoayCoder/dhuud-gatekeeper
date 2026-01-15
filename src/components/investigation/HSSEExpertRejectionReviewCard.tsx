@@ -17,6 +17,7 @@ import {
   MapPin,
   ExternalLink
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useCanReviewHSSERejection, useHSSERejectionReview } from "@/hooks/use-observation-rejection";
 import type { IncidentWithDetails } from "@/hooks/use-incidents";
 import { format } from "date-fns";
@@ -106,35 +107,42 @@ export function HSSEExpertRejectionReviewCard({ incident, onComplete }: HSSEExpe
           <h4 className="font-medium">{incident.title}</h4>
           <p className="text-sm text-muted-foreground line-clamp-2">{incident.description}</p>
           
-          {/* Location */}
-          {(incident.site?.name || incident.branch?.name || incident.location || incident.latitude) && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2 border-t border-border/50">
-              <MapPin className="h-4 w-4 flex-shrink-0" />
-              <span>
-                {incident.site?.name || 
-                 incident.branch?.name || 
-                 incident.location || 
-                 incident.location_city ||
-                 t('incidents.gpsCoordinatesAvailable', 'GPS Coordinates Available')}
-              </span>
-              {(() => {
-                const lat = incident.latitude || incident.site?.latitude;
-                const lng = incident.longitude || incident.site?.longitude;
-                if (!lat || !lng) return null;
-                return (
-                  <a 
-                    href={`https://www.google.com/maps?q=${lat},${lng}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline flex items-center gap-1 ms-auto"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    {t('incidents.viewOnMap', 'View')}
-                  </a>
-                );
-              })()}
-            </div>
-          )}
+          {/* Location - Always visible */}
+          <div className="flex items-center gap-2 text-sm pt-2 border-t border-border/50">
+            <MapPin className={cn(
+              "h-4 w-4 flex-shrink-0",
+              (incident.site?.name || incident.latitude) ? "text-green-500" : "text-amber-500"
+            )} />
+            <span className={cn(
+              !(incident.site?.name || incident.branch?.name || incident.location || incident.latitude) 
+                ? "text-amber-600 dark:text-amber-400" 
+                : "text-muted-foreground"
+            )}>
+              {incident.site?.name || 
+               incident.branch?.name || 
+               incident.location || 
+               incident.location_city ||
+               (incident.latitude && incident.longitude
+                 ? t('incidents.gpsCoordinatesAvailable', 'GPS Coordinates Available')
+                 : t('incidents.noLocationCaptured', 'No location captured'))}
+            </span>
+            {(() => {
+              const lat = incident.latitude || incident.site?.latitude;
+              const lng = incident.longitude || incident.site?.longitude;
+              if (!lat || !lng) return null;
+              return (
+                <a 
+                  href={`https://www.google.com/maps?q=${lat},${lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline flex items-center gap-1 ms-auto"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  {t('incidents.viewOnMap', 'View')}
+                </a>
+              );
+            })()}
+          </div>
         </div>
         
         {/* Rejection Details */}

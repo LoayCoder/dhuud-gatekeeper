@@ -18,6 +18,7 @@ import {
   Info,
   ExternalLink
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useDeptRepIncidentReview, useCanReviewDeptRepIncident } from "@/hooks/use-dept-rep-incident-review";
 import type { IncidentWithDetails } from "@/hooks/use-incidents";
 import { format } from "date-fns";
@@ -161,41 +162,48 @@ export function DeptRepIncidentReviewCard({ incident, onComplete }: DeptRepIncid
                 </div>
               )}
               
-              {(incident.site?.name || incident.branch?.name || incident.location || incident.latitude) && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  <span>
-                    {incident.site?.name || 
-                     incident.branch?.name || 
-                     incident.location || 
-                     incident.location_city ||
-                     t('incidents.gpsCoordinatesAvailable', 'GPS Coordinates Available')}
-                  </span>
-                  {(() => {
-                    const lat = incident.latitude || incident.site?.latitude;
-                    const lng = incident.longitude || incident.site?.longitude;
-                    const isApproximate = !incident.latitude && incident.site?.latitude;
-                    if (!lat || !lng) return null;
-                    return (
-                      <>
-                        {isApproximate && (
-                          <Badge variant="secondary" className="text-xs">
-                            {t('incidents.approximateLocation', 'Approximate')}
-                          </Badge>
-                        )}
-                        <a 
-                          href={`https://www.google.com/maps?q=${lat},${lng}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline flex items-center gap-1 text-xs"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
-                      </>
-                    );
-                  })()}
-                </div>
-              )}
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <MapPin className={cn(
+                  "h-4 w-4",
+                  (incident.site?.name || incident.latitude) ? "text-green-500" : "text-amber-500"
+                )} />
+                <span className={cn(
+                  !(incident.site?.name || incident.branch?.name || incident.location || incident.latitude) 
+                    ? "text-amber-600 dark:text-amber-400" 
+                    : ""
+                )}>
+                  {incident.site?.name || 
+                   incident.branch?.name || 
+                   incident.location || 
+                   incident.location_city ||
+                   (incident.latitude && incident.longitude
+                     ? t('incidents.gpsCoordinatesAvailable', 'GPS Coordinates Available')
+                     : t('incidents.noLocationCaptured', 'No location captured'))}
+                </span>
+                {(() => {
+                  const lat = incident.latitude || incident.site?.latitude;
+                  const lng = incident.longitude || incident.site?.longitude;
+                  const isApproximate = !incident.latitude && incident.site?.latitude;
+                  if (!lat || !lng) return null;
+                  return (
+                    <>
+                      {isApproximate && (
+                        <Badge variant="secondary" className="text-xs">
+                          {t('incidents.approximateLocation', 'Approximate')}
+                        </Badge>
+                      )}
+                      <a 
+                        href={`https://www.google.com/maps?q=${lat},${lng}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline flex items-center gap-1 text-xs"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </>
+                  );
+                })()}
+              </div>
               
               {incident.reporter && (
                 <div className="flex items-center gap-2 text-muted-foreground">

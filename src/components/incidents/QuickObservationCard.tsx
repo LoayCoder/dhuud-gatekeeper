@@ -938,26 +938,35 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                 )}
               />
               
-              {/* GPS Location */}
-              <div className="p-3 bg-muted/50 rounded-lg space-y-3">
+              {/* GPS Location - Enhanced with warning state */}
+              <div className={cn(
+                "p-3 rounded-lg space-y-3 border",
+                gpsDetectedSite || form.watch('site_id')
+                  ? "bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800"
+                  : "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800"
+              )}>
                 <div className="flex items-center gap-3">
                   <MapPin className={cn(
                     "h-5 w-5 shrink-0",
-                    gpsDetectedSite ? "text-green-500" : gpsError !== 'none' ? "text-amber-500" : "text-muted-foreground"
+                    gpsDetectedSite || form.watch('site_id') ? "text-green-500" : "text-amber-500"
                   )} />
                   <div className="flex-1 min-w-0">
                     {isGettingLocation ? (
                       <p className="text-sm font-medium">{t('quickObservation.detectingLocation')}</p>
                     ) : gpsDetectedSite ? (
                       <>
-                        <p className="text-sm font-medium truncate">{gpsDetectedSite.site.name}</p>
-                        <Badge variant="secondary" className="mt-1 text-xs">
+                        <p className="text-sm font-medium truncate text-green-700 dark:text-green-400">{gpsDetectedSite.site.name}</p>
+                        <Badge variant="secondary" className="mt-1 text-xs bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300">
                           {t('incidents.withinMeters', { distance: Math.round(gpsDetectedSite.distanceMeters) })}
                         </Badge>
                       </>
+                    ) : form.watch('site_id') ? (
+                      <p className="text-sm font-medium text-green-700 dark:text-green-400">
+                        {t('quickObservation.locationCaptured', 'Location selected')}
+                      </p>
                     ) : (
                       <>
-                        <p className="text-sm font-medium">
+                        <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
                           {gpsError === 'permission_denied' && t('incidents.gpsPermissionDenied')}
                           {gpsError === 'not_supported' && t('incidents.gpsNotSupported')}
                           {gpsError === 'unavailable' && t('incidents.gpsUnavailable')}
@@ -965,21 +974,30 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                           {gpsError === 'no_nearby_site' && t('quickObservation.noSiteNearby')}
                           {gpsError === 'none' && t('quickObservation.locationNotDetected')}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {t('quickObservation.canSubmitWithoutLocation')}
+                        <p className="text-xs text-amber-600/80 dark:text-amber-400/80 mt-0.5">
+                          {t('quickObservation.selectSiteManually', 'Please select a site manually below')}
                         </p>
                       </>
                     )}
                   </div>
+                  
+                  {/* Warning Badge when no location */}
+                  {!gpsDetectedSite && !form.watch('site_id') && !isGettingLocation && (
+                    <Badge variant="outline" className="border-amber-500 text-amber-600 dark:text-amber-400 gap-1 shrink-0">
+                      <AlertTriangle className="h-3 w-3" />
+                      {t('quickObservation.noLocationWarning', 'No Location')}
+                    </Badge>
+                  )}
+                  
                   {isGettingLocation ? (
                     <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-                  ) : !gpsDetectedSite && (
+                  ) : !gpsDetectedSite && !form.watch('site_id') && (
                     <Button 
                       type="button" 
                       variant="outline" 
                       size="sm" 
                       onClick={handleGetLocation}
-                      className="shrink-0 gap-1.5"
+                      className="shrink-0 gap-1.5 border-amber-300 hover:bg-amber-100 dark:border-amber-700 dark:hover:bg-amber-900/50"
                     >
                       <RefreshCw className="h-3.5 w-3.5" />
                       <span className="hidden sm:inline">{t('common.retry')}</span>
@@ -1128,6 +1146,17 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                   <Camera className="h-4 w-4 shrink-0" />
                   {t('incidents.validation.photoRequired')}
                 </div>
+              )}
+              
+              {/* Location Warning Before Submit */}
+              {!form.watch('latitude') && !form.watch('site_id') && (
+                <Alert variant="default" className="bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800">
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  <AlertDescription className="text-sm text-amber-700 dark:text-amber-400">
+                    {t('quickObservation.submitWithoutLocationWarning', 
+                      'You are about to submit without location. Consider retrying GPS or selecting a site manually.')}
+                  </AlertDescription>
+                </Alert>
               )}
               
               {/* Submit Button - Blocked until AI validation passes */}
