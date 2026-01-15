@@ -30,18 +30,28 @@ export function MenuBasedAdminRoute({ children, menuCode }: MenuBasedAdminRouteP
       try {
         const { data: { session } } = await supabase.auth.getSession();
         
+        console.log('=== MenuBasedAdminRoute Debug ===');
+        console.log('Menu Code:', menuCode);
+        console.log('Session:', session ? 'EXISTS' : 'NULL');
+        
         if (!session?.user) {
+          console.log('❌ No session - redirecting to login');
           setAuthenticated(false);
           setLoading(false);
           return;
         }
 
+        console.log('User ID:', session.user.id);
+        console.log('User Email:', session.user.email);
         setAuthenticated(true);
 
         // Check if user is admin - admins always have access
-        const { data: isAdmin } = await supabase.rpc('is_admin', { p_user_id: session.user.id });
+        const { data: isAdmin, error: adminError } = await supabase.rpc('is_admin', { p_user_id: session.user.id });
+
+        console.log('is_admin RPC result:', isAdmin, 'error:', adminError);
 
         if (isAdmin) {
+          console.log('✅ User is admin - granting access');
           setHasAccess(true);
           setLoading(false);
           return;
@@ -52,8 +62,12 @@ export function MenuBasedAdminRoute({ children, menuCode }: MenuBasedAdminRouteP
           _user_id: session.user.id
         });
 
+        console.log('get_accessible_menu_items result:', menuItems);
+        console.log('get_accessible_menu_items error:', error);
+
         if (error) {
           logger.error('Error checking menu access:', error);
+          console.log('❌ Error fetching menu items');
           setHasAccess(false);
           setLoading(false);
           return;
@@ -64,9 +78,14 @@ export function MenuBasedAdminRoute({ children, menuCode }: MenuBasedAdminRouteP
           (item: { menu_code: string }) => item.menu_code === menuCode
         );
 
+        console.log('Looking for menu_code:', menuCode);
+        console.log('Has menu access:', hasMenuAccess);
+        console.log('=== End Debug ===');
+
         setHasAccess(hasMenuAccess);
       } catch (error) {
         logger.error('Error checking access:', error);
+        console.log('❌ Exception during access check:', error);
         setHasAccess(false);
       } finally {
         setLoading(false);
