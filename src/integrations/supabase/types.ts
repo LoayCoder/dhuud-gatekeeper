@@ -1895,6 +1895,94 @@ export type Database = {
           },
         ]
       }
+      asset_inspection_part_results: {
+        Row: {
+          branch_id: string | null
+          condition_rating: number | null
+          deleted_at: string | null
+          id: string
+          inspection_id: string
+          notes: string | null
+          part_id: string
+          photo_path: string | null
+          responded_at: string | null
+          responded_by: string | null
+          result: string
+          tenant_id: string
+        }
+        Insert: {
+          branch_id?: string | null
+          condition_rating?: number | null
+          deleted_at?: string | null
+          id?: string
+          inspection_id: string
+          notes?: string | null
+          part_id: string
+          photo_path?: string | null
+          responded_at?: string | null
+          responded_by?: string | null
+          result: string
+          tenant_id: string
+        }
+        Update: {
+          branch_id?: string | null
+          condition_rating?: number | null
+          deleted_at?: string | null
+          id?: string
+          inspection_id?: string
+          notes?: string | null
+          part_id?: string
+          photo_path?: string | null
+          responded_at?: string | null
+          responded_by?: string | null
+          result?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_inspection_part_results_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_inspection_part_results_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "asset_inspections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_inspection_part_results_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "asset_type_parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_inspection_part_results_responded_by_fkey"
+            columns: ["responded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_inspection_part_results_responded_by_fkey"
+            columns: ["responded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_inspection_part_results_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       asset_inspections: {
         Row: {
           asset_id: string
@@ -3131,6 +3219,88 @@ export type Database = {
             columns: ["to_site_id"]
             isOneToOne: false
             referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_type_parts: {
+        Row: {
+          branch_id: string | null
+          code: string
+          created_at: string | null
+          default_response_type: string | null
+          deleted_at: string | null
+          description: string | null
+          description_ar: string | null
+          id: string
+          is_active: boolean | null
+          is_critical: boolean | null
+          is_system: boolean | null
+          name: string
+          name_ar: string | null
+          sort_order: number | null
+          tenant_id: string
+          type_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          code: string
+          created_at?: string | null
+          default_response_type?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_critical?: boolean | null
+          is_system?: boolean | null
+          name: string
+          name_ar?: string | null
+          sort_order?: number | null
+          tenant_id: string
+          type_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          code?: string
+          created_at?: string | null
+          default_response_type?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_critical?: boolean | null
+          is_system?: boolean | null
+          name?: string
+          name_ar?: string | null
+          sort_order?: number | null
+          tenant_id?: string
+          type_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_type_parts_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_type_parts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_type_parts_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "asset_types"
             referencedColumns: ["id"]
           },
         ]
