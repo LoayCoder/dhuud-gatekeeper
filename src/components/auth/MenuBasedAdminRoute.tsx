@@ -5,6 +5,7 @@ import { PageLoader } from "@/components/ui/page-loader";
 import { ShieldAlert } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { logger } from "@/lib/logger";
+import { MenuPermissionsProvider } from "@/contexts/MenuPermissionsContext";
 
 interface MenuBasedAdminRouteProps {
   children: React.ReactNode;
@@ -15,6 +16,8 @@ interface MenuBasedAdminRouteProps {
  * A flexible route protection component that grants access if:
  * 1. User is an admin (always has access), OR
  * 2. User has been granted access to the specific menu via user_menu_access
+ * 
+ * Additionally provides MenuPermissionsContext to children for CRUD permission checks.
  */
 export function MenuBasedAdminRoute({ children, menuCode }: MenuBasedAdminRouteProps) {
   const { t } = useTranslation();
@@ -103,5 +106,10 @@ export function MenuBasedAdminRoute({ children, menuCode }: MenuBasedAdminRouteP
     );
   }
 
-  return <>{children}</>;
+  // Wrap children with MenuPermissionsProvider for CRUD permission context
+  return (
+    <MenuPermissionsProvider menuCode={menuCode}>
+      {children}
+    </MenuPermissionsProvider>
+  );
 }
