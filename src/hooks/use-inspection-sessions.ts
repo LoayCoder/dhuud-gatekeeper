@@ -71,8 +71,9 @@ export interface SessionAsset {
     serial_number: string | null;
     status: string;
     last_inspection_date: string | null;
+    subtype_id: string | null;
     category?: { name: string; name_ar: string | null };
-    type?: { name: string; name_ar: string | null };
+    type?: { id: string; name: string; name_ar: string | null };
     building?: { name: string };
     floor_zone?: { name: string };
   };
@@ -312,9 +313,9 @@ export function useSessionAssets(sessionId: string | undefined) {
         .select(`
           *,
           asset:hsse_assets(
-            id, name, asset_code, serial_number, status, last_inspection_date,
+            id, name, asset_code, serial_number, status, last_inspection_date, subtype_id,
             category:asset_categories(name, name_ar),
-            type:asset_types(name, name_ar),
+            type:asset_types(id, name, name_ar),
             building:buildings(name),
             floor_zone:floors_zones(name)
           )
@@ -341,9 +342,9 @@ export function useUninspectedAssets(sessionId: string | undefined) {
         .select(`
           *,
           asset:hsse_assets(
-            id, name, asset_code, serial_number, status, last_inspection_date,
+            id, name, asset_code, serial_number, status, last_inspection_date, subtype_id,
             category:asset_categories(name, name_ar),
-            type:asset_types(name, name_ar),
+            type:asset_types(id, name, name_ar),
             building:buildings(name),
             floor_zone:floors_zones(name)
           )
@@ -371,9 +372,9 @@ export function useSessionAssetByAssetId(sessionId: string | undefined, assetId:
         .select(`
           *,
           asset:hsse_assets(
-            id, name, asset_code, serial_number, status, last_inspection_date,
+            id, name, asset_code, serial_number, status, last_inspection_date, subtype_id,
             category:asset_categories(name, name_ar),
-            type:asset_types(name, name_ar),
+            type:asset_types(id, name, name_ar),
             building:buildings(name),
             floor_zone:floors_zones(name)
           )
