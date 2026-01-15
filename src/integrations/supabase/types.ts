@@ -19153,6 +19153,63 @@ export type Database = {
           },
         ]
       }
+      role_menu_permissions: {
+        Row: {
+          can_create: boolean | null
+          can_delete: boolean | null
+          can_read: boolean | null
+          can_update: boolean | null
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          menu_code: string
+          role_id: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          can_create?: boolean | null
+          can_delete?: boolean | null
+          can_read?: boolean | null
+          can_update?: boolean | null
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          menu_code: string
+          role_id: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          can_create?: boolean | null
+          can_delete?: boolean | null
+          can_read?: boolean | null
+          can_update?: boolean | null
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          menu_code?: string
+          role_id?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_menu_permissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_menu_permissions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       roles: {
         Row: {
           branch_id: string | null
@@ -25704,6 +25761,15 @@ export type Database = {
           notes: string
           parent_code: string
           sort_order: number
+        }[]
+      }
+      get_user_menu_permissions: {
+        Args: { _menu_code: string; _user_id: string }
+        Returns: {
+          can_create: boolean
+          can_delete: boolean
+          can_read: boolean
+          can_update: boolean
         }[]
       }
       get_user_primary_branch: { Args: { _user_id: string }; Returns: string }
