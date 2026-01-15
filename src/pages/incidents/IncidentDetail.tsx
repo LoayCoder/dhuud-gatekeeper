@@ -377,12 +377,25 @@ export default function IncidentDetail() {
                       <p className="font-medium">{incident.department_info.name}</p>
                     </div>
                   )}
-                  {incident.location && (
-                    <div className="sm:col-span-2">
-                      <p className="text-sm text-muted-foreground">{t('incidents.location')}</p>
-                      <p className="font-medium">{incident.location}</p>
-                    </div>
-                  )}
+                  {/* Location text or GPS fallback - show if any location data exists */}
+                  {(() => {
+                    const locationValue = incident.location ||
+                      incident.location_city ||
+                      (incident.latitude && incident.longitude 
+                        ? t('incidents.gpsCoordinatesAvailable', 'GPS Coordinates Available')
+                        : null);
+                    
+                    // Only show this field if we have location text or GPS coords AND no site/branch shown
+                    if (!locationValue || (incident.site && incident.branch)) return null;
+                    if (!incident.location && (incident.site || incident.branch)) return null;
+                    
+                    return (
+                      <div className="sm:col-span-2">
+                        <p className="text-sm text-muted-foreground">{t('incidents.location')}</p>
+                        <p className="font-medium">{locationValue}</p>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* GPS Coordinates - with fallback to site location */}
