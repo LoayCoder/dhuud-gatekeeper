@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { type SessionAsset, useRecordAssetInspection, useCreateFinding } from '@/hooks/use-inspection-sessions';
 import { FailureReasonDialog } from './FailureReasonDialog';
+import { AssetPartInspectionCard } from '@/components/inspections/AssetPartInspectionCard';
 
 interface QuickInspectionCardProps {
   sessionAsset: SessionAsset;
@@ -184,6 +185,19 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
           )}
         </CardContent>
       </Card>
+
+      {/* Parts Inspection - only show if asset has a type */}
+      {asset.type && sessionAsset.id && (
+        <div className="mt-4">
+          <AssetPartInspectionCard
+            inspectionId={sessionAsset.id}
+            assetTypeId={(asset.type as any).id || ''}
+            assetTypeName={asset.type?.name || ''}
+            assetTypeNameAr={asset.type?.name_ar}
+            readOnly={isAlreadyInspected}
+          />
+        </div>
+      )}
       
       <FailureReasonDialog
         open={showFailureDialog}
