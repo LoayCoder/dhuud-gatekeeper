@@ -326,17 +326,40 @@ export function IncidentAttachmentsSection({
     });
   };
 
-  // Proper download handler for cross-origin files (signed URLs)
-  // Adds legal evidence watermark for images and generates descriptive filename
-  const handleDownload = async (url: string, originalFilename: string) => {
+  // Helper for direct download (bypasses CORS)
+  const directDownload = (url: string, filename: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Hybrid download handler: Try fetch for watermarking, fallback to direct download
+  // For non-images, use direct download immediately (no watermark needed)
+  const handleDownload = async (url: string, originalFilename: string, mimeType?: string) => {
+    const evidenceFilename = generateEvidenceFilename(originalFilename, incidentMetadata);
+    const isImage = mimeType?.startsWith('image') || /\.(jpg|jpeg|png|gif|webp)$/i.test(originalFilename);
+    
+    // For non-images (PDFs, videos, documents), use direct download - no watermark needed
+    if (!isImage) {
+      directDownload(url, evidenceFilename);
+      toast.success(t('incidents.downloadSuccess', 'Download complete'));
+      return;
+    }
+    
+    // For images, try fetch first (for watermarking), fallback to direct if CORS fails
     try {
-      const evidenceFilename = generateEvidenceFilename(originalFilename, incidentMetadata);
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Download failed');
+      const response = await fetch(url, { mode: 'cors' });
+      if (!response.ok) throw new Error('Fetch failed');
+      
       let blob = await response.blob();
       
-      // Apply evidence watermark for images only
-      if (blob.type.startsWith('image/') && incidentMetadata) {
+      // Apply evidence watermark for images
+      if (incidentMetadata) {
         const language = i18n.language?.startsWith('ar') ? 'ar' : 'en';
         blob = await addEvidenceWatermark(blob, incidentMetadata, language);
       }
@@ -349,9 +372,13 @@ export function IncidentAttachmentsSection({
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(downloadUrl);
+      
+      toast.success(t('incidents.downloadSuccess', 'Download complete'));
     } catch (error) {
-      console.error('Download failed:', error);
-      toast.error(t('incidents.downloadFailed', 'Download failed'));
+      console.warn('CORS fetch failed, falling back to direct download:', error);
+      // Fallback: Direct download without watermark
+      directDownload(url, evidenceFilename);
+      toast.info(t('incidents.downloadedWithoutWatermark', 'Downloaded (without watermark)'));
     }
   };
 
