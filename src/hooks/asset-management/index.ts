@@ -22,6 +22,7 @@ export * from '../use-maintenance-parts';
 
 // Asset Categories & Transfers
 export * from '../use-asset-category-management';
+export * from '../use-asset-type-parts';
 export * from '../use-asset-transfers';
 export * from '../use-asset-location';
 

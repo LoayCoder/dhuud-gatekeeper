@@ -27,6 +27,7 @@ import { AddAssetTypeDialog } from './AddAssetTypeDialog';
 import { EditAssetTypeDialog } from './EditAssetTypeDialog';
 import { AddAssetSubtypeDialog } from './AddAssetSubtypeDialog';
 import { EditAssetSubtypeDialog } from './EditAssetSubtypeDialog';
+import { AssetTypePartsSection } from './AssetTypePartsSection';
 
 type DeleteTarget = {
   type: 'category' | 'type' | 'subtype';
@@ -336,9 +337,18 @@ export default function AssetCategoryManagement() {
                                     </div>
                                   </div>
 
-                                  {/* Subtypes Section */}
+                                  {/* Subtypes & Parts Sections */}
                                   <CollapsibleContent>
-                                    <div className="border-t bg-muted/20 p-3 ps-10 space-y-2">
+                                    <div className="border-t bg-muted/20 p-3 ps-10 space-y-3">
+                                      {/* Parts Section */}
+                                      <AssetTypePartsSection
+                                        typeId={type.id}
+                                        typeName={type.name}
+                                        typeNameAr={type.name_ar}
+                                      />
+
+                                      {/* Subtypes Section */}
+                                      <div className="space-y-2">
                                       <div className="flex items-center justify-between">
                                         <span className="text-xs font-medium text-muted-foreground">
                                           {t('assetCategories.subtypes')}
@@ -424,6 +434,7 @@ export default function AssetCategoryManagement() {
                                           </div>
                                         ))
                                       )}
+                                      </div>
                                     </div>
                                   </CollapsibleContent>
                                 </div>
