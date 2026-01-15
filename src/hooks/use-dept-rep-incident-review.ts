@@ -147,7 +147,10 @@ export function usePendingDeptRepIncidentReviews() {
         .select(`
           id, reference_id, title, description, event_type, subtype,
           severity, severity_v2, status, occurred_at, created_at,
-          reporter:profiles!incidents_reporter_id_fkey(id, full_name)
+          location, location_city, latitude, longitude,
+          reporter:profiles!incidents_reporter_id_fkey(id, full_name),
+          site:sites!incidents_site_id_fkey(id, name, latitude, longitude),
+          branch:branches!incidents_branch_id_fkey(id, name)
         `)
         .eq('tenant_id', profile.tenant_id)
         .filter('status', 'eq', 'pending_dept_rep_incident_review')
