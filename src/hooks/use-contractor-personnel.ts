@@ -13,11 +13,6 @@ export interface ContractorPersonnelInfo {
     phone: string | null;
     email: string | null;
   } | null;
-  siteRepresentative: {
-    name: string | null;
-    phone: string | null;
-    email: string | null;
-  } | null;
   clientSiteRepresentative: {
     name: string | null;
   } | null;
@@ -53,12 +48,11 @@ export function useContractorPersonnel(companyId: string | null | undefined) {
 
       if (!company) return null;
 
-      // Fetch primary contractor representative
-      const { data: primaryRep } = await supabase
-        .from('contractor_representatives')
-        .select('full_name, mobile_number, email')
+      // Fetch contractor site representative from dedicated table (PRIMARY SOURCE)
+      const { data: siteRep } = await supabase
+        .from('contractor_site_representatives')
+        .select('full_name, mobile_number, phone, email')
         .eq('company_id', companyId)
-        .eq('is_primary', true)
         .is('deleted_at', null)
         .maybeSingle();
 
@@ -87,6 +81,19 @@ export function useContractorPersonnel(companyId: string | null | undefined) {
         }
       }
 
+      // Determine contractor representative - prefer from site_representatives table, fallback to company fields
+      const contractorRepFromTable = siteRep ? {
+        name: siteRep.full_name,
+        phone: siteRep.mobile_number || siteRep.phone,
+        email: siteRep.email
+      } : null;
+
+      const contractorRepFromCompany = company.contractor_site_rep_name ? {
+        name: company.contractor_site_rep_name,
+        phone: company.contractor_site_rep_phone,
+        email: company.contractor_site_rep_email
+      } : null;
+
       // Determine safety officer - prefer from safety_officers table, fallback to company fields
       const safetyOfficerFromTable = primaryOfficer ? {
         name: primaryOfficer.name,
@@ -102,17 +109,8 @@ export function useContractorPersonnel(companyId: string | null | undefined) {
 
       return {
         companyName: company.company_name,
-        contractorRepresentative: primaryRep ? {
-          name: primaryRep.full_name,
-          phone: primaryRep.mobile_number,
-          email: primaryRep.email
-        } : null,
+        contractorRepresentative: contractorRepFromTable || contractorRepFromCompany,
         safetyOfficer: safetyOfficerFromTable || safetyOfficerFromCompany,
-        siteRepresentative: company.contractor_site_rep_name ? {
-          name: company.contractor_site_rep_name,
-          phone: company.contractor_site_rep_phone,
-          email: company.contractor_site_rep_email
-        } : null,
         clientSiteRepresentative: clientSiteRep
       };
     },

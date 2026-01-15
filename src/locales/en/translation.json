@@ -1873,6 +1873,8 @@
     "export": "Export",
     "import": "Import",
     "close": "Close",
+    "call": "Call",
+    "whatsapp": "WhatsApp",
     "copy": "Copy",
     "confirm": "Confirm",
     "yes": "Yes",
