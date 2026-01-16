@@ -6,3 +6,4 @@ export { ConsultantVerificationCard } from './ConsultantVerificationCard';
 export { SiteClientViolationApprovalCard } from './SiteClientViolationApprovalCard';
 export { ContractorAcknowledgementCard } from './ContractorAcknowledgementCard';
 export { ControllerDisputeReviewCard } from './ControllerDisputeReviewCard';
+export { ActionDisputeReviewCard } from './ActionDisputeReviewCard';
