@@ -11330,6 +11330,10 @@ export type Database = {
           approval_manager_id: string | null
           auto_declassify_to: string | null
           branch_id: string | null
+          clinic_review_notes: string | null
+          clinic_review_required: boolean | null
+          clinic_reviewed_at: string | null
+          clinic_reviewed_by: string | null
           closure_approved_at: string | null
           closure_approved_by: string | null
           closure_notes: string | null
@@ -11362,6 +11366,9 @@ export type Database = {
           deleted_at: string | null
           department: string | null
           department_id: string | null
+          dept_manager_approved_at: string | null
+          dept_manager_approved_by: string | null
+          dept_manager_notes: string | null
           dept_rep_acknowledged_at: string | null
           dept_rep_acknowledged_by: string | null
           dept_rep_approved_at: string | null
@@ -11551,6 +11558,10 @@ export type Database = {
           approval_manager_id?: string | null
           auto_declassify_to?: string | null
           branch_id?: string | null
+          clinic_review_notes?: string | null
+          clinic_review_required?: boolean | null
+          clinic_reviewed_at?: string | null
+          clinic_reviewed_by?: string | null
           closure_approved_at?: string | null
           closure_approved_by?: string | null
           closure_notes?: string | null
@@ -11583,6 +11594,9 @@ export type Database = {
           deleted_at?: string | null
           department?: string | null
           department_id?: string | null
+          dept_manager_approved_at?: string | null
+          dept_manager_approved_by?: string | null
+          dept_manager_notes?: string | null
           dept_rep_acknowledged_at?: string | null
           dept_rep_acknowledged_by?: string | null
           dept_rep_approved_at?: string | null
@@ -11772,6 +11786,10 @@ export type Database = {
           approval_manager_id?: string | null
           auto_declassify_to?: string | null
           branch_id?: string | null
+          clinic_review_notes?: string | null
+          clinic_review_required?: boolean | null
+          clinic_reviewed_at?: string | null
+          clinic_reviewed_by?: string | null
           closure_approved_at?: string | null
           closure_approved_by?: string | null
           closure_notes?: string | null
@@ -11804,6 +11822,9 @@ export type Database = {
           deleted_at?: string | null
           department?: string | null
           department_id?: string | null
+          dept_manager_approved_at?: string | null
+          dept_manager_approved_by?: string | null
+          dept_manager_notes?: string | null
           dept_rep_acknowledged_at?: string | null
           dept_rep_acknowledged_by?: string | null
           dept_rep_approved_at?: string | null
@@ -12019,6 +12040,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incidents_clinic_reviewed_by_fkey"
+            columns: ["clinic_reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_clinic_reviewed_by_fkey"
+            columns: ["clinic_reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incidents_closure_approved_by_fkey"
             columns: ["closure_approved_by"]
             isOneToOne: false
@@ -12093,6 +12128,20 @@ export type Database = {
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_dept_manager_approved_by_fkey"
+            columns: ["dept_manager_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_dept_manager_approved_by_fkey"
+            columns: ["dept_manager_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -13680,6 +13729,119 @@ export type Database = {
         }
         Relationships: []
       }
+      investigation_team_tasks: {
+        Row: {
+          assigned_by: string
+          assigned_to: string
+          branch_id: string | null
+          completed_at: string | null
+          completion_notes: string | null
+          created_at: string | null
+          deleted_at: string | null
+          due_date: string | null
+          id: string
+          investigation_id: string
+          notes: string | null
+          priority: string | null
+          status: string | null
+          target_area: string | null
+          task_description: string
+          task_type: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_by: string
+          assigned_to: string
+          branch_id?: string | null
+          completed_at?: string | null
+          completion_notes?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          due_date?: string | null
+          id?: string
+          investigation_id: string
+          notes?: string | null
+          priority?: string | null
+          status?: string | null
+          target_area?: string | null
+          task_description: string
+          task_type: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_by?: string
+          assigned_to?: string
+          branch_id?: string | null
+          completed_at?: string | null
+          completion_notes?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          due_date?: string | null
+          id?: string
+          investigation_id?: string
+          notes?: string | null
+          priority?: string | null
+          status?: string | null
+          target_area?: string | null
+          task_description?: string
+          task_type?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investigation_team_tasks_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigation_team_tasks_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigation_team_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigation_team_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigation_team_tasks_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigation_team_tasks_investigation_id_fkey"
+            columns: ["investigation_id"]
+            isOneToOne: false
+            referencedRelation: "investigations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigation_team_tasks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       investigations: {
         Row: {
           ai_summary: string | null
@@ -13701,6 +13863,7 @@ export type Database = {
           id: string
           immediate_cause: string | null
           incident_id: string | null
+          investigation_type: string | null
           investigator_id: string | null
           review_deadline: string | null
           root_cause: string | null
@@ -13710,6 +13873,8 @@ export type Database = {
           sla_warning_sent_at: string | null
           started_at: string | null
           target_completion_date: string | null
+          team_leader_id: string | null
+          team_member_ids: string[] | null
           tenant_id: string
           underlying_cause: string | null
           updated_at: string | null
@@ -13740,6 +13905,7 @@ export type Database = {
           id?: string
           immediate_cause?: string | null
           incident_id?: string | null
+          investigation_type?: string | null
           investigator_id?: string | null
           review_deadline?: string | null
           root_cause?: string | null
@@ -13749,6 +13915,8 @@ export type Database = {
           sla_warning_sent_at?: string | null
           started_at?: string | null
           target_completion_date?: string | null
+          team_leader_id?: string | null
+          team_member_ids?: string[] | null
           tenant_id: string
           underlying_cause?: string | null
           updated_at?: string | null
@@ -13779,6 +13947,7 @@ export type Database = {
           id?: string
           immediate_cause?: string | null
           incident_id?: string | null
+          investigation_type?: string | null
           investigator_id?: string | null
           review_deadline?: string | null
           root_cause?: string | null
@@ -13788,6 +13957,8 @@ export type Database = {
           sla_warning_sent_at?: string | null
           started_at?: string | null
           target_completion_date?: string | null
+          team_leader_id?: string | null
+          team_member_ids?: string[] | null
           tenant_id?: string
           underlying_cause?: string | null
           updated_at?: string | null
@@ -13823,6 +13994,20 @@ export type Database = {
           {
             foreignKeyName: "investigations_investigator_id_fkey"
             columns: ["investigator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigations_team_leader_id_fkey"
+            columns: ["team_leader_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigations_team_leader_id_fkey"
+            columns: ["team_leader_id"]
             isOneToOne: false
             referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
@@ -25236,6 +25421,31 @@ export type Database = {
         Args: { p_event: Json; p_provider_message_id: string }
         Returns: string
       }
+      assign_investigation_team: {
+        Args: {
+          _assignment_notes?: string
+          _incident_id: string
+          _investigation_type: string
+          _investigator_id?: string
+          _team_leader_id?: string
+          _team_member_ids?: string[]
+          _user_id: string
+        }
+        Returns: Json
+      }
+      assign_team_task: {
+        Args: {
+          _assigned_to: string
+          _due_date?: string
+          _investigation_id: string
+          _priority?: string
+          _target_area?: string
+          _task_description: string
+          _task_type: string
+          _user_id: string
+        }
+        Returns: Json
+      }
       calculate_asset_depreciation: {
         Args: { p_asset_id: string }
         Returns: number
@@ -25345,8 +25555,16 @@ export type Database = {
         Returns: boolean
       }
       can_manage_org_structure: { Args: { _user_id: string }; Returns: boolean }
+      can_perform_clinic_review: {
+        Args: { _incident_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_perform_expert_screening: {
         Args: { _user_id: string }
+        Returns: boolean
+      }
+      can_review_as_dept_manager: {
+        Args: { _incident_id: string; _user_id: string }
         Returns: boolean
       }
       can_review_dept_rep_incident: {
@@ -25451,6 +25669,10 @@ export type Database = {
       cleanup_expired_webauthn_challenges: { Args: never; Returns: undefined }
       close_contractor_observation: {
         Args: { p_closure_notes?: string; p_incident_id: string }
+        Returns: Json
+      }
+      complete_team_task: {
+        Args: { _completion_notes?: string; _task_id: string; _user_id: string }
         Returns: Json
       }
       consultant_complete_screening: {
@@ -26479,6 +26701,17 @@ export type Database = {
           old_level: string
         }[]
       }
+      process_dept_manager_incident_approval: {
+        Args: {
+          _decision: string
+          _incident_id: string
+          _notes?: string
+          _updated_description?: string
+          _updated_initial_actions?: string
+          _user_id: string
+        }
+        Returns: Json
+      }
       process_dept_rep_incident_decision: {
         Args: {
           _decision: string
@@ -26585,6 +26818,10 @@ export type Database = {
       store_mfa_backup_codes: {
         Args: { p_codes: string[]; p_user_id: string }
         Returns: undefined
+      }
+      submit_clinic_review: {
+        Args: { _incident_id: string; _notes?: string; _user_id: string }
+        Returns: Json
       }
       submit_contractor_violation: {
         Args: {
@@ -26799,6 +27036,8 @@ export type Database = {
         | "monitoring_60_day"
         | "monitoring_90_day"
         | "pending_contractor_dispute_review"
+        | "pending_department_manager_approval"
+        | "pending_clinic_review"
       maintenance_frequency:
         | "daily"
         | "weekly"
@@ -27124,6 +27363,8 @@ export const Constants = {
         "monitoring_60_day",
         "monitoring_90_day",
         "pending_contractor_dispute_review",
+        "pending_department_manager_approval",
+        "pending_clinic_review",
       ],
       maintenance_frequency: [
         "daily",
