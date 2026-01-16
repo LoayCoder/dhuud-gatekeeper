@@ -26106,7 +26106,15 @@ export type Database = {
       }
       seed_tenant_badges: { Args: { p_tenant_id: string }; Returns: undefined }
       soft_delete_branch: { Args: { p_branch_id: string }; Returns: string }
+      soft_delete_branch_cascade: {
+        Args: { p_branch_id: string }
+        Returns: string
+      }
       soft_delete_building: { Args: { p_building_id: string }; Returns: string }
+      soft_delete_building_cascade: {
+        Args: { p_building_id: string }
+        Returns: string
+      }
       soft_delete_closed_incident: {
         Args: { p_incident_id: string; p_password_hash: string }
         Returns: string
@@ -26148,6 +26156,7 @@ export type Database = {
         Args: { p_zone_id: string }
         Returns: string
       }
+      soft_delete_site_cascade: { Args: { p_site_id: string }; Returns: string }
       soft_delete_visit_request: {
         Args: { p_request_id: string }
         Returns: string
