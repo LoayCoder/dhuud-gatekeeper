@@ -53,5 +53,8 @@ export * from '../use-cached-profile';
 // Audit Logging
 export * from './use-audit-log';
 
+// Branch-Aware Queries
+export * from './use-branch-aware-query';
+
 // Idle Timeout (moved from auth for broader use)
 export * from '../use-idle-timeout';
