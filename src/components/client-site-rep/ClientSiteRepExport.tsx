@@ -11,8 +11,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { useClientSiteRepExportData } from "@/hooks/contractor-management/use-client-site-rep-export-data";
-import { exportToCSV, exportToExcel, ExportColumn } from "@/lib/export-utils";
+import { secureExportToCSV, validateExportPermission } from "@/lib/secure-export";
+import { ExportColumn, exportToExcel } from "@/lib/export-utils";
+import { logExport } from "@/lib/audit-logger";
 import { format } from "date-fns";
 
 interface ClientSiteRepExportProps {
@@ -22,6 +25,7 @@ interface ClientSiteRepExportProps {
 export function ClientSiteRepExport({ companyIds }: ClientSiteRepExportProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [loading, setLoading] = useState<string | null>(null);
   const { fetchWorkersForExport, fetchIncidentsForExport, fetchViolationsForExport } = useClientSiteRepExportData();
 
@@ -69,7 +73,16 @@ export function ClientSiteRepExport({ companyIds }: ClientSiteRepExportProps) {
     },
   ];
 
-  const handleExport = async (type: "workers" | "incidents" | "violations", format: "csv" | "excel") => {
+  const handleExport = async (type: "workers" | "incidents" | "violations", exportFormat: "csv" | "excel") => {
+    if (!user?.id) {
+      toast({
+        title: t("common.error", "Error"),
+        description: t("common.notAuthenticated", "Not authenticated"),
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!companyIds.length) {
       toast({
         title: t("common.error", "Error"),
@@ -79,40 +92,74 @@ export function ClientSiteRepExport({ companyIds }: ClientSiteRepExportProps) {
       return;
     }
 
-    const key = `${type}-${format}`;
+    // Determine menu code and entity type based on export type
+    const menuCode = "client_site_rep";
+    const entityType = type === "workers" ? "contractor" : type === "incidents" ? "incident" : "contractor";
+
+    // Validate export permission
+    const permission = await validateExportPermission(user.id, menuCode);
+    if (!permission.canExport) {
+      toast({
+        title: t("common.error", "Error"),
+        description: t("common.exportPermissionDenied", "Export permission denied"),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const key = `${type}-${exportFormat}`;
     setLoading(key);
 
     try {
+      let data: Record<string, unknown>[] = [];
+      let columns: ExportColumn[] = [];
+      let filename = "";
+
       if (type === "workers") {
-        const data = await fetchWorkersForExport(companyIds);
+        data = await fetchWorkersForExport(companyIds) as unknown as Record<string, unknown>[];
+        columns = workerColumns;
+        filename = `workers_report_${dateStr}`;
         if (!data.length) {
           toast({ title: t("clientSiteRep.export.noWorkers", "No workers to export") });
           return;
         }
-        const filename = `workers_report_${dateStr}`;
-        format === "csv" 
-          ? exportToCSV(data, `${filename}.csv`, workerColumns)
-          : exportToExcel(data, `${filename}.xlsx`, workerColumns);
       } else if (type === "incidents") {
-        const data = await fetchIncidentsForExport(companyIds);
+        data = await fetchIncidentsForExport(companyIds) as unknown as Record<string, unknown>[];
+        columns = incidentColumns;
+        filename = `incidents_report_${dateStr}`;
         if (!data.length) {
           toast({ title: t("clientSiteRep.export.noIncidents", "No incidents to export") });
           return;
         }
-        const filename = `incidents_report_${dateStr}`;
-        format === "csv"
-          ? exportToCSV(data, `${filename}.csv`, incidentColumns)
-          : exportToExcel(data, `${filename}.xlsx`, incidentColumns);
       } else {
-        const data = await fetchViolationsForExport(companyIds);
+        data = await fetchViolationsForExport(companyIds) as unknown as Record<string, unknown>[];
+        columns = violationColumns;
+        filename = `violations_report_${dateStr}`;
         if (!data.length) {
           toast({ title: t("clientSiteRep.export.noViolations", "No violations to export") });
           return;
         }
-        const filename = `violations_report_${dateStr}`;
-        format === "csv"
-          ? exportToCSV(data, `${filename}.csv`, violationColumns)
-          : exportToExcel(data, `${filename}.xlsx`, violationColumns);
+      }
+
+      // Log export action
+      await logExport(entityType as any, exportFormat, data.length, { companyIds, type });
+
+      // Perform export
+      if (exportFormat === "csv") {
+        const result = await secureExportToCSV(
+          user.id,
+          menuCode,
+          entityType as any,
+          data,
+          columns,
+          `${filename}.csv`,
+          { companyIds, type }
+        );
+        if (!result.success) {
+          throw new Error(result.error);
+        }
+      } else {
+        exportToExcel(data, `${filename}.xlsx`, columns);
       }
 
       toast({

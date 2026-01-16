@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSLADashboard } from '@/hooks/use-sla-dashboard';
 import { useActionSLAConfig } from '@/hooks/use-action-sla-config';
+import { useAuth } from '@/contexts/AuthContext';
 import { SLAPageLayout } from '@/components/sla/SLAPageLayout';
 import { SLAStatusCards } from '@/components/sla/SLAStatusCards';
 import { SLACountdownTimer } from '@/components/sla/SLACountdownTimer';
@@ -18,8 +19,10 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RefreshCw, Activity, Filter, Download, Search, BarChart3, LayoutGrid, LayoutList, Zap } from 'lucide-react';
+import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { exportToCSV } from '@/lib/export-utils';
+import { secureExportToCSV, validateExportPermission } from '@/lib/secure-export';
+import { ExportColumn } from '@/lib/export-utils';
 import { cn } from '@/lib/utils';
 
 const getPriorityVariant = (priority: string | null) => {
@@ -35,6 +38,7 @@ const getPriorityVariant = (priority: string | null) => {
 export default function SLADashboard() {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
+  const { user } = useAuth();
   const { actions, stats, isLoading, refetch } = useSLADashboard();
   const { slaConfigs } = useActionSLAConfig();
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -106,7 +110,19 @@ export default function SLADashboard() {
     }
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
+    if (!user?.id) {
+      toast.error(t('common.notAuthenticated', 'Not authenticated'));
+      return;
+    }
+
+    // Validate export permission
+    const permission = await validateExportPermission(user.id, 'sla_dashboard');
+    if (!permission.canExport) {
+      toast.error(t('common.exportPermissionDenied', 'Export permission denied'));
+      return;
+    }
+
     const dataToExport = selectedIds.length > 0 
       ? filteredActions.filter(a => selectedIds.includes(a.id))
       : filteredActions;
@@ -121,7 +137,7 @@ export default function SLADashboard() {
       escalation_level: action.escalation_level,
     }));
 
-    exportToCSV(exportData, 'sla-actions-export', [
+    const columns: ExportColumn[] = [
       { key: 'reference_id', label: t('actions.referenceId', 'Reference ID') },
       { key: 'title', label: t('actions.title', 'Title') },
       { key: 'priority', label: t('actions.priority', 'Priority') },
@@ -129,7 +145,23 @@ export default function SLADashboard() {
       { key: 'due_date', label: t('actions.dueDate', 'Due Date') },
       { key: 'status', label: t('actions.status', 'Status') },
       { key: 'escalation_level', label: t('sla.escalationLevel', 'Escalation Level') },
-    ]);
+    ];
+
+    const result = await secureExportToCSV(
+      user.id,
+      'sla_dashboard',
+      'corrective_action',
+      exportData,
+      columns,
+      'sla-actions-export.csv',
+      { filterStatus, filterPriority, searchQuery }
+    );
+
+    if (result.success) {
+      toast.success(t('common.exportSuccess', 'Export completed'));
+    } else {
+      toast.error(result.error || t('common.exportError', 'Export failed'));
+    }
   };
 
   if (isLoading) {
