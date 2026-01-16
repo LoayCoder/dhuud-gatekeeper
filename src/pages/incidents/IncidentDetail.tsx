@@ -35,6 +35,7 @@ import { HSSEViolationReviewCard } from '@/components/investigation/HSSEViolatio
 import { EscalationAlertBanner } from '@/components/investigation/EscalationAlertBanner';
 import { HSSEObservationValidationCard } from '@/components/investigation/HSSEObservationValidationCard';
 import { HSSEEnforcementBanner } from '@/components/investigation/HSSEEnforcementBanner';
+import { ObservationWorkflowTracker } from '@/components/investigation/ObservationWorkflowTracker';
 // Contractor Observation Workflow Cards
 import {
   ConsultantReviewCard,
@@ -271,6 +272,15 @@ export default function IncidentDetail() {
           enforcedAt={(incident as any).hsse_enforced_at}
           enforcedBy={(incident as any).hsse_enforced_by_profile}
           enforcementNotes={(incident as any).enforcement_notes}
+        />
+      )}
+
+      {/* Observation Workflow Tracker */}
+      {incident.event_type === 'observation' && (
+        <ObservationWorkflowTracker 
+          incident={incident}
+          variant="horizontal"
+          showSeverityRouting={true}
         />
       )}
 

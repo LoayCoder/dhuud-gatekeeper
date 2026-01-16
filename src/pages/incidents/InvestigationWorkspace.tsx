@@ -74,6 +74,7 @@ import {
 } from "@/components/investigation";
 import { ActionDisputeReviewCard } from "@/components/investigation/contractor-workflow";
 import { HSSEEnforcementBanner } from "@/components/investigation/HSSEEnforcementBanner";
+import { ObservationWorkflowTracker } from "@/components/investigation/ObservationWorkflowTracker";
 import { ReopenIncidentDialog } from "@/components/investigation/ReopenIncidentDialog";
 import { InjuryPanel } from "@/components/investigation/InjuryPanel";
 import { PropertyDamagePanel } from "@/components/investigation/property-damage";
@@ -740,6 +741,15 @@ export default function InvestigationWorkspace() {
           {/* Closure Prerequisites Card - Show during final closure stages */}
           {status && ['pending_final_closure', 'pending_hsse_incident_validation'].includes(status) && (
             <IncidentClosurePrerequisitesCard incidentId={selectedIncidentId} />
+          )}
+
+          {/* Observation Workflow Tracker */}
+          {incidentData?.event_type === 'observation' && (
+            <ObservationWorkflowTracker 
+              incident={incidentData}
+              variant="horizontal"
+              showSeverityRouting={true}
+            />
           )}
 
           {/* Warning if investigation not yet allowed */}
