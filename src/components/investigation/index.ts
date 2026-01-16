@@ -60,3 +60,5 @@ export { HSSEIncidentValidationCard } from './HSSEIncidentValidationCard';
 export { InjuryPanel } from './InjuryPanel';
 // Environmental Impact Tab Components
 export { EnvironmentalImpactPanel } from './environmental-impact';
+// Contractor Observation Workflow Components
+export * from './contractor-workflow';
