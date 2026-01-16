@@ -20,20 +20,23 @@ import {
   ClipboardList, 
   CheckCircle2, 
   AlertTriangle,
-  ArrowRight,
+  ArrowUpRight,
   Loader2,
   Plus,
   XCircle,
   Info,
   MapPin,
-  ExternalLink
+  ExternalLink,
+  FileCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDeptRepApproval, useCanApproveDeptRep } from "@/hooks/use-hsse-workflow";
+import { useDeptRepAcknowledgeObservation, useCanReviewAsDeptRep } from "@/hooks/use-dept-rep-workflow";
 import { useCorrectiveActionsCount, useDeptRepRejectObservation } from "@/hooks/use-observation-rejection";
 import { useSubmitContractorViolation } from "@/hooks/use-contractor-violation";
 import { ActionsPanel } from "./ActionsPanel";
 import { ContractorViolationSection } from "./ContractorViolationSection";
+import { getSeverityConfig, type SeverityLevelV2 } from "@/lib/hsse-severity-levels";
 import type { IncidentWithDetails } from "@/hooks/use-incidents";
 import {
   Tooltip,
