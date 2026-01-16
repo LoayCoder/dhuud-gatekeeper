@@ -4518,6 +4518,13 @@ export type Database = {
             foreignKeyName: "contractor_access_logs_worker_id_fkey"
             columns: ["worker_id"]
             isOneToOne: false
+            referencedRelation: "contractor_workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_access_logs_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
             referencedRelation: "contractor_workers_secure"
             referencedColumns: ["id"]
           },
@@ -5098,6 +5105,13 @@ export type Database = {
             foreignKeyName: "contractor_documents_worker_id_fkey"
             columns: ["worker_id"]
             isOneToOne: false
+            referencedRelation: "contractor_workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_documents_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
             referencedRelation: "contractor_workers_secure"
             referencedColumns: ["id"]
           },
@@ -5554,6 +5568,13 @@ export type Database = {
             foreignKeyName: "contractor_safety_officers_worker_id_fkey"
             columns: ["worker_id"]
             isOneToOne: false
+            referencedRelation: "contractor_workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_safety_officers_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
             referencedRelation: "contractor_workers_secure"
             referencedColumns: ["id"]
           },
@@ -5644,6 +5665,13 @@ export type Database = {
             columns: ["worker_id"]
             isOneToOne: false
             referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_site_representatives_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_safe"
             referencedColumns: ["id"]
           },
           {
@@ -8004,6 +8032,13 @@ export type Database = {
             columns: ["worker_id"]
             isOneToOne: false
             referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_entry_logs_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_safe"
             referencedColumns: ["id"]
           },
           {
@@ -10663,6 +10698,13 @@ export type Database = {
             foreignKeyName: "incident_injuries_linked_contractor_worker_id_fkey"
             columns: ["linked_contractor_worker_id"]
             isOneToOne: false
+            referencedRelation: "contractor_workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_injuries_linked_contractor_worker_id_fkey"
+            columns: ["linked_contractor_worker_id"]
+            isOneToOne: false
             referencedRelation: "contractor_workers_secure"
             referencedColumns: ["id"]
           },
@@ -12182,6 +12224,13 @@ export type Database = {
             columns: ["recognized_contractor_worker_id"]
             isOneToOne: false
             referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_recognized_contractor_worker_id_fkey"
+            columns: ["recognized_contractor_worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_safe"
             referencedColumns: ["id"]
           },
           {
@@ -16859,6 +16908,13 @@ export type Database = {
             foreignKeyName: "project_clearance_execution_witness_id_fkey"
             columns: ["witness_id"]
             isOneToOne: false
+            referencedRelation: "contractor_workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_clearance_execution_witness_id_fkey"
+            columns: ["witness_id"]
+            isOneToOne: false
             referencedRelation: "contractor_workers_secure"
             referencedColumns: ["id"]
           },
@@ -16963,6 +17019,13 @@ export type Database = {
             foreignKeyName: "project_safety_officers_worker_id_fkey"
             columns: ["worker_id"]
             isOneToOne: false
+            referencedRelation: "contractor_workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_safety_officers_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
             referencedRelation: "contractor_workers_secure"
             referencedColumns: ["id"]
           },
@@ -17045,6 +17108,13 @@ export type Database = {
             columns: ["worker_id"]
             isOneToOne: false
             referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_worker_assignments_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_safe"
             referencedColumns: ["id"]
           },
           {
@@ -18841,6 +18911,13 @@ export type Database = {
             foreignKeyName: "risk_assessment_team_worker_id_fkey"
             columns: ["worker_id"]
             isOneToOne: false
+            referencedRelation: "contractor_workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "risk_assessment_team_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
             referencedRelation: "contractor_workers_secure"
             referencedColumns: ["id"]
           },
@@ -19157,6 +19234,7 @@ export type Database = {
         Row: {
           can_create: boolean | null
           can_delete: boolean | null
+          can_export: boolean | null
           can_read: boolean | null
           can_update: boolean | null
           created_at: string | null
@@ -19170,6 +19248,7 @@ export type Database = {
         Insert: {
           can_create?: boolean | null
           can_delete?: boolean | null
+          can_export?: boolean | null
           can_read?: boolean | null
           can_update?: boolean | null
           created_at?: string | null
@@ -19183,6 +19262,7 @@ export type Database = {
         Update: {
           can_create?: boolean | null
           can_delete?: boolean | null
+          can_export?: boolean | null
           can_read?: boolean | null
           can_update?: boolean | null
           created_at?: string | null
@@ -23903,6 +23983,13 @@ export type Database = {
             foreignKeyName: "worker_inductions_worker_id_fkey"
             columns: ["worker_id"]
             isOneToOne: false
+            referencedRelation: "contractor_workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_inductions_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
             referencedRelation: "contractor_workers_secure"
             referencedColumns: ["id"]
           },
@@ -24003,6 +24090,13 @@ export type Database = {
             foreignKeyName: "worker_qr_codes_worker_id_fkey"
             columns: ["worker_id"]
             isOneToOne: false
+            referencedRelation: "contractor_workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_qr_codes_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
             referencedRelation: "contractor_workers_secure"
             referencedColumns: ["id"]
           },
@@ -24058,6 +24152,13 @@ export type Database = {
             columns: ["worker_id"]
             isOneToOne: false
             referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_zone_authorizations_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_safe"
             referencedColumns: ["id"]
           },
           {
@@ -24378,6 +24479,150 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "hsse_assets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractor_workers_safe: {
+        Row: {
+          approval_status: string | null
+          approved_at: string | null
+          approved_by: string | null
+          branch_id: string | null
+          company_id: string | null
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          edit_pending_approval: boolean | null
+          edited_at: string | null
+          edited_by: string | null
+          full_name: string | null
+          full_name_ar: string | null
+          id: string | null
+          nationality: string | null
+          photo_path: string | null
+          preferred_language: string | null
+          rejection_reason: string | null
+          safety_officer_id: string | null
+          security_approval_status: string | null
+          security_approved_at: string | null
+          security_approved_by: string | null
+          security_rejection_reason: string | null
+          tenant_id: string | null
+          updated_at: string | null
+          worker_type: string | null
+        }
+        Insert: {
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          edit_pending_approval?: boolean | null
+          edited_at?: string | null
+          edited_by?: string | null
+          full_name?: string | null
+          full_name_ar?: string | null
+          id?: string | null
+          nationality?: string | null
+          photo_path?: string | null
+          preferred_language?: string | null
+          rejection_reason?: string | null
+          safety_officer_id?: string | null
+          security_approval_status?: string | null
+          security_approved_at?: string | null
+          security_approved_by?: string | null
+          security_rejection_reason?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          worker_type?: string | null
+        }
+        Update: {
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          edit_pending_approval?: boolean | null
+          edited_at?: string | null
+          edited_by?: string | null
+          full_name?: string | null
+          full_name_ar?: string | null
+          id?: string | null
+          nationality?: string | null
+          photo_path?: string | null
+          preferred_language?: string | null
+          rejection_reason?: string | null
+          safety_officer_id?: string | null
+          security_approval_status?: string | null
+          security_approved_at?: string | null
+          security_approved_by?: string | null
+          security_rejection_reason?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          worker_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_workers_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_safety_officer_id_fkey"
+            columns: ["safety_officer_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_safety_officers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -25052,6 +25297,10 @@ export type Database = {
         Args: { target_profile_id?: string; target_tenant_id: string }
         Returns: boolean
       }
+      can_view_profile: {
+        Args: { p_target_profile_id: string; p_viewer_id: string }
+        Returns: boolean
+      }
       can_view_sensitive_profile_data: {
         Args: { profile_user_id: string }
         Returns: boolean
@@ -25621,6 +25870,8 @@ export type Database = {
           total_hours: number
         }[]
       }
+      get_masked_mobile: { Args: { p_worker_id: string }; Returns: string }
+      get_masked_national_id: { Args: { p_worker_id: string }; Returns: string }
       get_mfa_stats: {
         Args: { p_tenant_id?: string }
         Returns: {
