@@ -6,10 +6,12 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSLAAnalytics, SLAAnalyticsFilters } from '@/hooks/use-sla-analytics';
+import { useAuth } from '@/contexts/AuthContext';
 import { SLAComplianceChart } from '@/components/sla/SLAComplianceChart';
 import { DepartmentPerformanceTable } from '@/components/sla/DepartmentPerformanceTable';
 import { EscalationHeatmap } from '@/components/sla/EscalationHeatmap';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 import { format, subMonths } from 'date-fns';
 import { 
   CalendarIcon, 
@@ -21,10 +23,12 @@ import {
   FileDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { exportToCSV } from '@/lib/export-utils';
+import { secureExportToCSV, validateExportPermission } from '@/lib/secure-export';
+import { ExportColumn } from '@/lib/export-utils';
 
 export default function SLAAnalytics() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [filters, setFilters] = useState<SLAAnalyticsFilters>({
     startDate: subMonths(new Date(), 12),
     endDate: new Date(),
@@ -32,7 +36,19 @@ export default function SLAAnalytics() {
 
   const { analytics, isLoading } = useSLAAnalytics(filters);
 
-  const handleExport = () => {
+  const handleExport = async () => {
+    if (!user?.id) {
+      toast.error(t('common.notAuthenticated', 'Not authenticated'));
+      return;
+    }
+
+    // Validate export permission
+    const permission = await validateExportPermission(user.id, 'sla_analytics');
+    if (!permission.canExport) {
+      toast.error(t('common.exportPermissionDenied', 'Export permission denied'));
+      return;
+    }
+
     const exportData = analytics.departmentPerformance.map(dept => ({
       department: dept.departmentName,
       total_actions: dept.totalActions,
@@ -42,14 +58,30 @@ export default function SLAAnalytics() {
       avg_resolution_days: dept.avgResolutionDays,
     }));
 
-    exportToCSV(exportData, 'sla-analytics-export', [
+    const columns: ExportColumn[] = [
       { key: 'department', label: t('common.department', 'Department') },
       { key: 'total_actions', label: t('sla.totalActions', 'Total Actions') },
       { key: 'completed_on_time', label: t('sla.onTime', 'On Time') },
       { key: 'breached', label: t('sla.breached', 'Breached') },
       { key: 'compliance_rate', label: t('sla.complianceRate', 'Compliance Rate') },
       { key: 'avg_resolution_days', label: t('sla.avgResolution', 'Avg Resolution Days') },
-    ]);
+    ];
+
+    const result = await secureExportToCSV(
+      user.id,
+      'sla_analytics',
+      'report',
+      exportData,
+      columns,
+      'sla-analytics-export.csv',
+      { startDate: filters.startDate?.toISOString(), endDate: filters.endDate?.toISOString(), priority: filters.priority }
+    );
+
+    if (result.success) {
+      toast.success(t('common.exportSuccess', 'Export completed'));
+    } else {
+      toast.error(result.error || t('common.exportError', 'Export failed'));
+    }
   };
 
   return (

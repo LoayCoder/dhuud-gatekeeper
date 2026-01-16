@@ -12,6 +12,9 @@ import { toast } from 'sonner';
 import ExcelJS from 'exceljs';
 import { jsPDF } from 'jspdf';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { validateExportPermission } from '@/lib/secure-export';
+import { logExport } from '@/lib/audit-logger';
 import type { 
   LaggingIndicators, 
   LeadingIndicators, 
@@ -34,14 +37,37 @@ export function KPIDashboardExport({
   responseData,
   peopleData,
   dateRange,
+  filters,
 }: KPIDashboardExportProps) {
   const { t } = useTranslation();
   const { tenantName } = useTheme();
+  const { user } = useAuth();
   const [isExporting, setIsExporting] = useState(false);
 
+  const menuCode = 'kpi_dashboard';
+  const entityType = 'report';
+
+  const checkPermission = async () => {
+    if (!user?.id) {
+      toast.error(t('common.notAuthenticated', 'Not authenticated'));
+      return false;
+    }
+    const permission = await validateExportPermission(user.id, menuCode);
+    if (!permission.canExport) {
+      toast.error(t('common.exportPermissionDenied', 'Export permission denied'));
+      return false;
+    }
+    return true;
+  };
+
   const exportToExcel = async () => {
+    if (!(await checkPermission())) return;
+
     setIsExporting(true);
     try {
+      // Log export action
+      await logExport(entityType as any, 'excel', 1, { dateRange, filters });
+
       const workbook = new ExcelJS.Workbook();
       workbook.creator = tenantName || 'HSSE Platform';
       workbook.created = new Date();
@@ -164,8 +190,13 @@ export function KPIDashboardExport({
   };
 
   const exportToPDF = async () => {
+    if (!(await checkPermission())) return;
+
     setIsExporting(true);
     try {
+      // Log export action
+      await logExport(entityType as any, 'pdf', 1, { dateRange, filters });
+
       const doc = new jsPDF('landscape', 'mm', 'a4');
       const pageWidth = doc.internal.pageSize.getWidth();
 

@@ -6,12 +6,16 @@
 import { supabase } from '@/integrations/supabase/client';
 import { logExport } from './audit-logger';
 import { exportToExcel, exportToPDF } from './asset-report-export';
+import { exportToCSV as exportToCSVUtil, ExportColumn as ExportUtilColumn } from './export-utils';
 import type { EntityType } from './audit-logger';
 
 export interface ReportColumn {
   id: string;
   label: string;
 }
+
+// Re-export for convenience
+export type { ExportUtilColumn };
 
 interface ExportPermissionResult {
   canExport: boolean;
@@ -140,6 +144,39 @@ export function downloadBlob(blob: Blob, filename: string): void {
 }
 
 /**
+ * Secure export to CSV with permission validation and audit logging
+ */
+export async function secureExportToCSV<T extends object>(
+  userId: string,
+  menuCode: string,
+  entityType: EntityType,
+  data: T[],
+  columns: ExportUtilColumn[],
+  filename: string,
+  filters?: Record<string, unknown>
+): Promise<{ success: boolean; error?: string }> {
+  // Validate permission
+  const permission = await validateExportPermission(userId, menuCode);
+  
+  if (!permission.canExport) {
+    console.warn('Export permission denied for user:', userId, 'menu:', menuCode);
+    return { success: false, error: permission.reason };
+  }
+
+  // Log the export action
+  await logExport(entityType, 'csv', data.length, filters);
+
+  // Generate and download the CSV file
+  try {
+    exportToCSVUtil(data, filename, columns);
+    return { success: true };
+  } catch (err) {
+    console.error('CSV export error:', err);
+    return { success: false, error: 'Export generation failed' };
+  }
+}
+
+/**
  * Secure export wrapper that handles the complete flow
  */
 export async function performSecureExport(
@@ -149,9 +186,19 @@ export async function performSecureExport(
   data: Record<string, unknown>[],
   columns: ReportColumn[],
   reportTitle: string,
-  format: 'excel' | 'pdf',
+  format: 'excel' | 'pdf' | 'csv',
   filters?: Record<string, unknown>
 ): Promise<{ success: boolean; error?: string }> {
+  // Handle CSV separately since it uses different column format
+  if (format === 'csv') {
+    const csvColumns: ExportUtilColumn[] = columns.map(c => ({
+      key: c.id,
+      label: c.label,
+    }));
+    const filename = `${reportTitle.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
+    return secureExportToCSV(userId, menuCode, entityType, data, csvColumns, filename, filters);
+  }
+
   const exportFn = format === 'excel' ? secureExportToExcel : secureExportToPDF;
   const extension = format === 'excel' ? 'xlsx' : 'pdf';
   

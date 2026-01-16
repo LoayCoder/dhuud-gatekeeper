@@ -12,9 +12,12 @@ import {
 import { Download, FileSpreadsheet, FileText, FileJson } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useAuth } from "@/contexts/AuthContext";
 import { PTWAnalyticsData } from "@/hooks/ptw/use-ptw-analytics";
 import { PTWPermit } from "@/hooks/ptw/use-ptw-permits";
-import { exportToCSV, exportToExcel, ExportColumn } from "@/lib/export-utils";
+import { validateExportPermission, secureExportToCSV } from "@/lib/secure-export";
+import { exportToExcel, ExportColumn } from "@/lib/export-utils";
+import { logExport } from "@/lib/audit-logger";
 import { generateBrandedPDFFromElement, createPDFRenderContainer, removePDFRenderContainer } from "@/lib/pdf-utils";
 
 interface PTWAnalyticsExportProps {
@@ -29,7 +32,11 @@ export function PTWAnalyticsExport({
   dateRange,
 }: PTWAnalyticsExportProps) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [isExporting, setIsExporting] = useState(false);
+
+  const menuCode = "ptw_analytics";
+  const entityType = "permit";
 
   const getDateRangeString = () => {
     if (dateRange?.start && dateRange?.end) {
@@ -38,11 +45,26 @@ export function PTWAnalyticsExport({
     return format(new Date(), "yyyy-MM-dd");
   };
 
-  const handleExportCSV = () => {
+  const checkPermission = async () => {
+    if (!user?.id) {
+      toast.error(t("common.notAuthenticated", "Not authenticated"));
+      return false;
+    }
+    const permission = await validateExportPermission(user.id, menuCode);
+    if (!permission.canExport) {
+      toast.error(t("common.exportPermissionDenied", "Export permission denied"));
+      return false;
+    }
+    return true;
+  };
+
+  const handleExportCSV = async () => {
     if (permits.length === 0) {
       toast.error(t("common.noDataToExport", "No data to export"));
       return;
     }
+
+    if (!(await checkPermission())) return;
 
     const columns: ExportColumn[] = [
       { key: "reference_id", label: t("ptw.fields.referenceId", "Reference ID") },
@@ -90,15 +112,30 @@ export function PTWAnalyticsExport({
       { key: "extension_count", label: t("ptw.fields.extensions", "Extensions") },
     ];
 
-    exportToCSV(permits as unknown as Record<string, unknown>[], `ptw_permits_${getDateRangeString()}.csv`, columns);
-    toast.success(t("common.exportSuccess", "Export completed"));
+    const result = await secureExportToCSV(
+      user!.id,
+      menuCode,
+      entityType as any,
+      permits as unknown as Record<string, unknown>[],
+      columns,
+      `ptw_permits_${getDateRangeString()}.csv`,
+      { dateRange }
+    );
+
+    if (result.success) {
+      toast.success(t("common.exportSuccess", "Export completed"));
+    } else {
+      toast.error(result.error || t("common.exportError", "Export failed"));
+    }
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     if (permits.length === 0) {
       toast.error(t("common.noDataToExport", "No data to export"));
       return;
     }
+
+    if (!(await checkPermission())) return;
 
     const columns: ExportColumn[] = [
       { key: "reference_id", label: t("ptw.fields.referenceId", "Reference ID") },
@@ -131,13 +168,21 @@ export function PTWAnalyticsExport({
       { key: "extension_count", label: t("ptw.fields.extensions", "Extensions") },
     ];
 
+    // Log export action
+    await logExport(entityType as any, 'excel', permits.length, { dateRange });
+
     exportToExcel(permits as unknown as Record<string, unknown>[], `ptw_permits_${getDateRangeString()}.xlsx`, columns);
     toast.success(t("common.exportSuccess", "Export completed"));
   };
 
   const handleExportPDF = async () => {
+    if (!(await checkPermission())) return;
+
     setIsExporting(true);
     try {
+      // Log export action
+      await logExport(entityType as any, 'pdf', permits.length, { dateRange });
+
       // Create a temporary container for PDF rendering
       const container = createPDFRenderContainer();
 
