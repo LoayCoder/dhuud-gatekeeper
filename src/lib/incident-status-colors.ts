@@ -25,6 +25,10 @@ const STATUS_CATEGORIES: Record<string, StatusCategory> = {
   'pending_review': 'open',
   'expert_screening': 'open',
   
+  // NEW: Consultant/Dept Rep initial review stages
+  'pending_consultant_screening': 'open',
+  'pending_dept_rep_review': 'open',
+  
   // Under Investigation - Info
   'investigation_pending': 'investigation',
   'investigation_in_progress': 'investigation',
@@ -36,6 +40,10 @@ const STATUS_CATEGORIES: Record<string, StatusCategory> = {
   'pending_dept_rep_incident_review': 'action_required',
   'pending_hsse_escalation_review': 'action_required',
   'hsse_manager_escalation': 'action_required',
+  'pending_site_client_approval': 'action_required',
+  'pending_hsse_expert_review': 'action_required',
+  'pending_action_dispute_review': 'action_required',
+  'pending_contractor_implementation': 'action_required',
   
   // Pending CAPA/Closure - Pending
   'observation_actions_pending': 'pending_closure',
@@ -51,6 +59,7 @@ const STATUS_CATEGORIES: Record<string, StatusCategory> = {
   'closed': 'closed',
   'no_investigation_required': 'closed',
   'investigation_closed': 'closed',
+  'hsse_enforced': 'closed',
 };
 
 // Closed statuses (for filtering)

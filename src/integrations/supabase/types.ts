@@ -6214,6 +6214,9 @@ export type Database = {
           delegated_verifier_id: string | null
           deleted_at: string | null
           description: string | null
+          dispute_reason: string | null
+          disputed_at: string | null
+          disputed_by: string | null
           due_date: string | null
           escalation_level: number | null
           finding_id: string | null
@@ -6264,6 +6267,9 @@ export type Database = {
           delegated_verifier_id?: string | null
           deleted_at?: string | null
           description?: string | null
+          dispute_reason?: string | null
+          disputed_at?: string | null
+          disputed_by?: string | null
           due_date?: string | null
           escalation_level?: number | null
           finding_id?: string | null
@@ -6314,6 +6320,9 @@ export type Database = {
           delegated_verifier_id?: string | null
           deleted_at?: string | null
           description?: string | null
+          dispute_reason?: string | null
+          disputed_at?: string | null
+          disputed_by?: string | null
           due_date?: string | null
           escalation_level?: number | null
           finding_id?: string | null
@@ -6397,6 +6406,20 @@ export type Database = {
           {
             foreignKeyName: "corrective_actions_delegated_verifier_id_fkey"
             columns: ["delegated_verifier_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "corrective_actions_disputed_by_fkey"
+            columns: ["disputed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "corrective_actions_disputed_by_fkey"
+            columns: ["disputed_by"]
             isOneToOne: false
             referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
@@ -11297,6 +11320,7 @@ export type Database = {
       }
       incidents: {
         Row: {
+          action_dispute_reason: string | null
           admin_override_at: string | null
           admin_override_by: string | null
           admin_override_original_approver: string | null
@@ -11323,6 +11347,8 @@ export type Database = {
           confidentiality_level: string | null
           confidentiality_set_at: string | null
           confidentiality_set_by: string | null
+          consultant_screened_at: string | null
+          consultant_screening_notes: string | null
           contractor_dispute_decision_notes: string | null
           contractor_dispute_evidence: Json | null
           contractor_dispute_reason: string | null
@@ -11336,6 +11362,8 @@ export type Database = {
           deleted_at: string | null
           department: string | null
           department_id: string | null
+          dept_rep_acknowledged_at: string | null
+          dept_rep_acknowledged_by: string | null
           dept_rep_approved_at: string | null
           dept_rep_approved_by: string | null
           dept_rep_notes: string | null
@@ -11366,6 +11394,8 @@ export type Database = {
           expert_screening_notes: string | null
           has_damage: boolean | null
           has_injury: boolean | null
+          hsse_enforced_at: string | null
+          hsse_enforced_by: string | null
           hsse_manager_decision: string | null
           hsse_manager_decision_by: string | null
           hsse_manager_justification: string | null
@@ -11511,6 +11541,7 @@ export type Database = {
           worker_type: string | null
         }
         Insert: {
+          action_dispute_reason?: string | null
           admin_override_at?: string | null
           admin_override_by?: string | null
           admin_override_original_approver?: string | null
@@ -11537,6 +11568,8 @@ export type Database = {
           confidentiality_level?: string | null
           confidentiality_set_at?: string | null
           confidentiality_set_by?: string | null
+          consultant_screened_at?: string | null
+          consultant_screening_notes?: string | null
           contractor_dispute_decision_notes?: string | null
           contractor_dispute_evidence?: Json | null
           contractor_dispute_reason?: string | null
@@ -11550,6 +11583,8 @@ export type Database = {
           deleted_at?: string | null
           department?: string | null
           department_id?: string | null
+          dept_rep_acknowledged_at?: string | null
+          dept_rep_acknowledged_by?: string | null
           dept_rep_approved_at?: string | null
           dept_rep_approved_by?: string | null
           dept_rep_notes?: string | null
@@ -11580,6 +11615,8 @@ export type Database = {
           expert_screening_notes?: string | null
           has_damage?: boolean | null
           has_injury?: boolean | null
+          hsse_enforced_at?: string | null
+          hsse_enforced_by?: string | null
           hsse_manager_decision?: string | null
           hsse_manager_decision_by?: string | null
           hsse_manager_justification?: string | null
@@ -11725,6 +11762,7 @@ export type Database = {
           worker_type?: string | null
         }
         Update: {
+          action_dispute_reason?: string | null
           admin_override_at?: string | null
           admin_override_by?: string | null
           admin_override_original_approver?: string | null
@@ -11751,6 +11789,8 @@ export type Database = {
           confidentiality_level?: string | null
           confidentiality_set_at?: string | null
           confidentiality_set_by?: string | null
+          consultant_screened_at?: string | null
+          consultant_screening_notes?: string | null
           contractor_dispute_decision_notes?: string | null
           contractor_dispute_evidence?: Json | null
           contractor_dispute_reason?: string | null
@@ -11764,6 +11804,8 @@ export type Database = {
           deleted_at?: string | null
           department?: string | null
           department_id?: string | null
+          dept_rep_acknowledged_at?: string | null
+          dept_rep_acknowledged_by?: string | null
           dept_rep_approved_at?: string | null
           dept_rep_approved_by?: string | null
           dept_rep_notes?: string | null
@@ -11794,6 +11836,8 @@ export type Database = {
           expert_screening_notes?: string | null
           has_damage?: boolean | null
           has_injury?: boolean | null
+          hsse_enforced_at?: string | null
+          hsse_enforced_by?: string | null
           hsse_manager_decision?: string | null
           hsse_manager_decision_by?: string | null
           hsse_manager_justification?: string | null
@@ -12052,6 +12096,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incidents_dept_rep_acknowledged_by_fkey"
+            columns: ["dept_rep_acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_dept_rep_acknowledged_by_fkey"
+            columns: ["dept_rep_acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incidents_dept_rep_approved_by_fkey"
             columns: ["dept_rep_approved_by"]
             isOneToOne: false
@@ -12117,6 +12175,20 @@ export type Database = {
           {
             foreignKeyName: "incidents_expert_screened_by_fkey"
             columns: ["expert_screened_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_hsse_enforced_by_fkey"
+            columns: ["hsse_enforced_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_hsse_enforced_by_fkey"
+            columns: ["hsse_enforced_by"]
             isOneToOne: false
             referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
@@ -25381,6 +25453,10 @@ export type Database = {
         Args: { p_closure_notes?: string; p_incident_id: string }
         Returns: Json
       }
+      consultant_complete_screening: {
+        Args: { p_incident_id: string; p_notes?: string }
+        Returns: Json
+      }
       consultant_identify_violation: {
         Args: {
           p_incident_id: string
@@ -25388,6 +25464,10 @@ export type Database = {
           p_violation_description: string
           p_violation_type: string
         }
+        Returns: Json
+      }
+      consultant_resolve_action_dispute: {
+        Args: { p_decision: string; p_incident_id: string; p_notes?: string }
         Returns: Json
       }
       consultant_submit_for_approval: {
@@ -25429,6 +25509,10 @@ export type Database = {
         }
         Returns: Json
       }
+      contractor_submit_action_dispute: {
+        Args: { p_action_id: string; p_dispute_reason: string }
+        Returns: Json
+      }
       controller_approve_violation: {
         Args: { p_decision: string; p_notes?: string; p_violation_id: string }
         Returns: Json
@@ -25454,6 +25538,15 @@ export type Database = {
           p_incident_id: string
           p_notes?: string
           p_user_id: string
+        }
+        Returns: Json
+      }
+      dept_rep_acknowledge_observation: {
+        Args: {
+          p_close_on_spot?: boolean
+          p_evidence?: Json
+          p_incident_id: string
+          p_notes?: string
         }
         Returns: Json
       }
@@ -26193,6 +26286,10 @@ export type Database = {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
       }
+      hsse_expert_enforce_decision: {
+        Args: { p_decision: string; p_incident_id: string; p_notes: string }
+        Returns: Json
+      }
       hsse_expert_review_observation: {
         Args: { p_decision: string; p_incident_id: string; p_notes?: string }
         Returns: Json
@@ -26406,6 +26503,14 @@ export type Database = {
       }
       route_observation_to_consultant: {
         Args: { p_consultant_id: string; p_incident_id: string }
+        Returns: Json
+      }
+      route_observation_to_consultant_screening: {
+        Args: { p_incident_id: string }
+        Returns: Json
+      }
+      route_observation_to_dept_rep_review: {
+        Args: { p_incident_id: string }
         Returns: Json
       }
       seed_default_kpi_targets: {
