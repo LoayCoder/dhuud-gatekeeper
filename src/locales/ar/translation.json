@@ -6614,6 +6614,39 @@
       "hideActions": "إخفاء الإجراءات التصحيحية",
       "escalate": "تصعيد للتحقيق",
       "approveClose": "موافقة وإغلاق"
+    },
+    "tracker": {
+      "title": "تقدم سير العمل",
+      "contractorPath": "مسار ملاحظة المقاول",
+      "normalPath": "مسار الملاحظة العادية",
+      "currentStep": "الخطوة الحالية",
+      "completedSteps": "{{completed}} من {{total}} مكتملة",
+      "steps": {
+        "submitted": "مُقدَّم",
+        "consultantScreening": "فحص الاستشاري",
+        "deptRepReview": "مراجعة ممثل القسم",
+        "hsseExpertReview": "مراجعة خبير السلامة",
+        "siteClientApproval": "موافقة عميل الموقع",
+        "contractorImplementation": "تنفيذ المقاول",
+        "consultantVerification": "تحقق الاستشاري",
+        "actionsPending": "إجراءات معلقة",
+        "hsseManagerClosure": "إغلاق مدير السلامة",
+        "actionDispute": "نزاع الإجراء",
+        "hsseEnforced": "مُنفَّذ من السلامة",
+        "closed": "مغلق"
+      },
+      "descriptions": {
+        "consultantReviewing": "الاستشاري يراجع الملاحظة",
+        "level3PlusRequired": "مطلوب للمستوى 3 وما فوق",
+        "level5Required": "مطلوب للمستوى 5",
+        "disputeUnderReview": "النزاع قيد مراجعة الاستشاري",
+        "finalDecision": "قرار نهائي - لا استئناف"
+      },
+      "routing": {
+        "level12": "مسار مباشر",
+        "level34": "يتطلب السلامة",
+        "level5": "يتطلب المدير"
+      }
     }
   },
   "workflowDiagrams": {

@@ -6859,6 +6859,39 @@
       "hideActions": "Hide Corrective Actions",
       "escalate": "Escalate to Investigation",
       "approveClose": "Approve & Close"
+    },
+    "tracker": {
+      "title": "Workflow Progress",
+      "contractorPath": "Contractor Observation Path",
+      "normalPath": "Standard Observation Path",
+      "currentStep": "Current Step",
+      "completedSteps": "{{completed}} of {{total}} completed",
+      "steps": {
+        "submitted": "Submitted",
+        "consultantScreening": "Consultant Screening",
+        "deptRepReview": "Dept Rep Review",
+        "hsseExpertReview": "HSSE Expert Review",
+        "siteClientApproval": "Site Client Approval",
+        "contractorImplementation": "Contractor Implementation",
+        "consultantVerification": "Consultant Verification",
+        "actionsPending": "Actions Pending",
+        "hsseManagerClosure": "HSSE Manager Closure",
+        "actionDispute": "Action Dispute",
+        "hsseEnforced": "HSSE Enforced",
+        "closed": "Closed"
+      },
+      "descriptions": {
+        "consultantReviewing": "Consultant reviewing observation",
+        "level3PlusRequired": "Required for Level 3+ severity",
+        "level5Required": "Required for Level 5 severity",
+        "disputeUnderReview": "Dispute under consultant review",
+        "finalDecision": "Final decision - no appeals"
+      },
+      "routing": {
+        "level12": "Direct Path",
+        "level34": "HSSE Required",
+        "level5": "Manager Required"
+      }
     }
   },
   "workflowDiagrams": {

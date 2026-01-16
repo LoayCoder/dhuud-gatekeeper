@@ -32,6 +32,8 @@ export { RejectionConfirmationCard } from './RejectionConfirmationCard';
 export { InvestigatorAssignmentStep } from './InvestigatorAssignmentStep';
 export { WorkflowProgressBanner } from './WorkflowProgressBanner';
 export { InvestigationWorkflowStatusCard } from './InvestigationWorkflowStatusCard';
+export { WorkflowStepNode } from './WorkflowStepNode';
+export { ObservationWorkflowTracker } from './ObservationWorkflowTracker';
 export { DeptRepApprovalCard } from './DeptRepApprovalCard';
 export { DeptRepIncidentReviewCard } from './DeptRepIncidentReviewCard';
 export { SubmitInvestigationCard } from './SubmitInvestigationCard';
