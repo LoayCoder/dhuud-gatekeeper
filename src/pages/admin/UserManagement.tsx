@@ -60,7 +60,8 @@ import { useUserRoles, RoleCategory } from "@/hooks/use-user-roles";
 import { RoleBadge } from "@/components/roles/RoleBadge";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useUsersPaginated, UserWithRoles, UseUsersPaginatedFilters } from "@/hooks/use-users-paginated";
-import { exportToCSV, exportToExcel, ExportColumn } from "@/lib/export-utils";
+import { ExportColumn } from "@/lib/export-utils";
+import { performSecureExport, type ReportColumn } from "@/lib/secure-export";
 import { UserStatsCards } from "@/components/users/UserStatsCards";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -625,8 +626,13 @@ export default function UserManagement() {
     }
   };
 
-  // Export handlers
+  // Export handlers - with secure validation and audit logging
   const handleExport = async (format: 'csv' | 'xlsx') => {
+    if (!user?.id) {
+      toast({ title: t('common.error'), variant: 'destructive' });
+      return;
+    }
+    
     setExporting(true);
     
     try {
@@ -645,32 +651,53 @@ export default function UserManagement() {
       
       if (error) throw error;
       
-      const columns: ExportColumn[] = [
-        { key: 'full_name', label: t('profile.fullName') },
-        { key: 'employee_id', label: t('userManagement.employeeId') },
-        { key: 'phone_number', label: t('profile.phone') },
-        { key: 'user_type', label: t('userManagement.userType'), formatter: (v) => v ? t(getUserTypeLabel(v as string)) : '' },
-        { key: 'is_active', label: t('userManagement.status'), formatter: (v) => v ? t('userManagement.active') : t('userManagement.inactive') },
-        { key: 'branch_name', label: t('orgStructure.branch') },
-        { key: 'division_name', label: t('orgStructure.division') },
-        { key: 'department_name', label: t('orgStructure.department') },
-        { key: 'section_name', label: t('orgStructure.section') },
-        { key: 'job_title', label: t('userManagement.jobTitle') },
-        { key: 'role_assignments', label: t('userManagement.roles'), formatter: (v) => {
-          if (!v || !Array.isArray(v)) return '';
-          return (v as Array<{role_name: string}>).map(r => r.role_name).join(', ');
-        }},
+      // Transform data for export - flatten role assignments
+      const exportData = (data || []).map((u: any) => ({
+        full_name: u.full_name || '',
+        employee_id: u.employee_id || '',
+        phone_number: u.phone_number || '',
+        user_type: u.user_type ? t(getUserTypeLabel(u.user_type)) : '',
+        is_active: u.is_active ? t('userManagement.active') : t('userManagement.inactive'),
+        branch_name: u.branch_name || '',
+        division_name: u.division_name || '',
+        department_name: u.department_name || '',
+        section_name: u.section_name || '',
+        job_title: u.job_title || '',
+        roles: Array.isArray(u.role_assignments) 
+          ? (u.role_assignments as Array<{role_name: string}>).map(r => r.role_name).join(', ')
+          : '',
+      }));
+      
+      const columns: ReportColumn[] = [
+        { id: 'full_name', label: t('profile.fullName') },
+        { id: 'employee_id', label: t('userManagement.employeeId') },
+        { id: 'phone_number', label: t('profile.phone') },
+        { id: 'user_type', label: t('userManagement.userType') },
+        { id: 'is_active', label: t('userManagement.status') },
+        { id: 'branch_name', label: t('orgStructure.branch') },
+        { id: 'division_name', label: t('orgStructure.division') },
+        { id: 'department_name', label: t('orgStructure.department') },
+        { id: 'section_name', label: t('orgStructure.section') },
+        { id: 'job_title', label: t('userManagement.jobTitle') },
+        { id: 'roles', label: t('userManagement.roles') },
       ];
       
-      const filename = `users-export-${new Date().toISOString().split('T')[0]}`;
+      const result = await performSecureExport(
+        user.id,
+        'user_management',
+        'user',
+        exportData,
+        columns,
+        `users-export-${new Date().toISOString().split('T')[0]}`,
+        'excel',
+        filters as Record<string, unknown>
+      );
       
-      if (format === 'csv') {
-        exportToCSV(data || [], `${filename}.csv`, columns);
+      if (result.success) {
+        toast({ title: t('userManagement.exportSuccess') });
       } else {
-        exportToExcel(data || [], `${filename}.xlsx`, columns);
+        toast({ title: result.error || t('common.error'), variant: 'destructive' });
       }
-      
-      toast({ title: t('userManagement.exportSuccess') });
     } catch (error) {
       toast({ title: t('common.error'), variant: 'destructive' });
     } finally {

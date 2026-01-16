@@ -18,9 +18,10 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { exportToExcel, exportToCSV } from "@/lib/export-utils";
+import { performSecureExport, type ReportColumn } from "@/lib/secure-export";
 import { generateAssetReportPDF } from "@/lib/asset-report-utils";
 import { format } from "date-fns";
+import { useAuth } from "@/contexts/AuthContext";
 
 type ReportType = "register" | "valuation" | "warranty" | "location" | "health" | "maintenance";
 
@@ -46,6 +47,7 @@ export default function AssetReports() {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const [selectedReport, setSelectedReport] = useState<ReportType>("register");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -88,6 +90,11 @@ export default function AssetReports() {
   };
 
   const handleExport = async (exportFormat: "pdf" | "excel" | "csv") => {
+    if (!user?.id) {
+      toast({ title: isRTL ? "يرجى تسجيل الدخول" : "Please log in", variant: "destructive" });
+      return;
+    }
+    
     setIsGenerating(true);
     try {
       const data = await fetchReportData();
@@ -99,16 +106,16 @@ export default function AssetReports() {
 
       const reportConfig = reportConfigs.find(r => r.type === selectedReport)!;
       const reportTitle = isRTL ? reportConfig.titleAr : reportConfig.title;
-      const filename = `${selectedReport}_report_${format(new Date(), 'yyyy-MM-dd')}`;
 
       if (exportFormat === "pdf") {
         await generateAssetReportPDF(data, selectedReport, reportTitle, isRTL);
+        toast({ title: isRTL ? "تم التصدير بنجاح" : "Export Successful" });
       } else {
-        const columns = [
-          { key: 'asset_code', label: isRTL ? 'كود الأصل' : 'Asset Code' },
-          { key: 'name', label: isRTL ? 'الاسم' : 'Name' },
-          { key: 'category', label: isRTL ? 'الفئة' : 'Category' },
-          { key: 'status', label: isRTL ? 'الحالة' : 'Status' }
+        const columns: ReportColumn[] = [
+          { id: 'asset_code', label: isRTL ? 'كود الأصل' : 'Asset Code' },
+          { id: 'name', label: isRTL ? 'الاسم' : 'Name' },
+          { id: 'category', label: isRTL ? 'الفئة' : 'Category' },
+          { id: 'status', label: isRTL ? 'الحالة' : 'Status' }
         ];
         
         const flatData = data.map((asset: any) => ({
@@ -118,14 +125,24 @@ export default function AssetReports() {
           status: asset.status
         }));
         
-        if (exportFormat === "excel") {
-          exportToExcel(flatData, filename, columns);
+        // Use secure export with permission validation and audit logging
+        const result = await performSecureExport(
+          user.id,
+          'asset_reports',
+          'asset',
+          flatData,
+          columns,
+          reportTitle,
+          'excel', // CSV uses same Excel export internally
+          { category: categoryFilter, status: statusFilter, reportType: selectedReport }
+        );
+
+        if (result.success) {
+          toast({ title: isRTL ? "تم التصدير بنجاح" : "Export Successful" });
         } else {
-          exportToCSV(flatData, filename, columns);
+          toast({ title: result.error || (isRTL ? "خطأ في التصدير" : "Export Error"), variant: "destructive" });
         }
       }
-
-      toast({ title: isRTL ? "تم التصدير بنجاح" : "Export Successful" });
     } catch (error) {
       console.error('Export error:', error);
       toast({ title: isRTL ? "خطأ في التصدير" : "Export Error", variant: "destructive" });

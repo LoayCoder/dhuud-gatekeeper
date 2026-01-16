@@ -54,10 +54,28 @@ export interface AuditLogEntry {
 }
 
 /**
+ * Capture client context for enhanced audit logging
+ */
+function getClientContext(): Record<string, unknown> {
+  if (typeof window === 'undefined') return {};
+  
+  return {
+    user_agent: navigator.userAgent,
+    screen: `${window.screen.width}x${window.screen.height}`,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    language: navigator.language,
+    url: window.location.pathname,
+  };
+}
+
+/**
  * Log an audit event to the centralized audit_logs table
  */
 export async function logAudit(entry: AuditLogEntry): Promise<{ success: boolean; error?: string }> {
   try {
+    // Capture client context for enhanced auditing
+    const clientContext = getClientContext();
+    
     const { error } = await supabase.rpc('log_audit', {
       p_action_type: entry.action_type,
       p_entity_type: entry.entity_type,
@@ -65,6 +83,7 @@ export async function logAudit(entry: AuditLogEntry): Promise<{ success: boolean
       p_old_value: entry.old_value ? JSON.parse(JSON.stringify(entry.old_value)) : null,
       p_new_value: entry.new_value ? JSON.parse(JSON.stringify(entry.new_value)) : null,
       p_description: entry.description ?? null,
+      p_metadata: JSON.parse(JSON.stringify({ ...clientContext, ...entry.metadata })),
     });
 
     if (error) {

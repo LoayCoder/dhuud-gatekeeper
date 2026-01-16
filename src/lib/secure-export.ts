@@ -8,7 +8,7 @@ import { logExport } from './audit-logger';
 import { exportToExcel, exportToPDF } from './asset-report-export';
 import type { EntityType } from './audit-logger';
 
-interface ReportColumn {
+export interface ReportColumn {
   id: string;
   label: string;
 }

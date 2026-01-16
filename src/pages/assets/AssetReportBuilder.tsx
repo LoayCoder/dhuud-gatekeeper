@@ -45,7 +45,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Json } from '@/integrations/supabase/types';
-import { exportToExcel, exportToPDF, buildSelectQuery } from '@/lib/asset-report-export';
+import { buildSelectQuery, exportToExcel as buildExcel, exportToPDF as buildPDF } from '@/lib/asset-report-export';
+import { performSecureExport, type ReportColumn } from '@/lib/secure-export';
 
 // Available columns for report
 const AVAILABLE_COLUMNS = [
@@ -227,9 +228,9 @@ export default function AssetReportBuilder() {
     });
   };
 
-  // Export report - fetches data and generates file
+  // Export report - fetches data and generates file with secure validation
   const handleExport = async (format: 'excel' | 'pdf') => {
-    if (!profile?.tenant_id) {
+    if (!profile?.tenant_id || !user?.id) {
       toast.error(t('common.error'));
       return;
     }
@@ -286,7 +287,7 @@ export default function AssetReportBuilder() {
       }
       
       // Prepare column metadata
-      const columnMeta = selectedColumns.map(id => {
+      const columnMeta: ReportColumn[] = selectedColumns.map(id => {
         const col = AVAILABLE_COLUMNS.find(c => c.id === id);
         return {
           id,
@@ -294,23 +295,25 @@ export default function AssetReportBuilder() {
         };
       });
       
-      // Generate file
+      // Generate file using secure export with permission validation
       const reportTitle = templateName || t('assets.reports.assetReport', 'Asset Report');
-      const blob = format === 'excel'
-        ? await exportToExcel(filteredData, columnMeta, reportTitle)
-        : await exportToPDF(filteredData, columnMeta, reportTitle);
       
-      // Download file
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `asset-report-${Date.now()}.${format === 'excel' ? 'xlsx' : 'pdf'}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      const result = await performSecureExport(
+        user.id,
+        'asset_reports',
+        'asset',
+        filteredData,
+        columnMeta,
+        reportTitle,
+        format,
+        { columns: selectedColumns, filters, sortBy, sortOrder }
+      );
       
-      toast.success(t('assets.reports.exportSuccess', `Report exported as ${format.toUpperCase()}`));
+      if (result.success) {
+        toast.success(t('assets.reports.exportSuccess', `Report exported as ${format.toUpperCase()}`));
+      } else {
+        toast.error(result.error || t('assets.reports.exportError', 'Failed to export report'));
+      }
     } catch (error) {
       console.error('Export error:', error);
       toast.error(t('assets.reports.exportError', 'Failed to export report'));

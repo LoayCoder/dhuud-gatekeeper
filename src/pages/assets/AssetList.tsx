@@ -23,7 +23,8 @@ import { useUserRoles } from '@/hooks/use-user-roles';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, isPast, isFuture, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { exportToExcel, type ExportColumn } from '@/lib/export-utils';
+import { type ExportColumn } from '@/lib/export-utils';
+import { performSecureExport } from '@/lib/secure-export';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 const STATUS_COLORS: Record<string, string> = {
@@ -173,7 +174,7 @@ function AssetListContent() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const direction = i18n.dir();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filters, setFilters] = useState<AssetFilters>({});
@@ -264,7 +265,7 @@ function AssetListContent() {
   };
 
   const handleExportToExcel = async () => {
-    if (!profile?.tenant_id) {
+    if (!profile?.tenant_id || !user?.id) {
       toast.error(t('common.error'));
       return;
     }
@@ -273,12 +274,7 @@ function AssetListContent() {
     
     try {
       // Fetch all assets with branch and site info
-      const allAssets: Array<{
-        asset_code: string;
-        name: string;
-        branch_name: string;
-        site_name: string;
-      }> = [];
+      const allAssets: Array<Record<string, unknown>> = [];
       
       const pageSize = 1000;
       let from = 0;
@@ -339,16 +335,30 @@ function AssetListContent() {
       }
 
       // Define export columns
-      const exportColumns: ExportColumn[] = [
-        { key: 'asset_code', label: t('assets.assetCode') },
-        { key: 'name', label: t('assets.name') },
-        { key: 'branch_name', label: t('assets.branch') },
-        { key: 'site_name', label: t('assets.site') },
+      const exportColumns = [
+        { id: 'asset_code', label: t('assets.assetCode') },
+        { id: 'name', label: t('assets.name') },
+        { id: 'branch_name', label: t('assets.branch') },
+        { id: 'site_name', label: t('assets.site') },
       ];
 
-      // Export to Excel
-      exportToExcel(allAssets, `assets-${format(new Date(), 'yyyy-MM-dd')}.xlsx`, exportColumns);
-      toast.success(t('assets.exportSuccess'));
+      // Secure export with permission validation and audit logging
+      const result = await performSecureExport(
+        user.id,
+        'asset_list',
+        'asset',
+        allAssets,
+        exportColumns,
+        `assets-${format(new Date(), 'yyyy-MM-dd')}`,
+        'excel',
+        filters as Record<string, unknown>
+      );
+
+      if (result.success) {
+        toast.success(t('assets.exportSuccess'));
+      } else {
+        toast.error(result.error || t('common.error'));
+      }
     } catch (error) {
       console.error('Export error:', error);
       toast.error(t('common.error'));
