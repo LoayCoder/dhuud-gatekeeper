@@ -25128,6 +25128,14 @@ export type Database = {
       check_zone_dependencies: { Args: { p_zone_id: string }; Returns: Json }
       cleanup_expired_trusted_devices: { Args: never; Returns: number }
       cleanup_expired_webauthn_challenges: { Args: never; Returns: undefined }
+      close_contractor_observation: {
+        Args: { p_closure_notes?: string; p_incident_id: string }
+        Returns: Json
+      }
+      consultant_submit_for_approval: {
+        Args: { p_incident_id: string; p_notes?: string }
+        Returns: Json
+      }
       contract_controller_approve_violation: {
         Args: {
           p_decision: string
@@ -25996,10 +26004,17 @@ export type Database = {
       is_admin: { Args: { p_user_id: string }; Returns: boolean }
       is_admin_safe: { Args: { check_user_id: string }; Returns: boolean }
       is_client_site_rep: { Args: { p_user_id: string }; Returns: boolean }
+      is_contract_controller: { Args: { p_user_id: string }; Returns: boolean }
+      is_contractor_consultant: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       is_contractor_rep_for_company: {
         Args: { p_company_id: string }
         Returns: boolean
       }
+      is_contractor_site_rep: { Args: { p_user_id: string }; Returns: boolean }
+      is_hsse_expert: { Args: { p_user_id: string }; Returns: boolean }
       is_in_same_department: {
         Args: { _incident_id: string; _user_id: string }
         Returns: boolean
@@ -26100,11 +26115,19 @@ export type Database = {
         Args: { p_tenant_id: string }
         Returns: undefined
       }
+      route_observation_to_consultant: {
+        Args: { p_consultant_id: string; p_incident_id: string }
+        Returns: Json
+      }
       seed_default_kpi_targets: {
         Args: { p_tenant_id: string }
         Returns: undefined
       }
       seed_tenant_badges: { Args: { p_tenant_id: string }; Returns: undefined }
+      site_client_approve_actions: {
+        Args: { p_decision: string; p_incident_id: string; p_notes?: string }
+        Returns: Json
+      }
       soft_delete_branch: { Args: { p_branch_id: string }; Returns: string }
       soft_delete_branch_cascade: {
         Args: { p_branch_id: string }
@@ -26299,6 +26322,10 @@ export type Database = {
         | "security_supervisor"
         | "security_guard"
         | "client_site_representative"
+        | "contractor_consultant"
+        | "contractor_site_representative"
+        | "contract_controller"
+        | "hsse_expert"
       asset_condition: "excellent" | "good" | "fair" | "poor" | "critical"
       asset_criticality: "low" | "medium" | "high" | "critical"
       asset_document_type:
@@ -26614,6 +26641,10 @@ export const Constants = {
         "security_supervisor",
         "security_guard",
         "client_site_representative",
+        "contractor_consultant",
+        "contractor_site_representative",
+        "contract_controller",
+        "hsse_expert",
       ],
       asset_condition: ["excellent", "good", "fair", "poor", "critical"],
       asset_criticality: ["low", "medium", "high", "critical"],
