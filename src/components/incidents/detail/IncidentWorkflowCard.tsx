@@ -8,7 +8,10 @@ import {
   CheckCircle2, 
   Lock,
   UserCheck,
-  ArrowRight
+  ArrowRight,
+  Wrench,
+  AlertTriangle,
+  Scale
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -17,6 +20,7 @@ interface IncidentWorkflowCardProps {
   eventType: string;
   assignedTo?: string;
   nextAction?: string;
+  isContractorObservation?: boolean;
 }
 
 interface WorkflowStep {
@@ -41,6 +45,17 @@ const OBSERVATION_WORKFLOW: WorkflowStep[] = [
   { key: 'closed', icon: Lock, label: 'Closed' },
 ];
 
+// New contractor observation workflow
+const CONTRACTOR_OBSERVATION_WORKFLOW: WorkflowStep[] = [
+  { key: 'submitted', icon: FileText, label: 'Submitted' },
+  { key: 'pending_consultant_review', icon: Search, label: 'Consultant Review' },
+  { key: 'pending_site_client_approval', icon: UserCheck, label: 'Site Client Approval' },
+  { key: 'pending_contractor_implementation', icon: Wrench, label: 'Implementation' },
+  { key: 'pending_consultant_verification', icon: CheckCircle2, label: 'Verification' },
+  { key: 'pending_violation_processing', icon: AlertTriangle, label: 'Violation (if any)' },
+  { key: 'closed', icon: Lock, label: 'Closed' },
+];
+
 const getStepStatus = (
   stepKey: string, 
   currentStatus: string | null, 
@@ -60,6 +75,14 @@ const getStepStatus = (
     'hsse_manager_escalation': 'pending_manager_approval',
     'observation_actions_pending': 'expert_screening',
     'no_investigation_required': 'closed',
+    // Contractor observation workflow mappings
+    'pending_consultant_actions': 'pending_consultant_review',
+    'pending_implementation_evidence': 'pending_contractor_implementation',
+    'pending_violation_site_client': 'pending_violation_processing',
+    'pending_violation_controller': 'pending_violation_processing',
+    'pending_contractor_acknowledgement': 'pending_violation_processing',
+    'pending_dispute_review': 'pending_violation_processing',
+    'pending_hsse_violation_review': 'pending_violation_processing',
   };
   
   const mappedStatus = statusMappings[currentStatus] || currentStatus;
@@ -75,10 +98,16 @@ export function IncidentWorkflowCard({
   eventType,
   assignedTo,
   nextAction,
+  isContractorObservation = false,
 }: IncidentWorkflowCardProps) {
   const { t } = useTranslation();
 
-  const workflow = eventType === 'observation' ? OBSERVATION_WORKFLOW : INCIDENT_WORKFLOW;
+  // Select appropriate workflow based on event type and contractor context
+  const workflow = isContractorObservation && eventType === 'observation'
+    ? CONTRACTOR_OBSERVATION_WORKFLOW
+    : eventType === 'observation' 
+      ? OBSERVATION_WORKFLOW 
+      : INCIDENT_WORKFLOW;
 
   return (
     <Card>
