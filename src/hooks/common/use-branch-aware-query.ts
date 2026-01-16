@@ -60,7 +60,7 @@ export function useBranchAwareQuery<T>(
         .is('deleted_at', null);
       
       // Apply branch filter (respects all-branches mode)
-      if (!isAllBranchesMode) {
+      if (!isAllBranchesMode && branchFilter && branchFilter.length > 0) {
         query = applyBranchFilter(query as any, branchFilter, options.branchColumn || 'branch_id');
       }
       
@@ -113,7 +113,7 @@ export function useBranchFilterParams() {
       query: T,
       columnName = 'branch_id'
     ): T => {
-      if (isAllBranchesMode || !branchFilter) {
+      if (isAllBranchesMode || !branchFilter || branchFilter.length === 0) {
         return query;
       }
       return applyBranchFilter(query, branchFilter, columnName);
