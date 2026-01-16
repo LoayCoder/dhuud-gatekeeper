@@ -25132,8 +25132,21 @@ export type Database = {
         Args: { p_closure_notes?: string; p_incident_id: string }
         Returns: Json
       }
+      consultant_identify_violation: {
+        Args: {
+          p_incident_id: string
+          p_recommended_fine?: number
+          p_violation_description: string
+          p_violation_type: string
+        }
+        Returns: Json
+      }
       consultant_submit_for_approval: {
         Args: { p_incident_id: string; p_notes?: string }
+        Returns: Json
+      }
+      consultant_verify_action: {
+        Args: { p_action_id: string; p_decision: string; p_notes?: string }
         Returns: Json
       }
       contract_controller_approve_violation: {
@@ -25145,6 +25158,19 @@ export type Database = {
         }
         Returns: Json
       }
+      contractor_acknowledge_violation: {
+        Args: {
+          p_acknowledged: boolean
+          p_dispute_evidence?: Json
+          p_dispute_reason?: string
+          p_violation_id: string
+        }
+        Returns: Json
+      }
+      contractor_complete_action: {
+        Args: { p_action_id: string; p_evidence?: Json; p_notes?: string }
+        Returns: Json
+      }
       contractor_site_rep_acknowledge_violation: {
         Args: {
           p_decision: string
@@ -25152,6 +25178,14 @@ export type Database = {
           p_notes?: string
           p_user_id: string
         }
+        Returns: Json
+      }
+      controller_approve_violation: {
+        Args: { p_decision: string; p_notes?: string; p_violation_id: string }
+        Returns: Json
+      }
+      controller_review_dispute: {
+        Args: { p_decision: string; p_notes?: string; p_violation_id: string }
         Returns: Json
       }
       create_notification: {
@@ -25908,6 +25942,10 @@ export type Database = {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
       }
+      hsse_expert_review_observation: {
+        Args: { p_decision: string; p_incident_id: string; p_notes?: string }
+        Returns: Json
+      }
       hsse_review_rejection: {
         Args: {
           p_decision: string
@@ -26126,6 +26164,10 @@ export type Database = {
       seed_tenant_badges: { Args: { p_tenant_id: string }; Returns: undefined }
       site_client_approve_actions: {
         Args: { p_decision: string; p_incident_id: string; p_notes?: string }
+        Returns: Json
+      }
+      site_client_approve_violation: {
+        Args: { p_decision: string; p_notes?: string; p_violation_id: string }
         Returns: Json
       }
       soft_delete_branch: { Args: { p_branch_id: string }; Returns: string }
