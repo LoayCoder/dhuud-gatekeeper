@@ -1322,7 +1322,48 @@
       "startInvestigation": "بدء التحقيق",
       "completeInvestigation": "إكمال التحقيق",
       "reopenInvestigation": "إعادة فتح التحقيق",
-      "tabsLockedMessage": "أكمل سير عمل الموافقة لفتح علامات تبويب التحقيق"
+      "tabsLockedMessage": "أكمل سير عمل الموافقة لفتح علامات تبويب التحقيق",
+      "hsseEnforcement": {
+        "title": "قرار خبير السلامة نهائي",
+        "final": "نهائي",
+        "description": "تم حل هذه الملاحظة بسلطة خبير السلامة. لا يُسمح بمزيد من الطعون أو التعديلات.",
+        "enforcedBy": "تم التنفيذ بواسطة",
+        "enforcedAt": "في",
+        "notes": "ملاحظات التنفيذ"
+      },
+      "consultant": {
+        "screening": "الفحص الأولي",
+        "title": "مراجعة مستشار المقاول",
+        "description": "مراجعة ملاحظة المقاول وتأكيد المشاركة واقتراح الإجراءات التصحيحية",
+        "submitToSiteClient": "إرسال إلى العميل",
+        "submitToHSSE": "تصعيد لخبير السلامة",
+        "severityRouting": {
+          "level12": "المستوى 1-2: سيتم التوجيه إلى العميل للموافقة",
+          "level3plus": "المستوى 3+: سيتم التصعيد لخبير السلامة للمراجعة"
+        }
+      },
+      "actionDispute": {
+        "title": "مراجعة نزاع الإجراء",
+        "description": "اعترض المقاول على إجراء معين. راجع وقرر الحل.",
+        "disputeReason": "سبب النزاع",
+        "contractorComments": "تعليقات المقاول",
+        "noComments": "لم يتم تقديم تعليقات إضافية",
+        "decision": "قرارك",
+        "decisionPlaceholder": "اختر كيفية حل هذا النزاع...",
+        "notes": "ملاحظات الحل",
+        "notesPlaceholder": "اشرح قرارك...",
+        "resolve": "حل النزاع",
+        "modify": "تعديل الإجراء",
+        "escalateToHSSE": "تصعيد لخبير السلامة",
+        "escalateWarning": "قرار خبير السلامة سيكون نهائياً وملزماً"
+      },
+      "deptRepReview": {
+        "title": "مراجعة ممثل القسم",
+        "description": "راجع هذه الملاحظة وقرر الإجراء المناسب",
+        "closeOnSpot": "إغلاق فوري",
+        "assignActions": "تعيين إجراءات",
+        "escalateToHSSE": "تصعيد لخبير السلامة"
+      }
     },
     "submit": {
       "title": "تقديم التحقيق",
@@ -2407,7 +2448,12 @@
       "completed": "مكتمل",
       "verified": "تم التحقق",
       "closed": "مغلق",
-      "rejected": "مرفوض"
+      "rejected": "مرفوض",
+      "pending_consultant_screening": "في انتظار فحص المستشار",
+      "pending_dept_rep_review": "في انتظار مراجعة ممثل القسم",
+      "pending_hsse_expert_review": "في انتظار مراجعة خبير السلامة",
+      "pending_action_dispute_review": "مراجعة نزاع الإجراء",
+      "hsse_enforced": "قرار السلامة نهائي"
     },
     "evidence": "الأدلة",
     "uploadEvidence": "اسحب الملفات أو انقر للرفع",

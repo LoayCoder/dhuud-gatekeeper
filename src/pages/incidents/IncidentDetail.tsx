@@ -34,6 +34,7 @@ import { ContractorSiteRepAcknowledgeCard } from '@/components/investigation/Con
 import { HSSEViolationReviewCard } from '@/components/investigation/HSSEViolationReviewCard';
 import { EscalationAlertBanner } from '@/components/investigation/EscalationAlertBanner';
 import { HSSEObservationValidationCard } from '@/components/investigation/HSSEObservationValidationCard';
+import { HSSEEnforcementBanner } from '@/components/investigation/HSSEEnforcementBanner';
 // Contractor Observation Workflow Cards
 import {
   ConsultantReviewCard,
@@ -117,8 +118,18 @@ export default function IncidentDetail() {
     if (status === 'pending_closure' || status === 'pending_final_closure' || status === 'observation_actions_pending') {
       return { role: t('incidents.workflowOwners.hsse_manager', 'HSSE Manager'), name: null };
     }
-    if (status === 'closed' || status === 'no_investigation_required' || status === 'investigation_closed') {
+    if (status === 'closed' || status === 'no_investigation_required' || status === 'investigation_closed' || status === 'hsse_enforced') {
       return null;
+    }
+    // New contractor workflow statuses
+    if (status === 'pending_consultant_screening' || status === 'pending_action_dispute_review') {
+      return { role: t('incidents.workflowOwners.consultant', 'Contractor Consultant'), name: null };
+    }
+    if (status === 'pending_dept_rep_review') {
+      return { role: t('incidents.workflowOwners.department_rep', 'Department Representative'), name: null };
+    }
+    if (status === 'pending_hsse_expert_review') {
+      return { role: t('incidents.workflowOwners.hsse_expert', 'HSSE Expert'), name: null };
     }
     return { role: t('incidents.workflowOwners.awaiting_assignment', 'Awaiting Assignment'), name: null };
   };
@@ -251,6 +262,15 @@ export default function IncidentDetail() {
               company_name: (incident as any).contractor_company.company_name,
             } : null,
           }} 
+        />
+      )}
+
+      {/* HSSE Enforcement Banner - Show when observation is enforced */}
+      {(incident as any).hsse_enforced_at && (
+        <HSSEEnforcementBanner 
+          enforcedAt={(incident as any).hsse_enforced_at}
+          enforcedBy={(incident as any).hsse_enforced_by_profile}
+          enforcementNotes={(incident as any).enforcement_notes}
         />
       )}
 

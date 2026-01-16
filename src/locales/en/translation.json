@@ -1479,7 +1479,48 @@
       "startInvestigation": "Start Investigation",
       "completeInvestigation": "Complete Investigation",
       "reopenInvestigation": "Reopen Investigation",
-      "tabsLockedMessage": "Complete the approval workflow to unlock investigation tabs"
+      "tabsLockedMessage": "Complete the approval workflow to unlock investigation tabs",
+      "hsseEnforcement": {
+        "title": "HSSE Expert Decision Enforced",
+        "final": "FINAL",
+        "description": "This observation has been resolved by HSSE Expert authority. No further appeals or modifications are allowed.",
+        "enforcedBy": "Enforced by",
+        "enforcedAt": "On",
+        "notes": "Enforcement Notes"
+      },
+      "consultant": {
+        "screening": "Initial Screening",
+        "title": "Contractor Consultant Review",
+        "description": "Review the contractor observation, confirm involvement, and propose corrective actions",
+        "submitToSiteClient": "Submit to Site Client",
+        "submitToHSSE": "Escalate to HSSE Expert",
+        "severityRouting": {
+          "level12": "Level 1-2: Will route to Site Client for approval",
+          "level3plus": "Level 3+: Will escalate to HSSE Expert for review"
+        }
+      },
+      "actionDispute": {
+        "title": "Action Dispute Review",
+        "description": "The contractor has disputed an assigned action. Review and decide on the resolution.",
+        "disputeReason": "Dispute Reason",
+        "contractorComments": "Contractor Comments",
+        "noComments": "No additional comments provided",
+        "decision": "Your Decision",
+        "decisionPlaceholder": "Select how to resolve this dispute...",
+        "notes": "Resolution Notes",
+        "notesPlaceholder": "Explain your decision...",
+        "resolve": "Resolve Dispute",
+        "modify": "Modify Action",
+        "escalateToHSSE": "Escalate to HSSE Expert",
+        "escalateWarning": "HSSE Expert decision will be final and binding"
+      },
+      "deptRepReview": {
+        "title": "Department Representative Review",
+        "description": "Review this observation and decide on the appropriate action",
+        "closeOnSpot": "Close on Spot",
+        "assignActions": "Assign Actions",
+        "escalateToHSSE": "Escalate to HSSE Expert"
+      }
     },
     "submit": {
       "title": "Submit Investigation",
@@ -2337,7 +2378,12 @@
       "verified": "Verified",
       "closed": "Closed",
       "rejected": "Rejected",
-      "returned_for_correction": "Returned for Correction"
+      "returned_for_correction": "Returned for Correction",
+      "pending_consultant_screening": "Pending Consultant Screening",
+      "pending_dept_rep_review": "Pending Dept Rep Review",
+      "pending_hsse_expert_review": "Pending HSSE Expert Review",
+      "pending_action_dispute_review": "Action Dispute Review",
+      "hsse_enforced": "HSSE Enforced (Final)"
     },
     "evidence": "Evidence",
     "uploadEvidence": "Drop files or click to upload",

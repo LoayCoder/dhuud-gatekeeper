@@ -72,6 +72,8 @@ import {
   MonitoringCheckCard,
   ContractorDisputeCard
 } from "@/components/investigation";
+import { ActionDisputeReviewCard } from "@/components/investigation/contractor-workflow";
+import { HSSEEnforcementBanner } from "@/components/investigation/HSSEEnforcementBanner";
 import { ReopenIncidentDialog } from "@/components/investigation/ReopenIncidentDialog";
 import { InjuryPanel } from "@/components/investigation/InjuryPanel";
 import { PropertyDamagePanel } from "@/components/investigation/property-damage";
@@ -399,6 +401,52 @@ export default function InvestigationWorkspace() {
           />
         );
 
+      // --- NEW CONTRACTOR OBSERVATION WORKFLOW STATUSES ---
+      
+      case 'pending_consultant_screening':
+        return (
+          <DeptRepApprovalCard 
+            incident={incidentData} 
+            onComplete={handleRefresh} 
+          />
+        );
+
+      case 'pending_dept_rep_review':
+        return (
+          <DeptRepApprovalCard 
+            incident={incidentData} 
+            onComplete={handleRefresh} 
+          />
+        );
+
+      case 'pending_hsse_expert_review':
+        return (
+          <HSSEValidationCard 
+            incident={incidentData} 
+            onComplete={handleRefresh} 
+          />
+        );
+
+      case 'pending_action_dispute_review':
+        return (
+          <ActionDisputeReviewCard 
+            incidentId={incidentData.id}
+            status={currentStatus}
+            disputeReason={(incidentData as any).action_dispute_reason}
+            contractorComments={(incidentData as any).contractor_dispute_comments}
+            onResolved={handleRefresh}
+          />
+        );
+
+      case 'hsse_enforced':
+        return (
+          <HSSEEnforcementBanner 
+            enforcedAt={(incidentData as any).hsse_enforced_at}
+            enforcedBy={(incidentData as any).hsse_enforced_by_profile}
+            enforcementNotes={(incidentData as any).enforcement_notes}
+          />
+        );
+
       default:
         return null;
     }
@@ -457,8 +505,18 @@ export default function InvestigationWorkspace() {
     if (status === 'pending_closure' || status === 'pending_final_closure' || status === 'observation_actions_pending') {
       return { role: t('incidents.workflowOwners.hsse_manager', 'HSSE Manager'), name: null };
     }
-    if (status === 'closed' || status === 'no_investigation_required' || status === 'investigation_closed') {
-      return null; // No owner when closed
+    if (status === 'closed' || status === 'no_investigation_required' || status === 'investigation_closed' || status === 'hsse_enforced') {
+      return null; // No owner when closed/enforced
+    }
+    // New contractor workflow statuses
+    if (status === 'pending_consultant_screening' || status === 'pending_action_dispute_review') {
+      return { role: t('incidents.workflowOwners.consultant', 'Contractor Consultant'), name: null };
+    }
+    if (status === 'pending_dept_rep_review') {
+      return { role: t('incidents.workflowOwners.department_rep', 'Department Representative'), name: null };
+    }
+    if (status === 'pending_hsse_expert_review') {
+      return { role: t('incidents.workflowOwners.hsse_expert', 'HSSE Expert'), name: null };
     }
     return { role: t('incidents.workflowOwners.awaiting_assignment', 'Awaiting Assignment'), name: null };
   };
