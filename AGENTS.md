@@ -525,3 +525,419 @@ const { data } = await supabase
 - Check access via job titles
 - Block UI on network failures
 - Modify `src/components/ui/*` unless necessary
+
+---
+
+## 15. Unified Workflow Engine Governance
+
+> **CRITICAL**: This section is the **single source of truth** for all workflow logic, status resolution, and role-based action authorization across all system models.
+
+### 15.1 Single Source of Truth Declaration
+
+| Purpose | Canonical File | Description |
+|---------|----------------|-------------|
+| Status-to-Owner Resolution | `src/lib/workflow-status-resolver.ts` | Maps status → current owner, allowed roles, action types |
+| Complete Workflow Diagrams | `src/lib/workflow-definitions.ts` | Full workflow step sequences and transitions |
+| Consultant Workflow Logic | `src/hooks/use-consultant-workflow.ts` | Contractor Consultant permission checks |
+| Observation Workflow State | `src/hooks/contractor-observation/use-contractor-observation-workflow.ts` | Observation-specific workflow hooks |
+
+### 15.2 FORBIDDEN Patterns
+
+```typescript
+// ❌ NEVER: Define status arrays in individual components
+const CONSULTANT_STATUSES = ['expert_screening', ...]; // In component files
+
+// ❌ NEVER: Create duplicate getCurrentOwner() functions
+function getCurrentOwner(status) { ... } // In page components
+
+// ❌ NEVER: Check job_title or department for access decisions
+if (user.job_title === 'Manager') { ... }
+if (user.department === 'HSC') { ... }
+
+// ❌ NEVER: Render action cards without RPC permission gate
+{showActionCard && <ActionCard />} // Where showActionCard is a local boolean
+
+// ❌ NEVER: Use multiple parallel status fields
+incident.status AND incident.workflow_status // Conflicting status fields
+```
+
+### 15.3 REQUIRED Patterns
+
+```typescript
+// ✅ ALWAYS: Import from unified resolver
+import { getWorkflowOwner, isStatusBelongsToRole } from '@/lib/workflow-status-resolver';
+
+// ✅ ALWAYS: Use RPC functions for authorization
+const { data: canApprove } = await supabase.rpc('can_approve_investigation', {
+  p_incident_id: incidentId
+});
+
+// ✅ ALWAYS: Use branch-aware RBAC
+const { data: hasAccess } = await supabase.rpc('has_contractor_consultant_access_for_branch', {
+  p_branch_id: branchId
+});
+
+// ✅ ALWAYS: Force fresh permission data on mount
+useQuery({
+  queryKey: ['permission-check', userId, incidentId],
+  refetchOnMount: 'always',
+  refetchOnWindowFocus: true,
+});
+
+// ✅ ALWAYS: Log permission decisions
+console.log('[ModuleName] Permission check:', { userId, status, rpcResult, decision });
+```
+
+### 15.4 Global Workflow Rules
+
+| Rule | Enforcement |
+|------|-------------|
+| Permissions resolved via RPC only | Use `can_approve_*`, `has_*_access_for_branch` |
+| Never use job_title for access | Enforced in RLS policies |
+| Status is single source of truth | No parallel status fields allowed |
+| UI reflects backend authorization only | Action cards gated by RPC results |
+| Same role + same scope = same permissions | Enforced via `SECURITY DEFINER` functions |
+
+---
+
+## 16. Status-to-Owner Mapping (Complete)
+
+### 16.1 Observation & Contractor Observation Statuses
+
+| Status | Current Owner | Allowed Roles | Action Type |
+|--------|---------------|---------------|-------------|
+| `submitted` | Reporter | reporter | view_only |
+| `expert_screening` | Contractor Consultant | contractor_consultant | screen, review |
+| `pending_consultant_screening` | Contractor Consultant | contractor_consultant | screen, review |
+| `pending_consultant_review` | Contractor Consultant | contractor_consultant | review, create_actions |
+| `pending_consultant_actions` | Contractor Consultant | contractor_consultant | create_actions |
+| `site_client_approval` | Site Client | site_client | approve, reject |
+| `pending_dept_rep_approval` | Dept Representative | department_representative | approve, reject |
+| `pending_hsse_escalation_review` | HSSE Expert | hsse_officer, hsse_expert | escalate, validate |
+| `pending_hsse_validation` | HSSE Expert | hsse_officer, hsse_expert | validate |
+| `pending_hsse_manager_closure` | HSSE Manager | hsse_manager | close, enforce |
+| `pending_final_closure` | HSSE Manager | hsse_manager | close |
+| `observation_actions_pending` | Action Owners | assigned_users | complete_actions |
+| `closed` | System | all (read-only) | view_only |
+
+### 16.2 Incident Statuses
+
+| Status | Current Owner | Allowed Roles | Action Type |
+|--------|---------------|---------------|-------------|
+| `submitted` | Reporter | reporter | view_only |
+| `pending_dept_rep_incident_review` | Dept Representative | department_representative | review, approve |
+| `pending_department_manager_approval` | Dept Manager | department_manager | approve, reject |
+| `pending_expert_screening` | HSSE Expert | hsse_expert | screen, assign |
+| `pending_manager_approval` | HSSE Manager | hsse_manager | approve |
+| `under_investigation` | Investigator | investigator | investigate |
+| `pending_investigation_approval` | HSSE Expert | hsse_expert | approve_investigation |
+| `dispute_open` | HSSE Manager | hsse_manager | mediate |
+| `pending_closure` | HSSE Manager | hsse_manager | close |
+| `pending_legal_review` | Legal Officer | legal_officer | review |
+| `closed` | System | all (read-only) | view_only |
+
+---
+
+## 17. Model-Specific Workflow Governance
+
+### 17.1 Observations & Incidents
+
+#### Key Roles
+| Role | Code | Scope |
+|------|------|-------|
+| Reporter | `reporter` | Own records only |
+| Contractor Consultant | `contractor_consultant` | Branch-level |
+| Department Representative | `department_representative` | Site + Department |
+| HSSE Expert | `hsse_expert`, `hsse_officer` | Tenant-wide |
+| HSSE Manager | `hsse_manager` | Tenant-wide |
+| Investigator | `investigator` | Assigned incidents only |
+| Admin | `super_admin`, `admin` | Full access |
+
+#### Assignment Rules
+
+```markdown
+1. CONTRACTOR-RELATED Observations:
+   ├── Route to Contractor Consultant (branch-level)
+   │   └── RPC: find_contractor_consultant_for_branch(branch_id)
+   └── Fallback: Site Department Rep if no consultant exists
+
+2. NON-CONTRACTOR Observations:
+   └── Route to Site Department Rep
+       └── RPC: find_dept_rep_for_branch_department(branch_id, department_id)
+
+3. CRITICAL: Reporter's department MUST NOT affect assignment
+```
+
+#### Permission Matrix
+
+| Role | Create | View Own | View All | Screen | Review | Approve | Investigate | Close |
+|------|--------|----------|----------|--------|--------|---------|-------------|-------|
+| Reporter | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Contractor Consultant | ❌ | ✅ | Branch | ✅ | ✅ | ✅* | ❌ | ✅* |
+| Dept Rep | ❌ | ✅ | Site | ❌ | ✅ | ✅ | ❌ | ✅* |
+| HSSE Expert | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| HSSE Manager | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Admin | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+*Scope-limited based on branch/site assignment
+
+### 17.2 Worker Companies
+
+#### Workflow
+```
+Draft → Submitted → Reviewed → Approved → Active
+```
+
+#### Roles & Permissions
+
+| Role | Submit | Review | Approve | Reject | Override |
+|------|--------|--------|---------|--------|----------|
+| Company Admin | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Document Controller | ❌ | ✅ | ✅ | ✅ | ❌ |
+| HSSE Expert | ❌ | ✅ | ✅ | ✅ | ❌ |
+| Admin | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+### 17.3 Visitors
+
+#### Workflow
+```
+Requested → Approved → Checked-In → Checked-Out → Closed
+```
+
+#### Roles & Permissions
+
+| Role | Request | Approve | Check-In | Check-Out | Override |
+|------|---------|---------|----------|-----------|----------|
+| Requester | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Host | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Security Officer | ❌ | ❌ | ✅ | ✅ | ❌ |
+| Admin | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+### 17.4 Inspections
+
+#### Workflow
+```
+Scheduled → In Progress → Review → Findings Assigned → Closed
+```
+
+#### Roles & Permissions
+
+| Role | Schedule | Conduct | Review | Assign Actions | Close |
+|------|----------|---------|--------|----------------|-------|
+| Inspector | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Dept Rep | ❌ | ❌ | ✅ | ✅ | ❌ |
+| HSSE Expert | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Admin | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+### 17.5 Projects
+
+#### Workflow
+```
+Created → Risk Review → Approval → Active → Closed
+```
+
+#### Roles & Permissions
+
+| Role | Create | Risk Review | Approve | Activate | Close |
+|------|--------|-------------|---------|----------|-------|
+| Project Owner | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Dept Rep | ❌ | ❌ | ✅ | ❌ | ❌ |
+| HSSE Expert | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Admin | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+---
+
+## 18. Agent Responsibilities (MANDATORY)
+
+### 18.1 Permission Resolution Rules
+
+AI Agents **MUST**:
+
+1. **Resolve permissions via RBAC only**
+   ```typescript
+   // Use RPC functions
+   can_approve_investigation(p_incident_id)
+   has_contractor_consultant_access_for_branch(p_branch_id)
+   has_role_by_code(p_user_id, 'hsse_manager')
+   ```
+
+2. **Enforce workflow rules before allowing actions**
+   - Validate current status allows the action
+   - Validate user has role for the action
+   - Validate scope (branch, site, tenant)
+
+3. **Never expose action cards unless authorized**
+   - Gate all action cards behind RPC permission checks
+   - Use `refetchOnMount: 'always'` for permission queries
+
+4. **Log all routing and permission decisions**
+   ```typescript
+   console.log('[ModuleName] Permission check:', {
+     userId,
+     incidentId,
+     status: incident.status,
+     rpcResult: canApprove,
+     decision: canApprove ? 'ALLOW' : 'DENY'
+   });
+   ```
+
+5. **Reject ambiguous ownership or dual-status logic**
+   - Only one status field per record
+   - Only one owner per status
+   - Status determines owner deterministically
+
+### 18.2 Action Card Authorization Pattern
+
+```typescript
+// ✅ CORRECT: RPC-gated action card
+const { data: canAct } = useQuery({
+  queryKey: ['can-act', userId, incidentId, incident?.status],
+  queryFn: () => supabase.rpc('can_approve_investigation', { p_incident_id: incidentId }),
+  refetchOnMount: 'always',
+  enabled: !!incidentId && !!userId,
+});
+
+return canAct ? <ActionCard /> : null;
+```
+
+### 18.3 Workflow Routing Pattern
+
+```typescript
+// ✅ CORRECT: Unified resolver for owner detection
+import { getWorkflowOwner } from '@/lib/workflow-status-resolver';
+
+const owner = getWorkflowOwner(incident.status, incident.category);
+// Returns: { role: 'contractor_consultant', label: 'Contractor Consultant' }
+```
+
+---
+
+## 19. Validation & Enforcement Rules
+
+### 19.1 Prohibited Patterns (Immediate Fix Required)
+
+| Pattern | Why Forbidden | Correct Alternative |
+|---------|---------------|---------------------|
+| `if (user.job_title === '...')` | Not RBAC | Use `has_role_by_code()` RPC |
+| `if (user.department === '...')` | Not scope-aware | Use branch/site RPC functions |
+| Duplicate `getCurrentOwner()` | Multiple sources of truth | Import from `workflow-status-resolver.ts` |
+| Status arrays in components | Drift from canonical | Import from `workflow-status-resolver.ts` |
+| Multiple workflow trackers | Conflicting logic | Use single unified tracker |
+| Action cards without RPC gate | Security bypass | Always gate with RPC permission check |
+
+### 19.2 Required Patterns (Must Implement)
+
+| Pattern | File/Location | Example |
+|---------|---------------|---------|
+| Import from unified resolver | All workflow components | `import { getWorkflowOwner } from '@/lib/workflow-status-resolver'` |
+| RPC permission checks | Action card components | `useQuery({ queryFn: () => supabase.rpc('can_approve_*') })` |
+| Fresh data on mount | Permission hooks | `refetchOnMount: 'always'` |
+| Structured logging | All permission decisions | `console.log('[Module]', { userId, status, result })` |
+| Branch-aware scope | Consultant/DeptRep actions | `has_*_access_for_branch(p_branch_id)` |
+
+### 19.3 Enforcement Checklist
+
+Before merging any workflow-related changes:
+
+- [ ] Uses `workflow-status-resolver.ts` for status mapping
+- [ ] Uses RPC functions for permission checks
+- [ ] No job_title or department string checks
+- [ ] Action cards gated by RPC results
+- [ ] Permission queries have `refetchOnMount: 'always'`
+- [ ] Logging includes userId, status, and decision
+- [ ] No duplicate status arrays or owner functions
+
+---
+
+## 20. Reference Architecture
+
+### 20.1 Key Files (Single Source of Truth)
+
+| Purpose | File Location |
+|---------|---------------|
+| Workflow Status Resolver | `src/lib/workflow-status-resolver.ts` |
+| Workflow Definitions | `src/lib/workflow-definitions.ts` |
+| Consultant Workflow Hook | `src/hooks/use-consultant-workflow.ts` |
+| Contractor Observation Workflow | `src/hooks/contractor-observation/use-contractor-observation-workflow.ts` |
+| HSSE Validation Dashboard | `src/hooks/use-hsse-validation-dashboard.ts` |
+| Dept Manager Approval | `src/hooks/use-dept-manager-incident-approval.ts` |
+| Dispute Resolution | `src/hooks/use-dispute-resolution.ts` |
+
+### 20.2 RPC Functions (Backend Authority)
+
+| Function | Purpose | Scope |
+|----------|---------|-------|
+| `can_approve_investigation` | Authorization for workflow actions | Incident-level |
+| `has_contractor_consultant_access_for_branch` | Branch-aware consultant RBAC | Branch-level |
+| `has_role_by_code` | Generic role check | User-level |
+| `find_contractor_consultant_for_branch` | Actor resolution | Branch-level |
+| `find_dept_rep_for_branch_department` | Actor resolution | Branch + Dept |
+| `has_hsse_incident_access` | HSSE visibility check | Incident-level |
+| `get_hsse_validation_dashboard` | Dashboard data with permissions | Tenant-level |
+
+### 20.3 Component Architecture
+
+```
+src/components/investigation/
+├── contractor-workflow/           # Contractor Consultant action cards
+│   ├── ConsultantReviewCard.tsx   # Uses can_approve_investigation RPC
+│   └── ConsultantScreeningCard.tsx
+├── ObservationWorkflowTracker.tsx # Visual workflow progress
+├── InvestigationWorkflowStatusCard.tsx # Status display
+└── workflow-actions/              # Role-specific action components
+    ├── HSSEExpertActions.tsx
+    ├── DeptRepActions.tsx
+    └── ManagerActions.tsx
+```
+
+---
+
+## 21. Audit Trail Requirements
+
+### 21.1 Workflow Audit Events
+
+Every workflow transition **MUST** be logged:
+
+```typescript
+await supabase.from('incident_audit_log').insert({
+  incident_id: incidentId,
+  actor_id: userId,
+  action: 'STATUS_CHANGE',
+  old_value: { status: previousStatus },
+  new_value: { status: newStatus },
+  notes: `Workflow transition: ${previousStatus} → ${newStatus}`,
+  created_at: new Date().toISOString(),
+  tenant_id: tenantId
+});
+```
+
+### 21.2 Permission Decision Logging
+
+All permission checks **SHOULD** be logged in development:
+
+```typescript
+if (process.env.NODE_ENV === 'development') {
+  console.log('[PermissionCheck]', {
+    module: 'ConsultantReview',
+    userId,
+    incidentId,
+    status: incident.status,
+    rpcFunction: 'can_approve_investigation',
+    result: canApprove,
+    timestamp: new Date().toISOString()
+  });
+}
+```
+
+---
+
+## 22. Future Model Requirements
+
+Any new operational model **MUST** follow this structure:
+
+1. Define workflow states in `src/lib/workflow-definitions.ts`
+2. Add status-to-owner mapping in `src/lib/workflow-status-resolver.ts`
+3. Create RPC functions for authorization (`can_*`, `has_*_access_*`)
+4. Document in AGENTS.md Section 17
+5. Use standard permission checking patterns from Section 18
+6. Include audit trail logging from Section 21
