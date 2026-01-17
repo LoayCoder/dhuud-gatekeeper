@@ -110,7 +110,10 @@ export function useCanReviewAsConsultant(incidentId: string | null) {
   return useQuery({
     queryKey: ['can-review-consultant', user?.id, incidentId],
     queryFn: async () => {
-      if (!user?.id || !incidentId) return false;
+      if (!user?.id || !incidentId) {
+        console.log('[ConsultantReview] Access denied - missing user or incident:', { userId: user?.id, incidentId });
+        return false;
+      }
       
       // Get incident status AND branch_id for RBAC check
       const { data: incident, error: incidentError } = await supabase
@@ -119,15 +122,36 @@ export function useCanReviewAsConsultant(incidentId: string | null) {
         .eq('id', incidentId)
         .single();
       
-      if (incidentError || !incident) return false;
+      if (incidentError || !incident) {
+        console.log('[ConsultantReview] Incident fetch failed:', { incidentId, error: incidentError?.message });
+        return false;
+      }
       
       // Only for contractor observations in review stages
       // 'expert_screening' is the database status for contractor consultant screening
       const validStatuses = ['expert_screening', 'pending_consultant_screening', 'pending_consultant_review', 'pending_consultant_actions'];
-      if (!validStatuses.includes(incident.status)) return false;
+      const statusValid = validStatuses.includes(incident.status);
+      const hasContractor = !!incident.related_contractor_company_id;
+      
+      console.log('[ConsultantReview] Pre-check:', {
+        userId: user.id,
+        incidentId,
+        status: incident.status,
+        statusValid,
+        hasContractor,
+        branchId: incident.branch_id
+      });
+      
+      if (!statusValid) {
+        console.log('[ConsultantReview] Access denied - invalid status:', incident.status);
+        return false;
+      }
       
       // Must be a contractor observation
-      if (!incident.related_contractor_company_id) return false;
+      if (!hasContractor) {
+        console.log('[ConsultantReview] Access denied - no contractor company');
+        return false;
+      }
       
       // Use branch-aware RPC for RBAC-based access check
       const { data: hasAccess, error } = await supabase
@@ -136,14 +160,23 @@ export function useCanReviewAsConsultant(incidentId: string | null) {
           p_branch_id: incident.branch_id 
         });
       
+      console.log('[ConsultantReview] RPC result:', {
+        userId: user.id,
+        branchId: incident.branch_id,
+        hasAccess,
+        error: error?.message
+      });
+      
       if (error) {
-        console.error('Error checking consultant branch access:', error);
+        console.error('[ConsultantReview] RPC error:', error);
         return false;
       }
       
       return hasAccess === true;
     },
     enabled: !!user?.id && !!incidentId,
+    staleTime: 0, // Always refetch to prevent stale cache issues
+    gcTime: 1000 * 60, // Keep in cache for 1 minute only
   });
 }
 
