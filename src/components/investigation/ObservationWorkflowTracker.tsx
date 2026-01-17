@@ -106,15 +106,18 @@ export function ObservationWorkflowTracker({
     const consultantScreenedAt = (incident as any).consultant_screened_at;
     const consultantCompleted = consultantScreenedAt != null;
     
+    // Include legacy 'expert_screening' status for contractor consultant screening
+    const isConsultantScreeningActive = status === 'pending_consultant_screening' || status === 'expert_screening';
+    
     steps.push({
       key: 'consultant_screening',
       label: t('workflow.tracker.steps.consultantScreening', 'Consultant Screening'),
       icon: <HardHat className="h-4 w-4" />,
-      status: status === 'pending_consultant_screening' ? 'current' : 
+      status: isConsultantScreeningActive ? 'current' : 
               consultantCompleted ? 'completed' : 'pending',
       actorName: workflowActors?.consultant?.full_name,
       timestamp: consultantScreenedAt,
-      description: status === 'pending_consultant_screening' 
+      description: isConsultantScreeningActive
         ? t('workflow.tracker.descriptions.consultantReviewing', 'Consultant reviewing observation')
         : undefined,
     });
