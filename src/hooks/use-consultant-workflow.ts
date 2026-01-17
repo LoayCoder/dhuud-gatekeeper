@@ -177,6 +177,8 @@ export function useCanReviewAsConsultant(incidentId: string | null) {
     enabled: !!user?.id && !!incidentId,
     staleTime: 0, // Always refetch to prevent stale cache issues
     gcTime: 1000 * 60, // Keep in cache for 1 minute only
+    refetchOnMount: 'always', // Force refetch every time component mounts to ensure fresh permission data
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
   });
 }
 
