@@ -27104,6 +27104,10 @@ export type Database = {
         | "pending_contractor_dispute_review"
         | "pending_department_manager_approval"
         | "pending_clinic_review"
+        | "pending_consultant_screening"
+        | "pending_consultant_review"
+        | "pending_consultant_actions"
+        | "pending_action_dispute_review"
       maintenance_frequency:
         | "daily"
         | "weekly"
@@ -27431,6 +27435,10 @@ export const Constants = {
         "pending_contractor_dispute_review",
         "pending_department_manager_approval",
         "pending_clinic_review",
+        "pending_consultant_screening",
+        "pending_consultant_review",
+        "pending_consultant_actions",
+        "pending_action_dispute_review",
       ],
       maintenance_frequency: [
         "daily",
