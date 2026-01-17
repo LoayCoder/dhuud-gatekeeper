@@ -5,13 +5,13 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, RefreshCw, Search, Filter } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useTodayVisitors, useCheckInVisitor, useCheckOutVisitor } from '@/hooks/use-visit-requests';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTodaysVisitors, useCheckInVisitor, useCheckOutVisitor } from '@/hooks/use-visit-requests';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { 
@@ -31,36 +31,36 @@ export default function TodayVisitors() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<VisitorStatus>('all');
 
-  const { data: visitors, isLoading, refetch } = useTodayVisitors();
+  const { data: visitors, isLoading, refetch } = useTodaysVisitors();
   const checkIn = useCheckInVisitor();
   const checkOut = useCheckOutVisitor();
 
   // Filter visitors based on search and status
-  const filteredVisitors = visitors?.filter(visitor => {
+  const filteredVisitors = visitors?.filter(visit => {
     // Search filter
     const matchesSearch = !searchQuery || 
-      visitor.visitor?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      visitor.visitor?.company_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      visitor.host_name?.toLowerCase().includes(searchQuery.toLowerCase());
+      visit.visitor?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      visit.visitor?.company_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      visit.visitor?.host_name?.toLowerCase().includes(searchQuery.toLowerCase());
 
     // Status filter
     let matchesStatus = true;
     if (statusFilter === 'expected') {
-      matchesStatus = !visitor.checked_in_at;
+      matchesStatus = visit.status === 'approved' || visit.status === 'pending_security';
     } else if (statusFilter === 'checked-in') {
-      matchesStatus = !!visitor.checked_in_at && !visitor.checked_out_at;
+      matchesStatus = visit.status === 'checked_in';
     } else if (statusFilter === 'checked-out') {
-      matchesStatus = !!visitor.checked_out_at;
+      matchesStatus = visit.status === 'checked_out';
     }
 
     return matchesSearch && matchesStatus;
   }) || [];
 
-  const getStatusBadge = (visitor: any) => {
-    if (visitor.checked_out_at) {
+  const getStatusBadge = (status: string) => {
+    if (status === 'checked_out') {
       return <Badge variant="secondary">{t('reception.checkedOut', 'Checked Out')}</Badge>;
     }
-    if (visitor.checked_in_at) {
+    if (status === 'checked_in') {
       return <Badge className="bg-green-500">{t('reception.onSite', 'On Site')}</Badge>;
     }
     return <Badge variant="outline">{t('reception.expected', 'Expected')}</Badge>;
@@ -149,22 +149,22 @@ export default function TodayVisitors() {
                 {filteredVisitors.map((visit) => (
                   <TableRow key={visit.id}>
                     <TableCell className="font-medium">
-                      {visit.visitor?.full_name || visit.visitor_name || '-'}
+                      {visit.visitor?.full_name || '-'}
                     </TableCell>
                     <TableCell>
                       {visit.visitor?.company_name || '-'}
                     </TableCell>
                     <TableCell>
-                      {visit.host_name || '-'}
+                      {visit.visitor?.host_name || '-'}
                     </TableCell>
                     <TableCell>
-                      {visit.scheduled_date ? format(new Date(visit.scheduled_date), 'HH:mm') : '-'}
+                      {visit.valid_from ? format(new Date(visit.valid_from), 'HH:mm') : '-'}
                     </TableCell>
                     <TableCell>
-                      {getStatusBadge(visit)}
+                      {getStatusBadge(visit.status)}
                     </TableCell>
                     <TableCell className="text-end">
-                      {!visit.checked_in_at ? (
+                      {(visit.status === 'approved' || visit.status === 'pending_security') ? (
                         <Button 
                           size="sm" 
                           onClick={() => handleCheckIn(visit.id)}
@@ -172,7 +172,7 @@ export default function TodayVisitors() {
                         >
                           {t('reception.checkIn', 'Check In')}
                         </Button>
-                      ) : !visit.checked_out_at ? (
+                      ) : visit.status === 'checked_in' ? (
                         <Button 
                           size="sm" 
                           variant="outline"
@@ -181,11 +181,11 @@ export default function TodayVisitors() {
                         >
                           {t('reception.checkOut', 'Check Out')}
                         </Button>
-                      ) : (
+                      ) : visit.exit_logged_at ? (
                         <span className="text-muted-foreground text-sm">
-                          {visit.checked_out_at && format(new Date(visit.checked_out_at), 'HH:mm')}
+                          {format(new Date(visit.exit_logged_at), 'HH:mm')}
                         </span>
-                      )}
+                      ) : null}
                     </TableCell>
                   </TableRow>
                 ))}

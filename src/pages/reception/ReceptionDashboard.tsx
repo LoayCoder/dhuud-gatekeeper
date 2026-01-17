@@ -20,8 +20,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { useVisitors } from '@/hooks/use-visitors';
-import { useTodayVisitors } from '@/hooks/use-visit-requests';
-import { format, isToday } from 'date-fns';
+import { useTodaysVisitors } from '@/hooks/use-visit-requests';
+import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { QuickCheckinCard } from '@/components/reception/QuickCheckinCard';
 import { TodayVisitorsWidget } from '@/components/reception/TodayVisitorsWidget';
@@ -33,15 +33,15 @@ export default function ReceptionDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch today's expected visitors
-  const { data: todayVisitors, isLoading: loadingToday, refetch: refetchToday } = useTodayVisitors();
+  const { data: todayVisitors, isLoading: loadingToday, refetch: refetchToday } = useTodaysVisitors();
   
   // Fetch all visitors for search
   const { data: allVisitors, isLoading: loadingVisitors } = useVisitors({ search: searchQuery });
 
   const stats = {
-    expected: todayVisitors?.filter(v => !v.checked_in_at)?.length || 0,
-    checkedIn: todayVisitors?.filter(v => v.checked_in_at && !v.checked_out_at)?.length || 0,
-    checkedOut: todayVisitors?.filter(v => v.checked_out_at)?.length || 0,
+    expected: todayVisitors?.filter(v => v.status === 'approved' || v.status === 'pending_security')?.length || 0,
+    checkedIn: todayVisitors?.filter(v => v.status === 'checked_in')?.length || 0,
+    checkedOut: todayVisitors?.filter(v => v.status === 'checked_out')?.length || 0,
   };
 
   return (
