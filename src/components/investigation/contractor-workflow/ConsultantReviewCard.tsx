@@ -48,8 +48,9 @@ export function ConsultantReviewCard({
   // Permission check - only show to users with contractor consultant role
   const { data: canReview, isLoading: checkingPermission } = useCanReviewAsConsultant(incidentId);
 
-  // Show for consultant screening stage
-  const isScreeningStage = status === 'pending_consultant_screening' || 
+  // Show for consultant screening stage (expert_screening is legacy status)
+  const isScreeningStage = status === 'expert_screening' ||
+                           status === 'pending_consultant_screening' || 
                            status === 'pending_consultant_review' || 
                            status === 'pending_consultant_actions';
   
