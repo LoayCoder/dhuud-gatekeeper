@@ -1,9 +1,9 @@
 // ============================================
 // DHUUD HSSE Platform - Service Worker
-// Version: 2025.01.14.002
+// Version: 2025.01.14.003
 // ============================================
 
-const SW_VERSION = '2025.01.14.002';
+const SW_VERSION = '2025.01.14.003';
 const CACHE_NAME = `dhuud-cache-v6-${SW_VERSION}`;
 const API_CACHE_NAME = `dhuud-api-cache-v3-${SW_VERSION}`;
 const STATIC_CACHE_NAME = `dhuud-static-cache-v3-${SW_VERSION}`;
@@ -894,23 +894,30 @@ self.addEventListener('fetch', (event) => {
 
   // STRATEGY 5: Stale-While-Revalidate for other HTML pages
   // Fast initial load, background refresh
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      const fetchPromise = fetch(request)
-        .then((response) => {
-          if (response.ok && url.origin === self.location.origin) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          }
-          return response;
-        })
-        .catch(() => {
-          // Network failed, return cached or offline page
-          return cached || caches.match(OFFLINE_URL);
-        });
-      
-      // Return cached immediately if available, otherwise wait for network
-      return cached || fetchPromise;
-    })
-  );
+  // FIX: Strictly fallback to offline.html ONLY if the client requested HTML
+  // This prevents MIME type errors when JS chunks fail
+  if (request.headers.get('Accept')?.includes('text/html')) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        const fetchPromise = fetch(request)
+          .then((response) => {
+            if (response.ok && url.origin === self.location.origin) {
+              const clone = response.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+            }
+            return response;
+          })
+          .catch(() => {
+            // Network failed, return cached or offline page
+            return cached || caches.match(OFFLINE_URL);
+          });
+
+        // Return cached immediately if available, otherwise wait for network
+        return cached || fetchPromise;
+      })
+    );
+    return;
+  }
+
+  // Default: Network only
 });

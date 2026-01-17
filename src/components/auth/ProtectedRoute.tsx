@@ -31,10 +31,12 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
           const cached = await sessionCache.getCachedSession();
           if (cached && cached.userId === user.id) {
             // Check if MFA was verified in the cached session
-            const mfaValid = cached.mfaEnabled === true && cached.tenantMfaVerified === true;
+            // FIX: Allow access if MFA is NOT enabled globally, OR if it is enabled and verified
+            const mfaValid = !cached.mfaEnabled || (cached.mfaEnabled === true && cached.tenantMfaVerified === true);
             setOfflineMfaValid(mfaValid);
           } else {
-            // No matching cache - MFA not valid
+            // No matching cache - MFA status unknown, assume valid if session exists?
+            // No, safer to assume invalid if we can't verify policy
             setOfflineMfaValid(false);
           }
         } catch (err) {
