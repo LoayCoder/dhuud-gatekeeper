@@ -328,19 +328,17 @@ export function IncidentAttachmentsSection({
     });
   };
 
-  // Helper for direct download (bypasses CORS)
+  // Helper for direct download (forces download, no new tab)
   const directDownload = (url: string, filename: string) => {
     const link = document.createElement('a');
     link.href = url;
     link.download = filename;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  // Hybrid download handler: Try fetch for watermarking, fallback to direct download
+  // Hybrid download handler: Use Supabase storage API for watermarking, fallback to direct download
   // For non-images, use direct download immediately (no watermark needed)
   const handleDownload = async (url: string, originalFilename: string, mimeType?: string) => {
     const evidenceFilename = generateEvidenceFilename(originalFilename, incidentMetadata);
@@ -353,12 +351,31 @@ export function IncidentAttachmentsSection({
       return;
     }
     
-    // For images, try fetch first (for watermarking), fallback to direct if CORS fails
+    // For images, download via Supabase storage API (avoids CORS) and apply watermark
     try {
-      const response = await fetch(url, { mode: 'cors' });
-      if (!response.ok) throw new Error('Fetch failed');
+      let blob: Blob;
       
-      let blob = await response.blob();
+      // Check if this is a Supabase storage URL for incident-attachments bucket
+      if (url.includes('incident-attachments')) {
+        // Extract storage path from URL
+        const pathMatch = url.match(/incident-attachments\/([^?]+)/);
+        if (pathMatch) {
+          const storagePath = decodeURIComponent(pathMatch[1]);
+          const { data, error } = await supabase.storage
+            .from('incident-attachments')
+            .download(storagePath);
+          
+          if (error) throw error;
+          blob = data;
+        } else {
+          throw new Error('Could not extract storage path from URL');
+        }
+      } else {
+        // Fallback for non-storage URLs - try direct fetch
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Fetch failed');
+        blob = await response.blob();
+      }
       
       // Apply evidence watermark for images
       if (incidentMetadata) {
@@ -366,6 +383,7 @@ export function IncidentAttachmentsSection({
         blob = await addEvidenceWatermark(blob, incidentMetadata, language);
       }
       
+      // Trigger download with blob URL
       const downloadUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = downloadUrl;
@@ -377,7 +395,7 @@ export function IncidentAttachmentsSection({
       
       toast.success(t('incidents.downloadSuccess', 'Download complete'));
     } catch (error) {
-      console.warn('CORS fetch failed, falling back to direct download:', error);
+      console.warn('Download with watermark failed, falling back to direct download:', error);
       // Fallback: Direct download without watermark
       directDownload(url, evidenceFilename);
       toast.info(t('incidents.downloadedWithoutWatermark', 'Downloaded (without watermark)'));
