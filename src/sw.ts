@@ -1,7 +1,24 @@
+/// <reference lib="webworker" />
+
 // ============================================
 // DHUUD HSSE Platform - Service Worker
 // Version: 2025.01.14.003
 // ============================================
+
+// Declare self as ServiceWorkerGlobalScope with extended properties
+declare const self: ServiceWorkerGlobalScope & {
+  Notification?: {
+    permission: NotificationPermission;
+  };
+};
+
+// Extend NotificationOptions to include vibrate and other SW-specific properties
+interface ExtendedNotificationOptions extends NotificationOptions {
+  vibrate?: number[];
+  actions?: Array<{ action: string; title: string }>;
+  badge?: string;
+  renotify?: boolean;
+}
 
 import { clientsClaim, skipWaiting } from 'workbox-core';
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
@@ -154,7 +171,7 @@ async function showSyncNotification(result: { success: number; failed: number })
         { action: 'retry', title: 'Retry' },
         { action: 'dismiss', title: 'Dismiss' }
       ] : []
-    });
+    } as ExtendedNotificationOptions);
     
     // Store in notification history
     storeNotificationInHistory(title, body, notificationType);
@@ -309,7 +326,7 @@ async function showUrgentSLANotification(data: any) {
         { action: 'view', title: 'View Dashboard' },
         { action: 'dismiss', title: 'Dismiss' }
       ]
-    });
+    } as ExtendedNotificationOptions);
     
     storeNotificationInHistory(notificationTitle, notificationBody, 'error');
   } catch (error) {
@@ -526,7 +543,7 @@ async function showUpdateNotification() {
         { action: 'update', title: 'Update Now' },
         { action: 'dismiss', title: 'Later' }
       ]
-    });
+    } as ExtendedNotificationOptions);
     
     storeNotificationInHistory('Update Available', 'A new version of the app is available.', 'update');
   } catch (error) {
