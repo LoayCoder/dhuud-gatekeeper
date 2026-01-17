@@ -487,7 +487,7 @@ export function IncidentAttachmentsSection({
                 )}
 
                 {/* Hover overlay - Download icon */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
                   <Download className="h-6 w-6 text-white" />
                 </div>
 
@@ -531,13 +531,14 @@ export function IncidentAttachmentsSection({
                       <span className="truncate">{formatFileSize(attachment.size)}</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex items-center gap-1 shrink-0 relative z-10">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-8 w-8 pointer-events-auto"
                       onClick={(e) => {
                         e.stopPropagation();
+                        e.preventDefault();
                         window.open(attachment.url, '_blank');
                       }}
                       title={t('common.view', 'View')}
@@ -547,9 +548,10 @@ export function IncidentAttachmentsSection({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-8 w-8 pointer-events-auto"
                       onClick={(e) => {
                         e.stopPropagation();
+                        e.preventDefault();
                         handleDownload(attachment.url, attachment.name, attachment.type);
                       }}
                       title={t('incidents.downloadFile', 'Download')}
