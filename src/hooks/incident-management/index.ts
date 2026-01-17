@@ -32,6 +32,7 @@ export * from '../use-overdue-actions';
 export * from '../use-action-evidence';
 export * from '../use-action-extensions';
 export * from '../use-action-sla-config';
+export * from '../use-actions-count';
 
 // Root Cause Analysis
 export * from '../use-rca-ai';
