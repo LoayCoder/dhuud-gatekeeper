@@ -7,6 +7,7 @@
  */
 
 import { logger } from '@/lib/logger';
+import { Session } from '@supabase/supabase-js';
 
 const DB_NAME = 'dhuud-session-cache';
 const DB_VERSION = 1;
@@ -204,6 +205,31 @@ class SessionCache {
       logger.error('Failed to update session cache:', error);
     }
   }
+
+  /**
+   * Get auth session directly from local storage
+   * Used for offline short-circuit verification
+   */
+  getStoredAuthSession(): Session | null {
+    try {
+      // Use the specific project ID key if available, otherwise try default
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'xdlowvfzhvjzbtgvurzj';
+      const key = `sb-${projectId}-auth-token`;
+
+      const stored = localStorage.getItem(key);
+      if (!stored) return null;
+
+      const parsed = JSON.parse(stored);
+      // Basic validation that it looks like a session
+      if (parsed && parsed.access_token && parsed.user) {
+        return parsed as Session;
+      }
+      return null;
+    } catch (error) {
+      logger.error('Failed to read stored auth session:', error);
+      return null;
+    }
+  }
 }
 
 // Singleton instance
@@ -219,5 +245,6 @@ export function useCachedSession() {
     clearSession: sessionCache.clearSession.bind(sessionCache),
     isSessionCacheValid: sessionCache.isSessionCacheValid.bind(sessionCache),
     updateCachedProfile: sessionCache.updateCachedProfile.bind(sessionCache),
+    getStoredAuthSession: sessionCache.getStoredAuthSession.bind(sessionCache),
   };
 }
