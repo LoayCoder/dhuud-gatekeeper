@@ -27,6 +27,33 @@ function parseRpcResponse(data: Json): RpcResponse {
 }
 
 /**
+ * Hook to check if user has contractor consultant role access
+ * Uses the database RPC function for proper role-based access control
+ */
+export function useHasConsultantAccess() {
+  const { user } = useAuth();
+  
+  return useQuery({
+    queryKey: ['has-consultant-access', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return false;
+      
+      // Use database RPC for proper role-based access
+      const { data: hasAccess, error } = await supabase
+        .rpc('has_contractor_consultant_access', { p_user_id: user.id });
+      
+      if (error) {
+        console.error('Error checking consultant access:', error);
+        return false;
+      }
+      
+      return hasAccess === true;
+    },
+    enabled: !!user?.id,
+  });
+}
+
+/**
  * Hook to check if user can screen as consultant
  * Supports the new pending_consultant_screening status
  */
@@ -54,24 +81,59 @@ export function useCanScreenAsConsultant(incidentId: string | null) {
       // Must be a contractor observation
       if (!incident.related_contractor_company_id) return false;
       
-      // Check if user is a consultant
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('user_type, is_super_admin, job_title')
-        .eq('id', user.id)
+      // Use database RPC for proper role-based access
+      const { data: hasAccess, error } = await supabase
+        .rpc('has_contractor_consultant_access', { p_user_id: user.id });
+      
+      if (error) {
+        console.error('Error checking consultant access:', error);
+        return false;
+      }
+      
+      return hasAccess === true;
+    },
+    enabled: !!user?.id && !!incidentId,
+  });
+}
+
+/**
+ * Hook to check if user can review/act on observation as consultant
+ * Used by ConsultantReviewCard for permission gating
+ */
+export function useCanReviewAsConsultant(incidentId: string | null) {
+  const { user } = useAuth();
+  
+  return useQuery({
+    queryKey: ['can-review-consultant', user?.id, incidentId],
+    queryFn: async () => {
+      if (!user?.id || !incidentId) return false;
+      
+      // Get incident status
+      const { data: incident, error: incidentError } = await supabase
+        .from('incidents')
+        .select('status, related_contractor_company_id')
+        .eq('id', incidentId)
         .single();
       
-      if (profileError || !profile) return false;
+      if (incidentError || !incident) return false;
       
-      // Super admin can always screen
-      if (profile.is_super_admin) return true;
+      // Only for contractor observations in screening stage
+      const validStatuses = ['pending_consultant_screening', 'pending_consultant_review', 'pending_consultant_actions'];
+      if (!validStatuses.includes(incident.status)) return false;
       
-      // Check job title for consultant/HSSE roles
-      const jobTitle = (profile.job_title || '').toLowerCase();
-      return jobTitle.includes('consultant') ||
-             jobTitle.includes('hsse') ||
-             jobTitle.includes('safety') ||
-             jobTitle.includes('expert');
+      // Must be a contractor observation
+      if (!incident.related_contractor_company_id) return false;
+      
+      // Use database RPC for proper role-based access
+      const { data: hasAccess, error } = await supabase
+        .rpc('has_contractor_consultant_access', { p_user_id: user.id });
+      
+      if (error) {
+        console.error('Error checking consultant access:', error);
+        return false;
+      }
+      
+      return hasAccess === true;
     },
     enabled: !!user?.id && !!incidentId,
   });
