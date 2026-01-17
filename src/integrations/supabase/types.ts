@@ -26785,6 +26785,17 @@ export type Database = {
         Args: { p_incident_id: string; p_reason: string }
         Returns: undefined
       }
+      reroute_observation_to_new_site: {
+        Args: {
+          p_admin_notes?: string
+          p_incident_id: string
+          p_new_branch_id?: string
+          p_new_contractor_id?: string
+          p_new_site_id?: string
+          p_should_reroute?: boolean
+        }
+        Returns: Json
+      }
       reset_notification_matrix_to_defaults: {
         Args: { p_tenant_id: string }
         Returns: undefined
