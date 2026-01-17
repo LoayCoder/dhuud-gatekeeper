@@ -25780,6 +25780,18 @@ export type Database = {
         }
         Returns: Json
       }
+      find_contractor_consultant_for_branch: {
+        Args: { p_branch_id: string; p_tenant_id: string }
+        Returns: string
+      }
+      find_dept_rep_for_branch_department: {
+        Args: {
+          p_branch_id: string
+          p_department_id: string
+          p_tenant_id: string
+        }
+        Returns: string
+      }
       find_orphaned_records: {
         Args: never
         Returns: {
@@ -26478,6 +26490,10 @@ export type Database = {
       }
       has_contractor_consultant_access: {
         Args: { p_user_id: string }
+        Returns: boolean
+      }
+      has_contractor_consultant_access_for_branch: {
+        Args: { p_branch_id: string; p_user_id: string }
         Returns: boolean
       }
       has_dept_rep_role: { Args: { _user_id: string }; Returns: boolean }

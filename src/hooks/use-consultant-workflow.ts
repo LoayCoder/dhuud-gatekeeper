@@ -65,10 +65,10 @@ export function useCanScreenAsConsultant(incidentId: string | null) {
     queryFn: async () => {
       if (!user?.id || !incidentId) return false;
       
-      // Get incident status
+      // Get incident status AND branch_id for RBAC check
       const { data: incident, error: incidentError } = await supabase
         .from('incidents')
-        .select('status, related_contractor_company_id, event_type')
+        .select('status, related_contractor_company_id, event_type, branch_id')
         .eq('id', incidentId)
         .single();
       
@@ -81,12 +81,15 @@ export function useCanScreenAsConsultant(incidentId: string | null) {
       // Must be a contractor observation
       if (!incident.related_contractor_company_id) return false;
       
-      // Use database RPC for proper role-based access
+      // Use branch-aware RPC for RBAC-based access check
       const { data: hasAccess, error } = await supabase
-        .rpc('has_contractor_consultant_access', { p_user_id: user.id });
+        .rpc('has_contractor_consultant_access_for_branch', { 
+          p_user_id: user.id,
+          p_branch_id: incident.branch_id 
+        });
       
       if (error) {
-        console.error('Error checking consultant access:', error);
+        console.error('Error checking consultant branch access:', error);
         return false;
       }
       
@@ -98,7 +101,7 @@ export function useCanScreenAsConsultant(incidentId: string | null) {
 
 /**
  * Hook to check if user can review/act on observation as consultant
- * Used by ConsultantReviewCard for permission gating
+ * Uses branch-aware RBAC for proper role resolution
  */
 export function useCanReviewAsConsultant(incidentId: string | null) {
   const { user } = useAuth();
@@ -108,28 +111,31 @@ export function useCanReviewAsConsultant(incidentId: string | null) {
     queryFn: async () => {
       if (!user?.id || !incidentId) return false;
       
-      // Get incident status
+      // Get incident status AND branch_id for RBAC check
       const { data: incident, error: incidentError } = await supabase
         .from('incidents')
-        .select('status, related_contractor_company_id')
+        .select('status, related_contractor_company_id, branch_id')
         .eq('id', incidentId)
         .single();
       
       if (incidentError || !incident) return false;
       
-      // Only for contractor observations in screening stage
+      // Only for contractor observations in review stages
       const validStatuses = ['pending_consultant_screening', 'pending_consultant_review', 'pending_consultant_actions'];
       if (!validStatuses.includes(incident.status)) return false;
       
       // Must be a contractor observation
       if (!incident.related_contractor_company_id) return false;
       
-      // Use database RPC for proper role-based access
+      // Use branch-aware RPC for RBAC-based access check
       const { data: hasAccess, error } = await supabase
-        .rpc('has_contractor_consultant_access', { p_user_id: user.id });
+        .rpc('has_contractor_consultant_access_for_branch', { 
+          p_user_id: user.id,
+          p_branch_id: incident.branch_id 
+        });
       
       if (error) {
-        console.error('Error checking consultant access:', error);
+        console.error('Error checking consultant branch access:', error);
         return false;
       }
       
