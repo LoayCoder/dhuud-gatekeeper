@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Loader2, UserCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +9,8 @@ import { SeverityAdjustmentCard } from "./SeverityAdjustmentCard";
 import { ApprovalWorkflowBanner } from "./ApprovalWorkflowBanner";
 import { LinkedAssetsCard } from "./LinkedAssetsCard";
 import { ContractorPersonnelCard } from "./ContractorPersonnelCard";
+import { AdminEditObservationDialog } from "@/components/admin/AdminEditObservationDialog";
+import { useAuth } from "@/contexts/AuthContext";
 import type { IncidentWithDetails } from "@/hooks/use-incidents";
 import type { Investigation } from "@/hooks/use-investigation";
 
@@ -20,6 +23,19 @@ interface OverviewPanelProps {
 export function OverviewPanel({ incident, investigation, onRefresh }: OverviewPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
+  const { isAdmin } = useAuth();
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editMode, setEditMode] = useState<'location' | 'contractor'>('location');
+
+  const handleEditLocation = () => {
+    setEditMode('location');
+    setEditDialogOpen(true);
+  };
+
+  const handleEditContractor = () => {
+    setEditMode('contractor');
+    setEditDialogOpen(true);
+  };
   
   // Show loading state if incident is not yet loaded
   if (!incident) {
@@ -64,7 +80,11 @@ export function OverviewPanel({ incident, investigation, onRefresh }: OverviewPa
       </div>
 
       {/* Incident Information - Full width, read-only when locked */}
-      <IncidentInfoCard incident={incident} isLocked={isLocked} />
+      <IncidentInfoCard 
+        incident={incident} 
+        isLocked={isLocked}
+        onEditLocation={isAdmin && !isLocked ? handleEditLocation : undefined}
+      />
 
       {/* Linked Assets Card */}
       <LinkedAssetsCard incidentId={incident.id} canEdit={!isLocked} />
@@ -74,6 +94,7 @@ export function OverviewPanel({ incident, investigation, onRefresh }: OverviewPa
         <ContractorPersonnelCard 
           companyId={incident.related_contractor_company_id}
           companyName={(incident as any).related_contractor_company?.company_name}
+          onEditContractor={isAdmin && !isLocked ? handleEditContractor : undefined}
         />
       )}
 
@@ -83,6 +104,16 @@ export function OverviewPanel({ incident, investigation, onRefresh }: OverviewPa
           incident={incident}
           investigation={investigation}
           onRefresh={onRefresh}
+        />
+      )}
+
+      {/* Admin Edit Dialog */}
+      {isAdmin && incident && (
+        <AdminEditObservationDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          incident={incident}
+          onSuccess={onRefresh}
         />
       )}
     </div>

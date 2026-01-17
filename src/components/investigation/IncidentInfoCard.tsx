@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Lock, AlertTriangle, Calendar, MapPin, FileText, Shield, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Lock, AlertTriangle, Calendar, MapPin, FileText, Shield, Zap, Edit } from "lucide-react";
 import { format } from "date-fns";
 import type { IncidentWithDetails } from "@/hooks/use-incidents";
 import { IncidentAttachmentsSection } from "@/components/incidents/IncidentAttachmentsSection";
@@ -12,9 +13,10 @@ import { LocationDisplay } from "@/components/shared/LocationDisplay";
 interface IncidentInfoCardProps {
   incident: IncidentWithDetails;
   isLocked: boolean;
+  onEditLocation?: () => void;
 }
 
-export function IncidentInfoCard({ incident, isLocked }: IncidentInfoCardProps) {
+export function IncidentInfoCard({ incident, isLocked, onEditLocation }: IncidentInfoCardProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
 
@@ -140,19 +142,32 @@ export function IncidentInfoCard({ incident, isLocked }: IncidentInfoCardProps) 
               label={t('incidents.occurredAt', 'Date & Time')} 
               value={incident.occurred_at ? format(new Date(incident.occurred_at), 'PPp') : null}
             />
-            <InfoItem 
-              icon={MapPin}
-              label={t('incidents.location', 'Location')} 
-              value={
-                incident.site?.name || 
-                incident.branch?.name || 
-                incident.location ||
-                incident.location_city ||
-                (incident.latitude && incident.longitude 
-                  ? t('incidents.gpsCoordinatesAvailable', 'GPS Coordinates Available')
-                  : undefined)
-              }
-            />
+            <div className="flex items-start justify-between gap-2">
+              <InfoItem 
+                icon={MapPin}
+                label={t('incidents.location', 'Location')} 
+                value={
+                  incident.site?.name || 
+                  incident.branch?.name || 
+                  incident.location ||
+                  incident.location_city ||
+                  (incident.latitude && incident.longitude 
+                    ? t('incidents.gpsCoordinatesAvailable', 'GPS Coordinates Available')
+                    : undefined)
+                }
+              />
+              {onEditLocation && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onEditLocation}
+                  className="h-7 gap-1.5 text-xs shrink-0"
+                >
+                  <Edit className="h-3 w-3" />
+                  {t('common.edit', 'Edit')}
+                </Button>
+              )}
+            </div>
             {/* Address Details from GPS */}
             {(incident.location_city || incident.location_district) && (
               <InfoItem 
