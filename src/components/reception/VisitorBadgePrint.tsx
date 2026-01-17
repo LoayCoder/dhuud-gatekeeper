@@ -11,7 +11,6 @@ import { QRCodeSVG } from 'qrcode.react';
 import { format } from 'date-fns';
 import { Visitor } from '@/hooks/use-visitors';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTenant } from '@/hooks/use-tenant';
 
 interface VisitorBadgePrintProps {
   visitor: Visitor;
@@ -21,7 +20,7 @@ export function VisitorBadgePrint({ visitor }: VisitorBadgePrintProps) {
   const { t } = useTranslation();
   const printRef = useRef<HTMLDivElement>(null);
   const { profile } = useAuth();
-  const { data: tenant } = useTenant(profile?.tenant_id);
+  const tenantName = 'Company'; // Simplified for badge
   const [isPrinting, setIsPrinting] = useState(false);
 
   const handlePrint = () => {
@@ -130,7 +129,7 @@ export function VisitorBadgePrint({ visitor }: VisitorBadgePrintProps) {
       <body>
         <div class="badge">
           <div class="header">
-            <div class="company-logo">${tenant?.name || 'Company'}</div>
+            <div class="company-logo">${tenantName}</div>
             <div class="badge-type">VISITOR</div>
           </div>
           <div class="visitor-name">${visitor.full_name}</div>
@@ -172,7 +171,7 @@ export function VisitorBadgePrint({ visitor }: VisitorBadgePrintProps) {
         style={{ maxWidth: '340px', margin: '0 auto' }}
       >
         <div className="flex justify-between items-start mb-3">
-          <div className="font-bold text-sm">{tenant?.name || 'Company'}</div>
+          <div className="font-bold text-sm">{tenantName}</div>
           <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded font-medium">
             VISITOR
           </span>

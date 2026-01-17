@@ -14,7 +14,6 @@ import {
   UserPlus, 
   AlertTriangle,
   CheckCircle,
-  Printer
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,20 +28,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useCreateVisitor } from '@/hooks/use-visitors';
 import { useIsVisitorBlacklisted } from '@/hooks/use-validate-visitor-access';
 import { useAuth } from '@/contexts/AuthContext';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { UserSearchCombobox } from '@/components/shared/UserSearchCombobox';
-import { VisitorPhotoCapture } from '@/components/visitors/VisitorPhotoCapture';
+import { UserSearchCombobox } from '@/components/admin/UserSearchCombobox';
+import { VisitorPhotoCapture } from '@/components/security/VisitorPhotoCapture';
 import { VisitorBadgePrint } from '@/components/reception/VisitorBadgePrint';
 
 const walkInSchema = z.object({
@@ -63,7 +55,7 @@ export default function WalkInRegistration() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const [photoPath, setPhotoPath] = useState<string | null>(null);
+  const [photoBlob, setPhotoBlob] = useState<Blob | null>(null);
   const [nationalIdToCheck, setNationalIdToCheck] = useState<string>('');
   const [registeredVisitor, setRegisteredVisitor] = useState<any>(null);
 
@@ -71,8 +63,7 @@ export default function WalkInRegistration() {
   
   // Check blacklist when national ID is entered
   const { data: blacklistEntry, isLoading: checkingBlacklist } = useIsVisitorBlacklisted(
-    nationalIdToCheck, 
-    profile?.tenant_id
+    nationalIdToCheck || undefined
   );
 
   const form = useForm<WalkInFormData>({
@@ -105,7 +96,7 @@ export default function WalkInRegistration() {
         host_name: data.host_name || null,
         host_phone: data.host_phone || null,
         host_email: data.host_email || null,
-        photo_path: photoPath,
+        photo_path: null, // Will handle photo upload separately if needed
         user_type: 'external',
       });
       
@@ -122,11 +113,20 @@ export default function WalkInRegistration() {
     }
   };
 
-  const handleHostSelect = (user: { id: string; full_name: string; email?: string; phone?: string }) => {
-    form.setValue('host_id', user.id);
-    form.setValue('host_name', user.full_name);
-    form.setValue('host_email', user.email || '');
-    form.setValue('host_phone', user.phone || '');
+  const handleHostSelect = (userId: string | null, user: { id: string; full_name: string | null; email: string | null } | null) => {
+    if (user) {
+      form.setValue('host_id', user.id);
+      form.setValue('host_name', user.full_name || '');
+      form.setValue('host_email', user.email || '');
+    } else {
+      form.setValue('host_id', '');
+      form.setValue('host_name', '');
+      form.setValue('host_email', '');
+    }
+  };
+
+  const handlePhotoCapture = (blob: Blob) => {
+    setPhotoBlob(blob);
   };
 
   // Show success screen after registration
@@ -172,7 +172,7 @@ export default function WalkInRegistration() {
                 onClick={() => {
                   setRegisteredVisitor(null);
                   form.reset();
-                  setPhotoPath(null);
+                  setPhotoBlob(null);
                 }}
               >
                 <UserPlus className="h-4 w-4 me-2" />
@@ -235,10 +235,14 @@ export default function WalkInRegistration() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <VisitorPhotoCapture
-                onPhotoCaptured={(path) => setPhotoPath(path)}
-                currentPhotoPath={photoPath}
-              />
+              <div className="flex items-center gap-4">
+                <VisitorPhotoCapture onCapture={handlePhotoCapture} />
+                {photoBlob && (
+                  <Badge variant="secondary">
+                    {t('visitors.photoCaptured', 'Photo captured')}
+                  </Badge>
+                )}
+              </div>
             </CardContent>
           </Card>
 
@@ -351,6 +355,7 @@ export default function WalkInRegistration() {
               <div>
                 <Label>{t('visitors.selectHost', 'Select Host Employee')}</Label>
                 <UserSearchCombobox
+                  value={form.watch('host_id') || null}
                   onSelect={handleHostSelect}
                   placeholder={t('visitors.searchHost', 'Search for host employee...')}
                 />
