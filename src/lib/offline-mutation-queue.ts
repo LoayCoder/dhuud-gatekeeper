@@ -7,13 +7,23 @@ export type QueuedMutation = {
   method?: string;
   headers?: Record<string, string>;
   body?: unknown;
+  retryCount?: number;
+};
+
+export type FailedMutation = QueuedMutation & {
+  error?: string;
+  failedAt: number;
+  failureReason: 'permanent' | 'max_retries';
 };
 
 const STORAGE_KEY = 'offline-mutation-queue';
+const FAILED_STORAGE_KEY = 'offline-failed-mutations';
 const SYNC_TAG = 'offline-mutations-sync';
+const MAX_RETRIES = 3;
 
 class OfflineMutationQueue {
   private queue: QueuedMutation[] = [];
+  private failedQueue: FailedMutation[] = [];
   private listeners: Set<() => void> = new Set();
   private backgroundSyncSupported: boolean = false;
 
@@ -46,6 +56,16 @@ class OfflineMutationQueue {
         if (event.data?.type === 'MUTATION_SUCCESS') {
           this.remove(event.data.id);
         }
+
+        // Handle permanent failure (400s) - Poison Pill
+        if (event.data?.type === 'MUTATION_FAILED_PERMANENT') {
+          this.handlePermanentFailure(event.data.id, event.data.error);
+        }
+
+        // Handle retryable failure (500s/Network)
+        if (event.data?.type === 'MUTATION_FAILED_RETRYABLE') {
+          this.handleRetryableFailure(event.data.id, event.data.error);
+        }
         
         // Handle sync complete notification
         if (event.data?.type === 'SYNC_COMPLETE') {
@@ -61,14 +81,21 @@ class OfflineMutationQueue {
       if (stored) {
         this.queue = JSON.parse(stored);
       }
+
+      const storedFailed = localStorage.getItem(FAILED_STORAGE_KEY);
+      if (storedFailed) {
+        this.failedQueue = JSON.parse(storedFailed);
+      }
     } catch {
       this.queue = [];
+      this.failedQueue = [];
     }
   }
 
   private saveToStorage() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.queue));
+      localStorage.setItem(FAILED_STORAGE_KEY, JSON.stringify(this.failedQueue));
     } catch {
       // Storage full or unavailable
     }
@@ -76,6 +103,54 @@ class OfflineMutationQueue {
 
   private notifyListeners() {
     this.listeners.forEach((listener) => listener());
+  }
+
+  private handlePermanentFailure(id: string, error?: string) {
+    const mutation = this.queue.find((m) => m.id === id);
+    if (mutation) {
+      this.moveToFailed(mutation, 'permanent', error);
+    }
+  }
+
+  private handleRetryableFailure(id: string, error?: string) {
+    const index = this.queue.findIndex((m) => m.id === id);
+    if (index === -1) return;
+
+    const mutation = this.queue[index];
+    const currentRetries = mutation.retryCount || 0;
+
+    if (currentRetries >= MAX_RETRIES) {
+      this.moveToFailed(mutation, 'max_retries', error);
+    } else {
+      // Increment retry count
+      this.queue[index] = {
+        ...mutation,
+        retryCount: currentRetries + 1
+      };
+      this.saveToStorage();
+      this.notifyListeners();
+    }
+  }
+
+  private moveToFailed(mutation: QueuedMutation, reason: 'permanent' | 'max_retries', error?: string) {
+    const failedMutation: FailedMutation = {
+      ...mutation,
+      failedAt: Date.now(),
+      failureReason: reason,
+      error
+    };
+
+    this.failedQueue.push(failedMutation);
+    // Limit failed queue size to prevent storage issues (keep last 50)
+    if (this.failedQueue.length > 50) {
+      this.failedQueue = this.failedQueue.slice(-50);
+    }
+
+    // Remove from main queue
+    this.queue = this.queue.filter((m) => m.id !== mutation.id);
+
+    this.saveToStorage();
+    this.notifyListeners();
   }
 
   private async registerBackgroundSync() {
@@ -103,6 +178,7 @@ class OfflineMutationQueue {
       timestamp: Date.now(),
       mutationKey,
       variables,
+      retryCount: 0,
       ...options,
     };
     this.queue.push(mutation);
@@ -125,8 +201,18 @@ class OfflineMutationQueue {
     return [...this.queue];
   }
 
+  getFailed(): FailedMutation[] {
+    return [...this.failedQueue];
+  }
+
   clear() {
     this.queue = [];
+    this.saveToStorage();
+    this.notifyListeners();
+  }
+
+  clearFailed() {
+    this.failedQueue = [];
     this.saveToStorage();
     this.notifyListeners();
   }
