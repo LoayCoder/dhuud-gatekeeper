@@ -75,7 +75,8 @@ export function useCanScreenAsConsultant(incidentId: string | null) {
       if (incidentError || !incident) return false;
       
       // Only for contractor observations in screening stage
-      const validStatuses = ['pending_consultant_screening', 'pending_consultant_review', 'pending_consultant_actions'];
+      // 'expert_screening' is the database status for contractor consultant screening
+      const validStatuses = ['expert_screening', 'pending_consultant_screening', 'pending_consultant_review', 'pending_consultant_actions'];
       if (!validStatuses.includes(incident.status)) return false;
       
       // Must be a contractor observation
@@ -121,7 +122,8 @@ export function useCanReviewAsConsultant(incidentId: string | null) {
       if (incidentError || !incident) return false;
       
       // Only for contractor observations in review stages
-      const validStatuses = ['pending_consultant_screening', 'pending_consultant_review', 'pending_consultant_actions'];
+      // 'expert_screening' is the database status for contractor consultant screening
+      const validStatuses = ['expert_screening', 'pending_consultant_screening', 'pending_consultant_review', 'pending_consultant_actions'];
       if (!validStatuses.includes(incident.status)) return false;
       
       // Must be a contractor observation
