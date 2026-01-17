@@ -70,15 +70,21 @@ export function useValidateVisitorAccess() {
   });
 }
 
+interface BlacklistEntry {
+  id: string;
+  reason: string | null;
+}
+
 export function useIsVisitorBlacklisted(nationalId: string | undefined) {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
 
-  return useQuery({
+  return useQuery<BlacklistEntry | null>({
     queryKey: ['visitor-blacklist-check', nationalId],
     queryFn: async () => {
       if (!tenantId || !nationalId) return null;
 
+      // @ts-expect-error - Supabase type chain is too deep
       const { data, error } = await supabase
         .from('security_blacklist')
         .select('id, reason')
@@ -88,7 +94,7 @@ export function useIsVisitorBlacklisted(nationalId: string | undefined) {
         .maybeSingle();
 
       if (error) throw error;
-      return data;
+      return data as BlacklistEntry | null;
     },
     enabled: !!tenantId && !!nationalId,
   });
