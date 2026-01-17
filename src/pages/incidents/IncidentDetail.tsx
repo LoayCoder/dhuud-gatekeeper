@@ -622,6 +622,7 @@ export default function IncidentDetail() {
                   latitude: incident.latitude,
                   longitude: incident.longitude,
                 }}
+                fallbackTimestamp={incident.created_at}
               />
             </CardContent>
           </Card>

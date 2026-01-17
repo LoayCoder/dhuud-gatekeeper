@@ -34,6 +34,7 @@ interface IncidentAttachmentsSectionProps {
   mediaAttachments?: MediaAttachment[] | null;
   compact?: boolean;
   incidentMetadata?: IncidentMetadata;
+  fallbackTimestamp?: string; // Use incident created_at for initial attachments
 }
 
 interface StorageFile {
@@ -101,7 +102,8 @@ export function IncidentAttachmentsSection({
   incidentId, 
   mediaAttachments,
   compact = false,
-  incidentMetadata
+  incidentMetadata,
+  fallbackTimestamp
 }: IncidentAttachmentsSectionProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
@@ -390,7 +392,11 @@ export function IncidentAttachmentsSection({
     size?: number;
     createdAt?: string;
   }> = [
-    ...(mediaAttachments || []).map(a => ({ ...a, source: 'initial' as const })),
+    ...(mediaAttachments || []).map(a => ({ 
+      ...a, 
+      source: 'initial' as const,
+      createdAt: fallbackTimestamp // Use incident created_at for initial attachments
+    })),
     ...(evidenceFiles || []).map(f => ({ 
       url: f.url, 
       type: f.type, 
@@ -458,7 +464,7 @@ export function IncidentAttachmentsSection({
               {/* Thumbnail/Preview - Click to download */}
               <div 
                 className="block aspect-video cursor-pointer"
-                onClick={() => handleDownload(attachment.url, attachment.name)}
+                onClick={() => handleDownload(attachment.url, attachment.name, attachment.type)}
               >
                 {isImage ? (
                   <img 
@@ -525,24 +531,30 @@ export function IncidentAttachmentsSection({
                       <span className="truncate">{formatFileSize(attachment.size)}</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-0.5 shrink-0">
+                  <div className="flex items-center gap-1 shrink-0">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6"
-                      onClick={() => window.open(attachment.url, '_blank')}
+                      className="h-8 w-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(attachment.url, '_blank');
+                      }}
                       title={t('common.view', 'View')}
                     >
-                      <ExternalLink className="h-3 w-3" />
+                      <ExternalLink className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6"
-                      onClick={() => handleDownload(attachment.url, attachment.name)}
+                      className="h-8 w-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownload(attachment.url, attachment.name, attachment.type);
+                      }}
                       title={t('incidents.downloadFile', 'Download')}
                     >
-                      <Download className="h-3 w-3" />
+                      <Download className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
