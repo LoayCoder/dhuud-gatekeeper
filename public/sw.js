@@ -1,9 +1,9 @@
 // ============================================
 // DHUUD HSSE Platform - Service Worker
-// Version: 2025.01.14.001
+// Version: 2025.01.14.002
 // ============================================
 
-const SW_VERSION = '2025.01.14.001';
+const SW_VERSION = '2025.01.14.002';
 const CACHE_NAME = `dhuud-cache-v6-${SW_VERSION}`;
 const API_CACHE_NAME = `dhuud-api-cache-v3-${SW_VERSION}`;
 const STATIC_CACHE_NAME = `dhuud-static-cache-v3-${SW_VERSION}`;
@@ -604,19 +604,51 @@ async function processMutationQueue() {
           try {
             // Execute the mutation (simplified - actual implementation depends on mutation type)
             const response = await executeMutation(mutation);
+
+            // Handle success
             if (response.ok) {
               result.success++;
-              // Notify client to remove successful mutation
               client.postMessage({ 
                 type: 'MUTATION_SUCCESS', 
                 id: mutation.id 
               });
-            } else {
+            }
+            // Handle permanent failure (Client Error: 400-499)
+            else if (response.status >= 400 && response.status < 500) {
               result.failed++;
+              client.postMessage({
+                type: 'MUTATION_FAILED_PERMANENT',
+                id: mutation.id,
+                error: `Permanent failure: ${response.status} ${response.statusText}`
+              });
+            }
+            // Handle retryable failure (Server Error: 500+)
+            else if (response.status >= 500) {
+              result.failed++;
+              client.postMessage({
+                type: 'MUTATION_FAILED_RETRYABLE',
+                id: mutation.id,
+                error: `Retryable failure: ${response.status} ${response.statusText}`
+              });
+            }
+            // Handle unknown non-ok status
+            else {
+              result.failed++;
+              client.postMessage({
+                type: 'MUTATION_FAILED_RETRYABLE',
+                id: mutation.id,
+                error: `Unknown failure: ${response.status} ${response.statusText}`
+              });
             }
           } catch (error) {
+            // Network errors or other exceptions are retryable
             result.failed++;
             console.error('Mutation failed:', error);
+            client.postMessage({
+              type: 'MUTATION_FAILED_RETRYABLE',
+              id: mutation.id,
+              error: `Network/System error: ${error.message}`
+            });
           }
         }
         
@@ -642,7 +674,14 @@ async function executeMutation(mutation) {
   // This is a placeholder - actual implementation would depend on mutation structure
   // The mutation should contain the endpoint, method, and body
   if (!mutation.endpoint) {
-    return { ok: false };
+    // If no endpoint, return a mock response that triggers permanent failure
+    // Using a custom object since Response constructor might not be available in all contexts
+    // or behave as expected with simple objects
+    return {
+      ok: false,
+      status: 400,
+      statusText: 'Missing endpoint'
+    };
   }
   
   const response = await fetch(mutation.endpoint, {
