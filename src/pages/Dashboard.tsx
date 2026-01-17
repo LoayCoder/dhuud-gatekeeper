@@ -19,7 +19,7 @@ import {
   MyBadgesSection,
 } from '@/components/dashboard/personal';
 import { ActiveChallengeCard } from '@/components/dashboard/personal/ActiveChallengeCard';
-
+import { MyInvestigationTasksCard } from '@/components/investigation/MyInvestigationTasksCard';
 export default function Dashboard() {
   const { t } = useTranslation();
   const { hasModule } = useModuleAccess();
@@ -89,6 +89,8 @@ export default function Dashboard() {
             <MyActionsWidget />
             <RecentActivityFeed />
           </div>
+          {/* Investigation Team Tasks */}
+          <MyInvestigationTasksCard />
         </section>
       )}
 

@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Calendar, Building, Building2, MapPin, ExternalLink, Tag } from 'lucide-react';
+import { AlertTriangle, Calendar, Building, Building2, MapPin, ExternalLink, Tag, HeartPulse, Users, Crown } from 'lucide-react';
 import { IncidentAttachmentsSection } from '@/components/incidents/IncidentAttachmentsSection';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -80,19 +80,41 @@ export default function IncidentDetail() {
     enabled: !!profile?.tenant_id
   });
 
-  // Fetch investigation data for current owner display
+  // Fetch investigation data for current owner display and team info
   const { data: investigation } = useQuery({
     queryKey: ['investigation-owner', id],
     queryFn: async () => {
       if (!id) return null;
       const { data } = await supabase
         .from('investigations')
-        .select('investigator_id, investigator:profiles!investigator_id(full_name)')
+        .select(`
+          investigator_id, 
+          investigator:profiles!investigator_id(full_name),
+          investigation_type,
+          team_leader_id,
+          team_leader:profiles!team_leader_id(full_name),
+          team_member_ids
+        `)
         .eq('incident_id', id)
         .maybeSingle();
       return data;
     },
     enabled: !!id
+  });
+
+  // Fetch team member names if team investigation
+  const teamMemberIds = investigation?.team_member_ids as string[] | null;
+  const { data: teamMembers } = useQuery({
+    queryKey: ['investigation-team-members', teamMemberIds],
+    queryFn: async () => {
+      if (!teamMemberIds || teamMemberIds.length === 0) return [];
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', teamMemberIds);
+      return data || [];
+    },
+    enabled: !!teamMemberIds && teamMemberIds.length > 0
   });
 
   // Get current owner based on incident status
@@ -108,6 +130,12 @@ export default function IncidentDetail() {
     }
     if (status === 'pending_dept_rep_approval') {
       return { role: t('incidents.workflowOwners.department_rep', 'Department Representative'), name: null };
+    }
+    if (status === 'pending_department_manager_approval') {
+      return { role: t('incidents.workflowOwners.department_manager', 'Department Manager'), name: null };
+    }
+    if (status === 'pending_clinic_review') {
+      return { role: t('incidents.workflowOwners.clinic_team', 'Clinic Team'), name: null };
     }
     if (status === 'investigation_in_progress' || status === 'investigation_pending') {
       const investigatorName = (investigation?.investigator as any)?.full_name;
