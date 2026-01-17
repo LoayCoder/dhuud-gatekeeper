@@ -269,6 +269,17 @@ export function IncidentInfoCard({ incident, isLocked }: IncidentInfoCardProps) 
             incidentId={incident.id}
             mediaAttachments={incident.media_attachments as Array<{ url: string; type: string; name: string }> | null}
             compact
+            incidentMetadata={{
+              referenceId: incident.reference_id,
+              occurredAt: incident.occurred_at,
+              location: incident.location || undefined,
+              branchName: incident.branch?.name,
+              siteName: incident.site?.name,
+              contractorName: incident.related_contractor_company?.company_name,
+              latitude: incident.latitude,
+              longitude: incident.longitude,
+            }}
+            fallbackTimestamp={incident.created_at}
           />
         </div>
       </CardContent>
