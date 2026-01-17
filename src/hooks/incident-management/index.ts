@@ -62,6 +62,9 @@ export * from '../use-hsse-validation';
 export * from '../use-hsse-validation-dashboard';
 export * from '../use-hsse-incident-validation';
 export * from '../use-dept-rep-incident-review';
+export * from '../use-dept-manager-incident-approval';
+export * from '../use-clinic-review';
+export * from '../use-investigation-team';
 
 // Event Categories & Subtypes
 export * from '../use-active-event-categories';

@@ -43,7 +43,7 @@ export function MyInvestigationTasksCard() {
   const direction = i18n.dir();
   
   const [completingTaskId, setCompletingTaskId] = useState<string | null>(null);
-  const [completionNotes, setCompletionNotes] = useState("");
+  const [completionNotes, setCompletionNotes] = useState<Record<string, string>>({});
   
   const { data: myTasks, isLoading } = useMyInvestigationTasks();
   const completeTask = useCompleteTeamTask();
@@ -57,7 +57,7 @@ export function MyInvestigationTasksCard() {
   
   const handleStartComplete = (taskId: string) => {
     setCompletingTaskId(taskId);
-    setCompletionNotes("");
+    setCompletionNotes({});
   };
   
   const handleComplete = () => {
@@ -65,11 +65,11 @@ export function MyInvestigationTasksCard() {
     
     completeTask.mutate({
       taskId: completingTaskId,
-      notes: completionNotes.trim() || undefined,
+      completionNotes: completionNotes[completingTaskId]?.trim() || undefined,
     }, {
       onSuccess: () => {
         setCompletingTaskId(null);
-        setCompletionNotes("");
+        setCompletionNotes({});
       },
     });
   };
@@ -97,7 +97,7 @@ export function MyInvestigationTasksCard() {
           <div className="flex items-center gap-2">
             <ClipboardCheck className="h-5 w-5 text-primary" />
             <CardTitle className="text-lg">
-              {t('workflow.myTasks.title', 'My Investigation Tasks')}
+              {String(t('workflow.myTasks.title', 'My Investigation Tasks'))}
             </CardTitle>
             {pendingTasks.length > 0 && (
               <Badge variant="destructive" className="ms-auto">
@@ -131,7 +131,7 @@ export function MyInvestigationTasksCard() {
                       </div>
                       <div className="space-y-1">
                         <p className="font-medium">
-                          {t(`workflow.teamTasks.types.${task.task_type}`, task.task_type)}
+                          {String(t(`workflow.teamTasks.types.${task.task_type}`, task.task_type))}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           {task.task_description}
@@ -178,9 +178,9 @@ export function MyInvestigationTasksCard() {
           
           <div className="space-y-4 py-4">
             <Textarea
-              value={completionNotes}
-              onChange={(e) => setCompletionNotes(e.target.value)}
-              placeholder={t('workflow.myTasks.completionNotesPlaceholder', 'Describe findings, observations, or outcomes...')}
+              value={completionNotes[completingTaskId || ''] || ''}
+              onChange={(e) => setCompletionNotes(prev => ({ ...prev, [completingTaskId || '']: e.target.value }))}
+              placeholder={t('workflow.myTasks.completionNotesPlaceholder', 'Describe findings, observations, or outcomes...') as string}
               rows={4}
             />
           </div>

@@ -68,7 +68,7 @@ export function ClinicReviewCard({ incident, onComplete }: ClinicReviewCardProps
     
     return (
       <Badge variant="outline" className={colorMap[severity] || ''}>
-        {t(`incidents.severity.${severity}`, severity)}
+        {String(t(`incidents.severity.${severity}`, severity))}
       </Badge>
     );
   };

@@ -21,7 +21,7 @@ import {
   Stethoscope
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAssignTeamTask, useInvestigationTeamTasks } from "@/hooks/use-investigation-team";
+import { useAssignTeamTask, useInvestigationTeamTasks, type TaskType } from "@/hooks/use-investigation-team";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TeamTaskAssignmentPanelProps {
@@ -83,7 +83,7 @@ export function TeamTaskAssignmentPanel({
     assignTask.mutate({
       investigationId,
       assignedTo: selectedMember,
-      taskType,
+      taskType: taskType as TaskType,
       taskDescription: taskDescription.trim(),
       targetArea: targetArea.trim() || undefined,
     }, {
@@ -122,7 +122,7 @@ export function TeamTaskAssignmentPanel({
         <div className="flex items-center gap-2">
           <ClipboardList className="h-5 w-5 text-primary" />
           <CardTitle className="text-lg">
-            {t('workflow.teamTasks.title', 'Team Task Assignment')}
+            {String(t('workflow.teamTasks.title', 'Team Task Assignment'))}
           </CardTitle>
         </div>
         <CardDescription>
@@ -253,7 +253,7 @@ export function TeamTaskAssignmentPanel({
                       {getTaskIcon(task.task_type)}
                       <div className="space-y-1">
                         <p className="font-medium text-sm">
-                          {t(`workflow.teamTasks.types.${task.task_type}`, task.task_type)}
+                          {String(t(`workflow.teamTasks.types.${task.task_type}`, task.task_type))}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           {task.task_description}

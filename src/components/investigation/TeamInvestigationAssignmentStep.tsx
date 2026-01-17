@@ -126,6 +126,7 @@ export function TeamInvestigationAssignmentStep({ incident, onComplete }: TeamIn
       
       assignTeam.mutate({
         incidentId: incident.id,
+        investigationType: 'team',
         teamLeaderId,
         teamMemberIds,
         assignmentNotes: assignmentNotes.trim() || undefined,
@@ -163,7 +164,7 @@ export function TeamInvestigationAssignmentStep({ incident, onComplete }: TeamIn
     
     return (
       <Badge variant="outline" className={colorMap[severityLevel] || ''}>
-        {t(`incidents.severity.${severityLevel}`, severityLevel)}
+        {String(t(`incidents.severity.${severityLevel}`, severityLevel))}
       </Badge>
     );
   };

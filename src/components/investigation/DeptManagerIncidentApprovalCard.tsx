@@ -19,7 +19,7 @@ import {
   Shield
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useDeptManagerIncidentApproval, useCanApproveDeptManagerIncident } from "@/hooks/use-dept-manager-incident-approval";
+import { useDeptManagerIncidentApproval, useCanApproveDeptManager } from "@/hooks/use-dept-manager-incident-approval";
 import type { IncidentWithDetails } from "@/hooks/use-incidents";
 import { format } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
@@ -41,7 +41,7 @@ export function DeptManagerIncidentApprovalCard({ incident, onComplete }: DeptMa
   const [notes, setNotes] = useState("");
   const [notesError, setNotesError] = useState<string | null>(null);
   
-  const { data: canApprove } = useCanApproveDeptManagerIncident(incident.id);
+  const { data: canApprove } = useCanApproveDeptManager(incident.id);
   const deptManagerApproval = useDeptManagerIncidentApproval();
   
   if (!canApprove) {
@@ -97,7 +97,7 @@ export function DeptManagerIncidentApprovalCard({ incident, onComplete }: DeptMa
     
     return (
       <Badge variant="outline" className={colorMap[severity] || ''}>
-        {t(`incidents.severity.${severity}`, severity)}
+        {String(t(`incidents.severity.${severity}`, severity))}
       </Badge>
     );
   };
