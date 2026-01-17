@@ -30,7 +30,7 @@ import {
   HeartPulse,
   Leaf
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useIncidents, useIncident } from "@/hooks/use-incidents";
 import { useInvestigation } from "@/hooks/use-investigation";
@@ -101,6 +101,7 @@ export default function InvestigationWorkspace() {
   const [showReopenDialog, setShowReopenDialog] = useState(false);
   const [viewMode, setViewMode] = useState<'my-pending' | 'all'>('my-pending');
   const { profile, user } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: incidents, isLoading: loadingIncidents } = useIncidents();
   const { data: pendingApprovals, isLoading: loadingPending } = usePendingIncidentApprovals();
@@ -213,8 +214,21 @@ export default function InvestigationWorkspace() {
   const editAccess = useInvestigationEditAccess(investigation, selectedIncident);
 
   const handleRefresh = () => {
+    // Refetch incident and investigation data
     refetchIncident();
     refetchInvestigation();
+    
+    // Invalidate ALL permission-related query caches to force fresh RPC calls
+    // This resolves stale cache issues for role-based access checks (e.g., Consultant Review card)
+    queryClient.invalidateQueries({ queryKey: ['can-review-consultant'] });
+    queryClient.invalidateQueries({ queryKey: ['can-screen-consultant'] });
+    queryClient.invalidateQueries({ queryKey: ['has-consultant-access'] });
+    queryClient.invalidateQueries({ queryKey: ['can-approve-investigation'] });
+    queryClient.invalidateQueries({ queryKey: ['pending-approvals'] });
+    queryClient.invalidateQueries({ queryKey: ['workflow-actors'] });
+    queryClient.invalidateQueries({ queryKey: ['investigation-edit-access'] });
+    
+    console.log('[Refresh] Invalidated all permission caches for incident:', selectedIncidentId);
   };
 
   // Type assertion for incident fields not in generated types yet
