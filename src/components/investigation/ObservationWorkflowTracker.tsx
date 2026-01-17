@@ -102,10 +102,9 @@ export function ObservationWorkflowTracker({
     });
     
     // Step 2: Consultant Screening
-    const consultantCompleted = ![
-      'submitted', 
-      'pending_consultant_screening'
-    ].includes(status);
+    // Use timestamp-based completion check - only marked complete if actually screened
+    const consultantScreenedAt = (incident as any).consultant_screened_at;
+    const consultantCompleted = consultantScreenedAt != null;
     
     steps.push({
       key: 'consultant_screening',
@@ -114,27 +113,43 @@ export function ObservationWorkflowTracker({
       status: status === 'pending_consultant_screening' ? 'current' : 
               consultantCompleted ? 'completed' : 'pending',
       actorName: workflowActors?.consultant?.full_name,
-      timestamp: (incident as any).consultant_screened_at,
+      timestamp: consultantScreenedAt,
       description: status === 'pending_consultant_screening' 
         ? t('workflow.tracker.descriptions.consultantReviewing', 'Consultant reviewing observation')
         : undefined,
     });
     
+    // Step 2.5: Dept Rep Review (if in dept rep approval flow)
+    const deptRepStatuses = ['pending_dept_rep_approval', 'pending_dept_rep_review'];
+    const deptRepAcknowledgedAt = (incident as any).dept_rep_acknowledged_at;
+    const deptRepCompleted = deptRepAcknowledgedAt != null;
+    
+    if (deptRepStatuses.includes(status) || deptRepCompleted) {
+      steps.push({
+        key: 'dept_rep_review',
+        label: t('workflow.tracker.steps.deptRepReview', 'Dept Rep Review'),
+        icon: <ClipboardCheck className="h-4 w-4" />,
+        status: deptRepStatuses.includes(status) ? 'current' : 
+                deptRepCompleted ? 'completed' : 'pending',
+        actorName: workflowActors?.dept_rep?.full_name,
+        timestamp: deptRepAcknowledgedAt,
+      });
+    }
+    
     // Step 3: HSSE Expert Review (Level 3+ only)
     if (isLevel3Plus || status === 'pending_hsse_expert_review') {
-      const hsseCompleted = ![
-        'submitted',
-        'pending_consultant_screening',
-        'pending_hsse_expert_review'
-      ].includes(status);
+      // Use timestamp-based check for HSSE expert completion
+      const hsseReviewedAt = (incident as any).hsse_expert_reviewed_at || (incident as any).expert_screened_at;
+      const hsseCompleted = hsseReviewedAt != null;
       
       steps.push({
         key: 'hsse_expert_review',
         label: t('workflow.tracker.steps.hsseExpertReview', 'HSSE Expert Review'),
         icon: <Shield className="h-4 w-4" />,
         status: status === 'pending_hsse_expert_review' ? 'current' : 
-                hsseCompleted && isLevel3Plus ? 'completed' : 'pending',
+                hsseCompleted ? 'completed' : 'pending',
         actorName: workflowActors?.expert_screener?.full_name,
+        timestamp: hsseReviewedAt,
         description: isLevel3Plus 
           ? t('workflow.tracker.descriptions.level3PlusRequired', 'Required for Level 3+ severity')
           : undefined,
@@ -143,12 +158,9 @@ export function ObservationWorkflowTracker({
     
     // Step 4: Site Client Approval
     const siteClientStatuses = ['pending_site_client_approval', 'pending_site_client_action_approval'];
-    const siteClientCompleted = ![
-      'submitted',
-      'pending_consultant_screening',
-      'pending_hsse_expert_review',
-      ...siteClientStatuses
-    ].includes(status);
+    // Use timestamp-based check for site client approval
+    const siteClientApprovedAt = (incident as any).site_client_approved_at;
+    const siteClientCompleted = siteClientApprovedAt != null;
     
     steps.push({
       key: 'site_client_approval',
@@ -157,17 +169,14 @@ export function ObservationWorkflowTracker({
       status: siteClientStatuses.includes(status) ? 'current' : 
               siteClientCompleted ? 'completed' : 'pending',
       actorName: workflowActors?.site_client?.full_name,
+      timestamp: siteClientApprovedAt,
     });
     
     // Step 5: Contractor Implementation
     const implementationStatuses = ['contractor_action_implementation', 'pending_contractor_action'];
-    const implementationCompleted = ![
-      'submitted',
-      'pending_consultant_screening',
-      'pending_hsse_expert_review',
-      ...siteClientStatuses,
-      ...implementationStatuses
-    ].includes(status);
+    // Use timestamp-based check for contractor implementation
+    const contractorImplementedAt = (incident as any).contractor_actions_completed_at || (incident as any).contractor_implemented_at;
+    const implementationCompleted = contractorImplementedAt != null;
     
     steps.push({
       key: 'contractor_implementation',
@@ -176,6 +185,7 @@ export function ObservationWorkflowTracker({
       status: implementationStatuses.includes(status) ? 'current' : 
               implementationCompleted ? 'completed' : 'pending',
       actorName: workflowActors?.contractor?.full_name,
+      timestamp: contractorImplementedAt,
     });
     
     // Step 6: Consultant Verification
