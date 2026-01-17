@@ -48,6 +48,14 @@ export function ConsultantReviewCard({
   // Permission check - only show to users with contractor consultant role
   const { data: canReview, isLoading: checkingPermission } = useCanReviewAsConsultant(incidentId);
 
+  // Debug logging for permission check result
+  console.log('[ConsultantReviewCard] Render check:', {
+    incidentId,
+    status,
+    canReview,
+    checkingPermission
+  });
+
   // Show for consultant screening stage (expert_screening is legacy status)
   const isScreeningStage = status === 'expert_screening' ||
                            status === 'pending_consultant_screening' || 
@@ -55,7 +63,10 @@ export function ConsultantReviewCard({
                            status === 'pending_consultant_actions';
   
   // Don't render if not in screening stage
-  if (!isScreeningStage) return null;
+  if (!isScreeningStage) {
+    console.log('[ConsultantReviewCard] Not rendering - not in screening stage:', status);
+    return null;
+  }
   
   // Show loading skeleton while checking permission
   if (checkingPermission) {
@@ -74,7 +85,10 @@ export function ConsultantReviewCard({
   }
   
   // Don't render if user doesn't have permission
-  if (!canReview) return null;
+  if (!canReview) {
+    console.log('[ConsultantReviewCard] Not rendering - canReview is false');
+    return null;
+  }
 
   // Severity-based routing logic
   const isHighSeverity = severityLevel === 'level_3' || 
