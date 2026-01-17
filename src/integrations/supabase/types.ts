@@ -21299,6 +21299,7 @@ export type Database = {
           created_by: string | null
           deleted_at: string | null
           department_id: string
+          department_rep_id: string | null
           id: string
           is_primary: boolean | null
           site_id: string
@@ -21309,6 +21310,7 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           department_id: string
+          department_rep_id?: string | null
           id?: string
           is_primary?: boolean | null
           site_id: string
@@ -21319,6 +21321,7 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           department_id?: string
+          department_rep_id?: string | null
           id?: string
           is_primary?: boolean | null
           site_id?: string
@@ -21344,6 +21347,20 @@ export type Database = {
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_departments_department_rep_id_fkey"
+            columns: ["department_rep_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_departments_department_rep_id_fkey"
+            columns: ["department_rep_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -23140,6 +23157,7 @@ export type Database = {
           branch_id: string | null
           id: string
           role_id: string
+          site_id: string | null
           tenant_id: string
           user_id: string
         }
@@ -23149,6 +23167,7 @@ export type Database = {
           branch_id?: string | null
           id?: string
           role_id: string
+          site_id?: string | null
           tenant_id: string
           user_id: string
         }
@@ -23158,6 +23177,7 @@ export type Database = {
           branch_id?: string | null
           id?: string
           role_id?: string
+          site_id?: string | null
           tenant_id?: string
           user_id?: string
         }
@@ -23174,6 +23194,13 @@ export type Database = {
             columns: ["role_id"]
             isOneToOne: false
             referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_role_assignments_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
             referencedColumns: ["id"]
           },
           {
@@ -25567,6 +25594,10 @@ export type Database = {
         Args: { _incident_id: string; _user_id: string }
         Returns: boolean
       }
+      can_review_as_site_dept_rep: {
+        Args: { p_department_id: string; p_site_id: string; p_user_id: string }
+        Returns: boolean
+      }
       can_review_dept_rep_incident: {
         Args: { _incident_id: string; _user_id: string }
         Returns: boolean
@@ -25790,6 +25821,10 @@ export type Database = {
           p_department_id: string
           p_tenant_id: string
         }
+        Returns: string
+      }
+      find_dept_rep_for_site: {
+        Args: { p_site_id: string; p_tenant_id: string }
         Returns: string
       }
       find_orphaned_records: {
@@ -26288,6 +26323,10 @@ export type Database = {
         Returns: Json
       }
       get_security_dashboard_stats: { Args: never; Returns: Json }
+      get_site_primary_department: {
+        Args: { p_site_id: string }
+        Returns: string
+      }
       get_team_hierarchy: {
         Args: { p_manager_id: string }
         Returns: {
