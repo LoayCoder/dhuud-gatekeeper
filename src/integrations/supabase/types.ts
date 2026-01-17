@@ -27902,6 +27902,7 @@ export type Database = {
         | "contractor_site_representative"
         | "contract_controller"
         | "hsse_expert"
+        | "receptionist"
       asset_condition: "excellent" | "good" | "fair" | "poor" | "critical"
       asset_criticality: "low" | "medium" | "high" | "critical"
       asset_document_type:
@@ -28241,6 +28242,7 @@ export const Constants = {
         "contractor_site_representative",
         "contract_controller",
         "hsse_expert",
+        "receptionist",
       ],
       asset_condition: ["excellent", "good", "fair", "poor", "critical"],
       asset_criticality: ["low", "medium", "high", "critical"],
