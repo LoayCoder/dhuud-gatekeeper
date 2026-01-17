@@ -531,6 +531,32 @@ export function IncidentAttachmentsSection({
                       <span className="truncate">{formatFileSize(attachment.size)}</span>
                     )}
                   </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(attachment.url, '_blank');
+                      }}
+                      title={t('common.view', 'View')}
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownload(attachment.url, attachment.name, attachment.type);
+                      }}
+                      title={t('incidents.downloadFile', 'Download')}
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
