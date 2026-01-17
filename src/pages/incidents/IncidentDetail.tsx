@@ -122,8 +122,13 @@ export default function IncidentDetail() {
     if (!incident) return null;
     const status = incident.status as string;
     
-    if (status === 'submitted' || status === 'pending_review' || status === 'expert_screening') {
+    if (status === 'submitted' || status === 'pending_review') {
       return { role: t('incidents.workflowOwners.hsse_expert', 'HSSE Expert'), name: null };
+    }
+    // Contractor Consultant screening statuses (expert_screening is legacy)
+    if (status === 'expert_screening' || status === 'pending_consultant_screening' || 
+        status === 'pending_consultant_review' || status === 'pending_consultant_actions') {
+      return { role: t('incidents.workflowOwners.consultant', 'Contractor Consultant'), name: null };
     }
     if (status === 'pending_manager_approval' || status === 'hsse_manager_escalation') {
       return { role: t('incidents.workflowOwners.department_manager', 'Department Manager'), name: null };

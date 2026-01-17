@@ -76,7 +76,7 @@ import {
   ClinicReviewCard,
   TeamInvestigationAssignmentStep
 } from "@/components/investigation";
-import { ActionDisputeReviewCard } from "@/components/investigation/contractor-workflow";
+import { ActionDisputeReviewCard, ConsultantReviewCard } from "@/components/investigation/contractor-workflow";
 import { HSSEEnforcementBanner } from "@/components/investigation/HSSEEnforcementBanner";
 import { ObservationWorkflowTracker } from "@/components/investigation/ObservationWorkflowTracker";
 import { ReopenIncidentDialog } from "@/components/investigation/ReopenIncidentDialog";
@@ -436,13 +436,21 @@ export default function InvestigationWorkspace() {
           />
         );
 
-      // --- NEW CONTRACTOR OBSERVATION WORKFLOW STATUSES ---
+      // --- CONTRACTOR OBSERVATION WORKFLOW STATUSES ---
       
+      // Legacy status (expert_screening) and new status (pending_consultant_screening)
+      case 'expert_screening':
       case 'pending_consultant_screening':
+      case 'pending_consultant_review':
+      case 'pending_consultant_actions':
         return (
-          <DeptRepApprovalCard 
-            incident={incidentData} 
-            onComplete={handleRefresh} 
+          <ConsultantReviewCard 
+            incidentId={incidentData.id}
+            status={currentStatus}
+            severityLevel={(incidentData as any).severity_v2}
+            hasActions={false}
+            actionsCount={0}
+            onComplete={handleRefresh}
           />
         );
 
@@ -522,8 +530,13 @@ export default function InvestigationWorkspace() {
     const status = selectedIncident.status as string;
     
     // Status-to-owner mapping
-    if (status === 'submitted' || status === 'pending_review' || status === 'expert_screening') {
+    if (status === 'submitted' || status === 'pending_review') {
       return { role: t('incidents.workflowOwners.hsse_expert', 'HSSE Expert'), name: null };
+    }
+    // Contractor Consultant screening statuses (expert_screening is legacy)
+    if (status === 'expert_screening' || status === 'pending_consultant_screening' || 
+        status === 'pending_consultant_review' || status === 'pending_consultant_actions') {
+      return { role: t('incidents.workflowOwners.consultant', 'Contractor Consultant'), name: null };
     }
     if (status === 'pending_manager_approval' || status === 'hsse_manager_escalation') {
       return { role: t('incidents.workflowOwners.department_manager', 'Department Manager'), name: null };
