@@ -65,6 +65,12 @@ export function useAppUpdateCheck(): AppUpdateState {
   const checkForUpdates = useCallback(async (): Promise<boolean> => {
     if (isChecking) return false;
     
+    // OFFLINE CHECK: Prevent failed fetches when offline
+    if (!navigator.onLine) {
+      setIsChecking(false);
+      return false;
+    }
+
     setIsChecking(true);
     
     try {
