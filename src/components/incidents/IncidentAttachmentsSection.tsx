@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Paperclip, FileText, Download, Video, ImageIcon, ExternalLink } from "lucide-react";
+import { Paperclip, FileText, Download, Video, ImageIcon, ExternalLink, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -388,6 +388,7 @@ export function IncidentAttachmentsSection({
     name: string; 
     source: 'initial' | 'evidence';
     size?: number;
+    createdAt?: string;
   }> = [
     ...(mediaAttachments || []).map(a => ({ ...a, source: 'initial' as const })),
     ...(evidenceFiles || []).map(f => ({ 
@@ -395,7 +396,8 @@ export function IncidentAttachmentsSection({
       type: f.type, 
       name: f.name, 
       source: 'evidence' as const,
-      size: f.size
+      size: f.size,
+      createdAt: f.createdAt
     }))
   ];
 
@@ -494,11 +496,19 @@ export function IncidentAttachmentsSection({
               </div>
 
               {/* File info footer - Fixed Layout */}
-              <div className="p-2 space-y-2">
+              <div className="p-2 space-y-1.5">
                 {/* Filename row - full width, separate line */}
                 <p className="text-xs font-medium truncate" title={attachment.name}>
                   {attachment.name}
                 </p>
+                
+                {/* Timestamp row */}
+                {attachment.createdAt && (
+                  <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {format(new Date(attachment.createdAt), 'PP p')}
+                  </p>
+                )}
                 
                 {/* Actions and metadata row - stacked below */}
                 <div className="flex items-center justify-between gap-2">
