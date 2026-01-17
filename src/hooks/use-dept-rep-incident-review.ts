@@ -114,6 +114,7 @@ export function useDeptRepIncidentReview() {
 }
 
 // Hook to get incidents pending Dept Rep review
+// Uses SITE-BASED filtering - shows incidents where user is the dept rep for the site's department
 export function usePendingDeptRepIncidentReviews() {
   const { user, profile } = useAuth();
   
@@ -140,14 +141,13 @@ export function usePendingDeptRepIncidentReviews() {
       
       if (!hasDeptRepRole) return [];
       
-      // Get incidents from user's department that are pending dept rep incident review
-      // Note: status filter uses string since type may not include new status yet
+      // Get incidents that are pending dept rep incident review
       const { data, error } = await supabase
         .from('incidents')
         .select(`
           id, reference_id, title, description, event_type, subtype,
           severity, severity_v2, status, occurred_at, created_at,
-          location, location_city, latitude, longitude,
+          location, location_city, latitude, longitude, department_id, site_id,
           reporter:profiles!incidents_reporter_id_fkey(id, full_name),
           site:sites!incidents_site_id_fkey(id, name, latitude, longitude),
           branch:branches!incidents_branch_id_fkey(id, name)
@@ -162,20 +162,25 @@ export function usePendingDeptRepIncidentReviews() {
         return [];
       }
       
-      // Filter by department (using reporter's department)
+      // SITE-BASED FILTERING: Filter by incident's department_id (set from site's primary dept)
+      // NOT by reporter's department
       const filteredData = [];
       for (const incident of data || []) {
-        if (incident.reporter) {
-          const reporterId = (incident.reporter as { id: string }).id;
-          const { data: reporterProfile } = await supabase
-            .from('profiles')
-            .select('assigned_department_id')
-            .eq('id', reporterId)
-            .single();
+        // Check if user can review this incident based on site/department
+        if (incident.site_id && incident.department_id) {
+          const { data: canReview } = await supabase
+            .rpc('can_review_as_site_dept_rep', {
+              p_user_id: user.id,
+              p_site_id: incident.site_id,
+              p_department_id: incident.department_id
+            });
           
-          if (reporterProfile?.assigned_department_id === userProfile.assigned_department_id) {
+          if (canReview) {
             filteredData.push(incident);
           }
+        } else if (incident.department_id === userProfile.assigned_department_id) {
+          // Fallback for incidents without site: use department match
+          filteredData.push(incident);
         }
       }
       

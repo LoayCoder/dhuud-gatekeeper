@@ -10,10 +10,15 @@ interface SiteDepartment {
   department_id: string;
   is_primary: boolean;
   created_at: string;
+  department_rep_id: string | null;
   department?: {
     id: string;
     name: string;
   };
+  department_rep?: {
+    id: string;
+    full_name: string;
+  } | null;
 }
 
 export function useSiteDepartments(siteId?: string) {
@@ -33,9 +38,14 @@ export function useSiteDepartments(siteId?: string) {
           department_id,
           is_primary,
           created_at,
+          department_rep_id,
           departments:department_id (
             id,
             name
+          ),
+          department_rep:department_rep_id (
+            id,
+            full_name
           )
         `)
         .eq('site_id', siteId)
@@ -163,11 +173,37 @@ export function useSiteDepartments(siteId?: string) {
     },
   });
 
+  const assignDeptRep = useMutation({
+    mutationFn: async ({ 
+      assignmentId, 
+      deptRepId 
+    }: { 
+      assignmentId: string; 
+      deptRepId: string | null;
+    }) => {
+      const { error } = await supabase
+        .from('site_departments')
+        .update({ department_rep_id: deptRepId })
+        .eq('id', assignmentId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['site-departments', siteId] });
+      toast.success(t('admin.orgStructure.deptRepAssigned', 'Department Representative assigned'));
+    },
+    onError: (error) => {
+      logger.error('Error assigning department rep:', error);
+      toast.error(t('common.error'));
+    },
+  });
+
   return {
     departments: query.data ?? [],
     isLoading: query.isLoading,
     assignDepartment,
     removeDepartment,
     setPrimaryDepartment,
+    assignDeptRep,
   };
 }

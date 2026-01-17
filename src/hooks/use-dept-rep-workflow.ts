@@ -39,10 +39,10 @@ export function useCanReviewAsDeptRep(incidentId: string | null) {
     queryFn: async () => {
       if (!user?.id || !incidentId) return false;
       
-      // Get incident status and check if it's in dept rep review stage
+      // Get incident status, site, and check if it's in dept rep review stage
       const { data: incident, error: incidentError } = await supabase
         .from('incidents')
-        .select('status, department_id, approval_manager_id, event_type, related_contractor_company_id')
+        .select('status, department_id, site_id, approval_manager_id, event_type, related_contractor_company_id')
         .eq('id', incidentId)
         .single();
       
@@ -55,13 +55,13 @@ export function useCanReviewAsDeptRep(incidentId: string | null) {
       // Should not be a contractor observation
       if (incident.related_contractor_company_id) return false;
       
-      // Check if user is the assigned approval manager
+      // Check if user is the assigned approval manager (highest priority)
       if (incident.approval_manager_id === user.id) return true;
       
-      // Check if user has dept rep role
+      // Check if user has super admin privileges
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('user_type, assigned_department_id, is_super_admin, job_title')
+        .select('is_super_admin')
         .eq('id', user.id)
         .single();
       
@@ -70,14 +70,17 @@ export function useCanReviewAsDeptRep(incidentId: string | null) {
       // Super admin always can
       if (profile.is_super_admin) return true;
       
-      // Check job title for dept rep role
-      const jobTitle = (profile.job_title || '').toLowerCase();
-      const isDeptRep = jobTitle.includes('representative') || 
-                        jobTitle.includes('manager') ||
-                        jobTitle.includes('department');
-      
-      if (isDeptRep && profile.assigned_department_id === incident.department_id) {
-        return true;
+      // Use SITE-BASED permission check via RPC
+      // This checks if user is the dept rep for the site's department
+      if (incident.site_id && incident.department_id) {
+        const { data: canReview, error: rpcError } = await supabase
+          .rpc('can_review_as_site_dept_rep', {
+            p_user_id: user.id,
+            p_site_id: incident.site_id,
+            p_department_id: incident.department_id
+          });
+        
+        if (!rpcError && canReview) return true;
       }
       
       return false;
