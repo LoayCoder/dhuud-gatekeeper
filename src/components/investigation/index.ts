@@ -64,3 +64,11 @@ export { InjuryPanel } from './InjuryPanel';
 export { EnvironmentalImpactPanel } from './environmental-impact';
 // Contractor Observation Workflow Components
 export * from './contractor-workflow';
+// Department Manager Approval (L3-5 incidents)
+export { DeptManagerIncidentApprovalCard } from './DeptManagerIncidentApprovalCard';
+// Clinic Review (injuries requiring medical attention)
+export { ClinicReviewCard } from './ClinicReviewCard';
+// Team Investigation Components
+export { TeamInvestigationAssignmentStep } from './TeamInvestigationAssignmentStep';
+export { TeamTaskAssignmentPanel } from './TeamTaskAssignmentPanel';
+export { MyInvestigationTasksCard } from './MyInvestigationTasksCard';

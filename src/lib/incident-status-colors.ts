@@ -38,6 +38,8 @@ const STATUS_CATEGORIES: Record<string, StatusCategory> = {
   'pending_manager_approval': 'action_required',
   'pending_dept_rep_approval': 'action_required',
   'pending_dept_rep_incident_review': 'action_required',
+  'pending_department_manager_approval': 'action_required',
+  'pending_clinic_review': 'action_required',
   'pending_hsse_escalation_review': 'action_required',
   'hsse_manager_escalation': 'action_required',
   'pending_site_client_approval': 'action_required',

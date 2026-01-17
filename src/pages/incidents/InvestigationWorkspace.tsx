@@ -70,7 +70,11 @@ import {
   LegalReviewCard,
   DisputeResolutionCard,
   MonitoringCheckCard,
-  ContractorDisputeCard
+  ContractorDisputeCard,
+  // New severity-based workflow components
+  DeptManagerIncidentApprovalCard,
+  ClinicReviewCard,
+  TeamInvestigationAssignmentStep
 } from "@/components/investigation";
 import { ActionDisputeReviewCard } from "@/components/investigation/contractor-workflow";
 import { HSSEEnforcementBanner } from "@/components/investigation/HSSEEnforcementBanner";
@@ -336,8 +340,38 @@ export default function InvestigationWorkspace() {
         );
 
       case 'investigation_pending':
+        // Check severity for team investigation requirement
+        const severityLevel = incidentData.severity_v2 || (incidentData as any).severity;
+        const severityNumber = severityLevel ? parseInt(severityLevel.replace('level_', '')) : 1;
+        
+        // For L4-5, use TeamInvestigationAssignmentStep; for L3, it handles the toggle internally
+        if (severityNumber >= 3) {
+          return (
+            <TeamInvestigationAssignmentStep 
+              incident={incidentData} 
+              onComplete={handleRefresh} 
+            />
+          );
+        }
+        
         return (
           <InvestigatorAssignmentStep 
+            incident={incidentData} 
+            onComplete={handleRefresh} 
+          />
+        );
+
+      case 'pending_department_manager_approval':
+        return (
+          <DeptManagerIncidentApprovalCard 
+            incident={incidentData} 
+            onComplete={handleRefresh} 
+          />
+        );
+
+      case 'pending_clinic_review':
+        return (
+          <ClinicReviewCard 
             incident={incidentData} 
             onComplete={handleRefresh} 
           />
