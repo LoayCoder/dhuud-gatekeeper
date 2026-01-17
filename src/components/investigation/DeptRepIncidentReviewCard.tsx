@@ -288,12 +288,28 @@ export function DeptRepIncidentReviewCard({ incident, onComplete }: DeptRepIncid
             </Button>
           </div>
           
+          {/* Severity-Based Routing Info */}
+          <Alert variant="default" className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/50">
+            <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            <AlertTitle className="text-blue-800 dark:text-blue-300">
+              {t('workflow.deptRepIncidentReview.severityRoutingInfo', 'Severity-based Routing')}
+            </AlertTitle>
+            <AlertDescription className="text-blue-700 dark:text-blue-400 text-sm space-y-1">
+              <p>{t('workflow.deptRepIncidentReview.level12Route', 'Level 1-2: Will be forwarded to HSSE Expert')}</p>
+              <p>{t('workflow.deptRepIncidentReview.level35Route', 'Level 3-5: Will be forwarded to Department Manager')}</p>
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-muted-foreground">{t('workflow.deptRepIncidentReview.currentSeverity', 'Current Severity')}:</span>
+                {getSeverityBadge()}
+              </div>
+            </AlertDescription>
+          </Alert>
+
           {/* Decision Flow Info */}
           <div className="text-xs text-muted-foreground bg-muted/30 rounded-md p-3 space-y-1">
             <p className="flex items-start gap-2">
               <CheckCircle2 className="h-3 w-3 mt-0.5 text-green-600" />
               <span>
-                {t('workflow.deptRepIncidentReview.approveInfo', 'Approve: Incident will be sent to Department Manager for final approval.')}
+                {t('workflow.deptRepIncidentReview.approveInfo', 'Approve: Incident will be sent to the appropriate workflow step based on severity.')}
               </span>
             </p>
             <p className="flex items-start gap-2">
