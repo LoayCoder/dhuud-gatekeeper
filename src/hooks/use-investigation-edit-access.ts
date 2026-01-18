@@ -55,6 +55,19 @@ export function useInvestigationEditAccess(
   // Can edit: assigned investigator OR assigned consultant (when not locked)
   const canEdit = (isAssignedInvestigator || isAssignedConsultant) && !isLocked;
 
+  // Debug logging for permission troubleshooting
+  console.log('[useInvestigationEditAccess] Permission check:', {
+    userId: user?.id,
+    investigatorId: investigation?.investigator_id,
+    isAssignedInvestigator,
+    incidentStatus: incident?.status,
+    isConsultantStage,
+    approvalManagerId: incident?.approval_manager_id,
+    isAssignedConsultant,
+    isLocked,
+    canEdit,
+  });
+
   // Can view: oversight roles, assigned investigator, or assigned consultant
   const canView = isOversightRole || isAssignedInvestigator || isAssignedConsultant;
 
