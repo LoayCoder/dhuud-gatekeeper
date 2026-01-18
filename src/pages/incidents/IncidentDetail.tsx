@@ -36,16 +36,6 @@ import { EscalationAlertBanner } from '@/components/investigation/EscalationAler
 import { HSSEObservationValidationCard } from '@/components/investigation/HSSEObservationValidationCard';
 import { HSSEEnforcementBanner } from '@/components/investigation/HSSEEnforcementBanner';
 import { ObservationWorkflowTracker } from '@/components/investigation/ObservationWorkflowTracker';
-// Contractor Observation Workflow Cards
-import {
-  ConsultantReviewCard,
-  SiteClientActionApprovalCard,
-  ContractorImplementationCard,
-  ConsultantVerificationCard,
-  SiteClientViolationApprovalCard,
-  ContractorAcknowledgementCard,
-  ControllerDisputeReviewCard,
-} from '@/components/investigation/contractor-workflow';
 import { useQuery } from '@tanstack/react-query';
 import {
   IncidentDetailHeader,
@@ -337,59 +327,6 @@ export default function IncidentDetail() {
         </>
       )}
 
-      {/* NEW Contractor Observation Workflow Cards */}
-      {incident.related_contractor_company_id && incident.event_type === 'observation' && (
-        <>
-          <ConsultantReviewCard
-            incidentId={incident.id}
-            status={incident.status as string}
-            consultantNotes={(incident as any).consultant_review_notes}
-            hasActions={true} // TODO: Check actual actions count
-            onActionCreated={() => navigate(`/incidents/investigate?id=${incident.id}`)}
-          />
-          <SiteClientActionApprovalCard
-            incidentId={incident.id}
-            status={incident.status as string}
-            actionsCount={0} // TODO: Get actual count
-            consultantNotes={(incident as any).consultant_review_notes}
-          />
-          <ContractorImplementationCard
-            incidentId={incident.id}
-            status={incident.status as string}
-            actions={[]} // TODO: Fetch actual actions
-          />
-          <ConsultantVerificationCard
-            incidentId={incident.id}
-            status={incident.status as string}
-            completedActions={[]} // TODO: Fetch actual completed actions
-            onIdentifyViolation={() => {}} // TODO: Open violation dialog
-          />
-          {(incident as any).violation_id && (
-            <>
-              <SiteClientViolationApprovalCard
-                violationId={(incident as any).violation_id}
-                status={incident.status as string}
-                violationCategory={(incident as any).violation_category}
-                violationNotes={(incident as any).violation_notes}
-                occurrenceNumber={(incident as any).violation_occurrence_number}
-              />
-              <ContractorAcknowledgementCard
-                violationId={(incident as any).violation_id}
-                status={incident.status as string}
-                violationCategory={(incident as any).violation_category}
-                potentialFine={(incident as any).violation_fine_amount}
-              />
-              <ControllerDisputeReviewCard
-                violationId={(incident as any).violation_id}
-                status={incident.status as string}
-                disputeJustification={(incident as any).dispute_justification}
-                disputeEvidence={(incident as any).dispute_evidence}
-                violationCategory={(incident as any).violation_category}
-              />
-            </>
-          )}
-        </>
-      )}
 
       {/* Contractor Violation Section (Read-only display when finalized) */}
       {incident.related_contractor_company_id && (incident as any).violation_final_status && (
