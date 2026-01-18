@@ -34,6 +34,8 @@ const VisitorPass = lazyWithRetry(() => import("@/pages/VisitorPass"));
 const VisitorBadgePage = lazyWithRetry(() => import("@/pages/VisitorBadgePage"));
 const WorkerAccessPass = lazyWithRetry(() => import("@/pages/WorkerAccessPass"));
 const WorkerInduction = lazyWithRetry(() => import("@/pages/WorkerInduction"));
+const VisitorSelfRegistration = lazyWithRetry(() => import("@/pages/public/VisitorSelfRegistration"));
+const VisitorInduction = lazyWithRetry(() => import("@/pages/public/VisitorInduction"));
 
 export const legalRoutes: RouteObject[] = [
   { path: "/terms", element: <TermsOfService /> },
@@ -76,6 +78,14 @@ export const publicTokenRoutes: RouteObject[] = [
   { 
     path: "/worker-induction/:inductionId", 
     element: <Suspense fallback={<PageLoader />}><WorkerInduction /></Suspense> 
+  },
+  { 
+    path: "/register-visit/:tenantSlug", 
+    element: <Suspense fallback={<PageLoader />}><VisitorSelfRegistration /></Suspense> 
+  },
+  { 
+    path: "/visitor-induction/:inductionId", 
+    element: <Suspense fallback={<PageLoader />}><VisitorInduction /></Suspense> 
   },
 ];
 
