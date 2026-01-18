@@ -159,18 +159,18 @@ export default function OrgStructure() {
     setLoading(true);
     
     try {
-      // Branches query - if specific branch selected, only show that branch
-      let branchesQuery = supabase.from('branches')
+      // BRANCHES: Always fetch ALL branches for the tenant
+      // Branch Management should show all branches regardless of active filter
+      // This aligns with Incident Reporting which uses useTenantBranches() 
+      // that also fetches all tenant branches
+      const branchesQuery = supabase.from('branches')
         .select('id, name, location, latitude, longitude')
         .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('name');
-      
-      if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
-        branchesQuery = branchIds.length === 1 
-          ? branchesQuery.eq('id', branchIds[0])
-          : branchesQuery.in('id', branchIds);
-      }
+
+      // NOTE: Branch filter is NOT applied to branches query
+      // Other org elements (divisions, departments, sites) WILL continue to be filtered
 
       // Divisions query with branch filter
       let divisionsQuery = supabase.from('divisions')
