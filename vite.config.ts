@@ -185,9 +185,9 @@ export default defineConfig(({ mode }) => ({
               }
             }
           },
-          chunkFileNames: 'assets/[name]-[hash]-v8.js',
-          entryFileNames: 'assets/[name]-[hash]-v8.js',
-          assetFileNames: 'assets/[name]-[hash]-v8.[ext]',
+          chunkFileNames: 'assets/[name]-[hash]-v9.js',
+          entryFileNames: 'assets/[name]-[hash]-v9.js',
+          assetFileNames: 'assets/[name]-[hash]-v9.[ext]',
         },
       },
       chunkSizeWarningLimit: 2000,
