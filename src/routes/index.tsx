@@ -15,6 +15,7 @@ export { inspectionRoutes } from "./inspection.routes";
 export { ptwRoutes } from "./ptw.routes";
 export { visitorRoutes } from "./visitor.routes";
 export { adminRoutes } from "./admin.routes";
+export { receptionRoutes } from "./reception.routes";
 
 // Import for combined route generation
 import { publicRoutes } from "./public.routes";
@@ -26,6 +27,7 @@ import { inspectionRoutes } from "./inspection.routes";
 import { ptwRoutes } from "./ptw.routes";
 import { visitorRoutes } from "./visitor.routes";
 import { adminRoutes } from "./admin.routes";
+import { receptionRoutes } from "./reception.routes";
 
 /**
  * All protected routes that require MainLayout wrapper
@@ -42,6 +44,7 @@ export const protectedLayoutRoutes: RouteObject[] = [
   ...ptwRoutes,
   ...visitorRoutes,
   ...adminRoutes,
+  ...receptionRoutes,
 ];
 
 /**
