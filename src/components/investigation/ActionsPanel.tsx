@@ -62,9 +62,20 @@ interface ActionsPanelProps {
   incidentStatus?: string | null;
   canEdit?: boolean;
   onActionChange?: () => void;
+  /** External trigger to open the action creation dialog */
+  openDialogTrigger?: boolean;
+  /** Callback when dialog trigger is consumed */
+  onDialogTriggered?: () => void;
 }
 
-export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp, onActionChange }: ActionsPanelProps) {
+export function ActionsPanel({ 
+  incidentId, 
+  incidentStatus, 
+  canEdit: canEditProp, 
+  onActionChange,
+  openDialogTrigger,
+  onDialogTriggered
+}: ActionsPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -76,6 +87,15 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp,
 
   // Read-only mode when incident is closed OR canEdit prop is explicitly false
   const isLocked = incidentStatus === 'closed' || canEditProp === false;
+
+  // Handle external dialog trigger from parent (e.g., ConsultantReviewCard "Create Action" button)
+  useEffect(() => {
+    if (openDialogTrigger && !isLocked) {
+      setEditingAction(null);
+      setDialogOpen(true);
+      onDialogTriggered?.();
+    }
+  }, [openDialogTrigger, isLocked, onDialogTriggered]);
 
   const { data: actions, isLoading } = useCorrectiveActions(incidentId);
   const { data: investigation } = useInvestigation(incidentId);
