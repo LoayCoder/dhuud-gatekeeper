@@ -66,18 +66,16 @@ export default defineConfig(({ mode }) => ({
                 id.includes('embla-carousel-react') ||
                 id.includes('react-day-picker') ||
                 id.includes('react-dropzone') ||
-                id.includes('react-resizable-panels') ||
-                id.includes('input-otp')
-              ) {
-                return 'vendor-react-ecosystem';
-              }
-              // Heavy non-React dependencies can be split safely
-              if (id.includes('xlsx') || id.includes('exceljs') || id.includes('jspdf') || id.includes('docx')) {
-                return 'vendor-export';
-              }
-              if (id.includes('recharts')) {
-                return 'vendor-charts';
-              }
+              id.includes('react-resizable-panels') ||
+              id.includes('input-otp') ||
+              id.includes('recharts')  // MUST be with React to avoid circular dependency issues
+            ) {
+              return 'vendor-react-ecosystem';
+            }
+            // Heavy non-React dependencies can be split safely
+            if (id.includes('xlsx') || id.includes('exceljs') || id.includes('jspdf') || id.includes('docx')) {
+              return 'vendor-export';
+            }
               if (id.includes('leaflet')) {
                 return 'vendor-maps';
               }
@@ -201,9 +199,9 @@ export default defineConfig(({ mode }) => ({
               }
             }
           },
-          chunkFileNames: 'assets/[name]-[hash]-v12.js',
-          entryFileNames: 'assets/[name]-[hash]-v12.js',
-          assetFileNames: 'assets/[name]-[hash]-v12.[ext]',
+          chunkFileNames: 'assets/[name]-[hash]-v13.js',
+          entryFileNames: 'assets/[name]-[hash]-v13.js',
+          assetFileNames: 'assets/[name]-[hash]-v13.[ext]',
         },
       },
       chunkSizeWarningLimit: 2000,
