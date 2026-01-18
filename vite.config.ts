@@ -201,9 +201,9 @@ export default defineConfig(({ mode }) => ({
               }
             }
           },
-          chunkFileNames: 'assets/[name]-[hash]-v11.js',
-          entryFileNames: 'assets/[name]-[hash]-v11.js',
-          assetFileNames: 'assets/[name]-[hash]-v11.[ext]',
+          chunkFileNames: 'assets/[name]-[hash]-v12.js',
+          entryFileNames: 'assets/[name]-[hash]-v12.js',
+          assetFileNames: 'assets/[name]-[hash]-v12.[ext]',
         },
       },
       chunkSizeWarningLimit: 2000,
