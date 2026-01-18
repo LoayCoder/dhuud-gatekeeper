@@ -112,25 +112,69 @@ export default defineConfig(({ mode }) => ({
               if (id.includes('/pages/reports/') || id.includes('/components/reports/')) {
                 return 'feature-reports';
               }
+              // Additional feature chunks
+              if (id.includes('/pages/reception/') || id.includes('/components/reception/')) {
+                return 'feature-reception';
+              }
+              if (id.includes('/pages/parts/') || id.includes('/components/parts/')) {
+                return 'feature-parts';
+              }
+              if (id.includes('/pages/legal/') || id.includes('/components/legal/')) {
+                return 'feature-legal';
+              }
+              if (id.includes('/pages/settings/') || id.includes('/components/settings/')) {
+                return 'feature-settings';
+              }
+              if (id.includes('/pages/client-site-rep/') || id.includes('/components/client-site-rep/')) {
+                return 'feature-client-rep';
+              }
               // Split hooks by category to avoid mega-chunk
               if (id.includes('/hooks/')) {
-                if (id.includes('use-incident') || id.includes('use-observation') || id.includes('use-event')) {
+                // Incident-related (expanded)
+                if (id.includes('use-incident') || id.includes('use-observation') || id.includes('use-event') ||
+                    id.includes('use-rca') || id.includes('use-investigation') || id.includes('use-witness') ||
+                    id.includes('use-clinic') || id.includes('use-legal') || id.includes('use-escalation')) {
                   return 'hooks-incidents';
                 }
-                if (id.includes('use-inspection') || id.includes('use-audit') || id.includes('use-finding')) {
+                // Inspection-related (expanded)
+                if (id.includes('use-inspection') || id.includes('use-audit') || id.includes('use-finding') ||
+                    id.includes('use-area-')) {
                   return 'hooks-inspections';
                 }
-                if (id.includes('use-asset') || id.includes('use-maintenance') || id.includes('use-equipment')) {
+                // Asset-related (expanded)
+                if (id.includes('use-asset') || id.includes('use-maintenance') || id.includes('use-equipment') ||
+                    id.includes('use-depreciation') || id.includes('use-warranty') || id.includes('use-parts')) {
                   return 'hooks-assets';
                 }
-                if (id.includes('use-visitor') || id.includes('use-gate') || id.includes('use-reception')) {
+                // Visitor-related (expanded)
+                if (id.includes('use-visitor') || id.includes('use-gate') || id.includes('use-reception') ||
+                    id.includes('use-visit-') || id.includes('use-host-') || id.includes('use-bulk-import-visitor')) {
                   return 'hooks-visitors';
                 }
-                if (id.includes('use-security') || id.includes('use-patrol') || id.includes('use-guard')) {
+                // Security-related (expanded)
+                if (id.includes('use-security') || id.includes('use-patrol') || id.includes('use-guard') ||
+                    id.includes('use-cctv') || id.includes('use-emergency') || id.includes('use-shift') ||
+                    id.includes('use-geofence') || id.includes('use-anpr') || id.includes('use-blacklist')) {
                   return 'hooks-security';
                 }
-                if (id.includes('use-contractor') || id.includes('use-worker') || id.includes('use-induction')) {
+                // Contractor-related (expanded)
+                if (id.includes('use-contractor') || id.includes('use-worker') || id.includes('use-induction') ||
+                    id.includes('use-personnel')) {
                   return 'hooks-contractors';
+                }
+                // PTW hooks
+                if (id.includes('use-ptw') || id.includes('use-permit')) {
+                  return 'hooks-ptw';
+                }
+                // Admin/Organization hooks
+                if (id.includes('use-admin') || id.includes('use-org') || id.includes('use-tenant') ||
+                    id.includes('use-branch') || id.includes('use-department') || id.includes('use-site') ||
+                    id.includes('use-user') || id.includes('use-role') || id.includes('use-menu')) {
+                  return 'hooks-admin';
+                }
+                // Notification hooks
+                if (id.includes('use-notification') || id.includes('use-push') || id.includes('use-realtime')) {
+                  return 'hooks-notifications';
                 }
                 return 'hooks-common';
               }
@@ -142,9 +186,9 @@ export default defineConfig(({ mode }) => ({
               }
             }
           },
-          chunkFileNames: 'assets/[name]-[hash]-v7.js',
-          entryFileNames: 'assets/[name]-[hash]-v7.js',
-          assetFileNames: 'assets/[name]-[hash]-v7.[ext]',
+          chunkFileNames: 'assets/[name]-[hash]-v8.js',
+          entryFileNames: 'assets/[name]-[hash]-v8.js',
+          assetFileNames: 'assets/[name]-[hash]-v8.[ext]',
         },
       },
       chunkSizeWarningLimit: 2000,
