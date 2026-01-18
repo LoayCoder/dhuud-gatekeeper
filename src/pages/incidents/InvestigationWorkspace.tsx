@@ -33,7 +33,7 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useIncidents, useIncident } from "@/hooks/use-incidents";
-import { useInvestigation } from "@/hooks/use-investigation";
+import { useInvestigation, useCorrectiveActions } from "@/hooks/use-investigation";
 import { useIncidentClosureEligibility, useIncidentClosureApproval } from "@/hooks/use-incident-closure";
 import { useCanApproveInvestigation } from "@/hooks/use-hsse-workflow";
 import { usePendingIncidentApprovals } from "@/hooks/use-pending-approvals";
@@ -100,8 +100,13 @@ export default function InvestigationWorkspace() {
   const [showClosureDialog, setShowClosureDialog] = useState(false);
   const [showReopenDialog, setShowReopenDialog] = useState(false);
   const [viewMode, setViewMode] = useState<'my-pending' | 'all'>('my-pending');
+  const [showActionDialog, setShowActionDialog] = useState(false);
   const { profile, user } = useAuth();
   const queryClient = useQueryClient();
+  
+  // Fetch corrective actions count for the selected incident
+  const { data: correctiveActions } = useCorrectiveActions(selectedIncidentId);
+  const actionsCount = correctiveActions?.length || 0;
 
   const { data: incidents, isLoading: loadingIncidents } = useIncidents();
   const { data: pendingApprovals, isLoading: loadingPending } = usePendingIncidentApprovals();
@@ -212,6 +217,12 @@ export default function InvestigationWorkspace() {
   
   // Investigation edit access control
   const editAccess = useInvestigationEditAccess(investigation, selectedIncident);
+
+  // Handler for Create Action button - switches to actions tab and triggers dialog
+  const handleCreateAction = () => {
+    setActiveTab('actions');
+    setShowActionDialog(true);
+  };
 
   const handleRefresh = () => {
     // Refetch incident and investigation data
@@ -462,8 +473,9 @@ export default function InvestigationWorkspace() {
             incidentId={incidentData.id}
             status={currentStatus}
             severityLevel={(incidentData as any).severity_v2}
-            hasActions={false}
-            actionsCount={0}
+            hasActions={actionsCount > 0}
+            actionsCount={actionsCount}
+            onActionCreated={handleCreateAction}
             onComplete={handleRefresh}
           />
         );
@@ -985,6 +997,8 @@ export default function InvestigationWorkspace() {
                         incidentId={selectedIncidentId} 
                         incidentStatus={selectedIncident?.status}
                         canEdit={editAccess.canEdit}
+                        openDialogTrigger={showActionDialog}
+                        onDialogTriggered={() => setShowActionDialog(false)}
                       />
                       
                       {/* Submit Investigation Card - Only for investigator when in progress */}
