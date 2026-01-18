@@ -9,6 +9,7 @@ interface Investigation {
 interface Incident {
   id: string;
   status?: string | null;
+  approval_manager_id?: string | null;
 }
 
 /**
@@ -31,6 +32,19 @@ export function useInvestigationEditAccess(
   const isHSSEExpert = hasRole('hsse_officer') || hasRole('hsse_expert') || hasRole('hsse_investigator');
   const isOversightRole = !!(isAdmin || isHSSEManager || isHSSEExpert);
   
+  // Check if user is assigned contractor consultant for contractor observation workflow
+  const isConsultantStage = 
+    incident?.status === 'pending_consultant_screening' ||
+    incident?.status === 'pending_consultant_review' ||
+    incident?.status === 'pending_consultant_actions';
+  
+  const isAssignedConsultant = !!(
+    isConsultantStage && 
+    incident?.approval_manager_id && 
+    user?.id && 
+    incident.approval_manager_id === user.id
+  );
+  
   const isPendingClosure = incident?.status === 'pending_closure';
   const isInvestigationClosed = incident?.status === 'investigation_closed';
   const isPendingFinalClosure = incident?.status === 'pending_final_closure';
@@ -38,14 +52,14 @@ export function useInvestigationEditAccess(
   // All post-investigation statuses are locked for editing
   const isLocked = isClosed || isPendingClosure || isInvestigationClosed || isPendingFinalClosure;
 
-  // Can edit: only assigned investigator when incident is not locked
-  const canEdit = isAssignedInvestigator && !isLocked;
+  // Can edit: assigned investigator OR assigned consultant (when not locked)
+  const canEdit = (isAssignedInvestigator || isAssignedConsultant) && !isLocked;
 
-  // Can view: oversight roles or assigned investigator
-  const canView = isOversightRole || isAssignedInvestigator;
+  // Can view: oversight roles, assigned investigator, or assigned consultant
+  const canView = isOversightRole || isAssignedInvestigator || isAssignedConsultant;
 
-  // Is read-only: not the assigned investigator OR incident is locked
-  const isReadOnly = !isAssignedInvestigator || isLocked;
+  // Is read-only: not the assigned investigator/consultant OR incident is locked
+  const isReadOnly = (!isAssignedInvestigator && !isAssignedConsultant) || isLocked;
 
   // Can reopen: only HSSE Manager when incident is closed
   const canReopen = (isHSSEManager || isAdmin) && isClosed;
@@ -62,6 +76,7 @@ export function useInvestigationEditAccess(
     isReadOnly,
     isOversightRole,
     isAssignedInvestigator,
+    isAssignedConsultant,
     isClosed,
     isPendingClosure,
     isInvestigationClosed,
