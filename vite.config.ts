@@ -41,34 +41,90 @@ export default defineConfig(({ mode }) => ({
   build: {
       rollupOptions: {
         output: {
-          // Consolidate heavy vendor libraries to reduce total chunk count
-          manualChunks: {
-            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-            'vendor-ui': [
-              '@radix-ui/react-dialog',
-              '@radix-ui/react-dropdown-menu', 
-              '@radix-ui/react-select',
-              '@radix-ui/react-popover',
-              '@radix-ui/react-tooltip',
-              '@radix-ui/react-tabs',
-              '@radix-ui/react-accordion',
-              '@radix-ui/react-checkbox',
-              '@radix-ui/react-switch',
-            ],
-            'vendor-export': ['xlsx', 'exceljs', 'jspdf', 'docx'],
-            'vendor-charts': ['recharts'],
-            'vendor-maps': ['leaflet', 'react-leaflet'],
-            'vendor-i18n': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
-            'vendor-query': ['@tanstack/react-query'],
-            'vendor-forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
-            'vendor-dates': ['date-fns'],
+          // Aggressive chunking to reduce total file count for deployment
+          manualChunks(id) {
+            // Vendor chunks - consolidate heavy libraries
+            if (id.includes('node_modules')) {
+              if (id.includes('react-dom') || id.includes('react-router') || id.includes('/react/')) {
+                return 'vendor-react';
+              }
+              if (id.includes('@radix-ui')) {
+                return 'vendor-ui';
+              }
+              if (id.includes('xlsx') || id.includes('exceljs') || id.includes('jspdf') || id.includes('docx')) {
+                return 'vendor-export';
+              }
+              if (id.includes('recharts')) {
+                return 'vendor-charts';
+              }
+              if (id.includes('leaflet')) {
+                return 'vendor-maps';
+              }
+              if (id.includes('i18next')) {
+                return 'vendor-i18n';
+              }
+              if (id.includes('@tanstack')) {
+                return 'vendor-query';
+              }
+              if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
+                return 'vendor-forms';
+              }
+              if (id.includes('date-fns')) {
+                return 'vendor-dates';
+              }
+              if (id.includes('@supabase')) {
+                return 'vendor-supabase';
+              }
+              // All other node_modules in one chunk
+              return 'vendor-misc';
+            }
+            
+            // Group app code by feature area to reduce chunk count
+            if (id.includes('/src/')) {
+              if (id.includes('/pages/incidents/') || id.includes('/components/incidents/')) {
+                return 'feature-incidents';
+              }
+              if (id.includes('/pages/inspections/') || id.includes('/components/inspections/')) {
+                return 'feature-inspections';
+              }
+              if (id.includes('/pages/assets/') || id.includes('/components/assets/')) {
+                return 'feature-assets';
+              }
+              if (id.includes('/pages/visitors/') || id.includes('/components/visitors/')) {
+                return 'feature-visitors';
+              }
+              if (id.includes('/pages/security/') || id.includes('/components/security/')) {
+                return 'feature-security';
+              }
+              if (id.includes('/pages/ptw/') || id.includes('/components/ptw/')) {
+                return 'feature-ptw';
+              }
+              if (id.includes('/pages/contractors/') || id.includes('/components/contractors/')) {
+                return 'feature-contractors';
+              }
+              if (id.includes('/pages/admin/') || id.includes('/components/admin/')) {
+                return 'feature-admin';
+              }
+              if (id.includes('/pages/reports/') || id.includes('/components/reports/')) {
+                return 'feature-reports';
+              }
+              if (id.includes('/hooks/')) {
+                return 'app-hooks';
+              }
+              if (id.includes('/lib/') || id.includes('/utils/')) {
+                return 'app-utils';
+              }
+              if (id.includes('/components/ui/')) {
+                return 'app-ui';
+              }
+            }
           },
-          chunkFileNames: 'assets/[name]-[hash]-v6.js',
-          entryFileNames: 'assets/[name]-[hash]-v6.js',
-          assetFileNames: 'assets/[name]-[hash]-v6.[ext]',
+          chunkFileNames: 'assets/[name]-[hash]-v7.js',
+          entryFileNames: 'assets/[name]-[hash]-v7.js',
+          assetFileNames: 'assets/[name]-[hash]-v7.[ext]',
         },
       },
-      chunkSizeWarningLimit: 1000,
+      chunkSizeWarningLimit: 2000,
     // Ensure consistent module deduplication
     commonjsOptions: {
       include: [/node_modules/],
