@@ -12,7 +12,8 @@ import {
   CalendarClock, 
   BadgeCheck,
   RefreshCw,
-  QrCode
+  QrCode,
+  Upload,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,14 +24,14 @@ import { useVisitors } from '@/hooks/use-visitors';
 import { useTodaysVisitors } from '@/hooks/use-visit-requests';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
-import { QuickCheckinCard } from '@/components/reception/QuickCheckinCard';
-import { TodayVisitorsWidget } from '@/components/reception/TodayVisitorsWidget';
+import { QuickCheckinCard, TodayVisitorsWidget, VisitorBulkImportDialog } from '@/components/reception';
 
 export default function ReceptionDashboard() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const isRTL = i18n.language === 'ar';
   const [searchQuery, setSearchQuery] = useState('');
+  const [bulkImportOpen, setBulkImportOpen] = useState(false);
 
   // Fetch today's expected visitors
   const { data: todayVisitors, isLoading: loadingToday, refetch: refetchToday } = useTodaysVisitors();
@@ -62,12 +63,26 @@ export default function ReceptionDashboard() {
             <RefreshCw className="h-4 w-4 me-2" />
             {t('common.refresh', 'Refresh')}
           </Button>
+          <Button variant="outline" onClick={() => setBulkImportOpen(true)}>
+            <Upload className="h-4 w-4 me-2" />
+            {t('reception.bulkImport', 'Bulk Import')}
+          </Button>
           <Button onClick={() => navigate('/reception/walk-in')}>
             <UserPlus className="h-4 w-4 me-2" />
             {t('reception.walkInRegistration', 'Walk-In Registration')}
           </Button>
         </div>
       </div>
+
+      {/* Bulk Import Dialog */}
+      <VisitorBulkImportDialog
+        open={bulkImportOpen}
+        onOpenChange={setBulkImportOpen}
+        onSuccess={() => {
+          setBulkImportOpen(false);
+          refetchToday();
+        }}
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
