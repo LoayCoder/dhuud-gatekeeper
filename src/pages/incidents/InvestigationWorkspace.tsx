@@ -275,7 +275,14 @@ export default function InvestigationWorkspace() {
     'monitoring_30_day',
     'monitoring_60_day',
     'monitoring_90_day',
-    'pending_hsse_incident_validation'
+    'pending_hsse_incident_validation',
+    // Contractor consultant workflow statuses
+    'pending_consultant_screening',
+    'pending_consultant_review',
+    'pending_consultant_actions',
+    'pending_site_client_approval',
+    'pending_contractor_implementation',
+    'pending_consultant_verification',
   ].includes(status);
 
   // Filter incidents that need investigation (not closed status)
