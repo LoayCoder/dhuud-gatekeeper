@@ -231,9 +231,9 @@ export default function VisitorSelfRegistration() {
       <div className="max-w-2xl mx-auto py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          {tenant?.logo_url && (
+          {(tenant?.logo_light_url || tenant?.logo_dark_url) && (
             <img 
-              src={tenant.logo_url} 
+              src={tenant.logo_light_url || tenant.logo_dark_url || ''} 
               alt={tenant?.name || ''} 
               className="h-16 mx-auto mb-4"
             />

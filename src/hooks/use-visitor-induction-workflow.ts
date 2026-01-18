@@ -293,11 +293,11 @@ export function useInductionVideosForVisitors() {
 
       const { data, error } = await supabase
         .from('induction_videos')
-        .select('id, title, description, video_url, duration_seconds, thumbnail_url, is_required')
+        .select('id, title, description, video_url, duration_seconds, thumbnail_url, is_active')
         .eq('tenant_id', tenantId)
         .eq('is_active', true)
         .is('deleted_at', null)
-        .order('sort_order');
+        .order('title');
 
       if (error) throw error;
       return data;
