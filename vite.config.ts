@@ -48,7 +48,9 @@ export default defineConfig(({ mode }) => ({
           manualChunks(id) {
             // Vendor chunks - consolidate heavy libraries
             if (id.includes('node_modules')) {
-              if (id.includes('react-dom') || id.includes('react-router') || id.includes('/react/')) {
+              // React core + React Query MUST be together to prevent createContext errors
+              if (id.includes('react-dom') || id.includes('react-router') || 
+                  id.includes('/react/') || id.includes('@tanstack/react-query')) {
                 return 'vendor-react';
               }
               if (id.includes('@radix-ui')) {
@@ -65,9 +67,6 @@ export default defineConfig(({ mode }) => ({
               }
               if (id.includes('i18next')) {
                 return 'vendor-i18n';
-              }
-              if (id.includes('@tanstack')) {
-                return 'vendor-query';
               }
               if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
                 return 'vendor-forms';
