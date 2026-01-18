@@ -11545,8 +11545,6 @@ export type Database = {
           violation_occurrence: number | null
           violation_penalty_type: string | null
           violation_type_id: string | null
-          visit_request_id: string | null
-          visitor_id: string | null
           worker_type: string | null
         }
         Insert: {
@@ -11775,8 +11773,6 @@ export type Database = {
           violation_occurrence?: number | null
           violation_penalty_type?: string | null
           violation_type_id?: string | null
-          visit_request_id?: string | null
-          visitor_id?: string | null
           worker_type?: string | null
         }
         Update: {
@@ -12005,8 +12001,6 @@ export type Database = {
           violation_occurrence?: number | null
           violation_penalty_type?: string | null
           violation_type_id?: string | null
-          visit_request_id?: string | null
-          visitor_id?: string | null
           worker_type?: string | null
         }
         Relationships: [
@@ -12561,27 +12555,6 @@ export type Database = {
             columns: ["violation_type_id"]
             isOneToOne: false
             referencedRelation: "violation_types"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "incidents_visit_request_id_fkey"
-            columns: ["visit_request_id"]
-            isOneToOne: false
-            referencedRelation: "visit_requests"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "incidents_visitor_id_fkey"
-            columns: ["visitor_id"]
-            isOneToOne: false
-            referencedRelation: "visitors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "incidents_visitor_id_fkey"
-            columns: ["visitor_id"]
-            isOneToOne: false
-            referencedRelation: "visitors_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -23480,36 +23453,17 @@ export type Database = {
       visit_requests: {
         Row: {
           approved_by: string | null
-          area_rep_id: string | null
           branch_id: string | null
-          building_id: string | null
           created_at: string | null
-          current_approval_stage:
-            | Database["public"]["Enums"]["visitor_approval_stage"]
-            | null
           deleted_at: string | null
           entry_logged_at: string | null
-          entry_time_from: string | null
-          entry_time_until: string | null
           exit_logged_at: string | null
           host_exit_notified_at: string | null
           host_id: string
           host_notified_at: string | null
-          hsse_approval_required: boolean | null
-          hsse_approved_at: string | null
-          hsse_approved_by: string | null
-          hsse_notes: string | null
           id: string
-          linked_incident_id: string | null
-          offline_validated: boolean | null
-          offline_validated_at: string | null
-          offline_validator_device_id: string | null
           qr_issued_at: string | null
           security_notes: string | null
-          site_client_approval_required: boolean | null
-          site_client_approved_at: string | null
-          site_client_approved_by: string | null
-          site_client_notes: string | null
           site_id: string
           status: Database["public"]["Enums"]["visit_status"] | null
           tenant_id: string
@@ -23517,40 +23471,20 @@ export type Database = {
           valid_until: string
           visitor_id: string
           visitor_notified_at: string | null
-          zone_id: string | null
         }
         Insert: {
           approved_by?: string | null
-          area_rep_id?: string | null
           branch_id?: string | null
-          building_id?: string | null
           created_at?: string | null
-          current_approval_stage?:
-            | Database["public"]["Enums"]["visitor_approval_stage"]
-            | null
           deleted_at?: string | null
           entry_logged_at?: string | null
-          entry_time_from?: string | null
-          entry_time_until?: string | null
           exit_logged_at?: string | null
           host_exit_notified_at?: string | null
           host_id: string
           host_notified_at?: string | null
-          hsse_approval_required?: boolean | null
-          hsse_approved_at?: string | null
-          hsse_approved_by?: string | null
-          hsse_notes?: string | null
           id?: string
-          linked_incident_id?: string | null
-          offline_validated?: boolean | null
-          offline_validated_at?: string | null
-          offline_validator_device_id?: string | null
           qr_issued_at?: string | null
           security_notes?: string | null
-          site_client_approval_required?: boolean | null
-          site_client_approved_at?: string | null
-          site_client_approved_by?: string | null
-          site_client_notes?: string | null
           site_id: string
           status?: Database["public"]["Enums"]["visit_status"] | null
           tenant_id: string
@@ -23558,40 +23492,20 @@ export type Database = {
           valid_until: string
           visitor_id: string
           visitor_notified_at?: string | null
-          zone_id?: string | null
         }
         Update: {
           approved_by?: string | null
-          area_rep_id?: string | null
           branch_id?: string | null
-          building_id?: string | null
           created_at?: string | null
-          current_approval_stage?:
-            | Database["public"]["Enums"]["visitor_approval_stage"]
-            | null
           deleted_at?: string | null
           entry_logged_at?: string | null
-          entry_time_from?: string | null
-          entry_time_until?: string | null
           exit_logged_at?: string | null
           host_exit_notified_at?: string | null
           host_id?: string
           host_notified_at?: string | null
-          hsse_approval_required?: boolean | null
-          hsse_approved_at?: string | null
-          hsse_approved_by?: string | null
-          hsse_notes?: string | null
           id?: string
-          linked_incident_id?: string | null
-          offline_validated?: boolean | null
-          offline_validated_at?: string | null
-          offline_validator_device_id?: string | null
           qr_issued_at?: string | null
           security_notes?: string | null
-          site_client_approval_required?: boolean | null
-          site_client_approved_at?: string | null
-          site_client_approved_by?: string | null
-          site_client_notes?: string | null
           site_id?: string
           status?: Database["public"]["Enums"]["visit_status"] | null
           tenant_id?: string
@@ -23599,7 +23513,6 @@ export type Database = {
           valid_until?: string
           visitor_id?: string
           visitor_notified_at?: string | null
-          zone_id?: string | null
         }
         Relationships: [
           {
@@ -23617,20 +23530,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "visit_requests_area_rep_id_fkey"
-            columns: ["area_rep_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visit_requests_area_rep_id_fkey"
-            columns: ["area_rep_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "visit_requests_branch_id_fkey"
             columns: ["branch_id"]
             isOneToOne: false
@@ -23638,13 +23537,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "visit_requests_building_id_fkey"
-            columns: ["building_id"]
-            isOneToOne: false
-            referencedRelation: "buildings"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "visit_requests_host_id_fkey"
             columns: ["host_id"]
             isOneToOne: false
@@ -23654,41 +23546,6 @@ export type Database = {
           {
             foreignKeyName: "visit_requests_host_id_fkey"
             columns: ["host_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visit_requests_hsse_approved_by_fkey"
-            columns: ["hsse_approved_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visit_requests_hsse_approved_by_fkey"
-            columns: ["hsse_approved_by"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visit_requests_linked_incident_id_fkey"
-            columns: ["linked_incident_id"]
-            isOneToOne: false
-            referencedRelation: "incidents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visit_requests_site_client_approved_by_fkey"
-            columns: ["site_client_approved_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visit_requests_site_client_approved_by_fkey"
-            columns: ["site_client_approved_by"]
             isOneToOne: false
             referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
@@ -23721,684 +23578,61 @@ export type Database = {
             referencedRelation: "visitors_secure"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "visit_requests_zone_id_fkey"
-            columns: ["zone_id"]
-            isOneToOne: false
-            referencedRelation: "security_zones"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      visitor_access_rules: {
-        Row: {
-          access_level: Database["public"]["Enums"]["visitor_access_level"]
-          allowed_days: number[] | null
-          allowed_entry_time_from: string | null
-          allowed_entry_time_until: string | null
-          branch_id: string | null
-          building_id: string | null
-          created_at: string | null
-          created_by: string | null
-          deleted_at: string | null
-          id: string
-          is_active: boolean | null
-          requires_hsse_approval: boolean | null
-          requires_induction: boolean | null
-          requires_site_client_approval: boolean | null
-          revoke_reason: string | null
-          revoked_at: string | null
-          revoked_by: string | null
-          site_id: string | null
-          tenant_id: string
-          updated_at: string | null
-          valid_from: string
-          valid_until: string
-          visit_request_id: string | null
-          visitor_id: string
-          zone_id: string | null
-        }
-        Insert: {
-          access_level?: Database["public"]["Enums"]["visitor_access_level"]
-          allowed_days?: number[] | null
-          allowed_entry_time_from?: string | null
-          allowed_entry_time_until?: string | null
-          branch_id?: string | null
-          building_id?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          deleted_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          requires_hsse_approval?: boolean | null
-          requires_induction?: boolean | null
-          requires_site_client_approval?: boolean | null
-          revoke_reason?: string | null
-          revoked_at?: string | null
-          revoked_by?: string | null
-          site_id?: string | null
-          tenant_id: string
-          updated_at?: string | null
-          valid_from: string
-          valid_until: string
-          visit_request_id?: string | null
-          visitor_id: string
-          zone_id?: string | null
-        }
-        Update: {
-          access_level?: Database["public"]["Enums"]["visitor_access_level"]
-          allowed_days?: number[] | null
-          allowed_entry_time_from?: string | null
-          allowed_entry_time_until?: string | null
-          branch_id?: string | null
-          building_id?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          deleted_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          requires_hsse_approval?: boolean | null
-          requires_induction?: boolean | null
-          requires_site_client_approval?: boolean | null
-          revoke_reason?: string | null
-          revoked_at?: string | null
-          revoked_by?: string | null
-          site_id?: string | null
-          tenant_id?: string
-          updated_at?: string | null
-          valid_from?: string
-          valid_until?: string
-          visit_request_id?: string | null
-          visitor_id?: string
-          zone_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "visitor_access_rules_branch_id_fkey"
-            columns: ["branch_id"]
-            isOneToOne: false
-            referencedRelation: "branches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_access_rules_building_id_fkey"
-            columns: ["building_id"]
-            isOneToOne: false
-            referencedRelation: "buildings"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_access_rules_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_access_rules_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_access_rules_revoked_by_fkey"
-            columns: ["revoked_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_access_rules_revoked_by_fkey"
-            columns: ["revoked_by"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_access_rules_site_id_fkey"
-            columns: ["site_id"]
-            isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_access_rules_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_access_rules_visit_request_id_fkey"
-            columns: ["visit_request_id"]
-            isOneToOne: false
-            referencedRelation: "visit_requests"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_access_rules_visitor_id_fkey"
-            columns: ["visitor_id"]
-            isOneToOne: false
-            referencedRelation: "visitors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_access_rules_visitor_id_fkey"
-            columns: ["visitor_id"]
-            isOneToOne: false
-            referencedRelation: "visitors_secure"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_access_rules_zone_id_fkey"
-            columns: ["zone_id"]
-            isOneToOne: false
-            referencedRelation: "security_zones"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      visitor_approvals: {
-        Row: {
-          approval_stage: Database["public"]["Enums"]["visitor_approval_stage"]
-          approver_id: string | null
-          approver_role: string | null
-          auto_approval_rule: string | null
-          auto_approved: boolean | null
-          branch_id: string | null
-          created_at: string | null
-          decision:
-            | Database["public"]["Enums"]["visitor_approval_decision"]
-            | null
-          decision_at: string | null
-          delegate_of: string | null
-          deleted_at: string | null
-          due_by: string | null
-          escalated_at: string | null
-          escalated_to: string | null
-          escalation_reason: string | null
-          id: string
-          notes: string | null
-          reminder_sent_at: string | null
-          sla_breached: boolean | null
-          stage_order: number
-          tenant_id: string
-          updated_at: string | null
-          visit_request_id: string
-        }
-        Insert: {
-          approval_stage: Database["public"]["Enums"]["visitor_approval_stage"]
-          approver_id?: string | null
-          approver_role?: string | null
-          auto_approval_rule?: string | null
-          auto_approved?: boolean | null
-          branch_id?: string | null
-          created_at?: string | null
-          decision?:
-            | Database["public"]["Enums"]["visitor_approval_decision"]
-            | null
-          decision_at?: string | null
-          delegate_of?: string | null
-          deleted_at?: string | null
-          due_by?: string | null
-          escalated_at?: string | null
-          escalated_to?: string | null
-          escalation_reason?: string | null
-          id?: string
-          notes?: string | null
-          reminder_sent_at?: string | null
-          sla_breached?: boolean | null
-          stage_order?: number
-          tenant_id: string
-          updated_at?: string | null
-          visit_request_id: string
-        }
-        Update: {
-          approval_stage?: Database["public"]["Enums"]["visitor_approval_stage"]
-          approver_id?: string | null
-          approver_role?: string | null
-          auto_approval_rule?: string | null
-          auto_approved?: boolean | null
-          branch_id?: string | null
-          created_at?: string | null
-          decision?:
-            | Database["public"]["Enums"]["visitor_approval_decision"]
-            | null
-          decision_at?: string | null
-          delegate_of?: string | null
-          deleted_at?: string | null
-          due_by?: string | null
-          escalated_at?: string | null
-          escalated_to?: string | null
-          escalation_reason?: string | null
-          id?: string
-          notes?: string | null
-          reminder_sent_at?: string | null
-          sla_breached?: boolean | null
-          stage_order?: number
-          tenant_id?: string
-          updated_at?: string | null
-          visit_request_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "visitor_approvals_approver_id_fkey"
-            columns: ["approver_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_approvals_approver_id_fkey"
-            columns: ["approver_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_approvals_branch_id_fkey"
-            columns: ["branch_id"]
-            isOneToOne: false
-            referencedRelation: "branches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_approvals_delegate_of_fkey"
-            columns: ["delegate_of"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_approvals_delegate_of_fkey"
-            columns: ["delegate_of"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_approvals_escalated_to_fkey"
-            columns: ["escalated_to"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_approvals_escalated_to_fkey"
-            columns: ["escalated_to"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_approvals_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_approvals_visit_request_id_fkey"
-            columns: ["visit_request_id"]
-            isOneToOne: false
-            referencedRelation: "visit_requests"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      visitor_audit_log: {
-        Row: {
-          action_category: string | null
-          action_type: string
-          actor_id: string | null
-          actor_name: string | null
-          actor_role: string | null
-          branch_id: string | null
-          changes_summary: string | null
-          created_at: string | null
-          device_type: string | null
-          gate_id: string | null
-          id: string
-          ip_address: unknown
-          location_lat: number | null
-          location_lng: number | null
-          new_value: Json | null
-          old_value: Json | null
-          tenant_id: string
-          user_agent: string | null
-          visit_request_id: string | null
-          visitor_id: string | null
-        }
-        Insert: {
-          action_category?: string | null
-          action_type: string
-          actor_id?: string | null
-          actor_name?: string | null
-          actor_role?: string | null
-          branch_id?: string | null
-          changes_summary?: string | null
-          created_at?: string | null
-          device_type?: string | null
-          gate_id?: string | null
-          id?: string
-          ip_address?: unknown
-          location_lat?: number | null
-          location_lng?: number | null
-          new_value?: Json | null
-          old_value?: Json | null
-          tenant_id: string
-          user_agent?: string | null
-          visit_request_id?: string | null
-          visitor_id?: string | null
-        }
-        Update: {
-          action_category?: string | null
-          action_type?: string
-          actor_id?: string | null
-          actor_name?: string | null
-          actor_role?: string | null
-          branch_id?: string | null
-          changes_summary?: string | null
-          created_at?: string | null
-          device_type?: string | null
-          gate_id?: string | null
-          id?: string
-          ip_address?: unknown
-          location_lat?: number | null
-          location_lng?: number | null
-          new_value?: Json | null
-          old_value?: Json | null
-          tenant_id?: string
-          user_agent?: string | null
-          visit_request_id?: string | null
-          visitor_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "visitor_audit_log_actor_id_fkey"
-            columns: ["actor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_audit_log_actor_id_fkey"
-            columns: ["actor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_audit_log_branch_id_fkey"
-            columns: ["branch_id"]
-            isOneToOne: false
-            referencedRelation: "branches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_audit_log_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_audit_log_visit_request_id_fkey"
-            columns: ["visit_request_id"]
-            isOneToOne: false
-            referencedRelation: "visit_requests"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_audit_log_visitor_id_fkey"
-            columns: ["visitor_id"]
-            isOneToOne: false
-            referencedRelation: "visitors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_audit_log_visitor_id_fkey"
-            columns: ["visitor_id"]
-            isOneToOne: false
-            referencedRelation: "visitors_secure"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      visitor_inductions: {
-        Row: {
-          acknowledged_at: string | null
-          acknowledgment_signature: string | null
-          branch_id: string | null
-          created_at: string | null
-          created_by: string | null
-          deleted_at: string | null
-          expires_at: string | null
-          id: string
-          induction_type: string | null
-          quiz_completed_at: string | null
-          quiz_passed: boolean | null
-          quiz_required: boolean | null
-          quiz_score: number | null
-          sent_at: string | null
-          sent_via: string | null
-          status: Database["public"]["Enums"]["visitor_induction_status"] | null
-          tenant_id: string
-          updated_at: string | null
-          video_id: string | null
-          view_duration_seconds: number | null
-          viewed_at: string | null
-          visit_request_id: string | null
-          visitor_id: string
-        }
-        Insert: {
-          acknowledged_at?: string | null
-          acknowledgment_signature?: string | null
-          branch_id?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          deleted_at?: string | null
-          expires_at?: string | null
-          id?: string
-          induction_type?: string | null
-          quiz_completed_at?: string | null
-          quiz_passed?: boolean | null
-          quiz_required?: boolean | null
-          quiz_score?: number | null
-          sent_at?: string | null
-          sent_via?: string | null
-          status?:
-            | Database["public"]["Enums"]["visitor_induction_status"]
-            | null
-          tenant_id: string
-          updated_at?: string | null
-          video_id?: string | null
-          view_duration_seconds?: number | null
-          viewed_at?: string | null
-          visit_request_id?: string | null
-          visitor_id: string
-        }
-        Update: {
-          acknowledged_at?: string | null
-          acknowledgment_signature?: string | null
-          branch_id?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          deleted_at?: string | null
-          expires_at?: string | null
-          id?: string
-          induction_type?: string | null
-          quiz_completed_at?: string | null
-          quiz_passed?: boolean | null
-          quiz_required?: boolean | null
-          quiz_score?: number | null
-          sent_at?: string | null
-          sent_via?: string | null
-          status?:
-            | Database["public"]["Enums"]["visitor_induction_status"]
-            | null
-          tenant_id?: string
-          updated_at?: string | null
-          video_id?: string | null
-          view_duration_seconds?: number | null
-          viewed_at?: string | null
-          visit_request_id?: string | null
-          visitor_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "visitor_inductions_branch_id_fkey"
-            columns: ["branch_id"]
-            isOneToOne: false
-            referencedRelation: "branches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_inductions_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_inductions_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_inductions_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_inductions_video_id_fkey"
-            columns: ["video_id"]
-            isOneToOne: false
-            referencedRelation: "induction_videos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_inductions_visit_request_id_fkey"
-            columns: ["visit_request_id"]
-            isOneToOne: false
-            referencedRelation: "visit_requests"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_inductions_visitor_id_fkey"
-            columns: ["visitor_id"]
-            isOneToOne: false
-            referencedRelation: "visitors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_inductions_visitor_id_fkey"
-            columns: ["visitor_id"]
-            isOneToOne: false
-            referencedRelation: "visitors_secure"
-            referencedColumns: ["id"]
-          },
         ]
       }
       visitor_workflow_settings: {
         Row: {
           allow_multiple_active_visits: boolean | null
-          approval_sla_hours: Json | null
           auto_approve_internal: boolean | null
-          auto_approve_internal_employees: boolean | null
           badge_valid_hours: number | null
           created_at: string | null
-          default_area_rep_id: string | null
           default_duration_hours: number | null
           deleted_at: string | null
-          enable_area_rep_approval: boolean | null
           expiry_warning_minutes: number | null
-          hsse_required_for_risk_level: number | null
           id: string
-          induction_validity_days: number | null
           max_visit_duration_hours: number | null
           notify_host_on_arrival: boolean | null
           notify_host_on_departure: boolean | null
-          require_documents_for_types: string[] | null
-          require_induction_for_types: string[] | null
           require_photo: boolean | null
           require_security_approval: boolean | null
-          site_client_required_zone_ids: string[] | null
           tenant_id: string
           updated_at: string | null
         }
         Insert: {
           allow_multiple_active_visits?: boolean | null
-          approval_sla_hours?: Json | null
           auto_approve_internal?: boolean | null
-          auto_approve_internal_employees?: boolean | null
           badge_valid_hours?: number | null
           created_at?: string | null
-          default_area_rep_id?: string | null
           default_duration_hours?: number | null
           deleted_at?: string | null
-          enable_area_rep_approval?: boolean | null
           expiry_warning_minutes?: number | null
-          hsse_required_for_risk_level?: number | null
           id?: string
-          induction_validity_days?: number | null
           max_visit_duration_hours?: number | null
           notify_host_on_arrival?: boolean | null
           notify_host_on_departure?: boolean | null
-          require_documents_for_types?: string[] | null
-          require_induction_for_types?: string[] | null
           require_photo?: boolean | null
           require_security_approval?: boolean | null
-          site_client_required_zone_ids?: string[] | null
           tenant_id: string
           updated_at?: string | null
         }
         Update: {
           allow_multiple_active_visits?: boolean | null
-          approval_sla_hours?: Json | null
           auto_approve_internal?: boolean | null
-          auto_approve_internal_employees?: boolean | null
           badge_valid_hours?: number | null
           created_at?: string | null
-          default_area_rep_id?: string | null
           default_duration_hours?: number | null
           deleted_at?: string | null
-          enable_area_rep_approval?: boolean | null
           expiry_warning_minutes?: number | null
-          hsse_required_for_risk_level?: number | null
           id?: string
-          induction_validity_days?: number | null
           max_visit_duration_hours?: number | null
           notify_host_on_arrival?: boolean | null
           notify_host_on_departure?: boolean | null
-          require_documents_for_types?: string[] | null
-          require_induction_for_types?: string[] | null
           require_photo?: boolean | null
           require_security_approval?: boolean | null
-          site_client_required_zone_ids?: string[] | null
           tenant_id?: string
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "visitor_workflow_settings_default_area_rep_id_fkey"
-            columns: ["default_area_rep_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_workflow_settings_default_area_rep_id_fkey"
-            columns: ["default_area_rep_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "visitor_workflow_settings_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -24414,16 +23648,9 @@ export type Database = {
           car_plate: string | null
           company_name: string | null
           created_at: string | null
-          default_access_level:
-            | Database["public"]["Enums"]["visitor_access_level"]
-            | null
           deleted_at: string | null
           destination_id: string | null
-          documents_verified: boolean | null
-          documents_verified_at: string | null
-          documents_verified_by: string | null
           email: string | null
-          escort_id: string | null
           expiry_warning_sent_at: string | null
           full_name: string
           gate_entry_method: string | null
@@ -24432,8 +23659,6 @@ export type Database = {
           host_name: string | null
           host_phone: string | null
           id: string
-          induction_completed_at: string | null
-          induction_video_id: string | null
           is_active: boolean | null
           last_scanned_at: string | null
           last_visit_at: string | null
@@ -24446,12 +23671,9 @@ export type Database = {
           qr_code_token: string
           qr_generated_at: string | null
           qr_used_at: string | null
-          requires_escort: boolean | null
-          risk_classification: number | null
           tenant_id: string
           user_type: string | null
           visit_end_time: string | null
-          visitor_type: Database["public"]["Enums"]["visitor_type"] | null
           whatsapp_sent_at: string | null
         }
         Insert: {
@@ -24459,16 +23681,9 @@ export type Database = {
           car_plate?: string | null
           company_name?: string | null
           created_at?: string | null
-          default_access_level?:
-            | Database["public"]["Enums"]["visitor_access_level"]
-            | null
           deleted_at?: string | null
           destination_id?: string | null
-          documents_verified?: boolean | null
-          documents_verified_at?: string | null
-          documents_verified_by?: string | null
           email?: string | null
-          escort_id?: string | null
           expiry_warning_sent_at?: string | null
           full_name: string
           gate_entry_method?: string | null
@@ -24477,8 +23692,6 @@ export type Database = {
           host_name?: string | null
           host_phone?: string | null
           id?: string
-          induction_completed_at?: string | null
-          induction_video_id?: string | null
           is_active?: boolean | null
           last_scanned_at?: string | null
           last_visit_at?: string | null
@@ -24491,12 +23704,9 @@ export type Database = {
           qr_code_token?: string
           qr_generated_at?: string | null
           qr_used_at?: string | null
-          requires_escort?: boolean | null
-          risk_classification?: number | null
           tenant_id: string
           user_type?: string | null
           visit_end_time?: string | null
-          visitor_type?: Database["public"]["Enums"]["visitor_type"] | null
           whatsapp_sent_at?: string | null
         }
         Update: {
@@ -24504,16 +23714,9 @@ export type Database = {
           car_plate?: string | null
           company_name?: string | null
           created_at?: string | null
-          default_access_level?:
-            | Database["public"]["Enums"]["visitor_access_level"]
-            | null
           deleted_at?: string | null
           destination_id?: string | null
-          documents_verified?: boolean | null
-          documents_verified_at?: string | null
-          documents_verified_by?: string | null
           email?: string | null
-          escort_id?: string | null
           expiry_warning_sent_at?: string | null
           full_name?: string
           gate_entry_method?: string | null
@@ -24522,8 +23725,6 @@ export type Database = {
           host_name?: string | null
           host_phone?: string | null
           id?: string
-          induction_completed_at?: string | null
-          induction_video_id?: string | null
           is_active?: boolean | null
           last_scanned_at?: string | null
           last_visit_at?: string | null
@@ -24536,12 +23737,9 @@ export type Database = {
           qr_code_token?: string
           qr_generated_at?: string | null
           qr_used_at?: string | null
-          requires_escort?: boolean | null
-          risk_classification?: number | null
           tenant_id?: string
           user_type?: string | null
           visit_end_time?: string | null
-          visitor_type?: Database["public"]["Enums"]["visitor_type"] | null
           whatsapp_sent_at?: string | null
         }
         Relationships: [
@@ -24553,34 +23751,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "visitors_documents_verified_by_fkey"
-            columns: ["documents_verified_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitors_documents_verified_by_fkey"
-            columns: ["documents_verified_by"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitors_escort_id_fkey"
-            columns: ["escort_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitors_escort_id_fkey"
-            columns: ["escort_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "visitors_host_id_fkey"
             columns: ["host_id"]
             isOneToOne: false
@@ -24592,13 +23762,6 @@ export type Database = {
             columns: ["host_id"]
             isOneToOne: false
             referencedRelation: "profiles_secure"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitors_induction_video_id_fkey"
-            columns: ["induction_video_id"]
-            isOneToOne: false
-            referencedRelation: "induction_videos"
             referencedColumns: ["id"]
           },
           {
@@ -26532,18 +25695,6 @@ export type Database = {
         }[]
       }
       check_user_limit: { Args: { p_tenant_id: string }; Returns: boolean }
-      check_visitor_blacklist: {
-        Args: {
-          _company_name: string
-          _national_id: string
-          _tenant_id: string
-        }
-        Returns: {
-          blacklist_reason: string
-          blacklist_type: string
-          is_blacklisted: boolean
-        }[]
-      }
       check_zone_dependencies: { Args: { p_zone_id: string }; Returns: Json }
       cleanup_expired_trusted_devices: { Args: never; Returns: number }
       cleanup_expired_webauthn_challenges: { Args: never; Returns: undefined }
@@ -27583,22 +26734,6 @@ export type Database = {
         }
         Returns: string
       }
-      log_visitor_audit: {
-        Args: {
-          _action_category: string
-          _action_type: string
-          _actor_id: string
-          _gate_id?: string
-          _ip_address?: unknown
-          _new_value?: Json
-          _old_value?: Json
-          _tenant_id: string
-          _user_agent?: string
-          _visit_request_id: string
-          _visitor_id: string
-        }
-        Returns: string
-      }
       lookup_invitation: { Args: { lookup_code: string }; Returns: Json }
       mark_badges_notified: {
         Args: { p_badge_ids: string[] }
@@ -27848,16 +26983,6 @@ export type Database = {
         }
         Returns: Json
       }
-      validate_visitor_access: {
-        Args: {
-          _gate_id: string
-          _qr_token: string
-          _site_id: string
-          _tenant_id?: string
-          _zone_id?: string
-        }
-        Returns: Json
-      }
       validate_worker_qr_access: {
         Args: { p_qr_token: string; p_site_id?: string }
         Returns: Json
@@ -27902,7 +27027,6 @@ export type Database = {
         | "contractor_site_representative"
         | "contract_controller"
         | "hsse_expert"
-        | "receptionist"
       asset_condition: "excellent" | "good" | "fair" | "poor" | "critical"
       asset_criticality: "low" | "medium" | "high" | "critical"
       asset_document_type:
@@ -27980,10 +27104,6 @@ export type Database = {
         | "pending_contractor_dispute_review"
         | "pending_department_manager_approval"
         | "pending_clinic_review"
-        | "pending_consultant_screening"
-        | "pending_consultant_review"
-        | "pending_consultant_actions"
-        | "pending_action_dispute_review"
       maintenance_frequency:
         | "daily"
         | "weekly"
@@ -28075,20 +27195,6 @@ export type Database = {
         | "checked_in"
         | "checked_out"
         | "expired"
-      visitor_access_level: "escort_required" | "supervised" | "unrestricted"
-      visitor_approval_decision:
-        | "pending"
-        | "approved"
-        | "rejected"
-        | "escalated"
-      visitor_approval_stage: "area_rep" | "hsse" | "security" | "site_client"
-      visitor_induction_status:
-        | "pending"
-        | "sent"
-        | "viewed"
-        | "completed"
-        | "expired"
-      visitor_type: "guest" | "contractor_visitor" | "trainer" | "vip"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -28242,7 +27348,6 @@ export const Constants = {
         "contractor_site_representative",
         "contract_controller",
         "hsse_expert",
-        "receptionist",
       ],
       asset_condition: ["excellent", "good", "fair", "poor", "critical"],
       asset_criticality: ["low", "medium", "high", "critical"],
@@ -28326,10 +27431,6 @@ export const Constants = {
         "pending_contractor_dispute_review",
         "pending_department_manager_approval",
         "pending_clinic_review",
-        "pending_consultant_screening",
-        "pending_consultant_review",
-        "pending_consultant_actions",
-        "pending_action_dispute_review",
       ],
       maintenance_frequency: [
         "daily",
@@ -28433,22 +27534,6 @@ export const Constants = {
         "checked_out",
         "expired",
       ],
-      visitor_access_level: ["escort_required", "supervised", "unrestricted"],
-      visitor_approval_decision: [
-        "pending",
-        "approved",
-        "rejected",
-        "escalated",
-      ],
-      visitor_approval_stage: ["area_rep", "hsse", "security", "site_client"],
-      visitor_induction_status: [
-        "pending",
-        "sent",
-        "viewed",
-        "completed",
-        "expired",
-      ],
-      visitor_type: ["guest", "contractor_visitor", "trainer", "vip"],
     },
   },
 } as const

@@ -8,7 +8,6 @@ import { toast } from '@/hooks/use-toast';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import { OfflineAccessNotice } from '@/components/offline/OfflineAccessNotice';
 import { sessionCache } from '@/hooks/use-cached-session';
-import { logger } from '@/lib/logger';
 
 const VERIFIED_DEVICE_STORAGE_KEY = 'invitation_verified_device_token';
 
@@ -35,15 +34,9 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
             // FIX: Allow access if MFA is NOT enabled globally, OR if it is enabled and verified
             const mfaValid = !cached.mfaEnabled || (cached.mfaEnabled === true && cached.tenantMfaVerified === true);
             setOfflineMfaValid(mfaValid);
-            logger.debug('Offline MFA Check:', {
-              cachedMfaEnabled: cached.mfaEnabled,
-              cachedTenantVerified: cached.tenantMfaVerified,
-              result: mfaValid
-            });
           } else {
             // No matching cache - MFA status unknown, assume valid if session exists?
             // No, safer to assume invalid if we can't verify policy
-            logger.warn('Offline MFA Check: No matching cache found for user');
             setOfflineMfaValid(false);
           }
         } catch (err) {

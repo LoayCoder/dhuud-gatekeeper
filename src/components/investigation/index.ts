@@ -2,7 +2,6 @@ export { EvidencePanel } from './EvidencePanel';
 export { WitnessPanel } from './WitnessPanel';
 export { RCAPanel } from './RCAPanel';
 export { ActionsPanel } from './ActionsPanel';
-export { CreateActionDialog } from './CreateActionDialog';
 export { ActionEvidenceSection } from './ActionEvidenceSection';
 export { FiveWhysBuilder } from './FiveWhysBuilder';
 export { RootCausesBuilder, type RootCauseEntry } from './RootCausesBuilder';

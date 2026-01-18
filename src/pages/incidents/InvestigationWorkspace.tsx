@@ -33,7 +33,6 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useIncidents, useIncident } from "@/hooks/use-incidents";
-import { useActionsCount } from "@/hooks/use-actions-count";
 import { useInvestigation } from "@/hooks/use-investigation";
 import { useIncidentClosureEligibility, useIncidentClosureApproval } from "@/hooks/use-incident-closure";
 import { useCanApproveInvestigation } from "@/hooks/use-hsse-workflow";
@@ -78,7 +77,6 @@ import {
   TeamInvestigationAssignmentStep
 } from "@/components/investigation";
 import { ActionDisputeReviewCard, ConsultantReviewCard } from "@/components/investigation/contractor-workflow";
-import { CreateActionDialog } from "@/components/investigation/CreateActionDialog";
 import { HSSEEnforcementBanner } from "@/components/investigation/HSSEEnforcementBanner";
 import { ObservationWorkflowTracker } from "@/components/investigation/ObservationWorkflowTracker";
 import { ReopenIncidentDialog } from "@/components/investigation/ReopenIncidentDialog";
@@ -101,7 +99,6 @@ export default function InvestigationWorkspace() {
   const [activeTab, setActiveTab] = useState("overview");
   const [showClosureDialog, setShowClosureDialog] = useState(false);
   const [showReopenDialog, setShowReopenDialog] = useState(false);
-  const [createActionDialogOpen, setCreateActionDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'my-pending' | 'all'>('my-pending');
   const { profile, user } = useAuth();
   const queryClient = useQueryClient();
@@ -110,7 +107,6 @@ export default function InvestigationWorkspace() {
   const { data: pendingApprovals, isLoading: loadingPending } = usePendingIncidentApprovals();
   const { data: selectedIncident, refetch: refetchIncident } = useIncident(selectedIncidentId || undefined);
   const { data: investigation, refetch: refetchInvestigation } = useInvestigation(selectedIncidentId);
-  const { data: actionsCount = 0, refetch: refetchActionsCount } = useActionsCount(selectedIncidentId);
   const { data: closureEligibility } = useIncidentClosureEligibility(selectedIncidentId);
   const { approveClosureMutation, rejectClosureMutation } = useIncidentClosureApproval(selectedIncidentId || '');
 
@@ -466,9 +462,8 @@ export default function InvestigationWorkspace() {
             incidentId={incidentData.id}
             status={currentStatus}
             severityLevel={(incidentData as any).severity_v2}
-            hasActions={actionsCount > 0}
-            actionsCount={actionsCount}
-            onActionCreated={() => setCreateActionDialogOpen(true)}
+            hasActions={false}
+            actionsCount={0}
             onComplete={handleRefresh}
           />
         );
@@ -1110,19 +1105,6 @@ export default function InvestigationWorkspace() {
             </p>
           </CardContent>
         </Card>
-      )}
-
-      {/* Create Action Dialog - Triggered from ConsultantReviewCard */}
-      {selectedIncidentId && (
-        <CreateActionDialog
-          incidentId={selectedIncidentId}
-          open={createActionDialogOpen}
-          onOpenChange={setCreateActionDialogOpen}
-          onActionCreated={() => {
-            refetchActionsCount();
-            handleRefresh();
-          }}
-        />
       )}
     </div>
   );
