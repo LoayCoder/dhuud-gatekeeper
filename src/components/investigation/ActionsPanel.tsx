@@ -90,12 +90,25 @@ export function ActionsPanel({
 
   // Handle external dialog trigger from parent (e.g., ConsultantReviewCard "Create Action" button)
   useEffect(() => {
-    if (openDialogTrigger && !isLocked) {
-      setEditingAction(null);
-      setDialogOpen(true);
+    console.log('[ActionsPanel] Dialog trigger check:', { 
+      openDialogTrigger, 
+      isLocked, 
+      canEditProp,
+      incidentStatus 
+    });
+    
+    if (openDialogTrigger) {
+      if (!isLocked) {
+        console.log('[ActionsPanel] Opening dialog');
+        setEditingAction(null);
+        setDialogOpen(true);
+      } else {
+        console.warn('[ActionsPanel] Cannot open dialog - locked. canEdit:', canEditProp);
+      }
+      // Always consume the trigger to prevent state buildup
       onDialogTriggered?.();
     }
-  }, [openDialogTrigger, isLocked, onDialogTriggered]);
+  }, [openDialogTrigger, isLocked, canEditProp, incidentStatus, onDialogTriggered]);
 
   const { data: actions, isLoading } = useCorrectiveActions(incidentId);
   const { data: investigation } = useInvestigation(incidentId);
