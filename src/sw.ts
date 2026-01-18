@@ -27,7 +27,7 @@ import { NetworkFirst, CacheFirst, StaleWhileRevalidate } from 'workbox-strategi
 import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
-const SW_VERSION = '2025.01.14.003';
+const SW_VERSION = '2025.01.18.003';
 const CACHE_NAME = `dhuud-cache-v6-${SW_VERSION}`;
 const API_CACHE_NAME = `dhuud-api-cache-v3-${SW_VERSION}`;
 const STATIC_CACHE_NAME = `dhuud-static-cache-v3-${SW_VERSION}`;
