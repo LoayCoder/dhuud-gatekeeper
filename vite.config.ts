@@ -39,15 +39,36 @@ export default defineConfig(({ mode }) => ({
     include: ['react', 'react-dom', 'react-i18next', 'i18next', '@tanstack/react-query'],
   },
   build: {
-    rollupOptions: {
-      output: {
-        // NO manualChunks - let Rollup handle dependency order automatically
-        // This prevents ALL chunk loading order issues
-        chunkFileNames: 'assets/[name]-[hash]-v5.js',
-        entryFileNames: 'assets/[name]-[hash]-v5.js',
-        assetFileNames: 'assets/[name]-[hash]-v5.[ext]',
+      rollupOptions: {
+        output: {
+          // Consolidate heavy vendor libraries to reduce total chunk count
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            'vendor-ui': [
+              '@radix-ui/react-dialog',
+              '@radix-ui/react-dropdown-menu', 
+              '@radix-ui/react-select',
+              '@radix-ui/react-popover',
+              '@radix-ui/react-tooltip',
+              '@radix-ui/react-tabs',
+              '@radix-ui/react-accordion',
+              '@radix-ui/react-checkbox',
+              '@radix-ui/react-switch',
+            ],
+            'vendor-export': ['xlsx', 'exceljs', 'jspdf', 'docx'],
+            'vendor-charts': ['recharts'],
+            'vendor-maps': ['leaflet', 'react-leaflet'],
+            'vendor-i18n': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
+            'vendor-query': ['@tanstack/react-query'],
+            'vendor-forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
+            'vendor-dates': ['date-fns'],
+          },
+          chunkFileNames: 'assets/[name]-[hash]-v6.js',
+          entryFileNames: 'assets/[name]-[hash]-v6.js',
+          assetFileNames: 'assets/[name]-[hash]-v6.[ext]',
+        },
       },
-    },
+      chunkSizeWarningLimit: 1000,
     // Ensure consistent module deduplication
     commonjsOptions: {
       include: [/node_modules/],
