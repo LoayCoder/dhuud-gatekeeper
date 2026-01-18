@@ -41,9 +41,9 @@ interface Branch {
   latitude: number | null;
   longitude: number | null;
 }
-interface Division { id: string; name: string; branch_id?: string | null; }
-interface Department { id: string; name: string; division_id: string; branch_id?: string | null; divisions?: { name: string } | null; }
-interface Section { id: string; name: string; department_id: string; branch_id?: string | null; departments?: { name: string } | null; }
+interface Division { id: string; name: string; branch_id?: string | null; branches?: { name: string } | null; }
+interface Department { id: string; name: string; division_id: string; branch_id?: string | null; divisions?: { name: string } | null; branches?: { name: string } | null; }
+interface Section { id: string; name: string; department_id: string; branch_id?: string | null; departments?: { name: string } | null; branches?: { name: string } | null; }
 interface Coordinate {
   lat: number;
   lng: number;
@@ -174,7 +174,7 @@ export default function OrgStructure() {
 
       // Divisions query with branch filter
       let divisionsQuery = supabase.from('divisions')
-        .select('id, name, branch_id')
+        .select('id, name, branch_id, branches(name)')
         .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('name');
@@ -182,7 +182,7 @@ export default function OrgStructure() {
 
       // Departments query with branch filter
       let departmentsQuery = supabase.from('departments')
-        .select('id, name, division_id, branch_id, divisions(name)')
+        .select('id, name, division_id, branch_id, divisions(name), branches(name)')
         .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('name');
@@ -190,7 +190,7 @@ export default function OrgStructure() {
 
       // Sections query with branch filter
       let sectionsQuery = supabase.from('sections')
-        .select('id, name, department_id, branch_id, departments(name)')
+        .select('id, name, department_id, branch_id, departments(name), branches(name)')
         .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('name');
@@ -599,7 +599,7 @@ export default function OrgStructure() {
   );
 
   // Reusable row component for simple tables (divisions)
-  const renderSimpleRow = (item: { id: string; name: string }, table: TableType) => (
+  const renderSimpleRow = (item: { id: string; name: string; branches?: { name: string } | null }, table: TableType) => (
     <TableRow key={item.id}>
       <TableCell className="text-start">
         {editingId === item.id ? (
@@ -618,6 +618,7 @@ export default function OrgStructure() {
           item.name
         )}
       </TableCell>
+      <TableCell className="text-muted-foreground text-start">{item.branches?.name || '-'}</TableCell>
       <TableCell className="text-end">
         <div className="flex gap-1 justify-end">
           {editingId === item.id ? (
@@ -648,7 +649,7 @@ export default function OrgStructure() {
 
   // Reusable row component for tables with parent (departments, sections)
   const renderRowWithParent = (
-    item: { id: string; name: string },
+    item: { id: string; name: string; branches?: { name: string } | null },
     parentName: string | undefined,
     table: TableType
   ) => (
@@ -671,6 +672,7 @@ export default function OrgStructure() {
         )}
       </TableCell>
       <TableCell className="text-muted-foreground text-start">{parentName}</TableCell>
+      <TableCell className="text-muted-foreground text-start">{item.branches?.name || '-'}</TableCell>
       <TableCell className="text-end">
         <div className="flex gap-1 justify-end">
           {editingId === item.id ? (
@@ -1433,13 +1435,14 @@ export default function OrgStructure() {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="text-start">{t('orgStructure.name')}</TableHead>
+                      <TableHead className="text-start">{t('orgStructure.branch')}</TableHead>
                       <TableHead className="text-end">{t('orgStructure.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {divisions.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={2} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
                           {t('orgStructure.noItems')}
                         </TableCell>
                       </TableRow>
@@ -1495,13 +1498,14 @@ export default function OrgStructure() {
                     <TableRow>
                       <TableHead className="text-start">{t('orgStructure.department')}</TableHead>
                       <TableHead className="text-start">{t('orgStructure.parentDivision')}</TableHead>
+                      <TableHead className="text-start">{t('orgStructure.branch')}</TableHead>
                       <TableHead className="text-end">{t('orgStructure.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {departments.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
                           {t('orgStructure.noItems')}
                         </TableCell>
                       </TableRow>
@@ -1559,13 +1563,14 @@ export default function OrgStructure() {
                     <TableRow>
                       <TableHead className="text-start">{t('orgStructure.section')}</TableHead>
                       <TableHead className="text-start">{t('orgStructure.parentDepartment')}</TableHead>
+                      <TableHead className="text-start">{t('orgStructure.branch')}</TableHead>
                       <TableHead className="text-end">{t('orgStructure.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {sections.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
                           {t('orgStructure.noItems')}
                         </TableCell>
                       </TableRow>
