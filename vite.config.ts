@@ -48,15 +48,30 @@ export default defineConfig(({ mode }) => ({
           manualChunks(id) {
             // Vendor chunks - consolidate heavy libraries
             if (id.includes('node_modules')) {
-              // React core + React Query + react-i18next MUST be together to prevent createContext errors
-              if (id.includes('react-dom') || id.includes('react-router') || 
-                  id.includes('/react/') || id.includes('@tanstack/react-query') ||
-                  id.includes('react-i18next')) {
-                return 'vendor-react';
+              // CRITICAL: React + ALL React-dependent libraries MUST be in the same chunk
+              // This prevents circular dependency / loading order issues (forwardRef errors)
+              if (
+                id.includes('/react/') ||
+                id.includes('react-dom') ||
+                id.includes('react-router') ||
+                id.includes('@tanstack/react-query') ||
+                id.includes('react-i18next') ||
+                id.includes('@radix-ui') ||
+                id.includes('react-hook-form') ||
+                id.includes('@hookform') ||
+                id.includes('next-themes') ||
+                id.includes('sonner') ||
+                id.includes('cmdk') ||
+                id.includes('vaul') ||
+                id.includes('embla-carousel-react') ||
+                id.includes('react-day-picker') ||
+                id.includes('react-dropzone') ||
+                id.includes('react-resizable-panels') ||
+                id.includes('input-otp')
+              ) {
+                return 'vendor-react-ecosystem';
               }
-              if (id.includes('@radix-ui')) {
-                return 'vendor-ui';
-              }
+              // Heavy non-React dependencies can be split safely
               if (id.includes('xlsx') || id.includes('exceljs') || id.includes('jspdf') || id.includes('docx')) {
                 return 'vendor-export';
               }
@@ -66,12 +81,9 @@ export default defineConfig(({ mode }) => ({
               if (id.includes('leaflet')) {
                 return 'vendor-maps';
               }
-              // i18next core only (NOT react-i18next which needs React)
+              // Pure i18next core (no React deps)
               if (id.includes('i18next') && !id.includes('react-i18next')) {
                 return 'vendor-i18n';
-              }
-              if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
-                return 'vendor-forms';
               }
               if (id.includes('date-fns')) {
                 return 'vendor-dates';
@@ -79,9 +91,11 @@ export default defineConfig(({ mode }) => ({
               if (id.includes('@supabase')) {
                 return 'vendor-supabase';
               }
-              if (id.includes('node_modules')) {
-                return 'vendor-misc';
+              if (id.includes('zod')) {
+                return 'vendor-validation';
               }
+              // All other node_modules
+              return 'vendor-misc';
             }
             
             // Group app code by feature area to reduce chunk count
@@ -187,9 +201,9 @@ export default defineConfig(({ mode }) => ({
               }
             }
           },
-          chunkFileNames: 'assets/[name]-[hash]-v10.js',
-          entryFileNames: 'assets/[name]-[hash]-v10.js',
-          assetFileNames: 'assets/[name]-[hash]-v10.[ext]',
+          chunkFileNames: 'assets/[name]-[hash]-v11.js',
+          entryFileNames: 'assets/[name]-[hash]-v11.js',
+          assetFileNames: 'assets/[name]-[hash]-v11.[ext]',
         },
       },
       chunkSizeWarningLimit: 2000,
