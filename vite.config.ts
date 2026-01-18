@@ -48,9 +48,10 @@ export default defineConfig(({ mode }) => ({
           manualChunks(id) {
             // Vendor chunks - consolidate heavy libraries
             if (id.includes('node_modules')) {
-              // React core + React Query MUST be together to prevent createContext errors
+              // React core + React Query + react-i18next MUST be together to prevent createContext errors
               if (id.includes('react-dom') || id.includes('react-router') || 
-                  id.includes('/react/') || id.includes('@tanstack/react-query')) {
+                  id.includes('/react/') || id.includes('@tanstack/react-query') ||
+                  id.includes('react-i18next')) {
                 return 'vendor-react';
               }
               if (id.includes('@radix-ui')) {
@@ -65,7 +66,8 @@ export default defineConfig(({ mode }) => ({
               if (id.includes('leaflet')) {
                 return 'vendor-maps';
               }
-              if (id.includes('i18next')) {
+              // i18next core only (NOT react-i18next which needs React)
+              if (id.includes('i18next') && !id.includes('react-i18next')) {
                 return 'vendor-i18n';
               }
               if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
@@ -185,9 +187,9 @@ export default defineConfig(({ mode }) => ({
               }
             }
           },
-          chunkFileNames: 'assets/[name]-[hash]-v9.js',
-          entryFileNames: 'assets/[name]-[hash]-v9.js',
-          assetFileNames: 'assets/[name]-[hash]-v9.[ext]',
+          chunkFileNames: 'assets/[name]-[hash]-v10.js',
+          entryFileNames: 'assets/[name]-[hash]-v10.js',
+          assetFileNames: 'assets/[name]-[hash]-v10.[ext]',
         },
       },
       chunkSizeWarningLimit: 2000,
