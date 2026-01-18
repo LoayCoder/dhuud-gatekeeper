@@ -535,6 +535,7 @@
     "contractorCompany": "شركة المقاول",
     "selectContractorCompany": "اختر شركة المقاول",
     "contractorViolationNote": "فعّل إذا كان هذا الحادث يتضمن مخالفة من شركة مقاول",
+    "contractorObservationNote": "سيتم توجيه هذه الملاحظة إلى مستشار المقاول للفحص",
     "reportedBy": "تم الإبلاغ بواسطة",
     "locationDetails": "تفاصيل الموقع",
     "observationLocation": "موقع الملاحظة",
