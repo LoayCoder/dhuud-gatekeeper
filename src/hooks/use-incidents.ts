@@ -371,6 +371,8 @@ export interface IncidentWithDetails {
   // Related contractor for negative observations
   related_contractor_company_id?: string | null;
   related_contractor_company?: { id: string; company_name: string } | null;
+  // Contractor consultant workflow
+  approval_manager_id?: string | null;
 }
 
 export function useIncident(id: string | undefined) {
@@ -397,6 +399,7 @@ export function useIncident(id: string | undefined) {
           branch_id, site_id, department_id, special_event_id,
           closure_requested_by, closure_requested_at, closure_request_notes,
           related_contractor_company_id,
+          approval_manager_id,
           reporter:profiles!incidents_reporter_id_fkey(id, full_name),
           closure_requester:profiles!incidents_closure_requested_by_fkey(id, full_name),
           branch:branches!incidents_branch_id_fkey(id, name),
@@ -449,6 +452,8 @@ export function useIncident(id: string | undefined) {
         // Related contractor
         related_contractor_company_id: extended.related_contractor_company_id ?? null,
         related_contractor_company: (data as Record<string, unknown>).related_contractor_company ?? null,
+        // Contractor consultant workflow
+        approval_manager_id: extended.approval_manager_id ?? null,
       } as IncidentWithDetails;
     },
     enabled: !!id && !!profile?.tenant_id,
