@@ -592,6 +592,7 @@
     "contractorCompany": "Contractor Company",
     "selectContractorCompany": "Select contractor company",
     "contractorViolationNote": "Enable if this incident involves a contractor company violation",
+    "contractorObservationNote": "This observation will be routed to the Contractor Consultant for screening",
     "site": "Site",
     "selectSite": "Select site",
     "selectBranchFirst": "Select a branch first",

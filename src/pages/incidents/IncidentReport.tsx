@@ -625,8 +625,8 @@ export default function IncidentReport() {
       location_formatted: locationAddress?.formatted_address || undefined,
       // Include active major event if detected
       special_event_id: activeEventId || undefined,
-      // Report against contractor
-      related_contractor_company_id: !isObs && values.is_against_contractor ? values.related_contractor_company_id : undefined,
+      // Report against contractor - applies to BOTH incidents AND observations
+      related_contractor_company_id: values.is_against_contractor ? values.related_contractor_company_id : undefined,
       // AI Tags - linked to contractor or department
       tags: selectedTags.length > 0 ? selectedTags : undefined,
     };
@@ -1520,58 +1520,60 @@ export default function IncidentReport() {
                 </Card>
               )}
 
-              {/* Report Against Contractor - Only for Incidents */}
-              {!isObservation && (
-                <div className="space-y-4 p-4 bg-warning/5 border border-warning/20 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="h-5 w-5 text-warning" />
-                      <div>
-                        <span className="font-medium">{t('incidents.reportAgainstContractor')}</span>
-                        <p className="text-sm text-muted-foreground">{t('incidents.contractorViolationNote')}</p>
-                      </div>
+              {/* Report Against Contractor - For BOTH Incidents AND Observations */}
+              <div className="space-y-4 p-4 bg-warning/5 border border-warning/20 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-5 w-5 text-warning" />
+                    <div>
+                      <span className="font-medium">{t('incidents.reportAgainstContractor')}</span>
+                      <p className="text-sm text-muted-foreground">
+                        {isObservation 
+                          ? t('incidents.contractorObservationNote', 'This observation will be routed to the Contractor Consultant for screening')
+                          : t('incidents.contractorViolationNote')}
+                      </p>
                     </div>
-                    <Switch
-                      checked={isAgainstContractor}
-                      onCheckedChange={(checked) => {
-                        form.setValue('is_against_contractor', checked);
-                        if (!checked) {
-                          form.setValue('related_contractor_company_id', undefined);
-                        }
-                      }}
-                    />
                   </div>
-                  
-                  {isAgainstContractor && (
-                    <FormField
-                      control={form.control}
-                      name="related_contractor_company_id"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('incidents.contractorCompany')}</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value} dir={direction}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={t('incidents.selectContractorCompany')} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {contractorCompanies.filter(c => c.status === 'active').map((company) => (
-                                <SelectItem key={company.id} value={company.id}>
-                                  {i18n.language === 'ar' && company.company_name_ar 
-                                    ? company.company_name_ar 
-                                    : company.company_name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
+                  <Switch
+                    checked={isAgainstContractor}
+                    onCheckedChange={(checked) => {
+                      form.setValue('is_against_contractor', checked);
+                      if (!checked) {
+                        form.setValue('related_contractor_company_id', undefined);
+                      }
+                    }}
+                  />
                 </div>
-              )}
+                
+                {isAgainstContractor && (
+                  <FormField
+                    control={form.control}
+                    name="related_contractor_company_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('incidents.contractorCompany')}</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value} dir={direction}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('incidents.selectContractorCompany')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {contractorCompanies.filter(c => c.status === 'active').map((company) => (
+                              <SelectItem key={company.id} value={company.id}>
+                                {i18n.language === 'ar' && company.company_name_ar 
+                                  ? company.company_name_ar 
+                                  : company.company_name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
 
               {/* Injury Details - Only for Incidents */}
               {!isObservation && (

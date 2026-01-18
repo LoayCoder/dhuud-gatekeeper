@@ -101,11 +101,13 @@ export function useCreateIncident() {
       }
       
       // Determine initial status based on event type:
-      // - Observations: pending_dept_rep_approval (mandatory Dept Rep review)
+      // - Observations: 'submitted' triggers database auto-routing (contractor consultant vs dept rep)
       // - Incidents: pending_dept_rep_incident_review (mandatory Dept Rep review, read-only)
       let initialStatus: string;
       if (isObservation) {
-        initialStatus = 'pending_dept_rep_approval';
+        // Use 'submitted' to trigger auto_route_observation_on_submit database trigger
+        // The trigger will determine routing based on is_contractor_related
+        initialStatus = 'submitted';
       } else {
         initialStatus = 'pending_dept_rep_incident_review';
       }
@@ -129,8 +131,9 @@ export function useCreateIncident() {
         has_damage: isObservation ? false : data.has_damage,
         damage_details: isObservation ? null : (data.has_damage ? data.damage_details : null),
         status: initialStatus as 'submitted', // Cast for type compatibility
-        // Auto-assign to Dept Rep for mandatory review
-        approval_manager_id: deptRepId,
+        // For observations: let database trigger handle routing (contractor consultant vs dept rep)
+        // For incidents: pre-assign to Dept Rep for mandatory review
+        approval_manager_id: isObservation ? null : deptRepId,
         // Location fields
         site_id: data.site_id || null,
         branch_id: data.branch_id || null,
@@ -203,6 +206,17 @@ export function useCreateIncident() {
       } else if (data.department_id) {
         // Otherwise link to department
         (insertData as Record<string, unknown>).tag_department_id = data.department_id;
+      }
+
+      // Log routing decision for observations (database trigger handles actual routing)
+      if (isObservation) {
+        console.log('[ObservationRouting]', {
+          is_contractor_related: !!data.related_contractor_company_id,
+          branchId: data.branch_id,
+          departmentId: data.department_id,
+          status: 'submitted',
+          message: 'Observation submitted - database trigger will determine routing based on contractor relationship'
+        });
       }
 
       const { data: incident, error } = await supabase
