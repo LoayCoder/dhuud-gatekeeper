@@ -24305,145 +24305,6 @@ export type Database = {
           },
         ]
       }
-      visitor_self_registrations: {
-        Row: {
-          approved_at: string | null
-          approved_by: string | null
-          company_name: string
-          converted_visitor_id: string | null
-          created_at: string
-          deleted_at: string | null
-          email: string | null
-          expected_visit_date: string
-          expected_visit_time: string | null
-          expires_at: string | null
-          full_name: string
-          host_department: string | null
-          host_email: string | null
-          host_name: string | null
-          id: string
-          id_document_path: string | null
-          id_verified: boolean | null
-          national_id: string
-          nationality: string | null
-          phone: string
-          photo_path: string | null
-          purpose: string | null
-          registration_token: string
-          rejection_reason: string | null
-          site_id: string | null
-          status:
-            | Database["public"]["Enums"]["visitor_self_registration_status"]
-            | null
-          tenant_id: string
-        }
-        Insert: {
-          approved_at?: string | null
-          approved_by?: string | null
-          company_name: string
-          converted_visitor_id?: string | null
-          created_at?: string
-          deleted_at?: string | null
-          email?: string | null
-          expected_visit_date: string
-          expected_visit_time?: string | null
-          expires_at?: string | null
-          full_name: string
-          host_department?: string | null
-          host_email?: string | null
-          host_name?: string | null
-          id?: string
-          id_document_path?: string | null
-          id_verified?: boolean | null
-          national_id: string
-          nationality?: string | null
-          phone: string
-          photo_path?: string | null
-          purpose?: string | null
-          registration_token?: string
-          rejection_reason?: string | null
-          site_id?: string | null
-          status?:
-            | Database["public"]["Enums"]["visitor_self_registration_status"]
-            | null
-          tenant_id: string
-        }
-        Update: {
-          approved_at?: string | null
-          approved_by?: string | null
-          company_name?: string
-          converted_visitor_id?: string | null
-          created_at?: string
-          deleted_at?: string | null
-          email?: string | null
-          expected_visit_date?: string
-          expected_visit_time?: string | null
-          expires_at?: string | null
-          full_name?: string
-          host_department?: string | null
-          host_email?: string | null
-          host_name?: string | null
-          id?: string
-          id_document_path?: string | null
-          id_verified?: boolean | null
-          national_id?: string
-          nationality?: string | null
-          phone?: string
-          photo_path?: string | null
-          purpose?: string | null
-          registration_token?: string
-          rejection_reason?: string | null
-          site_id?: string | null
-          status?:
-            | Database["public"]["Enums"]["visitor_self_registration_status"]
-            | null
-          tenant_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "visitor_self_registrations_approved_by_fkey"
-            columns: ["approved_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_self_registrations_approved_by_fkey"
-            columns: ["approved_by"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_self_registrations_converted_visitor_id_fkey"
-            columns: ["converted_visitor_id"]
-            isOneToOne: false
-            referencedRelation: "visitors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_self_registrations_converted_visitor_id_fkey"
-            columns: ["converted_visitor_id"]
-            isOneToOne: false
-            referencedRelation: "visitors_secure"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_self_registrations_site_id_fkey"
-            columns: ["site_id"]
-            isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "visitor_self_registrations_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       visitor_workflow_settings: {
         Row: {
           allow_multiple_active_visits: boolean | null
@@ -28227,11 +28088,6 @@ export type Database = {
         | "viewed"
         | "completed"
         | "expired"
-      visitor_self_registration_status:
-        | "pending"
-        | "approved"
-        | "rejected"
-        | "expired"
       visitor_type: "guest" | "contractor_visitor" | "trainer" | "vip"
     }
     CompositeTypes: {
@@ -28590,12 +28446,6 @@ export const Constants = {
         "sent",
         "viewed",
         "completed",
-        "expired",
-      ],
-      visitor_self_registration_status: [
-        "pending",
-        "approved",
-        "rejected",
         "expired",
       ],
       visitor_type: ["guest", "contractor_visitor", "trainer", "vip"],

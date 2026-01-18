@@ -175,6 +175,7 @@ export function AppSidebar() {
       menuCode: 'hsse_management',
       isActive: location.pathname.startsWith("/incidents") || 
                 location.pathname.startsWith("/audits") || 
+                location.pathname.startsWith("/visitors") ||
                 location.pathname.startsWith("/security"),
       items: [
         {
@@ -263,7 +264,7 @@ export function AppSidebar() {
           title: t('navigation.security'),
           icon: Shield,
           menuCode: 'security',
-          isActive: location.pathname.startsWith("/security"),
+          isActive: location.pathname.startsWith("/visitors") || location.pathname.startsWith("/security"),
           subItems: [
             {
               title: t('security.menu.securityDashboard', 'Security Dashboard'),
@@ -282,6 +283,18 @@ export function AppSidebar() {
               url: "/security/gate-dashboard",
               icon: Shield,
               menuCode: 'gate_dashboard',
+            },
+            {
+              title: t('security.visitors.preRegister', 'Pre-Register Visitor'),
+              url: "/visitors/register",
+              icon: Plus,
+              menuCode: 'visitor_register',
+            },
+            {
+              title: t('security.visitors.list', 'Visitor Directory'),
+              url: "/visitors/list",
+              icon: List,
+              menuCode: 'visitor_list',
             },
             {
               title: t('security.blacklist.title', 'Blacklist Management'),
@@ -420,51 +433,6 @@ export function AppSidebar() {
               menuCode: 'contractor_list',
             },
           ],
-        },
-      ],
-    },
-    // Visitors Module - Standalone between HSSE and Asset Management
-    {
-      title: t('navigation.visitors', 'Visitors'),
-      icon: Users,
-      menuCode: 'visitors_module',
-      isActive: location.pathname.startsWith("/visitors") || location.pathname.startsWith("/reception"),
-      items: [
-        {
-          title: t('visitors.nav.dashboard', 'Visitor Dashboard'),
-          url: "/visitors/dashboard",
-          icon: LayoutDashboard,
-          menuCode: 'visitor_dashboard',
-        },
-        {
-          title: t('visitors.nav.preRegister', 'Pre-Register Visitor'),
-          url: "/visitors/register",
-          icon: Plus,
-          menuCode: 'visitor_register',
-        },
-        {
-          title: t('visitors.nav.walkIn', 'Walk-In Registration'),
-          url: "/visitors/walk-in",
-          icon: UserCheck,
-          menuCode: 'walk_in_registration',
-        },
-        {
-          title: t('visitors.nav.today', "Today's Visitors"),
-          url: "/visitors/today",
-          icon: Clock,
-          menuCode: 'today_visitors',
-        },
-        {
-          title: t('visitors.nav.directory', 'Visitor Directory'),
-          url: "/visitors/list",
-          icon: List,
-          menuCode: 'visitor_list',
-        },
-        {
-          title: t('visitors.nav.settings', 'Visitor Settings'),
-          url: "/admin/visitor-settings",
-          icon: Settings2,
-          menuCode: 'admin_visitor_settings',
         },
       ],
     },
