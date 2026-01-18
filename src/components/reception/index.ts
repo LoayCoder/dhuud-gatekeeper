@@ -4,3 +4,4 @@
 export { QuickCheckinCard } from './QuickCheckinCard';
 export { TodayVisitorsWidget } from './TodayVisitorsWidget';
 export { VisitorBadgePrint } from './VisitorBadgePrint';
+export { VisitorBulkImportDialog } from './VisitorBulkImportDialog';
