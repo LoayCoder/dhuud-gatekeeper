@@ -288,12 +288,11 @@ export function useTenantBySlug(slug: string | undefined) {
 
       const { data, error } = await supabase
         .from('tenants')
-        .select('id, name, logo_url, slug')
+        .select('id, name, logo_light_url, logo_dark_url, slug')
         .eq('slug', slug)
         .single();
 
       if (error) throw error;
-      return { ...data, name_ar: data.name };
       return data;
     },
     enabled: !!slug,

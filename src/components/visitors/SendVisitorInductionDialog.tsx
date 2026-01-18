@@ -45,7 +45,7 @@ export function SendVisitorInductionDialog({
   const { data: videos, isLoading: videosLoading } = useInductionVideosForVisitors();
   const sendInduction = useSendVisitorInduction();
 
-  type VideoItem = { id: string; title: string; description?: string; video_url: string; duration_seconds?: number; is_required?: boolean };
+  type VideoItem = { id: string; title: string; description: string | null; video_url: string; duration_seconds: number | null; is_active: boolean };
   const videoList = videos as VideoItem[] | undefined;
   const selectedVideo = videoList?.find(v => v.id === selectedVideoId);
 
@@ -128,11 +128,6 @@ export function SendVisitorInductionDialog({
                   <span className="flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     {Math.round(selectedVideo.duration_seconds / 60)} {t('common.minutes', 'min')}
-                  </span>
-                )}
-                {selectedVideo.is_required && (
-                  <span className="text-yellow-600">
-                    {t('visitors.induction.required', 'Required')}
                   </span>
                 )}
               </div>
