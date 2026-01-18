@@ -23,6 +23,9 @@ export default defineConfig(({ mode }) => ({
       injectRegister: 'auto',
       includeAssets: ['favicon.ico', 'placeholder.svg', 'sw-version.js'],
       manifest: false,
+      injectManifest: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB limit
+      },
       devOptions: {
         enabled: mode === 'development',
         type: 'module',
@@ -75,8 +78,9 @@ export default defineConfig(({ mode }) => ({
               if (id.includes('@supabase')) {
                 return 'vendor-supabase';
               }
-              // All other node_modules in one chunk
-              return 'vendor-misc';
+              if (id.includes('node_modules')) {
+                return 'vendor-misc';
+              }
             }
             
             // Group app code by feature area to reduce chunk count
@@ -108,8 +112,27 @@ export default defineConfig(({ mode }) => ({
               if (id.includes('/pages/reports/') || id.includes('/components/reports/')) {
                 return 'feature-reports';
               }
+              // Split hooks by category to avoid mega-chunk
               if (id.includes('/hooks/')) {
-                return 'app-hooks';
+                if (id.includes('use-incident') || id.includes('use-observation') || id.includes('use-event')) {
+                  return 'hooks-incidents';
+                }
+                if (id.includes('use-inspection') || id.includes('use-audit') || id.includes('use-finding')) {
+                  return 'hooks-inspections';
+                }
+                if (id.includes('use-asset') || id.includes('use-maintenance') || id.includes('use-equipment')) {
+                  return 'hooks-assets';
+                }
+                if (id.includes('use-visitor') || id.includes('use-gate') || id.includes('use-reception')) {
+                  return 'hooks-visitors';
+                }
+                if (id.includes('use-security') || id.includes('use-patrol') || id.includes('use-guard')) {
+                  return 'hooks-security';
+                }
+                if (id.includes('use-contractor') || id.includes('use-worker') || id.includes('use-induction')) {
+                  return 'hooks-contractors';
+                }
+                return 'hooks-common';
               }
               if (id.includes('/lib/') || id.includes('/utils/')) {
                 return 'app-utils';
