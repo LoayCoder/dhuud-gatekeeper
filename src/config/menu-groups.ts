@@ -116,6 +116,15 @@ export const menuGroups: MenuGroup[] = [
     sortOrder: 30,
   },
   
+  // Visitors Management - Standalone module
+  {
+    code: "visitors_module",
+    title: { en: "Visitors", ar: "الزوار" },
+    translationKey: "navigation.visitors",
+    icon: Users,
+    sortOrder: 15,
+  },
+  
   // Asset Management
   {
     code: "asset_management",
