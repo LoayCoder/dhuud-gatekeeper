@@ -32,6 +32,7 @@ export interface Department {
   name: string;
   division_id: string;
   division_name?: string;
+  branch_id: string | null;
 }
 
 export interface Section {
@@ -132,6 +133,7 @@ export function useTenantDepartments() {
           id,
           name,
           division_id,
+          branch_id,
           divisions!departments_division_id_fkey (name)
         `)
         .eq('tenant_id', profile.tenant_id)
@@ -145,6 +147,7 @@ export function useTenantDepartments() {
         name: dept.name,
         division_id: dept.division_id,
         division_name: dept.divisions?.name ?? null,
+        branch_id: dept.branch_id ?? null,
       })) as Department[];
     },
     enabled: !!profile?.tenant_id,
