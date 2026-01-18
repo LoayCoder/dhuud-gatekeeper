@@ -34,9 +34,13 @@ export function useInvestigationEditAccess(
   
   // Check if user is assigned contractor consultant for contractor observation workflow
   const isConsultantStage = 
+    incident?.status === 'expert_screening' ||
     incident?.status === 'pending_consultant_screening' ||
     incident?.status === 'pending_consultant_review' ||
-    incident?.status === 'pending_consultant_actions';
+    incident?.status === 'pending_consultant_actions' ||
+    incident?.status === 'pending_site_client_approval' ||
+    incident?.status === 'pending_contractor_implementation' ||
+    incident?.status === 'pending_consultant_verification';
   
   const isAssignedConsultant = !!(
     isConsultantStage && 
