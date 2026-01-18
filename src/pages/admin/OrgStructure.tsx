@@ -196,13 +196,15 @@ export default function OrgStructure() {
         .order('name');
       sectionsQuery = applyBranchFilter(sectionsQuery);
 
-      // Sites query with branch filter
-      let sitesQuery = supabase.from('sites')
+      // SITES: Always fetch ALL sites for the tenant (like Branches)
+      // Site Management should show all sites regardless of active branch filter
+      // The local branch filter dropdown handles filtering in the UI
+      const sitesQuery = supabase.from('sites')
         .select('id, name, latitude, longitude, branch_id, is_active, boundary_polygon, branches(name)')
         .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('name');
-      sitesQuery = applyBranchFilter(sitesQuery);
+      // NOTE: Branch filter is NOT applied to sites query
 
       // Buildings query with branch filter
       let buildingsQuery = supabase.from('buildings')
