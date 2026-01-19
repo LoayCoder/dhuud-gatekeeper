@@ -41,16 +41,16 @@ export function AgentWorkloadCard() {
       </CardHeader>
       <CardContent className="space-y-4">
         {workload.map((agent) => {
-          const workloadPercent = Math.min((agent.total_active / MAX_RECOMMENDED_TICKETS) * 100, 100);
-          const isOverloaded = agent.total_active >= MAX_RECOMMENDED_TICKETS;
-          const isNearCapacity = agent.total_active >= MAX_RECOMMENDED_TICKETS * 0.8;
+          const workloadPercent = Math.min((agent.open_tickets / MAX_RECOMMENDED_TICKETS) * 100, 100);
+          const isOverloaded = agent.open_tickets >= MAX_RECOMMENDED_TICKETS;
+          const isNearCapacity = agent.open_tickets >= MAX_RECOMMENDED_TICKETS * 0.8;
 
           return (
             <div key={agent.agent_id} className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">{agent.agent_name}</span>
+                  <span className="text-sm font-medium">{agent.full_name}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge 
@@ -63,7 +63,7 @@ export function AgentWorkloadCard() {
                           : 'bg-green-500/10 text-green-500'
                     }`}
                   >
-                    {agent.total_active} / {MAX_RECOMMENDED_TICKETS}
+                    {agent.open_tickets} / {MAX_RECOMMENDED_TICKETS}
                   </Badge>
                 </div>
               </div>
@@ -78,9 +78,9 @@ export function AgentWorkloadCard() {
                 }`}
               />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{agent.open_tickets} {t('adminSupport.open')}, {agent.in_progress_tickets} {t('adminSupport.inProgressShort')}</span>
-                {agent.avg_resolution_hours && (
-                  <span>{t('adminSupport.avgResolution')}: {agent.avg_resolution_hours}h</span>
+                <span>{agent.open_tickets} {t('adminSupport.open')}</span>
+                {agent.avg_response_time > 0 && (
+                  <span>{t('adminSupport.avgResolution')}: {Math.round(agent.avg_response_time)}m</span>
                 )}
               </div>
             </div>

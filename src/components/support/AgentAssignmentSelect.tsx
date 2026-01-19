@@ -52,14 +52,14 @@ export function AgentAssignmentSelect({
                   <Badge 
                     variant="outline" 
                     className={`text-xs ${
-                      agentWorkload.total_active >= 10 
+                      agentWorkload.open_tickets >= 10 
                         ? 'bg-destructive/10 text-destructive' 
-                        : agentWorkload.total_active >= 5 
+                        : agentWorkload.open_tickets >= 5 
                           ? 'bg-orange-500/10 text-orange-500' 
                           : 'bg-green-500/10 text-green-500'
                     }`}
                   >
-                    {agentWorkload.total_active} {t('adminSupport.activeTickets')}
+                    {agentWorkload.open_tickets} {t('adminSupport.activeTickets')}
                   </Badge>
                 )}
               </div>
