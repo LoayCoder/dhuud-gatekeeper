@@ -3571,6 +3571,8 @@
     "nameRequired": "الاسم مطلوب.",
     "divisionRequired": "القسم مطلوب",
     "departmentRequired": "الإدارة مطلوبة",
+    "departmentAlreadyExists": "يوجد بالفعل قسم بهذا الاسم في الفرع والقطاع المحددين.",
+    "sectionAlreadyExists": "يوجد بالفعل وحدة بهذا الاسم في الفرع والإدارة المحددين.",
     "noTenant": "حسابك غير مرتبط بأي مؤسسة.",
     "noItems": "لا توجد عناصر. أضف واحدًا أعلاه.",
     "department": "الإدارة",

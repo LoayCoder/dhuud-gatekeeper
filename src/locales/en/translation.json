@@ -3808,6 +3808,8 @@
     "nameRequired": "Name is required.",
     "divisionRequired": "Division is required",
     "departmentRequired": "Department is required",
+    "departmentAlreadyExists": "A department with this name already exists in the selected branch and division.",
+    "sectionAlreadyExists": "A section with this name already exists in the selected branch and department.",
     "noTenant": "Your account is not linked to any organization.",
     "noItems": "No items found. Add one above.",
     "department": "Department",
