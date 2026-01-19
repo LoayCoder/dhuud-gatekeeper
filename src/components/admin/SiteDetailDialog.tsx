@@ -23,7 +23,8 @@ import { Loader2, Trash2, Star, Plus, Circle } from 'lucide-react';
 import { SiteLocationPicker } from './SiteLocationPicker';
 import { useSiteDepartments } from '@/hooks/use-site-departments';
 import { useSiteSections } from '@/hooks/use-site-sections';
-import { useTenantDepartments, useTenantSections } from '@/hooks/use-org-hierarchy';
+import { useTenantSections } from '@/hooks/use-org-hierarchy';
+import { useDepartmentsByBranch } from '@/hooks/use-departments-by-site';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -72,7 +73,9 @@ export function SiteDetailDialog({
   const [showMap, setShowMap] = useState(false);
   const [mapKey, setMapKey] = useState(0); // Force fresh map mount
 
-  const { data: allDepartments, isLoading: loadingDepartments } = useTenantDepartments();
+  // Filter departments by the site's branch for proper hierarchy compliance
+  const { data: branchDepartments = [], isLoading: loadingDepartments } = useDepartmentsByBranch(branchId || undefined);
+  const allDepartments = branchDepartments;
   const { data: allSections, isLoading: loadingSections } = useTenantSections();
   const {
     departments: assignedDepartments,
