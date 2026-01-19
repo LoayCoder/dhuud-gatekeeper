@@ -42,19 +42,24 @@ export function HandoverApprovalDialog({ handover, open, onOpenChange }: Handove
 
       if (!profile?.tenant_id) return [];
 
-      // Get guards in the same tenant
-      const { data: roles } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .in('role', ['security_guard', 'security_supervisor']);
+      // Get guards in the same tenant using normalized role schema
+      const { data: roleAssignments } = await supabase
+        .from('user_role_assignments')
+        .select(`
+          user_id,
+          roles!inner(code, is_active)
+        `)
+        .eq('tenant_id', profile.tenant_id)
+        .eq('roles.is_active', true)
+        .in('roles.code', ['security_guard', 'security_supervisor']);
 
-      if (!roles?.length) return [];
+      if (!roleAssignments?.length) return [];
 
       const { data: profiles } = await supabase
         .from('profiles')
         .select('id, full_name')
         .eq('tenant_id', profile.tenant_id)
-        .in('id', roles.map(r => r.user_id))
+        .in('id', roleAssignments.map(r => r.user_id))
         .neq('id', handover.outgoing_guard_id) // Exclude the outgoing guard
         .eq('is_active', true)
         .is('deleted_at', null);
