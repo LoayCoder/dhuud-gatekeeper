@@ -39,7 +39,7 @@ export function useSiteDepartments(siteId?: string) {
           is_primary,
           created_at,
           department_rep_id,
-          departments:department_id (
+          department:department_id (
             id,
             name
           ),
