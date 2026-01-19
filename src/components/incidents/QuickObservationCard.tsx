@@ -5,11 +5,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { Camera, MapPin, Loader2, CheckCircle2, AlertTriangle, Send, X, Trophy, User, Building2, HardHat, Sparkles, RefreshCw, Tags, WifiOff, ImagePlus, Info } from 'lucide-react';
+import { Camera, MapPin, Loader2, CheckCircle2, AlertTriangle, Send, X, Trophy, User, Building2, HardHat, Sparkles, RefreshCw, Tags, WifiOff, ImagePlus, Info, CalendarDays, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -64,6 +65,9 @@ const createQuickObservationSchema = (t: (key: string) => string) => z.object({
   description: z.string().min(1, t('incidents.validation.descriptionRequired')).max(2000),
   subtype: z.string().min(1, t('incidents.validation.subtypeRequired')),
   severity_v2: z.enum(['level_1', 'level_2', 'level_3', 'level_4', 'level_5'] as const),
+  // Observation Date & Time fields
+  observed_date: z.string().min(1, t('quickObservation.validation.dateRequired')),
+  observed_time: z.string().min(1, t('quickObservation.validation.timeRequired')),
   site_id: z.string().optional(),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
@@ -162,12 +166,19 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
   const sites = isOnline ? onlineSites : offlineSites;
   const contractorCompanies = isOnline ? onlineContractorCompanies : offlineContractorCompanies;
   
+  // Initialize with current date and time
+  const now = new Date();
+  const currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+  const currentTime = now.toTimeString().slice(0, 5); // HH:MM
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       description: '',
       subtype: '',
       severity_v2: 'level_2',
+      observed_date: currentDate,
+      observed_time: currentTime,
       site_id: profile?.assigned_site_id || '',
       latitude: undefined,
       longitude: undefined,
@@ -371,12 +382,15 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
     
     // OFFLINE MODE: Store locally and show success
     if (!isOnline) {
+      // Combine user-selected date and time into occurred_at
+      const observedDateTime = `${values.observed_date}T${values.observed_time}:00`;
+      
       const offlineFormData: OfflineReportFormData = {
         title: values.description.slice(0, 80) + (values.description.length > 80 ? '...' : ''),
         description: values.description,
         event_type: 'observation',
         subtype: values.subtype,
-        occurred_at: new Date().toISOString(),
+        occurred_at: observedDateTime,
         site_id: values.site_id || undefined,
         severity: values.severity_v2,
         risk_rating: values.severity_v2 === 'level_1' ? 'low' : values.severity_v2 === 'level_2' ? 'medium' : 'high',
@@ -411,13 +425,16 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
       return;
     }
     
+    // Combine user-selected date and time into occurred_at for online submission
+    const observedDateTimeOnline = `${values.observed_date}T${values.observed_time}:00`;
+    
     // ONLINE MODE: Normal submission flow
     const formData: IncidentFormData = {
       title: values.description.slice(0, 80) + (values.description.length > 80 ? '...' : ''),
       description: values.description,
       event_type: 'observation',
       subtype: values.subtype,
-      occurred_at: new Date().toISOString(),
+      occurred_at: observedDateTimeOnline,
       severity: values.severity_v2 as SeverityLevelV2,
       // Map severity_v2 to risk_rating for backward compatibility
       risk_rating: values.severity_v2 === 'level_1' ? 'low' : values.severity_v2 === 'level_2' ? 'medium' : 'high',
@@ -628,6 +645,46 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                     </>
                   )}
                 </div>
+              </div>
+              
+              {/* Observation Date & Time */}
+              <div className="grid grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="observed_date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1.5">
+                        <CalendarDays className="h-3.5 w-3.5" />
+                        {t('quickObservation.observationDate')}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="date"
+                          max={new Date().toISOString().split('T')[0]}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="observed_time"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1.5">
+                        <Clock className="h-3.5 w-3.5" />
+                        {t('quickObservation.observationTime')}
+                      </FormLabel>
+                      <FormControl>
+                        <Input type="time" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
               
               {/* Description */}

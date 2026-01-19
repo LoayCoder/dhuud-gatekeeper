@@ -8121,7 +8121,14 @@
     "selectContractorCompany": "اختر شركة المقاول...",
     "manualSiteSelection": "أو اختر الموقع يدوياً",
     "selectSitePlaceholder": "اختر موقع...",
-    "crossBranchNote": "أنت تُبلّغ من {{branchName}}. سيتم توجيه سير العمل عبر فرعك الأصلي."
+    "crossBranchNote": "أنت تُبلّغ من {{branchName}}. سيتم توجيه سير العمل عبر فرعك الأصلي.",
+    "observationDate": "تاريخ الملاحظة",
+    "observationTime": "وقت الملاحظة",
+    "validation": {
+      "dateRequired": "التاريخ مطلوب",
+      "timeRequired": "الوقت مطلوب",
+      "futureDateNotAllowed": "التواريخ المستقبلية غير مسموح بها"
+    }
   },
   "observations": {
     "ai": {

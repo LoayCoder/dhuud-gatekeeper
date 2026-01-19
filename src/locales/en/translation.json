@@ -8428,7 +8428,14 @@
     "selectContractorCompany": "Select the contractor company...",
     "manualSiteSelection": "Or select site manually",
     "selectSitePlaceholder": "Select a site...",
-    "crossBranchNote": "You are reporting from {{branchName}}. Workflow will follow your home branch."
+    "crossBranchNote": "You are reporting from {{branchName}}. Workflow will follow your home branch.",
+    "observationDate": "Observation Date",
+    "observationTime": "Observation Time",
+    "validation": {
+      "dateRequired": "Date is required",
+      "timeRequired": "Time is required",
+      "futureDateNotAllowed": "Future dates are not allowed"
+    }
   },
   "observations": {
     "ai": {

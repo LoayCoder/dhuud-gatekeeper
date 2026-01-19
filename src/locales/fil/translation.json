@@ -6006,7 +6006,14 @@
     "analysisComplete": "Nagsuhestiyon ang AI ng uri at antas ng panganib",
     "noSiteNearby": "Walang nakarehistrong site sa malapit",
     "canSubmitWithoutLocation": "Maaari ka pa ring magsumite nang walang lokasyon",
-    "locationOptional": "Opsyonal lang ang lokasyon"
+    "locationOptional": "Opsyonal lang ang lokasyon",
+    "observationDate": "Petsa ng Obserbasyon",
+    "observationTime": "Oras ng Obserbasyon",
+    "validation": {
+      "dateRequired": "Kinakailangan ang petsa",
+      "timeRequired": "Kinakailangan ang oras",
+      "futureDateNotAllowed": "Hindi pinapayagan ang mga petsa sa hinaharap"
+    }
   },
   "positiveObservation": {
     "recognitionType": "Sino ang iyong kinikilala?",
