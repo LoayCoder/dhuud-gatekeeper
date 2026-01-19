@@ -271,13 +271,13 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
     const hasFullAccess = form.getValues('has_full_branch_access');
     if (selectedBranchIds.length === 0 && !hasFullAccess) return [];
     
-    // Get divisions to filter
+    // Get divisions to filter - include hybrid divisions (branch_id = NULL) for all users
     let divisions = hierarchy.divisions;
     
-    // If not full access, filter by selected branches
+    // If not full access, filter by selected branches OR hybrid divisions (branch_id = NULL)
     if (!hasFullAccess && selectedBranchIds.length > 0) {
       divisions = divisions.filter((d) => 
-        selectedBranchIds.includes(d.branch_id)
+        d.branch_id === null || selectedBranchIds.includes(d.branch_id)
       );
     }
     
