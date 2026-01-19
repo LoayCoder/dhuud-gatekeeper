@@ -508,3 +508,93 @@ export function useGuardCheckOut() {
     },
   });
 }
+
+export interface AssignTeamToShiftParams {
+  team_id: string;
+  zone_id: string;
+  shift_id: string;
+  start_date: string;
+  end_date: string;
+  excluded_days?: number[];
+}
+
+export function useAssignTeamToShift() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (params: AssignTeamToShiftParams) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single();
+      if (!profile?.tenant_id) throw new Error('No tenant found');
+
+      // Fetch team members
+      const { data: teamMembers, error: membersError } = await supabase
+        .from('security_team_members')
+        .select('guard_id')
+        .eq('team_id', params.team_id)
+        .eq('tenant_id', profile.tenant_id)
+        .is('deleted_at', null);
+
+      if (membersError) throw membersError;
+      if (!teamMembers?.length) throw new Error('No members in team');
+
+      // Fetch team supervisor
+      const { data: team } = await supabase
+        .from('security_teams')
+        .select('supervisor_id')
+        .eq('id', params.team_id)
+        .single();
+
+      // Generate dates in range, excluding off days
+      const dates = eachDayOfInterval({
+        start: parseISO(params.start_date),
+        end: parseISO(params.end_date)
+      }).filter(date => !params.excluded_days?.includes(getDay(date)));
+
+      if (dates.length === 0) {
+        throw new Error('No valid dates after excluding off days');
+      }
+
+      const now = new Date().toISOString();
+      const entries = dates.flatMap(date => 
+        teamMembers.map(member => ({
+          guard_id: member.guard_id,
+          zone_id: params.zone_id,
+          shift_id: params.shift_id,
+          supervisor_id: team?.supervisor_id || null,
+          roster_date: format(date, 'yyyy-MM-dd'),
+          assigned_at: now,
+          tenant_id: profile.tenant_id,
+          status: 'scheduled',
+        }))
+      );
+
+      const { error } = await supabase.from('shift_roster').insert(entries);
+      if (error) throw error;
+
+      return { 
+        count: entries.length, 
+        members: teamMembers.length,
+        days: dates.length 
+      };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['shift-roster'] });
+      queryClient.invalidateQueries({ queryKey: ['my-upcoming-shifts'] });
+      toast({ 
+        title: `${result.members} guards assigned for ${result.days} day(s)`,
+        description: `Total ${result.count} roster entries created`
+      });
+    },
+    onError: (error) => {
+      toast({ title: 'Failed to assign team', description: error.message, variant: 'destructive' });
+    },
+  });
+}

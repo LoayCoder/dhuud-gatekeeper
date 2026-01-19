@@ -104,37 +104,36 @@ export function useGuardActivity(guardId: string | null, limit: number = 50) {
         }
       }
 
-      // Fetch patrol scan logs
+      // Fetch security patrols by this guard
       const { data: patrols } = await supabase
-        .from('patrol_scan_logs')
-        .select(`
-          id,
-          scanned_at,
-          scan_status,
-          checkpoint:patrol_checkpoints(name)
-        `)
+        .from('security_patrols')
+        .select('id, actual_start, actual_end, status, checkpoints_visited, checkpoints_total')
         .eq('tenant_id', tenantId)
-        .eq('guard_id', guardId)
-        .gte('scanned_at', last24Hours)
+        .eq('patrol_officer_id', guardId)
+        .gte('actual_start', last24Hours)
         .is('deleted_at', null)
-        .order('scanned_at', { ascending: false })
+        .order('actual_start', { ascending: false })
         .limit(20);
 
       if (patrols) {
-        for (const patrol of patrols as any[]) {
-          const checkpoint = patrol.checkpoint as { name?: string } | null;
-          const isSuccess = patrol.scan_status === 'success' || patrol.scan_status === 'on_time';
-          activities.push({
-            id: `patrol-${patrol.id}`,
-            type: 'patrol_scan',
-            timestamp: patrol.scanned_at,
-            title: isSuccess ? 'Patrol Checkpoint Scanned' : 'Patrol Scan Issue',
-            titleAr: isSuccess ? 'تم مسح نقطة التفتيش' : 'مشكلة في المسح',
-            description: checkpoint?.name || 'Checkpoint',
-            descriptionAr: checkpoint?.name || 'نقطة التفتيش',
-            severity: isSuccess ? 'success' : 'warning',
-            metadata: { status: patrol.scan_status },
-          });
+        for (const patrol of patrols) {
+          if (patrol.actual_start) {
+            const completed = patrol.status === 'completed';
+            activities.push({
+              id: `patrol-${patrol.id}`,
+              type: 'patrol_scan',
+              timestamp: patrol.actual_start,
+              title: completed ? 'Patrol Completed' : 'Patrol Started',
+              titleAr: completed ? 'اكتمل التفتيش' : 'بدأ التفتيش',
+              description: `${patrol.checkpoints_visited || 0}/${patrol.checkpoints_total || 0} checkpoints`,
+              descriptionAr: `${patrol.checkpoints_visited || 0}/${patrol.checkpoints_total || 0} نقاط تفتيش`,
+              severity: completed ? 'success' : 'info',
+              metadata: { 
+                status: patrol.status,
+                checkpoints: `${patrol.checkpoints_visited}/${patrol.checkpoints_total}`
+              },
+            });
+          }
         }
       }
 
