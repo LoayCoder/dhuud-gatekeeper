@@ -2870,6 +2870,8 @@
     "nameRequired": "نام ضروری ہے۔",
     "divisionRequired": "ڈویژن ضروری ہے",
     "departmentRequired": "محکمہ ضروری ہے",
+    "departmentAlreadyExists": "اس نام کا محکمہ منتخب برانچ اور ڈویژن میں پہلے سے موجود ہے۔",
+    "sectionAlreadyExists": "اس نام کا سیکشن منتخب برانچ اور محکمہ میں پہلے سے موجود ہے۔",
     "noTenant": "آپ کا اکاؤنٹ کسی تنظیم سے منسلک نہیں ہے۔",
     "noItems": "کوئی آئٹمز نہیں۔ اوپر ایک شامل کریں۔",
     "department": "محکمہ",

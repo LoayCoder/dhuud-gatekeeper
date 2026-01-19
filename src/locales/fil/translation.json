@@ -2847,6 +2847,8 @@
     "nameRequired": "Kinakailangan ang pangalan.",
     "divisionRequired": "Kinakailangan ang division",
     "departmentRequired": "Kinakailangan ang department",
+    "departmentAlreadyExists": "May department na sa pangalang ito sa napiling branch at division.",
+    "sectionAlreadyExists": "May section na sa pangalang ito sa napiling branch at department.",
     "noTenant": "Ang iyong account ay hindi nauugnay sa anumang organisasyon.",
     "noItems": "Walang mga item. Magdagdag ng isa sa itaas.",
     "department": "Department",

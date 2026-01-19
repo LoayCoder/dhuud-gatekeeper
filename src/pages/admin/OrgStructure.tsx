@@ -367,7 +367,7 @@ export default function OrgStructure() {
         }
       }
 
-      // Add parent FKs for departments
+      // Add parent FKs for departments with duplicate validation
       if (table === 'departments') {
         if (!parentId) {
           toast({ title: t('common.error'), description: t('orgStructure.divisionRequired'), variant: "destructive" });
@@ -375,9 +375,26 @@ export default function OrgStructure() {
           return;
         }
         payload.division_id = parentId;
+        
+        // Check for duplicate department (same name + same division + same branch)
+        const branchId = selectedBranchForDepartment === 'all' ? null : selectedBranchForDepartment;
+        const existingDept = departments.find(d => 
+          d.name.toLowerCase() === newItemName.trim().toLowerCase() &&
+          d.division_id === parentId &&
+          d.branch_id === branchId
+        );
+        if (existingDept) {
+          toast({ 
+            title: t('common.error'), 
+            description: t('orgStructure.departmentAlreadyExists'),
+            variant: "destructive" 
+          });
+          setCreating(false);
+          return;
+        }
       }
 
-      // Add parent FKs for sections
+      // Add parent FKs for sections with duplicate validation
       if (table === 'sections') {
         if (!parentId) {
           toast({ title: t('common.error'), description: t('orgStructure.departmentRequired'), variant: "destructive" });
@@ -385,6 +402,23 @@ export default function OrgStructure() {
           return;
         }
         payload.department_id = parentId;
+        
+        // Check for duplicate section (same name + same department + same branch)
+        const branchId = selectedBranchForSection === 'all' ? null : selectedBranchForSection;
+        const existingSection = sections.find(s => 
+          s.name.toLowerCase() === newItemName.trim().toLowerCase() &&
+          s.department_id === parentId &&
+          s.branch_id === branchId
+        );
+        if (existingSection) {
+          toast({ 
+            title: t('common.error'), 
+            description: t('orgStructure.sectionAlreadyExists'),
+            variant: "destructive" 
+          });
+          setCreating(false);
+          return;
+        }
       }
 
       // Add building-specific fields

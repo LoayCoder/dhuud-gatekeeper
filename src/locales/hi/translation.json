@@ -2855,6 +2855,8 @@
     "nameRequired": "नाम आवश्यक है।",
     "divisionRequired": "डिवीजन आवश्यक है",
     "departmentRequired": "विभाग आवश्यक है",
+    "departmentAlreadyExists": "इस नाम का विभाग चयनित शाखा और डिवीजन में पहले से मौजूद है।",
+    "sectionAlreadyExists": "इस नाम का अनुभाग चयनित शाखा और विभाग में पहले से मौजूद है।",
     "noTenant": "आपका खाता किसी संगठन से संबद्ध नहीं है।",
     "noItems": "कोई आइटम नहीं। ऊपर एक जोड़ें।",
     "department": "विभाग",
