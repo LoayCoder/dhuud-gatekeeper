@@ -1907,6 +1907,7 @@
   },
 "common": {
     "loading": "Loading...",
+    "phone": "Phone",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -8122,7 +8123,9 @@
       "myApprovals": "My Approvals",
       "myApprovalsDesc": "Review pending approvals",
       "inspections": "Inspections",
-      "inspectionsDesc": "Conduct inspections"
+      "inspectionsDesc": "Conduct inspections",
+      "myShift": "My Shift",
+      "myShiftDesc": "View your current shift"
     }
   },
   "platformSettings": {

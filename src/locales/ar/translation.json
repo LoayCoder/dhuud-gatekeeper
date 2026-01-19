@@ -54,11 +54,6 @@
     "helpTroubleshoot3": "جرب استخدام متصفح مختلف إذا استمرت المشكلة",
     "helpTroubleshoot4": "تأكد من إعداد بصمة الإصبع أو فتح الوجه على جهازك"
   },
-  "scanner": {
-    "acknowledge": "تأكيد",
-    "scanNext": "المسح التالي",
-    "logEntry": "تسجيل الدخول"
-  },
   "security": {
     "gate": {
       "alreadyOnSite": "متواجد بالفعل",
@@ -1721,6 +1716,7 @@
   },
 "common": {
     "loading": "جاري التحميل...",
+    "phone": "الهاتف",
     "save": "حفظ",
     "cancel": "إلغاء",
     "delete": "حذف",
@@ -7848,7 +7844,9 @@
       "myApprovals": "موافقاتي",
       "myApprovalsDesc": "مراجعة الموافقات المعلقة",
       "inspections": "التفتيشات",
-      "inspectionsDesc": "إجراء التفتيشات"
+      "inspectionsDesc": "إجراء التفتيشات",
+      "myShift": "ورديتي",
+      "myShiftDesc": "عرض ورديتك الحالية"
     }
   },
   "platformSettings": {

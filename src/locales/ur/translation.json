@@ -1202,6 +1202,7 @@
   },
 "common": {
     "loading": "لوڈ ہو رہا ہے...",
+    "phone": "فون",
     "save": "محفوظ کریں",
     "cancel": "منسوخ کریں",
     "delete": "حذف کریں",
@@ -5940,7 +5941,31 @@
     "reportEvent": "واقعہ رپورٹ کریں",
     "startInspection": "معائنہ شروع کریں",
     "myActions": "میرے اقدامات",
-    "myApprovals": "میری منظوریاں"
+    "myApprovals": "میری منظوریاں",
+    "cards": {
+      "reportings": "رپورٹس",
+      "reportingsDesc": "واقعات اور مشاہدات کی رپورٹ کریں",
+      "myActions": "میرے اقدامات",
+      "myActionsDesc": "اپنے تفویض کردہ اقدامات دیکھیں اور منظم کریں",
+      "emergencyResponse": "ایمرجنسی رسپانس",
+      "emergencyResponseDesc": "ایمرجنسی پروٹوکول تک رسائی",
+      "dashboards": "ڈیش بورڈز",
+      "dashboardsDesc": "تجزیات اور رپورٹس دیکھیں",
+      "shiftPlan": "شفٹ پلان",
+      "shiftPlanDesc": "اپنا شفٹ شیڈول دیکھیں",
+      "myLocations": "میرے مقامات",
+      "myLocationsDesc": "تفویض کردہ زونز دیکھیں",
+      "gateOperation": "گیٹ آپریشن",
+      "gateOperationDesc": "گیٹ تک رسائی کا انتظام",
+      "patrol": "گشت",
+      "patrolDesc": "گشت شروع یا دیکھیں",
+      "myApprovals": "میری منظوریاں",
+      "myApprovalsDesc": "زیر التواء منظوریوں کا جائزہ",
+      "inspections": "معائنہ",
+      "inspectionsDesc": "معائنہ کریں",
+      "myShift": "میری شفٹ",
+      "myShiftDesc": "اپنی موجودہ شفٹ دیکھیں"
+    }
   },
   "platformSettings": {
     "title": "پلیٹ فارم کی ترتیبات",
