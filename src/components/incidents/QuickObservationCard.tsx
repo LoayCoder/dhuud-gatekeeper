@@ -383,7 +383,9 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
     // OFFLINE MODE: Store locally and show success
     if (!isOnline) {
       // Combine user-selected date and time into occurred_at
-      const observedDateTime = `${values.observed_date}T${values.observed_time}:00`;
+      // Convert local date/time to proper ISO timestamp (UTC) to avoid timezone mismatch
+      const localDateTimeOffline = new Date(`${values.observed_date}T${values.observed_time}:00`);
+      const observedDateTime = localDateTimeOffline.toISOString();
       
       const offlineFormData: OfflineReportFormData = {
         title: values.description.slice(0, 80) + (values.description.length > 80 ? '...' : ''),
@@ -426,7 +428,9 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
     }
     
     // Combine user-selected date and time into occurred_at for online submission
-    const observedDateTimeOnline = `${values.observed_date}T${values.observed_time}:00`;
+    // Convert local date/time to proper ISO timestamp (UTC) to avoid timezone mismatch
+    const localDateTimeOnline = new Date(`${values.observed_date}T${values.observed_time}:00`);
+    const observedDateTimeOnline = localDateTimeOnline.toISOString();
     
     // ONLINE MODE: Normal submission flow
     const formData: IncidentFormData = {
