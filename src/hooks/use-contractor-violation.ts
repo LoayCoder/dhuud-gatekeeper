@@ -101,12 +101,12 @@ export function useCanApproveViolation(incidentId: string | null) {
       if (!incidentId || !user?.id) return { can_approve: false };
       
       const { data, error } = await supabase.rpc('can_approve_violation', {
-        p_incident_id: incidentId,
+        p_violation_id: incidentId,
         p_user_id: user.id,
       });
       
       if (error) return { can_approve: false };
-      return data as { can_approve: boolean; stage?: string; reason?: string };
+      return { can_approve: data as boolean };
     },
     enabled: !!incidentId && !!user?.id,
   });
