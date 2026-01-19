@@ -72,10 +72,29 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-    dedupe: ['react', 'react-dom', 'react-i18next', 'i18next', '@tanstack/react-query'],
+    dedupe: [
+      'react', 
+      'react-dom', 
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
+      'react-i18next', 
+      'i18next', 
+      '@tanstack/react-query',
+      'react-leaflet',
+      '@react-leaflet/core',
+      'leaflet',
+    ],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-i18next', 'i18next', '@tanstack/react-query'],
+    include: [
+      'react', 
+      'react-dom', 
+      'react-i18next', 
+      'i18next', 
+      '@tanstack/react-query',
+      'react-leaflet',
+      'leaflet',
+    ],
   },
   build: {
     rollupOptions: {
