@@ -1327,6 +1327,9 @@
   "auth": {
     "signIn": "سائن ان",
     "signOut": "لاگ آؤٹ",
+    "logout": "لاگ آؤٹ",
+    "loggedOut": "لاگ آؤٹ ہو گیا",
+    "loggedOutMessage": "آپ کامیابی سے لاگ آؤٹ ہو گئے ہیں۔",
     "signUp": "اکاؤنٹ بنائیں",
     "signingIn": "سائن ان ہو رہا ہے...",
     "creatingAccount": "اکاؤنٹ بنایا جا رہا ہے...",

@@ -1319,6 +1319,9 @@
   "auth": {
     "signIn": "Mag-sign In",
     "signOut": "Mag-log out",
+    "logout": "Mag-log out",
+    "loggedOut": "Naka-log out na",
+    "loggedOutMessage": "Matagumpay kang naka-log out.",
     "signUp": "Gumawa ng Account",
     "signingIn": "Nagsa-sign in...",
     "creatingAccount": "Gumagawa ng Account...",
