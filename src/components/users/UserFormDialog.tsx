@@ -294,11 +294,15 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
   const filteredDepartments = useMemo(() => {
     if (!selectedDivisionId) return [];
     
+    const hasFullAccess = form.getValues('has_full_branch_access');
+    
+    // If no branches selected AND not full access, return empty
+    if (selectedBranchIds.length === 0 && !hasFullAccess) return [];
+    
     let depts = hierarchy.departments.filter((d) => d.division_id === selectedDivisionId);
     
-    // Also filter by selected branches if not full access
-    const hasFullAccess = form.getValues('has_full_branch_access');
-    if (selectedBranchIds.length > 0 && !hasFullAccess) {
+    // Filter by selected branches if not full access
+    if (!hasFullAccess) {
       depts = depts.filter((d) => selectedBranchIds.includes(d.branch_id));
     }
     
@@ -315,6 +319,11 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
   const filteredSections = useMemo(() => {
     if (!selectedDepartmentId) return [];
     
+    const hasFullAccess = form.getValues('has_full_branch_access');
+    
+    // If no branches selected AND not full access, return empty
+    if (selectedBranchIds.length === 0 && !hasFullAccess) return [];
+    
     const secs = hierarchy.sections.filter((s) => s.department_id === selectedDepartmentId);
     
     // Deduplicate by name for consistency
@@ -325,7 +334,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
       }
     });
     return Array.from(seen.values());
-  }, [hierarchy.sections, selectedDepartmentId]);
+  }, [hierarchy.sections, selectedDepartmentId, selectedBranchIds, form]);
 
   // Filter sites by selected branches (multi-branch support)
   const filteredSites = useMemo(() => {
@@ -360,10 +369,19 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
 
   // Reset division/department/section when branch selection changes
   useEffect(() => {
-    const currentDivisionId = form.getValues('assigned_division_id');
     const hasFullAccess = form.getValues('has_full_branch_access');
     
-    if (currentDivisionId && selectedBranchIds.length > 0 && !hasFullAccess) {
+    // If no branches selected and not full access, clear all hierarchy fields
+    if (selectedBranchIds.length === 0 && !hasFullAccess) {
+      form.setValue('assigned_division_id', null);
+      form.setValue('assigned_department_id', null);
+      form.setValue('assigned_section_id', null);
+      return;
+    }
+    
+    // If branches are selected, check if current division belongs to selected branches
+    const currentDivisionId = form.getValues('assigned_division_id');
+    if (currentDivisionId && !hasFullAccess) {
       const divisionBelongsToBranches = hierarchy.divisions.some(
         d => d.id === currentDivisionId && selectedBranchIds.includes(d.branch_id)
       );
