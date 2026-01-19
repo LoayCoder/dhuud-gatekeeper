@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface SecurityDashboardStats {
   active_sessions: number;
@@ -85,12 +86,18 @@ export function useSecurityDashboardStats() {
  * Hook to fetch security scan results
  */
 export function useSecurityScanResults(status?: string) {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
   return useQuery({
-    queryKey: ['security-scan-results', status],
+    queryKey: ['security-scan-results', tenantId, status],
     queryFn: async (): Promise<SecurityScanResult[]> => {
+      if (!tenantId) return [];
+
       let query = supabase
         .from('security_scan_results')
         .select('*')
+        .eq('tenant_id', tenantId)
         .order('severity', { ascending: true })
         .order('detected_at', { ascending: false });
       
@@ -107,6 +114,7 @@ export function useSecurityScanResults(status?: string) {
       
       return data as SecurityScanResult[];
     },
+    enabled: !!tenantId,
     staleTime: 30000,
   });
 }
@@ -115,12 +123,18 @@ export function useSecurityScanResults(status?: string) {
  * Hook to fetch active user sessions
  */
 export function useActiveSessions() {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
   return useQuery({
-    queryKey: ['active-sessions'],
+    queryKey: ['active-sessions', tenantId],
     queryFn: async (): Promise<UserSession[]> => {
+      if (!tenantId) return [];
+
       const { data, error } = await supabase
         .from('user_sessions')
         .select('*')
+        .eq('tenant_id', tenantId)
         .eq('is_active', true)
         .order('last_activity_at', { ascending: false });
       
@@ -131,6 +145,7 @@ export function useActiveSessions() {
       
       return data as UserSession[];
     },
+    enabled: !!tenantId,
     refetchInterval: 15000, // Refresh every 15 seconds
     staleTime: 5000,
   });
@@ -217,12 +232,18 @@ export function useInvalidateUserSession() {
  * Hook to fetch login history for security analysis
  */
 export function useLoginHistory(limit: number = 50) {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
   return useQuery({
-    queryKey: ['login-history', limit],
+    queryKey: ['login-history', tenantId, limit],
     queryFn: async () => {
+      if (!tenantId) return [];
+
       const { data, error } = await supabase
         .from('login_history')
         .select('*')
+        .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false })
         .limit(limit);
       
@@ -245,6 +266,7 @@ export function useLoginHistory(limit: number = 50) {
         created_at: string;
       }>;
     },
+    enabled: !!tenantId,
     staleTime: 30000,
   });
 }

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface ZoneDependencies {
   incidents: number;
@@ -11,12 +12,18 @@ export interface ZoneDependencies {
 }
 
 export function useSecurityZones(filters?: { siteId?: string; isActive?: boolean }) {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
   return useQuery({
-    queryKey: ['security-zones', filters],
+    queryKey: ['security-zones', tenantId, filters],
     queryFn: async () => {
+      if (!tenantId) return [];
+
       let query = supabase
         .from('security_zones')
         .select('*')
+        .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('zone_name');
 
@@ -31,6 +38,7 @@ export function useSecurityZones(filters?: { siteId?: string; isActive?: boolean
       if (error) throw error;
       return data;
     },
+    enabled: !!tenantId,
   });
 }
 
@@ -93,14 +101,13 @@ export function useCreateSecurityZone() {
         throw new Error('Not authenticated');
       }
 
-      // Query profile with explicit user_id filter (not relying solely on RLS)
+      // Query profile with explicit id filter (not user_id - that column doesn't exist)
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('tenant_id')
-        .eq('user_id', user.id)
-        .eq('is_deleted', false)
-        .eq('is_active', true)
-        .maybeSingle();
+        .eq('id', user.id)
+        .is('deleted_at', null)
+        .single();
 
       if (profileError) {
         console.error('Profile fetch error:', profileError);

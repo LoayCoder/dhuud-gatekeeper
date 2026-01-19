@@ -58,6 +58,8 @@ export function useGuardAttendance(filters?: AttendanceFilters) {
   return useQuery({
     queryKey: ['guard-attendance', tenantId, filters],
     queryFn: async () => {
+      if (!tenantId) return [];
+
       let query = supabase
         .from('guard_attendance_logs')
         .select(`
@@ -65,6 +67,7 @@ export function useGuardAttendance(filters?: AttendanceFilters) {
           guard:profiles!guard_id(id, full_name, avatar_url),
           zone:security_zones!zone_id(id, zone_name)
         `)
+        .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('check_in_at', { ascending: false });
 
@@ -231,12 +234,15 @@ export function useAttendanceStats(dateRange?: { from: Date; to: Date }) {
   return useQuery({
     queryKey: ['attendance-stats', tenantId, dateRange],
     queryFn: async () => {
+      if (!tenantId) return null;
+
       const from = dateRange?.from || new Date(new Date().setDate(new Date().getDate() - 7));
       const to = dateRange?.to || new Date();
 
       const { data, error } = await supabase
         .from('guard_attendance_logs')
         .select('status, late_minutes, overtime_minutes, total_hours_worked, gps_validated')
+        .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .gte('check_in_at', from.toISOString())
         .lte('check_in_at', to.toISOString());
