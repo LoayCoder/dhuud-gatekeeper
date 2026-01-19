@@ -17546,6 +17546,30 @@ export type Database = {
           },
         ]
       }
+      rate_limit_log: {
+        Row: {
+          action_type: string
+          created_at: string
+          id: string
+          identifier: string
+          tenant_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          id?: string
+          identifier: string
+          tenant_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          id?: string
+          identifier?: string
+          tenant_id?: string
+        }
+        Relationships: []
+      }
       risk_assessment_details: {
         Row: {
           additional_controls: Json | null
@@ -24246,6 +24270,10 @@ export type Database = {
         }
         Returns: Json
       }
+      check_self_registration_rate_limit: {
+        Args: { _identifier: string; _tenant_id: string }
+        Returns: boolean
+      }
       check_simops_conflicts: {
         Args: {
           p_end_time: string
@@ -24300,6 +24328,7 @@ export type Database = {
       check_zone_dependencies: { Args: { p_zone_id: string }; Returns: Json }
       cleanup_expired_trusted_devices: { Args: never; Returns: number }
       cleanup_expired_webauthn_challenges: { Args: never; Returns: undefined }
+      cleanup_rate_limit_log: { Args: never; Returns: undefined }
       close_contractor_observation: {
         Args: { p_closure_notes?: string; p_incident_id: string }
         Returns: Json
