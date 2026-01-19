@@ -1364,7 +1364,9 @@
     "oauthError": "Error sa Authentication",
     "oauthErrorDesc": "May problema sa pag-sign in gamit ang Google. Subukan ulit.",
     "biometricSuccess": "Matagumpay ang biometric authentication",
-    "biometricFailed": "Nabigo ang biometric authentication"
+    "biometricFailed": "Nabigo ang biometric authentication",
+    "or": "O",
+    "signInWithBiometric": "Mag-sign in gamit ang Biometric"
   },
   "forgotPassword": {
     "title": "Nakalimutan ang Password",
@@ -1433,7 +1435,14 @@
     "newUserMessage": "Pinapa-invite ka na sumali sa",
     "failedToValidate": "Nabigo ang pag-validate ng invitation code",
     "codeRequired": "Kinakailangan ang invitation code",
-    "failedToVerifyUser": "Nabigo ang pag-verify ng katayuan ng user"
+    "failedToVerifyUser": "Nabigo ang pag-verify ng katayuan ng user",
+    "haveInviteCode": "May invitation code ka ba?",
+    "enterCodeHere": "Ilagay ang iyong code dito"
+  },
+  "legal": {
+    "termsOfService": "Mga Tuntunin ng Serbisyo",
+    "privacyPolicy": "Patakaran sa Privacy",
+    "cookiePolicy": "Patakaran sa Cookie"
   },
   "signup": {
     "invalidInvitationData": "Hindi valid ang invitation data. Magsimula ulit.",

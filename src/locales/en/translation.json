@@ -2216,7 +2216,9 @@
     "oauthError": "Authentication Error",
     "oauthErrorDesc": "There was a problem signing in with Google. Please try again.",
     "biometricSuccess": "Biometric authentication successful",
-    "biometricFailed": "Biometric authentication failed"
+    "biometricFailed": "Biometric authentication failed",
+    "or": "OR",
+    "signInWithBiometric": "Sign In With Biometric"
   },
   "hsseNotifications": {
     "title": "Notifications",
@@ -3654,7 +3656,14 @@
     "welcomeMessage": "Please complete your registration.",
     "failedToValidate": "Failed to validate invitation code",
     "codeRequired": "Invitation code is required",
-    "failedToVerifyUser": "Failed to verify user status"
+    "failedToVerifyUser": "Failed to verify user status",
+    "haveInviteCode": "Have an invitation code?",
+    "enterCodeHere": "Enter your code here"
+  },
+  "legal": {
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy",
+    "cookiePolicy": "Cookie Policy"
   },
   "signup": {
     "invalidInvitationData": "Invalid invitation data. Please start over.",

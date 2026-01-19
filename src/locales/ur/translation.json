@@ -1372,7 +1372,9 @@
     "oauthError": "تصدیق کی خرابی",
     "oauthErrorDesc": "Google سے سائن ان کرنے میں مسئلہ ہوا۔ براہ کرم دوبارہ کوشش کریں۔",
     "biometricSuccess": "بائیو میٹرک تصدیق کامیاب",
-    "biometricFailed": "بائیو میٹرک تصدیق ناکام"
+    "biometricFailed": "بائیو میٹرک تصدیق ناکام",
+    "or": "یا",
+    "signInWithBiometric": "بائیو میٹرک سے سائن ان کریں"
   },
   "forgotPassword": {
     "title": "پاس ورڈ بھول گئے",
@@ -1441,7 +1443,14 @@
     "newUserMessage": "آپ کو شامل ہونے کی دعوت دی گئی ہے",
     "failedToValidate": "دعوت کوڈ کی تصدیق میں ناکام",
     "codeRequired": "دعوت کوڈ ضروری ہے",
-    "failedToVerifyUser": "صارف کی حیثیت کی تصدیق میں ناکام"
+    "failedToVerifyUser": "صارف کی حیثیت کی تصدیق میں ناکام",
+    "haveInviteCode": "کیا آپ کے پاس دعوت کوڈ ہے؟",
+    "enterCodeHere": "اپنا کوڈ یہاں درج کریں"
+  },
+  "legal": {
+    "termsOfService": "سروس کی شرائط",
+    "privacyPolicy": "رازداری کی پالیسی",
+    "cookiePolicy": "کوکی پالیسی"
   },
   "signup": {
     "invalidInvitationData": "غلط دعوت ڈیٹا۔ براہ کرم دوبارہ شروع کریں۔",

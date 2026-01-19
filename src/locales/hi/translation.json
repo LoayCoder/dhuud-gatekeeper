@@ -1372,7 +1372,9 @@
     "oauthError": "प्रमाणीकरण त्रुटि",
     "oauthErrorDesc": "Google से साइन इन करने में समस्या हुई। कृपया पुनः प्रयास करें।",
     "biometricSuccess": "बायोमेट्रिक प्रमाणीकरण सफल",
-    "biometricFailed": "बायोमेट्रिक प्रमाणीकरण विफल"
+    "biometricFailed": "बायोमेट्रिक प्रमाणीकरण विफल",
+    "or": "या",
+    "signInWithBiometric": "बायोमेट्रिक से साइन इन करें"
   },
   "forgotPassword": {
     "title": "पासवर्ड भूल गए",
@@ -1441,7 +1443,14 @@
     "newUserMessage": "आपको शामिल होने के लिए आमंत्रित किया गया है",
     "failedToValidate": "आमंत्रण कोड सत्यापित करने में विफल",
     "codeRequired": "आमंत्रण कोड आवश्यक है",
-    "failedToVerifyUser": "उपयोगकर्ता स्थिति सत्यापित करने में विफल"
+    "failedToVerifyUser": "उपयोगकर्ता स्थिति सत्यापित करने में विफल",
+    "haveInviteCode": "क्या आपके पास आमंत्रण कोड है?",
+    "enterCodeHere": "अपना कोड यहां दर्ज करें"
+  },
+  "legal": {
+    "termsOfService": "सेवा की शर्तें",
+    "privacyPolicy": "गोपनीयता नीति",
+    "cookiePolicy": "कुकी नीति"
   },
   "signup": {
     "invalidInvitationData": "अमान्य आमंत्रण डेटा। कृपया फिर से शुरू करें।",
