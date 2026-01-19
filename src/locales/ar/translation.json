@@ -1100,6 +1100,12 @@
     },
     "witnesses": {
       "title": "إفادات الشهود",
+      "pendingStatements": "الإفادات",
+      "statementRequest": "طلب إفادة شاهد",
+      "assignedToProvide": "تم تعيينك لتقديم إفادة شاهد عن حادث.",
+      "yourStatement": "إفادتك",
+      "noAssignedStatements": "لا توجد إفادات مُسندة",
+      "noAssignedDescription": "ليس لديك طلبات إفادات شهود معلقة.",
       "addWitness": "إضافة إفادة شاهد",
       "name": "اسم الشاهد",
       "namePlaceholder": "أدخل الاسم الكامل للشاهد",
@@ -1408,7 +1414,8 @@
       "potentialSeverityApproved": "تمت الموافقة على الخطورة المحتملة",
       "potentialSeverityRejected": "تم رفض الخطورة المحتملة",
       "incidentApprovals": "موافقات الحوادث",
-      "reviewIncident": "مراجعة والموافقة"
+      "reviewIncident": "مراجعة والموافقة",
+      "reviewClosure": "مراجعة والموافقة"
     },
     "workflow": {
       "inProgress": "التحقيق جارٍ",
@@ -1955,7 +1962,15 @@
     "approve": "موافقة",
     "reject": "رفض",
     "current": "(الحالي)",
-    "reason": "السبب"
+    "reason": "السبب",
+    "dueToday": "مستحق اليوم",
+    "assigned": "مُسند",
+    "overdue": "متأخر",
+    "createdAt": "تاريخ الإنشاء",
+    "created": "تم الإنشاء",
+    "submitted": "تم الإرسال",
+    "viewDetails": "عرض التفاصيل",
+    "untitled": "بدون عنوان"
   },
   "assignment": {
     "title": "تعيين العمل",
@@ -6737,6 +6752,35 @@
     }
   },
   "workflow": {
+    "investigation": "التحقيق",
+    "continueInvestigation": "متابعة التحقيق",
+    "scheduledInspection": "تفتيش مجدول",
+    "startInspection": "بدء التفتيش",
+    "targetDate": "الموعد المستهدف",
+    "nextDue": "الاستحقاق التالي",
+    "frequency": "التكرار",
+    "validFrom": "صالح من",
+    "validUntil": "صالح حتى",
+    "startTime": "وقت البدء",
+    "endTime": "وقت الانتهاء",
+    "riskAssessment": "تقييم المخاطر",
+    "ptwPermit": "تصريح العمل",
+    "visitorRequest": "طلب زائر",
+    "gatePass": "تصريح بوابة",
+    "empty": {
+      "noInvestigations": "لا توجد تحقيقات مُسندة",
+      "noInvestigationsDesc": "ليس لديك تحقيقات مُسندة إليك.",
+      "noRiskAssessments": "لا توجد تقييمات مخاطر",
+      "noRiskAssessmentsDesc": "ليس لديك تقييمات مخاطر معلقة.",
+      "noPTWPermits": "لا توجد تصاريح عمل",
+      "noPTWPermitsDesc": "ليس لديك طلبات تصاريح عمل نشطة.",
+      "noVisitors": "لا توجد طلبات زوار",
+      "noVisitorsDesc": "ليس لديك طلبات زوار معلقة كمضيف.",
+      "noInspections": "لا توجد تفتيشات مجدولة",
+      "noInspectionsDesc": "ليس لديك تفتيشات مجدولة مُسندة إليك.",
+      "noGatePasses": "لا توجد تصاريح بوابة",
+      "noGatePassesDesc": "ليس لديك طلبات تصاريح بوابة معلقة."
+    },
     "steps": {
       "submitted": "تم تقديم البلاغ",
       "deptRepReview": "مراجعة ممثل القسم",
@@ -7923,6 +7967,8 @@
       "pendingInductions": "التعريفات المعلقة"
     },
     "workers": {
+      "pendingApprovals": "موافقات العمال",
+      "pendingApproval": "بانتظار الموافقة",
       "details": "التفاصيل",
       "qrCode": "رمز QR",
       "induction": "التعريف",
