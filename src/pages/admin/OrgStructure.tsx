@@ -537,6 +537,30 @@ export default function OrgStructure() {
     window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
   };
 
+  // Filter divisions for department dropdown based on selected branch
+  // Show divisions from selected branch OR hybrid divisions (null branch_id)
+  // MUST be before early return to follow React Hooks rules
+  const filteredDivisionsForDropdown = useMemo(() => {
+    if (selectedBranchForDepartment === 'all' || !selectedBranchForDepartment) {
+      return divisions; // Show all
+    }
+    return divisions.filter(d => 
+      d.branch_id === selectedBranchForDepartment || d.branch_id === null
+    );
+  }, [divisions, selectedBranchForDepartment]);
+  
+  // Filter departments for section dropdown based on selected branch
+  // Show departments from selected branch OR hybrid departments (null branch_id)
+  // MUST be before early return to follow React Hooks rules
+  const filteredDepartmentsForDropdown = useMemo(() => {
+    if (selectedBranchForSection === 'all' || !selectedBranchForSection) {
+      return departments; // Show all
+    }
+    return departments.filter(d => 
+      d.branch_id === selectedBranchForSection || d.branch_id === null
+    );
+  }, [departments, selectedBranchForSection]);
+
   if (loading || branchLoading) {
     return (
       <div className="p-8 flex justify-center">
@@ -549,28 +573,6 @@ export default function OrgStructure() {
   const filteredBranchesForDropdown = branches; // Branches shown are already filtered by useBranchFilter
   const filteredSitesForDropdown = sites; // Sites are already filtered
   const filteredBuildingsForDropdown = buildings; // Buildings are already filtered
-  
-  // Filter divisions for department dropdown based on selected branch
-  // Show divisions from selected branch OR hybrid divisions (null branch_id)
-  const filteredDivisionsForDropdown = useMemo(() => {
-    if (selectedBranchForDepartment === 'all' || !selectedBranchForDepartment) {
-      return divisions; // Show all
-    }
-    return divisions.filter(d => 
-      d.branch_id === selectedBranchForDepartment || d.branch_id === null
-    );
-  }, [divisions, selectedBranchForDepartment]);
-  
-  // Filter departments for section dropdown based on selected branch
-  // Show departments from selected branch OR hybrid departments (null branch_id)
-  const filteredDepartmentsForDropdown = useMemo(() => {
-    if (selectedBranchForSection === 'all' || !selectedBranchForSection) {
-      return departments; // Show all
-    }
-    return departments.filter(d => 
-      d.branch_id === selectedBranchForSection || d.branch_id === null
-    );
-  }, [departments, selectedBranchForSection]);
 
   // Branch row component with location support
   const renderBranchRow = (item: Branch) => (
