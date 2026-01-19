@@ -1397,7 +1397,11 @@
       "selectCauseFirst": "Select a cause first",
       "suggestionApplied": "AI suggestion applied",
       "parseError": "Failed to parse AI suggestion"
-    }
+    },
+    "startWork": "Start Work",
+    "markCompleted": "Mark Completed",
+    "awaitingVerification": "Awaiting Verification",
+    "requestExtension": "Request Extension"
   },
     "auditLog": {
       "title": "Audit Log",
@@ -1410,11 +1414,28 @@
       "details": "Details",
       "evidenceDeleted": "Evidence Deleted"
     },
-    "myActions": "My Assigned Actions",
-    "myActionsDescription": "View and update corrective actions assigned to you",
+    "myActions": "My Actions",
+    "myActionsDescription": "View and manage your assigned tasks",
     "actions": "Actions",
     "witness": "Witness",
     "reported": "Reported",
+    "filteringBy": "Filtering by",
+    "overdueActions": "Overdue",
+    "closedActions": "Closed",
+    "awaitingVerification": "Awaiting Verification",
+    "correctiveActions": "Corrective Actions",
+    "investigations": "Investigations",
+    "assignedInvestigations": "Assigned Investigations",
+    "viewInvestigation": "View Investigation",
+    "reportedBy": "Reported By",
+    "requestedBy": "Requested By",
+    "assignedTo": "Assigned To",
+    "department": "Department",
+    "completedOn": "Completed",
+    "source": {
+      "incident": "Incident",
+      "inspection": "Inspection"
+    },
     "myReportedIncidents": "My Reported Incidents",
     "noReportedIncidents": "No Reported Incidents",
     "noReportedDescription": "You have not reported any incidents yet.",
@@ -1438,7 +1459,8 @@
       "pending": "Pending",
       "in_progress": "In Progress",
       "completed": "Completed",
-      "verified": "Verified"
+      "verified": "Verified",
+      "closed": "Closed"
     },
     "approvals": {
       "approvals": "Approvals",
@@ -6285,6 +6307,9 @@
   },
   "inspections": {
     "title": "Inspections",
+    "scheduledInspections": "Scheduled Inspections",
+    "inspections": "Inspections",
+    "viewSession": "View Session",
     "types": {
       "asset": "Asset Inspection",
       "area": "Area Inspection",

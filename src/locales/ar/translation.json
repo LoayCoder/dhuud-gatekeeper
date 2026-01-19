@@ -1273,7 +1273,11 @@
       "selectCauseFirst": "اختر سبباً أولاً",
       "suggestionApplied": "تم تطبيق اقتراح الذكاء الاصطناعي",
       "parseError": "فشل في تحليل اقتراح الذكاء الاصطناعي"
-    }
+    },
+    "startWork": "بدء العمل",
+    "markCompleted": "تحديد كمكتمل",
+    "awaitingVerification": "في انتظار التحقق",
+    "requestExtension": "طلب تمديد"
   },
     "auditLog": {
       "title": "سجل المراجعة",
@@ -1286,11 +1290,28 @@
       "details": "التفاصيل",
       "evidenceDeleted": "تم حذف الدليل"
     },
-    "myActions": "إجراءاتي المسندة",
-    "myActionsDescription": "عرض وتحديث الإجراءات التصحيحية المسندة إليك",
+    "myActions": "إجراءاتي",
+    "myActionsDescription": "عرض وإدارة المهام المسندة إليك",
     "actions": "الإجراءات",
     "witness": "الشهود",
     "reported": "بلاغاتي",
+    "filteringBy": "تصفية حسب",
+    "overdueActions": "متأخر",
+    "closedActions": "مغلق",
+    "awaitingVerification": "في انتظار التحقق",
+    "correctiveActions": "الإجراءات التصحيحية",
+    "investigations": "التحقيقات",
+    "assignedInvestigations": "التحقيقات المسندة",
+    "viewInvestigation": "عرض التحقيق",
+    "reportedBy": "المُبلِّغ",
+    "requestedBy": "طلب بواسطة",
+    "assignedTo": "مُسند إلى",
+    "department": "القسم",
+    "completedOn": "اكتمل في",
+    "source": {
+      "incident": "حادث",
+      "inspection": "تفتيش"
+    },
     "myReportedIncidents": "بلاغاتي المقدمة",
     "noReportedIncidents": "لا توجد بلاغات",
     "noReportedDescription": "لم تقم بالإبلاغ عن أي حوادث بعد.",
@@ -1314,7 +1335,8 @@
       "pending": "معلق",
       "in_progress": "قيد التنفيذ",
       "completed": "مكتمل",
-      "verified": "تم التحقق"
+      "verified": "تم التحقق",
+      "closed": "مغلق"
     },
     "overview": {
       "reporterInfo": "معلومات المُبلّغ",
@@ -6050,6 +6072,9 @@
   },
   "inspections": {
     "title": "الفحوصات",
+    "scheduledInspections": "التفتيشات المجدولة",
+    "inspections": "التفتيشات",
+    "viewSession": "عرض الجلسة",
     "types": {
       "asset": "فحص الأصول",
       "area": "فحص المنطقة",
