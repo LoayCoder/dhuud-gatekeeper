@@ -27052,8 +27052,8 @@ export type Database = {
       get_emergency_notification_recipients:
         | {
             Args: {
-              p_alert_type?: string
-              p_site_id?: string
+              p_alert_type: string
+              p_site_id: string
               p_tenant_id: string
             }
             Returns: {
@@ -27067,14 +27067,15 @@ export type Database = {
           }
         | {
             Args: {
-              p_alert_type?: string
-              p_branch_id?: string
+              p_alert_type: string
+              p_branch_id: string
               p_tenant_id: string
             }
             Returns: {
               email: string
               full_name: string
-              phone: string
+              phone_number: string
+              preferred_language: string
               role_code: string
               user_id: string
             }[]
@@ -27856,21 +27857,21 @@ export type Database = {
       remove_team_member: { Args: { p_member_id: string }; Returns: undefined }
       reopen_closed_incident: {
         Args: { p_incident_id: string; p_reason: string }
-        Returns: undefined
+        Returns: Json
       }
       reroute_observation_to_new_site:
         | {
-            Args: { p_incident_id: string; p_new_branch_id?: string }
+            Args: { p_incident_id: string; p_new_branch_id: string }
             Returns: Json
           }
         | {
             Args: {
-              p_admin_notes?: string
+              p_admin_notes: string
               p_incident_id: string
-              p_new_branch_id?: string
-              p_new_contractor_id?: string
-              p_new_site_id?: string
-              p_should_reroute?: boolean
+              p_new_branch_id: string
+              p_new_contractor_id: string
+              p_new_site_id: string
+              p_should_reroute: boolean
             }
             Returns: Json
           }
