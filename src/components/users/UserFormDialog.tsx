@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, Users, LogIn, UserX, AlertCircle, AlertTriangle, User, Shield, Building2, Briefcase, Check } from 'lucide-react';
@@ -92,7 +93,7 @@ interface UserFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user?: any;
-  onSave: (data: UserFormValues, selectedRoleIds: string[], emailChanged: boolean, originalEmail: string | null) => Promise<void>;
+  onSave: (data: UserFormValues, selectedRoleIds: string[], emailChanged: boolean, originalEmail: string | null, selectedBranchIds: string[]) => Promise<void>;
 }
 
 const userTypeCards = [
@@ -129,6 +130,9 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
     sections: [],
     sites: [],
   });
+  
+  // Multi-branch selection state
+  const [selectedBranchIds, setSelectedBranchIds] = useState<string[]>([]);
 
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
@@ -170,11 +174,11 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
       if (!profile?.tenant_id) return;
 
       const [branchesRes, divisionsRes, departmentsRes, sectionsRes, sitesRes] = await Promise.all([
-        supabase.from('branches').select('*').eq('tenant_id', profile.tenant_id),
-        supabase.from('divisions').select('*').eq('tenant_id', profile.tenant_id),
-        supabase.from('departments').select('*').eq('tenant_id', profile.tenant_id),
-        supabase.from('sections').select('*').eq('tenant_id', profile.tenant_id),
-        supabase.from('sites').select('id, name, branch_id').eq('tenant_id', profile.tenant_id).is('deleted_at', null),
+        supabase.from('branches').select('*').eq('tenant_id', profile.tenant_id).is('deleted_at', null).order('name'),
+        supabase.from('divisions').select('*').eq('tenant_id', profile.tenant_id).is('deleted_at', null).order('name'),
+        supabase.from('departments').select('*').eq('tenant_id', profile.tenant_id).is('deleted_at', null).order('name'),
+        supabase.from('sections').select('*').eq('tenant_id', profile.tenant_id).is('deleted_at', null).order('name'),
+        supabase.from('sites').select('id, name, branch_id').eq('tenant_id', profile.tenant_id).is('deleted_at', null).order('name'),
       ]);
 
       setHierarchy({
@@ -219,6 +223,22 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
         const userRoles = await fetchUserRoles(user.id);
         setSelectedRoleIds(userRoles.map(r => r.role_id));
 
+        // Load user branch assignments
+        const { data: branchAssignments } = await supabase
+          .from('user_branch_assignments')
+          .select('branch_id, is_primary')
+          .eq('user_id', user.id)
+          .is('deleted_at', null);
+        
+        if (branchAssignments && branchAssignments.length > 0) {
+          setSelectedBranchIds(branchAssignments.map(a => a.branch_id));
+        } else if (user.assigned_branch_id) {
+          // Fallback to legacy single branch
+          setSelectedBranchIds([user.assigned_branch_id]);
+        } else {
+          setSelectedBranchIds([]);
+        }
+
         const { data: teamAssignment } = await supabase
           .from('manager_team')
           .select('manager_id')
@@ -231,6 +251,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
         const normalUserRole = roles.find(r => r.code === 'normal_user');
         setSelectedRoleIds(normalUserRole ? [normalUserRole.id] : []);
         setCurrentManagerId(null);
+        setSelectedBranchIds([]);
       }
       setActiveTab('basic');
     }
@@ -296,7 +317,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
     setIsLoading(true);
     try {
       const emailChanged = !!(user && originalEmail && data.email !== originalEmail);
-      await onSave(data, selectedRoleIds, emailChanged, originalEmail);
+      await onSave(data, selectedRoleIds, emailChanged, originalEmail, selectedBranchIds);
       onOpenChange(false);
     } finally {
       setIsLoading(false);
@@ -606,7 +627,10 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                                 checked={field.value} 
                                 onCheckedChange={(checked) => {
                                   field.onChange(checked);
-                                  if (checked) form.setValue('assigned_branch_id', null);
+                                  if (checked) {
+                                    setSelectedBranchIds([]);
+                                    form.setValue('assigned_branch_id', null);
+                                  }
                                 }} 
                               />
                             </FormControl>
@@ -614,47 +638,40 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                         )}
                       />
                       
+                      {/* Multi-Branch Selection */}
+                      {!hasFullBranchAccess && (
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">{t('userManagement.selectBranches', 'Select Branches')}</Label>
+                          <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border rounded-lg p-3 bg-background">
+                            {hierarchy.branches.map((branch) => (
+                              <div key={branch.id} className="flex items-center gap-2">
+                                <Checkbox
+                                  id={`branch-${branch.id}`}
+                                  checked={selectedBranchIds.includes(branch.id)}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setSelectedBranchIds([...selectedBranchIds, branch.id]);
+                                    } else {
+                                      setSelectedBranchIds(selectedBranchIds.filter(id => id !== branch.id));
+                                    }
+                                  }}
+                                />
+                                <label htmlFor={`branch-${branch.id}`} className="text-sm cursor-pointer">
+                                  {branch.name}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {selectedBranchIds.length === 0 
+                              ? t('userManagement.noBranchesSelected', 'No branches selected - user will have no branch access')
+                              : t('userManagement.branchesSelected', '{{count}} branch(es) selected', { count: selectedBranchIds.length })}
+                          </p>
+                        </div>
+                      )}
+                      
                       {/* Hierarchy Selects */}
                       <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="assigned_branch_id"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>{t('orgStructure.branch')}</FormLabel>
-                              <Select 
-                                onValueChange={(v) => {
-                                  field.onChange(v === 'none' ? null : v);
-                                  form.setValue('assigned_division_id', null);
-                                  form.setValue('assigned_department_id', null);
-                                  form.setValue('assigned_section_id', null);
-                                }} 
-                                value={hasFullBranchAccess ? 'all' : (field.value || 'none')}
-                                disabled={hasFullBranchAccess}
-                                dir={direction}
-                              >
-                                <FormControl>
-                                  <SelectTrigger className={hasFullBranchAccess ? 'bg-muted' : ''}>
-                                    <SelectValue placeholder={t('common.select')} />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent dir={direction} className="bg-popover">
-                                  {hasFullBranchAccess ? (
-                                    <SelectItem value="all">{t('userManagement.allBranches')}</SelectItem>
-                                  ) : (
-                                    <>
-                                      <SelectItem value="none">{t('common.none')}</SelectItem>
-                                      {hierarchy.branches.map((b) => (
-                                        <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                                      ))}
-                                    </>
-                                  )}
-                                </SelectContent>
-                              </Select>
-                            </FormItem>
-                          )}
-                        />
-
                         <FormField
                           control={form.control}
                           name="assigned_division_id"

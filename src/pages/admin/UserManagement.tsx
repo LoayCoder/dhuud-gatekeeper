@@ -166,8 +166,8 @@ export default function UserManagement() {
     const fetchFilterOptions = async () => {
       if (!profile?.tenant_id) return;
       const [b, d] = await Promise.all([
-        supabase.from('branches').select('id, name').eq('tenant_id', profile.tenant_id).order('name').limit(100),
-        supabase.from('divisions').select('id, name').eq('tenant_id', profile.tenant_id).order('name').limit(100),
+        supabase.from('branches').select('id, name').eq('tenant_id', profile.tenant_id).is('deleted_at', null).order('name').limit(100),
+        supabase.from('divisions').select('id, name').eq('tenant_id', profile.tenant_id).is('deleted_at', null).order('name').limit(100),
       ]);
       if (b.data) setBranches(b.data);
       if (d.data) setDivisions(d.data);
@@ -178,7 +178,7 @@ export default function UserManagement() {
   const handleAddUser = () => { setEditingUser(null); setIsFormDialogOpen(true); };
   const handleEditUser = (user: UserWithRoles) => { setEditingUser(user); setIsFormDialogOpen(true); };
 
-  const handleSaveUser = async (data: any, selectedRoleIds: string[], emailChanged: boolean = false, originalEmail: string | null = null) => {
+  const handleSaveUser = async (data: any, selectedRoleIds: string[], emailChanged: boolean = false, originalEmail: string | null = null, selectedBranchIds: string[] = []) => {
     try {
       const updateData = {
         full_name: data.full_name,
@@ -197,11 +197,38 @@ export default function UserManagement() {
         membership_start: data.membership_start || null,
         membership_end: data.membership_end || null,
         has_full_branch_access: data.has_full_branch_access ?? false,
-        assigned_branch_id: data.has_full_branch_access ? null : data.assigned_branch_id,
+        // Legacy field - set to first selected branch for backwards compatibility
+        assigned_branch_id: data.has_full_branch_access ? null : (selectedBranchIds[0] || null),
         assigned_division_id: data.assigned_division_id,
         assigned_department_id: data.assigned_department_id,
         assigned_section_id: data.assigned_section_id,
         assigned_site_id: data.assigned_site_id || null,
+      };
+
+      // Helper to sync branch assignments
+      const syncBranchAssignments = async (userId: string) => {
+        if (!profile?.tenant_id) return;
+        
+        // Soft-delete existing assignments
+        await supabase
+          .from('user_branch_assignments')
+          .update({ deleted_at: new Date().toISOString() })
+          .eq('user_id', userId)
+          .eq('tenant_id', profile.tenant_id)
+          .is('deleted_at', null);
+        
+        // Insert new assignments if not full access and branches selected
+        if (!data.has_full_branch_access && selectedBranchIds.length > 0) {
+          const branchAssignments = selectedBranchIds.map((branchId, index) => ({
+            user_id: userId,
+            branch_id: branchId,
+            is_primary: index === 0,
+            access_level: 'standard' as const,
+            tenant_id: profile.tenant_id,
+          }));
+          
+          await supabase.from('user_branch_assignments').insert(branchAssignments);
+        }
       };
 
       if (editingUser) {
@@ -235,9 +262,10 @@ export default function UserManagement() {
           
           logger.debug('Email update successful via edge function:', edgeFnResult);
           
-          // Edge function already updated profiles, so we just need to handle roles
+          // Edge function already updated profiles, so we just need to handle roles and branches
           if (profile?.tenant_id) {
             await assignRoles(editingUser.id, selectedRoleIds, profile.tenant_id);
+            await syncBranchAssignments(editingUser.id);
           }
           
           toast({ 
@@ -251,6 +279,7 @@ export default function UserManagement() {
           
           if (profile?.tenant_id) {
             await assignRoles(editingUser.id, selectedRoleIds, profile.tenant_id);
+            await syncBranchAssignments(editingUser.id);
           }
           
           toast({ title: t('userManagement.userUpdated') });
