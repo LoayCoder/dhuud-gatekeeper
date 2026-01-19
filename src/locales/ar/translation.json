@@ -2119,7 +2119,9 @@
     "tenantVerifyDescription": "أدخل الرمز المكون من 6 أرقام من تطبيق المصادقة لتأكيد هويتك لهذه المنظمة.",
     "openAuthenticatorApp": "افتح تطبيق المصادقة وأدخل الرمز لهذا الحساب",
     "verificationComplete": "اكتمل التحقق",
-    "tenantVerificationCompleteMessage": "تم التحقق من هويتك لهذه المنظمة."
+    "tenantVerificationCompleteMessage": "تم التحقق من هويتك لهذه المنظمة.",
+    "alreadyEnabled": "المصادقة الثنائية مفعلة بالفعل",
+    "alreadyEnabledMessage": "المصادقة الثنائية مفعلة بالفعل على حسابك."
   },
   "invite": {
     "title": "أدخل رمز الدعوة",

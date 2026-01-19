@@ -3640,7 +3640,9 @@
     "tenantVerifyDescription": "Enter the 6-digit code from your authenticator app to confirm your identity for this organization.",
     "openAuthenticatorApp": "Open your authenticator app and enter the code for this account",
     "verificationComplete": "Verification Complete",
-    "tenantVerificationCompleteMessage": "Your identity has been verified for this organization."
+    "tenantVerificationCompleteMessage": "Your identity has been verified for this organization.",
+    "alreadyEnabled": "2FA Already Enabled",
+    "alreadyEnabledMessage": "Two-factor authentication is already enabled on your account."
   },
   "invite": {
     "enterCodeToContinue": "Enter your invitation code to continue",
