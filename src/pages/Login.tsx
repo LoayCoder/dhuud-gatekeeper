@@ -539,7 +539,7 @@ export default function Login() {
               <Button
                 type="button"
                 variant="link"
-                onClick={() => navigate('/invite')}
+                onClick={() => navigate('/invite?newCode=true')}
                 className="h-auto p-0 text-xs font-medium text-primary sm:text-sm"
               >
                 {t('invite.enterCodeHere', 'Enter your code here')}
