@@ -18,7 +18,8 @@ import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import { useCreateIncident, type IncidentFormData, type ClosedOnSpotPayload } from '@/hooks/use-incidents';
-import { useTenantSites, useTenantDepartments } from '@/hooks/use-org-hierarchy';
+import { useTenantSites } from '@/hooks/use-org-hierarchy';
+import { useDepartmentsBySite } from '@/hooks/use-departments-by-site';
 import { useTenantUsers } from '@/hooks/use-department-users';
 import { useContractorWorkers } from '@/hooks/contractor-management/use-contractor-workers';
 import { useContractorCompanies } from '@/hooks/contractor-management/use-contractor-companies';
@@ -127,7 +128,6 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
   
   const createIncident = useCreateIncident();
   const { data: onlineSites = [] } = useTenantSites();
-  const { data: onlineDepartments = [] } = useTenantDepartments();
   const { data: tenantUsers = [] } = useTenantUsers();
   const { data: contractorWorkers = [] } = useContractorWorkers();
   const { data: onlineContractorCompanies = [] } = useContractorCompanies();
@@ -160,7 +160,6 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
   
   // Use online or cached data based on network status
   const sites = isOnline ? onlineSites : offlineSites;
-  const departments = isOnline ? onlineDepartments : offlineDepartments;
   const contractorCompanies = isOnline ? onlineContractorCompanies : offlineContractorCompanies;
   
   const form = useForm<FormValues>({
@@ -204,6 +203,15 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
   }, [sites, selectedSiteId]);
   
   const observationBranchId = selectedSite?.branch_id || null;
+  
+  // Site-aware department filtering for positive observation recognition
+  const { 
+    departments: siteDepartments = [], 
+    usingFallback: departmentsUsingFallback 
+  } = useDepartmentsBySite(selectedSiteId, observationBranchId || undefined);
+  
+  // Use online or cached departments based on network status
+  const departments = isOnline ? siteDepartments : offlineDepartments;
   
   // Check if user is reporting from a different branch than their assigned branch
   const isCrossBranchReport = observationBranchId && profile?.assigned_branch_id && 
