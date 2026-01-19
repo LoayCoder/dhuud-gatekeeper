@@ -1194,6 +1194,7 @@
   },
 "common": {
     "loading": "Naglo-load...",
+    "phone": "Telepono",
     "save": "I-save",
     "cancel": "Kanselahin",
     "delete": "Tanggalin",
@@ -5917,7 +5918,31 @@
     "reportEvent": "Mag-ulat ng Kaganapan",
     "startInspection": "Magsimula ng Inspeksyon",
     "myActions": "Aking mga Aksyon",
-    "myApprovals": "Aking mga Apruba"
+    "myApprovals": "Aking mga Apruba",
+    "cards": {
+      "reportings": "Mga Ulat",
+      "reportingsDesc": "Mag-ulat ng mga insidente at obserbasyon",
+      "myActions": "Aking mga Aksyon",
+      "myActionsDesc": "Tingnan at pamahalaan ang iyong mga itinalagang aksyon",
+      "emergencyResponse": "Emergency Response",
+      "emergencyResponseDesc": "I-access ang mga emergency protocol",
+      "dashboards": "Mga Dashboard",
+      "dashboardsDesc": "Tingnan ang analytics at mga ulat",
+      "shiftPlan": "Shift Plan",
+      "shiftPlanDesc": "Tingnan ang iyong shift schedule",
+      "myLocations": "Aking mga Lokasyon",
+      "myLocationsDesc": "Tingnan ang mga itinalagang zone",
+      "gateOperation": "Gate Operation",
+      "gateOperationDesc": "Pamahalaan ang gate access",
+      "patrol": "Patrol",
+      "patrolDesc": "Magsimula o tingnan ang mga patrol",
+      "myApprovals": "Aking mga Apruba",
+      "myApprovalsDesc": "Suriin ang mga pending na apruba",
+      "inspections": "Mga Inspeksyon",
+      "inspectionsDesc": "Magsagawa ng mga inspeksyon",
+      "myShift": "Aking Shift",
+      "myShiftDesc": "Tingnan ang iyong kasalukuyang shift"
+    }
   },
   "platformSettings": {
     "title": "Mga Setting ng Platform",

@@ -52,9 +52,9 @@ export function HSSEContactCompact({ className }: HSSEContactCompactProps) {
 
   const getRoleLabel = (roleCode: string) => {
     const roleMap: Record<string, string> = {
-      hsse_officer: t('roles.hsseOfficer', 'HSSE Officer'),
-      hsse_expert: t('roles.hsseExpert', 'HSSE Expert'),
-      hsse_manager: t('roles.hsseManager', 'HSSE Manager'),
+      hsse_officer: t('roles.hsse_officer', 'HSSE Officer'),
+      hsse_expert: t('roles.hsse_expert', 'HSSE Expert'),
+      hsse_manager: t('roles.hsse_manager', 'HSSE Manager'),
     };
     return roleMap[roleCode] || roleCode;
   };

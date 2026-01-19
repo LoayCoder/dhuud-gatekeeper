@@ -1202,6 +1202,7 @@
   },
 "common": {
     "loading": "लोड हो रहा है...",
+    "phone": "फ़ोन",
     "save": "सहेजें",
     "cancel": "रद्द करें",
     "delete": "हटाएं",
@@ -5925,7 +5926,31 @@
     "reportEvent": "घटना रिपोर्ट करें",
     "startInspection": "निरीक्षण शुरू करें",
     "myActions": "मेरी कार्रवाई",
-    "myApprovals": "मेरी स्वीकृतियां"
+    "myApprovals": "मेरी स्वीकृतियां",
+    "cards": {
+      "reportings": "रिपोर्टिंग",
+      "reportingsDesc": "घटनाओं और अवलोकनों की रिपोर्ट करें",
+      "myActions": "मेरी कार्रवाइयां",
+      "myActionsDesc": "अपनी असाइन की गई कार्रवाइयां देखें और प्रबंधित करें",
+      "emergencyResponse": "आपातकालीन प्रतिक्रिया",
+      "emergencyResponseDesc": "आपातकालीन प्रोटोकॉल तक पहुंचें",
+      "dashboards": "डैशबोर्ड",
+      "dashboardsDesc": "विश्लेषण और रिपोर्ट देखें",
+      "shiftPlan": "शिफ्ट योजना",
+      "shiftPlanDesc": "अपना शिफ्ट शेड्यूल देखें",
+      "myLocations": "मेरे स्थान",
+      "myLocationsDesc": "असाइन किए गए क्षेत्र देखें",
+      "gateOperation": "गेट संचालन",
+      "gateOperationDesc": "गेट पहुंच प्रबंधित करें",
+      "patrol": "गश्त",
+      "patrolDesc": "गश्त शुरू करें या देखें",
+      "myApprovals": "मेरी स्वीकृतियां",
+      "myApprovalsDesc": "लंबित स्वीकृतियों की समीक्षा करें",
+      "inspections": "निरीक्षण",
+      "inspectionsDesc": "निरीक्षण करें",
+      "myShift": "मेरी शिफ्ट",
+      "myShiftDesc": "अपनी वर्तमान शिफ्ट देखें"
+    }
   },
   "platformSettings": {
     "title": "प्लेटफ़ॉर्म सेटिंग्स",
