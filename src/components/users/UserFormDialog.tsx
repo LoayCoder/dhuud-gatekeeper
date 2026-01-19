@@ -265,21 +265,73 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
     }
   }, [userType, form, user]);
 
+  // Filter divisions by selected branches with deduplication
+  const filteredDivisions = useMemo(() => {
+    // If no branches selected and no full access, show nothing
+    const hasFullAccess = form.getValues('has_full_branch_access');
+    if (selectedBranchIds.length === 0 && !hasFullAccess) return [];
+    
+    // Get divisions to filter
+    let divisions = hierarchy.divisions;
+    
+    // If not full access, filter by selected branches
+    if (!hasFullAccess && selectedBranchIds.length > 0) {
+      divisions = divisions.filter((d) => 
+        selectedBranchIds.includes(d.branch_id)
+      );
+    }
+    
+    // Deduplicate by name for multi-branch selection
+    const seen = new Map();
+    divisions.forEach((d) => {
+      if (!seen.has(d.name)) {
+        seen.set(d.name, d);
+      }
+    });
+    return Array.from(seen.values());
+  }, [hierarchy.divisions, selectedBranchIds, form]);
+
   const filteredDepartments = useMemo(() => {
     if (!selectedDivisionId) return [];
-    return hierarchy.departments.filter((d) => d.division_id === selectedDivisionId);
-  }, [hierarchy.departments, selectedDivisionId]);
+    
+    let depts = hierarchy.departments.filter((d) => d.division_id === selectedDivisionId);
+    
+    // Also filter by selected branches if not full access
+    const hasFullAccess = form.getValues('has_full_branch_access');
+    if (selectedBranchIds.length > 0 && !hasFullAccess) {
+      depts = depts.filter((d) => selectedBranchIds.includes(d.branch_id));
+    }
+    
+    // Deduplicate by name
+    const seen = new Map();
+    depts.forEach((d) => {
+      if (!seen.has(d.name)) {
+        seen.set(d.name, d);
+      }
+    });
+    return Array.from(seen.values());
+  }, [hierarchy.departments, selectedDivisionId, selectedBranchIds, form]);
 
   const filteredSections = useMemo(() => {
     if (!selectedDepartmentId) return [];
-    return hierarchy.sections.filter((s) => s.department_id === selectedDepartmentId);
+    
+    const secs = hierarchy.sections.filter((s) => s.department_id === selectedDepartmentId);
+    
+    // Deduplicate by name for consistency
+    const seen = new Map();
+    secs.forEach((s) => {
+      if (!seen.has(s.name)) {
+        seen.set(s.name, s);
+      }
+    });
+    return Array.from(seen.values());
   }, [hierarchy.sections, selectedDepartmentId]);
 
-  // Filter sites by selected branch
+  // Filter sites by selected branches (multi-branch support)
   const filteredSites = useMemo(() => {
-    if (!selectedBranchId) return hierarchy.sites;
-    return hierarchy.sites.filter((s) => s.branch_id === selectedBranchId);
-  }, [hierarchy.sites, selectedBranchId]);
+    if (selectedBranchIds.length === 0) return hierarchy.sites;
+    return hierarchy.sites.filter((s) => selectedBranchIds.includes(s.branch_id));
+  }, [hierarchy.sites, selectedBranchIds]);
 
   useEffect(() => {
     const currentDeptId = form.getValues('assigned_department_id');
@@ -305,6 +357,23 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
       }
     }
   }, [selectedDepartmentId, hierarchy.sections, form]);
+
+  // Reset division/department/section when branch selection changes
+  useEffect(() => {
+    const currentDivisionId = form.getValues('assigned_division_id');
+    const hasFullAccess = form.getValues('has_full_branch_access');
+    
+    if (currentDivisionId && selectedBranchIds.length > 0 && !hasFullAccess) {
+      const divisionBelongsToBranches = hierarchy.divisions.some(
+        d => d.id === currentDivisionId && selectedBranchIds.includes(d.branch_id)
+      );
+      if (!divisionBelongsToBranches) {
+        form.setValue('assigned_division_id', null);
+        form.setValue('assigned_department_id', null);
+        form.setValue('assigned_section_id', null);
+      }
+    }
+  }, [selectedBranchIds, hierarchy.divisions, form]);
 
   const currentEmail = form.watch('email');
   const emailHasChanged = user && originalEmail && currentEmail !== originalEmail;
@@ -694,7 +763,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                                 </FormControl>
                                 <SelectContent dir={direction} className="bg-popover">
                                   <SelectItem value="none">{t('common.none')}</SelectItem>
-                                  {hierarchy.divisions.map((d) => (
+                                  {filteredDivisions.map((d) => (
                                     <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
                                   ))}
                                 </SelectContent>
