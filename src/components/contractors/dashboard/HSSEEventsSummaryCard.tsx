@@ -62,7 +62,7 @@ export function HSSEEventsSummaryCard({
     setVisibleCount(ITEMS_PER_PAGE);
   };
 
-  const openStatuses = ["reported", "open", "pending_review"];
+  const openStatuses = ["submitted", "pending_review", "pending_dept_rep_approval"];
   const investigatingStatuses = ["investigation_in_progress", "under_investigation"];
   const closedStatuses = ["closed", "resolved", "no_action_required"];
 
