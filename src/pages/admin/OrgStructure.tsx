@@ -128,6 +128,9 @@ export default function OrgStructure() {
   const [gettingSiteLocation, setGettingSiteLocation] = useState(false);
   const [siteSearchQuery, setSiteSearchQuery] = useState("");
   const [localBranchFilter, setLocalBranchFilter] = useState<string>("all");
+  const [divisionBranchFilter, setDivisionBranchFilter] = useState<string>("all");
+  const [departmentBranchFilter, setDepartmentBranchFilter] = useState<string>("all");
+  const [sectionBranchFilter, setSectionBranchFilter] = useState<string>("all");
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
   const [siteDialogOpen, setSiteDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -1430,6 +1433,22 @@ export default function OrgStructure() {
                   {t('orgStructure.add')}
                 </Button>
               </div>
+
+              {/* Branch Filter Dropdown */}
+              <Select value={divisionBranchFilter} onValueChange={setDivisionBranchFilter}>
+                <SelectTrigger className="w-full sm:w-[200px] text-start" dir={direction}>
+                  <SelectValue placeholder={t('orgStructure.filterByBranch')} />
+                </SelectTrigger>
+                <SelectContent dir={direction}>
+                  <SelectItem value="all" className="text-start">{t('orgStructure.allBranches')}</SelectItem>
+                  {branches.map(branch => (
+                    <SelectItem key={branch.id} value={branch.id} className="text-start">
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
               <div className="rounded-md border" dir={direction}>
                 <Table>
                   <TableHeader>
@@ -1440,15 +1459,22 @@ export default function OrgStructure() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {divisions.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
-                          {t('orgStructure.noItems')}
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      divisions.map((item) => renderSimpleRow(item, 'divisions'))
-                    )}
+                    {(() => {
+                      const filteredDivisions = divisions.filter(division => 
+                        divisionBranchFilter === "all" || division.branch_id === divisionBranchFilter
+                      );
+                      
+                      if (filteredDivisions.length === 0) {
+                        return (
+                          <TableRow>
+                            <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                              {t('orgStructure.noItems')}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      }
+                      return filteredDivisions.map((item) => renderSimpleRow(item, 'divisions'));
+                    })()}
                   </TableBody>
                 </Table>
               </div>
@@ -1492,6 +1518,22 @@ export default function OrgStructure() {
                   {t('orgStructure.add')}
                 </Button>
               </div>
+
+              {/* Branch Filter Dropdown */}
+              <Select value={departmentBranchFilter} onValueChange={setDepartmentBranchFilter}>
+                <SelectTrigger className="w-full sm:w-[200px] text-start" dir={direction}>
+                  <SelectValue placeholder={t('orgStructure.filterByBranch')} />
+                </SelectTrigger>
+                <SelectContent dir={direction}>
+                  <SelectItem value="all" className="text-start">{t('orgStructure.allBranches')}</SelectItem>
+                  {branches.map(branch => (
+                    <SelectItem key={branch.id} value={branch.id} className="text-start">
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
               <div className="rounded-md border" dir={direction}>
                 <Table>
                   <TableHeader>
@@ -1503,17 +1545,24 @@ export default function OrgStructure() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {departments.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                          {t('orgStructure.noItems')}
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      departments.map((item) =>
+                    {(() => {
+                      const filteredDepartments = departments.filter(department => 
+                        departmentBranchFilter === "all" || department.branch_id === departmentBranchFilter
+                      );
+                      
+                      if (filteredDepartments.length === 0) {
+                        return (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                              {t('orgStructure.noItems')}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      }
+                      return filteredDepartments.map((item) =>
                         renderRowWithParent(item, item.divisions?.name, 'departments')
-                      )
-                    )}
+                      );
+                    })()}
                   </TableBody>
                 </Table>
               </div>
@@ -1557,6 +1606,22 @@ export default function OrgStructure() {
                   {t('orgStructure.add')}
                 </Button>
               </div>
+
+              {/* Branch Filter Dropdown */}
+              <Select value={sectionBranchFilter} onValueChange={setSectionBranchFilter}>
+                <SelectTrigger className="w-full sm:w-[200px] text-start" dir={direction}>
+                  <SelectValue placeholder={t('orgStructure.filterByBranch')} />
+                </SelectTrigger>
+                <SelectContent dir={direction}>
+                  <SelectItem value="all" className="text-start">{t('orgStructure.allBranches')}</SelectItem>
+                  {branches.map(branch => (
+                    <SelectItem key={branch.id} value={branch.id} className="text-start">
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
               <div className="rounded-md border" dir={direction}>
                 <Table>
                   <TableHeader>
@@ -1568,17 +1633,24 @@ export default function OrgStructure() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sections.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                          {t('orgStructure.noItems')}
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      sections.map((item) =>
+                    {(() => {
+                      const filteredSections = sections.filter(section => 
+                        sectionBranchFilter === "all" || section.branch_id === sectionBranchFilter
+                      );
+                      
+                      if (filteredSections.length === 0) {
+                        return (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                              {t('orgStructure.noItems')}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      }
+                      return filteredSections.map((item) =>
                         renderRowWithParent(item, item.departments?.name, 'sections')
-                      )
-                    )}
+                      );
+                    })()}
                   </TableBody>
                 </Table>
               </div>
