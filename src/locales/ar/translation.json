@@ -2062,7 +2062,9 @@
     "enterInvitationCode": "أدخل رمز الدعوة",
     "backToLogin": "العودة إلى تسجيل الدخول",
     "oauthError": "خطأ في المصادقة",
-    "oauthErrorDesc": "حدثت مشكلة في تسجيل الدخول بحساب Google. يرجى المحاولة مرة أخرى."
+    "oauthErrorDesc": "حدثت مشكلة في تسجيل الدخول بحساب Google. يرجى المحاولة مرة أخرى.",
+    "biometricSuccess": "نجحت المصادقة البيومترية",
+    "biometricFailed": "فشلت المصادقة البيومترية"
   },
   "forgotPassword": {
     "title": "نسيت كلمة المرور",
