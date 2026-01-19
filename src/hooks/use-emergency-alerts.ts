@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
 
 export interface EmergencyAlert {
@@ -40,9 +41,14 @@ export interface EmergencyAlert {
 }
 
 export function useEmergencyAlerts(statusFilter?: 'active' | 'acknowledged' | 'resolved' | 'all') {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
   return useQuery({
-    queryKey: ['emergency-alerts', statusFilter],
+    queryKey: ['emergency-alerts', tenantId, statusFilter],
     queryFn: async () => {
+      if (!tenantId) return [];
+
       let query = supabase
         .from('emergency_alerts')
         .select(`
@@ -74,6 +80,7 @@ export function useEmergencyAlerts(statusFilter?: 'active' | 'acknowledged' | 'r
           acknowledger:profiles!emergency_alerts_acknowledged_by_fkey(full_name),
           resolver:profiles!emergency_alerts_resolved_by_fkey(full_name)
         `)
+        .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('triggered_at', { ascending: false });
 
@@ -89,6 +96,7 @@ export function useEmergencyAlerts(statusFilter?: 'active' | 'acknowledged' | 'r
       if (error) throw error;
       return data as EmergencyAlert[];
     },
+    enabled: !!tenantId,
     refetchInterval: 10000,
   });
 }
@@ -184,9 +192,13 @@ export function useAcknowledgeEmergencyAlert() {
 
   return useMutation({
     mutationFn: async (alertId: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('id')
+        .eq('id', user.id)
         .single();
 
       const alert = await supabase
@@ -233,9 +245,13 @@ export function useResolveEmergencyAlert() {
 
   return useMutation({
     mutationFn: async (params: { alertId: string; notes: string; isFalseAlarm?: boolean }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('id')
+        .eq('id', user.id)
         .single();
 
       const { data, error } = await supabase

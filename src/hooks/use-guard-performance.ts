@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, format, subDays } from 'date-fns';
 
 export interface GuardPerformanceMetrics {
@@ -39,9 +40,14 @@ export interface GuardPerformanceSummary {
 }
 
 export function useGuardPerformanceMetrics(guardId?: string, dateRange?: { start: string; end: string }) {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
   return useQuery({
-    queryKey: ['guard-performance', guardId, dateRange],
+    queryKey: ['guard-performance', tenantId, guardId, dateRange],
     queryFn: async () => {
+      if (!tenantId) return [];
+
       let query = supabase
         .from('guard_performance_metrics')
         .select(`
@@ -63,6 +69,7 @@ export function useGuardPerformanceMetrics(guardId?: string, dateRange?: { start
           overall_score,
           guard:profiles!guard_performance_metrics_guard_id_fkey(full_name, avatar_url)
         `)
+        .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('metric_date', { ascending: false });
 
@@ -78,13 +85,19 @@ export function useGuardPerformanceMetrics(guardId?: string, dateRange?: { start
       if (error) throw error;
       return data as GuardPerformanceMetrics[];
     },
+    enabled: !!tenantId,
   });
 }
 
 export function useGuardPerformanceSummary(period: 'week' | 'month' | 'all' = 'month') {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
   return useQuery({
-    queryKey: ['guard-performance-summary', period],
+    queryKey: ['guard-performance-summary', tenantId, period],
     queryFn: async () => {
+      if (!tenantId) return [];
+
       // Calculate date range based on period
       const now = new Date();
       let startDate: string;
@@ -116,6 +129,7 @@ export function useGuardPerformanceSummary(period: 'week' | 'month' | 'all' = 'm
           overall_score,
           guard:profiles!guard_performance_metrics_guard_id_fkey(full_name, avatar_url)
         `)
+        .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .gte('metric_date', startDate)
         .lte('metric_date', endDate);
@@ -217,13 +231,19 @@ export function useGuardPerformanceSummary(period: 'week' | 'month' | 'all' = 'm
 
       return summaries;
     },
+    enabled: !!tenantId,
   });
 }
 
 export function useGuardLeaderboard() {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
   return useQuery({
-    queryKey: ['guard-leaderboard'],
+    queryKey: ['guard-leaderboard', tenantId],
     queryFn: async () => {
+      if (!tenantId) return [];
+
       const thirtyDaysAgo = format(subDays(new Date(), 30), 'yyyy-MM-dd');
 
       const { data, error } = await supabase
@@ -233,6 +253,7 @@ export function useGuardLeaderboard() {
           overall_score,
           guard:profiles!guard_performance_metrics_guard_id_fkey(full_name, avatar_url)
         `)
+        .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .gte('metric_date', thirtyDaysAgo)
         .order('overall_score', { ascending: false });
@@ -267,13 +288,19 @@ export function useGuardLeaderboard() {
 
       return leaderboard;
     },
+    enabled: !!tenantId,
   });
 }
 
 export function useSecurityTeamStats() {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
   return useQuery({
-    queryKey: ['security-team-stats'],
+    queryKey: ['security-team-stats', tenantId],
     queryFn: async () => {
+      if (!tenantId) return { today: { patrols: 0, checkpoints: 0, incidents: 0, violations: 0 }, week: { patrols: 0, checkpoints: 0, incidents: 0, violations: 0 } };
+
       const today = format(new Date(), 'yyyy-MM-dd');
       const weekAgo = format(subDays(new Date(), 7), 'yyyy-MM-dd');
 
@@ -281,6 +308,7 @@ export function useSecurityTeamStats() {
       const { data: todayData } = await supabase
         .from('guard_performance_metrics')
         .select('patrols_completed, checkpoints_verified, incidents_reported, geofence_violations')
+        .eq('tenant_id', tenantId)
         .eq('metric_date', today)
         .is('deleted_at', null);
 
@@ -288,6 +316,7 @@ export function useSecurityTeamStats() {
       const { data: weekData } = await supabase
         .from('guard_performance_metrics')
         .select('patrols_completed, checkpoints_verified, incidents_reported, geofence_violations')
+        .eq('tenant_id', tenantId)
         .gte('metric_date', weekAgo)
         .is('deleted_at', null);
 
@@ -303,5 +332,6 @@ export function useSecurityTeamStats() {
         week: sumMetrics(weekData),
       };
     },
+    enabled: !!tenantId,
   });
 }

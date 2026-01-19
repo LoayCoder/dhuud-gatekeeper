@@ -1,19 +1,27 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function useSecurityShifts() {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
   return useQuery({
-    queryKey: ['security-shifts'],
+    queryKey: ['security-shifts', tenantId],
     queryFn: async () => {
+      if (!tenantId) return [];
+      
       const { data, error } = await supabase
         .from('security_shifts')
         .select('*')
+        .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('start_time');
       if (error) throw error;
       return data;
     },
+    enabled: !!tenantId,
   });
 }
 
