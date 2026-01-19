@@ -27049,17 +27049,36 @@ export type Database = {
         Args: { p_department_id: string }
         Returns: string
       }
-      get_emergency_notification_recipients: {
-        Args: { p_alert_type?: string; p_site_id?: string; p_tenant_id: string }
-        Returns: {
-          email: string
-          full_name: string
-          phone_number: string
-          preferred_language: string
-          role_code: string
-          user_id: string
-        }[]
-      }
+      get_emergency_notification_recipients:
+        | {
+            Args: {
+              p_alert_type?: string
+              p_site_id?: string
+              p_tenant_id: string
+            }
+            Returns: {
+              email: string
+              full_name: string
+              phone_number: string
+              preferred_language: string
+              role_code: string
+              user_id: string
+            }[]
+          }
+        | {
+            Args: {
+              p_alert_type?: string
+              p_branch_id?: string
+              p_tenant_id: string
+            }
+            Returns: {
+              email: string
+              full_name: string
+              phone: string
+              role_code: string
+              user_id: string
+            }[]
+          }
       get_events_by_location: {
         Args: { p_end_date?: string; p_start_date?: string }
         Returns: Json
@@ -27839,17 +27858,22 @@ export type Database = {
         Args: { p_incident_id: string; p_reason: string }
         Returns: undefined
       }
-      reroute_observation_to_new_site: {
-        Args: {
-          p_admin_notes?: string
-          p_incident_id: string
-          p_new_branch_id?: string
-          p_new_contractor_id?: string
-          p_new_site_id?: string
-          p_should_reroute?: boolean
-        }
-        Returns: Json
-      }
+      reroute_observation_to_new_site:
+        | {
+            Args: { p_incident_id: string; p_new_branch_id?: string }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_admin_notes?: string
+              p_incident_id: string
+              p_new_branch_id?: string
+              p_new_contractor_id?: string
+              p_new_site_id?: string
+              p_should_reroute?: boolean
+            }
+            Returns: Json
+          }
       reset_notification_matrix_to_defaults: {
         Args: { p_tenant_id: string }
         Returns: undefined
