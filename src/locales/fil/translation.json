@@ -1414,7 +1414,14 @@
     "setupCompleteMessage": "Naka-enable na ang two-factor authentication para sa iyong account.",
     "continueToDashboard": "Magpatuloy sa Dashboard",
     "twoFactorEnabled": "Naka-enable ang 2FA",
-    "twoFactorEnabledMessage": "Naka-enable na ang two-factor authentication para sa iyong account."
+    "twoFactorEnabledMessage": "Naka-enable na ang two-factor authentication para sa iyong account.",
+    "verifyIdentity": "I-verify ang Iyong Pagkakakilanlan",
+    "tenantVerifyDescription": "Ilagay ang 6-digit code mula sa iyong authenticator app upang kumpirmahin ang iyong pagkakakilanlan para sa organisasyong ito.",
+    "openAuthenticatorApp": "Buksan ang iyong authenticator app at ilagay ang code para sa account na ito",
+    "verificationComplete": "Kumpleto ang Pag-verify",
+    "tenantVerificationCompleteMessage": "Na-verify na ang iyong pagkakakilanlan para sa organisasyong ito.",
+    "alreadyEnabled": "Naka-enable na ang 2FA",
+    "alreadyEnabledMessage": "Naka-enable na ang two-factor authentication sa iyong account."
   },
   "invite": {
     "title": "Ilagay ang Iyong Invitation Code",

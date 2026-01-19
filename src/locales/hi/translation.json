@@ -1422,7 +1422,14 @@
     "setupCompleteMessage": "आपके खाते के लिए दो-कारक प्रमाणीकरण सक्षम हो गया।",
     "continueToDashboard": "डैशबोर्ड पर जारी रखें",
     "twoFactorEnabled": "2FA सक्षम हो गया",
-    "twoFactorEnabledMessage": "आपके खाते के लिए दो-कारक प्रमाणीकरण सक्षम हो गया।"
+    "twoFactorEnabledMessage": "आपके खाते के लिए दो-कारक प्रमाणीकरण सक्षम हो गया।",
+    "verifyIdentity": "अपनी पहचान सत्यापित करें",
+    "tenantVerifyDescription": "इस संगठन के लिए अपनी पहचान की पुष्टि करने के लिए अपने प्रमाणक ऐप से 6-अंकीय कोड दर्ज करें।",
+    "openAuthenticatorApp": "अपना प्रमाणक ऐप खोलें और इस खाते के लिए कोड दर्ज करें",
+    "verificationComplete": "सत्यापन पूर्ण",
+    "tenantVerificationCompleteMessage": "इस संगठन के लिए आपकी पहचान सत्यापित हो गई है।",
+    "alreadyEnabled": "2FA पहले से सक्षम है",
+    "alreadyEnabledMessage": "आपके खाते पर दो-कारक प्रमाणीकरण पहले से सक्षम है।"
   },
   "invite": {
     "title": "अपना आमंत्रण कोड दर्ज करें",

@@ -1422,7 +1422,14 @@
     "setupCompleteMessage": "آپ کے اکاؤنٹ کے لیے دو عنصری تصدیق فعال ہو گئی۔",
     "continueToDashboard": "ڈیش بورڈ پر جاری رکھیں",
     "twoFactorEnabled": "2FA فعال ہو گیا",
-    "twoFactorEnabledMessage": "آپ کے اکاؤنٹ کے لیے دو عنصری تصدیق فعال ہو گئی۔"
+    "twoFactorEnabledMessage": "آپ کے اکاؤنٹ کے لیے دو عنصری تصدیق فعال ہو گئی۔",
+    "verifyIdentity": "اپنی شناخت کی تصدیق کریں",
+    "tenantVerifyDescription": "اس تنظیم کے لیے اپنی شناخت کی تصدیق کے لیے اپنی تصدیقی ایپ سے 6 ہندسوں کا کوڈ درج کریں۔",
+    "openAuthenticatorApp": "اپنی تصدیقی ایپ کھولیں اور اس اکاؤنٹ کا کوڈ درج کریں",
+    "verificationComplete": "تصدیق مکمل",
+    "tenantVerificationCompleteMessage": "اس تنظیم کے لیے آپ کی شناخت کی تصدیق ہو گئی۔",
+    "alreadyEnabled": "2FA پہلے سے فعال ہے",
+    "alreadyEnabledMessage": "آپ کے اکاؤنٹ پر دو عنصری تصدیق پہلے سے فعال ہے۔"
   },
   "invite": {
     "title": "اپنا دعوت کوڈ درج کریں",
