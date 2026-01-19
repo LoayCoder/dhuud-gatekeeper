@@ -38,8 +38,8 @@ export default function Home() {
             <WelcomeCompact />
           </div>
 
-          {/* Header Controls (Language + Theme) */}
-          <HeaderControls />
+          {/* Header Controls (Language + Theme + Logout) */}
+          <HeaderControls showLogout />
         </div>
       </header>
 

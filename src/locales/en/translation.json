@@ -2171,6 +2171,9 @@
   "auth": {
     "signIn": "Sign In",
     "signOut": "Log out",
+    "logout": "Log out",
+    "loggedOut": "Logged Out",
+    "loggedOutMessage": "You have been logged out successfully.",
     "signUp": "Create Account",
     "signingIn": "Signing in...",
     "creatingAccount": "Creating Account...",

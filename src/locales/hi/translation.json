@@ -1327,6 +1327,9 @@
   "auth": {
     "signIn": "साइन इन करें",
     "signOut": "लॉग आउट",
+    "logout": "लॉग आउट",
+    "loggedOut": "लॉग आउट हो गया",
+    "loggedOutMessage": "आप सफलतापूर्वक लॉग आउट हो गए हैं।",
     "signUp": "खाता बनाएं",
     "signingIn": "साइन इन हो रहा है...",
     "creatingAccount": "खाता बनाया जा रहा है...",

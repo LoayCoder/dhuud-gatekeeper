@@ -70,7 +70,10 @@ i18n
     },
 
     detection: {
-      order: ['localStorage', 'navigator'],
+      // Prioritize navigator (device language) for first-time visitors
+      // localStorage is checked second to respect explicit user choice
+      order: ['querystring', 'navigator', 'localStorage'],
+      lookupQuerystring: 'lang',
       caches: ['localStorage'],
     },
 
