@@ -2214,7 +2214,9 @@
     "enterInvitationCode": "Enter Invitation Code",
     "backToLogin": "Back to Login",
     "oauthError": "Authentication Error",
-    "oauthErrorDesc": "There was a problem signing in with Google. Please try again."
+    "oauthErrorDesc": "There was a problem signing in with Google. Please try again.",
+    "biometricSuccess": "Biometric authentication successful",
+    "biometricFailed": "Biometric authentication failed"
   },
   "hsseNotifications": {
     "title": "Notifications",
