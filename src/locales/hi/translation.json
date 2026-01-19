@@ -2906,7 +2906,12 @@
     "confirmBoundary": "सीमा की पुष्टि करें",
     "boundarySet": "सीमा सेट",
     "boundaryConfirmed": "सीमा की पुष्टि हो गई",
-    "boundaryConfirmedDescription": "सीमा परिवर्तनों को रखने के लिए 'सहेजें' पर क्लिक करें"
+    "boundaryConfirmedDescription": "सीमा परिवर्तनों को रखने के लिए 'सहेजें' पर क्लिक करें",
+    "filterByBranch": "शाखा से फ़िल्टर",
+    "allBranches": "सभी शाखाएं",
+    "allBranchesHybrid": "सभी शाखाएं (हाइब्रिड)",
+    "assignToBranch": "शाखा को असाइन करें",
+    "divisionName": "डिवीजन का नाम"
   },
   "userManagement": {
     "title": "उपयोगकर्ता प्रबंधन",

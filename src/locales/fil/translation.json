@@ -2898,7 +2898,12 @@
     "confirmBoundary": "Kumpirmahin ang Hangganan",
     "boundarySet": "Naitakda ang Hangganan",
     "boundaryConfirmed": "Nakumpirma ang hangganan",
-    "boundaryConfirmedDescription": "I-click ang 'I-save' upang itago ang mga pagbabago sa hangganan"
+    "boundaryConfirmedDescription": "I-click ang 'I-save' upang itago ang mga pagbabago sa hangganan",
+    "filterByBranch": "I-filter ayon sa Branch",
+    "allBranches": "Lahat ng Branch",
+    "allBranchesHybrid": "Lahat ng Branch (Hybrid)",
+    "assignToBranch": "I-assign sa Branch",
+    "divisionName": "Pangalan ng Division"
   },
   "userManagement": {
     "title": "Pamamahala ng User",

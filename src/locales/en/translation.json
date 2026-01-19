@@ -3892,7 +3892,10 @@
     "selectBuilding": "Select building",
     "buildingRequired": "Please select a parent building",
     "filterByBranch": "Filter by Branch",
-    "allBranches": "All Branches"
+    "allBranches": "All Branches",
+    "allBranchesHybrid": "All Branches (Hybrid)",
+    "assignToBranch": "Assign to Branch",
+    "divisionName": "Division Name"
   },
   "userManagement": {
     "title": "User Management",

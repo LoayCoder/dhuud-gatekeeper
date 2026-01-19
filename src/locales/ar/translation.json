@@ -3655,7 +3655,10 @@
     "selectBuilding": "اختر المبنى",
     "buildingRequired": "يرجى اختيار المبنى الرئيسي",
     "filterByBranch": "تصفية حسب الفرع",
-    "allBranches": "جميع الفروع"
+    "allBranches": "جميع الفروع",
+    "allBranchesHybrid": "جميع الفروع (مشترك)",
+    "assignToBranch": "تعيين للفرع",
+    "divisionName": "اسم القسم الوظيفي"
   },
   "userManagement": {
     "title": "إدارة المستخدمين",
