@@ -6029,7 +6029,14 @@
     "analysisComplete": "اے آئی نے قسم اور خطرے کی سطح تجویز کی",
     "noSiteNearby": "قریب کوئی رجسٹرڈ جگہ نہیں",
     "canSubmitWithoutLocation": "آپ مقام کے بغیر بھی جمع کر سکتے ہیں",
-    "locationOptional": "مقام اختیاری ہے"
+    "locationOptional": "مقام اختیاری ہے",
+    "observationDate": "مشاہدے کی تاریخ",
+    "observationTime": "مشاہدے کا وقت",
+    "validation": {
+      "dateRequired": "تاریخ ضروری ہے",
+      "timeRequired": "وقت ضروری ہے",
+      "futureDateNotAllowed": "مستقبل کی تاریخیں منظور نہیں"
+    }
   },
   "positiveObservation": {
     "recognitionType": "آپ کس کی تعریف کرنا چاہتے ہیں؟",

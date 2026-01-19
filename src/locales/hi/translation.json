@@ -6014,7 +6014,14 @@
     "analysisComplete": "एआई ने प्रकार और जोखिम स्तर सुझाया",
     "noSiteNearby": "पास में कोई पंजीकृत साइट नहीं",
     "canSubmitWithoutLocation": "आप स्थान के बिना भी सबमिट कर सकते हैं",
-    "locationOptional": "स्थान वैकल्पिक है"
+    "locationOptional": "स्थान वैकल्पिक है",
+    "observationDate": "अवलोकन तिथि",
+    "observationTime": "अवलोकन समय",
+    "validation": {
+      "dateRequired": "तिथि आवश्यक है",
+      "timeRequired": "समय आवश्यक है",
+      "futureDateNotAllowed": "भविष्य की तिथियां अनुमत नहीं हैं"
+    }
   },
   "positiveObservation": {
     "recognitionType": "आप किसे पहचान देना चाहते हैं?",
