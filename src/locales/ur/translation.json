@@ -2921,7 +2921,12 @@
     "confirmBoundary": "حدود کی تصدیق کریں",
     "boundarySet": "حدود سیٹ",
     "boundaryConfirmed": "حدود کی تصدیق ہو گئی",
-    "boundaryConfirmedDescription": "حدود کی تبدیلیوں کو رکھنے کے لیے 'محفوظ کریں' پر کلک کریں"
+    "boundaryConfirmedDescription": "حدود کی تبدیلیوں کو رکھنے کے لیے 'محفوظ کریں' پر کلک کریں",
+    "filterByBranch": "برانچ کے مطابق فلٹر",
+    "allBranches": "تمام برانچز",
+    "allBranchesHybrid": "تمام برانچز (ہائبرڈ)",
+    "assignToBranch": "برانچ کو تفویض کریں",
+    "divisionName": "ڈویژن کا نام"
   },
   "userManagement": {
     "title": "صارف کا انتظام",

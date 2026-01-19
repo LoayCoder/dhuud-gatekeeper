@@ -133,6 +133,11 @@ export default function OrgStructure() {
   const [sectionBranchFilter, setSectionBranchFilter] = useState<string>("all");
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
   const [siteDialogOpen, setSiteDialogOpen] = useState(false);
+  
+  // Branch selection for creation forms
+  const [selectedBranchForDivision, setSelectedBranchForDivision] = useState<string>("all");
+  const [selectedBranchForDepartment, setSelectedBranchForDepartment] = useState<string>("all");
+  const [selectedBranchForSection, setSelectedBranchForSection] = useState<string>("all");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [editingLatitude, setEditingLatitude] = useState("");
@@ -305,8 +310,35 @@ export default function OrgStructure() {
         tenant_id: profile.tenant_id
       };
 
-      // Auto-assign branch_id for tables that support it (not branches themselves)
-      if (table !== 'branches' && !isAllBranchesMode && activeBranchId) {
+      // Handle branch assignment for divisions - use explicit form selection
+      if (table === 'divisions') {
+        if (selectedBranchForDivision && selectedBranchForDivision !== 'all') {
+          payload.branch_id = selectedBranchForDivision;
+        } else {
+          payload.branch_id = null; // Hybrid - applies to all branches
+        }
+      }
+      
+      // Handle branch assignment for departments - use explicit form selection
+      if (table === 'departments') {
+        if (selectedBranchForDepartment && selectedBranchForDepartment !== 'all') {
+          payload.branch_id = selectedBranchForDepartment;
+        } else {
+          payload.branch_id = null; // Hybrid - applies to all branches
+        }
+      }
+      
+      // Handle branch assignment for sections - use explicit form selection
+      if (table === 'sections') {
+        if (selectedBranchForSection && selectedBranchForSection !== 'all') {
+          payload.branch_id = selectedBranchForSection;
+        } else {
+          payload.branch_id = null; // Hybrid - applies to all branches
+        }
+      }
+      
+      // Auto-assign branch_id for other tables (buildings, floors_zones) - use activeBranchId
+      if (table !== 'branches' && table !== 'divisions' && table !== 'departments' && table !== 'sections' && table !== 'sites' && !isAllBranchesMode && activeBranchId) {
         payload.branch_id = activeBranchId;
       }
 
@@ -400,6 +432,9 @@ export default function OrgStructure() {
       setSelectedBuildingForFloor("");
       setNewFloorZoneNameAr("");
       setNewLevelNumber("");
+      setSelectedBranchForDivision("all");
+      setSelectedBranchForDepartment("all");
+      setSelectedBranchForSection("all");
       fetchData();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : t('common.error');
@@ -514,8 +549,28 @@ export default function OrgStructure() {
   const filteredBranchesForDropdown = branches; // Branches shown are already filtered by useBranchFilter
   const filteredSitesForDropdown = sites; // Sites are already filtered
   const filteredBuildingsForDropdown = buildings; // Buildings are already filtered
-  const filteredDivisionsForDropdown = divisions; // Divisions are already filtered
-  const filteredDepartmentsForDropdown = departments; // Departments are already filtered
+  
+  // Filter divisions for department dropdown based on selected branch
+  // Show divisions from selected branch OR hybrid divisions (null branch_id)
+  const filteredDivisionsForDropdown = useMemo(() => {
+    if (selectedBranchForDepartment === 'all' || !selectedBranchForDepartment) {
+      return divisions; // Show all
+    }
+    return divisions.filter(d => 
+      d.branch_id === selectedBranchForDepartment || d.branch_id === null
+    );
+  }, [divisions, selectedBranchForDepartment]);
+  
+  // Filter departments for section dropdown based on selected branch
+  // Show departments from selected branch OR hybrid departments (null branch_id)
+  const filteredDepartmentsForDropdown = useMemo(() => {
+    if (selectedBranchForSection === 'all' || !selectedBranchForSection) {
+      return departments; // Show all
+    }
+    return departments.filter(d => 
+      d.branch_id === selectedBranchForSection || d.branch_id === null
+    );
+  }, [departments, selectedBranchForSection]);
 
   // Branch row component with location support
   const renderBranchRow = (item: Branch) => (
@@ -621,7 +676,13 @@ export default function OrgStructure() {
           item.name
         )}
       </TableCell>
-      <TableCell className="text-muted-foreground text-start">{item.branches?.name || '-'}</TableCell>
+      <TableCell className="text-muted-foreground text-start">
+        {item.branches?.name || (
+          <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary border-primary/20">
+            {t('orgStructure.allBranchesHybrid')}
+          </span>
+        )}
+      </TableCell>
       <TableCell className="text-end">
         <div className="flex gap-1 justify-end">
           {editingId === item.id ? (
@@ -675,7 +736,13 @@ export default function OrgStructure() {
         )}
       </TableCell>
       <TableCell className="text-muted-foreground text-start">{parentName}</TableCell>
-      <TableCell className="text-muted-foreground text-start">{item.branches?.name || '-'}</TableCell>
+      <TableCell className="text-muted-foreground text-start">
+        {item.branches?.name || (
+          <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary border-primary/20">
+            {t('orgStructure.allBranchesHybrid')}
+          </span>
+        )}
+      </TableCell>
       <TableCell className="text-end">
         <div className="flex gap-1 justify-end">
           {editingId === item.id ? (
@@ -1420,14 +1487,33 @@ export default function OrgStructure() {
               <CardTitle className="text-start">{t('orgStructure.manageDivisions')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-4">
-                <Input 
-                  placeholder={t('orgStructure.newDivisionPlaceholder')}
-                  value={newItemName}
-                  onChange={(e) => setNewItemName(e.target.value)}
-                  className="text-start"
-                  dir={direction}
-                />
+              <div className="flex gap-4 items-end">
+                <div className="w-1/4">
+                  <Label className="mb-2 block text-start">{t('orgStructure.assignToBranch')}</Label>
+                  <Select value={selectedBranchForDivision} onValueChange={setSelectedBranchForDivision}>
+                    <SelectTrigger className="text-start" dir={direction}>
+                      <SelectValue placeholder={t('orgStructure.selectBranch')} />
+                    </SelectTrigger>
+                    <SelectContent dir={direction}>
+                      <SelectItem value="all" className="text-start">{t('orgStructure.allBranchesHybrid')}</SelectItem>
+                      {branches.map(branch => (
+                        <SelectItem key={branch.id} value={branch.id} className="text-start">
+                          {branch.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex-1">
+                  <Label className="mb-2 block text-start">{t('orgStructure.divisionName')}</Label>
+                  <Input 
+                    placeholder={t('orgStructure.newDivisionPlaceholder')}
+                    value={newItemName}
+                    onChange={(e) => setNewItemName(e.target.value)}
+                    className="text-start"
+                    dir={direction}
+                  />
+                </div>
                 <Button onClick={() => handleCreate('divisions')} disabled={creating}>
                   <Plus className="h-4 w-4 me-2" />
                   {t('orgStructure.add')}
@@ -1461,7 +1547,9 @@ export default function OrgStructure() {
                   <TableBody>
                     {(() => {
                       const filteredDivisions = divisions.filter(division => 
-                        divisionBranchFilter === "all" || division.branch_id === divisionBranchFilter
+                        divisionBranchFilter === "all" || 
+                        division.branch_id === divisionBranchFilter || 
+                        division.branch_id === null // Include hybrid divisions
                       );
                       
                       if (filteredDivisions.length === 0) {
@@ -1489,8 +1577,27 @@ export default function OrgStructure() {
               <CardTitle className="text-start">{t('orgStructure.manageDepartments')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-4 items-end">
-                <div className="w-1/3">
+              <div className="flex gap-4 items-end flex-wrap">
+                <div className="w-full sm:w-1/4">
+                  <Label className="mb-2 block text-start">{t('orgStructure.assignToBranch')}</Label>
+                  <Select value={selectedBranchForDepartment} onValueChange={(value) => {
+                    setSelectedBranchForDepartment(value);
+                    setParentId(""); // Reset parent when branch changes
+                  }}>
+                    <SelectTrigger className="text-start" dir={direction}>
+                      <SelectValue placeholder={t('orgStructure.selectBranch')} />
+                    </SelectTrigger>
+                    <SelectContent dir={direction}>
+                      <SelectItem value="all" className="text-start">{t('orgStructure.allBranchesHybrid')}</SelectItem>
+                      {branches.map(branch => (
+                        <SelectItem key={branch.id} value={branch.id} className="text-start">
+                          {branch.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="w-full sm:w-1/4">
                   <Label className="mb-2 block text-start">{t('orgStructure.parentDivision')}</Label>
                   <Select onValueChange={setParentId} value={parentId}>
                     <SelectTrigger className="text-start" dir={direction}>
@@ -1503,7 +1610,7 @@ export default function OrgStructure() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-[200px]">
                   <Label className="mb-2 block text-start">{t('orgStructure.departmentName')}</Label>
                   <Input 
                     placeholder={t('orgStructure.newDepartmentPlaceholder')}
@@ -1547,7 +1654,9 @@ export default function OrgStructure() {
                   <TableBody>
                     {(() => {
                       const filteredDepartments = departments.filter(department => 
-                        departmentBranchFilter === "all" || department.branch_id === departmentBranchFilter
+                        departmentBranchFilter === "all" || 
+                        department.branch_id === departmentBranchFilter ||
+                        department.branch_id === null // Include hybrid departments
                       );
                       
                       if (filteredDepartments.length === 0) {
@@ -1577,8 +1686,27 @@ export default function OrgStructure() {
               <CardTitle className="text-start">{t('orgStructure.manageSections')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-4 items-end">
-                <div className="w-1/3">
+              <div className="flex gap-4 items-end flex-wrap">
+                <div className="w-full sm:w-1/4">
+                  <Label className="mb-2 block text-start">{t('orgStructure.assignToBranch')}</Label>
+                  <Select value={selectedBranchForSection} onValueChange={(value) => {
+                    setSelectedBranchForSection(value);
+                    setParentId(""); // Reset parent when branch changes
+                  }}>
+                    <SelectTrigger className="text-start" dir={direction}>
+                      <SelectValue placeholder={t('orgStructure.selectBranch')} />
+                    </SelectTrigger>
+                    <SelectContent dir={direction}>
+                      <SelectItem value="all" className="text-start">{t('orgStructure.allBranchesHybrid')}</SelectItem>
+                      {branches.map(branch => (
+                        <SelectItem key={branch.id} value={branch.id} className="text-start">
+                          {branch.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="w-full sm:w-1/4">
                   <Label className="mb-2 block text-start">{t('orgStructure.parentDepartment')}</Label>
                   <Select onValueChange={setParentId} value={parentId}>
                     <SelectTrigger className="text-start" dir={direction}>
@@ -1591,7 +1719,7 @@ export default function OrgStructure() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-[200px]">
                   <Label className="mb-2 block text-start">{t('orgStructure.sectionName')}</Label>
                   <Input 
                     placeholder={t('orgStructure.newSectionPlaceholder')}
@@ -1635,7 +1763,9 @@ export default function OrgStructure() {
                   <TableBody>
                     {(() => {
                       const filteredSections = sections.filter(section => 
-                        sectionBranchFilter === "all" || section.branch_id === sectionBranchFilter
+                        sectionBranchFilter === "all" || 
+                        section.branch_id === sectionBranchFilter ||
+                        section.branch_id === null // Include hybrid sections
                       );
                       
                       if (filteredSections.length === 0) {
