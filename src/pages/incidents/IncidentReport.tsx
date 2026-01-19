@@ -35,7 +35,8 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useCreateIncident, type IncidentFormData, type ClosedOnSpotPayload } from '@/hooks/use-incidents';
-import { useTenantSites, useTenantBranches, useTenantDepartments } from '@/hooks/use-org-hierarchy';
+import { useTenantSites, useTenantBranches } from '@/hooks/use-org-hierarchy';
+import { useDepartmentsBySite } from '@/hooks/use-departments-by-site';
 import { useLinkAssetToIncident } from '@/hooks/use-incident-assets';
 import { useIncidentAIValidator } from '@/hooks/use-incident-ai-validator';
 import { AIIncidentAnalysisPanel } from '@/components/incidents/AIIncidentAnalysisPanel';
@@ -176,7 +177,6 @@ export default function IncidentReport() {
   const { fetchAddress: fetchLocationAddress, isLoading: isFetchingAddress } = useReverseGeocode();
   const { data: sites = [], isLoading: sitesLoading } = useTenantSites();
   const { data: branches = [], isLoading: branchesLoading } = useTenantBranches();
-  const { data: departments = [], isLoading: departmentsLoading } = useTenantDepartments();
   // Dynamic event categories from database
   const { data: dynamicCategories = [] } = useActiveEventCategories();
   
@@ -220,20 +220,42 @@ export default function IncidentReport() {
   const incidentType = form.watch('incident_type');
   const isAgainstContractor = form.watch('is_against_contractor');
   const selectedBranchId = form.watch('branch_id');
+  const selectedSiteId = form.watch('site_id');
   
   // Helper: Is this an observation (simplified workflow)?
   const isObservation = eventType === 'observation';
 
-  // Cascading filters: Filter sites and departments by selected branch
+  // Cascading filters: Filter sites by selected branch
   const filteredSites = useMemo(() => {
     if (!selectedBranchId) return sites;
     return sites.filter(site => site.branch_id === selectedBranchId);
   }, [sites, selectedBranchId]);
 
-  const filteredDepartments = useMemo(() => {
-    if (!selectedBranchId) return departments;
-    return departments.filter(dept => dept.branch_id === selectedBranchId);
-  }, [departments, selectedBranchId]);
+  // Site-aware department filtering with fallback to branch departments
+  const { 
+    departments: filteredDepartments, 
+    isLoading: departmentsLoading,
+    usingFallback: departmentsUsingFallback,
+    primaryDepartmentId: sitePrimaryDepartmentId
+  } = useDepartmentsBySite(selectedSiteId, selectedBranchId);
+
+  // Auto-select primary department when site has one configured
+  useEffect(() => {
+    if (sitePrimaryDepartmentId && !form.getValues('department_id')) {
+      form.setValue('department_id', sitePrimaryDepartmentId);
+    }
+  }, [sitePrimaryDepartmentId, form]);
+
+  // Reset department when site changes (cascade reset)
+  useEffect(() => {
+    const currentDeptId = form.getValues('department_id');
+    if (currentDeptId && filteredDepartments.length > 0) {
+      const deptStillValid = filteredDepartments.some(d => d.id === currentDeptId);
+      if (!deptStillValid) {
+        form.setValue('department_id', '');
+      }
+    }
+  }, [selectedSiteId, filteredDepartments, form]);
 
   // Dynamic subtypes from database
   const { data: dynamicSubtypes = [] } = useActiveEventSubtypes(
@@ -1286,7 +1308,7 @@ export default function IncidentReport() {
                     )}
                   />
 
-                  {/* Responsible Department (filtered by selected branch) */}
+                  {/* Responsible Department (site-aware filtering with branch fallback) */}
                   <FormField
                     control={form.control}
                     name="department_id"
@@ -1306,9 +1328,11 @@ export default function IncidentReport() {
                                   ? t('common.loading') 
                                   : !selectedBranchId 
                                     ? t('incidents.selectBranchFirst')
-                                    : filteredDepartments.length === 0
-                                      ? t('incidents.noDepartmentsForBranch')
-                                      : t('incidents.selectDepartment')
+                                    : !selectedSiteId
+                                      ? t('incidents.selectSiteFirst', 'Select a site first')
+                                      : filteredDepartments.length === 0
+                                        ? t('incidents.noDepartmentsForSite', 'No departments for this site')
+                                        : t('incidents.selectDepartment')
                               } />
                             </SelectTrigger>
                           </FormControl>
@@ -1321,6 +1345,15 @@ export default function IncidentReport() {
                             ))}
                           </SelectContent>
                         </Select>
+                        {/* Helper text indicating filtering mode */}
+                        {selectedSiteId && !departmentsLoading && filteredDepartments.length > 0 && (
+                          <FormDescription className="flex items-center gap-1 text-xs">
+                            <Info className="h-3 w-3" />
+                            {departmentsUsingFallback 
+                              ? t('incidents.showingBranchDepartments', 'Showing all branch departments')
+                              : t('incidents.showingSiteDepartments', 'Showing departments assigned to this site')}
+                          </FormDescription>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
