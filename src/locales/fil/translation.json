@@ -1371,11 +1371,15 @@
   "forgotPassword": {
     "title": "Nakalimutan ang Password",
     "description": "Ilagay ang iyong email address at magpapadala kami ng link para i-reset ang password.",
+    "emailSentDescription": "Suriin ang iyong email para sa reset link",
     "sendResetLink": "Ipadala ang Reset Link",
     "sending": "Nagpapadala...",
     "success": "Na-send na ang Reset Link",
     "successMessage": "Suriin ang iyong email para sa link na magre-reset ng password.",
-    "backToLogin": "Bumalik sa Login"
+    "backToLogin": "Bumalik sa Login",
+    "checkYourEmail": "Suriin ang Iyong Email",
+    "emailSentMessage": "Nagpadala kami ng password reset link. Mangyaring suriin ang iyong inbox.",
+    "sentTo": "Nagpadala kami ng password reset link sa"
   },
   "resetPassword": {
     "title": "I-reset ang Password",
