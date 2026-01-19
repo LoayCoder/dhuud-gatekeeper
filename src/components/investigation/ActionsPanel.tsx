@@ -17,7 +17,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Plus, Loader2, CheckCircle2, Clock, AlertCircle, ChevronDown, Link2, Building2, User, Lock, Sparkles, Pencil, Trash2 } from "lucide-react";
 import { useCorrectiveActions, useCreateCorrectiveAction, useUpdateCorrectiveAction, useDeleteCorrectiveAction, CorrectiveAction } from "@/hooks/use-investigation";
 import { useInvestigation } from "@/hooks/use-investigation";
-import { useTenantDepartments } from "@/hooks/use-org-hierarchy";
+import { useDepartmentsByBranch } from "@/hooks/use-departments-by-site";
 import { useDepartmentUsers, useTenantUsers } from "@/hooks/use-department-users";
 import { useRCAAI } from "@/hooks/use-rca-ai";
 import { useIncident } from "@/hooks/use-incidents";
@@ -113,7 +113,10 @@ export function ActionsPanel({
   const { data: actions, isLoading } = useCorrectiveActions(incidentId);
   const { data: investigation } = useInvestigation(incidentId);
   const { data: incident } = useIncident(incidentId);
-  const { data: departments } = useTenantDepartments();
+  
+  // Filter departments by the incident's branch for proper hierarchy compliance
+  const incidentBranchId = incident?.branch_id;
+  const { data: departments } = useDepartmentsByBranch(incidentBranchId || undefined);
   const { data: departmentUsers } = useDepartmentUsers(selectedDepartmentId);
   const { data: allUsers } = useTenantUsers();
   const createAction = useCreateCorrectiveAction();
