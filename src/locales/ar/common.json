@@ -102,7 +102,10 @@
     "noResults": "لا توجد نتائج",
     "tryAgain": "حاول مرة أخرى",
     "copied": "تم النسخ",
-    "copyToClipboard": "نسخ إلى الحافظة"
+    "copyToClipboard": "نسخ إلى الحافظة",
+    "current": "الحالي",
+    "higher": "أعلى",
+    "lower": "أقل"
   },
   "validation": {
     "required": "هذا الحقل مطلوب",

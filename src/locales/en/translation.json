@@ -9467,5 +9467,107 @@
     "saveFailed": "Failed to save part result",
     "resultsSaved": "Part results saved",
     "bulkSaveFailed": "Failed to save part results"
+  },
+  "investigation": {
+    "title": "Investigation",
+    "overview": {
+      "title": "Overview",
+      "assigned": "Assigned",
+      "assignedOn": "Assigned on {{date}}",
+      "assignmentNotes": "Assignment Notes",
+      "selectPlaceholder": "Choose an investigator...",
+      "notesPlaceholder": "Optional notes for the investigator...",
+      "reassignBtn": "Reassign",
+      "assignBtn": "Assign Investigator",
+      "noInvestigators": "No investigators available",
+      "investigationStarted": "Investigation Started",
+      "readOnly": "Read-only"
+    },
+    "readOnlyOversight": "You are viewing this investigation in read-only mode. Only the assigned investigator can make changes.",
+    "showingPendingApprovals": "Showing incidents pending your action",
+    "showingAllIncidents": "Showing all open incidents",
+    "evidence": {
+      "title": "Evidence",
+      "subtitle": "Upload and manage investigation evidence",
+      "upload": {
+        "button": "Add Evidence"
+      },
+      "noItems": "No evidence uploaded yet.",
+      "noItemsHint": "Click \"Add Evidence\" to upload photos, documents, CCTV data, and more."
+    }
+  },
+  "incidents": {
+    "title": "Incidents",
+    "classification": "Classification",
+    "assignedTo": "Assigned To",
+    "metadata": "Information",
+    "reportedBy": "Reported By",
+    "responsibleDepartment": "Department",
+    "branch": "Branch",
+    "site": "Site",
+    "contractor": "Contractor",
+    "occurredAt": "Occurred At",
+    "createdAt": "Created",
+    "updatedAt": "Last Updated",
+    "description": "Description",
+    "injuryDetails": "Injury Details",
+    "injuryCount": "Persons Injured",
+    "injuryClassification": "Classification",
+    "damageDetails": "Damage Details",
+    "estimatedCost": "Estimated Cost",
+    "damageType": "Type",
+    "detail": {
+      "workflowStatus": "Workflow Status",
+      "nextAction": "Next Action",
+      "riskAssessment": "Risk Assessment",
+      "severityScale": "Severity Scale",
+      "evidenceChain": "Evidence Chain",
+      "injuryDetails": "Injury Details",
+      "injuredPersons": "Persons Injured",
+      "injuryClassification": "Injury Classification",
+      "damageDetails": "Damage Details",
+      "estimatedCost": "Estimated Cost",
+      "damageType": "Damage Type",
+      "damageDescription": "Damage Description",
+      "reportedBy": "Reported By",
+      "department": "Department",
+      "branch": "Branch",
+      "site": "Site",
+      "reportedAt": "Reported At",
+      "eventTypes": "Event Types"
+    },
+    "workflow": {
+      "submitted": "Submitted",
+      "expert_screening": "Expert Screening",
+      "investigation_in_progress": "Investigation",
+      "pending_closure": "Pending Closure",
+      "closed": "Closed",
+      "pending_manager_approval": "Manager Review",
+      "pending_final_closure": "Final Closure",
+      "pending_consultant_review": "Consultant Review",
+      "pending_site_client_approval": "Site Client Approval",
+      "pending_contractor_implementation": "Implementation",
+      "pending_consultant_verification": "Verification",
+      "pending_violation_processing": "Violation (if any)",
+      "pending_hsse_validation": "HSSE Validation",
+      "pending_dept_rep_approval": "Dept Rep Approval"
+    }
+  },
+  "severity": {
+    "actualSeverity": "Actual Severity",
+    "potentialSeverity": "Potential Severity",
+    "level_1": {
+      "short": "L1"
+    },
+    "level_5": {
+      "short": "L5"
+    }
+  },
+  "common": {
+    "current": "Current",
+    "higher": "Higher",
+    "lower": "Lower",
+    "notAssessed": "Not Assessed",
+    "unknown": "Unknown"
   }
 }

@@ -8164,6 +8164,8 @@
     "ratingDescription": "اختر أعلى تأثير محتمل عبر الأفراد / البيئة / الأصول / الأعمال / السمعة والأمن",
     "erpActivated": "تفعيل خطة الطوارئ",
     "erpActivatedDescription": "هل تم تفعيل خطة الاستجابة للطوارئ لهذا الحدث؟",
+    "actualSeverity": "الخطورة الفعلية",
+    "potentialSeverity": "الخطورة المحتملة",
     "level_1": {
       "label": "المستوى 1 - منخفض",
       "description": "تأثير طفيف، تمت السيطرة عليه بسرعة",
@@ -8228,6 +8230,91 @@
     "high": "عالي",
     "critical": "حرج",
     "unassigned": "غير محدد"
+  },
+  "investigation": {
+    "title": "التحقيق",
+    "overview": {
+      "title": "نظرة عامة",
+      "assigned": "مُعيَّن",
+      "assignedOn": "عُيِّن في {{date}}",
+      "assignmentNotes": "ملاحظات التعيين",
+      "selectPlaceholder": "اختر محققاً...",
+      "notesPlaceholder": "ملاحظات اختيارية للمحقق...",
+      "reassignBtn": "إعادة التعيين",
+      "assignBtn": "تعيين المحقق",
+      "noInvestigators": "لا يوجد محققون متاحون",
+      "investigationStarted": "بدأ التحقيق",
+      "readOnly": "للقراءة فقط"
+    },
+    "readOnlyOversight": "أنت تعرض هذا التحقيق في وضع القراءة فقط. فقط المحقق المعيَّن يمكنه إجراء التغييرات.",
+    "showingPendingApprovals": "عرض الحوادث المعلقة لإجراءك",
+    "showingAllIncidents": "عرض جميع الحوادث المفتوحة",
+    "evidence": {
+      "title": "الأدلة",
+      "subtitle": "رفع وإدارة أدلة التحقيق",
+      "upload": {
+        "button": "إضافة دليل"
+      },
+      "noItems": "لم يتم رفع أي أدلة بعد.",
+      "noItemsHint": "انقر \"إضافة دليل\" لرفع الصور والمستندات وبيانات الكاميرات وغيرها."
+    }
+  },
+  "incidents": {
+    "title": "الحوادث",
+    "classification": "التصنيف",
+    "assignedTo": "مُسند إلى",
+    "metadata": "معلومات",
+    "reportedBy": "أبلغ بواسطة",
+    "responsibleDepartment": "القسم المسؤول",
+    "branch": "الفرع",
+    "site": "الموقع",
+    "contractor": "المقاول",
+    "occurredAt": "تاريخ الحدوث",
+    "createdAt": "تاريخ الإنشاء",
+    "updatedAt": "آخر تحديث",
+    "description": "الوصف",
+    "injuryDetails": "تفاصيل الإصابة",
+    "injuryCount": "الأشخاص المصابون",
+    "injuryClassification": "تصنيف الإصابة",
+    "damageDetails": "تفاصيل الأضرار",
+    "estimatedCost": "التكلفة التقديرية",
+    "damageType": "نوع الضرر",
+    "detail": {
+      "workflowStatus": "حالة سير العمل",
+      "nextAction": "الإجراء التالي",
+      "riskAssessment": "تقييم المخاطر",
+      "severityScale": "مقياس الخطورة",
+      "evidenceChain": "سلسلة الأدلة",
+      "injuryDetails": "تفاصيل الإصابة",
+      "injuredPersons": "الأشخاص المصابون",
+      "injuryClassification": "تصنيف الإصابة",
+      "damageDetails": "تفاصيل الأضرار",
+      "estimatedCost": "التكلفة التقديرية",
+      "damageType": "نوع الضرر",
+      "damageDescription": "وصف الضرر",
+      "reportedBy": "أبلغ بواسطة",
+      "department": "القسم",
+      "branch": "الفرع",
+      "site": "الموقع",
+      "reportedAt": "تاريخ البلاغ",
+      "eventTypes": "أنواع الأحداث"
+    },
+    "workflow": {
+      "submitted": "تم التقديم",
+      "expert_screening": "فحص الخبير",
+      "investigation_in_progress": "التحقيق",
+      "pending_closure": "في انتظار الإغلاق",
+      "closed": "مغلق",
+      "pending_manager_approval": "مراجعة المدير",
+      "pending_final_closure": "الإغلاق النهائي",
+      "pending_consultant_review": "مراجعة المستشار",
+      "pending_site_client_approval": "موافقة عميل الموقع",
+      "pending_contractor_implementation": "التنفيذ",
+      "pending_consultant_verification": "التحقق",
+      "pending_violation_processing": "المخالفة (إن وجدت)",
+      "pending_hsse_validation": "مصادقة السلامة",
+      "pending_dept_rep_approval": "موافقة ممثل القسم"
+    }
   },
   "settings": {
     "eventCategories": {
