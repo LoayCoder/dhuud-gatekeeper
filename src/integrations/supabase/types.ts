@@ -27866,12 +27866,12 @@ export type Database = {
           }
         | {
             Args: {
-              p_admin_notes: string
+              p_admin_notes?: string
               p_incident_id: string
               p_new_branch_id: string
               p_new_contractor_id: string
               p_new_site_id: string
-              p_should_reroute: boolean
+              p_reset_workflow?: boolean
             }
             Returns: Json
           }
