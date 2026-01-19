@@ -7,6 +7,7 @@ import { toast } from "sonner";
 export interface PTWPermit {
   id: string;
   tenant_id: string;
+  branch_id: string | null;
   reference_id: string;
   project_id: string;
   type_id: string;
@@ -63,17 +64,18 @@ export interface PTWPermitFilters {
 export function usePTWPermits(filters: PTWPermitFilters = {}) {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
-  const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
+  const { queryKey: branchQueryKey } = useBranchFilter();
 
   return useQuery({
     queryKey: ["ptw-permits", tenantId, filters, ...branchQueryKey],
     queryFn: async () => {
       if (!tenantId) return [];
 
+      // Branch filtering is now handled by RLS via branch_id column
       let query = supabase
         .from("ptw_permits")
         .select(`
-          id, tenant_id, reference_id, project_id, type_id, status,
+          id, tenant_id, branch_id, reference_id, project_id, type_id, status,
           site_id, building_id, floor_zone_id, location_details, gps_lat, gps_lng,
           applicant_id, endorser_id, issuer_id,
           planned_start_time, planned_end_time, actual_start_time, actual_end_time,
@@ -87,7 +89,7 @@ export function usePTWPermits(filters: PTWPermitFilters = {}) {
           project:ptw_projects(name, reference_id),
           applicant:profiles!ptw_permits_applicant_id_fkey(full_name),
           issuer:profiles!ptw_permits_issuer_id_fkey(full_name),
-          site:sites(name, branch_id)
+          site:sites(name)
         `)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
@@ -103,14 +105,6 @@ export function usePTWPermits(filters: PTWPermitFilters = {}) {
 
       const { data, error } = await query;
       if (error) throw error;
-      
-      // Filter by branch via site relationship if branch filter is active
-      if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
-        return (data as PTWPermit[]).filter(permit => {
-          const siteBranchId = (permit.site as unknown as { branch_id?: string })?.branch_id;
-          return siteBranchId && branchIds.includes(siteBranchId);
-        });
-      }
       
       return data as PTWPermit[];
     },

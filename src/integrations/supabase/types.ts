@@ -18052,6 +18052,7 @@ export type Database = {
           actual_end_time: string | null
           actual_start_time: string | null
           applicant_id: string
+          branch_id: string | null
           building_id: string | null
           closed_at: string | null
           closed_by: string | null
@@ -18097,6 +18098,7 @@ export type Database = {
           actual_end_time?: string | null
           actual_start_time?: string | null
           applicant_id: string
+          branch_id?: string | null
           building_id?: string | null
           closed_at?: string | null
           closed_by?: string | null
@@ -18142,6 +18144,7 @@ export type Database = {
           actual_end_time?: string | null
           actual_start_time?: string | null
           applicant_id?: string
+          branch_id?: string | null
           building_id?: string | null
           closed_at?: string | null
           closed_by?: string | null
@@ -18195,6 +18198,13 @@ export type Database = {
             columns: ["applicant_id"]
             isOneToOne: false
             referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_permits_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
             referencedColumns: ["id"]
           },
           {
