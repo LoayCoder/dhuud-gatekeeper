@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 import { useManhours, useCreateManhour, useUpdateManhour, useDeleteManhour, useManhoursSummary } from '@/hooks/use-manhours';
 import { useBranches } from '@/hooks/use-branches';
 import { useSites } from '@/hooks/use-sites';
-import { useDepartments } from '@/hooks/use-departments';
+import { useDepartmentsByBranch } from '@/hooks/use-departments-by-site';
 import ManhoursTrendChart from '@/components/manhours/ManhoursTrendChart';
 import * as XLSX from 'xlsx';
 
@@ -117,7 +117,9 @@ export default function ManhoursManagement() {
   const { data: summary } = useManhoursSummary(startDate, endDate);
   const { data: branches } = useBranches();
   const { data: sites } = useSites();
-  const { data: departments } = useDepartments();
+  
+  // Filter departments by selected branch for proper hierarchy compliance
+  const { data: departments } = useDepartmentsByBranch(formData.branch_id || undefined);
 
   const createMutation = useCreateManhour();
   const updateMutation = useUpdateManhour();
@@ -883,7 +885,15 @@ export default function ManhoursManagement() {
               <Label htmlFor="branch_id">{t('admin.manhours.branch', 'Branch')}</Label>
               <Select
                 value={formData.branch_id || '__none__'}
-                onValueChange={(value) => setFormData({ ...formData, branch_id: value === '__none__' ? '' : value })}
+                onValueChange={(value) => {
+                  // Cascade reset: when branch changes, reset site and department
+                  setFormData({ 
+                    ...formData, 
+                    branch_id: value === '__none__' ? '' : value,
+                    site_id: '',
+                    department_id: ''
+                  });
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder={t('admin.manhours.selectBranch', 'Select branch (optional)')} />
@@ -904,13 +914,14 @@ export default function ManhoursManagement() {
               <Select
                 value={formData.site_id || '__none__'}
                 onValueChange={(value) => setFormData({ ...formData, site_id: value === '__none__' ? '' : value })}
+                disabled={!formData.branch_id}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={t('admin.manhours.selectSite', 'Select site (optional)')} />
+                  <SelectValue placeholder={!formData.branch_id ? t('admin.manhours.selectBranchFirst', 'Select branch first') : t('admin.manhours.selectSite', 'Select site (optional)')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">{t('admin.manhours.allSites', 'All Sites')}</SelectItem>
-                  {sites?.map((site) => (
+                  {sites?.filter(site => site.branch_id === formData.branch_id).map((site) => (
                     <SelectItem key={site.id} value={site.id}>
                       {site.name}
                     </SelectItem>
@@ -918,6 +929,29 @@ export default function ManhoursManagement() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Department dropdown - filtered by selected branch */}
+            {formData.branch_id && (
+              <div className="space-y-2">
+                <Label htmlFor="department_id">{t('admin.manhours.department', 'Department')}</Label>
+                <Select
+                  value={formData.department_id || '__none__'}
+                  onValueChange={(value) => setFormData({ ...formData, department_id: value === '__none__' ? '' : value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('admin.manhours.selectDepartment', 'Select department (optional)')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">{t('admin.manhours.allDepartments', 'All Departments')}</SelectItem>
+                    {departments?.map((dept) => (
+                      <SelectItem key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="notes">{t('admin.manhours.notes', 'Notes')}</Label>

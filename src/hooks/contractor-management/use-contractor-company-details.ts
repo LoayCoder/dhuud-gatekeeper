@@ -170,6 +170,11 @@ export function useDepartments(branchId?: string | null) {
         .is("deleted_at", null)
         .order("name");
 
+      // Apply branch filter - include branch-specific + hybrid (null branch_id)
+      if (branchId) {
+        query = query.or(`branch_id.eq.${branchId},branch_id.is.null`);
+      }
+
       const { data, error } = await query;
       if (error) throw error;
       return data as { id: string; name: string }[];
