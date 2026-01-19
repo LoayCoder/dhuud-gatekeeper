@@ -2064,7 +2064,9 @@
     "oauthError": "خطأ في المصادقة",
     "oauthErrorDesc": "حدثت مشكلة في تسجيل الدخول بحساب Google. يرجى المحاولة مرة أخرى.",
     "biometricSuccess": "نجحت المصادقة البيومترية",
-    "biometricFailed": "فشلت المصادقة البيومترية"
+    "biometricFailed": "فشلت المصادقة البيومترية",
+    "or": "أو",
+    "signInWithBiometric": "تسجيل الدخول بالبصمة"
   },
   "forgotPassword": {
     "title": "نسيت كلمة المرور",
@@ -2138,7 +2140,14 @@
     "newUserMessage": "لقد تمت دعوتك للانضمام إلى",
     "failedToValidate": "فشل التحقق من رمز الدعوة",
     "codeRequired": "رمز الدعوة مطلوب",
-    "failedToVerifyUser": "فشل التحقق من حالة المستخدم"
+    "failedToVerifyUser": "فشل التحقق من حالة المستخدم",
+    "haveInviteCode": "هل لديك رمز دعوة؟",
+    "enterCodeHere": "أدخل رمزك هنا"
+  },
+  "legal": {
+    "termsOfService": "شروط الخدمة",
+    "privacyPolicy": "سياسة الخصوصية",
+    "cookiePolicy": "سياسة ملفات تعريف الارتباط"
   },
   "signup": {
     "invalidInvitationData": "بيانات الدعوة غير صالحة. يرجى البدء من جديد.",
