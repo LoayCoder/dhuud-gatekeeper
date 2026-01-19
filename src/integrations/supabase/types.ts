@@ -25698,6 +25698,17 @@ export type Database = {
         }
         Returns: Json
       }
+      validate_visitor_self_registration: {
+        Args: {
+          _company_name: string
+          _expected_visit_date: string
+          _full_name: string
+          _national_id: string
+          _phone: string
+          _tenant_id: string
+        }
+        Returns: boolean
+      }
       validate_worker_qr_access: {
         Args: { p_qr_token: string; p_site_id?: string }
         Returns: Json
