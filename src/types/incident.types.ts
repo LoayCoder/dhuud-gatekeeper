@@ -14,7 +14,7 @@ export type IncidentSeverity =
 // Incident status
 export type IncidentStatus = 
   | 'draft'
-  | 'reported'
+  | 'submitted'
   | 'under_investigation'
   | 'pending_action'
   | 'closed'
