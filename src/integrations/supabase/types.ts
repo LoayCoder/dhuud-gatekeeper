@@ -26474,31 +26474,45 @@ export type Database = {
         Args: { p_event: Json; p_provider_message_id: string }
         Returns: string
       }
-      assign_investigation_team: {
-        Args: {
-          _assignment_notes?: string
-          _incident_id: string
-          _investigation_type: string
-          _investigator_id?: string
-          _team_leader_id?: string
-          _team_member_ids?: string[]
-          _user_id: string
-        }
-        Returns: Json
-      }
-      assign_team_task: {
-        Args: {
-          _assigned_to: string
-          _due_date?: string
-          _investigation_id: string
-          _priority?: string
-          _target_area?: string
-          _task_description: string
-          _task_type: string
-          _user_id: string
-        }
-        Returns: Json
-      }
+      assign_investigation_team:
+        | {
+            Args: {
+              _assignment_notes?: string
+              _incident_id: string
+              _investigation_type: string
+              _investigator_id?: string
+              _team_leader_id?: string
+              _team_member_ids?: string[]
+              _user_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_incident_id: string
+              p_investigator_id: string
+              p_team_members?: string[]
+            }
+            Returns: Json
+          }
+      assign_team_task:
+        | {
+            Args: {
+              _assigned_to: string
+              _due_date?: string
+              _investigation_id: string
+              _priority?: string
+              _target_area?: string
+              _task_description: string
+              _task_type: string
+              _user_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: { p_assignee_id: string; p_task_id: string }
+            Returns: boolean
+          }
       calculate_asset_depreciation: {
         Args: { p_asset_id: string }
         Returns: number
@@ -26845,6 +26859,10 @@ export type Database = {
       }
       dept_rep_reject_observation:
         | {
+            Args: { p_incident_id: string; p_rejection_reason: string }
+            Returns: Json
+          }
+        | {
             Args: {
               p_incident_id: string
               p_notes?: string
@@ -26960,11 +26978,9 @@ export type Database = {
         Args: never
         Returns: {
           agent_id: string
-          agent_name: string
-          avg_resolution_hours: number
-          in_progress_tickets: number
+          avg_response_time: number
+          full_name: string
           open_tickets: number
-          total_active: number
         }[]
       }
       get_anonymous_leaderboard: {
@@ -27639,15 +27655,24 @@ export type Database = {
         Args: { p_decision: string; p_incident_id: string; p_notes?: string }
         Returns: Json
       }
-      hsse_review_rejection: {
-        Args: {
-          p_decision: string
-          p_incident_id: string
-          p_notes?: string
-          p_user_id: string
-        }
-        Returns: Json
-      }
+      hsse_review_rejection:
+        | {
+            Args: {
+              p_decision: string
+              p_incident_id: string
+              p_notes?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_decision: string
+              p_incident_id: string
+              p_notes?: string
+              p_user_id: string
+            }
+            Returns: Json
+          }
       hsse_review_violation: {
         Args: {
           p_decision: string
@@ -27866,6 +27891,14 @@ export type Database = {
               p_decision: string
               p_incident_id: string
               p_notes?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_decision: string
+              p_incident_id: string
+              p_notes?: string
               p_updated_description?: string
               p_updated_title?: string
             }
@@ -27994,10 +28027,21 @@ export type Database = {
         Args: { p_codes: string[]; p_user_id: string }
         Returns: undefined
       }
-      submit_clinic_review: {
-        Args: { _incident_id: string; _notes?: string; _user_id: string }
-        Returns: Json
-      }
+      submit_clinic_review:
+        | {
+            Args: { _incident_id: string; _notes?: string; _user_id: string }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_incident_id: string
+              p_injury_classification?: string
+              p_injury_confirmed?: boolean
+              p_review_notes: string
+              p_treatment_provided?: string
+            }
+            Returns: Json
+          }
       submit_contractor_violation: {
         Args: {
           p_incident_id: string
