@@ -18,6 +18,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { RateLimitStatsWidget } from "@/components/admin/rate-limit";
+import { ThreatMapWidget } from "@/components/admin/threat-map";
 
 interface SecurityOverviewTabProps {
   tenantId: string | null;
@@ -303,6 +304,9 @@ export function SecurityOverviewTab({ tenantId }: SecurityOverviewTabProps) {
 
       {/* Rate Limit & IP Blocking Widget */}
       <RateLimitStatsWidget />
+
+      {/* Threat Geography Map */}
+      <ThreatMapWidget />
     </div>
   );
 }

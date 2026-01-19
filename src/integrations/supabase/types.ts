@@ -13052,6 +13052,45 @@ export type Database = {
           },
         ]
       }
+      ip_geo_cache: {
+        Row: {
+          city: string | null
+          country: string | null
+          country_code: string | null
+          expires_at: string | null
+          ip_address: string
+          latitude: number | null
+          longitude: number | null
+          org: string | null
+          region: string | null
+          resolved_at: string | null
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          country_code?: string | null
+          expires_at?: string | null
+          ip_address: string
+          latitude?: number | null
+          longitude?: number | null
+          org?: string | null
+          region?: string | null
+          resolved_at?: string | null
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          country_code?: string | null
+          expires_at?: string | null
+          ip_address?: string
+          latitude?: number | null
+          longitude?: number | null
+          org?: string | null
+          region?: string | null
+          resolved_at?: string | null
+        }
+        Relationships: []
+      }
       ip_whitelist: {
         Row: {
           added_by: string | null
@@ -24273,6 +24312,19 @@ export type Database = {
         }
         Returns: undefined
       }
+      cache_ip_geolocation: {
+        Args: {
+          p_city: string
+          p_country: string
+          p_country_code: string
+          p_ip_address: string
+          p_latitude: number
+          p_longitude: number
+          p_org?: string
+          p_region: string
+        }
+        Returns: undefined
+      }
       calculate_asset_depreciation: {
         Args: { p_asset_id: string }
         Returns: number
@@ -24802,6 +24854,21 @@ export type Database = {
           tier: string
           total_awarded: number
           unique_earners: number
+        }[]
+      }
+      get_blocked_ips_geo: {
+        Args: { p_time_range?: string }
+        Returns: {
+          block_type: string
+          blocked_at: string
+          city: string
+          country: string
+          failed_attempts: number
+          id: string
+          ip_address: string
+          latitude: number
+          longitude: number
+          reason: string
         }[]
       }
       get_client_site_rep_company_ids: {
