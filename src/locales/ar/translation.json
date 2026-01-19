@@ -1213,28 +1213,68 @@
         "high": "عالية",
         "critical": "حرجة"
       },
-      "status": "الحالة",
-      "statuses": {
-        "pending": "معلق",
-        "in_progress": "قيد التنفيذ",
-        "completed": "مكتمل",
-        "verified": "تم التحقق",
-        "cancelled": "ملغي"
-      },
-      "noActions": "لم يتم تحديد إجراءات تصحيحية",
-      "addFirst": "أضف إجراءات تصحيحية لمنع التكرار",
-      "verify": "التحقق من الاكتمال",
-      "verificationNotes": "ملاحظات التحقق",
-      "verificationNotesPlaceholder": "وثق تفاصيل التحقق...",
-      "verifiedBy": "تم التحقق بواسطة",
-      "verifiedAt": "تاريخ التحقق",
-      "addSuccess": "تمت إضافة الإجراء التصحيحي",
-      "addError": "فشل في إضافة الإجراء التصحيحي",
-      "updateSuccess": "تم تحديث الإجراء",
-      "updateError": "فشل في تحديث الإجراء",
-      "completeAction": "وضع علامة مكتمل",
-      "completedDate": "تاريخ الإكمال"
+    "status": "الحالة",
+    "statuses": {
+      "pending": "معلق",
+      "in_progress": "قيد التنفيذ",
+      "completed": "مكتمل",
+      "verified": "تم التحقق",
+      "cancelled": "ملغي",
+      "assigned": "مُسند",
+      "returned": "مُرجع للتصحيح"
     },
+    "noActions": "لم يتم تحديد إجراءات تصحيحية",
+    "addFirst": "أضف إجراءات تصحيحية لمنع التكرار",
+    "verify": "التحقق من الاكتمال",
+    "verificationNotes": "ملاحظات التحقق",
+    "verificationNotesPlaceholder": "وثق تفاصيل التحقق...",
+    "verifiedBy": "تم التحقق بواسطة",
+    "verifiedAt": "تاريخ التحقق",
+    "addSuccess": "تمت إضافة الإجراء التصحيحي",
+    "addError": "فشل في إضافة الإجراء التصحيحي",
+    "updateSuccess": "تم تحديث الإجراء",
+    "updateError": "فشل في تحديث الإجراء",
+    "completeAction": "وضع علامة مكتمل",
+    "completedDate": "تاريخ الإكمال",
+    "created": "تم إنشاء الإجراء",
+    "newAction": "إجراء تصحيحي جديد",
+    "editAction": "تعديل الإجراء التصحيحي",
+    "linkedCauseType": "ربط بالسبب",
+    "selectCauseType": "اختر نوع السبب...",
+    "selectCause": "اختر السبب...",
+    "selectRootCause": "اختر السبب الجذري",
+    "selectContributingFactor": "اختر العامل المساهم",
+    "startDate": "تاريخ البدء",
+    "department": "القسم",
+    "selectDepartment": "اختر القسم...",
+    "type": "النوع",
+    "types": {
+      "corrective": "تصحيحي",
+      "preventive": "وقائي",
+      "improvement": "تحسيني"
+    },
+    "category": "الفئة",
+    "categories": {
+      "engineering": "الهندسة",
+      "administrative": "الإدارة",
+      "ppe": "معدات الحماية",
+      "training": "التدريب",
+      "procedureUpdate": "تحديث الإجراءات"
+    },
+    "due": "الاستحقاق",
+    "start": "البدء",
+    "confirmDelete": "حذف الإجراء؟",
+    "deleteWarning": "سيتم حذف هذا الإجراء نهائياً. لا يمكن التراجع عن هذا.",
+    "lockedClosed": "تم إغلاق هذا الحادث. لا يمكن تعديل الإجراءات التصحيحية.",
+    "selectCauseRequired": "يرجى ربط هذا الإجراء بسبب جذري أو عامل مساهم",
+    "titlePlaceholder": "أدخل عنوان الإجراء...",
+    "ai": {
+      "suggestAction": "اقتراح الذكاء الاصطناعي",
+      "selectCauseFirst": "اختر سبباً أولاً",
+      "suggestionApplied": "تم تطبيق اقتراح الذكاء الاصطناعي",
+      "parseError": "فشل في تحليل اقتراح الذكاء الاصطناعي"
+    }
+  },
     "auditLog": {
       "title": "سجل المراجعة",
       "showLog": "إظهار سجل المراجعة",
@@ -1504,7 +1544,10 @@
     "severityInvestigatorOnly": "يمكن للمحقق المعين فقط اقتراح تغييرات الخطورة",
     "investigatorAssigned": "تم تعيين المحقق بنجاح",
     "incidentApproved": "تمت الموافقة على الحادث وقفله للتحقيق",
-    "started": "بدأ التحقيق"
+    "started": "بدأ التحقيق",
+    "readOnlyOversight": "أنت تعرض هذا التحقيق في وضع القراءة فقط. يمكن للمحقق المعين فقط إجراء التغييرات.",
+    "showingPendingApprovals": "عرض الحوادث المعلقة لإجراءك",
+    "showingAllIncidents": "عرض جميع الحوادث المفتوحة"
   },
   "pages": {
     "incidents": {
