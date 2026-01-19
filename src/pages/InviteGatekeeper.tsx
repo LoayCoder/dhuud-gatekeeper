@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme, TenantBrandingData } from '@/contexts/ThemeContext';
@@ -29,6 +29,8 @@ export default function InviteGatekeeper() {
     isLoading: themeLoading
   } = useTheme();
   const { resolvedTheme } = useNextTheme();
+  const [searchParams] = useSearchParams();
+  const wantsNewCode = searchParams.get('newCode') === 'true';
 
   // Determine the logo to display with fallback
   const fallbackLogo = resolvedTheme === 'dark' ? DHUUD_LOGO_DARK : DHUUD_LOGO_LIGHT;
@@ -40,6 +42,13 @@ export default function InviteGatekeeper() {
   });
 
   useEffect(() => {
+    // If user explicitly wants to enter a new code, skip the verified device check
+    if (wantsNewCode) {
+      // Clear the old token so they can re-verify with new code
+      localStorage.removeItem('invitation_verified_device_token');
+      return;
+    }
+    
     // Check if device is already verified - redirect to login instead
     const verifiedToken = localStorage.getItem('invitation_verified_device_token');
     if (verifiedToken) {
@@ -57,7 +66,7 @@ export default function InviteGatekeeper() {
         navigate('/');
       }
     });
-  }, [navigate]);
+  }, [navigate, wantsNewCode]);
 
   const handleInviteValidation = async (e: React.FormEvent) => {
     e.preventDefault();
