@@ -13052,6 +13052,50 @@ export type Database = {
           },
         ]
       }
+      ip_whitelist: {
+        Row: {
+          added_by: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          ip_address: string
+          is_active: boolean | null
+          notes: string | null
+          reason: string
+          tenant_id: string | null
+        }
+        Insert: {
+          added_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          ip_address: string
+          is_active?: boolean | null
+          notes?: string | null
+          reason: string
+          tenant_id?: string | null
+        }
+        Update: {
+          added_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          ip_address?: string
+          is_active?: boolean | null
+          notes?: string | null
+          reason?: string
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ip_whitelist_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kpi_audit_logs: {
         Row: {
           action_type: string
@@ -24133,6 +24177,16 @@ export type Database = {
       }
     }
     Functions: {
+      admin_block_ip: {
+        Args: {
+          _block_type: string
+          _duration_hours?: number
+          _ip_address: string
+          _reason: string
+          _tenant_id?: string
+        }
+        Returns: string
+      }
       admin_override_approval: {
         Args: {
           _admin_id: string
@@ -24142,6 +24196,16 @@ export type Database = {
           _override_reason: string
         }
         Returns: Json
+      }
+      admin_unblock_ip: { Args: { _ip_address: string }; Returns: boolean }
+      admin_whitelist_ip: {
+        Args: {
+          _duration_hours?: number
+          _ip_address: string
+          _reason: string
+          _tenant_id?: string
+        }
+        Returns: string
       }
       append_notification_webhook_event: {
         Args: { p_event: Json; p_provider_message_id: string }
@@ -25095,6 +25159,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string
       }
+      get_rate_limit_stats: { Args: never; Returns: Json }
       get_recent_hsse_events: { Args: { p_limit?: number }; Returns: Json }
       get_residual_risk_metrics: {
         Args: { p_end_date?: string; p_start_date?: string }
