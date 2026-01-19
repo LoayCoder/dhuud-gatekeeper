@@ -5203,6 +5203,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           deleted_at: string | null
+          department_id: string | null
           end_date: string
           geofence_radius_meters: number | null
           id: string
@@ -5229,6 +5230,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          department_id?: string | null
           end_date: string
           geofence_radius_meters?: number | null
           id?: string
@@ -5255,6 +5257,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          department_id?: string | null
           end_date?: string
           geofence_radius_meters?: number | null
           id?: string
@@ -5300,6 +5303,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_projects_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
             referencedColumns: ["id"]
           },
           {
@@ -23488,6 +23498,7 @@ export type Database = {
             | Database["public"]["Enums"]["visitor_approval_stage"]
             | null
           deleted_at: string | null
+          department_id: string | null
           entry_logged_at: string | null
           entry_time_from: string | null
           entry_time_until: string | null
@@ -23529,6 +23540,7 @@ export type Database = {
             | Database["public"]["Enums"]["visitor_approval_stage"]
             | null
           deleted_at?: string | null
+          department_id?: string | null
           entry_logged_at?: string | null
           entry_time_from?: string | null
           entry_time_until?: string | null
@@ -23570,6 +23582,7 @@ export type Database = {
             | Database["public"]["Enums"]["visitor_approval_stage"]
             | null
           deleted_at?: string | null
+          department_id?: string | null
           entry_logged_at?: string | null
           entry_time_from?: string | null
           entry_time_until?: string | null
@@ -23642,6 +23655,13 @@ export type Database = {
             columns: ["building_id"]
             isOneToOne: false
             referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_requests_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
             referencedColumns: ["id"]
           },
           {
@@ -24557,6 +24577,7 @@ export type Database = {
             | Database["public"]["Enums"]["visitor_access_level"]
             | null
           deleted_at: string | null
+          department_id: string | null
           destination_id: string | null
           documents_verified: boolean | null
           documents_verified_at: string | null
@@ -24587,6 +24608,7 @@ export type Database = {
           qr_used_at: string | null
           requires_escort: boolean | null
           risk_classification: number | null
+          site_id: string | null
           tenant_id: string
           user_type: string | null
           visit_end_time: string | null
@@ -24602,6 +24624,7 @@ export type Database = {
             | Database["public"]["Enums"]["visitor_access_level"]
             | null
           deleted_at?: string | null
+          department_id?: string | null
           destination_id?: string | null
           documents_verified?: boolean | null
           documents_verified_at?: string | null
@@ -24632,6 +24655,7 @@ export type Database = {
           qr_used_at?: string | null
           requires_escort?: boolean | null
           risk_classification?: number | null
+          site_id?: string | null
           tenant_id: string
           user_type?: string | null
           visit_end_time?: string | null
@@ -24647,6 +24671,7 @@ export type Database = {
             | Database["public"]["Enums"]["visitor_access_level"]
             | null
           deleted_at?: string | null
+          department_id?: string | null
           destination_id?: string | null
           documents_verified?: boolean | null
           documents_verified_at?: string | null
@@ -24677,6 +24702,7 @@ export type Database = {
           qr_used_at?: string | null
           requires_escort?: boolean | null
           risk_classification?: number | null
+          site_id?: string | null
           tenant_id?: string
           user_type?: string | null
           visit_end_time?: string | null
@@ -24689,6 +24715,13 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visitors_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
             referencedColumns: ["id"]
           },
           {
@@ -24738,6 +24771,13 @@ export type Database = {
             columns: ["induction_video_id"]
             isOneToOne: false
             referencedRelation: "induction_videos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visitors_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
             referencedColumns: ["id"]
           },
           {

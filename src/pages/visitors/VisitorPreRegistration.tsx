@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +15,7 @@ import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { useCreateVisitor } from '@/hooks/use-visitors';
 import { useCreateVisitRequest } from '@/hooks/use-visit-requests';
-import { useSites } from '@/hooks/use-sites';
+import { useTenantBranches, useTenantSites, useTenantDepartments } from '@/hooks/use-org-hierarchy';
 import { useProfilesList } from '@/hooks/use-profiles-list';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCheckBlacklist } from '@/hooks/use-security-blacklist';
@@ -32,7 +32,9 @@ const formSchema = z.object({
   company_name: z.string().min(1, 'Company name is required'),
   national_id: z.string().min(1, 'National ID is required'),
   nationality: z.string().min(1, 'Nationality is required'),
+  branch_id: z.string().min(1, 'Branch is required'),
   site_id: z.string().min(1, 'Site is required'),
+  department_id: z.string().optional(),
   // Separate date and time fields
   start_date: z.string().min(1, 'Start date is required'),
   start_time: z.string().min(1, 'Start time is required'),
@@ -92,7 +94,9 @@ export default function VisitorPreRegistration() {
   const [submittedVisitorName, setSubmittedVisitorName] = useState('');
   const [visitorPhoto, setVisitorPhoto] = useState<Blob | null>(null);
   
-  const { data: sites } = useSites();
+  const { data: branches = [] } = useTenantBranches();
+  const { data: sites = [] } = useTenantSites();
+  const { data: departments = [] } = useTenantDepartments();
   const { data: profiles } = useProfilesList();
   const { data: workflowSettings } = useVisitorWorkflowSettings();
   const createVisitor = useCreateVisitor();
@@ -114,7 +118,9 @@ export default function VisitorPreRegistration() {
       company_name: '',
       national_id: '',
       nationality: '',
+      branch_id: '',
       site_id: '',
+      department_id: '',
       start_date: getCurrentDate(),
       start_time: getCurrentTime(),
       end_date: getCurrentDate(),
@@ -127,6 +133,38 @@ export default function VisitorPreRegistration() {
       host_email: '',
     },
   });
+
+  // Watch branch_id for cascading filters
+  const selectedBranchId = form.watch('branch_id');
+
+  // Cascading filters: Sites filtered by selected branch
+  const filteredSites = useMemo(() => {
+    if (!selectedBranchId) return [];
+    return sites.filter(s => s.branch_id === selectedBranchId);
+  }, [sites, selectedBranchId]);
+
+  // Cascading filters: Departments filtered by selected branch (including hybrid departments with branch_id = null)
+  const filteredDepartments = useMemo(() => {
+    if (!selectedBranchId) return [];
+    return departments.filter(d => 
+      d.branch_id === null || d.branch_id === selectedBranchId
+    );
+  }, [departments, selectedBranchId]);
+
+  // Reset site and department when branch changes
+  useEffect(() => {
+    const currentSiteId = form.getValues('site_id');
+    const currentDeptId = form.getValues('department_id');
+    
+    // Reset site if it doesn't belong to the new branch
+    if (currentSiteId && !filteredSites.find(s => s.id === currentSiteId)) {
+      form.setValue('site_id', '');
+    }
+    // Reset department if it doesn't belong to the new branch
+    if (currentDeptId && !filteredDepartments.find(d => d.id === currentDeptId)) {
+      form.setValue('department_id', '');
+    }
+  }, [selectedBranchId, filteredSites, filteredDepartments, form]);
 
   // Update end time when workflow settings load
   useEffect(() => {
@@ -209,6 +247,8 @@ export default function VisitorPreRegistration() {
         host_phone: values.host_phone || null,
         host_email: values.host_email,
         photo_path: photoPath,
+        site_id: values.site_id,
+        department_id: values.department_id || null,
       });
 
       // Determine initial status based on workflow settings
@@ -218,7 +258,9 @@ export default function VisitorPreRegistration() {
       await createVisitRequest.mutateAsync({
         visitor_id: visitor.id,
         host_id: values.user_type === 'internal' ? values.host_id! : user?.id ?? '',
+        branch_id: values.branch_id,
         site_id: values.site_id,
+        department_id: values.department_id || null,
         valid_from: validFromDate.toISOString(),
         valid_until: validUntilDate.toISOString(),
         security_notes: values.notes || null,
@@ -566,22 +608,76 @@ export default function VisitorPreRegistration() {
               {/* Visit Details with Separate Date/Time Fields */}
               <div className="space-y-4">
                 <h3 className="font-semibold text-lg">{t('visitors.register.sections.visit')}</h3>
+                
+                {/* Branch and Site Row */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="branch_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('common.branch', 'Branch')} *</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('common.selectBranch', 'Select branch')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {branches.map((branch) => (
+                              <SelectItem key={branch.id} value={branch.id}>
+                                {branch.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="site_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('visitors.fields.site')} *</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!selectedBranchId}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('visitors.placeholders.site')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {filteredSites.map((site) => (
+                              <SelectItem key={site.id} value={site.id}>
+                                {site.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Department Field */}
                 <FormField
                   control={form.control}
-                  name="site_id"
+                  name="department_id"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('visitors.fields.site')} *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <FormLabel>{t('common.department', 'Department')}</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={!selectedBranchId}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('visitors.placeholders.site')} />
+                            <SelectValue placeholder={t('common.selectDepartment', 'Select department')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {sites?.map((site) => (
-                            <SelectItem key={site.id} value={site.id}>
-                              {site.name}
+                          {filteredDepartments.map((dept) => (
+                            <SelectItem key={dept.id} value={dept.id}>
+                              {dept.name}
                             </SelectItem>
                           ))}
                         </SelectContent>

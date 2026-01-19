@@ -6,10 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ContractorProject, useCreateContractorProject, useUpdateContractorProject } from "@/hooks/contractor-management/use-contractor-projects";
 import { useContractorCompanies } from "@/hooks/contractor-management/use-contractor-companies";
 import { useProjectManagers } from "@/hooks/contractor-management/use-project-managers";
+import { useTenantBranches, useTenantSites, useTenantDepartments } from "@/hooks/use-org-hierarchy";
 import { LocationBoundaryPicker } from "@/components/shared/LocationBoundaryPicker";
 import { Loader2 } from "lucide-react";
 
@@ -30,11 +31,17 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
   const updateProject = useUpdateContractorProject();
   const { data: companies = [] } = useContractorCompanies({ status: "active" });
   const { data: managers = [] } = useProjectManagers();
+  const { data: branches = [] } = useTenantBranches();
+  const { data: sites = [] } = useTenantSites();
+  const { data: departments = [] } = useTenantDepartments();
   const isEditing = !!project;
 
   const [formData, setFormData] = useState({
     company_id: "", project_code: "", project_name: "", project_name_ar: "",
     start_date: "", end_date: "", location_description: "", notes: "", project_manager_id: "",
+    branch_id: "",
+    site_id: "",
+    department_id: "",
     latitude: null as number | null,
     longitude: null as number | null,
     boundary_polygon: null as Coordinate[] | null,
@@ -43,6 +50,20 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
 
   const [showMap, setShowMap] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
+
+  // Cascading filters: Sites filtered by selected branch
+  const filteredSites = useMemo(() => {
+    if (!formData.branch_id) return [];
+    return sites.filter(s => s.branch_id === formData.branch_id);
+  }, [sites, formData.branch_id]);
+
+  // Cascading filters: Departments filtered by selected branch (including hybrid departments with branch_id = null)
+  const filteredDepartments = useMemo(() => {
+    if (!formData.branch_id) return [];
+    return departments.filter(d => 
+      d.branch_id === null || d.branch_id === formData.branch_id
+    );
+  }, [departments, formData.branch_id]);
 
   useEffect(() => {
     if (open) {
@@ -65,6 +86,9 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
         location_description: project.location_description || "",
         notes: project.notes || "",
         project_manager_id: project.project_manager_id || "",
+        branch_id: (project as any).branch_id || "",
+        site_id: project.site_id || "",
+        department_id: (project as any).department_id || "",
         latitude: (project as any).latitude ?? null,
         longitude: (project as any).longitude ?? null,
         boundary_polygon: (project as any).boundary_polygon ?? null,
@@ -74,11 +98,22 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
       setFormData({ 
         company_id: "", project_code: "", project_name: "", project_name_ar: "", 
         start_date: "", end_date: "", location_description: "", notes: "", project_manager_id: "",
+        branch_id: "", site_id: "", department_id: "",
         latitude: null, longitude: null, boundary_polygon: null, geofence_radius_meters: 100 
       });
     }
     setActiveTab("details");
   }, [project, open]);
+
+  // Reset site and department when branch changes
+  const handleBranchChange = (branchId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      branch_id: branchId,
+      site_id: "", // Reset site when branch changes
+      department_id: "", // Reset department when branch changes
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,6 +127,9 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
       location_description: formData.location_description || null,
       notes: formData.notes || null,
       project_manager_id: formData.project_manager_id || null,
+      branch_id: formData.branch_id || null,
+      site_id: formData.site_id || null,
+      department_id: formData.department_id || null,
       latitude: formData.latitude,
       longitude: formData.longitude,
       boundary_polygon: formData.boundary_polygon,
@@ -146,6 +184,45 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                   <SelectTrigger><SelectValue placeholder={t("contractors.projects.selectProjectManager", "Select project manager")} /></SelectTrigger>
                   <SelectContent>
                     {managers.map((m) => <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Branch, Site, Department Row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>{t("common.branch", "Branch")} *</Label>
+                  <Select value={formData.branch_id} onValueChange={handleBranchChange}>
+                    <SelectTrigger><SelectValue placeholder={t("common.selectBranch", "Select branch")} /></SelectTrigger>
+                    <SelectContent>
+                      {branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>{t("common.site", "Site")}</Label>
+                  <Select 
+                    value={formData.site_id} 
+                    onValueChange={(v) => setFormData({ ...formData, site_id: v })}
+                    disabled={!formData.branch_id}
+                  >
+                    <SelectTrigger><SelectValue placeholder={t("common.selectSite", "Select site")} /></SelectTrigger>
+                    <SelectContent>
+                      {filteredSites.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>{t("common.department", "Department")}</Label>
+                <Select 
+                  value={formData.department_id} 
+                  onValueChange={(v) => setFormData({ ...formData, department_id: v })}
+                  disabled={!formData.branch_id}
+                >
+                  <SelectTrigger><SelectValue placeholder={t("common.selectDepartment", "Select department")} /></SelectTrigger>
+                  <SelectContent>
+                    {filteredDepartments.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
