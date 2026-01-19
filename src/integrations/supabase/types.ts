@@ -26589,8 +26589,8 @@ export type Database = {
         Returns: boolean
       }
       can_approve_violation: {
-        Args: { p_incident_id: string; p_user_id: string }
-        Returns: Json
+        Args: { p_user_id: string; p_violation_id: string }
+        Returns: boolean
       }
       can_close_area_session: { Args: { p_session_id: string }; Returns: Json }
       can_close_investigation: {
@@ -26609,7 +26609,7 @@ export type Database = {
       }
       can_manage_org_structure: { Args: { _user_id: string }; Returns: boolean }
       can_perform_clinic_review: {
-        Args: { _incident_id: string; _user_id: string }
+        Args: { p_incident_id: string; p_user_id: string }
         Returns: boolean
       }
       can_perform_expert_screening: {
@@ -26617,7 +26617,7 @@ export type Database = {
         Returns: boolean
       }
       can_review_as_dept_manager: {
-        Args: { _incident_id: string; _user_id: string }
+        Args: { p_incident_id: string; p_user_id: string }
         Returns: boolean
       }
       can_review_as_site_dept_rep: {
@@ -26640,10 +26640,12 @@ export type Database = {
         Args: { _incident_reporter_id: string; _user_id: string }
         Returns: boolean
       }
-      can_view_pii: {
-        Args: { target_profile_id?: string; target_tenant_id: string }
-        Returns: boolean
-      }
+      can_view_pii:
+        | { Args: { p_user_id: string }; Returns: boolean }
+        | {
+            Args: { target_profile_id?: string; target_tenant_id: string }
+            Returns: boolean
+          }
       can_view_profile: {
         Args: { p_target_profile_id: string; p_viewer_id: string }
         Returns: boolean
@@ -26841,14 +26843,23 @@ export type Database = {
         }
         Returns: Json
       }
-      dept_rep_reject_observation: {
-        Args: {
-          p_incident_id: string
-          p_rejection_reason: string
-          p_user_id: string
-        }
-        Returns: Json
-      }
+      dept_rep_reject_observation:
+        | {
+            Args: {
+              p_incident_id: string
+              p_notes?: string
+              p_rejection_reason: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_incident_id: string
+              p_rejection_reason: string
+              p_user_id: string
+            }
+            Returns: Json
+          }
       find_contractor_consultant_for_branch: {
         Args: { p_branch_id: string; p_tenant_id: string }
         Returns: string
@@ -27490,10 +27501,7 @@ export type Database = {
         }[]
       }
       get_user_primary_branch: { Args: { _user_id: string }; Returns: string }
-      get_user_role: {
-        Args: { _user_id: string }
-        Returns: Database["public"]["Enums"]["app_role"]
-      }
+      get_user_role: { Args: { _user_id: string }; Returns: string }
       get_user_roles: {
         Args: { p_user_id: string }
         Returns: {
@@ -27601,13 +27609,15 @@ export type Database = {
       has_hsse_incident_access: { Args: { _user_id: string }; Returns: boolean }
       has_hsse_manager_access: { Args: { p_user_id: string }; Returns: boolean }
       has_ptw_access: { Args: { _user_id: string }; Returns: boolean }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
+      has_role:
+        | {
+            Args: {
+              _role: Database["public"]["Enums"]["app_role"]
+              _user_id: string
+            }
+            Returns: boolean
+          }
+        | { Args: { _role: string; _user_id: string }; Returns: boolean }
       has_role_by_code: {
         Args: { p_role_code: string; p_user_id: string }
         Returns: boolean
@@ -27652,15 +27662,24 @@ export type Database = {
         Args: { p_decision: string; p_incident_id: string; p_notes?: string }
         Returns: Json
       }
-      hsse_validate_observation_closure: {
-        Args: {
-          p_decision: string
-          p_incident_id: string
-          p_notes?: string
-          p_user_id: string
-        }
-        Returns: Json
-      }
+      hsse_validate_observation_closure:
+        | {
+            Args: {
+              p_decision: string
+              p_incident_id: string
+              p_notes?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_decision: string
+              p_incident_id: string
+              p_notes?: string
+              p_user_id: string
+            }
+            Returns: Json
+          }
       incident_is_reporter_editable: {
         Args: { _incident_id: string }
         Returns: boolean
@@ -27830,17 +27849,28 @@ export type Database = {
           old_level: string
         }[]
       }
-      process_dept_manager_incident_approval: {
-        Args: {
-          _decision: string
-          _incident_id: string
-          _notes?: string
-          _updated_description?: string
-          _updated_initial_actions?: string
-          _user_id: string
-        }
-        Returns: Json
-      }
+      process_dept_manager_incident_approval:
+        | {
+            Args: {
+              _decision: string
+              _incident_id: string
+              _notes?: string
+              _updated_description?: string
+              _updated_initial_actions?: string
+              _user_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_decision: string
+              p_incident_id: string
+              p_notes?: string
+              p_updated_description?: string
+              p_updated_title?: string
+            }
+            Returns: Json
+          }
       process_dept_rep_incident_decision: {
         Args: {
           _decision: string

@@ -23,8 +23,8 @@ export function useCanPerformClinicReview(incidentId: string | null) {
       
       const { data, error } = await supabase
         .rpc('can_perform_clinic_review', {
-          _user_id: user.id,
-          _incident_id: incidentId
+          p_user_id: user.id,
+          p_incident_id: incidentId
         });
       
       if (error) {
