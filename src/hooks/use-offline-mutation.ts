@@ -100,8 +100,35 @@ export async function replayQueuedMutations(): Promise<{ success: number; failed
         await handler(mutation.variables);
         offlineMutationQueue.remove(mutation.id);
         success++;
-      } catch {
-        failed++;
+      } catch (error: unknown) {
+        // Smart Error Handling:
+        // If error is 400 (Bad Request), 401 (Unauthorized), or 403 (Forbidden),
+        // it means the action is invalid or denied by RLS.
+        // We should NOT retry this indefinitely. Discard it.
+        const err = error as { status?: number; code?: number; message?: string };
+        const status = err?.status || err?.code;
+        const isPermissionError = status === 403 || status === 401 || (err?.message && err.message.includes('permission denied'));
+        const isValidationError = status === 400;
+
+        if (isPermissionError || isValidationError) {
+          console.warn(`Discarding queued mutation ${mutation.id} due to permanent error:`, error);
+          offlineMutationQueue.remove(mutation.id);
+
+          toast({
+            title: 'Sync Action Failed',
+            description: isPermissionError
+              ? 'Action denied by server. You may not have permission.'
+              : 'Invalid action data. Discarded.',
+            variant: 'destructive',
+          });
+
+          // Count as "handled" failure (removed from queue), but still return in failed count for UI stats if needed
+          failed++;
+        } else {
+          // Network error or server error (500) - keep in queue for retry
+          console.error(`Mutation ${mutation.id} failed with retryable error:`, error);
+          failed++;
+        }
       }
     } else {
       // No handler registered, remove stale mutation
