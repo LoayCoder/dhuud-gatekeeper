@@ -95,6 +95,7 @@ export function useAssetTypeParts(typeId: string | undefined) {
 
 /**
  * Fetch all parts for a specific asset subtype
+ * Includes both tenant-specific parts AND system-wide parts (is_system=true, tenant_id=null)
  */
 export function useSubtypeParts(subtypeId: string | undefined) {
   const { profile } = useAuth();
@@ -109,9 +110,9 @@ export function useSubtypeParts(subtypeId: string | undefined) {
         .from('asset_type_parts')
         .select('*')
         .eq('subtype_id', subtypeId)
-        .eq('tenant_id', tenantId)
         .is('type_id', null)
         .is('deleted_at', null)
+        .or(`tenant_id.eq.${tenantId},and(is_system.eq.true,tenant_id.is.null)`)
         .order('sort_order', { ascending: true })
         .order('name', { ascending: true });
 
@@ -143,7 +144,7 @@ export function usePartsForAsset(typeId: string | undefined, subtypeId: string |
       let query = supabase
         .from('asset_type_parts')
         .select('*')
-        .eq('tenant_id', tenantId)
+        .or(`tenant_id.eq.${tenantId},and(is_system.eq.true,tenant_id.is.null)`)
         .eq('is_active', true)
         .is('deleted_at', null)
         .order('sort_order', { ascending: true })
