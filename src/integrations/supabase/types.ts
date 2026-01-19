@@ -12999,6 +12999,59 @@ export type Database = {
           },
         ]
       }
+      ip_blocklist: {
+        Row: {
+          block_type: string
+          blocked_at: string
+          blocked_by: string | null
+          created_at: string
+          expires_at: string | null
+          failed_attempts: number | null
+          id: string
+          ip_address: string
+          last_attempt_at: string | null
+          metadata: Json | null
+          reason: string
+          tenant_id: string | null
+        }
+        Insert: {
+          block_type?: string
+          blocked_at?: string
+          blocked_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          failed_attempts?: number | null
+          id?: string
+          ip_address: string
+          last_attempt_at?: string | null
+          metadata?: Json | null
+          reason: string
+          tenant_id?: string | null
+        }
+        Update: {
+          block_type?: string
+          blocked_at?: string
+          blocked_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          failed_attempts?: number | null
+          id?: string
+          ip_address?: string
+          last_attempt_at?: string | null
+          metadata?: Json | null
+          reason?: string
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ip_blocklist_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kpi_audit_logs: {
         Row: {
           action_type: string
@@ -17550,22 +17603,28 @@ export type Database = {
         Row: {
           action_type: string
           created_at: string
+          failure_reason: string | null
           id: string
           identifier: string
+          success: boolean | null
           tenant_id: string
         }
         Insert: {
           action_type: string
           created_at?: string
+          failure_reason?: string | null
           id?: string
           identifier: string
+          success?: boolean | null
           tenant_id: string
         }
         Update: {
           action_type?: string
           created_at?: string
+          failure_reason?: string | null
           id?: string
           identifier?: string
+          success?: boolean | null
           tenant_id?: string
         }
         Relationships: []
@@ -20317,6 +20376,60 @@ export type Database = {
           symbol_ar?: string | null
         }
         Relationships: []
+      }
+      suspicious_activity_log: {
+        Row: {
+          action_taken: string | null
+          activity_type: string
+          details: Json | null
+          detected_at: string
+          id: string
+          ip_address: string
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          tenant_id: string | null
+        }
+        Insert: {
+          action_taken?: string | null
+          activity_type: string
+          details?: Json | null
+          detected_at?: string
+          id?: string
+          ip_address: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          tenant_id?: string | null
+        }
+        Update: {
+          action_taken?: string | null
+          activity_type?: string
+          details?: Json | null
+          detected_at?: string
+          id?: string
+          ip_address?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suspicious_activity_log_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "suspicious_activity_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_alerts: {
         Row: {
@@ -24085,6 +24198,17 @@ export type Database = {
             }
             Returns: Json
           }
+      auto_block_ip: {
+        Args: {
+          _block_type: string
+          _duration?: unknown
+          _failed_attempts: number
+          _ip_address: string
+          _reason: string
+          _tenant_id: string
+        }
+        Returns: undefined
+      }
       calculate_asset_depreciation: {
         Args: { p_asset_id: string }
         Returns: number
@@ -24326,6 +24450,7 @@ export type Database = {
         }[]
       }
       check_zone_dependencies: { Args: { p_zone_id: string }; Returns: Json }
+      cleanup_expired_ip_blocks: { Args: never; Returns: number }
       cleanup_expired_trusted_devices: { Args: never; Returns: number }
       cleanup_expired_webauthn_challenges: { Args: never; Returns: undefined }
       cleanup_rate_limit_log: { Args: never; Returns: undefined }
@@ -25369,6 +25494,7 @@ export type Database = {
         Args: { p_incident_id: string }
         Returns: boolean
       }
+      is_ip_blocked: { Args: { _ip_address: string }; Returns: boolean }
       is_project_mobilized: {
         Args: { project_id_param: string }
         Returns: boolean
@@ -25400,6 +25526,14 @@ export type Database = {
           p_tenant_id: string
         }
         Returns: string
+      }
+      log_failed_registration_attempt: {
+        Args: {
+          _failure_reason: string
+          _ip_address: string
+          _tenant_id: string
+        }
+        Returns: undefined
       }
       log_login_attempt: {
         Args: {
