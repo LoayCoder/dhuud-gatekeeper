@@ -166,14 +166,14 @@ export function useAssignTeamTask() {
       
       const { data, error } = await supabase
         .rpc('assign_team_task', {
-          _investigation_id: input.investigationId,
-          _user_id: user.id,
-          _assigned_to: input.assignedTo,
-          _task_type: input.taskType,
-          _task_description: input.taskDescription,
-          _target_area: input.targetArea || null,
-          _due_date: input.dueDate || null,
-          _priority: input.priority || 'medium'
+          p_task_id: input.investigationId,
+          p_assigned_by: user.id,
+          p_assignee_id: input.assignedTo,
+          p_task_type: input.taskType,
+          p_description: input.taskDescription,
+          p_notes: input.targetArea || null,
+          p_due_date: input.dueDate || new Date().toISOString().split('T')[0],
+          p_priority: input.priority || 'medium'
         });
       
       if (error) throw error;

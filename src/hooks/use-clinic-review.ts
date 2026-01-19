@@ -57,9 +57,9 @@ export function useSubmitClinicReview() {
       
       const { data, error } = await supabase
         .rpc('submit_clinic_review', {
-          _incident_id: incidentId,
-          _user_id: user.id,
-          _notes: notes || null
+          p_incident_id: incidentId,
+          p_user_id: user.id,
+          p_review_notes: notes || null
         });
       
       if (error) throw error;
