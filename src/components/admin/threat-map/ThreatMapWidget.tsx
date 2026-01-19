@@ -1,14 +1,11 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Loader2, Globe, RefreshCw, MapPin, Shield, AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useThreatMapData, useResolveGeolocations, TimeRange } from "@/hooks/admin/use-threat-map-data";
-import { MapContainer, TileLayer, CircleMarker, Polyline, Popup, useMap } from "react-leaflet";
+import { useThreatMapData, useResolveGeolocations, TimeRange, ThreatLocation } from "@/hooks/admin/use-threat-map-data";
 import { ThreatMapLegend } from "./ThreatMapLegend";
-import { AttackFlowAnimation } from "./AttackFlowAnimation";
-import { ThreatClusterMarkers } from "./ThreatClusterMarkers";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 // Default target location (Riyadh, Saudi Arabia)
@@ -21,16 +18,80 @@ const TIME_RANGES: { value: TimeRange; label: string }[] = [
   { value: 'all', label: 'All' },
 ];
 
-function MapController({ bounds }: { bounds?: [[number, number], [number, number]] }) {
-  const map = useMap();
+interface ThreatCluster {
+  lat: number;
+  lng: number;
+  threats: ThreatLocation[];
+  count: number;
+  permanentCount: number;
+}
+
+function clusterThreats(threats: ThreatLocation[]): ThreatCluster[] {
+  const clusterMap = new Map<string, ThreatCluster>();
   
-  useEffect(() => {
-    if (bounds) {
-      map.fitBounds(bounds, { padding: [50, 50] });
+  threats.forEach(threat => {
+    if (threat.latitude === null || threat.longitude === null) return;
+    
+    // Round to 1 decimal for clustering
+    const key = `${threat.latitude.toFixed(1)},${threat.longitude.toFixed(1)}`;
+    
+    if (!clusterMap.has(key)) {
+      clusterMap.set(key, {
+        lat: threat.latitude,
+        lng: threat.longitude,
+        threats: [],
+        count: 0,
+        permanentCount: 0
+      });
     }
-  }, [bounds, map]);
+    
+    const cluster = clusterMap.get(key)!;
+    cluster.threats.push(threat);
+    cluster.count++;
+    if (threat.block_type === 'permanent') {
+      cluster.permanentCount++;
+    }
+  });
   
-  return null;
+  return Array.from(clusterMap.values());
+}
+
+function createPopupContent(cluster: ThreatCluster, t: (key: string, fallback: string) => string): string {
+  if (cluster.count === 1) {
+    const threat = cluster.threats[0];
+    return `
+      <div style="min-width: 180px;">
+        <div style="font-weight: 600; margin-bottom: 4px;">${threat.ip_address}</div>
+        <div style="font-size: 12px; color: #888; margin-bottom: 6px;">
+          ${threat.city || ''} ${threat.country || ''}
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 12px;">
+          <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${threat.block_type === 'permanent' ? '#ef4444' : '#f97316'};"></span>
+          ${threat.block_type === 'permanent' ? t('admin.permanentBlock', 'Permanent') : t('admin.temporaryBlock', 'Temporary')}
+        </div>
+        ${threat.reason ? `<div style="font-size: 11px; color: #666; margin-top: 4px;">${threat.reason}</div>` : ''}
+      </div>
+    `;
+  }
+  
+  return `
+    <div style="min-width: 160px;">
+      <div style="font-weight: 600; margin-bottom: 4px;">${cluster.count} ${t('admin.threats', 'Threats')}</div>
+      <div style="font-size: 12px; color: #888; margin-bottom: 6px;">
+        ${cluster.threats[0].city || cluster.threats[0].country || t('common.unknownLocation', 'Unknown Location')}
+      </div>
+      <div style="font-size: 12px;">
+        <div style="display: flex; align-items: center; gap: 4px;">
+          <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ef4444;"></span>
+          ${cluster.permanentCount} ${t('admin.permanent', 'Permanent')}
+        </div>
+        <div style="display: flex; align-items: center; gap: 4px; margin-top: 2px;">
+          <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #f97316;"></span>
+          ${cluster.count - cluster.permanentCount} ${t('admin.temporary', 'Temporary')}
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 export function ThreatMapWidget() {
@@ -41,9 +102,18 @@ export function ThreatMapWidget() {
   const { data, isLoading, refetch } = useThreatMapData(timeRange);
   const resolveGeo = useResolveGeolocations();
   
+  // Map refs
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const markersLayerRef = useRef<L.LayerGroup | null>(null);
+  const flowsLayerRef = useRef<L.LayerGroup | null>(null);
+  const targetMarkerRef = useRef<L.CircleMarker | null>(null);
+  
   const threatsWithLocation = useMemo(() => {
     return data?.threats.filter(t => t.latitude !== null && t.longitude !== null) || [];
   }, [data?.threats]);
+
+  const clusters = useMemo(() => clusterThreats(threatsWithLocation), [threatsWithLocation]);
 
   const unresolvedIps = useMemo(() => {
     return data?.threats.filter(t => t.latitude === null).map(t => t.ip_address) || [];
@@ -55,17 +125,110 @@ export function ThreatMapWidget() {
     }
   };
 
-  const bounds = useMemo(() => {
-    if (threatsWithLocation.length === 0) return undefined;
+  // Initialize map
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
     
-    const lats = threatsWithLocation.map(t => t.latitude!);
-    const lngs = threatsWithLocation.map(t => t.longitude!);
+    mapRef.current = L.map(mapContainerRef.current, {
+      center: TARGET_LOCATION,
+      zoom: 2,
+      zoomControl: false,
+    });
     
-    return [
-      [Math.min(...lats, TARGET_LOCATION[0]) - 5, Math.min(...lngs, TARGET_LOCATION[1]) - 10],
-      [Math.max(...lats, TARGET_LOCATION[0]) + 5, Math.max(...lngs, TARGET_LOCATION[1]) + 10]
-    ] as [[number, number], [number, number]];
-  }, [threatsWithLocation]);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://carto.com/">CARTO</a>'
+    }).addTo(mapRef.current);
+    
+    L.control.zoom({ position: 'topright' }).addTo(mapRef.current);
+    
+    markersLayerRef.current = L.layerGroup().addTo(mapRef.current);
+    flowsLayerRef.current = L.layerGroup().addTo(mapRef.current);
+    
+    // Add target location marker
+    targetMarkerRef.current = L.circleMarker(TARGET_LOCATION, {
+      radius: 12,
+      fillColor: '#22c55e',
+      fillOpacity: 0.9,
+      color: '#16a34a',
+      weight: 3
+    }).addTo(mapRef.current);
+    
+    targetMarkerRef.current.bindPopup(`
+      <div style="text-align: center;">
+        <div style="font-weight: 600; margin-bottom: 4px;">${t('admin.yourLocation', 'Your Location')}</div>
+        <div style="font-size: 12px; color: #888;">Protected Server</div>
+      </div>
+    `);
+    
+    return () => {
+      mapRef.current?.remove();
+      mapRef.current = null;
+      markersLayerRef.current = null;
+      flowsLayerRef.current = null;
+      targetMarkerRef.current = null;
+    };
+  }, [t]);
+
+  // Update threat markers
+  useEffect(() => {
+    if (!mapRef.current || !markersLayerRef.current) return;
+    
+    markersLayerRef.current.clearLayers();
+    
+    clusters.forEach(cluster => {
+      const radius = Math.min(6 + cluster.count * 2, 16);
+      const fillColor = cluster.permanentCount > cluster.count / 2 ? '#ef4444' : '#f97316';
+      
+      const marker = L.circleMarker([cluster.lat, cluster.lng], {
+        radius,
+        fillColor,
+        fillOpacity: 0.8,
+        color: fillColor,
+        weight: 2
+      });
+      
+      marker.bindPopup(createPopupContent(cluster, t));
+      marker.addTo(markersLayerRef.current!);
+    });
+    
+    // Fit bounds if we have data
+    if (clusters.length > 0) {
+      const allLats = clusters.map(c => c.lat).concat(TARGET_LOCATION[0]);
+      const allLngs = clusters.map(c => c.lng).concat(TARGET_LOCATION[1]);
+      
+      const bounds = L.latLngBounds(
+        [Math.min(...allLats) - 5, Math.min(...allLngs) - 10],
+        [Math.max(...allLats) + 5, Math.max(...allLngs) + 10]
+      );
+      
+      mapRef.current.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }, [clusters, t]);
+
+  // Update flow lines
+  useEffect(() => {
+    if (!mapRef.current || !flowsLayerRef.current) return;
+    
+    flowsLayerRef.current.clearLayers();
+    
+    if (!showFlows) return;
+    
+    threatsWithLocation.forEach(threat => {
+      const color = threat.block_type === 'permanent' ? '#ef4444' : '#f97316';
+      
+      const polyline = L.polyline(
+        [[threat.latitude!, threat.longitude!], TARGET_LOCATION],
+        { 
+          color,
+          weight: 1.5,
+          opacity: 0.4,
+          dashArray: '5, 10'
+        }
+      );
+      
+      polyline.addTo(flowsLayerRef.current!);
+    });
+  }, [threatsWithLocation, showFlows]);
 
   return (
     <Card className="overflow-hidden">
@@ -164,59 +327,17 @@ export function ThreatMapWidget() {
 
         {/* Map container */}
         <div className="relative h-[400px] w-full">
-          {isLoading ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-[1001]">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          ) : (
-            <MapContainer
-              center={TARGET_LOCATION}
-              zoom={2}
-              className="h-full w-full"
-              style={{ background: 'hsl(var(--background))' }}
-              scrollWheelZoom={true}
-            >
-              <TileLayer
-                attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-              />
-              
-              <MapController bounds={bounds} />
-              
-              {/* Target location (shield) */}
-              <CircleMarker
-                center={TARGET_LOCATION}
-                radius={12}
-                pathOptions={{
-                  fillColor: '#22c55e',
-                  fillOpacity: 0.9,
-                  color: '#16a34a',
-                  weight: 3
-                }}
-              >
-                <Popup>
-                  <div className="text-center">
-                    <Shield className="h-5 w-5 mx-auto text-green-500 mb-1" />
-                    <div className="font-medium">{t('admin.yourLocation', 'Your Location')}</div>
-                    <div className="text-xs text-muted-foreground">Protected Server</div>
-                  </div>
-                </Popup>
-              </CircleMarker>
-              
-              {/* Attack flow lines */}
-              {showFlows && threatsWithLocation.map(threat => (
-                <AttackFlowAnimation
-                  key={threat.id}
-                  from={[threat.latitude!, threat.longitude!]}
-                  to={TARGET_LOCATION}
-                  isPermanent={threat.block_type === 'permanent'}
-                />
-              ))}
-              
-              {/* Threat markers */}
-              <ThreatClusterMarkers threats={threatsWithLocation} />
-            </MapContainer>
           )}
+          
+          <div 
+            ref={mapContainerRef} 
+            className="h-full w-full"
+            style={{ background: 'hsl(var(--background))' }}
+          />
           
           {/* Legend overlay */}
           <ThreatMapLegend 
