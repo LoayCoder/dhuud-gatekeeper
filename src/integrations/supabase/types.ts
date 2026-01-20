@@ -1790,6 +1790,90 @@ export type Database = {
           },
         ]
       }
+      asset_import_history: {
+        Row: {
+          branch_id: string | null
+          categories_created: number | null
+          categories_updated: number | null
+          created_at: string
+          deleted_at: string | null
+          error_messages: Json | null
+          file_name: string | null
+          id: string
+          import_mode: string
+          parts_created: number | null
+          parts_updated: number | null
+          skipped_count: number | null
+          status: string
+          subtypes_created: number | null
+          subtypes_updated: number | null
+          tenant_id: string
+          total_rows_processed: number | null
+          types_created: number | null
+          types_updated: number | null
+          user_id: string
+        }
+        Insert: {
+          branch_id?: string | null
+          categories_created?: number | null
+          categories_updated?: number | null
+          created_at?: string
+          deleted_at?: string | null
+          error_messages?: Json | null
+          file_name?: string | null
+          id?: string
+          import_mode: string
+          parts_created?: number | null
+          parts_updated?: number | null
+          skipped_count?: number | null
+          status: string
+          subtypes_created?: number | null
+          subtypes_updated?: number | null
+          tenant_id: string
+          total_rows_processed?: number | null
+          types_created?: number | null
+          types_updated?: number | null
+          user_id: string
+        }
+        Update: {
+          branch_id?: string | null
+          categories_created?: number | null
+          categories_updated?: number | null
+          created_at?: string
+          deleted_at?: string | null
+          error_messages?: Json | null
+          file_name?: string | null
+          id?: string
+          import_mode?: string
+          parts_created?: number | null
+          parts_updated?: number | null
+          skipped_count?: number | null
+          status?: string
+          subtypes_created?: number | null
+          subtypes_updated?: number | null
+          tenant_id?: string
+          total_rows_processed?: number | null
+          types_created?: number | null
+          types_updated?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_import_history_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_import_history_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       asset_inspection_part_results: {
         Row: {
           branch_id: string | null
