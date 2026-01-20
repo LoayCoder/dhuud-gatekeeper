@@ -7690,6 +7690,12 @@
       "resending": "Sending...",
       "resentSuccess": "ID card resent successfully"
     },
+    "invitation": {
+      "sendButton": "Send Portal Invitation",
+      "sent": "Portal invitation sent to {{email}}",
+      "failed": "Failed to send portal invitation",
+      "noSiteRep": "No site representative found to invite"
+    },
     "workerStatus": {
       "pending": "Pending",
       "approved": "Approved",
