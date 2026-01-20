@@ -102,7 +102,7 @@ serve(async (req) => {
           continue;
         }
 
-        // CREATE contractor_representatives record
+        // CREATE contractor_representatives record (only columns that exist in schema)
         const { error: insertError } = await supabase
           .from("contractor_representatives")
           .insert({
@@ -113,7 +113,6 @@ serve(async (req) => {
             email: email,
             mobile_number: company.contractor_site_rep_phone || company.contractor_site_rep_mobile || "N/A",
             national_id: company.contractor_site_rep_national_id || null,
-            photo_path: company.contractor_site_rep_photo || null,
             is_primary: true,
             is_safety_officer_eligible: false,
           });
