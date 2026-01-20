@@ -81,13 +81,8 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
   // Use whichever source has data - prefer contractor_safety_officers table
   const safetyOfficers = safetyOfficersFromTable.length > 0 ? safetyOfficersFromTable : workerOfficers;
   
-  // Site rep: prefer new table, fallback to legacy details
-  const siteRep = siteRepFromTable || (details?.contractor_site_rep_name ? {
-    full_name: details.contractor_site_rep_name,
-    phone: details.contractor_site_rep_phone,
-    email: details.contractor_site_rep_email,
-    mobile_number: details.contractor_site_rep_mobile,
-  } : null);
+  // Site rep: from dedicated table only (no legacy fallback)
+  const siteRep = siteRepFromTable || null;
 
   if (!company) return null;
 
@@ -102,9 +97,9 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
   };
 
   const handleResendSiteRepCard = async () => {
-    const phone = siteRep?.mobile_number || siteRep?.phone || details?.contractor_site_rep_phone;
-    const name = siteRep?.full_name || details?.contractor_site_rep_name;
-    const email = siteRep?.email || details?.contractor_site_rep_email;
+    const phone = siteRep?.mobile_number || siteRep?.phone;
+    const name = siteRep?.full_name;
+    const email = siteRep?.email;
     
     if (!name || !phone) return;
     

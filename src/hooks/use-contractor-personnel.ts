@@ -24,17 +24,11 @@ export function useContractorPersonnel(companyId: string | null | undefined) {
     queryFn: async (): Promise<ContractorPersonnelInfo | null> => {
       if (!companyId) return null;
 
-      // Fetch company info with site rep fields and client site rep
+      // Fetch company basic info only (no legacy site rep fields)
       const { data: company, error: companyError } = await supabase
         .from('contractor_companies')
         .select(`
           company_name,
-          contractor_site_rep_name,
-          contractor_site_rep_phone,
-          contractor_site_rep_email,
-          contractor_safety_officer_name,
-          contractor_safety_officer_phone,
-          contractor_safety_officer_email,
           client_site_rep_id
         `)
         .eq('id', companyId)
@@ -48,7 +42,7 @@ export function useContractorPersonnel(companyId: string | null | undefined) {
 
       if (!company) return null;
 
-      // Fetch contractor site representative from dedicated table (PRIMARY SOURCE)
+      // Fetch contractor site representative from dedicated table (ONLY SOURCE)
       const { data: siteRep } = await supabase
         .from('contractor_site_representatives')
         .select('full_name, mobile_number, phone, email')
@@ -81,36 +75,24 @@ export function useContractorPersonnel(companyId: string | null | undefined) {
         }
       }
 
-      // Determine contractor representative - prefer from site_representatives table, fallback to company fields
-      const contractorRepFromTable = siteRep ? {
+      // Contractor representative from dedicated table only
+      const contractorRepresentative = siteRep ? {
         name: siteRep.full_name,
         phone: siteRep.mobile_number || siteRep.phone,
         email: siteRep.email
       } : null;
 
-      const contractorRepFromCompany = company.contractor_site_rep_name ? {
-        name: company.contractor_site_rep_name,
-        phone: company.contractor_site_rep_phone,
-        email: company.contractor_site_rep_email
-      } : null;
-
-      // Determine safety officer - prefer from safety_officers table, fallback to company fields
-      const safetyOfficerFromTable = primaryOfficer ? {
+      // Safety officer from dedicated table only
+      const safetyOfficer = primaryOfficer ? {
         name: primaryOfficer.name,
         phone: primaryOfficer.phone,
         email: primaryOfficer.email
       } : null;
 
-      const safetyOfficerFromCompany = company.contractor_safety_officer_name ? {
-        name: company.contractor_safety_officer_name,
-        phone: company.contractor_safety_officer_phone,
-        email: company.contractor_safety_officer_email
-      } : null;
-
       return {
         companyName: company.company_name,
-        contractorRepresentative: contractorRepFromTable || contractorRepFromCompany,
-        safetyOfficer: safetyOfficerFromTable || safetyOfficerFromCompany,
+        contractorRepresentative,
+        safetyOfficer,
         clientSiteRepresentative: clientSiteRep
       };
     },

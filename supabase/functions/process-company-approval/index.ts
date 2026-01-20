@@ -38,19 +38,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get company details including contract dates and branch
+    // Get company basic details (no legacy site rep fields)
     const { data: company, error: companyError } = await supabase
       .from('contractor_companies')
       .select(`
         id,
         company_name,
-        contractor_site_rep_name,
-        contractor_site_rep_email,
-        contractor_site_rep_phone,
-        contractor_site_rep_national_id,
-        contractor_safety_officer_name,
-        contractor_safety_officer_email,
-        contractor_safety_officer_phone,
         contract_start_date,
         contract_end_date,
         scope_of_work,
@@ -68,6 +61,15 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Get site representative from dedicated table
+    const { data: siteRep } = await supabase
+      .from('contractor_representatives')
+      .select('id, full_name, email, mobile_number, national_id, is_primary')
+      .eq('company_id', company_id)
+      .eq('is_primary', true)
+      .is('deleted_at', null)
+      .maybeSingle();
+
     const results = {
       site_rep: { created: false, linked: false, email: null as string | null, invitation_sent: false },
       safety_officer: { created: false, linked: false, email: null as string | null },
@@ -80,31 +82,31 @@ Deno.serve(async (req) => {
       .eq('code', 'contractor_site_rep')
       .single();
 
-    // Process Site Representative
-    if (company.contractor_site_rep_email) {
-      results.site_rep.email = company.contractor_site_rep_email;
+    // Process Site Representative from dedicated table
+    if (siteRep?.email) {
+      results.site_rep.email = siteRep.email;
 
       // Check if user already exists
       const { data: existingUser } = await supabase.auth.admin.listUsers();
-      const existingSiteRep = existingUser?.users?.find(
-        (u) => u.email?.toLowerCase() === company.contractor_site_rep_email?.toLowerCase()
+      const existingSiteRepUser = existingUser?.users?.find(
+        (u) => u.email?.toLowerCase() === siteRep.email?.toLowerCase()
       );
 
       let userId: string | null = null;
 
-      if (existingSiteRep) {
-        userId = existingSiteRep.id;
+      if (existingSiteRepUser) {
+        userId = existingSiteRepUser.id;
         console.log(`Site rep user already exists: ${userId}`);
       } else {
         // Create new user with temporary password (they'll need to reset)
         const tempPassword = crypto.randomUUID().slice(0, 12) + 'Aa1!';
         
         const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-          email: company.contractor_site_rep_email,
+          email: siteRep.email,
           password: tempPassword,
           email_confirm: true,
           user_metadata: {
-            full_name: company.contractor_site_rep_name,
+            full_name: siteRep.full_name,
             tenant_id: tenant_id,
           },
         });
@@ -123,10 +125,9 @@ Deno.serve(async (req) => {
         const { error: profileError } = await supabase.from('profiles').upsert({
           id: userId,
           tenant_id: tenant_id,
-          full_name: company.contractor_site_rep_name,
-          email: company.contractor_site_rep_email,
-          phone_number: company.contractor_site_rep_phone,
-          // Sync contract dates from company
+          full_name: siteRep.full_name,
+          email: siteRep.email,
+          phone_number: siteRep.mobile_number,
           contract_start: company.contract_start_date,
           contract_end: company.contract_end_date,
           contractor_company_name: company.company_name,
@@ -140,28 +141,13 @@ Deno.serve(async (req) => {
           console.error('Failed to upsert profile:', profileError);
         }
 
-        // Create contractor representative entry
-        // Note: mobile_number is required, representative_type column doesn't exist
-        const { data: repData, error: repError } = await supabase
+        // Update contractor representative with user_id
+        const { error: repError } = await supabase
           .from('contractor_representatives')
-          .upsert({
-            company_id: company_id,
-            user_id: userId,
-            full_name: company.contractor_site_rep_name,
-            email: company.contractor_site_rep_email,
-            mobile_number: company.contractor_site_rep_phone || 'N/A', // Required field!
-            national_id: company.contractor_site_rep_national_id,
-            is_primary: true,
-            tenant_id: tenant_id,
-            branch_id: company.branch_id,
-          }, { 
-            onConflict: 'company_id,email',
-            ignoreDuplicates: false 
-          })
-          .select('id')
-          .single();
+          .update({ user_id: userId })
+          .eq('id', siteRep.id);
 
-        if (!repError && repData) {
+        if (!repError) {
           results.site_rep.linked = true;
           
           // Send invitation email
@@ -174,14 +160,14 @@ Deno.serve(async (req) => {
               },
               body: JSON.stringify({
                 company_id: company_id,
-                representative_id: repData.id,
+                representative_id: siteRep.id,
                 tenant_id: tenant_id,
               }),
             });
 
             if (inviteResponse.ok) {
               results.site_rep.invitation_sent = true;
-              console.log(`Invitation email sent to site rep: ${company.contractor_site_rep_email}`);
+              console.log(`Invitation email sent to site rep: ${siteRep.email}`);
             } else {
               const inviteError = await inviteResponse.text();
               console.error(`Failed to send invitation email: ${inviteError}`);
@@ -189,8 +175,8 @@ Deno.serve(async (req) => {
           } catch (inviteErr) {
             console.error('Error calling send-contractor-invitation:', inviteErr);
           }
-        } else if (repError) {
-          console.error('Failed to create contractor representative:', repError);
+        } else {
+          console.error('Failed to update contractor representative:', repError);
         }
 
         // Assign role if exists
@@ -209,13 +195,22 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Process Safety Officer (similar logic)
-    if (company.contractor_safety_officer_email) {
-      results.safety_officer.email = company.contractor_safety_officer_email;
+    // Get safety officer from dedicated table
+    const { data: safetyOfficer } = await supabase
+      .from('contractor_safety_officers')
+      .select('id, name, email, phone')
+      .eq('company_id', company_id)
+      .eq('is_primary', true)
+      .is('deleted_at', null)
+      .maybeSingle();
+
+    // Process Safety Officer from dedicated table
+    if (safetyOfficer?.email) {
+      results.safety_officer.email = safetyOfficer.email;
 
       const { data: existingUsers } = await supabase.auth.admin.listUsers();
       const existingSafetyOfficer = existingUsers?.users?.find(
-        (u) => u.email?.toLowerCase() === company.contractor_safety_officer_email?.toLowerCase()
+        (u) => u.email?.toLowerCase() === safetyOfficer.email?.toLowerCase()
       );
 
       let userId: string | null = null;
@@ -226,11 +221,11 @@ Deno.serve(async (req) => {
         const tempPassword = crypto.randomUUID().slice(0, 12) + 'Aa1!';
         
         const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-          email: company.contractor_safety_officer_email,
+          email: safetyOfficer.email,
           password: tempPassword,
           email_confirm: true,
           user_metadata: {
-            full_name: company.contractor_safety_officer_name,
+            full_name: safetyOfficer.name,
             tenant_id: tenant_id,
           },
         });
@@ -246,9 +241,9 @@ Deno.serve(async (req) => {
         await supabase.from('profiles').upsert({
           id: userId,
           tenant_id: tenant_id,
-          full_name: company.contractor_safety_officer_name,
-          email: company.contractor_safety_officer_email,
-          phone_number: company.contractor_safety_officer_phone,
+          full_name: safetyOfficer.name,
+          email: safetyOfficer.email,
+          phone_number: safetyOfficer.phone,
           contract_start: company.contract_start_date,
           contract_end: company.contract_end_date,
           contractor_company_name: company.company_name,
@@ -258,22 +253,11 @@ Deno.serve(async (req) => {
           assigned_branch_id: company.branch_id,
         }, { onConflict: 'id' });
 
-        // Create contractor representative entry for safety officer
+        // Update safety officer with user_id
         const { error: repError } = await supabase
-          .from('contractor_representatives')
-          .upsert({
-            company_id: company_id,
-            user_id: userId,
-            full_name: company.contractor_safety_officer_name,
-            email: company.contractor_safety_officer_email,
-            mobile_number: company.contractor_safety_officer_phone || 'N/A', // Required field!
-            is_primary: false,
-            tenant_id: tenant_id,
-            branch_id: company.branch_id,
-          }, { 
-            onConflict: 'company_id,email',
-            ignoreDuplicates: false 
-          });
+          .from('contractor_safety_officers')
+          .update({ user_id: userId })
+          .eq('id', safetyOfficer.id);
 
         if (!repError) {
           results.safety_officer.linked = true;
