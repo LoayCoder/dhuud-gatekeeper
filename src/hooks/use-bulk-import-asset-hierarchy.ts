@@ -152,7 +152,6 @@ async function importTypes(
           .update({
             name: type.nameEn,
             name_ar: type.nameAr || null,
-            sort_order: type.sortOrder,
           })
           .eq('id', existing.id);
         
@@ -171,7 +170,6 @@ async function importTypes(
         category_id: categoryId,
         tenant_id: tenantId,
         is_active: true,
-        sort_order: type.sortOrder,
       })
       .select('id')
       .single();
@@ -227,7 +225,6 @@ async function importSubtypes(
           .update({
             name: subtype.nameEn,
             name_ar: subtype.nameAr || null,
-            sort_order: subtype.sortOrder,
           })
           .eq('id', existing.id);
         
@@ -246,7 +243,6 @@ async function importSubtypes(
         type_id: typeId,
         tenant_id: tenantId,
         is_active: true,
-        sort_order: subtype.sortOrder,
       })
       .select('id')
       .single();
