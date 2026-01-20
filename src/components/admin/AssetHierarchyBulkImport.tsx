@@ -1,6 +1,7 @@
 /**
  * Asset Hierarchy Bulk Import Dialog
  * Allows admins to upload Excel files to bulk import categories, types, subtypes, and parts.
+ * Also supports exporting existing data and smart update/insert mode.
  */
 
 import { useState, useCallback } from 'react';
@@ -17,6 +18,7 @@ import {
   Tag,
   FolderTree,
   Wrench,
+  FileDown,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -24,8 +26,17 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { useDropzone } from 'react-dropzone';
-import { parseHierarchyFile, downloadHierarchyTemplate, type ParseResult, type ParsedHierarchyRow } from '@/lib/asset-hierarchy-import-utils';
+import { toast } from 'sonner';
+import { 
+  parseHierarchyFile, 
+  downloadHierarchyTemplate, 
+  exportAssetHierarchy,
+  type ParseResult, 
+  type ImportMode,
+} from '@/lib/asset-hierarchy-import-utils';
 import { useBulkImportAssetHierarchy } from '@/hooks/use-bulk-import-asset-hierarchy';
 
 interface AssetHierarchyBulkImportProps {
@@ -68,10 +79,11 @@ export default function AssetHierarchyBulkImport({
   open,
   onOpenChange,
 }: AssetHierarchyBulkImportProps) {
-  const { t, i18n } = useTranslation();
-  const isArabic = i18n.language === 'ar';
+  const { t } = useTranslation();
   const [parseResult, setParseResult] = useState<ParseResult | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [updateMode, setUpdateMode] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
   const bulkImport = useBulkImportAssetHierarchy();
 
   const resetState = useCallback(() => {
@@ -112,10 +124,29 @@ export default function AssetHierarchyBulkImport({
     maxFiles: 1,
   });
 
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const success = await exportAssetHierarchy();
+      if (success) {
+        toast.success(t('assetCategories.bulkImport.exportSuccess', 'Export Complete'), {
+          description: t('assetCategories.bulkImport.exportSuccessDesc', 'Asset hierarchy exported to Excel file'),
+        });
+      } else {
+        toast.error(t('assetCategories.bulkImport.noDataToExport', 'No data to export'));
+      }
+    } catch {
+      toast.error(t('assetCategories.bulkImport.exportFailed', 'Export Failed'));
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleImport = async () => {
     if (!parseResult || parseResult.validCount === 0) return;
     
-    await bulkImport.mutateAsync(parseResult);
+    const mode: ImportMode = updateMode ? 'update_or_insert' : 'insert_only';
+    await bulkImport.mutateAsync({ parseResult, mode });
     handleClose(false);
   };
 
@@ -136,15 +167,30 @@ export default function AssetHierarchyBulkImport({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Template Download */}
-          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+          {/* Template & Export Actions */}
+          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg flex-wrap gap-2">
             <span className="text-sm text-muted-foreground">
-              {t('assetCategories.bulkImport.downloadTemplateHint', 'Download a template file with sample data and instructions')}
+              {t('assetCategories.bulkImport.downloadTemplateHint', 'Download a template or export existing data')}
             </span>
-            <Button variant="outline" size="sm" onClick={downloadHierarchyTemplate}>
-              <Download className="h-4 w-4 me-2" />
-              {t('assetCategories.bulkImport.template', 'Template')}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleExport}
+                disabled={isExporting}
+              >
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 me-2 animate-spin" />
+                ) : (
+                  <FileDown className="h-4 w-4 me-2" />
+                )}
+                {t('assetCategories.bulkImport.exportButton', 'Export')}
+              </Button>
+              <Button variant="outline" size="sm" onClick={downloadHierarchyTemplate}>
+                <Download className="h-4 w-4 me-2" />
+                {t('assetCategories.bulkImport.template', 'Template')}
+              </Button>
+            </div>
           </div>
 
           {/* File Upload Zone */}
@@ -238,6 +284,23 @@ export default function AssetHierarchyBulkImport({
                 </div>
               </div>
 
+              {/* Update Mode Toggle */}
+              <div className="flex items-center justify-between p-3 rounded-lg border bg-card">
+                <div className="space-y-0.5">
+                  <Label htmlFor="update-mode" className="font-medium">
+                    {t('assetCategories.bulkImport.updateMode', 'Update existing items')}
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    {t('assetCategories.bulkImport.updateModeHint', 'When enabled, existing items will be updated with new data. Otherwise, duplicates will be skipped.')}
+                  </p>
+                </div>
+                <Switch
+                  id="update-mode"
+                  checked={updateMode}
+                  onCheckedChange={setUpdateMode}
+                />
+              </div>
+
               {/* Invalid Rows Warning */}
               {invalidRows.length > 0 && (
                 <Alert variant="destructive">
@@ -249,7 +312,7 @@ export default function AssetHierarchyBulkImport({
               )}
 
               {/* Preview Table */}
-              <ScrollArea className="h-[280px] rounded-md border">
+              <ScrollArea className="h-[240px] rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -305,7 +368,7 @@ export default function AssetHierarchyBulkImport({
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  {t('assetCategories.bulkImport.importNotice', 'Existing items with the same code will be skipped. Only new items will be created.')}
+                  {t('assetCategories.bulkImport.importNotice', 'Existing items with the same code will be updated. New items will be created.')}
                 </AlertDescription>
               </Alert>
             </>

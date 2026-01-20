@@ -522,6 +522,12 @@ export default function AssetCategoryManagement() {
         />
       )}
 
+      {/* Bulk Import Dialog */}
+      <AssetHierarchyBulkImport
+        open={bulkImportOpen}
+        onOpenChange={setBulkImportOpen}
+      />
+
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>

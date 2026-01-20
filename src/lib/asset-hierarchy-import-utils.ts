@@ -1,13 +1,17 @@
 /**
- * Asset Hierarchy Import Utilities
- * Generates Excel templates and parses uploaded files for bulk importing
- * asset categories, types, subtypes, and inspectable parts.
+ * Asset Hierarchy Import/Export Utilities
+ * Generates Excel templates, exports existing data, and parses uploaded files 
+ * for bulk importing asset categories, types, subtypes, and inspectable parts.
  */
 
 import * as XLSX from 'xlsx';
+import { supabase } from '@/integrations/supabase/client';
 
 // Hierarchy levels
 export type HierarchyLevel = 'Category' | 'Type' | 'Subtype' | 'Part';
+
+// Import mode for handling existing data
+export type ImportMode = 'insert_only' | 'update_or_insert';
 
 export interface ParsedHierarchyRow {
   level: HierarchyLevel;
@@ -25,6 +29,9 @@ export interface ParsedHierarchyRow {
   // Resolved IDs after processing (filled during import)
   resolvedId?: string;
   resolvedParentId?: string;
+  // For tracking existing items
+  existsInDb?: boolean;
+  dbId?: string;
 }
 
 export interface ParseResult {
@@ -425,4 +432,186 @@ export function downloadHierarchyTemplate(): void {
   
   // Download file
   XLSX.writeFile(wb, 'asset_hierarchy_import_template.xlsx');
+}
+
+/**
+ * Export existing asset hierarchy to Excel file
+ */
+export async function exportAssetHierarchy(): Promise<boolean> {
+  try {
+    // Get tenant ID
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('tenant_id')
+      .eq('id', user.id)
+      .single();
+    
+    if (!profile?.tenant_id) throw new Error('No tenant ID found');
+    const tenantId = profile.tenant_id;
+
+    // Fetch all data
+    const [categoriesRes, typesRes, subtypesRes, partsRes] = await Promise.all([
+      supabase
+        .from('asset_categories')
+        .select('id, code, name, name_ar, sort_order')
+        .eq('tenant_id', tenantId)
+        .is('deleted_at', null)
+        .order('sort_order'),
+      supabase
+        .from('asset_types')
+        .select('id, code, name, name_ar, category_id')
+        .eq('tenant_id', tenantId)
+        .is('deleted_at', null)
+        .order('name'),
+      supabase
+        .from('asset_subtypes')
+        .select('id, code, name, name_ar, type_id')
+        .eq('tenant_id', tenantId)
+        .is('deleted_at', null)
+        .order('name'),
+      supabase
+        .from('asset_type_parts')
+        .select('id, code, name, name_ar, description, description_ar, type_id, subtype_id, is_critical, default_response_type, sort_order')
+        .eq('tenant_id', tenantId)
+        .is('deleted_at', null)
+        .order('sort_order'),
+    ]);
+
+    const categories = categoriesRes.data || [];
+    const types = typesRes.data || [];
+    const subtypes = subtypesRes.data || [];
+    const parts = partsRes.data || [];
+
+    if (categories.length === 0 && types.length === 0) {
+      return false; // No data to export
+    }
+
+    // Build code lookup maps
+    const categoryIdToCode: Record<string, string> = {};
+    const typeIdToCode: Record<string, string> = {};
+    const subtypeIdToCode: Record<string, string> = {};
+
+    categories.forEach(c => { categoryIdToCode[c.id] = c.code; });
+    types.forEach(t => { typeIdToCode[t.id] = t.code; });
+    subtypes.forEach(s => { subtypeIdToCode[s.id] = s.code; });
+
+    // Build hierarchical export data
+    const exportData: Record<string, unknown>[] = [];
+
+    // Add categories
+    categories.forEach(cat => {
+      exportData.push({
+        'Level': 'Category',
+        'Code': cat.code,
+        'Name (EN)': cat.name,
+        'Name (AR)': cat.name_ar || '',
+        'Description (EN)': '',
+        'Description (AR)': '',
+        'Parent Code': '',
+        'Is Critical': '',
+        'Response Type': '',
+        'Sort Order': cat.sort_order || 1,
+      });
+
+      // Add types for this category
+      const catTypes = types.filter(t => t.category_id === cat.id);
+      catTypes.forEach(type => {
+        exportData.push({
+          'Level': 'Type',
+          'Code': type.code,
+          'Name (EN)': type.name,
+          'Name (AR)': type.name_ar || '',
+          'Description (EN)': '',
+          'Description (AR)': '',
+          'Parent Code': cat.code,
+          'Is Critical': '',
+          'Response Type': '',
+          'Sort Order': type.sort_order || 1,
+        });
+
+        // Add parts directly under type (no subtype)
+        const typeParts = parts.filter(p => p.type_id === type.id && !p.subtype_id);
+        typeParts.forEach(part => {
+          exportData.push({
+            'Level': 'Part',
+            'Code': part.code || '',
+            'Name (EN)': part.name,
+            'Name (AR)': part.name_ar || '',
+            'Description (EN)': part.description || '',
+            'Description (AR)': part.description_ar || '',
+            'Parent Code': type.code,
+            'Is Critical': part.is_critical ? 'Yes' : 'No',
+            'Response Type': part.default_response_type || 'pass_fail',
+            'Sort Order': part.sort_order || 1,
+          });
+        });
+
+        // Add subtypes for this type
+        const typeSubtypes = subtypes.filter(s => s.type_id === type.id);
+        typeSubtypes.forEach(subtype => {
+          exportData.push({
+            'Level': 'Subtype',
+            'Code': subtype.code,
+            'Name (EN)': subtype.name,
+            'Name (AR)': subtype.name_ar || '',
+            'Description (EN)': '',
+            'Description (AR)': '',
+            'Parent Code': type.code,
+            'Is Critical': '',
+            'Response Type': '',
+            'Sort Order': subtype.sort_order || 1,
+          });
+
+          // Add parts for this subtype
+          const subtypeParts = parts.filter(p => p.subtype_id === subtype.id);
+          subtypeParts.forEach(part => {
+            exportData.push({
+              'Level': 'Part',
+              'Code': part.code || '',
+              'Name (EN)': part.name,
+              'Name (AR)': part.name_ar || '',
+              'Description (EN)': part.description || '',
+              'Description (AR)': part.description_ar || '',
+              'Parent Code': subtype.code,
+              'Is Critical': part.is_critical ? 'Yes' : 'No',
+              'Response Type': part.default_response_type || 'pass_fail',
+              'Sort Order': part.sort_order || 1,
+            });
+          });
+        });
+      });
+    });
+
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(exportData);
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 12 },  // Level
+      { wch: 20 },  // Code
+      { wch: 30 },  // Name (EN)
+      { wch: 30 },  // Name (AR)
+      { wch: 40 },  // Description (EN)
+      { wch: 40 },  // Description (AR)
+      { wch: 20 },  // Parent Code
+      { wch: 12 },  // Is Critical
+      { wch: 18 },  // Response Type
+      { wch: 12 },  // Sort Order
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Hierarchy');
+
+    // Download file
+    const timestamp = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `asset_hierarchy_export_${timestamp}.xlsx`);
+    
+    return true;
+  } catch (error) {
+    console.error('Failed to export asset hierarchy:', error);
+    return false;
+  }
 }

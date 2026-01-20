@@ -9245,7 +9245,42 @@
     "subtypeDeleteError": "فشل في حذف النوع الفرعي",
     "subtypeEnabled": "تم تفعيل النوع الفرعي",
     "subtypeDisabled": "تم تعطيل النوع الفرعي",
-    "subtypeToggleError": "فشل في تبديل حالة النوع الفرعي"
+    "subtypeToggleError": "فشل في تبديل حالة النوع الفرعي",
+    "bulkImport": {
+      "button": "استيراد جماعي",
+      "title": "استيراد جماعي لهيكل الأصول",
+      "description": "قم بتحميل ملف Excel لاستيراد الفئات والأنواع والأنواع الفرعية والأجزاء القابلة للفحص في عملية واحدة.",
+      "downloadTemplateHint": "قم بتنزيل ملف نموذج مع بيانات نموذجية وتعليمات",
+      "template": "نموذج",
+      "dropHere": "أسقط الملف هنا...",
+      "dragDrop": "اسحب وأسقط ملفًا هنا، أو انقر للاختيار",
+      "supportedFormats": "يدعم: xlsx, xls, csv",
+      "level": "المستوى",
+      "code": "الكود",
+      "name": "الاسم",
+      "parent": "الأصل",
+      "invalidRows": "{{count}} صفوف بها أخطاء وسيتم تخطيها.",
+      "importNotice": "سيتم تحديث العناصر الموجودة بنفس الكود. سيتم إنشاء عناصر جديدة.",
+      "importItems": "استيراد {{count}} عنصر",
+      "success": "اكتمل الاستيراد",
+      "successDesc": "تمت معالجة {{total}} عنصر ({{categories}} فئات، {{types}} أنواع، {{subtypes}} أنواع فرعية، {{parts}} أجزاء). تم إنشاء {{created}}، تم تحديث {{updated}}.",
+      "failed": "فشل الاستيراد",
+      "exportButton": "تصدير",
+      "exportSuccess": "اكتمل التصدير",
+      "exportSuccessDesc": "تم تصدير هيكل الأصول إلى ملف Excel",
+      "exportFailed": "فشل التصدير",
+      "noDataToExport": "لا توجد بيانات للتصدير",
+      "updateMode": "تحديث العناصر الموجودة",
+      "updateModeHint": "عند التفعيل، سيتم تحديث العناصر الموجودة بالبيانات الجديدة. خلاف ذلك، سيتم تخطي المكررات.",
+      "newItems": "جديد",
+      "existingItems": "موجود"
+    },
+    "levels": {
+      "categories": "الفئات",
+      "types": "الأنواع",
+      "subtypes": "الأنواع الفرعية",
+      "parts": "الأجزاء"
+    }
   },
   "map": {
     "style": "نمط الخريطة",

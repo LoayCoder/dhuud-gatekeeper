@@ -9457,7 +9457,42 @@
     "subtypeDeleteError": "Failed to delete subtype",
     "subtypeEnabled": "Subtype enabled",
     "subtypeDisabled": "Subtype disabled",
-    "subtypeToggleError": "Failed to toggle subtype"
+    "subtypeToggleError": "Failed to toggle subtype",
+    "bulkImport": {
+      "button": "Bulk Import",
+      "title": "Bulk Import Asset Hierarchy",
+      "description": "Upload an Excel file to import categories, types, subtypes, and inspectable parts in one operation.",
+      "downloadTemplateHint": "Download a template file with sample data and instructions",
+      "template": "Template",
+      "dropHere": "Drop the file here...",
+      "dragDrop": "Drag & drop a file here, or click to select",
+      "supportedFormats": "Supports: .xlsx, .xls, .csv",
+      "level": "Level",
+      "code": "Code",
+      "name": "Name",
+      "parent": "Parent",
+      "invalidRows": "{{count}} rows have errors and will be skipped.",
+      "importNotice": "Existing items with the same code will be updated. New items will be created.",
+      "importItems": "Import {{count}} Items",
+      "success": "Import Complete",
+      "successDesc": "{{total}} items processed ({{categories}} categories, {{types}} types, {{subtypes}} subtypes, {{parts}} parts). {{created}} created, {{updated}} updated.",
+      "failed": "Import Failed",
+      "exportButton": "Export",
+      "exportSuccess": "Export Complete",
+      "exportSuccessDesc": "Asset hierarchy exported to Excel file",
+      "exportFailed": "Export Failed",
+      "noDataToExport": "No data to export",
+      "updateMode": "Update existing items",
+      "updateModeHint": "When enabled, existing items will be updated with new data. Otherwise, duplicates will be skipped.",
+      "newItems": "new",
+      "existingItems": "existing"
+    },
+    "levels": {
+      "categories": "Categories",
+      "types": "Types",
+      "subtypes": "Subtypes",
+      "parts": "Parts"
+    }
   },
   "map": {
     "style": "Map Style",
