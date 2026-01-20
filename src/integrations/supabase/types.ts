@@ -4290,16 +4290,6 @@ export type Database = {
           company_name_ar: string | null
           contract_end_date: string | null
           contract_start_date: string | null
-          contractor_safety_officer_email: string | null
-          contractor_safety_officer_name: string | null
-          contractor_safety_officer_phone: string | null
-          contractor_site_rep_email: string | null
-          contractor_site_rep_mobile: string | null
-          contractor_site_rep_name: string | null
-          contractor_site_rep_national_id: string | null
-          contractor_site_rep_nationality: string | null
-          contractor_site_rep_phone: string | null
-          contractor_site_rep_photo: string | null
           created_at: string
           created_by: string | null
           deleted_at: string | null
@@ -4336,16 +4326,6 @@ export type Database = {
           company_name_ar?: string | null
           contract_end_date?: string | null
           contract_start_date?: string | null
-          contractor_safety_officer_email?: string | null
-          contractor_safety_officer_name?: string | null
-          contractor_safety_officer_phone?: string | null
-          contractor_site_rep_email?: string | null
-          contractor_site_rep_mobile?: string | null
-          contractor_site_rep_name?: string | null
-          contractor_site_rep_national_id?: string | null
-          contractor_site_rep_nationality?: string | null
-          contractor_site_rep_phone?: string | null
-          contractor_site_rep_photo?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -4382,16 +4362,6 @@ export type Database = {
           company_name_ar?: string | null
           contract_end_date?: string | null
           contract_start_date?: string | null
-          contractor_safety_officer_email?: string | null
-          contractor_safety_officer_name?: string | null
-          contractor_safety_officer_phone?: string | null
-          contractor_site_rep_email?: string | null
-          contractor_site_rep_mobile?: string | null
-          contractor_site_rep_name?: string | null
-          contractor_site_rep_national_id?: string | null
-          contractor_site_rep_nationality?: string | null
-          contractor_site_rep_phone?: string | null
-          contractor_site_rep_photo?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
