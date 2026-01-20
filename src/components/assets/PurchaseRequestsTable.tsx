@@ -4,10 +4,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Eye, CheckCircle, XCircle } from "lucide-react";
-import { usePurchaseRequests } from "@/hooks/use-asset-approval-workflows";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Loader2, MoreHorizontal, Eye, CheckCircle, Pencil, Trash2 } from "lucide-react";
+import { usePurchaseRequests, useDeletePurchaseRequest, PurchaseRequest } from "@/hooks/use-asset-approval-workflows";
 import { format } from "date-fns";
 import { PurchaseApprovalDialog } from "./PurchaseApprovalDialog";
+import { AssetPurchaseRequestDialog } from "./AssetPurchaseRequestDialog";
 
 const STATUS_COLORS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   pending: "secondary",
@@ -20,13 +23,36 @@ export function PurchaseRequestsTable() {
   const { t } = useTranslation();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const { data: requests, isLoading } = usePurchaseRequests(statusFilter === "all" ? undefined : statusFilter);
+  const deleteRequest = useDeletePurchaseRequest();
   
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
+  const [editRequest, setEditRequest] = useState<PurchaseRequest | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteRequestId, setDeleteRequestId] = useState<string | null>(null);
 
   const handleApprove = (requestId: string) => {
     setSelectedRequestId(requestId);
     setApprovalDialogOpen(true);
+  };
+
+  const handleEdit = (request: PurchaseRequest) => {
+    setEditRequest(request);
+    setEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = (requestId: string) => {
+    setDeleteRequestId(requestId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (deleteRequestId) {
+      await deleteRequest.mutateAsync(deleteRequestId);
+      setDeleteDialogOpen(false);
+      setDeleteRequestId(null);
+    }
   };
 
   if (isLoading) {
@@ -95,18 +121,42 @@ export function PurchaseRequestsTable() {
                   <Badge variant="outline">{request.current_approval_level}</Badge>
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    {request.status === "pending" && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleApprove(request.id)}
-                      >
-                        <CheckCircle className="h-4 w-4 me-1" />
-                        {t("common.review", "Review")}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">{t("common.actions", "Actions")}</span>
                       </Button>
-                    )}
-                  </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {request.status === "pending" && (
+                        <>
+                          <DropdownMenuItem onClick={() => handleApprove(request.id)}>
+                            <CheckCircle className="h-4 w-4 me-2" />
+                            {t("common.review", "Review")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEdit(request)}>
+                            <Pencil className="h-4 w-4 me-2" />
+                            {t("common.edit", "Edit")}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={() => handleDeleteClick(request.id)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 me-2" />
+                            {t("common.delete", "Delete")}
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      {request.status !== "pending" && (
+                        <DropdownMenuItem>
+                          <Eye className="h-4 w-4 me-2" />
+                          {t("common.view", "View")}
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}
@@ -119,6 +169,33 @@ export function PurchaseRequestsTable() {
         onOpenChange={setApprovalDialogOpen}
         requestId={selectedRequestId}
       />
+
+      <AssetPurchaseRequestDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        request={editRequest}
+      />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("common.confirmDelete", "Confirm Delete")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("purchaseRequest.deleteWarning", "Are you sure you want to delete this purchase request? This action cannot be undone.")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel", "Cancel")}</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteRequest.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+              {t("common.delete", "Delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
