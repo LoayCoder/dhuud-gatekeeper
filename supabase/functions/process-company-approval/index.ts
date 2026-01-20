@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get company details
+    // Get company details including contract dates and branch
     const { data: company, error: companyError } = await supabase
       .from('contractor_companies')
       .select(`
@@ -50,7 +50,11 @@ Deno.serve(async (req) => {
         contractor_site_rep_national_id,
         contractor_safety_officer_name,
         contractor_safety_officer_email,
-        contractor_safety_officer_phone
+        contractor_safety_officer_phone,
+        contract_start_date,
+        contract_end_date,
+        scope_of_work,
+        branch_id
       `)
       .eq('id', company_id)
       .eq('tenant_id', tenant_id)
@@ -65,7 +69,7 @@ Deno.serve(async (req) => {
     }
 
     const results = {
-      site_rep: { created: false, linked: false, email: null as string | null },
+      site_rep: { created: false, linked: false, email: null as string | null, invitation_sent: false },
       safety_officer: { created: false, linked: false, email: null as string | null },
     };
 
@@ -115,35 +119,78 @@ Deno.serve(async (req) => {
       }
 
       if (userId) {
-        // Ensure profile exists
-        await supabase.from('profiles').upsert({
+        // Ensure profile exists with contract dates from company
+        const { error: profileError } = await supabase.from('profiles').upsert({
           id: userId,
           tenant_id: tenant_id,
           full_name: company.contractor_site_rep_name,
           email: company.contractor_site_rep_email,
-          phone: company.contractor_site_rep_phone,
+          phone_number: company.contractor_site_rep_phone,
+          // Sync contract dates from company
+          contract_start: company.contract_start_date,
+          contract_end: company.contract_end_date,
+          contractor_company_name: company.company_name,
+          contractor_type: 'contractor',
+          user_type: 'contractor',
+          has_login: true,
+          assigned_branch_id: company.branch_id,
         }, { onConflict: 'id' });
 
+        if (profileError) {
+          console.error('Failed to upsert profile:', profileError);
+        }
+
         // Create contractor representative entry
-        const { error: repError } = await supabase
+        // Note: mobile_number is required, representative_type column doesn't exist
+        const { data: repData, error: repError } = await supabase
           .from('contractor_representatives')
           .upsert({
             company_id: company_id,
             user_id: userId,
             full_name: company.contractor_site_rep_name,
             email: company.contractor_site_rep_email,
-            phone: company.contractor_site_rep_phone,
+            mobile_number: company.contractor_site_rep_phone || 'N/A', // Required field!
             national_id: company.contractor_site_rep_national_id,
-            representative_type: 'site_rep',
             is_primary: true,
             tenant_id: tenant_id,
+            branch_id: company.branch_id,
           }, { 
             onConflict: 'company_id,email',
             ignoreDuplicates: false 
-          });
+          })
+          .select('id')
+          .single();
 
-        if (!repError) {
+        if (!repError && repData) {
           results.site_rep.linked = true;
+          
+          // Send invitation email
+          try {
+            const inviteResponse = await fetch(`${supabaseUrl}/functions/v1/send-contractor-invitation`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${supabaseServiceKey}`,
+              },
+              body: JSON.stringify({
+                company_id: company_id,
+                representative_id: repData.id,
+                tenant_id: tenant_id,
+              }),
+            });
+
+            if (inviteResponse.ok) {
+              results.site_rep.invitation_sent = true;
+              console.log(`Invitation email sent to site rep: ${company.contractor_site_rep_email}`);
+            } else {
+              const inviteError = await inviteResponse.text();
+              console.error(`Failed to send invitation email: ${inviteError}`);
+            }
+          } catch (inviteErr) {
+            console.error('Error calling send-contractor-invitation:', inviteErr);
+          }
+        } else if (repError) {
+          console.error('Failed to create contractor representative:', repError);
         }
 
         // Assign role if exists
@@ -195,14 +242,23 @@ Deno.serve(async (req) => {
       }
 
       if (userId) {
+        // Upsert profile with contract dates
         await supabase.from('profiles').upsert({
           id: userId,
           tenant_id: tenant_id,
           full_name: company.contractor_safety_officer_name,
           email: company.contractor_safety_officer_email,
-          phone: company.contractor_safety_officer_phone,
+          phone_number: company.contractor_safety_officer_phone,
+          contract_start: company.contract_start_date,
+          contract_end: company.contract_end_date,
+          contractor_company_name: company.company_name,
+          contractor_type: 'contractor',
+          user_type: 'contractor',
+          has_login: true,
+          assigned_branch_id: company.branch_id,
         }, { onConflict: 'id' });
 
+        // Create contractor representative entry for safety officer
         const { error: repError } = await supabase
           .from('contractor_representatives')
           .upsert({
@@ -210,10 +266,10 @@ Deno.serve(async (req) => {
             user_id: userId,
             full_name: company.contractor_safety_officer_name,
             email: company.contractor_safety_officer_email,
-            phone: company.contractor_safety_officer_phone,
-            representative_type: 'safety_officer',
+            mobile_number: company.contractor_safety_officer_phone || 'N/A', // Required field!
             is_primary: false,
             tenant_id: tenant_id,
+            branch_id: company.branch_id,
           }, { 
             onConflict: 'company_id,email',
             ignoreDuplicates: false 
