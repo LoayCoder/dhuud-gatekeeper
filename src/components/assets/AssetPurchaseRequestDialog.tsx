@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,57 +7,88 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
-import { useCreatePurchaseRequest, useApprovalConfigs } from "@/hooks/use-asset-approval-workflows";
+import { useCreatePurchaseRequest, useUpdatePurchaseRequest, useApprovalConfigs, PurchaseRequest } from "@/hooks/use-asset-approval-workflows";
 
 interface AssetPurchaseRequestDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  request?: PurchaseRequest | null;
 }
 
-export function AssetPurchaseRequestDialog({ open, onOpenChange }: AssetPurchaseRequestDialogProps) {
+const defaultForm = {
+  title: "",
+  description: "",
+  estimated_cost: 0,
+  quantity: 1,
+  currency: "SAR",
+  justification: "",
+  vendor_name: "",
+  budget_code: "",
+};
+
+export function AssetPurchaseRequestDialog({ open, onOpenChange, request }: AssetPurchaseRequestDialogProps) {
   const { t } = useTranslation();
   const createRequest = useCreatePurchaseRequest();
+  const updateRequest = useUpdatePurchaseRequest();
   const { data: configs } = useApprovalConfigs("asset_purchase");
   
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    estimated_cost: 0,
-    quantity: 1,
-    currency: "SAR",
-    justification: "",
-    vendor_name: "",
-    budget_code: "",
-  });
+  const isEditMode = !!request;
+  
+  const [form, setForm] = useState(defaultForm);
+
+  // Pre-populate form when editing
+  useEffect(() => {
+    if (request && open) {
+      setForm({
+        title: request.title || "",
+        description: request.description || "",
+        estimated_cost: request.estimated_cost || 0,
+        quantity: request.quantity || 1,
+        currency: request.currency || "SAR",
+        justification: request.justification || "",
+        vendor_name: request.vendor_name || "",
+        budget_code: request.budget_code || "",
+      });
+    } else if (!open) {
+      setForm(defaultForm);
+    }
+  }, [request, open]);
 
   const handleSubmit = async () => {
-    const activeConfig = configs?.find(c => c.is_active);
-    
-    await createRequest.mutateAsync({
-      ...form,
-      approval_config_id: activeConfig?.id,
-    });
+    if (isEditMode && request) {
+      await updateRequest.mutateAsync({
+        id: request.id,
+        ...form,
+      });
+    } else {
+      const activeConfig = configs?.find(c => c.is_active);
+      await createRequest.mutateAsync({
+        ...form,
+        approval_config_id: activeConfig?.id,
+      });
+    }
     
     onOpenChange(false);
-    setForm({
-      title: "",
-      description: "",
-      estimated_cost: 0,
-      quantity: 1,
-      currency: "SAR",
-      justification: "",
-      vendor_name: "",
-      budget_code: "",
-    });
+    setForm(defaultForm);
   };
+  
+  const isPending = createRequest.isPending || updateRequest.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>{t("purchaseRequest.title", "New Purchase Request")}</DialogTitle>
+          <DialogTitle>
+            {isEditMode 
+              ? t("purchaseRequest.editTitle", "Edit Purchase Request")
+              : t("purchaseRequest.title", "New Purchase Request")
+            }
+          </DialogTitle>
           <DialogDescription>
-            {t("purchaseRequest.description", "Submit a request for asset purchase approval")}
+            {isEditMode
+              ? t("purchaseRequest.editDescription", "Update the purchase request details")
+              : t("purchaseRequest.description", "Submit a request for asset purchase approval")
+            }
           </DialogDescription>
         </DialogHeader>
         
@@ -161,10 +192,13 @@ export function AssetPurchaseRequestDialog({ open, onOpenChange }: AssetPurchase
           </Button>
           <Button 
             onClick={handleSubmit} 
-            disabled={createRequest.isPending || !form.title || !form.estimated_cost || !form.justification}
+            disabled={isPending || !form.title || !form.estimated_cost || !form.justification}
           >
-            {createRequest.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
-            {t("purchaseRequest.submit", "Submit Request")}
+            {isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+            {isEditMode 
+              ? t("common.save", "Save")
+              : t("purchaseRequest.submit", "Submit Request")
+            }
           </Button>
         </DialogFooter>
       </DialogContent>
