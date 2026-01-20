@@ -39,6 +39,10 @@ import {
   type ImportMode,
 } from '@/lib/asset-hierarchy-import-utils';
 import { useBulkImportAssetHierarchy, type ImportProgress } from '@/hooks/use-bulk-import-asset-hierarchy';
+import AssetHierarchyValidationEditor from './AssetHierarchyValidationEditor';
+
+// Import step type
+type ImportStep = 'upload' | 'validate' | 'import';
 
 interface AssetHierarchyBulkImportProps {
   open: boolean;
@@ -192,12 +196,119 @@ export default function AssetHierarchyBulkImport({
   const [fileName, setFileName] = useState<string | null>(null);
   const [updateMode, setUpdateMode] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
+  const [currentStep, setCurrentStep] = useState<ImportStep>('upload');
   const bulkImport = useBulkImportAssetHierarchy();
+
+  // Revalidate rows after inline edits
+  const revalidateRows = useCallback(() => {
+    if (!parseResult) return;
+    
+    // Re-run validation on all rows
+    const allRows = [...parseResult.rows];
+    const revalidatedRows = allRows.map((row, index) => {
+      const errors: string[] = [];
+      
+      // Level is required
+      if (!row.level) {
+        errors.push('Level is required (Category, Type, Subtype, or Part)');
+      }
+      
+      // Name EN is required
+      if (!row.nameEn || row.nameEn.trim().length < 1) {
+        errors.push('Name (EN) is required');
+      }
+      
+      // Parent code validation for non-Category levels
+      if (row.level !== 'Category') {
+        if (!row.parentCode || row.parentCode.trim().length < 1) {
+          errors.push('Parent Code is required for Types, Subtypes, and Parts');
+        } else {
+          // Check if parent exists in previous rows
+          const parentExists = allRows.slice(0, index).some(r => {
+            const parentCode = r.code?.toLowerCase().trim();
+            const expectedCode = row.parentCode?.toLowerCase().trim();
+            return parentCode === expectedCode;
+          });
+          if (!parentExists) {
+            errors.push(`Parent "${row.parentCode}" not found in previous rows`);
+          }
+        }
+      }
+      
+      // Validate parent level hierarchy
+      if (row.level === 'Type' && row.parentCode) {
+        const parent = allRows.slice(0, index).find(r => r.code?.toLowerCase().trim() === row.parentCode?.toLowerCase().trim());
+        if (parent && parent.level !== 'Category') {
+          errors.push('Type must have a Category as parent');
+        }
+      }
+      
+      if (row.level === 'Subtype' && row.parentCode) {
+        const parent = allRows.slice(0, index).find(r => r.code?.toLowerCase().trim() === row.parentCode?.toLowerCase().trim());
+        if (parent && parent.level !== 'Type') {
+          errors.push('Subtype must have a Type as parent');
+        }
+      }
+      
+      if (row.level === 'Part' && row.parentCode) {
+        const parent = allRows.slice(0, index).find(r => r.code?.toLowerCase().trim() === row.parentCode?.toLowerCase().trim());
+        if (parent && parent.level !== 'Type' && parent.level !== 'Subtype') {
+          errors.push('Part must have a Type or Subtype as parent');
+        }
+      }
+      
+      return {
+        ...row,
+        isValid: errors.length === 0,
+        errors,
+      };
+    });
+    
+    // Regroup by level
+    const categories = revalidatedRows.filter(r => r.level === 'Category');
+    const types = revalidatedRows.filter(r => r.level === 'Type');
+    const subtypes = revalidatedRows.filter(r => r.level === 'Subtype');
+    const parts = revalidatedRows.filter(r => r.level === 'Part');
+    
+    setParseResult({
+      ...parseResult,
+      rows: revalidatedRows,
+      categories,
+      types,
+      subtypes,
+      parts,
+      validCount: revalidatedRows.filter(r => r.isValid).length,
+      invalidCount: revalidatedRows.filter(r => !r.isValid).length,
+    });
+  }, [parseResult]);
+
+  const handleRowsChange = useCallback((newRows: typeof parseResult.rows) => {
+    if (!parseResult) return;
+    
+    // Regroup by level
+    const categories = newRows.filter(r => r.level === 'Category');
+    const types = newRows.filter(r => r.level === 'Type');
+    const subtypes = newRows.filter(r => r.level === 'Subtype');
+    const parts = newRows.filter(r => r.level === 'Part');
+    
+    setParseResult({
+      ...parseResult,
+      rows: newRows,
+      categories,
+      types,
+      subtypes,
+      parts,
+      validCount: newRows.filter(r => r.isValid).length,
+      invalidCount: newRows.filter(r => !r.isValid).length,
+    });
+  }, [parseResult]);
 
   const resetState = useCallback(() => {
     setParseResult(null);
     setFileName(null);
-  }, []);
+    setCurrentStep('upload');
+    bulkImport.resetProgress();
+  }, [bulkImport]);
 
   const handleClose = useCallback((open: boolean) => {
     if (!open) resetState();
@@ -212,6 +323,10 @@ export default function AssetHierarchyBulkImport({
       const data = new Uint8Array(e.target?.result as ArrayBuffer);
       const result = parseHierarchyFile(data.buffer);
       setParseResult(result);
+      // Move to validation step after parsing
+      if (!result.parseError) {
+        setCurrentStep('validate');
+      }
     };
     reader.readAsArrayBuffer(file);
   }, []);
@@ -254,8 +369,18 @@ export default function AssetHierarchyBulkImport({
     if (!parseResult || parseResult.validCount === 0) return;
     
     const mode: ImportMode = updateMode ? 'update_or_insert' : 'insert_only';
+    setCurrentStep('import');
     await bulkImport.mutateAsync({ parseResult, mode });
     handleClose(false);
+  };
+
+  const handleProceedToImport = () => {
+    if (!parseResult || parseResult.validCount === 0) return;
+    setCurrentStep('import');
+  };
+
+  const handleBackToValidation = () => {
+    setCurrentStep('validate');
   };
 
   const validRows = parseResult?.rows.filter(r => r.isValid) || [];
@@ -342,9 +467,10 @@ export default function AssetHierarchyBulkImport({
             </Alert>
           )}
 
-          {/* Parsed Results - hidden during import */}
-          {parseResult && !parseResult.parseError && !bulkImport.isPending && (
+          {/* STEP: VALIDATE - Show validation editor with inline editing */}
+          {currentStep === 'validate' && parseResult && !parseResult.parseError && !bulkImport.isPending && (
             <>
+              {/* File info header */}
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-3">
                   <Badge variant="outline">{fileName}</Badge>
@@ -352,16 +478,6 @@ export default function AssetHierarchyBulkImport({
                     <X className="h-4 w-4 me-1" />
                     {t('common.clear', 'Clear')}
                   </Button>
-                </div>
-                <div className="flex items-center gap-2 text-sm flex-wrap">
-                  <Badge className="bg-green-500">
-                    {validRows.length} {t('common.valid', 'valid')}
-                  </Badge>
-                  {invalidRows.length > 0 && (
-                    <Badge variant="destructive">
-                      {invalidRows.length} {t('common.invalid', 'invalid')}
-                    </Badge>
-                  )}
                 </div>
               </div>
 
@@ -397,6 +513,13 @@ export default function AssetHierarchyBulkImport({
                 </div>
               </div>
 
+              {/* Validation Editor */}
+              <AssetHierarchyValidationEditor
+                rows={parseResult.rows}
+                onRowsChange={handleRowsChange}
+                onRevalidate={revalidateRows}
+              />
+
               {/* Update Mode Toggle */}
               <div className="flex items-center justify-between p-3 rounded-lg border bg-card">
                 <div className="space-y-0.5">
@@ -413,102 +536,50 @@ export default function AssetHierarchyBulkImport({
                   onCheckedChange={setUpdateMode}
                 />
               </div>
-
-              {/* Invalid Rows Warning */}
-              {invalidRows.length > 0 && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    {t('assetCategories.bulkImport.invalidRows', '{{count}} rows have errors and will be skipped.', { count: invalidRows.length })}
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {/* Preview Table */}
-              <ScrollArea className="h-[240px] rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[40px]">#</TableHead>
-                      <TableHead className="w-[100px]">{t('assetCategories.bulkImport.level', 'Level')}</TableHead>
-                      <TableHead>{t('assetCategories.bulkImport.code', 'Code')}</TableHead>
-                      <TableHead>{t('assetCategories.bulkImport.name', 'Name')}</TableHead>
-                      <TableHead>{t('assetCategories.bulkImport.parent', 'Parent')}</TableHead>
-                      <TableHead className="w-[80px]">{t('common.status', 'Status')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {parseResult.rows.map((row, idx) => (
-                      <TableRow 
-                        key={idx} 
-                        className={!row.isValid ? 'bg-destructive/10' : undefined}
-                      >
-                        <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
-                        <TableCell>
-                          <LevelBadge level={row.level} />
-                        </TableCell>
-                        <TableCell className="font-mono text-xs">{row.code || '-'}</TableCell>
-                        <TableCell>
-                          <div className="flex flex-col">
-                            <span>{row.nameEn}</span>
-                            {row.nameAr && (
-                              <span className="text-xs text-muted-foreground" dir="rtl">
-                                {row.nameAr}
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-mono text-xs">{row.parentCode || '-'}</TableCell>
-                        <TableCell>
-                          {row.isValid ? (
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                          ) : (
-                            <span 
-                              className="text-xs text-destructive" 
-                              title={row.errors.join(', ')}
-                            >
-                              {row.errors[0]}
-                            </span>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </ScrollArea>
-
-              {/* Import Notice */}
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  {t('assetCategories.bulkImport.importNotice', 'Existing items with the same code will be updated. New items will be created.')}
-                </AlertDescription>
-              </Alert>
             </>
+          )}
+
+          {/* STEP: IMPORT - Show progress panel */}
+          {currentStep === 'import' && bulkImport.isPending && (
+            <ImportProgressPanel progress={bulkImport.progress} />
           )}
         </div>
 
-        {/* Actions */}
-        <div className="flex justify-end gap-2 pt-4">
-          <Button variant="outline" onClick={() => handleClose(false)}>
-            {t('common.cancel', 'Cancel')}
-          </Button>
-          <Button
-            onClick={handleImport}
-            disabled={!parseResult || validRows.length === 0 || bulkImport.isPending}
-          >
-            {bulkImport.isPending ? (
-              <>
+        {/* Actions - Dynamic based on step */}
+        <div className="flex justify-between gap-2 pt-4">
+          <div>
+            {currentStep === 'validate' && (
+              <Button variant="outline" onClick={resetState}>
+                {t('assetCategories.bulkImport.uploadDifferentFile', 'Upload Different File')}
+              </Button>
+            )}
+          </div>
+          
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => handleClose(false)}>
+              {t('common.cancel', 'Cancel')}
+            </Button>
+            
+            {currentStep === 'validate' && (
+              <Button
+                onClick={handleImport}
+                disabled={!parseResult || validRows.length === 0}
+              >
+                <Upload className="h-4 w-4 me-2" />
+                {invalidRows.length > 0 
+                  ? t('assetCategories.bulkImport.importValidItems', 'Import {{count}} Valid Items', { count: validRows.length })
+                  : t('assetCategories.bulkImport.importItems', 'Import {{count}} Items', { count: validRows.length })
+                }
+              </Button>
+            )}
+            
+            {currentStep === 'import' && bulkImport.isPending && (
+              <Button disabled>
                 <Loader2 className="h-4 w-4 me-2 animate-spin" />
                 {t('common.importing', 'Importing...')}
-              </>
-            ) : (
-              <>
-                <Upload className="h-4 w-4 me-2" />
-                {t('assetCategories.bulkImport.importItems', 'Import {{count}} Items', { count: validRows.length })}
-              </>
+              </Button>
             )}
-          </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
