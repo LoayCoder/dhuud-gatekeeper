@@ -408,7 +408,7 @@ function AssetDetailContent() {
                 {asset.condition_rating && (
                   <>
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">{t('assets.condition')}</span>
+                      <span className="text-muted-foreground">{t('assets.conditionLabel')}</span>
                       <Badge variant="outline" className={CONDITION_COLORS[asset.condition_rating]}>
                         {t(`assets.conditions.${asset.condition_rating}`)}
                       </Badge>

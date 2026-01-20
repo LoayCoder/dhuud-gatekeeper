@@ -758,7 +758,7 @@ function AssetRegisterContent() {
                       name="condition_rating"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('assets.condition')}</FormLabel>
+                          <FormLabel>{t('assets.conditionLabel')}</FormLabel>
                           <Select value={field.value || ''} onValueChange={(v) => field.onChange(v || null)} dir={direction}>
                             <FormControl>
                               <SelectTrigger>
