@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Pencil, Trash2, ChevronDown, ChevronUp, Loader2, Layers, Tag, FolderTree } from 'lucide-react';
+import { Plus, Pencil, Trash2, ChevronDown, ChevronUp, Loader2, Layers, Tag, FolderTree, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +28,7 @@ import { EditAssetTypeDialog } from './EditAssetTypeDialog';
 import { AddAssetSubtypeDialog } from './AddAssetSubtypeDialog';
 import { EditAssetSubtypeDialog } from './EditAssetSubtypeDialog';
 import { AssetTypePartsSection } from './AssetTypePartsSection';
+import AssetHierarchyBulkImport from './AssetHierarchyBulkImport';
 
 type DeleteTarget = {
   type: 'category' | 'type' | 'subtype';
@@ -62,6 +63,7 @@ export default function AssetCategoryManagement() {
   const [editType, setEditType] = useState<typeof types extends (infer T)[] ? T : never | null>(null);
   const [addSubtypeOpen, setAddSubtypeOpen] = useState<string | null>(null);
   const [editSubtype, setEditSubtype] = useState<typeof subtypes extends (infer T)[] ? T : never | null>(null);
+  const [bulkImportOpen, setBulkImportOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
 
   const toggleCategoryExpand = (id: string) => {
@@ -137,10 +139,16 @@ export default function AssetCategoryManagement() {
               </CardTitle>
               <CardDescription>{t('assetCategories.description')}</CardDescription>
             </div>
-            <Button onClick={() => setAddCategoryOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              {t('assetCategories.addCategory')}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => setBulkImportOpen(true)} className="gap-2">
+                <Upload className="h-4 w-4" />
+                {t('assetCategories.bulkImport.button', 'Bulk Import')}
+              </Button>
+              <Button onClick={() => setAddCategoryOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                {t('assetCategories.addCategory')}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
