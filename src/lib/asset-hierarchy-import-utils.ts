@@ -53,10 +53,10 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   nameAr: ['name_ar', 'arabic_name', 'الاسم العربي', 'name (ar)', 'الاسم'],
   descriptionEn: ['description_en', 'description', 'desc', 'الوصف الإنجليزي', 'description (en)'],
   descriptionAr: ['description_ar', 'arabic_description', 'الوصف العربي', 'description (ar)', 'الوصف'],
-  parentCode: ['parent_code', 'parent', 'الكود الأب', 'الأب'],
-  isCritical: ['is_critical', 'critical', 'حرج', 'مهم'],
-  responseType: ['response_type', 'type_response', 'نوع الاستجابة'],
-  sortOrder: ['sort_order', 'order', 'sort', 'الترتيب'],
+  parentCode: ['parent_code', 'parent code', 'parent', 'الكود الأب', 'الأب'],
+  isCritical: ['is_critical', 'is critical', 'critical', 'حرج', 'مهم'],
+  responseType: ['response_type', 'response type', 'type_response', 'نوع الاستجابة'],
+  sortOrder: ['sort_order', 'sort order', 'order', 'sort', 'الترتيب'],
 };
 
 function normalizeColumnName(col: string): string | null {
