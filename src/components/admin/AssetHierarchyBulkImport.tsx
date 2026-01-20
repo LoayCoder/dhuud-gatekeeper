@@ -19,6 +19,7 @@ import {
   FolderTree,
   Wrench,
   FileDown,
+  History,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
 import { 
@@ -40,6 +42,7 @@ import {
 } from '@/lib/asset-hierarchy-import-utils';
 import { useBulkImportAssetHierarchy, type ImportProgress } from '@/hooks/use-bulk-import-asset-hierarchy';
 import AssetHierarchyValidationEditor from './AssetHierarchyValidationEditor';
+import { AssetImportHistoryTable } from './AssetImportHistoryTable';
 
 // Import step type
 type ImportStep = 'upload' | 'validate' | 'import';
@@ -396,7 +399,7 @@ export default function AssetHierarchyBulkImport({
     
     const mode: ImportMode = updateMode ? 'update_or_insert' : 'insert_only';
     setCurrentStep('import');
-    await bulkImport.mutateAsync({ parseResult, mode });
+    await bulkImport.mutateAsync({ parseResult, mode, fileName: fileName || undefined });
     
     // Wait 2 seconds to show completion state before closing
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -428,7 +431,23 @@ export default function AssetHierarchyBulkImport({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <Tabs defaultValue="import" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="import">
+              <Upload className="h-4 w-4 me-2" />
+              {t('common.import', 'Import')}
+            </TabsTrigger>
+            <TabsTrigger value="history">
+              <History className="h-4 w-4 me-2" />
+              {t('common.history', 'History')}
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="history" className="mt-0">
+            <AssetImportHistoryTable />
+          </TabsContent>
+          
+          <TabsContent value="import" className="mt-0 space-y-4">
           {/* Template & Export Actions */}
           <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg flex-wrap gap-2">
             <span className="text-sm text-muted-foreground">
@@ -572,7 +591,8 @@ export default function AssetHierarchyBulkImport({
           {currentStep === 'import' && bulkImport.isPending && (
             <ImportProgressPanel progress={bulkImport.progress} />
           )}
-        </div>
+          </TabsContent>
+        </Tabs>
 
         {/* Actions - Dynamic based on step */}
         <div className="flex justify-between gap-2 pt-4">

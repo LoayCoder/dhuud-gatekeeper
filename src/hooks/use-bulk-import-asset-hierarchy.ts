@@ -39,6 +39,7 @@ interface CodeIdMap {
 interface ImportOptions {
   parseResult: ParseResult;
   mode: ImportMode;
+  fileName?: string;
 }
 
 type ProgressCallback = (phase: ImportProgress['phase'], current: number, total: number) => void;
@@ -408,12 +409,57 @@ async function importParts(
   return { created, updated };
 }
 
+async function logImportHistory(
+  tenantId: string,
+  userId: string,
+  fileName: string | null,
+  mode: ImportMode,
+  result: ImportResult
+): Promise<void> {
+  try {
+    const totalProcessed = 
+      result.categoriesCreated + result.categoriesUpdated +
+      result.typesCreated + result.typesUpdated +
+      result.subtypesCreated + result.subtypesUpdated +
+      result.partsCreated + result.partsUpdated;
+
+    const status = result.success 
+      ? (result.errors.length > 0 ? 'partial' : 'success')
+      : 'failed';
+
+    await supabase.from('asset_import_history').insert({
+      tenant_id: tenantId,
+      user_id: userId,
+      file_name: fileName,
+      import_mode: mode,
+      categories_created: result.categoriesCreated,
+      categories_updated: result.categoriesUpdated,
+      types_created: result.typesCreated,
+      types_updated: result.typesUpdated,
+      subtypes_created: result.subtypesCreated,
+      subtypes_updated: result.subtypesUpdated,
+      parts_created: result.partsCreated,
+      parts_updated: result.partsUpdated,
+      total_rows_processed: totalProcessed,
+      skipped_count: result.skippedCount,
+      status,
+      error_messages: result.errors.length > 0 ? result.errors : null,
+    });
+  } catch (error) {
+    console.error('Failed to log import history:', error);
+  }
+}
+
 async function performBulkImportWithProgress(
   options: ImportOptions,
   onProgress: (progress: ImportProgress) => void
 ): Promise<ImportResult> {
-  const { parseResult, mode } = options;
+  const { parseResult, mode, fileName } = options;
   const errors: string[] = [];
+  
+  // Get user info for logging
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id;
   
   // Initialize totals for progress
   const totals = {
@@ -484,7 +530,7 @@ async function performBulkImportWithProgress(
     const processed = totalCreated + totalUpdated;
     const skippedCount = parseResult.validCount - processed;
     
-    return {
+    const result: ImportResult = {
       success: true,
       categoriesCreated,
       categoriesUpdated,
@@ -497,10 +543,18 @@ async function performBulkImportWithProgress(
       skippedCount: Math.max(0, skippedCount),
       errors,
     };
+    
+    // Log import history
+    if (userId) {
+      await logImportHistory(tenantId, userId, fileName || null, mode, result);
+    }
+    
+    return result;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     errors.push(message);
-    return {
+    
+    const failedResult: ImportResult = {
       success: false,
       categoriesCreated: 0,
       categoriesUpdated: 0,
@@ -513,6 +567,14 @@ async function performBulkImportWithProgress(
       skippedCount: 0,
       errors,
     };
+    
+    // Log failed import
+    const tenantId = await getTenantId().catch(() => null);
+    if (userId && tenantId) {
+      await logImportHistory(tenantId, userId, fileName || null, mode, failedResult);
+    }
+    
+    return failedResult;
   }
 }
 
@@ -564,6 +626,7 @@ export function useBulkImportAssetHierarchy() {
         queryClient.invalidateQueries({ queryKey: ['asset-types'] });
         queryClient.invalidateQueries({ queryKey: ['asset-subtypes'] });
         queryClient.invalidateQueries({ queryKey: ['asset-type-parts'] });
+        queryClient.invalidateQueries({ queryKey: ['asset-import-history'] });
       } else {
         toast.error(t('assetCategories.bulkImport.failed', 'Import Failed'), {
           description: result.errors.join(', '),
