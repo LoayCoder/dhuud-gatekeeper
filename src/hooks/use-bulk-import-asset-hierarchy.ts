@@ -1,8 +1,9 @@
 /**
  * Hook for bulk importing asset hierarchy (categories, types, subtypes, parts)
- * Supports both insert-only and update-or-insert modes
+ * Supports both insert-only and update-or-insert modes with real-time progress tracking
  */
 
+import { useState, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -23,6 +24,14 @@ export interface ImportResult {
   errors: string[];
 }
 
+export interface ImportProgress {
+  phase: 'idle' | 'categories' | 'types' | 'subtypes' | 'parts' | 'complete';
+  categories: { current: number; total: number };
+  types: { current: number; total: number };
+  subtypes: { current: number; total: number };
+  parts: { current: number; total: number };
+}
+
 interface CodeIdMap {
   [code: string]: string;
 }
@@ -31,6 +40,8 @@ interface ImportOptions {
   parseResult: ParseResult;
   mode: ImportMode;
 }
+
+type ProgressCallback = (phase: ImportProgress['phase'], current: number, total: number) => void;
 
 async function getTenantId(): Promise<string> {
   const { data: { user } } = await supabase.auth.getUser();
@@ -49,16 +60,22 @@ async function getTenantId(): Promise<string> {
 async function importCategories(
   categories: ParsedHierarchyRow[],
   tenantId: string,
-  mode: ImportMode
+  mode: ImportMode,
+  onProgress?: ProgressCallback
 ): Promise<{ created: number; updated: number; codeIdMap: CodeIdMap }> {
-  if (categories.length === 0) return { created: 0, updated: 0, codeIdMap: {} };
-  
   const validCategories = categories.filter(c => c.isValid);
+  const total = validCategories.length;
+  
+  if (total === 0) return { created: 0, updated: 0, codeIdMap: {} };
+  
   const codeIdMap: CodeIdMap = {};
   let created = 0;
   let updated = 0;
   
-  for (const cat of validCategories) {
+  for (let i = 0; i < validCategories.length; i++) {
+    const cat = validCategories[i];
+    onProgress?.('categories', i + 1, total);
+    
     // Check if category already exists
     const { data: existing } = await supabase
       .from('asset_categories')
@@ -117,16 +134,22 @@ async function importTypes(
   types: ParsedHierarchyRow[],
   tenantId: string,
   categoryMap: CodeIdMap,
-  mode: ImportMode
+  mode: ImportMode,
+  onProgress?: ProgressCallback
 ): Promise<{ created: number; updated: number; codeIdMap: CodeIdMap }> {
-  if (types.length === 0) return { created: 0, updated: 0, codeIdMap: {} };
-  
   const validTypes = types.filter(t => t.isValid);
+  const total = validTypes.length;
+  
+  if (total === 0) return { created: 0, updated: 0, codeIdMap: {} };
+  
   const codeIdMap: CodeIdMap = {};
   let created = 0;
   let updated = 0;
   
-  for (const type of validTypes) {
+  for (let i = 0; i < validTypes.length; i++) {
+    const type = validTypes[i];
+    onProgress?.('types', i + 1, total);
+    
     const categoryId = categoryMap[type.parentCode.toLowerCase()];
     if (!categoryId) {
       console.warn(`Parent category not found for type: ${type.code}`);
@@ -190,16 +213,22 @@ async function importSubtypes(
   subtypes: ParsedHierarchyRow[],
   tenantId: string,
   typeMap: CodeIdMap,
-  mode: ImportMode
+  mode: ImportMode,
+  onProgress?: ProgressCallback
 ): Promise<{ created: number; updated: number; codeIdMap: CodeIdMap }> {
-  if (subtypes.length === 0) return { created: 0, updated: 0, codeIdMap: {} };
-  
   const validSubtypes = subtypes.filter(s => s.isValid);
+  const total = validSubtypes.length;
+  
+  if (total === 0) return { created: 0, updated: 0, codeIdMap: {} };
+  
   const codeIdMap: CodeIdMap = {};
   let created = 0;
   let updated = 0;
   
-  for (const subtype of validSubtypes) {
+  for (let i = 0; i < validSubtypes.length; i++) {
+    const subtype = validSubtypes[i];
+    onProgress?.('subtypes', i + 1, total);
+    
     const typeId = typeMap[subtype.parentCode.toLowerCase()];
     if (!typeId) {
       console.warn(`Parent type not found for subtype: ${subtype.code}`);
@@ -264,15 +293,21 @@ async function importParts(
   tenantId: string,
   typeMap: CodeIdMap,
   subtypeMap: CodeIdMap,
-  mode: ImportMode
+  mode: ImportMode,
+  onProgress?: ProgressCallback
 ): Promise<{ created: number; updated: number }> {
-  if (parts.length === 0) return { created: 0, updated: 0 };
-  
   const validParts = parts.filter(p => p.isValid);
+  const total = validParts.length;
+  
+  if (total === 0) return { created: 0, updated: 0 };
+  
   let created = 0;
   let updated = 0;
   
-  for (const part of validParts) {
+  for (let i = 0; i < validParts.length; i++) {
+    const part = validParts[i];
+    onProgress?.('parts', i + 1, total);
+    
     const parentCode = part.parentCode.toLowerCase();
     const subtypeId = subtypeMap[parentCode];
     const typeId = typeMap[parentCode];
@@ -373,25 +408,76 @@ async function importParts(
   return { created, updated };
 }
 
-async function performBulkImport(options: ImportOptions): Promise<ImportResult> {
+async function performBulkImportWithProgress(
+  options: ImportOptions,
+  onProgress: (progress: ImportProgress) => void
+): Promise<ImportResult> {
   const { parseResult, mode } = options;
   const errors: string[] = [];
+  
+  // Initialize totals for progress
+  const totals = {
+    categories: parseResult.categories.filter(c => c.isValid).length,
+    types: parseResult.types.filter(t => t.isValid).length,
+    subtypes: parseResult.subtypes.filter(s => s.isValid).length,
+    parts: parseResult.parts.filter(p => p.isValid).length,
+  };
+  
+  const progressCallback: ProgressCallback = (phase, current, total) => {
+    onProgress({
+      phase,
+      categories: { 
+        current: phase === 'categories' ? current : (phase !== 'idle' ? totals.categories : 0), 
+        total: totals.categories 
+      },
+      types: { 
+        current: phase === 'types' ? current : (['subtypes', 'parts', 'complete'].includes(phase) ? totals.types : 0), 
+        total: totals.types 
+      },
+      subtypes: { 
+        current: phase === 'subtypes' ? current : (['parts', 'complete'].includes(phase) ? totals.subtypes : 0), 
+        total: totals.subtypes 
+      },
+      parts: { 
+        current: phase === 'parts' ? current : (phase === 'complete' ? totals.parts : 0), 
+        total: totals.parts 
+      },
+    });
+  };
   
   try {
     const tenantId = await getTenantId();
     
+    // Initialize progress
+    onProgress({
+      phase: 'categories',
+      categories: { current: 0, total: totals.categories },
+      types: { current: 0, total: totals.types },
+      subtypes: { current: 0, total: totals.subtypes },
+      parts: { current: 0, total: totals.parts },
+    });
+    
     // Import in order: Categories → Types → Subtypes → Parts
     const { created: categoriesCreated, updated: categoriesUpdated, codeIdMap: categoryMap } = 
-      await importCategories(parseResult.categories, tenantId, mode);
+      await importCategories(parseResult.categories, tenantId, mode, progressCallback);
     
     const { created: typesCreated, updated: typesUpdated, codeIdMap: typeMap } = 
-      await importTypes(parseResult.types, tenantId, categoryMap, mode);
+      await importTypes(parseResult.types, tenantId, categoryMap, mode, progressCallback);
     
     const { created: subtypesCreated, updated: subtypesUpdated, codeIdMap: subtypeMap } = 
-      await importSubtypes(parseResult.subtypes, tenantId, typeMap, mode);
+      await importSubtypes(parseResult.subtypes, tenantId, typeMap, mode, progressCallback);
     
     const { created: partsCreated, updated: partsUpdated } = 
-      await importParts(parseResult.parts, tenantId, typeMap, subtypeMap, mode);
+      await importParts(parseResult.parts, tenantId, typeMap, subtypeMap, mode, progressCallback);
+    
+    // Mark as complete
+    onProgress({
+      phase: 'complete',
+      categories: { current: totals.categories, total: totals.categories },
+      types: { current: totals.types, total: totals.types },
+      subtypes: { current: totals.subtypes, total: totals.subtypes },
+      parts: { current: totals.parts, total: totals.parts },
+    });
     
     const totalCreated = categoriesCreated + typesCreated + subtypesCreated + partsCreated;
     const totalUpdated = categoriesUpdated + typesUpdated + subtypesUpdated + partsUpdated;
@@ -430,12 +516,26 @@ async function performBulkImport(options: ImportOptions): Promise<ImportResult> 
   }
 }
 
+const initialProgress: ImportProgress = {
+  phase: 'idle',
+  categories: { current: 0, total: 0 },
+  types: { current: 0, total: 0 },
+  subtypes: { current: 0, total: 0 },
+  parts: { current: 0, total: 0 },
+};
+
 export function useBulkImportAssetHierarchy() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const [progress, setProgress] = useState<ImportProgress>(initialProgress);
   
-  return useMutation({
-    mutationFn: performBulkImport,
+  const resetProgress = useCallback(() => {
+    setProgress(initialProgress);
+  }, []);
+  
+  const mutation = useMutation({
+    mutationFn: (options: ImportOptions) => 
+      performBulkImportWithProgress(options, setProgress),
     onSuccess: (result) => {
       if (result.success) {
         const totalCreated = result.categoriesCreated + result.typesCreated + 
@@ -469,11 +569,17 @@ export function useBulkImportAssetHierarchy() {
           description: result.errors.join(', '),
         });
       }
+      
+      // Reset progress after a short delay to show completion
+      setTimeout(resetProgress, 2000);
     },
     onError: (error) => {
       toast.error(t('assetCategories.bulkImport.failed', 'Import Failed'), {
         description: error instanceof Error ? error.message : 'Unknown error',
       });
+      resetProgress();
     },
   });
+  
+  return { ...mutation, progress, resetProgress };
 }
