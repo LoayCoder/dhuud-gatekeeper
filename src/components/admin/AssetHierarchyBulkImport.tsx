@@ -1,7 +1,7 @@
 /**
  * Asset Hierarchy Bulk Import Dialog
  * Allows admins to upload Excel files to bulk import categories, types, subtypes, and parts.
- * Also supports exporting existing data and smart update/insert mode.
+ * Also supports exporting existing data, smart update/insert mode, and real-time progress tracking.
  */
 
 import { useState, useCallback } from 'react';
@@ -28,6 +28,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
 import { 
@@ -37,7 +38,7 @@ import {
   type ParseResult, 
   type ImportMode,
 } from '@/lib/asset-hierarchy-import-utils';
-import { useBulkImportAssetHierarchy } from '@/hooks/use-bulk-import-asset-hierarchy';
+import { useBulkImportAssetHierarchy, type ImportProgress } from '@/hooks/use-bulk-import-asset-hierarchy';
 
 interface AssetHierarchyBulkImportProps {
   open: boolean;
@@ -72,6 +73,113 @@ function LevelBadge({ level }: { level: string }) {
       <LevelIcon level={level} />
       {level}
     </Badge>
+  );
+}
+
+/**
+ * Progress Panel Component - Shows real-time import progress for each hierarchy level
+ */
+function ImportProgressPanel({ progress }: { progress: ImportProgress }) {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
+  
+  const levels = [
+    { 
+      key: 'categories' as const, 
+      icon: FolderTree, 
+      label: t('assetCategories.levels.categories', 'Categories'),
+      colorClass: 'text-primary',
+    },
+    { 
+      key: 'types' as const, 
+      icon: Tag, 
+      label: t('assetCategories.levels.types', 'Types'),
+      colorClass: 'text-blue-500',
+    },
+    { 
+      key: 'subtypes' as const, 
+      icon: Layers, 
+      label: t('assetCategories.levels.subtypes', 'Subtypes'),
+      colorClass: 'text-green-500',
+    },
+    { 
+      key: 'parts' as const, 
+      icon: Wrench, 
+      label: t('assetCategories.levels.parts', 'Parts'),
+      colorClass: 'text-orange-500',
+    },
+  ];
+  
+  const getPhaseIndex = (phase: ImportProgress['phase']): number => {
+    const phaseOrder = ['idle', 'categories', 'types', 'subtypes', 'parts', 'complete'];
+    return phaseOrder.indexOf(phase);
+  };
+  
+  const currentPhaseIndex = getPhaseIndex(progress.phase);
+  
+  return (
+    <div className="space-y-4 p-4 rounded-lg border bg-muted/30">
+      {/* Header */}
+      <div className="flex items-center gap-2 text-sm font-medium">
+        {progress.phase === 'complete' ? (
+          <>
+            <CheckCircle className="h-4 w-4 text-green-500" />
+            <span className="text-green-600">
+              {t('assetCategories.bulkImport.importComplete', 'Import Complete!')}
+            </span>
+          </>
+        ) : (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            <span>{t('assetCategories.bulkImport.importing', 'Importing...')}</span>
+          </>
+        )}
+      </div>
+      
+      {/* Progress for each level */}
+      <div className="space-y-3">
+        {levels.map(({ key, icon: Icon, label, colorClass }, index) => {
+          const data = progress[key];
+          const levelPhaseIndex = getPhaseIndex(key);
+          const isActive = progress.phase === key;
+          const isComplete = currentPhaseIndex > levelPhaseIndex && data.total > 0;
+          const isPending = currentPhaseIndex < levelPhaseIndex;
+          const percentage = data.total > 0 ? (data.current / data.total) * 100 : 0;
+          
+          return (
+            <div 
+              key={key} 
+              className={`space-y-1.5 transition-opacity ${isPending ? 'opacity-50' : 'opacity-100'}`}
+            >
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <Icon className={`h-4 w-4 ${colorClass}`} />
+                  <span className={isActive ? 'font-medium' : ''}>{label}</span>
+                  {isActive && (
+                    <span className="text-xs text-muted-foreground animate-pulse">
+                      {t('assetCategories.bulkImport.processing', 'Processing...')}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {isComplete && data.total > 0 && (
+                    <CheckCircle className="h-3.5 w-3.5 text-green-500" />
+                  )}
+                  <span className="font-mono text-xs tabular-nums">
+                    {data.current}/{data.total}
+                  </span>
+                </div>
+              </div>
+              <Progress 
+                value={percentage} 
+                className="h-1.5"
+                dir={isRTL ? 'rtl' : 'ltr'}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -193,8 +301,13 @@ export default function AssetHierarchyBulkImport({
             </div>
           </div>
 
-          {/* File Upload Zone */}
-          {!parseResult && (
+          {/* Progress Panel - shown during import */}
+          {bulkImport.isPending && (
+            <ImportProgressPanel progress={bulkImport.progress} />
+          )}
+
+          {/* File Upload Zone - hidden during import */}
+          {!parseResult && !bulkImport.isPending && (
             <div
               {...getRootProps()}
               className={`
@@ -222,15 +335,15 @@ export default function AssetHierarchyBulkImport({
           )}
 
           {/* Parse Error */}
-          {parseResult?.parseError && (
+          {parseResult?.parseError && !bulkImport.isPending && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{parseResult.parseError}</AlertDescription>
             </Alert>
           )}
 
-          {/* Parsed Results */}
-          {parseResult && !parseResult.parseError && (
+          {/* Parsed Results - hidden during import */}
+          {parseResult && !parseResult.parseError && !bulkImport.isPending && (
             <>
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-3">
