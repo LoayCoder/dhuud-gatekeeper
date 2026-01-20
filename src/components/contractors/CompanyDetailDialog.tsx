@@ -6,7 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Pencil, Building2, Mail, Phone, MapPin, FolderOpen, Info, Users, ShieldCheck, Calendar, Briefcase, User, Building, Star, Send, Loader2, Link2 } from "lucide-react";
+import { Pencil, Building2, Mail, Phone, MapPin, FolderOpen, Info, Users, ShieldCheck, Calendar, Briefcase, User, Building, Star, Send, Loader2, Link2, UserPlus } from "lucide-react";
+import { toast } from "sonner";
 import { ContractorCompany } from "@/hooks/contractor-management/use-contractor-companies";
 import { useContractorCompanyDetails } from "@/hooks/contractor-management/use-contractor-company-details";
 import { useContractorSafetyOfficers } from "@/hooks/contractor-management/use-contractor-safety-officers";
@@ -33,6 +34,7 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
   const { data: siteRepFromTable } = useContractorSiteRep(company?.id ?? null);
   const sendIdCard = useSendContractorIdCard();
   const [sendingPersonId, setSendingPersonId] = useState<string | null>(null);
+  const [sendingInvitation, setSendingInvitation] = useState(false);
 
   // Fetch contractor representatives for user linking
   const { data: representatives = [] } = useQuery({
@@ -141,6 +143,41 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
       });
     } finally {
       setSendingPersonId(null);
+    }
+  };
+
+  const handleSendPortalInvitation = async () => {
+    if (!company || company.status !== 'active') return;
+    
+    // Find the primary representative (site rep)
+    const primaryRep = representatives.find(r => r.is_primary);
+    if (!primaryRep) {
+      toast.error(t("contractors.invitation.noSiteRep", "No site representative found to invite"));
+      return;
+    }
+    
+    setSendingInvitation(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-contractor-invitation', {
+        body: {
+          company_id: company.id,
+          representative_id: primaryRep.id,
+          tenant_id: company.tenant_id,
+        },
+      });
+      
+      if (error) throw error;
+      
+      toast.success(
+        t("contractors.invitation.sent", "Portal invitation sent to {{email}}", { email: primaryRep.email })
+      );
+      
+      queryClient.invalidateQueries({ queryKey: ["contractor-representatives-for-linking"] });
+    } catch (error) {
+      console.error('Failed to send invitation:', error);
+      toast.error(t("contractors.invitation.failed", "Failed to send portal invitation"));
+    } finally {
+      setSendingInvitation(false);
     }
   };
 
@@ -351,6 +388,23 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
                 )}
               </CardContent>
             </Card>
+
+            {/* Send Portal Invitation Button - Only for active companies with site rep */}
+            {company.status === 'active' && siteRep && siteRep.email && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleSendPortalInvitation}
+                disabled={sendingInvitation}
+              >
+                {sendingInvitation ? (
+                  <Loader2 className="h-4 w-4 animate-spin me-2" />
+                ) : (
+                  <UserPlus className="h-4 w-4 me-2" />
+                )}
+                {t("contractors.invitation.sendButton", "Send Portal Invitation")}
+              </Button>
+            )}
 
             {/* Contractor Safety Officers */}
             <Card>
