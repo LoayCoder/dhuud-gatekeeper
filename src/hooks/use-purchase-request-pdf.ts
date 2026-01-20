@@ -1,0 +1,170 @@
+import { useState, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { generateBrandedPDFFromElement, preloadImageWithDimensions } from '@/lib/pdf-utils';
+import { fetchDocumentSettings } from '@/hooks/use-document-branding';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from 'react-i18next';
+
+export type PurchaseRequestPDFLanguage = 'en' | 'ar';
+
+interface GeneratePDFOptions {
+  primaryLanguage?: PurchaseRequestPDFLanguage;
+  showQR?: boolean;
+  includeApprovalHistory?: boolean;
+}
+
+export function usePurchaseRequestPDF(requestId: string | undefined) {
+  const { t } = useTranslation();
+  const { profile } = useAuth();
+  const { activeLogoUrl } = useTheme();
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  // Fetch purchase request details
+  const { data: request, isLoading: isLoadingRequest } = useQuery({
+    queryKey: ['purchase-request-pdf', requestId],
+    queryFn: async () => {
+      if (!requestId) return null;
+      
+      const { data, error } = await (supabase as any)
+        .from('asset_purchase_requests')
+        .select(`
+          *,
+          requester:profiles!asset_purchase_requests_requested_by_fkey(full_name, employee_id),
+          category:asset_categories(name, name_ar),
+          type:asset_types(name, name_ar)
+        `)
+        .eq('id', requestId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!requestId,
+  });
+
+  // Fetch approval history
+  const { data: approvals, isLoading: isLoadingApprovals } = useQuery({
+    queryKey: ['purchase-request-approvals', requestId],
+    queryFn: async () => {
+      if (!requestId) return [];
+      
+      const { data, error } = await (supabase as any)
+        .from('asset_purchase_approvals')
+        .select(`
+          id, approval_level, decision, notes, decided_at,
+          approver:profiles!asset_purchase_approvals_approver_id_fkey(full_name, employee_id)
+        `)
+        .eq('request_id', requestId)
+        .is('deleted_at', null)
+        .order('approval_level', { ascending: true });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!requestId,
+  });
+
+  const generatePDF = useCallback(async (options: GeneratePDFOptions = {}) => {
+    if (!request || !profile?.tenant_id) {
+      console.error('Missing request data or tenant');
+      return;
+    }
+
+    setIsGenerating(true);
+
+    try {
+      const { primaryLanguage = 'en', showQR = true, includeApprovalHistory = true } = options;
+      const isRTL = primaryLanguage === 'ar';
+
+      // Dynamically import the template
+      const { renderPurchaseRequestPDFTemplate } = await import(
+        '@/components/assets/PurchaseRequestPDFTemplate'
+      );
+
+      // Create temporary container
+      const container = document.createElement('div');
+      container.style.cssText = `
+        position: fixed;
+        left: -9999px;
+        top: 0;
+        width: 210mm;
+        background: white;
+        font-family: 'IBM Plex Sans Arabic', 'Segoe UI', Arial, sans-serif;
+      `;
+      document.body.appendChild(container);
+
+      // Render the template
+      container.innerHTML = renderPurchaseRequestPDFTemplate(request, {
+        primaryLanguage,
+        showQR,
+        includeApprovalHistory,
+        approvals: approvals || [],
+      });
+
+      // Fetch branding settings
+      const documentSettings = await fetchDocumentSettings(profile.tenant_id);
+
+      // Preload logo if available
+      let logoData: { base64: string; width: number; height: number } | null = null;
+      if (activeLogoUrl && documentSettings?.showLogo !== false) {
+        try {
+          logoData = await preloadImageWithDimensions(activeLogoUrl);
+        } catch (err) {
+          console.warn('Failed to load logo for PDF:', err);
+        }
+      }
+
+      // Determine watermark based on status
+      const showWatermark = documentSettings?.watermarkEnabled && 
+        (request.status === 'pending' || request.status === 'rejected' || request.status === 'cancelled');
+
+      // Generate PDF
+      await generateBrandedPDFFromElement(container, {
+        filename: `purchase-request-${request.request_number}.pdf`,
+        margin: 10,
+        quality: 2,
+        header: {
+          logoBase64: logoData?.base64,
+          logoWidth: logoData?.width,
+          logoHeight: logoData?.height,
+          logoPosition: documentSettings?.headerLogoPosition || 'left',
+          primaryText: documentSettings?.headerTextPrimary || t('purchaseRequest.pageTitle', 'Purchase Request'),
+          secondaryText: documentSettings?.headerTextSecondary,
+          bgColor: documentSettings?.headerBgColor || '#ffffff',
+          textColor: documentSettings?.headerTextColor || '#1f2937',
+        },
+        footer: {
+          text: documentSettings?.footerText || t('common.confidential', 'Confidential - Generated by Dhuud Gatekeeper'),
+          showPageNumbers: documentSettings?.showPageNumbers ?? true,
+          showDatePrinted: documentSettings?.showDatePrinted ?? true,
+          bgColor: documentSettings?.footerBgColor || '#f3f4f6',
+          textColor: documentSettings?.footerTextColor || '#6b7280',
+        },
+        watermark: showWatermark ? {
+          text: documentSettings?.watermarkText || request.status.toUpperCase(),
+          enabled: true,
+          opacity: documentSettings?.watermarkOpacity ?? 15,
+        } : undefined,
+        isRTL,
+      });
+
+      // Cleanup
+      document.body.removeChild(container);
+    } catch (error) {
+      console.error('Failed to generate PDF:', error);
+      throw error;
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [request, approvals, profile?.tenant_id, activeLogoUrl, t]);
+
+  return {
+    request,
+    approvals,
+    isLoading: isLoadingRequest || isLoadingApprovals,
+    isGenerating,
+    generatePDF,
+  };
+}

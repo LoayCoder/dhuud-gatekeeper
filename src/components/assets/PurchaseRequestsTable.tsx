@@ -4,13 +4,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Loader2, MoreHorizontal, Eye, CheckCircle, Pencil, Trash2 } from "lucide-react";
+import { Loader2, MoreHorizontal, Eye, CheckCircle, Pencil, Trash2, FileDown } from "lucide-react";
 import { usePurchaseRequests, useDeletePurchaseRequest, PurchaseRequest } from "@/hooks/use-asset-approval-workflows";
 import { format } from "date-fns";
 import { PurchaseApprovalDialog } from "./PurchaseApprovalDialog";
 import { AssetPurchaseRequestDialog } from "./AssetPurchaseRequestDialog";
+import { usePurchaseRequestPDF, PurchaseRequestPDFLanguage } from "@/hooks/use-purchase-request-pdf";
+import { toast } from "sonner";
 
 const STATUS_COLORS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   pending: "secondary",
@@ -31,6 +33,8 @@ export function PurchaseRequestsTable() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteRequestId, setDeleteRequestId] = useState<string | null>(null);
+  const [exportRequestId, setExportRequestId] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   const handleApprove = (requestId: string) => {
     setSelectedRequestId(requestId);
@@ -52,6 +56,103 @@ export function PurchaseRequestsTable() {
       await deleteRequest.mutateAsync(deleteRequestId);
       setDeleteDialogOpen(false);
       setDeleteRequestId(null);
+    }
+  };
+
+  const handleExportPDF = async (requestId: string, language: PurchaseRequestPDFLanguage) => {
+    setExportRequestId(requestId);
+    setIsExporting(true);
+    try {
+      // Dynamically import and use the hook's logic
+      const { renderPurchaseRequestPDFTemplate } = await import('@/components/assets/PurchaseRequestPDFTemplate');
+      const { generateBrandedPDFFromElement, preloadImageWithDimensions } = await import('@/lib/pdf-utils');
+      const { fetchDocumentSettings } = await import('@/hooks/use-document-branding');
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      // Fetch request data
+      const { data: request, error } = await (supabase as any)
+        .from('asset_purchase_requests')
+        .select(`
+          *,
+          requester:profiles!asset_purchase_requests_requested_by_fkey(full_name, employee_id),
+          category:asset_categories(name, name_ar),
+          type:asset_types(name, name_ar)
+        `)
+        .eq('id', requestId)
+        .single();
+      
+      if (error) throw error;
+
+      // Fetch approvals
+      const { data: approvals } = await (supabase as any)
+        .from('asset_purchase_approvals')
+        .select(`
+          id, approval_level, decision, notes, decided_at,
+          approver:profiles!asset_purchase_approvals_approver_id_fkey(full_name, employee_id)
+        `)
+        .eq('request_id', requestId)
+        .is('deleted_at', null)
+        .order('approval_level', { ascending: true });
+
+      const isRTL = language === 'ar';
+
+      // Create container
+      const container = document.createElement('div');
+      container.style.cssText = `
+        position: fixed;
+        left: -9999px;
+        top: 0;
+        width: 210mm;
+        background: white;
+        font-family: 'IBM Plex Sans Arabic', 'Segoe UI', Arial, sans-serif;
+      `;
+      document.body.appendChild(container);
+
+      // Render template
+      container.innerHTML = renderPurchaseRequestPDFTemplate(request, {
+        primaryLanguage: language,
+        showQR: true,
+        includeApprovalHistory: true,
+        approvals: approvals || [],
+      });
+
+      // Fetch branding
+      const documentSettings = await fetchDocumentSettings(request.tenant_id);
+
+      // Generate PDF
+      await generateBrandedPDFFromElement(container, {
+        filename: `purchase-request-${request.request_number}.pdf`,
+        margin: 10,
+        quality: 2,
+        header: {
+          primaryText: documentSettings?.headerTextPrimary || t('purchaseRequest.pageTitle', 'Purchase Request'),
+          secondaryText: documentSettings?.headerTextSecondary,
+          bgColor: documentSettings?.headerBgColor || '#ffffff',
+          textColor: documentSettings?.headerTextColor || '#1f2937',
+        },
+        footer: {
+          text: documentSettings?.footerText || t('common.confidential', 'Confidential'),
+          showPageNumbers: documentSettings?.showPageNumbers ?? true,
+          showDatePrinted: documentSettings?.showDatePrinted ?? true,
+          bgColor: documentSettings?.footerBgColor || '#f3f4f6',
+          textColor: documentSettings?.footerTextColor || '#6b7280',
+        },
+        watermark: documentSettings?.watermarkEnabled && request.status !== 'approved' ? {
+          text: documentSettings?.watermarkText || request.status.toUpperCase(),
+          enabled: true,
+          opacity: documentSettings?.watermarkOpacity ?? 15,
+        } : undefined,
+        isRTL,
+      });
+
+      document.body.removeChild(container);
+      toast.success(t("common.exportSuccess", "PDF exported successfully"));
+    } catch (error) {
+      console.error('PDF export failed:', error);
+      toast.error(t("common.exportError", "Failed to export PDF"));
+    } finally {
+      setIsExporting(false);
+      setExportRequestId(null);
     }
   };
 
@@ -155,6 +256,27 @@ export function PurchaseRequestsTable() {
                           {t("common.view", "View")}
                         </DropdownMenuItem>
                       )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger disabled={isExporting && exportRequestId === request.id}>
+                          {isExporting && exportRequestId === request.id ? (
+                            <Loader2 className="h-4 w-4 me-2 animate-spin" />
+                          ) : (
+                            <FileDown className="h-4 w-4 me-2" />
+                          )}
+                          {t("common.exportPDF", "Export PDF")}
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent>
+                          <DropdownMenuItem onClick={() => handleExportPDF(request.id, 'en')}>
+                            <span className="me-2">🇬🇧</span>
+                            English
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleExportPDF(request.id, 'ar')}>
+                            <span className="me-2">🇸🇦</span>
+                            العربية
+                          </DropdownMenuItem>
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
