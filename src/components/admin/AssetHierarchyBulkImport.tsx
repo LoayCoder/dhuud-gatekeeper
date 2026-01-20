@@ -121,28 +121,45 @@ function ImportProgressPanel({ progress }: { progress: ImportProgress }) {
   
   const currentPhaseIndex = getPhaseIndex(progress.phase);
   
+  // Calculate overall progress
+  const totalItems = progress.categories.total + progress.types.total + 
+                     progress.subtypes.total + progress.parts.total;
+  const completedItems = progress.categories.current + progress.types.current + 
+                         progress.subtypes.current + progress.parts.current;
+  const overallPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+  
   return (
     <div className="space-y-4 p-4 rounded-lg border bg-muted/30">
-      {/* Header */}
-      <div className="flex items-center gap-2 text-sm font-medium">
-        {progress.phase === 'complete' ? (
-          <>
-            <CheckCircle className="h-4 w-4 text-green-500" />
-            <span className="text-green-600">
-              {t('assetCategories.bulkImport.importComplete', 'Import Complete!')}
-            </span>
-          </>
-        ) : (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin text-primary" />
-            <span>{t('assetCategories.bulkImport.importing', 'Importing...')}</span>
-          </>
-        )}
+      {/* Header with overall percentage */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm font-medium">
+          {progress.phase === 'complete' ? (
+            <>
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span className="text-green-600">
+                {t('assetCategories.bulkImport.importComplete', 'Import Complete!')}
+              </span>
+            </>
+          ) : (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              <span>{t('assetCategories.bulkImport.importing', 'Importing...')}</span>
+            </>
+          )}
+        </div>
+        <span className="text-lg font-semibold tabular-nums">{overallPercentage}%</span>
       </div>
+      
+      {/* Overall progress bar */}
+      <Progress 
+        value={overallPercentage} 
+        className="h-2"
+        dir={isRTL ? 'rtl' : 'ltr'}
+      />
       
       {/* Progress for each level */}
       <div className="space-y-3">
-        {levels.map(({ key, icon: Icon, label, colorClass }, index) => {
+        {levels.map(({ key, icon: Icon, label, colorClass }) => {
           const data = progress[key];
           const levelPhaseIndex = getPhaseIndex(key);
           const isActive = progress.phase === key;
@@ -183,6 +200,15 @@ function ImportProgressPanel({ progress }: { progress: ImportProgress }) {
           );
         })}
       </div>
+      
+      {/* Completion summary */}
+      {progress.phase === 'complete' && (
+        <div className="mt-2 p-3 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
+          <p className="text-sm text-green-700 dark:text-green-300">
+            {t('assetCategories.bulkImport.successfullyImported', 'Successfully imported {{count}} items', { count: completedItems })}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -371,6 +397,9 @@ export default function AssetHierarchyBulkImport({
     const mode: ImportMode = updateMode ? 'update_or_insert' : 'insert_only';
     setCurrentStep('import');
     await bulkImport.mutateAsync({ parseResult, mode });
+    
+    // Wait 2 seconds to show completion state before closing
+    await new Promise(resolve => setTimeout(resolve, 2000));
     handleClose(false);
   };
 
@@ -426,8 +455,8 @@ export default function AssetHierarchyBulkImport({
             </div>
           </div>
 
-          {/* Progress Panel - shown during import */}
-          {bulkImport.isPending && (
+          {/* Progress Panel - shown during import step */}
+          {(currentStep === 'import' || bulkImport.isPending) && (
             <ImportProgressPanel progress={bulkImport.progress} />
           )}
 
