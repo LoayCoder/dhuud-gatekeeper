@@ -36,6 +36,26 @@ interface CodeIdMap {
   [code: string]: string;
 }
 
+interface NameIdMap {
+  [name: string]: string;
+}
+
+interface ParentMaps {
+  categoryCodeMap: CodeIdMap;
+  categoryNameMap: NameIdMap;
+  typeCodeMap: CodeIdMap;
+  typeNameMap: NameIdMap;
+  subtypeCodeMap: CodeIdMap;
+  subtypeNameMap: NameIdMap;
+}
+
+interface SkippedItem {
+  code: string;
+  name: string;
+  level: string;
+  reason: string;
+}
+
 interface ImportOptions {
   parseResult: ParseResult;
   mode: ImportMode;
@@ -43,6 +63,80 @@ interface ImportOptions {
 }
 
 type ProgressCallback = (phase: ImportProgress['phase'], current: number, total: number) => void;
+
+/**
+ * Pre-load existing categories, types, and subtypes from the database
+ * to allow parent lookups against pre-existing records
+ */
+async function loadExistingParentMaps(tenantId: string): Promise<ParentMaps> {
+  const [categoriesRes, typesRes, subtypesRes] = await Promise.all([
+    supabase
+      .from('asset_categories')
+      .select('id, code, name')
+      .eq('tenant_id', tenantId)
+      .is('deleted_at', null),
+    supabase
+      .from('asset_types')
+      .select('id, code, name')
+      .eq('tenant_id', tenantId)
+      .is('deleted_at', null),
+    supabase
+      .from('asset_subtypes')
+      .select('id, code, name')
+      .eq('tenant_id', tenantId)
+      .is('deleted_at', null),
+  ]);
+
+  const categoryCodeMap: CodeIdMap = {};
+  const categoryNameMap: NameIdMap = {};
+  const typeCodeMap: CodeIdMap = {};
+  const typeNameMap: NameIdMap = {};
+  const subtypeCodeMap: CodeIdMap = {};
+  const subtypeNameMap: NameIdMap = {};
+
+  categoriesRes.data?.forEach(c => {
+    categoryCodeMap[c.code.toLowerCase()] = c.id;
+    categoryNameMap[c.name.toLowerCase()] = c.id;
+  });
+
+  typesRes.data?.forEach(t => {
+    typeCodeMap[t.code.toLowerCase()] = t.id;
+    typeNameMap[t.name.toLowerCase()] = t.id;
+  });
+
+  subtypesRes.data?.forEach(s => {
+    subtypeCodeMap[s.code.toLowerCase()] = s.id;
+    subtypeNameMap[s.name.toLowerCase()] = s.id;
+  });
+
+  return {
+    categoryCodeMap,
+    categoryNameMap,
+    typeCodeMap,
+    typeNameMap,
+    subtypeCodeMap,
+    subtypeNameMap,
+  };
+}
+
+/**
+ * Find parent ID by code first, then fallback to name matching
+ */
+function findParentId(
+  parentCode: string,
+  codeMap: CodeIdMap,
+  nameMap: NameIdMap
+): string | null {
+  const normalized = parentCode.toLowerCase().trim();
+  
+  // First try exact code match
+  if (codeMap[normalized]) return codeMap[normalized];
+  
+  // Fallback: try matching by name
+  if (nameMap[normalized]) return nameMap[normalized];
+  
+  return null;
+}
 
 async function getTenantId(): Promise<string> {
   const { data: { user } } = await supabase.auth.getUser();
@@ -134,16 +228,19 @@ async function importCategories(
 async function importTypes(
   types: ParsedHierarchyRow[],
   tenantId: string,
-  categoryMap: CodeIdMap,
+  categoryCodeMap: CodeIdMap,
+  categoryNameMap: NameIdMap,
   mode: ImportMode,
+  skippedItems: SkippedItem[],
   onProgress?: ProgressCallback
-): Promise<{ created: number; updated: number; codeIdMap: CodeIdMap }> {
+): Promise<{ created: number; updated: number; codeIdMap: CodeIdMap; nameIdMap: NameIdMap }> {
   const validTypes = types.filter(t => t.isValid);
   const total = validTypes.length;
   
-  if (total === 0) return { created: 0, updated: 0, codeIdMap: {} };
+  if (total === 0) return { created: 0, updated: 0, codeIdMap: {}, nameIdMap: {} };
   
   const codeIdMap: CodeIdMap = {};
+  const nameIdMap: NameIdMap = {};
   let created = 0;
   let updated = 0;
   
@@ -151,9 +248,14 @@ async function importTypes(
     const type = validTypes[i];
     onProgress?.('types', i + 1, total);
     
-    const categoryId = categoryMap[type.parentCode.toLowerCase()];
+    const categoryId = findParentId(type.parentCode, categoryCodeMap, categoryNameMap);
     if (!categoryId) {
-      console.warn(`Parent category not found for type: ${type.code}`);
+      skippedItems.push({
+        code: type.code,
+        name: type.nameEn,
+        level: 'Type',
+        reason: `Parent category "${type.parentCode}" not found`,
+      });
       continue;
     }
     
@@ -169,6 +271,7 @@ async function importTypes(
     
     if (existing) {
       codeIdMap[type.code.toLowerCase()] = existing.id;
+      nameIdMap[type.nameEn.toLowerCase()] = existing.id;
       
       if (mode === 'update_or_insert') {
         const { error } = await supabase
@@ -200,29 +303,39 @@ async function importTypes(
     
     if (error) {
       console.error('Failed to insert type:', error);
+      skippedItems.push({
+        code: type.code,
+        name: type.nameEn,
+        level: 'Type',
+        reason: `Database error: ${error.message}`,
+      });
       continue;
     }
     
     codeIdMap[type.code.toLowerCase()] = inserted.id;
+    nameIdMap[type.nameEn.toLowerCase()] = inserted.id;
     created++;
   }
   
-  return { created, updated, codeIdMap };
+  return { created, updated, codeIdMap, nameIdMap };
 }
 
 async function importSubtypes(
   subtypes: ParsedHierarchyRow[],
   tenantId: string,
-  typeMap: CodeIdMap,
+  typeCodeMap: CodeIdMap,
+  typeNameMap: NameIdMap,
   mode: ImportMode,
+  skippedItems: SkippedItem[],
   onProgress?: ProgressCallback
-): Promise<{ created: number; updated: number; codeIdMap: CodeIdMap }> {
+): Promise<{ created: number; updated: number; codeIdMap: CodeIdMap; nameIdMap: NameIdMap }> {
   const validSubtypes = subtypes.filter(s => s.isValid);
   const total = validSubtypes.length;
   
-  if (total === 0) return { created: 0, updated: 0, codeIdMap: {} };
+  if (total === 0) return { created: 0, updated: 0, codeIdMap: {}, nameIdMap: {} };
   
   const codeIdMap: CodeIdMap = {};
+  const nameIdMap: NameIdMap = {};
   let created = 0;
   let updated = 0;
   
@@ -230,9 +343,14 @@ async function importSubtypes(
     const subtype = validSubtypes[i];
     onProgress?.('subtypes', i + 1, total);
     
-    const typeId = typeMap[subtype.parentCode.toLowerCase()];
+    const typeId = findParentId(subtype.parentCode, typeCodeMap, typeNameMap);
     if (!typeId) {
-      console.warn(`Parent type not found for subtype: ${subtype.code}`);
+      skippedItems.push({
+        code: subtype.code,
+        name: subtype.nameEn,
+        level: 'Subtype',
+        reason: `Parent type "${subtype.parentCode}" not found`,
+      });
       continue;
     }
     
@@ -248,6 +366,7 @@ async function importSubtypes(
     
     if (existing) {
       codeIdMap[subtype.code.toLowerCase()] = existing.id;
+      nameIdMap[subtype.nameEn.toLowerCase()] = existing.id;
       
       if (mode === 'update_or_insert') {
         const { error } = await supabase
@@ -279,22 +398,32 @@ async function importSubtypes(
     
     if (error) {
       console.error('Failed to insert subtype:', error);
+      skippedItems.push({
+        code: subtype.code,
+        name: subtype.nameEn,
+        level: 'Subtype',
+        reason: `Database error: ${error.message}`,
+      });
       continue;
     }
     
     codeIdMap[subtype.code.toLowerCase()] = inserted.id;
+    nameIdMap[subtype.nameEn.toLowerCase()] = inserted.id;
     created++;
   }
   
-  return { created, updated, codeIdMap };
+  return { created, updated, codeIdMap, nameIdMap };
 }
 
 async function importParts(
   parts: ParsedHierarchyRow[],
   tenantId: string,
-  typeMap: CodeIdMap,
-  subtypeMap: CodeIdMap,
+  typeCodeMap: CodeIdMap,
+  typeNameMap: NameIdMap,
+  subtypeCodeMap: CodeIdMap,
+  subtypeNameMap: NameIdMap,
   mode: ImportMode,
+  skippedItems: SkippedItem[],
   onProgress?: ProgressCallback
 ): Promise<{ created: number; updated: number }> {
   const validParts = parts.filter(p => p.isValid);
@@ -309,12 +438,17 @@ async function importParts(
     const part = validParts[i];
     onProgress?.('parts', i + 1, total);
     
-    const parentCode = part.parentCode.toLowerCase();
-    const subtypeId = subtypeMap[parentCode];
-    const typeId = typeMap[parentCode];
+    // Try to find parent - first check subtypes, then types
+    const subtypeId = findParentId(part.parentCode, subtypeCodeMap, subtypeNameMap);
+    const typeId = findParentId(part.parentCode, typeCodeMap, typeNameMap);
     
     if (!subtypeId && !typeId) {
-      console.warn(`Parent not found for part: ${part.code || part.nameEn}`);
+      skippedItems.push({
+        code: part.code || '',
+        name: part.nameEn,
+        level: 'Part',
+        reason: `Parent "${part.parentCode}" not found (expected Type or Subtype)`,
+      });
       continue;
     }
     
@@ -400,6 +534,12 @@ async function importParts(
     
     if (error) {
       console.error('Failed to insert part:', error);
+      skippedItems.push({
+        code: part.code || '',
+        name: part.nameEn,
+        level: 'Part',
+        reason: `Database error: ${error.message}`,
+      });
       continue;
     }
     
@@ -494,6 +634,10 @@ async function performBulkImportWithProgress(
   try {
     const tenantId = await getTenantId();
     
+    // Pre-load existing parent maps from database for parent lookups
+    const existingMaps = await loadExistingParentMaps(tenantId);
+    const skippedItems: SkippedItem[] = [];
+    
     // Initialize progress
     onProgress({
       phase: 'categories',
@@ -503,18 +647,33 @@ async function performBulkImportWithProgress(
       parts: { current: 0, total: totals.parts },
     });
     
-    // Import in order: Categories → Types → Subtypes → Parts
-    const { created: categoriesCreated, updated: categoriesUpdated, codeIdMap: categoryMap } = 
+    // Import Categories
+    const { created: categoriesCreated, updated: categoriesUpdated, codeIdMap: newCatCodeMap } = 
       await importCategories(parseResult.categories, tenantId, mode, progressCallback);
     
-    const { created: typesCreated, updated: typesUpdated, codeIdMap: typeMap } = 
-      await importTypes(parseResult.types, tenantId, categoryMap, mode, progressCallback);
+    // Merge existing + new category maps
+    const categoryCodeMap = { ...existingMaps.categoryCodeMap, ...newCatCodeMap };
+    const categoryNameMap = { ...existingMaps.categoryNameMap };
     
-    const { created: subtypesCreated, updated: subtypesUpdated, codeIdMap: subtypeMap } = 
-      await importSubtypes(parseResult.subtypes, tenantId, typeMap, mode, progressCallback);
+    // Import Types
+    const { created: typesCreated, updated: typesUpdated, codeIdMap: newTypeCodeMap, nameIdMap: newTypeNameMap } = 
+      await importTypes(parseResult.types, tenantId, categoryCodeMap, categoryNameMap, mode, skippedItems, progressCallback);
     
+    // Merge existing + new type maps
+    const typeCodeMap = { ...existingMaps.typeCodeMap, ...newTypeCodeMap };
+    const typeNameMap = { ...existingMaps.typeNameMap, ...newTypeNameMap };
+    
+    // Import Subtypes
+    const { created: subtypesCreated, updated: subtypesUpdated, codeIdMap: newSubtypeCodeMap, nameIdMap: newSubtypeNameMap } = 
+      await importSubtypes(parseResult.subtypes, tenantId, typeCodeMap, typeNameMap, mode, skippedItems, progressCallback);
+    
+    // Merge existing + new subtype maps
+    const subtypeCodeMap = { ...existingMaps.subtypeCodeMap, ...newSubtypeCodeMap };
+    const subtypeNameMap = { ...existingMaps.subtypeNameMap, ...newSubtypeNameMap };
+    
+    // Import Parts
     const { created: partsCreated, updated: partsUpdated } = 
-      await importParts(parseResult.parts, tenantId, typeMap, subtypeMap, mode, progressCallback);
+      await importParts(parseResult.parts, tenantId, typeCodeMap, typeNameMap, subtypeCodeMap, subtypeNameMap, mode, skippedItems, progressCallback);
     
     // Mark as complete
     onProgress({
@@ -527,8 +686,7 @@ async function performBulkImportWithProgress(
     
     const totalCreated = categoriesCreated + typesCreated + subtypesCreated + partsCreated;
     const totalUpdated = categoriesUpdated + typesUpdated + subtypesUpdated + partsUpdated;
-    const processed = totalCreated + totalUpdated;
-    const skippedCount = parseResult.validCount - processed;
+    const skippedCount = skippedItems.length;
     
     const result: ImportResult = {
       success: true,
