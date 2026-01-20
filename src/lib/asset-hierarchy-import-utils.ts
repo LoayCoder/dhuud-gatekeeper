@@ -518,7 +518,7 @@ export async function exportAssetHierarchy(): Promise<boolean> {
 
       // Add types for this category
       const catTypes = types.filter(t => t.category_id === cat.id);
-      catTypes.forEach(type => {
+      catTypes.forEach((type, typeIdx) => {
         exportData.push({
           'Level': 'Type',
           'Code': type.code,
@@ -529,7 +529,7 @@ export async function exportAssetHierarchy(): Promise<boolean> {
           'Parent Code': cat.code,
           'Is Critical': '',
           'Response Type': '',
-          'Sort Order': type.sort_order || 1,
+          'Sort Order': typeIdx + 1,
         });
 
         // Add parts directly under type (no subtype)
@@ -551,7 +551,7 @@ export async function exportAssetHierarchy(): Promise<boolean> {
 
         // Add subtypes for this type
         const typeSubtypes = subtypes.filter(s => s.type_id === type.id);
-        typeSubtypes.forEach(subtype => {
+        typeSubtypes.forEach((subtype, subtypeIdx) => {
           exportData.push({
             'Level': 'Subtype',
             'Code': subtype.code,
@@ -562,7 +562,7 @@ export async function exportAssetHierarchy(): Promise<boolean> {
             'Parent Code': type.code,
             'Is Critical': '',
             'Response Type': '',
-            'Sort Order': subtype.sort_order || 1,
+            'Sort Order': subtypeIdx + 1,
           });
 
           // Add parts for this subtype
