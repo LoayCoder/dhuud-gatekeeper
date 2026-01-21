@@ -116,7 +116,7 @@ function getDefaultSettings(cardType: IDCardType): Partial<TenantIDCardSettings>
     back_enabled: false,
     back_bg_color: '#f3f4f6',
     back_fields: ['emergency_contact', 'safety_instructions'],
-    card_orientation: 'landscape',
+    card_orientation: 'portrait',
     show_logo: true,
     logo_position: 'top-left',
     show_tenant_name: true,

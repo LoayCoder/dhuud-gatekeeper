@@ -35,11 +35,11 @@ export function IDCardTemplate({
   className = '',
   scale = 1,
 }: IDCardTemplateProps) {
-  const isRTL = language === 'ar';
-  const isLandscape = settings.card_orientation === 'landscape';
+  const isPortrait = settings.card_orientation === 'portrait';
   
-  const width = isLandscape ? CARD_WIDTH_PX : CARD_HEIGHT_PX;
-  const height = isLandscape ? CARD_HEIGHT_PX : CARD_WIDTH_PX;
+  // Portrait: swap width/height
+  const width = isPortrait ? CARD_HEIGHT_PX : CARD_WIDTH_PX;
+  const height = isPortrait ? CARD_WIDTH_PX : CARD_HEIGHT_PX;
 
   if (side === 'front') {
     return (
@@ -53,6 +53,7 @@ export function IDCardTemplate({
         height={height}
         scale={scale}
         className={className}
+        isPortrait={isPortrait}
       />
     );
   }
@@ -67,6 +68,7 @@ export function IDCardTemplate({
       height={height}
       scale={scale}
       className={className}
+      isPortrait={isPortrait}
     />
   );
 }
@@ -80,6 +82,7 @@ interface CardSideProps {
   height: number;
   scale: number;
   className?: string;
+  isPortrait: boolean;
 }
 
 interface FrontCardProps extends CardSideProps {
@@ -96,6 +99,7 @@ function IDCardFront({
   height,
   scale,
   className,
+  isPortrait,
 }: FrontCardProps) {
   const isRTL = language === 'ar';
   const cardTypeLabel = CARD_TYPE_LABELS[cardType][language];
@@ -137,6 +141,330 @@ function IDCardFront({
     }
   };
 
+  if (isPortrait) {
+    return (
+      <PortraitFrontLayout
+        cardType={cardType}
+        cardTypeLabel={cardTypeLabel}
+        personData={personData}
+        tenantData={tenantData}
+        settings={settings}
+        language={language}
+        width={width}
+        height={height}
+        scale={scale}
+        className={className}
+        isRTL={isRTL}
+        getFieldValue={getFieldValue}
+      />
+    );
+  }
+
+  return (
+    <LandscapeFrontLayout
+      cardType={cardType}
+      cardTypeLabel={cardTypeLabel}
+      personData={personData}
+      tenantData={tenantData}
+      settings={settings}
+      language={language}
+      width={width}
+      height={height}
+      scale={scale}
+      className={className}
+      isRTL={isRTL}
+      getFieldValue={getFieldValue}
+    />
+  );
+}
+
+interface LayoutProps {
+  cardType: IDCardType;
+  cardTypeLabel: string;
+  personData: IDCardPersonData;
+  tenantData: IDCardTenantData;
+  settings: TenantIDCardSettings;
+  language: 'en' | 'ar';
+  width: number;
+  height: number;
+  scale: number;
+  className?: string;
+  isRTL: boolean;
+  getFieldValue: (field: FrontFieldKey) => string;
+}
+
+function PortraitFrontLayout({
+  cardType,
+  cardTypeLabel,
+  personData,
+  tenantData,
+  settings,
+  language,
+  width,
+  height,
+  scale,
+  className,
+  isRTL,
+  getFieldValue,
+}: LayoutProps) {
+  const photoSize = Math.round(width * 0.45);
+  const qrSize = Math.round(width * 0.35);
+
+  return (
+    <div
+      className={`id-card-front ${className}`}
+      style={{
+        width: width * scale,
+        height: height * scale,
+        backgroundColor: settings.front_bg_color,
+        borderRadius: 8 * scale,
+        overflow: 'hidden',
+        fontFamily: "'IBM Plex Sans Arabic', 'Inter', sans-serif",
+        direction: isRTL ? 'rtl' : 'ltr',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+      }}
+    >
+      {/* Header with accent color */}
+      <div
+        style={{
+          backgroundColor: settings.front_accent_color,
+          padding: `${6 * scale}px ${8 * scale}px`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 6 * scale,
+        }}
+      >
+        {/* Logo */}
+        {settings.show_logo && tenantData.logoUrl && (
+          <img
+            src={tenantData.logoUrl}
+            alt="Logo"
+            style={{
+              height: 20 * scale,
+              width: 'auto',
+              objectFit: 'contain',
+            }}
+          />
+        )}
+        
+        {/* Tenant Name */}
+        {settings.show_tenant_name && (
+          <div
+            style={{
+              color: '#FFFFFF',
+              fontSize: 8 * scale,
+              fontWeight: 600,
+              flex: 1,
+              textAlign: 'center',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {isRTL ? (tenantData.nameAr || tenantData.name) : tenantData.name}
+          </div>
+        )}
+        
+        {/* Card Type Badge */}
+        <div
+          style={{
+            backgroundColor: 'rgba(255,255,255,0.2)',
+            color: '#FFFFFF',
+            padding: `${2 * scale}px ${6 * scale}px`,
+            borderRadius: 4 * scale,
+            fontSize: 6 * scale,
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {cardTypeLabel}
+        </div>
+      </div>
+
+      {/* Photo Section - Centered */}
+      {settings.show_photo && (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            padding: `${10 * scale}px 0 ${6 * scale}px`,
+          }}
+        >
+          <div
+            style={{
+              width: photoSize * scale,
+              height: photoSize * scale,
+              borderRadius: 6 * scale,
+              overflow: 'hidden',
+              backgroundColor: '#f3f4f6',
+              border: `2px solid ${settings.front_accent_color}`,
+            }}
+          >
+            {personData.photo ? (
+              <img
+                src={personData.photo}
+                alt="Photo"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: settings.front_accent_color,
+                  color: '#FFFFFF',
+                  fontSize: 32 * scale,
+                  fontWeight: 700,
+                }}
+              >
+                {personData.fullName.charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Name - Centered, Prominent */}
+      <div
+        style={{
+          textAlign: 'center',
+          padding: `0 ${10 * scale}px`,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 12 * scale,
+            fontWeight: 700,
+            color: settings.front_text_color,
+            lineHeight: 1.3,
+          }}
+        >
+          {isRTL ? (personData.fullNameAr || personData.fullName) : personData.fullName}
+        </div>
+        {/* Show secondary name if bilingual */}
+        {!isRTL && personData.fullNameAr && (
+          <div
+            style={{
+              fontSize: 10 * scale,
+              fontWeight: 500,
+              color: settings.front_text_color,
+              opacity: 0.8,
+              marginTop: 2 * scale,
+            }}
+          >
+            {personData.fullNameAr}
+          </div>
+        )}
+      </div>
+
+      {/* Fields Section - Vertical Stack */}
+      <div
+        style={{
+          flex: 1,
+          padding: `${8 * scale}px ${12 * scale}px`,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 4 * scale,
+        }}
+      >
+        {settings.front_fields
+          .filter(f => f !== 'full_name' && f !== 'full_name_ar')
+          .map((field) => {
+            const value = getFieldValue(field);
+            if (!value) return null;
+            
+            return (
+              <div
+                key={field}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  fontSize: 7 * scale,
+                  color: settings.front_text_color,
+                  gap: 4 * scale,
+                  borderBottom: `1px solid ${settings.front_accent_color}15`,
+                  paddingBottom: 3 * scale,
+                }}
+              >
+                <span style={{ opacity: 0.7 }}>
+                  {FIELD_LABELS[field][language]}
+                </span>
+                <span style={{ fontWeight: 600, textAlign: isRTL ? 'left' : 'right' }}>
+                  {value}
+                </span>
+              </div>
+            );
+          })}
+      </div>
+
+      {/* QR Code Section - Bottom Center */}
+      {settings.show_qr_code && (
+        <div
+          style={{
+            padding: `${6 * scale}px`,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 2 * scale,
+            borderTop: `1px solid ${settings.front_accent_color}20`,
+            backgroundColor: `${settings.front_accent_color}08`,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#FFFFFF',
+              padding: 4 * scale,
+              borderRadius: 4 * scale,
+              border: `1px solid ${settings.front_accent_color}`,
+            }}
+          >
+            <QRCodeSVG
+              value={personData.qrUrl || personData.qrToken}
+              size={qrSize * scale}
+              level="H"
+            />
+          </div>
+          <div
+            style={{
+              fontSize: 5 * scale,
+              color: settings.front_text_color,
+              opacity: 0.6,
+            }}
+          >
+            {isRTL ? 'امسح للتحقق' : 'Scan to verify'}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LandscapeFrontLayout({
+  cardType,
+  cardTypeLabel,
+  personData,
+  tenantData,
+  settings,
+  language,
+  width,
+  height,
+  scale,
+  className,
+  isRTL,
+  getFieldValue,
+}: LayoutProps) {
   const qrSize = Math.round(height * 0.55);
   const photoSize = Math.round(height * 0.45);
 
@@ -388,6 +716,7 @@ function IDCardBack({
   height,
   scale,
   className,
+  isPortrait,
 }: CardSideProps) {
   const isRTL = language === 'ar';
 
@@ -433,7 +762,7 @@ function IDCardBack({
         flexDirection: 'column',
         position: 'relative',
         boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-        padding: 10 * scale,
+        padding: isPortrait ? `${12 * scale}px ${10 * scale}px` : 10 * scale,
       }}
     >
       {/* Back content fields */}
@@ -442,7 +771,7 @@ function IDCardBack({
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          gap: 6 * scale,
+          gap: isPortrait ? 10 * scale : 6 * scale,
         }}
       >
         {settings.back_fields.map((field) => {
@@ -453,20 +782,21 @@ function IDCardBack({
             <div
               key={field}
               style={{
-                fontSize: 7 * scale,
+                fontSize: isPortrait ? 8 * scale : 7 * scale,
                 color: settings.front_text_color,
               }}
             >
               <div
                 style={{
                   fontWeight: 600,
-                  marginBottom: 2 * scale,
+                  marginBottom: 3 * scale,
                   color: settings.front_accent_color,
+                  fontSize: isPortrait ? 7 * scale : 6 * scale,
                 }}
               >
                 {FIELD_LABELS[field][language]}
               </div>
-              <div style={{ opacity: 0.9, lineHeight: 1.3 }}>{value}</div>
+              <div style={{ opacity: 0.9, lineHeight: 1.4 }}>{value}</div>
             </div>
           );
         })}
