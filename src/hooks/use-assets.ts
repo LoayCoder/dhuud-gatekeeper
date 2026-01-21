@@ -217,13 +217,14 @@ export async function getNextAssetSequence(tenantId: string, categoryCode: strin
   // Clean category code (remove TEST- prefix if present)
   const cleanCode = categoryCode.replace(/^TEST-/i, '');
   
-  // Query ALL asset codes for this category to handle both patterns
+  // CRITICAL: Query ALL asset codes including soft-deleted records
+  // because the UNIQUE constraint applies to ALL records regardless of deleted_at
   const { data, error } = await supabase
     .from('hsse_assets')
     .select('asset_code')
     .eq('tenant_id', tenantId)
     .ilike('asset_code', `${cleanCode}-%`)
-    .is('deleted_at', null)
+    // REMOVED: .is('deleted_at', null) - must check ALL records for unique constraint
     .order('asset_code', { ascending: false })
     .limit(200);
   
@@ -296,18 +297,19 @@ export function useCreateAsset() {
             }
           }
 
-          // Check for duplicate before insert
+          // CRITICAL: Check for duplicate including soft-deleted records
+          // because the UNIQUE constraint applies to ALL records
           const { data: existing } = await supabase
             .from('hsse_assets')
-            .select('id')
+            .select('id, deleted_at')
             .eq('tenant_id', profile.tenant_id)
             .eq('asset_code', currentAsset.asset_code)
-            .is('deleted_at', null)
+            // REMOVED: .is('deleted_at', null) - must check ALL records
             .maybeSingle();
 
           if (existing) {
+            console.log(`Code ${currentAsset.asset_code} exists (deleted: ${!!existing.deleted_at}), regenerating...`);
             if (attempt < MAX_CREATE_RETRIES) {
-              console.log(`Attempt ${attempt}: Code ${currentAsset.asset_code} exists, retrying...`);
               continue; // Retry with new code
             }
             throw new Error(t('assets.duplicateCodeError', { 
@@ -584,17 +586,20 @@ export function useCreateBulkAssets() {
       const { baseAsset, quantity, startCode } = params;
       const codes = generateSequentialCodes(startCode, quantity);
       
-      // Check for existing codes to avoid duplicates
+      // CRITICAL: Check ALL records including soft-deleted
+      // because the UNIQUE constraint applies to ALL records
       const { data: existingAssets } = await supabase
         .from('hsse_assets')
-        .select('asset_code')
+        .select('asset_code, deleted_at')
         .eq('tenant_id', profile.tenant_id)
-        .in('asset_code', codes)
-        .is('deleted_at', null);
+        .in('asset_code', codes);
+        // REMOVED: .is('deleted_at', null) - must check ALL records
       
       if (existingAssets && existingAssets.length > 0) {
-        const duplicates = existingAssets.map(a => a.asset_code).join(', ');
-        throw new Error(`Asset codes already exist: ${duplicates}`);
+        const duplicates = existingAssets.map(a => 
+          `${a.asset_code}${a.deleted_at ? ' (deleted)' : ''}`
+        ).join(', ');
+        throw new Error(`Asset codes already exist: ${duplicates}. Please use a different starting code.`);
       }
       
       // Create assets array
