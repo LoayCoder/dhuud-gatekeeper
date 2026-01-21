@@ -7,9 +7,11 @@ import { HeaderControls } from '@/components/home/HeaderControls';
 export default function Home() {
   const { activeLogoUrl, tenantName } = useTheme();
 
+  // Version 2.0 - Forced Vertical Layout
   return (
     <div 
       className="flex flex-col bg-background"
+      data-version="2.0"
       style={{
         minHeight: 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))',
         paddingTop: 'env(safe-area-inset-top)',
@@ -20,7 +22,7 @@ export default function Home() {
       <main className="flex-1 container max-w-4xl mx-auto px-4 py-4 flex flex-col gap-4 min-h-0">
 
         {/* Top Header Section: Logo + Info Stack */}
-        <div className="flex flex-col gap-1 w-full">
+        <div className="flex flex-col gap-0.5 w-full">
           {/* 1. App Logo - Aligned to top, start (left) */}
           <div className="shrink-0 flex items-center justify-start h-12">
             {activeLogoUrl && (
@@ -35,8 +37,8 @@ export default function Home() {
             )}
           </div>
 
-          {/* 2. Info Stack - Directly under logo, very small gap */}
-          <div className="flex flex-col items-start gap-1">
+          {/* 2. Info Stack - Directly under logo, very small gap (gap-0.5 = 2px) */}
+          <div className="flex flex-col items-start gap-0.5">
             {/* Welcome Message & Date/Time - Force start alignment */}
             <WelcomeCompact className="text-start" />
 
