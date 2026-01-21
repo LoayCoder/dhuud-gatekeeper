@@ -17,7 +17,7 @@ import { Slider } from '@/components/ui/slider';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ModuleGate, HSSERoute } from '@/components';
-import { useAsset, useAssetCategories, useAssetTypes, useAssetSubtypes, useCreateAsset, useUpdateAsset, useCreateBulkAssets, generateAssetCode, generateSequentialCodes } from '@/hooks/use-assets';
+import { useAsset, useAssetCategories, useAssetTypes, useAssetSubtypes, useCreateAsset, useUpdateAsset, useCreateBulkAssets, generateAssetCode, generateSequentialCodes, getNextAssetSequence } from '@/hooks/use-assets';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -211,16 +211,28 @@ function AssetRegisterContent() {
     }
   }, [existingAsset, form]);
 
-  // Auto-generate asset code when category changes
+  // Auto-generate asset code when category changes - use sequential numbering
   useEffect(() => {
-    if (selectedCategoryId && !editId) {
-      const category = categories?.find(c => c.id === selectedCategoryId);
-      if (category) {
-        const code = generateAssetCode(category.code, Math.floor(Math.random() * 9999) + 1);
-        form.setValue('asset_code', code);
+    const generateCode = async () => {
+      if (selectedCategoryId && !editId && profile?.tenant_id) {
+        const category = categories?.find(c => c.id === selectedCategoryId);
+        if (category) {
+          try {
+            const nextSeq = await getNextAssetSequence(profile.tenant_id, category.code);
+            const code = generateAssetCode(category.code, nextSeq);
+            form.setValue('asset_code', code);
+          } catch (error) {
+            console.error('Failed to generate asset code:', error);
+            // Fallback to timestamp-based unique code
+            const fallbackSeq = Date.now() % 10000;
+            const code = generateAssetCode(category.code, fallbackSeq);
+            form.setValue('asset_code', code);
+          }
+        }
       }
-    }
-  }, [selectedCategoryId, categories, form, editId]);
+    };
+    generateCode();
+  }, [selectedCategoryId, categories, form, editId, profile?.tenant_id]);
 
   const onSubmit = async (values: AssetFormValues) => {
     try {
