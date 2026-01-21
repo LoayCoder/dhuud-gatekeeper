@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
@@ -8,22 +8,25 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, Package, Maximize2, X, Filter } from 'lucide-react';
+import { MapPin, Package, Maximize2, X, Filter, AlertTriangle } from 'lucide-react';
 import { useAssetsWithGPS } from '@/hooks/use-asset-location';
 import { cn } from '@/lib/utils';
 import { MapStyleSwitcher } from '@/components/maps/MapStyleSwitcher';
 import { useMapStyle } from '@/hooks/use-map-style';
 
-const STATUS_COLORS: Record<string, string> = {
-  active: '#22c55e',
-  inactive: '#6b7280',
-  under_maintenance: '#eab308',
-  out_of_service: '#ef4444',
-  disposed: '#9ca3af',
+// Full status colors with all possible asset statuses
+const STATUS_COLORS: Record<string, { color: string; label: string }> = {
+  active: { color: '#22c55e', label: 'active' },
+  inactive: { color: '#6b7280', label: 'inactive' },
+  under_maintenance: { color: '#eab308', label: 'under_maintenance' },
+  out_of_service: { color: '#ef4444', label: 'out_of_service' },
+  disposed: { color: '#9ca3af', label: 'disposed' },
+  pending_disposal: { color: '#f97316', label: 'pending_disposal' },
 };
 
 function createAssetMarkerIcon(status: string) {
-  const color = STATUS_COLORS[status] || STATUS_COLORS.active;
+  const statusConfig = STATUS_COLORS[status] || STATUS_COLORS.active;
+  const color = statusConfig.color;
   
   return L.divIcon({
     className: 'custom-asset-marker',
@@ -79,10 +82,20 @@ export function AssetLocationMap({
   const [localStatusFilter, setLocalStatusFilter] = useState(statusFilter || 'all');
   const { mapStyle, setMapStyle, tileLayerConfig } = useMapStyle('asset-map-style');
 
-  const { data: assets, isLoading } = useAssetsWithGPS({
+  const { data: assets, isLoading, error, refetch } = useAssetsWithGPS({
     siteId: localSiteFilter !== 'all' ? localSiteFilter : undefined,
     status: localStatusFilter !== 'all' ? localStatusFilter : undefined,
   });
+
+  // Setup global navigation handlers for popup buttons
+  useEffect(() => {
+    (window as any).navigateToAsset = (id: string) => navigate(`/assets/${id}`);
+    (window as any).navigateToEditAsset = (id: string) => navigate(`/assets/register?edit=${id}`);
+    return () => {
+      delete (window as any).navigateToAsset;
+      delete (window as any).navigateToEditAsset;
+    };
+  }, [navigate]);
 
   // Initialize map
   useEffect(() => {
@@ -126,33 +139,96 @@ export function AssetLocationMap({
         icon: createAssetMarkerIcon(asset.status || 'active'),
       });
 
-      marker.bindPopup(`
-        <div style="min-width: 180px; direction: ${direction};">
-          <h4 style="font-weight: 600; margin: 0 0 4px 0;">${asset.name}</h4>
-          <p style="font-size: 12px; color: #6b7280; margin: 0 0 8px 0;">${asset.asset_code}</p>
-          <p style="font-size: 12px; margin: 0 0 4px 0;">
-            <strong>${t('assets.site')}:</strong> ${asset.site?.name || '-'}
-          </p>
-          <p style="font-size: 12px; margin: 0 0 8px 0;">
-            <strong>${t('assets.status.label')}:</strong> ${t(`assets.status.${asset.status || 'active'}`)}
-          </p>
-          <button 
-            onclick="window.location.href='/assets/${asset.id}'"
-            style="
-              background: hsl(var(--primary));
-              color: white;
-              border: none;
-              padding: 6px 12px;
-              border-radius: 4px;
-              cursor: pointer;
-              font-size: 12px;
-              width: 100%;
-            "
-          >
-            ${t('common.viewDetails')}
-          </button>
+      const statusConfig = STATUS_COLORS[asset.status || 'active'] || STATUS_COLORS.active;
+      const categoryName = i18n.language === 'ar' && asset.category?.name_ar 
+        ? asset.category.name_ar 
+        : asset.category?.name || '-';
+
+      // Rich popup content with all asset info
+      const popupContent = `
+        <div class="asset-popup" style="min-width: 240px; direction: ${direction}; font-family: var(--font-rubik), sans-serif;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span style="
+              background: ${statusConfig.color};
+              width: 10px;
+              height: 10px;
+              border-radius: 50%;
+              display: inline-block;
+              flex-shrink: 0;
+            "></span>
+            <h4 style="font-weight: 600; margin: 0; font-size: 14px; line-height: 1.3;">${asset.name}</h4>
+          </div>
+          <p style="font-size: 11px; color: #6b7280; margin: 0 0 12px 0; font-family: monospace;">${asset.asset_code}</p>
+          
+          <div style="display: grid; gap: 6px; font-size: 12px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #6b7280;">${t('assets.fields.category')}:</span>
+              <span style="font-weight: 500;">${categoryName}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #6b7280;">${t('assets.fields.status')}:</span>
+              <span style="font-weight: 500; color: ${statusConfig.color};">${t(`assets.status.${asset.status || 'active'}`)}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #6b7280;">${t('assets.fields.site')}:</span>
+              <span style="font-weight: 500;">${asset.site?.name || '-'}</span>
+            </div>
+            ${asset.location_verified ? `
+              <div style="display: flex; align-items: center; gap: 4px; color: #22c55e; font-size: 11px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                ${t('assets.locationVerified', 'Location Verified')}
+              </div>
+            ` : ''}
+          </div>
+          
+          <div style="display: flex; gap: 8px;">
+            <button 
+              onclick="window.navigateToAsset('${asset.id}')"
+              style="
+                background: hsl(221.2, 83.2%, 53.3%);
+                color: white;
+                border: none;
+                padding: 8px 12px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: 500;
+                flex: 1;
+                transition: opacity 0.2s;
+              "
+              onmouseover="this.style.opacity='0.9'"
+              onmouseout="this.style.opacity='1'"
+            >
+              ${t('common.viewDetails')}
+            </button>
+            <button 
+              onclick="window.navigateToEditAsset('${asset.id}')"
+              style="
+                background: transparent;
+                color: hsl(221.2, 83.2%, 53.3%);
+                border: 1px solid hsl(221.2, 83.2%, 53.3%);
+                padding: 8px 12px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: 500;
+                transition: background 0.2s;
+              "
+              onmouseover="this.style.background='hsl(221.2, 83.2%, 53.3%, 0.1)'"
+              onmouseout="this.style.background='transparent'"
+            >
+              ${t('common.edit')}
+            </button>
+          </div>
         </div>
-      `);
+      `;
+
+      marker.bindPopup(popupContent, {
+        maxWidth: 280,
+        className: 'asset-marker-popup',
+      });
 
       marker.addTo(mapInstance.current!);
       markersRef.current.push(marker);
@@ -163,7 +239,7 @@ export function AssetLocationMap({
       const group = L.featureGroup(markersRef.current);
       mapInstance.current.fitBounds(group.getBounds(), { padding: [50, 50] });
     }
-  }, [assets, direction, t]);
+  }, [assets, direction, t, i18n.language]);
 
   // Update tile layer when style changes
   useEffect(() => {
@@ -189,9 +265,12 @@ export function AssetLocationMap({
     return acc;
   }, [] as { id: string; name: string }[]) || [];
 
+  const assetCount = assets?.length || 0;
+
+  // Loading state
   if (isLoading) {
     return (
-      <Card className={className}>
+      <Card className={cn('overflow-hidden', className)}>
         <CardHeader>
           <Skeleton className="h-6 w-48" />
           <Skeleton className="h-4 w-32" />
@@ -203,12 +282,53 @@ export function AssetLocationMap({
     );
   }
 
-  const assetCount = assets?.length || 0;
+  // Error state
+  if (error) {
+    return (
+      <Card className={cn('overflow-hidden', className)}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <MapPin className="h-5 w-5 text-primary" />
+            {t('assets.assetMap')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[400px] flex flex-col items-center justify-center rounded-lg border bg-muted/30">
+            <AlertTriangle className="h-10 w-10 text-destructive mb-3" />
+            <p className="text-muted-foreground font-medium">{t('common.loadError', 'Failed to load data')}</p>
+            <Button variant="outline" onClick={() => refetch()} className="mt-4">
+              {t('common.retry', 'Retry')}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-  const mapContent = (
-    <>
+  // Empty state component
+  const EmptyState = () => (
+    <div className="h-[400px] flex flex-col items-center justify-center rounded-lg border bg-muted/30">
+      <MapPin className="h-12 w-12 text-muted-foreground/50 mb-3" />
+      <p className="text-muted-foreground font-medium">{t('assets.noAssetsWithLocation')}</p>
+      <p className="text-sm text-muted-foreground mt-1 text-center px-4">
+        {t('assets.addGPSCoordinates')}
+      </p>
+      <Button 
+        variant="outline" 
+        className="mt-4"
+        onClick={() => navigate('/assets')}
+      >
+        <MapPin className="h-4 w-4 me-2" />
+        {t('assets.manageAssetLocations', 'Manage Asset Locations')}
+      </Button>
+    </div>
+  );
+
+  // Filters and legend component
+  const FiltersAndLegend = () => (
+    <div className="space-y-3 mb-4">
       {/* Filters */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="flex flex-wrap gap-2">
         <Select value={localSiteFilter} onValueChange={setLocalSiteFilter} dir={direction}>
           <SelectTrigger className="w-[160px]">
             <Filter className="h-4 w-4 me-2" />
@@ -225,15 +345,16 @@ export function AssetLocationMap({
         </Select>
 
         <Select value={localStatusFilter} onValueChange={setLocalStatusFilter} dir={direction}>
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="w-[160px]">
             <SelectValue placeholder={t('assets.status.label')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t('common.all')}</SelectItem>
-            <SelectItem value="active">{t('assets.status.active')}</SelectItem>
-            <SelectItem value="inactive">{t('assets.status.inactive')}</SelectItem>
-            <SelectItem value="under_maintenance">{t('assets.status.under_maintenance')}</SelectItem>
-            <SelectItem value="out_of_service">{t('assets.status.out_of_service')}</SelectItem>
+            {Object.keys(STATUS_COLORS).map((status) => (
+              <SelectItem key={status} value={status}>
+                {t(`assets.status.${status}`)}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
@@ -245,46 +366,51 @@ export function AssetLocationMap({
         </Badge>
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap gap-3 mb-4">
-        {Object.entries(STATUS_COLORS).slice(0, 4).map(([status, color]) => (
-          <div key={status} className="flex items-center gap-1.5 text-xs">
+      {/* Legend - clickable to filter */}
+      <div className="flex flex-wrap gap-2">
+        {Object.entries(STATUS_COLORS).map(([status, config]) => (
+          <button
+            key={status}
+            onClick={() => setLocalStatusFilter(status === localStatusFilter ? 'all' : status)}
+            className={cn(
+              "flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full border transition-colors",
+              localStatusFilter === status 
+                ? "bg-primary/10 border-primary text-primary" 
+                : "hover:bg-muted border-transparent"
+            )}
+          >
             <span
-              className="w-3 h-3 rounded-full border border-white shadow-sm"
-              style={{ backgroundColor: color }}
+              className="w-2.5 h-2.5 rounded-full border border-white shadow-sm flex-shrink-0"
+              style={{ backgroundColor: config.color }}
             />
-            <span className="text-muted-foreground">{t(`assets.status.${status}`)}</span>
-          </div>
+            <span>{t(`assets.status.${status}`)}</span>
+          </button>
         ))}
       </div>
+    </div>
+  );
 
-      {/* Map */}
-      <div
-        ref={mapRef}
-        className={cn(
-          'rounded-lg border',
-          fullscreen ? 'h-[calc(100vh-200px)]' : 'h-[400px]'
+  // Map content
+  const mapContent = (
+    <>
+      <FiltersAndLegend />
+      
+      {/* Map container with proper containment */}
+      <div className="relative rounded-lg border overflow-hidden" style={{ height: fullscreen ? 'calc(100vh - 220px)' : '400px' }}>
+        {assetCount > 0 ? (
+          <div ref={mapRef} className="absolute inset-0 z-0" />
+        ) : (
+          <EmptyState />
         )}
-      />
-
-      {assetCount === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-lg">
-          <div className="text-center">
-            <MapPin className="h-12 w-12 mx-auto text-muted-foreground/50 mb-2" />
-            <p className="text-muted-foreground">{t('assets.noAssetsWithLocation')}</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              {t('assets.addGPSCoordinates')}
-            </p>
-          </div>
-        </div>
-      )}
+      </div>
     </>
   );
 
+  // Fullscreen mode
   if (fullscreen) {
     return (
       <div className="fixed inset-0 z-50 bg-background">
-        <div className="p-4">
+        <div className="p-4 h-full flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-2xl font-bold">{t('assets.assetMap')}</h1>
@@ -294,14 +420,15 @@ export function AssetLocationMap({
               <X className="h-5 w-5" />
             </Button>
           </div>
-          {mapContent}
+          <div className="flex-1">{mapContent}</div>
         </div>
       </div>
     );
   }
 
+  // Normal card mode
   return (
-    <Card className={cn('relative', className)}>
+    <Card className={cn('overflow-hidden', className)}>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
           <CardTitle className="flex items-center gap-2 text-lg">
@@ -319,7 +446,7 @@ export function AssetLocationMap({
           <Maximize2 className="h-4 w-4" />
         </Button>
       </CardHeader>
-      <CardContent className="relative">{mapContent}</CardContent>
+      <CardContent>{mapContent}</CardContent>
     </Card>
   );
 }

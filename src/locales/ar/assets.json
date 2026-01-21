@@ -47,11 +47,15 @@
     "notes": "ملاحظات"
   },
   "status": {
+    "label": "الحالة",
     "active": "نشط",
     "inactive": "غير نشط",
+    "under_maintenance": "قيد الصيانة",
+    "out_of_service": "خارج الخدمة",
+    "disposed": "تم التخلص منه",
+    "pending_disposal": "في انتظار التخلص",
     "maintenance": "قيد الصيانة",
     "retired": "متقاعد",
-    "disposed": "متخلص منه",
     "lost": "مفقود",
     "damaged": "تالف"
   },
@@ -62,6 +66,13 @@
     "poor": "سيء",
     "critical": "حرج"
   },
+  "assetMap": "خريطة الأصول",
+  "assetMapDescription": "عرض مواقع الأصول على الخريطة",
+  "assetsWithLocation": "{{count}} أصل على الخريطة",
+  "noAssetsWithLocation": "لا توجد أصول بموقع جغرافي",
+  "addGPSCoordinates": "أضف إحداثيات GPS للأصول لعرضها على الخريطة",
+  "manageAssetLocations": "إدارة مواقع الأصول",
+  "locationVerified": "تم التحقق من الموقع",
   "maintenanceTypes": {
     "preventive": "صيانة وقائية",
     "corrective": "صيانة تصحيحية",
