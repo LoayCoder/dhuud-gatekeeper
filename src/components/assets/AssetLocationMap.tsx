@@ -24,9 +24,27 @@ const STATUS_COLORS: Record<string, { color: string; label: string }> = {
   pending_disposal: { color: '#f97316', label: 'pending_disposal' },
 };
 
-function createAssetMarkerIcon(status: string) {
+function createAssetMarkerIcon(status: string, locationSource: 'asset' | 'site' | null) {
   const statusConfig = STATUS_COLORS[status] || STATUS_COLORS.active;
   const color = statusConfig.color;
+  
+  // Dashed border for inherited (site) location, solid for own GPS
+  const borderStyle = locationSource === 'site' 
+    ? 'border: 2px dashed white;' 
+    : 'border: 3px solid white;';
+  
+  // Different icon for inherited location
+  const icon = locationSource === 'site' 
+    ? `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+         <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+         <circle cx="12" cy="10" r="3"/>
+       </svg>`
+    : `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+         <path d="m7.5 4.27 9 5.15"/>
+         <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+         <path d="m3.3 7 8.7 5 8.7-5"/>
+         <path d="M12 22V12"/>
+       </svg>`;
   
   return L.divIcon({
     className: 'custom-asset-marker',
@@ -36,18 +54,13 @@ function createAssetMarkerIcon(status: string) {
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        border: 3px solid white;
+        ${borderStyle}
         box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         display: flex;
         align-items: center;
         justify-content: center;
       ">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m7.5 4.27 9 5.15"/>
-          <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
-          <path d="m3.3 7 8.7 5 8.7-5"/>
-          <path d="M12 22V12"/>
-        </svg>
+        ${icon}
       </div>
     `,
     iconSize: [32, 32],
@@ -133,16 +146,35 @@ export function AssetLocationMap({
 
     // Add markers for each asset
     assets.forEach((asset) => {
-      if (!asset.gps_lat || !asset.gps_lng) return;
+      // Use effective coordinates (asset's own OR site's fallback)
+      if (!asset.effective_lat || !asset.effective_lng) return;
 
-      const marker = L.marker([asset.gps_lat, asset.gps_lng], {
-        icon: createAssetMarkerIcon(asset.status || 'active'),
+      const marker = L.marker([asset.effective_lat, asset.effective_lng], {
+        icon: createAssetMarkerIcon(asset.status || 'active', asset.location_source),
       });
 
       const statusConfig = STATUS_COLORS[asset.status || 'active'] || STATUS_COLORS.active;
       const categoryName = i18n.language === 'ar' && asset.category?.name_ar 
         ? asset.category.name_ar 
         : asset.category?.name || '-';
+
+      // Location source indicator
+      const locationIndicator = asset.location_source === 'site' 
+        ? `<div style="display: flex; align-items: center; gap: 4px; color: #f59e0b; font-size: 11px; margin-bottom: 8px; padding: 4px 8px; background: #fef3c7; border-radius: 4px;">
+             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+               <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+               <circle cx="12" cy="10" r="3"/>
+             </svg>
+             ${t('assets.usingLocationFromSite', 'Using site location')}: ${asset.site?.name}
+           </div>`
+        : (asset.location_verified 
+            ? `<div style="display: flex; align-items: center; gap: 4px; color: #22c55e; font-size: 11px; margin-bottom: 8px;">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                   <polyline points="20 6 9 17 4 12"></polyline>
+                 </svg>
+                 ${t('assets.locationVerified', 'Location Verified')}
+               </div>`
+            : '');
 
       // Rich popup content with all asset info
       const popupContent = `
@@ -158,7 +190,9 @@ export function AssetLocationMap({
             "></span>
             <h4 style="font-weight: 600; margin: 0; font-size: 14px; line-height: 1.3;">${asset.name}</h4>
           </div>
-          <p style="font-size: 11px; color: #6b7280; margin: 0 0 12px 0; font-family: monospace;">${asset.asset_code}</p>
+          <p style="font-size: 11px; color: #6b7280; margin: 0 0 8px 0; font-family: monospace;">${asset.asset_code}</p>
+          
+          ${locationIndicator}
           
           <div style="display: grid; gap: 6px; font-size: 12px; margin-bottom: 12px;">
             <div style="display: flex; justify-content: space-between;">
@@ -173,14 +207,6 @@ export function AssetLocationMap({
               <span style="color: #6b7280;">${t('assets.fields.site')}:</span>
               <span style="font-weight: 500;">${asset.site?.name || '-'}</span>
             </div>
-            ${asset.location_verified ? `
-              <div style="display: flex; align-items: center; gap: 4px; color: #22c55e; font-size: 11px;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                ${t('assets.locationVerified', 'Location Verified')}
-              </div>
-            ` : ''}
           </div>
           
           <div style="display: flex; gap: 8px;">
@@ -266,6 +292,8 @@ export function AssetLocationMap({
   }, [] as { id: string; name: string }[]) || [];
 
   const assetCount = assets?.length || 0;
+  const assetsWithOwnGps = assets?.filter(a => a.location_source === 'asset').length || 0;
+  const assetsWithSiteGps = assets?.filter(a => a.location_source === 'site').length || 0;
 
   // Loading state
   if (isLoading) {
@@ -362,7 +390,7 @@ export function AssetLocationMap({
 
         <Badge variant="outline" className="h-9 px-3 flex items-center gap-1">
           <Package className="h-3 w-3" />
-          {t('assets.assetsWithLocation', { count: assetCount })}
+          {assetCount} {t('assets.onMap', 'on map')}
         </Badge>
       </div>
 
@@ -386,6 +414,18 @@ export function AssetLocationMap({
             <span>{t(`assets.status.${status}`)}</span>
           </button>
         ))}
+      </div>
+
+      {/* Location source legend */}
+      <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t">
+        <div className="flex items-center gap-1.5">
+          <span className="w-4 h-4 rounded-full border-[3px] border-solid border-muted-foreground/50 bg-green-500"></span>
+          <span>{t('assets.ownLocation', 'Own GPS')} ({assetsWithOwnGps})</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-4 h-4 rounded-full border-2 border-dashed border-muted-foreground/50 bg-green-500"></span>
+          <span>{t('assets.inheritedLocation', 'Site GPS')} ({assetsWithSiteGps})</span>
+        </div>
       </div>
     </div>
   );

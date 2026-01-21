@@ -15,8 +15,12 @@ export interface AssetWithGPS {
   gps_accuracy: number | null;
   gps_validated_at: string | null;
   location_verified: boolean | null;
-  site?: { id: string; name: string } | null;
+  site?: { id: string; name: string; latitude: number | null; longitude: number | null } | null;
   category?: { id: string; name: string; name_ar: string | null } | null;
+  // Computed fields for location fallback
+  effective_lat: number | null;
+  effective_lng: number | null;
+  location_source: 'asset' | 'site' | null;
 }
 
 interface UseAssetsWithGPSFilters {
@@ -38,13 +42,12 @@ export function useAssetsWithGPS(filters: UseAssetsWithGPSFilters = {}) {
         .select(`
           id, asset_code, name, status,
           gps_lat, gps_lng, gps_accuracy, gps_validated_at, location_verified,
-          site:sites!hsse_assets_site_id_fkey(id, name),
+          site:sites!hsse_assets_site_id_fkey(id, name, latitude, longitude),
           category:asset_categories!hsse_assets_category_id_fkey(id, name, name_ar)
         `)
         .eq('tenant_id', tenantId)
-        .is('deleted_at', null)
-        .not('gps_lat', 'is', null)
-        .not('gps_lng', 'is', null);
+        .is('deleted_at', null);
+      // Removed GPS null filters - we now use site coordinates as fallback
 
       if (filters.siteId) {
         query = query.eq('site_id', filters.siteId);
@@ -56,7 +59,24 @@ export function useAssetsWithGPS(filters: UseAssetsWithGPSFilters = {}) {
       const { data, error } = await query.order('name');
 
       if (error) throw error;
-      return data as AssetWithGPS[];
+
+      // Compute effective coordinates with site fallback
+      const assetsWithEffectiveLocation = (data || []).map(asset => {
+        const hasOwnGPS = asset.gps_lat !== null && asset.gps_lng !== null;
+        const hasSiteGPS = asset.site?.latitude !== null && asset.site?.longitude !== null;
+        
+        return {
+          ...asset,
+          effective_lat: hasOwnGPS ? asset.gps_lat : (hasSiteGPS ? asset.site!.latitude : null),
+          effective_lng: hasOwnGPS ? asset.gps_lng : (hasSiteGPS ? asset.site!.longitude : null),
+          location_source: hasOwnGPS ? 'asset' as const : (hasSiteGPS ? 'site' as const : null),
+        };
+      });
+      
+      // Only return assets that have SOME location (either own or site)
+      return assetsWithEffectiveLocation.filter(
+        a => a.effective_lat !== null && a.effective_lng !== null
+      ) as AssetWithGPS[];
     },
     enabled: !!tenantId,
   });

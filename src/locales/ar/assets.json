@@ -1,4 +1,8 @@
 {
+  "usingLocationFromSite": "باستخدام موقع الموقع",
+  "ownLocation": "GPS خاص",
+  "inheritedLocation": "GPS الموقع",
+  "onMap": "على الخريطة",
   "title": "الأصول",
   "list": "قائمة الأصول",
   "dashboard": "لوحة الأصول",
