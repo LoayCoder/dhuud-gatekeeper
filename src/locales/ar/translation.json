@@ -2103,7 +2103,9 @@
     "biometricSuccess": "نجحت المصادقة البيومترية",
     "biometricFailed": "فشلت المصادقة البيومترية",
     "or": "أو",
-    "signInWithBiometric": "تسجيل الدخول بالبصمة"
+    "signInWithBiometric": "تسجيل الدخول بالبصمة",
+    "welcomeBackTo": "مرحباً بعودتك إلى {{org}}",
+    "notYourOrganization": "ليست مؤسستك؟"
   },
   "forgotPassword": {
     "title": "نسيت كلمة المرور",
