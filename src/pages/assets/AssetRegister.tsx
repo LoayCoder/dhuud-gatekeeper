@@ -236,15 +236,24 @@ function AssetRegisterContent() {
 
   const onSubmit = async (values: AssetFormValues) => {
     try {
-      // Auto-generate the name from category + type + code
       const category = categories?.find(c => c.id === values.category_id);
       const type = types?.find(t => t.id === values.type_id);
       const autoName = `${category?.name || 'Asset'} - ${type?.name || ''} (${values.asset_code})`.trim();
       
-      // Zod validation ensures these are present
+      // For new assets, refresh the code right before submit to avoid race conditions
+      let finalAssetCode = values.asset_code!;
+      if (!editId && category && profile?.tenant_id) {
+        try {
+          const freshSeq = await getNextAssetSequence(profile.tenant_id, category.code);
+          finalAssetCode = generateAssetCode(category.code, freshSeq);
+        } catch (err) {
+          console.error('Failed to refresh code, using existing:', err);
+        }
+      }
+      
       const assetData = {
         ...values,
-        asset_code: values.asset_code!,
+        asset_code: finalAssetCode,
         category_id: values.category_id!,
         type_id: values.type_id!,
         name: autoName,
@@ -254,7 +263,6 @@ function AssetRegisterContent() {
         await updateAsset.mutateAsync({ id: editId, ...assetData });
         navigate('/assets');
       } else if (bulkQuantity > 1) {
-        // Bulk creation
         const { asset_code, ...baseAssetWithoutCode } = assetData;
         const result = await createBulkAssets.mutateAsync({
           baseAsset: baseAssetWithoutCode,
@@ -264,7 +272,6 @@ function AssetRegisterContent() {
         setCreatedAssetIds(result.map(a => a.id));
         setShowSuccessDialog(true);
       } else {
-        // Single asset creation
         const result = await createAsset.mutateAsync(assetData);
         setCreatedAssetIds([result.id]);
         setShowSuccessDialog(true);

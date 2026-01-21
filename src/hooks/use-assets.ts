@@ -211,33 +211,61 @@ export function useAssetSubtypes(typeId: string | null) {
 }
 
 // Helper: Get next available sequence number for an asset category
+// Handles BOTH old format (cat-0001) and new format (cat-2026-0001)
 export async function getNextAssetSequence(tenantId: string, categoryCode: string): Promise<number> {
   const year = new Date().getFullYear();
   // Clean category code (remove TEST- prefix if present)
   const cleanCode = categoryCode.replace(/^TEST-/i, '');
-  const pattern = `${cleanCode}-${year}-%`;
   
+  // Query ALL asset codes for this category to handle both patterns
   const { data, error } = await supabase
     .from('hsse_assets')
     .select('asset_code')
     .eq('tenant_id', tenantId)
-    .like('asset_code', pattern)
+    .ilike('asset_code', `${cleanCode}-%`)
     .is('deleted_at', null)
     .order('asset_code', { ascending: false })
-    .limit(1);
+    .limit(200);
   
   if (error || !data || data.length === 0) {
     return 1; // Start at 1 if no existing codes
   }
   
-  // Extract sequence number from code like "FE-2026-0042"
-  const lastCode = data[0].asset_code;
-  const match = lastCode.match(/-(\d+)$/);
-  if (match) {
-    return parseInt(match[1], 10) + 1;
+  // Find the highest sequence number from all codes
+  // Match patterns: "cat-YYYY-NNNN" (new) or "cat-NNNN" (old)
+  let maxSeq = 0;
+  const newPatternRegex = new RegExp(`^${cleanCode}-(\\d{4})-(\\d+)$`, 'i');
+  const oldPatternRegex = new RegExp(`^${cleanCode}-(\\d+)$`, 'i');
+  
+  for (const row of data) {
+    const code = row.asset_code;
+    
+    // Try new format first: cat-2026-0001
+    const newMatch = code.match(newPatternRegex);
+    if (newMatch) {
+      const codeYear = parseInt(newMatch[1], 10);
+      const seq = parseInt(newMatch[2], 10);
+      // Only count sequences from current year for new format
+      if (codeYear === year && seq > maxSeq) {
+        maxSeq = seq;
+      }
+      continue;
+    }
+    
+    // Try old format: cat-0001
+    const oldMatch = code.match(oldPatternRegex);
+    if (oldMatch) {
+      const seq = parseInt(oldMatch[1], 10);
+      if (seq > maxSeq) {
+        maxSeq = seq;
+      }
+    }
   }
-  return 1;
+  
+  return maxSeq + 1;
 }
+
+const MAX_CREATE_RETRIES = 3;
 
 export function useCreateAsset() {
   const { t } = useTranslation();
@@ -248,43 +276,83 @@ export function useCreateAsset() {
     mutationFn: async (asset: Omit<AssetInsert, 'tenant_id' | 'created_by'>) => {
       if (!profile?.tenant_id || !user?.id) throw new Error('No tenant or user');
 
-      // Check for duplicate asset_code before insert
-      const { data: existing } = await supabase
-        .from('hsse_assets')
-        .select('id')
-        .eq('tenant_id', profile.tenant_id)
-        .eq('asset_code', asset.asset_code)
-        .is('deleted_at', null)
-        .maybeSingle();
+      let currentAsset = { ...asset };
+      let lastError: Error | null = null;
 
-      if (existing) {
-        throw new Error(t('assets.duplicateCodeError', { 
-          code: asset.asset_code,
-          defaultValue: `Asset code "${asset.asset_code}" already exists. Please use a different code.`
-        }));
-      }
+      for (let attempt = 1; attempt <= MAX_CREATE_RETRIES; attempt++) {
+        try {
+          // On retry attempts, regenerate the asset code
+          if (attempt > 1 && currentAsset.category_id) {
+            const { data: category } = await supabase
+              .from('asset_categories')
+              .select('code')
+              .eq('id', currentAsset.category_id)
+              .single();
+            
+            if (category) {
+              const nextSeq = await getNextAssetSequence(profile.tenant_id, category.code);
+              currentAsset.asset_code = generateAssetCode(category.code, nextSeq);
+              console.log(`Retry ${attempt}: Generated new code ${currentAsset.asset_code}`);
+            }
+          }
 
-      const { data, error } = await supabase
-        .from('hsse_assets')
-        .insert({
-          ...asset,
-          tenant_id: profile.tenant_id,
-          created_by: user.id,
-        })
-        .select('id, asset_code')
-        .single();
+          // Check for duplicate before insert
+          const { data: existing } = await supabase
+            .from('hsse_assets')
+            .select('id')
+            .eq('tenant_id', profile.tenant_id)
+            .eq('asset_code', currentAsset.asset_code)
+            .is('deleted_at', null)
+            .maybeSingle();
 
-      if (error) {
-        // Handle unique constraint violation with user-friendly message
-        if (error.code === '23505') {
-          throw new Error(t('assets.duplicateCodeError', { 
-            code: asset.asset_code,
-            defaultValue: `Asset code "${asset.asset_code}" already exists. Please use a different code.`
-          }));
+          if (existing) {
+            if (attempt < MAX_CREATE_RETRIES) {
+              console.log(`Attempt ${attempt}: Code ${currentAsset.asset_code} exists, retrying...`);
+              continue; // Retry with new code
+            }
+            throw new Error(t('assets.duplicateCodeError', { 
+              code: currentAsset.asset_code,
+              defaultValue: `Asset code "${currentAsset.asset_code}" already exists. Please use a different code.`
+            }));
+          }
+
+          // Insert the asset
+          const { data, error } = await supabase
+            .from('hsse_assets')
+            .insert({
+              ...currentAsset,
+              tenant_id: profile.tenant_id,
+              created_by: user.id,
+            })
+            .select('id, asset_code')
+            .single();
+
+          if (error) {
+            // Handle unique constraint violation with retry
+            if (error.code === '23505' && attempt < MAX_CREATE_RETRIES) {
+              console.log(`Attempt ${attempt}: Constraint violation, retrying...`);
+              continue;
+            }
+            if (error.code === '23505') {
+              throw new Error(t('assets.duplicateCodeError', { 
+                code: currentAsset.asset_code,
+                defaultValue: `Asset code "${currentAsset.asset_code}" already exists. Please use a different code.`
+              }));
+            }
+            throw error;
+          }
+          
+          return data;
+        } catch (err: any) {
+          lastError = err;
+          // Only retry on constraint violations
+          if (err.code !== '23505' || attempt >= MAX_CREATE_RETRIES) {
+            throw err;
+          }
         }
-        throw error;
       }
-      return data;
+      
+      throw lastError || new Error('Failed to create asset after retries');
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
