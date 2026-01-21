@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import type { TenantIDCardSettings, IDCardType, DEFAULT_CARD_SETTINGS } from "@/types/id-card.types";
+import type { TenantIDCardSettings, IDCardType } from "@/types/id-card.types";
 
 interface UseIDCardSettingsOptions {
   tenantId?: string;
@@ -175,4 +175,106 @@ export async function fetchIDCardSettings(tenantId: string, cardType: IDCardType
   }
 
   return data as TenantIDCardSettings;
+}
+
+// Hook for duplicating settings from one card type to another
+interface DuplicateSettingsParams {
+  tenantId: string;
+  sourceCardType: IDCardType;
+  targetCardType: IDCardType;
+  includeFields: boolean;
+  includeColors: boolean;
+  includeBackSettings: boolean;
+  includeBranding: boolean;
+}
+
+export function useDuplicateIDCardSettings() {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({
+      tenantId,
+      sourceCardType,
+      targetCardType,
+      includeFields,
+      includeColors,
+      includeBackSettings,
+      includeBranding,
+    }: DuplicateSettingsParams) => {
+      // 1. Fetch source settings
+      const sourceSettings = await fetchIDCardSettings(tenantId, sourceCardType);
+      
+      if (!sourceSettings) {
+        throw new Error('Source settings not found');
+      }
+
+      // 2. Build new settings for target
+      const newSettings: Partial<TenantIDCardSettings> & { tenant_id: string; card_type: IDCardType } = {
+        tenant_id: tenantId,
+        card_type: targetCardType,
+        // Always copy these layout settings
+        card_orientation: sourceSettings.card_orientation,
+        template_preset: sourceSettings.template_preset,
+      };
+
+      if (includeColors) {
+        newSettings.front_bg_color = sourceSettings.front_bg_color;
+        newSettings.front_accent_color = sourceSettings.front_accent_color;
+        newSettings.front_text_color = sourceSettings.front_text_color;
+      }
+
+      if (includeFields) {
+        newSettings.front_fields = sourceSettings.front_fields;
+        newSettings.show_photo = sourceSettings.show_photo;
+        newSettings.show_qr_code = sourceSettings.show_qr_code;
+        newSettings.qr_position = sourceSettings.qr_position;
+      }
+
+      if (includeBackSettings) {
+        newSettings.back_enabled = sourceSettings.back_enabled;
+        newSettings.back_bg_color = sourceSettings.back_bg_color;
+        newSettings.back_fields = sourceSettings.back_fields;
+        newSettings.back_custom_text = sourceSettings.back_custom_text;
+        newSettings.back_custom_text_ar = sourceSettings.back_custom_text_ar;
+      }
+
+      if (includeBranding) {
+        newSettings.show_logo = sourceSettings.show_logo;
+        newSettings.logo_position = sourceSettings.logo_position;
+        newSettings.show_tenant_name = sourceSettings.show_tenant_name;
+      }
+
+      // 3. Upsert to target
+      const { data, error } = await supabase
+        .from('tenant_id_card_settings')
+        .upsert(
+          {
+            ...newSettings,
+            updated_at: new Date().toISOString(),
+          },
+          {
+            onConflict: 'tenant_id,card_type',
+          }
+        )
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['id-card-settings'] });
+      toast.success(t("idCard.settings.duplicated", "Settings duplicated successfully"));
+    },
+    onError: (error) => {
+      console.error('Failed to duplicate settings:', error);
+      toast.error(t("idCard.settings.duplicateError", "Failed to duplicate settings"));
+    },
+  });
+
+  return {
+    duplicateSettings: mutation.mutateAsync,
+    isDuplicating: mutation.isPending,
+  };
 }
