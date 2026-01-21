@@ -5575,6 +5575,9 @@ export type Database = {
           full_name: string
           full_name_ar: string | null
           id: string
+          id_card_generated_at: string | null
+          id_card_image_path: string | null
+          id_card_sent_at: string | null
           mobile_number: string
           national_id: string
           nationality: string | null
@@ -5605,6 +5608,9 @@ export type Database = {
           full_name: string
           full_name_ar?: string | null
           id?: string
+          id_card_generated_at?: string | null
+          id_card_image_path?: string | null
+          id_card_sent_at?: string | null
           mobile_number: string
           national_id: string
           nationality?: string | null
@@ -5635,6 +5641,9 @@ export type Database = {
           full_name?: string
           full_name_ar?: string | null
           id?: string
+          id_card_generated_at?: string | null
+          id_card_image_path?: string | null
+          id_card_sent_at?: string | null
           mobile_number?: string
           national_id?: string
           nationality?: string | null
@@ -15797,6 +15806,9 @@ export type Database = {
           has_full_branch_access: boolean | null
           has_login: boolean | null
           id: string
+          id_card_generated_at: string | null
+          id_card_image_path: string | null
+          id_card_sent_at: string | null
           is_active: boolean | null
           is_deleted: boolean | null
           is_super_admin: boolean | null
@@ -15838,6 +15850,9 @@ export type Database = {
           has_full_branch_access?: boolean | null
           has_login?: boolean | null
           id: string
+          id_card_generated_at?: string | null
+          id_card_image_path?: string | null
+          id_card_sent_at?: string | null
           is_active?: boolean | null
           is_deleted?: boolean | null
           is_super_admin?: boolean | null
@@ -15879,6 +15894,9 @@ export type Database = {
           has_full_branch_access?: boolean | null
           has_login?: boolean | null
           id?: string
+          id_card_generated_at?: string | null
+          id_card_image_path?: string | null
+          id_card_sent_at?: string | null
           is_active?: boolean | null
           is_deleted?: boolean | null
           is_super_admin?: boolean | null
@@ -20964,6 +20982,95 @@ export type Database = {
           },
         ]
       }
+      tenant_id_card_settings: {
+        Row: {
+          back_bg_color: string | null
+          back_custom_text: string | null
+          back_custom_text_ar: string | null
+          back_enabled: boolean | null
+          back_fields: Json | null
+          card_orientation: string | null
+          card_type: string
+          created_at: string | null
+          deleted_at: string | null
+          front_accent_color: string | null
+          front_bg_color: string | null
+          front_fields: Json | null
+          front_text_color: string | null
+          id: string
+          is_active: boolean | null
+          logo_position: string | null
+          qr_position: string | null
+          show_logo: boolean | null
+          show_photo: boolean | null
+          show_qr_code: boolean | null
+          show_tenant_name: boolean | null
+          template_preset: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          back_bg_color?: string | null
+          back_custom_text?: string | null
+          back_custom_text_ar?: string | null
+          back_enabled?: boolean | null
+          back_fields?: Json | null
+          card_orientation?: string | null
+          card_type: string
+          created_at?: string | null
+          deleted_at?: string | null
+          front_accent_color?: string | null
+          front_bg_color?: string | null
+          front_fields?: Json | null
+          front_text_color?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_position?: string | null
+          qr_position?: string | null
+          show_logo?: boolean | null
+          show_photo?: boolean | null
+          show_qr_code?: boolean | null
+          show_tenant_name?: boolean | null
+          template_preset?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          back_bg_color?: string | null
+          back_custom_text?: string | null
+          back_custom_text_ar?: string | null
+          back_enabled?: boolean | null
+          back_fields?: Json | null
+          card_orientation?: string | null
+          card_type?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          front_accent_color?: string | null
+          front_bg_color?: string | null
+          front_fields?: Json | null
+          front_text_color?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_position?: string | null
+          qr_position?: string | null
+          show_logo?: boolean | null
+          show_photo?: boolean | null
+          show_qr_code?: boolean | null
+          show_tenant_name?: boolean | null
+          template_preset?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_id_card_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_modules: {
         Row: {
           created_at: string
@@ -23042,6 +23149,9 @@ export type Database = {
           host_name: string | null
           host_phone: string | null
           id: string
+          id_card_generated_at: string | null
+          id_card_image_path: string | null
+          id_card_sent_at: string | null
           induction_completed_at: string | null
           induction_video_id: string | null
           is_active: boolean | null
@@ -23089,6 +23199,9 @@ export type Database = {
           host_name?: string | null
           host_phone?: string | null
           id?: string
+          id_card_generated_at?: string | null
+          id_card_image_path?: string | null
+          id_card_sent_at?: string | null
           induction_completed_at?: string | null
           induction_video_id?: string | null
           is_active?: boolean | null
@@ -23136,6 +23249,9 @@ export type Database = {
           host_name?: string | null
           host_phone?: string | null
           id?: string
+          id_card_generated_at?: string | null
+          id_card_image_path?: string | null
+          id_card_sent_at?: string | null
           induction_completed_at?: string | null
           induction_video_id?: string | null
           is_active?: boolean | null
