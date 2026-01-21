@@ -212,58 +212,75 @@ export function useAssetSubtypes(typeId: string | null) {
 
 // Helper: Get next available sequence number for an asset category
 // Handles BOTH old format (cat-0001) and new format (cat-2026-0001)
+// CRITICAL: Checks ALL records including soft-deleted to respect UNIQUE constraint
 export async function getNextAssetSequence(tenantId: string, categoryCode: string): Promise<number> {
   const year = new Date().getFullYear();
   // Clean category code (remove TEST- prefix if present)
-  const cleanCode = categoryCode.replace(/^TEST-/i, '');
+  const cleanCode = categoryCode.replace(/^TEST-/i, '').toLowerCase();
   
-  // CRITICAL: Query ALL asset codes including soft-deleted records
-  // because the UNIQUE constraint applies to ALL records regardless of deleted_at
+  console.log(`[AssetSeq] Finding next sequence for category: ${cleanCode}, tenant: ${tenantId}, year: ${year}`);
+  
+  // CRITICAL: Query ALL asset codes - do NOT filter by deleted_at
+  // The UNIQUE constraint (tenant_id, asset_code) applies to ALL rows
   const { data, error } = await supabase
     .from('hsse_assets')
     .select('asset_code')
     .eq('tenant_id', tenantId)
     .ilike('asset_code', `${cleanCode}-%`)
-    // REMOVED: .is('deleted_at', null) - must check ALL records for unique constraint
     .order('asset_code', { ascending: false })
-    .limit(200);
+    .limit(500);
   
-  if (error || !data || data.length === 0) {
-    return 1; // Start at 1 if no existing codes
+  if (error) {
+    console.error('[AssetSeq] Query error:', error);
+    throw error;
+  }
+  
+  console.log(`[AssetSeq] Found ${data?.length || 0} matching codes for pattern: ${cleanCode}-%`);
+  
+  if (!data || data.length === 0) {
+    console.log('[AssetSeq] No existing codes found, starting at sequence 1');
+    return 1;
   }
   
   // Find the highest sequence number from all codes
-  // Match patterns: "cat-YYYY-NNNN" (new) or "cat-NNNN" (old)
   let maxSeq = 0;
+  // Pattern for new format: category-YYYY-NNNN (e.g., fire_safety-2026-0001)
   const newPatternRegex = new RegExp(`^${cleanCode}-(\\d{4})-(\\d+)$`, 'i');
+  // Pattern for old format: category-NNNN (e.g., fire_safety-00001)
   const oldPatternRegex = new RegExp(`^${cleanCode}-(\\d+)$`, 'i');
   
   for (const row of data) {
-    const code = row.asset_code;
+    const code = row.asset_code?.toLowerCase();
+    if (!code) continue;
     
     // Try new format first: cat-2026-0001
     const newMatch = code.match(newPatternRegex);
     if (newMatch) {
       const codeYear = parseInt(newMatch[1], 10);
       const seq = parseInt(newMatch[2], 10);
-      // Only count sequences from current year for new format
+      // For new format, only count current year sequences
       if (codeYear === year && seq > maxSeq) {
         maxSeq = seq;
+        console.log(`[AssetSeq] New format match: ${code} -> year ${codeYear}, seq ${seq}`);
       }
       continue;
     }
     
-    // Try old format: cat-0001
+    // Try old format: cat-00001
     const oldMatch = code.match(oldPatternRegex);
     if (oldMatch) {
       const seq = parseInt(oldMatch[1], 10);
       if (seq > maxSeq) {
         maxSeq = seq;
+        console.log(`[AssetSeq] Old format match: ${code} -> seq ${seq}`);
       }
     }
   }
   
-  return maxSeq + 1;
+  const nextSeq = maxSeq + 1;
+  console.log(`[AssetSeq] Max sequence found: ${maxSeq}, Next sequence: ${nextSeq}`);
+  
+  return nextSeq;
 }
 
 const MAX_CREATE_RETRIES = 3;
@@ -610,12 +627,25 @@ export function useCreateBulkAssets() {
         created_by: user.id,
       }));
       
+      console.log(`[BulkCreate] Inserting ${assetsToInsert.length} assets:`, codes);
+      
       const { data, error } = await supabase
         .from('hsse_assets')
         .insert(assetsToInsert)
         .select('id, asset_code');
       
-      if (error) throw error;
+      if (error) {
+        console.error('[BulkCreate] Insert error:', error);
+        // Handle unique constraint violation with clearer message
+        if (error.code === '23505') {
+          throw new Error(t('assets.bulkConstraintError', {
+            defaultValue: 'One or more asset codes conflict with existing records. Please refresh the page and try again.'
+          }));
+        }
+        throw error;
+      }
+      
+      console.log(`[BulkCreate] Successfully created ${data.length} assets`);
       return data;
     },
     onSuccess: (data) => {

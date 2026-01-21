@@ -238,18 +238,21 @@ function AssetRegisterContent() {
     try {
       const category = categories?.find(c => c.id === values.category_id);
       const type = types?.find(t => t.id === values.type_id);
-      const autoName = `${category?.name || 'Asset'} - ${type?.name || ''} (${values.asset_code})`.trim();
       
-      // For new assets, refresh the code right before submit to avoid race conditions
+      // ALWAYS refresh the code right before submit to avoid race conditions
       let finalAssetCode = values.asset_code!;
       if (!editId && category && profile?.tenant_id) {
         try {
+          console.log('[Submit] Refreshing asset code before submit...');
           const freshSeq = await getNextAssetSequence(profile.tenant_id, category.code);
           finalAssetCode = generateAssetCode(category.code, freshSeq);
+          console.log(`[Submit] Refreshed code: ${finalAssetCode} (was: ${values.asset_code})`);
         } catch (err) {
-          console.error('Failed to refresh code, using existing:', err);
+          console.error('[Submit] Failed to refresh code, using existing:', err);
         }
       }
+      
+      const autoName = `${category?.name || 'Asset'} - ${type?.name || ''} (${finalAssetCode})`.trim();
       
       const assetData = {
         ...values,
@@ -263,6 +266,7 @@ function AssetRegisterContent() {
         await updateAsset.mutateAsync({ id: editId, ...assetData });
         navigate('/assets');
       } else if (bulkQuantity > 1) {
+        console.log(`[Submit] Bulk creation: ${bulkQuantity} assets starting from ${finalAssetCode}`);
         const { asset_code, ...baseAssetWithoutCode } = assetData;
         const result = await createBulkAssets.mutateAsync({
           baseAsset: baseAssetWithoutCode,
@@ -272,11 +276,13 @@ function AssetRegisterContent() {
         setCreatedAssetIds(result.map(a => a.id));
         setShowSuccessDialog(true);
       } else {
+        console.log(`[Submit] Single asset creation: ${finalAssetCode}`);
         const result = await createAsset.mutateAsync(assetData);
         setCreatedAssetIds([result.id]);
         setShowSuccessDialog(true);
       }
     } catch (error) {
+      console.error('[Submit] Error:', error);
       // Error handled in mutation
     }
   };
