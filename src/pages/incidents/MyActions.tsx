@@ -1695,12 +1695,6 @@ export default function MyActions() {
                           </CardHeader>
                           <CardContent className="space-y-4">
                             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                              {(company as any).contractor_site_rep_name && (
-                                <div>
-                                  <span className="font-medium">{t('contractors.siteRepresentative', 'Site Rep')}:</span>{' '}
-                                  {(company as any).contractor_site_rep_name}
-                                </div>
-                              )}
                               {company.email && (
                                 <div>
                                   <span className="font-medium">{t('common.email', 'Email')}:</span>{' '}

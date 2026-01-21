@@ -507,15 +507,67 @@ export function useSecurityGuardsList() {
   return useQuery({
     queryKey: ['security-guards-list'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Get current user's tenant for isolation
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single();
+      
+      if (!profile?.tenant_id) throw new Error('No tenant found');
+
+      // Get guards from security team members (correct approach via normalized roles)
+      const { data: teamMembers } = await supabase
+        .from('security_team_members')
+        .select(`
+          guard_id,
+          guard:profiles!security_team_members_guard_id_fkey(
+            id, full_name, avatar_url, employee_id, job_title
+          )
+        `)
+        .eq('tenant_id', profile.tenant_id)
+        .is('deleted_at', null);
+
+      const guardMap = new Map<string, any>();
+
+      // Add team members
+      if (teamMembers) {
+        for (const tm of teamMembers) {
+          const guard = tm.guard as any;
+          if (guard?.id) {
+            guardMap.set(guard.id, {
+              id: guard.id,
+              full_name: guard.full_name || 'Unknown',
+              avatar_url: guard.avatar_url,
+              employee_id: guard.employee_id,
+              job_title: guard.job_title,
+            });
+          }
+        }
+      }
+
+      // Also fetch guards by job_title containing "security" or "guard"
+      const { data: securityProfiles } = await supabase
         .from('profiles')
         .select('id, full_name, avatar_url, employee_id, job_title')
-        .or('job_title.ilike.%security%,job_title.ilike.%guard%,roles.cs.{security_guard}')
+        .eq('tenant_id', profile.tenant_id)
         .is('deleted_at', null)
-        .order('full_name');
+        .or('job_title.ilike.%security%,job_title.ilike.%guard%,job_title.ilike.%حارس%,job_title.ilike.%أمن%');
 
-      if (error) throw error;
-      return data || [];
+      if (securityProfiles) {
+        for (const p of securityProfiles) {
+          if (!guardMap.has(p.id)) {
+            guardMap.set(p.id, p);
+          }
+        }
+      }
+
+      return Array.from(guardMap.values()).sort((a, b) => 
+        (a.full_name || '').localeCompare(b.full_name || '')
+      );
     },
   });
 }

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   UserCheck, 
   ClipboardList, 
@@ -14,7 +15,7 @@ import {
   Loader2,
   Info
 } from 'lucide-react';
-import { useConsultantCompleteScreening } from '@/hooks/use-consultant-workflow';
+import { useConsultantCompleteScreening, useCanReviewAsConsultant } from '@/hooks/use-consultant-workflow';
 import { getSeverityConfig, type SeverityLevelV2 } from '@/lib/hsse-severity-levels';
 
 interface ConsultantReviewCardProps {
@@ -43,13 +44,51 @@ export function ConsultantReviewCard({
   const [notes, setNotes] = useState(consultantNotes || '');
   
   const { mutate: completeScreening, isPending } = useConsultantCompleteScreening();
+  
+  // Permission check - only show to users with contractor consultant role
+  const { data: canReview, isLoading: checkingPermission } = useCanReviewAsConsultant(incidentId);
 
-  // Show for consultant screening stage
-  const isScreeningStage = status === 'pending_consultant_screening' || 
+  // Debug logging for permission check result
+  console.log('[ConsultantReviewCard] Render check:', {
+    incidentId,
+    status,
+    canReview,
+    checkingPermission
+  });
+
+  // Show for consultant screening stage (expert_screening is legacy status)
+  const isScreeningStage = status === 'expert_screening' ||
+                           status === 'pending_consultant_screening' || 
                            status === 'pending_consultant_review' || 
                            status === 'pending_consultant_actions';
   
-  if (!isScreeningStage) return null;
+  // Don't render if not in screening stage
+  if (!isScreeningStage) {
+    console.log('[ConsultantReviewCard] Not rendering - not in screening stage:', status);
+    return null;
+  }
+  
+  // Show loading skeleton while checking permission
+  if (checkingPermission) {
+    return (
+      <Card className="border-primary/20 bg-primary/5" dir={direction}>
+        <CardHeader className="pb-3">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-72 mt-2" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  // Don't render if user doesn't have permission
+  if (!canReview) {
+    console.log('[ConsultantReviewCard] Not rendering - canReview is false');
+    return null;
+  }
 
   // Severity-based routing logic
   const isHighSeverity = severityLevel === 'level_3' || 

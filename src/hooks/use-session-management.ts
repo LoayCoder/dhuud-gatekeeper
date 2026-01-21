@@ -54,6 +54,16 @@ export function useSessionManagement() {
       return false;
     }
     
+    // OFFLINE CHECK: If offline, assume valid if session exists (handled by AuthContext short-circuit)
+    // But for Edge Function calls, we can't make them anyway, so we should return false or handle it upstream.
+    // Here we strictly check for auth validity.
+    if (!navigator.onLine) {
+        // If offline, we can't validate against server, so we trust local session for UI purposes
+        // but for "can I call edge function?", the answer is NO.
+        // This helper is primarily used before edge function calls.
+        return false;
+    }
+
     try {
       // First check local session state (fast, no network)
       const { data: { session } } = await supabase.auth.getSession();
@@ -80,6 +90,12 @@ export function useSessionManagement() {
     // Don't try to register if not authenticated
     if (!isAuthenticated || !user?.id) {
       logger.debug('User not authenticated, skipping session registration');
+      return;
+    }
+
+    // OFFLINE GUARD: Skip registration if offline
+    if (!navigator.onLine) {
+      logger.debug('Offline, skipping session registration');
       return;
     }
     
@@ -141,7 +157,7 @@ export function useSessionManagement() {
     } finally {
       isRegistering.current = false;
     }
-  }, [getDeviceInfo, isAuthenticated, user?.id]);
+  }, [getDeviceInfo, isAuthenticated, user?.id, hasValidAuthSession]);
 
   // Validate the current session
   const validateSession = useCallback(async (): Promise<SessionValidationResult> => {
@@ -154,6 +170,11 @@ export function useSessionManagement() {
     // Don't validate if not authenticated
     if (!isAuthenticated || !user?.id) {
       return { valid: false, reason: 'not_authenticated' };
+    }
+
+    // OFFLINE GUARD: Skip validation if offline
+    if (!navigator.onLine) {
+        return { valid: true }; // Assume valid while offline
     }
     
     const sessionToken = localStorage.getItem(SESSION_TOKEN_KEY);
@@ -278,6 +299,11 @@ export function useSessionManagement() {
     if (!isAuthenticated || !user?.id) {
       return;
     }
+
+    // OFFLINE GUARD: Skip heartbeat if offline
+    if (!navigator.onLine) {
+        return;
+    }
     
     const sessionToken = localStorage.getItem(SESSION_TOKEN_KEY);
     if (!sessionToken) return;
@@ -332,6 +358,14 @@ export function useSessionManagement() {
       hasRegisteredSession.current = false;
       lastUserId.current = null;
       return;
+    }
+
+    // OFFLINE GUARD: Skip network invalidation if offline, just clear local state
+    if (!navigator.onLine) {
+        localStorage.removeItem(SESSION_TOKEN_KEY);
+        hasRegisteredSession.current = false;
+        lastUserId.current = null;
+        return;
     }
 
     const sessionToken = localStorage.getItem(SESSION_TOKEN_KEY);

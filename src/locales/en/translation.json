@@ -1,4 +1,17 @@
 {
+  "assets": {
+    "usingLocationFromSite": "Using site location",
+    "ownLocation": "Own GPS",
+    "inheritedLocation": "Site GPS",
+    "onMap": "on map",
+    "alerts": "Alerts",
+    "inspectionOverdue": "Inspection Overdue",
+    "maintenanceOverdue": "Maintenance Overdue",
+    "overdueInspections": "Overdue Inspections",
+    "overdueMaintenance": "Overdue Maintenance",
+    "anyOverdue": "Any Overdue",
+    "daysOverdue": "{{count}} days overdue"
+  },
   "biometric": {
     "title": "Biometric Login",
     "description": "Use fingerprint or face recognition for faster login",
@@ -592,8 +605,12 @@
     "contractorCompany": "Contractor Company",
     "selectContractorCompany": "Select contractor company",
     "contractorViolationNote": "Enable if this incident involves a contractor company violation",
+    "contractorObservationNote": "This observation will be routed to the Contractor Consultant for screening",
     "site": "Site",
     "selectSite": "Select site",
+    "selectBranchFirst": "Select a branch first",
+    "noSitesForBranch": "No sites for this branch",
+    "noDepartmentsForBranch": "No departments for this branch",
     "branch": "Branch",
     "selectBranch": "Select branch",
     "gpsLocation": "GPS Location",
@@ -1333,28 +1350,72 @@
         "high": "High",
         "critical": "Critical"
       },
-      "status": "Status",
-      "statuses": {
-        "pending": "Pending",
-        "in_progress": "In Progress",
-        "completed": "Completed",
-        "verified": "Verified",
-        "cancelled": "Cancelled"
-      },
-      "noActions": "No corrective actions defined",
-      "addFirst": "Add corrective actions to prevent recurrence",
-      "verify": "Verify Completion",
-      "verificationNotes": "Verification Notes",
-      "verificationNotesPlaceholder": "Document verification details...",
-      "verifiedBy": "Verified By",
-      "verifiedAt": "Verified At",
-      "addSuccess": "Corrective action added",
-      "addError": "Failed to add corrective action",
-      "updateSuccess": "Action updated",
-      "updateError": "Failed to update action",
-      "completeAction": "Mark Complete",
-      "completedDate": "Completed Date"
+    "status": "Status",
+    "statuses": {
+      "pending": "Pending",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "verified": "Verified",
+      "cancelled": "Cancelled",
+      "assigned": "Assigned",
+      "returned": "Returned for Correction"
     },
+    "noActions": "No corrective actions defined",
+    "addFirst": "Add corrective actions to prevent recurrence",
+    "verify": "Verify Completion",
+    "verificationNotes": "Verification Notes",
+    "verificationNotesPlaceholder": "Document verification details...",
+    "verifiedBy": "Verified By",
+    "verifiedAt": "Verified At",
+    "addSuccess": "Corrective action added",
+    "addError": "Failed to add corrective action",
+    "updateSuccess": "Action updated",
+    "updateError": "Failed to update action",
+    "completeAction": "Mark Complete",
+    "completedDate": "Completed Date",
+    "created": "Action created",
+    "newAction": "New Corrective Action",
+    "editAction": "Edit Corrective Action",
+    "linkedCauseType": "Link to Cause",
+    "selectCauseType": "Select cause type...",
+    "selectCause": "Select cause...",
+    "selectRootCause": "Select Root Cause",
+    "selectContributingFactor": "Select Contributing Factor",
+    "startDate": "Start Date",
+    "department": "Department",
+    "selectDepartment": "Select department...",
+    "type": "Type",
+    "types": {
+      "corrective": "Corrective",
+      "preventive": "Preventive",
+      "improvement": "Improvement"
+    },
+    "category": "Category",
+    "categories": {
+      "engineering": "Engineering",
+      "administrative": "Administrative",
+      "ppe": "PPE",
+      "training": "Training",
+      "procedureUpdate": "Procedure Update"
+    },
+    "due": "Due",
+    "start": "Start",
+    "confirmDelete": "Delete Action?",
+    "deleteWarning": "This action will be permanently deleted. This cannot be undone.",
+    "lockedClosed": "This incident is closed. Corrective actions cannot be modified.",
+    "selectCauseRequired": "Please link this action to a root cause or contributing factor",
+    "titlePlaceholder": "Enter action title...",
+    "ai": {
+      "suggestAction": "AI Suggest",
+      "selectCauseFirst": "Select a cause first",
+      "suggestionApplied": "AI suggestion applied",
+      "parseError": "Failed to parse AI suggestion"
+    },
+    "startWork": "Start Work",
+    "markCompleted": "Mark Completed",
+    "awaitingVerification": "Awaiting Verification",
+    "requestExtension": "Request Extension"
+  },
     "auditLog": {
       "title": "Audit Log",
       "showLog": "Show Audit Log",
@@ -1366,11 +1427,28 @@
       "details": "Details",
       "evidenceDeleted": "Evidence Deleted"
     },
-    "myActions": "My Assigned Actions",
-    "myActionsDescription": "View and update corrective actions assigned to you",
+    "myActions": "My Actions",
+    "myActionsDescription": "View and manage your assigned tasks",
     "actions": "Actions",
     "witness": "Witness",
     "reported": "Reported",
+    "filteringBy": "Filtering by",
+    "overdueActions": "Overdue",
+    "closedActions": "Closed",
+    "awaitingVerification": "Awaiting Verification",
+    "correctiveActions": "Corrective Actions",
+    "investigations": "Investigations",
+    "assignedInvestigations": "Assigned Investigations",
+    "viewInvestigation": "View Investigation",
+    "reportedBy": "Reported By",
+    "requestedBy": "Requested By",
+    "assignedTo": "Assigned To",
+    "department": "Department",
+    "completedOn": "Completed",
+    "source": {
+      "incident": "Incident",
+      "inspection": "Inspection"
+    },
     "myReportedIncidents": "My Reported Incidents",
     "noReportedIncidents": "No Reported Incidents",
     "noReportedDescription": "You have not reported any incidents yet.",
@@ -1394,7 +1472,8 @@
       "pending": "Pending",
       "in_progress": "In Progress",
       "completed": "Completed",
-      "verified": "Verified"
+      "verified": "Verified",
+      "closed": "Closed"
     },
     "approvals": {
       "approvals": "Approvals",
@@ -1520,7 +1599,24 @@
         "closeOnSpot": "Close on Spot",
         "assignActions": "Assign Actions",
         "escalateToHSSE": "Escalate to HSSE Expert"
-      }
+      },
+      "title": "Workflow Status",
+      "step": "Step",
+      "observationWorkflow": "Observation workflow progress",
+      "incidentWorkflow": "Incident investigation workflow",
+      "readyToStart": "Ready to Start Investigation",
+      "assignedAndApproved": "Incident approved and investigator assigned.",
+      "startBtn": "Start Investigation",
+      "awaitingAssignment": "Awaiting Investigator Assignment",
+      "assignPrompt": "Incident approved. Please assign an investigator to proceed.",
+      "awaitingApproval": "Awaiting Approval",
+      "approvePrompt": "Investigator assigned. Approve to lock reporter data and start investigation.",
+      "approveBtn": "Approve & Lock",
+      "pending": "Pending Investigation Setup",
+      "setupPrompt": "Assign an investigator and approve the incident to begin.",
+      "step1": "1. Assign Investigator",
+      "step2": "2. Approve Incident",
+      "approveTitle": "Approve Incident for Investigation"
     },
     "submit": {
       "title": "Submit Investigation",
@@ -1903,6 +1999,7 @@
   },
 "common": {
     "loading": "Loading...",
+    "phone": "Phone",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -2109,6 +2206,9 @@
   "auth": {
     "signIn": "Sign In",
     "signOut": "Log out",
+    "logout": "Log out",
+    "loggedOut": "Logged Out",
+    "loggedOutMessage": "You have been logged out successfully.",
     "signUp": "Create Account",
     "signingIn": "Signing in...",
     "creatingAccount": "Creating Account...",
@@ -2149,7 +2249,13 @@
     "enterInvitationCode": "Enter Invitation Code",
     "backToLogin": "Back to Login",
     "oauthError": "Authentication Error",
-    "oauthErrorDesc": "There was a problem signing in with Google. Please try again."
+    "oauthErrorDesc": "There was a problem signing in with Google. Please try again.",
+    "biometricSuccess": "Biometric authentication successful",
+    "biometricFailed": "Biometric authentication failed",
+    "or": "OR",
+    "signInWithBiometric": "Sign In With Biometric",
+    "welcomeBackTo": "Welcome back to {{org}}",
+    "notYourOrganization": "Not your organization?"
   },
   "hsseNotifications": {
     "title": "Notifications",
@@ -3571,7 +3677,9 @@
     "tenantVerifyDescription": "Enter the 6-digit code from your authenticator app to confirm your identity for this organization.",
     "openAuthenticatorApp": "Open your authenticator app and enter the code for this account",
     "verificationComplete": "Verification Complete",
-    "tenantVerificationCompleteMessage": "Your identity has been verified for this organization."
+    "tenantVerificationCompleteMessage": "Your identity has been verified for this organization.",
+    "alreadyEnabled": "2FA Already Enabled",
+    "alreadyEnabledMessage": "Two-factor authentication is already enabled on your account."
   },
   "invite": {
     "enterCodeToContinue": "Enter your invitation code to continue",
@@ -3587,7 +3695,14 @@
     "welcomeMessage": "Please complete your registration.",
     "failedToValidate": "Failed to validate invitation code",
     "codeRequired": "Invitation code is required",
-    "failedToVerifyUser": "Failed to verify user status"
+    "failedToVerifyUser": "Failed to verify user status",
+    "haveInviteCode": "Have an invitation code?",
+    "enterCodeHere": "Enter your code here"
+  },
+  "legal": {
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy",
+    "cookiePolicy": "Cookie Policy"
   },
   "signup": {
     "invalidInvitationData": "Invalid invitation data. Please start over.",
@@ -3804,6 +3919,8 @@
     "nameRequired": "Name is required.",
     "divisionRequired": "Division is required",
     "departmentRequired": "Department is required",
+    "departmentAlreadyExists": "A department with this name already exists in the selected branch and division.",
+    "sectionAlreadyExists": "A section with this name already exists in the selected branch and department.",
     "noTenant": "Your account is not linked to any organization.",
     "noItems": "No items found. Add one above.",
     "department": "Department",
@@ -3888,7 +4005,10 @@
     "selectBuilding": "Select building",
     "buildingRequired": "Please select a parent building",
     "filterByBranch": "Filter by Branch",
-    "allBranches": "All Branches"
+    "allBranches": "All Branches",
+    "allBranchesHybrid": "All Branches (Hybrid)",
+    "assignToBranch": "Assign to Branch",
+    "divisionName": "Division Name"
   },
   "userManagement": {
     "title": "User Management",
@@ -5270,6 +5390,38 @@
       "linkedHistory": "{{count}} maintenance history record(s)",
       "deleteWarningCascade": "If you proceed, all related records will also be deleted."
     },
+    "trash": {
+      "title": "Asset Trash",
+      "description": "Deleted items are permanently removed after 7 days",
+      "autoDeleteWarning": "Items in trash will be automatically deleted after 7 days. You can restore them before then.",
+      "emptyTrash": "Empty Trash",
+      "restore": "Restore",
+      "deletePermanently": "Delete Permanently",
+      "daysRemaining": "{{count}} day(s) left",
+      "deletingToday": "Deleting today",
+      "deletedAt": "Deleted {{time}}",
+      "searchPlaceholder": "Search trash...",
+      "emptyTitle": "Trash is empty",
+      "emptyDescription": "No deleted assets at the moment",
+      "backToAssets": "Back to Assets",
+      "confirmDeleteTitle": "Confirm Permanent Deletion",
+      "confirmDeleteDescription": "The asset {{code}} will be permanently deleted and cannot be recovered. Are you sure?",
+      "confirmEmptyTitle": "Empty Trash",
+      "confirmEmptyDescription": "{{count}} item(s) will be permanently deleted and cannot be recovered. Are you sure?",
+      "restoreSelected": "Restore Selected ({{count}})",
+      "moveSuccess": "Asset moved to trash",
+      "moveError": "Failed to move asset to trash",
+      "restoreSuccess": "Asset restored successfully",
+      "restoreError": "Failed to restore asset",
+      "permanentDeleteSuccess": "Asset permanently deleted",
+      "permanentDeleteError": "Failed to delete asset",
+      "bulkMoveSuccess": "{{count}} assets moved to trash",
+      "bulkMoveError": "Failed to move assets to trash",
+      "bulkRestoreSuccess": "{{count}} assets restored successfully",
+      "bulkRestoreError": "Failed to restore assets",
+      "emptySuccess": "Trash emptied ({{count}} items)",
+      "emptyError": "Failed to empty trash"
+    },
     "bulkRegistration": "Bulk Registration",
     "quantity": "Quantity",
     "quantityHint": "Number of identical assets to create (max 50)",
@@ -6006,9 +6158,11 @@
     "remainingLife": "Remaining Life",
     "assetsWithLocation": "{{count}} assets with GPS",
     "noAssetsWithLocation": "No assets with GPS coordinates",
-    "addGPSCoordinates": "Add GPS coordinates to assets",
+    "addGPSCoordinates": "Add GPS coordinates to assets to see them on the map",
     "assetMap": "Asset Map",
     "assetMapDescription": "View asset locations on an interactive map",
+    "manageAssetLocations": "Manage Asset Locations",
+    "locationVerified": "Location Verified",
     "severity": {
       "critical": "Critical",
       "high": "High",
@@ -6202,6 +6356,9 @@
   },
   "inspections": {
     "title": "Inspections",
+    "scheduledInspections": "Scheduled Inspections",
+    "inspections": "Inspections",
+    "viewSession": "View Session",
     "types": {
       "asset": "Asset Inspection",
       "area": "Area Inspection",
@@ -6827,13 +6984,129 @@
       "affected": "Affected"
     },
     "status": {
+      "label": "Status",
       "active": "Active",
       "inactive": "Inactive",
       "under_maintenance": "Under Maintenance",
-      "disposed": "Disposed"
+      "out_of_service": "Out of Service",
+      "disposed": "Disposed",
+      "pending_disposal": "Pending Disposal"
     }
   },
   "workflow": {
+    "steps": {
+      "submitted": "Report Submitted",
+      "deptRepReview": "Dept Rep Review",
+      "managerApproval": "Manager Approval",
+      "hsseEscalation": "HSSE Manager Review",
+      "hsseEscalationReview": "HSSE Escalation Review",
+      "investigatorAssignment": "Investigator Assignment",
+      "investigation": "Investigation",
+      "closure": "Closure",
+      "closed": "Closed",
+      "rejected": "Rejected",
+      "returned": "Returned for Correction",
+      "actionExecution": "Action Execution",
+      "hsseValidation": "HSSE Validation",
+      "upgradedToIncident": "Upgraded to Incident",
+      "violationDeptMgr": "Violation Approval",
+      "contractController": "Contract Controller",
+      "violationFinalized": "Violation Finalized",
+      "actionsPending": "Actions Pending",
+      "hsseRejectionReview": "Rejection Review",
+      "hsseManagerClosure": "HSSE Manager Closure"
+    },
+    "status": {
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "rejected": "Rejected",
+      "pending": "Pending"
+    },
+    "descriptions": {
+      "submitted": "Initial report created",
+      "awaitingDeptRep": "Awaiting department representative review",
+      "deptRepApproved": "Reviewed and approved",
+      "upgraded": "Escalated to full incident investigation",
+      "actionsInProgress": "Corrective actions being executed",
+      "actionsComplete": "All actions completed",
+      "awaitingHSSE": "Awaiting HSSE validation",
+      "hsseValidated": "Validated by HSSE",
+      "closed": "Observation closed successfully",
+      "rejected": "Report rejected by department rep",
+      "returned": "Returned to reporter for additional information",
+      "awaitingManager": "Awaiting manager approval",
+      "managerApproved": "Approved by manager",
+      "awaitingHSSEManager": "Escalated to HSSE Manager for decision",
+      "awaitingAssignment": "Awaiting investigator assignment",
+      "investigatorAssigned": "Investigator assigned",
+      "investigationInProgress": "Investigation in progress",
+      "investigationComplete": "Investigation completed",
+      "awaitingClosure": "Awaiting closure approval",
+      "closureApproved": "Closed"
+    },
+    "actors": {
+      "reporter": "Reporter",
+      "deptRep": "Department Rep",
+      "manager": "Manager",
+      "hsseExpert": "HSSE Expert",
+      "hsseManager": "HSSE Manager",
+      "investigator": "Investigator"
+    },
+    "disputeReview": "Dispute Review",
+    "controllerReview": "Controller Review",
+    "violationCategory": "Violation Category",
+    "contractorJustification": "Contractor's Justification",
+    "noJustification": "No justification provided",
+    "supportingEvidence": "Supporting Evidence",
+    "evidence": "Evidence",
+    "reviewNotes": "Review Notes",
+    "disputeReviewNotesPlaceholder": "Document your review findings and decision rationale...",
+    "upholdDispute": "Uphold Dispute",
+    "upholdDisputeDesc": "Violation will be dropped and removed from contractor record.",
+    "rejectDispute": "Reject Dispute",
+    "rejectDisputeDesc": "Violation will be finalized and added to contractor record with applicable fines.",
+    "implementation": "Action Implementation",
+    "completed": "Completed",
+    "progress": "Progress",
+    "pendingActions": "Pending Actions",
+    "dueDate": "Due",
+    "allActionsCompleted": "All actions have been completed",
+    "implementationNotes": "Implementation Notes",
+    "implementationNotesPlaceholder": "Describe the actions taken...",
+    "uploadEvidence": "Upload Evidence",
+    "selectFiles": "Select Files",
+    "markComplete": "Mark as Complete",
+    "violationApproval": "Violation Approval",
+    "occurrence": "Occurrence",
+    "violationIdentified": "Violation Identified",
+    "violationApprovalInstructions": "Review the identified violation. If approved, it will be sent to Contract Controller for final verification.",
+    "category": "Category",
+    "consultantNotes": "Consultant Notes",
+    "approvalNotes": "Approval Notes",
+    "violationApprovalNotesPlaceholder": "Add any notes regarding this violation...",
+    "rejectViolation": "Reject Violation",
+    "approveViolation": "Approve Violation",
+    "violationAcknowledgement": "Violation Acknowledgement",
+    "actionRequired": "Action Required",
+    "acknowledgementInstructions": "A violation has been identified and approved. You may acknowledge it or submit a dispute with supporting evidence.",
+    "potentialFine": "Potential Fine",
+    "submitDispute": "Submit Dispute",
+    "acknowledge": "Acknowledge",
+    "disputeJustification": "Dispute Justification",
+    "disputeJustificationPlaceholder": "Provide detailed justification for your dispute...",
+    "pendingApproval": "Pending Approval",
+    "violation": {
+      "deptManagerApproval": "Department Manager Violation Approval",
+      "deptManagerDescription": "Review and approve or reject this contractor violation",
+      "occurrence": "Occurrence",
+      "penaltyType": "Penalty",
+      "approvalNotes": "Approval Notes",
+      "approvalNotesPlaceholder": "Add notes about your decision...",
+      "routeToContractController": "If approved, this will be routed to the Contract Controller for fine confirmation.",
+      "routeToContractorRep": "If approved, this will be routed to the Contractor Site Representative for acknowledgment.",
+      "reject": "Reject",
+      "approve": "Approve"
+    },
     "expertScreening": {
       "title": "HSSE Expert Screening",
       "pendingReview": "Pending Review",
@@ -7468,6 +7741,12 @@
       "resend": "Send ID Card",
       "resending": "Sending...",
       "resentSuccess": "ID card resent successfully"
+    },
+    "invitation": {
+      "sendButton": "Send Portal Invitation",
+      "sent": "Portal invitation sent to {{email}}",
+      "failed": "Failed to send portal invitation",
+      "noSiteRep": "No site representative found to invite"
     },
     "workerStatus": {
       "pending": "Pending",
@@ -8113,7 +8392,9 @@
       "myApprovals": "My Approvals",
       "myApprovalsDesc": "Review pending approvals",
       "inspections": "Inspections",
-      "inspectionsDesc": "Conduct inspections"
+      "inspectionsDesc": "Conduct inspections",
+      "myShift": "My Shift",
+      "myShiftDesc": "View your current shift"
     }
   },
   "platformSettings": {
@@ -8419,7 +8700,14 @@
     "selectContractorCompany": "Select the contractor company...",
     "manualSiteSelection": "Or select site manually",
     "selectSitePlaceholder": "Select a site...",
-    "crossBranchNote": "You are reporting from {{branchName}}. Workflow will follow your home branch."
+    "crossBranchNote": "You are reporting from {{branchName}}. Workflow will follow your home branch.",
+    "observationDate": "Observation Date",
+    "observationTime": "Observation Time",
+    "validation": {
+      "dateRequired": "Date is required",
+      "timeRequired": "Time is required",
+      "futureDateNotAllowed": "Future dates are not allowed"
+    }
   },
   "observations": {
     "ai": {
@@ -9227,7 +9515,42 @@
     "subtypeDeleteError": "Failed to delete subtype",
     "subtypeEnabled": "Subtype enabled",
     "subtypeDisabled": "Subtype disabled",
-    "subtypeToggleError": "Failed to toggle subtype"
+    "subtypeToggleError": "Failed to toggle subtype",
+    "bulkImport": {
+      "button": "Bulk Import",
+      "title": "Bulk Import Asset Hierarchy",
+      "description": "Upload an Excel file to import categories, types, subtypes, and inspectable parts in one operation.",
+      "downloadTemplateHint": "Download a template file with sample data and instructions",
+      "template": "Template",
+      "dropHere": "Drop the file here...",
+      "dragDrop": "Drag & drop a file here, or click to select",
+      "supportedFormats": "Supports: .xlsx, .xls, .csv",
+      "level": "Level",
+      "code": "Code",
+      "name": "Name",
+      "parent": "Parent",
+      "invalidRows": "{{count}} rows have errors and will be skipped.",
+      "importNotice": "Existing items with the same code will be updated. New items will be created.",
+      "importItems": "Import {{count}} Items",
+      "success": "Import Complete",
+      "successDesc": "{{total}} items processed ({{categories}} categories, {{types}} types, {{subtypes}} subtypes, {{parts}} parts). {{created}} created, {{updated}} updated.",
+      "failed": "Import Failed",
+      "exportButton": "Export",
+      "exportSuccess": "Export Complete",
+      "exportSuccessDesc": "Asset hierarchy exported to Excel file",
+      "exportFailed": "Export Failed",
+      "noDataToExport": "No data to export",
+      "updateMode": "Update existing items",
+      "updateModeHint": "When enabled, existing items will be updated with new data. Otherwise, duplicates will be skipped.",
+      "newItems": "new",
+      "existingItems": "existing"
+    },
+    "levels": {
+      "categories": "Categories",
+      "types": "Types",
+      "subtypes": "Subtypes",
+      "parts": "Parts"
+    }
   },
   "map": {
     "style": "Map Style",
@@ -9318,5 +9641,107 @@
     "saveFailed": "Failed to save part result",
     "resultsSaved": "Part results saved",
     "bulkSaveFailed": "Failed to save part results"
+  },
+  "investigation": {
+    "title": "Investigation",
+    "overview": {
+      "title": "Overview",
+      "assigned": "Assigned",
+      "assignedOn": "Assigned on {{date}}",
+      "assignmentNotes": "Assignment Notes",
+      "selectPlaceholder": "Choose an investigator...",
+      "notesPlaceholder": "Optional notes for the investigator...",
+      "reassignBtn": "Reassign",
+      "assignBtn": "Assign Investigator",
+      "noInvestigators": "No investigators available",
+      "investigationStarted": "Investigation Started",
+      "readOnly": "Read-only"
+    },
+    "readOnlyOversight": "You are viewing this investigation in read-only mode. Only the assigned investigator can make changes.",
+    "showingPendingApprovals": "Showing incidents pending your action",
+    "showingAllIncidents": "Showing all open incidents",
+    "evidence": {
+      "title": "Evidence",
+      "subtitle": "Upload and manage investigation evidence",
+      "upload": {
+        "button": "Add Evidence"
+      },
+      "noItems": "No evidence uploaded yet.",
+      "noItemsHint": "Click \"Add Evidence\" to upload photos, documents, CCTV data, and more."
+    }
+  },
+  "incidents": {
+    "title": "Incidents",
+    "classification": "Classification",
+    "assignedTo": "Assigned To",
+    "metadata": "Information",
+    "reportedBy": "Reported By",
+    "responsibleDepartment": "Department",
+    "branch": "Branch",
+    "site": "Site",
+    "contractor": "Contractor",
+    "occurredAt": "Occurred At",
+    "createdAt": "Created",
+    "updatedAt": "Last Updated",
+    "description": "Description",
+    "injuryDetails": "Injury Details",
+    "injuryCount": "Persons Injured",
+    "injuryClassification": "Classification",
+    "damageDetails": "Damage Details",
+    "estimatedCost": "Estimated Cost",
+    "damageType": "Type",
+    "detail": {
+      "workflowStatus": "Workflow Status",
+      "nextAction": "Next Action",
+      "riskAssessment": "Risk Assessment",
+      "severityScale": "Severity Scale",
+      "evidenceChain": "Evidence Chain",
+      "injuryDetails": "Injury Details",
+      "injuredPersons": "Persons Injured",
+      "injuryClassification": "Injury Classification",
+      "damageDetails": "Damage Details",
+      "estimatedCost": "Estimated Cost",
+      "damageType": "Damage Type",
+      "damageDescription": "Damage Description",
+      "reportedBy": "Reported By",
+      "department": "Department",
+      "branch": "Branch",
+      "site": "Site",
+      "reportedAt": "Reported At",
+      "eventTypes": "Event Types"
+    },
+    "workflow": {
+      "submitted": "Submitted",
+      "expert_screening": "Expert Screening",
+      "investigation_in_progress": "Investigation",
+      "pending_closure": "Pending Closure",
+      "closed": "Closed",
+      "pending_manager_approval": "Manager Review",
+      "pending_final_closure": "Final Closure",
+      "pending_consultant_review": "Consultant Review",
+      "pending_site_client_approval": "Site Client Approval",
+      "pending_contractor_implementation": "Implementation",
+      "pending_consultant_verification": "Verification",
+      "pending_violation_processing": "Violation (if any)",
+      "pending_hsse_validation": "HSSE Validation",
+      "pending_dept_rep_approval": "Dept Rep Approval"
+    }
+  },
+  "severity": {
+    "actualSeverity": "Actual Severity",
+    "potentialSeverity": "Potential Severity",
+    "level_1": {
+      "short": "L1"
+    },
+    "level_5": {
+      "short": "L5"
+    }
+  },
+  "common": {
+    "current": "Current",
+    "higher": "Higher",
+    "lower": "Lower",
+    "notAssessed": "Not Assessed",
+    "unknown": "Unknown"
   }
 }

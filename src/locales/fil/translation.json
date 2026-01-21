@@ -331,6 +331,9 @@
     },
     "site": "Site",
     "selectSite": "Pumili ng site",
+    "selectBranchFirst": "Pumili muna ng branch",
+    "noSitesForBranch": "Walang site para sa branch na ito",
+    "noDepartmentsForBranch": "Walang department para sa branch na ito",
     "branch": "Branch",
     "selectBranch": "Pumili ng branch",
     "gpsLocation": "GPS Location",
@@ -1191,6 +1194,7 @@
   },
 "common": {
     "loading": "Naglo-load...",
+    "phone": "Telepono",
     "save": "I-save",
     "cancel": "Kanselahin",
     "delete": "Tanggalin",
@@ -1315,6 +1319,9 @@
   "auth": {
     "signIn": "Mag-sign In",
     "signOut": "Mag-log out",
+    "logout": "Mag-log out",
+    "loggedOut": "Naka-log out na",
+    "loggedOutMessage": "Matagumpay kang naka-log out.",
     "signUp": "Gumawa ng Account",
     "signingIn": "Nagsa-sign in...",
     "creatingAccount": "Gumagawa ng Account...",
@@ -1335,16 +1342,44 @@
     "passwordsDoNotMatch": "Hindi tugma ang mga password",
     "validationError": "Error sa Validation",
     "error": "Error",
-    "failedToLogin": "Nabigo ang pag-log in"
+    "failedToLogin": "Nabigo ang pag-log in",
+    "accessDenied": "Tinanggihan ang access",
+    "accountDeleted": "Hindi aktibo ang Account",
+    "accountDeletedDesc": "Ang iyong account ay nadeactivate. Makipag-ugnayan sa iyong administrator kung sa tingin mo ito ay isang pagkakamali.",
+    "accountInactive": "Hindi Aktibo ang Account",
+    "accountInactiveDesc": "Ang iyong account ay kasalukuyang hindi aktibo. Makipag-ugnayan sa iyong administrator.",
+    "noProfile": "Walang Access",
+    "noProfileDesc": "Wala kang access sa organisasyong ito.",
+    "tenantAccessDenied": "Wala kang access sa organisasyong ito",
+    "sessionInvalidated": "Natapos ang Session",
+    "sessionInvalidatedDesc": "Natapos na ang iyong session. Mag-log in ulit.",
+    "mfaRequiredForTenant": "Kinakailangan ang two-factor authentication para sa organisasyong ito",
+    "orContinueWith": "O magpatuloy gamit ang",
+    "signInWithGoogle": "Mag-sign in gamit ang Google",
+    "signingInWithGoogle": "Nagsa-sign in...",
+    "invitationRequired": "Kinakailangan ang Invitation",
+    "invitationRequiredDesc": "Kailangan mo ng invitation para ma-access ang platform na ito. Makipag-ugnayan sa iyong administrator para sa invitation code.",
+    "enterInvitationCode": "Ilagay ang Invitation Code",
+    "backToLogin": "Bumalik sa Login",
+    "oauthError": "Error sa Authentication",
+    "oauthErrorDesc": "May problema sa pag-sign in gamit ang Google. Subukan ulit.",
+    "biometricSuccess": "Matagumpay ang biometric authentication",
+    "biometricFailed": "Nabigo ang biometric authentication",
+    "or": "O",
+    "signInWithBiometric": "Mag-sign in gamit ang Biometric"
   },
   "forgotPassword": {
     "title": "Nakalimutan ang Password",
     "description": "Ilagay ang iyong email address at magpapadala kami ng link para i-reset ang password.",
+    "emailSentDescription": "Suriin ang iyong email para sa reset link",
     "sendResetLink": "Ipadala ang Reset Link",
     "sending": "Nagpapadala...",
     "success": "Na-send na ang Reset Link",
     "successMessage": "Suriin ang iyong email para sa link na magre-reset ng password.",
-    "backToLogin": "Bumalik sa Login"
+    "backToLogin": "Bumalik sa Login",
+    "checkYourEmail": "Suriin ang Iyong Email",
+    "emailSentMessage": "Nagpadala kami ng password reset link. Mangyaring suriin ang iyong inbox.",
+    "sentTo": "Nagpadala kami ng password reset link sa"
   },
   "resetPassword": {
     "title": "I-reset ang Password",
@@ -1379,7 +1414,14 @@
     "setupCompleteMessage": "Naka-enable na ang two-factor authentication para sa iyong account.",
     "continueToDashboard": "Magpatuloy sa Dashboard",
     "twoFactorEnabled": "Naka-enable ang 2FA",
-    "twoFactorEnabledMessage": "Naka-enable na ang two-factor authentication para sa iyong account."
+    "twoFactorEnabledMessage": "Naka-enable na ang two-factor authentication para sa iyong account.",
+    "verifyIdentity": "I-verify ang Iyong Pagkakakilanlan",
+    "tenantVerifyDescription": "Ilagay ang 6-digit code mula sa iyong authenticator app upang kumpirmahin ang iyong pagkakakilanlan para sa organisasyong ito.",
+    "openAuthenticatorApp": "Buksan ang iyong authenticator app at ilagay ang code para sa account na ito",
+    "verificationComplete": "Kumpleto ang Pag-verify",
+    "tenantVerificationCompleteMessage": "Na-verify na ang iyong pagkakakilanlan para sa organisasyong ito.",
+    "alreadyEnabled": "Naka-enable na ang 2FA",
+    "alreadyEnabledMessage": "Naka-enable na ang two-factor authentication sa iyong account."
   },
   "invite": {
     "title": "Ilagay ang Iyong Invitation Code",
@@ -1404,7 +1446,14 @@
     "newUserMessage": "Pinapa-invite ka na sumali sa",
     "failedToValidate": "Nabigo ang pag-validate ng invitation code",
     "codeRequired": "Kinakailangan ang invitation code",
-    "failedToVerifyUser": "Nabigo ang pag-verify ng katayuan ng user"
+    "failedToVerifyUser": "Nabigo ang pag-verify ng katayuan ng user",
+    "haveInviteCode": "May invitation code ka ba?",
+    "enterCodeHere": "Ilagay ang iyong code dito"
+  },
+  "legal": {
+    "termsOfService": "Mga Tuntunin ng Serbisyo",
+    "privacyPolicy": "Patakaran sa Privacy",
+    "cookiePolicy": "Patakaran sa Cookie"
   },
   "signup": {
     "invalidInvitationData": "Hindi valid ang invitation data. Magsimula ulit.",
@@ -2844,6 +2893,8 @@
     "nameRequired": "Kinakailangan ang pangalan.",
     "divisionRequired": "Kinakailangan ang division",
     "departmentRequired": "Kinakailangan ang department",
+    "departmentAlreadyExists": "May department na sa pangalang ito sa napiling branch at division.",
+    "sectionAlreadyExists": "May section na sa pangalang ito sa napiling branch at department.",
     "noTenant": "Ang iyong account ay hindi nauugnay sa anumang organisasyon.",
     "noItems": "Walang mga item. Magdagdag ng isa sa itaas.",
     "department": "Department",
@@ -2895,7 +2946,12 @@
     "confirmBoundary": "Kumpirmahin ang Hangganan",
     "boundarySet": "Naitakda ang Hangganan",
     "boundaryConfirmed": "Nakumpirma ang hangganan",
-    "boundaryConfirmedDescription": "I-click ang 'I-save' upang itago ang mga pagbabago sa hangganan"
+    "boundaryConfirmedDescription": "I-click ang 'I-save' upang itago ang mga pagbabago sa hangganan",
+    "filterByBranch": "I-filter ayon sa Branch",
+    "allBranches": "Lahat ng Branch",
+    "allBranchesHybrid": "Lahat ng Branch (Hybrid)",
+    "assignToBranch": "I-assign sa Branch",
+    "divisionName": "Pangalan ng Division"
   },
   "userManagement": {
     "title": "Pamamahala ng User",
@@ -5907,7 +5963,31 @@
     "reportEvent": "Mag-ulat ng Kaganapan",
     "startInspection": "Magsimula ng Inspeksyon",
     "myActions": "Aking mga Aksyon",
-    "myApprovals": "Aking mga Apruba"
+    "myApprovals": "Aking mga Apruba",
+    "cards": {
+      "reportings": "Mga Ulat",
+      "reportingsDesc": "Mag-ulat ng mga insidente at obserbasyon",
+      "myActions": "Aking mga Aksyon",
+      "myActionsDesc": "Tingnan at pamahalaan ang iyong mga itinalagang aksyon",
+      "emergencyResponse": "Emergency Response",
+      "emergencyResponseDesc": "I-access ang mga emergency protocol",
+      "dashboards": "Mga Dashboard",
+      "dashboardsDesc": "Tingnan ang analytics at mga ulat",
+      "shiftPlan": "Shift Plan",
+      "shiftPlanDesc": "Tingnan ang iyong shift schedule",
+      "myLocations": "Aking mga Lokasyon",
+      "myLocationsDesc": "Tingnan ang mga itinalagang zone",
+      "gateOperation": "Gate Operation",
+      "gateOperationDesc": "Pamahalaan ang gate access",
+      "patrol": "Patrol",
+      "patrolDesc": "Magsimula o tingnan ang mga patrol",
+      "myApprovals": "Aking mga Apruba",
+      "myApprovalsDesc": "Suriin ang mga pending na apruba",
+      "inspections": "Mga Inspeksyon",
+      "inspectionsDesc": "Magsagawa ng mga inspeksyon",
+      "myShift": "Aking Shift",
+      "myShiftDesc": "Tingnan ang iyong kasalukuyang shift"
+    }
   },
   "platformSettings": {
     "title": "Mga Setting ng Platform",
@@ -5996,7 +6076,14 @@
     "analysisComplete": "Nagsuhestiyon ang AI ng uri at antas ng panganib",
     "noSiteNearby": "Walang nakarehistrong site sa malapit",
     "canSubmitWithoutLocation": "Maaari ka pa ring magsumite nang walang lokasyon",
-    "locationOptional": "Opsyonal lang ang lokasyon"
+    "locationOptional": "Opsyonal lang ang lokasyon",
+    "observationDate": "Petsa ng Obserbasyon",
+    "observationTime": "Oras ng Obserbasyon",
+    "validation": {
+      "dateRequired": "Kinakailangan ang petsa",
+      "timeRequired": "Kinakailangan ang oras",
+      "futureDateNotAllowed": "Hindi pinapayagan ang mga petsa sa hinaharap"
+    }
   },
   "positiveObservation": {
     "recognitionType": "Sino ang iyong kinikilala?",

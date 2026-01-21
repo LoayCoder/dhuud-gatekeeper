@@ -41,9 +41,9 @@ interface Branch {
   latitude: number | null;
   longitude: number | null;
 }
-interface Division { id: string; name: string; branch_id?: string | null; }
-interface Department { id: string; name: string; division_id: string; branch_id?: string | null; divisions?: { name: string } | null; }
-interface Section { id: string; name: string; department_id: string; branch_id?: string | null; departments?: { name: string } | null; }
+interface Division { id: string; name: string; branch_id?: string | null; branches?: { name: string } | null; }
+interface Department { id: string; name: string; division_id: string; branch_id?: string | null; divisions?: { name: string } | null; branches?: { name: string } | null; }
+interface Section { id: string; name: string; department_id: string; branch_id?: string | null; departments?: { name: string } | null; branches?: { name: string } | null; }
 interface Coordinate {
   lat: number;
   lng: number;
@@ -128,8 +128,16 @@ export default function OrgStructure() {
   const [gettingSiteLocation, setGettingSiteLocation] = useState(false);
   const [siteSearchQuery, setSiteSearchQuery] = useState("");
   const [localBranchFilter, setLocalBranchFilter] = useState<string>("all");
+  const [divisionBranchFilter, setDivisionBranchFilter] = useState<string>("all");
+  const [departmentBranchFilter, setDepartmentBranchFilter] = useState<string>("all");
+  const [sectionBranchFilter, setSectionBranchFilter] = useState<string>("all");
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
   const [siteDialogOpen, setSiteDialogOpen] = useState(false);
+  
+  // Branch selection for creation forms
+  const [selectedBranchForDivision, setSelectedBranchForDivision] = useState<string>("all");
+  const [selectedBranchForDepartment, setSelectedBranchForDepartment] = useState<string>("all");
+  const [selectedBranchForSection, setSelectedBranchForSection] = useState<string>("all");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [editingLatitude, setEditingLatitude] = useState("");
@@ -159,22 +167,22 @@ export default function OrgStructure() {
     setLoading(true);
     
     try {
-      // Branches query - if specific branch selected, only show that branch
-      let branchesQuery = supabase.from('branches')
+      // BRANCHES: Always fetch ALL branches for the tenant
+      // Branch Management should show all branches regardless of active filter
+      // This aligns with Incident Reporting which uses useTenantBranches() 
+      // that also fetches all tenant branches
+      const branchesQuery = supabase.from('branches')
         .select('id, name, location, latitude, longitude')
         .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('name');
-      
-      if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
-        branchesQuery = branchIds.length === 1 
-          ? branchesQuery.eq('id', branchIds[0])
-          : branchesQuery.in('id', branchIds);
-      }
+
+      // NOTE: Branch filter is NOT applied to branches query
+      // Other org elements (divisions, departments, sites) WILL continue to be filtered
 
       // Divisions query with branch filter
       let divisionsQuery = supabase.from('divisions')
-        .select('id, name, branch_id')
+        .select('id, name, branch_id, branches(name)')
         .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('name');
@@ -182,7 +190,7 @@ export default function OrgStructure() {
 
       // Departments query with branch filter
       let departmentsQuery = supabase.from('departments')
-        .select('id, name, division_id, branch_id, divisions(name)')
+        .select('id, name, division_id, branch_id, divisions(name), branches(name)')
         .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('name');
@@ -190,19 +198,21 @@ export default function OrgStructure() {
 
       // Sections query with branch filter
       let sectionsQuery = supabase.from('sections')
-        .select('id, name, department_id, branch_id, departments(name)')
+        .select('id, name, department_id, branch_id, departments(name), branches(name)')
         .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('name');
       sectionsQuery = applyBranchFilter(sectionsQuery);
 
-      // Sites query with branch filter
-      let sitesQuery = supabase.from('sites')
+      // SITES: Always fetch ALL sites for the tenant (like Branches)
+      // Site Management should show all sites regardless of active branch filter
+      // The local branch filter dropdown handles filtering in the UI
+      const sitesQuery = supabase.from('sites')
         .select('id, name, latitude, longitude, branch_id, is_active, boundary_polygon, branches(name)')
         .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('name');
-      sitesQuery = applyBranchFilter(sitesQuery);
+      // NOTE: Branch filter is NOT applied to sites query
 
       // Buildings query with branch filter
       let buildingsQuery = supabase.from('buildings')
@@ -300,8 +310,35 @@ export default function OrgStructure() {
         tenant_id: profile.tenant_id
       };
 
-      // Auto-assign branch_id for tables that support it (not branches themselves)
-      if (table !== 'branches' && !isAllBranchesMode && activeBranchId) {
+      // Handle branch assignment for divisions - use explicit form selection
+      if (table === 'divisions') {
+        if (selectedBranchForDivision && selectedBranchForDivision !== 'all') {
+          payload.branch_id = selectedBranchForDivision;
+        } else {
+          payload.branch_id = null; // Hybrid - applies to all branches
+        }
+      }
+      
+      // Handle branch assignment for departments - use explicit form selection
+      if (table === 'departments') {
+        if (selectedBranchForDepartment && selectedBranchForDepartment !== 'all') {
+          payload.branch_id = selectedBranchForDepartment;
+        } else {
+          payload.branch_id = null; // Hybrid - applies to all branches
+        }
+      }
+      
+      // Handle branch assignment for sections - use explicit form selection
+      if (table === 'sections') {
+        if (selectedBranchForSection && selectedBranchForSection !== 'all') {
+          payload.branch_id = selectedBranchForSection;
+        } else {
+          payload.branch_id = null; // Hybrid - applies to all branches
+        }
+      }
+      
+      // Auto-assign branch_id for other tables (buildings, floors_zones) - use activeBranchId
+      if (table !== 'branches' && table !== 'divisions' && table !== 'departments' && table !== 'sections' && table !== 'sites' && !isAllBranchesMode && activeBranchId) {
         payload.branch_id = activeBranchId;
       }
 
@@ -330,7 +367,7 @@ export default function OrgStructure() {
         }
       }
 
-      // Add parent FKs for departments
+      // Add parent FKs for departments with duplicate validation
       if (table === 'departments') {
         if (!parentId) {
           toast({ title: t('common.error'), description: t('orgStructure.divisionRequired'), variant: "destructive" });
@@ -338,9 +375,26 @@ export default function OrgStructure() {
           return;
         }
         payload.division_id = parentId;
+        
+        // Check for duplicate department (same name + same division + same branch)
+        const branchId = selectedBranchForDepartment === 'all' ? null : selectedBranchForDepartment;
+        const existingDept = departments.find(d => 
+          d.name.toLowerCase() === newItemName.trim().toLowerCase() &&
+          d.division_id === parentId &&
+          d.branch_id === branchId
+        );
+        if (existingDept) {
+          toast({ 
+            title: t('common.error'), 
+            description: t('orgStructure.departmentAlreadyExists'),
+            variant: "destructive" 
+          });
+          setCreating(false);
+          return;
+        }
       }
 
-      // Add parent FKs for sections
+      // Add parent FKs for sections with duplicate validation
       if (table === 'sections') {
         if (!parentId) {
           toast({ title: t('common.error'), description: t('orgStructure.departmentRequired'), variant: "destructive" });
@@ -348,6 +402,23 @@ export default function OrgStructure() {
           return;
         }
         payload.department_id = parentId;
+        
+        // Check for duplicate section (same name + same department + same branch)
+        const branchId = selectedBranchForSection === 'all' ? null : selectedBranchForSection;
+        const existingSection = sections.find(s => 
+          s.name.toLowerCase() === newItemName.trim().toLowerCase() &&
+          s.department_id === parentId &&
+          s.branch_id === branchId
+        );
+        if (existingSection) {
+          toast({ 
+            title: t('common.error'), 
+            description: t('orgStructure.sectionAlreadyExists'),
+            variant: "destructive" 
+          });
+          setCreating(false);
+          return;
+        }
       }
 
       // Add building-specific fields
@@ -395,6 +466,9 @@ export default function OrgStructure() {
       setSelectedBuildingForFloor("");
       setNewFloorZoneNameAr("");
       setNewLevelNumber("");
+      setSelectedBranchForDivision("all");
+      setSelectedBranchForDepartment("all");
+      setSelectedBranchForSection("all");
       fetchData();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : t('common.error');
@@ -497,6 +571,30 @@ export default function OrgStructure() {
     window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
   };
 
+  // Filter divisions for department dropdown based on selected branch
+  // Show divisions from selected branch OR hybrid divisions (null branch_id)
+  // MUST be before early return to follow React Hooks rules
+  const filteredDivisionsForDropdown = useMemo(() => {
+    if (selectedBranchForDepartment === 'all' || !selectedBranchForDepartment) {
+      return divisions; // Show all
+    }
+    return divisions.filter(d => 
+      d.branch_id === selectedBranchForDepartment || d.branch_id === null
+    );
+  }, [divisions, selectedBranchForDepartment]);
+  
+  // Filter departments for section dropdown based on selected branch
+  // Show departments from selected branch OR hybrid departments (null branch_id)
+  // MUST be before early return to follow React Hooks rules
+  const filteredDepartmentsForDropdown = useMemo(() => {
+    if (selectedBranchForSection === 'all' || !selectedBranchForSection) {
+      return departments; // Show all
+    }
+    return departments.filter(d => 
+      d.branch_id === selectedBranchForSection || d.branch_id === null
+    );
+  }, [departments, selectedBranchForSection]);
+
   if (loading || branchLoading) {
     return (
       <div className="p-8 flex justify-center">
@@ -509,8 +607,6 @@ export default function OrgStructure() {
   const filteredBranchesForDropdown = branches; // Branches shown are already filtered by useBranchFilter
   const filteredSitesForDropdown = sites; // Sites are already filtered
   const filteredBuildingsForDropdown = buildings; // Buildings are already filtered
-  const filteredDivisionsForDropdown = divisions; // Divisions are already filtered
-  const filteredDepartmentsForDropdown = departments; // Departments are already filtered
 
   // Branch row component with location support
   const renderBranchRow = (item: Branch) => (
@@ -597,7 +693,7 @@ export default function OrgStructure() {
   );
 
   // Reusable row component for simple tables (divisions)
-  const renderSimpleRow = (item: { id: string; name: string }, table: TableType) => (
+  const renderSimpleRow = (item: { id: string; name: string; branches?: { name: string } | null }, table: TableType) => (
     <TableRow key={item.id}>
       <TableCell className="text-start">
         {editingId === item.id ? (
@@ -614,6 +710,13 @@ export default function OrgStructure() {
           />
         ) : (
           item.name
+        )}
+      </TableCell>
+      <TableCell className="text-muted-foreground text-start">
+        {item.branches?.name || (
+          <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary border-primary/20">
+            {t('orgStructure.allBranchesHybrid')}
+          </span>
         )}
       </TableCell>
       <TableCell className="text-end">
@@ -646,7 +749,7 @@ export default function OrgStructure() {
 
   // Reusable row component for tables with parent (departments, sections)
   const renderRowWithParent = (
-    item: { id: string; name: string },
+    item: { id: string; name: string; branches?: { name: string } | null },
     parentName: string | undefined,
     table: TableType
   ) => (
@@ -669,6 +772,13 @@ export default function OrgStructure() {
         )}
       </TableCell>
       <TableCell className="text-muted-foreground text-start">{parentName}</TableCell>
+      <TableCell className="text-muted-foreground text-start">
+        {item.branches?.name || (
+          <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary border-primary/20">
+            {t('orgStructure.allBranchesHybrid')}
+          </span>
+        )}
+      </TableCell>
       <TableCell className="text-end">
         <div className="flex gap-1 justify-end">
           {editingId === item.id ? (
@@ -1413,37 +1523,82 @@ export default function OrgStructure() {
               <CardTitle className="text-start">{t('orgStructure.manageDivisions')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-4">
-                <Input 
-                  placeholder={t('orgStructure.newDivisionPlaceholder')}
-                  value={newItemName}
-                  onChange={(e) => setNewItemName(e.target.value)}
-                  className="text-start"
-                  dir={direction}
-                />
+              <div className="flex gap-4 items-end">
+                <div className="w-1/4">
+                  <Label className="mb-2 block text-start">{t('orgStructure.assignToBranch')}</Label>
+                  <Select value={selectedBranchForDivision} onValueChange={setSelectedBranchForDivision}>
+                    <SelectTrigger className="text-start" dir={direction}>
+                      <SelectValue placeholder={t('orgStructure.selectBranch')} />
+                    </SelectTrigger>
+                    <SelectContent dir={direction}>
+                      <SelectItem value="all" className="text-start">{t('orgStructure.allBranchesHybrid')}</SelectItem>
+                      {branches.map(branch => (
+                        <SelectItem key={branch.id} value={branch.id} className="text-start">
+                          {branch.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex-1">
+                  <Label className="mb-2 block text-start">{t('orgStructure.divisionName')}</Label>
+                  <Input 
+                    placeholder={t('orgStructure.newDivisionPlaceholder')}
+                    value={newItemName}
+                    onChange={(e) => setNewItemName(e.target.value)}
+                    className="text-start"
+                    dir={direction}
+                  />
+                </div>
                 <Button onClick={() => handleCreate('divisions')} disabled={creating}>
                   <Plus className="h-4 w-4 me-2" />
                   {t('orgStructure.add')}
                 </Button>
               </div>
+
+              {/* Branch Filter Dropdown */}
+              <Select value={divisionBranchFilter} onValueChange={setDivisionBranchFilter}>
+                <SelectTrigger className="w-full sm:w-[200px] text-start" dir={direction}>
+                  <SelectValue placeholder={t('orgStructure.filterByBranch')} />
+                </SelectTrigger>
+                <SelectContent dir={direction}>
+                  <SelectItem value="all" className="text-start">{t('orgStructure.allBranches')}</SelectItem>
+                  {branches.map(branch => (
+                    <SelectItem key={branch.id} value={branch.id} className="text-start">
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
               <div className="rounded-md border" dir={direction}>
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead className="text-start">{t('orgStructure.name')}</TableHead>
+                      <TableHead className="text-start">{t('orgStructure.branch')}</TableHead>
                       <TableHead className="text-end">{t('orgStructure.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {divisions.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={2} className="text-center text-muted-foreground py-8">
-                          {t('orgStructure.noItems')}
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      divisions.map((item) => renderSimpleRow(item, 'divisions'))
-                    )}
+                    {(() => {
+                      const filteredDivisions = divisions.filter(division => 
+                        divisionBranchFilter === "all" || 
+                        division.branch_id === divisionBranchFilter || 
+                        division.branch_id === null // Include hybrid divisions
+                      );
+                      
+                      if (filteredDivisions.length === 0) {
+                        return (
+                          <TableRow>
+                            <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                              {t('orgStructure.noItems')}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      }
+                      return filteredDivisions.map((item) => renderSimpleRow(item, 'divisions'));
+                    })()}
                   </TableBody>
                 </Table>
               </div>
@@ -1458,8 +1613,27 @@ export default function OrgStructure() {
               <CardTitle className="text-start">{t('orgStructure.manageDepartments')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-4 items-end">
-                <div className="w-1/3">
+              <div className="flex gap-4 items-end flex-wrap">
+                <div className="w-full sm:w-1/4">
+                  <Label className="mb-2 block text-start">{t('orgStructure.assignToBranch')}</Label>
+                  <Select value={selectedBranchForDepartment} onValueChange={(value) => {
+                    setSelectedBranchForDepartment(value);
+                    setParentId(""); // Reset parent when branch changes
+                  }}>
+                    <SelectTrigger className="text-start" dir={direction}>
+                      <SelectValue placeholder={t('orgStructure.selectBranch')} />
+                    </SelectTrigger>
+                    <SelectContent dir={direction}>
+                      <SelectItem value="all" className="text-start">{t('orgStructure.allBranchesHybrid')}</SelectItem>
+                      {branches.map(branch => (
+                        <SelectItem key={branch.id} value={branch.id} className="text-start">
+                          {branch.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="w-full sm:w-1/4">
                   <Label className="mb-2 block text-start">{t('orgStructure.parentDivision')}</Label>
                   <Select onValueChange={setParentId} value={parentId}>
                     <SelectTrigger className="text-start" dir={direction}>
@@ -1472,7 +1646,7 @@ export default function OrgStructure() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-[200px]">
                   <Label className="mb-2 block text-start">{t('orgStructure.departmentName')}</Label>
                   <Input 
                     placeholder={t('orgStructure.newDepartmentPlaceholder')}
@@ -1487,27 +1661,53 @@ export default function OrgStructure() {
                   {t('orgStructure.add')}
                 </Button>
               </div>
+
+              {/* Branch Filter Dropdown */}
+              <Select value={departmentBranchFilter} onValueChange={setDepartmentBranchFilter}>
+                <SelectTrigger className="w-full sm:w-[200px] text-start" dir={direction}>
+                  <SelectValue placeholder={t('orgStructure.filterByBranch')} />
+                </SelectTrigger>
+                <SelectContent dir={direction}>
+                  <SelectItem value="all" className="text-start">{t('orgStructure.allBranches')}</SelectItem>
+                  {branches.map(branch => (
+                    <SelectItem key={branch.id} value={branch.id} className="text-start">
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
               <div className="rounded-md border" dir={direction}>
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead className="text-start">{t('orgStructure.department')}</TableHead>
                       <TableHead className="text-start">{t('orgStructure.parentDivision')}</TableHead>
+                      <TableHead className="text-start">{t('orgStructure.branch')}</TableHead>
                       <TableHead className="text-end">{t('orgStructure.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {departments.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
-                          {t('orgStructure.noItems')}
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      departments.map((item) =>
+                    {(() => {
+                      const filteredDepartments = departments.filter(department => 
+                        departmentBranchFilter === "all" || 
+                        department.branch_id === departmentBranchFilter ||
+                        department.branch_id === null // Include hybrid departments
+                      );
+                      
+                      if (filteredDepartments.length === 0) {
+                        return (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                              {t('orgStructure.noItems')}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      }
+                      return filteredDepartments.map((item) =>
                         renderRowWithParent(item, item.divisions?.name, 'departments')
-                      )
-                    )}
+                      );
+                    })()}
                   </TableBody>
                 </Table>
               </div>
@@ -1522,8 +1722,27 @@ export default function OrgStructure() {
               <CardTitle className="text-start">{t('orgStructure.manageSections')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-4 items-end">
-                <div className="w-1/3">
+              <div className="flex gap-4 items-end flex-wrap">
+                <div className="w-full sm:w-1/4">
+                  <Label className="mb-2 block text-start">{t('orgStructure.assignToBranch')}</Label>
+                  <Select value={selectedBranchForSection} onValueChange={(value) => {
+                    setSelectedBranchForSection(value);
+                    setParentId(""); // Reset parent when branch changes
+                  }}>
+                    <SelectTrigger className="text-start" dir={direction}>
+                      <SelectValue placeholder={t('orgStructure.selectBranch')} />
+                    </SelectTrigger>
+                    <SelectContent dir={direction}>
+                      <SelectItem value="all" className="text-start">{t('orgStructure.allBranchesHybrid')}</SelectItem>
+                      {branches.map(branch => (
+                        <SelectItem key={branch.id} value={branch.id} className="text-start">
+                          {branch.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="w-full sm:w-1/4">
                   <Label className="mb-2 block text-start">{t('orgStructure.parentDepartment')}</Label>
                   <Select onValueChange={setParentId} value={parentId}>
                     <SelectTrigger className="text-start" dir={direction}>
@@ -1536,7 +1755,7 @@ export default function OrgStructure() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-[200px]">
                   <Label className="mb-2 block text-start">{t('orgStructure.sectionName')}</Label>
                   <Input 
                     placeholder={t('orgStructure.newSectionPlaceholder')}
@@ -1551,27 +1770,53 @@ export default function OrgStructure() {
                   {t('orgStructure.add')}
                 </Button>
               </div>
+
+              {/* Branch Filter Dropdown */}
+              <Select value={sectionBranchFilter} onValueChange={setSectionBranchFilter}>
+                <SelectTrigger className="w-full sm:w-[200px] text-start" dir={direction}>
+                  <SelectValue placeholder={t('orgStructure.filterByBranch')} />
+                </SelectTrigger>
+                <SelectContent dir={direction}>
+                  <SelectItem value="all" className="text-start">{t('orgStructure.allBranches')}</SelectItem>
+                  {branches.map(branch => (
+                    <SelectItem key={branch.id} value={branch.id} className="text-start">
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
               <div className="rounded-md border" dir={direction}>
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead className="text-start">{t('orgStructure.section')}</TableHead>
                       <TableHead className="text-start">{t('orgStructure.parentDepartment')}</TableHead>
+                      <TableHead className="text-start">{t('orgStructure.branch')}</TableHead>
                       <TableHead className="text-end">{t('orgStructure.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sections.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
-                          {t('orgStructure.noItems')}
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      sections.map((item) =>
+                    {(() => {
+                      const filteredSections = sections.filter(section => 
+                        sectionBranchFilter === "all" || 
+                        section.branch_id === sectionBranchFilter ||
+                        section.branch_id === null // Include hybrid sections
+                      );
+                      
+                      if (filteredSections.length === 0) {
+                        return (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                              {t('orgStructure.noItems')}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      }
+                      return filteredSections.map((item) =>
                         renderRowWithParent(item, item.departments?.name, 'sections')
-                      )
-                    )}
+                      );
+                    })()}
                   </TableBody>
                 </Table>
               </div>

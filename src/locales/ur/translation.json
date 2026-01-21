@@ -1202,6 +1202,7 @@
   },
 "common": {
     "loading": "لوڈ ہو رہا ہے...",
+    "phone": "فون",
     "save": "محفوظ کریں",
     "cancel": "منسوخ کریں",
     "delete": "حذف کریں",
@@ -1326,6 +1327,9 @@
   "auth": {
     "signIn": "سائن ان",
     "signOut": "لاگ آؤٹ",
+    "logout": "لاگ آؤٹ",
+    "loggedOut": "لاگ آؤٹ ہو گیا",
+    "loggedOutMessage": "آپ کامیابی سے لاگ آؤٹ ہو گئے ہیں۔",
     "signUp": "اکاؤنٹ بنائیں",
     "signingIn": "سائن ان ہو رہا ہے...",
     "creatingAccount": "اکاؤنٹ بنایا جا رہا ہے...",
@@ -1346,16 +1350,44 @@
     "passwordsDoNotMatch": "پاس ورڈ مماثل نہیں ہیں",
     "validationError": "توثیق کی خرابی",
     "error": "خرابی",
-    "failedToLogin": "لاگ ان ناکام"
+    "failedToLogin": "لاگ ان ناکام",
+    "accessDenied": "رسائی مسترد",
+    "accountDeleted": "اکاؤنٹ غیر فعال",
+    "accountDeletedDesc": "آپ کا اکاؤنٹ غیر فعال کر دیا گیا ہے۔ اگر آپ کو لگتا ہے کہ یہ غلطی ہے تو براہ کرم اپنے منتظم سے رابطہ کریں۔",
+    "accountInactive": "اکاؤنٹ غیر فعال",
+    "accountInactiveDesc": "آپ کا اکاؤنٹ فی الحال غیر فعال ہے۔ براہ کرم اپنے منتظم سے رابطہ کریں۔",
+    "noProfile": "رسائی نہیں",
+    "noProfileDesc": "آپ کو اس تنظیم تک رسائی نہیں ہے۔",
+    "tenantAccessDenied": "آپ کو اس تنظیم تک رسائی نہیں ہے",
+    "sessionInvalidated": "سیشن ختم",
+    "sessionInvalidatedDesc": "آپ کا سیشن ختم کر دیا گیا ہے۔ براہ کرم دوبارہ لاگ ان کریں۔",
+    "mfaRequiredForTenant": "اس تنظیم کے لیے دو عنصری تصدیق ضروری ہے",
+    "orContinueWith": "یا جاری رکھیں",
+    "signInWithGoogle": "Google سے سائن ان کریں",
+    "signingInWithGoogle": "سائن ان ہو رہا ہے...",
+    "invitationRequired": "دعوت ضروری ہے",
+    "invitationRequiredDesc": "اس پلیٹ فارم تک رسائی کے لیے آپ کو دعوت کی ضرورت ہے۔ براہ کرم دعوت کوڈ کے لیے اپنے منتظم سے رابطہ کریں۔",
+    "enterInvitationCode": "دعوت کوڈ درج کریں",
+    "backToLogin": "لاگ ان پر واپس جائیں",
+    "oauthError": "تصدیق کی خرابی",
+    "oauthErrorDesc": "Google سے سائن ان کرنے میں مسئلہ ہوا۔ براہ کرم دوبارہ کوشش کریں۔",
+    "biometricSuccess": "بائیو میٹرک تصدیق کامیاب",
+    "biometricFailed": "بائیو میٹرک تصدیق ناکام",
+    "or": "یا",
+    "signInWithBiometric": "بائیو میٹرک سے سائن ان کریں"
   },
   "forgotPassword": {
     "title": "پاس ورڈ بھول گئے",
     "description": "اپنا ای میل پتہ درج کریں اور ہم آپ کو پاس ورڈ دوبارہ ترتیب دینے کا لنک بھیجیں گے۔",
+    "emailSentDescription": "ری سیٹ لنک کے لیے اپنا ای میل چیک کریں",
     "sendResetLink": "ری سیٹ لنک بھیجیں",
     "sending": "بھیجا جا رہا ہے...",
     "success": "ری سیٹ لنک بھیج دیا گیا",
     "successMessage": "پاس ورڈ دوبارہ ترتیب دینے کے لنک کے لیے اپنا ای میل چیک کریں۔",
-    "backToLogin": "لاگ ان پر واپس جائیں"
+    "backToLogin": "لاگ ان پر واپس جائیں",
+    "checkYourEmail": "اپنا ای میل چیک کریں",
+    "emailSentMessage": "ہم نے آپ کو پاس ورڈ ری سیٹ لنک بھیج دیا ہے۔ براہ کرم اپنا ان باکس چیک کریں۔",
+    "sentTo": "ہم نے پاس ورڈ ری سیٹ لنک بھیج دیا ہے"
   },
   "resetPassword": {
     "title": "پاس ورڈ دوبارہ ترتیب دیں",
@@ -1390,7 +1422,14 @@
     "setupCompleteMessage": "آپ کے اکاؤنٹ کے لیے دو عنصری تصدیق فعال ہو گئی۔",
     "continueToDashboard": "ڈیش بورڈ پر جاری رکھیں",
     "twoFactorEnabled": "2FA فعال ہو گیا",
-    "twoFactorEnabledMessage": "آپ کے اکاؤنٹ کے لیے دو عنصری تصدیق فعال ہو گئی۔"
+    "twoFactorEnabledMessage": "آپ کے اکاؤنٹ کے لیے دو عنصری تصدیق فعال ہو گئی۔",
+    "verifyIdentity": "اپنی شناخت کی تصدیق کریں",
+    "tenantVerifyDescription": "اس تنظیم کے لیے اپنی شناخت کی تصدیق کے لیے اپنی تصدیقی ایپ سے 6 ہندسوں کا کوڈ درج کریں۔",
+    "openAuthenticatorApp": "اپنی تصدیقی ایپ کھولیں اور اس اکاؤنٹ کا کوڈ درج کریں",
+    "verificationComplete": "تصدیق مکمل",
+    "tenantVerificationCompleteMessage": "اس تنظیم کے لیے آپ کی شناخت کی تصدیق ہو گئی۔",
+    "alreadyEnabled": "2FA پہلے سے فعال ہے",
+    "alreadyEnabledMessage": "آپ کے اکاؤنٹ پر دو عنصری تصدیق پہلے سے فعال ہے۔"
   },
   "invite": {
     "title": "اپنا دعوت کوڈ درج کریں",
@@ -1415,7 +1454,14 @@
     "newUserMessage": "آپ کو شامل ہونے کی دعوت دی گئی ہے",
     "failedToValidate": "دعوت کوڈ کی تصدیق میں ناکام",
     "codeRequired": "دعوت کوڈ ضروری ہے",
-    "failedToVerifyUser": "صارف کی حیثیت کی تصدیق میں ناکام"
+    "failedToVerifyUser": "صارف کی حیثیت کی تصدیق میں ناکام",
+    "haveInviteCode": "کیا آپ کے پاس دعوت کوڈ ہے؟",
+    "enterCodeHere": "اپنا کوڈ یہاں درج کریں"
+  },
+  "legal": {
+    "termsOfService": "سروس کی شرائط",
+    "privacyPolicy": "رازداری کی پالیسی",
+    "cookiePolicy": "کوکی پالیسی"
   },
   "signup": {
     "invalidInvitationData": "غلط دعوت ڈیٹا۔ براہ کرم دوبارہ شروع کریں۔",
@@ -2870,6 +2916,8 @@
     "nameRequired": "نام ضروری ہے۔",
     "divisionRequired": "ڈویژن ضروری ہے",
     "departmentRequired": "محکمہ ضروری ہے",
+    "departmentAlreadyExists": "اس نام کا محکمہ منتخب برانچ اور ڈویژن میں پہلے سے موجود ہے۔",
+    "sectionAlreadyExists": "اس نام کا سیکشن منتخب برانچ اور محکمہ میں پہلے سے موجود ہے۔",
     "noTenant": "آپ کا اکاؤنٹ کسی تنظیم سے منسلک نہیں ہے۔",
     "noItems": "کوئی آئٹمز نہیں۔ اوپر ایک شامل کریں۔",
     "department": "محکمہ",
@@ -2921,7 +2969,12 @@
     "confirmBoundary": "حدود کی تصدیق کریں",
     "boundarySet": "حدود سیٹ",
     "boundaryConfirmed": "حدود کی تصدیق ہو گئی",
-    "boundaryConfirmedDescription": "حدود کی تبدیلیوں کو رکھنے کے لیے 'محفوظ کریں' پر کلک کریں"
+    "boundaryConfirmedDescription": "حدود کی تبدیلیوں کو رکھنے کے لیے 'محفوظ کریں' پر کلک کریں",
+    "filterByBranch": "برانچ کے مطابق فلٹر",
+    "allBranches": "تمام برانچز",
+    "allBranchesHybrid": "تمام برانچز (ہائبرڈ)",
+    "assignToBranch": "برانچ کو تفویض کریں",
+    "divisionName": "ڈویژن کا نام"
   },
   "userManagement": {
     "title": "صارف کا انتظام",
@@ -5933,7 +5986,31 @@
     "reportEvent": "واقعہ رپورٹ کریں",
     "startInspection": "معائنہ شروع کریں",
     "myActions": "میرے اقدامات",
-    "myApprovals": "میری منظوریاں"
+    "myApprovals": "میری منظوریاں",
+    "cards": {
+      "reportings": "رپورٹس",
+      "reportingsDesc": "واقعات اور مشاہدات کی رپورٹ کریں",
+      "myActions": "میرے اقدامات",
+      "myActionsDesc": "اپنے تفویض کردہ اقدامات دیکھیں اور منظم کریں",
+      "emergencyResponse": "ایمرجنسی رسپانس",
+      "emergencyResponseDesc": "ایمرجنسی پروٹوکول تک رسائی",
+      "dashboards": "ڈیش بورڈز",
+      "dashboardsDesc": "تجزیات اور رپورٹس دیکھیں",
+      "shiftPlan": "شفٹ پلان",
+      "shiftPlanDesc": "اپنا شفٹ شیڈول دیکھیں",
+      "myLocations": "میرے مقامات",
+      "myLocationsDesc": "تفویض کردہ زونز دیکھیں",
+      "gateOperation": "گیٹ آپریشن",
+      "gateOperationDesc": "گیٹ تک رسائی کا انتظام",
+      "patrol": "گشت",
+      "patrolDesc": "گشت شروع یا دیکھیں",
+      "myApprovals": "میری منظوریاں",
+      "myApprovalsDesc": "زیر التواء منظوریوں کا جائزہ",
+      "inspections": "معائنہ",
+      "inspectionsDesc": "معائنہ کریں",
+      "myShift": "میری شفٹ",
+      "myShiftDesc": "اپنی موجودہ شفٹ دیکھیں"
+    }
   },
   "platformSettings": {
     "title": "پلیٹ فارم کی ترتیبات",
@@ -6022,7 +6099,14 @@
     "analysisComplete": "اے آئی نے قسم اور خطرے کی سطح تجویز کی",
     "noSiteNearby": "قریب کوئی رجسٹرڈ جگہ نہیں",
     "canSubmitWithoutLocation": "آپ مقام کے بغیر بھی جمع کر سکتے ہیں",
-    "locationOptional": "مقام اختیاری ہے"
+    "locationOptional": "مقام اختیاری ہے",
+    "observationDate": "مشاہدے کی تاریخ",
+    "observationTime": "مشاہدے کا وقت",
+    "validation": {
+      "dateRequired": "تاریخ ضروری ہے",
+      "timeRequired": "وقت ضروری ہے",
+      "futureDateNotAllowed": "مستقبل کی تاریخیں منظور نہیں"
+    }
   },
   "positiveObservation": {
     "recognitionType": "آپ کس کی تعریف کرنا چاہتے ہیں؟",

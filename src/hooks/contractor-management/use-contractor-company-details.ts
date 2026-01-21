@@ -14,24 +14,12 @@ export interface ContractorCompanyDetails {
   address: string | null;
   city: string | null;
   status: string;
-  // New fields
+  // Contract fields
   scope_of_work: string | null;
   contract_start_date: string | null;
   contract_end_date: string | null;
   total_workers: number;
   safety_officers_count: number;
-  // Contractor personnel - site rep
-  contractor_site_rep_name: string | null;
-  contractor_site_rep_phone: string | null;
-  contractor_site_rep_email: string | null;
-  contractor_site_rep_national_id: string | null;
-  contractor_site_rep_mobile: string | null;
-  contractor_site_rep_nationality: string | null;
-  contractor_site_rep_photo: string | null;
-  // Contractor personnel - safety officer (legacy single)
-  contractor_safety_officer_name: string | null;
-  contractor_safety_officer_phone: string | null;
-  contractor_safety_officer_email: string | null;
   // Client representative
   client_site_rep_id: string | null;
   client_site_rep?: { id: string; full_name: string; email: string | null } | null;
@@ -63,9 +51,6 @@ export function useContractorCompanyDetails(companyId: string | null) {
           vat_number, email, phone, address, city, status,
           scope_of_work, contract_start_date, contract_end_date,
           total_workers, safety_officers_count,
-          contractor_site_rep_name, contractor_site_rep_phone, contractor_site_rep_email,
-          contractor_site_rep_national_id, contractor_site_rep_mobile, contractor_site_rep_nationality, contractor_site_rep_photo,
-          contractor_safety_officer_name, contractor_safety_officer_phone, contractor_safety_officer_email,
           client_site_rep_id, assigned_branch_id, assigned_department_id, assigned_section_id,
           created_at, updated_at
         `)
@@ -169,6 +154,11 @@ export function useDepartments(branchId?: string | null) {
         .eq("tenant_id", profile?.tenant_id!)
         .is("deleted_at", null)
         .order("name");
+
+      // Apply branch filter - include branch-specific + hybrid (null branch_id)
+      if (branchId) {
+        query = query.or(`branch_id.eq.${branchId},branch_id.is.null`);
+      }
 
       const { data, error } = await query;
       if (error) throw error;

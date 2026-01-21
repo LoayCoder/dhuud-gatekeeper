@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -35,7 +35,8 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useCreateIncident, type IncidentFormData, type ClosedOnSpotPayload } from '@/hooks/use-incidents';
-import { useTenantSites, useTenantBranches, useTenantDepartments } from '@/hooks/use-org-hierarchy';
+import { useTenantSites, useTenantBranches } from '@/hooks/use-org-hierarchy';
+import { useDepartmentsBySite } from '@/hooks/use-departments-by-site';
 import { useLinkAssetToIncident } from '@/hooks/use-incident-assets';
 import { useIncidentAIValidator } from '@/hooks/use-incident-ai-validator';
 import { AIIncidentAnalysisPanel } from '@/components/incidents/AIIncidentAnalysisPanel';
@@ -176,7 +177,6 @@ export default function IncidentReport() {
   const { fetchAddress: fetchLocationAddress, isLoading: isFetchingAddress } = useReverseGeocode();
   const { data: sites = [], isLoading: sitesLoading } = useTenantSites();
   const { data: branches = [], isLoading: branchesLoading } = useTenantBranches();
-  const { data: departments = [], isLoading: departmentsLoading } = useTenantDepartments();
   // Dynamic event categories from database
   const { data: dynamicCategories = [] } = useActiveEventCategories();
   
@@ -219,9 +219,43 @@ export default function IncidentReport() {
   const eventType = form.watch('event_type');
   const incidentType = form.watch('incident_type');
   const isAgainstContractor = form.watch('is_against_contractor');
+  const selectedBranchId = form.watch('branch_id');
+  const selectedSiteId = form.watch('site_id');
   
   // Helper: Is this an observation (simplified workflow)?
   const isObservation = eventType === 'observation';
+
+  // Cascading filters: Filter sites by selected branch
+  const filteredSites = useMemo(() => {
+    if (!selectedBranchId) return sites;
+    return sites.filter(site => site.branch_id === selectedBranchId);
+  }, [sites, selectedBranchId]);
+
+  // Site-aware department filtering with fallback to branch departments
+  const { 
+    departments: filteredDepartments, 
+    isLoading: departmentsLoading,
+    usingFallback: departmentsUsingFallback,
+    primaryDepartmentId: sitePrimaryDepartmentId
+  } = useDepartmentsBySite(selectedSiteId, selectedBranchId);
+
+  // Auto-select primary department when site has one configured
+  useEffect(() => {
+    if (sitePrimaryDepartmentId && !form.getValues('department_id')) {
+      form.setValue('department_id', sitePrimaryDepartmentId);
+    }
+  }, [sitePrimaryDepartmentId, form]);
+
+  // Reset department when site changes (cascade reset)
+  useEffect(() => {
+    const currentDeptId = form.getValues('department_id');
+    if (currentDeptId && filteredDepartments.length > 0) {
+      const deptStillValid = filteredDepartments.some(d => d.id === currentDeptId);
+      if (!deptStillValid) {
+        form.setValue('department_id', '');
+      }
+    }
+  }, [selectedSiteId, filteredDepartments, form]);
 
   // Dynamic subtypes from database
   const { data: dynamicSubtypes = [] } = useActiveEventSubtypes(
@@ -613,8 +647,8 @@ export default function IncidentReport() {
       location_formatted: locationAddress?.formatted_address || undefined,
       // Include active major event if detected
       special_event_id: activeEventId || undefined,
-      // Report against contractor
-      related_contractor_company_id: !isObs && values.is_against_contractor ? values.related_contractor_company_id : undefined,
+      // Report against contractor - applies to BOTH incidents AND observations
+      related_contractor_company_id: values.is_against_contractor ? values.related_contractor_company_id : undefined,
       // AI Tags - linked to contractor or department
       tags: selectedTags.length > 0 ? selectedTags : undefined,
     };
@@ -1132,14 +1166,14 @@ export default function IncidentReport() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Site with GPS Detection */}
+                  {/* Branch (FIRST) */}
                   <FormField
                     control={form.control}
-                    name="site_id"
+                    name="branch_id"
                     render={({ field }) => (
                       <FormItem>
                         <div className="flex items-center justify-between">
-                          <FormLabel>{t('incidents.site')}</FormLabel>
+                          <FormLabel>{t('incidents.branch')}</FormLabel>
                           <Button
                             type="button"
                             variant="outline"
@@ -1159,53 +1193,13 @@ export default function IncidentReport() {
                         <Select 
                           onValueChange={(value) => {
                             field.onChange(value);
-                            setAutoDetectedSite(false);
-                            setGpsDetectedSite(null);
-                            setGpsLocationConfirmed(false);
-                          }} 
-                          value={field.value} 
-                          dir={direction}
-                          disabled={sitesLoading}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={sitesLoading ? t('common.loading') : t('incidents.selectSite')} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {sites.map((site) => (
-                              <SelectItem key={site.id} value={site.id}>
-                                {site.name}
-                                {site.branch_name && ` (${site.branch_name})`}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        
-                        {autoDetectedSite && !gpsDetectedSite && field.value && (
-                          <FormDescription className="flex items-center gap-1 text-info">
-                            <Info className="h-3 w-3" />
-                            {t('incidents.autoDetectedFromProfile')}
-                          </FormDescription>
-                        )}
-                        
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Branch */}
-                  <FormField
-                    control={form.control}
-                    name="branch_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('incidents.branch')}</FormLabel>
-                        <Select 
-                          onValueChange={(value) => {
-                            field.onChange(value);
+                            // Clear dependent fields when branch changes
+                            form.setValue('site_id', '');
+                            form.setValue('department_id', '');
                             setAutoDetectedBranch(false);
                             setGpsDetectedBranch(false);
+                            setGpsDetectedSite(null);
+                            setGpsLocationConfirmed(false);
                           }} 
                           value={field.value} 
                           dir={direction}
@@ -1241,6 +1235,58 @@ export default function IncidentReport() {
                     )}
                   />
 
+                  {/* Site (filtered by selected branch) */}
+                  <FormField
+                    control={form.control}
+                    name="site_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('incidents.site')}</FormLabel>
+                        <Select 
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            setAutoDetectedSite(false);
+                            setGpsDetectedSite(null);
+                            setGpsLocationConfirmed(false);
+                          }} 
+                          value={field.value} 
+                          dir={direction}
+                          disabled={sitesLoading || !selectedBranchId}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={
+                                sitesLoading 
+                                  ? t('common.loading') 
+                                  : !selectedBranchId 
+                                    ? t('incidents.selectBranchFirst')
+                                    : filteredSites.length === 0
+                                      ? t('incidents.noSitesForBranch')
+                                      : t('incidents.selectSite')
+                              } />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {filteredSites.map((site) => (
+                              <SelectItem key={site.id} value={site.id}>
+                                {site.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        
+                        {autoDetectedSite && !gpsDetectedSite && field.value && (
+                          <FormDescription className="flex items-center gap-1 text-info">
+                            <Info className="h-3 w-3" />
+                            {t('incidents.autoDetectedFromProfile')}
+                          </FormDescription>
+                        )}
+                        
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   {/* Additional Location Details */}
                   <FormField
                     control={form.control}
@@ -1262,7 +1308,7 @@ export default function IncidentReport() {
                     )}
                   />
 
-                  {/* Responsible Department */}
+                  {/* Responsible Department (site-aware filtering with branch fallback) */}
                   <FormField
                     control={form.control}
                     name="department_id"
@@ -1273,15 +1319,25 @@ export default function IncidentReport() {
                           onValueChange={field.onChange} 
                           value={field.value} 
                           dir={direction}
-                          disabled={departmentsLoading}
+                          disabled={departmentsLoading || !selectedBranchId}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={departmentsLoading ? t('common.loading') : t('incidents.selectDepartment')} />
+                              <SelectValue placeholder={
+                                departmentsLoading 
+                                  ? t('common.loading') 
+                                  : !selectedBranchId 
+                                    ? t('incidents.selectBranchFirst')
+                                    : !selectedSiteId
+                                      ? t('incidents.selectSiteFirst', 'Select a site first')
+                                      : filteredDepartments.length === 0
+                                        ? t('incidents.noDepartmentsForSite', 'No departments for this site')
+                                        : t('incidents.selectDepartment')
+                              } />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {departments.map((dept) => (
+                            {filteredDepartments.map((dept) => (
                               <SelectItem key={dept.id} value={dept.id}>
                                 {dept.name}
                                 {dept.division_name && ` (${dept.division_name})`}
@@ -1289,6 +1345,15 @@ export default function IncidentReport() {
                             ))}
                           </SelectContent>
                         </Select>
+                        {/* Helper text indicating filtering mode */}
+                        {selectedSiteId && !departmentsLoading && filteredDepartments.length > 0 && (
+                          <FormDescription className="flex items-center gap-1 text-xs">
+                            <Info className="h-3 w-3" />
+                            {departmentsUsingFallback 
+                              ? t('incidents.showingBranchDepartments', 'Showing all branch departments')
+                              : t('incidents.showingSiteDepartments', 'Showing departments assigned to this site')}
+                          </FormDescription>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
@@ -1488,58 +1553,60 @@ export default function IncidentReport() {
                 </Card>
               )}
 
-              {/* Report Against Contractor - Only for Incidents */}
-              {!isObservation && (
-                <div className="space-y-4 p-4 bg-warning/5 border border-warning/20 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="h-5 w-5 text-warning" />
-                      <div>
-                        <span className="font-medium">{t('incidents.reportAgainstContractor')}</span>
-                        <p className="text-sm text-muted-foreground">{t('incidents.contractorViolationNote')}</p>
-                      </div>
+              {/* Report Against Contractor - For BOTH Incidents AND Observations */}
+              <div className="space-y-4 p-4 bg-warning/5 border border-warning/20 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-5 w-5 text-warning" />
+                    <div>
+                      <span className="font-medium">{t('incidents.reportAgainstContractor')}</span>
+                      <p className="text-sm text-muted-foreground">
+                        {isObservation 
+                          ? t('incidents.contractorObservationNote', 'This observation will be routed to the Contractor Consultant for screening')
+                          : t('incidents.contractorViolationNote')}
+                      </p>
                     </div>
-                    <Switch
-                      checked={isAgainstContractor}
-                      onCheckedChange={(checked) => {
-                        form.setValue('is_against_contractor', checked);
-                        if (!checked) {
-                          form.setValue('related_contractor_company_id', undefined);
-                        }
-                      }}
-                    />
                   </div>
-                  
-                  {isAgainstContractor && (
-                    <FormField
-                      control={form.control}
-                      name="related_contractor_company_id"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('incidents.contractorCompany')}</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value} dir={direction}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={t('incidents.selectContractorCompany')} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {contractorCompanies.filter(c => c.status === 'active').map((company) => (
-                                <SelectItem key={company.id} value={company.id}>
-                                  {i18n.language === 'ar' && company.company_name_ar 
-                                    ? company.company_name_ar 
-                                    : company.company_name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
+                  <Switch
+                    checked={isAgainstContractor}
+                    onCheckedChange={(checked) => {
+                      form.setValue('is_against_contractor', checked);
+                      if (!checked) {
+                        form.setValue('related_contractor_company_id', undefined);
+                      }
+                    }}
+                  />
                 </div>
-              )}
+                
+                {isAgainstContractor && (
+                  <FormField
+                    control={form.control}
+                    name="related_contractor_company_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('incidents.contractorCompany')}</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value} dir={direction}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('incidents.selectContractorCompany')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {contractorCompanies.filter(c => c.status === 'active').map((company) => (
+                              <SelectItem key={company.id} value={company.id}>
+                                {i18n.language === 'ar' && company.company_name_ar 
+                                  ? company.company_name_ar 
+                                  : company.company_name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
 
               {/* Injury Details - Only for Incidents */}
               {!isObservation && (

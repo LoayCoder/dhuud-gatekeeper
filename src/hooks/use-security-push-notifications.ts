@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { logger } from '@/lib/logger';
 
 // Security roles that should receive emergency alerts
-const SECURITY_ROLES = ['security_guard', 'supervisor', 'hsse_manager', 'admin'];
+const SECURITY_ROLES = ['security_guard', 'security_supervisor', 'security_manager', 'security_shift_leader', 'hsse_manager', 'admin'];
 
 interface EmergencyAlertPayload {
   id: string;

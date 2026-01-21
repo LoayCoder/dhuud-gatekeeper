@@ -17,7 +17,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Plus, Loader2, CheckCircle2, Clock, AlertCircle, ChevronDown, Link2, Building2, User, Lock, Sparkles, Pencil, Trash2 } from "lucide-react";
 import { useCorrectiveActions, useCreateCorrectiveAction, useUpdateCorrectiveAction, useDeleteCorrectiveAction, CorrectiveAction } from "@/hooks/use-investigation";
 import { useInvestigation } from "@/hooks/use-investigation";
-import { useTenantDepartments } from "@/hooks/use-org-hierarchy";
+import { useDepartmentsByBranch } from "@/hooks/use-departments-by-site";
 import { useDepartmentUsers, useTenantUsers } from "@/hooks/use-department-users";
 import { useRCAAI } from "@/hooks/use-rca-ai";
 import { useIncident } from "@/hooks/use-incidents";
@@ -62,9 +62,20 @@ interface ActionsPanelProps {
   incidentStatus?: string | null;
   canEdit?: boolean;
   onActionChange?: () => void;
+  /** External trigger to open the action creation dialog */
+  openDialogTrigger?: boolean;
+  /** Callback when dialog trigger is consumed */
+  onDialogTriggered?: () => void;
 }
 
-export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp, onActionChange }: ActionsPanelProps) {
+export function ActionsPanel({ 
+  incidentId, 
+  incidentStatus, 
+  canEdit: canEditProp, 
+  onActionChange,
+  openDialogTrigger,
+  onDialogTriggered
+}: ActionsPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -77,10 +88,35 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp,
   // Read-only mode when incident is closed OR canEdit prop is explicitly false
   const isLocked = incidentStatus === 'closed' || canEditProp === false;
 
+  // Handle external dialog trigger from parent (e.g., ConsultantReviewCard "Create Action" button)
+  useEffect(() => {
+    console.log('[ActionsPanel] Dialog trigger check:', { 
+      openDialogTrigger, 
+      isLocked, 
+      canEditProp,
+      incidentStatus 
+    });
+    
+    if (openDialogTrigger) {
+      if (!isLocked) {
+        console.log('[ActionsPanel] Opening dialog');
+        setEditingAction(null);
+        setDialogOpen(true);
+      } else {
+        console.warn('[ActionsPanel] Cannot open dialog - locked. canEdit:', canEditProp);
+      }
+      // Always consume the trigger to prevent state buildup
+      onDialogTriggered?.();
+    }
+  }, [openDialogTrigger, isLocked, canEditProp, incidentStatus, onDialogTriggered]);
+
   const { data: actions, isLoading } = useCorrectiveActions(incidentId);
   const { data: investigation } = useInvestigation(incidentId);
   const { data: incident } = useIncident(incidentId);
-  const { data: departments } = useTenantDepartments();
+  
+  // Filter departments by the incident's branch for proper hierarchy compliance
+  const incidentBranchId = incident?.branch_id;
+  const { data: departments } = useDepartmentsByBranch(incidentBranchId || undefined);
   const { data: departmentUsers } = useDepartmentUsers(selectedDepartmentId);
   const { data: allUsers } = useTenantUsers();
   const createAction = useCreateCorrectiveAction();

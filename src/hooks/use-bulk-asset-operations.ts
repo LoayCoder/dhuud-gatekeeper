@@ -113,25 +113,16 @@ export function useBulkDelete() {
       if (!profile?.tenant_id || !user?.id) throw new Error('No tenant or user');
       if (assetIds.length === 0) throw new Error('No assets selected');
 
-      // Use SECURITY DEFINER function for each asset
-      // This handles cascading soft-delete of all related records
-      const results = await Promise.all(
-        assetIds.map(assetId => 
-          supabase.rpc('soft_delete_hsse_asset', { p_asset_id: assetId })
-        )
-      );
+      // Use bulk soft delete function for 7-day trash period
+      const { data, error } = await supabase
+        .rpc('bulk_soft_delete_assets', { p_asset_ids: assetIds });
 
-      // Check for errors
-      const errors = results.filter(r => r.error);
-      if (errors.length > 0) {
-        console.error('Bulk delete errors:', errors);
-        throw new Error(`Failed to delete ${errors.length} assets`);
-      }
-
-      return { count: assetIds.length };
+      if (error) throw error;
+      return { count: data as number };
     },
     onSuccess: ({ count }) => {
       queryClient.invalidateQueries({ queryKey: ['assets', profile?.tenant_id] });
+      queryClient.invalidateQueries({ queryKey: ['assets-trash', profile?.tenant_id] });
       queryClient.invalidateQueries({ queryKey: ['asset-dashboard-stats', profile?.tenant_id] });
       toast.success(t('assets.bulk.deleteSuccess', { count }));
     },

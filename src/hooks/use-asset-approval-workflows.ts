@@ -389,3 +389,70 @@ export function useDecidePurchaseRequest() {
     },
   });
 }
+
+// Hook to update purchase request
+export function useUpdatePurchaseRequest() {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<PurchaseRequest> & { id: string }) => {
+      const { data, error } = await (supabase as any)
+        .from("asset_purchase_requests")
+        .update(updates)
+        .eq("id", id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["purchase-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-purchase-requests"] });
+      toast({
+        title: t("common.success"),
+        description: t("purchaseRequest.updated", "Purchase request updated"),
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: t("common.error"),
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+// Hook to soft-delete purchase request (HSSA compliance)
+export function useDeletePurchaseRequest() {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase as any)
+        .from("asset_purchase_requests")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["purchase-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-purchase-requests"] });
+      toast({
+        title: t("common.success"),
+        description: t("purchaseRequest.deleted", "Purchase request deleted"),
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: t("common.error"),
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}

@@ -34,7 +34,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const returnTo = searchParams.get('returnTo') || '/';
-  const { tenantName, activeLogoUrl, activePrimaryColor, isCodeValidated, invitationEmail, clearInvitationData, refreshTenantData } = useTheme();
+  const { tenantName, activeLogoUrl, activePrimaryColor, isCodeValidated, invitationEmail, clearInvitationData, refreshTenantData, isRememberedTenant, clearRememberedTenant } = useTheme();
   const { resolvedTheme } = useNextTheme();
   const { checkPassword } = usePasswordBreachCheck();
   const { checkTrustedDevice } = useTrustedDevice();
@@ -439,7 +439,13 @@ export default function Login() {
         <Card className="w-full max-w-sm border-border/50 bg-card/80 shadow-lg backdrop-blur-sm sm:max-w-md">
           <CardHeader className="space-y-2 pb-4 text-center">
             <h1 className="text-lg font-semibold tracking-tight sm:text-xl">{displayName}</h1>
-            <p className="text-xs text-muted-foreground sm:text-sm">{t('auth.signInToAccount')}</p>
+            {isRememberedTenant ? (
+              <p className="text-xs text-muted-foreground sm:text-sm">
+                {t('auth.welcomeBackTo', { org: displayName })}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground sm:text-sm">{t('auth.signInToAccount')}</p>
+            )}
           </CardHeader>
 
           <CardContent className="space-y-4">
@@ -531,6 +537,19 @@ export default function Login() {
               </>
             )}
 
+            {/* Not your organization link - only shown when remembering a tenant */}
+            {isRememberedTenant && (
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={clearRememberedTenant}
+                  className="text-xs text-muted-foreground hover:text-foreground hover:underline"
+                >
+                  {t('auth.notYourOrganization')}
+                </button>
+              </div>
+            )}
+
             {/* Invite Code Link */}
             <div className="rounded-lg border border-dashed border-border/50 bg-muted/30 p-3 text-center">
               <p className="text-xs text-muted-foreground sm:text-sm">
@@ -539,7 +558,7 @@ export default function Login() {
               <Button
                 type="button"
                 variant="link"
-                onClick={() => navigate('/invite')}
+                onClick={() => navigate('/invite?newCode=true')}
                 className="h-auto p-0 text-xs font-medium text-primary sm:text-sm"
               >
                 {t('invite.enterCodeHere', 'Enter your code here')}

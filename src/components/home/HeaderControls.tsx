@@ -1,7 +1,10 @@
 import { useTranslation } from 'react-i18next';
-import { Globe, Sun, Moon } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Globe, Sun, Moon, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/ThemeContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,8 +21,14 @@ const LANGUAGES = [
   { code: 'fil', label: 'Filipino', dir: 'ltr' },
 ];
 
-export function HeaderControls() {
-  const { i18n } = useTranslation();
+interface HeaderControlsProps {
+  showLogout?: boolean;
+  className?: string;
+}
+
+export function HeaderControls({ showLogout = false, className }: HeaderControlsProps) {
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const { colorMode, setColorMode, resolvedMode } = useTheme();
 
   const handleLanguageChange = (langCode: string) => {
@@ -39,10 +48,19 @@ export function HeaderControls() {
     }
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast({
+      title: t('auth.loggedOut'),
+      description: t('auth.loggedOutMessage'),
+    });
+    navigate('/invite');
+  };
+
   const currentLang = LANGUAGES.find((l) => l.code === i18n.language) || LANGUAGES[0];
 
   return (
-    <div className="flex items-center gap-1">
+    <div className={cn("flex items-center gap-1", className)}>
       {/* Language Selector */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -86,6 +104,19 @@ export function HeaderControls() {
           <Moon className="h-5 w-5 text-muted-foreground" />
         )}
       </Button>
+
+      {/* Logout Button */}
+      {showLogout && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 rounded-lg"
+          onClick={handleLogout}
+          aria-label={t('auth.logout')}
+        >
+          <LogOut className="h-5 w-5 text-muted-foreground" />
+        </Button>
+      )}
     </div>
   );
 }

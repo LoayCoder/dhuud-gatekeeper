@@ -2,8 +2,13 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCachedProfile } from '@/hooks/use-cached-profile';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
-export function WelcomeCompact() {
+interface WelcomeCompactProps {
+  className?: string;
+}
+
+export function WelcomeCompact({ className }: WelcomeCompactProps) {
   const { t, i18n } = useTranslation();
   const { data: profile, isLoading } = useCachedProfile();
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -38,7 +43,7 @@ export function WelcomeCompact() {
   }
 
   return (
-    <div className="text-end">
+    <div className={cn("text-end", className)}>
       <p className="text-sm font-medium text-foreground">
         {t('home.welcome')}, {firstName} 👋
       </p>

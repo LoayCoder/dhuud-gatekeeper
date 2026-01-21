@@ -30,10 +30,10 @@ import {
   HeartPulse,
   Leaf
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useIncidents, useIncident } from "@/hooks/use-incidents";
-import { useInvestigation } from "@/hooks/use-investigation";
+import { useInvestigation, useCorrectiveActions } from "@/hooks/use-investigation";
 import { useIncidentClosureEligibility, useIncidentClosureApproval } from "@/hooks/use-incident-closure";
 import { useCanApproveInvestigation } from "@/hooks/use-hsse-workflow";
 import { usePendingIncidentApprovals } from "@/hooks/use-pending-approvals";
@@ -76,7 +76,7 @@ import {
   ClinicReviewCard,
   TeamInvestigationAssignmentStep
 } from "@/components/investigation";
-import { ActionDisputeReviewCard } from "@/components/investigation/contractor-workflow";
+import { ActionDisputeReviewCard, ConsultantReviewCard } from "@/components/investigation/contractor-workflow";
 import { HSSEEnforcementBanner } from "@/components/investigation/HSSEEnforcementBanner";
 import { ObservationWorkflowTracker } from "@/components/investigation/ObservationWorkflowTracker";
 import { ReopenIncidentDialog } from "@/components/investigation/ReopenIncidentDialog";
@@ -100,7 +100,13 @@ export default function InvestigationWorkspace() {
   const [showClosureDialog, setShowClosureDialog] = useState(false);
   const [showReopenDialog, setShowReopenDialog] = useState(false);
   const [viewMode, setViewMode] = useState<'my-pending' | 'all'>('my-pending');
+  const [showActionDialog, setShowActionDialog] = useState(false);
   const { profile, user } = useAuth();
+  const queryClient = useQueryClient();
+  
+  // Fetch corrective actions count for the selected incident
+  const { data: correctiveActions } = useCorrectiveActions(selectedIncidentId);
+  const actionsCount = correctiveActions?.length || 0;
 
   const { data: incidents, isLoading: loadingIncidents } = useIncidents();
   const { data: pendingApprovals, isLoading: loadingPending } = usePendingIncidentApprovals();
@@ -212,9 +218,28 @@ export default function InvestigationWorkspace() {
   // Investigation edit access control
   const editAccess = useInvestigationEditAccess(investigation, selectedIncident);
 
+  // Handler for Create Action button - switches to actions tab and triggers dialog
+  const handleCreateAction = () => {
+    setActiveTab('actions');
+    setShowActionDialog(true);
+  };
+
   const handleRefresh = () => {
+    // Refetch incident and investigation data
     refetchIncident();
     refetchInvestigation();
+    
+    // Invalidate ALL permission-related query caches to force fresh RPC calls
+    // This resolves stale cache issues for role-based access checks (e.g., Consultant Review card)
+    queryClient.invalidateQueries({ queryKey: ['can-review-consultant'] });
+    queryClient.invalidateQueries({ queryKey: ['can-screen-consultant'] });
+    queryClient.invalidateQueries({ queryKey: ['has-consultant-access'] });
+    queryClient.invalidateQueries({ queryKey: ['can-approve-investigation'] });
+    queryClient.invalidateQueries({ queryKey: ['pending-approvals'] });
+    queryClient.invalidateQueries({ queryKey: ['workflow-actors'] });
+    queryClient.invalidateQueries({ queryKey: ['investigation-edit-access'] });
+    
+    console.log('[Refresh] Invalidated all permission caches for incident:', selectedIncidentId);
   };
 
   // Type assertion for incident fields not in generated types yet
@@ -250,7 +275,14 @@ export default function InvestigationWorkspace() {
     'monitoring_30_day',
     'monitoring_60_day',
     'monitoring_90_day',
-    'pending_hsse_incident_validation'
+    'pending_hsse_incident_validation',
+    // Contractor consultant workflow statuses
+    'pending_consultant_screening',
+    'pending_consultant_review',
+    'pending_consultant_actions',
+    'pending_site_client_approval',
+    'pending_contractor_implementation',
+    'pending_consultant_verification',
   ].includes(status);
 
   // Filter incidents that need investigation (not closed status)
@@ -436,13 +468,22 @@ export default function InvestigationWorkspace() {
           />
         );
 
-      // --- NEW CONTRACTOR OBSERVATION WORKFLOW STATUSES ---
+      // --- CONTRACTOR OBSERVATION WORKFLOW STATUSES ---
       
+      // Legacy status (expert_screening) and new status (pending_consultant_screening)
+      case 'expert_screening':
       case 'pending_consultant_screening':
+      case 'pending_consultant_review':
+      case 'pending_consultant_actions':
         return (
-          <DeptRepApprovalCard 
-            incident={incidentData} 
-            onComplete={handleRefresh} 
+          <ConsultantReviewCard 
+            incidentId={incidentData.id}
+            status={currentStatus}
+            severityLevel={(incidentData as any).severity_v2}
+            hasActions={actionsCount > 0}
+            actionsCount={actionsCount}
+            onActionCreated={handleCreateAction}
+            onComplete={handleRefresh}
           />
         );
 
@@ -522,8 +563,13 @@ export default function InvestigationWorkspace() {
     const status = selectedIncident.status as string;
     
     // Status-to-owner mapping
-    if (status === 'submitted' || status === 'pending_review' || status === 'expert_screening') {
+    if (status === 'submitted' || status === 'pending_review') {
       return { role: t('incidents.workflowOwners.hsse_expert', 'HSSE Expert'), name: null };
+    }
+    // Contractor Consultant screening statuses (expert_screening is legacy)
+    if (status === 'expert_screening' || status === 'pending_consultant_screening' || 
+        status === 'pending_consultant_review' || status === 'pending_consultant_actions') {
+      return { role: t('incidents.workflowOwners.consultant', 'Contractor Consultant'), name: null };
     }
     if (status === 'pending_manager_approval' || status === 'hsse_manager_escalation') {
       return { role: t('incidents.workflowOwners.department_manager', 'Department Manager'), name: null };
@@ -958,6 +1004,8 @@ export default function InvestigationWorkspace() {
                         incidentId={selectedIncidentId} 
                         incidentStatus={selectedIncident?.status}
                         canEdit={editAccess.canEdit}
+                        openDialogTrigger={showActionDialog}
+                        onDialogTriggered={() => setShowActionDialog(false)}
                       />
                       
                       {/* Submit Investigation Card - Only for investigator when in progress */}

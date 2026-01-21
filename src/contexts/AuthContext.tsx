@@ -313,28 +313,83 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // THEN check for existing session
     const initializeAuth = async () => {
       const isOnline = navigator.onLine;
-      const { data: { session: existingSession } } = await supabase.auth.getSession();
       
-      setSession(existingSession);
-      setUser(existingSession?.user ?? null);
-      
-      if (existingSession?.user) {
-        if (isOnline) {
-          // Online: fetch fresh data
-          await Promise.all([
-            fetchProfile(existingSession.user.id),
-            fetchUserRole(existingSession.user.id),
-            checkMFA()
-          ]);
-          setIsUsingCachedSession(false);
+      // Short-circuit verification when offline
+      if (!isOnline) {
+        logger.debug('Offline mode detected during auth initialization');
+
+        // Disable auto-refresh immediately
+        supabase.auth.stopAutoRefresh();
+
+        // Attempt to get session directly from local storage
+        const storedSession = sessionCache.getStoredAuthSession();
+
+        if (storedSession && storedSession.user) {
+          setSession(storedSession);
+          setUser(storedSession.user);
+          setIsUsingCachedSession(true);
+
+          // Try to restore full profile from IndexedDB cache
+          const restored = await restoreFromCache(storedSession.user.id);
+          if (restored) {
+            logger.info('Offline authentication successful via cache');
+          } else {
+            logger.warn('Offline auth: Session found but profile cache missing');
+          }
+
+          setIsLoading(false);
+          return;
         } else {
-          // Offline: try to restore from cache first
-          const restored = await restoreFromCache(existingSession.user.id);
-          if (!restored) {
-            // No cache available, can't fetch online either
-            logger.warn('Offline with no cached session - limited functionality');
+          logger.warn('Offline auth: No stored session found');
+        }
+      } else {
+        // Online: Ensure auto-refresh is on
+        supabase.auth.startAutoRefresh();
+      }
+
+      // Proceed with standard Supabase auth check (works for online, or fallback for offline if manual check failed)
+      // Note: getSession() might still throw if offline and logic above didn't catch it,
+      // but we handled the main offline case above.
+      try {
+        const { data: { session: existingSession }, error } = await supabase.auth.getSession();
+
+        if (error) {
+          // If network error, we might still be offline but navigator.onLine said true (flaky connection)
+          // Or real auth error.
+          logger.error('Auth check error:', error);
+          if (!isOnline) {
+             // Fallback again if somehow we got here offline
+             const storedSession = sessionCache.getStoredAuthSession();
+             if (storedSession) {
+                setSession(storedSession);
+                setUser(storedSession.user);
+                await restoreFromCache(storedSession.user.id);
+             }
+          }
+        } else {
+          setSession(existingSession);
+          setUser(existingSession?.user ?? null);
+
+          if (existingSession?.user) {
+            if (isOnline) {
+              // Online: fetch fresh data
+              await Promise.all([
+                fetchProfile(existingSession.user.id),
+                fetchUserRole(existingSession.user.id),
+                checkMFA()
+              ]);
+              setIsUsingCachedSession(false);
+            } else {
+              // Offline fallback (unlikely to reach here due to short-circuit, but safe to keep)
+              const restored = await restoreFromCache(existingSession.user.id);
+              if (!restored) {
+                logger.warn('Offline with no cached session - limited functionality');
+              }
+            }
           }
         }
+      } catch (err) {
+        logger.error('Unexpected auth initialization error:', err);
       }
       
       setIsLoading(false);
@@ -342,7 +397,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initializeAuth();
 
-    return () => subscription.unsubscribe();
+    // Event listeners for online/offline to toggle auto-refresh
+    const handleOnline = () => {
+      logger.info('Network restored - enabling auth auto-refresh');
+      supabase.auth.startAutoRefresh();
+      // Optionally trigger a session refresh here if needed
+    };
+
+    const handleOffline = () => {
+      logger.info('Network lost - disabling auth auto-refresh');
+      supabase.auth.stopAutoRefresh();
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, [cacheCurrentSession, restoreFromCache]);
 
   const value: AuthContextType = {

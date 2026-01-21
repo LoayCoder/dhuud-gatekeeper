@@ -15,8 +15,18 @@ export interface AssetWithGPS {
   gps_accuracy: number | null;
   gps_validated_at: string | null;
   location_verified: boolean | null;
-  site?: { id: string; name: string } | null;
+  site?: { id: string; name: string; latitude: number | null; longitude: number | null } | null;
   category?: { id: string; name: string; name_ar: string | null } | null;
+  // Computed fields for location fallback
+  effective_lat: number | null;
+  effective_lng: number | null;
+  location_source: 'asset' | 'site' | null;
+  // Overdue status fields
+  next_inspection_due: string | null;
+  isInspectionOverdue: boolean;
+  isMaintenanceOverdue: boolean;
+  daysInspectionOverdue: number | null;
+  daysMaintenanceOverdue: number | null;
 }
 
 interface UseAssetsWithGPSFilters {
@@ -33,18 +43,18 @@ export function useAssetsWithGPS(filters: UseAssetsWithGPSFilters = {}) {
     queryFn: async () => {
       if (!tenantId) return [];
 
+      // Fetch assets with site and category
       let query = supabase
         .from('hsse_assets')
         .select(`
           id, asset_code, name, status,
           gps_lat, gps_lng, gps_accuracy, gps_validated_at, location_verified,
-          site:sites!hsse_assets_site_id_fkey(id, name),
+          next_inspection_due,
+          site:sites!hsse_assets_site_id_fkey(id, name, latitude, longitude),
           category:asset_categories!hsse_assets_category_id_fkey(id, name, name_ar)
         `)
         .eq('tenant_id', tenantId)
-        .is('deleted_at', null)
-        .not('gps_lat', 'is', null)
-        .not('gps_lng', 'is', null);
+        .is('deleted_at', null);
 
       if (filters.siteId) {
         query = query.eq('site_id', filters.siteId);
@@ -56,7 +66,62 @@ export function useAssetsWithGPS(filters: UseAssetsWithGPSFilters = {}) {
       const { data, error } = await query.order('name');
 
       if (error) throw error;
-      return data as AssetWithGPS[];
+
+      // Fetch overdue maintenance schedules
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+      
+      const { data: overdueMaintenanceData } = await supabase
+        .from('asset_maintenance_schedules')
+        .select('asset_id, next_due')
+        .eq('tenant_id', tenantId)
+        .eq('is_active', true)
+        .is('deleted_at', null)
+        .lt('next_due', todayStr);
+
+      // Create a map of asset IDs to their overdue maintenance days
+      const overdueMaintenanceMap = new Map<string, number>();
+      overdueMaintenanceData?.forEach(m => {
+        if (m.next_due) {
+          const daysOverdue = Math.floor((today.getTime() - new Date(m.next_due).getTime()) / (1000 * 60 * 60 * 24));
+          const existing = overdueMaintenanceMap.get(m.asset_id);
+          // Keep the highest overdue days if multiple schedules
+          if (!existing || daysOverdue > existing) {
+            overdueMaintenanceMap.set(m.asset_id, daysOverdue);
+          }
+        }
+      });
+
+      // Compute effective coordinates with site fallback and overdue status
+      const assetsWithEffectiveLocation = (data || []).map(asset => {
+        const hasOwnGPS = asset.gps_lat !== null && asset.gps_lng !== null;
+        const hasSiteGPS = asset.site?.latitude !== null && asset.site?.longitude !== null;
+        
+        const isInspectionOverdue = asset.next_inspection_due 
+          ? asset.next_inspection_due < todayStr 
+          : false;
+        const daysInspectionOverdue = asset.next_inspection_due && asset.next_inspection_due < todayStr
+          ? Math.floor((today.getTime() - new Date(asset.next_inspection_due).getTime()) / (1000 * 60 * 60 * 24))
+          : null;
+        
+        const maintenanceDaysOverdue = overdueMaintenanceMap.get(asset.id);
+        
+        return {
+          ...asset,
+          effective_lat: hasOwnGPS ? asset.gps_lat : (hasSiteGPS ? asset.site!.latitude : null),
+          effective_lng: hasOwnGPS ? asset.gps_lng : (hasSiteGPS ? asset.site!.longitude : null),
+          location_source: hasOwnGPS ? 'asset' as const : (hasSiteGPS ? 'site' as const : null),
+          isInspectionOverdue,
+          daysInspectionOverdue,
+          isMaintenanceOverdue: maintenanceDaysOverdue !== undefined,
+          daysMaintenanceOverdue: maintenanceDaysOverdue ?? null,
+        };
+      });
+      
+      // Only return assets that have SOME location (either own or site)
+      return assetsWithEffectiveLocation.filter(
+        a => a.effective_lat !== null && a.effective_lng !== null
+      ) as AssetWithGPS[];
     },
     enabled: !!tenantId,
   });

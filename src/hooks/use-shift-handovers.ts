@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { Json } from '@/integrations/supabase/types';
 
 export interface OutstandingIssue {
@@ -87,12 +88,18 @@ const HANDOVER_SELECT = `
 `;
 
 export function useShiftHandovers(dateFilter?: string) {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
   return useQuery({
-    queryKey: ['shift-handovers', dateFilter],
+    queryKey: ['shift-handovers', tenantId, dateFilter],
     queryFn: async () => {
+      if (!tenantId) return [];
+
       let query = supabase
         .from('shift_handovers')
         .select(HANDOVER_SELECT)
+        .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('handover_time', { ascending: false });
 
@@ -104,6 +111,7 @@ export function useShiftHandovers(dateFilter?: string) {
       if (error) throw error;
       return data as unknown as ShiftHandover[];
     },
+    enabled: !!tenantId,
   });
 }
 
@@ -113,12 +121,18 @@ export function useTodaysHandovers() {
 }
 
 export function usePendingHandovers() {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
   return useQuery({
-    queryKey: ['shift-handovers', 'pending'],
+    queryKey: ['shift-handovers', tenantId, 'pending'],
     queryFn: async () => {
+      if (!tenantId) return [];
+
       const { data, error } = await supabase
         .from('shift_handovers')
         .select(HANDOVER_SELECT)
+        .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .eq('status', 'pending')
         .order('handover_time', { ascending: false });
@@ -126,16 +140,23 @@ export function usePendingHandovers() {
       if (error) throw error;
       return data as unknown as ShiftHandover[];
     },
+    enabled: !!tenantId,
   });
 }
 
 export function usePendingApprovalHandovers() {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
   return useQuery({
-    queryKey: ['shift-handovers', 'pending-approval'],
+    queryKey: ['shift-handovers', tenantId, 'pending-approval'],
     queryFn: async () => {
+      if (!tenantId) return [];
+
       const { data, error } = await supabase
         .from('shift_handovers')
         .select(HANDOVER_SELECT)
+        .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .eq('requires_approval', true)
         .eq('status', 'pending')
@@ -144,16 +165,23 @@ export function usePendingApprovalHandovers() {
       if (error) throw error;
       return data as unknown as ShiftHandover[];
     },
+    enabled: !!tenantId,
   });
 }
 
 export function useVacationResignationHandovers() {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
   return useQuery({
-    queryKey: ['shift-handovers', 'vacation-resignation'],
+    queryKey: ['shift-handovers', tenantId, 'vacation-resignation'],
     queryFn: async () => {
+      if (!tenantId) return [];
+
       const { data, error } = await supabase
         .from('shift_handovers')
         .select(HANDOVER_SELECT)
+        .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .in('handover_type', ['vacation', 'resignation'])
         .order('handover_time', { ascending: false });
@@ -161,6 +189,7 @@ export function useVacationResignationHandovers() {
       if (error) throw error;
       return data as unknown as ShiftHandover[];
     },
+    enabled: !!tenantId,
   });
 }
 
@@ -182,9 +211,13 @@ export function useCreateShiftHandover() {
       handover_type?: 'standard' | 'vacation' | 'resignation';
       requires_approval?: boolean;
     }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('id, tenant_id')
+        .eq('id', user.id)
         .single();
 
       if (!profile?.tenant_id) throw new Error('No tenant found');
@@ -235,9 +268,13 @@ export function useAcknowledgeHandover() {
 
   return useMutation({
     mutationFn: async (params: { handoverId: string; incoming_signature: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('id')
+        .eq('id', user.id)
         .single();
 
       const { data, error } = await supabase
@@ -276,9 +313,13 @@ export function useApproveHandover() {
 
   return useMutation({
     mutationFn: async (params: { handoverId: string; followupGuardId: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('id')
+        .eq('id', user.id)
         .single();
 
       const { data, error } = await supabase
@@ -316,9 +357,13 @@ export function useRejectHandover() {
 
   return useMutation({
     mutationFn: async (params: { handoverId: string; reason: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('id')
+        .eq('id', user.id)
         .single();
 
       const { data, error } = await supabase

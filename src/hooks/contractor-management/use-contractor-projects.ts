@@ -15,7 +15,9 @@ export interface ContractorProject {
   project_code: string;
   project_name: string;
   project_name_ar: string | null;
+  branch_id: string | null;
   site_id: string | null;
+  department_id: string | null;
   location_description: string | null;
   start_date: string;
   end_date: string;
@@ -31,7 +33,9 @@ export interface ContractorProject {
   created_at: string;
   updated_at: string;
   company?: { company_name: string } | null;
+  branch?: { name: string } | null;
   site?: { name: string } | null;
+  department?: { name: string } | null;
   project_manager?: { id: string; full_name: string } | null;
 }
 
@@ -54,12 +58,14 @@ export function useContractorProjects(filters: ContractorProjectFilters = {}) {
         .from("contractor_projects")
         .select(`
           id, tenant_id, company_id, project_code, project_name, project_name_ar,
-          site_id, location_description, start_date, end_date, status,
+          branch_id, site_id, department_id, location_description, start_date, end_date, status,
           assigned_workers_count, required_safety_officers, notes, project_manager_id,
           latitude, longitude, boundary_polygon, geofence_radius_meters,
           created_at, updated_at,
           company:contractor_companies(company_name),
+          branch:branches(name),
           site:sites(name),
+          department:departments(name),
           project_manager:profiles!contractor_projects_project_manager_id_fkey(id, full_name)
         `)
         .eq("tenant_id", tenantId)
@@ -98,7 +104,9 @@ export function useCreateContractorProject() {
         project_code: data.project_code!,
         project_name: data.project_name!,
         project_name_ar: data.project_name_ar,
+        branch_id: data.branch_id,
         site_id: data.site_id,
+        department_id: data.department_id,
         location_description: data.location_description,
         start_date: data.start_date!,
         end_date: data.end_date!,

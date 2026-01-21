@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Building2, User, ShieldCheck, Phone, Mail, Loader2, ChevronDown, MessageCircle } from "lucide-react";
+import { Building2, User, ShieldCheck, Phone, Mail, Loader2, ChevronDown, MessageCircle, Edit } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 interface ContractorPersonnelCardProps {
   companyId: string;
   companyName?: string;
+  onEditContractor?: () => void;
 }
 
 interface PersonnelRowProps {
@@ -119,7 +120,7 @@ function PersonnelRow({ icon, title, name, phone, email, isPrimary, showActionBu
   );
 }
 
-export function ContractorPersonnelCard({ companyId, companyName }: ContractorPersonnelCardProps) {
+export function ContractorPersonnelCard({ companyId, companyName, onEditContractor }: ContractorPersonnelCardProps) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(true);
   const { data: personnel, isLoading, error } = useContractorPersonnel(companyId);
@@ -143,27 +144,43 @@ export function ContractorPersonnelCard({ companyId, companyName }: ContractorPe
   return (
     <Card>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CollapsibleTrigger asChild>
-          <button className="w-full p-4 flex items-center justify-between hover:bg-muted/50 transition-colors rounded-t-lg">
-            <div className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-primary" />
-              <div className="text-start">
-                <h3 className="font-semibold text-foreground">
-                  {t('investigation.overview.contractorInformation', 'Contractor Information')}
-                </h3>
-                {displayName && (
-                  <p className="text-sm text-muted-foreground">{displayName}</p>
-                )}
+        <div className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors rounded-t-lg">
+          <CollapsibleTrigger asChild>
+            <button className="flex-1 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-primary" />
+                <div className="text-start">
+                  <h3 className="font-semibold text-foreground">
+                    {t('investigation.overview.contractorInformation', 'Contractor Information')}
+                  </h3>
+                  {displayName && (
+                    <p className="text-sm text-muted-foreground">{displayName}</p>
+                  )}
+                </div>
               </div>
-            </div>
-            <ChevronDown 
-              className={cn(
-                "h-5 w-5 text-muted-foreground transition-transform duration-200",
-                isOpen && "rotate-180"
-              )} 
-            />
-          </button>
-        </CollapsibleTrigger>
+              <ChevronDown 
+                className={cn(
+                  "h-5 w-5 text-muted-foreground transition-transform duration-200",
+                  isOpen && "rotate-180"
+                )} 
+              />
+            </button>
+          </CollapsibleTrigger>
+          {onEditContractor && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditContractor();
+              }}
+              className="h-7 gap-1.5 text-xs ms-2 shrink-0"
+            >
+              <Edit className="h-3 w-3" />
+              {t('common.change', 'Change')}
+            </Button>
+          )}
+        </div>
         <CollapsibleContent>
           <CardContent className="pt-0 pb-4">
             <div className="divide-y divide-border">

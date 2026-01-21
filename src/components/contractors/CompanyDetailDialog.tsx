@@ -6,15 +6,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Pencil, Building2, Mail, Phone, MapPin, FolderOpen, Info, Users, ShieldCheck, Calendar, Briefcase, User, Building, Star, Send, Loader2, Link2 } from "lucide-react";
+import { Pencil, Building2, Mail, Phone, MapPin, FolderOpen, Info, Users, ShieldCheck, Calendar, Briefcase, User, Building, Star, Loader2, Link2, UserPlus } from "lucide-react";
+import { toast } from "sonner";
 import { ContractorCompany } from "@/hooks/contractor-management/use-contractor-companies";
 import { useContractorCompanyDetails } from "@/hooks/contractor-management/use-contractor-company-details";
 import { useContractorSafetyOfficers } from "@/hooks/contractor-management/use-contractor-safety-officers";
 import { useContractorSiteRep } from "@/hooks/contractor-management/use-contractor-site-rep";
-import { useSendContractorIdCard } from "@/hooks/contractor-management/use-contractor-id-cards";
 import { ContractorDocumentUpload } from "./ContractorDocumentUpload";
 import { SafetyRatioAlert } from "./SafetyRatioAlert";
 import { ContractorRepUserLink } from "./ContractorRepUserLink";
+import { IDCardActionButton } from "@/components/id-cards";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -31,8 +32,7 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
   const { data: details } = useContractorCompanyDetails(company?.id ?? null);
   const { data: safetyOfficersFromTable = [] } = useContractorSafetyOfficers(company?.id ?? null);
   const { data: siteRepFromTable } = useContractorSiteRep(company?.id ?? null);
-  const sendIdCard = useSendContractorIdCard();
-  const [sendingPersonId, setSendingPersonId] = useState<string | null>(null);
+  const [sendingInvitation, setSendingInvitation] = useState(false);
 
   // Fetch contractor representatives for user linking
   const { data: representatives = [] } = useQuery({
@@ -79,13 +79,8 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
   // Use whichever source has data - prefer contractor_safety_officers table
   const safetyOfficers = safetyOfficersFromTable.length > 0 ? safetyOfficersFromTable : workerOfficers;
   
-  // Site rep: prefer new table, fallback to legacy details
-  const siteRep = siteRepFromTable || (details?.contractor_site_rep_name ? {
-    full_name: details.contractor_site_rep_name,
-    phone: details.contractor_site_rep_phone,
-    email: details.contractor_site_rep_email,
-    mobile_number: details.contractor_site_rep_mobile,
-  } : null);
+  // Site rep: from dedicated table only (no legacy fallback)
+  const siteRep = siteRepFromTable || null;
 
   if (!company) return null;
 
@@ -99,48 +94,64 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
     return item.name;
   };
 
-  const handleResendSiteRepCard = async () => {
-    const phone = siteRep?.mobile_number || siteRep?.phone || details?.contractor_site_rep_phone;
-    const name = siteRep?.full_name || details?.contractor_site_rep_name;
-    const email = siteRep?.email || details?.contractor_site_rep_email;
-    
-    if (!name || !phone) return;
-    
-    setSendingPersonId('site_rep');
-    try {
-      await sendIdCard.mutateAsync({
-        company_id: company.id,
-        tenant_id: company.tenant_id,
-        person_type: 'site_rep',
-        person_name: name,
-        person_phone: phone,
-        person_email: email || undefined,
-        company_name: company.company_name,
-        contract_end_date: details?.contract_end_date || undefined,
-      });
-    } finally {
-      setSendingPersonId(null);
-    }
+  // ID card person data helpers
+  const getSiteRepPersonData = () => {
+    if (!siteRep) return null;
+    return {
+      id: siteRep.id || 'site_rep',
+      fullName: siteRep.full_name || '',
+      company: company.company_name,
+      companyAr: company.company_name_ar || undefined,
+      role: t("contractors.companies.siteRepresentative", "Site Representative"),
+      roleAr: 'ممثل الموقع',
+      validUntil: details?.contract_end_date || undefined,
+      qrToken: `CONTRACTOR_REP:${siteRep.id || company.id}`,
+    };
   };
 
-  const handleResendOfficerCard = async (officer: { id: string; name: string; phone?: string | null; email?: string | null }) => {
-    if (!officer.phone) return;
+  const getOfficerPersonData = (officer: { id: string; name: string; phone?: string | null }) => ({
+    id: officer.id,
+    fullName: officer.name,
+    company: company.company_name,
+    companyAr: company.company_name_ar || undefined,
+    role: t("contractors.companies.safetyOfficer", "Safety Officer"),
+    roleAr: 'مسؤول السلامة',
+    validUntil: details?.contract_end_date || undefined,
+    qrToken: `CONTRACTOR_REP:${officer.id}`,
+  });
+
+  const handleSendPortalInvitation = async () => {
+    if (!company || company.status !== 'active') return;
     
-    setSendingPersonId(officer.id);
+    // Find the primary representative (site rep)
+    const primaryRep = representatives.find(r => r.is_primary);
+    if (!primaryRep) {
+      toast.error(t("contractors.invitation.noSiteRep", "No site representative found to invite"));
+      return;
+    }
+    
+    setSendingInvitation(true);
     try {
-      await sendIdCard.mutateAsync({
-        company_id: company.id,
-        tenant_id: company.tenant_id,
-        person_type: 'safety_officer',
-        safety_officer_id: officer.id,
-        person_name: officer.name,
-        person_phone: officer.phone,
-        person_email: officer.email || undefined,
-        company_name: company.company_name,
-        contract_end_date: details?.contract_end_date || undefined,
+      const { data, error } = await supabase.functions.invoke('send-contractor-invitation', {
+        body: {
+          company_id: company.id,
+          representative_id: primaryRep.id,
+          tenant_id: company.tenant_id,
+        },
       });
+      
+      if (error) throw error;
+      
+      toast.success(
+        t("contractors.invitation.sent", "Portal invitation sent to {{email}}", { email: primaryRep.email })
+      );
+      
+      queryClient.invalidateQueries({ queryKey: ["contractor-representatives-for-linking"] });
+    } catch (error) {
+      console.error('Failed to send invitation:', error);
+      toast.error(t("contractors.invitation.failed", "Failed to send portal invitation"));
     } finally {
-      setSendingPersonId(null);
+      setSendingInvitation(false);
     }
   };
 
@@ -310,20 +321,19 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
                         <User className="h-4 w-4 text-muted-foreground" />
                         {siteRep.full_name}
                       </div>
-                      {(siteRep.phone || siteRep.mobile_number) && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleResendSiteRepCard}
-                          disabled={sendingPersonId === 'site_rep'}
-                        >
-                          {sendingPersonId === 'site_rep' ? (
-                            <Loader2 className="h-4 w-4 animate-spin me-1" />
-                          ) : (
-                            <Send className="h-4 w-4 me-1" />
-                          )}
-                          {t("contractors.idCard.resend", "Send ID Card")}
-                        </Button>
+                      {(siteRep.phone || siteRep.mobile_number) && getSiteRepPersonData() && (
+                        <IDCardActionButton
+                          cardType="contractor_rep"
+                          entityId={siteRep.id || company.id}
+                          personData={getSiteRepPersonData()!}
+                          tenantId={company.tenant_id}
+                          tenantData={{
+                            id: company.tenant_id,
+                            name: company.company_name,
+                            nameAr: company.company_name_ar || undefined,
+                          }}
+                          recipientPhone={siteRep.mobile_number || siteRep.phone || undefined}
+                        />
                       )}
                     </div>
                     {(siteRep.mobile_number || siteRep.phone) && (
@@ -352,6 +362,23 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
               </CardContent>
             </Card>
 
+            {/* Send Portal Invitation Button - Only for active companies with site rep */}
+            {company.status === 'active' && siteRep && siteRep.email && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleSendPortalInvitation}
+                disabled={sendingInvitation}
+              >
+                {sendingInvitation ? (
+                  <Loader2 className="h-4 w-4 animate-spin me-2" />
+                ) : (
+                  <UserPlus className="h-4 w-4 me-2" />
+                )}
+                {t("contractors.invitation.sendButton", "Send Portal Invitation")}
+              </Button>
+            )}
+
             {/* Contractor Safety Officers */}
             <Card>
               <CardHeader className="pb-2">
@@ -377,19 +404,18 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
                           )}
                         </div>
                         {officer.phone && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleResendOfficerCard(officer)}
-                            disabled={sendingPersonId === officer.id}
-                          >
-                            {sendingPersonId === officer.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin me-1" />
-                            ) : (
-                              <Send className="h-4 w-4 me-1" />
-                            )}
-                            {t("contractors.idCard.resend", "Send ID Card")}
-                          </Button>
+                          <IDCardActionButton
+                            cardType="contractor_rep"
+                            entityId={officer.id}
+                            personData={getOfficerPersonData(officer)}
+                            tenantId={company.tenant_id}
+                            tenantData={{
+                              id: company.tenant_id,
+                              name: company.company_name,
+                              nameAr: company.company_name_ar || undefined,
+                            }}
+                            recipientPhone={officer.phone}
+                          />
                         )}
                       </div>
                       {officer.phone && (

@@ -1202,6 +1202,7 @@
   },
 "common": {
     "loading": "लोड हो रहा है...",
+    "phone": "फ़ोन",
     "save": "सहेजें",
     "cancel": "रद्द करें",
     "delete": "हटाएं",
@@ -1326,6 +1327,9 @@
   "auth": {
     "signIn": "साइन इन करें",
     "signOut": "लॉग आउट",
+    "logout": "लॉग आउट",
+    "loggedOut": "लॉग आउट हो गया",
+    "loggedOutMessage": "आप सफलतापूर्वक लॉग आउट हो गए हैं।",
     "signUp": "खाता बनाएं",
     "signingIn": "साइन इन हो रहा है...",
     "creatingAccount": "खाता बनाया जा रहा है...",
@@ -1346,16 +1350,44 @@
     "passwordsDoNotMatch": "पासवर्ड मेल नहीं खाते",
     "validationError": "सत्यापन त्रुटि",
     "error": "त्रुटि",
-    "failedToLogin": "लॉग इन विफल"
+    "failedToLogin": "लॉग इन विफल",
+    "accessDenied": "पहुंच अस्वीकृत",
+    "accountDeleted": "खाता निष्क्रिय",
+    "accountDeletedDesc": "आपका खाता निष्क्रिय कर दिया गया है। यदि आपको लगता है कि यह त्रुटि है तो कृपया अपने व्यवस्थापक से संपर्क करें।",
+    "accountInactive": "खाता निष्क्रिय",
+    "accountInactiveDesc": "आपका खाता वर्तमान में निष्क्रिय है। कृपया अपने व्यवस्थापक से संपर्क करें।",
+    "noProfile": "पहुंच नहीं",
+    "noProfileDesc": "आपको इस संगठन तक पहुंच नहीं है।",
+    "tenantAccessDenied": "आपको इस संगठन तक पहुंच नहीं है",
+    "sessionInvalidated": "सत्र समाप्त",
+    "sessionInvalidatedDesc": "आपका सत्र समाप्त कर दिया गया है। कृपया फिर से लॉग इन करें।",
+    "mfaRequiredForTenant": "इस संगठन के लिए दो-कारक प्रमाणीकरण आवश्यक है",
+    "orContinueWith": "या इसके साथ जारी रखें",
+    "signInWithGoogle": "Google से साइन इन करें",
+    "signingInWithGoogle": "साइन इन हो रहा है...",
+    "invitationRequired": "आमंत्रण आवश्यक",
+    "invitationRequiredDesc": "इस प्लेटफ़ॉर्म तक पहुंचने के लिए आपको आमंत्रण की आवश्यकता है। कृपया आमंत्रण कोड के लिए अपने व्यवस्थापक से संपर्क करें।",
+    "enterInvitationCode": "आमंत्रण कोड दर्ज करें",
+    "backToLogin": "लॉगिन पर वापस जाएं",
+    "oauthError": "प्रमाणीकरण त्रुटि",
+    "oauthErrorDesc": "Google से साइन इन करने में समस्या हुई। कृपया पुनः प्रयास करें।",
+    "biometricSuccess": "बायोमेट्रिक प्रमाणीकरण सफल",
+    "biometricFailed": "बायोमेट्रिक प्रमाणीकरण विफल",
+    "or": "या",
+    "signInWithBiometric": "बायोमेट्रिक से साइन इन करें"
   },
   "forgotPassword": {
     "title": "पासवर्ड भूल गए",
     "description": "अपना ईमेल पता दर्ज करें और हम आपको पासवर्ड रीसेट लिंक भेजेंगे।",
+    "emailSentDescription": "रीसेट लिंक के लिए अपना ईमेल जांचें",
     "sendResetLink": "रीसेट लिंक भेजें",
     "sending": "भेजा जा रहा है...",
     "success": "रीसेट लिंक भेज दिया गया",
     "successMessage": "पासवर्ड रीसेट लिंक के लिए अपना ईमेल जांचें।",
-    "backToLogin": "लॉगिन पर वापस जाएं"
+    "backToLogin": "लॉगिन पर वापस जाएं",
+    "checkYourEmail": "अपना ईमेल जांचें",
+    "emailSentMessage": "हमने आपको पासवर्ड रीसेट लिंक भेज दिया है। कृपया अपना इनबॉक्स जांचें।",
+    "sentTo": "हमने पासवर्ड रीसेट लिंक भेज दिया है"
   },
   "resetPassword": {
     "title": "पासवर्ड रीसेट करें",
@@ -1390,7 +1422,14 @@
     "setupCompleteMessage": "आपके खाते के लिए दो-कारक प्रमाणीकरण सक्षम हो गया।",
     "continueToDashboard": "डैशबोर्ड पर जारी रखें",
     "twoFactorEnabled": "2FA सक्षम हो गया",
-    "twoFactorEnabledMessage": "आपके खाते के लिए दो-कारक प्रमाणीकरण सक्षम हो गया।"
+    "twoFactorEnabledMessage": "आपके खाते के लिए दो-कारक प्रमाणीकरण सक्षम हो गया।",
+    "verifyIdentity": "अपनी पहचान सत्यापित करें",
+    "tenantVerifyDescription": "इस संगठन के लिए अपनी पहचान की पुष्टि करने के लिए अपने प्रमाणक ऐप से 6-अंकीय कोड दर्ज करें।",
+    "openAuthenticatorApp": "अपना प्रमाणक ऐप खोलें और इस खाते के लिए कोड दर्ज करें",
+    "verificationComplete": "सत्यापन पूर्ण",
+    "tenantVerificationCompleteMessage": "इस संगठन के लिए आपकी पहचान सत्यापित हो गई है।",
+    "alreadyEnabled": "2FA पहले से सक्षम है",
+    "alreadyEnabledMessage": "आपके खाते पर दो-कारक प्रमाणीकरण पहले से सक्षम है।"
   },
   "invite": {
     "title": "अपना आमंत्रण कोड दर्ज करें",
@@ -1415,7 +1454,14 @@
     "newUserMessage": "आपको शामिल होने के लिए आमंत्रित किया गया है",
     "failedToValidate": "आमंत्रण कोड सत्यापित करने में विफल",
     "codeRequired": "आमंत्रण कोड आवश्यक है",
-    "failedToVerifyUser": "उपयोगकर्ता स्थिति सत्यापित करने में विफल"
+    "failedToVerifyUser": "उपयोगकर्ता स्थिति सत्यापित करने में विफल",
+    "haveInviteCode": "क्या आपके पास आमंत्रण कोड है?",
+    "enterCodeHere": "अपना कोड यहां दर्ज करें"
+  },
+  "legal": {
+    "termsOfService": "सेवा की शर्तें",
+    "privacyPolicy": "गोपनीयता नीति",
+    "cookiePolicy": "कुकी नीति"
   },
   "signup": {
     "invalidInvitationData": "अमान्य आमंत्रण डेटा। कृपया फिर से शुरू करें।",
@@ -2855,6 +2901,8 @@
     "nameRequired": "नाम आवश्यक है।",
     "divisionRequired": "डिवीजन आवश्यक है",
     "departmentRequired": "विभाग आवश्यक है",
+    "departmentAlreadyExists": "इस नाम का विभाग चयनित शाखा और डिवीजन में पहले से मौजूद है।",
+    "sectionAlreadyExists": "इस नाम का अनुभाग चयनित शाखा और विभाग में पहले से मौजूद है।",
     "noTenant": "आपका खाता किसी संगठन से संबद्ध नहीं है।",
     "noItems": "कोई आइटम नहीं। ऊपर एक जोड़ें।",
     "department": "विभाग",
@@ -2906,7 +2954,12 @@
     "confirmBoundary": "सीमा की पुष्टि करें",
     "boundarySet": "सीमा सेट",
     "boundaryConfirmed": "सीमा की पुष्टि हो गई",
-    "boundaryConfirmedDescription": "सीमा परिवर्तनों को रखने के लिए 'सहेजें' पर क्लिक करें"
+    "boundaryConfirmedDescription": "सीमा परिवर्तनों को रखने के लिए 'सहेजें' पर क्लिक करें",
+    "filterByBranch": "शाखा से फ़िल्टर",
+    "allBranches": "सभी शाखाएं",
+    "allBranchesHybrid": "सभी शाखाएं (हाइब्रिड)",
+    "assignToBranch": "शाखा को असाइन करें",
+    "divisionName": "डिवीजन का नाम"
   },
   "userManagement": {
     "title": "उपयोगकर्ता प्रबंधन",
@@ -5918,7 +5971,31 @@
     "reportEvent": "घटना रिपोर्ट करें",
     "startInspection": "निरीक्षण शुरू करें",
     "myActions": "मेरी कार्रवाई",
-    "myApprovals": "मेरी स्वीकृतियां"
+    "myApprovals": "मेरी स्वीकृतियां",
+    "cards": {
+      "reportings": "रिपोर्टिंग",
+      "reportingsDesc": "घटनाओं और अवलोकनों की रिपोर्ट करें",
+      "myActions": "मेरी कार्रवाइयां",
+      "myActionsDesc": "अपनी असाइन की गई कार्रवाइयां देखें और प्रबंधित करें",
+      "emergencyResponse": "आपातकालीन प्रतिक्रिया",
+      "emergencyResponseDesc": "आपातकालीन प्रोटोकॉल तक पहुंचें",
+      "dashboards": "डैशबोर्ड",
+      "dashboardsDesc": "विश्लेषण और रिपोर्ट देखें",
+      "shiftPlan": "शिफ्ट योजना",
+      "shiftPlanDesc": "अपना शिफ्ट शेड्यूल देखें",
+      "myLocations": "मेरे स्थान",
+      "myLocationsDesc": "असाइन किए गए क्षेत्र देखें",
+      "gateOperation": "गेट संचालन",
+      "gateOperationDesc": "गेट पहुंच प्रबंधित करें",
+      "patrol": "गश्त",
+      "patrolDesc": "गश्त शुरू करें या देखें",
+      "myApprovals": "मेरी स्वीकृतियां",
+      "myApprovalsDesc": "लंबित स्वीकृतियों की समीक्षा करें",
+      "inspections": "निरीक्षण",
+      "inspectionsDesc": "निरीक्षण करें",
+      "myShift": "मेरी शिफ्ट",
+      "myShiftDesc": "अपनी वर्तमान शिफ्ट देखें"
+    }
   },
   "platformSettings": {
     "title": "प्लेटफ़ॉर्म सेटिंग्स",
@@ -6007,7 +6084,14 @@
     "analysisComplete": "एआई ने प्रकार और जोखिम स्तर सुझाया",
     "noSiteNearby": "पास में कोई पंजीकृत साइट नहीं",
     "canSubmitWithoutLocation": "आप स्थान के बिना भी सबमिट कर सकते हैं",
-    "locationOptional": "स्थान वैकल्पिक है"
+    "locationOptional": "स्थान वैकल्पिक है",
+    "observationDate": "अवलोकन तिथि",
+    "observationTime": "अवलोकन समय",
+    "validation": {
+      "dateRequired": "तिथि आवश्यक है",
+      "timeRequired": "समय आवश्यक है",
+      "futureDateNotAllowed": "भविष्य की तिथियां अनुमत नहीं हैं"
+    }
   },
   "positiveObservation": {
     "recognitionType": "आप किसे पहचान देना चाहते हैं?",

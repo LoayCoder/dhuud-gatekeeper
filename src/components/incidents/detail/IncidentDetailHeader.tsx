@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { 
@@ -9,7 +10,8 @@ import {
   Scale, 
   MoreHorizontal,
   Trash2,
-  Search
+  Search,
+  Edit
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { IncidentStatusBadge } from '@/components/incidents/IncidentStatusBadge';
+import { AdminEditObservationDialog } from '@/components/admin/AdminEditObservationDialog';
 import { getSeverityBadgeVariant } from '@/lib/hsse-severity-levels';
 import { cn } from '@/lib/utils';
 
@@ -33,16 +36,20 @@ interface IncidentDetailHeaderProps {
     status: string | null;
     severity_v2: string | null;
     potential_severity_v2?: string | null;
-    branch?: { name: string } | null;
-    site?: { name: string } | null;
+    branch_id?: string | null;
+    site_id?: string | null;
+    branch?: { id?: string; name: string } | null;
+    site?: { id?: string; name: string } | null;
     location?: string | null;
     occurred_at: string | null;
+    related_contractor_company_id?: string | null;
   };
   backPath: string;
   isAdmin: boolean;
   isPrinting: boolean;
   onPrint: (options?: { fullLegalMode?: boolean; includeFullAuditLog?: boolean }) => void;
   onDelete: () => void;
+  onRefresh?: () => void;
 }
 
 const getSeverityGradient = (severity: string | null): string => {
@@ -63,9 +70,11 @@ export function IncidentDetailHeader({
   isPrinting,
   onPrint,
   onDelete,
+  onRefresh,
 }: IncidentDetailHeaderProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   const locationBreadcrumb = [
     incident.branch?.name,
@@ -130,6 +139,12 @@ export function IncidentDetailHeader({
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
+                  onClick={() => setShowEditDialog(true)}
+                >
+                  <Edit className="h-4 w-4 me-2" />
+                  {t('admin.editObservation.menuItem', 'Edit Location & Assignment')}
+                </DropdownMenuItem>
+                <DropdownMenuItem 
                   onClick={onDelete}
                   className="text-destructive focus:text-destructive"
                 >
@@ -183,6 +198,22 @@ export function IncidentDetailHeader({
           </div>
         )}
       </div>
+
+      {/* Admin Edit Dialog */}
+      <AdminEditObservationDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        incident={{
+          id: incident.id,
+          branch_id: incident.branch_id,
+          site_id: incident.site_id,
+          related_contractor_company_id: incident.related_contractor_company_id,
+          branch: incident.branch,
+          site: incident.site,
+          status: incident.status,
+        }}
+        onSuccess={onRefresh}
+      />
     </div>
   );
 }

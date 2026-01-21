@@ -210,37 +210,176 @@ export function useAssetSubtypes(typeId: string | null) {
   });
 }
 
+// Helper: Get next available sequence number for an asset category
+// Handles BOTH old format (cat-0001) and new format (cat-2026-0001)
+// CRITICAL: Checks ALL records including soft-deleted to respect UNIQUE constraint
+export async function getNextAssetSequence(tenantId: string, categoryCode: string): Promise<number> {
+  const year = new Date().getFullYear();
+  // Clean category code (remove TEST- prefix if present)
+  const cleanCode = categoryCode.replace(/^TEST-/i, '').toLowerCase();
+  
+  console.log(`[AssetSeq] Finding next sequence for category: ${cleanCode}, tenant: ${tenantId}, year: ${year}`);
+  
+  // CRITICAL: Query ALL asset codes - do NOT filter by deleted_at
+  // The UNIQUE constraint (tenant_id, asset_code) applies to ALL rows
+  const { data, error } = await supabase
+    .from('hsse_assets')
+    .select('asset_code')
+    .eq('tenant_id', tenantId)
+    .ilike('asset_code', `${cleanCode}-%`)
+    .order('asset_code', { ascending: false })
+    .limit(500);
+  
+  if (error) {
+    console.error('[AssetSeq] Query error:', error);
+    throw error;
+  }
+  
+  console.log(`[AssetSeq] Found ${data?.length || 0} matching codes for pattern: ${cleanCode}-%`);
+  
+  if (!data || data.length === 0) {
+    console.log('[AssetSeq] No existing codes found, starting at sequence 1');
+    return 1;
+  }
+  
+  // Find the highest sequence number from all codes
+  let maxSeq = 0;
+  // Pattern for new format: category-YYYY-NNNN (e.g., fire_safety-2026-0001)
+  const newPatternRegex = new RegExp(`^${cleanCode}-(\\d{4})-(\\d+)$`, 'i');
+  // Pattern for old format: category-NNNN (e.g., fire_safety-00001)
+  const oldPatternRegex = new RegExp(`^${cleanCode}-(\\d+)$`, 'i');
+  
+  for (const row of data) {
+    const code = row.asset_code?.toLowerCase();
+    if (!code) continue;
+    
+    // Try new format first: cat-2026-0001
+    const newMatch = code.match(newPatternRegex);
+    if (newMatch) {
+      const codeYear = parseInt(newMatch[1], 10);
+      const seq = parseInt(newMatch[2], 10);
+      // For new format, only count current year sequences
+      if (codeYear === year && seq > maxSeq) {
+        maxSeq = seq;
+        console.log(`[AssetSeq] New format match: ${code} -> year ${codeYear}, seq ${seq}`);
+      }
+      continue;
+    }
+    
+    // Try old format: cat-00001
+    const oldMatch = code.match(oldPatternRegex);
+    if (oldMatch) {
+      const seq = parseInt(oldMatch[1], 10);
+      if (seq > maxSeq) {
+        maxSeq = seq;
+        console.log(`[AssetSeq] Old format match: ${code} -> seq ${seq}`);
+      }
+    }
+  }
+  
+  const nextSeq = maxSeq + 1;
+  console.log(`[AssetSeq] Max sequence found: ${maxSeq}, Next sequence: ${nextSeq}`);
+  
+  return nextSeq;
+}
+
+const MAX_CREATE_RETRIES = 3;
+
 export function useCreateAsset() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
-
-  const { user } = useAuth();
+  const { profile, user } = useAuth();
 
   return useMutation({
     mutationFn: async (asset: Omit<AssetInsert, 'tenant_id' | 'created_by'>) => {
       if (!profile?.tenant_id || !user?.id) throw new Error('No tenant or user');
 
-      const { data, error } = await supabase
-        .from('hsse_assets')
-        .insert({
-          ...asset,
-          tenant_id: profile.tenant_id,
-          created_by: user.id,
-        })
-        .select('id, asset_code')
-        .single();
+      let currentAsset = { ...asset };
+      let lastError: Error | null = null;
 
-      if (error) throw error;
-      return data;
+      for (let attempt = 1; attempt <= MAX_CREATE_RETRIES; attempt++) {
+        try {
+          // On retry attempts, regenerate the asset code
+          if (attempt > 1 && currentAsset.category_id) {
+            const { data: category } = await supabase
+              .from('asset_categories')
+              .select('code')
+              .eq('id', currentAsset.category_id)
+              .single();
+            
+            if (category) {
+              const nextSeq = await getNextAssetSequence(profile.tenant_id, category.code);
+              currentAsset.asset_code = generateAssetCode(category.code, nextSeq);
+              console.log(`Retry ${attempt}: Generated new code ${currentAsset.asset_code}`);
+            }
+          }
+
+          // CRITICAL: Check for duplicate including soft-deleted records
+          // because the UNIQUE constraint applies to ALL records
+          const { data: existing } = await supabase
+            .from('hsse_assets')
+            .select('id, deleted_at')
+            .eq('tenant_id', profile.tenant_id)
+            .eq('asset_code', currentAsset.asset_code)
+            // REMOVED: .is('deleted_at', null) - must check ALL records
+            .maybeSingle();
+
+          if (existing) {
+            console.log(`Code ${currentAsset.asset_code} exists (deleted: ${!!existing.deleted_at}), regenerating...`);
+            if (attempt < MAX_CREATE_RETRIES) {
+              continue; // Retry with new code
+            }
+            throw new Error(t('assets.duplicateCodeError', { 
+              code: currentAsset.asset_code,
+              defaultValue: `Asset code "${currentAsset.asset_code}" already exists. Please use a different code.`
+            }));
+          }
+
+          // Insert the asset
+          const { data, error } = await supabase
+            .from('hsse_assets')
+            .insert({
+              ...currentAsset,
+              tenant_id: profile.tenant_id,
+              created_by: user.id,
+            })
+            .select('id, asset_code')
+            .single();
+
+          if (error) {
+            // Handle unique constraint violation with retry
+            if (error.code === '23505' && attempt < MAX_CREATE_RETRIES) {
+              console.log(`Attempt ${attempt}: Constraint violation, retrying...`);
+              continue;
+            }
+            if (error.code === '23505') {
+              throw new Error(t('assets.duplicateCodeError', { 
+                code: currentAsset.asset_code,
+                defaultValue: `Asset code "${currentAsset.asset_code}" already exists. Please use a different code.`
+              }));
+            }
+            throw error;
+          }
+          
+          return data;
+        } catch (err: any) {
+          lastError = err;
+          // Only retry on constraint violations
+          if (err.code !== '23505' || attempt >= MAX_CREATE_RETRIES) {
+            throw err;
+          }
+        }
+      }
+      
+      throw lastError || new Error('Failed to create asset after retries');
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
       toast.success(t('assets.createSuccess', { code: data.asset_code }));
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Create asset error:', error);
-      toast.error(t('assets.createError'));
+      toast.error(error.message || t('assets.createError'));
     },
   });
 }
@@ -286,11 +425,12 @@ export function useUpdateAsset() {
 export function useDeleteAsset() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      // Use SECURITY DEFINER function to bypass RLS issues
-      // This also cascades soft-delete to all related records
+      // Use soft delete for 7-day trash period
+      // Assets can be restored within 7 days, then auto-deleted by cron
       const { error } = await supabase
         .rpc('soft_delete_hsse_asset', { p_asset_id: id });
 
@@ -298,12 +438,13 @@ export function useDeleteAsset() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
+      queryClient.invalidateQueries({ queryKey: ['assets-trash', profile?.tenant_id] });
       queryClient.invalidateQueries({ queryKey: ['asset-dashboard-stats'] });
-      toast.success(t('assets.deleteSuccess'));
+      toast.success(t('assets.trash.moveSuccess'));
     },
     onError: (error) => {
       console.error('Delete asset error:', error);
-      toast.error(t('assets.deleteError'));
+      toast.error(t('assets.trash.moveError'));
     },
   });
 }
@@ -464,17 +605,20 @@ export function useCreateBulkAssets() {
       const { baseAsset, quantity, startCode } = params;
       const codes = generateSequentialCodes(startCode, quantity);
       
-      // Check for existing codes to avoid duplicates
+      // CRITICAL: Check ALL records including soft-deleted
+      // because the UNIQUE constraint applies to ALL records
       const { data: existingAssets } = await supabase
         .from('hsse_assets')
-        .select('asset_code')
+        .select('asset_code, deleted_at')
         .eq('tenant_id', profile.tenant_id)
-        .in('asset_code', codes)
-        .is('deleted_at', null);
+        .in('asset_code', codes);
+        // REMOVED: .is('deleted_at', null) - must check ALL records
       
       if (existingAssets && existingAssets.length > 0) {
-        const duplicates = existingAssets.map(a => a.asset_code).join(', ');
-        throw new Error(`Asset codes already exist: ${duplicates}`);
+        const duplicates = existingAssets.map(a => 
+          `${a.asset_code}${a.deleted_at ? ' (deleted)' : ''}`
+        ).join(', ');
+        throw new Error(`Asset codes already exist: ${duplicates}. Please use a different starting code.`);
       }
       
       // Create assets array
@@ -485,12 +629,25 @@ export function useCreateBulkAssets() {
         created_by: user.id,
       }));
       
+      console.log(`[BulkCreate] Inserting ${assetsToInsert.length} assets:`, codes);
+      
       const { data, error } = await supabase
         .from('hsse_assets')
         .insert(assetsToInsert)
         .select('id, asset_code');
       
-      if (error) throw error;
+      if (error) {
+        console.error('[BulkCreate] Insert error:', error);
+        // Handle unique constraint violation with clearer message
+        if (error.code === '23505') {
+          throw new Error(t('assets.bulkConstraintError', {
+            defaultValue: 'One or more asset codes conflict with existing records. Please refresh the page and try again.'
+          }));
+        }
+        throw error;
+      }
+      
+      console.log(`[BulkCreate] Successfully created ${data.length} assets`);
       return data;
     },
     onSuccess: (data) => {

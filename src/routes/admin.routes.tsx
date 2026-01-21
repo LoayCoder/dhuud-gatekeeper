@@ -56,6 +56,7 @@ const InspectionCategorySettings = lazyWithRetry(() => import("@/pages/admin/Ins
 const HSSEValidationDashboard = lazyWithRetry(() => import("@/pages/admin/HSSEValidationDashboard"));
 const AssetCategorySettings = lazyWithRetry(() => import("@/pages/admin/AssetCategorySettings"));
 const BadgeManagement = lazyWithRetry(() => import("@/pages/admin/BadgeManagement"));
+const IDCardSettings = lazyWithRetry(() => import("@/pages/admin/IDCardSettings"));
 
 export const adminRoutes: RouteObject[] = [
   { path: "admin/branding", element: <MenuBasedAdminRoute menuCode="admin_branding"><AdminBranding /></MenuBasedAdminRoute> },
@@ -107,4 +108,5 @@ export const adminRoutes: RouteObject[] = [
   { path: "admin/test-push", element: <MenuBasedAdminRoute menuCode="admin_test_push"><TestPushNotifications /></MenuBasedAdminRoute> },
   { path: "admin/database-health", element: <MenuBasedAdminRoute menuCode="admin_platform_settings"><DatabaseHealthDashboard /></MenuBasedAdminRoute> },
   { path: "admin/badges", element: <MenuBasedAdminRoute menuCode="admin_platform_settings"><BadgeManagement /></MenuBasedAdminRoute> },
+  { path: "admin/id-card-settings", element: <MenuBasedAdminRoute menuCode="admin_platform_settings"><IDCardSettings /></MenuBasedAdminRoute> },
 ];

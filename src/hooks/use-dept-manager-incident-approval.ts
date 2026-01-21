@@ -28,8 +28,8 @@ export function useCanApproveDeptManager(incidentId: string | null) {
       
       const { data, error } = await supabase
         .rpc('can_review_as_dept_manager', {
-          _user_id: user.id,
-          _incident_id: incidentId
+          p_user_id: user.id,
+          p_incident_id: incidentId
         });
       
       if (error) {

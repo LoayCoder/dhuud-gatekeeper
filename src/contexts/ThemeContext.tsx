@@ -5,6 +5,9 @@ import { supabase } from '@/integrations/supabase/client';
 // Dhuud Platform tenant ID - used for default branding on public pages
 const PLATFORM_TENANT_ID = '9290e913-c735-405c-91c6-141e966011ae';
 
+// LocalStorage key for remembering last tenant
+const LAST_TENANT_KEY = 'last_known_tenant_id';
+
 // Type for tenant branding data (from DB or invitation)
 export interface TenantBrandingData {
   name?: string;
@@ -85,6 +88,9 @@ interface ThemeContextType {
   refreshTenantData: () => Promise<void>;
   applyTenantBranding: (branding: TenantBrandingData) => void;
   isLoading: boolean;
+  // Remembered tenant feature
+  isRememberedTenant: boolean;
+  clearRememberedTenant: () => void;
   // Legacy compatibility (maps to light mode)
   primaryColor: string;
   setPrimaryColor: (color: string) => void;
@@ -155,6 +161,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [invitationCode, setInvitationCode] = useState<string | null>(null);
   const [isCodeValidated, setIsCodeValidated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Remembered tenant state (for login page branding after logout)
+  const [isRememberedTenant, setIsRememberedTenant] = useState(false);
 
   // Computed active values based on resolved theme
   const isDark = resolvedTheme === 'dark';
@@ -226,8 +235,40 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     updateFavicon(branding.favicon_url || branding.app_icon_light_url);
   }, [updateFavicon]);
 
+  // Load last known tenant branding (for login page after logout)
+  const loadLastKnownTenantBranding = useCallback(async (): Promise<boolean> => {
+    try {
+      const lastTenantId = localStorage.getItem(LAST_TENANT_KEY);
+      if (!lastTenantId) return false;
+
+      const { data: tenant, error } = await supabase
+        .from('tenants')
+        .select('name, brand_color, secondary_color, brand_color_dark, secondary_color_dark, background_theme, background_color, logo_light_url, logo_dark_url, sidebar_icon_light_url, sidebar_icon_dark_url, app_icon_light_url, app_icon_dark_url, background_image_url, favicon_url')
+        .eq('id', lastTenantId)
+        .maybeSingle();
+
+      if (error || !tenant) {
+        console.error('Failed to fetch last known tenant branding:', error);
+        return false;
+      }
+
+      applyTenantBranding(tenant);
+      setTenantId(lastTenantId);
+      setIsRememberedTenant(true);
+      return true;
+    } catch (error) {
+      console.error('Error loading last known tenant branding:', error);
+      return false;
+    }
+  }, [applyTenantBranding]);
+
   // Load Dhuud Platform branding (for public pages when no user is logged in)
   const loadPlatformBranding = useCallback(async () => {
+    // First try to load remembered tenant branding
+    const loadedRemembered = await loadLastKnownTenantBranding();
+    if (loadedRemembered) return;
+
+    // Otherwise load default Dhuud platform branding
     try {
       const { data: tenant, error } = await supabase
         .from('tenants')
@@ -243,9 +284,32 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       if (tenant) {
         applyTenantBranding(tenant);
         setTenantId(PLATFORM_TENANT_ID);
+        setIsRememberedTenant(false);
       }
     } catch (error) {
       console.error('Error loading platform branding:', error);
+    }
+  }, [applyTenantBranding, loadLastKnownTenantBranding]);
+
+  // Clear remembered tenant and load default branding
+  const clearRememberedTenant = useCallback(() => {
+    try {
+      localStorage.removeItem(LAST_TENANT_KEY);
+      setIsRememberedTenant(false);
+      // Load default Dhuud branding
+      supabase
+        .from('tenants')
+        .select('name, brand_color, secondary_color, brand_color_dark, secondary_color_dark, background_theme, background_color, logo_light_url, logo_dark_url, sidebar_icon_light_url, sidebar_icon_dark_url, app_icon_light_url, app_icon_dark_url, background_image_url, favicon_url')
+        .eq('id', PLATFORM_TENANT_ID)
+        .maybeSingle()
+        .then(({ data: tenant }) => {
+          if (tenant) {
+            applyTenantBranding(tenant);
+            setTenantId(PLATFORM_TENANT_ID);
+          }
+        });
+    } catch (error) {
+      console.error('Failed to clear remembered tenant:', error);
     }
   }, [applyTenantBranding]);
 
@@ -299,6 +363,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       // Apply tenant branding and set tenant ID
       setTenantId(profile.tenant_id);
       applyTenantBranding(tenant);
+      setIsRememberedTenant(false);
+      
+      // Save tenant ID for "remember tenant" feature on next login
+      try {
+        localStorage.setItem(LAST_TENANT_KEY, profile.tenant_id);
+      } catch (e) {
+        console.warn('Failed to save tenant ID to localStorage:', e);
+      }
     } catch (error) {
       console.error('Error refreshing tenant data:', error);
     } finally {
@@ -397,6 +469,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         refreshTenantData,
         applyTenantBranding,
         isLoading,
+        // Remembered tenant feature
+        isRememberedTenant,
+        clearRememberedTenant,
         // Legacy compatibility (maps to light mode)
         primaryColor: primaryColorLight,
         setPrimaryColor: setPrimaryColorLight,

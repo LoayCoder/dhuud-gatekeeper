@@ -147,7 +147,7 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
           assigned_section_id: companyDetails.assigned_section_id || "",
         });
         
-        // Prefer site rep from new dedicated table, fallback to company details
+        // Load site rep from dedicated table only (no legacy fallback)
         if (siteRepFromTable) {
           setSiteRepData({
             full_name: siteRepFromTable.full_name || "",
@@ -159,16 +159,8 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
             email: siteRepFromTable.email || "",
           });
         } else {
-          // Fallback to legacy columns in contractor_companies
-          setSiteRepData({
-            full_name: companyDetails.contractor_site_rep_name || "",
-            national_id: companyDetails.contractor_site_rep_national_id || "",
-            mobile_number: companyDetails.contractor_site_rep_mobile || "",
-            nationality: companyDetails.contractor_site_rep_nationality || "",
-            photo_path: companyDetails.contractor_site_rep_photo || null,
-            phone: companyDetails.contractor_site_rep_phone || "",
-            email: companyDetails.contractor_site_rep_email || "",
-          });
+          // No legacy fallback - start with empty form
+          setSiteRepData(initialSiteRepData);
         }
         setCurrentStep("basic");
       } else if (!company) {
@@ -248,14 +240,7 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
       contract_start_date: formData.contract_start_date || null,
       contract_end_date: formData.contract_end_date || null,
       safety_officers_count: safetyOfficers.length,
-      // Full site rep fields (including new columns)
-      contractor_site_rep_name: siteRepData.full_name,
-      contractor_site_rep_phone: siteRepData.phone || siteRepData.mobile_number,
-      contractor_site_rep_email: siteRepData.email,
-      contractor_site_rep_national_id: siteRepData.national_id,
-      contractor_site_rep_mobile: siteRepData.mobile_number,
-      contractor_site_rep_nationality: siteRepData.nationality,
-      contractor_site_rep_photo: siteRepData.photo_path,
+      // No legacy site rep fields - data goes to contractor_site_representatives table only
     };
 
     let companyId: string;

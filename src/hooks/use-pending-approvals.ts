@@ -552,7 +552,20 @@ export function usePendingIncidentApprovals() {
 
       // Get incidents that are pending manager approval or escalated to HSSE Manager
       // Use filter to bypass TypeScript strict type check for new status values
-      const pendingStatuses = ['pending_manager_approval', 'hsse_manager_escalation', 'pending_closure', 'pending_final_closure', 'pending_dept_rep_approval', 'pending_dept_rep_incident_review'];
+      // Include contractor consultant workflow statuses (expert_screening is legacy, pending_consultant_* are new)
+      const pendingStatuses = [
+        'pending_manager_approval', 
+        'hsse_manager_escalation', 
+        'pending_closure', 
+        'pending_final_closure', 
+        'pending_dept_rep_approval', 
+        'pending_dept_rep_incident_review',
+        // Contractor Consultant workflow statuses
+        'expert_screening',
+        'pending_consultant_screening',
+        'pending_consultant_review',
+        'pending_consultant_actions'
+      ];
       const { data: incidents, error } = await supabase
         .from('incidents')
         .select(`

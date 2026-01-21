@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { startOfDay, subDays, format } from 'date-fns';
 
 interface SecurityStats {
@@ -23,7 +24,7 @@ interface SecurityStats {
   }>;
 }
 
-async function fetchSecurityStats(): Promise<SecurityStats> {
+async function fetchSecurityStats(tenantId: string): Promise<SecurityStats> {
   const today = startOfDay(new Date());
   const sevenDaysAgo = subDays(today, 7);
 
@@ -32,6 +33,7 @@ async function fetchSecurityStats(): Promise<SecurityStats> {
   const { data: activeGuardsData } = await supabase
     .from('guard_tracking_history')
     .select('guard_id')
+    .eq('tenant_id', tenantId)
     .gte('recorded_at', oneHourAgo);
   
   const activeGuards = new Set(activeGuardsData?.map(g => g.guard_id) ?? []).size;
@@ -40,6 +42,7 @@ async function fetchSecurityStats(): Promise<SecurityStats> {
   const { count: totalGuards } = await supabase
     .from('shift_roster')
     .select('*', { count: 'exact', head: true })
+    .eq('tenant_id', tenantId)
     .gte('roster_date', format(today, 'yyyy-MM-dd'))
     .lte('roster_date', format(today, 'yyyy-MM-dd'))
     .is('deleted_at', null);
@@ -48,6 +51,7 @@ async function fetchSecurityStats(): Promise<SecurityStats> {
   const { count: visitorsToday } = await supabase
     .from('gate_entry_logs')
     .select('*', { count: 'exact', head: true })
+    .eq('tenant_id', tenantId)
     .gte('entry_time', today.toISOString())
     .is('deleted_at', null);
 
@@ -55,6 +59,7 @@ async function fetchSecurityStats(): Promise<SecurityStats> {
   const { count: visitorsOnSite } = await supabase
     .from('gate_entry_logs')
     .select('*', { count: 'exact', head: true })
+    .eq('tenant_id', tenantId)
     .gte('entry_time', today.toISOString())
     .is('exit_time', null)
     .is('deleted_at', null);
@@ -63,6 +68,7 @@ async function fetchSecurityStats(): Promise<SecurityStats> {
   const { count: openAlerts } = await supabase
     .from('geofence_alerts')
     .select('*', { count: 'exact', head: true })
+    .eq('tenant_id', tenantId)
     .is('acknowledged_at', null)
     .is('resolved_at', null)
     .is('deleted_at', null);
@@ -71,6 +77,7 @@ async function fetchSecurityStats(): Promise<SecurityStats> {
   const { data: patrolsData } = await supabase
     .from('security_patrols')
     .select('status')
+    .eq('tenant_id', tenantId)
     .gte('actual_start', today.toISOString())
     .is('deleted_at', null);
 
@@ -82,6 +89,7 @@ async function fetchSecurityStats(): Promise<SecurityStats> {
   const { data: visitorData } = await supabase
     .from('gate_entry_logs')
     .select('entry_time')
+    .eq('tenant_id', tenantId)
     .gte('entry_time', sevenDaysAgo.toISOString())
     .is('deleted_at', null);
 
@@ -107,6 +115,7 @@ async function fetchSecurityStats(): Promise<SecurityStats> {
   const { data: allPatrols } = await supabase
     .from('security_patrols')
     .select('status, actual_start')
+    .eq('tenant_id', tenantId)
     .gte('actual_start', sevenDaysAgo.toISOString())
     .is('deleted_at', null);
 
@@ -137,6 +146,7 @@ async function fetchSecurityStats(): Promise<SecurityStats> {
   const { data: breachData } = await supabase
     .from('geofence_alerts')
     .select('created_at')
+    .eq('tenant_id', tenantId)
     .gte('created_at', sevenDaysAgo.toISOString())
     .is('deleted_at', null);
 
@@ -167,6 +177,7 @@ async function fetchSecurityStats(): Promise<SecurityStats> {
       zone_id,
       security_zones(zone_name)
     `)
+    .eq('tenant_id', tenantId)
     .is('deleted_at', null)
     .limit(100);
 
@@ -195,6 +206,7 @@ async function fetchSecurityStats(): Promise<SecurityStats> {
       created_at,
       security_zones(zone_name)
     `)
+    .eq('tenant_id', tenantId)
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
     .limit(5);
@@ -219,6 +231,7 @@ async function fetchSecurityStats(): Promise<SecurityStats> {
       actual_start,
       security_patrol_routes(name)
     `)
+    .eq('tenant_id', tenantId)
     .is('deleted_at', null)
     .order('actual_start', { ascending: false })
     .limit(5);
@@ -253,9 +266,16 @@ async function fetchSecurityStats(): Promise<SecurityStats> {
 }
 
 export function useSecurityStats() {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
   const query = useQuery({
-    queryKey: ['security-stats'],
-    queryFn: fetchSecurityStats,
+    queryKey: ['security-stats', tenantId],
+    queryFn: () => {
+      if (!tenantId) throw new Error('No tenant');
+      return fetchSecurityStats(tenantId);
+    },
+    enabled: !!tenantId,
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchInterval: 1000 * 60 * 5, // Auto-refresh every 5 minutes
   });

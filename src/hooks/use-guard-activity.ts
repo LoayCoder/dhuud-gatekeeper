@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export type ActivityType = 'check_in' | 'check_out' | 'location_update' | 'patrol_scan' | 'alert';
 
@@ -16,66 +17,72 @@ export interface GuardActivity {
 }
 
 export function useGuardActivity(guardId: string | null, limit: number = 50) {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
   return useQuery({
-    queryKey: ['guard-activity', guardId, limit],
+    queryKey: ['guard-activity', tenantId, guardId, limit],
     queryFn: async (): Promise<GuardActivity[]> => {
-      if (!guardId) return [];
+      if (!guardId || !tenantId) return [];
 
       const activities: GuardActivity[] = [];
       const now = new Date();
       const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
-      const client = supabase as any;
 
-      // Fetch shift check-ins/check-outs
-      const { data: shifts } = await client
-        .from('shift_assignments')
+      // Fetch shift check-ins/check-outs from shift_roster (tenant-scoped)
+      const { data: shifts } = await supabase
+        .from('shift_roster')
         .select(`
           id,
-          check_in_at,
-          check_out_at,
-          shift:shifts(name, name_ar)
+          check_in_time,
+          check_out_time,
+          shift:security_shifts(shift_name)
         `)
+        .eq('tenant_id', tenantId)
         .eq('guard_id', guardId)
-        .gte('shift_date', new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
-        .order('shift_date', { ascending: false })
+        .gte('roster_date', new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+        .is('deleted_at', null)
+        .order('roster_date', { ascending: false })
         .limit(10);
 
       if (shifts) {
         for (const shift of shifts as any[]) {
-          const shiftData = shift.shift as { name?: string; name_ar?: string } | null;
-          if (shift.check_in_at) {
+          const shiftData = shift.shift as { shift_name?: string } | null;
+          if (shift.check_in_time) {
             activities.push({
               id: `checkin-${shift.id}`,
               type: 'check_in',
-              timestamp: shift.check_in_at,
+              timestamp: shift.check_in_time,
               title: 'Checked In',
               titleAr: 'تسجيل دخول',
-              description: shiftData?.name || 'Shift',
-              descriptionAr: shiftData?.name_ar || 'المناوبة',
+              description: shiftData?.shift_name || 'Shift',
+              descriptionAr: shiftData?.shift_name || 'المناوبة',
               severity: 'success',
             });
           }
-          if (shift.check_out_at) {
+          if (shift.check_out_time) {
             activities.push({
               id: `checkout-${shift.id}`,
               type: 'check_out',
-              timestamp: shift.check_out_at,
+              timestamp: shift.check_out_time,
               title: 'Checked Out',
               titleAr: 'تسجيل خروج',
-              description: shiftData?.name || 'Shift',
-              descriptionAr: shiftData?.name_ar || 'المناوبة',
+              description: shiftData?.shift_name || 'Shift',
+              descriptionAr: shiftData?.shift_name || 'المناوبة',
               severity: 'info',
             });
           }
         }
       }
 
-      // Fetch location updates (last 24 hours, sampled)
-      const { data: locations } = await client
-        .from('guard_locations')
+      // Fetch location updates (last 24 hours, sampled) - guard_tracking_history
+      const { data: locations } = await supabase
+        .from('guard_tracking_history')
         .select('id, recorded_at, accuracy, battery_level, is_within_zone')
+        .eq('tenant_id', tenantId)
         .eq('guard_id', guardId)
         .gte('recorded_at', last24Hours)
+        .is('deleted_at', null)
         .order('recorded_at', { ascending: false })
         .limit(20);
 
@@ -97,44 +104,47 @@ export function useGuardActivity(guardId: string | null, limit: number = 50) {
         }
       }
 
-      // Fetch patrol scan logs
-      const { data: patrols } = await client
-        .from('patrol_scan_logs')
-        .select(`
-          id,
-          scanned_at,
-          scan_status,
-          checkpoint:patrol_checkpoints(name, name_ar)
-        `)
-        .eq('guard_id', guardId)
-        .gte('scanned_at', last24Hours)
-        .order('scanned_at', { ascending: false })
+      // Fetch security patrols by this guard
+      const { data: patrols } = await supabase
+        .from('security_patrols')
+        .select('id, actual_start, actual_end, status, checkpoints_visited, checkpoints_total')
+        .eq('tenant_id', tenantId)
+        .eq('patrol_officer_id', guardId)
+        .gte('actual_start', last24Hours)
+        .is('deleted_at', null)
+        .order('actual_start', { ascending: false })
         .limit(20);
 
       if (patrols) {
-        for (const patrol of patrols as any[]) {
-          const checkpoint = patrol.checkpoint as { name?: string; name_ar?: string } | null;
-          const isSuccess = patrol.scan_status === 'success' || patrol.scan_status === 'on_time';
-          activities.push({
-            id: `patrol-${patrol.id}`,
-            type: 'patrol_scan',
-            timestamp: patrol.scanned_at,
-            title: isSuccess ? 'Patrol Checkpoint Scanned' : 'Patrol Scan Issue',
-            titleAr: isSuccess ? 'تم مسح نقطة التفتيش' : 'مشكلة في المسح',
-            description: checkpoint?.name || 'Checkpoint',
-            descriptionAr: checkpoint?.name_ar || 'نقطة التفتيش',
-            severity: isSuccess ? 'success' : 'warning',
-            metadata: { status: patrol.scan_status },
-          });
+        for (const patrol of patrols) {
+          if (patrol.actual_start) {
+            const completed = patrol.status === 'completed';
+            activities.push({
+              id: `patrol-${patrol.id}`,
+              type: 'patrol_scan',
+              timestamp: patrol.actual_start,
+              title: completed ? 'Patrol Completed' : 'Patrol Started',
+              titleAr: completed ? 'اكتمل التفتيش' : 'بدأ التفتيش',
+              description: `${patrol.checkpoints_visited || 0}/${patrol.checkpoints_total || 0} checkpoints`,
+              descriptionAr: `${patrol.checkpoints_visited || 0}/${patrol.checkpoints_total || 0} نقاط تفتيش`,
+              severity: completed ? 'success' : 'info',
+              metadata: { 
+                status: patrol.status,
+                checkpoints: `${patrol.checkpoints_visited}/${patrol.checkpoints_total}`
+              },
+            });
+          }
         }
       }
 
       // Fetch alerts
-      const { data: alerts } = await client
+      const { data: alerts } = await supabase
         .from('geofence_alerts')
         .select('id, created_at, alert_type, severity, alert_message, acknowledged_at, resolved_at')
+        .eq('tenant_id', tenantId)
         .eq('guard_id', guardId)
         .gte('created_at', last24Hours)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .limit(10);
 
@@ -164,7 +174,7 @@ export function useGuardActivity(guardId: string | null, limit: number = 50) {
 
       return activities.slice(0, limit);
     },
-    enabled: !!guardId,
+    enabled: !!guardId && !!tenantId,
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 }

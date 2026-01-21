@@ -25,6 +25,7 @@ const AssetReportBuilder = lazyWithRetry(() => import("@/pages/assets/AssetRepor
 const ApprovalWorkflowConfigPage = lazyWithRetry(() => import("@/pages/assets/ApprovalWorkflowConfigPage"));
 const PurchaseRequestsPage = lazyWithRetry(() => import("@/pages/assets/PurchaseRequestsPage"));
 const AssetAuditLog = lazyWithRetry(() => import("@/pages/assets/AssetAuditLog"));
+const AssetTrash = lazyWithRetry(() => import("@/pages/assets/AssetTrash"));
 const PartsInventoryPage = lazyWithRetry(() => import("@/pages/parts/PartsInventoryPage"));
 
 export const assetRoutes: RouteObject[] = [
@@ -53,6 +54,7 @@ export const assetRoutes: RouteObject[] = [
   },
   { path: "assets/purchase-requests", element: <HSSERoute><PurchaseRequestsPage /></HSSERoute> },
   { path: "assets/audit-log", element: <HSSERoute><AssetAuditLog /></HSSERoute> },
+  { path: "assets/trash", element: <HSSERoute><AssetTrash /></HSSERoute> },
 ];
 
 export const partsRoutes: RouteObject[] = [
