@@ -3,7 +3,14 @@
     "usingLocationFromSite": "Using site location",
     "ownLocation": "Own GPS",
     "inheritedLocation": "Site GPS",
-    "onMap": "on map"
+    "onMap": "on map",
+    "alerts": "Alerts",
+    "inspectionOverdue": "Inspection Overdue",
+    "maintenanceOverdue": "Maintenance Overdue",
+    "overdueInspections": "Overdue Inspections",
+    "overdueMaintenance": "Overdue Maintenance",
+    "anyOverdue": "Any Overdue",
+    "daysOverdue": "{{count}} days overdue"
   },
   "biometric": {
     "title": "Biometric Login",

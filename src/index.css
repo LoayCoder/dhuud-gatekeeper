@@ -545,6 +545,18 @@ All colors MUST be HSL.
     background: transparent !important;
     border: none !important;
   }
+
+  /* Pulsing animation for overdue alerts on map markers */
+  @keyframes pulse-alert {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.7;
+      transform: scale(1.08);
+    }
+  }
   
   /* Asset popup styling */
   .asset-marker-popup .leaflet-popup-content-wrapper {

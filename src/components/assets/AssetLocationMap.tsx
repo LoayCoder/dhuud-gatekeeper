@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, Package, Maximize2, X, Filter, AlertTriangle } from 'lucide-react';
+import { MapPin, Package, Maximize2, X, Filter, AlertTriangle, Clock, Wrench } from 'lucide-react';
 import { useAssetsWithGPS } from '@/hooks/use-asset-location';
 import { cn } from '@/lib/utils';
 import { MapStyleSwitcher } from '@/components/maps/MapStyleSwitcher';
@@ -24,7 +24,13 @@ const STATUS_COLORS: Record<string, { color: string; label: string }> = {
   pending_disposal: { color: '#f97316', label: 'pending_disposal' },
 };
 
-function createAssetMarkerIcon(status: string, locationSource: 'asset' | 'site' | null) {
+type AlertFilter = 'all' | 'inspection' | 'maintenance' | 'any_overdue';
+
+function createAssetMarkerIcon(
+  status: string, 
+  locationSource: 'asset' | 'site' | null,
+  alerts: { inspectionOverdue: boolean; maintenanceOverdue: boolean }
+) {
   const statusConfig = STATUS_COLORS[status] || STATUS_COLORS.active;
   const color = statusConfig.color;
   
@@ -46,25 +52,76 @@ function createAssetMarkerIcon(status: string, locationSource: 'asset' | 'site' 
          <path d="M12 22V12"/>
        </svg>`;
   
+  // Determine alert ring style
+  let alertRing = '';
+  const hasBothAlerts = alerts.inspectionOverdue && alerts.maintenanceOverdue;
+  const hasInspectionAlert = alerts.inspectionOverdue;
+  const hasMaintenanceAlert = alerts.maintenanceOverdue;
+  
+  if (hasBothAlerts) {
+    // Both overdue - pulsing red ring with yellow outer glow
+    alertRing = `
+      <div style="
+        position: absolute;
+        inset: -6px;
+        border-radius: 50%;
+        border: 3px solid #ef4444;
+        box-shadow: 0 0 0 3px #eab308;
+        animation: pulse-alert 1.5s ease-in-out infinite;
+      "></div>
+    `;
+  } else if (hasInspectionAlert) {
+    // Inspection overdue - red ring
+    alertRing = `
+      <div style="
+        position: absolute;
+        inset: -5px;
+        border-radius: 50%;
+        border: 3px solid #ef4444;
+        animation: pulse-alert 2s ease-in-out infinite;
+      "></div>
+    `;
+  } else if (hasMaintenanceAlert) {
+    // Maintenance overdue - yellow ring
+    alertRing = `
+      <div style="
+        position: absolute;
+        inset: -5px;
+        border-radius: 50%;
+        border: 3px solid #eab308;
+      "></div>
+    `;
+  }
+  
+  const hasAlerts = hasBothAlerts || hasInspectionAlert || hasMaintenanceAlert;
+  const containerSize = hasAlerts ? 44 : 32;
+  const iconOffset = hasAlerts ? 6 : 0;
+  
   return L.divIcon({
     className: 'custom-asset-marker',
     html: `
-      <div style="
-        background: ${color};
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        ${borderStyle}
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      ">
-        ${icon}
+      <div style="position: relative; width: ${containerSize}px; height: ${containerSize}px;">
+        ${alertRing}
+        <div style="
+          position: absolute;
+          top: ${iconOffset}px;
+          left: ${iconOffset}px;
+          background: ${color};
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          ${borderStyle}
+          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        ">
+          ${icon}
+        </div>
       </div>
     `,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
+    iconSize: [containerSize, containerSize],
+    iconAnchor: [containerSize / 2, containerSize / 2],
   });
 }
 
@@ -93,12 +150,29 @@ export function AssetLocationMap({
 
   const [localSiteFilter, setLocalSiteFilter] = useState(siteFilter || 'all');
   const [localStatusFilter, setLocalStatusFilter] = useState(statusFilter || 'all');
+  const [alertFilter, setAlertFilter] = useState<AlertFilter>('all');
   const { mapStyle, setMapStyle, tileLayerConfig } = useMapStyle('asset-map-style');
 
-  const { data: assets, isLoading, error, refetch } = useAssetsWithGPS({
+  const { data: allAssets, isLoading, error, refetch } = useAssetsWithGPS({
     siteId: localSiteFilter !== 'all' ? localSiteFilter : undefined,
     status: localStatusFilter !== 'all' ? localStatusFilter : undefined,
   });
+
+  // Filter assets based on alert type
+  const assets = useMemo(() => {
+    if (!allAssets) return [];
+    
+    switch (alertFilter) {
+      case 'inspection':
+        return allAssets.filter(a => a.isInspectionOverdue);
+      case 'maintenance':
+        return allAssets.filter(a => a.isMaintenanceOverdue);
+      case 'any_overdue':
+        return allAssets.filter(a => a.isInspectionOverdue || a.isMaintenanceOverdue);
+      default:
+        return allAssets;
+    }
+  }, [allAssets, alertFilter]);
 
   // Setup global navigation handlers for popup buttons
   useEffect(() => {
@@ -150,13 +224,53 @@ export function AssetLocationMap({
       if (!asset.effective_lat || !asset.effective_lng) return;
 
       const marker = L.marker([asset.effective_lat, asset.effective_lng], {
-        icon: createAssetMarkerIcon(asset.status || 'active', asset.location_source),
+        icon: createAssetMarkerIcon(asset.status || 'active', asset.location_source, {
+          inspectionOverdue: asset.isInspectionOverdue,
+          maintenanceOverdue: asset.isMaintenanceOverdue,
+        }),
       });
 
       const statusConfig = STATUS_COLORS[asset.status || 'active'] || STATUS_COLORS.active;
       const categoryName = i18n.language === 'ar' && asset.category?.name_ar 
         ? asset.category.name_ar 
         : asset.category?.name || '-';
+
+      // Build alert badges for popup
+      const alertBadges: string[] = [];
+      if (asset.isInspectionOverdue) {
+        alertBadges.push(`
+          <span style="
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 500;
+          ">
+            ⚠️ ${t('assets.inspectionOverdue', 'Inspection Overdue')} (${asset.daysInspectionOverdue}d)
+          </span>
+        `);
+      }
+      if (asset.isMaintenanceOverdue) {
+        alertBadges.push(`
+          <span style="
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #fef3c7;
+            color: #d97706;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 500;
+          ">
+            🔧 ${t('assets.maintenanceOverdue', 'Maintenance Overdue')} (${asset.daysMaintenanceOverdue}d)
+          </span>
+        `);
+      }
 
       // Location source indicator
       const locationIndicator = asset.location_source === 'site' 
@@ -191,6 +305,12 @@ export function AssetLocationMap({
             <h4 style="font-weight: 600; margin: 0; font-size: 14px; line-height: 1.3;">${asset.name}</h4>
           </div>
           <p style="font-size: 11px; color: #6b7280; margin: 0 0 8px 0; font-family: monospace;">${asset.asset_code}</p>
+          
+          ${alertBadges.length > 0 ? `
+            <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px;">
+              ${alertBadges.join('')}
+            </div>
+          ` : ''}
           
           ${locationIndicator}
           
@@ -283,8 +403,8 @@ export function AssetLocationMap({
     }).addTo(mapInstance.current);
   }, [tileLayerConfig]);
 
-  // Get unique sites for filter
-  const sites = assets?.reduce((acc, asset) => {
+  // Get unique sites for filter - use allAssets to include sites from filtered-out assets
+  const sites = allAssets?.reduce((acc, asset) => {
     if (asset.site && !acc.find((s) => s.id === asset.site!.id)) {
       acc.push(asset.site);
     }
@@ -294,6 +414,10 @@ export function AssetLocationMap({
   const assetCount = assets?.length || 0;
   const assetsWithOwnGps = assets?.filter(a => a.location_source === 'asset').length || 0;
   const assetsWithSiteGps = assets?.filter(a => a.location_source === 'site').length || 0;
+  
+  // Overdue counts from all assets (before alert filter)
+  const overdueInspectionCount = allAssets?.filter(a => a.isInspectionOverdue).length || 0;
+  const overdueMaintenanceCount = allAssets?.filter(a => a.isMaintenanceOverdue).length || 0;
 
   // Loading state
   if (isLoading) {
@@ -355,6 +479,31 @@ export function AssetLocationMap({
   // Filters and legend component
   const FiltersAndLegend = () => (
     <div className="space-y-3 mb-4">
+      {/* Overdue alerts summary */}
+      {(overdueInspectionCount > 0 || overdueMaintenanceCount > 0) && (
+        <div className="flex flex-wrap gap-2">
+          {overdueInspectionCount > 0 && (
+            <Badge 
+              variant="destructive" 
+              className="gap-1 cursor-pointer"
+              onClick={() => setAlertFilter(alertFilter === 'inspection' ? 'all' : 'inspection')}
+            >
+              <AlertTriangle className="h-3 w-3" />
+              {overdueInspectionCount} {t('assets.inspectionOverdue', 'Inspection Overdue')}
+            </Badge>
+          )}
+          {overdueMaintenanceCount > 0 && (
+            <Badge 
+              className="bg-warning text-warning-foreground gap-1 cursor-pointer"
+              onClick={() => setAlertFilter(alertFilter === 'maintenance' ? 'all' : 'maintenance')}
+            >
+              <Wrench className="h-3 w-3" />
+              {overdueMaintenanceCount} {t('assets.maintenanceOverdue', 'Maintenance Overdue')}
+            </Badge>
+          )}
+        </div>
+      )}
+
       {/* Filters */}
       <div className="flex flex-wrap gap-2">
         <Select value={localSiteFilter} onValueChange={setLocalSiteFilter} dir={direction}>
@@ -383,6 +532,19 @@ export function AssetLocationMap({
                 {t(`assets.status.${status}`)}
               </SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={alertFilter} onValueChange={(v) => setAlertFilter(v as AlertFilter)} dir={direction}>
+          <SelectTrigger className="w-[180px]">
+            <Clock className="h-4 w-4 me-2" />
+            <SelectValue placeholder={t('assets.alerts', 'Alerts')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('common.all')}</SelectItem>
+            <SelectItem value="inspection">{t('assets.overdueInspections', 'Overdue Inspections')}</SelectItem>
+            <SelectItem value="maintenance">{t('assets.overdueMaintenance', 'Overdue Maintenance')}</SelectItem>
+            <SelectItem value="any_overdue">{t('assets.anyOverdue', 'Any Overdue')}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -417,7 +579,7 @@ export function AssetLocationMap({
       </div>
 
       {/* Location source legend */}
-      <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t">
+      <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground pt-2 border-t">
         <div className="flex items-center gap-1.5">
           <span className="w-4 h-4 rounded-full border-[3px] border-solid border-muted-foreground/50 bg-green-500"></span>
           <span>{t('assets.ownLocation', 'Own GPS')} ({assetsWithOwnGps})</span>
@@ -425,6 +587,17 @@ export function AssetLocationMap({
         <div className="flex items-center gap-1.5">
           <span className="w-4 h-4 rounded-full border-2 border-dashed border-muted-foreground/50 bg-green-500"></span>
           <span>{t('assets.inheritedLocation', 'Site GPS')} ({assetsWithSiteGps})</span>
+        </div>
+        <div className="border-s ps-4 flex items-center gap-3">
+          <span className="font-medium">{t('assets.alerts', 'Alerts')}:</span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-4 h-4 rounded-full border-2 border-destructive bg-transparent"></span>
+            <span>{t('assets.inspectionOverdue', 'Inspection Overdue')}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-4 h-4 rounded-full border-2 border-warning bg-transparent"></span>
+            <span>{t('assets.maintenanceOverdue', 'Maintenance Overdue')}</span>
+          </div>
         </div>
       </div>
     </div>
