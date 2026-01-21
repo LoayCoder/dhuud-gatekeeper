@@ -158,9 +158,11 @@ export function useBrandAssets() {
       return publicUrl;
     } catch (error: unknown) {
       console.error('Upload error:', error);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const err = error as any;
       toast({
         title: 'Upload Failed',
-        description: (error as Error).message || 'Failed to upload asset.',
+        description: err.message || 'Failed to upload asset.',
         variant: 'destructive',
       });
       return null;

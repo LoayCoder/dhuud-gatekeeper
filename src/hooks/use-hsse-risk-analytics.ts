@@ -92,11 +92,13 @@ export function useHSSERiskAnalytics() {
     onSuccess: (data) => {
       setInsights(data);
     },
-    onError: (error: Error | any) => {
+    onError: (error: Error) => {
       console.error("AI Risk Analytics error:", error);
-      if (error?.message?.includes('429') || error?.status === 429) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const err = error as any;
+      if (err?.message?.includes('429') || err?.status === 429) {
         toast.error("Rate limit exceeded. Please try again later.");
-      } else if (error?.message?.includes('402') || error?.status === 402) {
+      } else if (err?.message?.includes('402') || err?.status === 402) {
         toast.error("AI credits exhausted. Please contact support.");
       } else {
         toast.error("Failed to generate AI insights");

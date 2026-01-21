@@ -37,6 +37,16 @@ interface BrandingConfig {
   watermarkEnabled: boolean;
 }
 
+interface TenantData {
+  name: string;
+  logo_url: string | null;
+}
+
+interface ProfileWithRelations {
+  tenant?: TenantData | null;
+  department?: { name: string } | null;
+}
+
 export function useSecurityReportExport() {
   const { t } = useTranslation();
   const [isExporting, setIsExporting] = useState(false);
@@ -54,8 +64,9 @@ export function useSecurityReportExport() {
         .eq('id', user?.id || '')
         .single();
       
-      const tenantName = (profile?.tenant as any)?.name || 'Organization';
-      const logoUrl = (profile?.tenant as any)?.logo_url || null;
+      const typedProfile = profile as unknown as ProfileWithRelations;
+      const tenantName = typedProfile?.tenant?.name || 'Organization';
+      const logoUrl = typedProfile?.tenant?.logo_url || null;
 
       const branding: BrandingConfig = {
         headerBgColor: settings?.headerBgColor || '#ffffff',
@@ -151,10 +162,12 @@ async function exportTeamSummary(
   let totalViolations = 0;
 
   for (const m of metrics || []) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const guard = m.guard as any;
     const existing = guardMap.get(m.guard_id) || {
       guard_id: m.guard_id,
-      guard_name: (m.guard as any)?.full_name || 'Unknown',
-      avatar_url: (m.guard as any)?.avatar_url || null,
+      guard_name: guard?.full_name || 'Unknown',
+      avatar_url: guard?.avatar_url || null,
       patrols: 0,
       scores: [],
     };
@@ -245,6 +258,8 @@ async function exportGuardPerformance(
     .eq('id', guardId)
     .single();
 
+  const typedProfile = profile as unknown as (typeof profile & { department?: { name: string } });
+
   // Fetch performance metrics
   const { data: metrics } = await supabase
     .from('guard_performance_metrics')
@@ -313,7 +328,7 @@ async function exportGuardPerformance(
     employee_id: profile?.employee_id || null,
     job_title: profile?.job_title || 'Security Officer',
     avatar_url: profile?.avatar_url || null,
-    department_name: (profile?.department as any)?.name || null,
+    department_name: typedProfile?.department?.name || null,
     supervisor_name: null,
     assigned_zone: null,
     performance: {
@@ -331,13 +346,15 @@ async function exportGuardPerformance(
       const checkIn = a.check_in_at ? new Date(a.check_in_at) : null;
       const checkOut = a.check_out_at ? new Date(a.check_out_at) : null;
       const hoursWorked = checkIn && checkOut ? (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60) : null;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const zone = a.zone as any;
       return {
         id: a.id,
         guard_id: a.guard_id,
         guard_name: profile?.full_name || 'Unknown',
         employee_id: profile?.employee_id || null,
         date: checkIn ? format(checkIn, 'yyyy-MM-dd') : '',
-        zone_name: a.zone?.name || null,
+        zone_name: zone?.name || null,
         check_in: checkIn ? format(checkIn, 'HH:mm') : null,
         check_out: checkOut ? format(checkOut, 'HH:mm') : null,
         hours_worked: hoursWorked ? Math.round(hoursWorked * 10) / 10 : null,
@@ -347,13 +364,17 @@ async function exportGuardPerformance(
         status: a.status || 'unknown',
       };
     }),
-    shifts: (shifts || []).map((s: any) => ({
-      date: s.start_date || s.date,
-      shift_name: s.shift?.name || 'Unknown Shift',
-      start_time: s.shift?.start_time || '',
-      end_time: s.shift?.end_time || '',
-      acknowledged: !!s.acknowledged_at,
-    })),
+    shifts: (shifts || []).map((s: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const shift = s.shift as any;
+      return {
+        date: s.start_date || s.date,
+        shift_name: shift?.name || 'Unknown Shift',
+        start_time: shift?.start_time || '',
+        end_time: shift?.end_time || '',
+        acknowledged: !!s.acknowledged_at,
+      };
+    }),
     training: [],
     incidentCount: totalIncidentsReported,
     incidentResolutionRate: Math.round(incidentRate),
