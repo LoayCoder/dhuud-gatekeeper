@@ -210,16 +210,59 @@ export function useAssetSubtypes(typeId: string | null) {
   });
 }
 
+// Helper: Get next available sequence number for an asset category
+export async function getNextAssetSequence(tenantId: string, categoryCode: string): Promise<number> {
+  const year = new Date().getFullYear();
+  // Clean category code (remove TEST- prefix if present)
+  const cleanCode = categoryCode.replace(/^TEST-/i, '');
+  const pattern = `${cleanCode}-${year}-%`;
+  
+  const { data, error } = await supabase
+    .from('hsse_assets')
+    .select('asset_code')
+    .eq('tenant_id', tenantId)
+    .like('asset_code', pattern)
+    .is('deleted_at', null)
+    .order('asset_code', { ascending: false })
+    .limit(1);
+  
+  if (error || !data || data.length === 0) {
+    return 1; // Start at 1 if no existing codes
+  }
+  
+  // Extract sequence number from code like "FE-2026-0042"
+  const lastCode = data[0].asset_code;
+  const match = lastCode.match(/-(\d+)$/);
+  if (match) {
+    return parseInt(match[1], 10) + 1;
+  }
+  return 1;
+}
+
 export function useCreateAsset() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
-
-  const { user } = useAuth();
+  const { profile, user } = useAuth();
 
   return useMutation({
     mutationFn: async (asset: Omit<AssetInsert, 'tenant_id' | 'created_by'>) => {
       if (!profile?.tenant_id || !user?.id) throw new Error('No tenant or user');
+
+      // Check for duplicate asset_code before insert
+      const { data: existing } = await supabase
+        .from('hsse_assets')
+        .select('id')
+        .eq('tenant_id', profile.tenant_id)
+        .eq('asset_code', asset.asset_code)
+        .is('deleted_at', null)
+        .maybeSingle();
+
+      if (existing) {
+        throw new Error(t('assets.duplicateCodeError', { 
+          code: asset.asset_code,
+          defaultValue: `Asset code "${asset.asset_code}" already exists. Please use a different code.`
+        }));
+      }
 
       const { data, error } = await supabase
         .from('hsse_assets')
@@ -231,16 +274,25 @@ export function useCreateAsset() {
         .select('id, asset_code')
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Handle unique constraint violation with user-friendly message
+        if (error.code === '23505') {
+          throw new Error(t('assets.duplicateCodeError', { 
+            code: asset.asset_code,
+            defaultValue: `Asset code "${asset.asset_code}" already exists. Please use a different code.`
+          }));
+        }
+        throw error;
+      }
       return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
       toast.success(t('assets.createSuccess', { code: data.asset_code }));
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Create asset error:', error);
-      toast.error(t('assets.createError'));
+      toast.error(error.message || t('assets.createError'));
     },
   });
 }
