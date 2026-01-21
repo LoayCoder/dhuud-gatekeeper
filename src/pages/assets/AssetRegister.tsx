@@ -15,12 +15,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ModuleGate, HSSERoute } from '@/components';
 import { useAsset, useAssetCategories, useAssetTypes, useAssetSubtypes, useCreateAsset, useUpdateAsset, useCreateBulkAssets, generateAssetCode, generateSequentialCodes, getNextAssetSequence } from '@/hooks/use-assets';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { AssetCreationStatusCard, CreationStatus } from '@/components/assets';
 
 const assetSchema = z.object({
   // Classification
@@ -85,8 +85,12 @@ function AssetRegisterContent() {
   const [selectedSiteId, setSelectedSiteId] = useState<string | null>(null);
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
   const [bulkQuantity, setBulkQuantity] = useState(1);
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  
+  // Creation status state for status card
+  const [creationStatus, setCreationStatus] = useState<CreationStatus>('idle');
   const [createdAssetIds, setCreatedAssetIds] = useState<string[]>([]);
+  const [createdAssetCodes, setCreatedAssetCodes] = useState<string[]>([]);
+  const [creationError, setCreationError] = useState<string | null>(null);
 
   const { data: existingAsset, isLoading: loadingAsset } = useAsset(editId || undefined);
   const { data: categories } = useAssetCategories();
@@ -235,6 +239,12 @@ function AssetRegisterContent() {
   }, [selectedCategoryId, categories, form, editId, profile?.tenant_id]);
 
   const onSubmit = async (values: AssetFormValues) => {
+    // Reset status and start creation
+    setCreationStatus('creating');
+    setCreationError(null);
+    setCreatedAssetIds([]);
+    setCreatedAssetCodes([]);
+    
     try {
       const category = categories?.find(c => c.id === values.category_id);
       const type = types?.find(t => t.id === values.type_id);
@@ -274,17 +284,45 @@ function AssetRegisterContent() {
           startCode: asset_code,
         });
         setCreatedAssetIds(result.map(a => a.id));
-        setShowSuccessDialog(true);
+        setCreatedAssetCodes(result.map(a => a.asset_code));
+        setCreationStatus('success');
       } else {
         console.log(`[Submit] Single asset creation: ${finalAssetCode}`);
         const result = await createAsset.mutateAsync(assetData);
         setCreatedAssetIds([result.id]);
-        setShowSuccessDialog(true);
+        setCreatedAssetCodes([result.asset_code]);
+        setCreationStatus('success');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('[Submit] Error:', error);
-      // Error handled in mutation
+      setCreationError(error?.message || t('assets.unknownError', 'An unknown error occurred'));
+      setCreationStatus('error');
     }
+  };
+
+  const handleRetry = () => {
+    setCreationStatus('idle');
+    setCreationError(null);
+  };
+
+  const handleCreateAnother = () => {
+    setCreationStatus('idle');
+    setCreationError(null);
+    setCreatedAssetIds([]);
+    setCreatedAssetCodes([]);
+    form.reset({
+      status: 'active',
+      criticality_level: 'medium',
+      ownership: 'company',
+      tags: [],
+      category_id: '',
+      type_id: '',
+      asset_code: '',
+    });
+    setSelectedCategoryId(null);
+    setSelectedTypeId(null);
+    setBulkQuantity(1);
+    setActiveTab('classification');
   };
 
   const isSubmitting = createAsset.isPending || updateAsset.isPending || createBulkAssets.isPending;
@@ -1009,37 +1047,20 @@ function AssetRegisterContent() {
         </form>
       </Form>
 
-      {/* Success Dialog */}
-      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('assets.createSuccess')}</DialogTitle>
-            <DialogDescription>
-              {createdAssetIds.length > 1 
-                ? t('assets.bulkCreateSuccessDescription', { count: createdAssetIds.length })
-                : t('assets.createSuccessDescription')
-              }
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => {
-              setShowSuccessDialog(false);
-              navigate('/assets');
-            }}>
-              {t('assets.viewAssets')}
-            </Button>
-            {createdAssetIds.length > 0 && (
-              <Button onClick={() => {
-                setShowSuccessDialog(false);
-                navigate('/assets/bulk-print', { state: { assetIds: createdAssetIds } });
-              }} className="gap-2">
-                <Printer className="h-4 w-4" />
-                {t('assets.printLabels')}
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Creation Status Card - shows when not idle */}
+      {creationStatus !== 'idle' && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <AssetCreationStatusCard
+            status={creationStatus}
+            assetCodes={createdAssetCodes}
+            assetIds={createdAssetIds}
+            errorMessage={creationError}
+            onRetry={handleRetry}
+            onCreateAnother={handleCreateAnother}
+            redirectSeconds={5}
+          />
+        </div>
+      )}
     </div>
   );
 }

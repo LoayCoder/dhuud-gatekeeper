@@ -23,3 +23,5 @@ export { AssetHealthDashboardWidget } from './AssetHealthDashboardWidget';
 export { MobileAssetCard } from './MobileAssetCard';
 export { PullToRefresh } from './PullToRefresh';
 export { ScanFAB } from './ScanFAB';
+export { AssetCreationStatusCard } from './AssetCreationStatusCard';
+export type { CreationStatus } from './AssetCreationStatusCard';
