@@ -89,6 +89,24 @@ interface FrontCardProps extends CardSideProps {
   cardType: IDCardType;
 }
 
+// Helper function to format bilingual text
+const formatBilingual = (en: string | undefined, ar: string | undefined, separator = ' | ') => {
+  if (en && ar && en !== ar) {
+    return `${en}${separator}${ar}`;
+  }
+  return en || ar || '';
+};
+
+// Helper to get bilingual card type label
+const getBilingualCardTypeLabel = (cardType: IDCardType) => {
+  const en = CARD_TYPE_LABELS[cardType]['en'];
+  const ar = CARD_TYPE_LABELS[cardType]['ar'];
+  if (en && ar && en !== ar) {
+    return `${en} | ${ar}`;
+  }
+  return en || ar;
+};
+
 function IDCardFront({
   cardType,
   personData,
@@ -103,6 +121,8 @@ function IDCardFront({
 }: FrontCardProps) {
   const isRTL = language === 'ar';
   const cardTypeLabel = CARD_TYPE_LABELS[cardType][language];
+  const bilingualCardTypeLabel = getBilingualCardTypeLabel(cardType);
+  const bilingualTenantName = formatBilingual(tenantData.name, tenantData.nameAr);
   
   const getFieldValue = (field: FrontFieldKey): string => {
     switch (field) {
@@ -146,6 +166,8 @@ function IDCardFront({
       <PortraitFrontLayout
         cardType={cardType}
         cardTypeLabel={cardTypeLabel}
+        bilingualCardTypeLabel={bilingualCardTypeLabel}
+        bilingualTenantName={bilingualTenantName}
         personData={personData}
         tenantData={tenantData}
         settings={settings}
@@ -164,6 +186,8 @@ function IDCardFront({
     <LandscapeFrontLayout
       cardType={cardType}
       cardTypeLabel={cardTypeLabel}
+      bilingualCardTypeLabel={bilingualCardTypeLabel}
+      bilingualTenantName={bilingualTenantName}
       personData={personData}
       tenantData={tenantData}
       settings={settings}
@@ -181,6 +205,8 @@ function IDCardFront({
 interface LayoutProps {
   cardType: IDCardType;
   cardTypeLabel: string;
+  bilingualCardTypeLabel: string;
+  bilingualTenantName: string;
   personData: IDCardPersonData;
   tenantData: IDCardTenantData;
   settings: TenantIDCardSettings;
@@ -196,6 +222,8 @@ interface LayoutProps {
 function PortraitFrontLayout({
   cardType,
   cardTypeLabel,
+  bilingualCardTypeLabel,
+  bilingualTenantName,
   personData,
   tenantData,
   settings,
@@ -251,12 +279,12 @@ function PortraitFrontLayout({
           />
         )}
         
-        {/* Tenant Name */}
+        {/* Tenant Name - Bilingual */}
         {settings.show_tenant_name && (
           <div
             style={{
               color: '#FFFFFF',
-              fontSize: 8 * scale,
+              fontSize: 7 * scale,
               fontWeight: 600,
               flex: 1,
               textAlign: 'center',
@@ -265,24 +293,24 @@ function PortraitFrontLayout({
               textOverflow: 'ellipsis',
             }}
           >
-            {isRTL ? (tenantData.nameAr || tenantData.name) : tenantData.name}
+            {bilingualTenantName}
           </div>
         )}
         
-        {/* Card Type Badge */}
+        {/* Card Type Badge - Bilingual */}
         <div
           style={{
             backgroundColor: 'rgba(255,255,255,0.2)',
             color: '#FFFFFF',
             padding: `${2 * scale}px ${6 * scale}px`,
             borderRadius: 4 * scale,
-            fontSize: 6 * scale,
+            fontSize: 5 * scale,
             fontWeight: 600,
             textTransform: 'uppercase',
             whiteSpace: 'nowrap',
           }}
         >
-          {cardTypeLabel}
+          {bilingualCardTypeLabel}
         </div>
       </div>
 
@@ -336,32 +364,34 @@ function PortraitFrontLayout({
         </div>
       )}
 
-      {/* Name - Centered, Prominent */}
+      {/* Name - Centered, Prominent, Bilingual */}
       <div
         style={{
           textAlign: 'center',
           padding: `0 ${10 * scale}px`,
         }}
       >
+        {/* English Name (Primary) */}
         <div
           style={{
-            fontSize: 12 * scale,
+            fontSize: 11 * scale,
             fontWeight: 700,
             color: settings.front_text_color,
             lineHeight: 1.3,
           }}
         >
-          {isRTL ? (personData.fullNameAr || personData.fullName) : personData.fullName}
+          {personData.fullName}
         </div>
-        {/* Show secondary name if bilingual */}
-        {!isRTL && personData.fullNameAr && (
+        {/* Arabic Name (Always shown if available) */}
+        {personData.fullNameAr && (
           <div
             style={{
               fontSize: 10 * scale,
-              fontWeight: 500,
+              fontWeight: 600,
               color: settings.front_text_color,
-              opacity: 0.8,
+              opacity: 0.85,
               marginTop: 2 * scale,
+              direction: 'rtl',
             }}
           >
             {personData.fullNameAr}
@@ -454,6 +484,8 @@ function PortraitFrontLayout({
 function LandscapeFrontLayout({
   cardType,
   cardTypeLabel,
+  bilingualCardTypeLabel,
+  bilingualTenantName,
   personData,
   tenantData,
   settings,
@@ -509,34 +541,34 @@ function LandscapeFrontLayout({
           />
         )}
         
-        {/* Tenant Name */}
+        {/* Tenant Name - Bilingual */}
         {settings.show_tenant_name && (
           <div
             style={{
               color: '#FFFFFF',
-              fontSize: 10 * scale,
+              fontSize: 9 * scale,
               fontWeight: 600,
               flex: 1,
               textAlign: isRTL ? 'right' : 'left',
             }}
           >
-            {isRTL ? (tenantData.nameAr || tenantData.name) : tenantData.name}
+            {bilingualTenantName}
           </div>
         )}
         
-        {/* Card Type Badge */}
+        {/* Card Type Badge - Bilingual */}
         <div
           style={{
             backgroundColor: 'rgba(255,255,255,0.2)',
             color: '#FFFFFF',
             padding: `${2 * scale}px ${8 * scale}px`,
             borderRadius: 4 * scale,
-            fontSize: 8 * scale,
+            fontSize: 6 * scale,
             fontWeight: 600,
             textTransform: 'uppercase',
           }}
         >
-          {cardTypeLabel}
+          {bilingualCardTypeLabel}
         </div>
       </div>
 
@@ -602,17 +634,31 @@ function LandscapeFrontLayout({
             minWidth: 0,
           }}
         >
-          {/* Name - always prominent */}
+          {/* Name - Bilingual (always show both) */}
           <div
             style={{
-              fontSize: 11 * scale,
+              fontSize: 10 * scale,
               fontWeight: 700,
               color: settings.front_text_color,
               lineHeight: 1.2,
             }}
           >
-            {isRTL ? (personData.fullNameAr || personData.fullName) : personData.fullName}
+            {personData.fullName}
           </div>
+          {personData.fullNameAr && (
+            <div
+              style={{
+                fontSize: 9 * scale,
+                fontWeight: 600,
+                color: settings.front_text_color,
+                opacity: 0.85,
+                direction: 'rtl',
+                marginTop: 1 * scale,
+              }}
+            >
+              {personData.fullNameAr}
+            </div>
+          )}
           
           {/* Other fields */}
           {settings.front_fields
@@ -816,8 +862,8 @@ function IDCardBack({
           opacity: 0.7,
         }}
       >
-        <span>{isRTL ? tenantData.nameAr || tenantData.name : tenantData.name}</span>
-        <span>{isRTL ? 'www.dhuud.com' : 'www.dhuud.com'}</span>
+        <span>{formatBilingual(tenantData.name, tenantData.nameAr)}</span>
+        <span>www.dhuud.com</span>
       </div>
     </div>
   );
