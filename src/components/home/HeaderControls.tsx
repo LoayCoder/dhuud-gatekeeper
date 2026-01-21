@@ -23,9 +23,10 @@ const LANGUAGES = [
 
 interface HeaderControlsProps {
   showLogout?: boolean;
+  className?: string;
 }
 
-export function HeaderControls({ showLogout = false }: HeaderControlsProps) {
+export function HeaderControls({ showLogout = false, className }: HeaderControlsProps) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { colorMode, setColorMode, resolvedMode } = useTheme();
@@ -59,7 +60,7 @@ export function HeaderControls({ showLogout = false }: HeaderControlsProps) {
   const currentLang = LANGUAGES.find((l) => l.code === i18n.language) || LANGUAGES[0];
 
   return (
-    <div className="flex items-center gap-1">
+    <div className={cn("flex items-center gap-1", className)}>
       {/* Language Selector */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
