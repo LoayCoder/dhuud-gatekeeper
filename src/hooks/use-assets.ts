@@ -429,9 +429,9 @@ export function useDeleteAsset() {
   return useMutation({
     mutationFn: async (id: string) => {
       // Use SECURITY DEFINER function to bypass RLS issues
-      // This also cascades soft-delete to all related records
+      // This performs HARD delete, permanently removing asset and all related records
       const { error } = await supabase
-        .rpc('soft_delete_hsse_asset', { p_asset_id: id });
+        .rpc('hard_delete_hsse_asset', { p_asset_id: id });
 
       if (error) throw error;
     },
