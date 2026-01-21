@@ -7,9 +7,11 @@ import { HeaderControls } from '@/components/home/HeaderControls';
 export default function Home() {
   const { activeLogoUrl, tenantName } = useTheme();
 
+  // Version 3.0 - Logo Top, Content Below (Split Left/Right)
   return (
     <div 
       className="flex flex-col bg-background"
+      data-version="3.0"
       style={{
         minHeight: 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))',
         paddingTop: 'env(safe-area-inset-top)',
@@ -19,8 +21,8 @@ export default function Home() {
       {/* Main Content Container with max width for responsiveness */}
       <main className="flex-1 container max-w-4xl mx-auto px-4 py-4 flex flex-col gap-4 min-h-0">
 
-        {/* Top Header Section: Logo + Info Stack */}
-        <div className="flex flex-col gap-1 w-full">
+        {/* Top Header Section */}
+        <div className="flex flex-col gap-2 w-full">
           {/* 1. App Logo - Aligned to top, start (left) */}
           <div className="shrink-0 flex items-center justify-start h-12">
             {activeLogoUrl && (
@@ -35,16 +37,15 @@ export default function Home() {
             )}
           </div>
 
-          {/* 2. Info Stack - Directly under logo, very small gap */}
-          <div className="flex flex-col items-start gap-1">
-            {/* Welcome Message & Date/Time - Force start alignment */}
+          {/* 2. Info Row - Directly under logo */}
+          {/* justify-between pushes Welcome to Start and Controls to End */}
+          <div className="flex flex-row items-center justify-between gap-4">
+            {/* Welcome Message & Date/Time - Aligned Start */}
             <WelcomeCompact className="text-start" />
 
-            {/* Controls (Language, Theme, Logout) - Vertically stacked */}
-            <HeaderControls
-              showLogout
-              className="flex-col items-start gap-1 mt-1"
-            />
+            {/* Controls (Language, Theme, Logout) - Aligned End */}
+            {/* No flex-col here, so they remain horizontal */}
+            <HeaderControls showLogout />
           </div>
         </div>
 
