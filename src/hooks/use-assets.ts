@@ -425,24 +425,26 @@ export function useUpdateAsset() {
 export function useDeleteAsset() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      // Use SECURITY DEFINER function to bypass RLS issues
-      // This performs HARD delete, permanently removing asset and all related records
+      // Use soft delete for 7-day trash period
+      // Assets can be restored within 7 days, then auto-deleted by cron
       const { error } = await supabase
-        .rpc('hard_delete_hsse_asset', { p_asset_id: id });
+        .rpc('soft_delete_hsse_asset', { p_asset_id: id });
 
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
+      queryClient.invalidateQueries({ queryKey: ['assets-trash', profile?.tenant_id] });
       queryClient.invalidateQueries({ queryKey: ['asset-dashboard-stats'] });
-      toast.success(t('assets.deleteSuccess'));
+      toast.success(t('assets.trash.moveSuccess'));
     },
     onError: (error) => {
       console.error('Delete asset error:', error);
-      toast.error(t('assets.deleteError'));
+      toast.error(t('assets.trash.moveError'));
     },
   });
 }

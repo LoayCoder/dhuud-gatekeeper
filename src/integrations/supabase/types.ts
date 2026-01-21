@@ -24482,6 +24482,11 @@ export type Database = {
         }
         Returns: undefined
       }
+      bulk_restore_assets: { Args: { p_asset_ids: string[] }; Returns: number }
+      bulk_soft_delete_assets: {
+        Args: { p_asset_ids: string[] }
+        Returns: number
+      }
       cache_ip_geolocation: {
         Args: {
           p_city: string
@@ -24737,6 +24742,7 @@ export type Database = {
       }
       check_zone_dependencies: { Args: { p_zone_id: string }; Returns: Json }
       cleanup_expired_ip_blocks: { Args: never; Returns: number }
+      cleanup_expired_trash_assets: { Args: never; Returns: number }
       cleanup_expired_trusted_devices: { Args: never; Returns: number }
       cleanup_expired_webauthn_challenges: { Args: never; Returns: undefined }
       cleanup_rate_limit_log: { Args: never; Returns: undefined }
@@ -25477,6 +25483,20 @@ export type Database = {
         Args: { p_end_date?: string; p_limit?: number; p_start_date?: string }
         Returns: Json
       }
+      get_trash_assets: {
+        Args: never
+        Returns: {
+          asset_code: string
+          category_icon: string
+          category_name: string
+          category_name_ar: string
+          days_remaining: number
+          deleted_at: string
+          expires_at: string
+          id: string
+          name: string
+        }[]
+      }
       get_upcoming_inspection_schedules: {
         Args: { p_days_ahead?: number }
         Returns: {
@@ -25956,6 +25976,7 @@ export type Database = {
         Args: { p_tenant_id: string }
         Returns: undefined
       }
+      restore_hsse_asset: { Args: { p_asset_id: string }; Returns: string }
       route_observation_to_consultant: {
         Args: { p_consultant_id: string; p_incident_id: string }
         Returns: Json

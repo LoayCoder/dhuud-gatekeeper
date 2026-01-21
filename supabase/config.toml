@@ -341,3 +341,6 @@ verify_jwt = true
 
 [functions.dashboard-ai-insights]
 verify_jwt = false
+
+[functions.asset-trash-cleanup]
+verify_jwt = false
