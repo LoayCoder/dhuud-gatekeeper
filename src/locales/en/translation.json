@@ -1,4 +1,10 @@
 {
+  "assets": {
+    "usingLocationFromSite": "Using site location",
+    "ownLocation": "Own GPS",
+    "inheritedLocation": "Site GPS",
+    "onMap": "on map"
+  },
   "biometric": {
     "title": "Biometric Login",
     "description": "Use fingerprint or face recognition for faster login",
