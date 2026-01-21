@@ -49,10 +49,11 @@ export function useWindowControlsOverlay(): WindowControlsOverlay {
     }
 
     // Listen for geometry changes
-    const handleGeometryChange = (event: any) => {
-      setIsVisible(event.visible);
-      if (event.titlebarAreaRect) {
-        setTitlebarAreaRect(event.titlebarAreaRect);
+    const handleGeometryChange = (event: Event) => {
+      const wcoEvent = event as unknown as { visible: boolean; titlebarAreaRect: DOMRect };
+      setIsVisible(wcoEvent.visible);
+      if (wcoEvent.titlebarAreaRect) {
+        setTitlebarAreaRect(wcoEvent.titlebarAreaRect);
       }
     };
 

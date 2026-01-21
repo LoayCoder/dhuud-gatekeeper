@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { useDocumentBranding } from './use-document-branding';
-import { useSecurityTeamSummary, useGuardReportData, useAttendanceExport } from './use-security-reports';
 import { generateSecuritySummaryPDF } from '@/lib/generate-security-summary-pdf';
 import { generateGuardPerformancePDF } from '@/lib/generate-guard-performance-pdf';
 import { generateAttendanceExcel } from '@/lib/generate-attendance-excel';
@@ -28,6 +27,16 @@ export interface ExportOptions {
   isRTL: boolean;
 }
 
+interface BrandingConfig {
+  headerBgColor: string;
+  headerTextColor: string;
+  footerBgColor: string;
+  footerTextColor: string;
+  footerText?: string;
+  watermarkText?: string | null;
+  watermarkEnabled: boolean;
+}
+
 export function useSecurityReportExport() {
   const { t } = useTranslation();
   const [isExporting, setIsExporting] = useState(false);
@@ -48,7 +57,7 @@ export function useSecurityReportExport() {
       const tenantName = (profile?.tenant as any)?.name || 'Organization';
       const logoUrl = (profile?.tenant as any)?.logo_url || null;
 
-      const branding = {
+      const branding: BrandingConfig = {
         headerBgColor: settings?.headerBgColor || '#ffffff',
         headerTextColor: settings?.headerTextColor || '#1f2937',
         footerBgColor: settings?.footerBgColor || '#f3f4f6',
@@ -88,7 +97,7 @@ async function exportTeamSummary(
   options: ExportOptions, 
   tenantName: string, 
   logoUrl: string | null,
-  branding: any
+  branding: BrandingConfig
 ) {
   const { data: { user } } = await supabase.auth.getUser();
   const { data: profile } = await supabase
@@ -225,7 +234,7 @@ async function exportGuardPerformance(
   options: ExportOptions, 
   tenantName: string, 
   logoUrl: string | null,
-  branding: any
+  branding: BrandingConfig
 ) {
   const guardId = options.guardId!;
   

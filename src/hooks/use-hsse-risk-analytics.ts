@@ -78,7 +78,7 @@ export function useHSSERiskAnalytics() {
   const [insights, setInsights] = useState<AIRiskInsights | null>(null);
 
   const mutation = useMutation({
-    mutationFn: async (dashboardData: any) => {
+    mutationFn: async (dashboardData: Record<string, unknown>) => {
       const { data, error } = await supabase.functions.invoke('hsse-risk-analytics', {
         body: { 
           dashboardData,
@@ -92,7 +92,7 @@ export function useHSSERiskAnalytics() {
     onSuccess: (data) => {
       setInsights(data);
     },
-    onError: (error: any) => {
+    onError: (error: Error | any) => {
       console.error("AI Risk Analytics error:", error);
       if (error?.message?.includes('429') || error?.status === 429) {
         toast.error("Rate limit exceeded. Please try again later.");
