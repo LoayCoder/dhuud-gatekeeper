@@ -25593,6 +25593,7 @@ export type Database = {
         Args: { p_company_id: string }
         Returns: string
       }
+      hard_delete_hsse_asset: { Args: { p_asset_id: string }; Returns: string }
       has_asset_management_access: {
         Args: { _user_id: string }
         Returns: boolean

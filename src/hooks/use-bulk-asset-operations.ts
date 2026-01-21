@@ -114,10 +114,10 @@ export function useBulkDelete() {
       if (assetIds.length === 0) throw new Error('No assets selected');
 
       // Use SECURITY DEFINER function for each asset
-      // This handles cascading soft-delete of all related records
+      // This handles cascading HARD delete of all related records
       const results = await Promise.all(
         assetIds.map(assetId => 
-          supabase.rpc('soft_delete_hsse_asset', { p_asset_id: assetId })
+          supabase.rpc('hard_delete_hsse_asset', { p_asset_id: assetId })
         )
       );
 
