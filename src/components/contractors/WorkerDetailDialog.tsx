@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, Phone, Globe, Calendar, FileText, QrCode, Video, CheckCircle, Clock, AlertTriangle, Send, FolderOpen, UserCheck, Loader2 } from "lucide-react";
+import { Building2, Phone, Globe, Calendar, FileText, QrCode, Video, CheckCircle, Clock, AlertTriangle, Send, FolderOpen, UserCheck, Loader2, CreditCard } from "lucide-react";
 import { format } from "date-fns";
 import { ContractorWorker } from "@/hooks/contractor-management/use-contractor-workers";
 import { WorkerQRCode } from "./WorkerQRCode";
 import { ContractorDocumentUpload } from "./ContractorDocumentUpload";
+import { IDCardActionButton } from "@/components/id-cards";
 import { useWorkerInductions } from "@/hooks/contractor-management/use-worker-inductions";
 import { useInductionVideos } from "@/hooks/contractor-management/use-induction-videos";
 import { useContractorProjects } from "@/hooks/contractor-management/use-contractor-projects";
@@ -320,9 +321,43 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
                   </CardContent>
                 </Card>
 
-                {/* QR Code Display */}
+                {/* ID Card & QR Code Display */}
                 <Card>
-                  <CardContent className="pt-4">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <CreditCard className="h-4 w-4" />
+                        {t("contractors.workers.idCard", "ID Card")}
+                      </span>
+                      {existingQRCode && (
+                        <IDCardActionButton
+                          cardType="worker"
+                          entityId={worker.id}
+                          personData={{
+                            id: worker.id,
+                            fullName: worker.full_name,
+                            fullNameAr: worker.full_name_ar || undefined,
+                            photo: photoUrl || undefined,
+                            company: worker.company?.company_name,
+                            role: worker.worker_type || t("contractors.workers.worker", "Worker"),
+                            nationalId: worker.national_id,
+                            project: existingQRCode.project_name,
+                            validUntil: existingQRCode.expires_at,
+                            qrToken: existingQRCode.qr_token,
+                            qrUrl: `https://www.dhuud.com/worker-access/${existingQRCode.qr_token}`,
+                            inductionCompleted: hasCompletedInduction,
+                          }}
+                          tenantId={worker.tenant_id}
+                          tenantData={{
+                            id: worker.tenant_id,
+                            name: worker.company?.company_name || '',
+                          }}
+                          recipientPhone={worker.mobile_number}
+                        />
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-2">
                     <WorkerQRCode
                       workerId={worker.id}
                       workerName={worker.full_name}
