@@ -6143,9 +6143,11 @@
     "remainingLife": "Remaining Life",
     "assetsWithLocation": "{{count}} assets with GPS",
     "noAssetsWithLocation": "No assets with GPS coordinates",
-    "addGPSCoordinates": "Add GPS coordinates to assets",
+    "addGPSCoordinates": "Add GPS coordinates to assets to see them on the map",
     "assetMap": "Asset Map",
     "assetMapDescription": "View asset locations on an interactive map",
+    "manageAssetLocations": "Manage Asset Locations",
+    "locationVerified": "Location Verified",
     "severity": {
       "critical": "Critical",
       "high": "High",
@@ -6967,10 +6969,13 @@
       "affected": "Affected"
     },
     "status": {
+      "label": "Status",
       "active": "Active",
       "inactive": "Inactive",
       "under_maintenance": "Under Maintenance",
-      "disposed": "Disposed"
+      "out_of_service": "Out of Service",
+      "disposed": "Disposed",
+      "pending_disposal": "Pending Disposal"
     }
   },
   "workflow": {
