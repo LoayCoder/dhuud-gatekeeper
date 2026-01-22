@@ -19,11 +19,11 @@ export interface AdminEditObservationInput {
 export interface AdminEditObservationResult {
   success: boolean;
   rerouted: boolean;
-  new_assigned_to: string | null;
-  new_status: string;
-  role_selected: string | null;
-  selection_reason: string;
-  site_primary_department: string | null;
+  new_branch_id: string | null;
+  new_site_id: string | null;
+  approval_manager_id: string | null;
+  workflow_reset: boolean;
+  error?: string;
 }
 
 export function useAdminEditObservation() {
@@ -37,7 +37,7 @@ export function useAdminEditObservation() {
         p_new_branch_id: input.branchId || null,
         p_new_site_id: input.siteId || null,
         p_new_contractor_id: input.contractorCompanyId,
-        p_should_reroute: input.shouldReroute,
+        p_reset_workflow: input.shouldReroute,
         p_admin_notes: input.adminNotes || null,
       });
 
