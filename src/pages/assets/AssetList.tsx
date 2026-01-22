@@ -151,12 +151,27 @@ function AssetCard({ asset, onClick, onEdit, isSelected, onSelect, selectionMode
               </span>
             </div>
           )}
-          {asset.site && (
-            <div className="flex items-center justify-between text-muted-foreground">
+          {(asset.branch || asset.site || asset.building || asset.floor_zone) && (
+            <div className="flex items-start justify-between text-muted-foreground">
               <span>{t('assets.location')}</span>
-              <span className="font-medium text-foreground truncate max-w-[120px]">
-                {asset.site.name}
-              </span>
+              <div className="flex flex-col items-end text-end max-w-[140px]">
+                {asset.branch && (
+                  <span className="text-xs font-medium text-foreground truncate w-full">{asset.branch.name}</span>
+                )}
+                {asset.site && (
+                  <span className="text-xs text-muted-foreground truncate w-full">{asset.site.name}</span>
+                )}
+                {asset.building && (
+                  <span className="text-xs text-muted-foreground truncate w-full">
+                    {isArabic && asset.building.name_ar ? asset.building.name_ar : asset.building.name}
+                  </span>
+                )}
+                {asset.floor_zone && (
+                  <span className="text-xs text-muted-foreground truncate w-full">
+                    {isArabic && asset.floor_zone.name_ar ? asset.floor_zone.name_ar : asset.floor_zone.name}
+                  </span>
+                )}
+              </div>
             </div>
           )}
           {selectionMode && (
