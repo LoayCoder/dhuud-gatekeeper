@@ -164,10 +164,8 @@ serve(async (req) => {
 
     console.log("[analyze-incident] Analyzing incident description:", description.substring(0, 100));
 
-    // Detect input language for response
-    const isArabicInput = /[\u0600-\u06FF]/.test(description);
-    const responseLanguage = isArabicInput ? 'Arabic' : 
-      (settings.rewrite_rules.target_language === 'ar' ? 'Arabic' : 'English');
+    // Always output in English regardless of input language
+    const responseLanguage = 'English';
 
     // Build tag list for AI prompt
     const tagListForPrompt = availableTags.length > 0
@@ -180,30 +178,44 @@ serve(async (req) => {
 - Detect if any injuries are mentioned (worker hurt, hospitalized, first aid, etc.)
 ${settings.injury_extraction.auto_fill_count ? '- Count the number of injured persons if mentioned' : ''}
 ${settings.injury_extraction.auto_fill_type ? '- Determine injury type (minor, medical_treatment, lost_time, fatality)' : ''}
-- Summarize the injury details in ${responseLanguage} ONLY`
+- Summarize the injury details in English ONLY`
       : '';
 
     const damageInstructions = settings.damage_extraction.enabled
       ? `\n\nDAMAGE EXTRACTION:
 - Detect if property/equipment/environmental damage is mentioned
 ${settings.damage_extraction.auto_fill_category ? '- Categorize the damage type' : ''}
-- Summarize the damage details in ${responseLanguage} ONLY
+- Summarize the damage details in English ONLY
 - Extract estimated cost if mentioned (in numbers only)`
       : '';
 
 const systemPrompt = `You are an HSSE (Health, Safety, Security, Environment) expert analyzing incident reports.
 Your tasks:
-1. Translate non-English input to English if needed
-2. Professionally rewrite the title and description for clarity
-3. Classify the incident according to industry standards (ISO 45001, OSHA, API RP 754 for process safety)
-4. Extract injury and damage details from the description
-5. Assess the clarity/quality of the description
+1. Translate any non-English input to English first
+2. Generate a professional title based on the description (if no title provided or title is poor quality)
+3. Professionally rewrite the description for clarity
+4. Classify the incident according to industry standards (ISO 45001, OSHA, API RP 754 for process safety)
+5. Extract injury and damage details from the description
+6. Assess the clarity/quality of the description
 
 CRITICAL LANGUAGE RULES:
-- You MUST respond ONLY in English or Arabic
-- The input appears to be in ${responseLanguage} - respond in ${responseLanguage}
-- NEVER respond in any other language (no Telugu, Hindi, Urdu, Tamil, or any other script)
-- All text fields (injuryDescription, damageDescription, reasoning, rewrittenDescription) MUST be in ${responseLanguage}
+- You MUST respond ONLY in English
+- If the input is in ANY language (Arabic, Hindi, Urdu, Telugu, Filipino, etc.), translate it to English first
+- ALL output text fields MUST be in English:
+  - rewrittenTitle
+  - rewrittenDescription
+  - injuryDescription
+  - damageDescription
+  - reasoning
+  - keyRisks
+  - immediateActions
+- NEVER output any non-English text in ANY field
+
+TITLE GENERATION RULES:
+- If no title is provided or title is empty, generate a professional title based on the description
+- Title should be concise (under 120 characters)
+- Title should summarize the key incident in professional HSSE terminology
+- Example: "Worker Slip and Fall on Wet Floor Near Loading Bay"
 
 REWRITING GUIDELINES:
 - Keep the original meaning intact
@@ -250,22 +262,24 @@ Be precise and consistent in your classifications.`;
             role: "user",
             content: `Analyze this HSSE event and provide a professionally rewritten version plus classification:
 
-TITLE: "${body.title || ''}"
+${body.title ? `ORIGINAL TITLE: "${body.title}"` : 'NO TITLE PROVIDED - Generate one from the description'}
 DESCRIPTION: "${description}"
 
 Tasks:
-1. Rewrite the title professionally (keep it concise, under 120 chars)
-2. Rewrite the description professionally (improve clarity, grammar, use HSSE terminology)
+1. ${body.title ? 'Rewrite the title professionally' : 'Generate a professional title based on the description'} (keep it concise, under 120 chars, in English)
+2. Rewrite the description professionally in English (translate if needed, improve clarity, grammar, use HSSE terminology)
 3. Assess clarity quality (0-100 score)
 4. Event type (observation or incident)
 5. If incident: the incident type category
 6. Specific subtype within that category
 7. Severity level
-8. Key risks identified
-9. Any injuries mentioned (count, description, type)
-10. Any damage mentioned (description, estimated cost)
-11. Suggest 1-5 immediate corrective actions that should/could have been taken
-12. Suggested tags from the available list`
+8. Key risks identified (in English)
+9. Any injuries mentioned (count, description in English, type)
+10. Any damage mentioned (description in English, estimated cost)
+11. Suggest 1-5 immediate corrective actions in English
+12. Suggested tags from the available list
+
+REMEMBER: ALL OUTPUT MUST BE IN ENGLISH - translate from any input language.`
           }
         ],
         tools: [
@@ -279,11 +293,11 @@ Tasks:
                 properties: {
                   rewrittenTitle: {
                     type: "string",
-                    description: "Professionally rewritten title (concise, under 120 chars, proper HSSE terminology). MUST be in English or Arabic ONLY."
+                    description: "Professionally written/rewritten title in English (concise, under 120 chars, proper HSSE terminology). If no title was provided, generate one based on the description."
                   },
                   rewrittenDescription: {
                     type: "string",
-                    description: "Professionally rewritten description with improved clarity, grammar, and HSSE terminology. MUST be in English or Arabic ONLY."
+                    description: "Professionally rewritten description in English with improved clarity, grammar, and HSSE terminology. Translate from any input language to English."
                   },
                   clarityScore: {
                     type: "number",
@@ -337,7 +351,7 @@ Tasks:
                   },
                   injuryDescription: {
                     type: "string",
-                    description: "Summary of injury details. MUST be in English or Arabic ONLY - never use Telugu, Hindi, or other languages."
+                    description: "Summary of injury details in English ONLY. Translate from any input language."
                   },
                   hasDamage: {
                     type: "boolean",
@@ -345,7 +359,7 @@ Tasks:
                   },
                   damageDescription: {
                     type: "string",
-                    description: "Summary of damage details. MUST be in English or Arabic ONLY - never use Telugu, Hindi, or other languages."
+                    description: "Summary of damage details in English ONLY. Translate from any input language."
                   },
                   estimatedCost: {
                     type: "number",
@@ -354,7 +368,7 @@ Tasks:
                   immediateActions: {
                     type: "array",
                     items: { type: "string" },
-                    description: "1-5 immediate corrective actions that should be taken based on the incident. Each action should be concise (1 sentence). Examples: 'Cordoned off the area', 'Provided first aid to injured worker', 'Stopped equipment operation', 'Placed warning signs'. MUST be in English or Arabic ONLY.",
+                    description: "1-5 immediate corrective actions in English that should be taken based on the incident. Each action should be concise (1 sentence). Examples: 'Cordoned off the area', 'Provided first aid to injured worker', 'Stopped equipment operation', 'Placed warning signs'.",
                     minItems: 1,
                     maxItems: 5
                   },
