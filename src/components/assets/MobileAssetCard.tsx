@@ -188,21 +188,29 @@ export function MobileAssetCard({ asset, onInspect, onEdit, onDelete }: MobileAs
             {(asset.branch || asset.site || asset.building || asset.floor_zone) && (
               <div className="flex items-start justify-between text-muted-foreground">
                 <span>{t('assets.location')}</span>
-                <div className="flex flex-col items-end text-end max-w-[160px]">
+                <div className="flex flex-col items-end text-end max-w-[180px]">
                   {asset.branch && (
-                    <span className="text-xs font-medium text-foreground truncate w-full">{asset.branch.name}</span>
+                    <span className="text-xs truncate w-full">
+                      <span className="text-muted-foreground/70">{t('assets.branch')}: </span>
+                      <span className="font-medium text-foreground">{asset.branch.name}</span>
+                    </span>
                   )}
                   {asset.site && (
-                    <span className="text-xs text-muted-foreground truncate w-full">{asset.site.name}</span>
+                    <span className="text-xs truncate w-full">
+                      <span className="text-muted-foreground/70">{t('assets.site')}: </span>
+                      <span className="text-muted-foreground">{asset.site.name}</span>
+                    </span>
                   )}
                   {asset.building && (
-                    <span className="text-xs text-muted-foreground truncate w-full">
-                      {isArabic && asset.building.name_ar ? asset.building.name_ar : asset.building.name}
+                    <span className="text-xs truncate w-full">
+                      <span className="text-muted-foreground/70">{t('assets.building')}: </span>
+                      <span className="text-muted-foreground">{isArabic && asset.building.name_ar ? asset.building.name_ar : asset.building.name}</span>
                     </span>
                   )}
                   {asset.floor_zone && (
-                    <span className="text-xs text-muted-foreground truncate w-full">
-                      {isArabic && asset.floor_zone.name_ar ? asset.floor_zone.name_ar : asset.floor_zone.name}
+                    <span className="text-xs truncate w-full">
+                      <span className="text-muted-foreground/70">{t('assets.floorZone')}: </span>
+                      <span className="text-muted-foreground">{isArabic && asset.floor_zone.name_ar ? asset.floor_zone.name_ar : asset.floor_zone.name}</span>
                     </span>
                   )}
                 </div>
