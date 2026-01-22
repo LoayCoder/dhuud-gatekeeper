@@ -1024,7 +1024,7 @@ export function AppSidebar() {
   }, [menuItems, canAccess, menuLoading]);
 
   return (
-    <Sidebar collapsible="icon" side={isRtl ? "right" : "left"}>
+    <Sidebar collapsible="icon" side="left">
       {/* HEADER: Tenant Brand */}
       <SidebarHeader>
         <SidebarMenu>
