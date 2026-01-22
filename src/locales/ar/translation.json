@@ -5031,6 +5031,20 @@
       "error": "تنبيهات الأمان والأخطاء",
       "urgent": "تنبيهات SLA العاجلة"
     },
+    "gatePass": {
+      "newSubmission": {
+        "title": "تم تقديم تصريح دخول جديد",
+        "body": "تم تقديم تصريح الدخول {{reference}} للمشروع {{project}}. المواد: {{materials}}"
+      },
+      "approved": {
+        "title": "تمت الموافقة على تصريح الدخول",
+        "body": "تمت الموافقة على تصريح الدخول {{reference}}"
+      },
+      "rejected": {
+        "title": "تم رفض تصريح الدخول",
+        "body": "تم رفض تصريح الدخول {{reference}}"
+      }
+    },
     "digestPreferences": "تفضيلات البريد الملخص",
     "digestPreferencesDescription": "تكوين موعد وطريقة استلام رسائل البريد الملخصة اليومية",
     "digestOptIn": "استلام الملخص اليومي",

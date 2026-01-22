@@ -344,3 +344,6 @@ verify_jwt = false
 
 [functions.asset-trash-cleanup]
 verify_jwt = false
+
+[functions.notify-dept-rep-gate-pass]
+verify_jwt = false

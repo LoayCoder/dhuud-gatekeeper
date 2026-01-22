@@ -5223,6 +5223,20 @@
       "error": "Security & Error Alerts",
       "urgent": "Urgent SLA Alerts"
     },
+    "gatePass": {
+      "newSubmission": {
+        "title": "New Gate Pass Submitted",
+        "body": "Gate pass {{reference}} submitted for {{project}}. Materials: {{materials}}"
+      },
+      "approved": {
+        "title": "Gate Pass Approved",
+        "body": "Gate pass {{reference}} has been approved"
+      },
+      "rejected": {
+        "title": "Gate Pass Rejected",
+        "body": "Gate pass {{reference}} has been rejected"
+      }
+    },
     "digestPreferences": "Digest Email Preferences",
     "digestPreferencesDescription": "Configure when and how you receive daily digest emails",
     "digestOptIn": "Receive Daily Digest",
