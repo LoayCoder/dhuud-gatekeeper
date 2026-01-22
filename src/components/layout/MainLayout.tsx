@@ -32,7 +32,7 @@ export default function MainLayout() {
         <SidebarInset className="min-w-0 flex flex-col w-full">
           {/* Header with Trigger - Fully responsive fixed header with safe-area support for PWA */}
           <header 
-            className="fixed top-0 start-0 md:start-[var(--sidebar-width,0px)] end-0 z-50 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 min-h-12 sm:min-h-14 md:min-h-16 h-auto shrink-0 items-center justify-between gap-1.5 sm:gap-2 border-b px-2 sm:px-3 md:px-4 transition-[left,right] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:md:start-[var(--sidebar-width-icon,3rem)] flex flex-row flex-wrap"
+            className="fixed top-0 start-0 end-0 z-50 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 min-h-12 sm:min-h-14 md:min-h-16 h-auto shrink-0 items-center justify-between gap-1.5 sm:gap-2 border-b px-2 sm:px-3 md:px-4 transition-all ease-linear flex flex-row flex-wrap ltr:md:start-[var(--sidebar-width,0px)] rtl:md:end-[var(--sidebar-width,0px)] ltr:group-has-[[data-collapsible=icon]]/sidebar-wrapper:md:start-[var(--sidebar-width-icon,3rem)] rtl:group-has-[[data-collapsible=icon]]/sidebar-wrapper:md:end-[var(--sidebar-width-icon,3rem)]"
             style={{ 
               paddingTop: 'env(safe-area-inset-top, 0px)',
             }}
