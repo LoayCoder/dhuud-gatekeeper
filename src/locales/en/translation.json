@@ -2531,7 +2531,49 @@
     "visitorSettings": "Visitor Settings",
     "pageContentEditor": "Page Content Editor",
     "pendingApprovalsOverride": "Pending Approvals Override",
-    "testPushNotifications": "Test Push Notifications"
+    "testPushNotifications": "Test Push Notifications",
+    "deptGatePasses": "Gate Passes"
+  },
+  "deptGatePasses": {
+    "dashboard": {
+      "title": "Gate Pass Dashboard",
+      "description": "Manage gate passes for your department",
+      "totalPasses": "Total Passes",
+      "pendingApproval": "Pending Approval",
+      "approvedToday": "Approved Today",
+      "completedThisWeek": "Completed This Week",
+      "recentPasses": "Recent Gate Passes",
+      "recentPassesDesc": "Latest gate passes in your department",
+      "noRecentPasses": "No recent gate passes",
+      "reviewPending": "Review Pending",
+      "viewToday": "View Today's Passes",
+      "viewAll": "View All Passes"
+    },
+    "list": {
+      "title": "All Gate Passes",
+      "description": "View and manage all gate passes for your department",
+      "searchPlaceholder": "Search by reference, material, vehicle...",
+      "tableTitle": "Gate Passes",
+      "noResults": "No gate passes found"
+    },
+    "approvals": {
+      "title": "Pending Approvals",
+      "description": "Gate passes awaiting approval in your department",
+      "pendingCount": "passes awaiting approval",
+      "queueTitle": "Approval Queue",
+      "queueDesc": "Review and approve gate pass requests",
+      "allClear": "All Clear!",
+      "noPending": "No gate passes pending approval"
+    },
+    "today": {
+      "title": "Today's Passes",
+      "description": "Active gate passes for today",
+      "activeCount": "active passes today",
+      "listTitle": "Today's Gate Passes",
+      "listDesc": "Approved gate passes scheduled for today",
+      "noPasses": "No Passes Today",
+      "noPassesDesc": "No approved gate passes scheduled for today"
+    }
   },
   "actions": {
     "sessionActions": "Session Actions",

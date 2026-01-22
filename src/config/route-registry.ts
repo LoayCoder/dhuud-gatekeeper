@@ -1082,6 +1082,50 @@ export const routeRegistry: RouteDefinition[] = [
   },
 
   // -------------------------------------------------------------------------
+  // DEPARTMENT REPRESENTATIVE GATE PASSES
+  // -------------------------------------------------------------------------
+  {
+    path: "/dept-gate-passes",
+    menuCode: "dept_gate_pass_dashboard",
+    title: { en: "Gate Pass Dashboard", ar: "لوحة تصاريح الدخول" },
+    icon: LayoutDashboard,
+    component: lazyWithRetry(() => import("@/pages/dept-gate-passes/Dashboard")),
+    protection: "protected",
+    parentCode: "dept_gate_passes",
+    sortOrder: 1,
+  },
+  {
+    path: "/dept-gate-passes/list",
+    menuCode: "dept_gate_pass_list",
+    title: { en: "All Gate Passes", ar: "جميع التصاريح" },
+    icon: List,
+    component: lazyWithRetry(() => import("@/pages/dept-gate-passes/GatePassList")),
+    protection: "protected",
+    parentCode: "dept_gate_passes",
+    sortOrder: 2,
+  },
+  {
+    path: "/dept-gate-passes/approvals",
+    menuCode: "dept_gate_pass_approvals",
+    title: { en: "Pending Approvals", ar: "الموافقات المعلقة" },
+    icon: Clock,
+    component: lazyWithRetry(() => import("@/pages/dept-gate-passes/PendingApprovals")),
+    protection: "protected",
+    parentCode: "dept_gate_passes",
+    sortOrder: 3,
+  },
+  {
+    path: "/dept-gate-passes/today",
+    menuCode: "dept_gate_pass_today",
+    title: { en: "Today's Passes", ar: "تصاريح اليوم" },
+    icon: Calendar,
+    component: lazyWithRetry(() => import("@/pages/dept-gate-passes/TodayPasses")),
+    protection: "protected",
+    parentCode: "dept_gate_passes",
+    sortOrder: 4,
+  },
+
+  // -------------------------------------------------------------------------
   // PTW (PERMIT TO WORK) MODULE
   // -------------------------------------------------------------------------
   {
