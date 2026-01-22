@@ -25091,9 +25091,29 @@ export type Database = {
         Args: { p_branch_id?: string; p_site_id?: string }
         Returns: number
       }
+      get_department_pending_gate_passes: {
+        Args: { p_department_id: string; p_limit?: number; p_tenant_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          material_description: string
+          pass_date: string
+          project_name: string
+          reference_number: string
+          requester_name: string
+        }[]
+      }
       get_department_representative: {
         Args: { p_department_id: string }
         Returns: string
+      }
+      get_department_upcoming_gate_passes: {
+        Args: { p_department_id: string; p_tenant_id: string }
+        Returns: {
+          pass_count: number
+          pass_date: string
+          top_project: string
+        }[]
       }
       get_emergency_notification_recipients:
         | {
