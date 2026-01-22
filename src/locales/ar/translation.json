@@ -2653,7 +2653,49 @@
     "visitorSettings": "إعدادات الزوار",
     "pageContentEditor": "محرر محتوى الصفحات",
     "pendingApprovalsOverride": "تجاوز الموافقات المعلقة",
-    "testPushNotifications": "اختبار الإشعارات الفورية"
+    "testPushNotifications": "اختبار الإشعارات الفورية",
+    "deptGatePasses": "تصاريح الدخول"
+  },
+  "deptGatePasses": {
+    "dashboard": {
+      "title": "لوحة تصاريح الدخول",
+      "description": "إدارة تصاريح الدخول لقسمك",
+      "totalPasses": "إجمالي التصاريح",
+      "pendingApproval": "في انتظار الموافقة",
+      "approvedToday": "موافق عليها اليوم",
+      "completedThisWeek": "مكتملة هذا الأسبوع",
+      "recentPasses": "أحدث التصاريح",
+      "recentPassesDesc": "آخر تصاريح الدخول في قسمك",
+      "noRecentPasses": "لا توجد تصاريح حديثة",
+      "reviewPending": "مراجعة المعلقة",
+      "viewToday": "عرض تصاريح اليوم",
+      "viewAll": "عرض الكل"
+    },
+    "list": {
+      "title": "جميع التصاريح",
+      "description": "عرض وإدارة جميع تصاريح الدخول لقسمك",
+      "searchPlaceholder": "البحث بالمرجع، المادة، المركبة...",
+      "tableTitle": "تصاريح الدخول",
+      "noResults": "لم يتم العثور على تصاريح"
+    },
+    "approvals": {
+      "title": "الموافقات المعلقة",
+      "description": "تصاريح الدخول في انتظار الموافقة في قسمك",
+      "pendingCount": "تصاريح في انتظار الموافقة",
+      "queueTitle": "قائمة الموافقات",
+      "queueDesc": "مراجعة طلبات التصاريح والموافقة عليها",
+      "allClear": "تمام!",
+      "noPending": "لا توجد تصاريح في انتظار الموافقة"
+    },
+    "today": {
+      "title": "تصاريح اليوم",
+      "description": "التصاريح النشطة لليوم",
+      "activeCount": "تصاريح نشطة اليوم",
+      "listTitle": "تصاريح اليوم",
+      "listDesc": "التصاريح المعتمدة المجدولة لليوم",
+      "noPasses": "لا توجد تصاريح اليوم",
+      "noPassesDesc": "لا توجد تصاريح معتمدة مجدولة لليوم"
+    }
   },
   "actions": {
     "sessionActions": "إجراءات الجلسة",
