@@ -5,10 +5,14 @@
 
 // Allowed origins for the application
 const ALLOWED_ORIGINS = [
-  // Production domains - update these for your deployment
+  // Production domains
+  'https://www.dhuud.com',
+  'https://dhuud.com',
+  // Lovable domains
   'https://lovable.dev',
-  'https://id-preview--xdlowvfzhvjzbtgvurzj.lovable.app', // Preview URL
-  // Add your custom domain here when deployed
+  'https://id-preview--xdlowvfzhvjzbtgvurzj.lovable.app',
+  'https://id-preview--8feca61a-47e3-4736-9ecf-c70ee7c6acc3.lovable.app',
+  'https://dhuud-guard-station.lovable.app',
 ];
 
 // Check if we're in development mode (allow localhost)
