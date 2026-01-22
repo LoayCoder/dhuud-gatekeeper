@@ -119,13 +119,15 @@ export function useAppUpdateCheck(): AppUpdateState {
         return true;
       }
       
-      // Also check for Service Worker updates
+      // Also check for Service Worker updates - but only if version actually differs
       if ('serviceWorker' in navigator && !isIOS) {
         try {
           const registration = await navigator.serviceWorker.ready;
           await registration.update();
           
-          if (registration.waiting) {
+          // Only trigger update if SW is waiting AND version doesn't match stored
+          // This prevents re-triggering the popup after user already updated
+          if (registration.waiting && versionInfo.version !== storedVersion) {
             setHasUpdate(true);
             setNewVersion(versionInfo.version);
             setReleaseNotes(versionInfo.releaseNotes || []);
@@ -152,6 +154,11 @@ export function useAppUpdateCheck(): AppUpdateState {
     localStorage.removeItem(DISMISS_COUNT_KEY);
     localStorage.removeItem(DISMISS_TIME_KEY);
     
+    // Store new version IMMEDIATELY to prevent re-triggering popup
+    if (newVersion) {
+      localStorage.setItem(VERSION_STORAGE_KEY, newVersion);
+    }
+    
     // Store release notes BEFORE reloading so WhatsNew dialog can show them
     if (newVersion && releaseNotes.length > 0) {
       localStorage.setItem(PENDING_RELEASE_NOTES_KEY, JSON.stringify({
@@ -163,6 +170,18 @@ export function useAppUpdateCheck(): AppUpdateState {
     }
     
     if ('serviceWorker' in navigator && !isIOS) {
+      // Track if we've already reloaded to prevent double reload
+      let hasReloaded = false;
+      
+      const doReload = () => {
+        if (hasReloaded) return;
+        hasReloaded = true;
+        window.location.reload();
+      };
+      
+      // Listen for controller change then reload
+      navigator.serviceWorker.addEventListener('controllerchange', doReload, { once: true });
+      
       // Standard SW update flow
       navigator.serviceWorker.ready.then((registration) => {
         if (registration.waiting) {
@@ -170,26 +189,10 @@ export function useAppUpdateCheck(): AppUpdateState {
         }
       });
       
-      // Listen for controller change then reload
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (newVersion) {
-          localStorage.setItem(VERSION_STORAGE_KEY, newVersion);
-        }
-        window.location.reload();
-      });
-      
-      // Fallback: reload after short delay
-      setTimeout(() => {
-        if (newVersion) {
-          localStorage.setItem(VERSION_STORAGE_KEY, newVersion);
-        }
-        window.location.reload();
-      }, 1000);
+      // Fallback: reload after 2 seconds if controllerchange doesn't fire
+      setTimeout(doReload, 2000);
     } else {
-      // iOS PWA or no SW - just reload and update stored version
-      if (newVersion) {
-        localStorage.setItem(VERSION_STORAGE_KEY, newVersion);
-      }
+      // iOS PWA or no SW - just reload
       window.location.reload();
     }
   }, [isIOS, newVersion, releaseNotes, priority]);
