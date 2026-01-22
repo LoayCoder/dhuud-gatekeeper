@@ -5237,6 +5237,34 @@
         "body": "Gate pass {{reference}} has been rejected"
       }
     },
+    "deptDigest": {
+      "title": "Gate Pass Digest Email",
+      "description": "Receive daily or weekly summaries of gate pass activities in your department",
+      "optIn": "Receive Gate Pass Digest",
+      "optInDescription": "Get summaries of new submissions, pending approvals, and activity trends",
+      "frequency": "Digest Frequency",
+      "frequencyDescription": "How often would you like to receive the digest?",
+      "daily": "Daily",
+      "weekly": "Weekly (Sundays)",
+      "preferredTime": "Preferred Time",
+      "preferredTimeDescription": "When would you like to receive the digest?",
+      "timezone": "Timezone",
+      "saved": "Gate pass digest preferences saved",
+      "email": {
+        "subject": "Daily Gate Pass Digest - {{department}}",
+        "summaryTitle": "Summary",
+        "newSubmissions": "New Submissions",
+        "pendingApproval": "Pending Your Approval",
+        "approvedYesterday": "Approved Yesterday",
+        "rejectedYesterday": "Rejected Yesterday",
+        "pendingApprovalsTitle": "Pending Approvals",
+        "upcomingTitle": "Upcoming Passes (Next 7 Days)",
+        "noActivity": "No gate pass activity in your department yesterday.",
+        "viewDashboard": "Open Gate Pass Dashboard",
+        "noPending": "No pending approvals",
+        "noUpcoming": "No upcoming passes"
+      }
+    },
     "digestPreferences": "Digest Email Preferences",
     "digestPreferencesDescription": "Configure when and how you receive daily digest emails",
     "digestOptIn": "Receive Daily Digest",

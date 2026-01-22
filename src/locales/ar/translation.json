@@ -5045,6 +5045,34 @@
         "body": "تم رفض تصريح الدخول {{reference}}"
       }
     },
+    "deptDigest": {
+      "title": "البريد الملخص لتصاريح الدخول",
+      "description": "استلم ملخصات يومية أو أسبوعية لأنشطة تصاريح الدخول في قسمك",
+      "optIn": "استلام ملخص تصاريح الدخول",
+      "optInDescription": "احصل على ملخصات للطلبات الجديدة والموافقات المعلقة واتجاهات النشاط",
+      "frequency": "تكرار الملخص",
+      "frequencyDescription": "كم مرة ترغب في استلام الملخص؟",
+      "daily": "يومي",
+      "weekly": "أسبوعي (الأحد)",
+      "preferredTime": "الوقت المفضل",
+      "preferredTimeDescription": "متى تريد استلام الملخص؟",
+      "timezone": "المنطقة الزمنية",
+      "saved": "تم حفظ تفضيلات ملخص تصاريح الدخول",
+      "email": {
+        "subject": "الملخص اليومي لتصاريح الدخول - {{department}}",
+        "summaryTitle": "ملخص",
+        "newSubmissions": "طلبات جديدة",
+        "pendingApproval": "بانتظار موافقتك",
+        "approvedYesterday": "تمت الموافقة أمس",
+        "rejectedYesterday": "تم الرفض أمس",
+        "pendingApprovalsTitle": "الموافقات المعلقة",
+        "upcomingTitle": "التصاريح القادمة (7 أيام)",
+        "noActivity": "لا يوجد نشاط لتصاريح الدخول في قسمك أمس.",
+        "viewDashboard": "فتح لوحة تصاريح الدخول",
+        "noPending": "لا توجد موافقات معلقة",
+        "noUpcoming": "لا توجد تصاريح قادمة"
+      }
+    },
     "digestPreferences": "تفضيلات البريد الملخص",
     "digestPreferencesDescription": "تكوين موعد وطريقة استلام رسائل البريد الملخصة اليومية",
     "digestOptIn": "استلام الملخص اليومي",
