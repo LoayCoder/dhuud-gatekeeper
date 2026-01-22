@@ -333,9 +333,25 @@ export function useCreateGatePass() {
 
       return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["material-gate-passes"] });
       toast.success("Gate pass created successfully");
+      
+      // Notify department representatives about the new gate pass
+      if (data?.project_id && tenantId) {
+        supabase.functions.invoke('notify-dept-rep-gate-pass', {
+          body: {
+            gate_pass_id: data.id,
+            project_id: data.project_id,
+            tenant_id: tenantId,
+            reference_number: data.reference_number,
+            material_description: data.material_description,
+            requester_name: profile?.full_name || 'Unknown',
+            pass_date: data.pass_date,
+            event_type: 'gate_pass_created',
+          },
+        }).catch(err => console.error('Failed to notify dept reps:', err));
+      }
     },
     onError: (error) => {
       toast.error(`Failed to create gate pass: ${error.message}`);

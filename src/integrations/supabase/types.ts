@@ -24977,6 +24977,16 @@ export type Database = {
           open_tickets: number
         }[]
       }
+      get_all_department_representatives: {
+        Args: { p_department_id: string }
+        Returns: {
+          email: string
+          full_name: string
+          phone_number: string
+          preferred_language: string
+          user_id: string
+        }[]
+      }
       get_anonymous_leaderboard: {
         Args: { p_category?: string; p_period?: string }
         Returns: {
