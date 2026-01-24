@@ -1,85 +1,51 @@
 # Comprehensive Security & Architecture Audit Report
 
 ## Executive Summary
-This report summarizes the findings of a deep security and architecture audit performed on the codebase. The system is well-structured with strong tenant isolation principles, but specific gaps were identified in type safety and incident hierarchy enforcement which have now been remediated.
+**Status:** 🟡 **Pending Fixes**
 
-**Overall System Status:** 🟢 **Ready for Production** (with recent fixes applied)
+The application demonstrates strong **Tenant Isolation** and **RLS Enforcement** at the database level. Access control via `get_auth_tenant_id()` is consistently applied in migrations, ensuring data security. However, the system is not yet "Production Ready" due to critical gaps in **Type Safety** (widespread use of `any` in hooks) and a potential data-loss vulnerability in the **Offline Sync** mechanism (treating auth errors as permanent failures).
 
----
+## Verification Checklist
 
-## 1. Audit Scope & Verification Checklist
+| Area | Status | Notes |
+| :--- | :--- | :--- |
+| **Tenant Isolation** | ✅ **Secure** | RLS policies consistently use `tenant_id = get_auth_tenant_id()`. No leaks found. |
+| **Branch Scoping** | ✅ **Secure** | Branch-level access is enforced via RLS and helper functions. |
+| **Incident Hierarchy** | ⚠️ **Gap** | `site_id` and `department_id` are optional in `QuickObservationCard.tsx` (frontend), relying on backend validation or profile defaults. |
+| **RLS Policy Leaks** | ✅ **Secure** | No `USING (true)` or bypassed policies found in reviewed migrations. |
+| **Offline Safety** | ⚠️ **Risk** | 401/403 errors (Auth/Permission) are treated as **Permanent Failures** in `sw.js`, risking data loss if tokens expire while offline. |
+| **Type Safety** | 🔴 **Fail** | Extensive use of `any` in `src/hooks` (e.g., `use-security-report-export.ts`, `use-hsse-alerts.ts`). |
 
-| Audit Area | Requirement | Status | Verification Detail |
-|------------|-------------|--------|---------------------|
-| **Tenant Isolation** | All operational tables must enforce `tenant_id` via RLS. | ✅ Verified | Confirmed `tenant_id` exists on `incidents`, `inspections`, `profiles` via `src/integrations/supabase/types.ts`. Init migrations confirm RLS enablement pattern. |
-| **Branch Scoping** | Tables must enforce branch scoping; access via `can_access_branch` or equivalent. | ✅ Verified | Branch scoping confirmed via usage of `has_contractor_consultant_access_for_branch` RPC in consultant workflows. |
-| **Incident Hierarchy** | Incidents must require `site_id`, `branch_id`, `department_id`. | ✅ Fixed | Updated `src/types/incident.types.ts` to make these fields mandatory, enforcing validation at the application layer. |
-| **RLS Policy Leaks** | No cross-tenant data leaks. | ✅ Verified | Reviewed initialization migration (`20251201...`) and verified standard Supabase RLS patterns (e.g., `auth.uid()`, `tenant_id` checks). |
-| **Offline Safety** | Graceful error handling (400 vs 500) & user feedback. | ✅ Verified | `OfflineMutationQueue` correctly separates permanent vs retryable errors. `OnlineRetryHandler` exists to provide user feedback via toast. |
-| **Type Safety** | No `any` types for sensitive data. | ✅ Fixed | Removed `any` usage in critical hooks (`use-assets`, `use-webauthn`, `use-contractors`, etc.) and replaced with strict types or `unknown`. |
+## Gaps Identified & Fixes Required
 
----
+| Issue | Severity | Location | Remediation Plan |
+| :--- | :--- | :--- | :--- |
+| **Offline Data Loss Risk** | Critical | `public/sw.js`, `src/lib/offline-mutation-queue.ts` | Change 401/403 handling from "Permanent" to "Retryable" to prevent discarding data upon auth expiry. |
+| **Weak Type Safety** | High | `src/hooks/*.ts` | Replace `any` with generated Database types (`Row` types from `src/integrations/supabase/types.ts`). |
+| **Weak Hierarchy Validation** | Medium | `src/components/incidents/QuickObservationCard.tsx` | Update Zod schema to make `site_id` and `department_id` required. |
 
-## 2. Gaps Identified & Fixed
+## Technical Implementation Notes
 
-The following issues were identified during the deep audit and have been remediated in this PR:
+*   **RLS Policies:** The project uses a robust pattern: `USING (tenant_id = get_auth_tenant_id())`.
+*   **Offline Queue:** The "Poison Pill" strategy (discarding 400s) is generally good but too aggressive for 401/403 status codes.
+*   **Type System:** The `Database` type is available but underutilized in custom hooks.
 
-| Severity | Issue | Impact | Remediation |
-|----------|-------|--------|-------------|
-| 🟠 Medium | **Weak Type Safety** | Frequent use of `any` in API hooks (e.g., `use-assets.ts`, `use-contractors.ts`) bypassed TypeScript protections, increasing runtime error risk. | Replaced `any` with specific interfaces (e.g., `Contractor`, `AssetInsert`) or `unknown` with type guards. |
-| 🟠 Medium | **Loose Hierarchy Validation** | `Incident` interface allowed `site_id`, `branch_id` to be optional/null, potentially allowing "orphan" incidents that break hierarchy rules. | Updated `src/types/incident.types.ts` to make `site_id`, `branch_id`, and `department_id` required strings. |
-| 🟡 Low | **Unsafe Error Handling** | Catch blocks often used `(error: any)`, risking crashes if non-Error objects were thrown. | Updated catch blocks to `(error: unknown)` and added checks like `if (err instanceof Error)`. |
-| 🟡 Low | **Experimental API Typing** | `window.navigator` was cast to `any` to access `windowControlsOverlay`. | Defined a proper `NavigatorWithWCO` interface extending the standard `Navigator`. |
+## Top 3 Critical Issues
 
----
+1.  **Offline Sync Auth Handling (Critical):**
+    *   **Issue:** `public/sw.js` classifies status codes `>= 400 && < 500` as `MUTATION_FAILED_PERMANENT`. This includes `401 Unauthorized` and `403 Forbidden`.
+    *   **Impact:** If a user's session expires while they are offline, their queued reports will be **permanently deleted** when they reconnect and the sync fails with 401.
+    *   **Fix:** Explicitly exclude 401/403 from the "Permanent Failure" range and treat them as retryable.
 
-## 3. Technical Implementation Notes
+2.  **Unsafe "any" Types (High):**
+    *   **Issue:** Hooks like `use-hsse-alerts.ts` use `any[]` for critical data (incidents, actions).
+    *   **Impact:** Removes TypeScript's ability to catch refactoring bugs or schema mismatches, increasing runtime error risk.
+    *   **Fix:** Refactor hooks to import and use `Tables<'incidents'>['Row']` etc.
 
-### Type Safety Improvements
-*   **Hooks Refactored:** `use-hsse-risk-analytics.ts`, `use-security-zones.ts`, `use-assets.ts`, `use-contractors.ts`, `use-security-report-export.ts`, `use-webauthn.ts`, `use-evidence-items.ts`, `use-window-controls-overlay.ts`, `use-brand-assets.ts`, `use-risk-assessment-details.ts`.
-*   **Pattern Applied:**
-    ```typescript
-    // Before
-    onError: (error: any) => { ... }
+3.  **Frontend Hierarchy Validation (Medium):**
+    *   **Issue:** `QuickObservationCard.tsx` allows `site_id` to be undefined.
+    *   **Impact:** Could lead to "orphaned" incidents without proper hierarchy location if the backend default fails or isn't triggered.
+    *   **Fix:** Enforce `z.string().min(1)` for `site_id`.
 
-    // After
-    onError: (error: Error) => { ... }
-    // OR
-    catch (err: unknown) { if (err instanceof Error) ... }
-    ```
-
-### Incident Hierarchy Enforcement
-*   **File:** `src/types/incident.types.ts`
-*   **Change:**
-    ```typescript
-    export interface Incident {
-      // ...
-      site_id: string;       // Was string | null
-      branch_id: string;     // Was string | null
-      department_id: string; // Added/Required
-      // ...
-    }
-    ```
-    This ensures no incident can be created or processed in the frontend without being fully anchored in the organizational hierarchy.
-
-### Offline & RLS Verification
-*   **Offline:** Confirmed `src/lib/offline-mutation-queue.ts` logic: 400-level errors trigger `handlePermanentFailure` (discard), while others trigger `handleRetryableFailure`.
-*   **RLS:** Confirmed `incidents` table exists in `database.types.ts` and `tenant_id` is a required field in the `Row` definition, aligning with the `AGENTS.md` directive for tenant isolation.
-
----
-
-## 4. Top 3 Critical Issues & Fix Plan
-
-*All critical issues identified in this audit have been fixed.*
-
-1.  **Fixed:** Incident Hierarchy enforcement (solved via Type definition update).
-2.  **Fixed:** Type Safety gaps in data-handling hooks (solved via refactoring `any` to strict types).
-3.  **Verified (No Fix Needed):** Tenant Isolation is correctly architected in the database schema.
-
----
-
-## 5. Final System Status
-
-**🟢 Ready for Production**
-
-The system architecture aligns with the requirements set forth in `AGENTS.md`. The code changes in this pull request harden the application against runtime errors and logical inconsistencies regarding data hierarchy.
+## Final System Status
+🟡 **Pending Fixes**
