@@ -613,6 +613,15 @@ async function processMutationQueue() {
                 id: mutation.id 
               });
             }
+            // Handle Auth/Permission errors as retryable (401/403)
+            else if (response.status === 401 || response.status === 403) {
+              result.failed++;
+              client.postMessage({
+                type: 'MUTATION_FAILED_RETRYABLE',
+                id: mutation.id,
+                error: `Auth failure (retryable): ${response.status} ${response.statusText}`
+              });
+            }
             // Handle permanent failure (Client Error: 400-499)
             else if (response.status >= 400 && response.status < 500) {
               result.failed++;

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { Database } from '@/integrations/supabase/types';
 
 export interface ZoneDependencies {
   incidents: number;
@@ -123,7 +124,7 @@ export function useCreateSecurityZone() {
 
       const { data, error } = await supabase
         .from('security_zones')
-        .insert({ ...zoneData, tenant_id: profile.tenant_id } as any)
+        .insert({ ...zoneData, tenant_id: profile.tenant_id } as unknown as Database['public']['Tables']['security_zones']['Insert'])
         .select()
         .single();
       if (error) throw error;
@@ -144,13 +145,13 @@ export function useUpdateSecurityZone() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; [key: string]: any }) => {
+    mutationFn: async ({ id, ...updates }: { id: string; [key: string]: unknown }) => {
       // Remove zone_code from updates - it's auto-generated
       const { zone_code, ...safeUpdates } = updates;
       
       const { data, error } = await supabase
         .from('security_zones')
-        .update(safeUpdates)
+        .update(safeUpdates as Database['public']['Tables']['security_zones']['Update'])
         .eq('id', id)
         .select()
         .single();

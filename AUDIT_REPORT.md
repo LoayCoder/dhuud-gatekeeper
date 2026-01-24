@@ -1,148 +1,51 @@
-# DHUUD Platform Security & Architecture Audit Report
-
-**Audit Date:** December 3, 2025  
-**Auditor:** Senior SaaS Security & Architecture Auditor  
-**Status:** ✅ Critical & High Priority Issues Resolved
-
----
+# Comprehensive Security & Architecture Audit Report
 
 ## Executive Summary
+**Status:** 🟡 **Pending Fixes**
 
-This audit reviewed the DHUUD Platform's pricing engine, billing system, user management, and licensing workflows. **12 issues** were identified, with **2 critical** and **4 high priority** issues now resolved.
+The application demonstrates strong **Tenant Isolation** and **RLS Enforcement** at the database level. Access control via `get_auth_tenant_id()` is consistently applied in migrations, ensuring data security. However, the system is not yet "Production Ready" due to critical gaps in **Type Safety** (widespread use of `any` in hooks) and a potential data-loss vulnerability in the **Offline Sync** mechanism (treating auth errors as permanent failures).
 
----
+## Verification Checklist
 
-## Issues Found & Resolved
+| Area | Status | Notes |
+| :--- | :--- | :--- |
+| **Tenant Isolation** | ✅ **Secure** | RLS policies consistently use `tenant_id = get_auth_tenant_id()`. No leaks found. |
+| **Branch Scoping** | ✅ **Secure** | Branch-level access is enforced via RLS and helper functions. |
+| **Incident Hierarchy** | ⚠️ **Gap** | `site_id` and `department_id` are optional in `QuickObservationCard.tsx` (frontend), relying on backend validation or profile defaults. |
+| **RLS Policy Leaks** | ✅ **Secure** | No `USING (true)` or bypassed policies found in reviewed migrations. |
+| **Offline Safety** | ⚠️ **Risk** | 401/403 errors (Auth/Permission) are treated as **Permanent Failures** in `sw.js`, risking data loss if tokens expire while offline. |
+| **Type Safety** | 🔴 **Fail** | Extensive use of `any` in `src/hooks` (e.g., `use-security-report-export.ts`, `use-hsse-alerts.ts`). |
 
-### 🔴 CRITICAL (2 Issues - FIXED)
+## Gaps Identified & Fixes Required
 
-#### 1. Broken `calculate_profile_billing` Database Function
-- **Problem:** Field name mismatch (`v_usage.total_profiles` vs `v_usage.total`) caused the function to fail
-- **Impact:** Profile billing calculations would error, preventing accurate billing
-- **Fix:** Rewrote function with explicit field declarations and proper fallback logic
+| Issue | Severity | Location | Remediation Plan |
+| :--- | :--- | :--- | :--- |
+| **Offline Data Loss Risk** | Critical | `public/sw.js`, `src/lib/offline-mutation-queue.ts` | Change 401/403 handling from "Permanent" to "Retryable" to prevent discarding data upon auth expiry. |
+| **Weak Type Safety** | High | `src/hooks/*.ts` | Replace `any` with generated Database types (`Row` types from `src/integrations/supabase/types.ts`). |
+| **Weak Hierarchy Validation** | Medium | `src/components/incidents/QuickObservationCard.tsx` | Update Zod schema to make `site_id` and `department_id` required. |
 
-#### 2. Incorrect Plans Table Pricing
-- **Problem:** Professional plan had wrong values (`profile_quota_monthly=50` instead of `500`, `extra_profile_price_sar=0.50` instead of `0.25`)
-- **Impact:** Customers on Professional plan would be overcharged
-- **Fix:** Updated all three plan tiers with correct pricing:
-  - Starter: 50 quota, 0.50 SAR/profile
-  - Professional: 500 quota, 0.25 SAR/profile
-  - Enterprise: 2000 quota, 0.10 SAR/profile
+## Technical Implementation Notes
 
----
+*   **RLS Policies:** The project uses a robust pattern: `USING (tenant_id = get_auth_tenant_id())`.
+*   **Offline Queue:** The "Poison Pill" strategy (discarding 400s) is generally good but too aggressive for 401/403 status codes.
+*   **Type System:** The `Database` type is available but underutilized in custom hooks.
 
-### 🟠 HIGH PRIORITY (4 Issues - FIXED)
+## Top 3 Critical Issues
 
-#### 3. Missing Database Trigger for Profile Usage Tracking
-- **Problem:** No trigger to update `tenant_profile_usage` when `tenant_profiles` changes
-- **Impact:** Usage counts could drift from actual profile counts
-- **Fix:** Created `update_profile_usage_counts()` trigger on INSERT/UPDATE/DELETE
+1.  **Offline Sync Auth Handling (Critical):**
+    *   **Issue:** `public/sw.js` classifies status codes `>= 400 && < 500` as `MUTATION_FAILED_PERMANENT`. This includes `401 Unauthorized` and `403 Forbidden`.
+    *   **Impact:** If a user's session expires while they are offline, their queued reports will be **permanently deleted** when they reconnect and the sync fails with 401.
+    *   **Fix:** Explicitly exclude 401/403 from the "Permanent Failure" range and treat them as retryable.
 
-#### 4. Client-Side Pricing Constants (Security Risk)
-- **Problem:** `pricing-engine.ts` contained hardcoded `PLAN_PRICING` object
-- **Impact:** Attackers could potentially manipulate client-side pricing
-- **Fix:** Removed all hardcoded pricing; now all pricing comes from database via RPC
+2.  **Unsafe "any" Types (High):**
+    *   **Issue:** Hooks like `use-hsse-alerts.ts` use `any[]` for critical data (incidents, actions).
+    *   **Impact:** Removes TypeScript's ability to catch refactoring bugs or schema mismatches, increasing runtime error risk.
+    *   **Fix:** Refactor hooks to import and use `Tables<'incidents'>['Row']` etc.
 
-#### 5. Missing Plan Assignments for Tenants
-- **Problem:** Some tenants had `NULL` plan_id
-- **Impact:** Billing calculations would use fallback defaults
-- **Fix:** Auto-assigned Starter plan to tenants without a plan
+3.  **Frontend Hierarchy Validation (Medium):**
+    *   **Issue:** `QuickObservationCard.tsx` allows `site_id` to be undefined.
+    *   **Impact:** Could lead to "orphaned" incidents without proper hierarchy location if the backend default fails or isn't triggered.
+    *   **Fix:** Enforce `z.string().min(1)` for `site_id`.
 
-#### 6. No Server-Side Licensed User Quota Enforcement
-- **Problem:** Quota check was only on frontend; bypassing UI could exceed quota
-- **Impact:** Security vulnerability allowing unlimited licensed users
-- **Fix:** Created `enforce_licensed_user_quota()` trigger on profiles table
-
----
-
-### 🟡 MEDIUM PRIORITY (4 Issues - Documented)
-
-#### 7. `isBillableProfile` Missing `is_active` Check
-- **Status:** FIXED in code
-- **Problem:** Inactive profiles could be counted as billable
-- **Fix:** Added `if (user.is_active === false) return false;`
-
-#### 8. Inconsistent Contractor Type Mapping
-- **Status:** Documented for future fix
-- **Problem:** `user_type` uses underscores (`contractor_longterm`), but `contractor_type` enum uses underscores differently (`long_term`)
-- **Recommendation:** Update `getContractorType()` to return correct enum values
-
-#### 9. Missing Cascade Filtering in UserFormDialog
-- **Status:** Documented for future fix
-- **Problem:** Division/Department/Section dropdowns don't filter by parent
-- **Recommendation:** Add cascade filtering logic
-
-#### 10. Missing Audit Logging for User CRUD
-- **Status:** Documented for future fix
-- **Problem:** User creation/updates not logged to audit table
-- **Recommendation:** Add audit log entries for admin actions
-
----
-
-### 🟢 LOW PRIORITY (2 Issues - Documented)
-
-#### 11. RTL Inconsistencies in Billing Cards
-- **Status:** Minor visual issue
-- **Recommendation:** Add `dir={direction}` to card containers
-
-#### 12. Loading State for User Type Breakdown
-- **Status:** UX improvement
-- **Recommendation:** Show skeleton loaders while breakdown loads
-
----
-
-## What Was Verified as Correct
-
-✅ `isLicensedUser()` function logic correctly identifies licensed users  
-✅ `check_licensed_user_quota()` database function works correctly  
-✅ RLS policies properly isolate tenant data  
-✅ AdminRoute component enforces admin-only access  
-✅ Multi-tenant data isolation via `get_auth_tenant_id()`  
-✅ Subscription events audit logging captures plan changes  
-✅ Support ticketing RLS properly scopes tickets to tenants
-
----
-
-## Database Changes Made
-
-```sql
--- 1. Fixed calculate_profile_billing function
--- 2. Updated plans table pricing for all tiers
--- 3. Created update_profile_usage_counts() trigger
--- 4. Created enforce_licensed_user_quota() trigger
--- 5. Assigned starter plan to tenants with NULL plan_id
-```
-
----
-
-## Code Changes Made
-
-| File | Change |
-|------|--------|
-| `src/lib/pricing-engine.ts` | Removed `PLAN_PRICING` constant; now utility-only |
-| `src/lib/license-utils.ts` | Added `is_active` check to `isBillableProfile()` |
-
----
-
-## Remaining Recommendations
-
-1. **Enable Leaked Password Protection** in Supabase Auth settings (requires dashboard access)
-2. **Add integration tests** for billing edge cases (0 profiles, at quota, over quota)
-3. **Add cascade filtering** in UserFormDialog for organizational hierarchy
-4. **Add audit logging** for user management operations
-
----
-
-## Security Posture Summary
-
-| Area | Status |
-|------|--------|
-| Pricing/Billing Integrity | ✅ Secure - Server-side only |
-| Licensed User Quota | ✅ Enforced at database level |
-| Multi-tenant Isolation | ✅ RLS policies in place |
-| Profile Billing Logic | ✅ Fixed and tested |
-| Client-side Tampering | ✅ Mitigated - No client pricing |
-
----
-
-**Audit Complete.** The system is now ready for production use with all critical and high-priority issues resolved.
+## Final System Status
+🟡 **Pending Fixes**

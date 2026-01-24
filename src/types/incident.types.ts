@@ -81,8 +81,9 @@ export interface Incident {
   incident_date: string;
   incident_time?: string | null;
   location_description?: string | null;
-  site_id?: string | null;
-  branch_id?: string | null;
+  site_id: string;
+  branch_id: string;
+  department_id: string;
   gps_lat?: number | null;
   gps_lng?: number | null;
   
