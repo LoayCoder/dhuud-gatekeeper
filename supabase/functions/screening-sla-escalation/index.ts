@@ -34,6 +34,7 @@ interface IncidentForScreening {
   screening_escalation_level: number;
   screening_sla_warning_sent_at: string | null;
   screening_escalated_at: string | null;
+  is_auto_escalated: boolean;
 }
 
 // Default SLA configs if tenant hasn't configured
@@ -185,6 +186,34 @@ Deno.serve(async (req) => {
 
       const hoursWaiting = (now.getTime() - startTime.getTime()) / (1000 * 60 * 60);
       
+      // REQUIREMENT: Check if ANY screening status is older than 2 hours
+      // If true, set is_auto_escalated = true and send email
+      if (hoursWaiting > 2 && !incident.is_auto_escalated) {
+          console.log(`[Screening SLA] Auto-escalating ${incident.reference_id || incident.id} due to > 2h wait`);
+
+          const { error: updateError } = await supabase
+            .from('incidents')
+            .update({
+              is_auto_escalated: true,
+              screening_escalated_at: now.toISOString(),
+              screening_escalation_level: 1 // Ensure we mark it as escalated
+            })
+            .eq('id', incident.id);
+
+          if (updateError) {
+             console.error(`[Screening SLA] Failed to update incident ${incident.id}:`, updateError);
+             continue;
+          }
+
+          await sendEscalationEmail(supabase, incident.tenant_id, incident, 1, hoursWaiting);
+          escalationsSent++;
+          continue; // Move to next incident
+      }
+
+      // Existing sophisticated logic as fallback (for < 2h if configured, or subsequent escalations)
+      // Note: The above block handles the primary > 2h escalation.
+      // Below logic might still be useful for warnings < 2h or 2nd level escalations if > 4h etc.
+
       const severity = incident.severity_v2 || 'Level 2';
       const configKey = `${incident.tenant_id}:${severity}`;
       const config = configLookup.get(configKey);
@@ -195,7 +224,6 @@ Deno.serve(async (req) => {
       const escalationHours = config?.escalation_hours || DEFAULT_SLA_CONFIGS[severity]?.escalationHours || 4;
 
       const warningThreshold = maxHours - warningHours;
-      const escalationThreshold = maxHours + escalationHours;
       const secondEscalationThreshold = maxHours + (escalationHours * 2);
 
       const currentLevel = incident.screening_escalation_level || 0;
@@ -216,24 +244,8 @@ Deno.serve(async (req) => {
         await sendEscalationEmail(supabase, incident.tenant_id, incident, 2, hoursWaiting);
         escalationsSent++;
       }
-      // Check for first escalation
-      else if (hoursWaiting >= escalationThreshold && currentLevel < 1) {
-        console.log(`[Screening SLA] First escalation for ${incident.reference_id}: ${hoursWaiting.toFixed(1)}h waiting`);
-        
-        await supabase
-          .from('incidents')
-          .update({
-            screening_escalation_level: 1,
-            screening_escalated_at: now.toISOString(),
-            is_auto_escalated: true
-          })
-          .eq('id', incident.id);
-
-        await sendEscalationEmail(supabase, incident.tenant_id, incident, 1, hoursWaiting);
-        escalationsSent++;
-      }
-      // Check for warning
-      else if (hoursWaiting >= warningThreshold && !incident.screening_sla_warning_sent_at) {
+      // Check for warning (only if not yet escalated)
+      else if (hoursWaiting >= warningThreshold && !incident.screening_sla_warning_sent_at && !incident.is_auto_escalated) {
         console.log(`[Screening SLA] Warning for ${incident.reference_id}: ${hoursWaiting.toFixed(1)}h waiting`);
         
         await supabase
