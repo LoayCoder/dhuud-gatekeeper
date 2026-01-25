@@ -88,7 +88,7 @@ export function WitnessDocumentUpload({ incidentId, onSuccess }: WitnessDocument
         contact: witnessContact || undefined,
         relationship: relationship || undefined,
         statement: notes || undefined,
-        statement_type: "document_upload",
+        statement_method: "upload",
       });
 
       // 2. Upload each file and create attachments

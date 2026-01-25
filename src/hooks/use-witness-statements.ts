@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { logger } from '@/lib/logger';
 
-export type StatementType = "document_upload" | "direct_entry" | "voice_recording";
+export type StatementType = "upload" | "text" | "voice";
 export type AssignmentStatus = "pending" | "in_progress" | "completed" | "approved";
 
 export interface WitnessStatement {
@@ -15,8 +15,9 @@ export interface WitnessStatement {
   contact: string | null;
   relationship: string | null;
   statement: string;
-  statement_type: string;
+  statement_method: StatementType;
   audio_url: string | null;
+  ai_transcription_text: string | null;
   original_transcription: string | null;
   transcription_edited: boolean;
   transcription_approved: boolean;
@@ -43,7 +44,7 @@ export function useWitnessStatements(incidentId: string | null) {
 
       const { data, error } = await supabase
         .from("witness_statements")
-        .select("id, incident_id, tenant_id, witness_name, witness_contact, relationship, statement_text, statement_type, audio_url, original_transcription, transcription_edited, transcription_approved, ai_analysis, assigned_witness_id, assignment_status, created_by, created_at, deleted_at, return_reason, return_count, returned_by, returned_at, reviewed_by, reviewed_at")
+        .select("id, incident_id, tenant_id, witness_name, witness_contact, relationship, statement_text, statement_method, audio_url, ai_transcription_text, original_transcription, transcription_edited, transcription_approved, ai_analysis, assigned_witness_id, assignment_status, created_by, created_at, deleted_at, return_reason, return_count, returned_by, returned_at, reviewed_by, reviewed_at")
         .eq("incident_id", incidentId)
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
@@ -59,8 +60,9 @@ export function useWitnessStatements(incidentId: string | null) {
         contact: row.witness_contact,
         relationship: row.relationship,
         statement: row.statement_text,
-        statement_type: row.statement_type,
+        statement_method: (row.statement_method as StatementType) || 'text',
         audio_url: row.audio_url,
+        ai_transcription_text: row.ai_transcription_text,
         original_transcription: row.original_transcription,
         transcription_edited: row.transcription_edited || false,
         transcription_approved: row.transcription_approved || false,
@@ -99,8 +101,9 @@ export function useCreateWitnessStatement() {
       contact?: string;
       relationship?: string;
       statement: string;
-      statement_type: StatementType;
+      statement_method: StatementType;
       audio_url?: string;
+      ai_transcription_text?: string;
       original_transcription?: string;
       assigned_witness_id?: string;
       assignment_status?: AssignmentStatus;
@@ -128,8 +131,9 @@ export function useCreateWitnessStatement() {
           witness_contact: input.contact,
           relationship: input.relationship,
           statement_text: input.statement,
-          statement_type: input.statement_type,
+          statement_method: input.statement_method,
           audio_url: input.audio_url,
+          ai_transcription_text: input.ai_transcription_text,
           original_transcription: input.original_transcription,
           assigned_witness_id: input.assigned_witness_id,
           assignment_status: input.assignment_status,
@@ -206,7 +210,7 @@ export function useMyAssignedWitnessStatements() {
 
       const { data, error } = await supabase
         .from("witness_statements")
-        .select("id, incident_id, witness_name, witness_contact, statement_text, statement_type, assignment_status, created_at, return_reason, return_count, returned_at")
+        .select("id, incident_id, witness_name, witness_contact, statement_text, statement_method, assignment_status, created_at, return_reason, return_count, returned_at")
         .eq("assigned_witness_id", user.id)
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
@@ -219,7 +223,7 @@ export function useMyAssignedWitnessStatements() {
         name: row.witness_name,
         contact: row.witness_contact,
         statement: row.statement_text,
-        statement_type: row.statement_type,
+        statement_method: (row.statement_method as StatementType) || 'text',
         assignment_status: row.assignment_status,
         created_at: row.created_at,
         return_reason: row.return_reason,

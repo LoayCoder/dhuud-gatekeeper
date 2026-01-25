@@ -11,13 +11,28 @@ export type IncidentSeverity =
   | 'critical'
   | 'catastrophic';
 
+// Incident stages (High Level)
+export type IncidentStage =
+  | 'Draft'
+  | 'Screening'
+  | 'Investigation'
+  | 'Governance'
+  | 'Action_Management'
+  | 'Closed';
+
 // Incident status
 export type IncidentStatus = 
   | 'draft'
   | 'submitted'
+  | 'pending_expert_screening'
+  | 'pending_dept_rep_approval'
+  | 'pending_consultant_screening'
+  | 'pending_site_client_approval'
+  | 'pending_contractor_implementation'
   | 'under_investigation'
   | 'pending_action'
   | 'closed'
+  | 'rejected_invalid'
   | 'reopened';
 
 // Incident types
@@ -76,7 +91,13 @@ export interface Incident {
   description: string;
   severity: IncidentSeverity;
   status: IncidentStatus;
+  stage?: IncidentStage | null;
   
+  // V1.1 Workflow Fields
+  is_auto_escalated?: boolean;
+  sla_screening_start_time?: string | null;
+  ai_analysis_data?: Record<string, unknown> | null;
+
   // When & where
   incident_date: string;
   incident_time?: string | null;

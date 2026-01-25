@@ -91,7 +91,7 @@ export function WitnessTaskAssignment({ incidentId, onAssigned }: WitnessTaskAss
         name: witnessName,
         relationship: relationship || undefined,
         statement: notes || undefined,
-        statement_type: "direct_entry",
+        statement_method: "text",
         assigned_witness_id: selectedUserId,
         assignment_status: "pending",
       });

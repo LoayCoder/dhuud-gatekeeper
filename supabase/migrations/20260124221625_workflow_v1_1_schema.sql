@@ -29,13 +29,61 @@
      - `validate_incident_gate()`: Function to check validation gates
 */
 
+-- Create ENUMs
+DO $$ BEGIN
+    CREATE TYPE incident_stage AS ENUM ('Draft', 'Screening', 'Investigation', 'Governance', 'Action_Management', 'Closed');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE statement_method AS ENUM ('voice', 'text', 'upload');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
 -- 1. Update Incidents Table
 ALTER TABLE incidents
 ADD COLUMN IF NOT EXISTS is_auto_escalated boolean DEFAULT false,
-ADD COLUMN IF NOT EXISTS is_locked boolean DEFAULT false,
 ADD COLUMN IF NOT EXISTS ai_analysis_data jsonb,
 ADD COLUMN IF NOT EXISTS sla_screening_start_time timestamptz,
-ADD COLUMN IF NOT EXISTS status_changed_at timestamptz DEFAULT now();
+ADD COLUMN IF NOT EXISTS status_changed_at timestamptz DEFAULT now(),
+ADD COLUMN IF NOT EXISTS stage incident_stage;
+
+-- Function to maintain Stage based on Status
+CREATE OR REPLACE FUNCTION maintain_incident_stage()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Logic to infer Stage from Status
+  -- Draft
+  IF NEW.status = 'draft' THEN
+    NEW.stage = 'Draft';
+  -- Screening
+  ELSIF NEW.status IN ('submitted', 'pending_expert_screening', 'pending_dept_rep_approval', 'pending_consultant_screening', 'pending_site_client_approval', 'pending_contractor_implementation', 'rejected_invalid', 'reopened') THEN
+    NEW.stage = 'Screening';
+  -- Investigation
+  ELSIF NEW.status IN ('under_investigation') THEN
+    NEW.stage = 'Investigation';
+  -- Action Management (Pending Action)
+  ELSIF NEW.status IN ('pending_action') THEN
+    NEW.stage = 'Action_Management';
+  -- Closed
+  ELSIF NEW.status = 'closed' THEN
+    NEW.stage = 'Closed';
+  ELSE
+    -- Default fallback if status is unknown or new
+    -- NEW.stage = 'Screening'; -- Optional default
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_maintain_incident_stage ON incidents;
+CREATE TRIGGER trigger_maintain_incident_stage
+BEFORE INSERT OR UPDATE OF status ON incidents
+FOR EACH ROW
+EXECUTE FUNCTION maintain_incident_stage();
 
 -- Ensure status_changed_at is updated on status change
 CREATE OR REPLACE FUNCTION update_status_changed_at()
@@ -133,7 +181,8 @@ CREATE POLICY "Create RCA" ON incident_rca
 ALTER TABLE witness_statements
 ADD COLUMN IF NOT EXISTS status text DEFAULT 'pending' CHECK (status IN ('pending', 'review', 'approved', 'returned')),
 ADD COLUMN IF NOT EXISTS ai_analysis jsonb,
-ADD COLUMN IF NOT EXISTS transcription text;
+ADD COLUMN IF NOT EXISTS ai_transcription_text text,
+ADD COLUMN IF NOT EXISTS statement_method statement_method;
 
 -- 5. Contract Violations (Governance)
 CREATE TABLE IF NOT EXISTS contract_violations (
