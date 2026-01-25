@@ -159,20 +159,17 @@ export function RCAPanel({
         // Populate form
         const formData = {
           five_whys: (data.five_whys as unknown as FiveWhyEntry[]) || [],
-          root_causes: (data.root_causes as unknown as RootCauseEntry[]) || [], // Stored as array in new schema
-          contributing_factors_list: (data.contributing_factors as unknown as ContributingFactorEntry[]) || [], // Assuming stored as jsonb array
+          root_causes: (data.root_causes as unknown as RootCauseEntry[]) || [], // Stored as jsonb array (fixed via migration)
+          contributing_factors_list: (data.contributing_factors as unknown as ContributingFactorEntry[]) || [],
           immediate_cause: data.immediate_causes?.[0] || '', // Assuming array in DB, using first for UI
           underlying_cause: data.underlying_causes?.[0] || '', // Assuming array in DB
-          root_cause: data.root_causes?.[0]?.text || '', // Legacy sync
+          root_cause: data.root_causes?.[0]?.text || '', // Legacy sync helper
           // AI summary fields might not be in incident_rca yet, fallback to investigation or keep local
-          ai_summary: '', // Currently not in schema, logic might need adjustment if AI summary should be stored in RCA
+          ai_summary: '',
         };
 
         // Merge with investigation data for fields not in incident_rca or for AI summary
         if (investigation) {
-           // Prefer RCA table data, but fallback/merge where appropriate
-           // For now, we will rely on what we pulled from incident_rca primarily
-           // But AI summary is likely still on investigation table
            formData.ai_summary = investigation.ai_summary || '';
            formData.ai_summary_generated_at = investigation.ai_summary_generated_at;
            formData.ai_summary_language = investigation.ai_summary_language || 'en';
@@ -223,7 +220,7 @@ export function RCAPanel({
     fetchRCAData();
   }, [fetchRCAData]);
 
-  // Read-only logic
+  // Read-only logic: Locked by HSSE Manager OR Closed
   const isClosed = incidentStatus === 'closed';
   const isReadOnly = isLocked || isClosed || canEditProp === false;
 
@@ -234,11 +231,11 @@ export function RCAPanel({
         incident_id: incidentId,
         tenant_id: investigation?.tenant_id, // Assuming available
         five_whys: data.five_whys as unknown as Json,
-        root_causes: data.root_causes as unknown as Json, // Using JSONB column for structure
+        root_causes: data.root_causes as unknown as Json, // Now supported as JSONB by V1.1 Schema
         contributing_factors: data.contributing_factors_list as unknown as Json,
         immediate_causes: data.immediate_cause ? [data.immediate_cause] : [],
         underlying_causes: data.underlying_cause ? [data.underlying_cause] : [],
-        // updated_at: new Date().toISOString() // Handled by DB default usually, or add if needed
+        // updated_at: new Date().toISOString() // Handled by DB default
       };
 
       // Upsert
@@ -248,8 +245,6 @@ export function RCAPanel({
 
       if (error) throw error;
       
-      // Sync legacy fields to investigations table for backward compatibility if needed
-      // (Skipping for now to prioritize new schema, but `updateInvestigation` called below handles it if we keep it)
     } catch (error) {
       console.error('Error saving to incident_rca:', error);
       throw error;

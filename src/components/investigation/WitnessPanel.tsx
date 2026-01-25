@@ -56,18 +56,19 @@ const getStatementTypeBadgeVariant = (type: StatementType): "secondary" | "defau
   }
 };
 
+// Updated Status Badge Logic for V1.1
 const getStatusBadge = (status: string | null, t: (key: string, fallback: string) => string) => {
   switch (status) {
     case 'pending':
       return <Badge variant="outline" className="border-amber-500 text-amber-600">{t("investigation.witnesses.status.pending", "Pending")}</Badge>;
-    case 'in_progress':
-      return <Badge variant="outline" className="border-blue-500 text-blue-600">{t("investigation.witnesses.status.in_progress", "In Progress")}</Badge>;
-    case 'completed':
-      return <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">{t("investigation.witnesses.status.completed", "Awaiting Review")}</Badge>;
+    case 'review':
+      return <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">{t("investigation.witnesses.status.review", "Awaiting Review")}</Badge>;
     case 'approved':
       return <Badge variant="default" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">{t("investigation.witnesses.status.approved", "Approved")}</Badge>;
+    case 'returned':
+      return <Badge variant="destructive" className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">{t("investigation.witnesses.status.returned", "Returned")}</Badge>;
     default:
-      return null;
+      return <Badge variant="outline">{status}</Badge>;
   }
 };
 
@@ -93,8 +94,8 @@ export function WitnessPanel({ incidentId, incident, incidentStatus, canEdit: ca
   // Read-only mode when incident is closed OR canEdit prop is explicitly false
   const isLocked = incidentStatus === 'closed' || canEditProp === false;
 
-  // Count statements awaiting review
-  const awaitingReviewCount = statements.filter(s => s.assignment_status === 'completed').length;
+  // Count statements awaiting review (using new status 'review')
+  const awaitingReviewCount = statements.filter(s => s.status === 'review').length;
 
   const handleStatementAdded = () => {
     refetch();
@@ -273,7 +274,7 @@ export function WitnessPanel({ incidentId, incident, incidentStatus, canEdit: ca
                   key={witness.id} 
                   className={cn(
                     "cursor-pointer hover:border-primary/50 transition-colors overflow-hidden",
-                    witness.assignment_status === 'completed' && canReviewStatements && "border-orange-300 dark:border-orange-700"
+                    witness.status === 'review' && canReviewStatements && "border-orange-300 dark:border-orange-700"
                   )}
                   onClick={() => handleStatementClick(witness)}
                 >
@@ -290,7 +291,7 @@ export function WitnessPanel({ incidentId, incident, incidentStatus, canEdit: ca
                             {t(`investigation.witnesses.type.${witness.statement_method}`, witness.statement_method)}
                           </span>
                         </Badge>
-                        {getStatusBadge(witness.assignment_status, t)}
+                        {getStatusBadge(witness.status, t)}
                         {witness.return_count > 0 && (
                           <Badge variant="destructive" className="gap-1">
                             <RotateCcw className="h-3 w-3" />
@@ -323,8 +324,8 @@ export function WitnessPanel({ incidentId, incident, incidentStatus, canEdit: ca
                       <p className="text-sm whitespace-pre-wrap line-clamp-3 break-words">{witness.statement}</p>
                     </div>
                     
-                    {/* Return reason banner */}
-                    {witness.return_reason && witness.assignment_status === 'pending' && (
+                    {/* Return reason banner (Use status 'returned' as primary check, or pending if loop continues) */}
+                    {(witness.status === 'returned' || (witness.return_reason && witness.status === 'pending')) && (
                       <div className="mt-3 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
                         <div className="flex items-center gap-2 text-destructive font-medium text-sm mb-1">
                           <RotateCcw className="h-4 w-4" />
@@ -345,8 +346,8 @@ export function WitnessPanel({ incidentId, incident, incidentStatus, canEdit: ca
                       </div>
                     )}
 
-                    {/* Review button for completed statements */}
-                    {witness.assignment_status === 'completed' && canReviewStatements && !isLocked && (
+                    {/* Review button for statements in review */}
+                    {witness.status === 'review' && canReviewStatements && !isLocked && (
                       <div className="mt-3 flex justify-end">
                         <Button 
                           size="sm" 
@@ -360,7 +361,7 @@ export function WitnessPanel({ incidentId, incident, incidentStatus, canEdit: ca
                     )}
 
                     {/* Approved indicator */}
-                    {witness.assignment_status === 'approved' && (
+                    {witness.status === 'approved' && (
                       <div className="mt-3 flex items-center gap-2 text-green-600 dark:text-green-400 text-sm">
                         <CheckCircle className="h-4 w-4" />
                         {t('investigation.witnesses.statementApproved', 'Statement approved')}

@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import { logger } from '@/lib/logger';
 
 export type StatementType = "upload" | "text" | "voice";
-export type AssignmentStatus = "pending" | "in_progress" | "completed" | "approved";
+// Strictly using the new enum from V1.1 migration
+export type WitnessStatus = "pending" | "review" | "approved" | "returned";
 
 export interface WitnessStatement {
   id: string;
@@ -23,11 +24,10 @@ export interface WitnessStatement {
   transcription_approved: boolean;
   ai_analysis: Record<string, unknown> | null;
   assigned_witness_id: string | null;
-  assignment_status: string | null;
+  status: WitnessStatus | null;
   created_by: string | null;
   created_at: string | null;
   deleted_at: string | null;
-  // New return flow columns
   return_reason: string | null;
   return_count: number;
   returned_by: string | null;
@@ -44,14 +44,13 @@ export function useWitnessStatements(incidentId: string | null) {
 
       const { data, error } = await supabase
         .from("witness_statements")
-        .select("id, incident_id, tenant_id, witness_name, witness_contact, relationship, statement_text, statement_method, audio_url, ai_transcription_text, original_transcription, transcription_edited, transcription_approved, ai_analysis, assigned_witness_id, assignment_status, created_by, created_at, deleted_at, return_reason, return_count, returned_by, returned_at, reviewed_by, reviewed_at")
+        .select("id, incident_id, tenant_id, witness_name, witness_contact, relationship, statement_text, statement_method, audio_url, ai_transcription_text, original_transcription, transcription_edited, transcription_approved, ai_analysis, assigned_witness_id, status, created_by, created_at, deleted_at, return_reason, return_count, returned_by, returned_at, reviewed_by, reviewed_at")
         .eq("incident_id", incidentId)
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       
-      // Map database columns to interface
       return (data || []).map(row => ({
         id: row.id,
         incident_id: row.incident_id,
@@ -68,7 +67,7 @@ export function useWitnessStatements(incidentId: string | null) {
         transcription_approved: row.transcription_approved || false,
         ai_analysis: row.ai_analysis as Record<string, unknown> | null,
         assigned_witness_id: row.assigned_witness_id,
-        assignment_status: row.assignment_status,
+        status: row.status as WitnessStatus, // Map new column
         created_by: row.created_by,
         created_at: row.created_at,
         deleted_at: row.deleted_at,
@@ -106,13 +105,11 @@ export function useCreateWitnessStatement() {
       ai_transcription_text?: string;
       original_transcription?: string;
       assigned_witness_id?: string;
-      assignment_status?: AssignmentStatus;
+      status?: WitnessStatus;
     }) => {
-      // Get fresh user at execution time to avoid stale closure
       const { data: { user: freshUser } } = await supabase.auth.getUser();
       if (!freshUser?.id) throw new Error("No authenticated user");
 
-      // Get fresh profile at execution time
       const { data: freshProfile, error: profileError } = await supabase
         .from('profiles')
         .select('tenant_id')
@@ -136,7 +133,7 @@ export function useCreateWitnessStatement() {
           ai_transcription_text: input.ai_transcription_text,
           original_transcription: input.original_transcription,
           assigned_witness_id: input.assigned_witness_id,
-          assignment_status: input.assignment_status,
+          status: input.status || 'pending', // Use new status column
           tenant_id: freshProfile.tenant_id,
           created_by: freshUser.id,
         })
@@ -167,7 +164,7 @@ export function useUpdateWitnessStatement() {
       contact?: string;
       relationship?: string;
       statement?: string;
-      assignment_status?: AssignmentStatus;
+      status?: WitnessStatus;
     }) => {
       const { id, ...updates } = input;
 
@@ -176,7 +173,7 @@ export function useUpdateWitnessStatement() {
       if (updates.contact !== undefined) updateData.witness_contact = updates.contact;
       if (updates.relationship !== undefined) updateData.relationship = updates.relationship;
       if (updates.statement !== undefined) updateData.statement_text = updates.statement;
-      if (updates.assignment_status !== undefined) updateData.assignment_status = updates.assignment_status;
+      if (updates.status !== undefined) updateData.status = updates.status;
 
       const { data, error } = await supabase
         .from("witness_statements")
@@ -210,7 +207,7 @@ export function useMyAssignedWitnessStatements() {
 
       const { data, error } = await supabase
         .from("witness_statements")
-        .select("id, incident_id, witness_name, witness_contact, statement_text, statement_method, assignment_status, created_at, return_reason, return_count, returned_at")
+        .select("id, incident_id, witness_name, witness_contact, statement_text, statement_method, status, created_at, return_reason, return_count, returned_at")
         .eq("assigned_witness_id", user.id)
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
@@ -224,7 +221,7 @@ export function useMyAssignedWitnessStatements() {
         contact: row.witness_contact,
         statement: row.statement_text,
         statement_method: (row.statement_method as StatementType) || 'text',
-        assignment_status: row.assignment_status,
+        status: row.status as WitnessStatus,
         created_at: row.created_at,
         return_reason: row.return_reason,
         return_count: row.return_count || 0,
@@ -252,7 +249,7 @@ export function useReviewWitnessStatement() {
         const { data, error } = await supabase
           .from("witness_statements")
           .update({
-            assignment_status: "approved",
+            status: "approved", // Update new column
             reviewed_by: user?.id,
             reviewed_at: new Date().toISOString(),
           })
@@ -275,7 +272,7 @@ export function useReviewWitnessStatement() {
         const { data, error } = await supabase
           .from("witness_statements")
           .update({
-            assignment_status: "pending",
+            status: "returned", // Update new column
             return_reason: returnReason,
             return_count: newReturnCount,
             returned_by: user?.id,
@@ -306,30 +303,30 @@ export function useReviewWitnessStatement() {
   });
 }
 
-// Hook for starting work on a witness statement (pending -> in_progress)
+// Hook for starting work on a witness statement (pending -> review? No, likely just pending with content)
+// Note: 'in_progress' is removed from V1.1 enum. Logic implies 'pending' until submitted for review.
+// We will deprecate this or map to 'pending' if it was used to lock assignment.
+// For now, removing to force alignment with V1.1 enum or keeping it as 'pending'.
+// User said "Strictly Use status".
 export function useStartWitnessWork() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (statementId: string) => {
-      const { data, error } = await supabase
-        .from("witness_statements")
-        .update({ assignment_status: "in_progress" })
-        .eq("id", statementId)
-        .select("id, incident_id")
-        .single();
+      // In V1.1, we might not have 'in_progress'.
+      // If we need to mark it as started, we might need another way or just keep it 'pending'.
+      // For now, let's assuming 'pending' is the state while working.
+      // But to be safe and avoid errors, I will simply NOT update the status if 'in_progress' is invalid.
+      // If the UI relies on this, we might need to change the UI to not require 'in_progress'.
+      // I will keep the hook but make it a no-op or just log, or update to 'pending' (redundant).
+      // Actually, if I look at the WitnessFlow, "WitDraft --> WitStatus[Status: Pending]".
+      // So 'pending' is correct.
 
-      if (error) throw error;
-      return data;
+      return { id: statementId }; // No-op
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["witness-statements", data.incident_id] });
-      queryClient.invalidateQueries({ queryKey: ["my-witness-tasks"] });
-      toast.success("Work started on statement");
-    },
-    onError: (error) => {
-      logger.error("Error starting witness work:", error);
-      toast.error("Failed to start work");
+      // queryClient.invalidateQueries({ queryKey: ["witness-statements", ...] });
+      // toast.success("Work started");
     },
   });
 }
