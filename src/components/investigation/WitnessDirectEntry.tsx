@@ -98,7 +98,7 @@ export function WitnessDirectEntry({
           contact: witnessContact || undefined,
           relationship: relationship || undefined,
           statement: statementText,
-          statement_type: "direct_entry",
+          statement_method: "text",
         });
       }
       onSuccess();

@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
-import { WitnessStatement } from "@/hooks/use-witness-statements";
+import { WitnessStatement, StatementType } from "@/hooks/use-witness-statements";
 import { generateFilledWitnessPDF } from "@/lib/generate-witness-statement-pdf";
 import { useDocumentBranding } from "@/hooks/use-document-branding";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -48,16 +48,16 @@ interface WitnessDetailDialogProps {
   } | null;
 }
 
-type StatementType = "document_upload" | "direct_entry" | "voice_recording";
-
 const getStatementTypeIcon = (type: StatementType) => {
   switch (type) {
-    case "document_upload":
+    case "upload":
       return <Upload className="h-4 w-4" />;
-    case "direct_entry":
+    case "text":
       return <Edit className="h-4 w-4" />;
-    case "voice_recording":
+    case "voice":
       return <Mic className="h-4 w-4" />;
+    default:
+      return <Edit className="h-4 w-4" />;
   }
 };
 
@@ -65,12 +65,14 @@ const getStatementTypeBadgeVariant = (
   type: StatementType
 ): "secondary" | "default" | "outline" => {
   switch (type) {
-    case "document_upload":
+    case "upload":
       return "secondary";
-    case "direct_entry":
+    case "text":
       return "default";
-    case "voice_recording":
+    case "voice":
       return "outline";
+    default:
+      return "default";
   }
 };
 
@@ -139,7 +141,7 @@ export function WitnessDetailDialog({
           witnessContact: statement.contact || undefined,
           relationship: statement.relationship || undefined,
           statement: statement.statement,
-          statementType: statement.statement_type,
+          statementType: statement.statement_method,
           createdAt: statement.created_at,
           createdBy: creatorProfile?.full_name || undefined,
           aiAnalysis: statement.ai_analysis,
@@ -219,10 +221,10 @@ export function WitnessDetailDialog({
             </Button>
           </div>
           <div className="flex items-center gap-2 mt-2">
-            <Badge variant={getStatementTypeBadgeVariant(statement.statement_type as StatementType)}>
-              {getStatementTypeIcon(statement.statement_type as StatementType)}
+            <Badge variant={getStatementTypeBadgeVariant(statement.statement_method)}>
+              {getStatementTypeIcon(statement.statement_method)}
               <span className="ms-1">
-                {t(`investigation.witnesses.type.${statement.statement_type}`, statement.statement_type)}
+                {t(`investigation.witnesses.type.${statement.statement_method}`, statement.statement_method)}
               </span>
             </Badge>
             {statement.assignment_status && (
@@ -282,7 +284,7 @@ export function WitnessDetailDialog({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {statement.statement_type === "voice_recording" && statement.audio_url && (
+              {statement.statement_method === "voice" && statement.audio_url && (
                 <div className="mb-3">
                   <Button
                     variant="outline"

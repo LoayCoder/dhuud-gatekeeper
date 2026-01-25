@@ -36,21 +36,23 @@ interface WitnessPanelProps {
   canEdit?: boolean;
 }
 
-type StatementType = 'document_upload' | 'direct_entry' | 'voice_recording';
+type StatementType = 'upload' | 'text' | 'voice';
 
 const getStatementTypeIcon = (type: StatementType) => {
   switch (type) {
-    case 'document_upload': return <Upload className="h-4 w-4" />;
-    case 'direct_entry': return <Edit className="h-4 w-4" />;
-    case 'voice_recording': return <Mic className="h-4 w-4" />;
+    case 'upload': return <Upload className="h-4 w-4" />;
+    case 'text': return <Edit className="h-4 w-4" />;
+    case 'voice': return <Mic className="h-4 w-4" />;
+    default: return <Edit className="h-4 w-4" />;
   }
 };
 
 const getStatementTypeBadgeVariant = (type: StatementType): "secondary" | "default" | "outline" => {
   switch (type) {
-    case 'document_upload': return 'secondary';
-    case 'direct_entry': return 'default';
-    case 'voice_recording': return 'outline';
+    case 'upload': return 'secondary';
+    case 'text': return 'default';
+    case 'voice': return 'outline';
+    default: return 'default';
   }
 };
 
@@ -282,10 +284,10 @@ export function WitnessPanel({ incidentId, incident, incidentStatus, canEdit: ca
                         <span className="truncate">{witness.name}</span>
                       </CardTitle>
                       <div className="flex items-center gap-2 flex-wrap shrink-0">
-                        <Badge variant={getStatementTypeBadgeVariant(witness.statement_type as StatementType)}>
-                          {getStatementTypeIcon(witness.statement_type as StatementType)}
+                        <Badge variant={getStatementTypeBadgeVariant(witness.statement_method as StatementType)}>
+                          {getStatementTypeIcon(witness.statement_method as StatementType)}
                           <span className="ms-1">
-                            {t(`investigation.witnesses.type.${witness.statement_type}`, witness.statement_type)}
+                            {t(`investigation.witnesses.type.${witness.statement_method}`, witness.statement_method)}
                           </span>
                         </Badge>
                         {getStatusBadge(witness.assignment_status, t)}

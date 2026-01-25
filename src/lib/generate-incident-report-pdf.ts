@@ -88,7 +88,7 @@ interface ActionEvidenceItem {
 interface WitnessStatement {
   id: string;
   witness_name: string;
-  statement_type: string;
+  statement_method: string;
   statement_text?: string | null;
   created_at?: string | null;
 }
@@ -586,7 +586,7 @@ async function fetchEnvironmentalContaminations(incidentId: string): Promise<Env
 async function fetchWitnessStatements(incidentId: string): Promise<WitnessStatement[]> {
   const { data } = await supabase
     .from('witness_statements')
-    .select('id, witness_name, statement_type, statement_text, created_at')
+    .select('id, witness_name, statement_method, statement_text, created_at')
     .eq('incident_id', incidentId)
     .is('deleted_at', null)
     .order('created_at', { ascending: false });
@@ -1265,7 +1265,7 @@ function buildFullWitnessesHtml(witnesses: WitnessStatement[], isRTL: boolean): 
         </div>
         <div style="margin-bottom: 4px;">
           <span style="padding: 2px 6px; border-radius: 4px; font-size: 10px; background: #dbeafe; color: #1e40af;">
-            ${w.statement_type.replace(/_/g, ' ')}
+            ${w.statement_method.replace(/_/g, ' ')}
           </span>
         </div>
         ${w.statement_text ? `

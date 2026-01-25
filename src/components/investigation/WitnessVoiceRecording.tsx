@@ -252,7 +252,7 @@ export function WitnessVoiceRecording({
         contact: witnessContact || undefined,
         relationship: relationship || undefined,
         statement: transcription,
-        statement_type: "voice_recording",
+        statement_method: "voice",
         audio_url: audioPath,
         original_transcription: originalTranscription,
       });
