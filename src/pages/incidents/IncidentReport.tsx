@@ -225,38 +225,7 @@ export default function IncidentReport() {
   // Helper: Is this an observation (simplified workflow)?
   const isObservation = eventType === 'observation';
 
-  // AI Automatic Trigger
-  const descriptionDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const location = form.watch('location'); // Context
-
-  // Automated AI Analysis Effect
-  useEffect(() => {
-    // Only auto-trigger if length > 20 and not already analyzing
-    if (description.length < 20 || aiValidator.isAnalyzing || isApplyingAISuggestions) return;
-
-    if (descriptionDebounceRef.current) {
-      clearTimeout(descriptionDebounceRef.current);
-    }
-
-    descriptionDebounceRef.current = setTimeout(async () => {
-      logger.debug('Auto-triggering AI Analysis...');
-      setIsApplyingAISuggestions(true);
-
-      // Call analyze with context (location, assetId)
-      await aiValidator.analyzeIncident(title, description, {
-        location: location,
-        assetId: selectedAsset?.id
-      });
-
-      setIsApplyingAISuggestions(false);
-    }, 2000); // 2000ms debounce
-
-    return () => {
-      if (descriptionDebounceRef.current) {
-        clearTimeout(descriptionDebounceRef.current);
-      }
-    };
-  }, [description, title, location, selectedAsset?.id, aiValidator, isApplyingAISuggestions]);
 
   // Cascading filters: Filter sites by selected branch
   const filteredSites = useMemo(() => {
@@ -1033,14 +1002,22 @@ export default function IncidentReport() {
                             {...field}
                           />
                         </FormControl>
-                        <div className="flex flex-wrap justify-between gap-2 text-sm text-muted-foreground">
+                        <div className="flex flex-wrap justify-between gap-2 text-sm text-muted-foreground items-center">
                           <span>{field.value.length} / 5000</span>
-                          {aiValidator.isAnalyzing && (
-                            <span className="flex items-center gap-1 text-primary animate-pulse">
-                              <Sparkles className="h-3 w-3" />
-                              {t('incidents.aiAnalyze')}
-                            </span>
-                          )}
+
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 gap-2 text-primary hover:text-primary/80 hover:bg-primary/10"
+                            onClick={handleAnalyzeDescription}
+                            disabled={aiValidator.isAnalyzing || field.value.length < 20}
+                          >
+                            <Sparkles className={cn("h-4 w-4", aiValidator.isAnalyzing && "animate-spin")} />
+                            {aiValidator.isAnalyzing
+                              ? t('incidents.aiAnalyze', 'Analyzing...')
+                              : t('incidents.analyzeWithAI', 'Analyze with AI')}
+                          </Button>
                         </div>
                         <FormMessage />
                       </FormItem>

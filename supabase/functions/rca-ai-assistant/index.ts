@@ -87,6 +87,16 @@ async function callAI(systemPrompt: string, userPrompt: string): Promise<string>
   return content;
 }
 
+// Helper to verify that we have enough context (evidence or witness statements)
+function verifyContextAvailable(data: RCAData): void {
+  const hasWitness = data.witness_statements && data.witness_statements.length > 0;
+  const hasEvidence = data.evidence_descriptions && data.evidence_descriptions.length > 0;
+
+  if (!hasWitness && !hasEvidence) {
+    throw new Error('Insufficient data: Please add evidence or witness statements to generate insights.');
+  }
+}
+
 // Rewrite text for clarity and ISO 45001/OSHA alignment
 async function handleRewrite(text: string, context?: string): Promise<string> {
   const systemPrompt = `You are an expert HSSE (Health, Safety, Security, Environment) technical writer specializing in incident investigation documentation.
@@ -114,6 +124,7 @@ async function handleSuggestCause(data: RCAData): Promise<string> {
 
 // Generate Root Cause with full progressive data flow
 async function handleGenerateRootCause(data: RCAData): Promise<string> {
+  verifyContextAvailable(data);
   const systemPrompt = `You are an expert HSSE incident investigator specializing in root cause analysis.
 
 Based on the complete RCA analysis (5-Whys, Immediate Cause, Underlying Cause), witness statements, and evidence, suggest a ROOT CAUSE.
@@ -176,6 +187,7 @@ Based on the above, suggest a NEW root cause (1-3 sentences):`;
 
 // Generate Contributing Factor with full progressive data flow
 async function handleGenerateContributingFactor(data: RCAData): Promise<string> {
+  verifyContextAvailable(data);
   const systemPrompt = `You are an expert HSSE incident investigator conducting root cause analysis.
 
 Based on the complete RCA analysis, suggest a CONTRIBUTING FACTOR.
@@ -252,6 +264,7 @@ Based on the above, suggest a NEW contributing factor (1-2 sentences):`;
 
 // Suggest an answer for a specific "Why" level
 async function handleSuggestWhy(data: RCAData, whyLevel: number): Promise<string> {
+  verifyContextAvailable(data);
   const systemPrompt = `You are an expert HSSE incident investigator conducting a 5-Whys root cause analysis.
 
 Your task is to suggest an answer to the current "Why" question based on the incident context and previous answers.
@@ -302,6 +315,7 @@ Suggest an answer for Why ${whyLevel}:`;
 
 // Generate comprehensive RCA summary
 async function handleGenerateSummary(data: RCAData): Promise<string> {
+  verifyContextAvailable(data);
   const systemPrompt = `You are an expert HSSE documentation specialist creating a formal Root Cause Analysis summary.
 
 Create a comprehensive, professionally formatted summary that:
@@ -411,6 +425,7 @@ Return ONLY the final English text without any explanation, preamble, or quotes.
 
 // Generate 3-5 Why questions based on incident context
 async function handleGenerateWhys(data: RCAData): Promise<string> {
+  verifyContextAvailable(data);
   const systemPrompt = `You are an expert HSSE incident investigator conducting 5-Whys root cause analysis.
 
 Based on the incident details, severity level, event classification, witness statements, and evidence provided, generate 3-5 "Why" questions with answers that progressively dig deeper into the root cause.
@@ -466,6 +481,7 @@ Generate 3-5 Why questions with answers in JSON format:`;
 
 // Generate Immediate Cause based on 5-Whys analysis
 async function handleGenerateImmediateCause(data: RCAData): Promise<string> {
+  verifyContextAvailable(data);
   const systemPrompt = `You are an expert HSSE incident investigator conducting root cause analysis.
 
 Based on the 5-Whys analysis and incident context provided, identify the IMMEDIATE CAUSE.
@@ -516,6 +532,7 @@ Based on the above, identify the IMMEDIATE CAUSE (1-2 sentences):`;
 
 // Generate Underlying Cause based on 5-Whys and Immediate Cause
 async function handleGenerateUnderlyingCause(data: RCAData): Promise<string> {
+  verifyContextAvailable(data);
   const systemPrompt = `You are an expert HSSE incident investigator conducting root cause analysis.
 
 Based on the 5-Whys analysis, Immediate Cause, and incident context, identify the UNDERLYING CAUSE.
@@ -569,6 +586,7 @@ Based on the above, identify the UNDERLYING CAUSE (1-2 sentences):`;
 
 // Generate Corrective Action suggestion based on a selected cause
 async function handleSuggestCorrectiveAction(data: RCAData): Promise<string> {
+  verifyContextAvailable(data);
   const causeTypeLabel = data.selected_cause_type === 'root_cause' ? 'ROOT CAUSE' : 'CONTRIBUTING FACTOR';
   
   const systemPrompt = `You are an expert HSSE professional specializing in corrective and preventive actions (CAPA).

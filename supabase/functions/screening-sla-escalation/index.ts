@@ -1,5 +1,5 @@
 /**
- * Screening SLA Escalation - GAP 5 Implementation
+ * Screening SLA Escalation - V1.1 Implementation
  * 
  * Checks for incidents sitting in ANY screening status
  * and triggers warning/escalation notifications to HSSE Managers when SLA breached.
@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
 
     console.log('[Screening SLA] Starting screening SLA escalation check...');
 
-    // Get all incidents pending screening across ALL screening statuses (GAP 5 FIX)
+    // Get all incidents pending screening across ALL screening statuses (V1.1 Logic)
     const screeningStatuses = [
       'submitted',
       'pending_expert_screening',
