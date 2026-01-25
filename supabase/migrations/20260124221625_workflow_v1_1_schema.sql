@@ -154,9 +154,15 @@ CREATE TABLE IF NOT EXISTS incident_evidence (
   tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   incident_id uuid NOT NULL REFERENCES incidents(id) ON DELETE CASCADE,
   evidence_type text NOT NULL CHECK (evidence_type IN ('photo', 'cctv', 'document')),
-  file_url text, -- For photos/docs
+  file_url text, -- For photos/docs (storage_path)
+  file_name text,
+  file_size bigint,
+  mime_type text,
   cctv_metadata jsonb, -- For CCTV (camera_id, timestamp_start, timestamp_end)
   description text,
+  review_comment text,
+  reviewed_by uuid REFERENCES profiles(id),
+  reviewed_at timestamptz,
   uploaded_by uuid REFERENCES profiles(id) ON DELETE SET NULL,
   is_soft_deleted boolean DEFAULT false,
   created_at timestamptz DEFAULT now(),
@@ -189,7 +195,7 @@ CREATE TABLE IF NOT EXISTS incident_rca (
   root_cause_category text, -- enum but text for flexibility
   immediate_causes text[],
   underlying_causes text[],
-  root_causes text[],
+  root_causes jsonb, -- Array of { id: string, text: string, ... }
   contributing_factors jsonb, -- Array of { factor: string, category: string }
   is_locked boolean DEFAULT false,
   locked_by uuid REFERENCES profiles(id),
@@ -251,6 +257,53 @@ CREATE POLICY "Manage violations" ON contract_violations
   FOR ALL USING (tenant_id = get_auth_tenant_id());
 
 -- 6. Helper Functions
+
+-- Function to soft delete evidence based on incident status
+CREATE OR REPLACE FUNCTION soft_delete_incident_evidence(p_evidence_id uuid)
+RETURNS text AS $$
+DECLARE
+  v_status incident_status;
+  v_incident_id uuid;
+BEGIN
+  -- Get incident ID
+  SELECT incident_id INTO v_incident_id FROM incident_evidence WHERE id = p_evidence_id;
+
+  IF v_incident_id IS NULL THEN
+    RAISE EXCEPTION 'Evidence not found';
+  END IF;
+
+  -- Get Status
+  SELECT status INTO v_status FROM incidents WHERE id = v_incident_id;
+
+  -- Logic:
+  -- If Open (Draft, Screening, Investigation phases) -> Hard Delete
+  -- If Governance, Action Management, Closed -> Soft Delete
+
+  IF v_status IN (
+    'draft',
+    'submitted',
+    'pending_dept_rep_approval',
+    'pending_contractor_screening',
+    'pending_consultant_screening',
+    'pending_site_client_approval',
+    'pending_contractor_implementation',
+    'pending_expert_screening',
+    'under_investigation',
+    'pending_investigator_assignment',
+    'pending_witness_review',
+    'pending_rca_locking',
+    'pending_hsse_validation'
+  ) THEN
+     -- Hard Delete
+     DELETE FROM incident_evidence WHERE id = p_evidence_id;
+     RETURN 'hard';
+  ELSE
+     -- Soft Delete (Governance, Action Mgmt, Closed)
+     UPDATE incident_evidence SET is_soft_deleted = true WHERE id = p_evidence_id;
+     RETURN 'soft';
+  END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to unlock RCA (Explicit check)
 CREATE OR REPLACE FUNCTION unlock_rca(rca_id uuid)
