@@ -606,6 +606,13 @@ export default function IncidentReport() {
     }
   }, [dynamicSubtypes, pendingAISubtype, form]);
 
+  // Auto-apply AI results when ready
+  useEffect(() => {
+    if (aiValidator.analysisResult && aiValidator.validationState === 'analysis_ready') {
+       handleConfirmAnalysis();
+    }
+  }, [aiValidator.analysisResult, aiValidator.validationState, handleConfirmAnalysis]);
+
   // Handle observation with "Closed on the Spot" - show confirmation dialog
   const handleObservationSubmit = async (values: FormValues) => {
     if (values.event_type === 'observation' && closedOnSpot) {
@@ -1028,18 +1035,12 @@ export default function IncidentReport() {
                         </FormControl>
                         <div className="flex flex-wrap justify-between gap-2 text-sm text-muted-foreground">
                           <span>{field.value.length} / 5000</span>
-                          {/* Manual button as backup */}
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={handleAnalyzeDescription}
-                            disabled={aiValidator.isAnalyzing || field.value.length < 20}
-                            className="gap-1"
-                          >
-                            {aiValidator.isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                            {t('incidents.aiAnalyze')}
-                          </Button>
+                          {aiValidator.isAnalyzing && (
+                            <span className="flex items-center gap-1 text-primary animate-pulse">
+                              <Sparkles className="h-3 w-3" />
+                              {t('incidents.aiAnalyze')}
+                            </span>
+                          )}
                         </div>
                         <FormMessage />
                       </FormItem>
