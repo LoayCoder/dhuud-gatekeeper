@@ -146,27 +146,14 @@ export function WitnessPanel({ incidentId, incident, incidentStatus, canEdit: ca
   };
 
   const handleReturnStatement = async (statementId: string, returnReason: string) => {
-    const statement = statements.find(s => s.id === statementId);
-    await reviewStatement.mutateAsync({ id: statementId, action: "return", returnReason });
-    
-    // Send notification email to witness
-    if (statement?.assigned_witness_id) {
-      try {
-        await supabase.functions.invoke('send-action-email', {
-          body: {
-            type: 'witness_statement_returned',
-            recipient_id: statement.assigned_witness_id,
-            incident_reference: incident?.reference_id,
-            incident_title: incident?.title,
-            return_reason: returnReason,
-            return_count: (statement.return_count || 0) + 1,
-            tenant_name: tenantName,
-          }
-        });
-      } catch (error) {
-        console.error('Failed to send return notification:', error);
-      }
-    }
+    await reviewStatement.mutateAsync({
+      id: statementId,
+      action: "return",
+      returnReason,
+      incidentReference: incident?.reference_id || undefined,
+      incidentTitle: incident?.title,
+      tenantName: tenantName || undefined
+    });
   };
 
   if (isLoading) {

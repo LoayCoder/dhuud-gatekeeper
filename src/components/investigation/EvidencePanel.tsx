@@ -112,13 +112,7 @@ export function EvidencePanel({ incidentId, incidentStatus, canEdit: canEditProp
   const handleDelete = async () => {
     if (!selectedEvidence) return;
 
-    // Delete file from storage if exists
-    if (selectedEvidence.storage_path) {
-      await supabase.storage
-        .from('incident-attachments')
-        .remove([selectedEvidence.storage_path]);
-    }
-
+    // Rely on the hook and RPC to handle Soft vs Hard delete logic
     await deleteEvidence.mutateAsync(selectedEvidence.id);
     setDeleteDialogOpen(false);
     setSelectedEvidence(null);
