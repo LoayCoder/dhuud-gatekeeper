@@ -1,7 +1,7 @@
 /**
- * Screening SLA Escalation - GAP 1 Implementation
+ * Screening SLA Escalation - GAP 5 Implementation
  * 
- * Checks for incidents sitting in submitted/pending_dept_rep_incident_review status
+ * Checks for incidents sitting in ANY screening status
  * and triggers warning/escalation notifications to HSSE Managers when SLA breached.
  * 
  * Schedule: Run via cron every 30 minutes
@@ -29,6 +29,7 @@ interface IncidentForScreening {
   tenant_id: string;
   status: string;
   severity_v2: string | null;
+  sla_screening_start_time: string | null;
   created_at: string;
   screening_escalation_level: number;
   screening_sla_warning_sent_at: string | null;
@@ -85,11 +86,12 @@ async function sendEscalationEmail(
               </div>
               <div style="padding: 20px; background: #fff7ed;">
                 <p><strong>Incident:</strong> ${incident.reference_id || incident.id}</p>
+                <p><strong>Status:</strong> ${incident.status.replace(/_/g, ' ')}</p>
                 <p><strong>Title:</strong> ${incident.title}</p>
                 <p><strong>Severity:</strong> ${incident.severity_v2 || 'Not assessed'}</p>
                 <p><strong>Waiting Time:</strong> ${hoursWaiting.toFixed(1)} hours</p>
                 <p><strong>Escalation Level:</strong> ${escalationLevel}</p>
-                <p style="margin-top: 16px;">This incident has been waiting for HSSE Expert screening beyond the SLA threshold.</p>
+                <p style="margin-top: 16px;">This incident has been waiting for screening beyond the SLA threshold.</p>
                 <div style="text-align: center; margin-top: 24px;">
                   <a href="${incidentLink}" style="background: #ea580c; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
                     Review Incident →
@@ -119,14 +121,24 @@ Deno.serve(async (req) => {
 
     console.log('[Screening SLA] Starting screening SLA escalation check...');
 
-    // Get all incidents pending screening (submitted or pending_dept_rep_incident_review)
+    // Get all incidents pending screening across ALL screening statuses (GAP 5 FIX)
+    const screeningStatuses = [
+      'submitted',
+      'pending_expert_screening',
+      'pending_dept_rep_approval',
+      'pending_dept_rep_incident_review',
+      'pending_consultant_screening',
+      'pending_site_client_approval',
+      'pending_contractor_implementation'
+    ];
+
     const { data: incidents, error: incError } = await supabase
       .from('incidents')
       .select(`
-        id, reference_id, title, tenant_id, status, severity_v2, created_at,
-        screening_escalation_level, screening_sla_warning_sent_at, screening_escalated_at
+        id, reference_id, title, tenant_id, status, severity_v2, created_at, sla_screening_start_time,
+        screening_escalation_level, screening_sla_warning_sent_at, screening_escalated_at, is_auto_escalated
       `)
-      .in('status', ['submitted', 'pending_dept_rep_incident_review'])
+      .in('status', screeningStatuses)
       .is('deleted_at', null)
       .order('created_at', { ascending: true });
 
@@ -166,8 +178,12 @@ Deno.serve(async (req) => {
     const now = new Date();
 
     for (const incident of incidents) {
-      const createdAt = new Date(incident.created_at);
-      const hoursWaiting = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+      // Use explicit SLA start time if available, otherwise fallback to created_at
+      const startTime = incident.sla_screening_start_time
+        ? new Date(incident.sla_screening_start_time)
+        : new Date(incident.created_at);
+
+      const hoursWaiting = (now.getTime() - startTime.getTime()) / (1000 * 60 * 60);
       
       const severity = incident.severity_v2 || 'Level 2';
       const configKey = `${incident.tenant_id}:${severity}`;
@@ -193,6 +209,7 @@ Deno.serve(async (req) => {
           .update({
             screening_escalation_level: 2,
             screening_escalated_at: now.toISOString(),
+            is_auto_escalated: true
           })
           .eq('id', incident.id);
 
@@ -208,6 +225,7 @@ Deno.serve(async (req) => {
           .update({
             screening_escalation_level: 1,
             screening_escalated_at: now.toISOString(),
+            is_auto_escalated: true
           })
           .eq('id', incident.id);
 
