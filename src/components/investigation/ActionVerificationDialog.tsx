@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, XCircle, FileText, User, Calendar, Building2, AlertTriangle, MessageSquare, Paperclip, Download, File } from 'lucide-react';
+import { CheckCircle2, XCircle, FileText, User, Calendar, Building2, AlertTriangle, MessageSquare, Paperclip, Download, File, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -36,7 +36,7 @@ export function ActionVerificationDialog({
   const [notes, setNotes] = useState('');
   const [isRejecting, setIsRejecting] = useState(false);
   const verifyAction = useVerifyAction();
-  const { data: evidence } = useActionEvidence(action?.id || null);
+  const { data: evidence, isLoading: isLoadingEvidence } = useActionEvidence(action?.id || null);
 
   const formatFileSize = (bytes: number | null) => {
     if (!bytes) return '0 B';
@@ -297,9 +297,13 @@ export function ActionVerificationDialog({
               </Button>
               <Button 
                 onClick={handleVerify} 
-                disabled={verifyAction.isPending || !hasEvidence} // HARDENED GATE n57
+                disabled={verifyAction.isPending || !hasEvidence || isLoadingEvidence} // HARDENED GATE n57
               >
-                <CheckCircle2 className="h-4 w-4 me-2" />
+                {(verifyAction.isPending || isLoadingEvidence) ? (
+                  <Loader2 className="h-4 w-4 me-2 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4 me-2" />
+                )}
                 {t('investigation.approvals.verify', 'Verify')}
               </Button>
             </>
