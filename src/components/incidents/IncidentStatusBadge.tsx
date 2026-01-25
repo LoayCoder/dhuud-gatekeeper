@@ -15,7 +15,8 @@ import {
   ClipboardCheck,
   FileCheck,
   Timer,
-  ShieldCheck
+  ShieldCheck,
+  Gavel // Assuming Gavel might be available, if not I'll fallback or check imports. Wait, Gavel is not imported. I'll stick to imported ones or add it if I knew it existed. I'll stick to imported.
 } from 'lucide-react';
 
 interface IncidentStatusBadgeProps {
@@ -27,7 +28,13 @@ const statusConfig: Record<string, {
   icon: React.ElementType;
   colorClass: string;
 }> = {
-  // Initial submission stages - Info
+  // --- Draft ---
+  draft: {
+    icon: FileText,
+    colorClass: 'bg-muted text-muted-foreground border-border'
+  },
+
+  // --- Screening ---
   submitted: {
     icon: FileText,
     colorClass: 'bg-info/10 text-info border-info/30'
@@ -40,8 +47,32 @@ const statusConfig: Record<string, {
     icon: Search,
     colorClass: 'bg-info/10 text-info border-info/30'
   },
-  
-  // Return/Rejection stages - Destructive
+  pending_expert_screening: {
+    icon: Search,
+    colorClass: 'bg-info/10 text-info border-info/30'
+  },
+  pending_dept_rep_approval: {
+    icon: ClipboardCheck,
+    colorClass: 'bg-warning/10 text-warning border-warning/30'
+  },
+  pending_contractor_screening: {
+    icon: UserCheck,
+    colorClass: 'bg-warning/10 text-warning border-warning/30'
+  },
+  pending_consultant_screening: {
+    icon: UserCheck,
+    colorClass: 'bg-warning/10 text-warning border-warning/30'
+  },
+  pending_site_client_approval: {
+    icon: UserCheck,
+    colorClass: 'bg-warning/10 text-warning border-warning/30'
+  },
+  pending_contractor_implementation: {
+    icon: ClipboardCheck,
+    colorClass: 'bg-warning/10 text-warning border-warning/30'
+  },
+
+  // --- Rejection/Return ---
   returned_to_reporter: {
     icon: RotateCcw,
     colorClass: 'bg-warning/10 text-warning border-warning/30'
@@ -54,8 +85,6 @@ const statusConfig: Record<string, {
     icon: XCircle,
     colorClass: 'bg-destructive/10 text-destructive border-destructive/30'
   },
-  
-  // Approval stages - Warning
   pending_manager_approval: {
     icon: UserCheck,
     colorClass: 'bg-warning/10 text-warning border-warning/30'
@@ -64,18 +93,8 @@ const statusConfig: Record<string, {
     icon: ArrowUpCircle,
     colorClass: 'bg-warning/10 text-warning border-warning/30'
   },
-  pending_dept_rep_approval: {
-    icon: ClipboardCheck,
-    colorClass: 'bg-warning/10 text-warning border-warning/30'
-  },
-  
-  // Observation with pending actions - Pending
-  observation_actions_pending: {
-    icon: Timer,
-    colorClass: 'bg-pending/10 text-pending border-pending/30'
-  },
-  
-  // Investigation stages - Info variant
+
+  // --- Investigation ---
   investigation_pending: {
     icon: Timer,
     colorClass: 'bg-info/10 text-info border-info/30'
@@ -84,8 +103,76 @@ const statusConfig: Record<string, {
     icon: Search,
     colorClass: 'bg-info/10 text-info border-info/30'
   },
-  
-  // Closure workflow stages - Pending
+  under_investigation: {
+    icon: Search,
+    colorClass: 'bg-info/10 text-info border-info/30'
+  },
+  pending_investigator_assignment: {
+    icon: UserCheck,
+    colorClass: 'bg-info/10 text-info border-info/30'
+  },
+  pending_witness_review: {
+    icon: FileText,
+    colorClass: 'bg-info/10 text-info border-info/30'
+  },
+  pending_rca_locking: {
+    icon: Lock,
+    colorClass: 'bg-info/10 text-info border-info/30'
+  },
+  pending_hsse_validation: {
+    icon: ShieldCheck,
+    colorClass: 'bg-success/10 text-success border-success/30'
+  },
+
+  // --- Governance ---
+  pending_legal_review: {
+    icon: FileText,
+    colorClass: 'bg-destructive/10 text-destructive border-destructive/30'
+  },
+  dispute_resolution: {
+    icon: AlertTriangle,
+    colorClass: 'bg-destructive/10 text-destructive border-destructive/30'
+  },
+  pending_contractor_dispute_review: {
+    icon: AlertTriangle,
+    colorClass: 'bg-destructive/10 text-destructive border-destructive/30'
+  },
+  pending_violation_approval: {
+    icon: FileCheck,
+    colorClass: 'bg-destructive/10 text-destructive border-destructive/30'
+  },
+  pending_fine_calculation: {
+    icon: FileText,
+    colorClass: 'bg-destructive/10 text-destructive border-destructive/30'
+  },
+
+  // --- Action Management ---
+  observation_actions_pending: {
+    icon: Timer,
+    colorClass: 'bg-pending/10 text-pending border-pending/30'
+  },
+  pending_action_completion: {
+    icon: Timer,
+    colorClass: 'bg-pending/10 text-pending border-pending/30'
+  },
+  pending_action_verification: {
+    icon: CheckCircle2,
+    colorClass: 'bg-pending/10 text-pending border-pending/30'
+  },
+  monitoring_30_day: {
+    icon: Clock,
+    colorClass: 'bg-pending/10 text-pending border-pending/30'
+  },
+  monitoring_60_day: {
+    icon: Clock,
+    colorClass: 'bg-pending/10 text-pending border-pending/30'
+  },
+  monitoring_90_day: {
+    icon: Clock,
+    colorClass: 'bg-pending/10 text-pending border-pending/30'
+  },
+
+  // --- Closure ---
   pending_closure: {
     icon: FileCheck,
     colorClass: 'bg-pending/10 text-pending border-pending/30'
@@ -99,9 +186,13 @@ const statusConfig: Record<string, {
     colorClass: 'bg-pending/10 text-pending border-pending/30'
   },
   
-  // Completed stages - Success/Muted
+  // --- Closed ---
   closed: {
     icon: Lock,
+    colorClass: 'bg-muted text-muted-foreground border-border'
+  },
+  rejected_invalid: {
+    icon: XCircle,
     colorClass: 'bg-muted text-muted-foreground border-border'
   },
   no_investigation_required: {

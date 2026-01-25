@@ -46,6 +46,14 @@ export interface WorkflowDefinition {
   version: string;
 }
 
+export const workflowCategories: { id: WorkflowCategory; name: string; nameAr: string }[] = [
+  { id: 'hsse_events', name: 'HSSE Events', nameAr: 'أحداث الصحة والسلامة' },
+  { id: 'inspections', name: 'Inspections', nameAr: 'التفتيشات' },
+  { id: 'assets', name: 'Assets', nameAr: 'الأصول' },
+  { id: 'compliance', name: 'Compliance', nameAr: 'الامتثال' },
+  { id: 'contractor', name: 'Contractor', nameAr: 'المقاولين' }
+];
+
 // ============= V1.1 MASTER INCIDENT WORKFLOW =============
 export const incidentWorkflowV1_1: WorkflowDefinition = {
   id: 'incident-v1-1',
