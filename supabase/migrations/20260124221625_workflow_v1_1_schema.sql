@@ -29,7 +29,22 @@
      - `validate_incident_gate()`: Function to check validation gates
 */
 
--- Create ENUMs
+-- 0. Ensure ENUMs exist and update incident_status
+DO $$ BEGIN
+    -- Add missing statuses to incident_status ENUM
+    ALTER TYPE incident_status ADD VALUE IF NOT EXISTS 'draft';
+    ALTER TYPE incident_status ADD VALUE IF NOT EXISTS 'pending_contractor_screening';
+    ALTER TYPE incident_status ADD VALUE IF NOT EXISTS 'pending_investigator_assignment';
+    ALTER TYPE incident_status ADD VALUE IF NOT EXISTS 'pending_witness_review';
+    ALTER TYPE incident_status ADD VALUE IF NOT EXISTS 'pending_rca_locking';
+    ALTER TYPE incident_status ADD VALUE IF NOT EXISTS 'pending_violation_approval';
+    ALTER TYPE incident_status ADD VALUE IF NOT EXISTS 'pending_fine_calculation';
+    ALTER TYPE incident_status ADD VALUE IF NOT EXISTS 'pending_action_verification';
+    ALTER TYPE incident_status ADD VALUE IF NOT EXISTS 'pending_action_completion';
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
 DO $$ BEGIN
     CREATE TYPE incident_stage AS ENUM ('Draft', 'Screening', 'Investigation', 'Governance', 'Action_Management', 'Closed');
 EXCEPTION
@@ -55,25 +70,51 @@ CREATE OR REPLACE FUNCTION maintain_incident_stage()
 RETURNS TRIGGER AS $$
 BEGIN
   -- Logic to infer Stage from Status
-  -- Draft
-  IF NEW.status = 'draft' THEN
-    NEW.stage = 'Draft';
-  -- Screening
-  ELSIF NEW.status IN ('submitted', 'pending_expert_screening', 'pending_dept_rep_approval', 'pending_consultant_screening', 'pending_site_client_approval', 'pending_contractor_implementation', 'rejected_invalid', 'reopened') THEN
-    NEW.stage = 'Screening';
-  -- Investigation
-  ELSIF NEW.status IN ('under_investigation') THEN
-    NEW.stage = 'Investigation';
-  -- Action Management (Pending Action)
-  ELSIF NEW.status IN ('pending_action') THEN
-    NEW.stage = 'Action_Management';
-  -- Closed
-  ELSIF NEW.status = 'closed' THEN
-    NEW.stage = 'Closed';
-  ELSE
-    -- Default fallback if status is unknown or new
-    -- NEW.stage = 'Screening'; -- Optional default
-  END IF;
+  CASE NEW.status
+    -- Draft
+    WHEN 'draft' THEN NEW.stage = 'Draft';
+
+    -- Screening
+    WHEN 'submitted' THEN NEW.stage = 'Screening';
+    WHEN 'pending_dept_rep_approval' THEN NEW.stage = 'Screening';
+    WHEN 'pending_contractor_screening' THEN NEW.stage = 'Screening';
+    WHEN 'pending_consultant_screening' THEN NEW.stage = 'Screening';
+    WHEN 'pending_site_client_approval' THEN NEW.stage = 'Screening';
+    WHEN 'pending_contractor_implementation' THEN NEW.stage = 'Screening';
+    WHEN 'pending_expert_screening' THEN NEW.stage = 'Screening';
+
+    -- Investigation
+    WHEN 'under_investigation' THEN NEW.stage = 'Investigation';
+    WHEN 'pending_investigator_assignment' THEN NEW.stage = 'Investigation';
+    WHEN 'pending_witness_review' THEN NEW.stage = 'Investigation';
+    WHEN 'pending_rca_locking' THEN NEW.stage = 'Investigation';
+    WHEN 'pending_hsse_validation' THEN NEW.stage = 'Investigation';
+
+    -- Governance
+    WHEN 'pending_legal_review' THEN NEW.stage = 'Governance';
+    WHEN 'dispute_resolution' THEN NEW.stage = 'Governance';
+    WHEN 'pending_contractor_dispute_review' THEN NEW.stage = 'Governance';
+    WHEN 'pending_violation_approval' THEN NEW.stage = 'Governance';
+    WHEN 'pending_fine_calculation' THEN NEW.stage = 'Governance';
+
+    -- Action Management
+    WHEN 'pending_action_completion' THEN NEW.stage = 'Action_Management';
+    WHEN 'pending_action_verification' THEN NEW.stage = 'Action_Management';
+    WHEN 'observation_actions_pending' THEN NEW.stage = 'Action_Management';
+    WHEN 'pending_final_closure' THEN NEW.stage = 'Action_Management';
+    WHEN 'monitoring_30_day' THEN NEW.stage = 'Action_Management';
+    WHEN 'monitoring_60_day' THEN NEW.stage = 'Action_Management';
+    WHEN 'monitoring_90_day' THEN NEW.stage = 'Action_Management';
+
+    -- Closed
+    WHEN 'closed' THEN NEW.stage = 'Closed';
+    WHEN 'rejected_invalid' THEN NEW.stage = 'Closed';
+
+    ELSE
+        -- No default assignment to preserve previous values if not matched,
+        -- or could default to Screening if strictly required.
+        -- For now, we assume explicit mapping covers the workflow.
+  END CASE;
 
   RETURN NEW;
 END;
