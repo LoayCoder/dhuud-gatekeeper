@@ -43,8 +43,9 @@ RETURNS TRIGGER AS $$
 BEGIN
   IF OLD.status IS DISTINCT FROM NEW.status THEN
     NEW.status_changed_at = now();
-    -- Set SLA start time if entering screening
-    IF NEW.status IN ('submitted', 'pending_expert_screening') AND OLD.status NOT IN ('submitted', 'pending_expert_screening') THEN
+    -- Set SLA start time if entering screening statuses
+    IF NEW.status IN ('submitted', 'pending_expert_screening', 'pending_dept_rep_approval', 'pending_consultant_screening', 'pending_site_client_approval', 'pending_contractor_implementation')
+       AND (OLD.status NOT IN ('submitted', 'pending_expert_screening', 'pending_dept_rep_approval', 'pending_consultant_screening', 'pending_site_client_approval', 'pending_contractor_implementation') OR OLD.status IS NULL) THEN
         NEW.sla_screening_start_time = now();
     END IF;
   END IF;
@@ -96,6 +97,7 @@ CREATE TABLE IF NOT EXISTS incident_rca (
   tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   incident_id uuid NOT NULL REFERENCES incidents(id) ON DELETE CASCADE,
   five_whys jsonb, -- Array of { question: string, answer: string }
+  root_cause_category text, -- enum but text for flexibility
   immediate_causes text[],
   underlying_causes text[],
   root_causes text[],
@@ -129,7 +131,7 @@ CREATE POLICY "Create RCA" ON incident_rca
 
 -- 4. Witness Statements (Update)
 ALTER TABLE witness_statements
-ADD COLUMN IF NOT EXISTS status text DEFAULT 'pending' CHECK (status IN ('pending', 'review', 'approved')),
+ADD COLUMN IF NOT EXISTS status text DEFAULT 'pending' CHECK (status IN ('pending', 'review', 'approved', 'returned')),
 ADD COLUMN IF NOT EXISTS ai_analysis jsonb,
 ADD COLUMN IF NOT EXISTS transcription text;
 
@@ -185,17 +187,19 @@ DECLARE
 BEGIN
   SELECT * INTO v_incident FROM incidents WHERE id = incident_id;
 
-  IF v_incident.status = 'pending_expert_screening'
+  -- Check against ALL screening statuses defined in V1.1 workflow
+  IF (v_incident.status = 'pending_expert_screening'
+      OR v_incident.status = 'pending_dept_rep_approval'
+      OR v_incident.status = 'pending_consultant_screening'
+      OR v_incident.status = 'pending_site_client_approval'
+      OR v_incident.status = 'pending_contractor_implementation')
      AND v_incident.sla_screening_start_time IS NOT NULL
      AND (now() - v_incident.sla_screening_start_time) > v_threshold
      AND NOT v_incident.is_auto_escalated THEN
 
      UPDATE incidents
-     SET is_auto_escalated = true,
-         -- Keep status but mark flag? Or change status?
-         -- Workflow says "Auto-Escalate to HSSE Queue".
-         -- If it's already "pending_expert_screening", maybe we just flag it for high priority UI.
-         status = 'hsse_manager_escalation' -- Or keep screening but flag.
+     SET is_auto_escalated = true
+         -- Logic for status change or notification trigger can be added here
      WHERE id = incident_id;
 
      RETURN true;
@@ -204,3 +208,161 @@ BEGIN
   RETURN false;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- HARDENED VALIDATION GATE (Gate n26)
+-- check_incident_closure_prerequisites update
+CREATE OR REPLACE FUNCTION public.check_incident_closure_prerequisites(
+  p_incident_id UUID
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_incident RECORD;
+  v_investigation RECORD;
+  v_rca RECORD;
+  v_blocking_reasons TEXT[] := '{}';
+  v_open_actions INTEGER;
+  v_unverified_actions INTEGER;
+  v_pending_violations INTEGER;
+  v_evidence_count INTEGER;
+  v_unapproved_witnesses INTEGER;
+  v_ready BOOLEAN := TRUE;
+BEGIN
+  -- Get incident
+  SELECT * INTO v_incident
+  FROM incidents
+  WHERE id = p_incident_id
+  AND deleted_at IS NULL;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Incident not found');
+  END IF;
+
+  -- Get investigation
+  SELECT * INTO v_investigation
+  FROM investigations
+  WHERE incident_id = p_incident_id
+  AND deleted_at IS NULL
+  ORDER BY created_at DESC
+  LIMIT 1;
+
+  -- Get RCA
+  SELECT * INTO v_rca
+  FROM incident_rca
+  WHERE incident_id = p_incident_id
+  LIMIT 1;
+
+  -- Check 1: Investigation exists and is completed
+  IF v_investigation IS NULL THEN
+    v_blocking_reasons := array_append(v_blocking_reasons, 'No investigation found');
+    v_ready := FALSE;
+  ELSIF v_investigation.completed_at IS NULL THEN
+    v_blocking_reasons := array_append(v_blocking_reasons, 'Investigation not completed');
+    v_ready := FALSE;
+  END IF;
+
+  -- Check 2: RCA Locking (Gate n26)
+  IF v_rca IS NULL THEN
+    v_blocking_reasons := array_append(v_blocking_reasons, 'RCA not started');
+    v_ready := FALSE;
+  ELSIF v_rca.is_locked IS NOT TRUE THEN
+    v_blocking_reasons := array_append(v_blocking_reasons, 'RCA must be locked (finalized)');
+    v_ready := FALSE;
+  END IF;
+
+  -- Check 3: Evidence Existence (Gate n26)
+  SELECT COUNT(*) INTO v_evidence_count
+  FROM incident_evidence
+  WHERE incident_id = p_incident_id
+  AND is_soft_deleted = false;
+
+  IF v_evidence_count = 0 THEN
+    v_blocking_reasons := array_append(v_blocking_reasons, 'At least one piece of evidence is required');
+    v_ready := FALSE;
+  END IF;
+
+  -- Check 4: Witness Statements Status (Gate n26)
+  SELECT COUNT(*) INTO v_unapproved_witnesses
+  FROM witness_statements
+  WHERE incident_id = p_incident_id
+  AND deleted_at IS NULL
+  AND status != 'approved'; -- Must be approved
+
+  IF v_unapproved_witnesses > 0 THEN
+    v_blocking_reasons := array_append(v_blocking_reasons, 'All witness statements must be approved');
+    v_ready := FALSE;
+  END IF;
+
+  -- Check 5: Root cause analysis documented (Legacy check + RCA table check)
+  IF v_investigation IS NOT NULL AND (v_investigation.root_cause IS NULL OR v_investigation.root_cause = '') THEN
+     -- Fallback if RCA table empty, but RCA table takes precedence if exists
+     IF v_rca IS NULL OR v_rca.root_causes IS NULL THEN
+        v_blocking_reasons := array_append(v_blocking_reasons, 'Root cause analysis not documented');
+        v_ready := FALSE;
+     END IF;
+  END IF;
+
+  -- Check 6: All corrective actions completed
+  SELECT COUNT(*) INTO v_open_actions
+  FROM corrective_actions
+  WHERE incident_id = p_incident_id
+  AND deleted_at IS NULL
+  AND status NOT IN ('completed', 'verified', 'closed', 'cancelled'); -- Added closed
+
+  IF v_open_actions > 0 THEN
+    v_blocking_reasons := array_append(v_blocking_reasons, format('%s corrective action(s) not completed', v_open_actions));
+    v_ready := FALSE;
+  END IF;
+
+  -- Check 7: All actions verified (if status is completed but not closed/verified)
+  SELECT COUNT(*) INTO v_unverified_actions
+  FROM corrective_actions
+  WHERE incident_id = p_incident_id
+  AND deleted_at IS NULL
+  AND status = 'completed';
+
+  IF v_unverified_actions > 0 THEN
+    v_blocking_reasons := array_append(v_blocking_reasons, format('%s corrective action(s) pending verification', v_unverified_actions));
+    v_ready := FALSE;
+  END IF;
+
+  -- Check 8: If violation identified, must be finalized
+  IF v_investigation IS NOT NULL AND v_investigation.violation_identified THEN
+    SELECT COUNT(*) INTO v_pending_violations
+    FROM incident_violation_lifecycle
+    WHERE investigation_id = v_investigation.id
+    AND deleted_at IS NULL
+    AND final_status NOT IN ('finalized', 'cancelled');
+
+    IF v_pending_violations > 0 THEN
+      v_blocking_reasons := array_append(v_blocking_reasons, 'Contractor violation not finalized');
+      v_ready := FALSE;
+    END IF;
+  END IF;
+
+  -- Check 9: HSSE validation completed
+  IF v_incident.hsse_validated_at IS NULL THEN
+    v_blocking_reasons := array_append(v_blocking_reasons, 'HSSE validation not completed');
+    v_ready := FALSE;
+  END IF;
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'ready_for_closure', v_ready,
+    'blocking_reasons', to_jsonb(v_blocking_reasons),
+    'checks', jsonb_build_object(
+      'investigation_complete', v_investigation IS NOT NULL AND v_investigation.completed_at IS NOT NULL,
+      'rca_locked', v_rca IS NOT NULL AND v_rca.is_locked,
+      'evidence_present', v_evidence_count > 0,
+      'witness_approved', v_unapproved_witnesses = 0,
+      'all_actions_completed', v_open_actions = 0,
+      'all_actions_verified', v_unverified_actions = 0,
+      'violation_finalized', NOT (v_investigation IS NOT NULL AND v_investigation.violation_identified) OR v_pending_violations = 0,
+      'hsse_validated', v_incident.hsse_validated_at IS NOT NULL
+    )
+  );
+END;
+$$;

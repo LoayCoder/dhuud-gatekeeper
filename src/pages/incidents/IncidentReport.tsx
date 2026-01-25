@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -224,6 +224,39 @@ export default function IncidentReport() {
   
   // Helper: Is this an observation (simplified workflow)?
   const isObservation = eventType === 'observation';
+
+  // AI Automatic Trigger
+  const descriptionDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const location = form.watch('location'); // Context
+
+  // Automated AI Analysis Effect
+  useEffect(() => {
+    // Only auto-trigger if length > 20 and not already analyzing
+    if (description.length < 20 || aiValidator.isAnalyzing || isApplyingAISuggestions) return;
+
+    if (descriptionDebounceRef.current) {
+      clearTimeout(descriptionDebounceRef.current);
+    }
+
+    descriptionDebounceRef.current = setTimeout(async () => {
+      logger.debug('Auto-triggering AI Analysis...');
+      setIsApplyingAISuggestions(true);
+
+      // Call analyze with context (location, assetId)
+      await aiValidator.analyzeIncident(title, description, {
+        location: location,
+        assetId: selectedAsset?.id
+      });
+
+      setIsApplyingAISuggestions(false);
+    }, 2000); // 2000ms debounce
+
+    return () => {
+      if (descriptionDebounceRef.current) {
+        clearTimeout(descriptionDebounceRef.current);
+      }
+    };
+  }, [description, title, location, selectedAsset?.id, aiValidator, isApplyingAISuggestions]);
 
   // Cascading filters: Filter sites by selected branch
   const filteredSites = useMemo(() => {
@@ -472,13 +505,16 @@ export default function IncidentReport() {
     setGpsDetectedBranch(false);
   };
 
-  // Unified AI Analysis handler - single button approach
+  // Manual Trigger (kept for explicit user action)
   const handleAnalyzeDescription = useCallback(async () => {
     if (description.length < 20) return;
-    
     setIsApplyingAISuggestions(true);
-    await aiValidator.analyzeIncident(title, description);
-  }, [description, title, aiValidator]);
+    await aiValidator.analyzeIncident(title, description, {
+      location: location,
+      assetId: selectedAsset?.id
+    });
+    setIsApplyingAISuggestions(false);
+  }, [description, title, location, selectedAsset?.id, aiValidator]);
 
   // Handle translation confirmation
   const handleConfirmTranslation = useCallback(() => {
@@ -777,8 +813,6 @@ export default function IncidentReport() {
     await handleObservationSubmit(values);
   };
 
-  // Removed local getSeverityBadgeVariant - now using imported version from @/lib/hsse-severity-levels
-
   // Step Indicator Component
   const StepIndicator = () => (
     <div className="flex items-center justify-center gap-1 sm:gap-2 mb-8 overflow-x-auto px-2">
@@ -978,7 +1012,7 @@ export default function IncidentReport() {
                     )}
                   />
 
-                  {/* Description with single AI Analyze button */}
+                  {/* Description with automatic AI trigger */}
                   <FormField
                     control={form.control}
                     name="description"
@@ -994,6 +1028,7 @@ export default function IncidentReport() {
                         </FormControl>
                         <div className="flex flex-wrap justify-between gap-2 text-sm text-muted-foreground">
                           <span>{field.value.length} / 5000</span>
+                          {/* Manual button as backup */}
                           <Button
                             type="button"
                             variant="outline"
