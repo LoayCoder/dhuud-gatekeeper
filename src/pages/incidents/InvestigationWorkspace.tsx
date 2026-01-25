@@ -28,7 +28,8 @@ import {
   ArrowLeft,
   UserCheck,
   HeartPulse,
-  Leaf
+  Leaf,
+  Scale
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,6 +39,7 @@ import { useIncidentClosureEligibility, useIncidentClosureApproval } from "@/hoo
 import { useCanApproveInvestigation } from "@/hooks/use-hsse-workflow";
 import { usePendingIncidentApprovals } from "@/hooks/use-pending-approvals";
 import { useInvestigationEditAccess } from "@/hooks/use-investigation-edit-access";
+import { useUserRoles } from "@/hooks/use-user-roles";
 import { 
   EvidencePanel, 
   WitnessPanel, 
@@ -102,6 +104,7 @@ export default function InvestigationWorkspace() {
   const [viewMode, setViewMode] = useState<'my-pending' | 'all'>('my-pending');
   const [showActionDialog, setShowActionDialog] = useState(false);
   const { profile, user } = useAuth();
+  const { hasRole } = useUserRoles();
   const queryClient = useQueryClient();
   
   // Fetch corrective actions count for the selected incident
@@ -217,6 +220,10 @@ export default function InvestigationWorkspace() {
   
   // Investigation edit access control
   const editAccess = useInvestigationEditAccess(investigation, selectedIncident);
+
+  // Check governance tab access
+  const isInvestigator = investigation?.investigator_id === user?.id;
+  const canAccessGovernance = hasRole('hsse_manager') || hasRole('hsse_expert') || isInvestigator;
 
   // Handler for Create Action button - switches to actions tab and triggers dialog
   const handleCreateAction = () => {
@@ -802,22 +809,6 @@ export default function InvestigationWorkspace() {
           {/* Workflow-Specific Cards */}
           {renderWorkflowCards()}
 
-          {/* Investigator Violation Cards - Show during investigation_in_progress for contractor incidents */}
-          {status === 'investigation_in_progress' && (incidentData as any).related_contractor_company_id && investigation && (
-            <>
-              <InvestigatorViolationIdentificationCard 
-                incident={incidentData}
-                investigation={investigation}
-                onComplete={handleRefresh}
-              />
-              <InvestigatorViolationSubmissionCard 
-                incident={incidentData}
-                investigation={investigation}
-                onComplete={handleRefresh}
-              />
-            </>
-          )}
-
           {/* Closure Prerequisites Card - Show during final closure stages */}
           {status && ['pending_final_closure', 'pending_hsse_incident_validation'].includes(status) && (
             <IncidentClosurePrerequisitesCard incidentId={selectedIncidentId} />
@@ -946,6 +937,14 @@ export default function InvestigationWorkspace() {
                       label={t('investigation.tabs.environmentalImpact', 'Environmental Impact')} 
                     />
                   )}
+                  {/* Governance Tab - Restricted Access */}
+                  {canAccessGovernance && (
+                    <LockedTabTrigger
+                      value="governance"
+                      icon={Scale}
+                      label={t('investigation.tabs.governance', 'Governance')}
+                    />
+                  )}
                 </TabsList>
               </div>
 
@@ -1049,6 +1048,29 @@ export default function InvestigationWorkspace() {
                       incidentId={selectedIncidentId!}
                       canEdit={editAccess.canEdit}
                     />
+                  ) : null}
+                </TabsContent>
+
+                {/* Governance Tab Content */}
+                <TabsContent value="governance" className="mt-0 space-y-4">
+                  {canAccessGovernance && investigationAllowed ? (
+                    <>
+                      {/* Investigator Violation Cards - Moved here */}
+                      {status === 'investigation_in_progress' && (incidentData as any).related_contractor_company_id && investigation && (
+                        <>
+                          <InvestigatorViolationIdentificationCard
+                            incident={incidentData}
+                            investigation={investigation}
+                            onComplete={handleRefresh}
+                          />
+                          <InvestigatorViolationSubmissionCard
+                            incident={incidentData}
+                            investigation={investigation}
+                            onComplete={handleRefresh}
+                          />
+                        </>
+                      )}
+                    </>
                   ) : null}
                 </TabsContent>
               </div>
