@@ -36,6 +36,7 @@ const rcaSchema = z.object({
   root_causes: z.array(z.object({
     id: z.string(),
     text: z.string(),
+    category: z.string().optional(),
     added_at: z.string().optional(),
     added_by: z.string().optional(),
   })).default([]),

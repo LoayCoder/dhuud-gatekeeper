@@ -242,8 +242,11 @@ export function useReviewWitnessStatement() {
       id: string;
       action: "approve" | "return";
       returnReason?: string;
+      incidentReference?: string;
+      incidentTitle?: string;
+      tenantName?: string;
     }) => {
-      const { id, action, returnReason } = input;
+      const { id, action, returnReason, incidentReference, incidentTitle, tenantName } = input;
 
       if (action === "approve") {
         const { data, error } = await supabase
@@ -283,6 +286,27 @@ export function useReviewWitnessStatement() {
           .single();
 
         if (error) throw error;
+
+        // Send notification email to witness if assigned
+        if (data.assigned_witness_id) {
+          try {
+            await supabase.functions.invoke('send-action-email', {
+              body: {
+                type: 'witness_statement_returned',
+                recipient_id: data.assigned_witness_id,
+                incident_reference: incidentReference,
+                incident_title: incidentTitle,
+                return_reason: returnReason,
+                return_count: newReturnCount,
+                tenant_name: tenantName,
+              }
+            });
+          } catch (notifyError) {
+            console.error('Failed to send return notification:', notifyError);
+            // Don't fail the mutation if email fails, but log it
+          }
+        }
+
         return { ...data, action: "return", returnReason, returnCount: newReturnCount };
       }
     },

@@ -3,16 +3,25 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Plus, Trash2, Wand2, Sparkles, Loader2 } from "lucide-react";
 import { useRCAAI } from "@/hooks/use-rca-ai";
-import type { FiveWhyEntry } from "@/hooks/use-investigation";
+import type { FiveWhyEntry, RootCauseEntry } from "@/hooks/use-investigation";
 
-export interface RootCauseEntry {
-  id: string;
-  text: string;
-  added_at?: string;
-  added_by?: string;
-}
+const ROOT_CAUSE_CATEGORIES = [
+  { value: 'human_factor', label: 'Human Factor' },
+  { value: 'equipment_failure', label: 'Equipment Failure' },
+  { value: 'process_failure', label: 'Process Failure' },
+  { value: 'environmental', label: 'Environmental' },
+  { value: 'management_system', label: 'Management System' },
+  { value: 'external_factor', label: 'External Factor' },
+];
 
 interface RootCausesBuilderProps {
   value: RootCauseEntry[];
@@ -72,6 +81,12 @@ export function RootCausesBuilder({
   const updateRootCause = (index: number, text: string) => {
     const updated = [...value];
     updated[index] = { ...updated[index], text };
+    onChange(updated);
+  };
+
+  const updateRootCauseCategory = (index: number, category: string) => {
+    const updated = [...value];
+    updated[index] = { ...updated[index], category };
     onChange(updated);
   };
 
@@ -224,13 +239,33 @@ export function RootCausesBuilder({
                         </div>
                       )}
                     </div>
-                    <Textarea
-                      value={entry.text}
-                      onChange={(e) => updateRootCause(index, e.target.value)}
-                      placeholder={t('investigation.rca.rootCausePlaceholder', 'Describe the fundamental reason this incident occurred...')}
-                      disabled={disabled}
-                      rows={2}
-                    />
+
+                    <div className="space-y-2">
+                      <Select
+                        value={entry.category}
+                        onValueChange={(val) => updateRootCauseCategory(index, val)}
+                        disabled={disabled}
+                      >
+                        <SelectTrigger className="w-full sm:w-[200px] h-8 text-xs">
+                          <SelectValue placeholder={t('investigation.rca.selectCategory', 'Select Category')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ROOT_CAUSE_CATEGORIES.map((cat) => (
+                            <SelectItem key={cat.value} value={cat.value}>
+                              {cat.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <Textarea
+                        value={entry.text}
+                        onChange={(e) => updateRootCause(index, e.target.value)}
+                        placeholder={t('investigation.rca.rootCausePlaceholder', 'Describe the fundamental reason this incident occurred...')}
+                        disabled={disabled}
+                        rows={2}
+                      />
+                    </div>
                   </div>
 
                   {!disabled && (
