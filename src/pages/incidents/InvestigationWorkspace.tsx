@@ -88,6 +88,7 @@ import { ReopenIncidentDialog } from "@/components/investigation/ReopenIncidentD
 import { InjuryPanel } from "@/components/investigation/InjuryPanel";
 import { PropertyDamagePanel } from "@/components/investigation/property-damage";
 import { EnvironmentalImpactPanel } from "@/components/investigation/environmental-impact";
+import { EnvironmentalExpertAssignmentCard } from "@/components/investigation/EnvironmentalExpertAssignmentCard";
 import { IncidentStatusBadge } from "@/components/incidents/IncidentStatusBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -1059,15 +1060,24 @@ export default function InvestigationWorkspace() {
                 </TabsContent>
 
                 {/* Environmental Impact Tab Content */}
-                <TabsContent value="environmental-impact" className="mt-0">
-                  {investigationAllowed && (selectedIncident?.event_type === 'environmental' || 
+                <TabsContent value="environmental-impact" className="mt-0 space-y-4">
+                  {investigationAllowed && (selectedIncident?.event_type === 'environmental' ||
                     selectedIncident?.event_type === 'environment' ||
-                    ['oil_chemical_spill_land', 'spill_to_water', 'air_emission', 'soil_contamination', 
+                    ['oil_chemical_spill_land', 'spill_to_water', 'air_emission', 'soil_contamination',
                      'waste_mismanagement', 'wildlife_impact', 'non_compliant_discharge'].includes(selectedIncident?.subtype || '')) ? (
-                    <EnvironmentalImpactPanel 
-                      incidentId={selectedIncidentId!}
-                      canEdit={editAccess.canEdit}
-                    />
+                    <>
+                      {/* Environmental Expert Assignment Card */}
+                      {incidentData && (
+                        <EnvironmentalExpertAssignmentCard
+                          incident={incidentData}
+                          onComplete={handleRefresh}
+                        />
+                      )}
+                      <EnvironmentalImpactPanel
+                        incidentId={selectedIncidentId!}
+                        canEdit={editAccess.canEdit}
+                      />
+                    </>
                   ) : null}
                 </TabsContent>
 

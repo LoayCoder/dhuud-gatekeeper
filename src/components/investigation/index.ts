@@ -65,6 +65,7 @@ export { ContractControllerApprovalCard } from './ContractControllerApprovalCard
 export { InjuryPanel } from './InjuryPanel';
 // Environmental Impact Tab Components
 export { EnvironmentalImpactPanel } from './environmental-impact';
+export { EnvironmentalExpertAssignmentCard } from './EnvironmentalExpertAssignmentCard';
 // Contractor Observation Workflow Components
 export * from './contractor-workflow';
 // Department Manager Approval (L3-5 incidents)
