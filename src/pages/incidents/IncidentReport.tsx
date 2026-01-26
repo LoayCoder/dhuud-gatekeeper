@@ -39,6 +39,7 @@ import { useTenantSites, useTenantBranches } from '@/hooks/use-org-hierarchy';
 import { useDepartmentsBySite } from '@/hooks/use-departments-by-site';
 import { useLinkAssetToIncident } from '@/hooks/use-incident-assets';
 import { useIncidentAIValidator } from '@/hooks/use-incident-ai-validator';
+import { useAIAutoTrigger } from '@/hooks/use-ai-auto-trigger';
 import { AIIncidentAnalysisPanel } from '@/components/incidents/AIIncidentAnalysisPanel';
 import { AITagsSelector } from '@/components/ai/AITagsSelector';
 import { useAITags } from '@/hooks/use-ai-tags';
@@ -137,8 +138,30 @@ export default function IncidentReport() {
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   
-  // AI Analysis state - new unified hook
-  const aiValidator = useIncidentAIValidator();
+  // Asset selection state (moved up for AI auto-trigger context)
+  const [selectedAsset, setSelectedAsset] = useState<SelectedAsset | null>(null);
+
+  // AI Analysis state - new unified hook with auto-trigger
+  const description = form.watch('description');
+  const title = form.watch('title');
+  const location = form.watch('location');
+
+  const {
+    isAutoTriggerEnabled,
+    setAutoTriggerEnabled,
+    isPendingAutoTrigger,
+    triggerAnalysis,
+    validator: aiValidator,
+  } = useAIAutoTrigger(title || '', description || '', {
+    minCharacters: 20,
+    debounceDelay: 2000,
+    enabled: true,
+    context: {
+      location: location,
+      assetId: selectedAsset?.id,
+    },
+  });
+
   const { tags: availableIncidentTags = [] } = useAITags('incident');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   
@@ -167,8 +190,6 @@ export default function IncidentReport() {
   const [isConfirmSubmitting, setIsConfirmSubmitting] = useState(false);
   // Prevent any re-submission after successful submit
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  // Asset selection state
-  const [selectedAsset, setSelectedAsset] = useState<SelectedAsset | null>(null);
   // Success dialog state
   const [submittedIncident, setSubmittedIncident] = useState<{ id: string; referenceId: string } | null>(null);
   
@@ -214,18 +235,14 @@ export default function IncidentReport() {
 
   const hasInjury = form.watch('has_injury');
   const hasDamage = form.watch('has_damage');
-  const description = form.watch('description');
-  const title = form.watch('title');
   const eventType = form.watch('event_type');
   const incidentType = form.watch('incident_type');
   const isAgainstContractor = form.watch('is_against_contractor');
   const selectedBranchId = form.watch('branch_id');
   const selectedSiteId = form.watch('site_id');
-  
+
   // Helper: Is this an observation (simplified workflow)?
   const isObservation = eventType === 'observation';
-
-  const location = form.watch('location'); // Context
 
   // Cascading filters: Filter sites by selected branch
   const filteredSites = useMemo(() => {
@@ -474,16 +491,13 @@ export default function IncidentReport() {
     setGpsDetectedBranch(false);
   };
 
-  // Manual Trigger (kept for explicit user action)
-  const handleAnalyzeDescription = useCallback(async () => {
-    if (description.length < 20) return;
+  // Manual Trigger (kept for explicit user action - bypasses debounce)
+  const handleAnalyzeDescription = useCallback(() => {
+    if ((description?.length || 0) < 20) return;
     setIsApplyingAISuggestions(true);
-    await aiValidator.analyzeIncident(title, description, {
-      location: location,
-      assetId: selectedAsset?.id
-    });
-    setIsApplyingAISuggestions(false);
-  }, [description, title, location, selectedAsset?.id, aiValidator]);
+    triggerAnalysis();
+    // Note: setIsApplyingAISuggestions(false) is handled in handleConfirmAnalysis
+  }, [description, triggerAnalysis]);
 
   // Handle translation confirmation
   const handleConfirmTranslation = useCallback(() => {
@@ -1003,21 +1017,43 @@ export default function IncidentReport() {
                           />
                         </FormControl>
                         <div className="flex flex-wrap justify-between gap-2 text-sm text-muted-foreground items-center">
-                          <span>{field.value.length} / 5000</span>
+                          <div className="flex items-center gap-3">
+                            <span>{field.value.length} / 5000</span>
+                            {/* Auto-trigger status indicator */}
+                            {isAutoTriggerEnabled && isPendingAutoTrigger && (
+                              <span className="flex items-center gap-1 text-xs text-primary animate-pulse">
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                                {t('incidents.ai.autoAnalyzing', 'Auto-analyzing...')}
+                              </span>
+                            )}
+                          </div>
 
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 gap-2 text-primary hover:text-primary/80 hover:bg-primary/10"
-                            onClick={handleAnalyzeDescription}
-                            disabled={aiValidator.isAnalyzing || field.value.length < 20}
-                          >
-                            <Sparkles className={cn("h-4 w-4", aiValidator.isAnalyzing && "animate-spin")} />
-                            {aiValidator.isAnalyzing
-                              ? t('incidents.aiAnalyze', 'Analyzing...')
-                              : t('incidents.analyzeWithAI', 'Analyze with AI')}
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            {/* Auto-trigger toggle */}
+                            <label className="flex items-center gap-1.5 cursor-pointer text-xs">
+                              <input
+                                type="checkbox"
+                                checked={isAutoTriggerEnabled}
+                                onChange={(e) => setAutoTriggerEnabled(e.target.checked)}
+                                className="h-3.5 w-3.5 rounded border-muted-foreground/30"
+                              />
+                              <span className="text-muted-foreground">{t('incidents.ai.autoTrigger', 'Auto')}</span>
+                            </label>
+
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 gap-2 text-primary hover:text-primary/80 hover:bg-primary/10"
+                              onClick={handleAnalyzeDescription}
+                              disabled={aiValidator.isAnalyzing || field.value.length < 20}
+                            >
+                              <Sparkles className={cn("h-4 w-4", aiValidator.isAnalyzing && "animate-spin")} />
+                              {aiValidator.isAnalyzing
+                                ? t('incidents.aiAnalyze', 'Analyzing...')
+                                : t('incidents.analyzeWithAI', 'Analyze with AI')}
+                            </Button>
+                          </div>
                         </div>
                         <FormMessage />
                       </FormItem>
