@@ -63,6 +63,9 @@ export { DeptManagerViolationApprovalCard } from './DeptManagerViolationApproval
 export { ContractControllerApprovalCard } from './ContractControllerApprovalCard';
 // Injury Tab Components
 export { InjuryPanel } from './InjuryPanel';
+export { ClinicUserAssignmentCard } from './ClinicUserAssignmentCard';
+// Property Damage Tab Components
+export { TechEvaluatorAssignmentCard } from './TechEvaluatorAssignmentCard';
 // Environmental Impact Tab Components
 export { EnvironmentalImpactPanel } from './environmental-impact';
 export { EnvironmentalExpertAssignmentCard } from './EnvironmentalExpertAssignmentCard';

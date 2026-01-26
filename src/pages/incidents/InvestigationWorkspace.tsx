@@ -86,7 +86,9 @@ import { HSSEEnforcementBanner } from "@/components/investigation/HSSEEnforcemen
 import { ObservationWorkflowTracker } from "@/components/investigation/ObservationWorkflowTracker";
 import { ReopenIncidentDialog } from "@/components/investigation/ReopenIncidentDialog";
 import { InjuryPanel } from "@/components/investigation/InjuryPanel";
+import { ClinicUserAssignmentCard } from "@/components/investigation/ClinicUserAssignmentCard";
 import { PropertyDamagePanel } from "@/components/investigation/property-damage";
+import { TechEvaluatorAssignmentCard } from "@/components/investigation/TechEvaluatorAssignmentCard";
 import { EnvironmentalImpactPanel } from "@/components/investigation/environmental-impact";
 import { EnvironmentalExpertAssignmentCard } from "@/components/investigation/EnvironmentalExpertAssignmentCard";
 import { IncidentStatusBadge } from "@/components/incidents/IncidentStatusBadge";
@@ -1040,22 +1042,40 @@ export default function InvestigationWorkspace() {
                 </TabsContent>
 
                 {/* Injuries Tab Content */}
-                <TabsContent value="injuries" className="mt-0">
+                <TabsContent value="injuries" className="mt-0 space-y-4">
                   {investigationAllowed && selectedIncident?.has_injury ? (
-                    <InjuryPanel 
-                      incidentId={selectedIncidentId!}
-                      canEdit={editAccess.canEdit}
-                    />
+                    <>
+                      {/* Clinic User Assignment Card */}
+                      {incidentData && (
+                        <ClinicUserAssignmentCard
+                          incident={incidentData}
+                          onComplete={handleRefresh}
+                        />
+                      )}
+                      <InjuryPanel
+                        incidentId={selectedIncidentId!}
+                        canEdit={editAccess.canEdit}
+                      />
+                    </>
                   ) : null}
                 </TabsContent>
 
                 {/* Property Damage Tab Content */}
-                <TabsContent value="property-damage" className="mt-0">
+                <TabsContent value="property-damage" className="mt-0 space-y-4">
                   {investigationAllowed && selectedIncident?.has_damage ? (
-                    <PropertyDamagePanel 
-                      incidentId={selectedIncidentId!}
-                      canEdit={editAccess.canEdit}
-                    />
+                    <>
+                      {/* Tech Evaluator Assignment Card */}
+                      {incidentData && (
+                        <TechEvaluatorAssignmentCard
+                          incident={incidentData}
+                          onComplete={handleRefresh}
+                        />
+                      )}
+                      <PropertyDamagePanel
+                        incidentId={selectedIncidentId!}
+                        canEdit={editAccess.canEdit}
+                      />
+                    </>
                   ) : null}
                 </TabsContent>
 
