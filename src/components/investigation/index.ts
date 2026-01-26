@@ -69,6 +69,8 @@ export { TechEvaluatorAssignmentCard } from './TechEvaluatorAssignmentCard';
 // Environmental Impact Tab Components
 export { EnvironmentalImpactPanel } from './environmental-impact';
 export { EnvironmentalExpertAssignmentCard } from './EnvironmentalExpertAssignmentCard';
+// Specialist Data Review (Leader Review Cycles)
+export { SpecialistDataReviewCard } from './SpecialistDataReviewCard';
 // Contractor Observation Workflow Components
 export * from './contractor-workflow';
 // Department Manager Approval (L3-5 incidents)

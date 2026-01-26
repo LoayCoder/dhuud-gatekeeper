@@ -91,6 +91,10 @@ import { PropertyDamagePanel } from "@/components/investigation/property-damage"
 import { TechEvaluatorAssignmentCard } from "@/components/investigation/TechEvaluatorAssignmentCard";
 import { EnvironmentalImpactPanel } from "@/components/investigation/environmental-impact";
 import { EnvironmentalExpertAssignmentCard } from "@/components/investigation/EnvironmentalExpertAssignmentCard";
+import { SpecialistDataReviewCard } from "@/components/investigation/SpecialistDataReviewCard";
+import { useIsAssignedClinicUser } from "@/hooks/use-injury-assignment";
+import { useIsAssignedTechEvaluator } from "@/hooks/use-property-damage-assignment";
+import { useIsAssignedEnvironmentalExpert } from "@/hooks/use-environmental-assignment";
 import { IncidentStatusBadge } from "@/components/incidents/IncidentStatusBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -230,6 +234,14 @@ export default function InvestigationWorkspace() {
   // Check governance tab access
   const isInvestigator = investigation?.investigator_id === user?.id;
   const canAccessGovernance = hasRole('hsse_manager') || hasRole('hsse_expert') || isInvestigator;
+
+  // Specialist assignment checks for review card permissions
+  const { isAssignedClinicUser } = useIsAssignedClinicUser(selectedIncidentId);
+  const { isAssignedEvaluator: isAssignedTechEvaluator } = useIsAssignedTechEvaluator(selectedIncidentId);
+  const { isAssignedExpert: isAssignedEnvironmentalExpert } = useIsAssignedEnvironmentalExpert(selectedIncidentId);
+
+  // Leader/reviewer can approve specialist data (HSSE Manager, HSSE Expert, or assigned investigator)
+  const canReviewSpecialistData = hasRole('hsse_manager') || hasRole('hsse_expert') || isInvestigator;
 
   // Handler for Create Action button - switches to actions tab and triggers dialog
   const handleCreateAction = () => {
@@ -1056,6 +1068,13 @@ export default function InvestigationWorkspace() {
                         incidentId={selectedIncidentId!}
                         canEdit={editAccess.canEdit}
                       />
+                      {/* Specialist Data Review Card - Submit for Review / Approve */}
+                      <SpecialistDataReviewCard
+                        incidentId={selectedIncidentId!}
+                        dataType="injury"
+                        canSubmit={isAssignedClinicUser}
+                        canReview={canReviewSpecialistData}
+                      />
                     </>
                   ) : null}
                 </TabsContent>
@@ -1074,6 +1093,13 @@ export default function InvestigationWorkspace() {
                       <PropertyDamagePanel
                         incidentId={selectedIncidentId!}
                         canEdit={editAccess.canEdit}
+                      />
+                      {/* Specialist Data Review Card - Submit for Review / Approve */}
+                      <SpecialistDataReviewCard
+                        incidentId={selectedIncidentId!}
+                        dataType="property_damage"
+                        canSubmit={isAssignedTechEvaluator}
+                        canReview={canReviewSpecialistData}
                       />
                     </>
                   ) : null}
@@ -1096,6 +1122,13 @@ export default function InvestigationWorkspace() {
                       <EnvironmentalImpactPanel
                         incidentId={selectedIncidentId!}
                         canEdit={editAccess.canEdit}
+                      />
+                      {/* Specialist Data Review Card - Submit for Review / Approve */}
+                      <SpecialistDataReviewCard
+                        incidentId={selectedIncidentId!}
+                        dataType="environmental"
+                        canSubmit={isAssignedEnvironmentalExpert}
+                        canReview={canReviewSpecialistData}
                       />
                     </>
                   ) : null}
