@@ -91,16 +91,17 @@ export function useEnvironmentalAssignment(incidentId: string | null) {
 
       const { error } = await supabase
         .from('incidents')
-        .update({ assigned_environmental_expert_id: expertId })
+        .update({ assigned_environmental_expert_id: expertId } as any) // New column from migration
         .eq('id', incidentId);
 
       if (error) throw error;
 
       // Log to audit trail
+      const profileId = (profile as any)?.id;
       await supabase.from('incident_audit_logs').insert({
         incident_id: incidentId,
         tenant_id: profile?.tenant_id,
-        actor_id: profile?.id,
+        actor_id: profileId,
         action: 'environmental_expert_assigned',
         details: { assigned_expert_id: expertId },
       });
@@ -123,16 +124,17 @@ export function useEnvironmentalAssignment(incidentId: string | null) {
 
       const { error } = await supabase
         .from('incidents')
-        .update({ assigned_environmental_expert_id: null })
+        .update({ assigned_environmental_expert_id: null } as any) // New column from migration
         .eq('id', incidentId);
 
       if (error) throw error;
 
       // Log to audit trail
+      const profileId = (profile as any)?.id;
       await supabase.from('incident_audit_logs').insert({
         incident_id: incidentId,
         tenant_id: profile?.tenant_id,
-        actor_id: profile?.id,
+        actor_id: profileId,
         action: 'environmental_expert_unassigned',
         details: {},
       });

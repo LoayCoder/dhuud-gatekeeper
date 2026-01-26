@@ -41,8 +41,8 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
     queryFn: async () => {
       if (!incidentId) return [];
 
-      const { data, error } = await supabase
-        .from(tableName)
+      // Use any to handle dynamic table access until types are fully generated
+      const { data, error } = await (supabase.from(tableName as any) as any)
         .select('id, review_status, submitted_at, submitted_by, reviewed_at, reviewed_by, review_notes')
         .eq('incident_id', incidentId)
         .is('deleted_at', null);
@@ -79,14 +79,14 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
   // Submit all records for review
   const submitForReview = useMutation({
     mutationFn: async () => {
-      if (!incidentId || !profile?.id) throw new Error('Missing required data');
+      const profileId = (profile as any)?.id;
+      if (!incidentId || !profileId) throw new Error('Missing required data');
 
-      const { error } = await supabase
-        .from(tableName)
+      const { error } = await (supabase.from(tableName as any) as any)
         .update({
           review_status: 'submitted',
           submitted_at: new Date().toISOString(),
-          submitted_by: profile.id,
+          submitted_by: profileId,
         })
         .eq('incident_id', incidentId)
         .is('deleted_at', null)
@@ -97,8 +97,8 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
       // Log to audit trail
       await supabase.from('incident_audit_logs').insert({
         incident_id: incidentId,
-        tenant_id: profile.tenant_id,
-        actor_id: profile.id,
+        tenant_id: profile?.tenant_id,
+        actor_id: profileId,
         action: `${dataType}_submitted_for_review`,
         details: { data_type: dataType },
       });
@@ -115,14 +115,14 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
   // Approve all records (for reviewers)
   const approveReview = useMutation({
     mutationFn: async (notes?: string) => {
-      if (!incidentId || !profile?.id) throw new Error('Missing required data');
+      const profileId = (profile as any)?.id;
+      if (!incidentId || !profileId) throw new Error('Missing required data');
 
-      const { error } = await supabase
-        .from(tableName)
+      const { error } = await (supabase.from(tableName as any) as any)
         .update({
           review_status: 'approved',
           reviewed_at: new Date().toISOString(),
-          reviewed_by: profile.id,
+          reviewed_by: profileId,
           review_notes: notes || null,
         })
         .eq('incident_id', incidentId)
@@ -134,8 +134,8 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
       // Log to audit trail
       await supabase.from('incident_audit_logs').insert({
         incident_id: incidentId,
-        tenant_id: profile.tenant_id,
-        actor_id: profile.id,
+        tenant_id: profile?.tenant_id,
+        actor_id: profileId,
         action: `${dataType}_review_approved`,
         details: { data_type: dataType, notes },
       });
@@ -152,15 +152,15 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
   // Return records for corrections (for reviewers)
   const returnForCorrections = useMutation({
     mutationFn: async (notes: string) => {
-      if (!incidentId || !profile?.id) throw new Error('Missing required data');
+      const profileId = (profile as any)?.id;
+      if (!incidentId || !profileId) throw new Error('Missing required data');
       if (!notes?.trim()) throw new Error('Notes are required when returning for corrections');
 
-      const { error } = await supabase
-        .from(tableName)
+      const { error } = await (supabase.from(tableName as any) as any)
         .update({
           review_status: 'returned',
           reviewed_at: new Date().toISOString(),
-          reviewed_by: profile.id,
+          reviewed_by: profileId,
           review_notes: notes,
         })
         .eq('incident_id', incidentId)
@@ -172,8 +172,8 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
       // Log to audit trail
       await supabase.from('incident_audit_logs').insert({
         incident_id: incidentId,
-        tenant_id: profile.tenant_id,
-        actor_id: profile.id,
+        tenant_id: profile?.tenant_id,
+        actor_id: profileId,
         action: `${dataType}_returned_for_corrections`,
         details: { data_type: dataType, notes },
       });
@@ -190,10 +190,10 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
   // Reset to draft (after corrections made)
   const resetToDraft = useMutation({
     mutationFn: async () => {
-      if (!incidentId || !profile?.id) throw new Error('Missing required data');
+      const profileId = (profile as any)?.id;
+      if (!incidentId || !profileId) throw new Error('Missing required data');
 
-      const { error } = await supabase
-        .from(tableName)
+      const { error } = await (supabase.from(tableName as any) as any)
         .update({
           review_status: 'draft',
           review_notes: null,

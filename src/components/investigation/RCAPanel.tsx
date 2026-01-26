@@ -10,7 +10,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Save, Loader2, Wand2, Check, Pencil, Lock, Sparkles, Unlock } from "lucide-react";
 import { FiveWhysBuilder } from "./FiveWhysBuilder";
-import { RootCausesBuilder, type RootCauseEntry } from "./RootCausesBuilder";
+import { RootCausesBuilder } from "./RootCausesBuilder";
+import type { RootCauseEntry } from "@/hooks/use-investigation";
 import { ContributingFactorsBuilder, type ContributingFactorEntry } from "./ContributingFactorsBuilder";
 import { AISummaryPanel } from "./AISummaryPanel";
 import { useInvestigation, useCreateInvestigation, useUpdateInvestigation, type FiveWhyEntry } from "@/hooks/use-investigation";
@@ -156,16 +157,17 @@ export function RCAPanel({
 
       if (data) {
         setRcaData(data);
-        setIsLocked(data.is_locked || false);
+        setIsLocked((data as any).is_locked || false);
 
-        // Populate form
-        const formData = {
-          five_whys: (data.five_whys as unknown as FiveWhyEntry[]) || [],
-          root_causes: (data.root_causes as unknown as RootCauseEntry[]) || [], // Stored as jsonb array (fixed via migration)
-          contributing_factors_list: (data.contributing_factors as unknown as ContributingFactorEntry[]) || [],
-          immediate_cause: data.immediate_causes?.[0] || '', // Assuming array in DB, using first for UI
-          underlying_cause: data.underlying_causes?.[0] || '', // Assuming array in DB
-          root_cause: data.root_causes?.[0]?.text || '', // Legacy sync helper
+        // Populate form - use any cast for new table fields until types regenerate
+        const rcaRow = data as any;
+        const formData: any = {
+          five_whys: (rcaRow.five_whys as unknown as FiveWhyEntry[]) || [],
+          root_causes: (rcaRow.root_causes as unknown as RootCauseEntry[]) || [], // Stored as jsonb array (fixed via migration)
+          contributing_factors_list: (rcaRow.contributing_factors as unknown as ContributingFactorEntry[]) || [],
+          immediate_cause: rcaRow.immediate_causes?.[0] || '', // Assuming array in DB, using first for UI
+          underlying_cause: rcaRow.underlying_causes?.[0] || '', // Assuming array in DB
+          root_cause: Array.isArray(rcaRow.root_causes) && rcaRow.root_causes.length > 0 ? rcaRow.root_causes[0]?.text || '' : '', // Legacy sync helper
           // AI summary fields might not be in incident_rca yet, fallback to investigation or keep local
           ai_summary: '',
         };
@@ -177,8 +179,8 @@ export function RCAPanel({
            formData.ai_summary_language = investigation.ai_summary_language || 'en';
 
            // If incident_rca was empty (first load after migration), might need to populate from investigation
-           if (!data.five_whys && investigation.five_whys) formData.five_whys = investigation.five_whys;
-           if ((!data.root_causes || data.root_causes.length === 0) && investigation.root_causes) formData.root_causes = investigation.root_causes;
+           if (!rcaRow.five_whys && investigation.five_whys) formData.five_whys = investigation.five_whys;
+           if ((!rcaRow.root_causes || (Array.isArray(rcaRow.root_causes) && rcaRow.root_causes.length === 0)) && investigation.root_causes) formData.root_causes = investigation.root_causes;
         }
 
         form.reset(formData);
@@ -351,7 +353,7 @@ export function RCAPanel({
   const handleUnlockAnalysis = async () => {
     try {
       // Call RPC or direct update if policy allows (RPC preferred for strict role check)
-      const { error } = await supabase.rpc('unlock_rca', { rca_id: rcaData?.id });
+      const { error } = await (supabase.rpc as any)('unlock_rca', { p_incident_id: incidentId });
 
       if (error) throw error;
 

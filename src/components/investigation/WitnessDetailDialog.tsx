@@ -227,9 +227,9 @@ export function WitnessDetailDialog({
                 {t(`investigation.witnesses.type.${statement.statement_method}`, statement.statement_method)}
               </span>
             </Badge>
-            {statement.assignment_status && (
+            {statement.status && (
               <Badge variant="outline">
-                {t(`investigation.witnesses.status.${statement.assignment_status}`, statement.assignment_status)}
+                {t(`investigation.witnesses.status.${statement.status}`, statement.status)}
               </Badge>
             )}
           </div>
