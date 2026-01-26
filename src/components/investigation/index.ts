@@ -58,6 +58,9 @@ export { InvestigatorViolationIdentificationCard } from './InvestigatorViolation
 export { InvestigatorViolationSubmissionCard } from './InvestigatorViolationSubmissionCard';
 export { IncidentClosurePrerequisitesCard } from './IncidentClosurePrerequisitesCard';
 export { HSSEIncidentValidationCard } from './HSSEIncidentValidationCard';
+// Contractor Violation Approval Workflow
+export { DeptManagerViolationApprovalCard } from './DeptManagerViolationApprovalCard';
+export { ContractControllerApprovalCard } from './ContractControllerApprovalCard';
 // Injury Tab Components
 export { InjuryPanel } from './InjuryPanel';
 // Environmental Impact Tab Components

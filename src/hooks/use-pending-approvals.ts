@@ -554,17 +554,20 @@ export function usePendingIncidentApprovals() {
       // Use filter to bypass TypeScript strict type check for new status values
       // Include contractor consultant workflow statuses (expert_screening is legacy, pending_consultant_* are new)
       const pendingStatuses = [
-        'pending_manager_approval', 
-        'hsse_manager_escalation', 
-        'pending_closure', 
-        'pending_final_closure', 
-        'pending_dept_rep_approval', 
+        'pending_manager_approval',
+        'hsse_manager_escalation',
+        'pending_closure',
+        'pending_final_closure',
+        'pending_dept_rep_approval',
         'pending_dept_rep_incident_review',
         // Contractor Consultant workflow statuses
         'expert_screening',
         'pending_consultant_screening',
         'pending_consultant_review',
-        'pending_consultant_actions'
+        'pending_consultant_actions',
+        // Contractor Violation Approval workflow statuses
+        'pending_department_manager_violation_approval',
+        'pending_contract_controller_approval'
       ];
       const { data: incidents, error } = await supabase
         .from('incidents')

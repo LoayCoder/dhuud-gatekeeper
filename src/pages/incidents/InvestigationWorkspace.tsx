@@ -68,6 +68,9 @@ import {
   InvestigatorViolationSubmissionCard,
   IncidentClosurePrerequisitesCard,
   HSSEIncidentValidationCard,
+  // Contractor Violation Approval Workflow
+  DeptManagerViolationApprovalCard,
+  ContractControllerApprovalCard,
   // Gap workflow components
   LegalReviewCard,
   DisputeResolutionCard,
@@ -410,9 +413,26 @@ export default function InvestigationWorkspace() {
 
       case 'pending_clinic_review':
         return (
-          <ClinicReviewCard 
-            incident={incidentData} 
-            onComplete={handleRefresh} 
+          <ClinicReviewCard
+            incident={incidentData}
+            onComplete={handleRefresh}
+          />
+        );
+
+      // --- CONTRACTOR VIOLATION APPROVAL WORKFLOW ---
+      case 'pending_department_manager_violation_approval':
+        return (
+          <DeptManagerViolationApprovalCard
+            incident={incidentData}
+            onComplete={handleRefresh}
+          />
+        );
+
+      case 'pending_contract_controller_approval':
+        return (
+          <ContractControllerApprovalCard
+            incident={incidentData}
+            onComplete={handleRefresh}
           />
         );
 
