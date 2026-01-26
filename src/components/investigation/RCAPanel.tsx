@@ -103,7 +103,8 @@ export function RCAPanel({
   const { data: investigation, isLoading: isInvestigationLoading } = useInvestigation(incidentId);
   const createInvestigation = useCreateInvestigation();
   const updateInvestigation = useUpdateInvestigation(); // Still used for legacy sync
-  const { rewriteText, generateImmediateCause, generateUnderlyingCause, isLoading: isAILoading } = useRCAAI();
+  // Pass incidentId to enable automatic context enrichment (witness statements, evidence, injury, property, environmental data)
+  const { rewriteText, generateImmediateCause, generateUnderlyingCause, isLoading: isAILoading } = useRCAAI({ incidentId });
   
   // Fetch witness statements and evidence for AI Generate Whys
   const { statements: witnessStatements } = useWitnessStatements(incidentId);
@@ -453,22 +454,32 @@ export function RCAPanel({
         {isLocked && (
           <Alert className="border-warning/50 bg-warning/5">
             <Lock className="h-4 w-4 text-warning" />
-            <AlertDescription className="flex items-center justify-between w-full">
-              <span>
-                {isClosed
-                  ? t('investigation.rca.lockedClosed', 'Incident closed. Analysis is read-only.')
-                  : t('investigation.rca.lockedStatus', 'RCA is locked. Inputs are disabled.')}
-              </span>
-              {/* Unlock Button for HSSE Manager */}
+            <AlertDescription className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 w-full">
+              <div className="space-y-1">
+                <span className="font-medium">
+                  {isClosed
+                    ? t('investigation.rca.lockedClosed', 'Incident closed. Analysis is read-only.')
+                    : t('investigation.rca.lockedStatus', 'RCA is locked. Inputs are disabled.')}
+                </span>
+                {/* Show who locked and when */}
+                {rcaData?.locked_at && !isClosed && (
+                  <p className="text-xs text-muted-foreground">
+                    {t('investigation.rca.lockedBy', 'Locked on {{date}}', {
+                      date: new Date(rcaData.locked_at).toLocaleString()
+                    })}
+                  </p>
+                )}
+              </div>
+              {/* Unlock Button for HSSE Manager - Made more prominent */}
               {!isClosed && isHSSEManager && (
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="default"
                   size="sm"
                   onClick={handleUnlockAnalysis}
-                  className="bg-background text-foreground border-warning/50 hover:bg-warning/10"
+                  className="bg-warning text-warning-foreground hover:bg-warning/90 shrink-0"
                 >
-                  <Unlock className="h-3 w-3 me-2" />
+                  <Unlock className="h-4 w-4 me-2" />
                   {t('investigation.rca.unlock', 'Unlock RCA')}
                 </Button>
               )}

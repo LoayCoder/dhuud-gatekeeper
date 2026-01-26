@@ -58,10 +58,19 @@ export { InvestigatorViolationIdentificationCard } from './InvestigatorViolation
 export { InvestigatorViolationSubmissionCard } from './InvestigatorViolationSubmissionCard';
 export { IncidentClosurePrerequisitesCard } from './IncidentClosurePrerequisitesCard';
 export { HSSEIncidentValidationCard } from './HSSEIncidentValidationCard';
+// Contractor Violation Approval Workflow
+export { DeptManagerViolationApprovalCard } from './DeptManagerViolationApprovalCard';
+export { ContractControllerApprovalCard } from './ContractControllerApprovalCard';
 // Injury Tab Components
 export { InjuryPanel } from './InjuryPanel';
+export { ClinicUserAssignmentCard } from './ClinicUserAssignmentCard';
+// Property Damage Tab Components
+export { TechEvaluatorAssignmentCard } from './TechEvaluatorAssignmentCard';
 // Environmental Impact Tab Components
 export { EnvironmentalImpactPanel } from './environmental-impact';
+export { EnvironmentalExpertAssignmentCard } from './EnvironmentalExpertAssignmentCard';
+// Specialist Data Review (Leader Review Cycles)
+export { SpecialistDataReviewCard } from './SpecialistDataReviewCard';
 // Contractor Observation Workflow Components
 export * from './contractor-workflow';
 // Department Manager Approval (L3-5 incidents)
