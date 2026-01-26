@@ -122,7 +122,7 @@ export function SpecialistDataReviewCard({
   };
 
   const handleApprove = () => {
-    approveReview();
+    approveReview(undefined);
   };
 
   const handleReturn = () => {

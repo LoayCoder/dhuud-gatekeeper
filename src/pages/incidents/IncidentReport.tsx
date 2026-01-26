@@ -141,26 +141,7 @@ export default function IncidentReport() {
   // Asset selection state (moved up for AI auto-trigger context)
   const [selectedAsset, setSelectedAsset] = useState<SelectedAsset | null>(null);
 
-  // AI Analysis state - new unified hook with auto-trigger
-  const description = form.watch('description');
-  const title = form.watch('title');
-  const location = form.watch('location');
-
-  const {
-    isAutoTriggerEnabled,
-    setAutoTriggerEnabled,
-    isPendingAutoTrigger,
-    triggerAnalysis,
-    validator: aiValidator,
-  } = useAIAutoTrigger(title || '', description || '', {
-    minCharacters: 20,
-    debounceDelay: 2000,
-    enabled: true,
-    context: {
-      location: location,
-      assetId: selectedAsset?.id,
-    },
-  });
+  // Note: AI Analysis hook initialization moved below form declaration (line ~242)
 
   const { tags: availableIncidentTags = [] } = useAITags('incident');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -240,6 +221,28 @@ export default function IncidentReport() {
   const isAgainstContractor = form.watch('is_against_contractor');
   const selectedBranchId = form.watch('branch_id');
   const selectedSiteId = form.watch('site_id');
+  
+  // Watch fields for AI analysis (needed before useAIAutoTrigger)
+  const description = form.watch('description');
+  const title = form.watch('title');
+  const location = form.watch('location');
+  
+  // AI Analysis state - new unified hook with auto-trigger
+  const {
+    isAutoTriggerEnabled,
+    setAutoTriggerEnabled,
+    isPendingAutoTrigger,
+    triggerAnalysis,
+    validator: aiValidator,
+  } = useAIAutoTrigger(title || '', description || '', {
+    minCharacters: 20,
+    debounceDelay: 2000,
+    enabled: true,
+    context: {
+      location: location,
+      assetId: selectedAsset?.id,
+    },
+  });
 
   // Helper: Is this an observation (simplified workflow)?
   const isObservation = eventType === 'observation';

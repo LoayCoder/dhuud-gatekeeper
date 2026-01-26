@@ -1033,7 +1033,7 @@ export default function MyActions() {
                         >
                           {(statement as any).status === 'completed' 
                             ? t('investigation.witnesses.status.awaitingReview', 'Awaiting Review')
-                            : t(`investigation.witnesses.status.${(statement as any).status}`, (statement as any).status || 'pending')}
+                            : String(t(`investigation.witnesses.status.${(statement as any).status}`, (statement as any).status || 'pending'))}
                         </Badge>
                       </div>
                       

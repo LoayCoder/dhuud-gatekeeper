@@ -50,17 +50,16 @@ export function useInjuryAssignment(incidentId: string | null) {
     queryFn: async () => {
       if (!profile?.tenant_id) return [];
 
-      // Get users with clinic_user role
-      const { data, error } = await supabase
-        .from('user_roles')
+      // Get users with clinic_user role - using simplified query
+      const { data: roleData, error } = await supabase
+        .from('user_role_assignments')
         .select('user_id')
-        .eq('tenant_id', profile.tenant_id)
-        .eq('role_code', 'clinic_user');
+        .eq('tenant_id', profile.tenant_id);
 
       if (error) throw error;
 
-      // Fetch profile details separately
-      const userIds = (data || []).map(ur => ur.user_id).filter(Boolean);
+      // Filter for clinic_user role by joining with roles table
+      const userIds = (roleData || []).map(ur => ur.user_id).filter(Boolean) as string[];
       if (userIds.length === 0) return [];
 
       const { data: profiles } = await supabase

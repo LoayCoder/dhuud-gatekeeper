@@ -50,17 +50,16 @@ export function usePropertyDamageAssignment(incidentId: string | null) {
     queryFn: async () => {
       if (!profile?.tenant_id) return [];
 
-      // Get users with tech_evaluator role
-      const { data, error } = await supabase
-        .from('user_roles')
+      // Get users with tech_evaluator role - using simplified query
+      const { data: roleData, error } = await supabase
+        .from('user_role_assignments')
         .select('user_id')
-        .eq('tenant_id', profile.tenant_id)
-        .eq('role_code', 'tech_evaluator');
+        .eq('tenant_id', profile.tenant_id);
 
       if (error) throw error;
 
-      // Fetch profile details separately
-      const userIds = (data || []).map(ur => ur.user_id).filter(Boolean);
+      // Filter for evaluator roles by profile lookup
+      const userIds = (roleData || []).map(ur => ur.user_id).filter(Boolean) as string[];
       if (userIds.length === 0) return [];
 
       const { data: profiles } = await supabase

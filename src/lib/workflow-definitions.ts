@@ -378,10 +378,8 @@ export const incidentWorkflowV1_1: WorkflowDefinition = {
 // ============= ALL WORKFLOWS =============
 export const allWorkflows: WorkflowDefinition[] = [
   incidentWorkflowV1_1, // Primary V1.1 Workflow
-  observationWorkflowComplete,
-  contractorViolationWorkflow,
-  // ... Keep older workflows for backward compatibility or reference if needed,
-  // but V1.1 is now the master for Incidents.
+  // Note: Additional workflows (observationWorkflowComplete, contractorViolationWorkflow) 
+  // can be added here when defined
 ];
 
 export function getWorkflowsByCategory(category: WorkflowCategory): WorkflowDefinition[] {
