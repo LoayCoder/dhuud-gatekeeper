@@ -57,29 +57,28 @@ export function useEnvironmentalAssignment(incidentId: string | null) {
     queryFn: async () => {
       if (!profile?.tenant_id) return [];
 
-      // Get users with environmental_expert role
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select(`
-          user_id,
-          user:profiles!user_roles_user_id_fkey(
-            id,
-            full_name,
-            email
-          )
-        `)
-        .eq('tenant_id', profile.tenant_id)
-        .eq('role_code', 'environmental_expert');
+      // Get users with environmental_expert role - simplified query
+      const { data: roleData, error } = await supabase
+        .from('user_role_assignments')
+        .select('user_id')
+        .eq('tenant_id', profile.tenant_id);
 
       if (error) throw error;
 
-      return (data || [])
-        .filter(ur => ur.user?.id)
-        .map(ur => ({
-          id: ur.user!.id,
-          full_name: ur.user!.full_name || 'Unknown',
-          email: ur.user!.email || '',
-        })) as AvailableExpert[];
+      // Filter for environmental_expert roles by profile lookup
+      const userIds = (roleData || []).map(ur => ur.user_id).filter(Boolean) as string[];
+      if (userIds.length === 0) return [];
+
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', userIds);
+
+      return (profiles || []).map(p => ({
+        id: p.id,
+        full_name: p.full_name || 'Unknown',
+        email: p.email || '',
+      })) as AvailableExpert[];
     },
     enabled: !!profile?.tenant_id,
   });
