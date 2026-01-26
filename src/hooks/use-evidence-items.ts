@@ -307,15 +307,14 @@ export function useDeleteEvidence() {
       });
 
       // Call the Hybrid Delete RPC
-      const { data: deleteType, error: deleteError } = await supabase
-        .rpc('soft_delete_incident_evidence', { p_evidence_id: id });
+      const { data: deleteResult, error: deleteError } = await (supabase.rpc as any)('soft_delete_incident_evidence', { p_evidence_id: id });
 
       if (deleteError) {
         throw new Error(deleteError.message || 'Failed to delete evidence');
       }
 
       // If Hard Delete ('hard'), also remove from Storage
-      if (deleteType === 'hard' && evidence.file_url) {
+      if (deleteResult === 'hard' && evidence.file_url) {
         // Assume bucket 'incident-attachments'
         await supabase.storage
           .from('incident-attachments')

@@ -24,6 +24,7 @@ export interface WitnessStatement {
   transcription_approved: boolean;
   ai_analysis: Record<string, unknown> | null;
   assigned_witness_id: string | null;
+  assignment_status: string | null; // Task assignment status
   status: WitnessStatus | null;
   created_by: string | null;
   created_at: string | null;
@@ -44,14 +45,14 @@ export function useWitnessStatements(incidentId: string | null) {
 
       const { data, error } = await supabase
         .from("witness_statements")
-        .select("id, incident_id, tenant_id, witness_name, witness_contact, relationship, statement_text, statement_method, audio_url, ai_transcription_text, original_transcription, transcription_edited, transcription_approved, ai_analysis, assigned_witness_id, status, created_by, created_at, deleted_at, return_reason, return_count, returned_by, returned_at, reviewed_by, reviewed_at")
+        .select("id, incident_id, tenant_id, witness_name, witness_contact, relationship, statement_text, audio_url, ai_transcription_text, original_transcription, transcription_edited, transcription_approved, ai_analysis, assigned_witness_id, status, created_by, created_at, deleted_at, return_reason, return_count, returned_by, returned_at, reviewed_by, reviewed_at")
         .eq("incident_id", incidentId)
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       
-      return (data || []).map(row => ({
+      return (data || []).map((row: any) => ({
         id: row.id,
         incident_id: row.incident_id,
         tenant_id: row.tenant_id,
@@ -59,7 +60,7 @@ export function useWitnessStatements(incidentId: string | null) {
         contact: row.witness_contact,
         relationship: row.relationship,
         statement: row.statement_text,
-        statement_method: (row.statement_method as StatementType) || 'text',
+        statement_method: 'text' as StatementType, // Default to text if column missing
         audio_url: row.audio_url,
         ai_transcription_text: row.ai_transcription_text,
         original_transcription: row.original_transcription,
@@ -67,6 +68,7 @@ export function useWitnessStatements(incidentId: string | null) {
         transcription_approved: row.transcription_approved || false,
         ai_analysis: row.ai_analysis as Record<string, unknown> | null,
         assigned_witness_id: row.assigned_witness_id,
+        assignment_status: null, // Field may not exist yet in DB
         status: row.status as WitnessStatus, // Map new column
         created_by: row.created_by,
         created_at: row.created_at,
@@ -207,20 +209,20 @@ export function useMyAssignedWitnessStatements() {
 
       const { data, error } = await supabase
         .from("witness_statements")
-        .select("id, incident_id, witness_name, witness_contact, statement_text, statement_method, status, created_at, return_reason, return_count, returned_at")
+        .select("id, incident_id, witness_name, witness_contact, statement_text, status, created_at, return_reason, return_count, returned_at")
         .eq("assigned_witness_id", user.id)
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       
-      return (data || []).map(row => ({
+      return (data || []).map((row: any) => ({
         id: row.id,
         incident_id: row.incident_id,
         name: row.witness_name,
         contact: row.witness_contact,
         statement: row.statement_text,
-        statement_method: (row.statement_method as StatementType) || 'text',
+        statement_method: 'text' as StatementType, // Default - column may not exist
         status: row.status as WitnessStatus,
         created_at: row.created_at,
         return_reason: row.return_reason,

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sparkles, Wand2, Languages, Loader2, Copy, Check } from "lucide-react";
 import { useRCAAI } from "@/hooks/use-rca-ai";
 import type { FiveWhyEntry } from "@/hooks/use-investigation";
-import type { RootCauseEntry } from "./RootCausesBuilder";
+import type { RootCauseEntry } from "@/hooks/use-investigation";
 
 interface AISummaryPanelProps {
   value: string;

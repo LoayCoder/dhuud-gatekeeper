@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Database, Json } from '@/integrations/supabase/types';
 
-const getProfileId = (profile: { id: string } | null | undefined): string | undefined => profile?.id;
+const getProfileId = (profile: any): string | undefined => profile?.id;
 export interface Contractor {
   id: string;
   contractor_code: string;

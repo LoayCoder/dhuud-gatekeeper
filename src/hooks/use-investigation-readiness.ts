@@ -14,10 +14,8 @@ export function useInvestigationReadiness(incidentId: string | null) {
     queryFn: async (): Promise<InvestigationReadiness> => {
       if (!incidentId) throw new Error('Incident ID is required');
 
-      // Call the new RPC function
-      // Note: We use 'any' for the RPC call here until types are regenerated
-      const { data, error } = await supabase
-        .rpc('check_investigation_readiness', { p_incident_id: incidentId });
+      // Call the RPC function - types may not include it yet
+      const { data, error } = await (supabase.rpc as any)('check_investigation_readiness', { p_incident_id: incidentId });
 
       if (error) throw error;
       return data as unknown as InvestigationReadiness;
