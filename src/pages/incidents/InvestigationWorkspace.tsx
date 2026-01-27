@@ -28,7 +28,8 @@ import {
   ArrowLeft,
   UserCheck,
   HeartPulse,
-  Leaf
+  Leaf,
+  Scale
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,6 +39,7 @@ import { useIncidentClosureEligibility, useIncidentClosureApproval } from "@/hoo
 import { useCanApproveInvestigation } from "@/hooks/use-hsse-workflow";
 import { usePendingIncidentApprovals } from "@/hooks/use-pending-approvals";
 import { useInvestigationEditAccess } from "@/hooks/use-investigation-edit-access";
+import { useUserRoles } from "@/hooks/use-user-roles";
 import { 
   EvidencePanel, 
   WitnessPanel, 
@@ -66,6 +68,9 @@ import {
   InvestigatorViolationSubmissionCard,
   IncidentClosurePrerequisitesCard,
   HSSEIncidentValidationCard,
+  // Contractor Violation Approval Workflow
+  DeptManagerViolationApprovalCard,
+  ContractControllerApprovalCard,
   // Gap workflow components
   LegalReviewCard,
   DisputeResolutionCard,
@@ -81,8 +86,15 @@ import { HSSEEnforcementBanner } from "@/components/investigation/HSSEEnforcemen
 import { ObservationWorkflowTracker } from "@/components/investigation/ObservationWorkflowTracker";
 import { ReopenIncidentDialog } from "@/components/investigation/ReopenIncidentDialog";
 import { InjuryPanel } from "@/components/investigation/InjuryPanel";
+import { ClinicUserAssignmentCard } from "@/components/investigation/ClinicUserAssignmentCard";
 import { PropertyDamagePanel } from "@/components/investigation/property-damage";
+import { TechEvaluatorAssignmentCard } from "@/components/investigation/TechEvaluatorAssignmentCard";
 import { EnvironmentalImpactPanel } from "@/components/investigation/environmental-impact";
+import { EnvironmentalExpertAssignmentCard } from "@/components/investigation/EnvironmentalExpertAssignmentCard";
+import { SpecialistDataReviewCard } from "@/components/investigation/SpecialistDataReviewCard";
+import { useIsAssignedClinicUser } from "@/hooks/use-injury-assignment";
+import { useIsAssignedTechEvaluator } from "@/hooks/use-property-damage-assignment";
+import { useIsAssignedEnvironmentalExpert } from "@/hooks/use-environmental-assignment";
 import { IncidentStatusBadge } from "@/components/incidents/IncidentStatusBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -102,6 +114,7 @@ export default function InvestigationWorkspace() {
   const [viewMode, setViewMode] = useState<'my-pending' | 'all'>('my-pending');
   const [showActionDialog, setShowActionDialog] = useState(false);
   const { profile, user } = useAuth();
+  const { hasRole } = useUserRoles();
   const queryClient = useQueryClient();
   
   // Fetch corrective actions count for the selected incident
@@ -217,6 +230,18 @@ export default function InvestigationWorkspace() {
   
   // Investigation edit access control
   const editAccess = useInvestigationEditAccess(investigation, selectedIncident);
+
+  // Check governance tab access
+  const isInvestigator = investigation?.investigator_id === user?.id;
+  const canAccessGovernance = hasRole('hsse_manager') || hasRole('hsse_expert') || isInvestigator;
+
+  // Specialist assignment checks for review card permissions
+  const { isAssignedClinicUser } = useIsAssignedClinicUser(selectedIncidentId);
+  const { isAssignedEvaluator: isAssignedTechEvaluator } = useIsAssignedTechEvaluator(selectedIncidentId);
+  const { isAssignedExpert: isAssignedEnvironmentalExpert } = useIsAssignedEnvironmentalExpert(selectedIncidentId);
+
+  // Leader/reviewer can approve specialist data (HSSE Manager, HSSE Expert, or assigned investigator)
+  const canReviewSpecialistData = hasRole('hsse_manager') || hasRole('hsse_expert') || isInvestigator;
 
   // Handler for Create Action button - switches to actions tab and triggers dialog
   const handleCreateAction = () => {
@@ -403,9 +428,26 @@ export default function InvestigationWorkspace() {
 
       case 'pending_clinic_review':
         return (
-          <ClinicReviewCard 
-            incident={incidentData} 
-            onComplete={handleRefresh} 
+          <ClinicReviewCard
+            incident={incidentData}
+            onComplete={handleRefresh}
+          />
+        );
+
+      // --- CONTRACTOR VIOLATION APPROVAL WORKFLOW ---
+      case 'pending_department_manager_violation_approval':
+        return (
+          <DeptManagerViolationApprovalCard
+            incident={incidentData}
+            onComplete={handleRefresh}
+          />
+        );
+
+      case 'pending_contract_controller_approval':
+        return (
+          <ContractControllerApprovalCard
+            incident={incidentData}
+            onComplete={handleRefresh}
           />
         );
 
@@ -802,22 +844,6 @@ export default function InvestigationWorkspace() {
           {/* Workflow-Specific Cards */}
           {renderWorkflowCards()}
 
-          {/* Investigator Violation Cards - Show during investigation_in_progress for contractor incidents */}
-          {status === 'investigation_in_progress' && (incidentData as any).related_contractor_company_id && investigation && (
-            <>
-              <InvestigatorViolationIdentificationCard 
-                incident={incidentData}
-                investigation={investigation}
-                onComplete={handleRefresh}
-              />
-              <InvestigatorViolationSubmissionCard 
-                incident={incidentData}
-                investigation={investigation}
-                onComplete={handleRefresh}
-              />
-            </>
-          )}
-
           {/* Closure Prerequisites Card - Show during final closure stages */}
           {status && ['pending_final_closure', 'pending_hsse_incident_validation'].includes(status) && (
             <IncidentClosurePrerequisitesCard incidentId={selectedIncidentId} />
@@ -946,6 +972,14 @@ export default function InvestigationWorkspace() {
                       label={t('investigation.tabs.environmentalImpact', 'Environmental Impact')} 
                     />
                   )}
+                  {/* Governance Tab - Restricted Access */}
+                  {canAccessGovernance && (
+                    <LockedTabTrigger
+                      value="governance"
+                      icon={Scale}
+                      label={t('investigation.tabs.governance', 'Governance')}
+                    />
+                  )}
                 </TabsList>
               </div>
 
@@ -1020,35 +1054,106 @@ export default function InvestigationWorkspace() {
                 </TabsContent>
 
                 {/* Injuries Tab Content */}
-                <TabsContent value="injuries" className="mt-0">
+                <TabsContent value="injuries" className="mt-0 space-y-4">
                   {investigationAllowed && selectedIncident?.has_injury ? (
-                    <InjuryPanel 
-                      incidentId={selectedIncidentId!}
-                      canEdit={editAccess.canEdit}
-                    />
+                    <>
+                      {/* Clinic User Assignment Card */}
+                      {incidentData && (
+                        <ClinicUserAssignmentCard
+                          incident={incidentData}
+                          onComplete={handleRefresh}
+                        />
+                      )}
+                      <InjuryPanel
+                        incidentId={selectedIncidentId!}
+                        canEdit={editAccess.canEdit}
+                      />
+                      {/* Specialist Data Review Card - Submit for Review / Approve */}
+                      <SpecialistDataReviewCard
+                        incidentId={selectedIncidentId!}
+                        dataType="injury"
+                        canSubmit={isAssignedClinicUser}
+                        canReview={canReviewSpecialistData}
+                      />
+                    </>
                   ) : null}
                 </TabsContent>
 
                 {/* Property Damage Tab Content */}
-                <TabsContent value="property-damage" className="mt-0">
+                <TabsContent value="property-damage" className="mt-0 space-y-4">
                   {investigationAllowed && selectedIncident?.has_damage ? (
-                    <PropertyDamagePanel 
-                      incidentId={selectedIncidentId!}
-                      canEdit={editAccess.canEdit}
-                    />
+                    <>
+                      {/* Tech Evaluator Assignment Card */}
+                      {incidentData && (
+                        <TechEvaluatorAssignmentCard
+                          incident={incidentData}
+                          onComplete={handleRefresh}
+                        />
+                      )}
+                      <PropertyDamagePanel
+                        incidentId={selectedIncidentId!}
+                        canEdit={editAccess.canEdit}
+                      />
+                      {/* Specialist Data Review Card - Submit for Review / Approve */}
+                      <SpecialistDataReviewCard
+                        incidentId={selectedIncidentId!}
+                        dataType="property_damage"
+                        canSubmit={isAssignedTechEvaluator}
+                        canReview={canReviewSpecialistData}
+                      />
+                    </>
                   ) : null}
                 </TabsContent>
 
                 {/* Environmental Impact Tab Content */}
-                <TabsContent value="environmental-impact" className="mt-0">
-                  {investigationAllowed && (selectedIncident?.event_type === 'environmental' || 
+                <TabsContent value="environmental-impact" className="mt-0 space-y-4">
+                  {investigationAllowed && (selectedIncident?.event_type === 'environmental' ||
                     selectedIncident?.event_type === 'environment' ||
-                    ['oil_chemical_spill_land', 'spill_to_water', 'air_emission', 'soil_contamination', 
+                    ['oil_chemical_spill_land', 'spill_to_water', 'air_emission', 'soil_contamination',
                      'waste_mismanagement', 'wildlife_impact', 'non_compliant_discharge'].includes(selectedIncident?.subtype || '')) ? (
-                    <EnvironmentalImpactPanel 
-                      incidentId={selectedIncidentId!}
-                      canEdit={editAccess.canEdit}
-                    />
+                    <>
+                      {/* Environmental Expert Assignment Card */}
+                      {incidentData && (
+                        <EnvironmentalExpertAssignmentCard
+                          incident={incidentData}
+                          onComplete={handleRefresh}
+                        />
+                      )}
+                      <EnvironmentalImpactPanel
+                        incidentId={selectedIncidentId!}
+                        canEdit={editAccess.canEdit}
+                      />
+                      {/* Specialist Data Review Card - Submit for Review / Approve */}
+                      <SpecialistDataReviewCard
+                        incidentId={selectedIncidentId!}
+                        dataType="environmental"
+                        canSubmit={isAssignedEnvironmentalExpert}
+                        canReview={canReviewSpecialistData}
+                      />
+                    </>
+                  ) : null}
+                </TabsContent>
+
+                {/* Governance Tab Content */}
+                <TabsContent value="governance" className="mt-0 space-y-4">
+                  {canAccessGovernance && investigationAllowed ? (
+                    <>
+                      {/* Investigator Violation Cards - Moved here */}
+                      {status === 'investigation_in_progress' && (incidentData as any).related_contractor_company_id && investigation && (
+                        <>
+                          <InvestigatorViolationIdentificationCard
+                            incident={incidentData}
+                            investigation={investigation}
+                            onComplete={handleRefresh}
+                          />
+                          <InvestigatorViolationSubmissionCard
+                            incident={incidentData}
+                            investigation={investigation}
+                            onComplete={handleRefresh}
+                          />
+                        </>
+                      )}
+                    </>
                   ) : null}
                 </TabsContent>
               </div>

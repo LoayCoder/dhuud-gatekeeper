@@ -364,10 +364,11 @@ export function useCreateAsset() {
           }
           
           return data;
-        } catch (err: any) {
-          lastError = err;
-          // Only retry on constraint violations
-          if (err.code !== '23505' || attempt >= MAX_CREATE_RETRIES) {
+        } catch (err: unknown) {
+          lastError = err instanceof Error ? err : new Error('Unknown error');
+          // Only retry on constraint violations (code 23505 is PostgreSQL unique violation)
+          const errorCode = (err as any)?.code;
+          if (errorCode !== '23505' || attempt >= MAX_CREATE_RETRIES) {
             throw err;
           }
         }

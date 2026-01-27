@@ -1,8 +1,8 @@
 // Workflow Definitions for HSSE Process Diagrams
-// COMPREHENSIVE VERSION - Includes all statuses, notifications, and gap annotations
+// V1.1 MASTER WORKFLOW - Refactored to match Mermaid V1.1 Specification
 
-export type NodeType = 'start' | 'end' | 'action' | 'decision' | 'approval' | 'subprocess' | 'notification';
-export type ConditionType = 'yes' | 'no' | 'approve' | 'reject' | 'escalate' | 'default' | 'l1_l2' | 'l3_l4' | 'l5';
+export type NodeType = 'start' | 'end' | 'action' | 'decision' | 'approval' | 'subprocess' | 'notification' | 'gate' | 'ai';
+export type ConditionType = 'yes' | 'no' | 'approve' | 'reject' | 'escalate' | 'default' | 'l1_l2' | 'l3' | 'l4_l5' | 'valid' | 'invalid' | 'incomplete';
 export type WorkflowCategory = 'hsse_events' | 'inspections' | 'assets' | 'compliance' | 'contractor';
 
 export interface WorkflowStep {
@@ -21,6 +21,8 @@ export interface WorkflowStep {
   // Gap indicator
   hasGap?: boolean;
   gapDescription?: string;
+  // Validation Gate ID
+  gateId?: string;
 }
 
 export interface WorkflowConnection {
@@ -40,961 +42,344 @@ export interface WorkflowDefinition {
   category: WorkflowCategory;
   steps: WorkflowStep[];
   connections: WorkflowConnection[];
-  // Gap summary
   gaps?: string[];
+  version: string;
 }
 
-// ============= COMPLETE OBSERVATION WORKFLOW =============
-// Updated: Full workflow with all actual statuses, escalation review, and notification triggers
-export const observationWorkflowComplete: WorkflowDefinition = {
-  id: 'observation-complete',
-  name: 'Observation Workflow (Complete)',
-  nameAr: 'سير عمل الملاحظات (كامل)',
-  description: 'Complete observation workflow with severity levels, HSSE escalation review, contractor violations, and notifications',
-  descriptionAr: 'سير عمل الملاحظات الكامل مع مستويات الخطورة ومراجعة تصعيد السلامة ومخالفات المقاولين والإشعارات',
-  category: 'hsse_events',
-  gaps: [
-    // Gaps have been addressed in latest implementation
-  ],
-  steps: [
-    // === START ===
-    { 
-      id: 'start', 
-      type: 'start', 
-      label: 'Reporter Submits Observation', 
-      labelAr: 'المُبلِّغ يقدم الملاحظة', 
-      actor: 'Reporter', 
-      actorAr: 'المُبلِّغ',
-      dbStatus: 'submitted'
-    },
-    // === NOTIFICATION: HSSE Expert ===
-    { 
-      id: 'notify_hsse', 
-      type: 'notification', 
-      label: 'HSSE Expert Notified', 
-      labelAr: 'إشعار خبير السلامة', 
-      actor: 'System', 
-      actorAr: 'النظام',
-      description: 'Matrix-based notification to relevant HSSE Expert',
-      descriptionAr: 'إشعار مبني على المصفوفة لخبير السلامة المختص',
-      notificationAction: 'observation_submitted'
-    },
-    // === DEPT REP REVIEW ===
-    { 
-      id: 'pending_dept_rep', 
-      type: 'approval', 
-      label: 'Pending Dept Rep Review', 
-      labelAr: 'في انتظار مراجعة ممثل القسم', 
-      actor: 'Dept Rep', 
-      actorAr: 'ممثل القسم',
-      dbStatus: 'pending_dept_rep_approval',
-      notificationAction: 'dept_rep_review_required'
-    },
-    // === DEPT REP DECISION (APPROVE / ESCALATE) ===
-    { 
-      id: 'dept_rep_decision', 
-      type: 'decision', 
-      label: 'Dept Rep Decision', 
-      labelAr: 'قرار ممثل القسم',
-      description: 'Approve with actions OR Request HSSE Review',
-      descriptionAr: 'الموافقة مع الإجراءات أو طلب مراجعة السلامة'
-    },
-    // === HSSE ESCALATION REVIEW (NEW) ===
-    { 
-      id: 'hsse_escalation_review', 
-      type: 'approval', 
-      label: 'HSSE Escalation Review', 
-      labelAr: 'مراجعة تصعيد السلامة', 
-      actor: 'HSSE Expert', 
-      actorAr: 'خبير السلامة',
-      dbStatus: 'pending_hsse_escalation_review',
-      description: 'Reject | Accept as Observation | Upgrade to Incident',
-      descriptionAr: 'رفض | قبول كملاحظة | ترقية إلى حادث',
-      notificationAction: 'escalation_submitted'
-    },
-    // === HSSE ESCALATION DECISION ===
-    { 
-      id: 'hsse_escalation_decision', 
-      type: 'decision', 
-      label: 'Escalation Decision', 
-      labelAr: 'قرار التصعيد',
-      description: '3 options: Reject, Accept, Upgrade',
-      descriptionAr: '3 خيارات: رفض، قبول، ترقية'
-    },
-    // === UPGRADED TO INCIDENT (NEW) ===
-    { 
-      id: 'upgraded_to_incident', 
-      type: 'subprocess', 
-      label: 'Upgraded to Incident', 
-      labelAr: 'تمت الترقية إلى حادث', 
-      actor: 'HSSE Expert', 
-      actorAr: 'خبير السلامة',
-      dbStatus: 'upgraded_to_incident',
-      description: 'New INC reference created, investigation assigned',
-      descriptionAr: 'مرجع INC جديد تم إنشاؤه، تم تعيين التحقيق',
-      notificationAction: 'escalation_upgraded'
-    },
-    // === NOTIFICATION: HSSE Expert ===
-    { 
-      id: 'notify_hsse', 
-      type: 'notification', 
-      label: 'HSSE Expert Notified', 
-      labelAr: 'إشعار خبير السلامة', 
-      actor: 'System', 
-      actorAr: 'النظام',
-      description: 'Matrix-based notification to relevant HSSE Expert',
-      descriptionAr: 'إشعار مبني على المصفوفة لخبير السلامة المختص',
-      notificationAction: 'observation_submitted',
-      hasGap: true,
-      gapDescription: 'Notification not currently triggered on submission'
-    },
-    // === DEPT REP REVIEW ===
-    { 
-      id: 'pending_dept_rep', 
-      type: 'approval', 
-      label: 'Pending Dept Rep Review', 
-      labelAr: 'في انتظار مراجعة ممثل القسم', 
-      actor: 'Dept Rep', 
-      actorAr: 'ممثل القسم',
-      dbStatus: 'pending_dept_rep_approval',
-      notificationAction: 'dept_rep_review_required'
-    },
-    // === SEVERITY DECISION ===
-    { 
-      id: 'severity_check', 
-      type: 'decision', 
-      label: 'Severity Level Check', 
-      labelAr: 'فحص مستوى الخطورة',
-      description: 'L1-L2: Close on Spot | L3-L4: HSSE Validation | L5: HSSE Manager',
-      descriptionAr: 'م1-م2: إغلاق فوري | م3-م4: تحقق السلامة | م5: مدير السلامة'
-    },
-    // === L1-L2: CLOSE ON SPOT ===
-    { 
-      id: 'close_on_spot', 
-      type: 'action', 
-      label: 'Close on Spot (L1-L2)', 
-      labelAr: 'إغلاق فوري (م1-م2)', 
-      actor: 'Dept Rep', 
-      actorAr: 'ممثل القسم',
-      description: 'Photo + notes required for closure',
-      descriptionAr: 'صورة + ملاحظات مطلوبة للإغلاق',
-      dbStatus: 'closed',
-      hasGap: true,
-      gapDescription: 'Close on Spot confirmation notification not implemented'
-    },
-    // === CONTRACTOR VIOLATION CHECK ===
-    { 
-      id: 'contractor_check', 
-      type: 'decision', 
-      label: 'Contractor Violation?', 
-      labelAr: 'مخالفة مقاول؟'
-    },
-    // === CONTRACTOR VIOLATION FLOW ===
-    { 
-      id: 'pending_dept_mgr_violation', 
-      type: 'approval', 
-      label: 'Dept Manager Violation Approval', 
-      labelAr: 'موافقة مدير القسم على المخالفة', 
-      actor: 'Dept Manager', 
-      actorAr: 'مدير القسم',
-      dbStatus: 'pending_department_manager_violation_approval'
-    },
-    { 
-      id: 'pending_contract_controller', 
-      type: 'approval', 
-      label: 'Contract Controller Approval', 
-      labelAr: 'موافقة مراقب العقود', 
-      actor: 'Contract Controller', 
-      actorAr: 'مراقب العقود',
-      dbStatus: 'pending_contract_controller_violation_approval'
-    },
-    { 
-      id: 'violation_finalized', 
-      type: 'action', 
-      label: 'Violation Finalized', 
-      labelAr: 'المخالفة مؤكدة',
-      dbStatus: 'contractor_violation_finalized'
-    },
-    // === L3-L4: ACTIONS ASSIGNMENT ===
-    { 
-      id: 'assign_actions', 
-      type: 'action', 
-      label: 'Assign Corrective Actions', 
-      labelAr: 'تعيين الإجراءات التصحيحية', 
-      actor: 'Dept Rep', 
-      actorAr: 'ممثل القسم',
-      dbStatus: 'observation_actions_pending',
-      notificationAction: 'expert_assign_actions'
-    },
-    // === HSSE VALIDATION ===
-    { 
-      id: 'hsse_validation', 
-      type: 'approval', 
-      label: 'HSSE Expert Validation', 
-      labelAr: 'تحقق خبير السلامة', 
-      actor: 'HSSE Expert', 
-      actorAr: 'خبير السلامة',
-      dbStatus: 'pending_hsse_validation',
-      description: 'Can validate, request changes, or upgrade to incident',
-      descriptionAr: 'يمكن التحقق أو طلب تعديلات أو الترقية لحادث'
-    },
-    // === HSSE VALIDATION DECISION ===
-    { 
-      id: 'hsse_decision', 
-      type: 'decision', 
-      label: 'Validation Decision', 
-      labelAr: 'قرار التحقق'
-    },
-    // === UPGRADE TO INCIDENT ===
-    { 
-      id: 'upgrade_incident', 
-      type: 'subprocess', 
-      label: 'Upgrade to Incident', 
-      labelAr: 'ترقية إلى حادث', 
-      actor: 'HSSE Expert', 
-      actorAr: 'خبير السلامة',
-      description: 'Creates new incident linked to observation',
-      descriptionAr: 'ينشئ حادث جديد مرتبط بالملاحظة'
-    },
-    // === REJECTED BY HSSE ===
-    { 
-      id: 'hsse_rejection_review', 
-      type: 'approval', 
-      label: 'HSSE Rejection Review', 
-      labelAr: 'مراجعة رفض السلامة', 
-      actor: 'Dept Rep', 
-      actorAr: 'ممثل القسم',
-      dbStatus: 'pending_hsse_rejection_review'
-    },
-    // === L5: HSSE MANAGER CLOSURE ===
-    { 
-      id: 'hsse_manager_closure', 
-      type: 'approval', 
-      label: 'HSSE Manager Closure (L5)', 
-      labelAr: 'إغلاق مدير السلامة (م5)', 
-      actor: 'HSSE Manager', 
-      actorAr: 'مدير السلامة',
-      dbStatus: 'pending_hsse_manager_closure',
-      description: 'L5 severity requires HSSE Manager sign-off',
-      descriptionAr: 'الخطورة م5 تتطلب موافقة مدير السلامة'
-    },
-    // === FINAL CLOSURE ===
-    { 
-      id: 'pending_final_closure', 
-      type: 'action', 
-      label: 'Pending Final Closure', 
-      labelAr: 'في انتظار الإغلاق النهائي',
-      dbStatus: 'pending_final_closure'
-    },
-    { 
-      id: 'end_closed', 
-      type: 'end', 
-      label: 'Observation Closed', 
-      labelAr: 'إغلاق الملاحظة',
-      dbStatus: 'closed',
-      hasGap: true,
-      gapDescription: 'Final closure confirmation not sent to reporter'
-    },
-  ],
-  connections: [
-    // Start
-    { from: 'start', to: 'notify_hsse' },
-    { from: 'notify_hsse', to: 'pending_dept_rep' },
-    // Dept Rep Review
-    { from: 'pending_dept_rep', to: 'severity_check' },
-    // Severity branching
-    { from: 'severity_check', to: 'close_on_spot', condition: 'l1_l2', label: 'L1-L2', labelAr: 'م1-م2' },
-    { from: 'severity_check', to: 'contractor_check', condition: 'l3_l4', label: 'L3-L4', labelAr: 'م3-م4' },
-    { from: 'severity_check', to: 'hsse_manager_closure', condition: 'l5', label: 'L5', labelAr: 'م5' },
-    // Close on spot
-    { from: 'close_on_spot', to: 'end_closed' },
-    // Contractor check
-    { from: 'contractor_check', to: 'pending_dept_mgr_violation', condition: 'yes', label: 'Yes', labelAr: 'نعم' },
-    { from: 'contractor_check', to: 'assign_actions', condition: 'no', label: 'No', labelAr: 'لا' },
-    // Contractor violation flow
-    { from: 'pending_dept_mgr_violation', to: 'pending_contract_controller', condition: 'approve' },
-    { from: 'pending_contract_controller', to: 'violation_finalized', condition: 'approve' },
-    { from: 'violation_finalized', to: 'assign_actions' },
-    // Actions and HSSE validation
-    { from: 'assign_actions', to: 'hsse_validation' },
-    { from: 'hsse_validation', to: 'hsse_decision' },
-    // HSSE decision branches
-    { from: 'hsse_decision', to: 'pending_final_closure', condition: 'approve', label: 'Validated', labelAr: 'تم التحقق' },
-    { from: 'hsse_decision', to: 'hsse_rejection_review', condition: 'reject', label: 'Reject', labelAr: 'رفض' },
-    { from: 'hsse_decision', to: 'upgrade_incident', condition: 'escalate', label: 'Upgrade', labelAr: 'ترقية' },
-    // Rejection review
-    { from: 'hsse_rejection_review', to: 'assign_actions', condition: 'approve', label: 'Revise', labelAr: 'مراجعة' },
-    // Upgrade to incident
-    { from: 'upgrade_incident', to: 'end_closed' },
-    // HSSE Manager closure
-    { from: 'hsse_manager_closure', to: 'pending_final_closure', condition: 'approve' },
-    // Final closure
-    { from: 'pending_final_closure', to: 'end_closed' },
-  ],
-};
+export const workflowCategories: { id: WorkflowCategory; name: string; nameAr: string }[] = [
+  { id: 'hsse_events', name: 'HSSE Events', nameAr: 'أحداث الصحة والسلامة' },
+  { id: 'inspections', name: 'Inspections', nameAr: 'التفتيشات' },
+  { id: 'assets', name: 'Assets', nameAr: 'الأصول' },
+  { id: 'compliance', name: 'Compliance', nameAr: 'الامتثال' },
+  { id: 'contractor', name: 'Contractor', nameAr: 'المقاولين' }
+];
 
-// ============= COMPLETE INCIDENT WORKFLOW =============
-export const incidentWorkflowComplete: WorkflowDefinition = {
-  id: 'incident-complete',
-  name: 'Incident Workflow (Complete)',
-  nameAr: 'سير عمل الحوادث (كامل)',
-  description: 'Complete incident workflow with Dept Rep review, manager approval, HSSE escalation, and investigation',
-  descriptionAr: 'سير عمل الحوادث الكامل مع مراجعة ممثل القسم وموافقة المدير وتصعيد السلامة والتحقيق',
+// ============= V1.1 MASTER INCIDENT WORKFLOW =============
+export const incidentWorkflowV1_1: WorkflowDefinition = {
+  id: 'incident-v1-1',
+  name: 'Incident Workflow V1.1',
+  nameAr: 'سير عمل الحوادث الإصدار 1.1',
+  description: 'Master workflow including AI analysis, screening loops, investigation gates, and structured RCA',
+  descriptionAr: 'سير العمل الرئيسي بما في ذلك تحليل الذكاء الاصطناعي، حلقات الفرز، بوابات التحقيق، وتحليل السبب الجذري المنظم',
   category: 'hsse_events',
-  gaps: [
-    'Dept Rep notification missing for new incident submission',
-    'Reporter not notified when investigation completes',
-    'No notification when manager rejects to HSSE escalation',
-  ],
+  version: '1.1',
   steps: [
-    // === START ===
-    { 
-      id: 'start', 
-      type: 'start', 
-      label: 'Reporter Submits Incident', 
-      labelAr: 'المُبلِّغ يقدم الحادث', 
-      actor: 'Reporter', 
-      actorAr: 'المُبلِّغ',
-      dbStatus: 'submitted'
+    // --- 1. INITIAL ENTRY & AI ---
+    {
+      id: 'desc_entry',
+      type: 'start',
+      label: 'Description & Details Entry',
+      labelAr: 'إدخال الوصف والتفاصيل',
+      actor: 'Reporter',
+      actorAr: 'المُبلِّغ'
     },
-    // === DEPT REP INCIDENT REVIEW ===
-    { 
-      id: 'pending_dept_rep_incident', 
-      type: 'approval', 
-      label: 'Dept Rep Incident Review', 
-      labelAr: 'مراجعة ممثل القسم للحادث', 
-      actor: 'Dept Rep', 
-      actorAr: 'ممثل القسم',
-      dbStatus: 'pending_dept_rep_incident_review',
-      description: 'First approval gate - Dept Rep validates incident details',
-      descriptionAr: 'بوابة الموافقة الأولى - ممثل القسم يتحقق من تفاصيل الحادث',
-      hasGap: true,
-      gapDescription: 'No notification sent to Dept Rep'
+    {
+      id: 'ai_analysis',
+      type: 'ai',
+      label: 'AI Analysis Service',
+      labelAr: 'خدمة تحليل الذكاء الاصطناعي',
+      description: 'Generates Title, Tags, Category, Severity, etc.',
+      descriptionAr: 'يولد العنوان، العلامات، الفئة، الخطورة، إلخ.'
     },
-    // === DEPT REP DECISION ===
-    { 
-      id: 'dept_rep_decision', 
-      type: 'decision', 
-      label: 'Dept Rep Decision', 
-      labelAr: 'قرار ممثل القسم'
+    {
+      id: 'user_review',
+      type: 'action',
+      label: 'User Review / Edit',
+      labelAr: 'مراجعة / تعديل المستخدم',
+      actor: 'Reporter',
+      actorAr: 'المُبلِّغ'
     },
-    // === DEPT REP REJECTION ===
-    { 
-      id: 'dept_rep_rejected', 
-      type: 'action', 
-      label: 'Dept Rep Rejected', 
-      labelAr: 'رفض ممثل القسم',
-      dbStatus: 'dept_rep_rejected',
-      notificationAction: 'dept_rep_reject'
+    {
+      id: 'contractor_check',
+      type: 'decision',
+      label: 'Report Against Contractor?',
+      labelAr: 'تقرير ضد مقاول؟'
     },
-    // === HSSE EXPERT SCREENING ===
-    { 
-      id: 'expert_screening', 
-      type: 'approval', 
-      label: 'HSSE Expert Screening', 
-      labelAr: 'فحص خبير السلامة', 
-      actor: 'HSSE Expert', 
-      actorAr: 'خبير السلامة',
-      dbStatus: 'pending_expert_screening',
-      description: 'HSSE Expert reviews and recommends action',
-      descriptionAr: 'خبير السلامة يراجع ويوصي بالإجراء'
+    {
+      id: 'final_submit',
+      type: 'action',
+      label: 'Final Submit',
+      labelAr: 'إرسال نهائي',
+      dbStatus: 'submitted',
+      notificationAction: 'incident_submitted'
     },
-    // === EXPERT DECISION ===
-    { 
-      id: 'expert_decision', 
-      type: 'decision', 
-      label: 'Expert Decision', 
-      labelAr: 'قرار الخبير'
-    },
-    // === RETURN TO REPORTER ===
-    { 
-      id: 'returned_to_reporter', 
-      type: 'action', 
-      label: 'Returned to Reporter', 
-      labelAr: 'أعيد للمُبلِّغ',
-      dbStatus: 'returned_to_reporter',
-      notificationAction: 'expert_return'
-    },
-    // === EXPERT REJECT ===
-    { 
-      id: 'expert_rejected', 
-      type: 'action', 
-      label: 'Expert Rejected', 
-      labelAr: 'رفض الخبير',
-      dbStatus: 'expert_rejected',
-      notificationAction: 'expert_reject'
-    },
-    // === NO INVESTIGATION REQUIRED ===
-    { 
-      id: 'no_investigation', 
-      type: 'end', 
-      label: 'No Investigation Required', 
-      labelAr: 'لا يتطلب تحقيق',
-      dbStatus: 'no_investigation_required'
-    },
-    // === MANAGER APPROVAL ===
-    { 
-      id: 'pending_manager', 
-      type: 'approval', 
-      label: 'Manager Approval', 
-      labelAr: 'موافقة المدير', 
-      actor: 'Manager', 
-      actorAr: 'المدير',
-      dbStatus: 'pending_manager_approval',
-      notificationAction: 'expert_investigate'
-    },
-    // === MANAGER DECISION ===
-    { 
-      id: 'manager_decision', 
-      type: 'decision', 
-      label: 'Manager Decision', 
-      labelAr: 'قرار المدير'
-    },
-    // === MANAGER REJECTED ===
-    { 
-      id: 'manager_rejected', 
-      type: 'action', 
-      label: 'Manager Rejected', 
-      labelAr: 'رفض المدير',
-      dbStatus: 'manager_rejected',
-      hasGap: true,
-      gapDescription: 'No notification sent when manager rejects'
-    },
-    // === HSSE MANAGER ESCALATION ===
-    { 
-      id: 'hsse_escalation', 
-      type: 'approval', 
-      label: 'HSSE Manager Escalation', 
-      labelAr: 'تصعيد مدير السلامة', 
-      actor: 'HSSE Manager', 
-      actorAr: 'مدير السلامة',
-      dbStatus: 'hsse_manager_escalation',
-      description: 'HSSE Manager can override or confirm rejection',
-      descriptionAr: 'مدير السلامة يمكنه التجاوز أو تأكيد الرفض'
-    },
-    // === HSSE MANAGER DECISION ===
-    { 
-      id: 'hsse_mgr_decision', 
-      type: 'decision', 
-      label: 'HSSE Manager Decision', 
-      labelAr: 'قرار مدير السلامة'
-    },
-    // === CONFIRMED REJECTED ===
-    { 
-      id: 'confirmed_rejected', 
-      type: 'end', 
-      label: 'Confirmed Rejected', 
-      labelAr: 'تأكيد الرفض',
-      dbStatus: 'confirmed_rejected'
-    },
-    // === REPORTER DISPUTE ===
-    { 
-      id: 'reporter_dispute', 
-      type: 'action', 
-      label: 'Reporter Dispute', 
-      labelAr: 'اعتراض المُبلِّغ',
-      dbStatus: 'reporter_dispute',
-      description: 'Reporter can dispute rejection',
-      descriptionAr: 'المُبلِّغ يمكنه الاعتراض على الرفض'
-    },
-    // === INVESTIGATION PENDING ===
-    { 
-      id: 'investigation_pending', 
-      type: 'action', 
-      label: 'Awaiting Investigator Assignment', 
-      labelAr: 'في انتظار تعيين المحقق', 
-      actor: 'HSSE Expert', 
-      actorAr: 'خبير السلامة',
-      dbStatus: 'investigation_pending'
-    },
-    // === INVESTIGATOR ASSIGNED ===
-    { 
-      id: 'investigation_in_progress', 
-      type: 'subprocess', 
-      label: 'Investigation In Progress', 
-      labelAr: 'التحقيق جارٍ', 
-      actor: 'Investigator', 
-      actorAr: 'المحقق',
-      dbStatus: 'investigation_in_progress',
-      notificationAction: 'investigator_assigned'
-    },
-    // === PENDING CLOSURE ===
-    { 
-      id: 'pending_closure', 
-      type: 'approval', 
-      label: 'Pending Closure', 
-      labelAr: 'في انتظار الإغلاق', 
-      actor: 'HSSE Manager', 
-      actorAr: 'مدير السلامة',
-      dbStatus: 'pending_closure'
-    },
-    // === INVESTIGATION CLOSED ===
-    { 
-      id: 'investigation_closed', 
-      type: 'action', 
-      label: 'Investigation Closed', 
-      labelAr: 'إغلاق التحقيق',
-      dbStatus: 'investigation_closed',
-      hasGap: true,
-      gapDescription: 'Reporter not notified when investigation completes'
-    },
-    // === CLOSED ===
-    { 
-      id: 'end_closed', 
-      type: 'end', 
-      label: 'Incident Closed', 
-      labelAr: 'إغلاق الحادث',
-      dbStatus: 'closed'
-    },
-  ],
-  connections: [
-    // Start
-    { from: 'start', to: 'pending_dept_rep_incident' },
-    // Dept Rep
-    { from: 'pending_dept_rep_incident', to: 'dept_rep_decision' },
-    { from: 'dept_rep_decision', to: 'expert_screening', condition: 'approve', label: 'Approve', labelAr: 'موافقة' },
-    { from: 'dept_rep_decision', to: 'dept_rep_rejected', condition: 'reject', label: 'Reject', labelAr: 'رفض' },
-    { from: 'dept_rep_rejected', to: 'reporter_dispute' },
-    { from: 'reporter_dispute', to: 'hsse_escalation' },
-    // Expert Screening
-    { from: 'expert_screening', to: 'expert_decision' },
-    { from: 'expert_decision', to: 'pending_manager', condition: 'approve', label: 'Recommend', labelAr: 'توصية' },
-    { from: 'expert_decision', to: 'returned_to_reporter', condition: 'default', label: 'Return', labelAr: 'إعادة' },
-    { from: 'expert_decision', to: 'expert_rejected', condition: 'reject', label: 'Reject', labelAr: 'رفض' },
-    { from: 'expert_decision', to: 'no_investigation', condition: 'no', label: 'No Investigation', labelAr: 'لا تحقيق' },
-    { from: 'returned_to_reporter', to: 'start' },
-    // Manager
-    { from: 'pending_manager', to: 'manager_decision' },
-    { from: 'manager_decision', to: 'investigation_pending', condition: 'approve', label: 'Approve', labelAr: 'موافقة' },
-    { from: 'manager_decision', to: 'manager_rejected', condition: 'reject', label: 'Reject', labelAr: 'رفض' },
-    { from: 'manager_rejected', to: 'hsse_escalation' },
-    // HSSE Manager Escalation
-    { from: 'hsse_escalation', to: 'hsse_mgr_decision' },
-    { from: 'hsse_mgr_decision', to: 'investigation_pending', condition: 'approve', label: 'Override', labelAr: 'تجاوز' },
-    { from: 'hsse_mgr_decision', to: 'confirmed_rejected', condition: 'reject', label: 'Confirm Reject', labelAr: 'تأكيد الرفض' },
-    // Investigation
-    { from: 'investigation_pending', to: 'investigation_in_progress' },
-    { from: 'investigation_in_progress', to: 'pending_closure' },
-    { from: 'pending_closure', to: 'investigation_closed', condition: 'approve' },
-    { from: 'pending_closure', to: 'investigation_in_progress', condition: 'reject', label: 'More Work', labelAr: 'المزيد' },
-    { from: 'investigation_closed', to: 'end_closed' },
-  ],
-};
 
-// ============= CONTRACTOR VIOLATION WORKFLOW =============
-export const contractorViolationWorkflow: WorkflowDefinition = {
-  id: 'contractor-violation',
-  name: 'Contractor Violation Workflow',
-  nameAr: 'سير عمل مخالفات المقاولين',
-  description: 'Complete workflow for contractor safety violations with multi-level approval',
-  descriptionAr: 'سير العمل الكامل لمخالفات سلامة المقاولين مع الموافقة متعددة المستويات',
-  category: 'contractor',
-  gaps: [
-    'Contractor company not notified of violation',
-    'No notification to Contract Controller when violation pending',
-    'Missing fine calculation notification',
-  ],
-  steps: [
-    { 
-      id: 'start', 
-      type: 'start', 
-      label: 'Violation Identified', 
-      labelAr: 'تحديد المخالفة',
-      description: 'Violation identified during observation review',
-      descriptionAr: 'المخالفة محددة أثناء مراجعة الملاحظة'
-    },
-    { 
-      id: 'calculate_occurrence', 
-      type: 'action', 
-      label: 'Calculate Occurrence', 
-      labelAr: 'حساب التكرار',
+    // --- 2. SCREENING & SLA ---
+    {
+      id: 'resolve_reps',
+      type: 'action',
+      label: 'System: Resolve Dept/Site Reps',
+      labelAr: 'النظام: تحديد ممثلي القسم/الموقع',
       actor: 'System',
-      actorAr: 'النظام',
-      description: '1st, 2nd, or 3rd+ violation determines penalty',
-      descriptionAr: 'المخالفة الأولى أو الثانية أو الثالثة+ تحدد العقوبة'
+      actorAr: 'النظام'
     },
-    { 
-      id: 'pending_dept_manager', 
-      type: 'approval', 
-      label: 'Dept Manager Approval', 
+    {
+      id: 'contractor_submission_check',
+      type: 'decision',
+      label: 'Contractor Submission?',
+      labelAr: 'تقديم مقاول؟'
+    },
+
+    // Path A: Dept Rep (Internal)
+    {
+      id: 'notify_dept_rep',
+      type: 'notification',
+      label: 'Notify Dept Rep',
+      labelAr: 'إشعار ممثل القسم',
+      notificationAction: 'dept_rep_review_required'
+    },
+    {
+      id: 'dept_rep_review',
+      type: 'approval',
+      label: 'Dept Rep Review',
+      labelAr: 'مراجعة ممثل القسم',
+      actor: 'Dept Rep',
+      actorAr: 'ممثل القسم',
+      dbStatus: 'pending_dept_rep_approval'
+    },
+    {
+      id: 'dept_manager_approval',
+      type: 'approval',
+      label: 'Dept Manager Approval',
       labelAr: 'موافقة مدير القسم',
       actor: 'Dept Manager',
       actorAr: 'مدير القسم',
-      dbStatus: 'pending_department_manager_violation_approval',
-      description: 'Department manager reviews and approves violation',
-      descriptionAr: 'مدير القسم يراجع ويوافق على المخالفة'
+      dbStatus: 'pending_department_manager_approval'
     },
-    { 
-      id: 'dept_mgr_decision', 
-      type: 'decision', 
-      label: 'Dept Manager Decision', 
-      labelAr: 'قرار مدير القسم'
-    },
-    { 
-      id: 'pending_contract_controller', 
-      type: 'approval', 
-      label: 'Contract Controller Approval', 
-      labelAr: 'موافقة مراقب العقود',
-      actor: 'Contract Controller',
-      actorAr: 'مراقب العقود',
-      dbStatus: 'pending_contract_controller_violation_approval',
-      hasGap: true,
-      gapDescription: 'No notification sent to Contract Controller'
-    },
-    { 
-      id: 'controller_decision', 
-      type: 'decision', 
-      label: 'Controller Decision', 
-      labelAr: 'قرار المراقب'
-    },
-    { 
-      id: 'violation_finalized', 
-      type: 'action', 
-      label: 'Violation Finalized', 
-      labelAr: 'تأكيد المخالفة',
-      dbStatus: 'contractor_violation_finalized'
-    },
-    { 
-      id: 'notify_contractor', 
-      type: 'notification', 
-      label: 'Notify Contractor', 
-      labelAr: 'إشعار المقاول',
-      actor: 'System',
-      actorAr: 'النظام',
-      hasGap: true,
-      gapDescription: 'Contractor company notification not implemented'
-    },
-    { 
-      id: 'apply_fine', 
-      type: 'action', 
-      label: 'Apply Fine/Penalty', 
-      labelAr: 'تطبيق الغرامة/العقوبة',
-      description: 'Based on violation type and occurrence count',
-      descriptionAr: 'بناءً على نوع المخالفة وعدد التكرارات'
-    },
-    { 
-      id: 'violation_rejected', 
-      type: 'end', 
-      label: 'Violation Rejected', 
-      labelAr: 'رفض المخالفة'
-    },
-    { 
-      id: 'end', 
-      type: 'end', 
-      label: 'Violation Processed', 
-      labelAr: 'معالجة المخالفة'
-    },
-  ],
-  connections: [
-    { from: 'start', to: 'calculate_occurrence' },
-    { from: 'calculate_occurrence', to: 'pending_dept_manager' },
-    { from: 'pending_dept_manager', to: 'dept_mgr_decision' },
-    { from: 'dept_mgr_decision', to: 'pending_contract_controller', condition: 'approve' },
-    { from: 'dept_mgr_decision', to: 'violation_rejected', condition: 'reject' },
-    { from: 'pending_contract_controller', to: 'controller_decision' },
-    { from: 'controller_decision', to: 'violation_finalized', condition: 'approve' },
-    { from: 'controller_decision', to: 'violation_rejected', condition: 'reject' },
-    { from: 'violation_finalized', to: 'notify_contractor' },
-    { from: 'notify_contractor', to: 'apply_fine' },
-    { from: 'apply_fine', to: 'end' },
-  ],
-};
 
-// ============= SIMPLIFIED OBSERVATION WORKFLOW (Original) =============
-export const observationWorkflow: WorkflowDefinition = {
-  id: 'observation-reporting',
-  name: 'Observation Reporting',
-  nameAr: 'الإبلاغ عن الملاحظات',
-  description: 'End-to-end workflow for safety observations - Dept Rep first, HSSE Expert notified',
-  descriptionAr: 'سير العمل الكامل لملاحظات السلامة - ممثل القسم أولاً، ثم إشعار خبير السلامة',
-  category: 'hsse_events',
-  steps: [
-    { id: 'start', type: 'start', label: 'Reporter Submits Observation', labelAr: 'المُبلِّغ يقدم الملاحظة', actor: 'Reporter', actorAr: 'المُبلِّغ' },
-    { id: 'notify_hsse', type: 'action', label: 'HSSE Expert Notified', labelAr: 'إشعار خبير السلامة', actor: 'System', actorAr: 'النظام', description: 'HSSE Expert receives notification based on observation matrix', descriptionAr: 'يتلقى خبير السلامة إشعاراً بناءً على مصفوفة الملاحظات' },
-    { id: 'dept_rep_review', type: 'approval', label: 'Dept Rep Review', labelAr: 'مراجعة ممثل القسم', actor: 'Dept Rep', actorAr: 'ممثل القسم' },
-    { id: 'decision_dept_rep', type: 'decision', label: 'Dept Rep Decision', labelAr: 'قرار ممثل القسم' },
-    { id: 'close_on_spot', type: 'action', label: 'Close on Spot', labelAr: 'إغلاق فوري', actor: 'Dept Rep', actorAr: 'ممثل القسم', description: 'Low severity (Level 1-2) can be closed directly', descriptionAr: 'الخطورة المنخفضة (المستوى 1-2) يمكن إغلاقها مباشرة' },
-    { id: 'assign_actions', type: 'action', label: 'Assign Corrective Actions', labelAr: 'تعيين الإجراءات التصحيحية', actor: 'Dept Rep', actorAr: 'ممثل القسم' },
-    { id: 'escalate_hsse', type: 'subprocess', label: 'Escalate to HSSE Expert', labelAr: 'تصعيد لخبير السلامة', actor: 'Dept Rep', actorAr: 'ممثل القسم', description: 'High severity (Level 3+) or complex issues', descriptionAr: 'الخطورة العالية (المستوى 3+) أو المشاكل المعقدة' },
-    { id: 'hsse_validation', type: 'approval', label: 'HSSE Validation', labelAr: 'تحقق خبير السلامة', actor: 'HSSE Expert', actorAr: 'خبير السلامة' },
-    { id: 'upgrade_incident', type: 'subprocess', label: 'Upgrade to Incident', labelAr: 'ترقية إلى حادث', actor: 'HSSE Expert', actorAr: 'خبير السلامة' },
-    { id: 'end', type: 'end', label: 'Observation Closed', labelAr: 'إغلاق الملاحظة' },
-  ],
-  connections: [
-    { from: 'start', to: 'notify_hsse' },
-    { from: 'start', to: 'dept_rep_review' },
-    { from: 'notify_hsse', to: 'dept_rep_review', label: 'Parallel', labelAr: 'متوازي' },
-    { from: 'dept_rep_review', to: 'decision_dept_rep' },
-    { from: 'decision_dept_rep', to: 'close_on_spot', condition: 'approve', label: 'Close (L1-L2)', labelAr: 'إغلاق (م1-م2)' },
-    { from: 'decision_dept_rep', to: 'assign_actions', condition: 'default', label: 'Assign Actions', labelAr: 'تعيين إجراءات' },
-    { from: 'decision_dept_rep', to: 'escalate_hsse', condition: 'escalate', label: 'Escalate (L3+)', labelAr: 'تصعيد (م3+)' },
-    { from: 'close_on_spot', to: 'end' },
-    { from: 'assign_actions', to: 'hsse_validation' },
-    { from: 'escalate_hsse', to: 'hsse_validation' },
-    { from: 'hsse_validation', to: 'end', condition: 'approve', label: 'Validated', labelAr: 'تم التحقق' },
-    { from: 'hsse_validation', to: 'upgrade_incident', condition: 'escalate', label: 'Upgrade', labelAr: 'ترقية' },
-    { from: 'upgrade_incident', to: 'end' },
-  ],
-};
+    // Path B: Contractor (External)
+    {
+      id: 'contractor_screen',
+      type: 'approval',
+      label: 'Contractor Consultant Screening',
+      labelAr: 'فحص استشاري المقاول',
+      actor: 'Consultant',
+      actorAr: 'الاستشاري',
+      dbStatus: 'pending_consultant_screening'
+    },
+    {
+      id: 'consultant_review',
+      type: 'decision',
+      label: 'Consultant Approval?',
+      labelAr: 'موافقة الاستشاري؟'
+    },
+    {
+      id: 'site_approval',
+      type: 'approval',
+      label: 'Site Client Approval',
+      labelAr: 'موافقة عميل الموقع',
+      actor: 'Client Site Rep',
+      actorAr: 'ممثل عميل الموقع',
+      dbStatus: 'pending_site_client_approval'
+    },
+    {
+      id: 'contractor_implement',
+      type: 'action',
+      label: 'Contractor Acknowledge',
+      labelAr: 'إقرار المقاول',
+      actor: 'Contractor Rep',
+      actorAr: 'ممثل المقاول'
+    },
 
-// ============= INCIDENT WORKFLOW =============
-export const incidentWorkflow: WorkflowDefinition = {
-  id: 'incident-reporting',
-  name: 'Incident Reporting',
-  nameAr: 'الإبلاغ عن الحوادث',
-  description: 'Complete incident reporting workflow from submission through manager approval',
-  descriptionAr: 'سير العمل الكامل للإبلاغ عن الحوادث من التقديم حتى موافقة المدير',
-  category: 'hsse_events',
-  steps: [
-    { id: 'start', type: 'start', label: 'Reporter Submits Incident', labelAr: 'المُبلِّغ يقدم الحادث', actor: 'Reporter', actorAr: 'المُبلِّغ' },
-    { id: 'expert_screening', type: 'approval', label: 'HSSE Expert Screening', labelAr: 'فحص خبير السلامة', actor: 'HSSE Expert', actorAr: 'خبير السلامة' },
-    { id: 'decision_expert', type: 'decision', label: 'Expert Decision', labelAr: 'قرار الخبير' },
-    { id: 'manager_approval', type: 'approval', label: 'Manager Approval', labelAr: 'موافقة المدير', actor: 'Manager', actorAr: 'المدير' },
-    { id: 'decision_manager', type: 'decision', label: 'Manager Decision', labelAr: 'قرار المدير' },
-    { id: 'hsse_escalation', type: 'approval', label: 'HSSE Manager Escalation', labelAr: 'تصعيد مدير السلامة', actor: 'HSSE Manager', actorAr: 'مدير السلامة' },
-    { id: 'investigation_pending', type: 'action', label: 'Awaiting Investigator', labelAr: 'في انتظار المحقق', actor: 'HSSE Expert', actorAr: 'خبير السلامة' },
-    { id: 'return_reporter', type: 'action', label: 'Return to Reporter', labelAr: 'إعادة للمُبلِّغ', actor: 'HSSE Expert', actorAr: 'خبير السلامة' },
-    { id: 'rejected', type: 'end', label: 'Incident Rejected', labelAr: 'رفض الحادث' },
-    { id: 'end', type: 'end', label: 'Ready for Investigation', labelAr: 'جاهز للتحقيق' },
-  ],
-  connections: [
-    { from: 'start', to: 'expert_screening' },
-    { from: 'expert_screening', to: 'decision_expert' },
-    { from: 'decision_expert', to: 'manager_approval', condition: 'approve', label: 'Recommend', labelAr: 'توصية' },
-    { from: 'decision_expert', to: 'return_reporter', condition: 'reject', label: 'Return', labelAr: 'إعادة' },
-    { from: 'return_reporter', to: 'start' },
-    { from: 'manager_approval', to: 'decision_manager' },
-    { from: 'decision_manager', to: 'investigation_pending', condition: 'approve', label: 'Approve', labelAr: 'موافقة' },
-    { from: 'decision_manager', to: 'hsse_escalation', condition: 'reject', label: 'Reject', labelAr: 'رفض' },
-    { from: 'hsse_escalation', to: 'investigation_pending', condition: 'approve', label: 'Override', labelAr: 'تجاوز' },
-    { from: 'hsse_escalation', to: 'rejected', condition: 'reject', label: 'Confirm Reject', labelAr: 'تأكيد الرفض' },
-    { from: 'investigation_pending', to: 'end' },
-  ],
-};
+    // SLA Logic Node
+    {
+      id: 'sla_timer_check',
+      type: 'action',
+      label: 'SLA Timer Check (2 Hours)',
+      labelAr: 'فحص مؤقت SLA (ساعتان)',
+      description: 'Auto-escalate if screening delayed',
+      descriptionAr: 'تصعيد تلقائي إذا تأخر الفحص'
+    },
 
-// ============= INVESTIGATION WORKFLOW =============
-export const investigationWorkflow: WorkflowDefinition = {
-  id: 'investigation-lifecycle',
-  name: 'Investigation Lifecycle',
-  nameAr: 'دورة حياة التحقيق',
-  description: 'Full investigation workflow from assignment to closure with HSSE Manager sign-off',
-  descriptionAr: 'سير العمل الكامل للتحقيق من التعيين إلى الإغلاق مع موافقة مدير السلامة',
-  category: 'hsse_events',
-  steps: [
-    { id: 'start', type: 'start', label: 'Investigator Assigned', labelAr: 'تعيين المحقق', actor: 'HSSE Expert', actorAr: 'خبير السلامة' },
-    { id: 'start_investigation', type: 'action', label: 'Start Investigation', labelAr: 'بدء التحقيق', actor: 'Investigator', actorAr: 'المحقق' },
-    { id: 'collect_evidence', type: 'action', label: 'Collect Evidence', labelAr: 'جمع الأدلة', actor: 'Investigator', actorAr: 'المحقق' },
-    { id: 'witness_statements', type: 'action', label: 'Record Witness Statements', labelAr: 'تسجيل شهادات الشهود', actor: 'Investigator', actorAr: 'المحقق' },
-    { id: 'rca', type: 'action', label: 'Root Cause Analysis', labelAr: 'تحليل السبب الجذري', actor: 'Investigator', actorAr: 'المحقق' },
-    { id: 'assign_actions', type: 'action', label: 'Assign Corrective Actions', labelAr: 'تعيين الإجراءات التصحيحية', actor: 'Investigator', actorAr: 'المحقق' },
-    { id: 'request_closure', type: 'action', label: 'Request Closure', labelAr: 'طلب الإغلاق', actor: 'Investigator', actorAr: 'المحقق' },
-    { id: 'manager_review', type: 'approval', label: 'HSSE Manager Review', labelAr: 'مراجعة مدير السلامة', actor: 'HSSE Manager', actorAr: 'مدير السلامة' },
-    { id: 'decision_closure', type: 'decision', label: 'Closure Decision', labelAr: 'قرار الإغلاق' },
-    { id: 'end', type: 'end', label: 'Investigation Closed', labelAr: 'إغلاق التحقيق' },
-  ],
-  connections: [
-    { from: 'start', to: 'start_investigation' },
-    { from: 'start_investigation', to: 'collect_evidence' },
-    { from: 'collect_evidence', to: 'witness_statements' },
-    { from: 'witness_statements', to: 'rca' },
-    { from: 'rca', to: 'assign_actions' },
-    { from: 'assign_actions', to: 'request_closure' },
-    { from: 'request_closure', to: 'manager_review' },
-    { from: 'manager_review', to: 'decision_closure' },
-    { from: 'decision_closure', to: 'end', condition: 'approve', label: 'Approve', labelAr: 'موافقة' },
-    { from: 'decision_closure', to: 'collect_evidence', condition: 'reject', label: 'Reject', labelAr: 'رفض' },
-  ],
-};
+    // HSSE Screening (Central)
+    {
+      id: 'hsse_screen',
+      type: 'approval',
+      label: 'HSSE Expert Screening',
+      labelAr: 'فحص خبير السلامة',
+      actor: 'HSSE Expert',
+      actorAr: 'خبير السلامة',
+      dbStatus: 'pending_expert_screening'
+    },
+    {
+      id: 'investigator_assign_decision',
+      type: 'decision',
+      label: 'Investigator Assignment Mode',
+      labelAr: 'وضع تعيين المحقق'
+    },
 
-// ============= CORRECTIVE ACTION WORKFLOW =============
-export const actionClosureWorkflow: WorkflowDefinition = {
-  id: 'action-closure',
-  name: 'Corrective Action Closure',
-  nameAr: 'إغلاق الإجراء التصحيحي',
-  description: 'Corrective action lifecycle with SLA tracking and escalation',
-  descriptionAr: 'دورة حياة الإجراء التصحيحي مع تتبع اتفاقية مستوى الخدمة والتصعيد',
-  category: 'hsse_events',
-  steps: [
-    { id: 'start', type: 'start', label: 'Action Assigned', labelAr: 'تعيين الإجراء', actor: 'Investigator', actorAr: 'المحقق' },
-    { id: 'in_progress', type: 'action', label: 'Action In Progress', labelAr: 'الإجراء قيد التنفيذ', actor: 'Assignee', actorAr: 'المكلف' },
-    { id: 'sla_warning', type: 'action', label: 'SLA Warning Sent', labelAr: 'إرسال تحذير الاتفاقية', actor: 'System', actorAr: 'النظام' },
-    { id: 'completed', type: 'action', label: 'Mark as Completed', labelAr: 'تحديد كمكتمل', actor: 'Assignee', actorAr: 'المكلف' },
-    { id: 'sla_escalation', type: 'action', label: 'Escalate to Manager', labelAr: 'تصعيد للمدير', actor: 'System', actorAr: 'النظام' },
-    { id: 'verification', type: 'approval', label: 'HSSE Verification', labelAr: 'تحقق السلامة', actor: 'HSSE Expert', actorAr: 'خبير السلامة' },
-    { id: 'decision_verify', type: 'decision', label: 'Verification Result', labelAr: 'نتيجة التحقق' },
-    { id: 'end', type: 'end', label: 'Action Closed', labelAr: 'إغلاق الإجراء' },
-  ],
-  connections: [
-    { from: 'start', to: 'in_progress' },
-    { from: 'in_progress', to: 'sla_warning', label: 'Due Soon', labelAr: 'قريب الاستحقاق' },
-    { from: 'in_progress', to: 'completed' },
-    { from: 'sla_warning', to: 'sla_escalation', label: 'Overdue', labelAr: 'متأخر' },
-    { from: 'sla_warning', to: 'completed' },
-    { from: 'sla_escalation', to: 'completed' },
-    { from: 'completed', to: 'verification' },
-    { from: 'verification', to: 'decision_verify' },
-    { from: 'decision_verify', to: 'end', condition: 'approve', label: 'Verified', labelAr: 'تم التحقق' },
-    { from: 'decision_verify', to: 'in_progress', condition: 'reject', label: 'Rejected', labelAr: 'مرفوض' },
-  ],
-};
+    // --- 3. INVESTIGATION PHASE ---
+    {
+      id: 'investigation_start',
+      type: 'subprocess',
+      label: 'Start Investigation',
+      labelAr: 'بدء التحقيق',
+      dbStatus: 'investigation_in_progress'
+    },
 
-// ============= ASSET INSPECTION WORKFLOW =============
-export const assetInspectionWorkflow: WorkflowDefinition = {
-  id: 'asset-inspection',
-  name: 'Asset Inspection',
-  nameAr: 'فحص الأصول',
-  description: 'Bulk asset inspection workflow with QR scanning and finding generation',
-  descriptionAr: 'سير عمل فحص الأصول الجماعي مع مسح QR وتوليد الملاحظات',
-  category: 'assets',
-  steps: [
-    { id: 'start', type: 'start', label: 'Create Inspection Session', labelAr: 'إنشاء جلسة الفحص', actor: 'Inspector', actorAr: 'المفتش' },
-    { id: 'scan_asset', type: 'action', label: 'Scan Asset QR Code', labelAr: 'مسح رمز QR للأصل', actor: 'Inspector', actorAr: 'المفتش' },
-    { id: 'record_result', type: 'action', label: 'Record Pass/Fail', labelAr: 'تسجيل النجاح/الفشل', actor: 'Inspector', actorAr: 'المفتش' },
-    { id: 'decision_result', type: 'decision', label: 'Inspection Result', labelAr: 'نتيجة الفحص' },
-    { id: 'capture_failure', type: 'action', label: 'Capture Failure Details', labelAr: 'التقاط تفاصيل الفشل', actor: 'Inspector', actorAr: 'المفتش' },
-    { id: 'generate_finding', type: 'action', label: 'Auto-Generate Finding', labelAr: 'توليد ملاحظة تلقائياً', actor: 'System', actorAr: 'النظام' },
-    { id: 'more_assets', type: 'decision', label: 'More Assets?', labelAr: 'المزيد من الأصول؟' },
-    { id: 'complete_session', type: 'action', label: 'Complete Session', labelAr: 'إكمال الجلسة', actor: 'Inspector', actorAr: 'المفتش' },
-    { id: 'assign_actions', type: 'action', label: 'Assign Corrective Actions', labelAr: 'تعيين الإجراءات التصحيحية', actor: 'HSSE Expert', actorAr: 'خبير السلامة' },
-    { id: 'end', type: 'end', label: 'Session Closed', labelAr: 'إغلاق الجلسة' },
-  ],
-  connections: [
-    { from: 'start', to: 'scan_asset' },
-    { from: 'scan_asset', to: 'record_result' },
-    { from: 'record_result', to: 'decision_result' },
-    { from: 'decision_result', to: 'more_assets', condition: 'yes', label: 'Pass', labelAr: 'نجاح' },
-    { from: 'decision_result', to: 'capture_failure', condition: 'no', label: 'Fail', labelAr: 'فشل' },
-    { from: 'capture_failure', to: 'generate_finding' },
-    { from: 'generate_finding', to: 'more_assets' },
-    { from: 'more_assets', to: 'scan_asset', condition: 'yes', label: 'Yes', labelAr: 'نعم' },
-    { from: 'more_assets', to: 'complete_session', condition: 'no', label: 'No', labelAr: 'لا' },
-    { from: 'complete_session', to: 'assign_actions' },
-    { from: 'assign_actions', to: 'end' },
-  ],
-};
+    // Sub-components
+    { id: 'evidence_mgmt', type: 'action', label: 'Evidence Management', labelAr: 'إدارة الأدلة' },
+    { id: 'witness_stmts', type: 'action', label: 'Witness Statements', labelAr: 'شهادات الشهود' },
+    { id: 'rca_process', type: 'action', label: 'Root Cause Analysis', labelAr: 'تحليل السبب الجذري' },
+    { id: 'injury_impact', type: 'action', label: 'Injury Impact', labelAr: 'تأثير الإصابة' },
+    { id: 'property_damage', type: 'action', label: 'Property Damage', labelAr: 'أضرار الممتلكات' },
+    { id: 'env_impact', type: 'action', label: 'Environmental Impact', labelAr: 'التأثير البيئي' },
 
-// ============= AREA INSPECTION WORKFLOW =============
-export const areaInspectionWorkflow: WorkflowDefinition = {
-  id: 'area-inspection',
-  name: 'Area Inspection',
-  nameAr: 'فحص المنطقة',
-  description: 'Checklist-based site/area inspection workflow with NC classification',
-  descriptionAr: 'سير عمل فحص الموقع/المنطقة بناءً على قائمة المراجعة مع تصنيف عدم المطابقة',
-  category: 'inspections',
-  steps: [
-    { id: 'start', type: 'start', label: 'Select Template', labelAr: 'اختيار القالب', actor: 'Inspector', actorAr: 'المفتش' },
-    { id: 'create_session', type: 'action', label: 'Create Inspection Session', labelAr: 'إنشاء جلسة الفحص', actor: 'Inspector', actorAr: 'المفتش' },
-    { id: 'checklist_item', type: 'action', label: 'Inspect Checklist Item', labelAr: 'فحص عنصر القائمة', actor: 'Inspector', actorAr: 'المفتش' },
-    { id: 'decision_item', type: 'decision', label: 'Item Result', labelAr: 'نتيجة العنصر' },
-    { id: 'capture_nc', type: 'action', label: 'Record Non-Conformance', labelAr: 'تسجيل عدم المطابقة', actor: 'Inspector', actorAr: 'المفتش' },
-    { id: 'classify_nc', type: 'action', label: 'Classify NC Severity', labelAr: 'تصنيف شدة عدم المطابقة', actor: 'Inspector', actorAr: 'المفتش' },
-    { id: 'more_items', type: 'decision', label: 'More Items?', labelAr: 'المزيد من العناصر؟' },
-    { id: 'complete_session', type: 'action', label: 'Complete Inspection', labelAr: 'إكمال الفحص', actor: 'Inspector', actorAr: 'المفتش' },
-    { id: 'generate_actions', type: 'action', label: 'Generate Corrective Actions', labelAr: 'توليد الإجراءات التصحيحية', actor: 'System', actorAr: 'النظام' },
-    { id: 'end', type: 'end', label: 'Inspection Complete', labelAr: 'اكتمال الفحص' },
-  ],
-  connections: [
-    { from: 'start', to: 'create_session' },
-    { from: 'create_session', to: 'checklist_item' },
-    { from: 'checklist_item', to: 'decision_item' },
-    { from: 'decision_item', to: 'more_items', condition: 'yes', label: 'Compliant', labelAr: 'مطابق' },
-    { from: 'decision_item', to: 'capture_nc', condition: 'no', label: 'Non-Compliant', labelAr: 'غير مطابق' },
-    { from: 'capture_nc', to: 'classify_nc' },
-    { from: 'classify_nc', to: 'more_items' },
-    { from: 'more_items', to: 'checklist_item', condition: 'yes', label: 'Yes', labelAr: 'نعم' },
-    { from: 'more_items', to: 'complete_session', condition: 'no', label: 'No', labelAr: 'لا' },
-    { from: 'complete_session', to: 'generate_actions' },
-    { from: 'generate_actions', to: 'end' },
-  ],
-};
+    // Validation Gate 1
+    {
+      id: 'data_validation_gate',
+      type: 'gate',
+      label: 'System Data Validation Gate',
+      labelAr: 'بوابة التحقق من بيانات النظام',
+      gateId: 'n26',
+      description: 'Checks completeness of Evidence, Witness, RCA, and Impacts',
+      descriptionAr: 'يتحقق من اكتمال الأدلة والشهود وتحليل السبب الجذري والتأثيرات'
+    },
 
-// ============= AUDIT COMPLIANCE WORKFLOW =============
-export const auditComplianceWorkflow: WorkflowDefinition = {
-  id: 'audit-compliance',
-  name: 'Audit Compliance',
-  nameAr: 'تدقيق الامتثال',
-  description: 'ISO-style audit workflow with scoring and NC classification',
-  descriptionAr: 'سير عمل التدقيق بنمط ISO مع التسجيل وتصنيف عدم المطابقة',
-  category: 'compliance',
-  steps: [
-    { id: 'start', type: 'start', label: 'Plan Audit', labelAr: 'تخطيط التدقيق', actor: 'Lead Auditor', actorAr: 'المدقق الرئيسي' },
-    { id: 'opening_meeting', type: 'action', label: 'Opening Meeting', labelAr: 'اجتماع الافتتاح', actor: 'Audit Team', actorAr: 'فريق التدقيق' },
-    { id: 'conduct_audit', type: 'action', label: 'Conduct Audit', labelAr: 'إجراء التدقيق', actor: 'Auditor', actorAr: 'المدقق' },
-    { id: 'record_findings', type: 'action', label: 'Record Findings', labelAr: 'تسجيل الملاحظات', actor: 'Auditor', actorAr: 'المدقق' },
-    { id: 'classify_nc', type: 'action', label: 'Classify NC (Major/Minor/OFI)', labelAr: 'تصنيف عدم المطابقة', actor: 'Lead Auditor', actorAr: 'المدقق الرئيسي' },
-    { id: 'closing_meeting', type: 'action', label: 'Closing Meeting', labelAr: 'اجتماع الإغلاق', actor: 'Audit Team', actorAr: 'فريق التدقيق' },
-    { id: 'generate_report', type: 'action', label: 'Generate Audit Report', labelAr: 'توليد تقرير التدقيق', actor: 'Lead Auditor', actorAr: 'المدقق الرئيسي' },
-    { id: 'assign_capa', type: 'action', label: 'Assign CAPA', labelAr: 'تعيين الإجراءات التصحيحية', actor: 'Auditee', actorAr: 'الجهة المدققة' },
-    { id: 'verify_closure', type: 'approval', label: 'Verify NC Closure', labelAr: 'التحقق من إغلاق عدم المطابقة', actor: 'Lead Auditor', actorAr: 'المدقق الرئيسي' },
-    { id: 'end', type: 'end', label: 'Audit Closed', labelAr: 'إغلاق التدقيق' },
-  ],
-  connections: [
-    { from: 'start', to: 'opening_meeting' },
-    { from: 'opening_meeting', to: 'conduct_audit' },
-    { from: 'conduct_audit', to: 'record_findings' },
-    { from: 'record_findings', to: 'classify_nc' },
-    { from: 'classify_nc', to: 'closing_meeting' },
-    { from: 'closing_meeting', to: 'generate_report' },
-    { from: 'generate_report', to: 'assign_capa' },
-    { from: 'assign_capa', to: 'verify_closure' },
-    { from: 'verify_closure', to: 'end', condition: 'approve', label: 'Verified', labelAr: 'تم التحقق' },
-    { from: 'verify_closure', to: 'assign_capa', condition: 'reject', label: 'Re-open', labelAr: 'إعادة فتح' },
-  ],
-};
+    {
+      id: 'investigation_done',
+      type: 'action',
+      label: 'Investigation Completed',
+      labelAr: 'اكتمل التحقيق',
+      dbStatus: 'investigation_pending_approval'
+    },
+    {
+      id: 'hsse_mgr_approval',
+      type: 'approval',
+      label: 'HSSE Manager Approval',
+      labelAr: 'موافقة مدير السلامة',
+      actor: 'HSSE Manager',
+      actorAr: 'مدير السلامة',
+      dbStatus: 'pending_hsse_manager_approval'
+    },
+    {
+      id: 'investigation_closed_status',
+      type: 'action',
+      label: 'Status: INVESTIGATION CLOSED',
+      labelAr: 'الحالة: تم إغلاق التحقيق',
+      dbStatus: 'investigation_closed'
+    },
 
-// ============= FULL E2E HSSE WORKFLOW =============
-export const fullE2EWorkflow: WorkflowDefinition = {
-  id: 'full-e2e-hsse',
-  name: 'Full HSSE Event Flow',
-  nameAr: 'سير العمل الكامل لأحداث السلامة',
-  description: 'Complete end-to-end HSSE event workflow from reporting to closure',
-  descriptionAr: 'سير العمل الشامل لأحداث السلامة من الإبلاغ إلى الإغلاق',
-  category: 'hsse_events',
-  steps: [
-    { id: 'start', type: 'start', label: 'Event Reported', labelAr: 'الإبلاغ عن الحدث', actor: 'Reporter', actorAr: 'المُبلِّغ' },
-    { id: 'expert_screening', type: 'approval', label: 'HSSE Expert Screening', labelAr: 'فحص خبير السلامة', actor: 'HSSE Expert', actorAr: 'خبير السلامة' },
-    { id: 'decision_type', type: 'decision', label: 'Event Type?', labelAr: 'نوع الحدث؟' },
-    { id: 'manager_approval', type: 'approval', label: 'Manager Approval', labelAr: 'موافقة المدير', actor: 'Manager', actorAr: 'المدير' },
-    { id: 'dept_rep', type: 'approval', label: 'Dept Rep Approval', labelAr: 'موافقة ممثل القسم', actor: 'Dept Rep', actorAr: 'ممثل القسم' },
-    { id: 'assign_investigator', type: 'action', label: 'Assign Investigator', labelAr: 'تعيين المحقق', actor: 'HSSE Expert', actorAr: 'خبير السلامة' },
-    { id: 'investigation', type: 'subprocess', label: 'Investigation Process', labelAr: 'عملية التحقيق', actor: 'Investigator', actorAr: 'المحقق' },
-    { id: 'assign_actions', type: 'action', label: 'Assign Corrective Actions', labelAr: 'تعيين الإجراءات التصحيحية', actor: 'Investigator', actorAr: 'المحقق' },
-    { id: 'action_completion', type: 'subprocess', label: 'Action Completion', labelAr: 'إكمال الإجراءات', actor: 'Assignees', actorAr: 'المكلفون' },
-    { id: 'hsse_verification', type: 'approval', label: 'HSSE Verification', labelAr: 'تحقق السلامة', actor: 'HSSE Expert', actorAr: 'خبير السلامة' },
-    { id: 'closure_request', type: 'action', label: 'Request Closure', labelAr: 'طلب الإغلاق', actor: 'Investigator', actorAr: 'المحقق' },
-    { id: 'manager_signoff', type: 'approval', label: 'HSSE Manager Sign-off', labelAr: 'موافقة مدير السلامة', actor: 'HSSE Manager', actorAr: 'مدير السلامة' },
-    { id: 'end', type: 'end', label: 'Event Closed', labelAr: 'إغلاق الحدث' },
+    // --- 4. ACTION MANAGEMENT & CLOSURE ---
+    {
+      id: 'hsse_verify_actions',
+      type: 'action',
+      label: 'Verify Actions',
+      labelAr: 'التحقق من الإجراءات',
+      actor: 'HSSE Expert',
+      actorAr: 'خبير السلامة'
+    },
+    {
+      id: 'action_closure_check',
+      type: 'decision',
+      label: 'All Actions Closed?',
+      labelAr: 'هل أغلقت جميع الإجراءات؟'
+    },
+    // Validation Gate 2
+    {
+      id: 'action_evidence_gate',
+      type: 'gate',
+      label: 'Action Evidence Validation',
+      labelAr: 'التحقق من أدلة الإجراء',
+      gateId: 'n57',
+      description: 'System validates required evidence for action closure',
+      descriptionAr: 'النظام يتحقق من الأدلة المطلوبة لإغلاق الإجراء'
+    },
+    {
+      id: 'ready_close',
+      type: 'approval',
+      label: 'Final Closure Review',
+      labelAr: 'مراجعة الإغلاق النهائي',
+      actor: 'HSSE Expert',
+      actorAr: 'خبير السلامة',
+      dbStatus: 'pending_final_closure'
+    },
+    {
+      id: 'incident_closed',
+      type: 'end',
+      label: 'Status: INCIDENT CLOSED',
+      labelAr: 'الحالة: تم إغلاق الحادث',
+      dbStatus: 'closed'
+    }
   ],
   connections: [
-    { from: 'start', to: 'expert_screening' },
-    { from: 'expert_screening', to: 'decision_type' },
-    { from: 'decision_type', to: 'manager_approval', condition: 'yes', label: 'Incident', labelAr: 'حادث' },
-    { from: 'decision_type', to: 'dept_rep', condition: 'no', label: 'Observation', labelAr: 'ملاحظة' },
-    { from: 'manager_approval', to: 'assign_investigator' },
-    { from: 'dept_rep', to: 'assign_actions' },
-    { from: 'assign_investigator', to: 'investigation' },
-    { from: 'investigation', to: 'assign_actions' },
-    { from: 'assign_actions', to: 'action_completion' },
-    { from: 'action_completion', to: 'hsse_verification' },
-    { from: 'hsse_verification', to: 'closure_request' },
-    { from: 'closure_request', to: 'manager_signoff' },
-    { from: 'manager_signoff', to: 'end' },
-  ],
+    // Entry
+    { from: 'desc_entry', to: 'ai_analysis' },
+    { from: 'ai_analysis', to: 'user_review' },
+    { from: 'user_review', to: 'contractor_check' },
+    { from: 'contractor_check', to: 'final_submit' },
+    { from: 'final_submit', to: 'resolve_reps' },
+
+    // Screening Split
+    { from: 'resolve_reps', to: 'contractor_submission_check' },
+
+    // Internal Path
+    { from: 'contractor_submission_check', to: 'notify_dept_rep', condition: 'no' },
+    { from: 'notify_dept_rep', to: 'dept_rep_review' },
+    { from: 'dept_rep_review', to: 'dept_manager_approval', condition: 'approve' },
+    { from: 'dept_manager_approval', to: 'hsse_screen', condition: 'approve' },
+    { from: 'dept_rep_review', to: 'desc_entry', condition: 'reject', label: 'Return', labelAr: 'إعادة' },
+
+    // External Path
+    { from: 'contractor_submission_check', to: 'contractor_screen', condition: 'yes' },
+    { from: 'contractor_screen', to: 'consultant_review' },
+    { from: 'consultant_review', to: 'site_approval', condition: 'approve' },
+    { from: 'consultant_review', to: 'desc_entry', condition: 'reject', label: 'Return', labelAr: 'إعادة' },
+    { from: 'consultant_review', to: 'hsse_screen', condition: 'escalate' },
+    { from: 'site_approval', to: 'contractor_implement', condition: 'approve' },
+    { from: 'contractor_implement', to: 'hsse_screen' },
+
+    // SLA Timer (Implicit connection to HSSE Screen)
+    { from: 'dept_rep_review', to: 'sla_timer_check' },
+    { from: 'contractor_screen', to: 'sla_timer_check' },
+    { from: 'sla_timer_check', to: 'hsse_screen', label: 'Auto-Escalate', labelAr: 'تصعيد تلقائي' },
+
+    // HSSE to Investigation
+    { from: 'hsse_screen', to: 'investigator_assign_decision' },
+    { from: 'investigator_assign_decision', to: 'investigation_start' },
+
+    // Investigation Sub-processes
+    { from: 'investigation_start', to: 'evidence_mgmt' },
+    { from: 'investigation_start', to: 'witness_stmts' },
+    { from: 'investigation_start', to: 'rca_process' },
+    { from: 'investigation_start', to: 'injury_impact' },
+    { from: 'investigation_start', to: 'property_damage' },
+    { from: 'investigation_start', to: 'env_impact' },
+
+    // Validation Gate 1
+    { from: 'evidence_mgmt', to: 'data_validation_gate' },
+    { from: 'witness_stmts', to: 'data_validation_gate' },
+    { from: 'rca_process', to: 'data_validation_gate' },
+    { from: 'injury_impact', to: 'data_validation_gate' },
+    { from: 'property_damage', to: 'data_validation_gate' },
+    { from: 'env_impact', to: 'data_validation_gate' },
+
+    { from: 'data_validation_gate', to: 'investigation_done', condition: 'valid' },
+    { from: 'data_validation_gate', to: 'investigation_start', condition: 'invalid', label: 'Incomplete', labelAr: 'غير مكتمل' },
+
+    // Investigation Approval
+    { from: 'investigation_done', to: 'hsse_mgr_approval' },
+    { from: 'hsse_mgr_approval', to: 'investigation_closed_status', condition: 'approve' },
+    { from: 'hsse_mgr_approval', to: 'investigation_start', condition: 'reject' },
+
+    // Closure Phase
+    { from: 'investigation_closed_status', to: 'hsse_verify_actions' },
+    { from: 'hsse_verify_actions', to: 'action_closure_check' },
+    { from: 'action_closure_check', to: 'action_evidence_gate', condition: 'yes' },
+    { from: 'action_closure_check', to: 'hsse_verify_actions', condition: 'no', label: 'Wait', labelAr: 'انتظار' },
+
+    { from: 'action_evidence_gate', to: 'ready_close', condition: 'valid' },
+    { from: 'action_evidence_gate', to: 'hsse_verify_actions', condition: 'invalid' },
+
+    { from: 'ready_close', to: 'incident_closed', condition: 'approve' }
+  ]
 };
 
 // ============= ALL WORKFLOWS =============
 export const allWorkflows: WorkflowDefinition[] = [
-  observationWorkflowComplete,
-  incidentWorkflowComplete,
-  contractorViolationWorkflow,
-  observationWorkflow,
-  incidentWorkflow,
-  investigationWorkflow,
-  actionClosureWorkflow,
-  assetInspectionWorkflow,
-  areaInspectionWorkflow,
-  auditComplianceWorkflow,
-  fullE2EWorkflow,
+  incidentWorkflowV1_1, // Primary V1.1 Workflow
+  // Note: Additional workflows (observationWorkflowComplete, contractorViolationWorkflow) 
+  // can be added here when defined
 ];
 
 export function getWorkflowsByCategory(category: WorkflowCategory): WorkflowDefinition[] {
@@ -1005,35 +390,4 @@ export function getWorkflowById(id: string): WorkflowDefinition | undefined {
   return allWorkflows.find(w => w.id === id);
 }
 
-export const workflowCategories: { id: WorkflowCategory; name: string; nameAr: string }[] = [
-  { id: 'hsse_events', name: 'HSSE Events', nameAr: 'أحداث السلامة' },
-  { id: 'inspections', name: 'Inspections & Audits', nameAr: 'عمليات الفحص والتدقيق' },
-  { id: 'assets', name: 'Asset Management', nameAr: 'إدارة الأصول' },
-  { id: 'compliance', name: 'Compliance', nameAr: 'الامتثال' },
-  { id: 'contractor', name: 'Contractor Management', nameAr: 'إدارة المقاولين' },
-];
-
-// ============= GAP ANALYSIS HELPER =============
-export function getWorkflowGaps(): { workflow: string; gaps: string[] }[] {
-  return allWorkflows
-    .filter(w => w.gaps && w.gaps.length > 0)
-    .map(w => ({ workflow: w.name, gaps: w.gaps || [] }));
-}
-
-export function getStepsWithGaps(): { workflow: string; step: string; gap: string }[] {
-  const result: { workflow: string; step: string; gap: string }[] = [];
-  
-  allWorkflows.forEach(workflow => {
-    workflow.steps.forEach(step => {
-      if (step.hasGap && step.gapDescription) {
-        result.push({
-          workflow: workflow.name,
-          step: step.label,
-          gap: step.gapDescription
-        });
-      }
-    });
-  });
-  
-  return result;
-}
+// ... existing helpers

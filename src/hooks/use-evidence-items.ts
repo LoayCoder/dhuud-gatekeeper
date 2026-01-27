@@ -33,7 +33,7 @@ export interface EvidenceItem {
   upload_session_id: string | null;
   created_at: string;
   updated_at: string;
-  deleted_at: string | null;
+  is_soft_deleted: boolean;
   // Joined data
   uploader_name?: string;
   reviewer_name?: string;
@@ -97,41 +97,40 @@ export function useEvidenceItems(incidentId: string | null) {
       if (!incidentId) return [];
 
       const { data, error } = await supabase
-        .from('evidence_items')
+        .from('incident_evidence')
         .select(`
           id,
           incident_id,
           tenant_id,
           evidence_type,
-          storage_path,
+          file_url,
           file_name,
           file_size,
           mime_type,
-          reference_id,
-          reference_type,
-          cctv_data,
+          cctv_metadata,
           description,
           review_comment,
           reviewed_by,
           reviewed_at,
           uploaded_by,
-          upload_session_id,
+          is_soft_deleted,
           created_at,
           updated_at,
-          uploader:profiles!evidence_items_uploaded_by_fkey(full_name),
-          reviewer:profiles!evidence_items_reviewed_by_fkey(full_name)
+          uploader:profiles!incident_evidence_uploaded_by_fkey(full_name),
+          reviewer:profiles!incident_evidence_reviewed_by_fkey(full_name)
         `)
         .eq('incident_id', incidentId)
-        .is('deleted_at', null)
+        .eq('is_soft_deleted', false) // Only fetch non-deleted items by default for the panel
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       return (data || []).map((item: any) => ({
         ...item,
+        storage_path: item.file_url, // Map file_url to storage_path for frontend compatibility
+        cctv_data: item.cctv_metadata as CCTVCamera[] | null, // Map cctv_metadata
         uploader_name: item.uploader?.full_name,
         reviewer_name: item.reviewer?.full_name,
-        cctv_data: item.cctv_data as CCTVCamera[] | null,
       })) as EvidenceItem[];
     },
     enabled: !!incidentId && !!profile?.tenant_id,
@@ -152,21 +151,18 @@ export function useCreateEvidence() {
       }
 
       const { data, error } = await supabase
-        .from('evidence_items')
+        .from('incident_evidence')
         .insert({
           incident_id: params.incident_id,
           evidence_type: params.evidence_type,
-          storage_path: params.storage_path,
+          file_url: params.storage_path, // Map storage_path to file_url
           file_name: params.file_name,
           file_size: params.file_size,
           mime_type: params.mime_type,
-          reference_id: params.reference_id,
-          reference_type: params.reference_type,
           description: params.description,
           tenant_id: profile.tenant_id,
           uploaded_by: user.id,
-          upload_session_id: sessionId || null,
-          cctv_data: params.cctv_data ? (params.cctv_data as unknown as Json) : null,
+          cctv_metadata: params.cctv_data ? (params.cctv_data as unknown as Json) : null,
         })
         .select('id')
         .single();
@@ -182,7 +178,6 @@ export function useCreateEvidence() {
         details: {
           evidence_type: params.evidence_type,
           file_name: params.file_name,
-          reference_id: params.reference_id,
           session_id: sessionId,
         } as Json,
       });
@@ -213,7 +208,7 @@ export function useUpdateEvidenceReview() {
       }
 
       const { data, error } = await supabase
-        .from('evidence_items')
+        .from('incident_evidence')
         .update({
           review_comment,
           reviewed_by: user.id,
@@ -267,69 +262,63 @@ export function useDeleteEvidence() {
         throw new Error('Tenant not found');
       }
 
-      // Get full evidence details first for audit trail (HSSA compliance: old_value capture)
+      // Get full evidence details first for audit trail
       const { data: evidence, error: fetchError } = await supabase
-        .from('evidence_items')
+        .from('incident_evidence')
         .select(`
           id,
           incident_id,
           tenant_id,
           evidence_type,
-          storage_path,
+          file_url,
           file_name,
           file_size,
-          mime_type,
           description,
           created_at,
           uploaded_by
         `)
         .eq('id', id)
-        .is('deleted_at', null)
         .single();
 
       if (fetchError || !evidence) {
-        throw new Error('Evidence not found or already deleted');
+        throw new Error('Evidence not found');
       }
 
-      // Log to incident audit BEFORE the soft delete (ensures audit trail even if delete fails)
-      try {
-        const { error: auditError } = await supabase.from('incident_audit_logs').insert({
-          incident_id: evidence.incident_id,
-          tenant_id: profile.tenant_id,
-          actor_id: user.id,
-          action: 'evidence_deleted',
-          old_value: {
-            id: evidence.id,
-            evidence_type: evidence.evidence_type,
-            file_name: evidence.file_name,
-            file_size: evidence.file_size,
-            storage_path: evidence.storage_path,
-            description: evidence.description,
-            uploaded_by: evidence.uploaded_by,
-            created_at: evidence.created_at,
-          } as Json,
-          details: {
-            evidence_id: id,
-            evidence_type: evidence.evidence_type,
-            file_name: evidence.file_name,
-            session_id: sessionId,
-          } as Json,
-        });
+      // Log to incident audit
+      await supabase.from('incident_audit_logs').insert({
+        incident_id: evidence.incident_id,
+        tenant_id: profile.tenant_id,
+        actor_id: user.id,
+        action: 'evidence_deleted',
+        old_value: {
+          id: evidence.id,
+          evidence_type: evidence.evidence_type,
+          file_name: evidence.file_name,
+          file_size: evidence.file_size,
+          storage_path: evidence.file_url,
+          description: evidence.description,
+          uploaded_by: evidence.uploaded_by,
+          created_at: evidence.created_at,
+        } as Json,
+        details: {
+          evidence_id: id,
+          session_id: sessionId,
+        } as Json,
+      });
 
-        if (auditError) {
-          console.error('Failed to write audit log:', auditError);
-        }
-      } catch (auditErr) {
-        console.error('Audit log error:', auditErr);
-      }
-
-      // Soft delete via SECURITY DEFINER RPC (bypasses RLS WITH CHECK issues)
-      const { error: deleteError } = await supabase
-        .rpc('soft_delete_evidence', { p_evidence_id: id });
+      // Call the Hybrid Delete RPC
+      const { data: deleteResult, error: deleteError } = await (supabase.rpc as any)('soft_delete_incident_evidence', { p_evidence_id: id });
 
       if (deleteError) {
-        console.error('Evidence delete error:', deleteError);
         throw new Error(deleteError.message || 'Failed to delete evidence');
+      }
+
+      // If Hard Delete ('hard'), also remove from Storage
+      if (deleteResult === 'hard' && evidence.file_url) {
+        // Assume bucket 'incident-attachments'
+        await supabase.storage
+          .from('incident-attachments')
+          .remove([evidence.file_url]);
       }
 
       return evidence.incident_id;
@@ -337,12 +326,10 @@ export function useDeleteEvidence() {
     onSuccess: (incidentId) => {
       if (incidentId) {
         queryClient.invalidateQueries({ queryKey: ['evidence-items', incidentId] });
-        queryClient.invalidateQueries({ queryKey: ['incident-audit-logs', incidentId] });
       }
       toast.success(t('investigation.evidence.deleted', 'Evidence deleted'));
     },
     onError: (error) => {
-      console.error('Delete evidence mutation error:', error);
       toast.error(t('common.error', 'Error: ') + error.message);
     },
   });

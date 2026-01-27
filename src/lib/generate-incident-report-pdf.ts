@@ -88,7 +88,7 @@ interface ActionEvidenceItem {
 interface WitnessStatement {
   id: string;
   witness_name: string;
-  statement_type: string;
+  statement_type: string; // Column name in DB is statement_type, not statement_method
   statement_text?: string | null;
   created_at?: string | null;
 }
@@ -1265,7 +1265,7 @@ function buildFullWitnessesHtml(witnesses: WitnessStatement[], isRTL: boolean): 
         </div>
         <div style="margin-bottom: 4px;">
           <span style="padding: 2px 6px; border-radius: 4px; font-size: 10px; background: #dbeafe; color: #1e40af;">
-            ${w.statement_type.replace(/_/g, ' ')}
+            ${(w.statement_type || 'direct').replace(/_/g, ' ')}
           </span>
         </div>
         ${w.statement_text ? `

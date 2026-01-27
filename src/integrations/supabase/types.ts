@@ -9920,6 +9920,98 @@ export type Database = {
           },
         ]
       }
+      incident_evidence: {
+        Row: {
+          cctv_metadata: Json | null
+          created_at: string | null
+          deleted_at: string | null
+          description: string | null
+          evidence_type: string
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
+          id: string
+          incident_id: string
+          is_soft_deleted: boolean | null
+          mime_type: string | null
+          review_comment: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          tenant_id: string
+          updated_at: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          cctv_metadata?: Json | null
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          evidence_type: string
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          incident_id: string
+          is_soft_deleted?: boolean | null
+          mime_type?: string | null
+          review_comment?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          tenant_id: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          cctv_metadata?: Json | null
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          evidence_type?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          incident_id?: string
+          is_soft_deleted?: boolean | null
+          mime_type?: string | null
+          review_comment?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_evidence_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_evidence_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_evidence_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_evidence_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incident_injuries: {
         Row: {
           body_diagram_data: Json | null
@@ -10276,6 +10368,76 @@ export type Database = {
           },
         ]
       }
+      incident_rca: {
+        Row: {
+          contributing_factors: Json | null
+          created_at: string | null
+          five_whys: Json | null
+          id: string
+          immediate_causes: string[] | null
+          incident_id: string
+          is_locked: boolean | null
+          locked_at: string | null
+          locked_by: string | null
+          root_causes: Json | null
+          tenant_id: string
+          underlying_causes: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          contributing_factors?: Json | null
+          created_at?: string | null
+          five_whys?: Json | null
+          id?: string
+          immediate_causes?: string[] | null
+          incident_id: string
+          is_locked?: boolean | null
+          locked_at?: string | null
+          locked_by?: string | null
+          root_causes?: Json | null
+          tenant_id: string
+          underlying_causes?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          contributing_factors?: Json | null
+          created_at?: string | null
+          five_whys?: Json | null
+          id?: string
+          immediate_causes?: string[] | null
+          incident_id?: string
+          is_locked?: boolean | null
+          locked_at?: string | null
+          locked_by?: string | null
+          root_causes?: Json | null
+          tenant_id?: string
+          underlying_causes?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_rca_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: true
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_rca_locked_by_fkey"
+            columns: ["locked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_rca_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incident_reference_sequences: {
         Row: {
           current_value: number
@@ -10554,6 +10716,7 @@ export type Database = {
           ai_analysis_result: Json | null
           all_actions_verified: boolean | null
           approval_manager_id: string | null
+          assigned_environmental_expert_id: string | null
           auto_declassify_to: string | null
           branch_id: string | null
           clinic_review_notes: string | null
@@ -10784,6 +10947,7 @@ export type Database = {
           ai_analysis_result?: Json | null
           all_actions_verified?: boolean | null
           approval_manager_id?: string | null
+          assigned_environmental_expert_id?: string | null
           auto_declassify_to?: string | null
           branch_id?: string | null
           clinic_review_notes?: string | null
@@ -11014,6 +11178,7 @@ export type Database = {
           ai_analysis_result?: Json | null
           all_actions_verified?: boolean | null
           approval_manager_id?: string | null
+          assigned_environmental_expert_id?: string | null
           auto_declassify_to?: string | null
           branch_id?: string | null
           clinic_review_notes?: string | null
@@ -11246,6 +11411,13 @@ export type Database = {
           {
             foreignKeyName: "incidents_approval_manager_id_fkey"
             columns: ["approval_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_assigned_environmental_expert_id_fkey"
+            columns: ["assigned_environmental_expert_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -26062,6 +26234,10 @@ export type Database = {
       soft_delete_floor_zone: { Args: { p_zone_id: string }; Returns: string }
       soft_delete_hsse_asset: { Args: { p_asset_id: string }; Returns: string }
       soft_delete_incident: { Args: { p_incident_id: string }; Returns: string }
+      soft_delete_incident_evidence: {
+        Args: { p_evidence_id: string }
+        Returns: boolean
+      }
       soft_delete_inspection_session: {
         Args: { p_session_id: string }
         Returns: string
@@ -26135,6 +26311,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      unlock_rca: { Args: { p_incident_id: string }; Returns: boolean }
       update_email_status: {
         Args: {
           p_error_message?: string

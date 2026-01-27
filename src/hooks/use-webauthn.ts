@@ -128,27 +128,28 @@ export function useWebAuthn(): UseWebAuthnReturn {
 
       await refreshCredentials();
       return true;
-    } catch (err: any) {
-      console.error('[WebAuthn] Registration error name:', err.name);
-      console.error('[WebAuthn] Registration error message:', err.message);
-      console.error('[WebAuthn] Full error:', err);
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error('[WebAuthn] Registration error name:', error.name);
+      console.error('[WebAuthn] Registration error message:', error.message);
+      console.error('[WebAuthn] Full error:', error);
       
       // Handle specific error types
-      if (err.name === 'NotAllowedError') {
+      if (error.name === 'NotAllowedError') {
         // User cancelled or denied the prompt
         toast({
           title: t('biometric.registrationCancelled'),
           description: t('biometric.registrationCancelledDesc'),
           variant: 'destructive',
         });
-      } else if (err.name === 'InvalidStateError') {
+      } else if (error.name === 'InvalidStateError') {
         // Credential already exists on device
         toast({
           title: t('biometric.alreadyRegistered'),
           description: t('biometric.alreadyRegisteredDesc'),
           variant: 'destructive',
         });
-      } else if (err.name === 'SecurityError') {
+      } else if (error.name === 'SecurityError') {
         // Security restriction (wrong domain, etc.)
         toast({
           title: t('biometric.securityError'),
@@ -158,7 +159,7 @@ export function useWebAuthn(): UseWebAuthnReturn {
       } else {
         toast({
           title: t('biometric.registrationFailed'),
-          description: err.message || t('biometric.registrationFailedDesc'),
+          description: error.message || t('biometric.registrationFailedDesc'),
           variant: 'destructive',
         });
       }
@@ -247,11 +248,12 @@ export function useWebAuthn(): UseWebAuthnReturn {
       });
 
       return true;
-    } catch (err: any) {
-      console.error('WebAuthn authentication error:', err);
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error('WebAuthn authentication error:', error);
       
       // Handle user cancellation gracefully
-      if (err.name === 'NotAllowedError') {
+      if (error.name === 'NotAllowedError') {
         toast({
           title: t('biometric.authCancelled'),
           description: t('biometric.authCancelledDesc'),
@@ -260,7 +262,7 @@ export function useWebAuthn(): UseWebAuthnReturn {
       } else {
         toast({
           title: t('biometric.authFailed'),
-          description: err.message || t('biometric.authFailedDesc'),
+          description: error.message || t('biometric.authFailedDesc'),
           variant: 'destructive',
         });
       }
@@ -349,17 +351,18 @@ export function useWebAuthn(): UseWebAuthnReturn {
       });
 
       return true;
-    } catch (err: any) {
-      console.error('WebAuthn discoverable authentication error:', err);
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error('WebAuthn discoverable authentication error:', error);
       
       // Handle user cancellation gracefully
-      if (err.name === 'NotAllowedError') {
+      if (error.name === 'NotAllowedError') {
         toast({
           title: t('biometric.authCancelled'),
           description: t('biometric.authCancelledDesc'),
           variant: 'destructive',
         });
-      } else if (err.name === 'NotReadableError' || err.message?.includes('No credentials')) {
+      } else if (error.name === 'NotReadableError' || error.message?.includes('No credentials')) {
         toast({
           title: t('biometric.noPasskeys', 'No Passkeys Found'),
           description: t('biometric.noPasskeysDesc', 'No passkeys are registered on this device. Please sign in with email and password first, then register a passkey in your profile settings.'),
@@ -368,7 +371,7 @@ export function useWebAuthn(): UseWebAuthnReturn {
       } else {
         toast({
           title: t('biometric.authFailed'),
-          description: err.message || t('biometric.authFailedDesc'),
+          description: error.message || t('biometric.authFailedDesc'),
           variant: 'destructive',
         });
       }
@@ -393,11 +396,12 @@ export function useWebAuthn(): UseWebAuthnReturn {
 
       await refreshCredentials();
       return true;
-    } catch (err: any) {
-      console.error('Error removing credential:', err);
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error('Error removing credential:', error);
       toast({
         title: t('biometric.removeFailed'),
-        description: err.message,
+        description: error.message,
         variant: 'destructive',
       });
       return false;

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { Json } from "@/integrations/supabase/types";
 
 export interface RiskAssessmentDetail {
   id: string;
@@ -13,8 +14,8 @@ export interface RiskAssessmentDetail {
   likelihood: number | null;
   severity: number | null;
   initial_risk_score: number | null;
-  existing_controls: any[];
-  additional_controls: any[];
+  existing_controls: Json[];
+  additional_controls: Json[];
   responsible_person: string | null;
   target_completion_date: string | null;
   residual_likelihood: number | null;
@@ -63,8 +64,8 @@ export interface CreateRiskDetailData {
   hazard_category?: string;
   likelihood?: number;
   severity?: number;
-  existing_controls?: any[];
-  additional_controls?: any[];
+  existing_controls?: Json[];
+  additional_controls?: Json[];
   responsible_person?: string;
   target_completion_date?: string;
   residual_likelihood?: number;

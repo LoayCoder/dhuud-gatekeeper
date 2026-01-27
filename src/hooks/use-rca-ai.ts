@@ -26,6 +26,8 @@ type ActionType = 'rewrite' | 'suggest_cause' | 'suggest_why' | 'generate_summar
 interface UseRCAAIOptions {
   onSuccess?: (result: string) => void;
   onError?: (error: string) => void;
+  /** Incident ID for automatic context enrichment (witness statements, evidence, etc.) */
+  incidentId?: string;
 }
 
 export function useRCAAI(options?: UseRCAAIOptions) {
@@ -41,13 +43,20 @@ export function useRCAAI(options?: UseRCAAIOptions) {
     target_language?: string;
     context?: string;
     why_level?: number;
+    incident_id?: string;
   }): Promise<string | null> => {
     setIsLoading(true);
     setError(null);
 
     try {
+      // Include incident_id for automatic context enrichment if provided
+      const enrichedPayload = {
+        ...payload,
+        incident_id: payload.incident_id || options?.incidentId,
+      };
+
       const { data, error: fnError } = await supabase.functions.invoke('rca-ai-assistant', {
-        body: payload,
+        body: enrichedPayload,
       });
 
       if (fnError) {

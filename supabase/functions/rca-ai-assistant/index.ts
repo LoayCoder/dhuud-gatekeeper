@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { getCorsHeaders, handleCorsPrelight, sanitizeInput, sanitizeObject } from "../_shared/cors.ts";
 
 const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -21,6 +22,9 @@ interface RCAData {
   event_subtype?: string;
   selected_cause_type?: 'root_cause' | 'contributing_factor';
   selected_cause_text?: string;
+  environmental_details?: string;
+  injury_details?: string;
+  damage_details?: string;
 }
 
 type ActionType = 'rewrite' | 'suggest_cause' | 'suggest_why' | 'generate_summary' | 'translate' | 'translate_and_rewrite' | 'generate_whys' | 'generate_immediate_cause' | 'generate_underlying_cause' | 'generate_root_cause' | 'generate_contributing_factor' | 'suggest_corrective_action';
@@ -32,6 +36,7 @@ interface RequestPayload {
   target_language?: string;
   context?: string;
   why_level?: number;
+  incident_id?: string;
 }
 
 async function callAI(systemPrompt: string, userPrompt: string): Promise<string> {
@@ -82,6 +87,16 @@ async function callAI(systemPrompt: string, userPrompt: string): Promise<string>
   return content;
 }
 
+// Helper to verify that we have enough context (evidence or witness statements)
+function verifyContextAvailable(data: RCAData): void {
+  const hasWitness = data.witness_statements && data.witness_statements.length > 0;
+  const hasEvidence = data.evidence_descriptions && data.evidence_descriptions.length > 0;
+
+  if (!hasWitness && !hasEvidence) {
+    throw new Error('Insufficient data: Please add evidence or witness statements to generate insights.');
+  }
+}
+
 // Rewrite text for clarity and ISO 45001/OSHA alignment
 async function handleRewrite(text: string, context?: string): Promise<string> {
   const systemPrompt = `You are an expert HSSE (Health, Safety, Security, Environment) technical writer specializing in incident investigation documentation.
@@ -109,6 +124,7 @@ async function handleSuggestCause(data: RCAData): Promise<string> {
 
 // Generate Root Cause with full progressive data flow
 async function handleGenerateRootCause(data: RCAData): Promise<string> {
+  verifyContextAvailable(data);
   const systemPrompt = `You are an expert HSSE incident investigator specializing in root cause analysis.
 
 Based on the complete RCA analysis (5-Whys, Immediate Cause, Underlying Cause), witness statements, and evidence, suggest a ROOT CAUSE.
@@ -171,6 +187,7 @@ Based on the above, suggest a NEW root cause (1-3 sentences):`;
 
 // Generate Contributing Factor with full progressive data flow
 async function handleGenerateContributingFactor(data: RCAData): Promise<string> {
+  verifyContextAvailable(data);
   const systemPrompt = `You are an expert HSSE incident investigator conducting root cause analysis.
 
 Based on the complete RCA analysis, suggest a CONTRIBUTING FACTOR.
@@ -247,6 +264,7 @@ Based on the above, suggest a NEW contributing factor (1-2 sentences):`;
 
 // Suggest an answer for a specific "Why" level
 async function handleSuggestWhy(data: RCAData, whyLevel: number): Promise<string> {
+  verifyContextAvailable(data);
   const systemPrompt = `You are an expert HSSE incident investigator conducting a 5-Whys root cause analysis.
 
 Your task is to suggest an answer to the current "Why" question based on the incident context and previous answers.
@@ -257,6 +275,7 @@ Guidelines:
 - Focus on systemic factors: procedures, training, equipment, management systems
 - Be specific and factual, avoiding speculation
 - Keep the answer concise (1-2 sentences)
+- Use all available context including witness statements, environmental details, and evidence
 
 Return ONLY the suggested answer without any explanation or preamble.`;
 
@@ -266,8 +285,26 @@ Return ONLY the suggested answer without any explanation or preamble.`;
 
   const currentQuestion = data.five_whys?.[whyLevel - 1]?.question || `Why did this occur? (Level ${whyLevel})`;
 
+  const witnessText = data.witness_statements?.length
+    ? data.witness_statements.map(w => `Witness ${w.name}: ${w.statement}`).join('\n\n')
+    : '';
+
+  const evidenceText = data.evidence_descriptions?.length
+    ? data.evidence_descriptions.join('\n')
+    : '';
+
+  const envText = data.environmental_details || '';
+  const injuryText = data.injury_details || '';
+  const damageText = data.damage_details || '';
+
   const userPrompt = `Incident: ${data.incident_title || 'Not specified'}
 Description: ${data.incident_description || 'Not provided'}
+
+${envText ? `Environmental Details:\n${envText}\n` : ''}
+${injuryText ? `Injury Details:\n${injuryText}\n` : ''}
+${damageText ? `Damage Details:\n${damageText}\n` : ''}
+${witnessText ? `Witness Statements:\n${witnessText}\n` : ''}
+${evidenceText ? `Evidence:\n${evidenceText}\n` : ''}
 
 ${previousWhys ? `Previous Analysis:\n${previousWhys}\n\n` : ''}Current Question (Why ${whyLevel}): ${currentQuestion}
 
@@ -278,6 +315,7 @@ Suggest an answer for Why ${whyLevel}:`;
 
 // Generate comprehensive RCA summary
 async function handleGenerateSummary(data: RCAData): Promise<string> {
+  verifyContextAvailable(data);
   const systemPrompt = `You are an expert HSSE documentation specialist creating a formal Root Cause Analysis summary.
 
 Create a comprehensive, professionally formatted summary that:
@@ -387,6 +425,7 @@ Return ONLY the final English text without any explanation, preamble, or quotes.
 
 // Generate 3-5 Why questions based on incident context
 async function handleGenerateWhys(data: RCAData): Promise<string> {
+  verifyContextAvailable(data);
   const systemPrompt = `You are an expert HSSE incident investigator conducting 5-Whys root cause analysis.
 
 Based on the incident details, severity level, event classification, witness statements, and evidence provided, generate 3-5 "Why" questions with answers that progressively dig deeper into the root cause.
@@ -398,6 +437,7 @@ Guidelines:
 - Be specific and factual based on the provided context
 - Aim for 3-5 whys (minimum 3, maximum 5)
 - Make sure each "why" question naturally follows from the previous answer
+- INCORPORATE witness statements and evidence to make the analysis specific to this incident
 
 Return ONLY a JSON array in this exact format (no markdown, no code blocks):
 [{"why": "Why did [specific event] occur?", "answer": "Because [factual answer based on evidence]..."}, ...]`;
@@ -410,10 +450,23 @@ Return ONLY a JSON array in this exact format (no markdown, no code blocks):
     ? data.evidence_descriptions.join('\n') 
     : 'No evidence descriptions available';
 
+  const envText = data.environmental_details || 'None';
+  const injuryText = data.injury_details || 'None';
+  const damageText = data.damage_details || 'None';
+
   const userPrompt = `INCIDENT: ${data.incident_title || 'Untitled'}
 DESCRIPTION: ${data.incident_description || 'No description'}
 SEVERITY: ${data.severity || 'Not specified'}
 EVENT TYPE: ${data.event_type || 'Not specified'}${data.event_subtype ? ` (${data.event_subtype})` : ''}
+
+ENVIRONMENTAL DETAILS:
+${envText}
+
+INJURY DETAILS:
+${injuryText}
+
+DAMAGE DETAILS:
+${damageText}
 
 WITNESS STATEMENTS:
 ${witnessText}
@@ -428,6 +481,7 @@ Generate 3-5 Why questions with answers in JSON format:`;
 
 // Generate Immediate Cause based on 5-Whys analysis
 async function handleGenerateImmediateCause(data: RCAData): Promise<string> {
+  verifyContextAvailable(data);
   const systemPrompt = `You are an expert HSSE incident investigator conducting root cause analysis.
 
 Based on the 5-Whys analysis and incident context provided, identify the IMMEDIATE CAUSE.
@@ -478,6 +532,7 @@ Based on the above, identify the IMMEDIATE CAUSE (1-2 sentences):`;
 
 // Generate Underlying Cause based on 5-Whys and Immediate Cause
 async function handleGenerateUnderlyingCause(data: RCAData): Promise<string> {
+  verifyContextAvailable(data);
   const systemPrompt = `You are an expert HSSE incident investigator conducting root cause analysis.
 
 Based on the 5-Whys analysis, Immediate Cause, and incident context, identify the UNDERLYING CAUSE.
@@ -531,6 +586,7 @@ Based on the above, identify the UNDERLYING CAUSE (1-2 sentences):`;
 
 // Generate Corrective Action suggestion based on a selected cause
 async function handleSuggestCorrectiveAction(data: RCAData): Promise<string> {
+  verifyContextAvailable(data);
   const causeTypeLabel = data.selected_cause_type === 'root_cause' ? 'ROOT CAUSE' : 'CONTRIBUTING FACTOR';
   
   const systemPrompt = `You are an expert HSSE professional specializing in corrective and preventive actions (CAPA).
@@ -584,9 +640,82 @@ serve(async (req) => {
     
     // Sanitize the entire payload to prevent XSS
     const payload: RequestPayload = sanitizeObject(rawPayload);
-    const { action, text, data, target_language, context, why_level } = payload;
+    const { action, text, data, target_language, context, why_level, incident_id } = payload;
 
     console.log(`[RCA AI] Processing action: ${action}`);
+
+    // If incident_id is provided, enrich data with DB content
+    if (incident_id && data) {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      // Fetch Incident Data
+      const { data: incident } = await supabase
+        .from('incidents')
+        .select('title, description, severity_v2, event_type, subtype, injury_details, damage_details')
+        .eq('id', incident_id)
+        .single();
+
+      if (incident) {
+        data.incident_title = incident.title || data.incident_title;
+        data.incident_description = incident.description || data.incident_description;
+        data.severity = incident.severity_v2 || data.severity;
+        data.event_type = incident.event_type || data.event_type;
+        data.event_subtype = incident.subtype || data.event_subtype;
+
+        if (incident.injury_details) {
+            data.injury_details = JSON.stringify(incident.injury_details);
+        }
+        if (incident.damage_details) {
+            data.damage_details = JSON.stringify(incident.damage_details);
+        }
+      }
+
+      // Fetch Witness Statements
+      const { data: witnesses } = await supabase
+        .from('witness_statements')
+        .select('statement_text, ai_transcription_text, witness_name')
+        .eq('incident_id', incident_id)
+        .eq('status', 'approved')
+        .is('deleted_at', null);
+
+      if (witnesses && witnesses.length > 0) {
+        data.witness_statements = witnesses.map((w: any) => ({
+          name: w.witness_name || 'Anonymous',
+          statement: w.statement_text || w.ai_transcription_text || ''
+        }));
+      }
+
+      // Fetch Evidence Descriptions
+      const { data: evidence } = await supabase
+        .from('incident_evidence')
+        .select('description, evidence_type')
+        .eq('incident_id', incident_id)
+        .eq('is_soft_deleted', false);
+
+      if (evidence && evidence.length > 0) {
+        data.evidence_descriptions = evidence
+            .filter((e: any) => e.description)
+            .map((e: any) => `[${e.evidence_type}] ${e.description}`);
+      }
+
+      // Fetch Environmental Details
+      const { data: envDetails } = await supabase
+        .from('environmental_incident_details')
+        .select('*')
+        .eq('incident_id', incident_id)
+        .is('deleted_at', null)
+        .maybeSingle();
+
+      if (envDetails) {
+        const details = [];
+        if (envDetails.substance_name) details.push(`Substance: ${envDetails.substance_name}`);
+        if (envDetails.spill_volume_liters) details.push(`Volume: ${envDetails.spill_volume_liters} ${envDetails.spill_unit}`);
+        if (envDetails.affected_medium) details.push(`Affected: ${envDetails.affected_medium.join(', ')}`);
+        data.environmental_details = details.join('; ');
+      }
+    }
 
     let result: string;
 

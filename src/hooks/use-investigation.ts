@@ -8,7 +8,8 @@ import type { Json } from "@/integrations/supabase/types";
 // Types
 export interface RootCauseEntry {
   id: string;
-  text: string;
+  text: string; // Description
+  category?: string; // Root Cause Category
   added_at?: string;
   added_by?: string;
 }

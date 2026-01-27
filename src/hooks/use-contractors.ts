@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { Database, Json } from '@/integrations/supabase/types';
 
 const getProfileId = (profile: any): string | undefined => profile?.id;
 export interface Contractor {
@@ -43,7 +44,7 @@ export interface ContractorAccessLog {
   exit_time: string | null;
   access_type: string;
   validation_status: string;
-  validation_errors: any;
+  validation_errors: Json;
   alert_sent: boolean | null;
   alert_language: string | null;
   notes: string | null;
@@ -282,7 +283,7 @@ export function useLogContractorAccess() {
       zoneId?: string;
       accessType: 'entry' | 'exit';
       validationStatus: string;
-      validationErrors?: any;
+      validationErrors?: Json;
       notes?: string;
     }) => {
       if (!profile?.tenant_id) throw new Error('No tenant');

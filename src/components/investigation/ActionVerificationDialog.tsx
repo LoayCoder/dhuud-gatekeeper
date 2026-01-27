@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, XCircle, FileText, User, Calendar, Building2, AlertTriangle, MessageSquare, Paperclip, Download, File } from 'lucide-react';
+import { CheckCircle2, XCircle, FileText, User, Calendar, Building2, AlertTriangle, MessageSquare, Paperclip, Download, File, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useVerifyAction, type PendingActionApproval } from '@/hooks/use-pending-approvals';
 import { useActionEvidence } from '@/hooks/use-action-evidence';
 import { supabase } from '@/integrations/supabase/client';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface ActionVerificationDialogProps {
   action: PendingActionApproval | null;
@@ -35,7 +36,7 @@ export function ActionVerificationDialog({
   const [notes, setNotes] = useState('');
   const [isRejecting, setIsRejecting] = useState(false);
   const verifyAction = useVerifyAction();
-  const { data: evidence } = useActionEvidence(action?.id || null);
+  const { data: evidence, isLoading: isLoadingEvidence } = useActionEvidence(action?.id || null);
 
   const formatFileSize = (bytes: number | null) => {
     if (!bytes) return '0 B';
@@ -99,6 +100,9 @@ export function ActionVerificationDialog({
         return 'outline';
     }
   };
+
+  // HARDENED GATE n57: Validate evidence presence
+  const hasEvidence = evidence && evidence.length > 0;
 
   if (!action) return null;
 
@@ -207,39 +211,42 @@ export function ActionVerificationDialog({
               </>
             )}
 
-            {/* Attached Evidence Files */}
-            {evidence && evidence.length > 0 && (
-              <>
-                <Separator />
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2 text-muted-foreground">
-                    <Paperclip className="h-4 w-4" />
-                    {t('investigation.actions.attachedFiles', 'Attached Files')} ({evidence.length})
-                  </Label>
-                  <div className="space-y-1">
-                    {evidence.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                          <File className="h-4 w-4 text-muted-foreground shrink-0" />
-                          <span className="text-sm truncate">{item.file_name}</span>
-                          <Badge variant="outline" className="text-xs shrink-0">
-                            {formatFileSize(item.file_size)}
-                          </Badge>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDownload(item.storage_path, item.file_name)}
-                          className="shrink-0"
-                        >
-                          <Download className="h-3 w-3" />
-                        </Button>
+            {/* Attached Evidence Files - REQUIRED */}
+            <Separator />
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2 text-muted-foreground">
+                <Paperclip className="h-4 w-4" />
+                {t('investigation.actions.attachedFiles', 'Attached Files')} ({evidence?.length || 0})
+              </Label>
+              {evidence && evidence.length > 0 ? (
+                <div className="space-y-1">
+                  {evidence.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <File className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="text-sm truncate">{item.file_name}</span>
+                        <Badge variant="outline" className="text-xs shrink-0">
+                          {formatFileSize(item.file_size)}
+                        </Badge>
                       </div>
-                    ))}
-                  </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDownload(item.storage_path, item.file_name)}
+                        className="shrink-0"
+                      >
+                        <Download className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-              </>
-            )}
+              ) : (
+                <div className="p-3 bg-destructive/10 rounded-md border border-destructive/20 text-destructive text-sm flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span>{t('investigation.actions.noEvidenceVerification', 'No evidence attached. Verification requires evidence.')}</span>
+                </div>
+              )}
+            </div>
           </div>
 
           <Separator />
@@ -290,9 +297,13 @@ export function ActionVerificationDialog({
               </Button>
               <Button 
                 onClick={handleVerify} 
-                disabled={verifyAction.isPending}
+                disabled={verifyAction.isPending || !hasEvidence || isLoadingEvidence} // HARDENED GATE n57
               >
-                <CheckCircle2 className="h-4 w-4 me-2" />
+                {(verifyAction.isPending || isLoadingEvidence) ? (
+                  <Loader2 className="h-4 w-4 me-2 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4 me-2" />
+                )}
                 {t('investigation.approvals.verify', 'Verify')}
               </Button>
             </>

@@ -1,6 +1,17 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 
-interface WindowControlsOverlay {
+interface WindowControlsOverlay extends EventTarget {
+  visible: boolean;
+  getTitlebarAreaRect(): DOMRect;
+  addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+  removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+}
+
+interface NavigatorWithWCO extends Navigator {
+  windowControlsOverlay?: WindowControlsOverlay;
+}
+
+interface WindowControlsOverlayState {
   isSupported: boolean;
   isVisible: boolean;
   titlebarAreaRect: DOMRect | null;
@@ -13,7 +24,7 @@ interface WindowControlsOverlay {
  * 
  * @see https://developer.mozilla.org/en-US/docs/Web/API/Window_Controls_Overlay_API
  */
-export function useWindowControlsOverlay(): WindowControlsOverlay {
+export function useWindowControlsOverlay(): WindowControlsOverlayState {
   const [isSupported, setIsSupported] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [titlebarAreaRect, setTitlebarAreaRect] = useState<DOMRect | null>(null);
@@ -21,19 +32,21 @@ export function useWindowControlsOverlay(): WindowControlsOverlay {
 
   useEffect(() => {
     // Check if running as installed PWA
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const nav = window.navigator as any;
     const isStandalone = 
       window.matchMedia('(display-mode: standalone)').matches ||
       window.matchMedia('(display-mode: window-controls-overlay)').matches ||
-      (window.navigator as any).standalone === true;
+      nav.standalone === true;
     
     setIsPWAMode(isStandalone);
 
     // Check if Window Controls Overlay API is available
-    const wco = (navigator as any).windowControlsOverlay;
+    const wco = (navigator as NavigatorWithWCO).windowControlsOverlay;
     const supported = !!wco;
     setIsSupported(supported);
 
-    if (!supported) return;
+    if (!supported || !wco) return;
 
     // Get initial visibility state
     setIsVisible(wco.visible);
@@ -49,6 +62,7 @@ export function useWindowControlsOverlay(): WindowControlsOverlay {
     }
 
     // Listen for geometry changes
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleGeometryChange = (event: any) => {
       setIsVisible(event.visible);
       if (event.titlebarAreaRect) {

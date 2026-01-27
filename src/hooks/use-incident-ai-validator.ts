@@ -55,6 +55,11 @@ export type IncidentValidationState =
   | 'analysis_ready'
   | 'validated';
 
+export interface IncidentContext {
+  location?: string;
+  assetId?: string;
+}
+
 export interface UseIncidentAIValidatorReturn {
   // State
   validationState: IncidentValidationState;
@@ -63,7 +68,7 @@ export interface UseIncidentAIValidatorReturn {
   processingTime: number;
   
   // Actions
-  analyzeIncident: (title: string, description: string) => Promise<void>;
+  analyzeIncident: (title: string, description: string, context?: IncidentContext) => Promise<void>;
   confirmTranslation: () => void;
   confirmAnalysis: () => void;
   reset: () => void;
@@ -102,7 +107,7 @@ export function useIncidentAIValidator(): UseIncidentAIValidatorReturn {
     setProcessingTime(Math.floor((Date.now() - startTimeRef.current) / 1000));
   }, []);
 
-  const analyzeIncident = useCallback(async (title: string, description: string) => {
+  const analyzeIncident = useCallback(async (title: string, description: string, context?: IncidentContext) => {
     // Reset state
     setError(null);
     setAnalysisResult(null);
@@ -114,7 +119,8 @@ export function useIncidentAIValidator(): UseIncidentAIValidatorReturn {
         body: { 
           description,
           title,
-          responseLanguage: i18n.language 
+          responseLanguage: i18n.language,
+          context: context || {} // Pass context to Edge Function
         }
       });
 

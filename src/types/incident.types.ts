@@ -11,13 +11,45 @@ export type IncidentSeverity =
   | 'critical'
   | 'catastrophic';
 
+// Incident stages (High Level)
+export type IncidentStage =
+  | 'Draft'
+  | 'Screening'
+  | 'Investigation'
+  | 'Governance'
+  | 'Action_Management'
+  | 'Closed';
+
 // Incident status
 export type IncidentStatus = 
   | 'draft'
   | 'submitted'
+  | 'pending_expert_screening'
+  | 'pending_dept_rep_approval'
+  | 'pending_contractor_screening'
+  | 'pending_consultant_screening'
+  | 'pending_site_client_approval'
+  | 'pending_contractor_implementation'
   | 'under_investigation'
+  | 'pending_investigator_assignment'
+  | 'pending_witness_review'
+  | 'pending_rca_locking'
+  | 'pending_hsse_validation'
+  | 'pending_legal_review'
+  | 'dispute_resolution'
+  | 'pending_contractor_dispute_review'
+  | 'pending_violation_approval'
+  | 'pending_fine_calculation'
+  | 'pending_action_completion'
+  | 'pending_action_verification'
+  | 'observation_actions_pending'
+  | 'pending_final_closure'
+  | 'monitoring_30_day'
+  | 'monitoring_60_day'
+  | 'monitoring_90_day'
   | 'pending_action'
   | 'closed'
+  | 'rejected_invalid'
   | 'reopened';
 
 // Incident types
@@ -76,13 +108,20 @@ export interface Incident {
   description: string;
   severity: IncidentSeverity;
   status: IncidentStatus;
+  stage?: IncidentStage | null;
   
+  // V1.1 Workflow Fields
+  is_auto_escalated?: boolean;
+  sla_screening_start_time?: string | null;
+  ai_analysis_data?: Record<string, unknown> | null;
+
   // When & where
   incident_date: string;
   incident_time?: string | null;
   location_description?: string | null;
-  site_id?: string | null;
-  branch_id?: string | null;
+  site_id: string;
+  branch_id: string;
+  department_id: string;
   gps_lat?: number | null;
   gps_lng?: number | null;
   

@@ -90,10 +90,10 @@ export function WitnessTaskAssignment({ incidentId, onAssigned }: WitnessTaskAss
         incident_id: incidentId,
         name: witnessName,
         relationship: relationship || undefined,
-        statement: notes || undefined,
-        statement_type: "direct_entry",
+        statement: notes || " ", // statement is required - use space as placeholder
+        statement_method: "text",
         assigned_witness_id: selectedUserId,
-        assignment_status: "pending",
+        status: "pending",
       });
 
       toast.success(t("investigation.witnesses.taskAssigned", "Task assigned successfully"));

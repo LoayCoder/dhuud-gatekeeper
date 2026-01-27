@@ -262,8 +262,8 @@ export default function MyActions() {
   // Fully closed actions (verified & finalized)
   const closedActions = allActions?.filter(a => a.status === 'closed' || a.status === 'verified') || [];
 
-  // Include null assignment_status for unassigned statements
-  const pendingWitness = witnessStatements?.filter(w => w.assignment_status === 'pending' || w.assignment_status === 'in_progress' || w.assignment_status === null) || [];
+  // Use status field instead of assignment_status (which may not exist in the hook return type)
+  const pendingWitness = witnessStatements?.filter((w: any) => w.status === 'pending' || w.status === 'returned' || w.status === null) || [];
 
   // Calculate overdue actions (past due date, not closed)
   const today = new Date();
@@ -1028,18 +1028,18 @@ export default function MyActions() {
                           </Badge>
                         )}
                         <Badge 
-                          variant={statement.assignment_status === 'pending' ? (isReturned ? 'destructive' : 'secondary') : statement.assignment_status === 'approved' ? 'default' : 'secondary'}
+                          variant={(statement as any).status === 'pending' ? (isReturned ? 'destructive' : 'secondary') : (statement as any).status === 'approved' ? 'default' : 'secondary'}
                           className="whitespace-nowrap"
                         >
-                          {statement.assignment_status === 'completed' 
+                          {(statement as any).status === 'completed' 
                             ? t('investigation.witnesses.status.awaitingReview', 'Awaiting Review')
-                            : t(`investigation.witnesses.status.${statement.assignment_status}`, statement.assignment_status || 'pending')}
+                            : String(t(`investigation.witnesses.status.${(statement as any).status}`, (statement as any).status || 'pending'))}
                         </Badge>
                       </div>
                       
                       {/* Title and Description */}
                       <div className="flex items-start gap-2">
-                        {getStatusIcon(statement.assignment_status)}
+                        {getStatusIcon((statement as any).status)}
                         <div className="min-w-0 flex-1">
                           <CardTitle className="text-base line-clamp-2">
                             {t('investigation.witnesses.statementRequest', 'Witness Statement Request')}
@@ -1071,7 +1071,7 @@ export default function MyActions() {
                       )}
                     </div>
                     
-                    {statement.assignment_status !== 'completed' && statement.assignment_status !== 'approved' && (
+                    {(statement as any).status !== 'completed' && (statement as any).status !== 'approved' && (
                       <Button onClick={() => setSelectedWitnessTask({ id: statement.id, incident_id: statement.incident_id })}>
                         {isReturned 
                           ? t('investigation.witnesses.resubmitStatement', 'Resubmit Statement')
