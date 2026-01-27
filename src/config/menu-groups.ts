@@ -116,6 +116,15 @@ export const menuGroups: MenuGroup[] = [
     sortOrder: 30,
   },
   
+  // Department Gate Passes
+  {
+    code: "dept_gate_passes",
+    title: { en: "Gate Passes", ar: "تصاريح الدخول" },
+    translationKey: "navigation.deptGatePasses",
+    icon: FileKey,
+    sortOrder: 15,
+  },
+  
   // Asset Management
   {
     code: "asset_management",

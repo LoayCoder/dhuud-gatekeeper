@@ -436,6 +436,39 @@ export function AppSidebar() {
         },
       ],
     },
+    // Department Gate Passes - for Department Representatives
+    {
+      title: t('navigation.deptGatePasses', 'Gate Passes'),
+      icon: FileKey,
+      menuCode: 'dept_gate_passes',
+      isActive: location.pathname.startsWith("/dept-gate-passes"),
+      items: [
+        {
+          title: t('deptGatePasses.dashboard.title', 'Dashboard'),
+          url: "/dept-gate-passes",
+          icon: LayoutDashboard,
+          menuCode: 'dept_gate_pass_dashboard',
+        },
+        {
+          title: t('deptGatePasses.list.title', 'All Passes'),
+          url: "/dept-gate-passes/list",
+          icon: List,
+          menuCode: 'dept_gate_pass_list',
+        },
+        {
+          title: t('deptGatePasses.approvals.title', 'Pending Approvals'),
+          url: "/dept-gate-passes/approvals",
+          icon: Clock,
+          menuCode: 'dept_gate_pass_approvals',
+        },
+        {
+          title: t('deptGatePasses.today.title', "Today's Passes"),
+          url: "/dept-gate-passes/today",
+          icon: Calendar,
+          menuCode: 'dept_gate_pass_today',
+        },
+      ],
+    },
     {
       title: t('navigation.assetManagement'),
       icon: Package,
@@ -1024,7 +1057,7 @@ export function AppSidebar() {
   }, [menuItems, canAccess, menuLoading]);
 
   return (
-    <Sidebar collapsible="icon" side={isRtl ? "right" : "left"}>
+    <Sidebar collapsible="icon" side="left">
       {/* HEADER: Tenant Brand */}
       <SidebarHeader>
         <SidebarMenu>

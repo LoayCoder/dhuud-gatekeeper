@@ -55,7 +55,9 @@ export function useAssets(filters: AssetFilters = {}) {
           category:asset_categories!hsse_assets_category_id_fkey(id, name, name_ar, icon),
           type:asset_types!hsse_assets_type_id_fkey(id, name, name_ar),
           branch:branches!hsse_assets_branch_id_fkey(id, name),
-          site:sites!hsse_assets_site_id_fkey(id, name)
+          site:sites!hsse_assets_site_id_fkey(id, name),
+          building:buildings!hsse_assets_building_id_fkey(id, name, name_ar),
+          floor_zone:floors_zones!hsse_assets_floor_zone_id_fkey(id, name, name_ar)
         `, { count: 'exact' })
         .eq('tenant_id', tenantId)
         .is('deleted_at', null)
