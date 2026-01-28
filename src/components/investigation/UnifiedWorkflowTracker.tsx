@@ -80,7 +80,8 @@ export function UnifiedWorkflowTracker({
   const isContractor = !!incident.related_contractor_company_id;
   const severity = (incident as any).severity_v2 || (incident as any).severity_level;
   
-  // Parse severity level number
+  // Contractor observations: no Expert Review step (HSSE is only via manual escalation)
+  // Non-contractor observations: Expert Review may still be shown for L3+
   const getSeverityLevel = (): number => {
     if (typeof severity === 'number') return severity;
     if (typeof severity === 'string') {
@@ -91,7 +92,8 @@ export function UnifiedWorkflowTracker({
   };
   
   const severityLevel = getSeverityLevel();
-  const isLevel3Plus = severityLevel >= 3;
+  // Only show Expert Review step for NON-contractor L3+ observations
+  const showExpertReviewStep = !isContractor && severityLevel >= 3;
 
   // Determine step status based on current incident status
   const getStepStatus = (stepStatuses: string[], nextSteps: string[][]): StepStatus => {
@@ -135,8 +137,9 @@ export function UnifiedWorkflowTracker({
       timestamp: workflowActors?.initial_reviewer?.timestamp,
     });
     
-    // Step 3: Expert Review (conditional for Level 3+)
-    if (isLevel3Plus || EXPERT_REVIEW_STATUSES.includes(status)) {
+    // Step 3: Expert Review (only for NON-contractor L3+ observations or if already in that status)
+    // Contractor observations skip this - HSSE is only via manual escalation button
+    if (showExpertReviewStep || EXPERT_REVIEW_STATUSES.includes(status)) {
       steps.push({
         key: 'expert_review',
         label: t('workflow.unified.expertReview', 'Expert Review'),

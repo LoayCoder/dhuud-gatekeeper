@@ -107,15 +107,12 @@ export function ConsultantReviewCard({
     return null;
   }
 
-  // Severity-based routing logic
-  const isHighSeverity = severityLevel === 'level_3' || 
-                         severityLevel === 'level_4' || 
-                         severityLevel === 'level_5';
-  
-  // Close on Spot is only available for Level 1-2
-  const canCloseOnSpot = !isHighSeverity && (severityLevel === 'level_1' || severityLevel === 'level_2');
-  
+  // Contractor Consultant can take action on ALL severity levels
+  // No severity-based routing restrictions anymore
   const severityConfig = severityLevel ? getSeverityConfig(severityLevel) : null;
+  
+  // Close on Spot is available for ALL severity levels for contractor observations
+  const canCloseOnSpot = true;
   
   // Validation
   const canSubmit = actionsCount >= 1 && notes.trim().length > 0;
@@ -196,29 +193,15 @@ export function ConsultantReviewCard({
               <Badge className={severityConfig.bgColor}>
                 {t(`severity.${severityLevel}.label`, severityLevel)}
               </Badge>
-              {isHighSeverity && (
-                <Badge variant="outline" className="ms-auto text-warning border-warning/30">
-                  <ArrowUpRight className="h-3 w-3 me-1" />
-                  {t('workflow.consultant.requiresHSSE', 'Requires HSSE Review')}
-                </Badge>
-              )}
             </div>
           )}
 
-          {/* Routing Info Alert */}
-          <Alert className={isHighSeverity ? 'border-warning/30 bg-warning/5' : 'border-info/30 bg-info/5'}>
-            {isHighSeverity ? (
-              <AlertTriangle className="h-4 w-4 text-warning" />
-            ) : (
-              <Info className="h-4 w-4 text-info" />
-            )}
+          {/* Routing Info Alert - Always routes to Site Client */}
+          <Alert className="border-info/30 bg-info/5">
+            <Info className="h-4 w-4 text-info" />
             <AlertDescription>
-              {isHighSeverity 
-                ? t('workflow.consultant.highSeverityInfo', 
-                    'This is a Level 3+ observation. After your review, it will be escalated to HSSE Expert for approval before going to Site Client.')
-                : t('workflow.consultant.lowSeverityInfo', 
-                    'This is a Level 1-2 observation. After your review, it will go directly to Site Client for approval.')
-              }
+              {t('workflow.consultant.routingInfo', 
+                'After your review, this will be sent to Site Client for approval. You may also escalate to HSSE Manager if needed.')}
             </AlertDescription>
           </Alert>
 
@@ -278,31 +261,24 @@ export function ConsultantReviewCard({
               >
                 {isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
-                ) : isHighSeverity ? (
-                  <ArrowUpRight className="h-4 w-4" />
                 ) : (
                   <Send className="h-4 w-4" />
                 )}
-                {isHighSeverity 
-                  ? t('workflow.consultant.submitToHSSE', 'Submit to HSSE Expert')
-                  : t('workflow.submitForApproval', 'Submit for Approval')
-                }
+                {t('workflow.consultant.submitToSiteClient', 'Submit to Site Client')}
               </Button>
             </div>
 
             {/* Secondary row - Close on Spot + Escalate */}
             <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-border/50">
-              {/* Close on Spot - only for Level 1-2 */}
-              {canCloseOnSpot && (
-                <Button
-                  variant="secondary"
-                  onClick={() => setShowCloseOnSpotDialog(true)}
-                  className="flex-1 gap-2 bg-success/10 hover:bg-success/20 text-success border-success/30"
-                >
-                  <CheckCircle className="h-4 w-4" />
-                  {t('workflow.consultant.closeOnSpot', 'Close on Spot')}
-                </Button>
-              )}
+              {/* Close on Spot - available for ALL severity levels */}
+              <Button
+                variant="secondary"
+                onClick={() => setShowCloseOnSpotDialog(true)}
+                className="flex-1 gap-2 bg-success/10 hover:bg-success/20 text-success border-success/30"
+              >
+                <CheckCircle className="h-4 w-4" />
+                {t('workflow.consultant.closeOnSpot', 'Close on Spot')}
+              </Button>
 
               {/* Escalate to HSSE Manager */}
               <Button

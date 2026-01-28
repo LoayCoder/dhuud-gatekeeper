@@ -45,11 +45,8 @@ export function useConsultantCloseOnSpot() {
       if (fetchError) throw fetchError;
       if (!incident) throw new Error('Incident not found');
 
-      // Verify severity is Level 1-2
-      const severity = incident.severity_v2;
-      if (severity && !['level_1', 'level_2'].includes(severity)) {
-        throw new Error('Close on Spot is only available for Level 1-2 observations');
-      }
+      // Contractor Consultant can close on spot for ALL severity levels
+      // No severity restriction for contractor observations
 
       // Must be a contractor observation
       if (!incident.related_contractor_company_id) {
