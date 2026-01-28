@@ -303,6 +303,7 @@ export default function InvestigationWorkspace() {
     'monitoring_90_day',
     'pending_hsse_incident_validation',
     // Contractor consultant workflow statuses
+    'expert_screening',
     'pending_consultant_screening',
     'pending_consultant_review',
     'pending_consultant_actions',
