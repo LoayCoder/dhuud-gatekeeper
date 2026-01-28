@@ -334,11 +334,19 @@ export function useCreateCorrectiveAction() {
         throw new Error('User not authenticated');
       }
 
+      // Fetch incident's branch_id for proper branch isolation
+      const { data: incident } = await supabase
+        .from('incidents')
+        .select('branch_id')
+        .eq('id', action.incident_id)
+        .single();
+
       const { data, error } = await supabase
         .from('corrective_actions')
         .insert({
           ...action,
           tenant_id: profile.tenant_id,
+          branch_id: incident?.branch_id || null,
           status: 'assigned',
         })
         .select()
