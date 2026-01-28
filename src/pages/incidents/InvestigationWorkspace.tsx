@@ -84,6 +84,7 @@ import {
 import { ActionDisputeReviewCard, ConsultantReviewCard } from "@/components/investigation/contractor-workflow";
 import { HSSEEnforcementBanner } from "@/components/investigation/HSSEEnforcementBanner";
 import { ObservationWorkflowTracker } from "@/components/investigation/ObservationWorkflowTracker";
+import { UnifiedWorkflowTracker } from "@/components/investigation/UnifiedWorkflowTracker";
 import { ReopenIncidentDialog } from "@/components/investigation/ReopenIncidentDialog";
 import { InjuryPanel } from "@/components/investigation/InjuryPanel";
 import { ClinicUserAssignmentCard } from "@/components/investigation/ClinicUserAssignmentCard";
@@ -849,12 +850,11 @@ export default function InvestigationWorkspace() {
             <IncidentClosurePrerequisitesCard incidentId={selectedIncidentId} />
           )}
 
-          {/* Observation Workflow Tracker */}
+          {/* Unified Observation Workflow Tracker - Single consistent timeline for all observations */}
           {incidentData?.event_type === 'observation' && (
-            <ObservationWorkflowTracker 
+            <UnifiedWorkflowTracker 
               incident={incidentData}
               variant="horizontal"
-              showSeverityRouting={true}
             />
           )}
 
