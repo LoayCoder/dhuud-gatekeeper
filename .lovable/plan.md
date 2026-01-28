@@ -1,182 +1,181 @@
 
 
-# Observation Action Workflow - Same Issues Confirmed
+# Comprehensive Reporting Health Check - Issues Found
 
-## Analysis Summary
+## Summary
 
-I verified the database and confirmed that **observations have the exact same issues** as incidents:
+After thorough analysis of the database schema, functions, and frontend code, I found **multiple critical issues** that are causing errors in both Incident and Observation reporting.
 
-### Evidence from Database
+---
 
-**Corrective Actions Missing branch_id:**
-| Action ID | Parent Observation | Observation branch_id | Action branch_id |
-|-----------|-------------------|----------------------|------------------|
-| 9d6b0e8b-... | OBS-2026-0002 | RGC | **NULL** |
-| 5192a03c-... | OBS-2026-0003 | RGC | **NULL** |
-| cb4c8396-... | OBS-2026-0003 | RGC | **NULL** |
+## Critical Database Issues Found
 
-**has_hsse_incident_access Function:**
-```sql
--- Current function (contractor_consultant is MISSING):
-SELECT has_role(_user_id, 'admin'::app_role) 
-  OR has_role_by_code(_user_id, 'hsse_officer')
-  OR has_role_by_code(_user_id, 'hsse_investigator')
-  OR has_role_by_code(_user_id, 'hsse_manager')
-  OR has_role_by_code(_user_id, 'incident_analyst')
-  OR has_role_by_code(_user_id, 'emergency_response_leader')
-  OR has_role_by_code(_user_id, 'manager')
-  OR has_role_by_code(_user_id, 'department_representative')
-  -- ❌ contractor_consultant is NOT here
+### Issue 1: `reported_by` Column Does Not Exist
+**Affected Tables:** `incidents`
+**Correct Column:** `reporter_id`
+
+The `incidents` table uses `reporter_id`, but several database functions and frontend code use the non-existent `reported_by` column.
+
+**Evidence from postgres logs:**
+```
+ERROR: column incidents.reported_by does not exist
+ERROR: column "reported_by" does not exist
 ```
 
 ---
 
-## Confirmed: Same Fix Applies to Both
+### Issue 2: `observations` Table Does Not Exist
+**Reality:** Observations are stored in the `incidents` table with `event_type = 'observation'`
 
-Both incidents and observations use the same code paths:
-- `useCreateCorrectiveAction` hook in `use-investigation.ts`
-- `has_hsse_incident_access` database function
-- `corrective_actions` table with same RLS policies
+Several database functions query a non-existent `observations` table.
+
+---
+
+### Issue 3: `closed_at` Column Does Not Exist in Incidents
+**Affected Tables:** `incidents`
+**Reality:** The `incidents` table uses `closure_approved_at` for closure tracking
+
+**Evidence from postgres logs:**
+```
+ERROR: column "closed_at" does not exist
+```
+
+---
+
+### Issue 4: `assigned_to` Column Does Not Exist in Incidents
+**Affected Tables:** `incidents`
+**Reality:** Investigation assignment is tracked in the `investigations` table with `investigator_id` or `team_leader_id`
+
+---
+
+## Affected Database Functions
+
+| Function Name | Issue | Required Fix |
+|---------------|-------|--------------|
+| `get_my_reporting_stats` | Uses `reported_by` and queries `observations` table | Change to `reporter_id` and `incidents` with `event_type` filter |
+| `get_anonymous_leaderboard` | Queries `observations` table | Query `incidents` with `event_type = 'observation'` |
+| `get_dashboard_quick_action_counts` | Uses `reported_by` | Change to `reporter_id` |
+| `has_confidentiality_access` | Uses `reported_by` and `assigned_to` | Change to `reporter_id` and join `investigations` table |
+| `get_user_badge_stats` | Queries `observations` table | Query `incidents` with `event_type = 'observation'` |
+
+---
+
+## Affected Frontend Files
+
+| File | Issue | Required Fix |
+|------|-------|--------------|
+| `src/components/dashboard/personal/RecentActivityFeed.tsx` | Uses `.eq('reported_by', userId)` and queries `observations` table | Change to `reporter_id` and query `incidents` with `event_type` filter |
+| `src/lib/offline-report-sync.ts` | Inserts with `reported_by: user_id` | Change to `reporter_id: user_id` |
 
 ---
 
 ## Implementation Plan
 
-### 1. Update Frontend Hook: Add branch_id to Action Creation
+### Step 1: Fix Database Functions (Priority: CRITICAL)
 
-**File:** `src/hooks/use-investigation.ts`
-
-**Change:** Fetch the incident's branch_id before inserting the action:
-
-```typescript
-export function useCreateCorrectiveAction() {
-  const { profile, user } = useAuth();
-  const queryClient = useQueryClient();
-  const { t } = useTranslation();
-
-  return useMutation({
-    mutationFn: async (action: {
-      incident_id: string;
-      title: string;
-      description?: string;
-      assigned_to?: string;
-      responsible_department_id?: string;
-      start_date?: string;
-      due_date?: string;
-      priority?: string;
-      action_type?: string;
-      category?: string;
-      linked_root_cause_id?: string;
-      linked_cause_type?: string;
-    }) => {
-      if (!profile?.tenant_id || !user?.id) {
-        throw new Error('User not authenticated');
-      }
-
-      // Fetch incident's branch_id for proper branch isolation
-      const { data: incident } = await supabase
-        .from('incidents')
-        .select('branch_id')
-        .eq('id', action.incident_id)
-        .single();
-
-      const { data, error } = await supabase
-        .from('corrective_actions')
-        .insert({
-          ...action,
-          tenant_id: profile.tenant_id,
-          branch_id: incident?.branch_id || null, // Include branch_id
-          status: 'assigned',
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      // ... rest of function unchanged
-    },
-    // ... callbacks unchanged
-  });
-}
-```
-
----
-
-### 2. Database Migration: Add contractor_consultant to Access Function
-
-**SQL Migration:**
-
+#### 1.1 Fix `get_my_reporting_stats`
 ```sql
--- Add contractor_consultant to has_hsse_incident_access function
--- This grants explicit HSSE-level incident access to Contractor Consultants
-CREATE OR REPLACE FUNCTION public.has_hsse_incident_access(_user_id uuid)
-RETURNS boolean
-LANGUAGE sql
-STABLE SECURITY DEFINER
+CREATE OR REPLACE FUNCTION public.get_my_reporting_stats()
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
 SET search_path = public
 AS $$
-  SELECT has_role(_user_id, 'admin'::app_role) 
-    OR has_role_by_code(_user_id, 'hsse_officer')
-    OR has_role_by_code(_user_id, 'hsse_investigator')
-    OR has_role_by_code(_user_id, 'hsse_manager')
-    OR has_role_by_code(_user_id, 'incident_analyst')
-    OR has_role_by_code(_user_id, 'emergency_response_leader')
-    OR has_role_by_code(_user_id, 'manager')
-    OR has_role_by_code(_user_id, 'department_representative')
-    OR has_role_by_code(_user_id, 'contractor_consultant')
+DECLARE
+  -- ... existing declarations ...
+BEGIN
+  -- Replace all occurrences of:
+  --   reported_by → reporter_id
+  --   FROM observations → FROM incidents WHERE event_type = 'observation'
+  
+  -- Example fix:
+  SELECT COUNT(*) INTO v_my_incidents
+  FROM incidents
+  WHERE reporter_id = v_user_id  -- Changed from reported_by
+    AND tenant_id = v_tenant_id
+    AND event_type = 'incident'  -- Added filter
+    AND deleted_at IS NULL;
+  
+  SELECT COUNT(*) INTO v_my_observations
+  FROM incidents
+  WHERE reporter_id = v_user_id  -- Changed from reported_by
+    AND tenant_id = v_tenant_id
+    AND event_type = 'observation'  -- Changed from observations table
+    AND deleted_at IS NULL;
+  -- ... rest of function with same pattern ...
+END;
 $$;
 ```
 
+#### 1.2 Fix `get_anonymous_leaderboard`
+Replace all `FROM observations` with `FROM incidents WHERE event_type = 'observation'` and `reported_by` with `reporter_id`.
+
+#### 1.3 Fix `get_dashboard_quick_action_counts`
+Change `reported_by` to `reporter_id`.
+
+#### 1.4 Fix `has_confidentiality_access`
+Change `reported_by` to `reporter_id` and handle `assigned_to` by joining with `investigations` table to check `investigator_id` or `team_leader_id`.
+
+#### 1.5 Fix `get_user_badge_stats`
+Replace `FROM observations` queries with `FROM incidents WHERE event_type = 'observation'` and change `reported_by` to `reporter_id`.
+
 ---
 
-### 3. Optional: Fix Existing Actions with NULL branch_id
+### Step 2: Fix Frontend Code
 
-**Data Fix (one-time):**
+#### 2.1 Fix `RecentActivityFeed.tsx` (Lines 34-52)
+```typescript
+// Before (broken):
+.eq('reported_by', userId)
+client.from('observations')
 
-```sql
--- Backfill branch_id for existing corrective actions
-UPDATE corrective_actions ca
-SET branch_id = i.branch_id
-FROM incidents i
-WHERE ca.incident_id = i.id
-  AND ca.branch_id IS NULL
-  AND i.branch_id IS NOT NULL
-  AND ca.deleted_at IS NULL;
+// After (fixed):
+.eq('reporter_id', userId)
+client.from('incidents').eq('event_type', 'observation')
+```
+
+#### 2.2 Fix `offline-report-sync.ts` (Line 205)
+```typescript
+// Before (broken):
+reported_by: user_id,
+
+// After (fixed):
+reporter_id: user_id,
 ```
 
 ---
 
-## Files to Modify
+## Technical Summary
 
-| File | Change Type | Description |
-|------|-------------|-------------|
-| `src/hooks/use-investigation.ts` | Frontend | Add branch_id from incident when creating actions |
-| Database Migration | SQL | Add `contractor_consultant` to `has_hsse_incident_access` |
-| Database (optional) | SQL | Backfill existing NULL branch_id values |
+### Database Functions to Update (5 functions):
+1. `get_my_reporting_stats` - Full rewrite with correct columns
+2. `get_anonymous_leaderboard` - Replace observations table queries
+3. `get_dashboard_quick_action_counts` - Fix reported_by → reporter_id
+4. `has_confidentiality_access` - Fix reported_by and assigned_to references
+5. `get_user_badge_stats` - Replace observations table queries
 
----
-
-## Testing After Implementation
-
-### For Observations:
-1. Log in as Ruyuf (Contractor Consultant)
-2. Open a contractor observation (e.g., OBS-2026-0048) in `expert_screening` status
-3. Navigate to Actions tab
-4. Create a new corrective action
-5. Verify action is created with correct `branch_id` (RGC)
-
-### For Incidents:
-1. Log in as HSSE Investigator
-2. Open an incident in `investigation_in_progress` status
-3. Create a new corrective action
-4. Verify action is created with correct `branch_id`
+### Frontend Files to Update (2 files):
+1. `src/components/dashboard/personal/RecentActivityFeed.tsx`
+2. `src/lib/offline-report-sync.ts`
 
 ---
 
-## Impact Assessment
+## Risk Assessment
 
-| Change | Risk | Scope |
-|--------|------|-------|
-| Add branch_id to action insert | Low | Improves data integrity for branch reporting |
-| Add contractor_consultant to access function | Low | Explicitly grants access already working via fallback |
-| Backfill existing NULL branch_id | Low | One-time data cleanup |
+| Change | Risk | Impact |
+|--------|------|--------|
+| Fix database functions | Medium | All reporting stats will work correctly |
+| Fix frontend queries | Low | Activity feed and offline sync will work |
+| Remove observations table references | Medium | Must ensure all queries use correct pattern |
+
+---
+
+## Expected Outcome
+
+After implementation:
+- No more `column does not exist` errors
+- Reporting statistics will display correctly
+- Activity feeds will show user's incidents and observations
+- Offline sync will work properly
+- Leaderboard and badge stats will be accurate
 
