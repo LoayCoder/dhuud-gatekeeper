@@ -487,7 +487,10 @@ export function useMyReportedIncidents() {
   });
 }
 
-// Hook to get corrective actions assigned to the current user (only released actions)
+// Hook to get corrective actions assigned to the current user
+// Logic: Actions are visible if:
+// 1. They are explicitly released (investigation approved)
+// 2. OR they belong to an Observation (which may skip formal investigation/release)
 export function useMyCorrectiveActions() {
   const { user, profile } = useAuth();
 
@@ -496,23 +499,34 @@ export function useMyCorrectiveActions() {
     queryFn: async () => {
       if (!user?.id || !profile?.tenant_id) return [];
 
-      // Only show actions that have been released (investigation approved by HSSE Manager)
       const { data, error } = await supabase
         .from('corrective_actions')
         .select(`
           id, reference_id, title, description, status, priority, due_date, incident_id, 
           created_at, completed_date, released_at, return_count,
           rejection_notes, last_return_reason, rejected_at,
-          rejected_by_profile:profiles!corrective_actions_rejected_by_fkey(id, full_name)
+          rejected_by_profile:profiles!corrective_actions_rejected_by_fkey(id, full_name),
+          incident:incidents!corrective_actions_incident_id_fkey(event_type)
         `)
         .eq('assigned_to', user.id)
         .eq('tenant_id', profile.tenant_id)
         .is('deleted_at', null)
-        .not('released_at', 'is', null) // Only show released actions
         .order('due_date', { ascending: true, nullsFirst: false });
 
       if (error) throw error;
-      return data;
+
+      // Client-side filtering to implement complex OR logic not easily done in simple Supabase query
+      // Show action if:
+      // 1. released_at is NOT null (Incident/Investigation workflow)
+      // 2. OR incident.event_type is 'observation' (Observation workflow)
+      // 3. OR incident relationship is missing (Edge case, default to show if assigned)
+      return data.filter(action => {
+        const isReleased = action.released_at !== null;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const isObservation = (action.incident as any)?.event_type === 'observation';
+
+        return isReleased || isObservation;
+      });
     },
     enabled: !!user?.id && !!profile?.tenant_id,
   });
