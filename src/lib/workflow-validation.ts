@@ -16,11 +16,11 @@ export async function validateIncidentGate(incidentId: string): Promise<{ valid:
   }
 
   // 2. Check Witness Statements - select specific columns
+  // Note: witness_statements table does not have a status column
   const { data: witness, error: witError } = await supabase
     .from('witness_statements')
     .select('id')
     .eq('incident_id', incidentId);
-    // Note: status column may not exist in witness_statements table
 
   // Note: Witness might not be mandatory for all, but if present, must be approved.
   // If mandatory:
