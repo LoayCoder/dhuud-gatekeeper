@@ -26529,6 +26529,15 @@ export type Database = {
         | "pending_consultant_review"
         | "pending_consultant_actions"
         | "pending_action_dispute_review"
+        | "pending_department_manager_violation_approval"
+        | "pending_contract_controller_approval"
+        | "pending_contractor_site_rep_approval"
+        | "pending_hsse_violation_review"
+        | "contractor_violation_enforced"
+        | "contractor_violation_approved_fine"
+        | "contractor_violation_cancelled"
+        | "contractor_violation_warning"
+        | "contractor_violation_terminated"
       maintenance_frequency:
         | "daily"
         | "weekly"
@@ -26880,6 +26889,15 @@ export const Constants = {
         "pending_consultant_review",
         "pending_consultant_actions",
         "pending_action_dispute_review",
+        "pending_department_manager_violation_approval",
+        "pending_contract_controller_approval",
+        "pending_contractor_site_rep_approval",
+        "pending_hsse_violation_review",
+        "contractor_violation_enforced",
+        "contractor_violation_approved_fine",
+        "contractor_violation_cancelled",
+        "contractor_violation_warning",
+        "contractor_violation_terminated",
       ],
       maintenance_frequency: [
         "daily",
