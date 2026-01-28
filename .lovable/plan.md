@@ -1,321 +1,259 @@
 
-# Unified Observation & Incident Workflow Bug Fix Plan
+# Comprehensive Contractor Observation Workflow Fix
 
-## Executive Summary
+## Problem Summary
 
-This plan addresses three interconnected issues in the HSSA event reporting system related to Contractor Consultant workflow routing, capabilities, and UI consistency.
+Based on thorough database analysis:
 
-## Current State Analysis
-
-### Issue 1: Contractor Observation Routing to Contractor Consultant
-
-**Current Implementation:**
-- The `auto_route_observation_on_submit()` trigger function in the database is designed to route contractor-related observations to Contractor Consultants
-- When `related_contractor_company_id IS NOT NULL`, the system should:
-  - Find a `contractor_consultant` for the branch
-  - Set status to `pending_consultant_screening` (or legacy `expert_screening`)
-  - Assign `approval_manager_id` to the consultant
-
-**Identified Gap:**
-- There are multiple migration files with conflicting versions of the routing function
-- Some versions query `user_role_assignments.role` directly (text column that may not exist) instead of joining with the `roles` table properly
-- The trigger relies on `ura.role = 'contractor_consultant'` in some migrations but `r.code = 'contractor_consultant'` in others
-- This inconsistency can cause routing failures depending on which migration ran last
-
-**Fix Required:**
-Consolidate and fix the `auto_route_observation_on_submit()` function to:
-1. Always join `user_role_assignments` with `roles` table using `r.code`
-2. Properly set status to `pending_consultant_screening` for contractor observations
-3. Include tenant-wide fallback (where `branch_id IS NULL`)
+1. **44 total contractor observations** exist (not just 5)
+2. **36 are stuck** in `submitted` status with `approval_manager_id = NULL`
+3. **Ruyuf Al Otaibi's contractor_consultant role** has `branch_id = NULL` (should be RGC: `8a74df12-6b49-47db-a5a4-ae4d4ef0e7d0`)
+4. **Current workflow incorrectly routes** Level 3+ observations to HSSE Expert automatically
+5. **Contractor Consultant should handle ALL severity levels** directly, with optional manual escalation to HSSE Expert via button click
 
 ---
 
-### Issue 2: Contractor Consultant Full Capabilities
+## Changes Required
 
-**Current Implementation (Working Correctly):**
-- The `can_approve_investigation()` RPC function explicitly allows Contractor Consultants to act on contractor-related observations they reported (no self-approval restriction)
-- The `ConsultantReviewCard` component renders for statuses: `expert_screening`, `pending_consultant_screening`, `pending_consultant_review`, `pending_consultant_actions`
-- The `useCanReviewAsConsultant` hook properly checks branch-aware RBAC via `has_contractor_consultant_access_for_branch` RPC
+### 1. Fix Ruyuf's Role Assignment (Data Fix)
 
-**Current Capabilities:**
-- Review observation details
-- Create corrective actions via the Actions Panel
-- Submit notes and route based on severity (Level 1-2 to Site Client, Level 3+ to HSSE Expert)
-- Access to ActionsPanel tab when in consultant workflow statuses
+Update the `contractor_consultant` role assignment to have correct `branch_id = RGC`.
 
-**Missing Capabilities:**
-1. **Corrective Action Creation from Card:** The `ConsultantReviewCard` has a "Create Action" button but it calls `onActionCreated` which navigates to tab - not a direct inline action creation
-2. **Task Assignment:** No dedicated task assignment capability within the consultant screening flow
-3. **Close on Spot:** No quick close option for minor observations (unlike Department Rep who has this via `DeptRepApprovalCard`)
-4. **Escalation to HSSE:** While routing exists, there's no explicit "Escalate to HSSE Manager" action like Department Reps have
-
-**Fix Required:**
-Enhance `ConsultantReviewCard` to include:
-1. Inline action creation modal (similar to DeptRepApprovalCard pattern)
-2. "Close on Spot" option for Level 1-2 observations with evidence upload
-3. Clear escalation path to HSSE Manager for contractor-related disputes
-
----
-
-### Issue 3: Unified Workflow UI (Two Separate Timelines)
-
-**Current Implementation:**
-The system currently displays two different workflow tracker components:
-
-1. **`ObservationWorkflowTracker`** - For observations only, with:
-   - `getContractorWorkflowSteps()` - Shows contractor path (Consultant Screening → Dept Rep → HSSE Expert → Site Client → Contractor Implementation → Verification → Closed)
-   - `getNormalWorkflowSteps()` - Shows department path (Dept Rep Review → HSSE Expert → Actions → Closed)
-   - Different step counts and visual indicators per path
-
-2. **`InvestigationWorkflowStatusCard`** - For incidents only, with:
-   - Fixed workflow: Submitted → Dept Rep → Manager → Investigator → Investigation → Closure
-
-**Problem:**
-- Users see completely different workflow UIs based on whether the report is contractor-related vs non-contractor
-- Step counts, labels, and visual progression differ between paths
-- This creates confusion about where reports are in their lifecycle
-- The header explicitly says "Contractor Observation Path" vs "Standard Observation Path"
-
-**Fix Required:**
-Create a **Unified Workflow Tracker** that:
-1. Shows a single consistent timeline for all observations regardless of contractor involvement
-2. Uses generic stage names that apply to both paths
-3. Dynamically shows/hides role-specific steps based on report type
-4. Maintains visual consistency with the same step count structure
-
----
-
-## Technical Implementation Plan
-
-### Phase 1: Fix Contractor Observation Routing (Database)
-
-**File:** New migration file
-
+**SQL:**
 ```sql
--- Consolidate and fix auto_route_observation_on_submit()
-CREATE OR REPLACE FUNCTION public.auto_route_observation_on_submit()
-RETURNS TRIGGER AS $$
+UPDATE user_role_assignments
+SET branch_id = '8a74df12-6b49-47db-a5a4-ae4d4ef0e7d0'
+WHERE user_id = 'dc14c4cd-22c0-4d92-90b1-337c379d0cc2'
+  AND role_id = (SELECT id FROM roles WHERE code = 'contractor_consultant');
+```
+
+---
+
+### 2. Fix ALL Stuck Contractor Observations (Data Fix)
+
+Route all 36+ stuck contractor observations to the Contractor Consultant.
+
+**SQL:**
+```sql
+UPDATE incidents
+SET 
+  status = 'expert_screening',
+  approval_manager_id = 'dc14c4cd-22c0-4d92-90b1-337c379d0cc2',  -- Ruyuf
+  updated_at = NOW()
+WHERE status = 'submitted'
+  AND event_type = 'observation'
+  AND related_contractor_company_id IS NOT NULL
+  AND approval_manager_id IS NULL
+  AND deleted_at IS NULL;
+```
+
+---
+
+### 3. Fix Database Function: Remove Automatic HSSE Expert Routing
+
+Modify `consultant_complete_screening` function to route ALL severity levels directly to Site Client (not HSSE Expert automatically). HSSE Expert involvement will only happen when Consultant explicitly clicks "Escalate to HSSE" button.
+
+**Current Logic (Wrong):**
+```sql
+-- Level 1-2 → Site Client
+-- Level 3+ → HSSE Expert (automatic)
+```
+
+**New Logic (Correct):**
+```sql
+-- ALL Levels → Site Client (default)
+-- HSSE Expert → Only via explicit escalation button
+```
+
+**Updated Function:**
+```sql
+CREATE OR REPLACE FUNCTION public.consultant_complete_screening(
+  p_incident_id uuid,
+  p_notes text DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 DECLARE
-  v_assigned_to UUID;
-  v_new_status TEXT;
-  v_branch_id UUID;
+  v_tenant_id uuid;
+  v_old_status text;
+  v_new_status text;
+  v_user_id uuid;
 BEGIN
-  -- Only process observations on submission
-  IF NEW.event_type != 'observation' OR NEW.status != 'submitted' THEN
-    RETURN NEW;
+  v_user_id := auth.uid();
+  
+  SELECT tenant_id, status INTO v_tenant_id, v_old_status
+  FROM incidents
+  WHERE id = p_incident_id AND deleted_at IS NULL;
+  
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Incident not found');
   END IF;
-
-  -- Skip if already has approval_manager_id
-  IF NEW.approval_manager_id IS NOT NULL THEN
-    RETURN NEW;
+  
+  -- Accept both statuses for consultant screening stage
+  IF v_old_status NOT IN ('pending_consultant_screening', 'expert_screening') THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Observation not in consultant screening stage');
   END IF;
-
-  v_branch_id := COALESCE(NEW.branch_id, 
-    (SELECT branch_id FROM sites WHERE id = NEW.site_id));
-
-  -- CONTRACTOR OBSERVATIONS: Route to Contractor Consultant FIRST
-  IF NEW.related_contractor_company_id IS NOT NULL THEN
-    -- Branch-specific consultant
-    SELECT ura.user_id INTO v_assigned_to
-    FROM user_role_assignments ura
-    JOIN roles r ON r.id = ura.role_id
-    JOIN profiles p ON p.id = ura.user_id
-    WHERE ura.tenant_id = NEW.tenant_id
-      AND (ura.branch_id = v_branch_id OR ura.branch_id IS NULL)
-      AND r.code = 'contractor_consultant'
-      AND r.is_active = true
-      AND p.deleted_at IS NULL
-    ORDER BY 
-      CASE WHEN ura.branch_id = v_branch_id THEN 0 ELSE 1 END,
-      ura.created_at
-    LIMIT 1;
-    
-    IF v_assigned_to IS NOT NULL THEN
-      v_new_status := 'pending_consultant_screening';
-    END IF;
-  END IF;
-
-  -- NON-CONTRACTOR or FALLBACK: Route to Department Representative
-  IF v_assigned_to IS NULL THEN
-    SELECT ura.user_id INTO v_assigned_to
-    FROM user_role_assignments ura
-    JOIN roles r ON r.id = ura.role_id
-    JOIN profiles p ON p.id = ura.user_id
-    WHERE ura.tenant_id = NEW.tenant_id
-      AND (ura.branch_id = v_branch_id OR ura.branch_id IS NULL)
-      AND r.code = 'department_representative'
-      AND r.is_active = true
-      AND p.deleted_at IS NULL
-    ORDER BY 
-      CASE WHEN ura.branch_id = v_branch_id THEN 0 ELSE 1 END,
-      ura.created_at
-    LIMIT 1;
-    
-    v_new_status := 'pending_dept_rep_approval';
-  END IF;
-
-  -- Apply routing
-  IF v_assigned_to IS NOT NULL THEN
-    NEW.approval_manager_id := v_assigned_to;
-    NEW.status := v_new_status;
-  END IF;
-
-  RETURN NEW;
+  
+  -- ALL severity levels go to Site Client
+  -- HSSE Expert is ONLY via explicit escalation
+  v_new_status := 'pending_site_client_approval';
+  
+  UPDATE incidents
+  SET 
+    status = v_new_status,
+    consultant_screened_at = now(),
+    consultant_screening_notes = p_notes,
+    updated_at = now()
+  WHERE id = p_incident_id;
+  
+  INSERT INTO incident_audit_logs (incident_id, tenant_id, actor_id, action, details)
+  VALUES (
+    p_incident_id, 
+    v_tenant_id, 
+    v_user_id, 
+    'consultant_screening_complete',
+    jsonb_build_object(
+      'previous_status', v_old_status,
+      'new_status', v_new_status,
+      'routed_to', 'site_client',
+      'notes', p_notes
+    )
+  );
+  
+  RETURN jsonb_build_object('success', true, 'new_status', v_new_status, 'routed_to', 'site_client');
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$;
 ```
 
 ---
 
-### Phase 2: Enhance Contractor Consultant Capabilities (Frontend)
+### 4. Update Frontend: ConsultantReviewCard.tsx
 
-**File:** `src/components/investigation/contractor-workflow/ConsultantReviewCard.tsx`
-
-**Enhancements:**
-1. Add inline action creation dialog (reuse ActionProgressDialog pattern)
-2. Add "Close on Spot" button for Level 1-2 severity
-3. Add escalation button for HSSE Manager review
-4. Ensure all actions are properly logged to audit trail
-
-**New Props:**
-```typescript
-interface ConsultantReviewCardProps {
-  incidentId: string;
-  status: string;
-  severityLevel?: SeverityLevelV2;
-  // Add new props for enhanced capabilities
-  canCloseOnSpot?: boolean;
-  onActionCreate?: (action: ActionFormData) => void;
-  onEscalate?: () => void;
-}
-```
-
-**New Hook:** `src/hooks/use-consultant-actions.ts`
-- `useConsultantCloseOnSpot()` - Mutation for quick closure with evidence
-- `useConsultantEscalateToHSSE()` - Mutation to escalate to HSSE Manager
-
----
-
-### Phase 3: Unified Workflow Tracker (Frontend)
-
-**File:** `src/components/investigation/UnifiedWorkflowTracker.tsx` (New)
-
-Create a single unified component that replaces both `ObservationWorkflowTracker` and `InvestigationWorkflowStatusCard` for observations.
-
-**Design Approach:**
-1. Define 6 universal workflow stages that apply to all observation types:
-   - Submitted
-   - Initial Review (Consultant OR Dept Rep - dynamic label)
-   - Expert Review (Optional - only for L3+)
-   - Implementation Approval (Site Client OR skip)
-   - Actions & Verification
-   - Closed
-
-2. The component dynamically determines:
-   - Which role is responsible at each stage
-   - Which stages to show based on report characteristics
-   - Visual indicator for contractor vs department path
-
-3. Visual consistency:
-   - Same color scheme for all observations
-   - Same step node sizes and spacing
-   - Single unified title: "Observation Progress"
-   - Role badge shows current responsible party
-
-**Component Structure:**
-```typescript
-interface UnifiedWorkflowTrackerProps {
-  incident: IncidentWithDetails;
-  variant?: 'horizontal' | 'vertical' | 'compact';
-}
-
-const UNIFIED_STAGES = [
-  { key: 'submitted', label: 'Submitted' },
-  { key: 'review', label: 'Initial Review' },      // Dynamic: Consultant or Dept Rep
-  { key: 'expert', label: 'Expert Review' },        // Conditional: L3+ only
-  { key: 'approval', label: 'Approval' },           // Site Client or Manager
-  { key: 'actions', label: 'Actions' },             // Implementation & Verification
-  { key: 'closed', label: 'Closed' },
-];
-```
-
----
-
-### Phase 4: Update Investigation Workspace
-
-**File:** `src/pages/incidents/InvestigationWorkspace.tsx`
+Remove the severity-based UI restrictions and messaging. Allow Consultant to:
+- Take action on ALL severity levels (L1-L5)
+- Close on Spot for ALL levels (not just L1-2)
+- Submit to Site Client (always, not conditionally to HSSE)
+- Escalate to HSSE Expert via button (optional, manual)
 
 **Changes:**
-1. Replace separate tracker imports with unified tracker
-2. Remove conditional rendering based on contractor vs non-contractor
-3. Use single `<UnifiedWorkflowTracker />` for all observations
+- Remove `isHighSeverity` conditional styling
+- Remove "Requires HSSE Review" badge for L3+
+- Change submit button to always say "Submit to Site Client"
+- Keep "Escalate to HSSE" as an optional action
+- Allow "Close on Spot" for all severity levels
 
-```tsx
-// Before:
-{incidentData?.event_type === 'observation' && (
-  <ObservationWorkflowTracker 
-    incident={incidentData}
-    variant="horizontal"
-    showSeverityRouting={true}
-  />
-)}
+---
 
-// After:
-{incidentData?.event_type === 'observation' && (
-  <UnifiedWorkflowTracker 
-    incident={incidentData}
-    variant="horizontal"
-  />
-)}
+### 5. Update Frontend: UnifiedWorkflowTracker.tsx
+
+Remove the conditional "Expert Review" step for contractor observations. The unified workflow for contractor observations should be:
+
+**Simplified Flow:**
+```
+Submitted → Consultant Review → Site Client Approval → Actions → Closed
+```
+
+**Changes:**
+- Remove `isLevel3Plus` conditional logic for contractor path
+- Remove "Expert Review" step from contractor workflow (HSSE is optional escalation only)
+- Keep "Expert Review" step for non-contractor observations if needed
+
+---
+
+### 6. Update use-consultant-actions.ts
+
+Remove the severity restriction for Close on Spot:
+- Currently only allows L1-L2
+- Should allow ALL severity levels for contractor observations
+
+---
+
+## Files to Modify
+
+| File | Change Type | Description |
+|------|-------------|-------------|
+| Database (data fix) | SQL UPDATE | Fix Ruyuf's branch_id assignment |
+| Database (data fix) | SQL UPDATE | Route 36+ stuck observations to Ruyuf |
+| Database (migration) | SQL Function | Update consultant_complete_screening to always route to Site Client |
+| `src/components/investigation/contractor-workflow/ConsultantReviewCard.tsx` | Modify | Remove severity-based restrictions |
+| `src/components/investigation/UnifiedWorkflowTracker.tsx` | Modify | Remove Expert Review step for contractors |
+| `src/hooks/use-consultant-actions.ts` | Modify | Allow Close on Spot for all severity levels |
+| `src/hooks/use-consultant-workflow.ts` | Modify | Update toast messages |
+
+---
+
+## Workflow Diagram (After Fix)
+
+```text
+CONTRACTOR OBSERVATION WORKFLOW (All Severity Levels)
+=====================================================
+
+  [Reporter Submits]
+         │
+         ▼
+  ┌──────────────────┐
+  │  SUBMITTED       │
+  │  (auto-route)    │
+  └────────┬─────────┘
+           │
+           ▼
+  ┌──────────────────────────────────┐
+  │  CONTRACTOR CONSULTANT           │
+  │  (expert_screening status)       │
+  │                                  │
+  │  Actions Available:              │
+  │  • Create Corrective Actions     │
+  │  • Add Review Notes              │
+  │  • Close on Spot (any level)     │
+  │  • Submit to Site Client         │
+  │  • Escalate to HSSE (optional)   │
+  └────────┬─────────────────────────┘
+           │
+    ┌──────┴──────────────────┐
+    │                         │
+    ▼                         ▼
+  [Submit]              [Escalate to HSSE]
+    │                         │
+    ▼                         ▼
+  ┌──────────────┐    ┌──────────────┐
+  │ SITE CLIENT  │    │ HSSE MANAGER │
+  │ APPROVAL     │    │ ESCALATION   │
+  └──────┬───────┘    └──────────────┘
+         │
+         ▼
+  ┌──────────────────┐
+  │  CONTRACTOR      │
+  │  IMPLEMENTATION  │
+  └────────┬─────────┘
+           │
+           ▼
+  ┌──────────────────┐
+  │  CLOSED          │
+  └──────────────────┘
 ```
 
 ---
 
-## Files to Create/Modify
+## Testing After Implementation
 
-| File | Action | Purpose |
-|------|--------|---------|
-| `supabase/migrations/xxx_fix_contractor_routing.sql` | Create | Fix routing trigger function |
-| `src/hooks/use-consultant-actions.ts` | Create | Consultant action mutations |
-| `src/components/investigation/contractor-workflow/ConsultantReviewCard.tsx` | Modify | Add enhanced capabilities |
-| `src/components/investigation/UnifiedWorkflowTracker.tsx` | Create | Single unified workflow UI |
-| `src/pages/incidents/InvestigationWorkspace.tsx` | Modify | Use unified tracker |
-| `src/components/investigation/index.ts` | Modify | Export new component |
+1. **Data Fixes:**
+   - Verify Ruyuf has `branch_id = RGC` for contractor_consultant role
+   - Verify all 36+ stuck observations are now in `expert_screening` with Ruyuf assigned
 
----
+2. **Routing Test:**
+   - Create new Level 1, 2, 3, 4, 5 observations against contractors
+   - All should route to Contractor Consultant with `expert_screening` status
 
-## Testing Requirements
+3. **Consultant Actions Test:**
+   - Log in as Ruyuf (Contractor Consultant)
+   - Verify all 36+ observations appear in queue
+   - Verify can Close on Spot for ANY severity level
+   - Verify Submit always goes to Site Client
+   - Verify Escalate button sends to HSSE Manager
 
-1. **Routing Test:**
-   - Create observation against contractor company
-   - Verify it routes to Contractor Consultant (not Dept Rep)
-   - Verify status is `pending_consultant_screening`
-
-2. **Capabilities Test:**
-   - Log in as Contractor Consultant
-   - Verify ability to: create actions, add notes, close on spot, escalate
-   - Verify actions appear in "My Actions" for assigned users
-
-3. **UI Consistency Test:**
-   - View contractor observation workflow
-   - View non-contractor observation workflow  
-   - Verify both use the same unified tracker with consistent stages
-
----
-
-## Rollback Plan
-
-If issues occur:
-1. Database: Re-run previous working migration for routing function
-2. Frontend: Revert to using separate `ObservationWorkflowTracker` via git revert
-3. Both changes are additive and do not delete existing functionality
-
----
-
-## RTL/Localization Compliance
-
-All new components will:
-- Use CSS logical properties (`ms-`, `me-`, `ps-`, `pe-`, `text-start`, `text-end`)
-- Support `dir` prop or inherit from parent
-- Include translation keys for all user-facing strings
-- Follow existing i18n patterns using `useTranslation()` hook
+4. **UI Test:**
+   - Verify no "Requires HSSE Review" badge appears
+   - Verify workflow tracker shows: Submitted → Consultant → Site Client → Actions → Closed
