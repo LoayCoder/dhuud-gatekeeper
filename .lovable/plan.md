@@ -1,4 +1,5 @@
 
+# Comprehensive Reporting Health Check - Complete Fix Plan
 
 ## Remove Duplicate Contractor Company Records
 
@@ -37,3 +38,8 @@ AND deleted_at IS NULL;
 ### Verification
 After execution, the dropdown will no longer show these duplicate entries, and the properly configured "P54" company (with correct branch assignment) can be added.
 
+| Change | Risk | Impact |
+|--------|------|--------|
+| Fix `ura.created_at` → `ura.assigned_at` | Low | Fixes submission blocking error |
+| Add enum values | Low | Enables contractor violation workflow |
+| Remove witness_statements.status filter | Low | Removes dead code reference |

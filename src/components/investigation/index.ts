@@ -35,6 +35,7 @@ export { WorkflowProgressBanner } from './WorkflowProgressBanner';
 export { InvestigationWorkflowStatusCard } from './InvestigationWorkflowStatusCard';
 export { WorkflowStepNode } from './WorkflowStepNode';
 export { ObservationWorkflowTracker } from './ObservationWorkflowTracker';
+export { UnifiedWorkflowTracker } from './UnifiedWorkflowTracker';
 export { DeptRepApprovalCard } from './DeptRepApprovalCard';
 export { DeptRepIncidentReviewCard } from './DeptRepIncidentReviewCard';
 export { SubmitInvestigationCard } from './SubmitInvestigationCard';
