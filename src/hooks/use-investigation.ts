@@ -367,8 +367,7 @@ export function useCreateCorrectiveAction() {
       // Send email notification if assigned AND event_type is 'observation'
       // Incidents use delayed notification (investigation closed)
       // Observations use immediate notification
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const isObservation = (incident as any)?.event_type === 'observation';
+      const isObservation = incident?.event_type === 'observation';
 
       if (action.assigned_to && isObservation) {
         try {
