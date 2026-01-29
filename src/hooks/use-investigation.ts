@@ -334,10 +334,11 @@ export function useCreateCorrectiveAction() {
         throw new Error('User not authenticated');
       }
 
-      // Fetch incident's branch_id for proper branch isolation
+      // Fetch incident's branch_id and event_type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: incident } = await supabase
         .from('incidents')
-        .select('branch_id')
+        .select('branch_id, event_type')
         .eq('id', action.incident_id)
         .single();
 
@@ -363,28 +364,32 @@ export function useCreateCorrectiveAction() {
         new_value: { action_id: data.id, title: action.title },
       });
 
-      // Send email notification if assigned
-      if (action.assigned_to) {
+      // Send email notification if assigned AND event_type is 'observation'
+      // Incidents use delayed notification (investigation closed)
+      // Observations use immediate notification
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const isObservation = (incident as any)?.event_type === 'observation';
+
+      if (action.assigned_to && isObservation) {
         try {
           const { data: assignee } = await supabase
             .from('profiles')
-            .select('full_name')
+            .select('full_name, email')
             .eq('id', action.assigned_to)
             .single();
           
-          const { data: assigneeAuth } = await supabase.auth.admin.getUserById(action.assigned_to);
-          
-          if (assigneeAuth?.user?.email) {
+          // Use profile email instead of insecure auth.admin call
+          if (assignee?.email) {
             await supabase.functions.invoke('send-action-email', {
               body: {
                 type: 'action_assigned',
-                recipient_email: assigneeAuth.user.email,
-                recipient_name: assignee?.full_name || 'Team Member',
+                recipient_email: assignee.email,
+                recipient_name: assignee.full_name || 'Team Member',
                 action_title: action.title,
                 action_priority: action.priority,
                 action_description: action.description,
                 due_date: action.due_date,
-                incident_reference: action.incident_id,
+                incident_reference: action.incident_id, // Note: This might be UUID, edge function should handle reference lookup if possible or use this as fallback
               },
             });
           }
@@ -450,6 +455,64 @@ export function useUpdateCorrectiveAction() {
     onSuccess: (_, { incidentId }) => {
       queryClient.invalidateQueries({ queryKey: ['corrective-actions', incidentId] });
       toast.success(t('investigation.actions.updated', 'Action updated'));
+    },
+    onError: (error) => {
+      toast.error(t('common.error', 'Error: ') + error.message);
+    },
+  });
+}
+
+// Verify Corrective Action Hook
+export function useVerifyCorrectiveAction() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { t } = useTranslation();
+
+  return useMutation({
+    mutationFn: async (input: {
+      actionId: string;
+      incidentId: string;
+      verification_notes?: string;
+      approved: boolean;
+    }) => {
+      if (!user?.id) throw new Error('No user');
+
+      const updateData = input.approved
+        ? {
+            status: 'closed',
+            verified_by: user.id,
+            verified_at: new Date().toISOString(),
+            verification_notes: input.verification_notes,
+          }
+        : {
+            status: 'returned_for_correction',
+            rejected_by: user.id,
+            rejected_at: new Date().toISOString(),
+            rejection_notes: input.verification_notes,
+            last_return_reason: input.verification_notes,
+          };
+
+      const { error } = await supabase
+        .from('corrective_actions')
+        .update(updateData)
+        .eq('id', input.actionId);
+
+      if (error) throw error;
+
+      // If approved (closed), trigger the auto-closure check for the incident
+      // Note: The database trigger 'trigger_check_auto_final_closure' handles this automatically
+      // when status changes to 'closed'. We don't need to do anything extra here.
+    },
+    onSuccess: (_, { incidentId, approved }) => {
+      queryClient.invalidateQueries({ queryKey: ['corrective-actions', incidentId] });
+      // Invalidate incident query to reflect potential status change (auto-closure)
+      queryClient.invalidateQueries({ queryKey: ['incident', incidentId] });
+      queryClient.invalidateQueries({ queryKey: ['incidents'] });
+
+      const message = approved
+        ? t('investigation.actions.verified', 'Action verified and closed')
+        : t('investigation.actions.returned', 'Action returned for correction');
+      toast.success(message);
     },
     onError: (error) => {
       toast.error(t('common.error', 'Error: ') + error.message);

@@ -256,25 +256,31 @@ export function useApproveIncidentClosure() {
             .is('deleted_at', null)
             .not('assigned_to', 'is', null);
 
-          // Send individual emails to each assignee
+          // Send individual emails to each assignee in parallel with error handling
           if (actions && actions.length > 0) {
-            for (const action of actions) {
+            const emailPromises = actions.map(async (action) => {
               const assignee = action.assignee as { id: string; full_name: string; email: string } | null;
               if (assignee?.email) {
-                await supabase.functions.invoke('send-action-email', {
-                  body: {
-                    type: 'action_assigned',
-                    recipient_email: assignee.email,
-                    recipient_name: assignee.full_name || 'Team Member',
-                    action_title: action.title,
-                    action_priority: action.priority,
-                    due_date: action.due_date,
-                    action_description: action.description,
-                    incident_reference: data.reference_id,
-                  },
-                });
+                try {
+                  await supabase.functions.invoke('send-action-email', {
+                    body: {
+                      type: 'action_assigned',
+                      recipient_email: assignee.email,
+                      recipient_name: assignee.full_name || 'Team Member',
+                      action_title: action.title,
+                      action_priority: action.priority,
+                      due_date: action.due_date,
+                      action_description: action.description,
+                      incident_reference: data.reference_id,
+                    },
+                  });
+                } catch (err) {
+                  console.error(`Failed to send email for action ${action.id}:`, err);
+                }
               }
-            }
+            });
+
+            await Promise.allSettled(emailPromises);
           }
         } catch (actionEmailError) {
           console.error('Failed to send action release emails:', actionEmailError);
