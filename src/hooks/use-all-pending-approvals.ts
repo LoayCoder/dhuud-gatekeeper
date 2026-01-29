@@ -34,6 +34,7 @@ const INCIDENT_APPROVAL_STATUSES = [
   'pending_hsse_rejection_review',
   'pending_hsse_validation',
   'pending_legal_review',
+  'hsse_manager_escalation',
 ] as const;
 
 // Gate pass approval statuses
