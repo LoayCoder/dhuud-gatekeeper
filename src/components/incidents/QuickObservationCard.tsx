@@ -68,7 +68,7 @@ const createQuickObservationSchema = (t: (key: string) => string) => z.object({
   // Observation Date & Time fields
   observed_date: z.string().min(1, t('quickObservation.validation.dateRequired')),
   observed_time: z.string().min(1, t('quickObservation.validation.timeRequired')),
-  site_id: z.string().optional(),
+  site_id: z.string().min(1, t('incidents.validation.siteRequired', 'Site selection is required')),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   closed_on_spot: z.boolean().default(false),
