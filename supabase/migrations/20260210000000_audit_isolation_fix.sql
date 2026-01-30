@@ -56,9 +56,9 @@ BEGIN
     p.job_title,
     p.user_type::text,
     p.is_active,
-    EXISTS(SELECT 1 FROM manager_team m WHERE m.manager_id = th.user_id) as is_manager
+    EXISTS(SELECT 1 FROM manager_team m WHERE m.manager_id = th.user_id AND m.tenant_id = v_auth_tenant_id) as is_manager
   FROM team_hierarchy th
-  LEFT JOIN profiles p ON p.id = th.user_id
+  LEFT JOIN profiles p ON p.id = th.user_id AND p.tenant_id = v_auth_tenant_id
   ORDER BY th.user_id, th.depth;
 END;
 $$;
