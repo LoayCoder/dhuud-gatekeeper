@@ -42,12 +42,12 @@ BEGIN
   WITH RECURSIVE team_hierarchy AS (
     SELECT mt.user_id, 1 as depth
     FROM manager_team mt
-    WHERE mt.manager_id = p_manager_id
+    WHERE mt.manager_id = p_manager_id AND mt.tenant_id = v_auth_tenant_id
     UNION ALL
     SELECT mt.user_id, th.depth + 1
     FROM manager_team mt
     INNER JOIN team_hierarchy th ON mt.manager_id = th.user_id
-    WHERE th.depth < 10
+    WHERE th.depth < 10 AND mt.tenant_id = v_auth_tenant_id
   )
   SELECT DISTINCT ON (th.user_id)
     th.user_id,
@@ -56,9 +56,9 @@ BEGIN
     p.job_title,
     p.user_type::text,
     p.is_active,
-    EXISTS(SELECT 1 FROM manager_team m WHERE m.manager_id = th.user_id) as is_manager
+    EXISTS(SELECT 1 FROM manager_team m WHERE m.manager_id = th.user_id AND m.tenant_id = v_auth_tenant_id) as is_manager
   FROM team_hierarchy th
-  LEFT JOIN profiles p ON p.id = th.user_id
+  LEFT JOIN profiles p ON p.id = th.user_id AND p.tenant_id = v_auth_tenant_id
   ORDER BY th.user_id, th.depth;
 END;
 $$;
@@ -111,7 +111,7 @@ BEGIN
   WITH filtered_users AS (
     SELECT DISTINCT p.*
     FROM profiles p
-    LEFT JOIN user_role_assignments ura ON ura.user_id = p.id
+    LEFT JOIN user_role_assignments ura ON ura.user_id = p.id AND ura.tenant_id = p_tenant_id
     LEFT JOIN roles r ON r.id = ura.role_id
     WHERE p.tenant_id = p_tenant_id
       AND (p.is_deleted IS NULL OR p.is_deleted = false)
@@ -150,7 +150,7 @@ BEGIN
       ))
       FROM user_role_assignments ura2
       JOIN roles r2 ON r2.id = ura2.role_id
-      WHERE ura2.user_id = fu.id),
+      WHERE ura2.user_id = fu.id AND ura2.tenant_id = p_tenant_id),
       '[]'::jsonb
     ) as role_assignments,
     (SELECT cnt FROM counted) as total_count
@@ -206,6 +206,7 @@ BEGIN
   LEFT JOIN profiles p ON p.id = mgp.requested_by
   WHERE cp.department_id = p_department_id
     AND mgp.tenant_id = p_tenant_id
+    AND cp.tenant_id = p_tenant_id
     AND mgp.status = 'pending'
     AND mgp.deleted_at IS NULL
   ORDER BY mgp.created_at ASC
@@ -245,6 +246,7 @@ BEGIN
     JOIN contractor_projects cp ON cp.id = mgp.project_id
     WHERE cp.department_id = p_department_id
       AND mgp.tenant_id = p_tenant_id
+      AND cp.tenant_id = p_tenant_id
       AND mgp.pass_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '7 days'
       AND mgp.status IN ('pending', 'approved')
       AND mgp.deleted_at IS NULL
