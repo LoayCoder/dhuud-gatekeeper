@@ -64,7 +64,7 @@ The audit identified **Critical Security Gaps** in the current implementation. W
 ## Recommendations
 1.  **Patch `webauthn_challenges`**: Add `TO service_role` to the policy immediately.
 2.  **Fix RLS Policies**: Add `AND tenant_id = get_auth_tenant_id()` to all policies flagged above (Asset Categories, etc.).
-3.  **Secure DB Functions**: Add `IF p_tenant_id != get_auth_tenant_id() THEN RAISE EXCEPTION ...` to `reset_notification_matrix_to_defaults` and similar seed functions.
+3.  **Secure DB Functions**: Add `IF p_tenant_id IS DISTINCT FROM public.get_auth_tenant_id() AND NOT public.is_super_admin() THEN RAISE EXCEPTION ...` to `reset_notification_matrix_to_defaults` and similar seed functions.
 4.  **Secure Edge Functions**:
     *   Switch to `createClient` using the User's JWT (standard RLS) instead of Service Role where possible.
     *   OR, manually validate `incident.tenant_id` matches `user.tenant_id` before processing.
