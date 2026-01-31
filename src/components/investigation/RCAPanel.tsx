@@ -14,7 +14,7 @@ import { RootCausesBuilder } from "./RootCausesBuilder";
 import type { RootCauseEntry } from "@/hooks/use-investigation";
 import { ContributingFactorsBuilder, type ContributingFactorEntry } from "./ContributingFactorsBuilder";
 import { AISummaryPanel } from "./AISummaryPanel";
-import { useInvestigation, useCreateInvestigation, useUpdateInvestigation, useLockRCA, type FiveWhyEntry } from "@/hooks/use-investigation";
+import { useInvestigation, useCreateInvestigation, useUpdateInvestigation, useLockRCA, useUnlockRCA, type FiveWhyEntry } from "@/hooks/use-investigation";
 import { useRCAAI } from "@/hooks/use-rca-ai";
 import { useWitnessStatements } from "@/hooks/use-witness-statements";
 import { useEvidenceItems } from "@/hooks/use-evidence-items";
@@ -101,6 +101,7 @@ export function RCAPanel({
   const createInvestigation = useCreateInvestigation();
   const updateInvestigation = useUpdateInvestigation();
   const lockRCA = useLockRCA();
+  const unlockRCA = useUnlockRCA();
 
   // Pass incidentId to enable automatic context enrichment
   const { rewriteText, generateImmediateCause, generateUnderlyingCause, isLoading: isAILoading } = useRCAAI({ incidentId });
@@ -254,18 +255,9 @@ export function RCAPanel({
 
   const handleUnlockAnalysis = async () => {
     try {
-      const { error } = await (supabase.rpc as any)('unlock_rca', { p_incident_id: incidentId });
-      if (error) throw error;
-
-      // Invalidate to refresh UI
-      updateInvestigation.reset(); // trigger re-fetch indirectly via query invalidation in hook
-      toast.success(t('investigation.rca.unlockedSuccess', 'RCA Analysis has been unlocked.'));
-      // We need to trigger a refetch of investigation
-      // In a real app, we'd use queryClient from useQueryClient
-      window.location.reload(); // Simple brute force for now to ensure state sync if invalidateQueries is tricky here
-    } catch (error: any) {
-      console.error('Error unlocking RCA:', error);
-      toast.error(error.message || t('common.error', 'Failed to unlock RCA'));
+      await unlockRCA.mutateAsync({ incidentId });
+    } catch (error) {
+      // Error handled in hook
     }
   };
 
@@ -383,9 +375,10 @@ export function RCAPanel({
                   variant="default"
                   size="sm"
                   onClick={handleUnlockAnalysis}
+                  disabled={unlockRCA.isPending}
                   className="bg-warning text-warning-foreground hover:bg-warning/90 shrink-0"
                 >
-                  <Unlock className="h-4 w-4 me-2" />
+                  {unlockRCA.isPending ? <Loader2 className="h-4 w-4 me-2 animate-spin" /> : <Unlock className="h-4 w-4 me-2" />}
                   {t('investigation.rca.unlock', 'Unlock RCA')}
                 </Button>
               )}
