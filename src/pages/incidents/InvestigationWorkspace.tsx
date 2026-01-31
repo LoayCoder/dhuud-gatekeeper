@@ -81,7 +81,7 @@ import {
   ClinicReviewCard,
   TeamInvestigationAssignmentStep
 } from "@/components/investigation";
-import { ActionDisputeReviewCard, ConsultantReviewCard } from "@/components/investigation/contractor-workflow";
+import { ActionDisputeReviewCard, ConsultantReviewCard, SiteClientActionApprovalCard } from "@/components/investigation/contractor-workflow";
 import { HSSEEnforcementBanner } from "@/components/investigation/HSSEEnforcementBanner";
 import { ObservationWorkflowTracker } from "@/components/investigation/ObservationWorkflowTracker";
 import { UnifiedWorkflowTracker } from "@/components/investigation/UnifiedWorkflowTracker";
@@ -284,6 +284,8 @@ export default function InvestigationWorkspace() {
     manager_decision_at?: string | null;
     hsse_manager_decision?: string | null;
     investigator_id?: string | null;
+    consultant_screening_notes?: string | null;
+    severity_v2?: string | null;
   } | undefined;
 
   // Check if user can approve closure using RPC function (enforces role-based and conflict-of-interest checks)
@@ -523,11 +525,21 @@ export default function InvestigationWorkspace() {
           <ConsultantReviewCard 
             incidentId={incidentData.id}
             status={currentStatus}
-            severityLevel={(incidentData as any).severity_v2}
+            severityLevel={incidentData.severity_v2 as any}
             hasActions={actionsCount > 0}
             actionsCount={actionsCount}
             onActionCreated={handleCreateAction}
             onComplete={handleRefresh}
+          />
+        );
+
+      case 'pending_site_client_approval':
+        return (
+          <SiteClientActionApprovalCard
+            incidentId={incidentData.id}
+            status={currentStatus}
+            actionsCount={actionsCount}
+            consultantNotes={incidentData.consultant_screening_notes || undefined}
           />
         );
 

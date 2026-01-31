@@ -115,6 +115,10 @@ export interface Incident {
   sla_screening_start_time?: string | null;
   ai_analysis_data?: Record<string, unknown> | null;
 
+  // Contractor Workflow
+  consultant_screening_notes?: string | null;
+  severity_v2?: string | null;
+
   // When & where
   incident_date: string;
   incident_time?: string | null;
