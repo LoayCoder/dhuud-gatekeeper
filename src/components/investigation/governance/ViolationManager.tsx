@@ -169,7 +169,7 @@ export function ViolationManager({ incidentId, canEdit = true }: ViolationManage
             </div>
             <div className="space-y-2">
               <Label>{t('governance.violation.status', 'Status')}</Label>
-              <Select value={status} onValueChange={(v: any) => setStatus(v)}>
+              <Select value={status} onValueChange={(v: ContractViolation['status']) => setStatus(v)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
