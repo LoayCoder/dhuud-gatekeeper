@@ -107,13 +107,15 @@ export function useGuardGateAction() {
       let error: any = null;
 
       // Fetch additional pass details needed for the log
-      const { data: passData } = await supabase
+      const { data: passData, error: fetchError } = await supabase
         .from('material_gate_passes')
         .select('vehicle_plate, driver_name, driver_mobile, material_description')
         .eq('id', passId)
         .single();
 
-      if (action === 'entry') {
+      if (fetchError || !passData) {
+        error = fetchError || new Error(`Gate pass with ID ${passId} not found.`);
+      } else if (action === 'entry') {
         // Create Unified Entry Log (Triggers update parent status to 'used')
         const { error: insertError } = await supabase
           .from('gate_entry_logs')
@@ -121,10 +123,10 @@ export function useGuardGateAction() {
             tenant_id: tenantId,
             guard_id: user.id,
             entry_type: 'vehicle',
-            person_name: passData?.driver_name || 'Driver',
-            mobile_number: passData?.driver_mobile,
-            car_plate: passData?.vehicle_plate,
-            purpose: passData?.material_description ? `Material: ${passData.material_description.substring(0,50)}...` : 'Material Transport',
+            person_name: passData.driver_name || 'Driver',
+            mobile_number: passData.driver_mobile,
+            car_plate: passData.vehicle_plate,
+            purpose: passData.material_description ? `Material: ${passData.material_description.length > 50 ? `${passData.material_description.substring(0, 50)}...` : passData.material_description}` : 'Material Transport',
             material_gate_pass_id: passId,
             entry_time: now,
             access_type: 'entry',
