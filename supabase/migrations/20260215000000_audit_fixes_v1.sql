@@ -74,7 +74,6 @@ CREATE OR REPLACE FUNCTION check_action_evidence_requirement()
 RETURNS TRIGGER AS $$
 DECLARE
   v_evidence_count integer;
-  v_is_observation_action boolean;
 BEGIN
   -- Only check when transitioning to CLOSED or VERIFIED
   IF NEW.status IN ('closed', 'verified') AND (OLD.status NOT IN ('closed', 'verified') OR OLD.status IS NULL) THEN
