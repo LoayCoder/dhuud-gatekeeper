@@ -525,6 +525,7 @@ export default function InvestigationWorkspace() {
           <ConsultantReviewCard 
             incidentId={incidentData.id}
             status={currentStatus}
+            assigneeId={incidentData.approval_manager_id}
             severityLevel={incidentData.severity_v2 ? incidentData.severity_v2 as SeverityLevelV2 : undefined}
             hasActions={actionsCount > 0}
             actionsCount={actionsCount}
