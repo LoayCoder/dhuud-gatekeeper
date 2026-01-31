@@ -104,22 +104,65 @@ export function useGuardGateAction() {
       }
 
       const now = new Date().toISOString();
-      const updateData: Record<string, unknown> = {
-        guard_verified_by: user.id,
-        guard_verified_at: now,
-      };
+      let error: any = null;
+
+      // Fetch additional pass details needed for the log
+      const { data: passData } = await supabase
+        .from('material_gate_passes')
+        .select('vehicle_plate, driver_name, driver_mobile, material_description')
+        .eq('id', passId)
+        .single();
 
       if (action === 'entry') {
-        updateData.entry_time = now;
+        // Create Unified Entry Log (Triggers update parent status to 'used')
+        const { error: insertError } = await supabase
+          .from('gate_entry_logs')
+          .insert({
+            tenant_id: tenantId,
+            guard_id: user.id,
+            entry_type: 'vehicle',
+            person_name: passData?.driver_name || 'Driver',
+            mobile_number: passData?.driver_mobile,
+            car_plate: passData?.vehicle_plate,
+            purpose: passData?.material_description ? `Material: ${passData.material_description.substring(0,50)}...` : 'Material Transport',
+            material_gate_pass_id: passId,
+            entry_time: now,
+            access_type: 'entry',
+            validation_status: 'valid'
+          });
+        error = insertError;
       } else {
-        updateData.exit_time = now;
-        updateData.status = 'completed';
-      }
+        // Exit: Find open log and close it
+        const { data: openLog } = await supabase
+          .from('gate_entry_logs')
+          .select('id')
+          .eq('material_gate_pass_id', passId)
+          .is('exit_time', null)
+          .order('entry_time', { ascending: false })
+          .limit(1)
+          .single();
 
-      const { error } = await supabase
-        .from('material_gate_passes')
-        .update(updateData)
-        .eq('id', passId);
+        if (openLog) {
+          const { error: updateError } = await supabase
+            .from('gate_entry_logs')
+            .update({ exit_time: now })
+            .eq('id', openLog.id);
+          error = updateError;
+        } else {
+           // Fallback to legacy update if no log found
+           console.warn('No unified log found for pass exit. Updating legacy table.');
+           const { error: legacyError } = await supabase
+            .from('material_gate_passes')
+            .update({
+              exit_time: now,
+              guard_verified_by: user.id,
+              guard_verified_at: now,
+              status: 'completed'
+            })
+            .eq('id', passId);
+           error = legacyError;
+        }
+      }
 
       if (error) {
         await logGateAudit(
