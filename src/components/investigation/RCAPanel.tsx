@@ -182,7 +182,7 @@ export function RCAPanel({
     try {
       // Use the unified update hook which handles both tables
       if (investigation?.id) {
-        const updates: any = {
+        const updates: Partial<Investigation> = {
           immediate_cause: data.immediate_cause,
           underlying_cause: data.underlying_cause,
           contributing_factors: data.contributing_factors,
