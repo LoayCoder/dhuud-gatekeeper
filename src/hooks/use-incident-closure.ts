@@ -19,9 +19,10 @@ export interface ClosureRequest {
 
 export interface ClosureCheckResult {
   can_close: boolean;
-  total_actions: number;
-  verified_actions: number;
-  pending_actions: { id: string; title: string; status: string }[];
+  total_actions: number; // Legacy support
+  verified_actions: number; // Legacy support
+  pending_actions: { id: string; title: string; status: string }[]; // Legacy support
+  blocking_reasons?: string[];
 }
 
 // Check if all actions for an incident are verified/closed
@@ -31,12 +32,23 @@ export function useCanCloseIncident(incidentId: string | null) {
     queryFn: async (): Promise<ClosureCheckResult> => {
       if (!incidentId) return { can_close: false, total_actions: 0, verified_actions: 0, pending_actions: [] };
 
-      const { data, error } = await supabase.rpc('can_close_investigation', {
+      // Use the new strict validation function
+      const { data, error } = await supabase.rpc('check_incident_closure_prerequisites', {
         p_incident_id: incidentId,
       });
 
       if (error) throw error;
-      return data as unknown as ClosureCheckResult;
+
+      const result = data as any;
+
+      return {
+        can_close: result.ready_for_closure,
+        blocking_reasons: result.blocking_reasons,
+        // Mock legacy fields to prevent breaking consumers expecting them
+        total_actions: 0,
+        verified_actions: 0,
+        pending_actions: []
+      };
     },
     enabled: !!incidentId,
   });

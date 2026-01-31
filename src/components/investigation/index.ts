@@ -1,4 +1,4 @@
-export { EvidencePanel } from './EvidencePanel';
+export { EvidenceManager } from './evidence/EvidenceManager';
 export { WitnessPanel } from './WitnessPanel';
 export { RCAPanel } from './RCAPanel';
 export { ActionsPanel } from './ActionsPanel';
@@ -63,6 +63,7 @@ export { HSSEIncidentValidationCard } from './HSSEIncidentValidationCard';
 // Contractor Violation Approval Workflow
 export { DeptManagerViolationApprovalCard } from './DeptManagerViolationApprovalCard';
 export { ContractControllerApprovalCard } from './ContractControllerApprovalCard';
+export { ViolationManager } from './governance/ViolationManager';
 // Injury Tab Components
 export { InjuryPanel } from './InjuryPanel';
 export { ClinicUserAssignmentCard } from './ClinicUserAssignmentCard';

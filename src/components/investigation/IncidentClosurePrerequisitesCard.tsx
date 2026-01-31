@@ -130,7 +130,7 @@ export function IncidentClosurePrerequisitesCard({ incidentId, className }: Inci
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
               <p className="font-medium mb-2">
-                {t('investigation.prerequisites.blockingReasons', 'Blocking Reasons:')}
+                {t('investigation.prerequisites.blockingErrors', 'Blocking Errors (Action Required):')}
               </p>
               <ul className="list-disc list-inside space-y-1 text-sm">
                 {blocking_reasons.map((reason, index) => (

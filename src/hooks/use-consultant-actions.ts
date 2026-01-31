@@ -25,6 +25,7 @@ interface EscalateToHSSEParams {
 /**
  * Hook for consultant to close observation on the spot.
  * This action is available for all severity levels on contractor observations.
+ */
 export function useConsultantCloseOnSpot() {
   const queryClient = useQueryClient();
   const { t } = useTranslation();

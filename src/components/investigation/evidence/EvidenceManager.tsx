@@ -31,7 +31,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-interface EvidencePanelProps {
+interface EvidenceManagerProps {
   incidentId: string;
   incidentStatus?: string | null;
   canEdit?: boolean;
@@ -46,7 +46,7 @@ const evidenceTypeIcons: Record<string, React.ReactNode> = {
   video_clip: <Video className="h-5 w-5" />,
 };
 
-export function EvidencePanel({ incidentId, incidentStatus, canEdit: canEditProp }: EvidencePanelProps) {
+export function EvidenceManager({ incidentId, incidentStatus, canEdit: canEditProp }: EvidenceManagerProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const { profile } = useAuth();
