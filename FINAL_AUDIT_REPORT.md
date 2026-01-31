@@ -76,7 +76,7 @@ flowchart TD
 | :--- | :--- | :--- | :--- | :--- |
 | **Closure Gates** | Backend required `rca_locked=true`, but Frontend had no UI to lock it. Incidents were stuck. | **Critical** | **Frontend:** Added "Lock RCA" button in `RCAPanel`.<br>**Backend:** Added `lock_rca` RPC function.<br>**Logic:** Updated hooks to fetch/sync `incident_rca`. | ✅ **Fixed** |
 | **Data Security (RLS)** | `incident_rca` table was readable by *any* tenant user. | **High** | **Backend:** Updated RLS policy to restrict SELECT to HSSE Roles, Admins, and Investigation Approvers/Assignees. | ✅ **Fixed** |
-| **Action Governance** | Action Verification could technically proceed without evidence in backend (soft check only). | **High** | **Backend:** Added Trigger `check_action_evidence_requirement` to block status change to `closed` if evidence count is 0.<br>**Frontend:** Verified UI already disables button. | ✅ **Fixed** |
+| **Action Governance** | Action Verification could technically proceed without evidence in backend (soft check only). | **High** | **Backend:** Added Trigger `trigger_enforce_action_evidence` to block status change to `closed` if evidence count is 0.<br>**Frontend:** Verified UI already disables button. | ✅ **Fixed** |
 | **SLA Escalation** | Concern that SLA logic only checked one status. | **Medium** | **Verification:** Confirmed `check_sla_escalation` function properly checks all 5 screening statuses in the current schema. | ✅ **Verified** |
 | **Legacy Schema** | Frontend used legacy `investigations` columns for RCA. | **Low** | **Refactor:** Updated `useInvestigation` to prioritize V1.1 `incident_rca` table while maintaining backward compatibility. | ✅ **Fixed** |
 
