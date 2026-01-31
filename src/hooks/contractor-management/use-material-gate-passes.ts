@@ -486,37 +486,82 @@ export function useRejectGatePass() {
 
 export function useVerifyGatePass() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   return useMutation({
     mutationFn: async ({ passId, action }: { passId: string; action: "entry" | "exit" }) => {
-      if (!user?.id) throw new Error("Not authenticated");
+      if (!user?.id || !profile?.tenant_id) throw new Error("Not authenticated");
 
-      const now = new Date().toISOString();
-      const updateData: Record<string, unknown> = {
-        guard_verified_by: user.id,
-        guard_verified_at: now,
-      };
+      // 1. Fetch pass details
+      const { data: pass, error: fetchError } = await supabase
+        .from("material_gate_passes")
+        .select("*")
+        .eq("id", passId)
+        .single();
+
+      if (fetchError || !pass) throw new Error("Gate pass not found");
 
       if (action === "entry") {
-        updateData.entry_time = now;
+        // 2. Create Unified Entry Log
+        // This triggers the DB function `sync_gate_entry_to_parent` to update the pass status
+        const { error } = await supabase
+          .from("gate_entry_logs")
+          .insert({
+            tenant_id: profile.tenant_id,
+            guard_id: user.id,
+            entry_type: "vehicle",
+            person_name: pass.driver_name || "Driver",
+            mobile_number: pass.driver_mobile,
+            car_plate: pass.vehicle_plate,
+            purpose: pass.material_description ? `Material Transport: ${pass.material_description.substring(0, 50)}...` : "Material Transport",
+            material_gate_pass_id: passId,
+            entry_time: new Date().toISOString(),
+            access_type: "entry",
+            validation_status: "valid"
+          });
+
+        if (error) throw error;
+
       } else {
-        updateData.exit_time = now;
-        updateData.status = "completed";
+        // 3. Record Exit on existing log
+        const { data: openLog } = await supabase
+          .from("gate_entry_logs")
+          .select("id")
+          .eq("material_gate_pass_id", passId)
+          .is("exit_time", null)
+          .order("entry_time", { ascending: false })
+          .limit(1)
+          .single();
+
+        if (openLog) {
+          const { error } = await supabase
+            .from("gate_entry_logs")
+            .update({ exit_time: new Date().toISOString() })
+            .eq("id", openLog.id);
+
+          if (error) throw error;
+        } else {
+          // Fallback for legacy passes without logs
+          console.warn("No unified log found for pass exit. Updating legacy table directly.");
+          const { error } = await supabase
+            .from("material_gate_passes")
+            .update({
+              exit_time: new Date().toISOString(),
+              status: 'completed'
+            })
+            .eq("id", passId);
+          if (error) throw error;
+        }
       }
 
-      const { error } = await supabase
-        .from("material_gate_passes")
-        .update(updateData)
-        .eq("id", passId);
-
-      if (error) throw error;
       return { passId, action };
     },
     onSuccess: (_, { action }) => {
       queryClient.invalidateQueries({ queryKey: ["material-gate-passes"] });
       queryClient.invalidateQueries({ queryKey: ["today-approved-passes"] });
-      toast.success(action === "entry" ? "Entry recorded" : "Exit recorded - Pass completed");
+      queryClient.invalidateQueries({ queryKey: ["unified-access-logs"] });
+      queryClient.invalidateQueries({ queryKey: ["unified-access-stats"] });
+      toast.success(action === "entry" ? "Entry recorded in Unified Log" : "Exit recorded");
     },
     onError: (error) => {
       toast.error(`Failed to verify: ${error.message}`);

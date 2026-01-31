@@ -26,6 +26,8 @@ export interface UnifiedAccessEntry {
   project_id?: string | null;
   validation_status?: string | null;
   validation_errors?: string[] | null;
+  // Material/Vehicle-specific
+  material_gate_pass_id?: string | null;
   // Common
   site_id?: string | null;
   guard_id?: string | null;
@@ -191,14 +193,15 @@ export function useUnifiedAccessLogs(filters: UnifiedAccessFilters = {}) {
 
       const results: UnifiedAccessEntry[] = [];
 
-      // Fetch from gate_entry_logs (visitors + workers if present)
-      if (!filters.entityType || filters.entityType === 'all' || filters.entityType === 'visitor' || filters.entityType === 'worker') {
+      // Fetch from gate_entry_logs (visitors + workers + materials if present)
+      if (!filters.entityType || filters.entityType === 'all' || filters.entityType === 'visitor' || filters.entityType === 'worker' || filters.entityType === 'vehicle') {
         let gateQuery = supabase
           .from('gate_entry_logs')
           .select(`
             id, person_name, entry_type, entry_time, exit_time, visitor_id, 
             mobile_number, car_plate, destination_name, purpose, nationality,
             worker_id, project_id, validation_status, validation_errors,
+            material_gate_pass_id,
             site_id, guard_id, notes, created_at
           `)
           .eq('tenant_id', tenantId)
@@ -362,10 +365,13 @@ export function useRecordUnifiedEntry() {
       purpose?: string;
       nationality?: string;
       // Worker fields
-      workerId?: string;
+      worker_id?: string; // Standardize casing match DB
+      workerId?: string; // Keep for backward compat
       projectId?: string;
       validationStatus?: string;
       validationErrors?: string[];
+      // Material/Vehicle fields
+      materialGatePassId?: string;
       // Common
       siteId?: string;
       notes?: string;
@@ -385,10 +391,11 @@ export function useRecordUnifiedEntry() {
           destination_name: params.destinationName || null,
           purpose: params.purpose || null,
           nationality: params.nationality || null,
-          worker_id: params.workerId || null,
+          worker_id: params.worker_id || params.workerId || null,
           project_id: params.projectId || null,
           validation_status: params.validationStatus || null,
           validation_errors: params.validationErrors || null,
+          material_gate_pass_id: params.materialGatePassId || null,
           site_id: params.siteId || null,
           notes: params.notes || null,
           entry_time: new Date().toISOString(),
