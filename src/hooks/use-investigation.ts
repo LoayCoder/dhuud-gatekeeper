@@ -364,44 +364,11 @@ export function useCreateCorrectiveAction() {
         new_value: { action_id: data.id, title: action.title },
       });
 
-      // Send email notification if assigned AND event_type is 'observation'
-      // Incidents use delayed notification (investigation closed)
-      // Observations use immediate notification
-      const isObservation = incident?.event_type === 'observation';
-
-      if (action.assigned_to && isObservation) {
-        try {
-          const { data: assignee } = await supabase
-            .from('profiles')
-            .select('full_name, email')
-            .eq('id', action.assigned_to)
-            .single();
-          
-          // Use profile email instead of insecure auth.admin call
-          if (assignee?.email) {
-            await supabase.functions.invoke('send-action-email', {
-              body: {
-                type: 'action_assigned',
-                recipient_email: assignee.email,
-                recipient_name: assignee.full_name || 'Team Member',
-                action_title: action.title,
-                action_priority: action.priority,
-                action_description: action.description,
-                due_date: action.due_date,
-                incident_reference: action.incident_id, // Note: This might be UUID, edge function should handle reference lookup if possible or use this as fallback
-              },
-            });
-          }
-        } catch (emailError) {
-          console.error('Failed to send action assignment email:', emailError);
-        }
-      }
-
       return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['corrective-actions', data.incident_id] });
-      toast.success(t('investigation.actions.created', 'Action created'));
+      toast.success(t('investigation.actions.created', 'Action created. Notification will be sent upon investigation release.'));
     },
     onError: (error) => {
       toast.error(t('common.error', 'Error: ') + error.message);

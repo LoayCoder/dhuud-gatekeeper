@@ -97,7 +97,12 @@ function getDeviceId(): string {
   const key = 'dhuud_device_id';
   let deviceId = localStorage.getItem(key);
   if (!deviceId) {
-    deviceId = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Use native UUID if available for device ID too, or fallback
+    if (typeof self.crypto?.randomUUID === 'function') {
+      deviceId = self.crypto.randomUUID();
+    } else {
+      deviceId = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
     localStorage.setItem(key, deviceId);
   }
   return deviceId;
@@ -145,7 +150,8 @@ export function useOfflineReportQueue() {
     }
 
     try {
-      const reportId = `offline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      // Use the browser's native crypto API for compliant UUID v4
+      const reportId = self.crypto.randomUUID();
       
       // Convert files to blobs with metadata
       const photoBlobs: OfflineReportPhoto[] = await Promise.all(

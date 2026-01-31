@@ -96,14 +96,14 @@ async function syncSingleReport(report: OfflineReport): Promise<{ id: string; re
   const uploadedPhotoPaths: string[] = [];
   const uploadedClosedOnSpotPaths: string[] = [];
 
-  // Create a temporary incident ID for storage paths
-  const tempId = `offline_${report.id}`;
+  // Use the actual report ID (UUID) for storage paths instead of temp prefix
+  const reportId = report.id;
 
   // Upload main photos
   for (let i = 0; i < photos.length; i++) {
     const photo = photos[i];
     const fileName = `${Date.now()}-${i}-${photo.filename}`;
-    const uploadPath = `${tenant_id}/${tempId}/photos/${fileName}`;
+    const uploadPath = `${tenant_id}/${reportId}/photos/${fileName}`;
 
     const { error } = await supabase.storage
       .from('incident-attachments')
@@ -123,7 +123,7 @@ async function syncSingleReport(report: OfflineReport): Promise<{ id: string; re
   for (let i = 0; i < closed_on_spot_photos.length; i++) {
     const photo = closed_on_spot_photos[i];
     const fileName = `${Date.now()}-${i}-${photo.filename}`;
-    const uploadPath = `${tenant_id}/${tempId}/closed-on-spot/${fileName}`;
+    const uploadPath = `${tenant_id}/${reportId}/closed-on-spot/${fileName}`;
 
     const { error } = await supabase.storage
       .from('incident-attachments')
@@ -143,7 +143,7 @@ async function syncSingleReport(report: OfflineReport): Promise<{ id: string; re
   let videoPath: string | undefined;
   if (video) {
     const fileName = `${Date.now()}-${video.filename}`;
-    const uploadPath = `${tenant_id}/${tempId}/videos/${fileName}`;
+    const uploadPath = `${tenant_id}/${reportId}/videos/${fileName}`;
 
     const { error } = await supabase.storage
       .from('incident-attachments')
@@ -172,6 +172,8 @@ async function syncSingleReport(report: OfflineReport): Promise<{ id: string; re
   }
 
   const incidentData = {
+    // Explicitly set ID from offline report (UUID v4) to maintain integrity
+    id: report.id,
     title: form_data.title,
     description: form_data.description,
     event_type: form_data.event_type,
@@ -258,10 +260,7 @@ async function syncSingleReport(report: OfflineReport): Promise<{ id: string; re
     }
   }
 
-  // 5. Move uploaded files to correct path (replace tempId with real id)
-  // This is optional - files can stay in offline_xxx path
-
-  // 6. Trigger notification dispatch (via edge function or realtime)
+  // 5. Trigger notification dispatch (via edge function or realtime)
   try {
     await supabase.functions.invoke('dispatch-incident-notification', {
       body: {
