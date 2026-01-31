@@ -126,7 +126,7 @@ export function useGuardGateAction() {
             person_name: passData.driver_name || 'Driver',
             mobile_number: passData.driver_mobile,
             car_plate: passData.vehicle_plate,
-            purpose: passData.material_description ? `Material: ${passData.material_description.substring(0,50)}...` : 'Material Transport',
+            purpose: passData.material_description ? `Material: ${passData.material_description.length > 50 ? `${passData.material_description.substring(0, 50)}...` : passData.material_description}` : 'Material Transport',
             material_gate_pass_id: passId,
             entry_time: now,
             access_type: 'entry',
