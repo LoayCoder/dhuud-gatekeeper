@@ -96,13 +96,18 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
     },
   });
 
-  // Fetch customer email for notifications
+  // Fetch customer email for notifications securely
   const { data: customerData } = useQuery({
-    queryKey: ['ticket-customer', ticket.created_by],
+    queryKey: ['ticket-customer-secure', ticket.created_by],
     queryFn: async () => {
-      const { data, error } = await supabase.auth.admin.getUserById(ticket.created_by);
+      // ✅ Use secure Edge Function instead of client-side admin call
+      const { data, error } = await supabase.functions.invoke('get-user-secure-details', {
+        body: { user_id: ticket.created_by }
+      });
+
       if (error) {
-        // Fallback to profile
+        console.error('Failed to fetch user details securely:', error);
+        // Fallback to profile (public data only) if function fails (e.g., dev environment)
         const { data: profileData } = await supabase
           .from('profiles')
           .select('full_name')
@@ -110,7 +115,8 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
           .single();
         return { email: null, name: profileData?.full_name };
       }
-      return { email: data.user?.email, name: data.user?.user_metadata?.full_name };
+
+      return { email: data.email, name: data.full_name };
     },
   });
 
