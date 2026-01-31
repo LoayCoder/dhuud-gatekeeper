@@ -103,7 +103,6 @@ AFTER INSERT OR UPDATE ON public.gate_entry_logs
 FOR EACH ROW
 EXECUTE FUNCTION public.sync_gate_entry_to_parent();
 
--- 4. DEPRECATION NOTICE
 -- 4. HARDEN GATE ENTRY LOGS (No Deletes for Guards)
 DROP POLICY IF EXISTS "Security users can manage gate entries" ON public.gate_entry_logs;
 
