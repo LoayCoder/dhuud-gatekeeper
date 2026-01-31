@@ -252,6 +252,34 @@ export function useCreateInvestigation() {
   });
 }
 
+export function useUnlockRCA() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
+
+  return useMutation({
+    mutationFn: async ({ incidentId }: { incidentId: string }) => {
+      if (!user?.id) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase.rpc('unlock_rca', {
+        p_incident_id: incidentId,
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, { incidentId }) => {
+      queryClient.invalidateQueries({ queryKey: ['investigation', incidentId] });
+      // Also invalidate closure checks if any
+      queryClient.invalidateQueries({ queryKey: ['incident-closure-check', incidentId] });
+      toast.success(t('investigation.rca.unlockedSuccess', 'RCA Analysis has been unlocked.'));
+    },
+    onError: (error) => {
+      toast.error(t('common.error', 'Error: ') + error.message);
+    },
+  });
+}
+
 export function useUpdateInvestigation() {
   const { profile, user } = useAuth();
   const queryClient = useQueryClient();
