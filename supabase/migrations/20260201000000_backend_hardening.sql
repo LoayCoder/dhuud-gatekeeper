@@ -59,6 +59,7 @@ DECLARE
   v_evidence_count INTEGER;
   v_unapproved_witnesses INTEGER;
   v_ready BOOLEAN := TRUE;
+  v_has_violations BOOLEAN := FALSE;
 BEGIN
   -- Get incident
   SELECT * INTO v_incident
@@ -157,12 +158,30 @@ BEGIN
     v_ready := FALSE;
   END IF;
 
-  -- Check 8: If violation identified, must be finalized
-  IF v_investigation IS NOT NULL AND v_investigation.violation_identified THEN
-    -- Check incident_violation_lifecycle table if exists, otherwise assume investigation fields cover it
-    -- Assuming incident_violation_lifecycle exists based on legacy code, but checking contract_violations table is safer for V1.1
-    -- For now, relying on the logic provided in base migration.
-    NULL;
+  -- Check 8: If violation identified or present, must be finalized
+  -- Check if legacy flag is true OR if any rows exist in contract_violations
+  IF (v_investigation IS NOT NULL AND v_investigation.violation_identified) THEN
+     v_has_violations := TRUE;
+  ELSE
+     -- Check if any violations exist in the new table
+     PERFORM 1 FROM contract_violations WHERE incident_id = p_incident_id LIMIT 1;
+     IF FOUND THEN
+        v_has_violations := TRUE;
+     END IF;
+  END IF;
+
+  IF v_has_violations THEN
+    -- Count violations that are NOT finalized and NOT rejected (i.e. pending/draft)
+    -- We check both contract_violations (new) and legacy if relevant, but focusing on V1.1 table
+    SELECT COUNT(*) INTO v_pending_violations
+    FROM contract_violations
+    WHERE incident_id = p_incident_id
+    AND status NOT IN ('finalized', 'rejected');
+
+    IF v_pending_violations > 0 THEN
+      v_blocking_reasons := array_append(v_blocking_reasons, 'Contractor violation(s) must be finalized or rejected');
+      v_ready := FALSE;
+    END IF;
   END IF;
 
   -- Check 9: HSSE validation completed
@@ -182,6 +201,7 @@ BEGIN
       'witness_approved', v_unapproved_witnesses = 0,
       'all_actions_completed', v_open_actions = 0,
       'all_actions_verified', v_unverified_actions = 0,
+      'violation_finalized', NOT v_has_violations OR v_pending_violations = 0,
       'hsse_validated', v_incident.hsse_validated_at IS NOT NULL
     )
   );
