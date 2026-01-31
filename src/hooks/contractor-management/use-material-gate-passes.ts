@@ -548,8 +548,8 @@ export function useVerifyGatePass() {
             .from("material_gate_passes")
             .update({
               exit_time: now,
-              guard_verified_by: user.id,
-              guard_verified_at: now,
+              guard_verified_by: pass.guard_verified_by ?? user.id,
+              guard_verified_at: pass.guard_verified_at ?? now,
               status: 'completed'
             })
             .eq("id", passId);
