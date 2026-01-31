@@ -523,6 +523,7 @@ export function useVerifyGatePass() {
         if (error) throw error;
 
       } else {
+        const now = new Date().toISOString();
         // 3. Record Exit on existing log
         const { data: openLog } = await supabase
           .from("gate_entry_logs")
@@ -536,7 +537,7 @@ export function useVerifyGatePass() {
         if (openLog) {
           const { error } = await supabase
             .from("gate_entry_logs")
-            .update({ exit_time: new Date().toISOString() })
+            .update({ exit_time: now })
             .eq("id", openLog.id);
 
           if (error) throw error;
@@ -546,7 +547,9 @@ export function useVerifyGatePass() {
           const { error } = await supabase
             .from("material_gate_passes")
             .update({
-              exit_time: new Date().toISOString(),
+              exit_time: now,
+              guard_verified_by: user.id,
+              guard_verified_at: now,
               status: 'completed'
             })
             .eq("id", passId);
