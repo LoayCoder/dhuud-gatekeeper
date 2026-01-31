@@ -14,7 +14,7 @@ import { RootCausesBuilder } from "./RootCausesBuilder";
 import type { RootCauseEntry } from "@/hooks/use-investigation";
 import { ContributingFactorsBuilder, type ContributingFactorEntry } from "./ContributingFactorsBuilder";
 import { AISummaryPanel } from "./AISummaryPanel";
-import { useInvestigation, useCreateInvestigation, useUpdateInvestigation, type FiveWhyEntry } from "@/hooks/use-investigation";
+import { useInvestigation, useCreateInvestigation, useUpdateInvestigation, useLockRCA, type FiveWhyEntry } from "@/hooks/use-investigation";
 import { useRCAAI } from "@/hooks/use-rca-ai";
 import { useWitnessStatements } from "@/hooks/use-witness-statements";
 import { useEvidenceItems } from "@/hooks/use-evidence-items";
@@ -96,22 +96,18 @@ export function RCAPanel({
   const isHSSEManager = hasRole('hsse_manager');
   const isLeadInvestigator = hasRole('lead_investigator') || hasRole('hsse_expert');
 
-  // Use state to track data from the new incident_rca table
-  const [rcaData, setRcaData] = useState<any>(null);
-  const [isLocked, setIsLocked] = useState(false);
-  const [loadingRCA, setLoadingRCA] = useState(true);
-
+  // Use hook directly
   const { data: investigation, isLoading: isInvestigationLoading } = useInvestigation(incidentId);
   const createInvestigation = useCreateInvestigation();
-  const updateInvestigation = useUpdateInvestigation(); // Still used for legacy sync
-  // Pass incidentId to enable automatic context enrichment (witness statements, evidence, injury, property, environmental data)
+  const updateInvestigation = useUpdateInvestigation();
+  const lockRCA = useLockRCA();
+
+  // Pass incidentId to enable automatic context enrichment
   const { rewriteText, generateImmediateCause, generateUnderlyingCause, isLoading: isAILoading } = useRCAAI({ incidentId });
   
-  // Fetch witness statements and evidence for AI Generate Whys
   const { statements: witnessStatements } = useWitnessStatements(incidentId);
   const { data: evidenceItems } = useEvidenceItems(incidentId);
   
-  // Map data for FiveWhysBuilder
   const witnessData = witnessStatements?.map(w => ({
     name: w.name || 'Unknown',
     statement: w.statement || '',
@@ -144,116 +140,35 @@ export function RCAPanel({
     },
   });
 
-  // Fetch RCA Data from new table
-  const fetchRCAData = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('incident_rca')
-        .select('*')
-        .eq('incident_id', incidentId)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (data) {
-        setRcaData(data);
-        setIsLocked((data as any).is_locked || false);
-
-        // Populate form - use any cast for new table fields until types regenerate
-        const rcaRow = data as any;
-        const formData: any = {
-          five_whys: (rcaRow.five_whys as unknown as FiveWhyEntry[]) || [],
-          root_causes: (rcaRow.root_causes as unknown as RootCauseEntry[]) || [], // Stored as jsonb array (fixed via migration)
-          contributing_factors_list: (rcaRow.contributing_factors as unknown as ContributingFactorEntry[]) || [],
-          immediate_cause: rcaRow.immediate_causes?.[0] || '', // Assuming array in DB, using first for UI
-          underlying_cause: rcaRow.underlying_causes?.[0] || '', // Assuming array in DB
-          root_cause: Array.isArray(rcaRow.root_causes) && rcaRow.root_causes.length > 0 ? rcaRow.root_causes[0]?.text || '' : '', // Legacy sync helper
-          // AI summary fields might not be in incident_rca yet, fallback to investigation or keep local
-          ai_summary: '',
-        };
-
-        // Merge with investigation data for fields not in incident_rca or for AI summary
-        if (investigation) {
-           formData.ai_summary = investigation.ai_summary || '';
-           formData.ai_summary_generated_at = investigation.ai_summary_generated_at;
-           formData.ai_summary_language = investigation.ai_summary_language || 'en';
-
-           // If incident_rca was empty (first load after migration), might need to populate from investigation
-           if (!rcaRow.five_whys && investigation.five_whys) formData.five_whys = investigation.five_whys;
-           if ((!rcaRow.root_causes || (Array.isArray(rcaRow.root_causes) && rcaRow.root_causes.length === 0)) && investigation.root_causes) formData.root_causes = investigation.root_causes;
-        }
-
-        form.reset(formData);
-        lastSavedDataRef.current = JSON.stringify(formData);
-      } else if (investigation) {
-        // Fallback to legacy investigation data if no RCA record yet
-        let parsedRootCauses: RootCauseEntry[] = investigation.root_causes || [];
-        if (parsedRootCauses.length === 0 && investigation.root_cause) {
-          parsedRootCauses = [{
-            id: crypto.randomUUID(),
-            text: investigation.root_cause,
-            added_at: investigation.created_at,
-          }];
-        }
-        const parsedContributingFactors: ContributingFactorEntry[] = investigation.contributing_factors_list || [];
-
-        const formData = {
-          immediate_cause: investigation.immediate_cause || '',
-          underlying_cause: investigation.underlying_cause || '',
-          root_cause: investigation.root_cause || '',
-          contributing_factors: investigation.contributing_factors || '',
-          findings_summary: investigation.findings_summary || '',
-          five_whys: investigation.five_whys || [],
-          root_causes: parsedRootCauses,
-          contributing_factors_list: parsedContributingFactors,
-          ai_summary: investigation.ai_summary || '',
-          ai_summary_generated_at: investigation.ai_summary_generated_at || null,
-          ai_summary_language: investigation.ai_summary_language || 'en',
-        };
-        form.reset(formData);
-        lastSavedDataRef.current = JSON.stringify(formData);
-      }
-    } catch (error) {
-      console.error('Error fetching RCA data:', error);
-    } finally {
-      setLoadingRCA(false);
-    }
-  }, [incidentId, investigation, form]);
-
+  // Effect to populate form when investigation data loads
   useEffect(() => {
-    fetchRCAData();
-  }, [fetchRCAData]);
-
-  // Read-only logic: Locked by HSSE Manager OR Closed
-  const isClosed = incidentStatus === 'closed';
-  const isReadOnly = isLocked || isClosed || canEditProp === false;
-
-  // Save to incident_rca table
-  const saveToRCATable = async (data: RCAFormValues) => {
-    try {
-      const payload = {
-        incident_id: incidentId,
-        tenant_id: investigation?.tenant_id, // Assuming available
-        five_whys: data.five_whys as unknown as Json,
-        root_causes: data.root_causes as unknown as Json, // Now supported as JSONB by V1.1 Schema
-        contributing_factors: data.contributing_factors_list as unknown as Json,
-        immediate_causes: data.immediate_cause ? [data.immediate_cause] : [],
-        underlying_causes: data.underlying_cause ? [data.underlying_cause] : [],
-        // updated_at: new Date().toISOString() // Handled by DB default
+    if (investigation) {
+      const formData = {
+        five_whys: investigation.five_whys || [],
+        root_causes: investigation.root_causes || [],
+        contributing_factors_list: investigation.contributing_factors_list || [],
+        immediate_cause: investigation.immediate_cause || '',
+        underlying_cause: investigation.underlying_cause || '',
+        root_cause: investigation.root_cause || '',
+        contributing_factors: investigation.contributing_factors || '',
+        findings_summary: investigation.findings_summary || '',
+        ai_summary: investigation.ai_summary || '',
+        ai_summary_generated_at: investigation.ai_summary_generated_at,
+        ai_summary_language: investigation.ai_summary_language || 'en',
       };
 
-      // Upsert
-      const { error } = await supabase
-        .from('incident_rca')
-        .upsert(payload, { onConflict: 'incident_id' });
-
-      if (error) throw error;
-      
-    } catch (error) {
-      console.error('Error saving to incident_rca:', error);
-      throw error;
+      // Only reset if data changed significantly to avoid cursor jumps, or if first load
+      const currentValues = form.getValues();
+      if (JSON.stringify(formData) !== JSON.stringify(currentValues) && !autoSaveTimeoutRef.current) {
+         form.reset(formData);
+         lastSavedDataRef.current = JSON.stringify(formData);
+      }
     }
-  };
+  }, [investigation, form]);
+
+  const isLocked = investigation?.is_rca_locked || false;
+  const isClosed = incidentStatus === 'closed';
+  const isReadOnly = isLocked || isClosed || canEditProp === false;
 
   // Auto-save handler
   const performAutoSave = useCallback(async (data: RCAFormValues) => {
@@ -265,30 +180,25 @@ export function RCAPanel({
     setAutoSaveStatus('saving');
     
     try {
-      // 1. Save to new RCA Table
-      await saveToRCATable(data);
-
-      // 2. Legacy Sync (Optional but good for transition)
+      // Use the unified update hook which handles both tables
       if (investigation?.id) {
-        const updates: Record<string, unknown> = {
+        const updates: any = {
           immediate_cause: data.immediate_cause,
           underlying_cause: data.underlying_cause,
           contributing_factors: data.contributing_factors,
           findings_summary: data.findings_summary,
-          five_whys: data.five_whys as unknown as Json,
-          root_causes: data.root_causes as unknown as Json,
-          contributing_factors_list: data.contributing_factors_list as unknown as Json,
+          five_whys: data.five_whys,
+          root_causes: data.root_causes,
+          contributing_factors_list: data.contributing_factors_list,
           ai_summary: data.ai_summary,
           ai_summary_generated_at: data.ai_summary ? new Date().toISOString() : null,
           ai_summary_language: data.ai_summary_language,
         };
-        if (data.root_causes.length > 0) {
-          updates.root_cause = data.root_causes[0].text;
-        }
+
         await updateInvestigation.mutateAsync({
           id: investigation.id,
           incidentId,
-          updates: updates as Partial<typeof investigation>,
+          updates: updates,
         });
       }
       
@@ -311,9 +221,14 @@ export function RCAPanel({
       clearTimeout(autoSaveTimeoutRef.current);
     }
     
-    autoSaveTimeoutRef.current = setTimeout(() => {
-      performAutoSave(formValues);
-    }, AUTO_SAVE_DELAY);
+    // Skip auto-save on initial load
+    if (lastSavedDataRef.current === '') {
+       // do nothing
+    } else {
+      autoSaveTimeoutRef.current = setTimeout(() => {
+        performAutoSave(formValues);
+      }, AUTO_SAVE_DELAY);
+    }
     
     return () => {
       if (autoSaveTimeoutRef.current) {
@@ -331,41 +246,30 @@ export function RCAPanel({
 
   const handleLockAnalysis = async () => {
     try {
-      const { error } = await supabase
-        .from('incident_rca')
-        .update({
-          is_locked: true,
-          locked_by: user?.id,
-          locked_at: new Date().toISOString()
-        })
-        .eq('incident_id', incidentId);
-
-      if (error) throw error;
-
-      setIsLocked(true);
-      toast.success(t('investigation.rca.lockedSuccess', 'RCA Analysis has been locked.'));
+      await lockRCA.mutateAsync({ incidentId });
     } catch (error) {
-      console.error('Error locking RCA:', error);
-      toast.error(t('common.error', 'Failed to lock RCA'));
+      // Error handled in hook
     }
   };
 
   const handleUnlockAnalysis = async () => {
     try {
-      // Call RPC or direct update if policy allows (RPC preferred for strict role check)
       const { error } = await (supabase.rpc as any)('unlock_rca', { p_incident_id: incidentId });
-
       if (error) throw error;
 
-      setIsLocked(false);
+      // Invalidate to refresh UI
+      updateInvestigation.reset(); // trigger re-fetch indirectly via query invalidation in hook
       toast.success(t('investigation.rca.unlockedSuccess', 'RCA Analysis has been unlocked.'));
+      // We need to trigger a refetch of investigation
+      // In a real app, we'd use queryClient from useQueryClient
+      window.location.reload(); // Simple brute force for now to ensure state sync if invalidateQueries is tricky here
     } catch (error: any) {
       console.error('Error unlocking RCA:', error);
       toast.error(error.message || t('common.error', 'Failed to unlock RCA'));
     }
   };
 
-  // AI Helpers
+  // AI Helpers (unchanged)
   const handleRewriteField = async (fieldName: 'immediate_cause' | 'underlying_cause') => {
     const currentValue = form.getValues(fieldName);
     if (!currentValue?.trim()) return;
@@ -424,7 +328,7 @@ export function RCAPanel({
   const rootCausesValue = form.watch('root_causes');
   const contributingFactorsListValue = form.watch('contributing_factors_list');
 
-  if (isInvestigationLoading || loadingRCA) {
+  if (isInvestigationLoading) {
     return (
       <div className="flex items-center justify-center py-8">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -433,7 +337,7 @@ export function RCAPanel({
   }
 
   // Initial Start State
-  if (!investigation && !rcaData) {
+  if (!investigation) {
     return (
       <Card>
         <CardContent className="py-8 text-center">
@@ -464,15 +368,15 @@ export function RCAPanel({
                     : t('investigation.rca.lockedStatus', 'RCA is locked. Inputs are disabled.')}
                 </span>
                 {/* Show who locked and when */}
-                {rcaData?.locked_at && !isClosed && (
+                {investigation.rca_locked_at && !isClosed && (
                   <p className="text-xs text-muted-foreground">
                     {t('investigation.rca.lockedBy', 'Locked on {{date}}', {
-                      date: new Date(rcaData.locked_at).toLocaleString()
+                      date: new Date(investigation.rca_locked_at).toLocaleString()
                     })}
                   </p>
                 )}
               </div>
-              {/* Unlock Button for HSSE Manager - Made more prominent */}
+              {/* Unlock Button for HSSE Manager */}
               {!isClosed && isHSSEManager && (
                 <Button
                   type="button"
@@ -747,8 +651,8 @@ export function RCAPanel({
           <div className="flex items-center gap-2">
             {/* Lock Button (HSSE Manager or Lead Investigator) */}
             {!isLocked && (isHSSEManager || isLeadInvestigator) && !isClosed && (
-              <Button type="button" variant="secondary" onClick={handleLockAnalysis}>
-                <Lock className="h-4 w-4 me-2" />
+              <Button type="button" variant="secondary" onClick={handleLockAnalysis} disabled={lockRCA.isPending}>
+                {lockRCA.isPending ? <Loader2 className="h-4 w-4 me-2 animate-spin" /> : <Lock className="h-4 w-4 me-2" />}
                 {t('investigation.rca.lockAnalysis', 'Lock Analysis')}
               </Button>
             )}
