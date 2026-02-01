@@ -127,22 +127,24 @@ export function useGuardGateAction() {
             mobile_number: passData.driver_mobile,
             car_plate: passData.vehicle_plate,
             purpose: passData.material_description ? `Material: ${passData.material_description.length > 50 ? `${passData.material_description.substring(0, 50)}...` : passData.material_description}` : 'Material Transport',
-            material_gate_pass_id: passId,
+            notes: `Gate Pass: ${passReference}`,
             entry_time: now,
             access_type: 'entry',
             validation_status: 'valid'
-          });
+          } as any);
         error = insertError;
       } else {
-        // Exit: Find open log and close it
-        const { data: openLog } = await supabase
+        // Exit: Find open log by vehicle plate and close it
+        const { data: openLogs } = await supabase
           .from('gate_entry_logs')
           .select('id')
-          .eq('material_gate_pass_id', passId)
+          .eq('tenant_id', tenantId)
+          .eq('car_plate', passData.vehicle_plate)
           .is('exit_time', null)
           .order('entry_time', { ascending: false })
-          .limit(1)
-          .single();
+          .limit(1);
+
+        const openLog = openLogs?.[0];
 
         if (openLog) {
           const { error: updateError } = await supabase
