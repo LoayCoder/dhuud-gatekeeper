@@ -3,126 +3,178 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { MaterialGatePass, GatePassFilters } from "./use-material-gate-passes";
 
+const GATE_PASS_SELECT = `
+  id, reference_number, project_id, company_id, pass_type, material_description,
+  quantity, vehicle_plate, driver_name, driver_mobile, pass_date,
+  time_window_start, time_window_end, status, requested_by,
+  pm_approved_by, pm_approved_at, pm_notes,
+  safety_approved_by, safety_approved_at, safety_notes,
+  rejected_by, rejected_at, rejection_reason,
+  guard_verified_by, guard_verified_at, entry_time, exit_time, created_at,
+  is_internal_request, approval_from_id,
+  project:contractor_projects(project_name, department_id, company:contractor_companies(company_name)),
+  company:contractor_companies(company_name),
+  requester:profiles!requested_by(full_name),
+  approval_from:profiles!approval_from_id(full_name)
+`;
+
 /**
  * Fetch gate passes filtered by the department representative's assigned department.
- * This hook first retrieves projects belonging to the user's department,
- * then fetches gate passes for those projects.
+ * Handles BOTH routing methods:
+ * - Internal requests: Route via approval_from_id (assigned to this user)
+ * - External requests: Route via project.department_id
  */
 export function useDeptGatePasses(filters: GatePassFilters = {}) {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const tenantId = profile?.tenant_id;
   const departmentId = profile?.assigned_department_id;
+  const userId = user?.id;
 
   return useQuery({
-    queryKey: ["dept-gate-passes", tenantId, departmentId, filters],
+    queryKey: ["dept-gate-passes", tenantId, departmentId, userId, filters],
     queryFn: async () => {
-      if (!tenantId || !departmentId) return [];
+      if (!tenantId || !userId) return [];
 
-      // First get projects in this department
-      const { data: projects, error: projectsError } = await supabase
-        .from("contractor_projects")
-        .select("id")
-        .eq("tenant_id", tenantId)
-        .eq("department_id", departmentId)
-        .is("deleted_at", null);
+      const allPasses: MaterialGatePass[] = [];
 
-      if (projectsError) throw projectsError;
-
-      const projectIds = projects?.map(p => p.id) || [];
-      if (projectIds.length === 0) return [];
-
-      // Then fetch gate passes for these projects
-      let query = supabase
+      // 1. INTERNAL requests: where approval_from_id = current user
+      const { data: internalPasses, error: internalError } = await supabase
         .from("material_gate_passes")
-        .select(`
-          id, reference_number, project_id, company_id, pass_type, material_description,
-          quantity, vehicle_plate, driver_name, driver_mobile, pass_date,
-          time_window_start, time_window_end, status, requested_by,
-          pm_approved_by, pm_approved_at, pm_notes,
-          safety_approved_by, safety_approved_at, safety_notes,
-          rejected_by, rejected_at, rejection_reason,
-          guard_verified_by, guard_verified_at, entry_time, exit_time, created_at,
-          is_internal_request, approval_from_id,
-          project:contractor_projects(project_name, department_id, company:contractor_companies(company_name)),
-          company:contractor_companies(company_name),
-          requester:profiles!requested_by(full_name)
-        `)
+        .select(GATE_PASS_SELECT)
         .eq("tenant_id", tenantId)
-        .in("project_id", projectIds)
+        .eq("approval_from_id", userId)
+        .eq("is_internal_request", true)
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
 
+      if (internalError) throw internalError;
+      if (internalPasses) allPasses.push(...(internalPasses as MaterialGatePass[]));
+
+      // 2. EXTERNAL requests: where project belongs to user's department
+      if (departmentId) {
+        const { data: projects, error: projectsError } = await supabase
+          .from("contractor_projects")
+          .select("id")
+          .eq("tenant_id", tenantId)
+          .eq("department_id", departmentId)
+          .is("deleted_at", null);
+
+        if (projectsError) throw projectsError;
+
+        const projectIds = projects?.map(p => p.id) || [];
+        if (projectIds.length > 0) {
+          const { data: externalPasses, error: externalError } = await supabase
+            .from("material_gate_passes")
+            .select(GATE_PASS_SELECT)
+            .eq("tenant_id", tenantId)
+            .in("project_id", projectIds)
+            .eq("is_internal_request", false)
+            .is("deleted_at", null)
+            .order("created_at", { ascending: false });
+
+          if (externalError) throw externalError;
+          if (externalPasses) allPasses.push(...(externalPasses as MaterialGatePass[]));
+        }
+      }
+
+      // Apply filters on combined results
+      let filtered = allPasses;
+
       if (filters.status) {
-        query = query.eq("status", filters.status);
+        filtered = filtered.filter(p => p.status === filters.status);
       }
       if (filters.passDate) {
-        query = query.eq("pass_date", filters.passDate);
+        filtered = filtered.filter(p => p.pass_date === filters.passDate);
       }
       if (filters.search) {
-        query = query.or(
-          `reference_number.ilike.%${filters.search}%,material_description.ilike.%${filters.search}%,vehicle_plate.ilike.%${filters.search}%`
+        const searchLower = filters.search.toLowerCase();
+        filtered = filtered.filter(p =>
+          p.reference_number?.toLowerCase().includes(searchLower) ||
+          p.material_description?.toLowerCase().includes(searchLower) ||
+          p.vehicle_plate?.toLowerCase().includes(searchLower)
         );
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return (data || []) as MaterialGatePass[];
+      // Sort by created_at descending
+      filtered.sort((a, b) => 
+        new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+      );
+
+      return filtered;
     },
-    enabled: !!tenantId && !!departmentId,
+    enabled: !!tenantId && !!userId,
   });
 }
 
 /**
- * Fetch gate passes pending approval for the department
+ * Fetch gate passes pending approval for the department representative.
+ * Handles BOTH routing methods:
+ * - Internal requests: status = pending_dept_approval AND approval_from_id = current user
+ * - External requests: status in [pending_contractor_approval, pending_club_mgmt_ack] AND project in user's department
  */
 export function useDeptPendingApprovals() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const tenantId = profile?.tenant_id;
   const departmentId = profile?.assigned_department_id;
+  const userId = user?.id;
 
   return useQuery({
-    queryKey: ["dept-pending-approvals", tenantId, departmentId],
+    queryKey: ["dept-pending-approvals", tenantId, departmentId, userId],
     queryFn: async () => {
-      if (!tenantId || !departmentId) return [];
+      if (!tenantId || !userId) return [];
 
-      // First get projects in this department
-      const { data: projects, error: projectsError } = await supabase
-        .from("contractor_projects")
-        .select("id")
-        .eq("tenant_id", tenantId)
-        .eq("department_id", departmentId)
-        .is("deleted_at", null);
+      const allPending: MaterialGatePass[] = [];
 
-      if (projectsError) throw projectsError;
-
-      const projectIds = projects?.map(p => p.id) || [];
-      if (projectIds.length === 0) return [];
-
-      const { data, error } = await supabase
+      // 1. INTERNAL requests assigned to this user with pending_dept_approval status
+      const { data: internalPasses, error: internalError } = await supabase
         .from("material_gate_passes")
-        .select(`
-          id, reference_number, project_id, company_id, pass_type, material_description,
-          quantity, vehicle_plate, driver_name, driver_mobile, pass_date,
-          time_window_start, time_window_end, status, requested_by,
-          pm_approved_by, pm_approved_at, pm_notes,
-          safety_approved_by, safety_approved_at, safety_notes,
-          rejected_by, rejected_at, rejection_reason,
-          guard_verified_by, guard_verified_at, entry_time, exit_time, created_at,
-          is_internal_request, approval_from_id,
-          project:contractor_projects(project_name, department_id, company:contractor_companies(company_name)),
-          company:contractor_companies(company_name),
-          requester:profiles!requested_by(full_name)
-        `)
+        .select(GATE_PASS_SELECT)
         .eq("tenant_id", tenantId)
-        .in("project_id", projectIds)
-        .in("status", ["pending", "pm_approved"])
+        .eq("approval_from_id", userId)
+        .eq("is_internal_request", true)
+        .eq("status", "pending_dept_approval")
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return (data || []) as MaterialGatePass[];
+      if (internalError) throw internalError;
+      if (internalPasses) allPending.push(...(internalPasses as MaterialGatePass[]));
+
+      // 2. EXTERNAL requests for department projects with pending statuses
+      if (departmentId) {
+        const { data: projects, error: projectsError } = await supabase
+          .from("contractor_projects")
+          .select("id")
+          .eq("tenant_id", tenantId)
+          .eq("department_id", departmentId)
+          .is("deleted_at", null);
+
+        if (projectsError) throw projectsError;
+
+        const projectIds = projects?.map(p => p.id) || [];
+        if (projectIds.length > 0) {
+          const { data: externalPasses, error: externalError } = await supabase
+            .from("material_gate_passes")
+            .select(GATE_PASS_SELECT)
+            .eq("tenant_id", tenantId)
+            .in("project_id", projectIds)
+            .eq("is_internal_request", false)
+            .in("status", ["pending_contractor_approval", "pending_club_mgmt_ack"])
+            .is("deleted_at", null)
+            .order("created_at", { ascending: false });
+
+          if (externalError) throw externalError;
+          if (externalPasses) allPending.push(...(externalPasses as MaterialGatePass[]));
+        }
+      }
+
+      // Sort by created_at descending
+      allPending.sort((a, b) => 
+        new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+      );
+
+      return allPending;
     },
-    enabled: !!tenantId && !!departmentId,
+    enabled: !!tenantId && !!userId,
   });
 }
 
@@ -130,55 +182,73 @@ export function useDeptPendingApprovals() {
  * Fetch today's approved gate passes for the department
  */
 export function useDeptTodayPasses() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const tenantId = profile?.tenant_id;
   const departmentId = profile?.assigned_department_id;
+  const userId = user?.id;
   const today = new Date().toISOString().split("T")[0];
 
   return useQuery({
-    queryKey: ["dept-today-passes", tenantId, departmentId, today],
+    queryKey: ["dept-today-passes", tenantId, departmentId, userId, today],
     queryFn: async () => {
-      if (!tenantId || !departmentId) return [];
+      if (!tenantId || !userId) return [];
 
-      // First get projects in this department
-      const { data: projects, error: projectsError } = await supabase
-        .from("contractor_projects")
-        .select("id")
-        .eq("tenant_id", tenantId)
-        .eq("department_id", departmentId)
-        .is("deleted_at", null);
+      const allPasses: MaterialGatePass[] = [];
 
-      if (projectsError) throw projectsError;
-
-      const projectIds = projects?.map(p => p.id) || [];
-      if (projectIds.length === 0) return [];
-
-      const { data, error } = await supabase
+      // 1. INTERNAL requests approved and scheduled for today
+      const { data: internalPasses, error: internalError } = await supabase
         .from("material_gate_passes")
-        .select(`
-          id, reference_number, project_id, company_id, pass_type, material_description,
-          quantity, vehicle_plate, driver_name, driver_mobile, pass_date,
-          time_window_start, time_window_end, status, requested_by,
-          pm_approved_by, pm_approved_at, pm_notes,
-          safety_approved_by, safety_approved_at, safety_notes,
-          rejected_by, rejected_at, rejection_reason,
-          guard_verified_by, guard_verified_at, entry_time, exit_time, created_at,
-          is_internal_request, approval_from_id,
-          project:contractor_projects(project_name, department_id, company:contractor_companies(company_name)),
-          company:contractor_companies(company_name),
-          requester:profiles!requested_by(full_name)
-        `)
+        .select(GATE_PASS_SELECT)
         .eq("tenant_id", tenantId)
-        .in("project_id", projectIds)
+        .eq("approval_from_id", userId)
+        .eq("is_internal_request", true)
         .eq("pass_date", today)
         .in("status", ["approved", "entry_verified", "completed"])
         .is("deleted_at", null)
         .order("time_window_start", { ascending: true });
 
-      if (error) throw error;
-      return (data || []) as MaterialGatePass[];
+      if (internalError) throw internalError;
+      if (internalPasses) allPasses.push(...(internalPasses as MaterialGatePass[]));
+
+      // 2. EXTERNAL requests for department projects
+      if (departmentId) {
+        const { data: projects, error: projectsError } = await supabase
+          .from("contractor_projects")
+          .select("id")
+          .eq("tenant_id", tenantId)
+          .eq("department_id", departmentId)
+          .is("deleted_at", null);
+
+        if (projectsError) throw projectsError;
+
+        const projectIds = projects?.map(p => p.id) || [];
+        if (projectIds.length > 0) {
+          const { data: externalPasses, error: externalError } = await supabase
+            .from("material_gate_passes")
+            .select(GATE_PASS_SELECT)
+            .eq("tenant_id", tenantId)
+            .in("project_id", projectIds)
+            .eq("is_internal_request", false)
+            .eq("pass_date", today)
+            .in("status", ["approved", "entry_verified", "completed"])
+            .is("deleted_at", null)
+            .order("time_window_start", { ascending: true });
+
+          if (externalError) throw externalError;
+          if (externalPasses) allPasses.push(...(externalPasses as MaterialGatePass[]));
+        }
+      }
+
+      // Sort by time_window_start
+      allPasses.sort((a, b) => {
+        const timeA = a.time_window_start || "00:00";
+        const timeB = b.time_window_start || "00:00";
+        return timeA.localeCompare(timeB);
+      });
+
+      return allPasses;
     },
-    enabled: !!tenantId && !!departmentId,
+    enabled: !!tenantId && !!userId,
   });
 }
 
@@ -186,30 +256,20 @@ export function useDeptTodayPasses() {
  * Get gate pass statistics for the department
  */
 export function useDeptGatePassStats() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const tenantId = profile?.tenant_id;
   const departmentId = profile?.assigned_department_id;
+  const userId = user?.id;
   const today = new Date().toISOString().split("T")[0];
 
   return useQuery({
-    queryKey: ["dept-gate-pass-stats", tenantId, departmentId, today],
+    queryKey: ["dept-gate-pass-stats", tenantId, departmentId, userId, today],
     queryFn: async () => {
-      if (!tenantId || !departmentId) {
+      if (!tenantId || !userId) {
         return { total: 0, pending: 0, approvedToday: 0, completedThisWeek: 0 };
       }
 
-      // Get projects in this department
-      const { data: projects } = await supabase
-        .from("contractor_projects")
-        .select("id")
-        .eq("tenant_id", tenantId)
-        .eq("department_id", departmentId)
-        .is("deleted_at", null);
-
-      const projectIds = projects?.map(p => p.id) || [];
-      if (projectIds.length === 0) {
-        return { total: 0, pending: 0, approvedToday: 0, completedThisWeek: 0 };
-      }
+      const allPasses: { status: string; pass_date: string | null }[] = [];
 
       // Calculate week start
       const now = new Date();
@@ -219,29 +279,67 @@ export function useDeptGatePassStats() {
       weekStart.setHours(0, 0, 0, 0);
       const weekStartStr = weekStart.toISOString().split("T")[0];
 
-      // Get all passes for stats
-      const { data: allPasses } = await supabase
+      // 1. INTERNAL requests assigned to this user
+      const { data: internalPasses } = await supabase
         .from("material_gate_passes")
-        .select("id, status, pass_date, created_at")
+        .select("id, status, pass_date")
         .eq("tenant_id", tenantId)
-        .in("project_id", projectIds)
+        .eq("approval_from_id", userId)
+        .eq("is_internal_request", true)
         .is("deleted_at", null);
 
-      const passes = allPasses || [];
+      if (internalPasses) allPasses.push(...internalPasses);
+
+      // 2. EXTERNAL requests for department projects
+      if (departmentId) {
+        const { data: projects } = await supabase
+          .from("contractor_projects")
+          .select("id")
+          .eq("tenant_id", tenantId)
+          .eq("department_id", departmentId)
+          .is("deleted_at", null);
+
+        const projectIds = projects?.map(p => p.id) || [];
+        if (projectIds.length > 0) {
+          const { data: externalPasses } = await supabase
+            .from("material_gate_passes")
+            .select("id, status, pass_date")
+            .eq("tenant_id", tenantId)
+            .in("project_id", projectIds)
+            .eq("is_internal_request", false)
+            .is("deleted_at", null);
+
+          if (externalPasses) allPasses.push(...externalPasses);
+        }
+      }
+
+      // Calculate stats
+      const total = allPasses.length;
       
-      const total = passes.length;
-      const pending = passes.filter(p => p.status === "pending" || p.status === "pm_approved").length;
-      const approvedToday = passes.filter(p => 
+      // Pending includes new workflow statuses
+      const pendingStatuses = [
+        "pending_dept_approval", 
+        "pending_contractor_approval", 
+        "pending_club_mgmt_ack",
+        "pending_security_approval",
+        // Legacy statuses
+        "pending", 
+        "pm_approved"
+      ];
+      const pending = allPasses.filter(p => pendingStatuses.includes(p.status)).length;
+      
+      const approvedToday = allPasses.filter(p => 
         p.pass_date === today && 
         (p.status === "approved" || p.status === "entry_verified" || p.status === "completed")
       ).length;
-      const completedThisWeek = passes.filter(p => 
+      
+      const completedThisWeek = allPasses.filter(p => 
         p.status === "completed" && 
-        p.pass_date >= weekStartStr
+        p.pass_date && p.pass_date >= weekStartStr
       ).length;
 
       return { total, pending, approvedToday, completedThisWeek };
     },
-    enabled: !!tenantId && !!departmentId,
+    enabled: !!tenantId && !!userId,
   });
 }
