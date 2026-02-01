@@ -1,142 +1,56 @@
 
 
-# Fix Gate Pass Issues - Photos, Approval Actions, and Visibility
+# Fix: Remove `ura.deleted_at` References in Gate Pass Approval Functions
 
-## Issues Identified
+## Problem Summary
 
-### Issue 1: Photos Not Showing
-
-**Root Cause**: Photos are uploaded to `gate_pass_item_photos` table (per-item photos), but the dialog fetches from `gate_pass_photos` table.
-
-| Code Location | What It Does |
-|:--------------|:-------------|
-| `use-material-gate-passes.ts` (lines 316-348) | Uploads photos to `gate_pass_item_photos` table |
-| `use-gate-pass-details.ts` (lines 199-235) | Fetches photos from `gate_pass_photos` table |
-
-**Database Evidence**:
-- `gate_pass_photos` for GP-2026-00001: **Empty**
-- `gate_pass_item_photos` for GP-2026-00001: **Not checked, but code stores here**
-
-The hooks are querying the **wrong table**.
-
----
-
-### Issue 2: Department Representative Cannot Approve/Reject
-
-**Root Cause**: The `GatePassDetailDialog` component only displays information - it has **no approval action buttons**. The approval buttons exist in `GatePassApprovalQueue` component, but that is used in the main contractor management section, not the department gate passes pages.
-
-**Current State**:
-- `PendingApprovals.tsx` opens `GatePassDetailDialog` on click
-- `GatePassDetailDialog` shows details only, no actions
-- No approve/reject buttons are displayed
-
----
-
-### Issue 3: Pass Not Showing in `/my-gate-passes/history`
-
-**Root Cause**: The History page (`History.tsx`) uses `useGatePassApprovalHistory()` hook which shows **passes you have approved/rejected** - it's for approvers, not requesters.
-
-The "history" for requesters should show their submitted passes, but this page is for approval history.
-
----
-
-### Issue 4: Pass Not Showing in `/dept-gate-passes` Dashboard
-
-**Root Cause**: The current user is **LUAY IBRAHIM** who is the requester, not the approver. The gate pass is assigned to **Khalid Al Shuhail** (`approval_from_id: dcf0e39d...`).
-
-The dashboard only shows passes where:
-- Internal: `approval_from_id = current_user_id`
-- External: `project.department_id = user's department`
-
-Since LUAY is not the designated approver, he won't see it on the department dashboard.
-
-**However**: If logged in as Khalid Al Shuhail, the pass SHOULD appear.
-
----
-
-## Fix Plan
-
-### Phase 1: Fix Photo Display (use `gate_pass_item_photos` table)
-
-Update `use-gate-pass-details.ts` to fetch from `gate_pass_item_photos` instead of `gate_pass_photos`:
-
-```typescript
-export function useGatePassPhotos(passId: string | null) {
-  return useQuery({
-    queryFn: async () => {
-      // Fetch from gate_pass_item_photos (where photos are actually stored)
-      const { data, error } = await supabase
-        .from("gate_pass_item_photos")  // Changed from gate_pass_photos
-        .select("id, gate_pass_id, item_id, storage_path, file_name, file_size, mime_type, uploaded_by, created_at")
-        .eq("gate_pass_id", passId)
-        .eq("tenant_id", tenantId)
-        .is("deleted_at", null)
-        .order("created_at", { ascending: true });
-      // ... rest same
-    }
-  });
-}
+When a Department Representative tries to approve a gate pass, the system throws an error:
+```
+Failed: column ura.deleted_at does not exist
 ```
 
+## Root Cause
+
+The `user_role_assignments` table does NOT have a `deleted_at` column. The table schema shows:
+- `id`, `user_id`, `role_id`, `tenant_id`, `assigned_at`, `assigned_by`, `branch_id`, `site_id`
+
+However, two database functions still reference `ura.deleted_at`:
+
+1. **`can_approve_gate_pass`** (line 38):
+   ```sql
+   WHERE ura.user_id = p_user_id AND ura.deleted_at IS NULL;
+   ```
+
+2. **`get_user_pending_gate_passes`** (line 168):
+   ```sql
+   WHERE ura.user_id = p_user_id AND ura.deleted_at IS NULL;
+   ```
+
+## Solution
+
+Create a migration to update both functions, removing the invalid `ura.deleted_at` filter.
+
 ---
 
-### Phase 2: Add Approval Actions to Detail Dialog
+## Database Migration
 
-Create a new `GatePassApprovalActions` component and integrate it into `GatePassDetailDialog` for passes with pending status when viewed by the assigned approver.
+A single migration file will update both functions:
 
-```typescript
-interface GatePassApprovalActionsProps {
-  pass: MaterialGatePass;
-  onSuccess: () => void;
-}
-
-function GatePassApprovalActions({ pass, onSuccess }: GatePassApprovalActionsProps) {
-  const { user } = useAuth();
-  const approvePass = useApproveGatePass();
-  
-  // Only show actions if:
-  // 1. Status is pending_dept_approval
-  // 2. Current user is the approval_from_id (for internal)
-  const canApprove = 
-    pass.status === "pending_dept_approval" && 
-    pass.approval_from_id === user?.id;
-  
-  if (!canApprove) return null;
-  
-  return (
-    <div className="flex gap-2">
-      <Button onClick={() => approvePass.mutate({...})}>Approve</Button>
-      <Button variant="destructive" onClick={...}>Reject</Button>
-    </div>
-  );
-}
+### Changes to `can_approve_gate_pass` function:
+```sql
+-- Line 38: Change FROM
+WHERE ura.user_id = p_user_id AND ura.deleted_at IS NULL;
+-- TO
+WHERE ura.user_id = p_user_id;
 ```
 
-Add this to the dialog footer when viewing a pending pass.
-
----
-
-### Phase 3: Clarify History Page Purpose
-
-The `/my-gate-passes/history` page is correctly named "Approval History" and shows passes **approved by** the current user (for approvers). This is working as designed.
-
-For **requester's submitted passes**, they should use `/my-gate-passes` which lists all passes they created.
-
-No code change needed, but we should verify the List page shows the requester's passes (which it does via `useMyGatePasses`).
-
----
-
-### Phase 4: Verify Department Dashboard Routing
-
-The current logic is correct:
-- `useDeptGatePasses` fetches internal passes where `approval_from_id = current_user_id`
-- GP-2026-00001 has `approval_from_id = Khalid Al Shuhail`
-
-For LUAY IBRAHIM to see it on the dashboard, one of these must be true:
-1. LUAY is logged in as the approver (Khalid)
-2. OR the pass is assigned to LUAY as `approval_from_id`
-
-**Verification**: When logged in as Khalid Al Shuhail, the pass should appear.
+### Changes to `get_user_pending_gate_passes` function:
+```sql
+-- Line 168: Change FROM
+WHERE ura.user_id = p_user_id AND ura.deleted_at IS NULL;
+-- TO
+WHERE ura.user_id = p_user_id;
+```
 
 ---
 
@@ -144,28 +58,22 @@ For LUAY IBRAHIM to see it on the dashboard, one of these must be true:
 
 | File | Action | Description |
 |:-----|:-------|:------------|
-| `src/hooks/contractor-management/use-gate-pass-details.ts` | **Modify** | Fetch photos from `gate_pass_item_photos` table |
-| `src/components/contractors/GatePassDetailDialog.tsx` | **Modify** | Add approval action buttons for pending passes |
-| `src/pages/dept-gate-passes/PendingApprovals.tsx` | **Modify** | Refresh data after approval action |
+| New migration SQL file | **Create** | Fix both RPC functions by removing `ura.deleted_at` references |
 
 ---
 
-## Technical Summary
+## Technical Notes
 
-| Issue | Root Cause | Fix |
-|:------|:-----------|:----|
-| Photos not showing | Hook queries `gate_pass_photos`, code saves to `gate_pass_item_photos` | Query correct table |
-| Cannot approve/reject | Detail dialog has no action buttons | Add approval action component |
-| Not in history | History page is for approvers, not requesters | Working as designed |
-| Not in dept dashboard | User is requester, not approver | Pass shows for correct approver (Khalid) |
+- The `roles` table has an `is_active` column that's already being checked (`r.is_active = true`)
+- This provides the necessary filtering for inactive roles without needing a `deleted_at` column on role assignments
+- The memory from the project confirms this fix was supposed to be applied but was missed in these specific functions
 
 ---
 
-## Expected Results After Fix
+## Expected Result
 
-1. **Photos**: Will display correctly in the Items & Photos tab
-2. **Approval Actions**: Approve/Reject buttons visible when assigned approver views the pass
-3. **Visibility**: Pass appears in correct locations based on user role:
-   - Requester (LUAY): Sees in `/my-gate-passes` list
-   - Approver (Khalid): Sees in `/dept-gate-passes` and `/dept-gate-passes/approvals`
+After the migration runs:
+1. Department Representatives can approve gate passes without errors
+2. The approval workflow proceeds correctly through all stages
+3. No more `ura.deleted_at does not exist` errors in postgres logs
 
