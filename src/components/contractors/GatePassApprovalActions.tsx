@@ -29,13 +29,14 @@ export function GatePassApprovalActions({ pass, onSuccess }: GatePassApprovalAct
       return pass.approval_from_id === user.id;
     }
 
-    // For external requests: check various pending statuses
-    // This is a simplified check - the actual authorization should also be validated server-side
+    // All pending statuses that can be actioned
+    // Actual role-based authorization is validated server-side via approve_gate_pass_unified RPC
     const pendingStatuses = [
-      "pending_contractor_approval",
-      "pending_dept_ack",          // External: after contractor approval
-      "pending_dept_approval",     // Internal: first stage
-      "pending_security_approval", // Internal: second stage
+      "pending_contractor_approval", // External: Contractor Consultant approval
+      "pending_club_mgmt_ack",       // Both: Golf Club Management acknowledgment
+      "pending_dept_ack",            // External: Dept Rep acknowledgment (legacy)
+      "pending_dept_approval",       // Internal: Dept Rep approval
+      "pending_security_approval",   // Both: Security Supervisor approval
       // Legacy statuses (for backward compatibility)
       "pending_pm_approval",
       "pending_safety_approval",
@@ -68,6 +69,8 @@ export function GatePassApprovalActions({ pass, onSuccess }: GatePassApprovalAct
     switch (pass.status) {
       case "pending_contractor_approval":
         return t("contractors.gatePasses.approveAsContractor", "Approve as Contractor Consultant");
+      case "pending_club_mgmt_ack":
+        return t("contractors.gatePasses.acknowledgeAsClubMgmt", "Acknowledge as Golf Club Management");
       case "pending_dept_ack":
         return t("contractors.gatePasses.acknowledgeAsDept", "Acknowledge as Department Representative");
       case "pending_dept_approval":

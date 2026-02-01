@@ -195,6 +195,9 @@ export function useDeptTodayPasses() {
 
       const allPasses: MaterialGatePass[] = [];
 
+      // Active pass statuses: approved (ready), used (entry recorded), completed (both entry/exit)
+      const activeStatuses = ["approved", "used", "completed"];
+
       // 1. INTERNAL requests approved and scheduled for today
       const { data: internalPasses, error: internalError } = await supabase
         .from("material_gate_passes")
@@ -203,7 +206,7 @@ export function useDeptTodayPasses() {
         .eq("approval_from_id", userId)
         .eq("is_internal_request", true)
         .eq("pass_date", today)
-        .in("status", ["approved", "entry_verified", "completed"])
+        .in("status", activeStatuses)
         .is("deleted_at", null)
         .order("time_window_start", { ascending: true });
 
@@ -230,7 +233,7 @@ export function useDeptTodayPasses() {
             .in("project_id", projectIds)
             .eq("is_internal_request", false)
             .eq("pass_date", today)
-            .in("status", ["approved", "entry_verified", "completed"])
+            .in("status", activeStatuses)
             .is("deleted_at", null)
             .order("time_window_start", { ascending: true });
 
@@ -315,22 +318,24 @@ export function useDeptGatePassStats() {
 
       // Calculate stats
       const total = allPasses.length;
-      
-      // Pending includes new workflow statuses
+
+      // Pending includes all approval stages in the current workflow
       const pendingStatuses = [
-        "pending_dept_approval", 
-        "pending_contractor_approval", 
-        "pending_club_mgmt_ack",
-        "pending_security_approval",
-        // Legacy statuses
-        "pending", 
-        "pm_approved"
+        "pending_dept_approval",        // Internal: Dept Rep approval
+        "pending_contractor_approval",  // External: Contractor Consultant approval
+        "pending_club_mgmt_ack",        // Both: Golf Club Management acknowledgment
+        "pending_security_approval",    // Both: Security Supervisor approval
+        // Legacy statuses (for backward compatibility)
+        "pending_dept_ack",
+        "pending_pm_approval",
+        "pending_safety_approval",
       ];
       const pending = allPasses.filter(p => pendingStatuses.includes(p.status)).length;
-      
-      const approvedToday = allPasses.filter(p => 
-        p.pass_date === today && 
-        (p.status === "approved" || p.status === "entry_verified" || p.status === "completed")
+
+      // Active passes scheduled for today (approved, used, or completed)
+      const approvedToday = allPasses.filter(p =>
+        p.pass_date === today &&
+        (p.status === "approved" || p.status === "used" || p.status === "completed")
       ).length;
       
       const completedThisWeek = allPasses.filter(p => 
