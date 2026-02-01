@@ -102,7 +102,7 @@ export function GatePassListTable({ gatePasses, isLoading }: GatePassListTablePr
         )}
         {pass.is_internal_request && !pass.project?.project_name && (
           <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/20">
-            Internal Request
+            {t("contractors.gatePasses.internalRequest", "Internal Request")}
           </Badge>
         )}
       </div>
@@ -169,7 +169,7 @@ export function GatePassListTable({ gatePasses, isLoading }: GatePassListTablePr
                   {pass.project?.project_name || (
                     pass.is_internal_request ? (
                       <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/20">
-                        Internal
+                        {t("gatePasses.type.internal", "Internal")}
                       </Badge>
                     ) : "-"
                   )}
