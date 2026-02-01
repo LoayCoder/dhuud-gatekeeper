@@ -24,6 +24,8 @@ import {
 } from "@/components/ui/table";
 import { Search, Filter, FileKey, Plus, History, Clock, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { useMyGatePasses } from "@/hooks/contractor-management/use-my-gate-passes";
+import { MaterialGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
+import { GatePassDetailDialog } from "@/components/contractors/GatePassDetailDialog";
 import { format } from "date-fns";
 
 function MyGatePassListContent() {
@@ -31,16 +33,24 @@ function MyGatePassListContent() {
   const direction = i18n.dir();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedPass, setSelectedPass] = useState<MaterialGatePass | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const { data: passes, isLoading } = useMyGatePasses({
     search: search || undefined,
     status: statusFilter === "all" ? undefined : statusFilter,
   });
 
+  const handleRowClick = (pass: MaterialGatePass) => {
+    setSelectedPass(pass);
+    setDetailOpen(true);
+  };
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { variant: "default" | "secondary" | "success" | "warning" | "destructive"; label: string; icon: React.ReactNode }> = {
       pending: { variant: "warning", label: t("gatePasses.status.pending", "Pending"), icon: <Clock className="h-3 w-3" /> },
       pending_dept_approval: { variant: "warning", label: t("gatePasses.status.pending_dept_approval", "Pending Dept"), icon: <Clock className="h-3 w-3" /> },
+      pending_contractor_approval: { variant: "warning", label: t("gatePasses.status.pending_contractor_approval", "Pending Contractor"), icon: <Clock className="h-3 w-3" /> },
       pending_club_mgmt_ack: { variant: "warning", label: t("gatePasses.status.pending_club_mgmt_ack", "Pending Golf Club Management"), icon: <AlertCircle className="h-3 w-3" /> },
       pm_approved: { variant: "secondary", label: t("gatePasses.status.pm_approved", "PM Approved"), icon: <CheckCircle2 className="h-3 w-3" /> },
       pending_security_approval: { variant: "warning", label: t("gatePasses.status.pending_security", "Pending Security"), icon: <AlertCircle className="h-3 w-3" /> },
@@ -119,8 +129,9 @@ function MyGatePassListContent() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t("common.all", "All")}</SelectItem>
-                  <SelectItem value="pending">{t("gatePasses.status.pending", "Pending")}</SelectItem>
-                  <SelectItem value="pm_approved">{t("gatePasses.status.pm_approved", "PM Approved")}</SelectItem>
+                  <SelectItem value="pending_dept_approval">{t("gatePasses.status.pending_dept_approval", "Pending Dept")}</SelectItem>
+                  <SelectItem value="pending_club_mgmt_ack">{t("gatePasses.status.pending_club_mgmt_ack", "Pending Golf Club Management")}</SelectItem>
+                  <SelectItem value="pending_security_approval">{t("gatePasses.status.pending_security", "Pending Security")}</SelectItem>
                   <SelectItem value="approved">{t("gatePasses.status.approved", "Approved")}</SelectItem>
                   <SelectItem value="rejected">{t("gatePasses.status.rejected", "Rejected")}</SelectItem>
                   <SelectItem value="completed">{t("gatePasses.status.completed", "Completed")}</SelectItem>
@@ -175,7 +186,11 @@ function MyGatePassListContent() {
                 </TableHeader>
                 <TableBody>
                   {passes.map(pass => (
-                    <TableRow key={pass.id}>
+                    <TableRow 
+                      key={pass.id} 
+                      onClick={() => handleRowClick(pass)}
+                      className="cursor-pointer hover:bg-accent"
+                    >
                       <TableCell className="font-medium">{pass.reference_number}</TableCell>
                       <TableCell>{getPassTypeBadge(pass.is_internal_request ?? false)}</TableCell>
                       <TableCell className="max-w-[200px] truncate">
@@ -194,6 +209,13 @@ function MyGatePassListContent() {
           )}
         </CardContent>
       </Card>
+
+      {/* Detail Dialog */}
+      <GatePassDetailDialog
+        pass={selectedPass}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+      />
     </div>
   );
 }

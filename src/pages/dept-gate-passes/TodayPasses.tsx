@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -5,11 +6,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MenuBasedAdminRoute } from "@/components/auth/MenuBasedAdminRoute";
 import { CalendarCheck, Clock, Truck, Package, CheckCircle2 } from "lucide-react";
 import { useDeptTodayPasses } from "@/hooks/contractor-management/use-dept-gate-passes";
+import { MaterialGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
+import { GatePassDetailDialog } from "@/components/contractors/GatePassDetailDialog";
 import { format } from "date-fns";
 
 function DeptTodayPassesContent() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.dir() === "rtl";
   const { data: todayPasses, isLoading } = useDeptTodayPasses();
+  const [selectedPass, setSelectedPass] = useState<MaterialGatePass | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+
+  const handlePassClick = (pass: MaterialGatePass) => {
+    setSelectedPass(pass);
+    setDetailOpen(true);
+  };
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { variant: "default" | "secondary" | "success" | "warning" | "destructive"; label: string }> = {
@@ -19,6 +30,18 @@ function DeptTodayPassesContent() {
     };
     const config = variants[status] || { variant: "secondary" as const, label: status };
     return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  const getPassTypeBadge = (isInternal: boolean) => {
+    return isInternal ? (
+      <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">
+        {t("gatePasses.type.internal", "Internal")}
+      </Badge>
+    ) : (
+      <Badge variant="outline" className="text-purple-600 border-purple-200 bg-purple-50">
+        {t("gatePasses.type.external", "External")}
+      </Badge>
+    );
   };
 
   const today = new Date();
@@ -83,12 +106,16 @@ function DeptTodayPassesContent() {
               {todayPasses.map(pass => (
                 <div
                   key={pass.id}
-                  className="p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                  onClick={() => handlePassClick(pass)}
+                  className="p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
                 >
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
                       <span className="font-semibold">{pass.reference_number}</span>
-                      {getStatusBadge(pass.status)}
+                      <div className="flex items-center gap-2">
+                        {getPassTypeBadge(pass.is_internal_request ?? false)}
+                        {getStatusBadge(pass.status)}
+                      </div>
                     </div>
                     
                     <div className="flex items-center gap-2 text-sm">
@@ -115,7 +142,10 @@ function DeptTodayPassesContent() {
 
                     <div className="pt-2 border-t">
                       <p className="text-xs text-muted-foreground">
-                        {pass.project?.project_name} • {pass.company?.company_name}
+                        {pass.is_internal_request 
+                          ? t("gatePasses.internalRequest", "Internal Request")
+                          : `${pass.project?.project_name} • ${pass.company?.company_name}`
+                        }
                       </p>
                     </div>
 
@@ -137,6 +167,13 @@ function DeptTodayPassesContent() {
           )}
         </CardContent>
       </Card>
+
+      {/* Detail Dialog */}
+      <GatePassDetailDialog
+        pass={selectedPass}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+      />
     </div>
   );
 }
