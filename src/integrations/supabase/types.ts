@@ -24946,14 +24946,19 @@ export type Database = {
         Args: { _incident_id: string; _user_id: string }
         Returns: boolean
       }
-      can_approve_gate_pass: {
-        Args: {
-          p_approval_stage: string
-          p_gate_pass_id: string
-          p_user_id: string
-        }
-        Returns: Json
-      }
+      can_approve_gate_pass:
+        | {
+            Args: { p_gate_pass_id: string; p_user_id: string }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p_approval_stage: string
+              p_gate_pass_id: string
+              p_user_id: string
+            }
+            Returns: Json
+          }
       can_approve_investigation: {
         Args: { _incident_id: string; _user_id: string }
         Returns: boolean
