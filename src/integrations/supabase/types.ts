@@ -25952,68 +25952,15 @@ export type Database = {
         | {
             Args: { p_user_id: string }
             Returns: {
-              approval_from_id: string | null
-              branch_id: string | null
-              club_mgmt_ack_at: string | null
-              club_mgmt_ack_by: string | null
-              club_mgmt_ack_notes: string | null
-              company_id: string | null
-              contractor_approval_notes: string | null
-              contractor_approval_status: string | null
-              contractor_approved_at: string | null
-              contractor_approved_by: string | null
+              approval_role: string
               created_at: string
-              deleted_at: string | null
-              driver_id: string | null
-              driver_mobile: string | null
-              driver_name: string | null
-              entry_confirmed_at: string | null
-              entry_confirmed_by: string | null
-              entry_gate_id: string | null
-              entry_time: string | null
-              exit_confirmed_at: string | null
-              exit_confirmed_by: string | null
-              exit_gate_id: string | null
-              exit_time: string | null
-              guard_verified_at: string | null
-              guard_verified_by: string | null
               id: string
-              is_internal_request: boolean | null
-              material_description: string
-              pass_date: string
-              pass_type: string
-              pm_approved_at: string | null
-              pm_approved_by: string | null
-              pm_notes: string | null
-              project_id: string | null
-              qr_code_token: string | null
-              qr_generated_at: string | null
-              quantity: string | null
-              reference_number: string
-              rejected_at: string | null
-              rejected_by: string | null
-              rejection_reason: string | null
-              requested_by: string
-              safety_approved_at: string | null
-              safety_approved_by: string | null
-              safety_notes: string | null
-              security_approval_notes: string | null
-              security_approval_status: string | null
-              security_approved_at: string | null
-              security_approved_by: string | null
+              is_internal_request: boolean
+              project_name: string
+              reference_id: string
+              requester_name: string
               status: string
-              tenant_id: string
-              time_window_end: string | null
-              time_window_start: string | null
-              updated_at: string
-              vehicle_plate: string | null
             }[]
-            SetofOptions: {
-              from: "*"
-              to: "material_gate_passes"
-              isOneToOne: false
-              isSetofReturn: true
-            }
           }
         | {
             Args: { p_tenant_id: string; p_user_id: string }
