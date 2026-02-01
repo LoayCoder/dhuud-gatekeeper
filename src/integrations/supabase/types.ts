@@ -24682,6 +24682,15 @@ export type Database = {
         Args: { p_event: Json; p_provider_message_id: string }
         Returns: string
       }
+      approve_gate_pass_unified: {
+        Args: {
+          p_action: string
+          p_gate_pass_id: string
+          p_notes?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       assign_investigation_team:
         | {
             Args: {
@@ -24846,6 +24855,14 @@ export type Database = {
       can_approve_dept_rep_observation: {
         Args: { _incident_id: string; _user_id: string }
         Returns: boolean
+      }
+      can_approve_gate_pass: {
+        Args: {
+          p_approval_stage: string
+          p_gate_pass_id: string
+          p_user_id: string
+        }
+        Returns: Json
       }
       can_approve_investigation: {
         Args: { _incident_id: string; _user_id: string }
@@ -25831,6 +25848,14 @@ export type Database = {
           can_delete: boolean
           can_read: boolean
           can_update: boolean
+        }[]
+      }
+      get_user_pending_gate_passes: {
+        Args: { p_tenant_id: string; p_user_id: string }
+        Returns: {
+          approval_stage: string
+          can_approve: boolean
+          gate_pass_id: string
         }[]
       }
       get_user_primary_branch: { Args: { _user_id: string }; Returns: string }

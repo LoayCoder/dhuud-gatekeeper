@@ -150,10 +150,9 @@ export default function MyActions() {
   
   // Handle gate pass approval inline
   const handleApproveGatePass = (pass: MaterialGatePass) => {
-    const approvalType = pass.status === "pending_pm_approval" ? "pm" : "safety";
     approveGatePass.mutate({
       passId: pass.id,
-      approvalType,
+      action: "approve",
       notes: gatePassApprovalNotes[pass.id],
     });
   };

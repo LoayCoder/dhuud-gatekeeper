@@ -38,17 +38,31 @@ export function GatePassListTable({ gatePasses, isLoading }: GatePassListTablePr
   const getStatusBadge = (status: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
       approved: "default",
+      pending_contractor_approval: "secondary",
+      pending_dept_ack: "secondary",
+      pending_dept_approval: "secondary",
+      pending_security_approval: "secondary",
       pending_pm_approval: "secondary",
       pending_safety_approval: "secondary",
       rejected: "destructive",
       completed: "outline",
+      used: "outline",
+      expired: "destructive",
+      cancelled: "destructive",
     };
     const labels: Record<string, string> = {
       approved: t("contractors.passStatus.approved", "Approved"),
+      pending_contractor_approval: t("contractors.passStatus.pendingContractor", "Pending Contractor"),
+      pending_dept_ack: t("contractors.passStatus.pendingDeptAck", "Pending Dept Ack"),
+      pending_dept_approval: t("contractors.passStatus.pendingDeptApproval", "Pending Dept"),
+      pending_security_approval: t("contractors.passStatus.pendingSecurity", "Pending Security"),
       pending_pm_approval: t("contractors.passStatus.pendingPm", "Pending PM"),
       pending_safety_approval: t("contractors.passStatus.pendingSafety", "Pending Safety"),
       rejected: t("contractors.passStatus.rejected", "Rejected"),
       completed: t("contractors.passStatus.completed", "Completed"),
+      used: t("contractors.passStatus.used", "Entry Verified"),
+      expired: t("contractors.passStatus.expired", "Expired"),
+      cancelled: t("contractors.passStatus.cancelled", "Cancelled"),
     };
     return (
       <Badge variant={variants[status] || "secondary"} className="text-[10px] sm:text-xs">

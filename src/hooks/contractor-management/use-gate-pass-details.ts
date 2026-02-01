@@ -46,15 +46,27 @@ export interface GatePassDetailData {
   time_window_end: string | null;
   status: string;
   requested_by: string;
+  // Contractor Consultant approval (external workflow stage 1)
+  contractor_approved_by: string | null;
+  contractor_approved_at: string | null;
+  contractor_approval_notes: string | null;
+  // PM/Dept Rep approval
   pm_approved_by: string | null;
   pm_approved_at: string | null;
   pm_notes: string | null;
+  // Security Supervisor approval (internal workflow stage 2)
+  security_approved_by: string | null;
+  security_approved_at: string | null;
+  security_approval_notes: string | null;
+  // Safety approval (legacy)
   safety_approved_by: string | null;
   safety_approved_at: string | null;
   safety_notes: string | null;
+  // Rejection
   rejected_by: string | null;
   rejected_at: string | null;
   rejection_reason: string | null;
+  // Guard verification
   guard_verified_by: string | null;
   guard_verified_at: string | null;
   entry_time: string | null;
@@ -63,10 +75,13 @@ export interface GatePassDetailData {
   is_internal_request: boolean;
   approval_from_id: string | null;
   qr_code_token: string | null;
+  qr_generated_at: string | null;
   project?: { project_name: string; company?: { company_name: string } } | null;
   company?: { company_name: string } | null;
   requester?: GatePassApproverProfile | null;
+  contractor_approver?: GatePassApproverProfile | null;
   pm_approver?: GatePassApproverProfile | null;
+  security_approver?: GatePassApproverProfile | null;
   safety_approver?: GatePassApproverProfile | null;
   rejector?: GatePassApproverProfile | null;
   guard?: GatePassApproverProfile | null;
@@ -82,33 +97,61 @@ export function useGatePassDetails(passId: string | null) {
     queryFn: async () => {
       if (!passId || !tenantId) return null;
 
-      const { data, error } = await supabase
+      // Split into two queries to avoid TypeScript depth issues
+      const { data: passData, error: passError } = await supabase
         .from("material_gate_passes")
         .select(`
           id, reference_number, project_id, company_id, pass_type, material_description,
           quantity, vehicle_plate, driver_name, driver_mobile, pass_date,
           time_window_start, time_window_end, status, requested_by,
+          contractor_approved_by, contractor_approved_at, contractor_approval_notes,
           pm_approved_by, pm_approved_at, pm_notes,
+          security_approved_by, security_approved_at, security_approval_notes,
           safety_approved_by, safety_approved_at, safety_notes,
           rejected_by, rejected_at, rejection_reason,
           guard_verified_by, guard_verified_at, entry_time, exit_time, created_at,
-          is_internal_request, approval_from_id, qr_code_token,
+          is_internal_request, approval_from_id, qr_code_token, qr_generated_at,
           project:contractor_projects(project_name, company:contractor_companies(company_name)),
-          company:contractor_companies(company_name),
-          requester:profiles!requested_by(id, full_name, avatar_url),
-          pm_approver:profiles!pm_approved_by(id, full_name, avatar_url),
-          safety_approver:profiles!safety_approved_by(id, full_name, avatar_url),
-          rejector:profiles!rejected_by(id, full_name, avatar_url),
-          guard:profiles!guard_verified_by(id, full_name, avatar_url),
-          approval_from:profiles!material_gate_passes_approval_from_id_fkey(id, full_name, avatar_url)
+          company:contractor_companies(company_name)
         `)
         .eq("id", passId)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
         .single();
 
-      if (error) throw error;
-      return data as GatePassDetailData;
+      if (passError) throw passError;
+      if (!passData) return null;
+
+      // Fetch profile data separately
+      const profileIds = [
+        passData.requested_by,
+        passData.contractor_approved_by,
+        passData.pm_approved_by,
+        passData.security_approved_by,
+        passData.safety_approved_by,
+        passData.rejected_by,
+        passData.guard_verified_by,
+        passData.approval_from_id,
+      ].filter(Boolean) as string[];
+
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name, avatar_url")
+        .in("id", profileIds);
+
+      const profileMap = new Map((profiles || []).map(p => [p.id, p]));
+
+      return {
+        ...passData,
+        requester: profileMap.get(passData.requested_by) || null,
+        contractor_approver: passData.contractor_approved_by ? profileMap.get(passData.contractor_approved_by) || null : null,
+        pm_approver: passData.pm_approved_by ? profileMap.get(passData.pm_approved_by) || null : null,
+        security_approver: passData.security_approved_by ? profileMap.get(passData.security_approved_by) || null : null,
+        safety_approver: passData.safety_approved_by ? profileMap.get(passData.safety_approved_by) || null : null,
+        rejector: passData.rejected_by ? profileMap.get(passData.rejected_by) || null : null,
+        guard: passData.guard_verified_by ? profileMap.get(passData.guard_verified_by) || null : null,
+        approval_from: passData.approval_from_id ? profileMap.get(passData.approval_from_id) || null : null,
+      } as GatePassDetailData;
     },
     enabled: !!passId && !!tenantId,
   });
