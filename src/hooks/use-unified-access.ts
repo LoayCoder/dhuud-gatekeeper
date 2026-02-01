@@ -201,7 +201,6 @@ export function useUnifiedAccessLogs(filters: UnifiedAccessFilters = {}) {
             id, person_name, entry_type, entry_time, exit_time, visitor_id, 
             mobile_number, car_plate, destination_name, purpose, nationality,
             worker_id, project_id, validation_status, validation_errors,
-            material_gate_pass_id,
             site_id, guard_id, notes, created_at
           `)
           .eq('tenant_id', tenantId)

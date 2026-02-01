@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import type { Json } from "@/integrations/supabase/types";
 
 export interface ContractViolation {
   id: string;
@@ -20,7 +19,7 @@ export interface ContractViolation {
   created_at: string;
   updated_at: string;
   // Joined fields
-  contractor?: { id: string; name: string } | null;
+  contractor?: { id: string; company_name: string } | null;
   approver?: { full_name: string } | null;
 }
 
@@ -34,14 +33,14 @@ export function useContractViolations(incidentId: string | null) {
         .from('contract_violations')
         .select(`
           *,
-          contractor:contractor_companies(id, name),
+          contractor:contractor_companies(id, company_name),
           approver:profiles!contract_violations_approved_by_fkey(full_name)
         `)
         .eq('incident_id', incidentId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as ContractViolation[];
+      return (data || []) as unknown as ContractViolation[];
     },
     enabled: !!incidentId,
   });
@@ -59,8 +58,14 @@ export function useCreateContractViolation() {
       const { data, error } = await supabase
         .from('contract_violations')
         .insert({
-          ...violation,
+          incident_id: violation.incident_id!,
+          violation_type: violation.violation_type!,
           tenant_id: profile.tenant_id,
+          contractor_id: violation.contractor_id || null,
+          description: violation.description || null,
+          fine_amount: violation.fine_amount || null,
+          currency: violation.currency || 'SAR',
+          status: violation.status || 'draft',
         })
         .select()
         .single();
@@ -86,7 +91,16 @@ export function useUpdateContractViolation() {
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ContractViolation> }) => {
       const { data, error } = await supabase
         .from('contract_violations')
-        .update(updates)
+        .update({
+          violation_type: updates.violation_type,
+          description: updates.description,
+          fine_amount: updates.fine_amount,
+          currency: updates.currency,
+          status: updates.status,
+          contractor_id: updates.contractor_id,
+          approved_by: updates.approved_by,
+          approved_at: updates.approved_at,
+        })
         .eq('id', id)
         .select()
         .single();

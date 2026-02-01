@@ -61,7 +61,7 @@ const SEVERITY_OPTIONS = HSSE_SEVERITY_LEVELS.map(level => ({
   textColor: level.bgColor.replace('bg-', 'text-'),
 }));
 
-const createQuickObservationSchema = (t: (key: string) => string) => z.object({
+const createQuickObservationSchema = (t: (key: string, options?: any) => string) => z.object({
   description: z.string().min(1, t('incidents.validation.descriptionRequired')).max(2000),
   subtype: z.string().min(1, t('incidents.validation.subtypeRequired')),
   severity_v2: z.enum(['level_1', 'level_2', 'level_3', 'level_4', 'level_5'] as const),

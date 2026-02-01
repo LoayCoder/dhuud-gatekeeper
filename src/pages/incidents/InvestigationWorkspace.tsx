@@ -41,7 +41,7 @@ import { usePendingIncidentApprovals } from "@/hooks/use-pending-approvals";
 import { useInvestigationEditAccess } from "@/hooks/use-investigation-edit-access";
 import { useUserRoles } from "@/hooks/use-user-roles";
 import { 
-  EvidencePanel, 
+  EvidenceManager, 
   WitnessPanel, 
   RCAPanel, 
   ActionsPanel, 
@@ -101,6 +101,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { getStatusBorderColor, getStatusCategory } from "@/lib/incident-status-colors";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { SeverityLevelV2 } from "@/lib/hsse-severity-levels";
 
 export default function InvestigationWorkspace() {
   const { t, i18n } = useTranslation();
@@ -1008,7 +1009,7 @@ export default function InvestigationWorkspace() {
 
                 <TabsContent value="evidence" className="mt-0">
                   {investigationAllowed ? (
-                    <EvidencePanel 
+                    <EvidenceManager 
                       incidentId={selectedIncidentId} 
                       incidentStatus={selectedIncident?.status}
                       canEdit={editAccess.canEdit}
