@@ -436,9 +436,36 @@ export function AppSidebar() {
         },
       ],
     },
+    // My Gate Passes - for all internal employees
+    {
+      title: t('navigation.myGatePasses', 'My Gate Passes'),
+      icon: FileKey,
+      menuCode: 'my_gate_passes',
+      isActive: location.pathname.startsWith("/my-gate-passes"),
+      items: [
+        {
+          title: t('myGatePasses.list.title', 'My Requests'),
+          url: "/my-gate-passes",
+          icon: List,
+          menuCode: 'my_gate_pass_list',
+        },
+        {
+          title: t('myGatePasses.create.title', 'New Request'),
+          url: "/my-gate-passes/create",
+          icon: Plus,
+          menuCode: 'my_gate_pass_create',
+        },
+        {
+          title: t('myGatePasses.history.title', 'Approval History'),
+          url: "/my-gate-passes/history",
+          icon: History,
+          menuCode: 'my_gate_pass_history',
+        },
+      ],
+    },
     // Department Gate Passes - for Department Representatives
     {
-      title: t('navigation.deptGatePasses', 'Gate Passes'),
+      title: t('navigation.deptGatePasses', 'Dept Gate Passes'),
       icon: FileKey,
       menuCode: 'dept_gate_passes',
       isActive: location.pathname.startsWith("/dept-gate-passes"),
