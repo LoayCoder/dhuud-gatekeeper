@@ -383,12 +383,10 @@ export function useApproveGatePass() {
 
       if (error) throw error;
       
-      const result = data as { success: boolean; error?: string; new_status?: string; stage?: string };
-      if (!result.success) {
-        throw new Error(result.error || "Approval failed");
-      }
+      // RPC returns the new status as a string
+      const newStatus = data as string;
       
-      return { passId, newStatus: result.new_status, stage: result.stage };
+      return { passId, newStatus };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["material-gate-passes"] });
