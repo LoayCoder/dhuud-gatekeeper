@@ -1126,6 +1126,40 @@ export const routeRegistry: RouteDefinition[] = [
   },
 
   // -------------------------------------------------------------------------
+  // MY GATE PASSES (For All Internal Employees)
+  // -------------------------------------------------------------------------
+  {
+    path: "/my-gate-passes",
+    menuCode: "my_gate_pass_list",
+    title: { en: "My Requests", ar: "طلباتي" },
+    icon: List,
+    component: lazyWithRetry(() => import("@/pages/my-gate-passes/List")),
+    protection: "protected",
+    parentCode: "my_gate_passes",
+    sortOrder: 1,
+  },
+  {
+    path: "/my-gate-passes/create",
+    menuCode: "my_gate_pass_create",
+    title: { en: "New Request", ar: "طلب جديد" },
+    icon: Plus,
+    component: lazyWithRetry(() => import("@/pages/my-gate-passes/Create")),
+    protection: "protected",
+    parentCode: "my_gate_passes",
+    sortOrder: 2,
+  },
+  {
+    path: "/my-gate-passes/history",
+    menuCode: "my_gate_pass_history",
+    title: { en: "Approval History", ar: "سجل الموافقات" },
+    icon: History,
+    component: lazyWithRetry(() => import("@/pages/my-gate-passes/History")),
+    protection: "protected",
+    parentCode: "my_gate_passes",
+    sortOrder: 3,
+  },
+
+  // -------------------------------------------------------------------------
   // PTW (PERMIT TO WORK) MODULE
   // -------------------------------------------------------------------------
   {
