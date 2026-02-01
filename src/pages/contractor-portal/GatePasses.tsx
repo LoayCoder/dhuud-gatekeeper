@@ -30,7 +30,7 @@ function ContractorPortalGatePassesContent() {
         return <Badge className="bg-green-500"><CheckCircle className="h-3 w-3 me-1" />{t("common.approved", "Approved")}</Badge>;
       case "pending_pm_approval": // Legacy
       case "pending_contractor_approval":
-        return <Badge variant="outline" className="text-warning border-warning"><Clock className="h-3 w-3 me-1" />{t("contractors.gatePasses.pendingPM", "Pending PM")}</Badge>;
+        return <Badge variant="outline" className="text-warning border-warning"><Clock className="h-3 w-3 me-1" />{t("contractors.gatePasses.pendingInitialApproval", "Pending Initial Approval")}</Badge>;
       case "pending_safety_approval": // Legacy
       case "pending_security_approval":
       case "pending_club_mgmt_ack":
