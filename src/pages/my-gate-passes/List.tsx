@@ -41,7 +41,7 @@ function MyGatePassListContent() {
     const variants: Record<string, { variant: "default" | "secondary" | "success" | "warning" | "destructive"; label: string; icon: React.ReactNode }> = {
       pending: { variant: "warning", label: t("gatePasses.status.pending", "Pending"), icon: <Clock className="h-3 w-3" /> },
       pending_dept_approval: { variant: "warning", label: t("gatePasses.status.pending_dept_approval", "Pending Dept"), icon: <Clock className="h-3 w-3" /> },
-      pending_club_mgmt_ack: { variant: "warning", label: t("gatePasses.status.pending_club_mgmt_ack", "Pending Club Mgmt"), icon: <AlertCircle className="h-3 w-3" /> },
+      pending_club_mgmt_ack: { variant: "warning", label: t("gatePasses.status.pending_club_mgmt_ack", "Pending Golf Club Management"), icon: <AlertCircle className="h-3 w-3" /> },
       pm_approved: { variant: "secondary", label: t("gatePasses.status.pm_approved", "PM Approved"), icon: <CheckCircle2 className="h-3 w-3" /> },
       pending_security_approval: { variant: "warning", label: t("gatePasses.status.pending_security", "Pending Security"), icon: <AlertCircle className="h-3 w-3" /> },
       approved: { variant: "success", label: t("gatePasses.status.approved", "Approved"), icon: <CheckCircle2 className="h-3 w-3" /> },
