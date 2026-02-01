@@ -24953,7 +24953,7 @@ export type Database = {
           }
         | {
             Args: { p_gate_pass_id: string; p_stage: string; p_user_id: string }
-            Returns: boolean
+            Returns: Json
           }
       can_approve_investigation: {
         Args: { _incident_id: string; _user_id: string }
