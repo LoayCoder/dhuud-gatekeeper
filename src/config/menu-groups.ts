@@ -116,10 +116,19 @@ export const menuGroups: MenuGroup[] = [
     sortOrder: 30,
   },
   
-  // Department Gate Passes
+  // My Gate Passes (for all internal employees)
+  {
+    code: "my_gate_passes",
+    title: { en: "My Gate Passes", ar: "تصاريحي" },
+    translationKey: "navigation.myGatePasses",
+    icon: FileKey,
+    sortOrder: 12,
+  },
+  
+  // Department Gate Passes (for dept reps to approve)
   {
     code: "dept_gate_passes",
-    title: { en: "Gate Passes", ar: "تصاريح الدخول" },
+    title: { en: "Dept Gate Passes", ar: "تصاريح القسم" },
     translationKey: "navigation.deptGatePasses",
     icon: FileKey,
     sortOrder: 15,
