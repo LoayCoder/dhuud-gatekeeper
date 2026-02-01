@@ -7447,6 +7447,7 @@ export type Database = {
           host_mobile: string | null
           host_notified_at: string | null
           id: string
+          material_gate_pass_id: string | null
           mobile_number: string | null
           nationality: string | null
           notes: string | null
@@ -7493,6 +7494,7 @@ export type Database = {
           host_mobile?: string | null
           host_notified_at?: string | null
           id?: string
+          material_gate_pass_id?: string | null
           mobile_number?: string | null
           nationality?: string | null
           notes?: string | null
@@ -7539,6 +7541,7 @@ export type Database = {
           host_mobile?: string | null
           host_notified_at?: string | null
           id?: string
+          material_gate_pass_id?: string | null
           mobile_number?: string | null
           nationality?: string | null
           notes?: string | null
@@ -7578,6 +7581,13 @@ export type Database = {
             columns: ["guard_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_entry_logs_material_gate_pass_id_fkey"
+            columns: ["material_gate_pass_id"]
+            isOneToOne: false
+            referencedRelation: "material_gate_passes"
             referencedColumns: ["id"]
           },
           {
@@ -25124,6 +25134,7 @@ export type Database = {
             }
             Returns: Json
           }
+      expire_old_gate_passes: { Args: never; Returns: undefined }
       find_contractor_consultant_for_branch: {
         Args: { p_branch_id: string; p_tenant_id: string }
         Returns: string
