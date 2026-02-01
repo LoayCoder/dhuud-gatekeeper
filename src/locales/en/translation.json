@@ -1697,7 +1697,109 @@
     "pageContentEditor": "Page Content Editor",
     "pendingApprovalsOverride": "Pending Approvals Override",
     "testPushNotifications": "Test Push Notifications",
-    "deptGatePasses": "Gate Passes"
+    "deptGatePasses": "Gate Passes",
+    "myGatePasses": "My Gate Passes"
+  },
+  "myGatePasses": {
+    "title": "My Gate Passes",
+    "description": "View and manage your gate pass requests",
+    "myRequests": "My Requests",
+    "createNew": "New Request",
+    "createFirst": "Create Your First Request",
+    "noResults": "You haven't created any gate passes yet",
+    "searchPlaceholder": "Search by reference, material, vehicle...",
+    "approvalHistory": "Approval History",
+    "historyTitle": "Approval History",
+    "historyDescriptionApprover": "Gate passes you have reviewed and approved/rejected",
+    "historyDescriptionUser": "History of your gate pass approvals",
+    "approvalActions": "Approval Actions",
+    "noHistory": "No approval history found",
+    "notApprover": "You are not configured as a gate pass approver",
+    "createTitle": "Create Internal Gate Pass",
+    "createDescription": "Request a new internal gate pass for materials",
+    "createSuccess": "Gate pass request created successfully",
+    "passDetails": "Pass Details",
+    "formDescription": "Fill in the details for your gate pass request",
+    "submitRequest": "Submit Request",
+    "list": {
+      "title": "My Requests"
+    },
+    "create": {
+      "title": "New Request"
+    },
+    "history": {
+      "title": "Approval History"
+    }
+  },
+  "gatePasses": {
+    "status": {
+      "pending": "Pending",
+      "pending_dept_approval": "Pending Dept",
+      "pending_club_mgmt_ack": "Pending Golf Club Management",
+      "pending_security_approval": "Pending Security",
+      "pending_security": "Pending Security",
+      "pending_contractor_approval": "Pending Contractor",
+      "pending_dept_ack": "Pending Dept Ack",
+      "pm_approved": "PM Approved",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "entry_verified": "Entry Verified",
+      "completed": "Completed",
+      "used": "Used",
+      "expired": "Expired",
+      "cancelled": "Cancelled"
+    },
+    "type": {
+      "internal": "Internal",
+      "external": "External"
+    },
+    "passType": {
+      "in": "Entry Only",
+      "out": "Exit Only",
+      "in_out": "Entry & Exit"
+    },
+    "referenceNumber": "Reference",
+    "material": "Material",
+    "passDate": "Date",
+    "vehicle": "Vehicle",
+    "itemName": "Item Name",
+    "itemNamePlaceholder": "Name of the material or item",
+    "itemDescription": "Description",
+    "descriptionPlaceholder": "Additional details about the item...",
+    "itemPhoto": "Photo",
+    "itemPhotoRequired": "Photo required",
+    "itemsWithoutPhotos": "{{count}} item(s) are missing required photos",
+    "addItemPhoto": "Add Photo",
+    "takePhoto": "Take Photo",
+    "uploadPhoto": "Upload",
+    "removePhoto": "Remove Photo",
+    "quantity": "Quantity",
+    "quantityPlaceholder": "e.g., 10",
+    "unit": "Unit",
+    "unitPlaceholder": "e.g., boxes, kg, pieces",
+    "vehiclePlate": "Vehicle Plate",
+    "vehiclePlatePlaceholder": "e.g., ABC 1234",
+    "driverName": "Driver Name",
+    "driverNamePlaceholder": "Driver's full name",
+    "driverMobile": "Driver Mobile",
+    "driverMobilePlaceholder": "Driver's phone number",
+    "timeWindowStart": "Start Time",
+    "timeWindowEnd": "End Time",
+    "timeWindowDescription": "Expected entry time",
+    "timeWindowEndDescription": "Expected exit time",
+    "approver": "Approver",
+    "selectApprover": "Select who should approve this request",
+    "approverDescription": "This person will review and approve your request",
+    "noApproversFound": "No approvers available",
+    "selectPassType": "Select pass type",
+    "action": {
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "role": {
+      "pm": "Dept/PM",
+      "safety": "Security"
+    }
   },
   "deptGatePasses": {
     "dashboard": {
@@ -8300,7 +8402,72 @@
         "completed": "Completed",
         "label": "Current Status"
       },
-      "filterByProject": "Filter by Project"
+      "filterByProject": "Filter by Project",
+      "noPendingApprovals": "No pending approvals",
+      "awaitingContractor": "Awaiting Contractor Approval",
+      "awaitingDeptAck": "Awaiting Dept Acknowledgment",
+      "awaitingDeptApproval": "Awaiting Dept Approval",
+      "awaitingClubMgmtAck": "Awaiting Golf Club Management Acknowledgment",
+      "awaitingSecurity": "Awaiting Security Approval",
+      "awaitingPm": "Awaiting PM Approval",
+      "awaitingSafety": "Awaiting Safety Approval",
+      "entryExitWarning": {
+        "title": "Important Notice",
+        "message": "For Entry & Exit passes, the same Vehicle Plate and Driver Name must be used during exit. Mismatched details will result in the exit being rejected by security."
+      },
+      "exitValidation": {
+        "mismatchTitle": "Exit Rejected",
+        "vehicleMismatch": "Vehicle plate does not match entry record",
+        "driverMismatch": "Driver name does not match entry record",
+        "expected": "Expected",
+        "provided": "Provided",
+        "contactSupervisor": "Contact your supervisor if this is a legitimate change."
+      },
+      "addItem": "Add Item",
+      "items": "Items"
+    },
+    "passStatus": {
+      "approved": "Approved",
+      "pendingContractor": "Pending Contractor",
+      "pendingDeptAck": "Pending Dept Ack",
+      "pendingDeptApproval": "Pending Dept",
+      "pendingClubMgmtAck": "Pending Golf Club Management",
+      "pendingSecurity": "Pending Security",
+      "pendingPm": "Pending PM",
+      "pendingSafety": "Pending Safety",
+      "rejected": "Rejected",
+      "completed": "Completed",
+      "used": "Entry Verified",
+      "expired": "Expired",
+      "cancelled": "Cancelled"
+    },
+    "gatePassDetail": {
+      "title": "Gate Pass Details",
+      "detailsTab": "Details",
+      "itemsTab": "Items & Photos",
+      "timelineTab": "Timeline",
+      "materialDescription": "Material Description",
+      "vehicleInfo": "Vehicle & Driver",
+      "plateNumber": "Plate",
+      "driverName": "Driver",
+      "driverMobile": "Mobile",
+      "items": "Items",
+      "photos": "Photos",
+      "noItems": "No items listed",
+      "noPhotos": "No photos attached",
+      "noTimeline": "No timeline available",
+      "timeline": {
+        "created": "Pass Created",
+        "contractorApproved": "Contractor Consultant Approved",
+        "deptApproved": "Dept Rep Approved",
+        "deptAck": "Dept Rep Acknowledged",
+        "clubMgmtAck": "Golf Club Management acknowledged",
+        "securityApproved": "Security Supervisor Approved",
+        "safetyApproved": "Safety Approved",
+        "entryVerified": "Entry Verified",
+        "exitVerified": "Exit Verified",
+        "rejected": "Rejected"
+      }
     },
     "companies": {
       "title": "Contractor Companies",

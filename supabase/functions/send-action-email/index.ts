@@ -15,11 +15,12 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-interface ActionEmailRequest {
+// Original interface for backward compatibility or direct calls
+interface ActionEmailLegacyRequest {
   type: 'action_assigned' | 'witness_request_created' | 'action_returned' | 'action_closed' | 'witness_statement_returned';
   recipient_email: string;
   recipient_name: string;
-  recipient_id?: string; // User ID to fetch language preference
+  recipient_id?: string;
   action_title?: string;
   action_priority?: string;
   due_date?: string;
@@ -37,6 +38,13 @@ interface ActionEmailRequest {
   tenant_name?: string;
   return_reason?: string;
 }
+
+// New interface expecting just action_id
+interface ActionIdRequest {
+  action_id: string;
+}
+
+type RequestPayload = ActionEmailLegacyRequest | ActionIdRequest;
 
 function getPriorityColor(priority: string): string {
   switch (priority?.toLowerCase()) {
@@ -61,7 +69,7 @@ function getEmailModule(type: string): EmailModule {
   }
 }
 
-function buildActionAssignedEmail(data: ActionEmailRequest, lang: string): { subject: string; html: string } {
+function buildActionAssignedEmail(data: ActionEmailLegacyRequest, lang: string): { subject: string; html: string } {
   const t = getTranslations(ACTION_TRANSLATIONS, lang).action_assigned;
   const common = getCommonTranslations(lang);
   const rtl = isRTL(lang as SupportedLanguage);
@@ -121,7 +129,7 @@ function buildActionAssignedEmail(data: ActionEmailRequest, lang: string): { sub
   };
 }
 
-function buildWitnessRequestEmail(data: ActionEmailRequest, lang: string, incidentId?: string): { subject: string; html: string } {
+function buildWitnessRequestEmail(data: ActionEmailLegacyRequest, lang: string, incidentId?: string): { subject: string; html: string } {
   const t = getTranslations(ACTION_TRANSLATIONS, lang).witness_request;
   const common = getCommonTranslations(lang);
   const rtl = isRTL(lang as SupportedLanguage);
@@ -181,7 +189,7 @@ function buildWitnessRequestEmail(data: ActionEmailRequest, lang: string, incide
   };
 }
 
-function buildActionReturnedEmail(data: ActionEmailRequest, lang: string): { subject: string; html: string } {
+function buildActionReturnedEmail(data: ActionEmailLegacyRequest, lang: string): { subject: string; html: string } {
   const t = getTranslations(ACTION_TRANSLATIONS, lang).action_returned;
   const common = getCommonTranslations(lang);
   const rtl = isRTL(lang as SupportedLanguage);
@@ -246,7 +254,7 @@ function buildActionReturnedEmail(data: ActionEmailRequest, lang: string): { sub
   };
 }
 
-function buildActionClosedEmail(data: ActionEmailRequest, lang: string): { subject: string; html: string } {
+function buildActionClosedEmail(data: ActionEmailLegacyRequest, lang: string): { subject: string; html: string } {
   const t = getTranslations(ACTION_TRANSLATIONS, lang).action_closed;
   const common = getCommonTranslations(lang);
   const rtl = isRTL(lang as SupportedLanguage);
@@ -308,7 +316,7 @@ function buildActionClosedEmail(data: ActionEmailRequest, lang: string): { subje
   };
 }
 
-function buildWitnessStatementReturnedEmail(data: ActionEmailRequest, lang: string): { subject: string; html: string } {
+function buildWitnessStatementReturnedEmail(data: ActionEmailLegacyRequest, lang: string): { subject: string; html: string } {
   const t = getTranslations(ACTION_TRANSLATIONS, lang).witness_statement_returned;
   const common = getCommonTranslations(lang);
   const rtl = isRTL(lang as SupportedLanguage);
@@ -385,13 +393,77 @@ serve(async (req: Request) => {
   }
 
   try {
-    const data: ActionEmailRequest = await req.json();
-    console.log("Received action email request:", data.type);
+    const rawData: RequestPayload = await req.json();
+    console.log("Received action email request payload");
 
-    // Get recipient's preferred language
+    // Initialize Service Role Client to fetch data if needed
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    let data: ActionEmailLegacyRequest;
+
+    // Check if this is an action_id only request
+    if ('action_id' in rawData && !('recipient_email' in rawData)) {
+      const actionId = rawData.action_id;
+      console.log(`Processing via action_id: ${actionId}`);
+
+      // Fetch Action + Incident + Assignee + Tenant details
+      const { data: action, error: actionError } = await supabase
+        .from('corrective_actions')
+        .select(`
+          title, description, priority, due_date, assigned_to,
+          incidents ( id, reference_id, title ),
+          profiles ( full_name, preferred_language ),
+          tenants ( name )
+        `)
+        .eq('id', actionId)
+        .single();
+
+      if (actionError || !action) {
+        throw new Error(`Failed to fetch action details: ${actionError?.message}`);
+      }
+
+      if (!action.assigned_to) {
+        return new Response(
+          JSON.stringify({ message: "Action has no assignee, skipping email." }),
+          { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
+      // Fetch email securely via auth admin api (profiles don't have email in this architecture)
+      const { data: userData, error: userError } = await supabase.auth.admin.getUserById(action.assigned_to);
+
+      if (userError || !userData.user?.email) {
+        throw new Error(`Failed to fetch assignee email: ${userError?.message}`);
+      }
+
+      // Construct the legacy payload object
+      data = {
+        type: 'action_assigned',
+        recipient_email: userData.user.email,
+        recipient_name: (action.profiles as any)?.full_name || 'Team Member',
+        recipient_id: action.assigned_to,
+        action_title: action.title,
+        action_priority: action.priority || 'medium',
+        action_description: action.description || '',
+        due_date: action.due_date || '',
+        incident_reference: (action.incidents as any)?.reference_id,
+        incident_title: (action.incidents as any)?.title,
+        incident_id: (action.incidents as any)?.id,
+        tenant_name: (action.tenants as any)?.name
+      };
+    } else {
+      // Legacy path - payload is fully formed
+      data = rawData as ActionEmailLegacyRequest;
+    }
+
+    console.log("Processed payload type:", data.type);
+
+    // Get recipient's preferred language if not already resolved
     let lang = 'en';
     if (data.recipient_id) {
-      const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
       const { data: profile } = await supabase.from("profiles").select("preferred_language").eq("id", data.recipient_id).single();
       if (profile?.preferred_language) {
         lang = profile.preferred_language;

@@ -43,6 +43,11 @@ export interface Investigation {
   assigned_by: string | null;
   assigned_at: string | null;
   assignment_notes: string | null;
+  // V1.1 RCA Fields
+  rca_id?: string;
+  is_rca_locked?: boolean;
+  rca_locked_by?: string | null;
+  rca_locked_at?: string | null;
 }
 
 export interface FiveWhyEntry {
@@ -98,67 +103,89 @@ export function useInvestigation(incidentId: string | null) {
     queryFn: async () => {
       if (!incidentId) return null;
       
-      const { data, error } = await supabase
+      // Fetch Legacy Investigation Data
+      const { data: invData, error: invError } = await supabase
         .from('investigations')
         .select('*')
         .eq('incident_id', incidentId)
         .is('deleted_at', null)
         .maybeSingle();
 
-      if (error) throw error;
+      if (invError) throw invError;
+      if (!invData) return null;
+
+      // Fetch V1.1 RCA Data
+      const { data: rcaData, error: rcaError } = await supabase
+        .from('incident_rca')
+        .select('*')
+        .eq('incident_id', incidentId)
+        .maybeSingle();
+
+      if (rcaError) {
+        console.error('Error fetching RCA data:', rcaError);
+        // Don't block if RCA fetch fails (might be permission issue or missing table in some envs)
+      }
       
-      if (!data) return null;
+      // Prioritize RCA table data over Legacy columns
       
-      // Parse five_whys from Json to typed array safely
+      // Parse five_whys
       let parsedWhys: FiveWhyEntry[] = [];
-      if (Array.isArray(data.five_whys)) {
-        parsedWhys = (data.five_whys as unknown as FiveWhyEntry[]).filter(
+      const sourceWhys = rcaData?.five_whys || invData.five_whys;
+      if (Array.isArray(sourceWhys)) {
+        parsedWhys = (sourceWhys as unknown as FiveWhyEntry[]).filter(
           (item): item is FiveWhyEntry => 
             typeof item === 'object' && item !== null && 'why' in item && 'answer' in item
         );
       }
 
-      // Parse root_causes from Json
+      // Parse root_causes
       let parsedRootCauses: RootCauseEntry[] = [];
-      if (Array.isArray(data.root_causes)) {
-        parsedRootCauses = (data.root_causes as unknown as RootCauseEntry[]).filter(
+      const sourceRootCauses = rcaData?.root_causes || invData.root_causes;
+      if (Array.isArray(sourceRootCauses)) {
+        parsedRootCauses = (sourceRootCauses as unknown as RootCauseEntry[]).filter(
           (item): item is RootCauseEntry => 
             typeof item === 'object' && item !== null && 'id' in item && 'text' in item
         );
       }
 
-      // Parse contributing_factors_list from Json
+      // Parse contributing_factors_list
       let parsedContributingFactors: ContributingFactorEntry[] = [];
-      if (Array.isArray(data.contributing_factors_list)) {
-        parsedContributingFactors = (data.contributing_factors_list as unknown as ContributingFactorEntry[]).filter(
+      const sourceFactors = rcaData?.contributing_factors || invData.contributing_factors_list;
+      if (Array.isArray(sourceFactors)) {
+        parsedContributingFactors = (sourceFactors as unknown as ContributingFactorEntry[]).filter(
           (item): item is ContributingFactorEntry => 
             typeof item === 'object' && item !== null && 'id' in item && 'text' in item
         );
       }
       
       return {
-        id: data.id,
-        incident_id: data.incident_id,
-        investigator_id: data.investigator_id,
-        started_at: data.started_at,
-        completed_at: data.completed_at,
-        immediate_cause: data.immediate_cause,
-        underlying_cause: data.underlying_cause,
-        root_cause: data.root_cause,
-        contributing_factors: data.contributing_factors,
-        findings_summary: data.findings_summary,
+        id: invData.id,
+        incident_id: invData.incident_id,
+        investigator_id: invData.investigator_id,
+        started_at: invData.started_at,
+        completed_at: invData.completed_at,
+        immediate_cause: rcaData?.immediate_causes?.[0] || invData.immediate_cause, // Map array[0] to string for legacy compat
+        underlying_cause: rcaData?.underlying_causes?.[0] || invData.underlying_cause,
+        root_cause: invData.root_cause, // Legacy text field still used for summary? Or keep separate.
+        contributing_factors: invData.contributing_factors, // Legacy text field
+        findings_summary: invData.findings_summary,
         five_whys: parsedWhys,
         root_causes: parsedRootCauses,
         contributing_factors_list: parsedContributingFactors,
-        ai_summary: data.ai_summary ?? null,
-        ai_summary_generated_at: data.ai_summary_generated_at ?? null,
-        ai_summary_language: data.ai_summary_language ?? null,
-        tenant_id: data.tenant_id,
-        created_at: data.created_at,
-        updated_at: data.updated_at,
-        assigned_by: data.assigned_by ?? null,
-        assigned_at: data.assigned_at ?? null,
-        assignment_notes: data.assignment_notes ?? null,
+        ai_summary: invData.ai_summary ?? null,
+        ai_summary_generated_at: invData.ai_summary_generated_at ?? null,
+        ai_summary_language: invData.ai_summary_language ?? null,
+        tenant_id: invData.tenant_id,
+        created_at: invData.created_at,
+        updated_at: invData.updated_at,
+        assigned_by: invData.assigned_by ?? null,
+        assigned_at: invData.assigned_at ?? null,
+        assignment_notes: invData.assignment_notes ?? null,
+        // RCA V1.1
+        rca_id: rcaData?.id,
+        is_rca_locked: rcaData?.is_locked || false,
+        rca_locked_by: rcaData?.locked_by,
+        rca_locked_at: rcaData?.locked_at,
       } as Investigation;
     },
     enabled: !!incidentId,
@@ -178,6 +205,7 @@ export function useCreateInvestigation() {
         throw new Error('User not authenticated');
       }
 
+      // Create legacy investigation record
       const { data, error } = await supabase
         .from('investigations')
         .insert({
@@ -190,6 +218,18 @@ export function useCreateInvestigation() {
         .single();
 
       if (error) throw error;
+
+      // Ensure RCA record exists (V1.1)
+      const { error: rcaError } = await supabase
+        .from('incident_rca')
+        .insert({
+          incident_id: incidentId,
+          tenant_id: profile.tenant_id,
+        });
+
+      if (rcaError) {
+         console.warn('Failed to auto-create incident_rca (non-critical if created later):', rcaError);
+      }
 
       // Log audit entry
       await supabase.from('incident_audit_logs').insert({
@@ -205,6 +245,34 @@ export function useCreateInvestigation() {
     onSuccess: (_, incidentId) => {
       queryClient.invalidateQueries({ queryKey: ['investigation', incidentId] });
       toast.success(t('investigation.started', 'Investigation started'));
+    },
+    onError: (error) => {
+      toast.error(t('common.error', 'Error: ') + error.message);
+    },
+  });
+}
+
+export function useUnlockRCA() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
+
+  return useMutation({
+    mutationFn: async ({ incidentId }: { incidentId: string }) => {
+      if (!user?.id) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase.rpc('unlock_rca', {
+        p_incident_id: incidentId,
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, { incidentId }) => {
+      queryClient.invalidateQueries({ queryKey: ['investigation', incidentId] });
+      // Also invalidate closure checks if any
+      queryClient.invalidateQueries({ queryKey: ['incident-closure-check', incidentId] });
+      toast.success(t('investigation.rca.unlockedSuccess', 'RCA Analysis has been unlocked.'));
     },
     onError: (error) => {
       toast.error(t('common.error', 'Error: ') + error.message);
@@ -231,12 +299,14 @@ export function useUpdateInvestigation() {
         throw new Error('User not authenticated');
       }
 
+      // 1. Update Legacy Table
       // Convert typed arrays to Json for database
       const dbUpdates: Record<string, unknown> = {
         ...updates,
         updated_at: new Date().toISOString(),
       };
       
+      // Filter out RCA-specific fields from legacy update if needed, but keeping them synced is safer for now
       // Explicitly cast complex types to Json
       if (updates.five_whys !== undefined) {
         dbUpdates.five_whys = updates.five_whys as unknown as Json;
@@ -257,6 +327,26 @@ export function useUpdateInvestigation() {
 
       if (error) throw error;
 
+      // 2. Upsert V1.1 RCA Table
+      // We map the legacy fields to new schema structure
+      const rcaUpdates: any = {
+        incident_id: incidentId,
+        tenant_id: profile.tenant_id,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (updates.five_whys !== undefined) rcaUpdates.five_whys = updates.five_whys;
+      if (updates.root_causes !== undefined) rcaUpdates.root_causes = updates.root_causes;
+      if (updates.contributing_factors_list !== undefined) rcaUpdates.contributing_factors = updates.contributing_factors_list;
+      if (updates.immediate_cause !== undefined) rcaUpdates.immediate_causes = [updates.immediate_cause];
+      if (updates.underlying_cause !== undefined) rcaUpdates.underlying_causes = [updates.underlying_cause];
+
+      const { error: rcaError } = await supabase
+        .from('incident_rca')
+        .upsert(rcaUpdates, { onConflict: 'incident_id' });
+
+      if (rcaError) throw rcaError;
+
       // Log audit entry
       await supabase.from('incident_audit_logs').insert({
         incident_id: incidentId,
@@ -271,6 +361,34 @@ export function useUpdateInvestigation() {
     onSuccess: (_, { incidentId }) => {
       queryClient.invalidateQueries({ queryKey: ['investigation', incidentId] });
       toast.success(t('investigation.updated', 'Investigation updated'));
+    },
+    onError: (error) => {
+      toast.error(t('common.error', 'Error: ') + error.message);
+    },
+  });
+}
+
+export function useLockRCA() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
+
+  return useMutation({
+    mutationFn: async ({ incidentId }: { incidentId: string }) => {
+      if (!user?.id) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase.rpc('lock_rca', {
+        p_incident_id: incidentId,
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, { incidentId }) => {
+      queryClient.invalidateQueries({ queryKey: ['investigation', incidentId] });
+      // Also invalidate closure checks if any
+      queryClient.invalidateQueries({ queryKey: ['incident-closure-check', incidentId] });
+      toast.success(t('investigation.rca.locked', 'RCA Locked successfully'));
     },
     onError: (error) => {
       toast.error(t('common.error', 'Error: ') + error.message);
@@ -334,10 +452,11 @@ export function useCreateCorrectiveAction() {
         throw new Error('User not authenticated');
       }
 
-      // Fetch incident's branch_id for proper branch isolation
+      // Fetch incident's branch_id and event_type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: incident } = await supabase
         .from('incidents')
-        .select('branch_id')
+        .select('branch_id, event_type')
         .eq('id', action.incident_id)
         .single();
 
@@ -363,41 +482,11 @@ export function useCreateCorrectiveAction() {
         new_value: { action_id: data.id, title: action.title },
       });
 
-      // Send email notification if assigned
-      if (action.assigned_to) {
-        try {
-          const { data: assignee } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', action.assigned_to)
-            .single();
-          
-          const { data: assigneeAuth } = await supabase.auth.admin.getUserById(action.assigned_to);
-          
-          if (assigneeAuth?.user?.email) {
-            await supabase.functions.invoke('send-action-email', {
-              body: {
-                type: 'action_assigned',
-                recipient_email: assigneeAuth.user.email,
-                recipient_name: assignee?.full_name || 'Team Member',
-                action_title: action.title,
-                action_priority: action.priority,
-                action_description: action.description,
-                due_date: action.due_date,
-                incident_reference: action.incident_id,
-              },
-            });
-          }
-        } catch (emailError) {
-          console.error('Failed to send action assignment email:', emailError);
-        }
-      }
-
       return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['corrective-actions', data.incident_id] });
-      toast.success(t('investigation.actions.created', 'Action created'));
+      toast.success(t('investigation.actions.created', 'Action created. Notification will be sent upon investigation release.'));
     },
     onError: (error) => {
       toast.error(t('common.error', 'Error: ') + error.message);
@@ -450,6 +539,64 @@ export function useUpdateCorrectiveAction() {
     onSuccess: (_, { incidentId }) => {
       queryClient.invalidateQueries({ queryKey: ['corrective-actions', incidentId] });
       toast.success(t('investigation.actions.updated', 'Action updated'));
+    },
+    onError: (error) => {
+      toast.error(t('common.error', 'Error: ') + error.message);
+    },
+  });
+}
+
+// Verify Corrective Action Hook
+export function useVerifyCorrectiveAction() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { t } = useTranslation();
+
+  return useMutation({
+    mutationFn: async (input: {
+      actionId: string;
+      incidentId: string;
+      verification_notes?: string;
+      approved: boolean;
+    }) => {
+      if (!user?.id) throw new Error('No user');
+
+      const updateData = input.approved
+        ? {
+            status: 'closed',
+            verified_by: user.id,
+            verified_at: new Date().toISOString(),
+            verification_notes: input.verification_notes,
+          }
+        : {
+            status: 'returned_for_correction',
+            rejected_by: user.id,
+            rejected_at: new Date().toISOString(),
+            rejection_notes: input.verification_notes,
+            last_return_reason: input.verification_notes,
+          };
+
+      const { error } = await supabase
+        .from('corrective_actions')
+        .update(updateData)
+        .eq('id', input.actionId);
+
+      if (error) throw error;
+
+      // If approved (closed), trigger the auto-closure check for the incident
+      // Note: The database trigger 'trigger_check_auto_final_closure' handles this automatically
+      // when status changes to 'closed'. We don't need to do anything extra here.
+    },
+    onSuccess: (_, { incidentId, approved }) => {
+      queryClient.invalidateQueries({ queryKey: ['corrective-actions', incidentId] });
+      // Invalidate incident query to reflect potential status change (auto-closure)
+      queryClient.invalidateQueries({ queryKey: ['incident', incidentId] });
+      queryClient.invalidateQueries({ queryKey: ['incidents'] });
+
+      const message = approved
+        ? t('investigation.actions.verified', 'Action verified and closed')
+        : t('investigation.actions.returned', 'Action returned for correction');
+      toast.success(message);
     },
     onError: (error) => {
       toast.error(t('common.error', 'Error: ') + error.message);

@@ -61,14 +61,14 @@ const SEVERITY_OPTIONS = HSSE_SEVERITY_LEVELS.map(level => ({
   textColor: level.bgColor.replace('bg-', 'text-'),
 }));
 
-const createQuickObservationSchema = (t: (key: string) => string) => z.object({
+const createQuickObservationSchema = (t: (key: string, options?: any) => string) => z.object({
   description: z.string().min(1, t('incidents.validation.descriptionRequired')).max(2000),
   subtype: z.string().min(1, t('incidents.validation.subtypeRequired')),
   severity_v2: z.enum(['level_1', 'level_2', 'level_3', 'level_4', 'level_5'] as const),
   // Observation Date & Time fields
   observed_date: z.string().min(1, t('quickObservation.validation.dateRequired')),
   observed_time: z.string().min(1, t('quickObservation.validation.timeRequired')),
-  site_id: z.string().optional(),
+  site_id: z.string().min(1, t('incidents.validation.siteRequired', 'Site selection is required')),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   closed_on_spot: z.boolean().default(false),

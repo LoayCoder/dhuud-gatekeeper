@@ -41,7 +41,7 @@ import { usePendingIncidentApprovals } from "@/hooks/use-pending-approvals";
 import { useInvestigationEditAccess } from "@/hooks/use-investigation-edit-access";
 import { useUserRoles } from "@/hooks/use-user-roles";
 import { 
-  EvidencePanel, 
+  EvidenceManager, 
   WitnessPanel, 
   RCAPanel, 
   ActionsPanel, 
@@ -81,7 +81,7 @@ import {
   ClinicReviewCard,
   TeamInvestigationAssignmentStep
 } from "@/components/investigation";
-import { ActionDisputeReviewCard, ConsultantReviewCard } from "@/components/investigation/contractor-workflow";
+import { ActionDisputeReviewCard, ConsultantReviewCard, SiteClientActionApprovalCard } from "@/components/investigation/contractor-workflow";
 import { HSSEEnforcementBanner } from "@/components/investigation/HSSEEnforcementBanner";
 import { ObservationWorkflowTracker } from "@/components/investigation/ObservationWorkflowTracker";
 import { UnifiedWorkflowTracker } from "@/components/investigation/UnifiedWorkflowTracker";
@@ -101,6 +101,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { getStatusBorderColor, getStatusCategory } from "@/lib/incident-status-colors";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { SeverityLevelV2 } from "@/lib/hsse-severity-levels";
 
 export default function InvestigationWorkspace() {
   const { t, i18n } = useTranslation();
@@ -284,6 +285,8 @@ export default function InvestigationWorkspace() {
     manager_decision_at?: string | null;
     hsse_manager_decision?: string | null;
     investigator_id?: string | null;
+    consultant_screening_notes?: string | null;
+    severity_v2?: string | null;
   } | undefined;
 
   // Check if user can approve closure using RPC function (enforces role-based and conflict-of-interest checks)
@@ -523,11 +526,22 @@ export default function InvestigationWorkspace() {
           <ConsultantReviewCard 
             incidentId={incidentData.id}
             status={currentStatus}
-            severityLevel={(incidentData as any).severity_v2}
+            assigneeId={incidentData.approval_manager_id}
+            severityLevel={incidentData.severity_v2 ? incidentData.severity_v2 as SeverityLevelV2 : undefined}
             hasActions={actionsCount > 0}
             actionsCount={actionsCount}
             onActionCreated={handleCreateAction}
             onComplete={handleRefresh}
+          />
+        );
+
+      case 'pending_site_client_approval':
+        return (
+          <SiteClientActionApprovalCard
+            incidentId={incidentData.id}
+            status={currentStatus}
+            actionsCount={actionsCount}
+            consultantNotes={incidentData.consultant_screening_notes || undefined}
           />
         );
 
@@ -995,7 +1009,7 @@ export default function InvestigationWorkspace() {
 
                 <TabsContent value="evidence" className="mt-0">
                   {investigationAllowed ? (
-                    <EvidencePanel 
+                    <EvidenceManager 
                       incidentId={selectedIncidentId} 
                       incidentStatus={selectedIncident?.status}
                       canEdit={editAccess.canEdit}

@@ -40,6 +40,11 @@ interface ValidationResult {
     storage_path: string;
     file_name: string;
   }>;
+  exit_validation?: {
+    requires_matching: boolean;
+    original_vehicle_plate: string | null;
+    original_driver_name: string | null;
+  };
   errors: string[];
   warnings: string[];
 }
@@ -132,6 +137,18 @@ Deno.serve(async (req) => {
     if (pass.exit_time) {
       result.is_valid = false;
       result.errors.push('Gate pass already completed (exit recorded)');
+    }
+
+    // Add exit validation info for in_out passes that are pending exit
+    if (pass.pass_type === 'in_out' && pass.entry_time && !pass.exit_time) {
+      result.exit_validation = {
+        requires_matching: true,
+        original_vehicle_plate: pass.vehicle_plate,
+        original_driver_name: pass.driver_name,
+      };
+      result.warnings.push(
+        'Exit requires matching Vehicle Plate and Driver Name from entry record'
+      );
     }
 
     // Fetch items

@@ -19,6 +19,8 @@ interface GatePassFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   projects: ContractorProject[];
+  canCreateInternal?: boolean;
+  canCreateExternal?: boolean;
 }
 
 interface GatePassItem {
@@ -55,14 +57,22 @@ const createEmptyItem = (): GatePassItem => ({
   unit: "",
 });
 
-export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFormDialogProps) {
+export function GatePassFormDialog({ 
+  open, 
+  onOpenChange, 
+  projects,
+  canCreateInternal = false,
+  canCreateExternal = false,
+}: GatePassFormDialogProps) {
   const { t, i18n } = useTranslation();
   const createPass = useCreateGatePass();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Get user profile to determine if internal user
   const { data: profile } = useCachedProfile();
-  const isInternalUser = profile?.user_type === 'employee';
+  
+  // User can create internal if they have permission AND are an employee
+  const isInternalUser = profile?.user_type === 'employee' && canCreateInternal;
   
   // Fetch employee approvers for internal requests
   const { data: employeeApprovers = [] } = useEmployeeApprovers();

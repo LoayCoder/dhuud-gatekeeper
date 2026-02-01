@@ -35,6 +35,7 @@ async function fetchGateGuardStats(tenantId: string): Promise<GateGuardStats> {
     visitorsOnSite,
     visitorsToday,
     contractorWorkersOnSite,
+    vehiclesOnSite,
     openAlerts,
     hourlyData,
   ] = await Promise.all([
@@ -63,6 +64,16 @@ async function fetchGateGuardStats(tenantId: string): Promise<GateGuardStats> {
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId)
       .eq('entry_type', 'worker')
+      .gte('entry_time', todayStr)
+      .is('exit_time', null)
+      .is('deleted_at', null),
+
+    // Active vehicles on site (entry_type = 'vehicle', no exit today)
+    supabase
+      .from('gate_entry_logs')
+      .select('*', { count: 'exact', head: true })
+      .eq('tenant_id', tenantId)
+      .eq('entry_type', 'vehicle')
       .gte('entry_time', todayStr)
       .is('exit_time', null)
       .is('deleted_at', null),
@@ -111,6 +122,7 @@ async function fetchGateGuardStats(tenantId: string): Promise<GateGuardStats> {
   let workerCount = 0;
   let deliveryCount = 0;
   let employeeCount = 0;
+  let vehicleCount = 0;
   
   hourlyData.data?.forEach(entry => {
     const entryWithType = entry as { entry_time: string; exit_time: string | null; entry_type?: string };
@@ -127,6 +139,9 @@ async function fetchGateGuardStats(tenantId: string): Promise<GateGuardStats> {
       case 'employee':
         employeeCount++;
         break;
+      case 'vehicle':
+        vehicleCount++;
+        break;
     }
   });
 
@@ -135,10 +150,11 @@ async function fetchGateGuardStats(tenantId: string): Promise<GateGuardStats> {
     { type: 'Workers', count: workerCount, color: 'hsl(var(--chart-2))' },
     { type: 'Deliveries', count: deliveryCount, color: 'hsl(var(--chart-3))' },
     { type: 'Employees', count: employeeCount, color: 'hsl(var(--chart-4))' },
+    { type: 'Vehicles', count: vehicleCount, color: 'hsl(var(--chart-5))' },
   ].filter(item => item.count > 0);
 
-  // Total on site = visitors on site + workers on site
-  const totalOnSite = (visitorsOnSite.count || 0) + (contractorWorkersOnSite.count || 0);
+  // Total on site = visitors + workers + vehicles
+  const totalOnSite = (visitorsOnSite.count || 0) + (contractorWorkersOnSite.count || 0) + (vehiclesOnSite.count || 0);
 
   return {
     onSite: totalOnSite,

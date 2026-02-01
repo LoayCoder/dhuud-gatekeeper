@@ -25,10 +25,11 @@ import {
   MaterialGatePass,
 } from "@/hooks/contractor-management/use-material-gate-passes";
 import { useContractorProjects } from "@/hooks/contractor-management/use-contractor-projects";
+import { useCanCreateGatePass } from "@/hooks/contractor-management/use-can-create-gate-pass";
 
 export default function GatePasses() {
   const { t } = useTranslation();
-  const [searchParams] = useSearchParams();
+const [searchParams, setSearchParams] = useSearchParams();
   const initialStatus = searchParams.get("status") || "all";
   
   const [search, setSearch] = useState("");
@@ -36,6 +37,16 @@ export default function GatePasses() {
   const [projectFilter, setProjectFilter] = useState<string>("all");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
+  
+  // Handle ?action=create query param from dashboard quick action
+  useEffect(() => {
+    if (searchParams.get("action") === "create") {
+      setIsCreateOpen(true);
+      // Clear the query param after opening dialog
+      searchParams.delete("action");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
   
   // Sync status filter with URL params
   useEffect(() => {
@@ -54,6 +65,7 @@ export default function GatePasses() {
   const { data: pendingApprovals = [] } = usePendingGatePassApprovals();
   const { data: todayPasses = [] } = useTodayApprovedPasses();
   const { data: projects = [] } = useContractorProjects({ status: "active" });
+  const { canCreate, canCreateInternal, canCreateExternal, isLoading: permissionLoading } = useCanCreateGatePass();
 
   return (
     <div className="space-y-6">
@@ -67,10 +79,12 @@ export default function GatePasses() {
             {t("contractors.gatePasses.description", "Manage material and equipment gate passes")}
           </p>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)}>
-          <Plus className="h-4 w-4 me-2" />
-          {t("contractors.gatePasses.createPass", "Create Gate Pass")}
-        </Button>
+        {canCreate && (
+          <Button onClick={() => setIsCreateOpen(true)}>
+            <Plus className="h-4 w-4 me-2" />
+            {t("contractors.gatePasses.createPass", "Create Gate Pass")}
+          </Button>
+        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -160,11 +174,15 @@ export default function GatePasses() {
         </TabsContent>
       </Tabs>
 
-      <GatePassFormDialog
-        open={isCreateOpen}
-        onOpenChange={setIsCreateOpen}
-        projects={projects}
-      />
+      {canCreate && (
+        <GatePassFormDialog
+          open={isCreateOpen}
+          onOpenChange={setIsCreateOpen}
+          projects={projects}
+          canCreateInternal={canCreateInternal}
+          canCreateExternal={canCreateExternal}
+        />
+      )}
     </div>
   );
 }

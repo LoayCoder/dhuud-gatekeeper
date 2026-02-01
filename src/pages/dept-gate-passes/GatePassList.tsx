@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MenuBasedAdminRoute } from "@/components/auth/MenuBasedAdminRoute";
 import {
@@ -23,21 +22,35 @@ import {
 } from "@/components/ui/table";
 import { Search, Filter, FileKey } from "lucide-react";
 import { useDeptGatePasses } from "@/hooks/contractor-management/use-dept-gate-passes";
+import { MaterialGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
+import { GatePassDetailDialog } from "@/components/contractors/GatePassDetailDialog";
 import { format } from "date-fns";
 
 function DeptGatePassListContent() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.dir() === "rtl";
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedPass, setSelectedPass] = useState<MaterialGatePass | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const { data: passes, isLoading } = useDeptGatePasses({
     search: search || undefined,
     status: statusFilter === "all" ? undefined : statusFilter,
   });
 
+  const handleRowClick = (pass: MaterialGatePass) => {
+    setSelectedPass(pass);
+    setDetailOpen(true);
+  };
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { variant: "default" | "secondary" | "success" | "warning" | "destructive"; label: string }> = {
       pending: { variant: "warning", label: t("gatePasses.status.pending", "Pending") },
+      pending_dept_approval: { variant: "warning", label: t("gatePasses.status.pending_dept_approval", "Pending Dept") },
+      pending_contractor_approval: { variant: "warning", label: t("gatePasses.status.pending_contractor_approval", "Pending Contractor") },
+      pending_club_mgmt_ack: { variant: "warning", label: t("gatePasses.status.pending_club_mgmt_ack", "Pending Golf Club Management") },
+      pending_security_approval: { variant: "warning", label: t("gatePasses.status.pending_security", "Pending Security") },
       pm_approved: { variant: "secondary", label: t("gatePasses.status.pm_approved", "PM Approved") },
       approved: { variant: "success", label: t("gatePasses.status.approved", "Approved") },
       rejected: { variant: "destructive", label: t("gatePasses.status.rejected", "Rejected") },
@@ -46,6 +59,18 @@ function DeptGatePassListContent() {
     };
     const config = variants[status] || { variant: "secondary" as const, label: status };
     return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  const getPassTypeBadge = (isInternal: boolean) => {
+    return isInternal ? (
+      <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">
+        {t("gatePasses.type.internal", "Internal")}
+      </Badge>
+    ) : (
+      <Badge variant="outline" className="text-purple-600 border-purple-200 bg-purple-50">
+        {t("gatePasses.type.external", "External")}
+      </Badge>
+    );
   };
 
   return (
@@ -81,8 +106,9 @@ function DeptGatePassListContent() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t("common.all", "All")}</SelectItem>
-                  <SelectItem value="pending">{t("gatePasses.status.pending", "Pending")}</SelectItem>
-                  <SelectItem value="pm_approved">{t("gatePasses.status.pm_approved", "PM Approved")}</SelectItem>
+                  <SelectItem value="pending_dept_approval">{t("gatePasses.status.pending_dept_approval", "Pending Dept")}</SelectItem>
+                  <SelectItem value="pending_club_mgmt_ack">{t("gatePasses.status.pending_club_mgmt_ack", "Pending Golf Club Management")}</SelectItem>
+                  <SelectItem value="pending_security_approval">{t("gatePasses.status.pending_security", "Pending Security")}</SelectItem>
                   <SelectItem value="approved">{t("gatePasses.status.approved", "Approved")}</SelectItem>
                   <SelectItem value="rejected">{t("gatePasses.status.rejected", "Rejected")}</SelectItem>
                   <SelectItem value="completed">{t("gatePasses.status.completed", "Completed")}</SelectItem>
@@ -122,6 +148,7 @@ function DeptGatePassListContent() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t("gatePasses.referenceNumber", "Reference")}</TableHead>
+                    <TableHead>{t("gatePasses.type", "Type")}</TableHead>
                     <TableHead>{t("gatePasses.project", "Project")}</TableHead>
                     <TableHead>{t("gatePasses.material", "Material")}</TableHead>
                     <TableHead>{t("gatePasses.passDate", "Date")}</TableHead>
@@ -131,9 +158,19 @@ function DeptGatePassListContent() {
                 </TableHeader>
                 <TableBody>
                   {passes.map(pass => (
-                    <TableRow key={pass.id}>
+                    <TableRow 
+                      key={pass.id}
+                      onClick={() => handleRowClick(pass)}
+                      className="cursor-pointer hover:bg-accent"
+                    >
                       <TableCell className="font-medium">{pass.reference_number}</TableCell>
-                      <TableCell>{pass.project?.project_name || "-"}</TableCell>
+                      <TableCell>{getPassTypeBadge(pass.is_internal_request ?? false)}</TableCell>
+                      <TableCell>
+                        {pass.is_internal_request 
+                          ? t("gatePasses.internalRequest", "Internal Request")
+                          : pass.project?.project_name || "-"
+                        }
+                      </TableCell>
                       <TableCell className="max-w-[200px] truncate">
                         {pass.material_description}
                       </TableCell>
@@ -150,6 +187,13 @@ function DeptGatePassListContent() {
           )}
         </CardContent>
       </Card>
+
+      {/* Detail Dialog */}
+      <GatePassDetailDialog
+        pass={selectedPass}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+      />
     </div>
   );
 }

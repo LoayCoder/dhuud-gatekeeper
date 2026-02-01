@@ -373,6 +373,7 @@ export interface IncidentWithDetails {
   related_contractor_company?: { id: string; company_name: string } | null;
   // Contractor consultant workflow
   approval_manager_id?: string | null;
+  consultant_screening_notes?: string | null;
 }
 
 export function useIncident(id: string | undefined) {
@@ -400,6 +401,7 @@ export function useIncident(id: string | undefined) {
           closure_requested_by, closure_requested_at, closure_request_notes,
           related_contractor_company_id,
           approval_manager_id,
+          consultant_screening_notes,
           reporter:profiles!incidents_reporter_id_fkey(id, full_name),
           closure_requester:profiles!incidents_closure_requested_by_fkey(id, full_name),
           branch:branches!incidents_branch_id_fkey(id, name),
@@ -454,6 +456,7 @@ export function useIncident(id: string | undefined) {
         related_contractor_company: (data as Record<string, unknown>).related_contractor_company ?? null,
         // Contractor consultant workflow
         approval_manager_id: extended.approval_manager_id ?? null,
+        consultant_screening_notes: extended.consultant_screening_notes ?? null,
       } as IncidentWithDetails;
     },
     enabled: !!id && !!profile?.tenant_id,

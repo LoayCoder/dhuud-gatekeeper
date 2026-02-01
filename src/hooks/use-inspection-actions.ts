@@ -157,6 +157,34 @@ export function useCreateActionFromFinding() {
 
       if (linkError) throw linkError;
 
+      // Send email notification if assigned (Immediate for Inspections)
+      if (input.assigned_to) {
+        try {
+          const { data: assignee } = await supabase
+            .from('profiles')
+            .select('full_name, email')
+            .eq('id', input.assigned_to)
+            .single();
+
+          if (assignee?.email) {
+            await supabase.functions.invoke('send-action-email', {
+              body: {
+                type: 'action_assigned',
+                recipient_email: assignee.email,
+                recipient_name: assignee.full_name || 'Team Member',
+                action_title: input.title,
+                action_priority: input.priority || 'medium',
+                action_description: input.description,
+                due_date: input.due_date,
+                incident_reference: null, // Not an incident
+              },
+            });
+          }
+        } catch (emailError) {
+          console.error('Failed to send action assignment email:', emailError);
+        }
+      }
+
       return action;
     },
     onSuccess: () => {

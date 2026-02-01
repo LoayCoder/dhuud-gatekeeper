@@ -4232,6 +4232,86 @@ export type Database = {
           },
         ]
       }
+      contract_violations: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          contractor_id: string | null
+          created_at: string | null
+          currency: string | null
+          deleted_at: string | null
+          description: string | null
+          fine_amount: number | null
+          id: string
+          incident_id: string
+          status: string | null
+          tenant_id: string
+          updated_at: string | null
+          violation_type: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          contractor_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          fine_amount?: number | null
+          id?: string
+          incident_id: string
+          status?: string | null
+          tenant_id: string
+          updated_at?: string | null
+          violation_type: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          contractor_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          fine_amount?: number | null
+          id?: string
+          incident_id?: string
+          status?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+          violation_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_violations_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_violations_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_violations_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_violations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contractor_access_logs: {
         Row: {
           access_type: string
@@ -7367,6 +7447,7 @@ export type Database = {
           host_mobile: string | null
           host_notified_at: string | null
           id: string
+          material_gate_pass_id: string | null
           mobile_number: string | null
           nationality: string | null
           notes: string | null
@@ -7413,6 +7494,7 @@ export type Database = {
           host_mobile?: string | null
           host_notified_at?: string | null
           id?: string
+          material_gate_pass_id?: string | null
           mobile_number?: string | null
           nationality?: string | null
           notes?: string | null
@@ -7459,6 +7541,7 @@ export type Database = {
           host_mobile?: string | null
           host_notified_at?: string | null
           id?: string
+          material_gate_pass_id?: string | null
           mobile_number?: string | null
           nationality?: string | null
           notes?: string | null
@@ -7498,6 +7581,13 @@ export type Database = {
             columns: ["guard_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_entry_logs_material_gate_pass_id_fkey"
+            columns: ["material_gate_pass_id"]
+            isOneToOne: false
+            referencedRelation: "material_gate_passes"
             referencedColumns: ["id"]
           },
           {
@@ -7634,6 +7724,80 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gate_pass_item_photos: {
+        Row: {
+          branch_id: string | null
+          created_at: string | null
+          deleted_at: string | null
+          file_name: string
+          file_size: number | null
+          gate_pass_id: string
+          id: string
+          item_id: string
+          mime_type: string | null
+          storage_path: string
+          tenant_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          file_name: string
+          file_size?: number | null
+          gate_pass_id: string
+          id?: string
+          item_id: string
+          mime_type?: string | null
+          storage_path: string
+          tenant_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          file_name?: string
+          file_size?: number | null
+          gate_pass_id?: string
+          id?: string
+          item_id?: string
+          mime_type?: string | null
+          storage_path?: string
+          tenant_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gate_pass_item_photos_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_pass_item_photos_gate_pass_id_fkey"
+            columns: ["gate_pass_id"]
+            isOneToOne: false
+            referencedRelation: "material_gate_passes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_pass_item_photos_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "gate_pass_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_pass_item_photos_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -14118,6 +14282,9 @@ export type Database = {
         Row: {
           approval_from_id: string | null
           branch_id: string | null
+          club_mgmt_ack_at: string | null
+          club_mgmt_ack_by: string | null
+          club_mgmt_ack_notes: string | null
           company_id: string | null
           contractor_approval_notes: string | null
           contractor_approval_status: string | null
@@ -14172,6 +14339,9 @@ export type Database = {
         Insert: {
           approval_from_id?: string | null
           branch_id?: string | null
+          club_mgmt_ack_at?: string | null
+          club_mgmt_ack_by?: string | null
+          club_mgmt_ack_notes?: string | null
           company_id?: string | null
           contractor_approval_notes?: string | null
           contractor_approval_status?: string | null
@@ -14226,6 +14396,9 @@ export type Database = {
         Update: {
           approval_from_id?: string | null
           branch_id?: string | null
+          club_mgmt_ack_at?: string | null
+          club_mgmt_ack_by?: string | null
+          club_mgmt_ack_notes?: string | null
           company_id?: string | null
           contractor_approval_notes?: string | null
           contractor_approval_status?: string | null
@@ -14290,6 +14463,13 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_gate_passes_club_mgmt_ack_by_fkey"
+            columns: ["club_mgmt_ack_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -24592,6 +24772,15 @@ export type Database = {
         Args: { p_event: Json; p_provider_message_id: string }
         Returns: string
       }
+      approve_gate_pass_unified: {
+        Args: {
+          p_action: string
+          p_gate_pass_id: string
+          p_notes?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       assign_investigation_team:
         | {
             Args: {
@@ -24757,6 +24946,15 @@ export type Database = {
         Args: { _incident_id: string; _user_id: string }
         Returns: boolean
       }
+      can_approve_gate_pass:
+        | {
+            Args: { p_gate_pass_id: string; p_user_id: string }
+            Returns: boolean
+          }
+        | {
+            Args: { p_gate_pass_id: string; p_stage: string; p_user_id: string }
+            Returns: Json
+          }
       can_approve_investigation: {
         Args: { _incident_id: string; _user_id: string }
         Returns: boolean
@@ -24768,6 +24966,14 @@ export type Database = {
       can_close_area_session: { Args: { p_session_id: string }; Returns: Json }
       can_close_investigation: {
         Args: { p_incident_id: string }
+        Returns: Json
+      }
+      can_create_gate_pass: {
+        Args: {
+          p_company_id?: string
+          p_is_internal_request: boolean
+          p_user_id: string
+        }
         Returns: Json
       }
       can_manage_access_list: { Args: { _user_id: string }; Returns: boolean }
@@ -25044,6 +25250,7 @@ export type Database = {
             }
             Returns: Json
           }
+      expire_old_gate_passes: { Args: never; Returns: undefined }
       find_contractor_consultant_for_branch: {
         Args: { p_branch_id: string; p_tenant_id: string }
         Returns: string
@@ -25742,6 +25949,28 @@ export type Database = {
           can_update: boolean
         }[]
       }
+      get_user_pending_gate_passes:
+        | {
+            Args: { p_user_id: string }
+            Returns: {
+              approval_role: string
+              created_at: string
+              id: string
+              is_internal_request: boolean
+              project_name: string
+              reference_id: string
+              requester_name: string
+              status: string
+            }[]
+          }
+        | {
+            Args: { p_tenant_id: string; p_user_id: string }
+            Returns: {
+              approval_stage: string
+              can_approve: boolean
+              gate_pass_id: string
+            }[]
+          }
       get_user_primary_branch: { Args: { _user_id: string }; Returns: string }
       get_user_role: { Args: { _user_id: string }; Returns: string }
       get_user_roles: {
@@ -26027,6 +26256,7 @@ export type Database = {
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_tenant_admin: { Args: { _user_id: string }; Returns: boolean }
       join_challenge: { Args: { p_challenge_id: string }; Returns: Json }
+      lock_rca: { Args: { p_incident_id: string }; Returns: boolean }
       log_audit: {
         Args: {
           p_action_type: string
@@ -26363,6 +26593,14 @@ export type Database = {
       }
       validate_dept_rep_observation_approval: {
         Args: { p_incident_id: string; p_user_id: string }
+        Returns: Json
+      }
+      validate_gate_pass_exit: {
+        Args: {
+          p_exit_driver_name?: string
+          p_exit_vehicle_plate?: string
+          p_gate_pass_id: string
+        }
         Returns: Json
       }
       validate_invitation_code: {

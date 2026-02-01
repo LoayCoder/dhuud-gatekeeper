@@ -19,8 +19,8 @@ export interface GatePassVerificationResult {
     driver_name: string | null;
     driver_mobile: string | null;
     status: string;
-    entry_confirmed_at: string | null;
-    exit_confirmed_at: string | null;
+    entry_time: string | null;
+    exit_time: string | null;
     project_name: string;
     company_name: string;
   };
@@ -40,8 +40,7 @@ export function useVerifyGatePassQR() {
         .select(`
           id, reference_number, pass_type, pass_date, time_window_start, time_window_end,
           material_description, quantity, vehicle_plate, driver_name, driver_mobile,
-          status, entry_confirmed_at, exit_confirmed_at, qr_code_token, qr_generated_at,
-          pm_approved_at, safety_approved_at,
+          status, entry_time, exit_time, qr_code_token, qr_generated_at,
           project:contractor_projects(project_name, company:contractor_companies(company_name))
         `)
         .eq("qr_code_token", qrToken)
@@ -53,9 +52,25 @@ export function useVerifyGatePassQR() {
         return { valid: false, message: "Invalid QR code - Gate pass not found" };
       }
 
-      // Check if pass is fully approved
-      if (!gatePass.pm_approved_at || !gatePass.safety_approved_at) {
-        return { valid: false, message: "Gate pass not yet fully approved" };
+      // Check if pass is approved (single authoritative status check)
+      // Status must be 'approved' or 'used' (for re-entry/exit on same day)
+      if (gatePass.status !== "approved" && gatePass.status !== "used") {
+        const statusMessages: Record<string, string> = {
+          pending_contractor_approval: "Gate pass pending contractor consultant approval",
+          pending_dept_ack: "Gate pass pending department acknowledgment",
+          pending_dept_approval: "Gate pass pending department approval",
+          pending_security_approval: "Gate pass pending security approval",
+          pending_pm_approval: "Gate pass pending PM approval",
+          pending_safety_approval: "Gate pass pending safety approval",
+          rejected: "Gate pass has been rejected",
+          cancelled: "Gate pass has been cancelled",
+          completed: "Gate pass already completed",
+          expired: "Gate pass has expired",
+        };
+        return {
+          valid: false,
+          message: statusMessages[gatePass.status] || "Gate pass not yet fully approved"
+        };
       }
 
       // Check if pass date is today
@@ -98,8 +113,8 @@ export function useVerifyGatePassQR() {
           driver_name: gatePass.driver_name,
           driver_mobile: gatePass.driver_mobile,
           status: gatePass.status,
-          entry_confirmed_at: gatePass.entry_confirmed_at,
-          exit_confirmed_at: gatePass.exit_confirmed_at,
+          entry_time: gatePass.entry_time,
+          exit_time: gatePass.exit_time,
           project_name: gatePass.project?.project_name || "",
           company_name: gatePass.project?.company?.company_name || "",
         },
@@ -110,17 +125,52 @@ export function useVerifyGatePassQR() {
 
 export function useConfirmGatePassEntry() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const tenantId = profile?.tenant_id;
 
   return useMutation({
     mutationFn: async (gatePassId: string) => {
-      if (!user?.id) throw new Error("Not authenticated");
+      if (!user?.id || !tenantId) throw new Error("Not authenticated");
 
+      const now = new Date().toISOString();
+
+      // Fetch pass data for the entry log
+      const { data: pass, error: fetchError } = await supabase
+        .from("material_gate_passes")
+        .select("vehicle_plate, driver_name, driver_mobile, material_description, reference_number")
+        .eq("id", gatePassId)
+        .single();
+
+      if (fetchError || !pass) throw new Error("Gate pass not found");
+
+      // Create entry log with FK link
+      await supabase.from("gate_entry_logs").insert({
+        tenant_id: tenantId,
+        guard_id: user.id,
+        entry_type: "vehicle",
+        person_name: pass.driver_name || "Driver",
+        mobile_number: pass.driver_mobile,
+        car_plate: pass.vehicle_plate,
+        purpose: pass.material_description
+          ? `Material: ${pass.material_description.substring(0, 50)}`
+          : "Material Transport",
+        notes: `Gate Pass: ${pass.reference_number}`,
+        entry_time: now,
+        access_type: "entry",
+        validation_status: "valid",
+        material_gate_pass_id: gatePassId,
+      });
+
+      // Update gate pass status
       const { error } = await supabase
         .from("material_gate_passes")
         .update({
-          entry_confirmed_at: new Date().toISOString(),
+          entry_time: now,
+          entry_confirmed_at: now,
           entry_confirmed_by: user.id,
+          guard_verified_by: user.id,
+          guard_verified_at: now,
+          status: "used",
         })
         .eq("id", gatePassId);
 
@@ -129,6 +179,7 @@ export function useConfirmGatePassEntry() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["material-gate-passes"] });
       queryClient.invalidateQueries({ queryKey: ["today-approved-passes"] });
+      queryClient.invalidateQueries({ queryKey: ["gate-entries"] });
       toast.success("Entry confirmed");
     },
     onError: (error: Error) => {
@@ -139,17 +190,65 @@ export function useConfirmGatePassEntry() {
 
 export function useConfirmGatePassExit() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const tenantId = profile?.tenant_id;
 
   return useMutation({
     mutationFn: async (gatePassId: string) => {
-      if (!user?.id) throw new Error("Not authenticated");
+      if (!user?.id || !tenantId) throw new Error("Not authenticated");
 
+      const now = new Date().toISOString();
+
+      // Find and close the entry log by FK link first, then vehicle plate
+      const { data: fkLogs } = await supabase
+        .from("gate_entry_logs")
+        .select("id")
+        .eq("tenant_id", tenantId)
+        .eq("material_gate_pass_id", gatePassId)
+        .is("exit_time", null)
+        .order("entry_time", { ascending: false })
+        .limit(1);
+
+      let logId = fkLogs?.[0]?.id;
+
+      // Fallback: Find by vehicle plate if no FK match
+      if (!logId) {
+        const { data: pass } = await supabase
+          .from("material_gate_passes")
+          .select("vehicle_plate")
+          .eq("id", gatePassId)
+          .single();
+
+        if (pass?.vehicle_plate) {
+          const { data: plateLogs } = await supabase
+            .from("gate_entry_logs")
+            .select("id")
+            .eq("tenant_id", tenantId)
+            .eq("car_plate", pass.vehicle_plate)
+            .is("exit_time", null)
+            .order("entry_time", { ascending: false })
+            .limit(1);
+          logId = plateLogs?.[0]?.id;
+        }
+      }
+
+      // Close the entry log if found
+      if (logId) {
+        await supabase
+          .from("gate_entry_logs")
+          .update({ exit_time: now })
+          .eq("id", logId);
+      }
+
+      // Update gate pass status
       const { error } = await supabase
         .from("material_gate_passes")
         .update({
-          exit_confirmed_at: new Date().toISOString(),
+          exit_time: now,
+          exit_confirmed_at: now,
           exit_confirmed_by: user.id,
+          guard_verified_by: user.id,
+          guard_verified_at: now,
           status: "completed",
         })
         .eq("id", gatePassId);
@@ -159,6 +258,7 @@ export function useConfirmGatePassExit() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["material-gate-passes"] });
       queryClient.invalidateQueries({ queryKey: ["today-approved-passes"] });
+      queryClient.invalidateQueries({ queryKey: ["gate-entries"] });
       toast.success("Exit confirmed - Pass completed");
     },
     onError: (error: Error) => {
