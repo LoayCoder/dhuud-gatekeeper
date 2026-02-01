@@ -33,9 +33,12 @@ export function GatePassApprovalActions({ pass, onSuccess }: GatePassApprovalAct
     // This is a simplified check - the actual authorization should also be validated server-side
     const pendingStatuses = [
       "pending_contractor_approval",
-      "pending_dept_approval",
-      "pending_club_mgmt_ack",
-      "pending_security_approval",
+      "pending_dept_ack",          // External: after contractor approval
+      "pending_dept_approval",     // Internal: first stage
+      "pending_security_approval", // Internal: second stage
+      // Legacy statuses (for backward compatibility)
+      "pending_pm_approval",
+      "pending_safety_approval",
     ];
 
     return pendingStatuses.includes(pass.status);
@@ -65,12 +68,17 @@ export function GatePassApprovalActions({ pass, onSuccess }: GatePassApprovalAct
     switch (pass.status) {
       case "pending_contractor_approval":
         return t("contractors.gatePasses.approveAsContractor", "Approve as Contractor Consultant");
+      case "pending_dept_ack":
+        return t("contractors.gatePasses.acknowledgeAsDept", "Acknowledge as Department Representative");
       case "pending_dept_approval":
         return t("contractors.gatePasses.approveAsDept", "Approve as Department Representative");
-      case "pending_club_mgmt_ack":
-        return t("contractors.gatePasses.acknowledgeAsClubMgmt", "Acknowledge as Golf Club Management");
       case "pending_security_approval":
         return t("contractors.gatePasses.approveAsSecurity", "Approve as Security Supervisor");
+      // Legacy statuses
+      case "pending_pm_approval":
+        return t("contractors.gatePasses.approveAsPM", "Approve as PM");
+      case "pending_safety_approval":
+        return t("contractors.gatePasses.approveAsSafety", "Approve as Safety");
       default:
         return t("contractors.gatePasses.approve", "Approve");
     }

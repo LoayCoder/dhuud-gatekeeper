@@ -582,7 +582,6 @@ export function useVerifyGatePass() {
 
 interface BulkApproveParams {
   passIds: string[];
-  approvalType: "pm" | "safety";
   notes?: string;
 }
 
@@ -602,64 +601,32 @@ export function useBulkApproveGatePasses() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ passIds, approvalType, notes }: BulkApproveParams): Promise<BulkResult> => {
+    mutationFn: async ({ passIds, notes }: BulkApproveParams): Promise<BulkResult> => {
       if (!user?.id) throw new Error("Not authenticated");
-      
+
       const results: BulkResult = { success: 0, failed: 0, errors: [] };
-      const now = new Date().toISOString();
 
       for (const passId of passIds) {
         try {
-          // Fetch the gate pass details for validation
-          const { data: pass, error: fetchError } = await supabase
-            .from("material_gate_passes")
-            .select("requested_by, is_internal_request, approval_from_id, status")
-            .eq("id", passId)
-            .single();
+          // Use the unified RPC for approval (handles all workflow stages)
+          const { data, error } = await supabase.rpc("approve_gate_pass_unified", {
+            p_user_id: user.id,
+            p_gate_pass_id: passId,
+            p_action: "approve",
+            p_notes: notes || null,
+          });
 
-          if (fetchError || !pass) {
+          if (error) {
             results.failed++;
-            results.errors.push({ passId, error: "Gate pass not found" });
+            results.errors.push({ passId, error: error.message });
             continue;
           }
 
-          // PREVENT SELF-APPROVAL
-          if (pass.requested_by === user.id) {
+          // Parse RPC response
+          const response = data as { success: boolean; error?: string; new_status?: string };
+          if (!response.success) {
             results.failed++;
-            results.errors.push({ passId, error: "Cannot approve own request" });
-            continue;
-          }
-
-          let updateData: Record<string, unknown> = {};
-
-          if (approvalType === "pm") {
-            updateData = {
-              pm_approved_by: user.id,
-              pm_approved_at: now,
-              pm_notes: notes || null,
-              status: "pending_safety_approval",
-            };
-          } else {
-            // Safety approval - generate QR token
-            const qrToken = crypto.randomUUID();
-            updateData = {
-              safety_approved_by: user.id,
-              safety_approved_at: now,
-              safety_notes: notes || null,
-              status: "approved",
-              qr_code_token: qrToken,
-              qr_generated_at: now,
-            };
-          }
-
-          const { error: updateError } = await supabase
-            .from("material_gate_passes")
-            .update(updateData)
-            .eq("id", passId);
-
-          if (updateError) {
-            results.failed++;
-            results.errors.push({ passId, error: updateError.message });
+            results.errors.push({ passId, error: response.error || "Approval failed" });
           } else {
             results.success++;
           }
@@ -675,7 +642,9 @@ export function useBulkApproveGatePasses() {
       queryClient.invalidateQueries({ queryKey: ["material-gate-passes"] });
       queryClient.invalidateQueries({ queryKey: ["pending-gate-pass-approvals"] });
       queryClient.invalidateQueries({ queryKey: ["today-approved-passes"] });
-      
+      queryClient.invalidateQueries({ queryKey: ["my-gate-passes"] });
+      queryClient.invalidateQueries({ queryKey: ["gate-pass-details"] });
+
       if (results.success > 0 && results.failed === 0) {
         toast.success(`${results.success} passes approved`);
       } else if (results.success > 0 && results.failed > 0) {

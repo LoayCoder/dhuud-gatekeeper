@@ -19,8 +19,8 @@ export interface GatePassVerificationResult {
     driver_name: string | null;
     driver_mobile: string | null;
     status: string;
-    entry_confirmed_at: string | null;
-    exit_confirmed_at: string | null;
+    entry_time: string | null;
+    exit_time: string | null;
     project_name: string;
     company_name: string;
   };
@@ -40,8 +40,7 @@ export function useVerifyGatePassQR() {
         .select(`
           id, reference_number, pass_type, pass_date, time_window_start, time_window_end,
           material_description, quantity, vehicle_plate, driver_name, driver_mobile,
-          status, entry_confirmed_at, exit_confirmed_at, qr_code_token, qr_generated_at,
-          pm_approved_at, safety_approved_at,
+          status, entry_time, exit_time, qr_code_token, qr_generated_at,
           project:contractor_projects(project_name, company:contractor_companies(company_name))
         `)
         .eq("qr_code_token", qrToken)
@@ -53,9 +52,25 @@ export function useVerifyGatePassQR() {
         return { valid: false, message: "Invalid QR code - Gate pass not found" };
       }
 
-      // Check if pass is fully approved
-      if (!gatePass.pm_approved_at || !gatePass.safety_approved_at) {
-        return { valid: false, message: "Gate pass not yet fully approved" };
+      // Check if pass is approved (single authoritative status check)
+      // Status must be 'approved' or 'used' (for re-entry/exit on same day)
+      if (gatePass.status !== "approved" && gatePass.status !== "used") {
+        const statusMessages: Record<string, string> = {
+          pending_contractor_approval: "Gate pass pending contractor consultant approval",
+          pending_dept_ack: "Gate pass pending department acknowledgment",
+          pending_dept_approval: "Gate pass pending department approval",
+          pending_security_approval: "Gate pass pending security approval",
+          pending_pm_approval: "Gate pass pending PM approval",
+          pending_safety_approval: "Gate pass pending safety approval",
+          rejected: "Gate pass has been rejected",
+          cancelled: "Gate pass has been cancelled",
+          completed: "Gate pass already completed",
+          expired: "Gate pass has expired",
+        };
+        return {
+          valid: false,
+          message: statusMessages[gatePass.status] || "Gate pass not yet fully approved"
+        };
       }
 
       // Check if pass date is today
@@ -98,8 +113,8 @@ export function useVerifyGatePassQR() {
           driver_name: gatePass.driver_name,
           driver_mobile: gatePass.driver_mobile,
           status: gatePass.status,
-          entry_confirmed_at: gatePass.entry_confirmed_at,
-          exit_confirmed_at: gatePass.exit_confirmed_at,
+          entry_time: gatePass.entry_time,
+          exit_time: gatePass.exit_time,
           project_name: gatePass.project?.project_name || "",
           company_name: gatePass.project?.company?.company_name || "",
         },

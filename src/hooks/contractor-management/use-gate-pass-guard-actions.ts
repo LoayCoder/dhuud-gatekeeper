@@ -344,7 +344,7 @@ export function useVerifyPassByReference() {
         .select(`
           id, reference_number, pass_type, pass_date, time_window_start, time_window_end,
           material_description, quantity, vehicle_plate, driver_name, driver_mobile,
-          status, entry_time, exit_time, pm_approved_at, safety_approved_at,
+          status, entry_time, exit_time,
           project:contractor_projects(project_name, company:contractor_companies(company_name))
         `)
         .eq('tenant_id', tenantId)
@@ -360,11 +360,24 @@ export function useVerifyPassByReference() {
         };
       }
 
-      // Check if fully approved
-      if (!pass.pm_approved_at || !pass.safety_approved_at) {
+      // Check if approved (single authoritative status check)
+      // Status must be 'approved' or 'used' (for re-entry/exit on same day)
+      if (pass.status !== 'approved' && pass.status !== 'used') {
+        const statusMessages: Record<string, string> = {
+          pending_contractor_approval: 'Gate pass pending contractor consultant approval',
+          pending_dept_ack: 'Gate pass pending department acknowledgment',
+          pending_dept_approval: 'Gate pass pending department approval',
+          pending_security_approval: 'Gate pass pending security approval',
+          pending_pm_approval: 'Gate pass pending PM approval',
+          pending_safety_approval: 'Gate pass pending safety approval',
+          rejected: 'Gate pass has been rejected',
+          cancelled: 'Gate pass has been cancelled',
+          completed: 'Gate pass already completed',
+          expired: 'Gate pass has expired',
+        };
         return {
           is_valid: false,
-          errors: ['Gate pass not yet fully approved'],
+          errors: [statusMessages[pass.status] || 'Gate pass not yet fully approved'],
           warnings: [],
           pass: formatPassData(pass),
         };

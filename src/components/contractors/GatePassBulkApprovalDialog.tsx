@@ -36,17 +36,14 @@ export function GatePassBulkApprovalDialog({
   const bulkApprove = useBulkApproveGatePasses();
 
   const handleApprove = async () => {
-    // Determine approval type based on first pass status
-    const approvalType = passes[0]?.status === "pending_pm_approval" ? "pm" : "safety";
-    
+    // Unified RPC handles workflow stage determination automatically
     const result = await bulkApprove.mutateAsync({
       passIds: passes.map((p) => p.id),
-      approvalType,
       notes: notes.trim() || undefined,
     });
 
     setResults(result);
-    
+
     if (result.success > 0) {
       setTimeout(() => {
         onSuccess();
