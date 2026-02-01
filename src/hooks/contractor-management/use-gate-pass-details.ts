@@ -54,6 +54,10 @@ export interface GatePassDetailData {
   pm_approved_by: string | null;
   pm_approved_at: string | null;
   pm_notes: string | null;
+  // Club Management acknowledgment (new step)
+  club_mgmt_ack_by: string | null;
+  club_mgmt_ack_at: string | null;
+  club_mgmt_ack_notes: string | null;
   // Security Supervisor approval (internal workflow stage 2)
   security_approved_by: string | null;
   security_approved_at: string | null;
@@ -81,6 +85,7 @@ export interface GatePassDetailData {
   requester?: GatePassApproverProfile | null;
   contractor_approver?: GatePassApproverProfile | null;
   pm_approver?: GatePassApproverProfile | null;
+  club_mgmt_acker?: GatePassApproverProfile | null;
   security_approver?: GatePassApproverProfile | null;
   safety_approver?: GatePassApproverProfile | null;
   rejector?: GatePassApproverProfile | null;
@@ -98,6 +103,7 @@ export function useGatePassDetails(passId: string | null) {
       if (!passId || !tenantId) return null;
 
       // Split into two queries to avoid TypeScript depth issues
+      // Note: club_mgmt_ack fields will be available after types regeneration
       const { data: passData, error: passError } = await supabase
         .from("material_gate_passes")
         .select(`
@@ -122,16 +128,24 @@ export function useGatePassDetails(passId: string | null) {
       if (passError) throw passError;
       if (!passData) return null;
 
+      // Cast to access new columns (available after types regeneration)
+      const passDataExt = passData as typeof passData & {
+        club_mgmt_ack_by?: string | null;
+        club_mgmt_ack_at?: string | null;
+        club_mgmt_ack_notes?: string | null;
+      };
+
       // Fetch profile data separately
       const profileIds = [
-        passData.requested_by,
-        passData.contractor_approved_by,
-        passData.pm_approved_by,
-        passData.security_approved_by,
-        passData.safety_approved_by,
-        passData.rejected_by,
-        passData.guard_verified_by,
-        passData.approval_from_id,
+        passDataExt.requested_by,
+        passDataExt.contractor_approved_by,
+        passDataExt.pm_approved_by,
+        passDataExt.club_mgmt_ack_by,
+        passDataExt.security_approved_by,
+        passDataExt.safety_approved_by,
+        passDataExt.rejected_by,
+        passDataExt.guard_verified_by,
+        passDataExt.approval_from_id,
       ].filter(Boolean) as string[];
 
       const { data: profiles } = await supabase
@@ -142,15 +156,16 @@ export function useGatePassDetails(passId: string | null) {
       const profileMap = new Map((profiles || []).map(p => [p.id, p]));
 
       return {
-        ...passData,
-        requester: profileMap.get(passData.requested_by) || null,
-        contractor_approver: passData.contractor_approved_by ? profileMap.get(passData.contractor_approved_by) || null : null,
-        pm_approver: passData.pm_approved_by ? profileMap.get(passData.pm_approved_by) || null : null,
-        security_approver: passData.security_approved_by ? profileMap.get(passData.security_approved_by) || null : null,
-        safety_approver: passData.safety_approved_by ? profileMap.get(passData.safety_approved_by) || null : null,
-        rejector: passData.rejected_by ? profileMap.get(passData.rejected_by) || null : null,
-        guard: passData.guard_verified_by ? profileMap.get(passData.guard_verified_by) || null : null,
-        approval_from: passData.approval_from_id ? profileMap.get(passData.approval_from_id) || null : null,
+        ...passDataExt,
+        requester: profileMap.get(passDataExt.requested_by) || null,
+        contractor_approver: passDataExt.contractor_approved_by ? profileMap.get(passDataExt.contractor_approved_by) || null : null,
+        pm_approver: passDataExt.pm_approved_by ? profileMap.get(passDataExt.pm_approved_by) || null : null,
+        club_mgmt_acker: passDataExt.club_mgmt_ack_by ? profileMap.get(passDataExt.club_mgmt_ack_by) || null : null,
+        security_approver: passDataExt.security_approved_by ? profileMap.get(passDataExt.security_approved_by) || null : null,
+        safety_approver: passDataExt.safety_approved_by ? profileMap.get(passDataExt.safety_approved_by) || null : null,
+        rejector: passDataExt.rejected_by ? profileMap.get(passDataExt.rejected_by) || null : null,
+        guard: passDataExt.guard_verified_by ? profileMap.get(passDataExt.guard_verified_by) || null : null,
+        approval_from: passDataExt.approval_from_id ? profileMap.get(passDataExt.approval_from_id) || null : null,
       } as GatePassDetailData;
     },
     enabled: !!passId && !!tenantId,
