@@ -28,7 +28,7 @@ import { useContractorProjects } from "@/hooks/contractor-management/use-contrac
 
 export default function GatePasses() {
   const { t } = useTranslation();
-  const [searchParams] = useSearchParams();
+const [searchParams, setSearchParams] = useSearchParams();
   const initialStatus = searchParams.get("status") || "all";
   
   const [search, setSearch] = useState("");
@@ -36,6 +36,16 @@ export default function GatePasses() {
   const [projectFilter, setProjectFilter] = useState<string>("all");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
+  
+  // Handle ?action=create query param from dashboard quick action
+  useEffect(() => {
+    if (searchParams.get("action") === "create") {
+      setIsCreateOpen(true);
+      // Clear the query param after opening dialog
+      searchParams.delete("action");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
   
   // Sync status filter with URL params
   useEffect(() => {
