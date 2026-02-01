@@ -221,6 +221,20 @@ export function useCreateGatePass() {
     mutationFn: async (data: CreateGatePassData) => {
       if (!tenantId || !user?.id) throw new Error("Not authenticated");
 
+      // Pre-flight validation using RPC
+      const { data: permissionCheck, error: permError } = await supabase.rpc("can_create_gate_pass", {
+        p_user_id: user.id,
+        p_is_internal_request: data.is_internal_request || false,
+        p_company_id: data.company_id || null,
+      });
+
+      if (permError) throw permError;
+      
+      const permission = permissionCheck as { allowed: boolean; reason?: string };
+      if (!permission.allowed) {
+        throw new Error(permission.reason || "You do not have permission to create this gate pass");
+      }
+
       // Generate reference number
       const year = new Date().getFullYear();
       const { count } = await supabase

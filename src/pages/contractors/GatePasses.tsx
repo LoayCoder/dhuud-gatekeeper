@@ -25,6 +25,7 @@ import {
   MaterialGatePass,
 } from "@/hooks/contractor-management/use-material-gate-passes";
 import { useContractorProjects } from "@/hooks/contractor-management/use-contractor-projects";
+import { useCanCreateGatePass } from "@/hooks/contractor-management/use-can-create-gate-pass";
 
 export default function GatePasses() {
   const { t } = useTranslation();
@@ -64,6 +65,7 @@ const [searchParams, setSearchParams] = useSearchParams();
   const { data: pendingApprovals = [] } = usePendingGatePassApprovals();
   const { data: todayPasses = [] } = useTodayApprovedPasses();
   const { data: projects = [] } = useContractorProjects({ status: "active" });
+  const { canCreate, canCreateInternal, canCreateExternal, isLoading: permissionLoading } = useCanCreateGatePass();
 
   return (
     <div className="space-y-6">
@@ -77,10 +79,12 @@ const [searchParams, setSearchParams] = useSearchParams();
             {t("contractors.gatePasses.description", "Manage material and equipment gate passes")}
           </p>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)}>
-          <Plus className="h-4 w-4 me-2" />
-          {t("contractors.gatePasses.createPass", "Create Gate Pass")}
-        </Button>
+        {canCreate && (
+          <Button onClick={() => setIsCreateOpen(true)}>
+            <Plus className="h-4 w-4 me-2" />
+            {t("contractors.gatePasses.createPass", "Create Gate Pass")}
+          </Button>
+        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -170,11 +174,15 @@ const [searchParams, setSearchParams] = useSearchParams();
         </TabsContent>
       </Tabs>
 
-      <GatePassFormDialog
-        open={isCreateOpen}
-        onOpenChange={setIsCreateOpen}
-        projects={projects}
-      />
+      {canCreate && (
+        <GatePassFormDialog
+          open={isCreateOpen}
+          onOpenChange={setIsCreateOpen}
+          projects={projects}
+          canCreateInternal={canCreateInternal}
+          canCreateExternal={canCreateExternal}
+        />
+      )}
     </div>
   );
 }
