@@ -15,6 +15,7 @@ export interface GatePassItem {
 export interface GatePassPhoto {
   id: string;
   gate_pass_id: string;
+  item_id: string | null;
   storage_path: string;
   file_name: string;
   file_size: number | null;
@@ -205,9 +206,10 @@ export function useGatePassPhotos(passId: string | null) {
     queryFn: async () => {
       if (!passId || !tenantId) return [];
 
+      // Fetch from gate_pass_item_photos (where photos are actually stored)
       const { data, error } = await supabase
-        .from("gate_pass_photos")
-        .select("id, gate_pass_id, storage_path, file_name, file_size, mime_type, uploaded_by, created_at")
+        .from("gate_pass_item_photos")
+        .select("id, gate_pass_id, item_id, storage_path, file_name, file_size, mime_type, uploaded_by, created_at")
         .eq("gate_pass_id", passId)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
