@@ -1735,6 +1735,7 @@
     "status": {
       "pending": "Pending",
       "pending_dept_approval": "Pending Dept",
+      "pending_club_mgmt_ack": "Pending Golf Club Management",
       "pending_security_approval": "Pending Security",
       "pending_security": "Pending Security",
       "pending_contractor_approval": "Pending Contractor",
@@ -8394,7 +8395,58 @@
         "completed": "Completed",
         "label": "Current Status"
       },
-      "filterByProject": "Filter by Project"
+      "filterByProject": "Filter by Project",
+      "noPendingApprovals": "No pending approvals",
+      "awaitingContractor": "Awaiting Contractor Approval",
+      "awaitingDeptAck": "Awaiting Dept Acknowledgment",
+      "awaitingDeptApproval": "Awaiting Dept Approval",
+      "awaitingClubMgmtAck": "Awaiting Golf Club Management Acknowledgment",
+      "awaitingSecurity": "Awaiting Security Approval",
+      "awaitingPm": "Awaiting PM Approval",
+      "awaitingSafety": "Awaiting Safety Approval"
+    },
+    "passStatus": {
+      "approved": "Approved",
+      "pendingContractor": "Pending Contractor",
+      "pendingDeptAck": "Pending Dept Ack",
+      "pendingDeptApproval": "Pending Dept",
+      "pendingClubMgmtAck": "Pending Golf Club Management",
+      "pendingSecurity": "Pending Security",
+      "pendingPm": "Pending PM",
+      "pendingSafety": "Pending Safety",
+      "rejected": "Rejected",
+      "completed": "Completed",
+      "used": "Entry Verified",
+      "expired": "Expired",
+      "cancelled": "Cancelled"
+    },
+    "gatePassDetail": {
+      "title": "Gate Pass Details",
+      "detailsTab": "Details",
+      "itemsTab": "Items & Photos",
+      "timelineTab": "Timeline",
+      "materialDescription": "Material Description",
+      "vehicleInfo": "Vehicle & Driver",
+      "plateNumber": "Plate",
+      "driverName": "Driver",
+      "driverMobile": "Mobile",
+      "items": "Items",
+      "photos": "Photos",
+      "noItems": "No items listed",
+      "noPhotos": "No photos attached",
+      "noTimeline": "No timeline available",
+      "timeline": {
+        "created": "Pass Created",
+        "contractorApproved": "Contractor Consultant Approved",
+        "deptApproved": "Dept Rep Approved",
+        "deptAck": "Dept Rep Acknowledged",
+        "clubMgmtAck": "Golf Club Management acknowledged",
+        "securityApproved": "Security Supervisor Approved",
+        "safetyApproved": "Safety Approved",
+        "entryVerified": "Entry Verified",
+        "exitVerified": "Exit Verified",
+        "rejected": "Rejected"
+      }
     },
     "companies": {
       "title": "Contractor Companies",

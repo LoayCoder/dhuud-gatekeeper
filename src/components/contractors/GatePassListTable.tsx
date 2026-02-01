@@ -56,7 +56,7 @@ export function GatePassListTable({ gatePasses, isLoading }: GatePassListTablePr
       pending_contractor_approval: t("contractors.passStatus.pendingContractor", "Pending Contractor"),
       pending_dept_ack: t("contractors.passStatus.pendingDeptAck", "Pending Dept Ack"),
       pending_dept_approval: t("contractors.passStatus.pendingDeptApproval", "Pending Dept"),
-      pending_club_mgmt_ack: t("contractors.passStatus.pendingClubMgmtAck", "Pending Club Mgmt"),
+      pending_club_mgmt_ack: t("contractors.passStatus.pendingClubMgmtAck", "Pending Golf Club Management"),
       pending_security_approval: t("contractors.passStatus.pendingSecurity", "Pending Security"),
       pending_pm_approval: t("contractors.passStatus.pendingPm", "Pending PM"),
       pending_safety_approval: t("contractors.passStatus.pendingSafety", "Pending Safety"),

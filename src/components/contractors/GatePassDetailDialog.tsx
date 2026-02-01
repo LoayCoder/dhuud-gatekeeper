@@ -84,7 +84,7 @@ export function GatePassDetailDialog({
       pending_contractor_approval: t("contractors.passStatus.pendingContractor", "Pending Contractor"),
       pending_dept_ack: t("contractors.passStatus.pendingDeptAck", "Pending Dept Ack"),
       pending_dept_approval: t("contractors.passStatus.pendingDeptApproval", "Pending Dept"),
-      pending_club_mgmt_ack: t("contractors.passStatus.pendingClubMgmtAck", "Pending Club Mgmt"),
+      pending_club_mgmt_ack: t("contractors.passStatus.pendingClubMgmtAck", "Pending Golf Club Management"),
       pending_security_approval: t("contractors.passStatus.pendingSecurity", "Pending Security"),
       pending_pm_approval: t("contractors.passStatus.pendingPm", "Pending PM"),
       pending_safety_approval: t("contractors.passStatus.pendingSafety", "Pending Safety"),
@@ -484,7 +484,19 @@ function TimelineTab({
     });
   }
 
-  // 4. Security Supervisor Approval (Internal workflow stage 2)
+  // 3.5. Golf Club Management Acknowledgment
+  if (passDetails.club_mgmt_ack_at && passDetails.club_mgmt_acker) {
+    events.push({
+      type: "club_mgmt_ack",
+      label: t("contractors.gatePassDetail.timeline.clubMgmtAck", "Golf Club Management acknowledged"),
+      timestamp: passDetails.club_mgmt_ack_at,
+      actor: passDetails.club_mgmt_acker as GatePassApproverProfile,
+      notes: passDetails.club_mgmt_ack_notes,
+      icon: CheckCircle2,
+      color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+    });
+  }
+
   if (passDetails.security_approved_at && passDetails.security_approver) {
     events.push({
       type: "security_approved",
