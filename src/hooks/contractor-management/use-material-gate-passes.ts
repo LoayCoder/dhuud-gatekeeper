@@ -134,8 +134,28 @@ export function usePendingGatePassApprovals() {
     queryFn: async () => {
       if (!tenantId || !user?.id) return [];
 
-      // Fetch all pending passes with approval_from_id for filtering
-      const { data: allPasses, error } = await supabase
+      // Use RPC to get passes the user can approve
+      const { data: approvalData, error: rpcError } = await supabase
+        .rpc("get_user_pending_gate_passes", {
+          p_user_id: user.id,
+          p_tenant_id: tenantId,
+        });
+
+      if (rpcError) {
+        console.error("RPC error:", rpcError);
+        // Fallback to direct query if RPC fails
+        return [];
+      }
+
+      // Get the IDs of passes user can approve
+      const approvableIds = (approvalData || [])
+        .filter((r: { can_approve: boolean }) => r.can_approve)
+        .map((r: { gate_pass_id: string }) => r.gate_pass_id);
+
+      if (approvableIds.length === 0) return [];
+
+      // Fetch full pass data for approvable passes
+      const { data: passes, error } = await supabase
         .from("material_gate_passes")
         .select(`
           id, reference_number, project_id, company_id, pass_type, material_description,
@@ -149,40 +169,11 @@ export function usePendingGatePassApprovals() {
         `)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
-        .in("status", ["pending_pm_approval", "pending_safety_approval"])
+        .in("id", approvableIds)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-
-      // Check if user is in approval sources
-      const { data: approverRecord } = await supabase
-        .from("gate_pass_approvers")
-        .select("user_id, approver_scope")
-        .eq("user_id", user.id)
-        .is("deleted_at", null)
-        .eq("is_active", true)
-        .maybeSingle();
-
-      // Filter passes based on what user can approve
-      const filteredPasses = (allPasses || []).filter((pass: any) => {
-        // 1. Cannot approve own request (self-approval prevention)
-        if (pass.requested_by === user.id) return false;
-
-        // 2. For internal requests at PM stage: only designated approver can approve
-        if (pass.status === "pending_pm_approval" && pass.is_internal_request && pass.approval_from_id) {
-          return pass.approval_from_id === user.id;
-        }
-
-        // 3. For safety stage or external requests: must be in approval sources
-        if (!approverRecord) return false;
-        
-        const scope = approverRecord.approver_scope;
-        const passScope = pass.is_internal_request ? "internal" : "external";
-        
-        return scope === "both" || scope === passScope;
-      });
-
-      return filteredPasses as MaterialGatePass[];
+      return (passes || []) as MaterialGatePass[];
     },
     enabled: !!tenantId && !!user?.id,
   });
@@ -271,7 +262,8 @@ export function useCreateGatePass() {
           tenant_id: tenantId,
           requested_by: user.id,
           reference_number,
-          status: "pending_pm_approval",
+          // Set initial status based on request type
+          status: data.is_internal_request ? "pending_dept_approval" : "pending_contractor_approval",
         })
         .select()
         .single();
@@ -364,90 +356,43 @@ export function useApproveGatePass() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ passId, approvalType, notes }: { passId: string; approvalType: "pm" | "safety"; notes?: string }) => {
+    mutationFn: async ({ passId, action, notes }: { passId: string; action: "approve" | "reject"; notes?: string }) => {
       if (!user?.id) throw new Error("Not authenticated");
 
-      // 1. Fetch the gate pass details for validation
-      const { data: pass, error: fetchError } = await supabase
-        .from("material_gate_passes")
-        .select("requested_by, is_internal_request, approval_from_id, status")
-        .eq("id", passId)
-        .single();
-
-      if (fetchError || !pass) throw new Error("Gate pass not found");
-
-      // 2. PREVENT SELF-APPROVAL
-      if (pass.requested_by === user.id) {
-        throw new Error("You cannot approve your own request");
-      }
-
-      // 3. FOR INTERNAL REQUESTS AT PM STAGE - VALIDATE DESIGNATED APPROVER
-      if (approvalType === "pm" && pass.is_internal_request && pass.approval_from_id) {
-        if (pass.approval_from_id !== user.id) {
-          throw new Error("Only the designated approver can approve this internal request");
-        }
-      }
-
-      // 4. FOR SAFETY STAGE OR EXTERNAL REQUESTS - VALIDATE AGAINST APPROVAL SOURCES
-      if (!pass.is_internal_request || approvalType === "safety") {
-        const scope = pass.is_internal_request ? "internal" : "external";
-        
-        const { data: approvers } = await supabase
-          .from("gate_pass_approvers")
-          .select("user_id")
-          .is("deleted_at", null)
-          .eq("is_active", true)
-          .or(`approver_scope.eq.${scope},approver_scope.eq.both`);
-        
-        const approverIds = (approvers || []).map((a: any) => a.user_id);
-        
-        if (!approverIds.includes(user.id)) {
-          throw new Error("You are not authorized to approve this gate pass");
-        }
-      }
-
-      const now = new Date().toISOString();
-      let updateData: Record<string, unknown> = {};
-      let newStatus: string;
-
-      if (approvalType === "pm") {
-        updateData = {
-          pm_approved_by: user.id,
-          pm_approved_at: now,
-          pm_notes: notes || null,
-          status: "pending_safety_approval",
-        };
-        newStatus = "pending_safety_approval";
-      } else {
-        // Safety approval - generate QR token and mark as approved
-        const qrToken = crypto.randomUUID();
-        updateData = {
-          safety_approved_by: user.id,
-          safety_approved_at: now,
-          safety_notes: notes || null,
-          status: "approved",
-          qr_code_token: qrToken,
-          qr_generated_at: now,
-        };
-        newStatus = "approved";
-      }
-
-      const { error } = await supabase
-        .from("material_gate_passes")
-        .update(updateData)
-        .eq("id", passId);
+      // Use the unified RPC for approval/rejection
+      const { data, error } = await supabase.rpc("approve_gate_pass_unified", {
+        p_user_id: user.id,
+        p_gate_pass_id: passId,
+        p_action: action,
+        p_notes: notes || null,
+      });
 
       if (error) throw error;
-      return { passId, newStatus };
+      
+      const result = data as { success: boolean; error?: string; new_status?: string; stage?: string };
+      if (!result.success) {
+        throw new Error(result.error || "Approval failed");
+      }
+      
+      return { passId, newStatus: result.new_status, stage: result.stage };
     },
-    onSuccess: (_, { approvalType }) => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["material-gate-passes"] });
       queryClient.invalidateQueries({ queryKey: ["pending-gate-pass-approvals"] });
       queryClient.invalidateQueries({ queryKey: ["today-approved-passes"] });
-      toast.success(approvalType === "pm" ? "Pass approved by PM" : "Pass fully approved");
+      queryClient.invalidateQueries({ queryKey: ["my-gate-passes"] });
+      queryClient.invalidateQueries({ queryKey: ["gate-pass-details"] });
+      
+      if (result.newStatus === "rejected") {
+        toast.success("Gate pass rejected");
+      } else if (result.newStatus === "approved") {
+        toast.success("Gate pass fully approved - QR generated");
+      } else {
+        toast.success("Approval recorded - forwarded to next stage");
+      }
     },
     onError: (error) => {
-      toast.error(`Failed to approve: ${error.message}`);
+      toast.error(`Failed: ${error.message}`);
     },
   });
 }

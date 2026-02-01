@@ -66,17 +66,31 @@ export function GatePassDetailDialog({
   const getStatusBadge = (status: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
       approved: "default",
+      pending_contractor_approval: "secondary",
+      pending_dept_ack: "secondary",
+      pending_dept_approval: "secondary",
+      pending_security_approval: "secondary",
       pending_pm_approval: "secondary",
       pending_safety_approval: "secondary",
       rejected: "destructive",
       completed: "outline",
+      used: "outline",
+      expired: "destructive",
+      cancelled: "destructive",
     };
     const labels: Record<string, string> = {
       approved: t("contractors.passStatus.approved", "Approved"),
+      pending_contractor_approval: t("contractors.passStatus.pendingContractor", "Pending Contractor"),
+      pending_dept_ack: t("contractors.passStatus.pendingDeptAck", "Pending Dept Ack"),
+      pending_dept_approval: t("contractors.passStatus.pendingDeptApproval", "Pending Dept"),
+      pending_security_approval: t("contractors.passStatus.pendingSecurity", "Pending Security"),
       pending_pm_approval: t("contractors.passStatus.pendingPm", "Pending PM"),
       pending_safety_approval: t("contractors.passStatus.pendingSafety", "Pending Safety"),
       rejected: t("contractors.passStatus.rejected", "Rejected"),
       completed: t("contractors.passStatus.completed", "Completed"),
+      used: t("contractors.passStatus.used", "Entry Verified"),
+      expired: t("contractors.passStatus.expired", "Expired"),
+      cancelled: t("contractors.passStatus.cancelled", "Cancelled"),
     };
     return (
       <Badge variant={variants[status] || "secondary"}>
@@ -440,11 +454,26 @@ function TimelineTab({
     color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
   });
 
-  // 2. PM Approval or Rejection
+  // 2. Contractor Consultant Approval (External workflow stage 1)
+  if (passDetails.contractor_approved_at && passDetails.contractor_approver) {
+    events.push({
+      type: "contractor_approved",
+      label: t("contractors.gatePassDetail.timeline.contractorApproved", "Contractor Consultant Approved"),
+      timestamp: passDetails.contractor_approved_at,
+      actor: passDetails.contractor_approver as GatePassApproverProfile,
+      notes: passDetails.contractor_approval_notes,
+      icon: CheckCircle2,
+      color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+    });
+  }
+
+  // 3. PM/Dept Rep Approval
   if (passDetails.pm_approved_at && passDetails.pm_approver) {
     events.push({
-      type: "pm_approved",
-      label: t("contractors.gatePassDetail.timeline.pmApproved", "PM Approved"),
+      type: "dept_approved",
+      label: passDetails.is_internal_request 
+        ? t("contractors.gatePassDetail.timeline.deptApproved", "Dept Rep Approved")
+        : t("contractors.gatePassDetail.timeline.deptAck", "Dept Rep Acknowledged"),
       timestamp: passDetails.pm_approved_at,
       actor: passDetails.pm_approver as GatePassApproverProfile,
       notes: passDetails.pm_notes,
@@ -453,7 +482,20 @@ function TimelineTab({
     });
   }
 
-  // 3. Safety Approval
+  // 4. Security Supervisor Approval (Internal workflow stage 2)
+  if (passDetails.security_approved_at && passDetails.security_approver) {
+    events.push({
+      type: "security_approved",
+      label: t("contractors.gatePassDetail.timeline.securityApproved", "Security Supervisor Approved"),
+      timestamp: passDetails.security_approved_at,
+      actor: passDetails.security_approver as GatePassApproverProfile,
+      notes: passDetails.security_approval_notes,
+      icon: CheckCircle2,
+      color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+    });
+  }
+
+  // 5. Safety Approval (legacy)
   if (passDetails.safety_approved_at && passDetails.safety_approver) {
     events.push({
       type: "safety_approved",

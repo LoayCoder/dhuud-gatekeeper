@@ -66,19 +66,31 @@ export function GatePassApprovalQueue({ passes }: GatePassApprovalQueueProps) {
   }
 
   const handleApprove = (pass: MaterialGatePass) => {
-    const approvalType = pass.status === "pending_pm_approval" ? "pm" : "safety";
     approvePass.mutate({
       passId: pass.id,
-      approvalType,
+      action: "approve",
       notes: approvalNotes[pass.id],
     });
   };
 
   const getApprovalStage = (status: string) => {
-    if (status === "pending_pm_approval") {
-      return { label: t("contractors.gatePasses.awaitingPm", "Awaiting PM Approval"), step: 1 };
+    switch (status) {
+      case "pending_contractor_approval":
+        return { label: t("contractors.gatePasses.awaitingContractor", "Awaiting Contractor Approval"), step: 1, role: "contractor_consultant" };
+      case "pending_dept_ack":
+        return { label: t("contractors.gatePasses.awaitingDeptAck", "Awaiting Dept Acknowledgment"), step: 2, role: "department_representative" };
+      case "pending_dept_approval":
+        return { label: t("contractors.gatePasses.awaitingDeptApproval", "Awaiting Dept Approval"), step: 1, role: "department_representative" };
+      case "pending_security_approval":
+        return { label: t("contractors.gatePasses.awaitingSecurity", "Awaiting Security Approval"), step: 2, role: "security_supervisor" };
+      // Legacy statuses for backward compatibility
+      case "pending_pm_approval":
+        return { label: t("contractors.gatePasses.awaitingPm", "Awaiting PM Approval"), step: 1, role: "pm" };
+      case "pending_safety_approval":
+        return { label: t("contractors.gatePasses.awaitingSafety", "Awaiting Safety Approval"), step: 2, role: "safety" };
+      default:
+        return { label: status, step: 0, role: "unknown" };
     }
-    return { label: t("contractors.gatePasses.awaitingSafety", "Awaiting Safety Approval"), step: 2 };
   };
 
   return (
