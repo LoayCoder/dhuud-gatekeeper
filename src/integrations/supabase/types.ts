@@ -14282,6 +14282,9 @@ export type Database = {
         Row: {
           approval_from_id: string | null
           branch_id: string | null
+          club_mgmt_ack_at: string | null
+          club_mgmt_ack_by: string | null
+          club_mgmt_ack_notes: string | null
           company_id: string | null
           contractor_approval_notes: string | null
           contractor_approval_status: string | null
@@ -14336,6 +14339,9 @@ export type Database = {
         Insert: {
           approval_from_id?: string | null
           branch_id?: string | null
+          club_mgmt_ack_at?: string | null
+          club_mgmt_ack_by?: string | null
+          club_mgmt_ack_notes?: string | null
           company_id?: string | null
           contractor_approval_notes?: string | null
           contractor_approval_status?: string | null
@@ -14390,6 +14396,9 @@ export type Database = {
         Update: {
           approval_from_id?: string | null
           branch_id?: string | null
+          club_mgmt_ack_at?: string | null
+          club_mgmt_ack_by?: string | null
+          club_mgmt_ack_notes?: string | null
           company_id?: string | null
           contractor_approval_notes?: string | null
           contractor_approval_status?: string | null
@@ -14454,6 +14463,13 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_gate_passes_club_mgmt_ack_by_fkey"
+            columns: ["club_mgmt_ack_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -25938,6 +25954,9 @@ export type Database = {
             Returns: {
               approval_from_id: string | null
               branch_id: string | null
+              club_mgmt_ack_at: string | null
+              club_mgmt_ack_by: string | null
+              club_mgmt_ack_notes: string | null
               company_id: string | null
               contractor_approval_notes: string | null
               contractor_approval_status: string | null
