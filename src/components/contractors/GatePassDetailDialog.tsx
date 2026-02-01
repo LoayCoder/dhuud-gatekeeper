@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -35,21 +36,26 @@ import {
 } from "@/hooks/contractor-management/use-gate-pass-details";
 import { cn } from "@/lib/utils";
 import { GatePassPDFExportButton } from "./GatePassPDFExportButton";
+import { GatePassApprovalActions } from "./GatePassApprovalActions";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface GatePassDetailDialogProps {
   pass: MaterialGatePass | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onActionSuccess?: () => void;
 }
 
 export function GatePassDetailDialog({
   pass,
   open,
   onOpenChange,
+  onActionSuccess,
 }: GatePassDetailDialogProps) {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.dir() === "rtl";
   const dateLocale = i18n.language === "ar" ? ar : enUS;
+  const queryClient = useQueryClient();
 
   const { data: passDetails, isLoading: isLoadingDetails } = useGatePassDetails(
     open ? pass?.id || null : null
@@ -99,6 +105,24 @@ export function GatePassDetailDialog({
         {labels[status] || status}
       </Badge>
     );
+  };
+
+  // Check if pass is in a pending status that allows actions
+  const isPendingAction = [
+    "pending_contractor_approval",
+    "pending_dept_approval",
+    "pending_club_mgmt_ack",
+    "pending_security_approval",
+  ].includes(pass.status);
+
+  const handleApprovalSuccess = () => {
+    // Invalidate all related queries to refresh the UI
+    queryClient.invalidateQueries({ queryKey: ["dept-gate-passes"] });
+    queryClient.invalidateQueries({ queryKey: ["dept-pending-approvals"] });
+    queryClient.invalidateQueries({ queryKey: ["dept-gate-pass-stats"] });
+    queryClient.invalidateQueries({ queryKey: ["gate-pass-details"] });
+    onOpenChange(false);
+    onActionSuccess?.();
   };
 
   return (
@@ -161,6 +185,18 @@ export function GatePassDetailDialog({
             </TabsContent>
           </ScrollArea>
         </Tabs>
+
+        {/* Approval Actions - shown when pass is pending and user can act */}
+        {isPendingAction && (
+          <DialogFooter className="border-t pt-4">
+            <div className="w-full">
+              <GatePassApprovalActions
+                pass={pass}
+                onSuccess={handleApprovalSuccess}
+              />
+            </div>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );
