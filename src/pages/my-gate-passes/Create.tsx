@@ -37,7 +37,7 @@ import {
 } from "@/components/ui/table";
 import { ArrowLeft, FileKey, CalendarIcon, Loader2, Plus, Trash2, AlertTriangle } from "lucide-react";
 import { useCreateGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
-import { useDeptApprovers } from "@/hooks/contractor-management/use-dept-approvers";
+import { useGolfClubMgmtApprovers } from "@/hooks/contractor-management/use-golf-club-mgmt-approvers";
 import { GatePassItemPhotoUpload } from "@/components/contractors/GatePassItemPhotoUpload";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -86,7 +86,7 @@ function MyGatePassCreateContent() {
   const isRTL = i18n.dir() === "rtl";
 
   const createGatePass = useCreateGatePass();
-  const { data: approvers, isLoading: loadingApprovers } = useDeptApprovers();
+  const { data: approvers, isLoading: loadingApprovers } = useGolfClubMgmtApprovers();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),

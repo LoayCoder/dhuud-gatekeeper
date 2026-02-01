@@ -54,11 +54,11 @@ export function useDeptApprovers() {
       }
 
       // Also fetch users with department_representative or department_manager role
+      // NOTE: user_role_assignments does NOT have deleted_at column
       const { data: roleAssignments } = await supabase
         .from("user_role_assignments")
         .select("user_id, roles!inner(code)")
-        .eq("tenant_id", tenantId)
-        .is("deleted_at", null);
+        .eq("tenant_id", tenantId);
 
       if (roleAssignments) {
         const repUserIds = roleAssignments

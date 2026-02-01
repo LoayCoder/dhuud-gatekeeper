@@ -23,3 +23,4 @@ export * from "./use-gate-pass-pdf";
 export * from "./use-dept-gate-passes";
 export * from "./use-can-create-gate-pass";
 export * from "./use-dept-approvers";
+export * from "./use-golf-club-mgmt-approvers";
