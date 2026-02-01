@@ -28,12 +28,19 @@ function ContractorPortalGatePassesContent() {
     switch (status) {
       case "approved":
         return <Badge className="bg-green-500"><CheckCircle className="h-3 w-3 me-1" />{t("common.approved", "Approved")}</Badge>;
-      case "pending_pm_approval":
+      case "pending_pm_approval": // Legacy
+      case "pending_contractor_approval":
         return <Badge variant="outline" className="text-warning border-warning"><Clock className="h-3 w-3 me-1" />{t("contractors.gatePasses.pendingPM", "Pending PM")}</Badge>;
-      case "pending_safety_approval":
-        return <Badge variant="outline" className="text-blue-500 border-blue-500"><Clock className="h-3 w-3 me-1" />{t("contractors.gatePasses.pendingSafety", "Pending Safety")}</Badge>;
+      case "pending_safety_approval": // Legacy
+      case "pending_security_approval":
+      case "pending_club_mgmt_ack":
+        return <Badge variant="outline" className="text-blue-500 border-blue-500"><Clock className="h-3 w-3 me-1" />{t("contractors.gatePasses.pendingReview", "Pending Review")}</Badge>;
       case "rejected":
         return <Badge variant="destructive"><XCircle className="h-3 w-3 me-1" />{t("common.rejected", "Rejected")}</Badge>;
+      case "used":
+        return <Badge variant="default"><CheckCircle className="h-3 w-3 me-1" />{t("contractors.gatePasses.onSite", "On Site")}</Badge>;
+      case "completed":
+        return <Badge variant="secondary"><CheckCircle className="h-3 w-3 me-1" />{t("contractors.gatePasses.completed", "Completed")}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
