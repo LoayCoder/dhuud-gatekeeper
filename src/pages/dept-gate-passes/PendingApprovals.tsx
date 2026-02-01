@@ -24,11 +24,15 @@ function DeptPendingApprovalsContent() {
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { variant: "default" | "secondary" | "success" | "warning" | "destructive"; label: string }> = {
-      pending: { variant: "warning", label: t("gatePasses.status.pending", "Pending") },
+      // Current workflow statuses
       pending_dept_approval: { variant: "warning", label: t("gatePasses.status.pending_dept_approval", "Pending Dept Approval") },
       pending_contractor_approval: { variant: "warning", label: t("gatePasses.status.pending_contractor_approval", "Pending Contractor") },
-      pending_club_mgmt_ack: { variant: "warning", label: t("gatePasses.status.pending_club_mgmt_ack", "Pending Golf Club Management") },
-      pm_approved: { variant: "secondary", label: t("gatePasses.status.pm_approved", "PM Approved") },
+      pending_club_mgmt_ack: { variant: "warning", label: t("gatePasses.status.pending_club_mgmt_ack", "Pending Golf Club Mgmt") },
+      pending_security_approval: { variant: "warning", label: t("gatePasses.status.pending_security_approval", "Pending Security") },
+      // Legacy statuses (backward compatibility)
+      pending_dept_ack: { variant: "warning", label: t("gatePasses.status.pending_dept_ack", "Pending Dept Ack") },
+      pending_pm_approval: { variant: "warning", label: t("gatePasses.status.pending_pm_approval", "Pending PM") },
+      pending_safety_approval: { variant: "warning", label: t("gatePasses.status.pending_safety_approval", "Pending Safety") },
     };
     const config = variants[status] || { variant: "secondary" as const, label: status };
     return <Badge variant={config.variant}>{config.label}</Badge>;

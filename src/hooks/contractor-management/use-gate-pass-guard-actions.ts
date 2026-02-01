@@ -117,6 +117,9 @@ export function useGuardGateAction() {
         error = fetchError || new Error(`Gate pass with ID ${passId} not found.`);
       } else if (action === 'entry') {
         // Create Unified Entry Log with FK link to gate pass
+        // The DB trigger `sync_gate_entry_to_parent` will automatically:
+        // - Update material_gate_passes.status to 'used'
+        // - Set guard_verified_at, guard_verified_by, entry_time
         const { error: insertError } = await supabase
           .from('gate_entry_logs')
           .insert({
@@ -126,31 +129,18 @@ export function useGuardGateAction() {
             person_name: passData.driver_name || 'Driver',
             mobile_number: passData.driver_mobile,
             car_plate: passData.vehicle_plate,
-            purpose: passData.material_description 
-              ? `Material: ${passData.material_description.length > 50 
-                  ? `${passData.material_description.substring(0, 50)}...` 
-                  : passData.material_description}` 
+            purpose: passData.material_description
+              ? `Material: ${passData.material_description.length > 50
+                  ? `${passData.material_description.substring(0, 50)}...`
+                  : passData.material_description}`
               : 'Material Transport',
             notes: `Gate Pass: ${passReference}`,
             entry_time: now,
             access_type: 'entry',
             validation_status: 'valid',
-            material_gate_pass_id: passId, // FK link to authorization layer
+            material_gate_pass_id: passId, // FK link triggers sync_gate_entry_to_parent
           });
-        
-        // Also update the pass entry_time for backward compatibility
-        if (!insertError) {
-          await supabase
-            .from('material_gate_passes')
-            .update({ 
-              entry_time: now,
-              guard_verified_by: user.id,
-              guard_verified_at: now,
-              status: 'used'
-            })
-            .eq('id', passId);
-        }
-        
+
         error = insertError;
       } else {
         // EXIT action - validate vehicle/driver matching for in_out passes
@@ -238,26 +228,29 @@ export function useGuardGateAction() {
         }
 
         if (openLog) {
+          // Update exit_time on the log
+          // The DB trigger `sync_gate_entry_to_parent` will automatically:
+          // - Update material_gate_passes.status to 'completed'
+          // - Set exit_time on the pass
           const { error: updateError } = await supabase
             .from('gate_entry_logs')
             .update({ exit_time: now })
             .eq('id', openLog.id);
           error = updateError;
+        } else {
+          // Fallback for legacy passes without entry logs
+          console.warn('No entry log found for pass exit. Updating pass directly.');
+          const { error: passError } = await supabase
+            .from('material_gate_passes')
+            .update({
+              exit_time: now,
+              guard_verified_by: user.id,
+              guard_verified_at: now,
+              status: 'completed'
+            })
+            .eq('id', passId);
+          error = passError;
         }
-        
-        // Always update the gate pass itself for consistency
-        const { error: passError } = await supabase
-          .from('material_gate_passes')
-          .update({
-            exit_time: now,
-            guard_verified_by: user.id,
-            guard_verified_at: now,
-            status: 'completed'
-          })
-          .eq('id', passId);
-        
-        // Use the most relevant error
-        error = error || passError;
       }
 
       if (error) {
@@ -303,14 +296,16 @@ export function useGuardGateAction() {
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['material-gate-passes'] });
       queryClient.invalidateQueries({ queryKey: ['today-approved-passes'] });
-      
+      queryClient.invalidateQueries({ queryKey: ['gate-entries'] });
+      queryClient.invalidateQueries({ queryKey: ['gate-pass-details'] });
+
       // Haptic feedback
       if ('vibrate' in navigator) {
         navigator.vibrate([50, 50, 50]);
       }
-      
+
       if (result.action === 'entry') {
-        toast.success('Entry recorded automatically');
+        toast.success('Entry recorded');
       } else {
         toast.success('Exit recorded - Pass completed');
       }
@@ -344,7 +339,7 @@ export function useVerifyPassByReference() {
         .select(`
           id, reference_number, pass_type, pass_date, time_window_start, time_window_end,
           material_description, quantity, vehicle_plate, driver_name, driver_mobile,
-          status, entry_time, exit_time, pm_approved_at, safety_approved_at,
+          status, entry_time, exit_time,
           project:contractor_projects(project_name, company:contractor_companies(company_name))
         `)
         .eq('tenant_id', tenantId)
@@ -360,11 +355,25 @@ export function useVerifyPassByReference() {
         };
       }
 
-      // Check if fully approved
-      if (!pass.pm_approved_at || !pass.safety_approved_at) {
+      // Check if approved (single authoritative status check)
+      // Status must be 'approved' or 'used' (for re-entry/exit on same day)
+      if (pass.status !== 'approved' && pass.status !== 'used') {
+        const statusMessages: Record<string, string> = {
+          pending_contractor_approval: 'Gate pass pending contractor consultant approval',
+          pending_club_mgmt_ack: 'Gate pass pending Golf Club Management acknowledgment',
+          pending_dept_ack: 'Gate pass pending department acknowledgment',
+          pending_dept_approval: 'Gate pass pending department approval',
+          pending_security_approval: 'Gate pass pending security approval',
+          pending_pm_approval: 'Gate pass pending PM approval',
+          pending_safety_approval: 'Gate pass pending safety approval',
+          rejected: 'Gate pass has been rejected',
+          cancelled: 'Gate pass has been cancelled',
+          completed: 'Gate pass already completed',
+          expired: 'Gate pass has expired',
+        };
         return {
           is_valid: false,
-          errors: ['Gate pass not yet fully approved'],
+          errors: [statusMessages[pass.status] || 'Gate pass not yet fully approved'],
           warnings: [],
           pass: formatPassData(pass),
         };
