@@ -4232,6 +4232,86 @@ export type Database = {
           },
         ]
       }
+      contract_violations: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          contractor_id: string | null
+          created_at: string | null
+          currency: string | null
+          deleted_at: string | null
+          description: string | null
+          fine_amount: number | null
+          id: string
+          incident_id: string
+          status: string | null
+          tenant_id: string
+          updated_at: string | null
+          violation_type: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          contractor_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          fine_amount?: number | null
+          id?: string
+          incident_id: string
+          status?: string | null
+          tenant_id: string
+          updated_at?: string | null
+          violation_type: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          contractor_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          fine_amount?: number | null
+          id?: string
+          incident_id?: string
+          status?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+          violation_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_violations_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_violations_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_violations_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_violations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contractor_access_logs: {
         Row: {
           access_type: string
@@ -26027,6 +26107,7 @@ export type Database = {
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_tenant_admin: { Args: { _user_id: string }; Returns: boolean }
       join_challenge: { Args: { p_challenge_id: string }; Returns: Json }
+      lock_rca: { Args: { p_incident_id: string }; Returns: boolean }
       log_audit: {
         Args: {
           p_action_type: string

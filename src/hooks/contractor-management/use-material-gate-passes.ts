@@ -514,25 +514,26 @@ export function useVerifyGatePass() {
             mobile_number: pass.driver_mobile,
             car_plate: pass.vehicle_plate,
             purpose: pass.material_description ? `Material Transport: ${pass.material_description.substring(0, 50)}...` : "Material Transport",
-            material_gate_pass_id: passId,
             entry_time: new Date().toISOString(),
             access_type: "entry",
             validation_status: "valid"
-          });
+          } as any);
 
         if (error) throw error;
 
       } else {
         const now = new Date().toISOString();
-        // 3. Record Exit on existing log
-        const { data: openLog } = await supabase
+        // 3. Record Exit on existing log - search by pass ID in notes or by matching criteria
+        // Note: material_gate_pass_id column may not exist, so search by vehicle plate + active entry
+        const { data: openLog } = await (supabase
           .from("gate_entry_logs")
           .select("id")
-          .eq("material_gate_pass_id", passId)
+          .eq("car_plate", pass.vehicle_plate)
+          .eq("entry_type", "vehicle")
           .is("exit_time", null)
           .order("entry_time", { ascending: false })
           .limit(1)
-          .single();
+          .single() as any);
 
         if (openLog) {
           const { error } = await supabase

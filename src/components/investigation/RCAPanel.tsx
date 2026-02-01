@@ -14,7 +14,7 @@ import { RootCausesBuilder } from "./RootCausesBuilder";
 import type { RootCauseEntry } from "@/hooks/use-investigation";
 import { ContributingFactorsBuilder, type ContributingFactorEntry } from "./ContributingFactorsBuilder";
 import { AISummaryPanel } from "./AISummaryPanel";
-import { useInvestigation, useCreateInvestigation, useUpdateInvestigation, useLockRCA, useUnlockRCA, type FiveWhyEntry } from "@/hooks/use-investigation";
+import { useInvestigation, useCreateInvestigation, useUpdateInvestigation, useLockRCA, useUnlockRCA, type FiveWhyEntry, type Investigation } from "@/hooks/use-investigation";
 import { useRCAAI } from "@/hooks/use-rca-ai";
 import { useWitnessStatements } from "@/hooks/use-witness-statements";
 import { useEvidenceItems } from "@/hooks/use-evidence-items";

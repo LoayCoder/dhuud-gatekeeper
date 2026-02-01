@@ -443,16 +443,16 @@ serve(async (req: Request) => {
       data = {
         type: 'action_assigned',
         recipient_email: userData.user.email,
-        recipient_name: action.profiles?.full_name || 'Team Member',
+        recipient_name: (action.profiles as any)?.full_name || 'Team Member',
         recipient_id: action.assigned_to,
         action_title: action.title,
         action_priority: action.priority || 'medium',
         action_description: action.description || '',
         due_date: action.due_date || '',
-        incident_reference: action.incidents?.reference_id,
-        incident_title: action.incidents?.title,
-        incident_id: action.incidents?.id,
-        tenant_name: action.tenants?.name
+        incident_reference: (action.incidents as any)?.reference_id,
+        incident_title: (action.incidents as any)?.title,
+        incident_id: (action.incidents as any)?.id,
+        tenant_name: (action.tenants as any)?.name
       };
     } else {
       // Legacy path - payload is fully formed
