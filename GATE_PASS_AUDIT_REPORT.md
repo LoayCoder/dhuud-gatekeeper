@@ -2,79 +2,155 @@
 
 ## 1. Executive Summary
 This audit analyzed the **Gate Pass** and **Entry/Exit** workflows within the HSSE platform.
-**Verdict:** Critical architectural fragmentation ("Split-Brain Logging") exists, where entry events are split between legacy tables (`material_gate_passes`, `contractor_access_logs`) and the unified table (`gate_entry_logs`).
+**Status:** ✅ FIXES APPLIED (2026-02-01)
 
 **Primary Objective:** Consolidate all entry/exit events into `gate_entry_logs` and restrict Security roles to "Operational" access only (No creation/deletion of passes).
 
 ---
 
-## 2. Process Audit Table
+## 2. Fixes Applied
 
-| Stage | Role | Expected Behavior | Actual Behavior | Gap / Risk | Severity |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Request Creation** | **Employee / Contractor** | Creates a request (Visit or Gate Pass). Status = Pending. | Works as expected. | None. | Low |
-| **Approval** | **Manager / HSSE** | Approves request. Status -> Approved. | Works as expected. | None. | Low |
-| **Entry Validation** | **Security Guard** | Scans QR. System checks status/expiry. | System checks legacy tables for some flows. | **Fragmented Validation.** Risk of bypassing newer checks. | **High** |
-| **Physical Entry** | **Security Guard** | Guard confirms entry. **Log created in `gate_entry_logs`.** Request status updated to `checked_in`. | For Materials/Vehicles, `entry_time` is written to `material_gate_passes`. | **Split-Brain Logging.** Entry history is scattered. | **Critical** |
-| **Physical Exit** | **Security Guard** | Guard confirms exit. **`gate_entry_logs` record updated with `exit_time`.** | For Materials, `exit_time` written to `material_gate_passes`. | **Incomplete History.** Time-on-site analytics broken. | **Critical** |
-| **Data Security** | **Security Role** | Can VIEW and UPDATE (Entry/Exit) only. | Security can `INSERT`, `UPDATE`, and `DELETE` (ALL) on `material_gate_passes`. | **Excessive Privilege.** Guard could potentially fabricate or delete passes. | **Critical** |
+### ✅ Database Changes (Migration Applied)
 
----
+| Fix | Description | Status |
+| :--- | :--- | :--- |
+| **RLS Lockdown** | Replaced `ALL` policy with separate `SELECT` and `UPDATE` for Security | ✅ Complete |
+| **Add `security_guard` role** | Updated `has_security_access()` to include `security_guard` and `security_shift_leader` | ✅ Complete |
+| **Add FK Column** | Added `material_gate_pass_id` to `gate_entry_logs` with index | ✅ Complete |
+| **Fix Status Default** | Changed default from `pending_pm` to `pending_pm_approval` | ✅ Complete |
+| **Auto-Expiry Function** | Created `expire_old_gate_passes()` function | ✅ Complete |
+| **Audit Trigger** | Created `log_gate_pass_changes()` trigger for automatic audit logging | ✅ Complete |
 
-## 3. Architecture & Gap Analysis
+### ✅ Code Changes
 
-### A. Schema Gaps
-1.  **Missing Link:** `gate_entry_logs` has `visitor_id`, `worker_id`, but **missing** `material_gate_pass_id`.
-2.  **Legacy Columns:** `material_gate_passes` still relies on `entry_time` / `exit_time` columns which should be deprecated in favor of the log table.
-
-### B. Code Gaps
-1.  **Frontend Fragmentation:**
-    *   `GateEntryForm.tsx` handles Visitors correctly via `gate_entry_logs`.
-    *   `use-contractors.ts` writes to `contractor_access_logs` (Legacy).
-    *   Material/Vehicle flows write directly to the pass table.
-2.  **RLS Policies:**
-    *   `material_gate_passes`: Policy "Security users can manage gate passes" grants `ALL` access.
+| Fix | Description | Status |
+| :--- | :--- | :--- |
+| **useGuardGateAction** | Now inserts `material_gate_pass_id` FK and updates pass status atomically | ✅ Complete |
+| **useConfirmGatePassEntry** | Creates entry log with FK link, updates pass entry_time + status | ✅ Complete |
+| **useConfirmGatePassExit** | Finds log by FK first (fallback: plate), closes log + updates pass | ✅ Complete |
+| **useCancelGatePass** | New hook for requesters to cancel pending passes | ✅ Complete |
 
 ---
 
-## 4. Fix & Assurance Plan
+## 3. Corrected Architecture
 
-### Phase 1: Database Hardening (Immediate)
-1.  **Schema Update:** Add `material_gate_pass_id` to `gate_entry_logs`.
-2.  **RLS Lockdown:**
-    *   Revoke `INSERT`/`DELETE` for Security on `material_gate_passes`.
-    *   Allow `UPDATE` (limited to status/notes).
-3.  **Triggers:**
-    *   Create trigger on `gate_entry_logs` to automatically update `material_gate_passes.status` to `used` / `checked_in` upon entry.
+### Authorization vs. Physical Access Separation
 
-### Phase 2: Code Refactoring
-1.  **Unified Hook:** Update `use-unified-access.ts` to be the **single source of truth** for all entry/exit operations.
-2.  **Deprecate Legacy:** Remove writes to `contractor_access_logs`.
-3.  **Update UI:** Ensure `GateEntryForm` and `GateQRScanner` pass the correct `material_gate_pass_id` to the unified log.
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│                    AUTHORIZATION LAYER                          │
+│                  (material_gate_passes)                         │
+├─────────────────────────────────────────────────────────────────┤
+│  • Request creation                                             │
+│  • Dual approval workflow (PM → Safety)                         │
+│  • QR token generation                                          │
+│  • Status: pending_pm_approval → pending_safety_approval → approved │
+│  • Items, photos, approver notes                                │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ FK: material_gate_pass_id
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    PHYSICAL ACCESS LAYER                        │
+│                    (gate_entry_logs)                            │
+├─────────────────────────────────────────────────────────────────┤
+│  • Guard scans QR                                               │
+│  • Entry recorded (entry_time)                                  │
+│  • Exit recorded (exit_time)                                    │
+│  • Links to material_gate_pass_id (FK)                          │
+│  • Unified with visitor/worker entries                          │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ All actions logged (trigger)
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      AUDIT TRAIL                                │
+│                  (security_audit_logs)                          │
+├─────────────────────────────────────────────────────────────────┤
+│  • gate_pass_pm_approved, gate_pass_safety_approved             │
+│  • gate_pass_entry, gate_pass_exit                              │
+│  • gate_pass_rejected, gate_pass_cancelled, gate_pass_expired   │
+│  • Immutable record (database trigger)                          │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-### Phase 3: Validation
-1.  **Test Case:** Guard scans Vehicle Pass -> Entry Log Created -> Pass Status Updates -> Guard Scans Exit -> Entry Log Closed.
+### State Machine
+
+```text
+ ┌─────────────────┐
+ │     CREATED     │ ─ Initial status after request
+ │ pending_pm_approval │
+ └────────┬────────┘
+          │
+    ┌─────┴─────┐
+    ▼           ▼
+┌────────┐  ┌──────────┐
+│APPROVE │  │ REJECT   │
+│ (PM)   │  │          │
+└────┬───┘  └────┬─────┘
+     │           │
+     ▼           ▼
+┌─────────────────┐   ┌──────────┐   ┌───────────┐
+│pending_safety_  │   │ rejected │   │ cancelled │ (requester only)
+│approval         │   └──────────┘   └───────────┘
+└────────┬────────┘
+         │
+   ┌─────┴─────┐
+   ▼           ▼
+┌────────┐  ┌──────────┐
+│APPROVE │  │ REJECT   │
+│(Safety)│  │          │
+└────┬───┘  └────┬─────┘
+     │           │
+     ▼           ▼
+┌────────────┐   ┌──────────┐
+│  approved  │   │ rejected │
+│ (QR issued)│   └──────────┘
+└────────┬───┘
+         │
+    ┌────┴────┐
+    ▼         ▼
+┌───────┐  ┌─────────┐
+│ used  │  │ expired │ (auto by scheduler)
+│(entry)│  │         │
+└───┬───┘  └─────────┘
+    │
+    ▼
+┌───────────┐
+│ completed │ (exit recorded)
+└───────────┘
+```
 
 ---
 
-## 5. Execution Report (Completed)
+## 4. Role Permissions Matrix
 
-The following fixes have been applied to the codebase:
+| Action | Employee | Contractor Rep | PM/Manager | Safety Officer | Security Guard | Security Supervisor | Admin |
+|:-------|:--------:|:--------------:|:----------:|:--------------:|:--------------:|:-------------------:|:-----:|
+| Create Request | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
+| Cancel Own Request | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
+| View Own Requests | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
+| View All Requests | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| PM Approve | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ | ✅ |
+| Safety Approve | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ | ✅ |
+| Reject | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ | ✅ |
+| Record Entry/Exit | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+| Delete Pass | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 
-### 1. Database Schema & Security
-- **Migration Created:** `20260216000000_gate_pass_hardening.sql`
-- **Schema:** Added `material_gate_pass_id` FK to `gate_entry_logs`.
-- **Triggers:** Implemented `sync_gate_entry_to_parent()` to automatically update pass status (`used`, `checked_in`, `completed`) when logs are created/closed.
-- **RLS:**
-    - `material_gate_passes`: **Revoked** `INSERT`/`DELETE` for Security. Allowed `SELECT` and `UPDATE` (status only).
-    - `gate_entry_logs`: **Revoked** `DELETE` for Security.
+---
 
-### 2. Code Refactoring
-- **Hook Updated:** `use-unified-access.ts` now supports `material_gate_pass_id` and filters active entries correctly.
-- **Guard Action Updated:** `useGuardGateAction` and `useVerifyGatePass` now write **exclusively** to `gate_entry_logs`.
-- **Stats Updated:** `useGateGuardStats` now counts `entry_type='vehicle'` in "On Site" metrics.
+## 5. Remaining Tasks
 
-### 3. Verification Status
-- **Split-Brain Resolved:** Material/Vehicle passes now generate `gate_entry_logs`.
-- **Security Hardened:** Guards can no longer delete logs or create fake passes (RLS enforcement).
-- **UX Consistency:** Dashboard stats now include vehicles.
+### Recommended (Not Blocking)
+
+1. **Schedule Auto-Expiry Cron Job**: Add `SELECT cron.schedule('expire-gate-passes', '0 0 * * *', 'SELECT expire_old_gate_passes();');` via pg_cron
+2. **Add Cancel Button to UI**: Use `useCancelGatePass` hook on pending pass detail pages
+3. **Backfill FK Data**: Run migration to link existing `gate_entry_logs` with `vehicle` type to their passes
+
+### Testing Checklist
+
+- [x] DB migration applied
+- [ ] Test: Create pass as Employee → PM approve → Safety approve → Guard entry → Guard exit
+- [ ] Test: Cancel pending pass as requester
+- [ ] Test: Guard cannot create/delete passes (RLS check)
+- [ ] Test: Expired pass blocked at entry

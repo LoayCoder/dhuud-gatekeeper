@@ -116,7 +116,7 @@ export function useGuardGateAction() {
       if (fetchError || !passData) {
         error = fetchError || new Error(`Gate pass with ID ${passId} not found.`);
       } else if (action === 'entry') {
-        // Create Unified Entry Log (Triggers update parent status to 'used')
+        // Create Unified Entry Log with FK link to gate pass
         const { error: insertError } = await supabase
           .from('gate_entry_logs')
           .insert({
@@ -126,25 +126,60 @@ export function useGuardGateAction() {
             person_name: passData.driver_name || 'Driver',
             mobile_number: passData.driver_mobile,
             car_plate: passData.vehicle_plate,
-            purpose: passData.material_description ? `Material: ${passData.material_description.length > 50 ? `${passData.material_description.substring(0, 50)}...` : passData.material_description}` : 'Material Transport',
+            purpose: passData.material_description 
+              ? `Material: ${passData.material_description.length > 50 
+                  ? `${passData.material_description.substring(0, 50)}...` 
+                  : passData.material_description}` 
+              : 'Material Transport',
             notes: `Gate Pass: ${passReference}`,
             entry_time: now,
             access_type: 'entry',
-            validation_status: 'valid'
-          } as any);
+            validation_status: 'valid',
+            material_gate_pass_id: passId, // FK link to authorization layer
+          });
+        
+        // Also update the pass entry_time for backward compatibility
+        if (!insertError) {
+          await supabase
+            .from('material_gate_passes')
+            .update({ 
+              entry_time: now,
+              guard_verified_by: user.id,
+              guard_verified_at: now,
+              status: 'used'
+            })
+            .eq('id', passId);
+        }
+        
         error = insertError;
       } else {
-        // Exit: Find open log by vehicle plate and close it
-        const { data: openLogs } = await supabase
+        // Exit: Find open log by material_gate_pass_id first, then fallback to vehicle plate
+        let openLog: { id: string } | null = null;
+        
+        // Primary: Find by FK link (preferred)
+        const { data: fkLogs } = await supabase
           .from('gate_entry_logs')
           .select('id')
           .eq('tenant_id', tenantId)
-          .eq('car_plate', passData.vehicle_plate)
+          .eq('material_gate_pass_id', passId)
           .is('exit_time', null)
           .order('entry_time', { ascending: false })
           .limit(1);
 
-        const openLog = openLogs?.[0];
+        openLog = fkLogs?.[0] || null;
+
+        // Fallback: Find by vehicle plate if no FK match
+        if (!openLog && passData.vehicle_plate) {
+          const { data: plateLogs } = await supabase
+            .from('gate_entry_logs')
+            .select('id')
+            .eq('tenant_id', tenantId)
+            .eq('car_plate', passData.vehicle_plate)
+            .is('exit_time', null)
+            .order('entry_time', { ascending: false })
+            .limit(1);
+          openLog = plateLogs?.[0] || null;
+        }
 
         if (openLog) {
           const { error: updateError } = await supabase
@@ -152,20 +187,21 @@ export function useGuardGateAction() {
             .update({ exit_time: now })
             .eq('id', openLog.id);
           error = updateError;
-        } else {
-           // Fallback to legacy update if no log found
-           console.warn('No unified log found for pass exit. Updating legacy table.');
-           const { error: legacyError } = await supabase
-            .from('material_gate_passes')
-            .update({
-              exit_time: now,
-              guard_verified_by: user.id,
-              guard_verified_at: now,
-              status: 'completed'
-            })
-            .eq('id', passId);
-           error = legacyError;
         }
+        
+        // Always update the gate pass itself for consistency
+        const { error: passError } = await supabase
+          .from('material_gate_passes')
+          .update({
+            exit_time: now,
+            guard_verified_by: user.id,
+            guard_verified_at: now,
+            status: 'completed'
+          })
+          .eq('id', passId);
+        
+        // Use the most relevant error
+        error = error || passError;
       }
 
       if (error) {
