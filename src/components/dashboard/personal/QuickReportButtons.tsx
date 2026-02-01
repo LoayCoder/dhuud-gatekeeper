@@ -87,7 +87,7 @@ export function QuickReportButtons() {
           icon: FileBox,
           label: t('dashboard.quickActions.createGatePass', 'Create Gate Pass'),
           description: t('dashboard.quickActions.createGatePassDesc', 'Request material movement'),
-          path: '/contractors/gate-passes/new',
+          path: '/contractors/gate-passes?action=create',
           colorClass: 'text-warning',
           bgClass: 'bg-warning/10',
         },
