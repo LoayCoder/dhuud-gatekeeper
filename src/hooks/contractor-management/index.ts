@@ -21,3 +21,4 @@ export * from "./use-my-gate-passes";
 export * from "./use-gate-pass-guard-actions";
 export * from "./use-gate-pass-pdf";
 export * from "./use-dept-gate-passes";
+export * from "./use-can-create-gate-pass";

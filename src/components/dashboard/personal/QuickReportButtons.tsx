@@ -1,11 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { AlertTriangle, Eye, ClipboardList, Plus, FileBox } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useModuleAccess } from '@/hooks/use-module-access';
-import { useUserRoles } from '@/hooks/use-user-roles';
+import { useCanCreateGatePass } from '@/hooks/contractor-management/use-can-create-gate-pass';
 
 interface QuickActionProps {
   icon: React.ComponentType<{ className?: string }>;
@@ -46,11 +43,9 @@ function QuickAction({ icon: Icon, label, description, path, colorClass, bgClass
 
 export function QuickReportButtons() {
   const { t } = useTranslation();
-  const { hasModule } = useModuleAccess();
-  const { hasRole } = useUserRoles();
-
-  // Check if user can create gate passes (security module or department rep)
-  const canCreateGatePass = hasModule('security') || hasRole('department_representative');
+  
+  // Use the centralized permission hook for gate pass creation
+  const { canCreate: canCreateGatePass } = useCanCreateGatePass();
 
   const baseActions: QuickActionProps[] = [
     {

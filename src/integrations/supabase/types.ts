@@ -24877,6 +24877,14 @@ export type Database = {
         Args: { p_incident_id: string }
         Returns: Json
       }
+      can_create_gate_pass: {
+        Args: {
+          p_company_id?: string
+          p_is_internal_request: boolean
+          p_user_id: string
+        }
+        Returns: Json
+      }
       can_manage_access_list: { Args: { _user_id: string }; Returns: boolean }
       can_manage_asset_categories: {
         Args: { _user_id: string }
