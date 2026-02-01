@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { MenuBasedAdminRoute } from "@/components/auth/MenuBasedAdminRoute";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Form,
   FormControl,
@@ -27,19 +28,44 @@ import {
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, FileKey, CalendarIcon, Loader2 } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ArrowLeft, FileKey, CalendarIcon, Loader2, Plus, Trash2, AlertTriangle } from "lucide-react";
 import { useCreateGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
 import { useDeptApprovers } from "@/hooks/contractor-management/use-dept-approvers";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-const formSchema = z.object({
-  pass_type: z.enum(["in", "out", "in_out"]),
-  item_name: z.string().min(3, "Item name is required"),
-  item_description: z.string().optional(),
+const UNIT_OPTIONS = [
+  { value: "pieces", label: "Pieces", labelAr: "قطعة" },
+  { value: "bags", label: "Bags", labelAr: "أكياس" },
+  { value: "boxes", label: "Boxes", labelAr: "صناديق" },
+  { value: "kg", label: "Kilograms", labelAr: "كيلوغرام" },
+  { value: "tons", label: "Tons", labelAr: "طن" },
+  { value: "liters", label: "Liters", labelAr: "لتر" },
+  { value: "meters", label: "Meters", labelAr: "متر" },
+  { value: "rolls", label: "Rolls", labelAr: "لفات" },
+  { value: "pallets", label: "Pallets", labelAr: "منصات" },
+  { value: "sets", label: "Sets", labelAr: "مجموعات" },
+];
+
+const itemSchema = z.object({
+  item_name: z.string().min(1, "Item name is required"),
+  description: z.string().optional(),
   quantity: z.string().optional(),
   unit: z.string().optional(),
+});
+
+const formSchema = z.object({
+  pass_type: z.enum(["in", "out", "in_out"]),
+  items: z.array(itemSchema).min(1, "At least one item is required"),
   vehicle_plate: z.string().optional(),
   driver_name: z.string().optional(),
   driver_mobile: z.string().optional(),
@@ -52,9 +78,10 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 function MyGatePassCreateContent() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isRTL = i18n.dir() === "rtl";
 
   const createGatePass = useCreateGatePass();
   const { data: approvers, isLoading: loadingApprovers } = useDeptApprovers();
@@ -63,10 +90,7 @@ function MyGatePassCreateContent() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       pass_type: "in_out",
-      item_name: "",
-      item_description: "",
-      quantity: "",
-      unit: "",
+      items: [{ item_name: "", description: "", quantity: "", unit: "" }],
       vehicle_plate: "",
       driver_name: "",
       driver_mobile: "",
@@ -76,6 +100,23 @@ function MyGatePassCreateContent() {
       approval_from_id: "",
     },
   });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "items",
+  });
+
+  const passType = form.watch("pass_type");
+
+  const addItem = () => {
+    append({ item_name: "", description: "", quantity: "", unit: "" });
+  };
+
+  const removeItem = (index: number) => {
+    if (fields.length > 1) {
+      remove(index);
+    }
+  };
 
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
@@ -90,12 +131,12 @@ function MyGatePassCreateContent() {
         time_window_end: values.time_window_end || undefined,
         approval_from_id: values.approval_from_id,
         is_internal_request: true,
-        items: [{
-          item_name: values.item_name,
-          description: values.item_description,
-          quantity: values.quantity,
-          unit: values.unit,
-        }],
+        items: values.items.map((item) => ({
+          item_name: item.item_name,
+          description: item.description,
+          quantity: item.quantity,
+          unit: item.unit,
+        })),
         photos: [],
       });
       toast.success(t("myGatePasses.createSuccess", "Gate pass request created successfully"));
@@ -204,74 +245,155 @@ function MyGatePassCreateContent() {
                     </FormItem>
                   )}
                 />
+              </div>
 
-                {/* Item Name */}
-                <FormField
-                  control={form.control}
-                  name="item_name"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel>{t("gatePasses.itemName", "Item Name")} *</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder={t("gatePasses.itemNamePlaceholder", "Name of the material or item")}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              {/* Entry & Exit Warning */}
+              {passType === "in_out" && (
+                <Alert variant="default" className="border-warning bg-warning/10">
+                  <AlertTriangle className="h-4 w-4 text-warning" />
+                  <AlertTitle className="text-warning">
+                    {t("gatePasses.entryExitWarning.title", "Important Notice")}
+                  </AlertTitle>
+                  <AlertDescription>
+                    {t(
+                      "gatePasses.entryExitWarning.message",
+                      "For Entry & Exit passes, the same Vehicle Plate and Driver Name must be used during exit. Mismatched details will result in the exit being rejected by security."
+                    )}
+                  </AlertDescription>
+                </Alert>
+              )}
 
-                {/* Item Description */}
-                <FormField
-                  control={form.control}
-                  name="item_description"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel>{t("gatePasses.itemDescription", "Description")}</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder={t("gatePasses.descriptionPlaceholder", "Additional details about the item...")}
-                          className="resize-none"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              {/* Items Table */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <FormLabel className="text-base">
+                    {t("gatePasses.items", "Items")} *
+                  </FormLabel>
+                  <Button type="button" variant="outline" size="sm" onClick={addItem}>
+                    <Plus className="h-4 w-4 me-1" />
+                    {t("gatePasses.addItem", "Add Item")}
+                  </Button>
+                </div>
 
-                {/* Quantity */}
-                <FormField
-                  control={form.control}
-                  name="quantity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("gatePasses.quantity", "Quantity")}</FormLabel>
-                      <FormControl>
-                        <Input placeholder={t("gatePasses.quantityPlaceholder", "e.g., 10")} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12 text-center">#</TableHead>
+                        <TableHead>{t("gatePasses.itemName", "Item Name")} *</TableHead>
+                        <TableHead>{t("gatePasses.itemDescription", "Description")}</TableHead>
+                        <TableHead className="w-24">{t("gatePasses.quantity", "Qty")}</TableHead>
+                        <TableHead className="w-32">{t("gatePasses.unit", "Unit")}</TableHead>
+                        <TableHead className="w-12"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {fields.map((field, index) => (
+                        <TableRow key={field.id}>
+                          <TableCell className="text-center font-medium">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell>
+                            <FormField
+                              control={form.control}
+                              name={`items.${index}.item_name`}
+                              render={({ field }) => (
+                                <FormItem className="space-y-0">
+                                  <FormControl>
+                                    <Input
+                                      placeholder={t("gatePasses.itemNamePlaceholder", "Item name")}
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <FormField
+                              control={form.control}
+                              name={`items.${index}.description`}
+                              render={({ field }) => (
+                                <FormItem className="space-y-0">
+                                  <FormControl>
+                                    <Input
+                                      placeholder={t("gatePasses.descriptionPlaceholder", "Description")}
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <FormField
+                              control={form.control}
+                              name={`items.${index}.quantity`}
+                              render={({ field }) => (
+                                <FormItem className="space-y-0">
+                                  <FormControl>
+                                    <Input
+                                      type="text"
+                                      inputMode="numeric"
+                                      placeholder={t("gatePasses.quantityPlaceholder", "Qty")}
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <FormField
+                              control={form.control}
+                              name={`items.${index}.unit`}
+                              render={({ field }) => (
+                                <FormItem className="space-y-0">
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder={t("gatePasses.unitPlaceholder", "Unit")} />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {UNIT_OPTIONS.map((unit) => (
+                                        <SelectItem key={unit.value} value={unit.value}>
+                                          {isRTL ? unit.labelAr : unit.label}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </FormItem>
+                              )}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeItem(index)}
+                              disabled={fields.length <= 1}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                {form.formState.errors.items && (
+                  <p className="text-sm font-medium text-destructive">
+                    {form.formState.errors.items.message}
+                  </p>
+                )}
+              </div>
 
-                {/* Unit */}
-                <FormField
-                  control={form.control}
-                  name="unit"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("gatePasses.unit", "Unit")}</FormLabel>
-                      <FormControl>
-                        <Input placeholder={t("gatePasses.unitPlaceholder", "e.g., boxes, kg, pieces")} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
+              {/* Vehicle & Driver Info */}
+              <div className="grid gap-6 md:grid-cols-3">
                 {/* Vehicle Plate */}
                 <FormField
                   control={form.control}
@@ -316,7 +438,10 @@ function MyGatePassCreateContent() {
                     </FormItem>
                   )}
                 />
+              </div>
 
+              {/* Time Window */}
+              <div className="grid gap-6 md:grid-cols-2">
                 {/* Time Window Start */}
                 <FormField
                   control={form.control}
@@ -352,46 +477,46 @@ function MyGatePassCreateContent() {
                     </FormItem>
                   )}
                 />
-
-                {/* Approver */}
-                <FormField
-                  control={form.control}
-                  name="approval_from_id"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel>{t("gatePasses.approver", "Approver")} *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={t("gatePasses.selectApprover", "Select who should approve this request")} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {loadingApprovers ? (
-                            <SelectItem value="loading" disabled>
-                              {t("common.loading", "Loading...")}
-                            </SelectItem>
-                          ) : approvers?.length === 0 ? (
-                            <SelectItem value="none" disabled>
-                              {t("gatePasses.noApproversFound", "No approvers available")}
-                            </SelectItem>
-                          ) : (
-                            approvers?.map((approver) => (
-                              <SelectItem key={approver.id} value={approver.id}>
-                                {approver.full_name} {approver.job_title ? `(${approver.job_title})` : ""}
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        {t("gatePasses.approverDescription", "This person will review and approve your request")}
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
+
+              {/* Approver */}
+              <FormField
+                control={form.control}
+                name="approval_from_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("gatePasses.approver", "Approver")} *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t("gatePasses.selectApprover", "Select who should approve this request")} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {loadingApprovers ? (
+                          <SelectItem value="loading" disabled>
+                            {t("common.loading", "Loading...")}
+                          </SelectItem>
+                        ) : approvers?.length === 0 ? (
+                          <SelectItem value="none" disabled>
+                            {t("gatePasses.noApproversFound", "No approvers available")}
+                          </SelectItem>
+                        ) : (
+                          approvers?.map((approver) => (
+                            <SelectItem key={approver.id} value={approver.id}>
+                              {approver.full_name} {approver.job_title ? `(${approver.job_title})` : ""}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      {t("gatePasses.approverDescription", "This person will review and approve your request")}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="flex justify-end gap-4">
                 <Button type="button" variant="outline" onClick={() => navigate(-1)}>

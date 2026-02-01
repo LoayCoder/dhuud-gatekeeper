@@ -26554,6 +26554,14 @@ export type Database = {
         Args: { p_incident_id: string; p_user_id: string }
         Returns: Json
       }
+      validate_gate_pass_exit: {
+        Args: {
+          p_exit_driver_name?: string
+          p_exit_vehicle_plate?: string
+          p_gate_pass_id: string
+        }
+        Returns: Json
+      }
       validate_invitation_code: {
         Args: { p_code: string }
         Returns: {
