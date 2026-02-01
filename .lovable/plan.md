@@ -1,252 +1,218 @@
 
-# Gate Pass Multi-Item and Entry/Exit Validation Plan
+# Gate Pass Item Photo Requirement Plan
 
 ## Overview
 
-This plan updates the `/my-gate-passes/create` flow to:
-1. Support multiple items (like the `GatePassFormDialog` component)
-2. Show a warning when "Entry & Exit" pass type is selected
-3. Enforce strict vehicle/driver matching validation during exit at the backend level
+This plan adds a mandatory photo attachment requirement for each item in a Gate Pass, with automatic image compression to optimize storage while maintaining visibility for security verification.
 
 ---
 
 ## Current State Analysis
 
-| Component | Issue |
-|:----------|:------|
-| `/my-gate-passes/Create.tsx` | Only supports **single item** - no table, no add/remove functionality |
-| `GatePassFormDialog.tsx` | Already supports **multiple items** with repeatable table |
-| `use-gate-pass-guard-actions.ts` | Exit action does NOT validate vehicle/driver matching |
-| `validate-material-qr/index.ts` | No vehicle/driver matching validation during exit |
-| Database | No constraint or trigger to enforce matching |
+| Component | Current Behavior |
+|:----------|:-----------------|
+| `gate_pass_items` table | No photo column or photo association |
+| `gate_pass_photos` table | Photos linked to `gate_pass_id` only (pass-level, not item-level) |
+| `Create.tsx` (My Gate Passes) | No photo upload per item |
+| `GatePassFormDialog.tsx` | Has pass-level photos (max 3), not item-level |
+| `compressImage()` utility | Already exists with configurable maxWidth/quality |
 
 ---
 
 ## Implementation Plan
 
-### Phase 1: Consolidate Create Page to Use Multi-Item Form
+### Phase 1: Database Schema - Create Item Photos Table
 
-**Option A (Recommended)**: Replace the content of `/my-gate-passes/Create.tsx` with a page-based version of the multi-item form from `GatePassFormDialog.tsx`.
-
-**Changes to `src/pages/my-gate-passes/Create.tsx`:**
-
-```text
-Current:
-- Single item_name, item_description, quantity, unit fields
-- No table
-- No add/remove functionality
-
-New:
-- Items table with SR#, Item Name, Description, Qty, Unit columns
-- Add Item button (+إضافة صنف)
-- Remove item button per row
-- Minimum 1 item required
-```
-
-**Key UI Elements (matching reference image):**
-- Table headers: #SR | اسم الصنف * | الوصف | الكمية | الوحدة | (delete button)
-- Add button: "+ إضافة صنف" / "+ Add Item"
-- Unit dropdown with options: Pieces, Bags, Boxes, kg, Tons, Liters, Meters, etc.
-
----
-
-### Phase 2: Add Entry & Exit Warning Alert
-
-When user selects `in_out` (Entry & Exit) pass type, show a prominent warning:
-
-```typescript
-{passType === "in_out" && (
-  <Alert variant="warning" className="mt-3">
-    <AlertTriangle className="h-4 w-4" />
-    <AlertTitle>{t("gatePasses.entryExitWarning.title", "Important Notice")}</AlertTitle>
-    <AlertDescription>
-      {t("gatePasses.entryExitWarning.message", 
-        "For Entry & Exit passes, the same Vehicle Plate and Driver Name must be used during exit. " +
-        "Mismatched details will result in the exit being rejected by security."
-      )}
-    </AlertDescription>
-  </Alert>
-)}
-```
-
-**Translation keys to add:**
-
-**English:**
-```json
-"gatePasses": {
-  "entryExitWarning": {
-    "title": "Important Notice",
-    "message": "For Entry & Exit passes, the same Vehicle Plate and Driver Name must be used during exit. Mismatched details will result in the exit being rejected by security."
-  }
-}
-```
-
-**Arabic:**
-```json
-"gatePasses": {
-  "entryExitWarning": {
-    "title": "ملاحظة هامة",
-    "message": "لتصاريح الدخول والخروج، يجب استخدام نفس لوحة المركبة واسم السائق عند الخروج. سيتم رفض الخروج في حالة عدم تطابق البيانات."
-  }
-}
-```
-
----
-
-### Phase 3: Backend Validation for Exit (Database RPC)
-
-Create a new database function `validate_gate_pass_exit` to enforce matching:
+Create a new table `gate_pass_item_photos` to link photos to specific items:
 
 ```sql
-CREATE OR REPLACE FUNCTION validate_gate_pass_exit(
-  p_gate_pass_id UUID,
-  p_exit_vehicle_plate TEXT,
-  p_exit_driver_name TEXT
-) RETURNS JSONB
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  v_pass RECORD;
-  v_result JSONB;
-BEGIN
-  -- Fetch the gate pass
-  SELECT pass_type, vehicle_plate, driver_name, entry_time, exit_time
-  INTO v_pass
-  FROM material_gate_passes
-  WHERE id = p_gate_pass_id AND deleted_at IS NULL;
-  
-  IF NOT FOUND THEN
-    RETURN jsonb_build_object('allowed', false, 'reason', 'Gate pass not found');
-  END IF;
-  
-  -- Check if already has exit time
-  IF v_pass.exit_time IS NOT NULL THEN
-    RETURN jsonb_build_object('allowed', false, 'reason', 'Exit already recorded');
-  END IF;
-  
-  -- For in_out passes, validate matching vehicle and driver
-  IF v_pass.pass_type = 'in_out' OR v_pass.pass_type ILIKE '%in%out%' OR v_pass.pass_type ILIKE '%entry%exit%' THEN
-    -- Must have entry recorded first
-    IF v_pass.entry_time IS NULL THEN
-      RETURN jsonb_build_object('allowed', false, 'reason', 'Entry not yet recorded - cannot process exit');
-    END IF;
-    
-    -- Validate vehicle plate (case-insensitive, trim whitespace)
-    IF v_pass.vehicle_plate IS NOT NULL AND TRIM(UPPER(v_pass.vehicle_plate)) != TRIM(UPPER(COALESCE(p_exit_vehicle_plate, ''))) THEN
-      RETURN jsonb_build_object(
-        'allowed', false, 
-        'reason', 'Vehicle plate mismatch - expected: ' || v_pass.vehicle_plate,
-        'expected_vehicle', v_pass.vehicle_plate,
-        'provided_vehicle', p_exit_vehicle_plate
-      );
-    END IF;
-    
-    -- Validate driver name (case-insensitive, trim whitespace)
-    IF v_pass.driver_name IS NOT NULL AND TRIM(UPPER(v_pass.driver_name)) != TRIM(UPPER(COALESCE(p_exit_driver_name, ''))) THEN
-      RETURN jsonb_build_object(
-        'allowed', false, 
-        'reason', 'Driver name mismatch - expected: ' || v_pass.driver_name,
-        'expected_driver', v_pass.driver_name,
-        'provided_driver', p_exit_driver_name
-      );
-    END IF;
-  END IF;
-  
-  RETURN jsonb_build_object('allowed', true);
-END;
-$$;
-```
+CREATE TABLE gate_pass_item_photos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  item_id UUID NOT NULL REFERENCES gate_pass_items(id) ON DELETE CASCADE,
+  gate_pass_id UUID NOT NULL REFERENCES material_gate_passes(id) ON DELETE CASCADE,
+  storage_path TEXT NOT NULL,
+  file_name TEXT NOT NULL,
+  file_size INTEGER,
+  mime_type TEXT,
+  uploaded_by UUID REFERENCES auth.users(id),
+  tenant_id UUID NOT NULL REFERENCES tenants(id),
+  branch_id UUID REFERENCES branches(id),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  deleted_at TIMESTAMPTZ
+);
 
----
+-- Indexes for performance
+CREATE INDEX idx_gate_pass_item_photos_item_id ON gate_pass_item_photos(item_id);
+CREATE INDEX idx_gate_pass_item_photos_gate_pass_id ON gate_pass_item_photos(gate_pass_id);
+CREATE INDEX idx_gate_pass_item_photos_tenant_id ON gate_pass_item_photos(tenant_id);
 
-### Phase 4: Update Guard Exit Action Hook
+-- RLS policies
+ALTER TABLE gate_pass_item_photos ENABLE ROW LEVEL SECURITY;
 
-Modify `src/hooks/contractor-management/use-gate-pass-guard-actions.ts` to:
+CREATE POLICY "Tenant isolation for item photos"
+  ON gate_pass_item_photos
+  USING (tenant_id = (auth.jwt() -> 'app_metadata' ->> 'tenant_id')::uuid);
 
-1. For exit actions, first call `validate_gate_pass_exit` RPC
-2. If validation fails, reject the exit with clear error message
-3. Security guards cannot override - the validation is mandatory
-
-```typescript
-// Inside useGuardGateAction mutationFn for 'exit' action:
-
-if (action === 'exit') {
-  // For in_out passes, validate vehicle/driver matching
-  const { data: validation, error: validationError } = await supabase.rpc('validate_gate_pass_exit', {
-    p_gate_pass_id: passId,
-    p_exit_vehicle_plate: exitVehiclePlate || passData.vehicle_plate,
-    p_exit_driver_name: exitDriverName || passData.driver_name
-  });
-
-  if (validationError || !validation?.allowed) {
-    const reason = validation?.reason || validationError?.message || 'Exit validation failed';
-    
-    // Log the denied action
-    await logGateAudit({
-      action: 'gate_pass_denied',
-      passId,
-      passReference,
-      result: 'denied',
-      reason: reason,
-      validationMethod,
-      metadata: {
-        ...metadata,
-        expected_vehicle: validation?.expected_vehicle,
-        provided_vehicle: validation?.provided_vehicle,
-        expected_driver: validation?.expected_driver,
-        provided_driver: validation?.provided_driver,
-      }
-    }, tenantId, user.id, profile?.full_name || null);
-
-    throw new Error(reason);
-  }
-  
-  // Proceed with exit recording...
-}
-```
-
----
-
-### Phase 5: Update Edge Function for QR Exit Validation
-
-Modify `supabase/functions/validate-material-qr/index.ts` to include exit validation:
-
-```typescript
-// Add to validation result interface
-interface ValidationResult {
-  // ... existing fields
-  exit_validation?: {
-    requires_matching: boolean;
-    original_vehicle_plate: string | null;
-    original_driver_name: string | null;
-  };
-}
-
-// In the validation logic, add:
-if (pass.pass_type === 'in_out' && pass.entry_time && !pass.exit_time) {
-  result.exit_validation = {
-    requires_matching: true,
-    original_vehicle_plate: pass.vehicle_plate,
-    original_driver_name: pass.driver_name,
-  };
-  result.warnings.push(
-    'Exit requires matching Vehicle Plate and Driver Name from entry record'
+CREATE POLICY "Users can insert own item photos"
+  ON gate_pass_item_photos
+  FOR INSERT
+  WITH CHECK (
+    tenant_id = (auth.jwt() -> 'app_metadata' ->> 'tenant_id')::uuid
+    AND uploaded_by = auth.uid()
   );
+```
+
+---
+
+### Phase 2: Enhanced Image Compression
+
+Update compression settings for optimal security verification:
+
+| Setting | Value | Rationale |
+|:--------|:------|:----------|
+| `maxWidth` | 1280px | Good detail for item verification |
+| `quality` | 0.75 | Balance between size and clarity |
+| Target size | ~100-300KB | Fast loading on mobile |
+
+The existing `compressImage()` function in `src/lib/upload-utils.ts` already supports this - we'll use it with optimized parameters.
+
+---
+
+### Phase 3: Create Item Photo Upload Component
+
+Create a new reusable component `GatePassItemPhotoUpload.tsx`:
+
+```text
+Location: src/components/contractors/GatePassItemPhotoUpload.tsx
+
+Features:
+- Camera capture button (mobile)
+- File upload button
+- Photo preview thumbnail
+- Remove photo button
+- Required indicator (red asterisk)
+- Validation error message if missing
+- Automatic compression on capture/upload
+```
+
+**Component Structure:**
+```text
+┌─────────────────────────────────────────┐
+│  📷 [Take Photo]  📁 [Upload]           │
+├─────────────────────────────────────────┤
+│  ┌──────┐  ┌──────┐  ┌──────┐          │
+│  │ img1 │  │ img2 │  │  +   │          │
+│  │  ❌  │  │  ❌  │  │ add  │          │
+│  └──────┘  └──────┘  └──────┘          │
+├─────────────────────────────────────────┤
+│  ⚠️ At least 1 photo required          │ (if empty)
+└─────────────────────────────────────────┘
+```
+
+---
+
+### Phase 4: Update Items Table UI
+
+Modify the items table in both `Create.tsx` and `GatePassFormDialog.tsx`:
+
+**New Column Structure:**
+```text
+| # | Item Name* | Description | Qty | Unit | Photo* | ❌ |
+|---|------------|-------------|-----|------|--------|-----|
+| 1 | Cement     | 50kg bags   | 100 | bags | [📷 +] |  🗑 |
+| 2 | Steel bars | 12mm        | 50  | pcs  | [1 📷] |  🗑 |
+```
+
+**Photo Cell States:**
+1. **No photos**: Camera icon with "Add" - shows error border
+2. **Has photos**: Shows count and thumbnail preview
+3. **Uploading**: Shows spinner
+
+---
+
+### Phase 5: Update Form Schema and Validation
+
+**Updated Item Schema:**
+```typescript
+const itemSchema = z.object({
+  item_name: z.string().min(1, "Item name is required"),
+  description: z.string().optional(),
+  quantity: z.string().optional(),
+  unit: z.string().optional(),
+  photos: z.array(z.instanceof(File)).min(1, "At least one photo is required"),
+  photoPreviewUrls: z.array(z.string()).optional(), // For UI preview
+});
+```
+
+**Form Validation:**
+- Form cannot be submitted if ANY item has 0 photos
+- Clear error message indicating which items are missing photos
+- Visual indicator on items without photos
+
+---
+
+### Phase 6: Update Create Gate Pass Hook
+
+Modify `useCreateGatePass` in `use-material-gate-passes.ts`:
+
+**New Flow:**
+1. Create gate pass record
+2. Insert items to `gate_pass_items`
+3. For each item with photos:
+   a. Compress each photo (maxWidth: 1280, quality: 0.75)
+   b. Upload to storage: `gate-pass-photos/{tenant_id}/{gate_pass_id}/{item_id}/{filename}`
+   c. Insert record to `gate_pass_item_photos`
+
+**Updated Interface:**
+```typescript
+export interface GatePassItemInput {
+  item_name: string;
+  description?: string;
+  quantity?: string;
+  unit?: string;
+  photos: File[];  // NEW: Required photos array
 }
 ```
 
 ---
 
-### Phase 6: Add Exit Confirmation UI for Guards
+### Phase 7: Add Translation Keys
 
-When a guard scans for exit on an `in_out` pass, show a confirmation dialog with:
+**English (`src/locales/en/translation.json`):**
+```json
+{
+  "gatePasses": {
+    "itemPhoto": "Item Photo",
+    "itemPhotoRequired": "At least one photo is required for each item",
+    "addItemPhoto": "Add Photo",
+    "itemPhotoDescription": "Attach a photo of the item for security verification",
+    "itemsWithoutPhotos": "{{count}} item(s) are missing required photos",
+    "takePhoto": "Take Photo",
+    "uploadPhoto": "Upload",
+    "removePhoto": "Remove Photo",
+    "photoCompressing": "Compressing...",
+    "photoUploading": "Uploading..."
+  }
+}
+```
 
-1. **Original entry details** (vehicle plate, driver name from pass)
-2. **Current details** (what the guard sees on the vehicle/driver now)
-3. **Match/Mismatch indicator**
-4. **Clear rejection message if mismatched**
+**Arabic (`src/locales/ar/translation.json`):**
+```json
+{
+  "gatePasses": {
+    "itemPhoto": "صورة الصنف",
+    "itemPhotoRequired": "مطلوب صورة واحدة على الأقل لكل صنف",
+    "addItemPhoto": "إضافة صورة",
+    "itemPhotoDescription": "أرفق صورة للصنف للتحقق الأمني",
+    "itemsWithoutPhotos": "{{count}} صنف بدون صور مطلوبة",
+    "takePhoto": "التقاط صورة",
+    "uploadPhoto": "رفع",
+    "removePhoto": "حذف الصورة",
+    "photoCompressing": "جاري الضغط...",
+    "photoUploading": "جاري الرفع..."
+  }
+}
+```
 
 ---
 
@@ -254,167 +220,128 @@ When a guard scans for exit on an `in_out` pass, show a confirmation dialog with
 
 | File | Action | Description |
 |:-----|:-------|:------------|
-| `src/pages/my-gate-passes/Create.tsx` | **Major Rewrite** | Replace single-item form with multi-item table |
-| `src/locales/en/translation.json` | **Modify** | Add `entryExitWarning` translations |
-| `src/locales/ar/translation.json` | **Modify** | Add `entryExitWarning` Arabic translations |
-| Migration SQL | **Create** | Add `validate_gate_pass_exit` RPC function |
-| `src/hooks/contractor-management/use-gate-pass-guard-actions.ts` | **Modify** | Add exit validation before recording |
-| `supabase/functions/validate-material-qr/index.ts` | **Modify** | Add exit validation info to response |
+| Migration SQL | **Create** | Add `gate_pass_item_photos` table with RLS |
+| `src/components/contractors/GatePassItemPhotoUpload.tsx` | **Create** | New photo upload component for items |
+| `src/pages/my-gate-passes/Create.tsx` | **Modify** | Add photo column to items table, validation |
+| `src/components/contractors/GatePassFormDialog.tsx` | **Modify** | Add photo column to items table, validation |
+| `src/hooks/contractor-management/use-material-gate-passes.ts` | **Modify** | Handle item photo uploads with compression |
+| `src/locales/en/translation.json` | **Modify** | Add photo-related translations |
+| `src/locales/ar/translation.json` | **Modify** | Add Arabic photo-related translations |
 
 ---
 
-## Security Enforcement Summary
+## Compression Settings Summary
 
-| Layer | Enforcement |
-|:------|:------------|
-| **UI Warning** | Alert shown when `in_out` selected - informational only |
-| **Frontend Validation** | Hook calls RPC before allowing exit action |
-| **Backend RPC** | `validate_gate_pass_exit` performs strict matching |
-| **Edge Function** | Returns validation requirements for QR scans |
-| **Guard Override** | NOT POSSIBLE - validation is mandatory at backend |
+| Parameter | Value | Purpose |
+|:----------|:------|:--------|
+| Max Width | 1280px | Sufficient detail for item identification |
+| Quality | 0.75 (75%) | Good balance of size and clarity |
+| Format | JPEG | Best compression for photos |
+| Expected Size | 100-300KB | Fast upload on mobile networks |
+
+**Compression Logic:**
+```typescript
+// Optimized for security verification
+const compressedFile = await compressImage(file, 1280, 0.75);
+```
 
 ---
 
-## Validation Rules
+## Validation Flow
 
 ```text
-For pass_type = 'in_out' (Entry & Exit):
-
-1. Entry must be recorded before exit can be processed
-2. During exit:
-   a. Vehicle Plate MUST match original (case-insensitive, trimmed)
-   b. Driver Name MUST match original (case-insensitive, trimmed)
-3. If mismatch detected:
-   a. Exit is REJECTED
-   b. Reason is logged to security_audit_logs
-   c. Clear error message shown to guard
-   d. No manual override available
+┌─────────────────────────────────────────────────────────────┐
+│                    USER ADDS ITEMS                           │
+└─────────────────────────────────────────────────────────────┘
+                              │
+              ┌───────────────▼───────────────┐
+              │  For each item:               │
+              │  - Item name (required)       │
+              │  - Description (optional)     │
+              │  - Quantity (optional)        │
+              │  - Unit (optional)            │
+              │  - Photo(s) (REQUIRED)        │
+              └───────────────┬───────────────┘
+                              │
+              ┌───────────────▼───────────────┐
+              │  User clicks "Submit"         │
+              └───────────────┬───────────────┘
+                              │
+              ┌───────────────▼───────────────┐
+              │  Check: All items have ≥1     │
+              │  photo?                       │
+              └───────────────┬───────────────┘
+                              │
+          ┌───────────────────┴───────────────────┐
+          │                                       │
+          ▼                                       ▼
+┌─────────────────┐                     ┌─────────────────────┐
+│      YES        │                     │        NO           │
+│ Compress photos │                     │ Show error:         │
+│ Upload to       │                     │ "X item(s) missing  │
+│ storage         │                     │  required photos"   │
+│ Create records  │                     │ Highlight items     │
+└─────────────────┘                     │ Block submission    │
+                                        └─────────────────────┘
 ```
 
 ---
 
-## UI Flow Diagram
+## UI Preview
+
+### Items Table with Photo Column
 
 ```text
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    USER CREATES GATE PASS                                │
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                    ┌───────────────▼───────────────┐
-                    │  Select Pass Type             │
-                    └───────────────┬───────────────┘
-                                    │
-        ┌───────────────────────────┼───────────────────────────┐
-        │                           │                           │
-        ▼                           ▼                           ▼
-┌───────────────────┐   ┌───────────────────────┐   ┌───────────────────┐
-│ Entry Only (in)   │   │ Exit Only (out)       │   │ Entry & Exit      │
-│ No special alert  │   │ No special alert      │   │ (in_out)          │
-└───────────────────┘   └───────────────────────┘   └─────────┬─────────┘
-                                                              │
-                                                              ▼
-                                                    ┌───────────────────┐
-                                                    │ ⚠️ WARNING ALERT  │
-                                                    │ Same vehicle and  │
-                                                    │ driver required   │
-                                                    │ for exit          │
-                                                    └───────────────────┘
+┌────────────────────────────────────────────────────────────────────────────┐
+│ # │ Item Name *     │ Description  │ Qty  │ Unit    │ Photo *    │   │
+├───┼─────────────────┼──────────────┼──────┼─────────┼────────────┼───┤
+│ 1 │ ┌─────────────┐ │ ┌──────────┐ │ ┌──┐ │ ┌─────┐ │ ┌────────┐ │ 🗑│
+│   │ │ Cement      │ │ │ 50kg bag │ │ │10│ │ │ bag │ │ │ 📷 1 ✓ │ │   │
+│   │ └─────────────┘ │ └──────────┘ │ └──┘ │ └─────┘ │ └────────┘ │   │
+├───┼─────────────────┼──────────────┼──────┼─────────┼────────────┼───┤
+│ 2 │ ┌─────────────┐ │ ┌──────────┐ │ ┌──┐ │ ┌─────┐ │ ┌────────┐ │ 🗑│
+│   │ │ Steel bars  │ │ │ 12mm     │ │ │50│ │ │ pcs │ │ │ ⚠️ Add │ │   │
+│   │ └─────────────┘ │ └──────────┘ │ └──┘ │ └─────┘ │ └────────┘ │   │
+└───┴─────────────────┴──────────────┴──────┴─────────┴────────────┴───┘
 
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    GUARD PROCESSES EXIT                                  │
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                    ┌───────────────▼───────────────┐
-                    │  Is pass_type = 'in_out'?     │
-                    └───────────────┬───────────────┘
-                                    │
-                    ┌───────────────┴───────────────┐
-                    │                               │
-                    ▼                               ▼
-           ┌───────────────┐               ┌───────────────────┐
-           │      NO       │               │       YES         │
-           │ Process exit  │               │ Validate matching │
-           │ normally      │               └─────────┬─────────┘
-           └───────────────┘                         │
-                                     ┌───────────────┴───────────────┐
-                                     │                               │
-                                     ▼                               ▼
-                            ┌───────────────────┐           ┌───────────────────┐
-                            │ Vehicle & Driver  │           │ MISMATCH          │
-                            │ MATCH             │           │ ❌ Exit REJECTED  │
-                            │ ✅ Process exit   │           │ Log to audit      │
-                            └───────────────────┘           │ Show error        │
-                                                            │ NO OVERRIDE       │
-                                                            └───────────────────┘
+❌ 1 item is missing a required photo
+
+[+ Add Item]                                    [Cancel] [Submit Request]
+                                                          ↑ disabled
 ```
 
 ---
 
-## Translation Keys Summary
+## Security Verification Benefits
 
-### English
-```json
-{
-  "gatePasses": {
-    "entryExitWarning": {
-      "title": "Important Notice",
-      "message": "For Entry & Exit passes, the same Vehicle Plate and Driver Name must be used during exit. Mismatched details will result in the exit being rejected by security."
-    },
-    "exitValidation": {
-      "mismatchTitle": "Exit Rejected",
-      "vehicleMismatch": "Vehicle plate does not match entry record",
-      "driverMismatch": "Driver name does not match entry record",
-      "expected": "Expected",
-      "provided": "Provided",
-      "contactSupervisor": "Contact your supervisor if this is a legitimate change."
-    }
-  }
-}
-```
-
-### Arabic
-```json
-{
-  "gatePasses": {
-    "entryExitWarning": {
-      "title": "ملاحظة هامة",
-      "message": "لتصاريح الدخول والخروج، يجب استخدام نفس لوحة المركبة واسم السائق عند الخروج. سيتم رفض الخروج في حالة عدم تطابق البيانات."
-    },
-    "exitValidation": {
-      "mismatchTitle": "تم رفض الخروج",
-      "vehicleMismatch": "لوحة المركبة لا تتطابق مع سجل الدخول",
-      "driverMismatch": "اسم السائق لا يتطابق مع سجل الدخول",
-      "expected": "المتوقع",
-      "provided": "المقدم",
-      "contactSupervisor": "تواصل مع المشرف إذا كان هذا تغيير مشروع."
-    }
-  }
-}
-```
+1. **Visual Verification**: Guards can compare actual items with photos
+2. **Audit Trail**: Photos stored with item-level association for accountability
+3. **Tamper Detection**: Mismatched items can be identified at entry/exit
+4. **Storage Efficiency**: Compressed images reduce storage costs by ~70%
+5. **Mobile Performance**: Optimized for field workers on cellular networks
 
 ---
 
 ## Testing Checklist
 
-1. **Multi-Item Form:**
-   - [ ] Can add multiple items to the table
-   - [ ] Can remove items (except last one)
-   - [ ] SR# increments correctly
-   - [ ] Unit dropdown works
-   - [ ] Form submits with all items
+**Photo Upload:**
+- [ ] Can take photo via camera on mobile
+- [ ] Can upload photo from file picker
+- [ ] Photo is compressed automatically
+- [ ] Can add multiple photos per item
+- [ ] Can remove photos before submission
 
-2. **Entry & Exit Warning:**
-   - [ ] Warning appears when `in_out` selected
-   - [ ] Warning hidden for `in` or `out` types
-   - [ ] Translations display correctly (AR/EN)
+**Validation:**
+- [ ] Cannot submit if any item has 0 photos
+- [ ] Error message clearly indicates which items need photos
+- [ ] Items without photos have visual indicator (red border)
 
-3. **Exit Validation (Backend):**
-   - [ ] Matching vehicle/driver: exit allowed
-   - [ ] Mismatched vehicle: exit rejected with clear reason
-   - [ ] Mismatched driver: exit rejected with clear reason
-   - [ ] Rejection logged to audit logs
-   - [ ] Guard cannot override
+**Storage:**
+- [ ] Photos uploaded to correct storage path
+- [ ] Records created in `gate_pass_item_photos` table
+- [ ] Tenant isolation enforced via RLS
 
-4. **Edge Function:**
-   - [ ] Returns exit_validation info for `in_out` passes
-   - [ ] Shows warning in validation response
+**Performance:**
+- [ ] Compression reduces file size significantly
+- [ ] Upload completes within reasonable time on 4G
+- [ ] Large images (10MB+) handled gracefully
