@@ -171,17 +171,18 @@ export function usePendingGatePassApprovals() {
 
       // Filter based on user's ability to approve each pass
       // For internal pending_dept_approval: only show if user is the designated approver
-      const filteredPasses = (passes || []).filter((pass: MaterialGatePass) => {
-        if (pass.is_internal_request && pass.status === "pending_dept_approval") {
+      const filteredPasses = (passes || []).filter((pass) => {
+        const p = pass as unknown as MaterialGatePass;
+        if (p.is_internal_request && p.status === "pending_dept_approval") {
           // Internal requests: user must be the designated approver
-          return pass.approval_from_id === user.id;
+          return p.approval_from_id === user.id;
         }
         // All other pending statuses are visible
         // (actual role-based authorization checked server-side during approval via RPC)
         return true;
       });
 
-      return filteredPasses as MaterialGatePass[];
+      return filteredPasses as unknown as MaterialGatePass[];
     },
     enabled: !!tenantId && !!user?.id,
   });
@@ -664,13 +665,14 @@ export function useBulkApproveGatePasses() {
             continue;
           }
 
-          // Parse RPC response
-          const response = data as { success: boolean; error?: string; new_status?: string };
-          if (!response.success) {
-            results.failed++;
-            results.errors.push({ passId, error: response.error || "Approval failed" });
-          } else {
+          // RPC returns string (new_status) on success, not an object
+          // If data is a string, approval succeeded
+          if (typeof data === "string") {
             results.success++;
+          } else {
+            // Fallback for unexpected response
+            results.failed++;
+            results.errors.push({ passId, error: "Unexpected response format" });
           }
         } catch (error) {
           results.failed++;

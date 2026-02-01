@@ -54,7 +54,7 @@ export function GatePassVerificationPanel() {
       ...verificationResult,
       gatePass: {
         ...verificationResult.gatePass,
-        entry_confirmed_at: new Date().toISOString(),
+        entry_time: new Date().toISOString(),
       },
     });
   };
@@ -66,7 +66,7 @@ export function GatePassVerificationPanel() {
       ...verificationResult,
       gatePass: {
         ...verificationResult.gatePass,
-        exit_confirmed_at: new Date().toISOString(),
+        exit_time: new Date().toISOString(),
         status: "completed",
       },
     });
@@ -190,10 +190,10 @@ export function GatePassVerificationPanel() {
                   {/* Entry/Exit Status */}
                   <div className="pt-2 border-t">
                     <div className="flex items-center gap-2 text-sm">
-                      {verificationResult.gatePass.entry_confirmed_at ? (
+                      {verificationResult.gatePass.entry_time ? (
                         <Badge variant="secondary" className="gap-1">
                           <LogIn className="h-3 w-3" />
-                          {t("contractors.gatePasses.entryConfirmed", "Entry")}: {format(new Date(verificationResult.gatePass.entry_confirmed_at), "HH:mm")}
+                          {t("contractors.gatePasses.entryConfirmed", "Entry")}: {format(new Date(verificationResult.gatePass.entry_time), "HH:mm")}
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="gap-1 text-muted-foreground">
@@ -201,10 +201,10 @@ export function GatePassVerificationPanel() {
                           {t("contractors.gatePasses.noEntry", "No Entry")}
                         </Badge>
                       )}
-                      {verificationResult.gatePass.exit_confirmed_at ? (
+                      {verificationResult.gatePass.exit_time ? (
                         <Badge variant="secondary" className="gap-1">
                           <LogOut className="h-3 w-3" />
-                          {t("contractors.gatePasses.exitConfirmed", "Exit")}: {format(new Date(verificationResult.gatePass.exit_confirmed_at), "HH:mm")}
+                          {t("contractors.gatePasses.exitConfirmed", "Exit")}: {format(new Date(verificationResult.gatePass.exit_time), "HH:mm")}
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="gap-1 text-muted-foreground">
@@ -218,7 +218,7 @@ export function GatePassVerificationPanel() {
 
                 {/* Action Buttons */}
                 <div className="flex gap-2">
-                  {!verificationResult.gatePass.entry_confirmed_at && (
+                  {!verificationResult.gatePass.entry_time && (
                     <Button 
                       onClick={handleConfirmEntry} 
                       disabled={confirmEntry.isPending}
@@ -228,7 +228,7 @@ export function GatePassVerificationPanel() {
                       {t("contractors.gatePasses.confirmEntry", "Confirm Entry")}
                     </Button>
                   )}
-                  {verificationResult.gatePass.entry_confirmed_at && !verificationResult.gatePass.exit_confirmed_at && (
+                  {verificationResult.gatePass.entry_time && !verificationResult.gatePass.exit_time && (
                     <Button 
                       onClick={handleConfirmExit} 
                       disabled={confirmExit.isPending}
