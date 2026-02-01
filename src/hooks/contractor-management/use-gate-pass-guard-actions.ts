@@ -109,7 +109,7 @@ export function useGuardGateAction() {
       // Fetch additional pass details needed for the log
       const { data: passData, error: fetchError } = await supabase
         .from('material_gate_passes')
-        .select('vehicle_plate, driver_name, driver_mobile, material_description')
+        .select('vehicle_plate, driver_name, driver_mobile, material_description, pass_type')
         .eq('id', passId)
         .single();
 
@@ -153,7 +153,63 @@ export function useGuardGateAction() {
         
         error = insertError;
       } else {
-        // Exit: Find open log by material_gate_pass_id first, then fallback to vehicle plate
+        // EXIT action - validate vehicle/driver matching for in_out passes
+        const { data: validation, error: validationError } = await supabase.rpc('validate_gate_pass_exit', {
+          p_gate_pass_id: passId,
+          p_exit_vehicle_plate: (metadata as Record<string, unknown>)?.exit_vehicle_plate as string || passData.vehicle_plate,
+          p_exit_driver_name: (metadata as Record<string, unknown>)?.exit_driver_name as string || passData.driver_name
+        });
+
+        if (validationError) {
+          await logGateAudit({
+            action: 'gate_pass_denied',
+            passId,
+            passReference,
+            result: 'denied',
+            reason: validationError.message || 'Exit validation failed',
+            validationMethod,
+            metadata,
+          }, tenantId, user.id, profile?.full_name || null);
+          throw new Error(validationError.message || 'Exit validation failed');
+        }
+
+        // Type the validation response
+        const validationResult = validation as {
+          allowed: boolean;
+          reason?: string;
+          expected_vehicle?: string;
+          provided_vehicle?: string;
+          expected_driver?: string;
+          provided_driver?: string;
+          mismatch_type?: string;
+        } | null;
+
+        if (validationResult && !validationResult.allowed) {
+          const reason = validationResult.reason || 'Exit validation failed';
+          
+          // Log the denied action
+          await logGateAudit({
+            action: 'gate_pass_denied',
+            passId,
+            passReference,
+            result: 'denied',
+            reason: reason,
+            validationMethod,
+            metadata: {
+              ...metadata,
+              expected_vehicle: validationResult.expected_vehicle,
+              provided_vehicle: validationResult.provided_vehicle,
+              expected_driver: validationResult.expected_driver,
+              provided_driver: validationResult.provided_driver,
+              mismatch_type: validationResult.mismatch_type,
+            },
+          }, tenantId, user.id, profile?.full_name || null);
+
+          throw new Error(reason);
+        }
+
+        // Validation passed - proceed with exit recording
+        // Find open log by material_gate_pass_id first, then fallback to vehicle plate
         let openLog: { id: string } | null = null;
         
         // Primary: Find by FK link (preferred)

@@ -8403,7 +8403,21 @@
       "awaitingClubMgmtAck": "Awaiting Golf Club Management Acknowledgment",
       "awaitingSecurity": "Awaiting Security Approval",
       "awaitingPm": "Awaiting PM Approval",
-      "awaitingSafety": "Awaiting Safety Approval"
+      "awaitingSafety": "Awaiting Safety Approval",
+      "entryExitWarning": {
+        "title": "Important Notice",
+        "message": "For Entry & Exit passes, the same Vehicle Plate and Driver Name must be used during exit. Mismatched details will result in the exit being rejected by security."
+      },
+      "exitValidation": {
+        "mismatchTitle": "Exit Rejected",
+        "vehicleMismatch": "Vehicle plate does not match entry record",
+        "driverMismatch": "Driver name does not match entry record",
+        "expected": "Expected",
+        "provided": "Provided",
+        "contactSupervisor": "Contact your supervisor if this is a legitimate change."
+      },
+      "addItem": "Add Item",
+      "items": "Items"
     },
     "passStatus": {
       "approved": "Approved",
