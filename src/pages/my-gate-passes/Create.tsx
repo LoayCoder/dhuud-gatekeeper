@@ -7,7 +7,6 @@ import { z } from "zod";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { MenuBasedAdminRoute } from "@/components/auth/MenuBasedAdminRoute";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -39,6 +38,7 @@ import {
 import { ArrowLeft, FileKey, CalendarIcon, Loader2, Plus, Trash2, AlertTriangle } from "lucide-react";
 import { useCreateGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
 import { useDeptApprovers } from "@/hooks/contractor-management/use-dept-approvers";
+import { GatePassItemPhotoUpload } from "@/components/contractors/GatePassItemPhotoUpload";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -61,6 +61,8 @@ const itemSchema = z.object({
   description: z.string().optional(),
   quantity: z.string().optional(),
   unit: z.string().optional(),
+  photos: z.array(z.instanceof(File)).min(1, "At least one photo is required"),
+  photoPreviewUrls: z.array(z.string()).optional(),
 });
 
 const formSchema = z.object({
@@ -90,7 +92,7 @@ function MyGatePassCreateContent() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       pass_type: "in_out",
-      items: [{ item_name: "", description: "", quantity: "", unit: "" }],
+      items: [{ item_name: "", description: "", quantity: "", unit: "", photos: [], photoPreviewUrls: [] }],
       vehicle_plate: "",
       driver_name: "",
       driver_mobile: "",
@@ -107,18 +109,31 @@ function MyGatePassCreateContent() {
   });
 
   const passType = form.watch("pass_type");
+  const itemsWithoutPhotos = form.watch("items").filter(item => !item.photos || item.photos.length === 0).length;
 
   const addItem = () => {
-    append({ item_name: "", description: "", quantity: "", unit: "" });
+    append({ item_name: "", description: "", quantity: "", unit: "", photos: [], photoPreviewUrls: [] });
   };
 
   const removeItem = (index: number) => {
     if (fields.length > 1) {
+      // Revoke URLs to prevent memory leak
+      const item = form.getValues(`items.${index}`);
+      item.photoPreviewUrls?.forEach(url => URL.revokeObjectURL(url));
       remove(index);
     }
   };
 
   const onSubmit = async (values: FormValues) => {
+    // Validate all items have photos
+    const missingPhotos = values.items.filter(item => !item.photos || item.photos.length === 0);
+    if (missingPhotos.length > 0) {
+      toast.error(
+        t("gatePasses.itemsWithoutPhotos", "{{count}} item(s) are missing required photos", { count: missingPhotos.length })
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await createGatePass.mutateAsync({
@@ -136,6 +151,7 @@ function MyGatePassCreateContent() {
           description: item.description,
           quantity: item.quantity,
           unit: item.unit,
+          photos: item.photos,
         })),
         photos: [],
       });
@@ -284,104 +300,123 @@ function MyGatePassCreateContent() {
                         <TableHead>{t("gatePasses.itemDescription", "Description")}</TableHead>
                         <TableHead className="w-24">{t("gatePasses.quantity", "Qty")}</TableHead>
                         <TableHead className="w-32">{t("gatePasses.unit", "Unit")}</TableHead>
+                        <TableHead className="w-28">{t("gatePasses.itemPhoto", "Photo")} *</TableHead>
                         <TableHead className="w-12"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {fields.map((field, index) => (
-                        <TableRow key={field.id}>
-                          <TableCell className="text-center font-medium">
-                            {index + 1}
-                          </TableCell>
-                          <TableCell>
-                            <FormField
-                              control={form.control}
-                              name={`items.${index}.item_name`}
-                              render={({ field }) => (
-                                <FormItem className="space-y-0">
-                                  <FormControl>
-                                    <Input
-                                      placeholder={t("gatePasses.itemNamePlaceholder", "Item name")}
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <FormField
-                              control={form.control}
-                              name={`items.${index}.description`}
-                              render={({ field }) => (
-                                <FormItem className="space-y-0">
-                                  <FormControl>
-                                    <Input
-                                      placeholder={t("gatePasses.descriptionPlaceholder", "Description")}
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <FormField
-                              control={form.control}
-                              name={`items.${index}.quantity`}
-                              render={({ field }) => (
-                                <FormItem className="space-y-0">
-                                  <FormControl>
-                                    <Input
-                                      type="text"
-                                      inputMode="numeric"
-                                      placeholder={t("gatePasses.quantityPlaceholder", "Qty")}
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <FormField
-                              control={form.control}
-                              name={`items.${index}.unit`}
-                              render={({ field }) => (
-                                <FormItem className="space-y-0">
-                                  <Select onValueChange={field.onChange} value={field.value}>
+                      {fields.map((field, index) => {
+                        const itemPhotos = form.watch(`items.${index}.photos`) || [];
+                        const itemPhotoUrls = form.watch(`items.${index}.photoPreviewUrls`) || [];
+                        const hasPhotoError = form.formState.errors.items?.[index]?.photos;
+
+                        return (
+                          <TableRow key={field.id}>
+                            <TableCell className="text-center font-medium">
+                              {index + 1}
+                            </TableCell>
+                            <TableCell>
+                              <FormField
+                                control={form.control}
+                                name={`items.${index}.item_name`}
+                                render={({ field }) => (
+                                  <FormItem className="space-y-0">
                                     <FormControl>
-                                      <SelectTrigger>
-                                        <SelectValue placeholder={t("gatePasses.unitPlaceholder", "Unit")} />
-                                      </SelectTrigger>
+                                      <Input
+                                        placeholder={t("gatePasses.itemNamePlaceholder", "Item name")}
+                                        {...field}
+                                      />
                                     </FormControl>
-                                    <SelectContent>
-                                      {UNIT_OPTIONS.map((unit) => (
-                                        <SelectItem key={unit.value} value={unit.value}>
-                                          {isRTL ? unit.labelAr : unit.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </FormItem>
-                              )}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => removeItem(index)}
-                              disabled={fields.length <= 1}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <FormField
+                                control={form.control}
+                                name={`items.${index}.description`}
+                                render={({ field }) => (
+                                  <FormItem className="space-y-0">
+                                    <FormControl>
+                                      <Input
+                                        placeholder={t("gatePasses.descriptionPlaceholder", "Description")}
+                                        {...field}
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <FormField
+                                control={form.control}
+                                name={`items.${index}.quantity`}
+                                render={({ field }) => (
+                                  <FormItem className="space-y-0">
+                                    <FormControl>
+                                      <Input
+                                        type="text"
+                                        inputMode="numeric"
+                                        placeholder={t("gatePasses.quantityPlaceholder", "Qty")}
+                                        {...field}
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <FormField
+                                control={form.control}
+                                name={`items.${index}.unit`}
+                                render={({ field }) => (
+                                  <FormItem className="space-y-0">
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder={t("gatePasses.unitPlaceholder", "Unit")} />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {UNIT_OPTIONS.map((unit) => (
+                                          <SelectItem key={unit.value} value={unit.value}>
+                                            {isRTL ? unit.labelAr : unit.label}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </FormItem>
+                                )}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <GatePassItemPhotoUpload
+                                photos={itemPhotos}
+                                photoPreviewUrls={itemPhotoUrls}
+                                onPhotosChange={(photos, previewUrls) => {
+                                  form.setValue(`items.${index}.photos`, photos, { shouldValidate: true });
+                                  form.setValue(`items.${index}.photoPreviewUrls`, previewUrls);
+                                }}
+                                error={!!hasPhotoError}
+                                disabled={isSubmitting}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeItem(index)}
+                                disabled={fields.length <= 1}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
@@ -389,6 +424,14 @@ function MyGatePassCreateContent() {
                   <p className="text-sm font-medium text-destructive">
                     {form.formState.errors.items.message}
                   </p>
+                )}
+                {itemsWithoutPhotos > 0 && (
+                  <Alert variant="destructive" className="py-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription className="text-xs">
+                      {t("gatePasses.itemsWithoutPhotos", "{{count}} item(s) are missing required photos", { count: itemsWithoutPhotos })}
+                    </AlertDescription>
+                  </Alert>
                 )}
               </div>
 
