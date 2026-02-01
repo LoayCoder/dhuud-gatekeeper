@@ -3,6 +3,11 @@
 -- Ensure pgcrypto for random generation
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
+-- 0. Add missing columns for proper separation of duties
+ALTER TABLE material_gate_passes ADD COLUMN IF NOT EXISTS dept_approved_by UUID REFERENCES profiles(id);
+ALTER TABLE material_gate_passes ADD COLUMN IF NOT EXISTS dept_approved_at TIMESTAMPTZ;
+ALTER TABLE material_gate_passes ADD COLUMN IF NOT EXISTS dept_approval_notes TEXT;
+
 -- 1. Update can_approve_gate_pass to handle legacy stages mapping and enforce stricter security
 CREATE OR REPLACE FUNCTION public.can_approve_gate_pass(
   p_user_id uuid,
@@ -17,6 +22,8 @@ AS $$
 DECLARE
   v_gate_pass RECORD;
   v_user_tenant_id uuid;
+  v_user_dept_id uuid;
+  v_club_mgmt_dept_id uuid;
   v_is_contractor_consultant boolean := false;
   v_is_dept_rep boolean := false;
   v_is_dept_manager boolean := false;
@@ -24,8 +31,8 @@ DECLARE
   v_is_security_supervisor boolean := false;
   v_is_admin boolean := false;
 BEGIN
-  -- Get user's tenant
-  SELECT tenant_id INTO v_user_tenant_id
+  -- Get user's tenant and department
+  SELECT tenant_id, assigned_department_id INTO v_user_tenant_id, v_user_dept_id
   FROM profiles WHERE id = p_user_id;
 
   -- Get gate pass details
@@ -129,7 +136,6 @@ BEGIN
         IF v_gate_pass.approval_from_id = p_user_id THEN
            RETURN jsonb_build_object('allowed', true);
         END IF;
-        -- Allow Dept Manager to override? Let's stay safe and restrict to assigned approver.
         RETURN jsonb_build_object('allowed', false, 'reason', 'Only the assigned approver can approve this request');
       END IF;
 
@@ -145,10 +151,25 @@ BEGIN
       RETURN jsonb_build_object('allowed', false, 'reason', 'Department representative or manager role required');
 
     WHEN 'club_mgmt_ack' THEN
-      IF v_is_club_mgmt OR v_is_dept_rep OR v_is_dept_manager THEN
+      -- Resolve Club Management Department
+      SELECT id INTO v_club_mgmt_dept_id
+      FROM departments
+      WHERE (name ILIKE '%club%management%' OR name ILIKE '%golf%management%' OR name = 'Golf Club Management')
+        AND deleted_at IS NULL
+        AND tenant_id = v_user_tenant_id
+      ORDER BY CASE WHEN name = 'Golf Club Management' THEN 0 ELSE 1 END
+      LIMIT 1;
+
+      IF v_is_club_mgmt THEN
         RETURN jsonb_build_object('allowed', true);
       END IF;
-      RETURN jsonb_build_object('allowed', false, 'reason', 'Club management role required');
+
+      -- If approving via Dept Rep/Manager role, MUST belong to Club Mgmt department
+      IF (v_is_dept_rep OR v_is_dept_manager) AND v_user_dept_id = v_club_mgmt_dept_id THEN
+        RETURN jsonb_build_object('allowed', true);
+      END IF;
+
+      RETURN jsonb_build_object('allowed', false, 'reason', 'Club management role or Club Management department affiliation required');
 
     WHEN 'security' THEN
       IF v_is_security_supervisor THEN
@@ -245,9 +266,9 @@ BEGIN
 
     WHEN 'dept_approval' THEN
       UPDATE material_gate_passes SET
-        pm_approved_by = p_user_id,
-        pm_approved_at = NOW(),
-        pm_notes = p_notes,
+        dept_approved_by = p_user_id,
+        dept_approved_at = NOW(),
+        dept_approval_notes = p_notes,
         status = 'pending_club_mgmt_ack',
         updated_at = NOW()
       WHERE id = p_gate_pass_id;
@@ -255,6 +276,9 @@ BEGIN
 
     WHEN 'dept_ack' THEN
       UPDATE material_gate_passes SET
+        dept_approved_by = p_user_id,
+        dept_approved_at = NOW(),
+        dept_approval_notes = p_notes,
         status = 'pending_security_approval',
         updated_at = NOW()
       WHERE id = p_gate_pass_id;
