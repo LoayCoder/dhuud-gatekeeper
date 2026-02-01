@@ -7728,6 +7728,80 @@ export type Database = {
           },
         ]
       }
+      gate_pass_item_photos: {
+        Row: {
+          branch_id: string | null
+          created_at: string | null
+          deleted_at: string | null
+          file_name: string
+          file_size: number | null
+          gate_pass_id: string
+          id: string
+          item_id: string
+          mime_type: string | null
+          storage_path: string
+          tenant_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          file_name: string
+          file_size?: number | null
+          gate_pass_id: string
+          id?: string
+          item_id: string
+          mime_type?: string | null
+          storage_path: string
+          tenant_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          file_name?: string
+          file_size?: number | null
+          gate_pass_id?: string
+          id?: string
+          item_id?: string
+          mime_type?: string | null
+          storage_path?: string
+          tenant_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gate_pass_item_photos_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_pass_item_photos_gate_pass_id_fkey"
+            columns: ["gate_pass_id"]
+            isOneToOne: false
+            referencedRelation: "material_gate_passes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_pass_item_photos_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "gate_pass_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_pass_item_photos_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gate_pass_items: {
         Row: {
           branch_id: string | null

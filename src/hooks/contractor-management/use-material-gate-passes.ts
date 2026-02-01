@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { compressImage } from "@/lib/upload-utils";
 
 export interface MaterialGatePass {
   id: string;
@@ -54,6 +55,7 @@ export interface GatePassItemInput {
   description?: string;
   quantity?: string;
   unit?: string;
+  photos?: File[];  // Required photos array for item-level photos
 }
 
 export interface CreateGatePassData {
@@ -284,7 +286,7 @@ export function useCreateGatePass() {
 
       if (error) throw error;
 
-      // Insert items
+      // Insert items and upload item photos
       if (data.items.length > 0) {
         const itemsToInsert = data.items.map((item) => ({
           gate_pass_id: result.id,
@@ -295,22 +297,70 @@ export function useCreateGatePass() {
           tenant_id: tenantId,
         }));
 
-        const { error: itemsError } = await supabase
+        const { data: insertedItems, error: itemsError } = await supabase
           .from("gate_pass_items")
-          .insert(itemsToInsert);
+          .insert(itemsToInsert)
+          .select("id");
 
-        if (itemsError) console.error("Items insert error:", itemsError);
+        if (itemsError) {
+          console.error("Items insert error:", itemsError);
+        } else if (insertedItems) {
+          // Upload item-level photos with compression
+          for (let i = 0; i < data.items.length; i++) {
+            const item = data.items[i];
+            const insertedItem = insertedItems[i];
+            
+            if (item.photos && item.photos.length > 0 && insertedItem) {
+              const photoRecords = [];
+
+              for (const photo of item.photos) {
+                // Compress image before upload (maxWidth: 1280, quality: 0.75)
+                const compressedPhoto = await compressImage(photo, 1280, 0.75);
+                
+                const fileName = `${tenantId}/${result.id}/${insertedItem.id}/${crypto.randomUUID()}-${photo.name}`;
+                const { error: uploadError } = await supabase.storage
+                  .from("gate-pass-photos")
+                  .upload(fileName, compressedPhoto);
+
+                if (uploadError) {
+                  console.error("Item photo upload error:", uploadError);
+                  continue;
+                }
+
+                photoRecords.push({
+                  item_id: insertedItem.id,
+                  gate_pass_id: result.id,
+                  storage_path: fileName,
+                  file_name: photo.name,
+                  file_size: compressedPhoto.size,
+                  mime_type: compressedPhoto.type,
+                  uploaded_by: user.id,
+                  tenant_id: tenantId,
+                });
+              }
+
+              if (photoRecords.length > 0) {
+                const { error: photosError } = await supabase
+                  .from("gate_pass_item_photos")
+                  .insert(photoRecords);
+
+                if (photosError) console.error("Item photos insert error:", photosError);
+              }
+            }
+          }
+        }
       }
 
-      // Upload photos
+      // Upload pass-level photos (legacy support)
       if (data.photos.length > 0) {
         const photoRecords = [];
 
         for (const photo of data.photos) {
+          const compressedPhoto = await compressImage(photo, 1280, 0.75);
           const fileName = `${result.id}/${crypto.randomUUID()}-${photo.name}`;
           const { error: uploadError } = await supabase.storage
             .from("gate-pass-photos")
-            .upload(fileName, photo);
+            .upload(fileName, compressedPhoto);
 
           if (uploadError) {
             console.error("Photo upload error:", uploadError);
@@ -321,8 +371,8 @@ export function useCreateGatePass() {
             gate_pass_id: result.id,
             storage_path: fileName,
             file_name: photo.name,
-            file_size: photo.size,
-            mime_type: photo.type,
+            file_size: compressedPhoto.size,
+            mime_type: compressedPhoto.type,
             uploaded_by: user.id,
             tenant_id: tenantId,
           });
