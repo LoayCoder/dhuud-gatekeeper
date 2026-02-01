@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCachedProfile } from '@/hooks/use-cached-profile';
+import { useVersionInfo } from '@/hooks/use-version-info';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
@@ -11,6 +12,7 @@ interface WelcomeCompactProps {
 export function WelcomeCompact({ className }: WelcomeCompactProps) {
   const { t, i18n } = useTranslation();
   const { data: profile, isLoading } = useCachedProfile();
+  const { version, buildDate, isLoading: isVersionLoading } = useVersionInfo();
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Update time every minute
@@ -36,6 +38,16 @@ export function WelcomeCompact({ className }: WelcomeCompactProps) {
     });
   };
 
+  const formatBuildDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
   const firstName = profile?.full_name?.split(' ')[0] || '';
 
   if (isLoading) {
@@ -50,6 +62,11 @@ export function WelcomeCompact({ className }: WelcomeCompactProps) {
       <p className="text-xs text-muted-foreground">
         {formatDate(currentTime)} • {formatTime(currentTime)}
       </p>
+      {!isVersionLoading && version && (
+        <p className="text-xs text-muted-foreground/70">
+          v{version} {buildDate && `• ${formatBuildDate(buildDate)}`}
+        </p>
+      )}
     </div>
   );
 }
