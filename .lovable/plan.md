@@ -1,217 +1,160 @@
 
-# Gate Pass Item Photo Requirement Plan
 
-## Overview
+# Fix Gate Pass Approver Selection - Bug & Feature Implementation
 
-This plan adds a mandatory photo attachment requirement for each item in a Gate Pass, with automatic image compression to optimize storage while maintaining visibility for security verification.
+## Root Cause Identified
+
+The approver list is empty because of a **bug** in `use-dept-approvers.ts`:
+
+```typescript
+// Line 61 - BUG: This column does NOT exist!
+.is("deleted_at", null)
+```
+
+The `user_role_assignments` table has these columns:
+- `id`, `user_id`, `role_id`, `tenant_id`, `assigned_at`, `assigned_by`, `branch_id`, `site_id`
+
+**No `deleted_at` column exists**, causing the query to fail silently and return empty results.
 
 ---
 
-## Current State Analysis
+## Data Verification
 
-| Component | Current Behavior |
-|:----------|:-----------------|
-| `gate_pass_items` table | No photo column or photo association |
-| `gate_pass_photos` table | Photos linked to `gate_pass_id` only (pass-level, not item-level) |
-| `Create.tsx` (My Gate Passes) | No photo upload per item |
-| `GatePassFormDialog.tsx` | Has pass-level photos (max 3), not item-level |
-| `compressImage()` utility | Already exists with configurable maxWidth/quality |
+The database contains the correct data:
+- **Golf Club Management Department** exists (`e1a211c8-2dca-476d-aac2-147996346783`)
+- **Khalid Al Shuhail** (`dcf0e39d-d2df-4c14-89bc-7b8ebab82b32`):
+  - Has `department_representative` role
+  - Assigned to Golf Club Management department
+  - Should appear in the approver dropdown
 
 ---
 
 ## Implementation Plan
 
-### Phase 1: Database Schema - Create Item Photos Table
+### Phase 1: Create New Hook for Golf Club Management Approvers
 
-Create a new table `gate_pass_item_photos` to link photos to specific items:
+Per the original approved plan, create `useGolfClubMgmtApprovers` hook that:
+1. Finds "Golf Club Management" department
+2. Finds users with `department_representative` or `department_manager` role
+3. Filters to only those assigned to Golf Club Management
+4. **Does NOT use non-existent `deleted_at` column**
 
-```sql
-CREATE TABLE gate_pass_item_photos (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  item_id UUID NOT NULL REFERENCES gate_pass_items(id) ON DELETE CASCADE,
-  gate_pass_id UUID NOT NULL REFERENCES material_gate_passes(id) ON DELETE CASCADE,
-  storage_path TEXT NOT NULL,
-  file_name TEXT NOT NULL,
-  file_size INTEGER,
-  mime_type TEXT,
-  uploaded_by UUID REFERENCES auth.users(id),
-  tenant_id UUID NOT NULL REFERENCES tenants(id),
-  branch_id UUID REFERENCES branches(id),
-  created_at TIMESTAMPTZ DEFAULT now(),
-  deleted_at TIMESTAMPTZ
-);
+**New File: `src/hooks/contractor-management/use-golf-club-mgmt-approvers.ts`**
 
--- Indexes for performance
-CREATE INDEX idx_gate_pass_item_photos_item_id ON gate_pass_item_photos(item_id);
-CREATE INDEX idx_gate_pass_item_photos_gate_pass_id ON gate_pass_item_photos(gate_pass_id);
-CREATE INDEX idx_gate_pass_item_photos_tenant_id ON gate_pass_item_photos(tenant_id);
-
--- RLS policies
-ALTER TABLE gate_pass_item_photos ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Tenant isolation for item photos"
-  ON gate_pass_item_photos
-  USING (tenant_id = (auth.jwt() -> 'app_metadata' ->> 'tenant_id')::uuid);
-
-CREATE POLICY "Users can insert own item photos"
-  ON gate_pass_item_photos
-  FOR INSERT
-  WITH CHECK (
-    tenant_id = (auth.jwt() -> 'app_metadata' ->> 'tenant_id')::uuid
-    AND uploaded_by = auth.uid()
-  );
-```
-
----
-
-### Phase 2: Enhanced Image Compression
-
-Update compression settings for optimal security verification:
-
-| Setting | Value | Rationale |
-|:--------|:------|:----------|
-| `maxWidth` | 1280px | Good detail for item verification |
-| `quality` | 0.75 | Balance between size and clarity |
-| Target size | ~100-300KB | Fast loading on mobile |
-
-The existing `compressImage()` function in `src/lib/upload-utils.ts` already supports this - we'll use it with optimized parameters.
-
----
-
-### Phase 3: Create Item Photo Upload Component
-
-Create a new reusable component `GatePassItemPhotoUpload.tsx`:
-
-```text
-Location: src/components/contractors/GatePassItemPhotoUpload.tsx
-
-Features:
-- Camera capture button (mobile)
-- File upload button
-- Photo preview thumbnail
-- Remove photo button
-- Required indicator (red asterisk)
-- Validation error message if missing
-- Automatic compression on capture/upload
-```
-
-**Component Structure:**
-```text
-┌─────────────────────────────────────────┐
-│  📷 [Take Photo]  📁 [Upload]           │
-├─────────────────────────────────────────┤
-│  ┌──────┐  ┌──────┐  ┌──────┐          │
-│  │ img1 │  │ img2 │  │  +   │          │
-│  │  ❌  │  │  ❌  │  │ add  │          │
-│  └──────┘  └──────┘  └──────┘          │
-├─────────────────────────────────────────┤
-│  ⚠️ At least 1 photo required          │ (if empty)
-└─────────────────────────────────────────┘
-```
-
----
-
-### Phase 4: Update Items Table UI
-
-Modify the items table in both `Create.tsx` and `GatePassFormDialog.tsx`:
-
-**New Column Structure:**
-```text
-| # | Item Name* | Description | Qty | Unit | Photo* | ❌ |
-|---|------------|-------------|-----|------|--------|-----|
-| 1 | Cement     | 50kg bags   | 100 | bags | [📷 +] |  🗑 |
-| 2 | Steel bars | 12mm        | 50  | pcs  | [1 📷] |  🗑 |
-```
-
-**Photo Cell States:**
-1. **No photos**: Camera icon with "Add" - shows error border
-2. **Has photos**: Shows count and thumbnail preview
-3. **Uploading**: Shows spinner
-
----
-
-### Phase 5: Update Form Schema and Validation
-
-**Updated Item Schema:**
 ```typescript
-const itemSchema = z.object({
-  item_name: z.string().min(1, "Item name is required"),
-  description: z.string().optional(),
-  quantity: z.string().optional(),
-  unit: z.string().optional(),
-  photos: z.array(z.instanceof(File)).min(1, "At least one photo is required"),
-  photoPreviewUrls: z.array(z.string()).optional(), // For UI preview
-});
-```
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
-**Form Validation:**
-- Form cannot be submitted if ANY item has 0 photos
-- Clear error message indicating which items are missing photos
-- Visual indicator on items without photos
+interface GolfClubMgmtApprover {
+  id: string;
+  full_name: string;
+  job_title: string | null;
+}
+
+export function useGolfClubMgmtApprovers() {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
+  return useQuery({
+    queryKey: ["golf-club-mgmt-approvers", tenantId],
+    queryFn: async (): Promise<GolfClubMgmtApprover[]> => {
+      if (!tenantId) return [];
+
+      // 1. Find Golf Club Management department
+      const { data: golfClubDepts } = await supabase
+        .from("departments")
+        .select("id")
+        .eq("tenant_id", tenantId)
+        .or("name.eq.Golf Club Management,name.ilike.%golf%club%management%")
+        .is("deleted_at", null);
+
+      if (!golfClubDepts?.length) return [];
+      const deptIds = golfClubDepts.map(d => d.id);
+
+      // 2. Find users with department_representative or department_manager role
+      // NOTE: user_role_assignments does NOT have deleted_at column
+      const { data: roleAssignments } = await supabase
+        .from("user_role_assignments")
+        .select("user_id, roles!inner(code)")
+        .eq("tenant_id", tenantId);
+
+      if (!roleAssignments) return [];
+
+      const repManagerUserIds = roleAssignments
+        .filter((item) => {
+          const roleCode = (item.roles as { code: string })?.code;
+          return roleCode === "department_representative" || roleCode === "department_manager";
+        })
+        .map((item) => item.user_id);
+
+      if (repManagerUserIds.length === 0) return [];
+
+      // 3. Get profiles of these users who are assigned to Golf Club Management
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name, job_title, assigned_department_id")
+        .in("id", repManagerUserIds)
+        .in("assigned_department_id", deptIds)
+        .eq("is_active", true)
+        .is("deleted_at", null)
+        .order("full_name");
+
+      return (profiles || []).map(p => ({
+        id: p.id,
+        full_name: p.full_name || "Unknown",
+        job_title: p.job_title,
+      }));
+    },
+    enabled: !!tenantId,
+  });
+}
+```
 
 ---
 
-### Phase 6: Update Create Gate Pass Hook
+### Phase 2: Update Create.tsx to Use New Hook
 
-Modify `useCreateGatePass` in `use-material-gate-passes.ts`:
+**File: `src/pages/my-gate-passes/Create.tsx`**
 
-**New Flow:**
-1. Create gate pass record
-2. Insert items to `gate_pass_items`
-3. For each item with photos:
-   a. Compress each photo (maxWidth: 1280, quality: 0.75)
-   b. Upload to storage: `gate-pass-photos/{tenant_id}/{gate_pass_id}/{item_id}/{filename}`
-   c. Insert record to `gate_pass_item_photos`
+Change import and usage:
 
-**Updated Interface:**
 ```typescript
-export interface GatePassItemInput {
-  item_name: string;
-  description?: string;
-  quantity?: string;
-  unit?: string;
-  photos: File[];  // NEW: Required photos array
-}
+// Line 40: Change from
+import { useDeptApprovers } from "@/hooks/contractor-management/use-dept-approvers";
+// To
+import { useGolfClubMgmtApprovers } from "@/hooks/contractor-management/use-golf-club-mgmt-approvers";
+
+// Line 89: Change from
+const { data: approvers, isLoading: loadingApprovers } = useDeptApprovers();
+// To
+const { data: approvers, isLoading: loadingApprovers } = useGolfClubMgmtApprovers();
 ```
 
 ---
 
-### Phase 7: Add Translation Keys
+### Phase 3: Fix the Existing useDeptApprovers Hook (Bonus)
 
-**English (`src/locales/en/translation.json`):**
-```json
-{
-  "gatePasses": {
-    "itemPhoto": "Item Photo",
-    "itemPhotoRequired": "At least one photo is required for each item",
-    "addItemPhoto": "Add Photo",
-    "itemPhotoDescription": "Attach a photo of the item for security verification",
-    "itemsWithoutPhotos": "{{count}} item(s) are missing required photos",
-    "takePhoto": "Take Photo",
-    "uploadPhoto": "Upload",
-    "removePhoto": "Remove Photo",
-    "photoCompressing": "Compressing...",
-    "photoUploading": "Uploading..."
-  }
-}
+Also fix the bug in `use-dept-approvers.ts` for other places that might use it:
+
+```typescript
+// Line 57-61: Remove the invalid .is("deleted_at", null)
+const { data: roleAssignments } = await supabase
+  .from("user_role_assignments")
+  .select("user_id, roles!inner(code)")
+  .eq("tenant_id", tenantId);
+  // Removed: .is("deleted_at", null) - column does not exist!
 ```
 
-**Arabic (`src/locales/ar/translation.json`):**
-```json
-{
-  "gatePasses": {
-    "itemPhoto": "صورة الصنف",
-    "itemPhotoRequired": "مطلوب صورة واحدة على الأقل لكل صنف",
-    "addItemPhoto": "إضافة صورة",
-    "itemPhotoDescription": "أرفق صورة للصنف للتحقق الأمني",
-    "itemsWithoutPhotos": "{{count}} صنف بدون صور مطلوبة",
-    "takePhoto": "التقاط صورة",
-    "uploadPhoto": "رفع",
-    "removePhoto": "حذف الصورة",
-    "photoCompressing": "جاري الضغط...",
-    "photoUploading": "جاري الرفع..."
-  }
-}
+---
+
+### Phase 4: Export New Hook
+
+**File: `src/hooks/contractor-management/index.ts`**
+
+Add export:
+```typescript
+export * from "./use-golf-club-mgmt-approvers";
 ```
 
 ---
@@ -220,128 +163,26 @@ export interface GatePassItemInput {
 
 | File | Action | Description |
 |:-----|:-------|:------------|
-| Migration SQL | **Create** | Add `gate_pass_item_photos` table with RLS |
-| `src/components/contractors/GatePassItemPhotoUpload.tsx` | **Create** | New photo upload component for items |
-| `src/pages/my-gate-passes/Create.tsx` | **Modify** | Add photo column to items table, validation |
-| `src/components/contractors/GatePassFormDialog.tsx` | **Modify** | Add photo column to items table, validation |
-| `src/hooks/contractor-management/use-material-gate-passes.ts` | **Modify** | Handle item photo uploads with compression |
-| `src/locales/en/translation.json` | **Modify** | Add photo-related translations |
-| `src/locales/ar/translation.json` | **Modify** | Add Arabic photo-related translations |
+| `src/hooks/contractor-management/use-golf-club-mgmt-approvers.ts` | **Create** | New hook for Golf Club Management approvers |
+| `src/pages/my-gate-passes/Create.tsx` | **Modify** | Use new hook instead of `useDeptApprovers` |
+| `src/hooks/contractor-management/use-dept-approvers.ts` | **Modify** | Remove invalid `.is("deleted_at", null)` |
+| `src/hooks/contractor-management/index.ts` | **Modify** | Export new hook |
 
 ---
 
-## Compression Settings Summary
+## Expected Result
 
-| Parameter | Value | Purpose |
-|:----------|:------|:--------|
-| Max Width | 1280px | Sufficient detail for item identification |
-| Quality | 0.75 (75%) | Good balance of size and clarity |
-| Format | JPEG | Best compression for photos |
-| Expected Size | 100-300KB | Fast upload on mobile networks |
-
-**Compression Logic:**
-```typescript
-// Optimized for security verification
-const compressedFile = await compressImage(file, 1280, 0.75);
-```
+After this fix:
+- **Khalid Al Shuhail** (Golf Club Management Department Representative) will appear in the approver dropdown
+- Any future department representatives/managers assigned to Golf Club Management will also appear
+- The existing `useDeptApprovers` hook will work correctly for other features that use it
 
 ---
 
-## Validation Flow
+## Technical Summary
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│                    USER ADDS ITEMS                           │
-└─────────────────────────────────────────────────────────────┘
-                              │
-              ┌───────────────▼───────────────┐
-              │  For each item:               │
-              │  - Item name (required)       │
-              │  - Description (optional)     │
-              │  - Quantity (optional)        │
-              │  - Unit (optional)            │
-              │  - Photo(s) (REQUIRED)        │
-              └───────────────┬───────────────┘
-                              │
-              ┌───────────────▼───────────────┐
-              │  User clicks "Submit"         │
-              └───────────────┬───────────────┘
-                              │
-              ┌───────────────▼───────────────┐
-              │  Check: All items have ≥1     │
-              │  photo?                       │
-              └───────────────┬───────────────┘
-                              │
-          ┌───────────────────┴───────────────────┐
-          │                                       │
-          ▼                                       ▼
-┌─────────────────┐                     ┌─────────────────────┐
-│      YES        │                     │        NO           │
-│ Compress photos │                     │ Show error:         │
-│ Upload to       │                     │ "X item(s) missing  │
-│ storage         │                     │  required photos"   │
-│ Create records  │                     │ Highlight items     │
-└─────────────────┘                     │ Block submission    │
-                                        └─────────────────────┘
-```
+| Issue | Cause | Fix |
+|:------|:------|:----|
+| Empty approver list | Query uses non-existent `deleted_at` column on `user_role_assignments` | Remove the invalid filter + create specific Golf Club Management hook |
 
----
 
-## UI Preview
-
-### Items Table with Photo Column
-
-```text
-┌────────────────────────────────────────────────────────────────────────────┐
-│ # │ Item Name *     │ Description  │ Qty  │ Unit    │ Photo *    │   │
-├───┼─────────────────┼──────────────┼──────┼─────────┼────────────┼───┤
-│ 1 │ ┌─────────────┐ │ ┌──────────┐ │ ┌──┐ │ ┌─────┐ │ ┌────────┐ │ 🗑│
-│   │ │ Cement      │ │ │ 50kg bag │ │ │10│ │ │ bag │ │ │ 📷 1 ✓ │ │   │
-│   │ └─────────────┘ │ └──────────┘ │ └──┘ │ └─────┘ │ └────────┘ │   │
-├───┼─────────────────┼──────────────┼──────┼─────────┼────────────┼───┤
-│ 2 │ ┌─────────────┐ │ ┌──────────┐ │ ┌──┐ │ ┌─────┐ │ ┌────────┐ │ 🗑│
-│   │ │ Steel bars  │ │ │ 12mm     │ │ │50│ │ │ pcs │ │ │ ⚠️ Add │ │   │
-│   │ └─────────────┘ │ └──────────┘ │ └──┘ │ └─────┘ │ └────────┘ │   │
-└───┴─────────────────┴──────────────┴──────┴─────────┴────────────┴───┘
-
-❌ 1 item is missing a required photo
-
-[+ Add Item]                                    [Cancel] [Submit Request]
-                                                          ↑ disabled
-```
-
----
-
-## Security Verification Benefits
-
-1. **Visual Verification**: Guards can compare actual items with photos
-2. **Audit Trail**: Photos stored with item-level association for accountability
-3. **Tamper Detection**: Mismatched items can be identified at entry/exit
-4. **Storage Efficiency**: Compressed images reduce storage costs by ~70%
-5. **Mobile Performance**: Optimized for field workers on cellular networks
-
----
-
-## Testing Checklist
-
-**Photo Upload:**
-- [ ] Can take photo via camera on mobile
-- [ ] Can upload photo from file picker
-- [ ] Photo is compressed automatically
-- [ ] Can add multiple photos per item
-- [ ] Can remove photos before submission
-
-**Validation:**
-- [ ] Cannot submit if any item has 0 photos
-- [ ] Error message clearly indicates which items need photos
-- [ ] Items without photos have visual indicator (red border)
-
-**Storage:**
-- [ ] Photos uploaded to correct storage path
-- [ ] Records created in `gate_pass_item_photos` table
-- [ ] Tenant isolation enforced via RLS
-
-**Performance:**
-- [ ] Compression reduces file size significantly
-- [ ] Upload completes within reasonable time on 4G
-- [ ] Large images (10MB+) handled gracefully
