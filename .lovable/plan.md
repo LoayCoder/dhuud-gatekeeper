@@ -1,175 +1,206 @@
 
-# Fix Organizational Structure: Divisions Display & Department Deduplication
+# Add Duplicate Detection Logic for All Organization Structure Items
 
 ## Problem Summary
+The current duplicate validation for Departments and Sections only checks within the same parent (division/department) + branch, which allowed duplicates to be created across branches. Other items (Divisions, Branches, Sites, Buildings, Floors/Zones) have **no duplicate validation at all**.
 
-### 1. Divisions Tab Shows Empty
-When LUAY (RGC branch) views the Divisions tab, it shows "No items" despite 8 valid hybrid divisions existing.
-
-**Root Cause**: The `applyBranchFilter` in the divisions query uses exact `branch_id` match:
-```sql
-WHERE branch_id = 'RGC-uuid'  -- But hybrid divisions have branch_id = NULL
-```
-
-All 8 active divisions in Golf Saudi are **hybrid** (branch_id = NULL), designed to be shared across both RGC and DGC branches.
-
-### 2. Duplicate Departments (8 pairs)
-Each department name exists twice - once for RGC and once for DGC:
-
-| Department Name | RGC ID | DGC ID |
-|:----------------|:-------|:-------|
-| BCM | eb8f90b3... | 7565fc24... |
-| Compliance Management | d778dd93... | 9597bc1c... |
-| Corporate Affairs | 1976160f... | 44e35522... |
-| Development | 5b571578... | 5e598d82... |
-| Golf Club Management | e1a211c8... | c1f11b84... |
-| Governance Management | ac86a5eb... | 9277cb4d... |
-| PMO | f6db3de8... | 839f4195... |
-| Risk Management | 6015c7cd... | 919fd52f... |
-
-### 3. Cross-Tenant Reference (Critical Data Issue)
-The **Safety** department (Golf Saudi) references an HSSE division from the **Dhuud Platform** tenant - this is a data integrity violation.
+## Solution
+Implement tenant-wide duplicate detection based on **name + tenant_id** for all organization structure items. This prevents any two items with the same name from existing within the same tenant.
 
 ---
 
-## Solution Plan
+## Items to Protect
 
-### Step 1: Fix Divisions Query (UI Bug)
-
-**File**: `src/pages/admin/OrgStructure.tsx`
-
-Modify the divisions query to include hybrid divisions (branch_id IS NULL) when filtering by branch:
-
-```sql
--- Before (excludes hybrids)
-WHERE branch_id = 'RGC-uuid'
-
--- After (includes hybrids)
-WHERE (branch_id = 'RGC-uuid' OR branch_id IS NULL)
-```
-
-**Implementation**: Update the `applyBranchFilter` call for divisions to use an OR filter that includes NULL branch_ids.
-
-### Step 2: Create Missing HSSE Division in Golf Saudi
-
-Create a new hybrid HSSE division in Golf Saudi tenant to fix the cross-tenant reference:
-
-```sql
-INSERT INTO divisions (id, name, tenant_id, branch_id)
-VALUES (
-  gen_random_uuid(),
-  'HSSE',
-  'e30ae1a5-7eab-4776-bd0b-bb0b391e68e8',  -- Golf Saudi
-  NULL  -- Hybrid
-);
-```
-
-### Step 3: Fix Safety Department Reference
-
-Update the Safety department to reference the new Golf Saudi HSSE division:
-
-```sql
-UPDATE departments
-SET division_id = [new_hsse_id]
-WHERE id = '507d35dd-4d4c-4bec-ba7a-0f5ea7bd63e0';  -- Safety dept
-```
-
-### Step 4: Consolidate Duplicate Departments
-
-For each duplicate pair, we need to:
-1. Pick one department as the "survivor" (preferably the one with more assignments)
-2. Migrate all user profile assignments (`assigned_department_id`)
-3. Migrate all site_departments mappings
-4. Soft-delete the duplicate
-
-**Migration Script** (example for Corporate Affairs):
-```sql
--- 1. Check which Corporate Affairs has users assigned
-SELECT assigned_department_id, COUNT(*) 
-FROM profiles 
-WHERE assigned_department_id IN ('1976160f...', '44e35522...')
-GROUP BY assigned_department_id;
-
--- 2. Migrate users from duplicate to survivor
-UPDATE profiles 
-SET assigned_department_id = 'survivor_id'
-WHERE assigned_department_id = 'duplicate_id';
-
--- 3. Migrate site_departments if any
-UPDATE site_departments
-SET department_id = 'survivor_id'
-WHERE department_id = 'duplicate_id';
-
--- 4. Soft-delete the duplicate
-UPDATE departments
-SET deleted_at = NOW()
-WHERE id = 'duplicate_id';
-```
-
-### Step 5: Make Surviving Departments Hybrid
-
-After consolidation, update each surviving department to be hybrid (accessible from both branches):
-
-```sql
-UPDATE departments
-SET branch_id = NULL
-WHERE id IN ('survivor_ids...');
-```
+| Item Type | Current Validation | New Validation |
+|:----------|:-------------------|:---------------|
+| Branches | None | Name unique within tenant |
+| Divisions | None | Name unique within tenant |
+| Departments | Name + Division + Branch | Name unique within tenant |
+| Sections | Name + Department + Branch | Name unique within tenant |
+| Sites | None | Name unique within tenant |
+| Buildings | None | Name + Site (same building name can exist at different sites) |
+| Floors/Zones | None | Name + Building (same floor name can exist in different buildings) |
 
 ---
 
-## Technical Details
+## Implementation Details
 
-### Files to Modify
+### File to Modify
+`src/pages/admin/OrgStructure.tsx`
 
-| File | Change |
-|:-----|:-------|
-| `src/pages/admin/OrgStructure.tsx` | Fix divisions query to include NULL branch_ids |
-| Database Migration | Create HSSE division, fix Safety reference, consolidate duplicates |
+### Changes to `handleCreate` Function
 
-### Query Fix for Divisions
-
-In `OrgStructure.tsx`, replace the divisions query filter (around line 189):
-
+**1. Add Branch Duplicate Check (new)**
 ```typescript
-// Current (broken)
-divisionsQuery = applyBranchFilter(divisionsQuery);
+if (table === 'branches') {
+  const existingBranch = branches.find(b => 
+    b.name.toLowerCase() === newItemName.trim().toLowerCase()
+  );
+  if (existingBranch) {
+    toast({ 
+      title: t('common.error'), 
+      description: t('orgStructure.branchAlreadyExists'),
+      variant: "destructive" 
+    });
+    setCreating(false);
+    return;
+  }
+}
+```
 
-// Fixed - Include hybrid divisions
-if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
-  if (branchIds.length === 1) {
-    divisionsQuery = divisionsQuery.or(`branch_id.eq.${branchIds[0]},branch_id.is.null`);
-  } else {
-    divisionsQuery = divisionsQuery.or(`branch_id.in.(${branchIds.join(',')}),branch_id.is.null`);
+**2. Add Division Duplicate Check (new)**
+```typescript
+if (table === 'divisions') {
+  const existingDivision = divisions.find(d => 
+    d.name.toLowerCase() === newItemName.trim().toLowerCase()
+  );
+  if (existingDivision) {
+    toast({ 
+      title: t('common.error'), 
+      description: t('orgStructure.divisionAlreadyExists'),
+      variant: "destructive" 
+    });
+    setCreating(false);
+    return;
+  }
+}
+```
+
+**3. Simplify Department Duplicate Check (modify existing)**
+```typescript
+// Before: Checked name + division_id + branch_id
+// After: Check name only (tenant-wide)
+if (table === 'departments') {
+  const existingDept = departments.find(d => 
+    d.name.toLowerCase() === newItemName.trim().toLowerCase()
+  );
+  if (existingDept) {
+    toast({ 
+      title: t('common.error'), 
+      description: t('orgStructure.departmentAlreadyExists'),
+      variant: "destructive" 
+    });
+    setCreating(false);
+    return;
+  }
+}
+```
+
+**4. Simplify Section Duplicate Check (modify existing)**
+```typescript
+// Before: Checked name + department_id + branch_id
+// After: Check name only (tenant-wide)
+if (table === 'sections') {
+  const existingSection = sections.find(s => 
+    s.name.toLowerCase() === newItemName.trim().toLowerCase()
+  );
+  if (existingSection) {
+    toast({ 
+      title: t('common.error'), 
+      description: t('orgStructure.sectionAlreadyExists'),
+      variant: "destructive" 
+    });
+    setCreating(false);
+    return;
+  }
+}
+```
+
+**5. Add Site Duplicate Check (new)**
+```typescript
+if (table === 'sites') {
+  const existingSite = sites.find(s => 
+    s.name.toLowerCase() === newItemName.trim().toLowerCase()
+  );
+  if (existingSite) {
+    toast({ 
+      title: t('common.error'), 
+      description: t('orgStructure.siteAlreadyExists'),
+      variant: "destructive" 
+    });
+    setCreating(false);
+    return;
+  }
+}
+```
+
+**6. Add Building Duplicate Check (new)**
+```typescript
+if (table === 'buildings') {
+  // Buildings: same name allowed at different sites, but not same site
+  const existingBuilding = buildings.find(b => 
+    b.name.toLowerCase() === newItemName.trim().toLowerCase() &&
+    b.site_id === selectedSiteForBuilding
+  );
+  if (existingBuilding) {
+    toast({ 
+      title: t('common.error'), 
+      description: t('orgStructure.buildingAlreadyExists'),
+      variant: "destructive" 
+    });
+    setCreating(false);
+    return;
+  }
+}
+```
+
+**7. Add Floor/Zone Duplicate Check (new)**
+```typescript
+if (table === 'floors_zones') {
+  // Floors: same name allowed in different buildings, but not same building
+  const existingFloor = floorsZones.find(f => 
+    f.name.toLowerCase() === newItemName.trim().toLowerCase() &&
+    f.building_id === selectedBuildingForFloor
+  );
+  if (existingFloor) {
+    toast({ 
+      title: t('common.error'), 
+      description: t('orgStructure.floorZoneAlreadyExists'),
+      variant: "destructive" 
+    });
+    setCreating(false);
+    return;
   }
 }
 ```
 
 ---
 
-## Migration Steps Summary
+## Translation Keys to Add
 
-1. **Create HSSE Division** in Golf Saudi tenant (hybrid)
-2. **Fix Safety Department** → point to new Golf Saudi HSSE
-3. **For each duplicate department pair**:
-   - Identify which has user assignments
-   - Migrate users and site_departments to survivor
-   - Soft-delete the duplicate
-4. **Convert survivors to hybrid** (branch_id = NULL)
-5. **Update UI query** to show hybrid divisions
+Add to all locale files (`en`, `ar`, `hi`, `ur`, `fil`):
+
+```json
+{
+  "orgStructure": {
+    "branchAlreadyExists": "A branch with this name already exists.",
+    "divisionAlreadyExists": "A division with this name already exists.",
+    "siteAlreadyExists": "A site with this name already exists.",
+    "buildingAlreadyExists": "A building with this name already exists at this site.",
+    "floorZoneAlreadyExists": "A floor/zone with this name already exists in this building."
+  }
+}
+```
+
+**Arabic translations:**
+```json
+{
+  "branchAlreadyExists": "يوجد بالفعل فرع بهذا الاسم.",
+  "divisionAlreadyExists": "يوجد بالفعل قطاع بهذا الاسم.",
+  "siteAlreadyExists": "يوجد بالفعل موقع بهذا الاسم.",
+  "buildingAlreadyExists": "يوجد بالفعل مبنى بهذا الاسم في هذا الموقع.",
+  "floorZoneAlreadyExists": "يوجد بالفعل طابق/منطقة بهذا الاسم في هذا المبنى."
+}
+```
 
 ---
 
-## Expected Result After Fix
+## Summary
 
-- Divisions tab shows all 9 divisions (8 existing + new HSSE)
-- Each department appears only once in the list
-- Both RGC and DGC users see the same departments
-- Safety department correctly references Golf Saudi HSSE division
-- LUAY's `assigned_department_id` remains valid (Corporate Affairs becomes hybrid)
+| Change | Description |
+|:-------|:------------|
+| Code changes | Add 5 new duplicate checks, simplify 2 existing checks |
+| Translation updates | Add 5 new keys across 5 locale files |
+| Validation scope | Tenant-wide for main items, parent-scoped for Buildings/Floors |
 
----
-
-## Rollback Safety
-
-All department deletions use soft-delete (setting `deleted_at` timestamp), so data can be recovered if needed.
+This prevents future duplicates while aligning with the hybrid organizational model where items are shared across branches.
