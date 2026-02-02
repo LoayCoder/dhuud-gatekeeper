@@ -1,11 +1,10 @@
 {
-  "version": "2026.01.22.001",
-  "buildDate": "2026-01-22T12:00:00Z",
-  "publishedAt": "2026-01-22T14:30:00Z",
+  "version": "2026.02.02.001",
+  "buildDate": "2026-02-02T10:15:00Z",
+  "publishedAt": "2026-02-02T10:15:00Z",
   "releaseNotes": [
-    "Fixed persistent update popup issue",
-    "Improved service worker update handling",
-    "Added department gate pass management"
+    "Auto-update version system implemented",
+    "Version now updates automatically on publish"
   ],
   "priority": "normal"
 }
