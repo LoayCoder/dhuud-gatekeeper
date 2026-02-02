@@ -196,21 +196,37 @@ export default function OrgStructure() {
         }
       }
 
-      // Departments query with branch filter
+      // Departments query with branch filter - include hybrid departments (branch_id IS NULL)
       let departmentsQuery = supabase.from('departments')
         .select('id, name, division_id, branch_id, divisions(name), branches(name)')
         .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('name');
-      departmentsQuery = applyBranchFilter(departmentsQuery);
+      
+      // Special handling for departments: include hybrid (branch_id IS NULL) alongside branch-specific
+      if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
+        if (branchIds.length === 1) {
+          departmentsQuery = departmentsQuery.or(`branch_id.eq.${branchIds[0]},branch_id.is.null`);
+        } else {
+          departmentsQuery = departmentsQuery.or(`branch_id.in.(${branchIds.join(',')}),branch_id.is.null`);
+        }
+      }
 
-      // Sections query with branch filter
+      // Sections query with branch filter - include hybrid sections (branch_id IS NULL)
       let sectionsQuery = supabase.from('sections')
         .select('id, name, department_id, branch_id, departments(name), branches(name)')
         .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('name');
-      sectionsQuery = applyBranchFilter(sectionsQuery);
+      
+      // Special handling for sections: include hybrid (branch_id IS NULL) alongside branch-specific
+      if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
+        if (branchIds.length === 1) {
+          sectionsQuery = sectionsQuery.or(`branch_id.eq.${branchIds[0]},branch_id.is.null`);
+        } else {
+          sectionsQuery = sectionsQuery.or(`branch_id.in.(${branchIds.join(',')}),branch_id.is.null`);
+        }
+      }
 
       // SITES: Always fetch ALL sites for the tenant (like Branches)
       // Site Management should show all sites regardless of active branch filter
