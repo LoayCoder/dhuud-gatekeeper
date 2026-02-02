@@ -334,6 +334,124 @@ export default function OrgStructure() {
         tenant_id: profile.tenant_id
       };
 
+      // ===== DUPLICATE DETECTION (tenant-wide) =====
+      
+      // Branch duplicate check (tenant-wide)
+      if (table === 'branches') {
+        const existingBranch = branches.find(b => 
+          b.name.toLowerCase() === newItemName.trim().toLowerCase()
+        );
+        if (existingBranch) {
+          toast({ 
+            title: t('common.error'), 
+            description: t('orgStructure.branchAlreadyExists'),
+            variant: "destructive" 
+          });
+          setCreating(false);
+          return;
+        }
+      }
+
+      // Division duplicate check (tenant-wide)
+      if (table === 'divisions') {
+        const existingDivision = divisions.find(d => 
+          d.name.toLowerCase() === newItemName.trim().toLowerCase()
+        );
+        if (existingDivision) {
+          toast({ 
+            title: t('common.error'), 
+            description: t('orgStructure.divisionAlreadyExists'),
+            variant: "destructive" 
+          });
+          setCreating(false);
+          return;
+        }
+      }
+
+      // Department duplicate check (tenant-wide)
+      if (table === 'departments') {
+        const existingDept = departments.find(d => 
+          d.name.toLowerCase() === newItemName.trim().toLowerCase()
+        );
+        if (existingDept) {
+          toast({ 
+            title: t('common.error'), 
+            description: t('orgStructure.departmentAlreadyExists'),
+            variant: "destructive" 
+          });
+          setCreating(false);
+          return;
+        }
+      }
+
+      // Section duplicate check (tenant-wide)
+      if (table === 'sections') {
+        const existingSection = sections.find(s => 
+          s.name.toLowerCase() === newItemName.trim().toLowerCase()
+        );
+        if (existingSection) {
+          toast({ 
+            title: t('common.error'), 
+            description: t('orgStructure.sectionAlreadyExists'),
+            variant: "destructive" 
+          });
+          setCreating(false);
+          return;
+        }
+      }
+
+      // Site duplicate check (tenant-wide)
+      if (table === 'sites') {
+        const existingSite = sites.find(s => 
+          s.name.toLowerCase() === newItemName.trim().toLowerCase()
+        );
+        if (existingSite) {
+          toast({ 
+            title: t('common.error'), 
+            description: t('orgStructure.siteAlreadyExists'),
+            variant: "destructive" 
+          });
+          setCreating(false);
+          return;
+        }
+      }
+
+      // Building duplicate check (within same site)
+      if (table === 'buildings') {
+        const existingBuilding = buildings.find(b => 
+          b.name.toLowerCase() === newItemName.trim().toLowerCase() &&
+          b.site_id === selectedSiteForBuilding
+        );
+        if (existingBuilding) {
+          toast({ 
+            title: t('common.error'), 
+            description: t('orgStructure.buildingAlreadyExists'),
+            variant: "destructive" 
+          });
+          setCreating(false);
+          return;
+        }
+      }
+
+      // Floor/Zone duplicate check (within same building)
+      if (table === 'floors_zones') {
+        const existingFloor = floorsZones.find(f => 
+          f.name.toLowerCase() === newItemName.trim().toLowerCase() &&
+          f.building_id === selectedBuildingForFloor
+        );
+        if (existingFloor) {
+          toast({ 
+            title: t('common.error'), 
+            description: t('orgStructure.floorZoneAlreadyExists'),
+            variant: "destructive" 
+          });
+          setCreating(false);
+          return;
+        }
+      }
+
+      // ===== END DUPLICATE DETECTION =====
+
       // Handle branch assignment for divisions - use explicit form selection
       if (table === 'divisions') {
         if (selectedBranchForDivision && selectedBranchForDivision !== 'all') {
@@ -391,7 +509,7 @@ export default function OrgStructure() {
         }
       }
 
-      // Add parent FKs for departments with duplicate validation
+      // Add parent FKs for departments
       if (table === 'departments') {
         if (!parentId) {
           toast({ title: t('common.error'), description: t('orgStructure.divisionRequired'), variant: "destructive" });
@@ -399,26 +517,9 @@ export default function OrgStructure() {
           return;
         }
         payload.division_id = parentId;
-        
-        // Check for duplicate department (same name + same division + same branch)
-        const branchId = selectedBranchForDepartment === 'all' ? null : selectedBranchForDepartment;
-        const existingDept = departments.find(d => 
-          d.name.toLowerCase() === newItemName.trim().toLowerCase() &&
-          d.division_id === parentId &&
-          d.branch_id === branchId
-        );
-        if (existingDept) {
-          toast({ 
-            title: t('common.error'), 
-            description: t('orgStructure.departmentAlreadyExists'),
-            variant: "destructive" 
-          });
-          setCreating(false);
-          return;
-        }
       }
 
-      // Add parent FKs for sections with duplicate validation
+      // Add parent FKs for sections
       if (table === 'sections') {
         if (!parentId) {
           toast({ title: t('common.error'), description: t('orgStructure.departmentRequired'), variant: "destructive" });
@@ -426,23 +527,6 @@ export default function OrgStructure() {
           return;
         }
         payload.department_id = parentId;
-        
-        // Check for duplicate section (same name + same department + same branch)
-        const branchId = selectedBranchForSection === 'all' ? null : selectedBranchForSection;
-        const existingSection = sections.find(s => 
-          s.name.toLowerCase() === newItemName.trim().toLowerCase() &&
-          s.department_id === parentId &&
-          s.branch_id === branchId
-        );
-        if (existingSection) {
-          toast({ 
-            title: t('common.error'), 
-            description: t('orgStructure.sectionAlreadyExists'),
-            variant: "destructive" 
-          });
-          setCreating(false);
-          return;
-        }
       }
 
       // Add building-specific fields
