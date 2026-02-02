@@ -170,14 +170,17 @@ export function useDeptPendingApprovals() {
       // 3. INTERNAL requests pending Golf Club Management acknowledgment
       // Check if current user is in Golf Club Management department
       if (departmentId) {
-        const { data: golfDept } = await supabase
+        // First get the user's department name
+        const { data: userDept } = await supabase
           .from("departments")
-          .select("id")
+          .select("id, name")
           .eq("id", departmentId)
-          .or("name.eq.Golf Club Management,name.ilike.%golf%club%management%")
           .maybeSingle();
 
-        if (golfDept) {
+        // Check if user is in Golf Club Management department
+        const isGolfClubMgmt = userDept?.name?.toLowerCase().includes("golf club management");
+
+        if (isGolfClubMgmt) {
           // User is in Golf Club Management - fetch all internal pending_club_mgmt_ack
           const { data: clubMgmtPasses, error: clubMgmtError } = await supabase
             .from("material_gate_passes")
