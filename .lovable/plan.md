@@ -1,100 +1,75 @@
 
-# Fix: Gate Pass Item Photos Not Saving to Database
+# Fix: Golf Club Management Cannot See Internal Gate Passes for Acknowledgment
 
-## Problem Identified
+## Problem Summary
 
-When users attach photos to gate pass items, the photos are successfully uploaded to storage but the **database records in `gate_pass_item_photos` are not being created**. This causes photos to not display in the gate pass detail view.
+Khalid Al Shuhail (Golf Club Management) cannot see gate pass GP-2026-00004 because the system doesn't route **internal requests** with `pending_club_mgmt_ack` status to Golf Club Management users.
 
-### Root Cause
+### Current Broken Logic
 
-The RLS (Row Level Security) policies on the `gate_pass_item_photos` table use a **JWT-based tenant check** that doesn't work:
+The `useDeptPendingApprovals` hook fetches:
 
-```sql
-tenant_id = (auth.jwt() -> 'app_metadata' ->> 'tenant_id')::uuid
-```
+| Request Type | Status Fetched | Who Sees It |
+|:-------------|:---------------|:------------|
+| Internal | `pending_dept_approval` | User in `approval_from_id` |
+| External | `pending_contractor_approval`, `pending_club_mgmt_ack` | Dept Rep for project's department |
 
-This fails because users' JWTs do **NOT contain `tenant_id` in app_metadata** - the tenant_id is stored in the `profiles` table instead.
+### Missing Case
 
-Other working tables (like `gate_pass_items`) use the correct approach:
-
-```sql
-tenant_id = get_auth_tenant_id()
-```
-
-The `get_auth_tenant_id()` function properly looks up the tenant_id from the profiles table.
+| Request Type | Status | Who Should See It |
+|:-------------|:-------|:------------------|
+| Internal | `pending_club_mgmt_ack` | Golf Club Management Dept Reps/Managers |
 
 ---
 
 ## Solution
 
-Update all 4 RLS policies on `gate_pass_item_photos` table to use the `get_auth_tenant_id()` function instead of the failing JWT check.
+Update the `useDeptPendingApprovals` hook to add a **third query path** for Golf Club Management users to see all internal requests awaiting their acknowledgment.
 
-### Database Migration
+### Logic Changes
 
-```sql
--- Drop existing broken policies
-DROP POLICY IF EXISTS "Tenant isolation for item photos select" ON public.gate_pass_item_photos;
-DROP POLICY IF EXISTS "Users can insert own item photos" ON public.gate_pass_item_photos;
-DROP POLICY IF EXISTS "Users can update own item photos" ON public.gate_pass_item_photos;
-DROP POLICY IF EXISTS "Users can delete own item photos" ON public.gate_pass_item_photos;
-
--- Create fixed policies using get_auth_tenant_id()
-
--- SELECT: All users in tenant can view item photos
-CREATE POLICY "Tenant isolation for item photos select"
-ON public.gate_pass_item_photos
-FOR SELECT
-USING (
-  tenant_id = get_auth_tenant_id()
-  AND deleted_at IS NULL
-);
-
--- INSERT: Users can insert photos for their tenant
-CREATE POLICY "Users can insert own item photos"
-ON public.gate_pass_item_photos
-FOR INSERT
-WITH CHECK (
-  tenant_id = get_auth_tenant_id()
-  AND uploaded_by = auth.uid()
-);
-
--- UPDATE: Users can update their own photos
-CREATE POLICY "Users can update own item photos"
-ON public.gate_pass_item_photos
-FOR UPDATE
-USING (
-  tenant_id = get_auth_tenant_id()
-  AND uploaded_by = auth.uid()
-);
-
--- DELETE: Users can soft-delete their own photos
-CREATE POLICY "Users can delete own item photos"
-ON public.gate_pass_item_photos
-FOR DELETE
-USING (
-  tenant_id = get_auth_tenant_id()
-  AND uploaded_by = auth.uid()
-);
-
--- Also add admin access policy for complete management
-CREATE POLICY "Admins can manage all item photos"
-ON public.gate_pass_item_photos
-FOR ALL
-USING (
-  tenant_id = get_auth_tenant_id()
-  AND is_admin(auth.uid())
-);
+```text
+1. INTERNAL assigned to current user (pending_dept_approval)
+2. EXTERNAL for user's department projects (pending_contractor_approval, pending_club_mgmt_ack)  
+3. NEW: ALL INTERNAL with pending_club_mgmt_ack for Golf Club Management users
 ```
 
 ---
 
-## Expected Outcome
+## Technical Implementation
 
-After applying this migration:
+### File: `src/hooks/contractor-management/use-dept-gate-passes.ts`
 
-1. Photo database records will be successfully inserted when users upload photos
-2. Photos will display correctly in gate pass detail views
-3. Existing uploaded files in storage will become accessible once new photos are saved
+Add a third query block in `useDeptPendingApprovals()`:
+
+```typescript
+// 3. INTERNAL requests pending Golf Club Management acknowledgment
+// (for users in Golf Club Management department)
+if (departmentId) {
+  // Check if user is in Golf Club Management department
+  const { data: golfDept } = await supabase
+    .from("departments")
+    .select("id")
+    .eq("id", departmentId)
+    .or("name.eq.Golf Club Management,name.ilike.%golf%club%management%")
+    .maybeSingle();
+
+  if (golfDept) {
+    // User is in Golf Club Management - fetch all internal pending_club_mgmt_ack
+    const { data: clubMgmtPasses, error: clubMgmtError } = await supabase
+      .from("material_gate_passes")
+      .select(GATE_PASS_SELECT)
+      .eq("tenant_id", tenantId)
+      .eq("is_internal_request", true)
+      .eq("status", "pending_club_mgmt_ack")
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false });
+
+    if (clubMgmtError) throw clubMgmtError;
+    if (clubMgmtPasses) allPending.push(...(clubMgmtPasses as MaterialGatePass[]));
+  }
+}
+```
 
 ---
 
@@ -102,12 +77,13 @@ After applying this migration:
 
 | File | Action | Description |
 |:-----|:-------|:------------|
-| Database Migration | Execute | Fix RLS policies on `gate_pass_item_photos` table |
+| `src/hooks/contractor-management/use-dept-gate-passes.ts` | Modify | Add Golf Club Management visibility for internal pending_club_mgmt_ack passes |
 
 ---
 
-## Technical Note
+## Expected Result
 
-The photos that were previously uploaded to storage still exist - only the database records failed to save. After applying this fix:
-- New gate passes will work correctly
-- Existing gate passes that had this issue will still be missing their photo records (storage files exist but no DB reference)
+After this fix:
+- Khalid Al Shuhail will see GP-2026-00004 (and GP-2026-00001) in the "Pending Approvals" queue
+- Any Golf Club Management representative will see all internal gate passes awaiting their acknowledgment
+- The approval action buttons will appear correctly in the detail dialog
