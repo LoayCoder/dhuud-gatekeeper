@@ -1,89 +1,102 @@
 
-# Fix: Golf Club Management Cannot See Internal Gate Passes for Acknowledgment
+# Fix: Security Supervisor Approval Error - `gen_random_bytes` Function Not Found
 
 ## Problem Summary
 
-Khalid Al Shuhail (Golf Club Management) cannot see gate pass GP-2026-00004 because the system doesn't route **internal requests** with `pending_club_mgmt_ack` status to Golf Club Management users.
+When the Security Supervisor tries to approve a gate pass, the system returns:
+```
+Failed: function gen_random_bytes(integer) does not exist
+```
 
-### Current Broken Logic
+## Root Cause Analysis
 
-The `useDeptPendingApprovals` hook fetches:
+| Component | Current State | Issue |
+|:----------|:--------------|:------|
+| `pgcrypto` extension | Installed in `extensions` schema | Not in `public` schema |
+| `gen_random_bytes` function | Located at `extensions.gen_random_bytes()` | Not accessible via unqualified call |
+| `approve_gate_pass_unified` | Uses `gen_random_bytes(32)` | Missing schema prefix |
+| Function `search_path` | Set to `public` | Cannot resolve `extensions.gen_random_bytes` |
 
-| Request Type | Status Fetched | Who Sees It |
-|:-------------|:---------------|:------------|
-| Internal | `pending_dept_approval` | User in `approval_from_id` |
-| External | `pending_contractor_approval`, `pending_club_mgmt_ack` | Dept Rep for project's department |
-
-### Missing Case
-
-| Request Type | Status | Who Should See It |
-|:-------------|:-------|:------------------|
-| Internal | `pending_club_mgmt_ack` | Golf Club Management Dept Reps/Managers |
+The `approve_gate_pass_unified` function generates a QR token when Security or Safety approves a gate pass:
+```sql
+WHEN 'security' THEN
+  v_qr_token := encode(gen_random_bytes(32), 'hex');  -- FAILS here
+```
 
 ---
 
 ## Solution
 
-Update the `useDeptPendingApprovals` hook to add a **third query path** for Golf Club Management users to see all internal requests awaiting their acknowledgment.
-
-### Logic Changes
-
-```text
-1. INTERNAL assigned to current user (pending_dept_approval)
-2. EXTERNAL for user's department projects (pending_contractor_approval, pending_club_mgmt_ack)  
-3. NEW: ALL INTERNAL with pending_club_mgmt_ack for Golf Club Management users
-```
+Update the `approve_gate_pass_unified` function to use the fully qualified function name: `extensions.gen_random_bytes(32)`.
 
 ---
 
 ## Technical Implementation
 
-### File: `src/hooks/contractor-management/use-dept-gate-passes.ts`
+### Database Migration
 
-Add a third query block in `useDeptPendingApprovals()`:
+Create a new migration to fix the function:
 
-```typescript
-// 3. INTERNAL requests pending Golf Club Management acknowledgment
-// (for users in Golf Club Management department)
-if (departmentId) {
-  // Check if user is in Golf Club Management department
-  const { data: golfDept } = await supabase
-    .from("departments")
-    .select("id")
-    .eq("id", departmentId)
-    .or("name.eq.Golf Club Management,name.ilike.%golf%club%management%")
-    .maybeSingle();
+```sql
+-- Fix gen_random_bytes reference in approve_gate_pass_unified
+-- The pgcrypto extension is installed in 'extensions' schema, not 'public'
 
-  if (golfDept) {
-    // User is in Golf Club Management - fetch all internal pending_club_mgmt_ack
-    const { data: clubMgmtPasses, error: clubMgmtError } = await supabase
-      .from("material_gate_passes")
-      .select(GATE_PASS_SELECT)
-      .eq("tenant_id", tenantId)
-      .eq("is_internal_request", true)
-      .eq("status", "pending_club_mgmt_ack")
-      .is("deleted_at", null)
-      .order("created_at", { ascending: false });
+DROP FUNCTION IF EXISTS approve_gate_pass_unified(UUID, UUID, TEXT, TEXT);
 
-    if (clubMgmtError) throw clubMgmtError;
-    if (clubMgmtPasses) allPending.push(...(clubMgmtPasses as MaterialGatePass[]));
-  }
-}
+CREATE OR REPLACE FUNCTION approve_gate_pass_unified(
+  p_user_id UUID,
+  p_gate_pass_id UUID,
+  p_action TEXT,
+  p_notes TEXT DEFAULT NULL
+) RETURNS TEXT
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_pass RECORD;
+  v_stage TEXT;
+  v_new_status TEXT;
+  v_qr_token TEXT;
+  v_can_approve JSONB;
+BEGIN
+  -- ... existing logic ...
+
+  WHEN 'security' THEN
+    -- FIXED: Use extensions.gen_random_bytes instead of gen_random_bytes
+    v_qr_token := encode(extensions.gen_random_bytes(32), 'hex');
+    -- ... rest of update ...
+
+  WHEN 'safety' THEN
+    -- FIXED: Use extensions.gen_random_bytes instead of gen_random_bytes
+    v_qr_token := encode(extensions.gen_random_bytes(32), 'hex');
+    -- ... rest of update ...
+END;
+$$;
 ```
 
 ---
 
 ## Files to Modify
 
-| File | Action | Description |
+| Type | Action | Description |
 |:-----|:-------|:------------|
-| `src/hooks/contractor-management/use-dept-gate-passes.ts` | Modify | Add Golf Club Management visibility for internal pending_club_mgmt_ack passes |
+| Database Migration | Create | Fix `approve_gate_pass_unified` to use `extensions.gen_random_bytes()` |
 
 ---
 
 ## Expected Result
 
 After this fix:
-- Khalid Al Shuhail will see GP-2026-00004 (and GP-2026-00001) in the "Pending Approvals" queue
-- Any Golf Club Management representative will see all internal gate passes awaiting their acknowledgment
-- The approval action buttons will appear correctly in the detail dialog
+- Security Supervisor can approve gate passes without errors
+- Safety Officer can approve gate passes without errors
+- QR codes are generated correctly upon final approval
+- The approval workflow completes successfully
+
+---
+
+## Technical Notes
+
+- The `pgcrypto` extension is in the `extensions` schema (standard Supabase configuration)
+- Using fully qualified schema names ensures compatibility regardless of `search_path`
+- Both `security` and `safety` approval stages use `gen_random_bytes` and need the fix
