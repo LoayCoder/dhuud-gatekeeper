@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, XCircle, AlertTriangle, User, HardHat, Loader2, QrCode, ShieldCheck, Clock, WifiOff, LogIn, LogOut, RotateCcw } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertTriangle, User, HardHat, Loader2, QrCode, ShieldCheck, Clock, WifiOff, LogIn, LogOut, RotateCcw, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHostArrivalNotification } from '@/hooks/use-host-arrival-notification';
+import { useConfirmGatePassEntry, useConfirmGatePassExit } from '@/hooks/contractor-management/use-gate-pass-verification';
 import { WorkerPhotoGallery } from './WorkerPhotoGallery';
 import { GateActionConfirmDialog, GateActionType } from './GateActionConfirmDialog';
 import { format, differenceInMinutes } from 'date-fns';
@@ -25,7 +26,7 @@ interface GateQRScannerProps {
 }
 
 export interface QRScanResult {
-  type: 'visitor' | 'worker' | 'unknown';
+  type: 'visitor' | 'worker' | 'gatepass' | 'unknown';
   id?: string;
   status: 'valid' | 'invalid' | 'expired' | 'revoked' | 'not_found' | 'used';
   data?: {
@@ -41,6 +42,11 @@ export interface QRScanResult {
     qrUsedAt?: string;
     nationalId?: string;
     photoUrl?: string;
+    materialDescription?: string;
+    quantity?: string;
+    vehiclePlate?: string;
+    driverName?: string;
+    driverMobile?: string;
   };
   rawCode: string;
   isOfflineCached?: boolean;
@@ -83,6 +89,8 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
   const { profile, user } = useAuth();
   const queryClient = useQueryClient();
   const hostArrivalNotification = useHostArrivalNotification();
+  const confirmGatePassEntry = useConfirmGatePassEntry();
+  const confirmGatePassExit = useConfirmGatePassExit();
   const [isVerifying, setIsVerifying] = useState(false);
   const [isLogging, setIsLogging] = useState(false);
   const [scanResult, setScanResult] = useState<QRScanResult | null>(null);
@@ -438,6 +446,71 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
       }
     }
 
+    // Handle Material Gate Pass (GP-, MGP:, GATEPASS:)
+    if (code.startsWith('GP-') || code.startsWith('MGP:') || code.startsWith('GATEPASS:')) {
+      let token = code;
+      if (code.startsWith('MGP:')) token = code.replace('MGP:', '');
+      else if (code.startsWith('GATEPASS:')) token = code.replace('GATEPASS:', '');
+
+      if (isOnline) {
+        try {
+          const { data, error } = await supabase.functions.invoke('validate-material-qr', {
+            body: { qr_token: token, tenant_id: tenantId },
+          });
+
+          if (error) throw error;
+
+          if (!data.is_valid) {
+             return {
+              type: 'gatepass',
+              status: 'invalid',
+              rawCode: code,
+              data: {
+                warnings: data.errors || ['Invalid gate pass'],
+              }
+             };
+          }
+
+          return {
+            type: 'gatepass',
+            id: data.pass?.id,
+            status: data.pass?.exit_time ? 'used' : 'valid',
+            rawCode: code,
+            data: {
+              name: data.pass?.reference_number,
+              company: data.pass?.company_name,
+              projectName: data.pass?.project_name,
+              materialDescription: data.pass?.material_description,
+              quantity: data.pass?.quantity,
+              vehiclePlate: data.pass?.vehicle_plate,
+              driverName: data.pass?.driver_name,
+              driverMobile: data.pass?.driver_mobile,
+              entryTime: data.pass?.entry_time,
+              entryId: data.pass?.entry_time ? 'true' : undefined, // Flag to indicate entry exists
+              isOnSite: !!data.pass?.entry_time && !data.pass?.exit_time,
+              warnings: data.warnings,
+            }
+          };
+        } catch (error) {
+           console.error('[GateQR] Material pass verification failed:', error);
+           return {
+             type: 'gatepass',
+             status: 'invalid',
+             rawCode: code,
+             data: { warnings: ['Verification failed'] }
+           };
+        }
+      } else {
+         // Offline fallback if needed, currently just return unknown/not supported
+         return {
+           type: 'gatepass',
+           status: 'not_found',
+           rawCode: code,
+           data: { warnings: [t('security.qrScanner.offlineNoCache', 'Offline - not cached')] }
+         };
+      }
+    }
+
     // Handle legacy VIS- format
     if (code.startsWith('VIS-')) {
       const visitorId = code.replace('VIS-', '');
@@ -549,6 +622,28 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
     if (scanResult.status === 'valid') {
       setIsLogging(true);
       try {
+        // Handle Material Gate Pass Entry
+        if (scanResult.type === 'gatepass' && scanResult.id) {
+          await confirmGatePassEntry.mutateAsync(scanResult.id);
+
+          toast({
+            title: t('security.gate.entryRecorded', 'Entry recorded successfully'),
+          });
+
+          queryClient.invalidateQueries({ queryKey: ['gate-entries'] });
+          setIsLogging(false);
+
+          // Pass result to parent
+          onScanResult(scanResult);
+
+          // Start scanning for next QR code
+          setScanResult(null);
+          setIsVerifying(false);
+          setIsScannerActive(true);
+          scannerKeyRef.current += 1;
+          return;
+        }
+
         const entryType = scanResult.type === 'worker' ? 'worker' : 'visitor';
         const entryTime = new Date().toISOString();
         
@@ -753,6 +848,32 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
 
   // Handle record exit for on-site workers
   const handleRecordExit = useCallback(async () => {
+    // Handle Material Gate Pass Exit
+    if (scanResult?.type === 'gatepass' && scanResult.id) {
+      setIsLogging(true);
+      try {
+        await confirmGatePassExit.mutateAsync(scanResult.id);
+        toast({ title: t('security.gate.exitRecorded', 'Exit recorded successfully') });
+        queryClient.invalidateQueries({ queryKey: ['gate-entries'] });
+
+        // Update scan result to reflect exit
+        setScanResult(prev => prev ? {
+          ...prev,
+          data: { ...prev.data, isOnSite: false, entryId: undefined, entryTime: undefined }
+        } : null);
+      } catch (error) {
+        console.error('Failed to record exit:', error);
+        toast({
+          title: t('security.gate.exitFailed', 'Failed to record exit'),
+          variant: 'destructive'
+        });
+      } finally {
+        setIsLogging(false);
+        setConfirmDialogOpen(false);
+      }
+      return;
+    }
+
     if (!scanResult?.data?.entryId || !profile?.tenant_id) {
       setConfirmDialogOpen(false);
       return;
@@ -802,7 +923,7 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
       setIsLogging(false);
       setConfirmDialogOpen(false);
     }
-  }, [scanResult, profile?.tenant_id, user?.id, queryClient, toast, t]);
+  }, [scanResult, profile?.tenant_id, user?.id, queryClient, toast, t, confirmGatePassExit]);
 
   // Handle confirmed entry action
   const handleConfirmedEntry = useCallback(async () => {
@@ -887,6 +1008,7 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
                     <Badge variant="outline" className={cn("text-xs font-bold uppercase tracking-wide", getStatusConfig(scanResult.status, scanResult.data?.isOnSite).color, getStatusConfig(scanResult.status, scanResult.data?.isOnSite).border)}>
                       {scanResult.type === 'worker' && <HardHat className="h-3 w-3 me-1" />}
                       {scanResult.type === 'visitor' && <User className="h-3 w-3 me-1" />}
+                      {scanResult.type === 'gatepass' && <Package className="h-3 w-3 me-1" />}
                       {getStatusConfig(scanResult.status, scanResult.data?.isOnSite).label}
                     </Badge>
                     
@@ -911,6 +1033,20 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
                       <ShieldCheck className="h-3 w-3" />
                       <span className="truncate">{scanResult.data.projectName}</span>
                     </p>
+                  )}
+
+                  {scanResult.type === 'gatepass' && scanResult.data?.materialDescription && (
+                     <div className="mt-2 p-2 bg-muted/50 rounded text-sm border border-border/50">
+                        <p className="font-semibold line-clamp-2">{scanResult.data.materialDescription}</p>
+                        {scanResult.data.quantity && <p className="text-xs text-muted-foreground mt-0.5">{scanResult.data.quantity}</p>}
+
+                        {(scanResult.data.vehiclePlate || scanResult.data.driverName) && (
+                          <div className="mt-1.5 pt-1.5 border-t border-border/50 flex gap-3 text-xs">
+                             {scanResult.data.vehiclePlate && <span className="font-mono bg-background px-1 rounded border">{scanResult.data.vehiclePlate}</span>}
+                             {scanResult.data.driverName && <span className="text-muted-foreground">{scanResult.data.driverName}</span>}
+                          </div>
+                        )}
+                     </div>
                   )}
                 </div>
               </div>
@@ -1009,7 +1145,7 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
           onOpenChange={setConfirmDialogOpen}
           action={confirmAction}
           personName={scanResult?.data?.name || 'Unknown'}
-          personType={scanResult?.type === 'worker' ? 'worker' : 'visitor'}
+          personType={scanResult?.type === 'worker' ? 'worker' : scanResult?.type === 'gatepass' ? 'gatepass' : 'visitor'}
           entryTime={scanResult?.data?.entryTime ? format(new Date(scanResult.data.entryTime), 'HH:mm') : undefined}
           isLoading={isLogging}
           onConfirm={confirmAction === 'exit' ? handleRecordExit : handleConfirmedEntry}
