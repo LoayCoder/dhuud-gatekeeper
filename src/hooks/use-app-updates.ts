@@ -20,6 +20,7 @@ export interface AppUpdate {
 export interface VersionInfo {
   version: string;
   buildDate: string;
+  publishedAt?: string;
   releaseNotes: string[];
   priority: 'normal' | 'important' | 'critical';
 }
