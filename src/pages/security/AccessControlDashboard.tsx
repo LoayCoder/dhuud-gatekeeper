@@ -186,7 +186,7 @@ export default function AccessControlDashboard() {
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
-          <TabsList className="inline-flex w-max sm:w-full sm:grid sm:grid-cols-5">
+          <TabsList className="inline-flex w-max sm:w-full sm:grid sm:grid-cols-6">
             <TabsTrigger value="overview" className="gap-1.5 text-xs sm:text-sm whitespace-nowrap">
               <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               {t('security.accessControl.tabs.onSite', 'On Site')}
@@ -199,6 +199,13 @@ export default function AccessControlDashboard() {
               {t('security.accessControl.tabs.approvals', 'Approvals')}
               {totalPendingApprovals > 0 && (
                 <Badge variant="destructive" className="ms-1 text-xs">{totalPendingApprovals}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="gatepasses" className="gap-1.5 text-xs sm:text-sm whitespace-nowrap">
+              <Package className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              {t('security.accessControl.tabs.gatePasses', 'Gate Passes')}
+              {pendingGatePassApprovals.length > 0 && (
+                <Badge variant="destructive" className="ms-1 text-xs">{pendingGatePassApprovals.length}</Badge>
               )}
             </TabsTrigger>
             <TabsTrigger value="visitors" className="gap-1.5 text-xs sm:text-sm whitespace-nowrap">
@@ -313,6 +320,27 @@ export default function AccessControlDashboard() {
                   <Badge variant="destructive">{pendingGatePassApprovals.length}</Badge>
                 )}
               </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <GatePassApprovalQueue passes={pendingGatePassApprovals} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Gate Passes Tab - Dedicated tab for Security Supervisor */}
+        <TabsContent value="gatepasses" className="space-y-4 mt-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Package className="h-5 w-5 text-green-600" />
+                {t('security.accessControl.gatePassApprovals', 'Gate Pass Approvals')}
+                {pendingGatePassApprovals.length > 0 && (
+                  <Badge variant="destructive">{pendingGatePassApprovals.length}</Badge>
+                )}
+              </CardTitle>
+              <CardDescription>
+                {t('security.accessControl.gatePassDescription', 'Material gate passes pending your security approval')}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <GatePassApprovalQueue passes={pendingGatePassApprovals} />
