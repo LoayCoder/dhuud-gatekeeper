@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 interface VersionInfo {
   version: string;
   buildDate: string;
+  publishedAt?: string;
   releaseNotes: string[];
   priority: 'normal' | 'important' | 'critical';
 }
@@ -17,6 +18,7 @@ export function useVersionInfo() {
   const [version, setVersion] = useState<string>('');
   const [releaseNotes, setReleaseNotes] = useState<string[]>([]);
   const [buildDate, setBuildDate] = useState<string>('');
+  const [publishedAt, setPublishedAt] = useState<string>('');
   const [priority, setPriority] = useState<'normal' | 'important' | 'critical'>('normal');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -32,6 +34,7 @@ export function useVersionInfo() {
               setVersion(parsed.version);
               setReleaseNotes(parsed.releaseNotes);
               setBuildDate(parsed.buildDate || '');
+              setPublishedAt(parsed.publishedAt || '');
               setPriority(parsed.priority || 'normal');
               // Clear pending notes after reading
               localStorage.removeItem(PENDING_RELEASE_NOTES_KEY);
@@ -54,6 +57,7 @@ export function useVersionInfo() {
           setVersion(versionInfo.version);
           setReleaseNotes(versionInfo.releaseNotes || []);
           setBuildDate(versionInfo.buildDate || '');
+          setPublishedAt(versionInfo.publishedAt || '');
           setPriority(versionInfo.priority || 'normal');
         }
       } catch (error) {
@@ -70,6 +74,7 @@ export function useVersionInfo() {
     version,
     releaseNotes,
     buildDate,
+    publishedAt,
     priority,
     isLoading,
   };
