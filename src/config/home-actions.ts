@@ -93,7 +93,7 @@ export const ALL_HOME_CARDS: HomeActionCard[] = [
     labelKey: 'home.cards.gateOperation',
     descriptionKey: 'home.cards.gateOperationDesc',
     icon: DoorOpen,
-    path: '/security/gate',
+    path: '/security/gate-dashboard',
     colorScheme: 'default',
     categories: ['security', 'hsse'],
   },
