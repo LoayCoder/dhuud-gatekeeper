@@ -118,7 +118,7 @@ export function UpdateHistoryTable({ updates, isLoading }: UpdateHistoryTablePro
                       {format(new Date(update.broadcast_at), 'PP')}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(update.broadcast_at), { addSuffix: true })}
+                      {format(new Date(update.broadcast_at), 'HH:mm')} • {formatDistanceToNow(new Date(update.broadcast_at), { addSuffix: true })}
                     </div>
                   </div>
                 </TableCell>
