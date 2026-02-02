@@ -3089,7 +3089,16 @@
     "export": "برآمد",
     "exportCSV": "CSV کے طور پر ڈاؤن لوڈ",
     "exportExcel": "Excel کے طور پر ڈاؤن لوڈ",
-    "exportSuccess": "برآمد کامیابی سے مکمل ہوئی"
+    "exportSuccess": "برآمد کامیابی سے مکمل ہوئی",
+    "resetPassword": "پاس ورڈ ری سیٹ کریں",
+    "resetPasswordConfirm": "{{name}} کا پاس ورڈ ری سیٹ کریں؟",
+    "resetPasswordDescription": "ایک نیا عارضی پاس ورڈ بنایا جائے گا اور WhatsApp کے ذریعے صارف کو بھیجا جائے گا۔",
+    "resetPasswordTooltip": "پاس ورڈ ری سیٹ کریں اور WhatsApp پر بھیجیں",
+    "passwordResetSuccess": "پاس ورڈ ری سیٹ",
+    "passwordSentViaWhatsApp": "{{phone}} پر WhatsApp کے ذریعے عارضی پاس ورڈ بھیجا گیا",
+    "passwordResetNoWhatsApp": "پاس ورڈ ری سیٹ ہو گیا لیکن WhatsApp نوٹیفکیشن ناکام ہوا",
+    "noPhoneNumber": "صارف کا کوئی فون نمبر کنفیگر نہیں ہے",
+    "resetPasswordFailed": "پاس ورڈ ری سیٹ کرنے میں ناکام"
   },
   "tenantManagement": {
     "title": "کرایہ داروں کا انتظام",
