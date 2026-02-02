@@ -115,10 +115,27 @@ BEGIN
       RETURN jsonb_build_object('allowed', false, 'reason', 'Department representative or manager role in the same department as requester required');
 
     WHEN 'club_mgmt_ack' THEN
-      IF v_is_club_mgmt OR v_is_dept_rep OR v_is_dept_manager THEN
+      -- Allow users with club management role
+      IF v_is_club_mgmt THEN
         RETURN jsonb_build_object('allowed', true);
       END IF;
-      RETURN jsonb_build_object('allowed', false, 'reason', 'Club management role required');
+
+      -- CRITICAL: Department rep must be from Golf Club Management department ONLY
+      IF (v_is_dept_rep OR v_is_dept_manager) AND EXISTS (
+        SELECT 1 FROM profiles p
+        JOIN departments d ON d.id = p.assigned_department_id
+        WHERE p.id = p_user_id
+          AND (d.name = 'Golf Club Management'
+               OR d.name ILIKE '%golf%club%management%'
+               OR d.name ILIKE '%club%management%')
+          AND d.tenant_id = v_user_tenant_id
+          AND p.tenant_id = v_user_tenant_id
+          AND d.deleted_at IS NULL
+      ) THEN
+        RETURN jsonb_build_object('allowed', true);
+      END IF;
+
+      RETURN jsonb_build_object('allowed', false, 'reason', 'Club management role or Golf Club Management department representative required');
 
     WHEN 'security' THEN
       IF v_is_security_supervisor THEN
@@ -141,4 +158,6 @@ COMMENT ON FUNCTION public.can_approve_gate_pass(uuid, uuid, text) IS
 FIXED:
 1. Updated to reference material_gate_passes instead of non-existent gate_passes table
 2. Added department matching check for dept_approval stage to prevent cross-department approvals
-3. Ensures department representatives can only approve requests from their own department';
+3. Ensures department representatives can only approve requests from their own department
+4. Restricted club_mgmt_ack stage to club management role OR Golf Club Management dept reps only
+5. Prevents other department representatives from approving contractor gate passes';

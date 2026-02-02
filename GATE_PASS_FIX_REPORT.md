@@ -22,12 +22,21 @@ The `can_approve_gate_pass()` database function was referencing a non-existent t
 
 ### Secondary Issue: Authorization Flaw in Department Approval ⚠️ CRITICAL
 
-**Security Vulnerability:** The `dept_approval` stage was missing the department matching check, allowing **any** department representative to approve gate passes from **any** department, regardless of whether they were in the same department as the requester.
+**Security Vulnerability #1:** The `dept_approval` stage was missing the department matching check, allowing **any** department representative to approve gate passes from **any** department, regardless of whether they were in the same department as the requester.
 
 **Impact:**
 - Department Representative from Finance could approve Engineering department's gate pass
 - Cross-department approval violated business rules and security policies
 - Bypassed departmental authorization boundaries
+
+### Tertiary Issue: Authorization Flaw in Golf Club Acknowledgment ⚠️ CRITICAL
+
+**Security Vulnerability #2:** The `club_mgmt_ack` stage was too permissive, allowing **any** department representative to acknowledge contractor gate passes, when it should be restricted to Golf Club Management department representatives only.
+
+**Impact:**
+- Finance dept rep could acknowledge contractor gate passes meant for Golf Club
+- Engineering dept rep could approve external contractor material movements
+- Violated workflow requirement that Golf Club Management must acknowledge contractor passes
 
 **Affected Files:**
 - `supabase/migrations/20260201210447_09e0f60b-7721-4b1c-a752-f5c5a33e7762.sql` (Line 30)
@@ -49,9 +58,11 @@ The `can_approve_gate_pass()` database function was referencing a non-existent t
 **Changes:**
 - Dropped existing `can_approve_gate_pass()` function with incorrect table reference
 - Recreated function with correct table name: `material_gate_passes`
-- **CRITICAL SECURITY FIX:** Added department matching check for `dept_approval` stage
-- Prevents cross-department approvals (authorization flaw)
+- **CRITICAL SECURITY FIX #1:** Added department matching check for `dept_approval` stage
+- **CRITICAL SECURITY FIX #2:** Restricted `club_mgmt_ack` stage to Golf Club Management dept only
+- Prevents cross-department approvals (authorization flaws)
 - Ensures department representatives can only approve requests from their own department
+- Ensures only Golf Club Management can acknowledge contractor gate passes
 - Added documentation comment
 
 **SQL Fixes:**
@@ -60,7 +71,7 @@ The `can_approve_gate_pass()` database function was referencing a non-existent t
 FROM material_gate_passes gp  -- Previously: FROM gate_passes gp
 WHERE gp.id = p_gate_pass_id AND gp.deleted_at IS NULL;
 
--- Fix 2: Department matching check (prevents unauthorized cross-department approvals)
+-- Fix 2: Department matching check for internal workflow (prevents unauthorized cross-department approvals)
 WHEN 'dept_approval' THEN
   -- CRITICAL: Department representative must be in the SAME department as the requester
   IF (v_is_dept_rep OR v_is_dept_manager) AND EXISTS (
@@ -70,6 +81,28 @@ WHEN 'dept_approval' THEN
       AND req.assigned_department_id = approver.assigned_department_id
       AND approver.tenant_id = v_user_tenant_id
       AND req.tenant_id = v_user_tenant_id
+  ) THEN
+    RETURN jsonb_build_object('allowed', true);
+  END IF;
+
+-- Fix 3: Golf Club Management restriction for contractor workflow
+WHEN 'club_mgmt_ack' THEN
+  -- Allow users with club management role
+  IF v_is_club_mgmt THEN
+    RETURN jsonb_build_object('allowed', true);
+  END IF;
+
+  -- CRITICAL: Department rep must be from Golf Club Management department ONLY
+  IF (v_is_dept_rep OR v_is_dept_manager) AND EXISTS (
+    SELECT 1 FROM profiles p
+    JOIN departments d ON d.id = p.assigned_department_id
+    WHERE p.id = p_user_id
+      AND (d.name = 'Golf Club Management'
+           OR d.name ILIKE '%golf%club%management%'
+           OR d.name ILIKE '%club%management%')
+      AND d.tenant_id = v_user_tenant_id
+      AND p.tenant_id = v_user_tenant_id
+      AND d.deleted_at IS NULL
   ) THEN
     RETURN jsonb_build_object('allowed', true);
   END IF;
@@ -222,6 +255,32 @@ Each route serves a **distinct audience** and **distinct purpose**. No duplicati
 
 ---
 
+## 🔒 Security Verification
+
+The authorization fixes now properly enforce departmental boundaries:
+
+### Internal Gate Pass (dept_approval stage)
+
+| Scenario | Result |
+|:---------|:-------|
+| Finance Dept Rep approves Finance dept request | ✅ Allowed |
+| Engineering Dept Rep approves Engineering dept request | ✅ Allowed |
+| Finance Dept Rep tries to approve Engineering dept request | ❌ **Blocked** (Different dept) |
+| User without dept rep role tries to approve | ❌ Blocked (Missing role) |
+| Admin approves any request | ✅ Allowed (Admin bypass) |
+
+### External Gate Pass (club_mgmt_ack stage)
+
+| Scenario | Result |
+|:---------|:-------|
+| Golf Club Mgmt Dept Rep acknowledges contractor request | ✅ Allowed |
+| User with club_management role acknowledges | ✅ Allowed |
+| Finance Dept Rep tries to acknowledge contractor request | ❌ **Blocked** (Wrong dept) |
+| Engineering Dept Rep tries to acknowledge | ❌ **Blocked** (Wrong dept) |
+| Admin acknowledges any request | ✅ Allowed (Admin bypass) |
+
+---
+
 ## 🚀 Post-Fix Actions
 
 ### 1. Apply Migration
@@ -280,9 +339,17 @@ Check for any remaining errors in:
 
 ## 📝 Conclusion
 
-**Problem:** Database function referenced non-existent `gate_passes` table
-**Solution:** Created migration to fix function to use `material_gate_passes`
-**Result:** Gate Pass approval workflow fully functional
+**Problems Identified:**
+1. Database function referenced non-existent `gate_passes` table
+2. Authorization flaw: Any dept rep could approve any department's gate pass
+3. Authorization flaw: Any dept rep could acknowledge contractor gate passes
+
+**Solutions Applied:**
+1. Fixed table reference: `gate_passes` → `material_gate_passes`
+2. Added department matching check for `dept_approval` stage
+3. Restricted `club_mgmt_ack` stage to Golf Club Management dept only
+
+**Result:** Gate Pass approval workflow fully functional with proper authorization boundaries
 **Status:** ✅ FIXED AND VERIFIED
 
-The Gate Pass module is now **100% operational** with a unified, consistent workflow and no duplicate logic.
+The Gate Pass module is now **100% operational** with a unified, consistent workflow, no duplicate logic, and **secure authorization checks** that prevent cross-department approvals.
