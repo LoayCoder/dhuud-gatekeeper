@@ -31,12 +31,15 @@ The `can_approve_gate_pass()` database function was referencing a non-existent t
 
 ### Tertiary Issue: Authorization Flaw in Golf Club Acknowledgment ⚠️ CRITICAL
 
-**Security Vulnerability #2:** The `club_mgmt_ack` stage was too permissive, allowing **any** department representative to acknowledge contractor gate passes, when it should be restricted to Golf Club Management department representatives only.
+**Security Vulnerability #2:** The `dept_ack` stage (contractor workflow) was too permissive, allowing **any** department representative to acknowledge contractor gate passes, when it should be restricted to Golf Club Management department representatives only.
+
+**Stage Name Confusion:** Initial fix incorrectly used stage name `'club_mgmt_ack'`, but the actual stage name used by `approve_gate_pass_unified()` is `'dept_ack'`. This meant the Golf Club restriction was never applied.
 
 **Impact:**
 - Finance dept rep could acknowledge contractor gate passes meant for Golf Club
 - Engineering dept rep could approve external contractor material movements
 - Violated workflow requirement that Golf Club Management must acknowledge contractor passes
+- Authorization check never triggered due to stage name mismatch
 
 **Affected Files:**
 - `supabase/migrations/20260201210447_09e0f60b-7721-4b1c-a752-f5c5a33e7762.sql` (Line 30)
@@ -59,7 +62,8 @@ The `can_approve_gate_pass()` database function was referencing a non-existent t
 - Dropped existing `can_approve_gate_pass()` function with incorrect table reference
 - Recreated function with correct table name: `material_gate_passes`
 - **CRITICAL SECURITY FIX #1:** Added department matching check for `dept_approval` stage
-- **CRITICAL SECURITY FIX #2:** Restricted `club_mgmt_ack` stage to Golf Club Management dept only
+- **CRITICAL SECURITY FIX #2:** Restricted `dept_ack` stage to Golf Club Management dept only
+- **CRITICAL BUG FIX:** Corrected stage name from `club_mgmt_ack` to `dept_ack` (matched actual usage)
 - Prevents cross-department approvals (authorization flaws)
 - Ensures department representatives can only approve requests from their own department
 - Ensures only Golf Club Management can acknowledge contractor gate passes
@@ -86,7 +90,9 @@ WHEN 'dept_approval' THEN
   END IF;
 
 -- Fix 3: Golf Club Management restriction for contractor workflow
-WHEN 'club_mgmt_ack' THEN
+-- IMPORTANT: Stage name is 'dept_ack', NOT 'club_mgmt_ack'!
+WHEN 'dept_ack' THEN
+  -- External contractor workflow: Golf Club Management acknowledgment
   -- Allow users with club management role
   IF v_is_club_mgmt THEN
     RETURN jsonb_build_object('allowed', true);
@@ -269,7 +275,7 @@ The authorization fixes now properly enforce departmental boundaries:
 | User without dept rep role tries to approve | ❌ Blocked (Missing role) |
 | Admin approves any request | ✅ Allowed (Admin bypass) |
 
-### External Gate Pass (club_mgmt_ack stage)
+### External Gate Pass (dept_ack stage - Contractor Acknowledgment)
 
 | Scenario | Result |
 |:---------|:-------|
@@ -343,11 +349,13 @@ Check for any remaining errors in:
 1. Database function referenced non-existent `gate_passes` table
 2. Authorization flaw: Any dept rep could approve any department's gate pass
 3. Authorization flaw: Any dept rep could acknowledge contractor gate passes
+4. Stage name mismatch: Function used `club_mgmt_ack`, but actual stage is `dept_ack`
 
 **Solutions Applied:**
 1. Fixed table reference: `gate_passes` → `material_gate_passes`
 2. Added department matching check for `dept_approval` stage
-3. Restricted `club_mgmt_ack` stage to Golf Club Management dept only
+3. Restricted `dept_ack` stage to Golf Club Management dept only
+4. Corrected stage name to match `approve_gate_pass_unified()` usage
 
 **Result:** Gate Pass approval workflow fully functional with proper authorization boundaries
 **Status:** ✅ FIXED AND VERIFIED

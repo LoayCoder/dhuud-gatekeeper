@@ -114,7 +114,8 @@ BEGIN
       END IF;
       RETURN jsonb_build_object('allowed', false, 'reason', 'Department representative or manager role in the same department as requester required');
 
-    WHEN 'club_mgmt_ack' THEN
+    WHEN 'dept_ack' THEN
+      -- External contractor workflow: Golf Club Management acknowledgment
       -- Allow users with club management role
       IF v_is_club_mgmt THEN
         RETURN jsonb_build_object('allowed', true);
@@ -159,5 +160,6 @@ FIXED:
 1. Updated to reference material_gate_passes instead of non-existent gate_passes table
 2. Added department matching check for dept_approval stage to prevent cross-department approvals
 3. Ensures department representatives can only approve requests from their own department
-4. Restricted club_mgmt_ack stage to club management role OR Golf Club Management dept reps only
-5. Prevents other department representatives from approving contractor gate passes';
+4. Restricted dept_ack stage (contractor workflow) to club management role OR Golf Club Management dept reps only
+5. Prevents other department representatives from approving contractor gate passes
+6. Fixed stage name mismatch: dept_ack is the actual stage name used by approve_gate_pass_unified()';
