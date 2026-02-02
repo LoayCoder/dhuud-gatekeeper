@@ -278,7 +278,8 @@ export function useIncidents() {
           severity, severity_v2, status, occurred_at, created_at,
           branch_id, site_id, location,
           branch:branches!branch_id(name),
-          site:sites!site_id(name)
+          site:sites!site_id(name),
+          related_contractor_company:contractor_companies!incidents_related_contractor_company_id_fkey(id, company_name)
         `)
         .eq('tenant_id', profile.tenant_id)
         .is('deleted_at', null)
