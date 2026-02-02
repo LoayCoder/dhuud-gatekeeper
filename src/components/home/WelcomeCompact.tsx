@@ -41,14 +41,17 @@ export function WelcomeCompact({ className }: WelcomeCompactProps) {
   const formatPublishedAt = (dateStr: string) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
+    // Use Saudi Arabia timezone (Asia/Riyadh)
     const datePart = date.toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
+      timeZone: 'Asia/Riyadh',
     });
     const timePart = date.toLocaleTimeString(i18n.language === 'ar' ? 'ar-SA' : 'en-US', {
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: 'Asia/Riyadh',
     });
     return `${datePart} ${timePart}`;
   };
