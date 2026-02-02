@@ -46,51 +46,27 @@ BEGIN
     RETURN jsonb_build_object('allowed', false, 'reason', 'Access denied: different tenant');
   END IF;
 
-  -- Check user roles
-  SELECT EXISTS (
-    SELECT 1 FROM user_role_assignments ura
+  -- Check user roles (optimized with CTE to avoid multiple queries)
+  WITH user_roles AS (
+    SELECT r.code
+    FROM user_role_assignments ura
     JOIN roles r ON r.id = ura.role_id
     WHERE ura.user_id = p_user_id
-      AND r.code = 'contractor_consultant'
       AND r.is_active = true
       AND ura.tenant_id = v_user_tenant_id
-  ) INTO v_is_contractor_consultant;
-
-  SELECT EXISTS (
-    SELECT 1 FROM user_role_assignments ura
-    JOIN roles r ON r.id = ura.role_id
-    WHERE ura.user_id = p_user_id
-      AND r.code = 'department_representative'
-      AND r.is_active = true
-      AND ura.tenant_id = v_user_tenant_id
-  ) INTO v_is_dept_rep;
-
-  SELECT EXISTS (
-    SELECT 1 FROM user_role_assignments ura
-    JOIN roles r ON r.id = ura.role_id
-    WHERE ura.user_id = p_user_id
-      AND r.code = 'department_manager'
-      AND r.is_active = true
-      AND ura.tenant_id = v_user_tenant_id
-  ) INTO v_is_dept_manager;
-
-  SELECT EXISTS (
-    SELECT 1 FROM user_role_assignments ura
-    JOIN roles r ON r.id = ura.role_id
-    WHERE ura.user_id = p_user_id
-      AND r.code IN ('club_management', 'golf_club_management')
-      AND r.is_active = true
-      AND ura.tenant_id = v_user_tenant_id
-  ) INTO v_is_club_mgmt;
-
-  SELECT EXISTS (
-    SELECT 1 FROM user_role_assignments ura
-    JOIN roles r ON r.id = ura.role_id
-    WHERE ura.user_id = p_user_id
-      AND r.code = 'security_supervisor'
-      AND r.is_active = true
-      AND ura.tenant_id = v_user_tenant_id
-  ) INTO v_is_security_supervisor;
+  )
+  SELECT
+    EXISTS(SELECT 1 FROM user_roles WHERE code = 'contractor_consultant'),
+    EXISTS(SELECT 1 FROM user_roles WHERE code = 'department_representative'),
+    EXISTS(SELECT 1 FROM user_roles WHERE code = 'department_manager'),
+    EXISTS(SELECT 1 FROM user_roles WHERE code IN ('club_management', 'golf_club_management')),
+    EXISTS(SELECT 1 FROM user_roles WHERE code = 'security_supervisor')
+  INTO
+    v_is_contractor_consultant,
+    v_is_dept_rep,
+    v_is_dept_manager,
+    v_is_club_mgmt,
+    v_is_security_supervisor;
 
   -- Check authorization based on SIMPLIFIED stage names
   CASE p_stage
@@ -162,4 +138,6 @@ FIXED:
 3. Ensures department representatives can only approve requests from their own department
 4. Restricted dept_ack stage (contractor workflow) to club management role OR Golf Club Management dept reps only
 5. Prevents other department representatives from approving contractor gate passes
-6. Fixed stage name mismatch: dept_ack is the actual stage name used by approve_gate_pass_unified()';
+6. Fixed stage name mismatch: dept_ack is the actual stage name used by approve_gate_pass_unified()
+OPTIMIZED:
+7. Replaced 5 separate role check queries with single CTE for improved performance';

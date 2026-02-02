@@ -64,6 +64,7 @@ The `can_approve_gate_pass()` database function was referencing a non-existent t
 - **CRITICAL SECURITY FIX #1:** Added department matching check for `dept_approval` stage
 - **CRITICAL SECURITY FIX #2:** Restricted `dept_ack` stage to Golf Club Management dept only
 - **CRITICAL BUG FIX:** Corrected stage name from `club_mgmt_ack` to `dept_ack` (matched actual usage)
+- **PERFORMANCE OPTIMIZATION:** Replaced 5 separate role check queries with single CTE
 - Prevents cross-department approvals (authorization flaws)
 - Ensures department representatives can only approve requests from their own department
 - Ensures only Golf Club Management can acknowledge contractor gate passes
@@ -112,6 +113,30 @@ WHEN 'dept_ack' THEN
   ) THEN
     RETURN jsonb_build_object('allowed', true);
   END IF;
+
+-- Optimization 4: Performance improvement for role checks
+-- Before: 5 separate SELECT EXISTS queries
+-- After: Single CTE with one query
+WITH user_roles AS (
+  SELECT r.code
+  FROM user_role_assignments ura
+  JOIN roles r ON r.id = ura.role_id
+  WHERE ura.user_id = p_user_id
+    AND r.is_active = true
+    AND ura.tenant_id = v_user_tenant_id
+)
+SELECT
+  EXISTS(SELECT 1 FROM user_roles WHERE code = 'contractor_consultant'),
+  EXISTS(SELECT 1 FROM user_roles WHERE code = 'department_representative'),
+  EXISTS(SELECT 1 FROM user_roles WHERE code = 'department_manager'),
+  EXISTS(SELECT 1 FROM user_roles WHERE code IN ('club_management', 'golf_club_management')),
+  EXISTS(SELECT 1 FROM user_roles WHERE code = 'security_supervisor')
+INTO
+  v_is_contractor_consultant,
+  v_is_dept_rep,
+  v_is_dept_manager,
+  v_is_club_mgmt,
+  v_is_security_supervisor;
 ```
 
 ---
@@ -350,12 +375,14 @@ Check for any remaining errors in:
 2. Authorization flaw: Any dept rep could approve any department's gate pass
 3. Authorization flaw: Any dept rep could acknowledge contractor gate passes
 4. Stage name mismatch: Function used `club_mgmt_ack`, but actual stage is `dept_ack`
+5. Performance issue: 5 separate SELECT queries for role checks
 
 **Solutions Applied:**
 1. Fixed table reference: `gate_passes` → `material_gate_passes`
 2. Added department matching check for `dept_approval` stage
 3. Restricted `dept_ack` stage to Golf Club Management dept only
 4. Corrected stage name to match `approve_gate_pass_unified()` usage
+5. Optimized role checks using single CTE instead of 5 separate queries
 
 **Result:** Gate Pass approval workflow fully functional with proper authorization boundaries
 **Status:** ✅ FIXED AND VERIFIED
