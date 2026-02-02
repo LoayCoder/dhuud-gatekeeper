@@ -101,10 +101,18 @@ BEGIN
       RETURN jsonb_build_object('allowed', false, 'reason', 'Contractor consultant role required');
 
     WHEN 'dept_approval' THEN
-      IF v_is_dept_rep OR v_is_dept_manager THEN
+      -- CRITICAL: Department representative must be in the SAME department as the requester
+      IF (v_is_dept_rep OR v_is_dept_manager) AND EXISTS (
+        SELECT 1 FROM profiles req, profiles approver
+        WHERE approver.id = p_user_id
+          AND req.id = v_gate_pass.requested_by
+          AND req.assigned_department_id = approver.assigned_department_id
+          AND approver.tenant_id = v_user_tenant_id
+          AND req.tenant_id = v_user_tenant_id
+      ) THEN
         RETURN jsonb_build_object('allowed', true);
       END IF;
-      RETURN jsonb_build_object('allowed', false, 'reason', 'Department representative or manager role required');
+      RETURN jsonb_build_object('allowed', false, 'reason', 'Department representative or manager role in the same department as requester required');
 
     WHEN 'club_mgmt_ack' THEN
       IF v_is_club_mgmt OR v_is_dept_rep OR v_is_dept_manager THEN
@@ -130,4 +138,7 @@ GRANT EXECUTE ON FUNCTION public.can_approve_gate_pass(uuid, uuid, text) TO auth
 -- Add comment documenting the fix
 COMMENT ON FUNCTION public.can_approve_gate_pass(uuid, uuid, text) IS
 'Validates if a user can approve a gate pass at a specific stage.
-FIXED: Updated to reference material_gate_passes instead of non-existent gate_passes table.';
+FIXED:
+1. Updated to reference material_gate_passes instead of non-existent gate_passes table
+2. Added department matching check for dept_approval stage to prevent cross-department approvals
+3. Ensures department representatives can only approve requests from their own department';

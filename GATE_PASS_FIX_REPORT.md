@@ -20,6 +20,15 @@ This report documents the root cause analysis, fixes applied, and verification o
 
 The `can_approve_gate_pass()` database function was referencing a non-existent table `gate_passes`, when the correct table name is `material_gate_passes`.
 
+### Secondary Issue: Authorization Flaw in Department Approval ⚠️ CRITICAL
+
+**Security Vulnerability:** The `dept_approval` stage was missing the department matching check, allowing **any** department representative to approve gate passes from **any** department, regardless of whether they were in the same department as the requester.
+
+**Impact:**
+- Department Representative from Finance could approve Engineering department's gate pass
+- Cross-department approval violated business rules and security policies
+- Bypassed departmental authorization boundaries
+
 **Affected Files:**
 - `supabase/migrations/20260201210447_09e0f60b-7721-4b1c-a752-f5c5a33e7762.sql` (Line 30)
 - `supabase/migrations/20260201211911_4ddfdcab-6001-4cfa-95e6-26245ed48187.sql` (Line 32)
@@ -40,14 +49,30 @@ The `can_approve_gate_pass()` database function was referencing a non-existent t
 **Changes:**
 - Dropped existing `can_approve_gate_pass()` function with incorrect table reference
 - Recreated function with correct table name: `material_gate_passes`
-- Maintained all workflow logic and role-based authorization checks
+- **CRITICAL SECURITY FIX:** Added department matching check for `dept_approval` stage
+- Prevents cross-department approvals (authorization flaw)
+- Ensures department representatives can only approve requests from their own department
 - Added documentation comment
 
-**SQL Fix:**
+**SQL Fixes:**
 ```sql
--- Fixed FROM clause
+-- Fix 1: Correct table reference
 FROM material_gate_passes gp  -- Previously: FROM gate_passes gp
 WHERE gp.id = p_gate_pass_id AND gp.deleted_at IS NULL;
+
+-- Fix 2: Department matching check (prevents unauthorized cross-department approvals)
+WHEN 'dept_approval' THEN
+  -- CRITICAL: Department representative must be in the SAME department as the requester
+  IF (v_is_dept_rep OR v_is_dept_manager) AND EXISTS (
+    SELECT 1 FROM profiles req, profiles approver
+    WHERE approver.id = p_user_id
+      AND req.id = v_gate_pass.requested_by
+      AND req.assigned_department_id = approver.assigned_department_id
+      AND approver.tenant_id = v_user_tenant_id
+      AND req.tenant_id = v_user_tenant_id
+  ) THEN
+    RETURN jsonb_build_object('allowed', true);
+  END IF;
 ```
 
 ---
