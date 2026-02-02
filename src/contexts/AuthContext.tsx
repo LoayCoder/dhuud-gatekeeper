@@ -12,6 +12,7 @@ if (import.meta.hot) {
 }
 
 interface Profile {
+  id: string;
   full_name: string | null;
   avatar_url: string | null;
   tenant_id: string;

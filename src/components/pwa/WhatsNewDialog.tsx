@@ -12,30 +12,37 @@ import { Sparkles, Check } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useVersionInfo } from '@/hooks/use-version-info';
 
-const SEEN_VERSION_KEY = 'app-whats-new-seen';
+// Store timestamp when user last saw "What's New" dialog
+const SEEN_PUBLISHED_AT_KEY = 'app-whats-new-seen-at';
 
 export function WhatsNewDialog() {
   const { t } = useTranslation();
-  const { version, releaseNotes, isLoading } = useVersionInfo();
+  const { version, publishedAt, releaseNotes, isLoading } = useVersionInfo();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || !publishedAt) return;
     
-    const seenVersion = localStorage.getItem(SEEN_VERSION_KEY);
+    // Compare publishedAt timestamp instead of version string
+    const serverPublishedAt = new Date(publishedAt).getTime();
+    const seenPublishedAt = parseInt(localStorage.getItem(SEEN_PUBLISHED_AT_KEY) || '0', 10);
     
-    // Show dialog if this version hasn't been seen yet
-    if (version && version !== seenVersion && releaseNotes.length > 0) {
+    // Show dialog if this publish is newer than what user has seen
+    if (serverPublishedAt > seenPublishedAt && releaseNotes.length > 0) {
       // Small delay to let the app settle
       const timer = setTimeout(() => {
         setOpen(true);
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [version, releaseNotes, isLoading]);
+  }, [publishedAt, releaseNotes, isLoading]);
 
   const handleClose = () => {
-    localStorage.setItem(SEEN_VERSION_KEY, version);
+    // Store the publishedAt timestamp as seen
+    if (publishedAt) {
+      const timestamp = new Date(publishedAt).getTime();
+      localStorage.setItem(SEEN_PUBLISHED_AT_KEY, String(timestamp));
+    }
     setOpen(false);
   };
 
