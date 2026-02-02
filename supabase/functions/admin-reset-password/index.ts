@@ -79,7 +79,7 @@ serve(async (req) => {
     }
 
     // Verify caller is admin
-    const { data: isAdmin } = await supabase.rpc('is_admin', { _user_id: caller.id });
+    const { data: isAdmin } = await supabase.rpc('is_admin', { p_user_id: caller.id });
     if (!isAdmin) {
       console.log(`[admin-reset-password] Non-admin user ${caller.id} attempted password reset`);
       return new Response(
