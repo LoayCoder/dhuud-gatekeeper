@@ -180,13 +180,21 @@ export default function OrgStructure() {
       // NOTE: Branch filter is NOT applied to branches query
       // Other org elements (divisions, departments, sites) WILL continue to be filtered
 
-      // Divisions query with branch filter
+      // Divisions query with branch filter - include hybrid divisions (branch_id IS NULL)
       let divisionsQuery = supabase.from('divisions')
         .select('id, name, branch_id, branches(name)')
         .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('name');
-      divisionsQuery = applyBranchFilter(divisionsQuery);
+      
+      // Special handling for divisions: include hybrid (branch_id IS NULL) alongside branch-specific
+      if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
+        if (branchIds.length === 1) {
+          divisionsQuery = divisionsQuery.or(`branch_id.eq.${branchIds[0]},branch_id.is.null`);
+        } else {
+          divisionsQuery = divisionsQuery.or(`branch_id.in.(${branchIds.join(',')}),branch_id.is.null`);
+        }
+      }
 
       // Departments query with branch filter
       let departmentsQuery = supabase.from('departments')
