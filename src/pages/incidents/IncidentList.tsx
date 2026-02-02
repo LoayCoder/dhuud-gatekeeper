@@ -67,6 +67,7 @@ export default function IncidentList() {
     severity: searchParams.get('severity') || '',
     eventType: searchParams.get('type') || '',
     branchId: searchParams.get('branch') || '',
+    contractorId: searchParams.get('contractor') || undefined,
     dateRange: undefined,
     tags: initialTags,
   });
@@ -127,6 +128,17 @@ export default function IncidentList() {
       
       // Branch filter
       if (filters.branchId && incident.branch_id !== filters.branchId) return false;
+
+      // Contractor filter
+      if (filters.contractorId) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const incidentContractor = (incident as any).related_contractor_company;
+        // If incident has no contractor, but we are filtering for one, exclude it
+        // If incident has contractor, but ID doesn't match, exclude it
+        if (!incidentContractor || incidentContractor.id !== filters.contractorId) {
+          return false;
+        }
+      }
       
       // Date range filter
       if (filters.dateRange?.from && incident.occurred_at) {
@@ -226,6 +238,8 @@ export default function IncidentList() {
     else newParams.delete('type');
     if (newFilters.branchId) newParams.set('branch', newFilters.branchId);
     else newParams.delete('branch');
+    if (newFilters.contractorId) newParams.set('contractor', newFilters.contractorId);
+    else newParams.delete('contractor');
     if (newFilters.tags.length > 0) newParams.set('tags', newFilters.tags.join(','));
     else newParams.delete('tags');
     setSearchParams(newParams);
