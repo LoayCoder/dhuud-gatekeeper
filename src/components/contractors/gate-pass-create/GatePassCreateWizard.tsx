@@ -1,9 +1,9 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, Check, Plus, Calendar as CalendarIcon, Clock, Truck, AlertTriangle, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Plus, Calendar as CalendarIcon, Clock, Truck, AlertTriangle, Loader2, CheckCircle2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/u
 import { cn } from "@/lib/utils";
 import { useCreateGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
 import { useGolfClubMgmtApprovers } from "@/hooks/contractor-management/use-golf-club-mgmt-approvers";
+import { useAutoResolveApprover } from "@/hooks/contractor-management/use-auto-resolve-approver";
 import { WizardProgressIndicator } from "./WizardProgressIndicator";
 import { PassTypeSelector, PassTypeValue } from "./PassTypeSelector";
 import { GatePassItemCard, GatePassItemData } from "./GatePassItemCard";
@@ -61,6 +62,19 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
   // API hooks
   const createGatePass = useCreateGatePass();
   const { data: approvers, isLoading: loadingApprovers } = useGolfClubMgmtApprovers();
+  const { 
+    approver: autoResolvedApprover, 
+    isLoading: loadingAutoApprover, 
+    isAutoResolved, 
+    fallbackReason 
+  } = useAutoResolveApprover();
+
+  // Auto-set approver when resolved
+  useEffect(() => {
+    if (isAutoResolved && autoResolvedApprover?.id && !approverId) {
+      setApproverId(autoResolvedApprover.id);
+    }
+  }, [isAutoResolved, autoResolvedApprover, approverId]);
 
   // Step labels
   const stepLabels = [
@@ -170,8 +184,10 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
     }
   };
 
-  // Get approver name for review
-  const selectedApprover = approvers?.find((a) => a.id === approverId);
+  // Get approver name for review - prefer auto-resolved, fallback to manual selection
+  const selectedApprover = isAutoResolved && autoResolvedApprover 
+    ? autoResolvedApprover 
+    : approvers?.find((a) => a.id === approverId);
 
   return (
     <div className="flex flex-col min-h-[calc(100vh-4rem)] bg-background">
@@ -284,30 +300,70 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
 
               <Card>
                 <CardHeader>
-                  <CardTitle>{t("gatePasses.wizard.approver", "Approver")}</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    {t("gatePasses.wizard.approver", "Approver")}
+                    {isAutoResolved && (
+                      <Badge variant="secondary" className="ms-auto text-xs">
+                        {t("gatePasses.autoAssigned", "Auto-assigned")}
+                      </Badge>
+                    )}
+                  </CardTitle>
                   <CardDescription>
-                    {t("gatePasses.wizard.approverDesc", "Select who will approve this request")}
+                    {isAutoResolved 
+                      ? t("gatePasses.wizard.approverAutoDesc", "Your request will be sent to:")
+                      : t("gatePasses.wizard.approverDesc", "Select who will approve this request")
+                    }
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Select value={approverId} onValueChange={setApproverId} disabled={loadingApprovers}>
-                    <SelectTrigger className={cn("h-12", showValidationErrors && !approverId && "border-destructive")}>
-                      <SelectValue placeholder={t("gatePasses.selectApprover", "Select an approver")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {approvers?.map((approver) => (
-                        <SelectItem key={approver.id} value={approver.id}>
-                          <div className="flex items-center gap-2">
-                            <span>{approver.full_name}</span>
-                            {approver.job_title && (
-                              <span className="text-muted-foreground text-xs">({approver.job_title})</span>
-                            )}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {showValidationErrors && !approverId && (
+                  {loadingAutoApprover ? (
+                    <div className="flex items-center gap-2 h-12 px-3 border rounded-md bg-muted/50">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-muted-foreground">{t("common.loading", "Loading...")}</span>
+                    </div>
+                  ) : isAutoResolved && autoResolvedApprover ? (
+                    <div className="flex items-center gap-3 p-3 border rounded-md bg-muted/30">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                        <CheckCircle2 className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium">{autoResolvedApprover.full_name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {autoResolvedApprover.job_title || t(`gatePasses.role.${autoResolvedApprover.role}`, autoResolvedApprover.role)}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {fallbackReason && (
+                        <Alert variant="default" className="mb-3 border-warning bg-warning/10">
+                          <AlertTriangle className="h-4 w-4 text-warning" />
+                          <AlertDescription className="text-warning">
+                            {t("gatePasses.fallbackReason", fallbackReason)}
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                      <Select value={approverId} onValueChange={setApproverId} disabled={loadingApprovers}>
+                        <SelectTrigger className={cn("h-12", showValidationErrors && !approverId && "border-destructive")}>
+                          <SelectValue placeholder={t("gatePasses.selectApprover", "Select an approver")} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {approvers?.map((approver) => (
+                            <SelectItem key={approver.id} value={approver.id}>
+                              <div className="flex items-center gap-2">
+                                <span>{approver.full_name}</span>
+                                {approver.job_title && (
+                                  <span className="text-muted-foreground text-xs">({approver.job_title})</span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </>
+                  )}
+                  {showValidationErrors && !approverId && !isAutoResolved && (
                     <p className="text-sm text-destructive mt-2">{t("gatePasses.approverRequired", "Please select an approver")}</p>
                   )}
                 </CardContent>

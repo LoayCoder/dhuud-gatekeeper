@@ -25406,6 +25406,10 @@ export type Database = {
       }
       get_auth_tenant_id: { Args: never; Returns: string }
       get_auth_tenant_id_bypass: { Args: never; Returns: string }
+      get_auto_approver_for_gate_pass: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       get_badge_statistics: {
         Args: never
         Returns: {
