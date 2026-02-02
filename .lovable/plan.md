@@ -1,204 +1,175 @@
 
-# Remove Manual Approver Selection - Auto-Route Internal Gate Passes with Complete Workflow
+# Fix Organizational Structure: Divisions Display & Department Deduplication
 
-## Problem Analysis
+## Problem Summary
 
-Currently, internal gate pass requests show a dropdown asking users to "Select who will approve this request" - but this is incorrect based on the documented workflow. The approver should be **automatically determined** based on the requester's organizational hierarchy.
+### 1. Divisions Tab Shows Empty
+When LUAY (RGC branch) views the Divisions tab, it shows "No items" despite 8 valid hybrid divisions existing.
 
----
-
-## Complete Gate Pass Workflow Stages
-
-### INTERNAL Workflow (Employee Requests)
-
-| Stage | Status | Action Type | Approver | Description |
-|:------|:-------|:------------|:---------|:------------|
-| 1 | `pending_dept_approval` | **APPROVAL** | Department Rep OR Manager | Auto-routed to user's dept rep. Dept managers can also approve. |
-| 2 | `pending_club_mgmt_ack` | **ACKNOWLEDGMENT** | Golf Club Management Rep | Mandatory site acknowledgment before security |
-| 3 | `pending_security_approval` | **APPROVAL** | Security Supervisor | Final approval - generates QR code |
-| 4 | `approved` | **READY** | - | Pass is active, QR can be scanned |
-| 5 | `used` | **GATE SCANNING** | Security Guard | Entry recorded at gate |
-| 6 | `completed` | **GATE SCANNING** | Security Guard | Exit recorded (for in_out passes) |
-
-### EXTERNAL Workflow (Contractor Requests)
-
-| Stage | Status | Action Type | Approver | Description |
-|:------|:-------|:------------|:---------|:------------|
-| 1 | `pending_contractor_approval` | **APPROVAL** | Contractor Consultant | Initial contractor validation |
-| 2 | `pending_club_mgmt_ack` | **ACKNOWLEDGMENT** | Golf Club Management Rep | Mandatory site acknowledgment |
-| 3 | `pending_security_approval` | **APPROVAL** | Security Supervisor | Final approval - generates QR code |
-| 4 | `approved` | **READY** | - | Pass is active, QR can be scanned |
-| 5 | `used` | **GATE SCANNING** | Security Guard | Entry recorded at gate |
-| 6 | `completed` | **GATE SCANNING** | Security Guard | Exit recorded (for in_out passes) |
-
----
-
-## Auto-Routing Logic (Internal Requests)
-
-### Decision Tree
-
-```text
-+---------------------------------------------------------+
-|             Is User a Dept Rep/Manager?                 |
-+---------------------------------------------------------+
-                          |
-            +-------------+-------------+
-            v                           v
-         [YES]                        [NO]
-            |                           |
-            v                           v
-+------------------------+   +----------------------------+
-| Lookup manager_team    |   | Find dept_rep for user's   |
-| -> return manager_id   |   | assigned_department_id     |
-+------------------------+   +----------------------------+
-            |                           |
-            v                           v
-+------------------------+   +----------------------------+
-| Manager found?         |   | Dept Rep found?            |
-| YES -> use as approver |   | YES -> use as approver     |
-| NO -> show dropdown    |   | NO -> show dropdown        |
-+------------------------+   +----------------------------+
+**Root Cause**: The `applyBranchFilter` in the divisions query uses exact `branch_id` match:
+```sql
+WHERE branch_id = 'RGC-uuid'  -- But hybrid divisions have branch_id = NULL
 ```
 
----
+All 8 active divisions in Golf Saudi are **hybrid** (branch_id = NULL), designed to be shared across both RGC and DGC branches.
 
-## Implementation Steps
+### 2. Duplicate Departments (8 pairs)
+Each department name exists twice - once for RGC and once for DGC:
 
-### Step 1: Create Auto-Resolve Hook
+| Department Name | RGC ID | DGC ID |
+|:----------------|:-------|:-------|
+| BCM | eb8f90b3... | 7565fc24... |
+| Compliance Management | d778dd93... | 9597bc1c... |
+| Corporate Affairs | 1976160f... | 44e35522... |
+| Development | 5b571578... | 5e598d82... |
+| Golf Club Management | e1a211c8... | c1f11b84... |
+| Governance Management | ac86a5eb... | 9277cb4d... |
+| PMO | f6db3de8... | 839f4195... |
+| Risk Management | 6015c7cd... | 919fd52f... |
 
-Create `src/hooks/contractor-management/use-auto-resolve-approver.ts`:
-- Check if current user has `department_representative` or `department_manager` role
-- If YES: Query `manager_team` table for user's manager
-- If NO: Query for department representative in user's `assigned_department_id`
-- Return `{ approver, isLoading, isAutoResolved, fallbackReason }`
-
-### Step 2: Create Backend RPC
-
-Create `get_auto_approver_for_gate_pass` RPC function:
-- Accept `p_user_id UUID`
-- Returns JSONB with `{ approver_id, approver_name, approver_role, auto_resolved: boolean, reason: text }`
-- More reliable than client-side logic
-
-### Step 3: Update GatePassCreateWizard
-
-Modify `src/components/contractors/gate-pass-create/GatePassCreateWizard.tsx`:
-- Call auto-resolve hook on mount
-- If `isAutoResolved = true`: Hide dropdown, show approver info as read-only
-- If `isAutoResolved = false`: Show dropdown with fallback reason
+### 3. Cross-Tenant Reference (Critical Data Issue)
+The **Safety** department (Golf Saudi) references an HSSE division from the **Dhuud Platform** tenant - this is a data integrity violation.
 
 ---
 
-## UI Changes
+## Solution Plan
 
-### Before (Current)
+### Step 1: Fix Divisions Query (UI Bug)
 
-```text
-+------------------------------------------+
-| Approver                                 |
-| Select who will approve this request     |
-| +--------------------------------------+ |
-| | Select an approver                 v | |
-| +--------------------------------------+ |
-+------------------------------------------+
+**File**: `src/pages/admin/OrgStructure.tsx`
+
+Modify the divisions query to include hybrid divisions (branch_id IS NULL) when filtering by branch:
+
+```sql
+-- Before (excludes hybrids)
+WHERE branch_id = 'RGC-uuid'
+
+-- After (includes hybrids)
+WHERE (branch_id = 'RGC-uuid' OR branch_id IS NULL)
 ```
 
-### After (Auto-Resolved)
+**Implementation**: Update the `applyBranchFilter` call for divisions to use an OR filter that includes NULL branch_ids.
 
-```text
-+------------------------------------------+
-| Approver (Auto-assigned)                 |
-| Your request will be sent to:            |
-| +--------------------------------------+ |
-| |  Mohammed Al Khammees                | |
-| |  Department Representative           | |
-| +--------------------------------------+ |
-+------------------------------------------+
+### Step 2: Create Missing HSSE Division in Golf Saudi
+
+Create a new hybrid HSSE division in Golf Saudi tenant to fix the cross-tenant reference:
+
+```sql
+INSERT INTO divisions (id, name, tenant_id, branch_id)
+VALUES (
+  gen_random_uuid(),
+  'HSSE',
+  'e30ae1a5-7eab-4776-bd0b-bb0b391e68e8',  -- Golf Saudi
+  NULL  -- Hybrid
+);
 ```
 
-### After (Fallback - No Auto-resolver)
+### Step 3: Fix Safety Department Reference
 
-```text
-+------------------------------------------+
-| ! No department representative found     |
-|   Please select an approver:             |
-| +--------------------------------------+ |
-| | Select an approver                 v | |
-| +--------------------------------------+ |
-+------------------------------------------+
+Update the Safety department to reference the new Golf Saudi HSSE division:
+
+```sql
+UPDATE departments
+SET division_id = [new_hsse_id]
+WHERE id = '507d35dd-4d4c-4bec-ba7a-0f5ea7bd63e0';  -- Safety dept
 ```
 
----
+### Step 4: Consolidate Duplicate Departments
 
-## Files to Create/Modify
+For each duplicate pair, we need to:
+1. Pick one department as the "survivor" (preferably the one with more assignments)
+2. Migrate all user profile assignments (`assigned_department_id`)
+3. Migrate all site_departments mappings
+4. Soft-delete the duplicate
 
-| File | Action | Purpose |
-|:-----|:-------|:--------|
-| `src/hooks/contractor-management/use-auto-resolve-approver.ts` | CREATE | Auto-resolve approver hook |
-| `src/components/contractors/gate-pass-create/GatePassCreateWizard.tsx` | MODIFY | Hide dropdown when auto-resolved |
-| `supabase/migrations/xxx_add_auto_approver_rpc.sql` | CREATE | Backend RPC function |
+**Migration Script** (example for Corporate Affairs):
+```sql
+-- 1. Check which Corporate Affairs has users assigned
+SELECT assigned_department_id, COUNT(*) 
+FROM profiles 
+WHERE assigned_department_id IN ('1976160f...', '44e35522...')
+GROUP BY assigned_department_id;
 
----
+-- 2. Migrate users from duplicate to survivor
+UPDATE profiles 
+SET assigned_department_id = 'survivor_id'
+WHERE assigned_department_id = 'duplicate_id';
 
-## Edge Cases
+-- 3. Migrate site_departments if any
+UPDATE site_departments
+SET department_id = 'survivor_id'
+WHERE department_id = 'duplicate_id';
 
-| Scenario | Resolution |
-|:---------|:-----------|
-| No Department Representative assigned | Show dropdown with Golf Club Mgmt approvers |
-| User IS the Department Representative | Route to their manager from `manager_team` |
-| No manager in `manager_team` | Show dropdown fallback |
-| User has no assigned department | Show dropdown fallback |
+-- 4. Soft-delete the duplicate
+UPDATE departments
+SET deleted_at = NOW()
+WHERE id = 'duplicate_id';
+```
+
+### Step 5: Make Surviving Departments Hybrid
+
+After consolidation, update each surviving department to be hybrid (accessible from both branches):
+
+```sql
+UPDATE departments
+SET branch_id = NULL
+WHERE id IN ('survivor_ids...');
+```
 
 ---
 
 ## Technical Details
 
-### Database Query for Auto-Resolution
+### Files to Modify
 
-```sql
--- For normal employee: find dept rep in same department
-SELECT p.id, p.full_name, 'department_representative' as role
-FROM profiles p
-JOIN user_role_assignments ura ON ura.user_id = p.id
-JOIN roles r ON r.id = ura.role_id
-WHERE p.assigned_department_id = (SELECT assigned_department_id FROM profiles WHERE id = $user_id)
-  AND r.code IN ('department_representative', 'department_manager')
-  AND p.is_active = true
-  AND p.id != $user_id
-LIMIT 1;
+| File | Change |
+|:-----|:-------|
+| `src/pages/admin/OrgStructure.tsx` | Fix divisions query to include NULL branch_ids |
+| Database Migration | Create HSSE division, fix Safety reference, consolidate duplicates |
 
--- For dept rep/manager: find their manager
-SELECT mt.manager_id, p.full_name, 'manager' as role
-FROM manager_team mt
-JOIN profiles p ON p.id = mt.manager_id
-WHERE mt.member_id = $user_id
-  AND p.is_active = true
-LIMIT 1;
-```
+### Query Fix for Divisions
 
-### Hook Interface
+In `OrgStructure.tsx`, replace the divisions query filter (around line 189):
 
 ```typescript
-interface AutoResolvedApprover {
-  id: string;
-  full_name: string;
-  job_title: string | null;
-  role: 'department_representative' | 'department_manager' | 'manager';
-}
+// Current (broken)
+divisionsQuery = applyBranchFilter(divisionsQuery);
 
-interface UseAutoResolveApproverResult {
-  approver: AutoResolvedApprover | null;
-  isLoading: boolean;
-  isAutoResolved: boolean;
-  fallbackReason: string | null;
+// Fixed - Include hybrid divisions
+if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
+  if (branchIds.length === 1) {
+    divisionsQuery = divisionsQuery.or(`branch_id.eq.${branchIds[0]},branch_id.is.null`);
+  } else {
+    divisionsQuery = divisionsQuery.or(`branch_id.in.(${branchIds.join(',')}),branch_id.is.null`);
+  }
 }
 ```
 
 ---
 
-## Expected Behavior After Implementation
+## Migration Steps Summary
 
-1. **LUAY** (Safety department employee) creates gate pass -> Auto-routes to **Safety Dept Rep**
-2. If no Safety Dept Rep exists -> Shows dropdown to select from available approvers
-3. **Mohammed Al Khammees** (Corporate Affairs dept rep) creates gate pass -> Auto-routes to **his manager**
-4. Both Department Rep AND Manager can approve at stage 1
-5. Stage 2 (Club Mgmt Ack) and Stage 3 (Security) remain unchanged
+1. **Create HSSE Division** in Golf Saudi tenant (hybrid)
+2. **Fix Safety Department** → point to new Golf Saudi HSSE
+3. **For each duplicate department pair**:
+   - Identify which has user assignments
+   - Migrate users and site_departments to survivor
+   - Soft-delete the duplicate
+4. **Convert survivors to hybrid** (branch_id = NULL)
+5. **Update UI query** to show hybrid divisions
+
+---
+
+## Expected Result After Fix
+
+- Divisions tab shows all 9 divisions (8 existing + new HSSE)
+- Each department appears only once in the list
+- Both RGC and DGC users see the same departments
+- Safety department correctly references Golf Saudi HSSE division
+- LUAY's `assigned_department_id` remains valid (Corporate Affairs becomes hybrid)
+
+---
+
+## Rollback Safety
+
+All department deletions use soft-delete (setting `deleted_at` timestamp), so data can be recovered if needed.
