@@ -167,6 +167,32 @@ export function useDeptPendingApprovals() {
         }
       }
 
+      // 3. INTERNAL requests pending Golf Club Management acknowledgment
+      // Check if current user is in Golf Club Management department
+      if (departmentId) {
+        const { data: golfDept } = await supabase
+          .from("departments")
+          .select("id")
+          .eq("id", departmentId)
+          .or("name.eq.Golf Club Management,name.ilike.%golf%club%management%")
+          .maybeSingle();
+
+        if (golfDept) {
+          // User is in Golf Club Management - fetch all internal pending_club_mgmt_ack
+          const { data: clubMgmtPasses, error: clubMgmtError } = await supabase
+            .from("material_gate_passes")
+            .select(GATE_PASS_SELECT)
+            .eq("tenant_id", tenantId)
+            .eq("is_internal_request", true)
+            .eq("status", "pending_club_mgmt_ack")
+            .is("deleted_at", null)
+            .order("created_at", { ascending: false });
+
+          if (clubMgmtError) throw clubMgmtError;
+          if (clubMgmtPasses) allPending.push(...(clubMgmtPasses as MaterialGatePass[]));
+        }
+      }
+
       // Sort by created_at descending
       allPending.sort((a, b) => 
         new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
