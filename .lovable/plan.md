@@ -1,131 +1,230 @@
 
-# Add Database-Level Unique Constraints for Organizational Structure
+# Admin Password Reset with WhatsApp Notification
 
-## Current State Analysis
-
-| Table | Current Constraint | Issue |
-|:------|:-------------------|:------|
-| **divisions** | None | Duplicates possible |
-| **departments** | `(tenant_id, branch_id, division_id, name)` | Allows duplicates across branches (e.g., "Corporate Affairs" in both RGC and DGC) |
-| **sections** | `(tenant_id, branch_id, department_id, name)` | Same issue - allows cross-branch duplicates |
-| **branches** | None | Duplicates possible |
-| **sites** | None | Duplicates possible |
-
-## Proposed Solution
-
-Create simple `(tenant_id, name)` unique constraints that:
-- Apply only to active records (`WHERE deleted_at IS NULL`)
-- Replace the complex multi-column constraints for departments/sections
-- Add new constraints for divisions, branches, and sites
+## Overview
+Implement a feature that allows administrators to reset a user's password and automatically send the new temporary password to the user via WhatsApp.
 
 ---
 
-## Migration SQL
+## User Flow
 
-```sql
--- 1. Drop existing complex constraints (they allow cross-branch duplicates)
-DROP INDEX IF EXISTS idx_departments_unique_composite;
-DROP INDEX IF EXISTS idx_sections_unique_composite;
+1. Admin navigates to **User Management** page
+2. Admin clicks a new **"Reset Password"** action button on a user row
+3. System generates a secure temporary password
+4. System updates the user's password in the authentication system
+5. System sends a bilingual WhatsApp message to the user with the new password
+6. System logs the password reset action in audit logs
+7. Admin sees success/failure toast notification
 
--- 2. Add simple tenant-wide unique constraints for divisions
-CREATE UNIQUE INDEX idx_divisions_unique_tenant_name
-ON public.divisions (tenant_id, LOWER(name))
-WHERE deleted_at IS NULL;
+---
 
--- 3. Add simple tenant-wide unique constraints for departments
-CREATE UNIQUE INDEX idx_departments_unique_tenant_name
-ON public.departments (tenant_id, LOWER(name))
-WHERE deleted_at IS NULL;
+## Components to Create/Modify
 
--- 4. Add simple tenant-wide unique constraints for sections
-CREATE UNIQUE INDEX idx_sections_unique_tenant_name
-ON public.sections (tenant_id, LOWER(name))
-WHERE deleted_at IS NULL;
+### 1. New Edge Function: `admin-reset-password`
 
--- 5. Add unique constraint for branches
-CREATE UNIQUE INDEX idx_branches_unique_tenant_name
-ON public.branches (tenant_id, LOWER(name))
-WHERE deleted_at IS NULL;
+**Location:** `supabase/functions/admin-reset-password/index.ts`
 
--- 6. Add unique constraint for sites
-CREATE UNIQUE INDEX idx_sites_unique_tenant_name
-ON public.sites (tenant_id, LOWER(name))
-WHERE deleted_at IS NULL;
+**Purpose:** Securely reset a user's password and send WhatsApp notification
 
--- 7. Add helpful comments
-COMMENT ON INDEX idx_divisions_unique_tenant_name IS 
-  'Enforces unique division names within a tenant (case-insensitive, active records only)';
-COMMENT ON INDEX idx_departments_unique_tenant_name IS 
-  'Enforces unique department names within a tenant (case-insensitive, active records only)';
-COMMENT ON INDEX idx_sections_unique_tenant_name IS 
-  'Enforces unique section names within a tenant (case-insensitive, active records only)';
-COMMENT ON INDEX idx_branches_unique_tenant_name IS 
-  'Enforces unique branch names within a tenant (case-insensitive, active records only)';
-COMMENT ON INDEX idx_sites_unique_tenant_name IS 
-  'Enforces unique site names within a tenant (case-insensitive, active records only)';
+**Security Features:**
+- Requires authenticated admin caller
+- Validates caller is admin via `is_admin` RPC
+- Enforces tenant isolation (admin can only reset passwords for users in same tenant)
+- Generates cryptographically secure temporary password
+- Logs action to audit trail
+
+**Request Payload:**
+```text
+{
+  user_id: string (UUID of target user)
+}
+```
+
+**Process:**
+1. Validate admin authorization
+2. Verify target user belongs to same tenant
+3. Get user's phone number from profile
+4. Generate secure temporary password (12 chars: uppercase, lowercase, digits, special)
+5. Call `supabase.auth.admin.updateUserById()` with new password
+6. Send WhatsApp message via existing `sendWhatsAppText()` utility
+7. Log action to `admin_audit_logs` table
+8. Return success/failure response
+
+---
+
+### 2. Update User Management UI
+
+**File:** `src/pages/admin/UserManagement.tsx`
+
+**Changes:**
+- Add `resetPasswordLoading` state (tracks which user is being reset)
+- Add `handleResetPassword(userId, userName, phoneNumber)` function
+- Add "Reset Password" button/icon in user actions column
+- Add confirmation dialog before reset
+- Show toast on success/failure
+
+**UI Element:** Key icon (🔑) button next to edit/sync buttons
+
+---
+
+### 3. Update Edge Function Config
+
+**File:** `supabase/config.toml`
+
+Add:
+```toml
+[functions.admin-reset-password]
+verify_jwt = true
 ```
 
 ---
 
-## Key Design Decisions
+### 4. Add Translation Keys
 
-| Decision | Rationale |
-|:---------|:----------|
-| **Use `LOWER(name)`** | Case-insensitive matching prevents "Corporate Affairs" vs "corporate affairs" duplicates |
-| **Partial index with `WHERE deleted_at IS NULL`** | Soft-deleted records don't block new items with same name |
-| **Drop old complex constraints** | The branch_id+division_id constraints defeated the hybrid model purpose |
-| **Include branches and sites** | Full protection for all organizational structure items |
+**Files:** All 5 locale files (en, ar, hi, ur, fil)
 
----
-
-## Pre-Migration Check Required
-
-Before running the migration, we need to verify there are no existing duplicates that would violate the new constraints. If duplicates exist (besides the ones we already cleaned up), the migration will fail.
-
-**Verification query to run first:**
-```sql
--- Check for duplicate divisions within tenant
-SELECT tenant_id, LOWER(name), COUNT(*) 
-FROM divisions 
-WHERE deleted_at IS NULL 
-GROUP BY tenant_id, LOWER(name) 
-HAVING COUNT(*) > 1;
-
--- Check for duplicate departments within tenant
-SELECT tenant_id, LOWER(name), COUNT(*) 
-FROM departments 
-WHERE deleted_at IS NULL 
-GROUP BY tenant_id, LOWER(name) 
-HAVING COUNT(*) > 1;
-
--- Check for duplicate sections within tenant
-SELECT tenant_id, LOWER(name), COUNT(*) 
-FROM sections 
-WHERE deleted_at IS NULL 
-GROUP BY tenant_id, LOWER(name) 
-HAVING COUNT(*) > 1;
-
--- Check for duplicate branches within tenant
-SELECT tenant_id, LOWER(name), COUNT(*) 
-FROM branches 
-WHERE deleted_at IS NULL 
-GROUP BY tenant_id, LOWER(name) 
-HAVING COUNT(*) > 1;
-
--- Check for duplicate sites within tenant
-SELECT tenant_id, LOWER(name), COUNT(*) 
-FROM sites 
-WHERE deleted_at IS NULL 
-GROUP BY tenant_id, LOWER(name) 
-HAVING COUNT(*) > 1;
+**New Keys:**
+```text
+userManagement.resetPassword - "Reset Password"
+userManagement.resetPasswordConfirm - "Reset password for {{name}}?"
+userManagement.resetPasswordDescription - "A new temporary password will be generated and sent to the user via WhatsApp."
+userManagement.passwordResetSuccess - "Password reset successfully"
+userManagement.passwordSentViaWhatsApp - "Temporary password sent via WhatsApp to {{phone}}"
+userManagement.noPhoneNumber - "User has no phone number configured"
+userManagement.resetPasswordFailed - "Failed to reset password"
 ```
 
 ---
 
-## Expected Outcome
+## Edge Function Implementation Details
 
-After this migration:
-- No two divisions, departments, sections, branches, or sites can have the same name within a tenant
-- The database itself enforces this rule (defense in depth with UI validation)
-- Soft-deleted items can be recreated with the same name
-- Case differences like "HR" vs "hr" are treated as duplicates
+### Password Generation
+```text
+function generateSecurePassword(length = 12): string {
+  const uppercase = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const lowercase = 'abcdefghjkmnpqrstuvwxyz';
+  const digits = '23456789';
+  const special = '!@#$%';
+  
+  // Ensure at least one of each type
+  let password = '';
+  password += uppercase[random] + lowercase[random] + digits[random] + special[random];
+  
+  // Fill remaining with random from all sets
+  const allChars = uppercase + lowercase + digits + special;
+  for (let i = 4; i < length; i++) {
+    password += allChars[random];
+  }
+  
+  return shuffle(password);
+}
+```
+
+### WhatsApp Message Template (Bilingual)
+```text
+🔐 تم إعادة تعيين كلمة المرور
+
+مرحباً {{userName}},
+
+تم إعادة تعيين كلمة المرور الخاصة بحسابك على منصة ضود.
+
+كلمة المرور المؤقتة: *{{password}}*
+
+يرجى تسجيل الدخول وتغيير كلمة المرور فوراً.
+
+---
+
+🔐 Password Reset
+
+Hello {{userName}},
+
+Your password for Dhuud HSSE Platform has been reset.
+
+Temporary Password: *{{password}}*
+
+Please login and change your password immediately.
+```
+
+---
+
+## Technical Diagram
+
+```text
+┌─────────────────┐     ┌──────────────────────┐     ┌─────────────────┐
+│   Admin UI      │     │  Edge Function       │     │   WhatsApp      │
+│  (UserMgmt)     │     │ (admin-reset-pwd)    │     │   (WaSender)    │
+└────────┬────────┘     └──────────┬───────────┘     └────────┬────────┘
+         │                         │                          │
+         │  1. Reset Password      │                          │
+         │─────────────────────────>│                          │
+         │                         │                          │
+         │                         │ 2. Validate Admin        │
+         │                         │    Check Tenant          │
+         │                         │    Get User Phone        │
+         │                         │                          │
+         │                         │ 3. Generate Password     │
+         │                         │                          │
+         │                         │ 4. Update Auth           │
+         │                         │    (admin.updateUserById)│
+         │                         │                          │
+         │                         │ 5. Send WhatsApp         │
+         │                         │─────────────────────────>│
+         │                         │                          │
+         │                         │    WhatsApp Delivered    │
+         │                         │<─────────────────────────│
+         │                         │                          │
+         │                         │ 6. Log to Audit          │
+         │                         │                          │
+         │  7. Success Response    │                          │
+         │<─────────────────────────│                          │
+         │                         │                          │
+```
+
+---
+
+## Files to Create/Modify
+
+| File | Action | Description |
+|:-----|:-------|:------------|
+| `supabase/functions/admin-reset-password/index.ts` | Create | New edge function for password reset |
+| `supabase/config.toml` | Modify | Add function config with `verify_jwt = true` |
+| `src/pages/admin/UserManagement.tsx` | Modify | Add reset password button and handler |
+| `src/locales/en/translation.json` | Modify | Add English translation keys |
+| `src/locales/ar/translation.json` | Modify | Add Arabic translation keys |
+| `src/locales/hi/translation.json` | Modify | Add Hindi translation keys |
+| `src/locales/ur/translation.json` | Modify | Add Urdu translation keys |
+| `src/locales/fil/translation.json` | Modify | Add Filipino translation keys |
+
+---
+
+## Security Considerations
+
+1. **Admin-only access** - Function validates caller is admin before proceeding
+2. **Tenant isolation** - Admin can only reset passwords for users in their tenant
+3. **Secure password generation** - Uses crypto.getRandomValues() for randomness
+4. **Audit logging** - All password resets logged with admin ID, target user, timestamp, IP
+5. **No password exposure in logs** - Password is never logged, only sent via WhatsApp
+6. **Phone number required** - Function returns error if user has no phone number
+
+---
+
+## Validation Requirements
+
+Before reset:
+- Target user must exist
+- Target user must be in same tenant as admin
+- Target user must have a phone number configured
+- Target user must have an auth account (`has_login = true`)
+
+---
+
+## Error Handling
+
+| Scenario | Response |
+|:---------|:---------|
+| No phone number | Return error with message "User has no phone number" |
+| User not found | Return 404 error |
+| Cross-tenant attempt | Return 403 error |
+| Non-admin caller | Return 403 error |
+| WhatsApp send fails | Return partial success, password was changed but notification failed |
+| Auth update fails | Return 500 error, password not changed |
