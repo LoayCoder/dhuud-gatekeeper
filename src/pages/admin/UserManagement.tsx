@@ -41,7 +41,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Pencil, Plus, Search, Download, X, Upload, RefreshCw, Filter, ChevronDown } from "lucide-react";
+import { Loader2, Pencil, Plus, Search, Download, X, Upload, RefreshCw, Filter, ChevronDown, KeyRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -102,6 +102,11 @@ export default function UserManagement() {
   
   // Email sync state
   const [syncingUserId, setSyncingUserId] = useState<string | null>(null);
+  
+  // Password reset state
+  const [resetPasswordUserId, setResetPasswordUserId] = useState<string | null>(null);
+  const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
+  const [resetPasswordTarget, setResetPasswordTarget] = useState<{ id: string; name: string; phone: string } | null>(null);
 
   // Filters
   const [userTypeFilter, setUserTypeFilter] = useState<string>('all');
@@ -548,6 +553,67 @@ export default function UserManagement() {
       });
     } finally {
       setSyncingUserId(null);
+    }
+  };
+
+  // Reset user password and send via WhatsApp
+  const handleResetPasswordClick = (userId: string, userName: string, phoneNumber: string | null) => {
+    if (!phoneNumber) {
+      toast({
+        title: t('common.error'),
+        description: t('userManagement.noPhoneNumber', 'User has no phone number configured'),
+        variant: 'destructive',
+      });
+      return;
+    }
+    setResetPasswordTarget({ id: userId, name: userName, phone: phoneNumber });
+    setResetPasswordDialogOpen(true);
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetPasswordTarget) return;
+    
+    setResetPasswordUserId(resetPasswordTarget.id);
+    setResetPasswordDialogOpen(false);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-reset-password', {
+        body: { user_id: resetPasswordTarget.id }
+      });
+
+      if (error) {
+        logger.error('Reset password error:', error);
+        throw new Error(error.message || t('userManagement.resetPasswordFailed', 'Failed to reset password'));
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      if (data?.whatsapp_sent) {
+        toast({
+          title: t('userManagement.passwordResetSuccess', 'Password Reset'),
+          description: t('userManagement.passwordSentViaWhatsApp', 'Temporary password sent via WhatsApp to {{phone}}', {
+            phone: resetPasswordTarget.phone.slice(-4).padStart(resetPasswordTarget.phone.length, '*')
+          }),
+        });
+      } else {
+        toast({
+          title: t('userManagement.passwordResetSuccess', 'Password Reset'),
+          description: t('userManagement.passwordResetNoWhatsApp', 'Password was reset but WhatsApp notification failed'),
+          variant: 'destructive',
+        });
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : t('userManagement.resetPasswordFailed', 'Failed to reset password');
+      toast({
+        title: t('common.error'),
+        description: message,
+        variant: 'destructive',
+      });
+    } finally {
+      setResetPasswordUserId(null);
+      setResetPasswordTarget(null);
     }
   };
 
@@ -1128,20 +1194,36 @@ export default function UserManagement() {
                             <Pencil className="h-4 w-4" />
                           </Button>
                           {user.has_login && user.email && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleSyncUserEmail(user.id, user.full_name || '')}
-                              disabled={syncingUserId === user.id}
-                              aria-label={t('userManagement.syncEmail', 'Sync Login Email')}
-                              title={t('userManagement.syncEmailTooltip', 'Sync login email with profile email')}
-                            >
-                              {syncingUserId === user.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <RefreshCw className="h-4 w-4" />
-                              )}
-                            </Button>
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleSyncUserEmail(user.id, user.full_name || '')}
+                                disabled={syncingUserId === user.id}
+                                aria-label={t('userManagement.syncEmail', 'Sync Login Email')}
+                                title={t('userManagement.syncEmailTooltip', 'Sync login email with profile email')}
+                              >
+                                {syncingUserId === user.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <RefreshCw className="h-4 w-4" />
+                                )}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleResetPasswordClick(user.id, user.full_name || '', user.phone_number)}
+                                disabled={resetPasswordUserId === user.id}
+                                aria-label={t('userManagement.resetPassword', 'Reset Password')}
+                                title={t('userManagement.resetPasswordTooltip', 'Reset password and send via WhatsApp')}
+                              >
+                                {resetPasswordUserId === user.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <KeyRound className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </>
                           )}
                           <ManagerTeamViewer 
                             managerId={user.id} 
@@ -1230,6 +1312,28 @@ export default function UserManagement() {
               className={bulkActionType === 'delete' ? 'bg-destructive hover:bg-destructive/90' : ''}
             >
               {bulkActionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('common.confirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Reset Password Confirmation Dialog */}
+      <AlertDialog open={resetPasswordDialogOpen} onOpenChange={setResetPasswordDialogOpen}>
+        <AlertDialogContent dir={direction}>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-start">
+              {t('userManagement.resetPasswordConfirm', 'Reset password for {{name}}?', { name: resetPasswordTarget?.name || '' })}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-start">
+              {t('userManagement.resetPasswordDescription', 'A new temporary password will be generated and sent to the user via WhatsApp.')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              {t('common.cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleResetPassword}>
+              {t('userManagement.resetPassword', 'Reset Password')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

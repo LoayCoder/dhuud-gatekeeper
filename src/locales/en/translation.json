@@ -5704,7 +5704,16 @@
       "importUsers": "Import {{count}} Users"
     },
     "assignedSite": "Assigned Site",
-    "assignedSiteDescription": "Physical work location for this user"
+    "assignedSiteDescription": "Physical work location for this user",
+    "resetPassword": "Reset Password",
+    "resetPasswordConfirm": "Reset password for {{name}}?",
+    "resetPasswordDescription": "A new temporary password will be generated and sent to the user via WhatsApp.",
+    "resetPasswordTooltip": "Reset password and send via WhatsApp",
+    "passwordResetSuccess": "Password Reset",
+    "passwordSentViaWhatsApp": "Temporary password sent via WhatsApp to {{phone}}",
+    "passwordResetNoWhatsApp": "Password was reset but WhatsApp notification failed",
+    "noPhoneNumber": "User has no phone number configured",
+    "resetPasswordFailed": "Failed to reset password"
   },
   "tenantManagement": {
     "title": "Tenant Management",

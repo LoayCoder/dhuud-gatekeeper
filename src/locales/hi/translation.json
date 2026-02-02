@@ -3074,7 +3074,16 @@
     "export": "निर्यात",
     "exportCSV": "CSV के रूप में डाउनलोड",
     "exportExcel": "Excel के रूप में डाउनलोड",
-    "exportSuccess": "निर्यात सफलतापूर्वक पूर्ण हुआ"
+    "exportSuccess": "निर्यात सफलतापूर्वक पूर्ण हुआ",
+    "resetPassword": "पासवर्ड रीसेट करें",
+    "resetPasswordConfirm": "{{name}} का पासवर्ड रीसेट करें?",
+    "resetPasswordDescription": "एक नया अस्थायी पासवर्ड बनाया जाएगा और उपयोगकर्ता को WhatsApp के माध्यम से भेजा जाएगा।",
+    "resetPasswordTooltip": "पासवर्ड रीसेट करें और WhatsApp पर भेजें",
+    "passwordResetSuccess": "पासवर्ड रीसेट",
+    "passwordSentViaWhatsApp": "{{phone}} पर WhatsApp के माध्यम से अस्थायी पासवर्ड भेजा गया",
+    "passwordResetNoWhatsApp": "पासवर्ड रीसेट हो गया लेकिन WhatsApp नोटिफिकेशन विफल रहा",
+    "noPhoneNumber": "उपयोगकर्ता का कोई फ़ोन नंबर कॉन्फ़िगर नहीं है",
+    "resetPasswordFailed": "पासवर्ड रीसेट करने में विफल"
   },
   "tenantManagement": {
     "title": "किरायेदार प्रबंधन",

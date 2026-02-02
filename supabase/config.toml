@@ -350,3 +350,6 @@ verify_jwt = false
 
 [functions.dept-rep-gate-pass-digest]
 verify_jwt = false
+
+[functions.admin-reset-password]
+verify_jwt = true
