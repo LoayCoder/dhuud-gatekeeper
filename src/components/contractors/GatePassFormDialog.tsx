@@ -162,17 +162,17 @@ export function GatePassFormDialog({
     // Clear existing photo first
     photoPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
 
+    let photoToSet = file;
     try {
       // Compress to 1280px max width with 0.75 quality for optimal size
-      const compressed = await compressImage(file, 1280, 0.75);
-      setPhotos([compressed]);
-      const previewUrl = URL.createObjectURL(compressed);
-      setPhotoPreviewUrls([previewUrl]);
-    } catch {
-      setPhotos([file]);
-      const previewUrl = URL.createObjectURL(file);
-      setPhotoPreviewUrls([previewUrl]);
+      photoToSet = await compressImage(file, 1280, 0.75);
+    } catch (err) {
+      console.error("Image compression failed, using original file.", err);
     }
+
+    setPhotos([photoToSet]);
+    const previewUrl = URL.createObjectURL(photoToSet);
+    setPhotoPreviewUrls([previewUrl]);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
