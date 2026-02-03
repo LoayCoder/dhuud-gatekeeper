@@ -312,7 +312,7 @@ export function MaterialPassVerificationPanel() {
             )}
 
             {/* Errors */}
-            {result.errors.length > 0 && (
+            {result.errors?.length > 0 && (
               <div className="space-y-1">
                 {result.errors.map((error, i) => (
                   <div key={i} className="flex items-start gap-2 text-sm text-destructive">
@@ -324,7 +324,7 @@ export function MaterialPassVerificationPanel() {
             )}
 
             {/* Warnings */}
-            {result.warnings.length > 0 && (
+            {result.warnings?.length > 0 && (
               <div className="space-y-1">
                 {result.warnings.map((warning, i) => (
                   <div key={i} className="flex items-start gap-2 text-sm text-amber-600 dark:text-amber-400">

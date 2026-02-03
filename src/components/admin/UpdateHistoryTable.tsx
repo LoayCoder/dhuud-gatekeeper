@@ -66,6 +66,7 @@ export function UpdateHistoryTable({ updates, isLoading }: UpdateHistoryTablePro
             <TableHead>{t('admin.updates.priority', 'Priority')}</TableHead>
             <TableHead className="text-center">{t('admin.updates.delivered', 'Delivered')}</TableHead>
             <TableHead className="text-center">{t('admin.updates.success', 'Success')}</TableHead>
+            <TableHead>{t('admin.updates.publishedAt', 'Published At')}</TableHead>
             <TableHead>{t('admin.updates.broadcastAt', 'Broadcast At')}</TableHead>
           </TableRow>
         </TableHeader>
@@ -104,10 +105,20 @@ export function UpdateHistoryTable({ updates, isLoading }: UpdateHistoryTablePro
                 <TableCell>
                   <div className="space-y-0.5">
                     <div className="text-sm">
+                      {format(new Date(update.created_at), 'PP')}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {format(new Date(update.created_at), 'HH:mm')}
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="space-y-0.5">
+                    <div className="text-sm">
                       {format(new Date(update.broadcast_at), 'PP')}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(update.broadcast_at), { addSuffix: true })}
+                      {format(new Date(update.broadcast_at), 'HH:mm')} • {formatDistanceToNow(new Date(update.broadcast_at), { addSuffix: true })}
                     </div>
                   </div>
                 </TableCell>

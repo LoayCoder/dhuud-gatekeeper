@@ -12,7 +12,7 @@ interface WelcomeCompactProps {
 export function WelcomeCompact({ className }: WelcomeCompactProps) {
   const { t, i18n } = useTranslation();
   const { data: profile, isLoading } = useCachedProfile();
-  const { version, buildDate, isLoading: isVersionLoading } = useVersionInfo();
+  const { version, publishedAt, isLoading: isVersionLoading } = useVersionInfo();
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Update time every minute
@@ -38,14 +38,22 @@ export function WelcomeCompact({ className }: WelcomeCompactProps) {
     });
   };
 
-  const formatBuildDate = (dateStr: string) => {
+  const formatPublishedAt = (dateStr: string) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    return date.toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US', {
+    // Use Saudi Arabia timezone (Asia/Riyadh)
+    const datePart = date.toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
+      timeZone: 'Asia/Riyadh',
     });
+    const timePart = date.toLocaleTimeString(i18n.language === 'ar' ? 'ar-SA' : 'en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Asia/Riyadh',
+    });
+    return `${datePart} ${timePart}`;
   };
 
   const firstName = profile?.full_name?.split(' ')[0] || '';
@@ -64,7 +72,7 @@ export function WelcomeCompact({ className }: WelcomeCompactProps) {
       </p>
       {!isVersionLoading && version && (
         <p className="text-xs text-muted-foreground/70">
-          v{version} {buildDate && `• ${formatBuildDate(buildDate)}`}
+          v{version} {publishedAt && `• ${formatPublishedAt(publishedAt)}`}
         </p>
       )}
     </div>

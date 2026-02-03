@@ -14,12 +14,7 @@ import { Plus, Trash2, X, ImageIcon, User, Building2 } from "lucide-react";
 import { compressImage } from "@/lib/upload-utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import {
-  getToday,
-  calculateMaxEndDate,
-  validateDateRange,
-  adjustEndDateForStartChange,
-} from "@/hooks/use-date-range-validation";
+import { GatePassItemPhotoUpload } from "./GatePassItemPhotoUpload";
 
 interface GatePassFormDialogProps {
   open: boolean;
@@ -35,6 +30,8 @@ interface GatePassItem {
   description: string;
   quantity: string;
   unit: string;
+  photos: File[];
+  photoPreviewUrls: string[];
 }
 
 const UNIT_OPTIONS = [
@@ -61,6 +58,8 @@ const createEmptyItem = (): GatePassItem => ({
   description: "",
   quantity: "",
   unit: "",
+  photos: [],
+  photoPreviewUrls: [],
 });
 
 export function GatePassFormDialog({ 
@@ -144,12 +143,24 @@ export function GatePassFormDialog({
 
   const handleRemoveItem = (id: string) => {
     if (items.length > 1) {
+      const itemToRemove = items.find((i) => i.id === id);
+      itemToRemove?.photoPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
       setItems(items.filter((item) => item.id !== id));
     }
   };
 
   const handleItemChange = (id: string, field: keyof GatePassItem, value: string) => {
     setItems(items.map((item) => (item.id === id ? { ...item, [field]: value } : item)));
+  };
+
+  const handleItemPhotosChange = (id: string, photos: File[], previewUrls: string[]) => {
+    setItems(
+      items.map((item) =>
+        item.id === id
+          ? { ...item, photos, photoPreviewUrls: previewUrls }
+          : item
+      )
+    );
   };
 
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -201,7 +212,10 @@ export function GatePassFormDialog({
       approval_from_id: "",
     });
     setSelectedProject(null);
+    // Cleanup item photos
+    items.forEach((item) => item.photoPreviewUrls.forEach((url) => URL.revokeObjectURL(url)));
     setItems([createEmptyItem()]);
+    // Cleanup global photos
     photoPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
     setPhotos([]);
     setPhotoPreviewUrls([]);
@@ -217,8 +231,13 @@ export function GatePassFormDialog({
     const validItems = items.filter((item) => item.item_name.trim() !== "");
     if (validItems.length === 0) return;
 
-    // Check for date range errors
-    if (dateRangeError) return;
+    const mappedItems = validItems.map(({ item_name, description, quantity, unit, photos }) => ({
+      item_name,
+      description: description || undefined,
+      quantity: quantity || undefined,
+      unit: unit || undefined,
+      photos,
+    }));
 
     // Determine if this is an internal request (no project selected)
     const isInternalRequest = isInternalUser && !formData.project_id;
@@ -242,12 +261,7 @@ export function GatePassFormDialog({
         end_date: formData.end_date,
         time_window_start: formData.time_window_start || undefined,
         time_window_end: formData.time_window_end || undefined,
-        items: validItems.map(({ item_name, description, quantity, unit }) => ({
-          item_name,
-          description: description || undefined,
-          quantity: quantity || undefined,
-          unit: unit || undefined,
-        })),
+        items: mappedItems,
         photos,
       });
     } else {
@@ -265,12 +279,7 @@ export function GatePassFormDialog({
         end_date: formData.end_date,
         time_window_start: formData.time_window_start || undefined,
         time_window_end: formData.time_window_end || undefined,
-        items: validItems.map(({ item_name, description, quantity, unit }) => ({
-          item_name,
-          description: description || undefined,
-          quantity: quantity || undefined,
-          unit: unit || undefined,
-        })),
+        items: mappedItems,
         photos,
       });
     }
@@ -429,16 +438,17 @@ export function GatePassFormDialog({
           {/* Items Table */}
           <div className="space-y-2">
             <Label>{t("contractors.gatePasses.items", "Items")} *</Label>
-            <div className="border rounded-md">
+            <div className="border rounded-md overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[50px] text-center">SR#</TableHead>
-                    <TableHead className="w-[180px]">{t("contractors.gatePasses.itemName", "Item Name")} *</TableHead>
-                    <TableHead>{t("contractors.gatePasses.description", "Description")}</TableHead>
+                    <TableHead className="w-[40px] text-center">SR#</TableHead>
+                    <TableHead className="min-w-[150px]">{t("contractors.gatePasses.itemName", "Item Name")} *</TableHead>
+                    <TableHead className="min-w-[150px]">{t("contractors.gatePasses.description", "Description")}</TableHead>
                     <TableHead className="w-[80px]">{t("contractors.gatePasses.quantity", "Qty")}</TableHead>
-                    <TableHead className="w-[140px]">{t("contractors.gatePasses.unit", "Unit")}</TableHead>
-                    <TableHead className="w-[50px]"></TableHead>
+                    <TableHead className="w-[120px]">{t("contractors.gatePasses.unit", "Unit")}</TableHead>
+                    <TableHead className="min-w-[140px]">{t("contractors.gatePasses.photos", "Photos")}</TableHead>
+                    <TableHead className="w-[40px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -487,6 +497,14 @@ export function GatePassFormDialog({
                         </Select>
                       </TableCell>
                       <TableCell>
+                        <GatePassItemPhotoUpload
+                          photos={item.photos}
+                          photoPreviewUrls={item.photoPreviewUrls}
+                          onPhotosChange={(photos, urls) => handleItemPhotosChange(item.id, photos, urls)}
+                          maxPhotos={3}
+                        />
+                      </TableCell>
+                      <TableCell>
                         <Button
                           type="button"
                           variant="ghost"
@@ -512,10 +530,7 @@ export function GatePassFormDialog({
           {/* Photo - Single compressed photo */}
           <div className="space-y-2">
             <Label>
-              {t("contractors.gatePasses.photo", "Photo")}
-              <span className="text-muted-foreground text-xs ms-1">
-                ({t("common.optional", "Optional")})
-              </span>
+              {t("contractors.gatePasses.generalDocuments", "General Documents (Optional)")} ({photos.length}/3)
             </Label>
             <div className="flex flex-wrap gap-3">
               {photoPreviewUrls.map((url, index) => (

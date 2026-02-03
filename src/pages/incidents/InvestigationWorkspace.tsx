@@ -81,6 +81,7 @@ import {
   ClinicReviewCard,
   TeamInvestigationAssignmentStep
 } from "@/components/investigation";
+import { CloseObservationOnSpotDialog } from "@/components/investigation/CloseObservationOnSpotDialog";
 import { ActionDisputeReviewCard, ConsultantReviewCard, SiteClientActionApprovalCard } from "@/components/investigation/contractor-workflow";
 import { HSSEEnforcementBanner } from "@/components/investigation/HSSEEnforcementBanner";
 import { ObservationWorkflowTracker } from "@/components/investigation/ObservationWorkflowTracker";
@@ -113,6 +114,7 @@ export default function InvestigationWorkspace() {
   const [activeTab, setActiveTab] = useState("overview");
   const [showClosureDialog, setShowClosureDialog] = useState(false);
   const [showReopenDialog, setShowReopenDialog] = useState(false);
+  const [showCloseOnSpotDialog, setShowCloseOnSpotDialog] = useState(false);
   const [viewMode, setViewMode] = useState<'my-pending' | 'all'>('my-pending');
   const [showActionDialog, setShowActionDialog] = useState(false);
   const { profile, user } = useAuth();
@@ -699,6 +701,17 @@ export default function InvestigationWorkspace() {
 
           {/* Header Actions */}
           <div className="flex items-center gap-3">
+            {selectedIncidentId && selectedIncident?.event_type === 'observation' && selectedIncident?.status !== 'closed' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCloseOnSpotDialog(true)}
+                className="gap-2 border-green-600/50 text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950/30"
+              >
+                <ClipboardCheck className="h-4 w-4" />
+                {t('incidents.closedOnSpot.label', 'Close On Spot')}
+              </Button>
+            )}
             {selectedIncidentId && (
               <Button 
                 variant="outline" 
@@ -1230,6 +1243,14 @@ export default function InvestigationWorkspace() {
             incidentId={selectedIncidentId || ''}
             incidentTitle={incidentData?.title}
             onSuccess={handleRefresh}
+          />
+
+          {/* Close On Spot Dialog */}
+          <CloseObservationOnSpotDialog
+            open={showCloseOnSpotDialog}
+            onOpenChange={setShowCloseOnSpotDialog}
+            incidentId={selectedIncidentId || ''}
+            incidentTitle={incidentData?.title}
           />
         </>
       ) : (

@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
 
     if (!qr_token || !tenant_id) {
       return new Response(
-        JSON.stringify({ is_valid: false, errors: ['Missing QR token or tenant ID'] }),
+        JSON.stringify({ is_valid: false, errors: ['Missing QR token or tenant ID'], warnings: [] }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
     if (passError || !pass) {
       console.error('[ValidateMaterialQR] Pass not found:', passError);
       return new Response(
-        JSON.stringify({ is_valid: false, errors: ['Invalid or expired gate pass QR code'] }),
+        JSON.stringify({ is_valid: false, errors: ['Invalid or expired gate pass QR code'], warnings: [] }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -197,7 +197,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('[ValidateMaterialQR] Error:', error);
     return new Response(
-      JSON.stringify({ is_valid: false, errors: ['Internal server error'] }),
+      JSON.stringify({ is_valid: false, errors: ['Internal server error'], warnings: [] }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

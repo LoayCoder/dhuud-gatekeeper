@@ -5491,8 +5491,13 @@
     "nameRequired": "Name is required.",
     "divisionRequired": "Division is required",
     "departmentRequired": "Department is required",
-    "departmentAlreadyExists": "A department with this name already exists in the selected branch and division.",
-    "sectionAlreadyExists": "A section with this name already exists in the selected branch and department.",
+    "departmentAlreadyExists": "A department with this name already exists.",
+    "sectionAlreadyExists": "A section with this name already exists.",
+    "branchAlreadyExists": "A branch with this name already exists.",
+    "divisionAlreadyExists": "A division with this name already exists.",
+    "siteAlreadyExists": "A site with this name already exists.",
+    "buildingAlreadyExists": "A building with this name already exists at this site.",
+    "floorZoneAlreadyExists": "A floor/zone with this name already exists in this building.",
     "noTenant": "Your account is not linked to any organization.",
     "noItems": "No items found. Add one above.",
     "department": "Department",
@@ -5735,7 +5740,16 @@
       "importUsers": "Import {{count}} Users"
     },
     "assignedSite": "Assigned Site",
-    "assignedSiteDescription": "Physical work location for this user"
+    "assignedSiteDescription": "Physical work location for this user",
+    "resetPassword": "Reset Password",
+    "resetPasswordConfirm": "Reset password for {{name}}?",
+    "resetPasswordDescription": "A new temporary password will be generated and sent to the user via WhatsApp.",
+    "resetPasswordTooltip": "Reset password and send via WhatsApp",
+    "passwordResetSuccess": "Password Reset",
+    "passwordSentViaWhatsApp": "Temporary password sent via WhatsApp to {{phone}}",
+    "passwordResetNoWhatsApp": "Password was reset but WhatsApp notification failed",
+    "noPhoneNumber": "User has no phone number configured",
+    "resetPasswordFailed": "Failed to reset password"
   },
   "tenantManagement": {
     "title": "Tenant Management",
