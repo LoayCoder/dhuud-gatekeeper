@@ -27,7 +27,7 @@ The audit revealed several high-severity issues where English text appears direc
 | 18 | `ptw.mobile.photoCapture` | Photo Capture | *Missing* | Missing Translation | **High** | التقاط صورة | |
 | 19 | `contractors.gatePasses.exitValidation.mismatchTitle` | Exit Rejected | *Missing* | Missing Translation | **High** | تم رفض الخروج | Security gate validation message. |
 | 20 | `contractors.gatePasses.exitValidation.vehicleMismatch` | Vehicle plate does not match entry record | *Missing* | Missing Translation | **High** | رقم لوحة المركبة لا يطابق سجل الدخول | |
-| 21 | `hsseDashboard.export.pdfSummary` | PDF Summary Report | *Missing* | Missing Translation | **Med** | تقرير ملخص PDF | Export functionality. |
+| 21 | `hsseDashboard.export.pdfSummary` | PDF Summary Report | PDF Summary Report | Incorrect Translation | **Med** | تقرير ملخص PDF | Export functionality. |
 | 22 | `hsseDashboard.trirRate` | TRIR | TRIR | Incorrect Translation | **Med** | معدل تكرار الحوادث المسجلة (TRIR) | KPI Terminology. |
 | 23 | `actions.statusLabels.returned_for_correction` | Returned for Correction | Returned for Correction | Incorrect Translation | **High** | معادة للتصحيح | Action status visible to users. |
 | 24 | `actions.extensionRequest` | Extension Request | Extension Request | Incorrect Translation | **High** | طلب تمديد | |
