@@ -15,6 +15,7 @@ import { compressImage } from "@/lib/upload-utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { GatePassItemPhotoUpload } from "./GatePassItemPhotoUpload";
+import { getToday, calculateMaxEndDate, validateDateRange, adjustEndDateForStartChange } from "@/hooks/use-date-range-validation";
 
 interface GatePassFormDialogProps {
   open: boolean;

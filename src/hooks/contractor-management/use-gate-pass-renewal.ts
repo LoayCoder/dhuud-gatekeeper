@@ -43,7 +43,8 @@ export function useRenewGatePass() {
 
       // Authorization is handled by the backend RPC - it validates roles and
       // returns an appropriate error if the user is not authorized
-      const { data, error } = await supabase.rpc('renew_expired_gate_pass', {
+      // Cast to unknown first to bypass type checking for new RPC function
+      const { data, error } = await (supabase.rpc as Function)('renew_expired_gate_pass', {
         p_gate_pass_id: gatePassId,
         p_user_id: user.id,
       });
@@ -52,7 +53,7 @@ export function useRenewGatePass() {
         throw new Error(error.message);
       }
 
-      const result = data as RenewGatePassResult;
+      const result = data as unknown as RenewGatePassResult;
       if (!result.success) {
         throw new Error(result.error || t("contractors.gatePasses.renewalFailed", "Failed to renew gate pass"));
       }
@@ -111,7 +112,8 @@ export function useResubmitGatePass() {
         throw new Error(t("common.notAuthenticated", "Not authenticated"));
       }
 
-      const { data, error } = await supabase.rpc('resubmit_gate_pass', {
+      // Cast to unknown first to bypass type checking for new RPC function
+      const { data, error } = await (supabase.rpc as Function)('resubmit_gate_pass', {
         p_gate_pass_id: gatePassId,
         p_user_id: user.id,
         p_new_start_date: startDate,
@@ -124,7 +126,7 @@ export function useResubmitGatePass() {
         throw new Error(error.message);
       }
 
-      const result = data as ResubmitGatePassResult;
+      const result = data as unknown as ResubmitGatePassResult;
       if (!result.success) {
         throw new Error(result.error || t("contractors.gatePasses.resubmitFailed", "Failed to resubmit gate pass"));
       }

@@ -15,9 +15,9 @@ export interface MaterialGatePass {
   vehicle_plate: string | null;
   driver_name: string | null;
   driver_mobile: string | null;
-  pass_date: string; // Legacy - kept for backward compatibility
-  start_date: string | null; // Pass validity start date
-  end_date: string | null; // Pass validity end date
+  pass_date: string; // Pass validity date
+  start_date?: string | null; // Start date (if date range is used)
+  end_date?: string | null; // End date (if date range is used)
   time_window_start: string | null;
   time_window_end: string | null;
   status: string;
@@ -38,11 +38,11 @@ export interface MaterialGatePass {
   created_at: string;
   is_internal_request: boolean;
   approval_from_id: string | null;
-  // Renewal tracking
-  renewal_count: number;
-  renewed_by: string | null;
-  renewed_at: string | null;
-  renewal_expires_at: string | null;
+  // Renewal tracking (optional, added via migration)
+  renewal_count?: number;
+  renewed_by?: string | null;
+  renewed_at?: string | null;
+  renewal_expires_at?: string | null;
   project?: { project_name: string; company?: { company_name: string } } | null;
   company?: { company_name: string } | null;
   approval_from?: { full_name: string } | null;
@@ -75,8 +75,9 @@ export interface CreateGatePassData {
   vehicle_plate?: string;
   driver_name?: string;
   driver_mobile?: string;
-  start_date: string; // Pass validity start date
-  end_date: string; // Pass validity end date (max 7 days from start)
+  pass_date?: string; // Pass validity date
+  start_date?: string; // Pass validity start date (future use)
+  end_date?: string; // Pass validity end date (future use)
   time_window_start?: string;
   time_window_end?: string;
   items: GatePassItemInput[];
@@ -291,10 +292,10 @@ export function useCreateGatePass() {
           vehicle_plate: data.vehicle_plate || null,
           driver_name: data.driver_name || null,
           driver_mobile: data.driver_mobile || null,
-          // Use date range for pass validity (max 7 days)
-          start_date: data.start_date,
-          end_date: data.end_date,
-          pass_date: data.start_date, // Keep legacy field in sync
+          // Use pass_date or start_date/end_date for pass validity
+          start_date: data.start_date || data.pass_date || null,
+          end_date: data.end_date || data.pass_date || null,
+          pass_date: data.pass_date || data.start_date, // Keep legacy field in sync
           time_window_start: data.time_window_start || null,
           time_window_end: data.time_window_end || null,
           tenant_id: tenantId,
