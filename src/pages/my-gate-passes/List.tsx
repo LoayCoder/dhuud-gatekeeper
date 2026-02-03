@@ -22,10 +22,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Filter, FileKey, Plus, History, Clock, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { Search, Filter, FileKey, Plus, History, Clock, CheckCircle2, XCircle, AlertCircle, RefreshCw } from "lucide-react";
 import { useMyGatePasses } from "@/hooks/contractor-management/use-my-gate-passes";
 import { MaterialGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
 import { GatePassDetailDialog } from "@/components/contractors/GatePassDetailDialog";
+import { GatePassFormDialog } from "@/components/contractors/GatePassFormDialog";
+import { GatePassResubmitDialog } from "@/components/contractors/GatePassResubmitDialog";
+import { useContractorProjects } from "@/hooks/contractor-management/use-contractor-projects";
+import { useCachedProfile } from "@/hooks/use-cached-profile";
+import { useUserRoles } from "@/hooks/use-user-roles";
 import { format } from "date-fns";
 
 function MyGatePassListContent() {
@@ -35,15 +40,38 @@ function MyGatePassListContent() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedPass, setSelectedPass] = useState<MaterialGatePass | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [resubmitDialogOpen, setResubmitDialogOpen] = useState(false);
+  const [resubmitPass, setResubmitPass] = useState<MaterialGatePass | null>(null);
 
-  const { data: passes, isLoading } = useMyGatePasses({
+  // Get user profile and roles to determine permissions
+  const { data: profile } = useCachedProfile();
+  const { hasRole } = useUserRoles();
+  const isEmployee = profile?.user_type === 'employee';
+  const isContractor = profile?.user_type === 'contractor';
+
+  // Fetch projects - for employees show all branch projects, for contractors show their assigned projects
+  const { data: projects = [] } = useContractorProjects();
+
+  const { data: passes, isLoading, refetch } = useMyGatePasses({
     search: search || undefined,
     status: statusFilter === "all" ? undefined : statusFilter,
   });
 
+  // Permissions for creating gate passes
+  // Employees can create internal passes (project optional)
+  // Contractors must select a project (required)
+  const canCreateInternal = isEmployee;
+  const canCreateExternal = true; // Both employees and contractors can create with projects
+
   const handleRowClick = (pass: MaterialGatePass) => {
     setSelectedPass(pass);
     setDetailOpen(true);
+  };
+
+  const handleResubmit = (pass: MaterialGatePass) => {
+    setResubmitPass(pass);
+    setResubmitDialogOpen(true);
   };
 
   const getStatusBadge = (status: string) => {
@@ -52,11 +80,14 @@ function MyGatePassListContent() {
       pending_dept_approval: { variant: "warning", label: t("gatePasses.status.pending_dept_approval", "Pending Dept"), icon: <Clock className="h-3 w-3" /> },
       pending_contractor_approval: { variant: "warning", label: t("gatePasses.status.pending_contractor_approval", "Pending Contractor"), icon: <Clock className="h-3 w-3" /> },
       pending_club_mgmt_ack: { variant: "warning", label: t("gatePasses.status.pending_club_mgmt_ack", "Pending Golf Club Management"), icon: <AlertCircle className="h-3 w-3" /> },
+      pending_resubmission: { variant: "warning", label: t("gatePasses.status.pending_resubmission", "Resubmit Required"), icon: <RefreshCw className="h-3 w-3" /> },
       pm_approved: { variant: "secondary", label: t("gatePasses.status.pm_approved", "PM Approved"), icon: <CheckCircle2 className="h-3 w-3" /> },
       pending_security_approval: { variant: "warning", label: t("gatePasses.status.pending_security", "Pending Security"), icon: <AlertCircle className="h-3 w-3" /> },
       approved: { variant: "success", label: t("gatePasses.status.approved", "Approved"), icon: <CheckCircle2 className="h-3 w-3" /> },
       rejected: { variant: "destructive", label: t("gatePasses.status.rejected", "Rejected"), icon: <XCircle className="h-3 w-3" /> },
+      expired: { variant: "destructive", label: t("gatePasses.status.expired", "Expired"), icon: <XCircle className="h-3 w-3" /> },
       entry_verified: { variant: "default", label: t("gatePasses.status.entry_verified", "Entry Verified"), icon: <CheckCircle2 className="h-3 w-3" /> },
+      used: { variant: "default", label: t("gatePasses.status.used", "Used"), icon: <CheckCircle2 className="h-3 w-3" /> },
       completed: { variant: "success", label: t("gatePasses.status.completed", "Completed"), icon: <CheckCircle2 className="h-3 w-3" /> },
     };
     const config = variants[status] || { variant: "secondary" as const, label: status, icon: null };
@@ -99,11 +130,9 @@ function MyGatePassListContent() {
               {t("myGatePasses.approvalHistory", "Approval History")}
             </Link>
           </Button>
-          <Button asChild>
-            <Link to="/my-gate-passes/create">
-              <Plus className="h-4 w-4 me-2" />
-              {t("myGatePasses.createNew", "New Request")}
-            </Link>
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 me-2" />
+            {t("myGatePasses.createNew", "New Request")}
           </Button>
         </div>
       </div>
@@ -130,9 +159,12 @@ function MyGatePassListContent() {
                 <SelectContent>
                   <SelectItem value="all">{t("common.all", "All")}</SelectItem>
                   <SelectItem value="pending_dept_approval">{t("gatePasses.status.pending_dept_approval", "Pending Dept")}</SelectItem>
-                  <SelectItem value="pending_club_mgmt_ack">{t("gatePasses.status.pending_club_mgmt_ack", "Pending Golf Club Management")}</SelectItem>
+                  <SelectItem value="pending_contractor_approval">{t("gatePasses.status.pending_contractor_approval", "Pending Contractor")}</SelectItem>
                   <SelectItem value="pending_security_approval">{t("gatePasses.status.pending_security", "Pending Security")}</SelectItem>
+                  <SelectItem value="pending_resubmission">{t("gatePasses.status.pending_resubmission", "Resubmit Required")}</SelectItem>
                   <SelectItem value="approved">{t("gatePasses.status.approved", "Approved")}</SelectItem>
+                  <SelectItem value="used">{t("gatePasses.status.used", "Used")}</SelectItem>
+                  <SelectItem value="expired">{t("gatePasses.status.expired", "Expired")}</SelectItem>
                   <SelectItem value="rejected">{t("gatePasses.status.rejected", "Rejected")}</SelectItem>
                   <SelectItem value="completed">{t("gatePasses.status.completed", "Completed")}</SelectItem>
                 </SelectContent>
@@ -164,11 +196,9 @@ function MyGatePassListContent() {
             <div className="text-center py-12 text-muted-foreground">
               <FileKey className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p className="mb-4">{t("myGatePasses.noResults", "You haven't created any gate passes yet")}</p>
-              <Button asChild>
-                <Link to="/my-gate-passes/create">
-                  <Plus className="h-4 w-4 me-2" />
-                  {t("myGatePasses.createFirst", "Create Your First Request")}
-                </Link>
+              <Button onClick={() => setCreateDialogOpen(true)}>
+                <Plus className="h-4 w-4 me-2" />
+                {t("myGatePasses.createFirst", "Create Your First Request")}
               </Button>
             </div>
           ) : (
@@ -186,8 +216,8 @@ function MyGatePassListContent() {
                 </TableHeader>
                 <TableBody>
                   {passes.map(pass => (
-                    <TableRow 
-                      key={pass.id} 
+                    <TableRow
+                      key={pass.id}
                       onClick={() => handleRowClick(pass)}
                       className="cursor-pointer hover:bg-accent"
                     >
@@ -197,10 +227,37 @@ function MyGatePassListContent() {
                         {pass.material_description}
                       </TableCell>
                       <TableCell>
-                        {pass.pass_date ? format(new Date(pass.pass_date), "PP") : "-"}
+                        {pass.start_date && pass.end_date ? (
+                          pass.start_date === pass.end_date ? (
+                            format(new Date(pass.start_date), "PP")
+                          ) : (
+                            <span className="text-xs">
+                              {format(new Date(pass.start_date), "MMM d")} - {format(new Date(pass.end_date), "MMM d")}
+                            </span>
+                          )
+                        ) : pass.pass_date ? (
+                          format(new Date(pass.pass_date), "PP")
+                        ) : "-"}
                       </TableCell>
                       <TableCell>{pass.vehicle_plate || "-"}</TableCell>
-                      <TableCell>{getStatusBadge(pass.status)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(pass.status)}
+                          {pass.status === 'pending_resubmission' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleResubmit(pass);
+                              }}
+                            >
+                              <RefreshCw className="h-3 w-3 me-1" />
+                              {t("gatePasses.resubmit.button", "Resubmit")}
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -215,6 +272,31 @@ function MyGatePassListContent() {
         pass={selectedPass}
         open={detailOpen}
         onOpenChange={setDetailOpen}
+      />
+
+      {/* Create Gate Pass Dialog */}
+      <GatePassFormDialog
+        open={createDialogOpen}
+        onOpenChange={(open) => {
+          setCreateDialogOpen(open);
+          if (!open) {
+            refetch(); // Refresh list after closing
+          }
+        }}
+        projects={projects}
+        canCreateInternal={canCreateInternal}
+        canCreateExternal={canCreateExternal}
+      />
+
+      {/* Resubmit Dialog */}
+      <GatePassResubmitDialog
+        pass={resubmitPass}
+        open={resubmitDialogOpen}
+        onOpenChange={setResubmitDialogOpen}
+        onSuccess={() => {
+          refetch();
+          setResubmitPass(null);
+        }}
       />
     </div>
   );
