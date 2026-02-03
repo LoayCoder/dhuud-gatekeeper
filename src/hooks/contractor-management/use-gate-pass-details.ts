@@ -43,6 +43,8 @@ export interface GatePassDetailData {
   driver_name: string | null;
   driver_mobile: string | null;
   pass_date: string;
+  start_date?: string | null;
+  end_date?: string | null;
   time_window_start: string | null;
   time_window_end: string | null;
   status: string;
@@ -81,6 +83,11 @@ export interface GatePassDetailData {
   approval_from_id: string | null;
   qr_code_token: string | null;
   qr_generated_at: string | null;
+  // Renewal tracking
+  renewal_count?: number;
+  renewed_by?: string | null;
+  renewed_at?: string | null;
+  renewal_expires_at?: string | null;
   project?: { project_name: string; company?: { company_name: string } } | null;
   company?: { company_name: string } | null;
   requester?: GatePassApproverProfile | null;
@@ -110,6 +117,7 @@ export function useGatePassDetails(passId: string | null) {
         .select(`
           id, reference_number, project_id, company_id, pass_type, material_description,
           quantity, vehicle_plate, driver_name, driver_mobile, pass_date,
+          start_date, end_date, renewal_count, renewed_by, renewed_at, renewal_expires_at,
           time_window_start, time_window_end, status, requested_by,
           contractor_approved_by, contractor_approved_at, contractor_approval_notes,
           pm_approved_by, pm_approved_at, pm_notes,

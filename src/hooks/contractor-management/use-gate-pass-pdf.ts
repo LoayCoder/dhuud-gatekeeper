@@ -109,16 +109,16 @@ export function useGatePassPDF(passId: string | undefined) {
         header: {
           primaryText: passDetails.reference_number,
           secondaryText: passDetails.project?.project_name || tenantName || undefined,
-          logoUrl: headerConfig.showLogo ? logoUrl : undefined,
+          logoBase64: headerConfig.showLogo ? logoUrl : undefined,
           logoPosition: headerConfig.logoPosition,
-          backgroundColor: headerConfig.backgroundColor,
+          bgColor: headerConfig.backgroundColor,
           textColor: headerConfig.textColor,
         },
         footer: {
           text: footerConfig.text || t('contractors.gatePassPdf.confidential', 'CONFIDENTIAL - For authorized use only'),
           showPageNumbers: footerConfig.showPageNumbers,
           showDatePrinted: footerConfig.showDatePrinted,
-          backgroundColor: footerConfig.backgroundColor,
+          bgColor: footerConfig.backgroundColor,
           textColor: footerConfig.textColor,
         },
         watermark: passDetails.status !== 'approved' && passDetails.status !== 'used' ? {
