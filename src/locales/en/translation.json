@@ -1747,7 +1747,8 @@
       "completed": "Completed",
       "used": "Used",
       "expired": "Expired",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "resubmission_required": "Resubmission Required"
     },
     "type": {
       "internal": "Internal",

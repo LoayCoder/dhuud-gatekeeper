@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useGatePassDetails, useGatePassItems } from './use-gate-pass-details';
 import { generateBrandedPDFFromElement } from '@/lib/pdf-utils';
 import { useTranslation } from 'react-i18next';
+import { useDocumentBranding } from '@/hooks/use-document-branding';
 
 export type GatePassPDFLanguage = 'en' | 'ar';
 
@@ -12,13 +13,22 @@ interface GeneratePDFOptions {
 }
 
 /**
- * Hook for generating Gate Pass PDF with bilingual layout and clear QR code
+ * Hook for generating Gate Pass PDF with bilingual layout, QR code, and tenant branding
  */
 export function useGatePassPDF(passId: string | undefined) {
   const { t, i18n } = useTranslation();
   const { data: passDetails, isLoading: isLoadingDetails } = useGatePassDetails(passId);
   const { data: items, isLoading: isLoadingItems } = useGatePassItems(passId);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Get document branding settings
+  const {
+    getHeaderConfig,
+    getFooterConfig,
+    getWatermarkConfig,
+    logoUrl,
+    tenantName,
+  } = useDocumentBranding();
 
   const generatePDF = useCallback(async (options: GeneratePDFOptions = {}) => {
     if (!passDetails) {
@@ -86,27 +96,75 @@ export function useGatePassPDF(passId: string | undefined) {
       // Wait for QR code image to load
       await new Promise(resolve => setTimeout(resolve, 800));
 
-      // Generate PDF
+      // Generate PDF with tenant branding
       const isRTL = options.primaryLanguage === 'ar';
+      const headerConfig = getHeaderConfig();
+      const footerConfig = getFooterConfig();
+      const watermarkConfig = getWatermarkConfig();
+
+      // Convert logo URL to base64 if available
+      let logoBase64: string | null = null;
+      let logoWidth = 0;
+      let logoHeight = 0;
+
+      if (headerConfig.showLogo && logoUrl) {
+        try {
+          const response = await fetch(logoUrl);
+          const blob = await response.blob();
+          logoBase64 = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+
+          // Get image dimensions
+          const img = new Image();
+          await new Promise((resolve) => {
+            img.onload = resolve;
+            img.src = logoUrl;
+          });
+          logoWidth = img.naturalWidth;
+          logoHeight = img.naturalHeight;
+        } catch (err) {
+          console.error('Failed to load logo for PDF:', err);
+        }
+      }
+
       await generateBrandedPDFFromElement(container, {
         filename: `gate-pass-${passDetails.reference_number}.pdf`,
         margin: 10,
         quality: 2,
         isRTL,
         header: {
+          logoBase64,
+          logoWidth,
+          logoHeight,
+          logoPosition: headerConfig.logoPosition,
           primaryText: passDetails.reference_number,
-          secondaryText: passDetails.project?.project_name || undefined,
+          secondaryText: passDetails.project?.project_name || tenantName || undefined,
+          bgColor: headerConfig.backgroundColor,
+          textColor: headerConfig.textColor,
         },
         footer: {
-          text: t('contractors.gatePassPdf.confidential', 'CONFIDENTIAL - For authorized use only'),
-          showPageNumbers: true,
-          showDatePrinted: true,
+          text: footerConfig.text || t('contractors.gatePassPdf.confidential', 'CONFIDENTIAL - For authorized use only'),
+          showPageNumbers: footerConfig.showPageNumbers,
+          showDatePrinted: footerConfig.showDatePrinted,
+          bgColor: footerConfig.backgroundColor,
+          textColor: footerConfig.textColor,
         },
-        watermark: passDetails.status !== 'approved' ? {
-          enabled: true,
-          text: passDetails.status === 'rejected' ? 'REJECTED' : 'PENDING',
-          opacity: 10,
-        } : undefined,
+        watermark: passDetails.status !== 'approved'
+          ? {
+              enabled: true,
+              text: passDetails.status === 'rejected' ? 'REJECTED' : 'PENDING',
+              opacity: 10,
+            }
+          : watermarkConfig.enabled
+          ? {
+              enabled: true,
+              text: watermarkConfig.text || undefined,
+              opacity: watermarkConfig.opacity,
+            }
+          : undefined,
       });
 
       // Clean up
@@ -114,7 +172,7 @@ export function useGatePassPDF(passId: string | undefined) {
     } finally {
       setIsGenerating(false);
     }
-  }, [passDetails, items, t]);
+  }, [passDetails, items, t, getHeaderConfig, getFooterConfig, getWatermarkConfig, logoUrl, tenantName]);
 
   return {
     passDetails,

@@ -2283,7 +2283,8 @@
       "completed": "مكتمل",
       "used": "مستخدم",
       "expired": "منتهي",
-      "cancelled": "ملغي"
+      "cancelled": "ملغي",
+      "resubmission_required": "يتطلب إعادة تقديم"
     },
     "type": {
       "internal": "داخلي",
