@@ -240,10 +240,10 @@ BEGIN
     RETURN jsonb_build_object('success', false, 'error', 'Date range cannot exceed 7 days');
   END IF;
 
-  -- Validate start date is not in the past
-  IF p_new_start_date < CURRENT_DATE THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Start date cannot be in the past');
-  END IF;
+  -- NOTE: Server-side "start date in the past" validation removed to avoid timezone issues.
+  -- The UI already prevents selecting past dates via the `min` attribute on date inputs.
+  -- A user in a western timezone selecting today's date late in their evening could fail
+  -- validation if the server (typically UTC) is already on the next day.
 
   -- Reset and update the pass
   UPDATE public.material_gate_passes
