@@ -12,7 +12,7 @@ The audit revealed several high-severity issues where English text appears direc
 | 3 | `incidents.searchAsset` | Search by asset name or code... | Search by asset name or code... | Incorrect Translation | **High** | البحث عن طريق اسم الأصل أو الرمز... | Identical to English. |
 | 4 | `incidents.injuryClassification` | Classification | Classification | Incorrect Translation | **High** | التصنيف | Identical to English. |
 | 5 | `incidents.damageType` | Type | Type | Incorrect Translation | **High** | النوع | Identical to English. |
-| 6 | `incidents.assetSelectionHint` | Optionally link an asset related to this event... | Optionally link an asset related to this event... | Incorrect Translation | **High** | اختيارياً، يمكنك ربط أصل متعلق بهذا الحدث... | Identical to English. |
+| 6 | `incidents.assetSelectionHint` | Optionally link an asset related to this event. You can also scan a QR code. | Optionally link an asset related to this event... | Incorrect Translation | **High** | اختيارياً، يمكنك ربط أصل متعلق بهذا الحدث... | Identical to English. |
 | 7 | `admin.override.title` | Pending Approvals Override | *Missing* | Missing Translation | **High** | تجاوز الموافقات المعلقة | Critical admin feature untranslated. |
 | 8 | `admin.override.description` | Approve stuck incidents... | *Missing* | Missing Translation | **High** | الموافقة على الحوادث العالقة عندما يكون المعتمدون الأصليون غير متاحين | |
 | 9 | `admin.override.cardTitle` | Admin Override Available | *Missing* | Missing Translation | **High** | تجاوز المسؤول متاح | |
