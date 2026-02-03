@@ -536,9 +536,18 @@ export function GatePassFormDialog({
               <Input
                 type="date"
                 value={formData.pass_date}
+                min={new Date().toISOString().split("T")[0]}
+                max={(() => {
+                  const maxDate = new Date();
+                  maxDate.setDate(maxDate.getDate() + 7);
+                  return maxDate.toISOString().split("T")[0];
+                })()}
                 onChange={(e) => setFormData({ ...formData, pass_date: e.target.value })}
                 required
               />
+              <p className="text-xs text-muted-foreground">
+                {t("contractors.gatePasses.dateHint", "Valid for up to 7 days from today")}
+              </p>
             </div>
             <div className="space-y-2">
               <Label>{t("contractors.gatePasses.timeWindowStart", "Time From")}</Label>
