@@ -342,7 +342,8 @@ export function useVerifyPassByReference() {
       const { data: pass, error } = await supabase
         .from('material_gate_passes')
         .select(`
-          id, reference_number, pass_type, pass_date, time_window_start, time_window_end,
+          id, reference_number, pass_type, pass_date, start_date, end_date,
+          time_window_start, time_window_end,
           material_description, quantity, vehicle_plate, driver_name, driver_mobile,
           status, entry_time, exit_time,
           project:contractor_projects(project_name, company:contractor_companies(company_name))
@@ -383,15 +384,23 @@ export function useVerifyPassByReference() {
         };
       }
 
-      // Check pass date
-      if (pass.pass_date !== today) {
+      // Check pass date range (use start_date/end_date if available, fallback to pass_date)
+      const startDate = pass.start_date || pass.pass_date;
+      const endDate = pass.end_date || pass.pass_date;
+
+      if (today < startDate) {
         return {
           is_valid: false,
-          errors: [
-            pass.pass_date < today
-              ? 'Gate pass has expired'
-              : 'Gate pass is for a future date',
-          ],
+          errors: ['Gate pass is for a future date'],
+          warnings: [],
+          pass: formatPassData(pass),
+        };
+      }
+
+      if (today > endDate) {
+        return {
+          is_valid: false,
+          errors: ['Gate pass has expired'],
           warnings: [],
           pass: formatPassData(pass),
         };
@@ -443,6 +452,8 @@ function formatPassData(pass: any) {
     driver_name: pass.driver_name,
     driver_mobile: pass.driver_mobile,
     pass_date: pass.pass_date,
+    start_date: pass.start_date || pass.pass_date,
+    end_date: pass.end_date || pass.pass_date,
     time_window_start: pass.time_window_start,
     time_window_end: pass.time_window_end,
     status: pass.status,
