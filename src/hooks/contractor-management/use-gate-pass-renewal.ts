@@ -25,17 +25,15 @@ interface ResubmitGatePassResult {
  * Hook for security supervisors to renew expired unused gate passes.
  * Extends the pass by 24 hours from reactivation.
  * Only allowed once per pass.
+ *
+ * NOTE: Authorization is handled by the backend RPC function, which is the
+ * single source of truth. The frontend should use useCanRenewGatePass() for
+ * UI decisions (show/hide button) but not duplicate authorization logic here.
  */
 export function useRenewGatePass() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { hasRole } = useUserRoles();
-
-  const isSecuritySupervisor = hasRole('security_supervisor') ||
-                                hasRole('hsse_manager') ||
-                                hasRole('hsse_officer') ||
-                                hasRole('admin');
 
   return useMutation({
     mutationFn: async (gatePassId: string): Promise<RenewGatePassResult> => {
@@ -43,10 +41,8 @@ export function useRenewGatePass() {
         throw new Error(t("common.notAuthenticated", "Not authenticated"));
       }
 
-      if (!isSecuritySupervisor) {
-        throw new Error(t("contractors.gatePasses.renewalNotAuthorized", "Only security supervisors can renew gate passes"));
-      }
-
+      // Authorization is handled by the backend RPC - it validates roles and
+      // returns an appropriate error if the user is not authorized
       const { data, error } = await supabase.rpc('renew_expired_gate_pass', {
         p_gate_pass_id: gatePassId,
         p_user_id: user.id,
@@ -159,6 +155,14 @@ export function useResubmitGatePass() {
 
 /**
  * Hook to check if a gate pass can be renewed.
+ *
+ * PURPOSE: This is a UI helper hook used to determine whether to show/hide
+ * the renewal button. It mirrors the backend validation logic for a better UX
+ * (avoiding showing buttons that will fail when clicked).
+ *
+ * NOTE: The actual authorization enforcement happens in the backend RPC
+ * (renew_expired_gate_pass). If role permissions change, update BOTH this
+ * hook (for UI) and the RPC (for enforcement). The RPC is the source of truth.
  */
 export function useCanRenewGatePass(
   status: string,
@@ -168,12 +172,13 @@ export function useCanRenewGatePass(
   const { t } = useTranslation();
   const { hasRole } = useUserRoles();
 
-  const isSecuritySupervisor = hasRole('security_supervisor') ||
-                                hasRole('hsse_manager') ||
-                                hasRole('hsse_officer') ||
-                                hasRole('admin');
+  // Mirror the roles checked in the backend RPC for UI consistency
+  const hasRenewalRole = hasRole('security_supervisor') ||
+                         hasRole('hsse_manager') ||
+                         hasRole('hsse_officer') ||
+                         hasRole('admin');
 
-  if (!isSecuritySupervisor) {
+  if (!hasRenewalRole) {
     return {
       canRenew: false,
       reason: t("contractors.gatePasses.renewalNotAuthorized", "Only security supervisors can renew gate passes")
