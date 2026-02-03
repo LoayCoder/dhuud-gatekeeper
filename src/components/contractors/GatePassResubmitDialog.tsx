@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, Calendar, Clock, RefreshCw } from "lucide-react";
 import { useResubmitGatePass } from "@/hooks/contractor-management/use-gate-pass-renewal";
+import { useDateRangeValidation } from "@/hooks/use-date-range-validation";
 import { MaterialGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
 
 interface GatePassResubmitDialogProps {
@@ -32,34 +33,20 @@ export function GatePassResubmitDialog({
   const { t } = useTranslation();
   const resubmitMutation = useResubmitGatePass();
 
-  const today = new Date().toISOString().split("T")[0];
-  const [formData, setFormData] = useState({
-    start_date: today,
-    end_date: today,
+  // Use shared date range validation hook
+  const {
+    dateRange,
+    handleStartDateChange,
+    handleEndDateChange,
+    getMaxEndDate,
+    getToday,
+    dateRangeError,
+  } = useDateRangeValidation({ maxDays: 7 });
+
+  const [timeWindow, setTimeWindow] = useState({
     time_window_start: "",
     time_window_end: "",
   });
-
-  // Calculate max end date (7 days from start)
-  const getMaxEndDate = () => {
-    const start = new Date(formData.start_date);
-    const maxEnd = new Date(start);
-    maxEnd.setDate(start.getDate() + 6);
-    return maxEnd.toISOString().split("T")[0];
-  };
-
-  // Validate date range
-  const getDateRangeError = () => {
-    if (!formData.start_date || !formData.end_date) return null;
-    const start = new Date(formData.start_date);
-    const end = new Date(formData.end_date);
-    const diffDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-    if (diffDays < 0) return t("contractors.gatePasses.endDateBeforeStart", "End date must be on or after start date");
-    if (diffDays > 6) return t("contractors.gatePasses.dateRangeExceedsMax", "Date range cannot exceed 7 days");
-    return null;
-  };
-
-  const dateRangeError = getDateRangeError();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,28 +54,14 @@ export function GatePassResubmitDialog({
 
     await resubmitMutation.mutateAsync({
       gatePassId: pass.id,
-      startDate: formData.start_date,
-      endDate: formData.end_date,
-      timeWindowStart: formData.time_window_start || undefined,
-      timeWindowEnd: formData.time_window_end || undefined,
+      startDate: dateRange.start_date,
+      endDate: dateRange.end_date,
+      timeWindowStart: timeWindow.time_window_start || undefined,
+      timeWindowEnd: timeWindow.time_window_end || undefined,
     });
 
     onOpenChange(false);
     onSuccess?.();
-  };
-
-  const handleStartDateChange = (newStartDate: string) => {
-    let newEndDate = formData.end_date;
-    if (new Date(newEndDate) < new Date(newStartDate)) {
-      newEndDate = newStartDate;
-    }
-    // Ensure end date doesn't exceed 7 days from start
-    const maxEnd = new Date(newStartDate);
-    maxEnd.setDate(maxEnd.getDate() + 6);
-    if (new Date(newEndDate) > maxEnd) {
-      newEndDate = maxEnd.toISOString().split("T")[0];
-    }
-    setFormData({ ...formData, start_date: newStartDate, end_date: newEndDate });
   };
 
   if (!pass) return null;
@@ -144,8 +117,8 @@ export function GatePassResubmitDialog({
                 </Label>
                 <Input
                   type="date"
-                  value={formData.start_date}
-                  min={today}
+                  value={dateRange.start_date}
+                  min={getToday()}
                   onChange={(e) => handleStartDateChange(e.target.value)}
                   required
                 />
@@ -157,10 +130,10 @@ export function GatePassResubmitDialog({
                 </Label>
                 <Input
                   type="date"
-                  value={formData.end_date}
-                  min={formData.start_date}
+                  value={dateRange.end_date}
+                  min={dateRange.start_date}
                   max={getMaxEndDate()}
-                  onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                  onChange={(e) => handleEndDateChange(e.target.value)}
                   required
                 />
               </div>
@@ -186,8 +159,8 @@ export function GatePassResubmitDialog({
                 </Label>
                 <Input
                   type="time"
-                  value={formData.time_window_start}
-                  onChange={(e) => setFormData({ ...formData, time_window_start: e.target.value })}
+                  value={timeWindow.time_window_start}
+                  onChange={(e) => setTimeWindow({ ...timeWindow, time_window_start: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
@@ -200,8 +173,8 @@ export function GatePassResubmitDialog({
                 </Label>
                 <Input
                   type="time"
-                  value={formData.time_window_end}
-                  onChange={(e) => setFormData({ ...formData, time_window_end: e.target.value })}
+                  value={timeWindow.time_window_end}
+                  onChange={(e) => setTimeWindow({ ...timeWindow, time_window_end: e.target.value })}
                 />
               </div>
             </div>

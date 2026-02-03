@@ -14,6 +14,12 @@ import { Plus, Trash2, X, ImageIcon, User, Building2 } from "lucide-react";
 import { compressImage } from "@/lib/upload-utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import {
+  getToday,
+  calculateMaxEndDate,
+  validateDateRange,
+  adjustEndDateForStartChange,
+} from "@/hooks/use-date-range-validation";
 
 interface GatePassFormDialogProps {
   open: boolean;
@@ -85,6 +91,7 @@ export function GatePassFormDialog({
   // Determine if current language is Arabic
   const isArabic = i18n.language === 'ar';
 
+  const today = getToday();
   const [formData, setFormData] = useState({
     project_id: "",
     company_id: "",
@@ -92,8 +99,8 @@ export function GatePassFormDialog({
     vehicle_plate: "",
     driver_name: "",
     driver_mobile: "",
-    start_date: new Date().toISOString().split("T")[0],
-    end_date: new Date().toISOString().split("T")[0],
+    start_date: today,
+    end_date: today,
     time_window_start: "",
     time_window_end: "",
     approval_from_id: "", // For internal requests
@@ -179,6 +186,7 @@ export function GatePassFormDialog({
   };
 
   const resetForm = () => {
+    const resetToday = getToday();
     setFormData({
       project_id: "",
       company_id: "",
@@ -186,8 +194,8 @@ export function GatePassFormDialog({
       vehicle_plate: "",
       driver_name: "",
       driver_mobile: "",
-      start_date: new Date().toISOString().split("T")[0],
-      end_date: new Date().toISOString().split("T")[0],
+      start_date: resetToday,
+      end_date: resetToday,
       time_window_start: "",
       time_window_end: "",
       approval_from_id: "",
@@ -199,25 +207,9 @@ export function GatePassFormDialog({
     setPhotoPreviewUrls([]);
   };
 
-  // Calculate date range validity and max end date
-  const getMaxEndDate = () => {
-    const start = new Date(formData.start_date);
-    const maxEnd = new Date(start);
-    maxEnd.setDate(start.getDate() + 6); // Max 7 days (0-6 = 7 days)
-    return maxEnd.toISOString().split("T")[0];
-  };
-
-  const getDateRangeError = () => {
-    if (!formData.start_date || !formData.end_date) return null;
-    const start = new Date(formData.start_date);
-    const end = new Date(formData.end_date);
-    const diffDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-    if (diffDays < 0) return t("contractors.gatePasses.endDateBeforeStart", "End date must be on or after start date");
-    if (diffDays > 6) return t("contractors.gatePasses.dateRangeExceedsMax", "Date range cannot exceed 7 days");
-    return null;
-  };
-
-  const dateRangeError = getDateRangeError();
+  // Date range validation using shared utilities
+  const maxEndDate = calculateMaxEndDate(formData.start_date, 7);
+  const dateRangeError = validateDateRange(formData.start_date, formData.end_date, 7, t);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -569,20 +561,10 @@ export function GatePassFormDialog({
                 <Input
                   type="date"
                   value={formData.start_date}
-                  min={new Date().toISOString().split("T")[0]}
+                  min={today}
                   onChange={(e) => {
                     const newStartDate = e.target.value;
-                    // Auto-adjust end date if needed
-                    let newEndDate = formData.end_date;
-                    if (new Date(newEndDate) < new Date(newStartDate)) {
-                      newEndDate = newStartDate;
-                    }
-                    // Ensure end date doesn't exceed 7 days from start
-                    const maxEnd = new Date(newStartDate);
-                    maxEnd.setDate(maxEnd.getDate() + 6);
-                    if (new Date(newEndDate) > maxEnd) {
-                      newEndDate = maxEnd.toISOString().split("T")[0];
-                    }
+                    const newEndDate = adjustEndDateForStartChange(newStartDate, formData.end_date, 7);
                     setFormData({ ...formData, start_date: newStartDate, end_date: newEndDate });
                   }}
                   required
@@ -594,7 +576,7 @@ export function GatePassFormDialog({
                   type="date"
                   value={formData.end_date}
                   min={formData.start_date}
-                  max={getMaxEndDate()}
+                  max={maxEndDate}
                   onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
                   required
                 />
