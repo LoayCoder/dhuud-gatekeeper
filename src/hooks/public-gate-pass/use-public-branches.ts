@@ -7,10 +7,9 @@ export interface PublicBranch {
   location: string | null;
   latitude: number | null;
   longitude: number | null;
-  // These columns will be added in Phase 2 migration
-  address?: string | null;
-  contact_phone?: string | null;
-  contact_email?: string | null;
+  address: string | null;
+  contact_phone: string | null;
+  contact_email: string | null;
 }
 
 /**
@@ -30,7 +29,10 @@ export function usePublicBranches(tenantId: string | undefined) {
           name,
           location,
           latitude,
-          longitude
+          longitude,
+          address,
+          contact_phone,
+          contact_email
         `)
         .eq("tenant_id", tenantId)
         .order("name", { ascending: true });
@@ -39,7 +41,7 @@ export function usePublicBranches(tenantId: string | undefined) {
       return (data || []) as PublicBranch[];
     },
     enabled: !!tenantId,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -59,7 +61,10 @@ export function usePublicBranch(branchId: string | undefined) {
           name,
           location,
           latitude,
-          longitude
+          longitude,
+          address,
+          contact_phone,
+          contact_email
         `)
         .eq("id", branchId)
         .single();

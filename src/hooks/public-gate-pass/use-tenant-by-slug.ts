@@ -32,6 +32,9 @@ export function useTenantBySlug(slug: string | undefined) {
           slug,
           logo_light_url,
           brand_color,
+          allow_public_gate_pass_requests,
+          public_gate_pass_instructions,
+          public_gate_pass_instructions_ar,
           emergency_contact_number,
           emergency_contact_name
         `)
@@ -41,22 +44,22 @@ export function useTenantBySlug(slug: string | undefined) {
       if (error) throw error;
       if (!data) throw new Error("Tenant not found");
 
-      // Map to PublicTenant interface - columns not yet in DB get defaults
+      // Map to PublicTenant interface
       return {
         id: data.id,
         name: data.name,
         slug: data.slug,
         logo_url: data.logo_light_url,
         brand_color: data.brand_color,
-        allow_public_gate_pass_requests: false, // TODO: Enable after migration
-        public_gate_pass_instructions: null,
-        public_gate_pass_instructions_ar: null,
+        allow_public_gate_pass_requests: data.allow_public_gate_pass_requests ?? false,
+        public_gate_pass_instructions: data.public_gate_pass_instructions,
+        public_gate_pass_instructions_ar: data.public_gate_pass_instructions_ar,
         emergency_contact_number: data.emergency_contact_number,
         emergency_contact_name: data.emergency_contact_name,
       } as PublicTenant;
     },
     enabled: !!slug,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 5 * 60 * 1000,
     retry: 2,
   });
 }

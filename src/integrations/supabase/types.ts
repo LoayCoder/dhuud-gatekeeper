@@ -3624,6 +3624,9 @@ export type Database = {
       }
       branches: {
         Row: {
+          address: string | null
+          contact_email: string | null
+          contact_phone: string | null
           created_at: string | null
           deleted_at: string | null
           id: string
@@ -3634,6 +3637,9 @@ export type Database = {
           tenant_id: string
         }
         Insert: {
+          address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string | null
           deleted_at?: string | null
           id?: string
@@ -3644,6 +3650,9 @@ export type Database = {
           tenant_id: string
         }
         Update: {
+          address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string | null
           deleted_at?: string | null
           id?: string
@@ -14308,7 +14317,11 @@ export type Database = {
           guard_verified_by: string | null
           id: string
           is_internal_request: boolean | null
+          is_public_request: boolean | null
           material_description: string
+          notify_email: boolean | null
+          notify_sms: boolean | null
+          notify_whatsapp: boolean | null
           original_end_date: string | null
           pass_date: string
           pass_type: string
@@ -14316,6 +14329,11 @@ export type Database = {
           pm_approved_by: string | null
           pm_notes: string | null
           project_id: string | null
+          public_access_token: string | null
+          public_requester_company: string | null
+          public_requester_email: string | null
+          public_requester_name: string | null
+          public_requester_phone: string | null
           qr_code_token: string | null
           qr_generated_at: string | null
           quantity: string | null
@@ -14340,6 +14358,7 @@ export type Database = {
           tenant_id: string
           time_window_end: string | null
           time_window_start: string | null
+          token_expires_at: string | null
           updated_at: string
           vehicle_plate: string | null
         }
@@ -14372,7 +14391,11 @@ export type Database = {
           guard_verified_by?: string | null
           id?: string
           is_internal_request?: boolean | null
+          is_public_request?: boolean | null
           material_description: string
+          notify_email?: boolean | null
+          notify_sms?: boolean | null
+          notify_whatsapp?: boolean | null
           original_end_date?: string | null
           pass_date: string
           pass_type?: string
@@ -14380,6 +14403,11 @@ export type Database = {
           pm_approved_by?: string | null
           pm_notes?: string | null
           project_id?: string | null
+          public_access_token?: string | null
+          public_requester_company?: string | null
+          public_requester_email?: string | null
+          public_requester_name?: string | null
+          public_requester_phone?: string | null
           qr_code_token?: string | null
           qr_generated_at?: string | null
           quantity?: string | null
@@ -14404,6 +14432,7 @@ export type Database = {
           tenant_id: string
           time_window_end?: string | null
           time_window_start?: string | null
+          token_expires_at?: string | null
           updated_at?: string
           vehicle_plate?: string | null
         }
@@ -14436,7 +14465,11 @@ export type Database = {
           guard_verified_by?: string | null
           id?: string
           is_internal_request?: boolean | null
+          is_public_request?: boolean | null
           material_description?: string
+          notify_email?: boolean | null
+          notify_sms?: boolean | null
+          notify_whatsapp?: boolean | null
           original_end_date?: string | null
           pass_date?: string
           pass_type?: string
@@ -14444,6 +14477,11 @@ export type Database = {
           pm_approved_by?: string | null
           pm_notes?: string | null
           project_id?: string | null
+          public_access_token?: string | null
+          public_requester_company?: string | null
+          public_requester_email?: string | null
+          public_requester_name?: string | null
+          public_requester_phone?: string | null
           qr_code_token?: string | null
           qr_generated_at?: string | null
           quantity?: string | null
@@ -14468,6 +14506,7 @@ export type Database = {
           tenant_id?: string
           time_window_end?: string | null
           time_window_start?: string | null
+          token_expires_at?: string | null
           updated_at?: string
           vehicle_plate?: string | null
         }
@@ -18002,6 +18041,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "ptw_types_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_request_rate_limits: {
+        Row: {
+          blocked_until: string | null
+          client_ip: string
+          created_at: string | null
+          first_request_at: string | null
+          id: string
+          last_request_at: string | null
+          request_count: number | null
+          request_type: string
+          tenant_id: string | null
+        }
+        Insert: {
+          blocked_until?: string | null
+          client_ip: string
+          created_at?: string | null
+          first_request_at?: string | null
+          id?: string
+          last_request_at?: string | null
+          request_count?: number | null
+          request_type?: string
+          tenant_id?: string | null
+        }
+        Update: {
+          blocked_until?: string | null
+          client_ip?: string
+          created_at?: string | null
+          first_request_at?: string | null
+          id?: string
+          last_request_at?: string | null
+          request_count?: number | null
+          request_type?: string
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_request_rate_limits_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -21678,6 +21761,7 @@ export type Database = {
       }
       tenants: {
         Row: {
+          allow_public_gate_pass_requests: boolean | null
           app_icon_dark_url: string | null
           app_icon_light_url: string | null
           background_color: string | null
@@ -21714,6 +21798,8 @@ export type Database = {
           notes: string | null
           plan_id: string | null
           preferred_currency: string
+          public_gate_pass_instructions: string | null
+          public_gate_pass_instructions_ar: string | null
           secondary_color: string | null
           secondary_color_dark: string | null
           security_scan_enabled: boolean | null
@@ -21737,6 +21823,7 @@ export type Database = {
           visitor_hsse_instructions_en: string | null
         }
         Insert: {
+          allow_public_gate_pass_requests?: boolean | null
           app_icon_dark_url?: string | null
           app_icon_light_url?: string | null
           background_color?: string | null
@@ -21773,6 +21860,8 @@ export type Database = {
           notes?: string | null
           plan_id?: string | null
           preferred_currency?: string
+          public_gate_pass_instructions?: string | null
+          public_gate_pass_instructions_ar?: string | null
           secondary_color?: string | null
           secondary_color_dark?: string | null
           security_scan_enabled?: boolean | null
@@ -21796,6 +21885,7 @@ export type Database = {
           visitor_hsse_instructions_en?: string | null
         }
         Update: {
+          allow_public_gate_pass_requests?: boolean | null
           app_icon_dark_url?: string | null
           app_icon_light_url?: string | null
           background_color?: string | null
@@ -21832,6 +21922,8 @@ export type Database = {
           notes?: string | null
           plan_id?: string | null
           preferred_currency?: string
+          public_gate_pass_instructions?: string | null
+          public_gate_pass_instructions_ar?: string | null
           secondary_color?: string | null
           secondary_color_dark?: string | null
           security_scan_enabled?: boolean | null
@@ -25836,6 +25928,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string
       }
+      get_public_gate_pass_status: {
+        Args: { p_access_token: string; p_tenant_slug: string }
+        Returns: Json
+      }
       get_rate_limit_stats: { Args: never; Returns: Json }
       get_recent_hsse_events: { Args: { p_limit?: number }; Returns: Json }
       get_residual_risk_metrics: {
@@ -26547,6 +26643,30 @@ export type Database = {
           p_incident_id: string
           p_user_id: string
           p_violation_type_id: string
+        }
+        Returns: Json
+      }
+      submit_public_gate_pass: {
+        Args: {
+          p_branch_id?: string
+          p_client_ip?: string
+          p_driver_mobile?: string
+          p_driver_name?: string
+          p_material_description?: string
+          p_notify_email?: boolean
+          p_notify_sms?: boolean
+          p_notify_whatsapp?: boolean
+          p_pass_date?: string
+          p_pass_type?: string
+          p_quantity?: string
+          p_requester_company?: string
+          p_requester_email?: string
+          p_requester_name?: string
+          p_requester_phone?: string
+          p_tenant_slug: string
+          p_time_window_end?: string
+          p_time_window_start?: string
+          p_vehicle_plate?: string
         }
         Returns: Json
       }
