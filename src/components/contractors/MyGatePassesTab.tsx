@@ -28,8 +28,10 @@ export function MyGatePassesTab({ onRequestNew }: MyGatePassesTabProps) {
   });
 
   const statusCounts = {
-    pending_pm_approval: myPasses.filter((p) => p.status === "pending_pm_approval").length,
-    pending_safety_approval: myPasses.filter((p) => p.status === "pending_safety_approval").length,
+    pending_dept_approval: myPasses.filter((p) => p.status === "pending_dept_approval").length,
+    pending_contractor_approval: myPasses.filter((p) => p.status === "pending_contractor_approval").length,
+    pending_club_mgmt_ack: myPasses.filter((p) => p.status === "pending_club_mgmt_ack").length,
+    pending_security_approval: myPasses.filter((p) => p.status === "pending_security_approval").length,
     approved: myPasses.filter((p) => p.status === "approved").length,
     rejected: myPasses.filter((p) => p.status === "rejected").length,
     completed: myPasses.filter((p) => p.status === "completed").length,
@@ -66,12 +68,20 @@ export function MyGatePassesTab({ onRequestNew }: MyGatePassesTabProps) {
         {/* Status Summary Badges */}
         <div className="flex flex-wrap gap-2">
           <Badge variant="outline" className="gap-1">
-            {t("contractors.gatePasses.status.pendingPm", "Pending PM")}
-            <span className="font-bold">{statusCounts.pending_pm_approval}</span>
+            {t("contractors.gatePasses.status.pendingDept", "Pending Dept")}
+            <span className="font-bold">{statusCounts.pending_dept_approval}</span>
           </Badge>
           <Badge variant="outline" className="gap-1">
-            {t("contractors.gatePasses.status.pendingSafety", "Pending Safety")}
-            <span className="font-bold">{statusCounts.pending_safety_approval}</span>
+            {t("contractors.gatePasses.status.pendingContractor", "Pending Contractor")}
+            <span className="font-bold">{statusCounts.pending_contractor_approval}</span>
+          </Badge>
+          <Badge variant="outline" className="gap-1">
+            {t("contractors.gatePasses.status.pendingClubMgmt", "Pending Golf Club")}
+            <span className="font-bold">{statusCounts.pending_club_mgmt_ack}</span>
+          </Badge>
+          <Badge variant="outline" className="gap-1">
+            {t("contractors.gatePasses.status.pendingSecurity", "Pending Security")}
+            <span className="font-bold">{statusCounts.pending_security_approval}</span>
           </Badge>
           <Badge variant="outline" className="gap-1 text-green-600 border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
             {t("contractors.gatePasses.status.approved", "Approved")}
@@ -104,8 +114,10 @@ export function MyGatePassesTab({ onRequestNew }: MyGatePassesTabProps) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("common.allStatuses", "All Statuses")}</SelectItem>
-              <SelectItem value="pending_pm_approval">{t("contractors.gatePasses.status.pendingPm", "Pending PM")}</SelectItem>
-              <SelectItem value="pending_safety_approval">{t("contractors.gatePasses.status.pendingSafety", "Pending Safety")}</SelectItem>
+              <SelectItem value="pending_dept_approval">{t("contractors.gatePasses.status.pendingDept", "Pending Dept")}</SelectItem>
+              <SelectItem value="pending_contractor_approval">{t("contractors.gatePasses.status.pendingContractor", "Pending Contractor")}</SelectItem>
+              <SelectItem value="pending_club_mgmt_ack">{t("contractors.gatePasses.status.pendingClubMgmt", "Pending Golf Club")}</SelectItem>
+              <SelectItem value="pending_security_approval">{t("contractors.gatePasses.status.pendingSecurity", "Pending Security")}</SelectItem>
               <SelectItem value="approved">{t("contractors.gatePasses.status.approved", "Approved")}</SelectItem>
               <SelectItem value="rejected">{t("contractors.gatePasses.status.rejected", "Rejected")}</SelectItem>
               <SelectItem value="completed">{t("contractors.gatePasses.status.completed", "Completed")}</SelectItem>

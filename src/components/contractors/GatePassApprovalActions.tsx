@@ -77,11 +77,6 @@ export function GatePassApprovalActions({ pass, onSuccess }: GatePassApprovalAct
         return t("contractors.gatePasses.approveAsDept", "Approve as Department Representative");
       case "pending_security_approval":
         return t("contractors.gatePasses.approveAsSecurity", "Approve as Security Supervisor");
-      // Legacy statuses
-      case "pending_pm_approval":
-        return t("contractors.gatePasses.approveAsPM", "Approve as PM");
-      case "pending_safety_approval":
-        return t("contractors.gatePasses.approveAsSafety", "Approve as Safety");
       default:
         return t("contractors.gatePasses.approve", "Approve");
     }

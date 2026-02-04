@@ -490,22 +490,22 @@ export function useRejectGatePass() {
     mutationFn: async ({ passId, reason }: { passId: string; reason: string }) => {
       if (!user?.id) throw new Error("Not authenticated");
 
-      const { error } = await supabase
-        .from("material_gate_passes")
-        .update({
-          rejected_by: user.id,
-          rejected_at: new Date().toISOString(),
-          rejection_reason: reason,
-          status: "rejected",
-        })
-        .eq("id", passId);
+      // Use unified RPC for rejection - ensures proper audit logging and validation
+      const { data, error } = await supabase.rpc("approve_gate_pass_unified", {
+        p_user_id: user.id,
+        p_gate_pass_id: passId,
+        p_action: "reject",
+        p_notes: reason,
+      });
 
       if (error) throw error;
-      return { passId };
+      return { passId, newStatus: data };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["material-gate-passes"] });
       queryClient.invalidateQueries({ queryKey: ["pending-gate-pass-approvals"] });
+      queryClient.invalidateQueries({ queryKey: ["my-gate-passes"] });
+      queryClient.invalidateQueries({ queryKey: ["gate-pass-details"] });
       toast.success("Gate pass rejected");
     },
     onError: (error) => {
@@ -723,23 +723,20 @@ export function useBulkRejectGatePasses() {
       if (!user?.id) throw new Error("Not authenticated");
       
       const results: BulkResult = { success: 0, failed: 0, errors: [] };
-      const now = new Date().toISOString();
 
       for (const passId of passIds) {
         try {
-          const { error: updateError } = await supabase
-            .from("material_gate_passes")
-            .update({
-              rejected_by: user.id,
-              rejected_at: now,
-              rejection_reason: reason,
-              status: "rejected",
-            })
-            .eq("id", passId);
+          // Use unified RPC for rejection - ensures proper audit logging
+          const { data, error } = await supabase.rpc("approve_gate_pass_unified", {
+            p_user_id: user.id,
+            p_gate_pass_id: passId,
+            p_action: "reject",
+            p_notes: reason,
+          });
 
-          if (updateError) {
+          if (error) {
             results.failed++;
-            results.errors.push({ passId, error: updateError.message });
+            results.errors.push({ passId, error: error.message });
           } else {
             results.success++;
           }
@@ -754,6 +751,8 @@ export function useBulkRejectGatePasses() {
     onSuccess: (results) => {
       queryClient.invalidateQueries({ queryKey: ["material-gate-passes"] });
       queryClient.invalidateQueries({ queryKey: ["pending-gate-pass-approvals"] });
+      queryClient.invalidateQueries({ queryKey: ["my-gate-passes"] });
+      queryClient.invalidateQueries({ queryKey: ["gate-pass-details"] });
       
       if (results.success > 0 && results.failed === 0) {
         toast.success(`${results.success} passes rejected`);
