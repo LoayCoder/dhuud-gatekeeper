@@ -35,6 +35,10 @@ const VisitorBadgePage = lazyWithRetry(() => import("@/pages/VisitorBadgePage"))
 const WorkerAccessPass = lazyWithRetry(() => import("@/pages/WorkerAccessPass"));
 const WorkerInduction = lazyWithRetry(() => import("@/pages/WorkerInduction"));
 
+// Public gate pass pages - lazy loaded
+const PublicGatePassRequest = lazyWithRetry(() => import("@/pages/public/PublicGatePassRequest"));
+const PublicGatePassStatus = lazyWithRetry(() => import("@/pages/public/PublicGatePassStatus"));
+
 export const legalRoutes: RouteObject[] = [
   { path: "/terms", element: <TermsOfService /> },
   { path: "/privacy", element: <PrivacyPolicy /> },
@@ -61,21 +65,30 @@ export const authRoutes: RouteObject[] = [
 ];
 
 export const publicTokenRoutes: RouteObject[] = [
-  { 
-    path: "/visitor-pass/:token", 
-    element: <Suspense fallback={<PageLoader />}><VisitorPass /></Suspense> 
+  {
+    path: "/visitor-pass/:token",
+    element: <Suspense fallback={<PageLoader />}><VisitorPass /></Suspense>
   },
-  { 
-    path: "/visitor-badge/:token", 
-    element: <Suspense fallback={<PageLoader />}><VisitorBadgePage /></Suspense> 
+  {
+    path: "/visitor-badge/:token",
+    element: <Suspense fallback={<PageLoader />}><VisitorBadgePage /></Suspense>
   },
-  { 
-    path: "/worker-access/:token", 
-    element: <Suspense fallback={<PageLoader />}><WorkerAccessPass /></Suspense> 
+  {
+    path: "/worker-access/:token",
+    element: <Suspense fallback={<PageLoader />}><WorkerAccessPass /></Suspense>
   },
-  { 
-    path: "/worker-induction/:inductionId", 
-    element: <Suspense fallback={<PageLoader />}><WorkerInduction /></Suspense> 
+  {
+    path: "/worker-induction/:inductionId",
+    element: <Suspense fallback={<PageLoader />}><WorkerInduction /></Suspense>
+  },
+  // Public gate pass routes (multi-tenant)
+  {
+    path: "/p/:tenantSlug/gate-pass",
+    element: <Suspense fallback={<PageLoader />}><PublicGatePassRequest /></Suspense>
+  },
+  {
+    path: "/p/:tenantSlug/gate-pass/status/:token",
+    element: <Suspense fallback={<PageLoader />}><PublicGatePassStatus /></Suspense>
   },
 ];
 

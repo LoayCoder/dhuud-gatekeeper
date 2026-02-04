@@ -1,4 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendWhatsAppText } from '../_shared/whatsapp-provider.ts';
+import { logNotificationSent } from '../_shared/notification-logger.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -58,9 +60,18 @@ Deno.serve(async (req) => {
         reference_number,
         status,
         is_internal_request,
+        is_public_request,
         requested_by,
+        public_requester_name,
+        public_requester_phone,
+        public_requester_email,
+        public_access_token,
+        branch_id,
+        pass_date,
+        material_description,
         project:contractor_projects(project_name, company_id),
-        company:contractor_companies(company_name)
+        company:contractor_companies(company_name),
+        branch:branches(name)
       `)
       .eq('id', gate_pass_id)
       .eq('tenant_id', tenant_id)
@@ -106,8 +117,14 @@ Deno.serve(async (req) => {
     // UNIFIED APPROVAL LOGIC using main status column
     // External: pending_contractor_approval -> pending_dept_ack -> approved
     // Internal: pending_dept_approval -> pending_security_approval -> approved
+    // Public: pending_management -> approved (single-step for management roles)
 
     const isInternalRequest = gatePass.is_internal_request === true;
+    const isPublicRequest = gatePass.is_public_request === true;
+
+    // Additional role check for public requests
+    const isGolfClubMgmt = roleCodes.includes('golf_club_mgmt') || roleCodes.includes('admin');
+    const canApprovePublic = isGolfClubMgmt || isSecuritySupervisor || isDepartmentRep;
 
     // Handle rejection (universal for all stages)
     if (approval_action === 'reject') {
@@ -118,6 +135,30 @@ Deno.serve(async (req) => {
         rejection_reason: approval_notes,
       };
       newStatus = 'rejected';
+    }
+    // PUBLIC REQUEST PATH
+    else if (isPublicRequest) {
+      if (gatePass.status === 'pending_management' && canApprovePublic) {
+        // Single-step approval for public requests -> APPROVED + generate QR
+        const qrToken = 'GP-' + crypto.randomUUID().replace(/-/g, '').substring(0, 32);
+        updateData = {
+          pm_approved_by: user.id,
+          pm_approved_at: now,
+          pm_notes: approval_notes,
+          safety_approved_by: user.id,
+          safety_approved_at: now,
+          safety_notes: approval_notes,
+          status: 'approved',
+          qr_code_token: qrToken,
+          qr_generated_at: now,
+        };
+        newStatus = 'approved';
+      } else {
+        return new Response(
+          JSON.stringify({ error: 'You are not authorized to approve this public gate pass' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
     // INTERNAL PATH
     else if (isInternalRequest) {
@@ -228,7 +269,86 @@ Deno.serve(async (req) => {
       new_value: { status: newStatus, notes: approval_notes },
     });
 
-    console.log(`Gate pass ${gatePass.reference_number} ${approval_action}ed by ${user.id} (${isInternalRequest ? 'internal' : 'external'} path)`);
+    // Send notification to public requester if this is a public request
+    if (isPublicRequest && gatePass.public_requester_phone) {
+      try {
+        const appUrl = Deno.env.get('APP_URL') || 'https://www.dhuud.com';
+
+        // Get tenant info for branding
+        const { data: tenant } = await supabase
+          .from('tenants')
+          .select('name, slug')
+          .eq('id', tenant_id)
+          .single();
+
+        const trackingUrl = `${appUrl}/p/${tenant?.slug || ''}/gate-pass/status/${gatePass.public_access_token}`;
+        const branchName = (gatePass.branch as any)?.name || 'the facility';
+
+        let notificationMessage: string;
+
+        if (newStatus === 'approved') {
+          notificationMessage = `Your Gate Pass for ${tenant?.name || 'the facility'} is APPROVED!
+
+Reference: ${gatePass.reference_number}
+Location: ${branchName}
+Date: ${gatePass.pass_date}
+
+Show the QR code at the gate:
+${trackingUrl}
+
+Please arrive during your scheduled time window.`;
+        } else if (newStatus === 'rejected') {
+          notificationMessage = `Your Gate Pass request has been DECLINED.
+
+Reference: ${gatePass.reference_number}
+${approval_notes ? `Reason: ${approval_notes}` : ''}
+
+Please contact ${tenant?.name || 'the facility'} for more information.`;
+        } else {
+          // Status update notification
+          notificationMessage = `Gate Pass Update
+
+Reference: ${gatePass.reference_number}
+Status: ${newStatus.replace(/_/g, ' ').toUpperCase()}
+
+Track your request:
+${trackingUrl}`;
+        }
+
+        const whatsappResult = await sendWhatsAppText(
+          gatePass.public_requester_phone,
+          notificationMessage
+        );
+
+        if (whatsappResult.success) {
+          console.log(`[Approve Gate Pass] Notification sent to public requester ${gatePass.public_requester_phone}`);
+
+          await logNotificationSent({
+            tenant_id,
+            channel: 'whatsapp',
+            provider: whatsappResult.provider,
+            provider_message_id: whatsappResult.messageId || '',
+            to_address: gatePass.public_requester_phone,
+            template_name: newStatus === 'approved' ? 'public_gate_pass_approved' : 'public_gate_pass_rejected',
+            status: 'pending',
+            related_entity_type: 'material_gate_pass',
+            related_entity_id: gate_pass_id,
+            metadata: {
+              reference_number: gatePass.reference_number,
+              new_status: newStatus,
+            }
+          });
+        } else {
+          console.warn(`[Approve Gate Pass] Failed to send notification: ${whatsappResult.error}`);
+        }
+      } catch (notifError) {
+        console.error('[Approve Gate Pass] Notification error:', notifError);
+        // Don't fail the approval if notification fails
+      }
+    }
+
+    const approvalPath = isPublicRequest ? 'public' : (isInternalRequest ? 'internal' : 'external');
+    console.log(`Gate pass ${gatePass.reference_number} ${approval_action}ed by ${user.id} (${approvalPath} path)`);
 
     return new Response(
       JSON.stringify({
@@ -237,7 +357,8 @@ Deno.serve(async (req) => {
         new_status: newStatus,
         approval_action,
         approved_by: user.id,
-        approval_path: isInternalRequest ? 'internal' : 'external',
+        approval_path: approvalPath,
+        is_public_request: isPublicRequest,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
