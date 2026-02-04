@@ -23,6 +23,7 @@ interface GatePassFormDialogProps {
   projects: ContractorProject[];
   canCreateInternal?: boolean;
   canCreateExternal?: boolean;
+  contractorCompanyId?: string; // Pre-set company ID for contractor portal context
 }
 
 interface GatePassItem {
@@ -69,6 +70,7 @@ export function GatePassFormDialog({
   projects,
   canCreateInternal = false,
   canCreateExternal = false,
+  contractorCompanyId,
 }: GatePassFormDialogProps) {
   const { t, i18n } = useTranslation();
   const createPass = useCreateGatePass();

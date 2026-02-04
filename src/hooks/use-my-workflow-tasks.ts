@@ -330,7 +330,7 @@ export function useMyCreatedGatePasses() {
         .eq('tenant_id', profile.tenant_id) // MANDATORY tenant filter
         .eq('requested_by', user.id)
         .is('deleted_at', null)
-        .in('status', ['pending_pm_approval', 'pending_safety_approval', 'approved', 'pending_entry', 'pending_exit'])
+        .in('status', ['pending_dept_approval', 'pending_contractor_approval', 'pending_club_mgmt_ack', 'pending_security_approval', 'approved', 'pending_entry', 'pending_exit'])
         .order('created_at', { ascending: false })
         .limit(50);
 

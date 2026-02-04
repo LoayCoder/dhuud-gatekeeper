@@ -33,13 +33,30 @@ export function useContractorRepresentative() {
   });
 }
 
+interface ContractorPortalProject {
+  id: string;
+  project_code: string;
+  project_name: string;
+  project_name_ar: string | null;
+  status: string;
+  start_date: string;
+  end_date: string | null;
+  assigned_workers_count: number;
+  required_safety_officers: number | null;
+  location_description: string | null;
+  project_manager_id: string | null;
+  company_id: string;
+  site: { name: string } | null;
+  project_manager: { full_name: string } | null;
+}
+
 export function useContractorPortalProjects(companyId: string | undefined) {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
 
   return useQuery({
     queryKey: ["contractor-portal-projects", companyId],
-    queryFn: async () => {
+    queryFn: async (): Promise<ContractorPortalProject[]> => {
       if (!companyId || !tenantId) return [];
 
       const { data, error } = await supabase
@@ -47,7 +64,7 @@ export function useContractorPortalProjects(companyId: string | undefined) {
         .select(`
           id, project_code, project_name, project_name_ar, status, start_date,
           end_date, assigned_workers_count, required_safety_officers, location_description,
-          site:sites(name)
+          project_manager_id, company_id, site:sites(name)
         `)
         .eq("company_id", companyId)
         .eq("tenant_id", tenantId)
@@ -55,7 +72,28 @@ export function useContractorPortalProjects(companyId: string | undefined) {
         .order("start_date", { ascending: false });
 
       if (error) throw error;
-      return data;
+      
+      // Map to include project_manager placeholder (actual name fetched by dialog if needed)
+      const projects = (data || []) as Array<{
+        id: string;
+        project_code: string;
+        project_name: string;
+        project_name_ar: string | null;
+        status: string;
+        start_date: string;
+        end_date: string | null;
+        assigned_workers_count: number;
+        required_safety_officers: number | null;
+        location_description: string | null;
+        project_manager_id: string | null;
+        company_id: string;
+        site: { name: string } | null;
+      }>;
+      
+      return projects.map(p => ({
+        ...p,
+        project_manager: p.project_manager_id ? { full_name: "Project Manager" } : null,
+      }));
     },
     enabled: !!companyId && !!tenantId,
   });
@@ -219,64 +257,6 @@ export function useContractorPortalCreateWorker() {
   });
 }
 
-export function useContractorPortalRequestGatePass() {
-  const queryClient = useQueryClient();
-  const { user, profile } = useAuth();
-
-  return useMutation({
-    mutationFn: async (data: {
-      company_id: string;
-      project_id: string;
-      pass_type: string;
-      material_description: string;
-      quantity?: number;
-      vehicle_plate?: string;
-      driver_name?: string;
-      driver_mobile?: string;
-      pass_date: string;
-      time_window_start?: string;
-      time_window_end?: string;
-    }) => {
-      if (!profile?.tenant_id || !user?.id) throw new Error("No tenant");
-
-      // Generate reference number
-      const refNumber = `GP-${Date.now().toString(36).toUpperCase()}`;
-      
-      const { data: result, error } = await supabase
-        .from("material_gate_passes")
-        .insert([{
-          company_id: data.company_id,
-          project_id: data.project_id,
-          pass_type: data.pass_type,
-          material_description: data.material_description,
-          reference_number: refNumber,
-          quantity: data.quantity?.toString(),
-          vehicle_plate: data.vehicle_plate,
-          driver_name: data.driver_name,
-          driver_mobile: data.driver_mobile,
-          pass_date: data.pass_date,
-          time_window_start: data.time_window_start || null,
-          time_window_end: data.time_window_end || null,
-          tenant_id: profile.tenant_id,
-          status: "pending_pm_approval",
-          requested_by: user.id,
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["contractor-portal-gate-passes"] });
-      toast.success("Gate pass requested");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    },
-  });
-}
-
 // Combined hook for portal data - provides company, projects, workers in one query
 export function useContractorPortalData() {
   const rep = useContractorRepresentative();
@@ -299,6 +279,3 @@ export const useContractorGatePasses = useContractorPortalGatePasses;
 
 // Alias for create worker
 export const useCreateContractorWorker = useContractorPortalCreateWorker;
-
-// Alias for create gate pass
-export const useCreateContractorGatePass = useContractorPortalRequestGatePass;
