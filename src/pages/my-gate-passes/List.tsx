@@ -29,6 +29,7 @@ import { GatePassDetailDialog } from "@/components/contractors/GatePassDetailDia
 import { GatePassFormDialog } from "@/components/contractors/GatePassFormDialog";
 import { GatePassResubmitDialog } from "@/components/contractors/GatePassResubmitDialog";
 import { useContractorProjects } from "@/hooks/contractor-management/use-contractor-projects";
+import { GatePassTypeBadge } from "@/components/contractors/GatePassTypeBadge";
 import { useCachedProfile } from "@/hooks/use-cached-profile";
 import { useUserRoles } from "@/hooks/use-user-roles";
 import { format } from "date-fns";
@@ -95,18 +96,6 @@ function MyGatePassListContent() {
       <Badge variant={config.variant} className="flex items-center gap-1">
         {config.icon}
         {config.label}
-      </Badge>
-    );
-  };
-
-  const getPassTypeBadge = (isInternal: boolean) => {
-    return isInternal ? (
-      <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">
-        {t("gatePasses.type.internal", "Internal")}
-      </Badge>
-    ) : (
-      <Badge variant="outline" className="text-purple-600 border-purple-200 bg-purple-50">
-        {t("gatePasses.type.external", "External")}
       </Badge>
     );
   };
@@ -222,7 +211,7 @@ function MyGatePassListContent() {
                       className="cursor-pointer hover:bg-accent"
                     >
                       <TableCell className="font-medium">{pass.reference_number}</TableCell>
-                      <TableCell>{getPassTypeBadge(pass.is_internal_request ?? false)}</TableCell>
+                      <TableCell><GatePassTypeBadge isInternal={pass.is_internal_request} /></TableCell>
                       <TableCell className="max-w-[200px] truncate">
                         {pass.material_description}
                       </TableCell>
