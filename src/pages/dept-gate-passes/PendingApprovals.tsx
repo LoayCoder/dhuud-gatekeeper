@@ -8,6 +8,7 @@ import { Clock, AlertCircle, User, Truck, Calendar } from "lucide-react";
 import { useDeptPendingApprovals } from "@/hooks/contractor-management/use-dept-gate-passes";
 import { MaterialGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
 import { GatePassDetailDialog } from "@/components/contractors/GatePassDetailDialog";
+import { GatePassTypeBadge } from "@/components/contractors/GatePassTypeBadge";
 import { format } from "date-fns";
 
 function DeptPendingApprovalsContent() {
@@ -36,18 +37,6 @@ function DeptPendingApprovalsContent() {
     };
     const config = variants[status] || { variant: "secondary" as const, label: status };
     return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
-
-  const getPassTypeBadge = (isInternal: boolean) => {
-    return isInternal ? (
-      <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">
-        {t("gatePasses.type.internal", "Internal")}
-      </Badge>
-    ) : (
-      <Badge variant="outline" className="text-purple-600 border-purple-200 bg-purple-50">
-        {t("gatePasses.type.external", "External")}
-      </Badge>
-    );
   };
 
   return (
@@ -117,7 +106,7 @@ function DeptPendingApprovalsContent() {
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-semibold">{pass.reference_number}</span>
-                        {getPassTypeBadge(pass.is_internal_request ?? false)}
+                        <GatePassTypeBadge isInternal={pass.is_internal_request} />
                         {getStatusBadge(pass.status)}
                       </div>
                       <p className="text-sm text-muted-foreground">
