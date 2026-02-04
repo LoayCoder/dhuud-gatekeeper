@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -171,30 +172,33 @@ export function usePublicGatePassStatus(tenantSlug: string | undefined, token: s
 
 /**
  * Subscribe to real-time status updates for a public gate pass
+ * This hook properly manages the subscription lifecycle using useEffect
  */
 export function usePublicGatePassRealtime(gatePassId: string | undefined, onUpdate: () => void) {
-  if (!gatePassId) return;
+  useEffect(() => {
+    if (!gatePassId) return;
 
-  // Subscribe to changes on the specific gate pass
-  const channel = supabase
-    .channel(`public-gate-pass-${gatePassId}`)
-    .on(
-      "postgres_changes",
-      {
-        event: "UPDATE",
-        schema: "public",
-        table: "material_gate_passes",
-        filter: `id=eq.${gatePassId}`,
-      },
-      () => {
-        onUpdate();
-      }
-    )
-    .subscribe();
+    // Subscribe to changes on the specific gate pass
+    const channel = supabase
+      .channel(`public-gate-pass-${gatePassId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "material_gate_passes",
+          filter: `id=eq.${gatePassId}`,
+        },
+        () => {
+          onUpdate();
+        }
+      )
+      .subscribe();
 
-  return () => {
-    supabase.removeChannel(channel);
-  };
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [gatePassId, onUpdate]);
 }
 
 /**

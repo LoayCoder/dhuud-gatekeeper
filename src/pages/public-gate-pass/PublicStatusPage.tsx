@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
@@ -188,17 +188,15 @@ export default function PublicStatusPage() {
 
   const { data, isLoading, error, refetch } = usePublicGatePassStatus(tenantSlug, token);
 
-  // Set up real-time updates
-  useEffect(() => {
-    if (data?.gate_pass?.id) {
-      const cleanup = usePublicGatePassRealtime(data.gate_pass.id, () => {
-        queryClient.invalidateQueries({
-          queryKey: ["public-gate-pass-status", tenantSlug, token],
-        });
-      });
-      return cleanup;
-    }
-  }, [data?.gate_pass?.id, queryClient, tenantSlug, token]);
+  // Memoize the callback to prevent unnecessary re-subscriptions
+  const handleRealtimeUpdate = useCallback(() => {
+    queryClient.invalidateQueries({
+      queryKey: ["public-gate-pass-status", tenantSlug, token],
+    });
+  }, [queryClient, tenantSlug, token]);
+
+  // Set up real-time updates - hook manages its own lifecycle via useEffect
+  usePublicGatePassRealtime(data?.gate_pass?.id, handleRealtimeUpdate);
 
   // Apply tenant branding
   const brandColor = data?.tenant?.brand_color || "221.2 83.2% 53.3%";
