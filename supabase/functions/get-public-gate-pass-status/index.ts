@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch gate pass by public access token
+    // Fetch all data in a single optimized query with nested selects
     const { data: gatePass, error: fetchError } = await supabase
       .from('material_gate_passes')
       .select(`
@@ -145,10 +145,10 @@ Deno.serve(async (req) => {
         safety_approved_at,
         created_at,
         updated_at,
-        tenant_id,
-        branch_id,
-        pm_approved_by,
-        safety_approved_by
+        tenant:tenants!material_gate_passes_tenant_id_fkey(id, slug, name, logo_url, brand_color),
+        branch:branches!material_gate_passes_branch_id_fkey(id, name, address, google_maps_url),
+        pm_approver:profiles!material_gate_passes_pm_approved_by_fkey(full_name),
+        safety_approver:profiles!material_gate_passes_safety_approved_by_fkey(full_name)
       `)
       .eq('public_access_token', publicToken)
       .eq('is_public_request', true)
@@ -163,54 +163,23 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Optionally validate tenant slug
-    if (tenantSlug) {
-      const { data: tenant } = await supabase
-        .from('tenants')
-        .select('id')
-        .eq('slug', tenantSlug)
-        .single();
+    // Type assertions for nested objects
+    const tenant = gatePass.tenant as { id: string; slug: string; name: string; logo_url: string | null; brand_color: string | null } | null;
+    const branch = gatePass.branch as { id: string; name: string; address: string | null; google_maps_url: string | null } | null;
+    const pmApprover = gatePass.pm_approver as { full_name: string } | null;
+    const safetyApprover = gatePass.safety_approver as { full_name: string } | null;
 
-      if (tenant && tenant.id !== gatePass.tenant_id) {
-        return new Response(
-          JSON.stringify({ success: false, error: 'Token does not belong to this organization' }),
-          { status: 403, headers: { ...wildcardCorsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+    // Validate tenant slug if provided
+    if (tenantSlug && tenant && tenant.slug !== tenantSlug) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Token does not belong to this organization' }),
+        { status: 403, headers: { ...wildcardCorsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    // Fetch tenant details
-    const { data: tenant } = await supabase
-      .from('tenants')
-      .select('name, logo_url, brand_color')
-      .eq('id', gatePass.tenant_id)
-      .single();
-
-    // Fetch branch details
-    let branch = null;
-    if (gatePass.branch_id) {
-      const { data: branchData } = await supabase
-        .from('branches')
-        .select('id, name, address, google_maps_url')
-        .eq('id', gatePass.branch_id)
-        .single();
-      branch = branchData;
-    }
-
-    // Get approver name if approved
-    let approvedByName: string | null = null;
-    const approverId = gatePass.safety_approved_by || gatePass.pm_approved_by;
-    if (approverId) {
-      const { data: approver } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', approverId)
-        .single();
-      approvedByName = approver?.full_name || null;
-    }
-
-    // Get approved_at timestamp
+    // Get approved_at and approver name from the relevant approver
     const approvedAt = gatePass.safety_approved_at || gatePass.pm_approved_at || null;
+    const approvedByName = safetyApprover?.full_name || pmApprover?.full_name || null;
 
     const response: PublicGatePassStatusResponse = {
       success: true,
@@ -228,8 +197,17 @@ Deno.serve(async (req) => {
         driver_name: gatePass.driver_name,
         public_requester_name: gatePass.public_requester_name,
         public_requester_company: gatePass.public_requester_company,
-        branch,
-        tenant,
+        branch: branch ? {
+          id: branch.id,
+          name: branch.name,
+          address: branch.address,
+          google_maps_url: branch.google_maps_url,
+        } : null,
+        tenant: tenant ? {
+          name: tenant.name,
+          logo_url: tenant.logo_url,
+          brand_color: tenant.brand_color,
+        } : null,
         qr_code_token: gatePass.status === 'approved' ? gatePass.qr_code_token : null,
         qr_generated_at: gatePass.qr_generated_at,
         approved_at: approvedAt,
