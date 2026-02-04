@@ -7,6 +7,7 @@ import type { RouteObject } from "react-router-dom";
 
 // Route modules
 export { publicRoutes, legalRoutes, authRoutes, publicTokenRoutes } from "./public.routes";
+export { publicGatePassRoutes } from "./public-gate-pass.routes";
 export { incidentRoutes, riskRoutes } from "./incident.routes";
 export { assetRoutes, partsRoutes } from "./asset.routes";
 export { securityRoutes } from "./security.routes";
