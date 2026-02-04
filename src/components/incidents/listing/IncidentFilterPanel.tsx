@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
-import { Search, Filter, X, ChevronDown, ChevronUp, Tag } from 'lucide-react';
+import { Search, Filter, X, ChevronDown, ChevronUp, Tag, Check, ChevronsUpDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,11 +21,21 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { useAITags, type AITag } from '@/hooks/use-ai-tags';
+import { useContractorCompanies } from '@/hooks/contractor-management/use-contractor-companies';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 export interface IncidentFilters {
   search: string;
@@ -33,6 +43,7 @@ export interface IncidentFilters {
   severity: string;
   eventType: string;
   branchId: string;
+  contractorId?: string;
   dateRange: DateRange | undefined;
   tags: string[];
 }
@@ -77,12 +88,18 @@ export function IncidentFilterPanel({
   const direction = i18n.dir();
   const [isExpanded, setIsExpanded] = useState(false);
   const [tagSearchQuery, setTagSearchQuery] = useState('');
+  const [contractorOpen, setContractorOpen] = useState(false);
+
+  // Fetch contractors for the dropdown
+  // We fetch active contractors only
+  const { data: contractors = [] } = useContractorCompanies({ status: 'active' });
 
   const activeFilterCount = [
     filters.status,
     filters.severity,
     filters.eventType,
     filters.branchId,
+    filters.contractorId,
     filters.dateRange,
     filters.tags.length > 0,
   ].filter(Boolean).length;
@@ -94,6 +111,7 @@ export function IncidentFilterPanel({
       severity: '',
       eventType: '',
       branchId: '',
+      contractorId: undefined,
       dateRange: undefined,
       tags: [],
     });
@@ -121,6 +139,10 @@ export function IncidentFilterPanel({
     return tag.name.toLowerCase().includes(searchLower) || 
            (tag.name_ar && tag.name_ar.includes(tagSearchQuery));
   });
+
+  const getContractorLabel = (id: string) => {
+    return contractors.find(c => c.id === id)?.company_name || id;
+  };
 
   return (
     <div className="space-y-3">
@@ -231,6 +253,66 @@ export function IncidentFilterPanel({
                 </SelectContent>
               </Select>
             )}
+
+            {/* Contractor Filter */}
+            <Popover open={contractorOpen} onOpenChange={setContractorOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={contractorOpen}
+                  className="w-[250px] justify-between"
+                >
+                  {filters.contractorId
+                    ? contractors.find((c) => c.id === filters.contractorId)?.company_name
+                    : t('common.allContractors', 'All Contractors')}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[250px] p-0">
+                <Command>
+                  <CommandInput placeholder={t('common.searchContractors', 'Search contractors...')} />
+                  <CommandList>
+                    <CommandEmpty>{t('common.noContractorsFound', 'No contractors found.')}</CommandEmpty>
+                    <CommandGroup>
+                      <CommandItem
+                        value="all"
+                        onSelect={() => {
+                          updateFilter('contractorId', undefined);
+                          setContractorOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            !filters.contractorId ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {t('common.allContractors', 'All Contractors')}
+                      </CommandItem>
+                      {contractors.map((contractor) => (
+                        <CommandItem
+                          key={contractor.id}
+                          value={contractor.company_name}
+                          onSelect={() => {
+                            updateFilter('contractorId', contractor.id === filters.contractorId ? undefined : contractor.id);
+                            setContractorOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              filters.contractorId === contractor.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {contractor.company_name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
 
             <DatePickerWithRange
               date={filters.dateRange}
@@ -351,6 +433,15 @@ export function IncidentFilterPanel({
               <X 
                 className="h-3 w-3 cursor-pointer" 
                 onClick={() => updateFilter('branchId', '')}
+              />
+            </Badge>
+          )}
+          {filters.contractorId && (
+            <Badge variant="secondary" className="gap-1">
+              {getContractorLabel(filters.contractorId)}
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => updateFilter('contractorId', undefined)}
               />
             </Badge>
           )}

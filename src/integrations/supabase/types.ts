@@ -14295,6 +14295,7 @@ export type Database = {
           driver_id: string | null
           driver_mobile: string | null
           driver_name: string | null
+          end_date: string | null
           entry_confirmed_at: string | null
           entry_confirmed_by: string | null
           entry_gate_id: string | null
@@ -14308,6 +14309,7 @@ export type Database = {
           id: string
           is_internal_request: boolean | null
           material_description: string
+          original_end_date: string | null
           pass_date: string
           pass_type: string
           pm_approved_at: string | null
@@ -14321,6 +14323,10 @@ export type Database = {
           rejected_at: string | null
           rejected_by: string | null
           rejection_reason: string | null
+          renewal_count: number | null
+          renewal_expires_at: string | null
+          renewed_at: string | null
+          renewed_by: string | null
           requested_by: string
           safety_approved_at: string | null
           safety_approved_by: string | null
@@ -14329,6 +14335,7 @@ export type Database = {
           security_approval_status: string | null
           security_approved_at: string | null
           security_approved_by: string | null
+          start_date: string | null
           status: string
           tenant_id: string
           time_window_end: string | null
@@ -14352,6 +14359,7 @@ export type Database = {
           driver_id?: string | null
           driver_mobile?: string | null
           driver_name?: string | null
+          end_date?: string | null
           entry_confirmed_at?: string | null
           entry_confirmed_by?: string | null
           entry_gate_id?: string | null
@@ -14365,6 +14373,7 @@ export type Database = {
           id?: string
           is_internal_request?: boolean | null
           material_description: string
+          original_end_date?: string | null
           pass_date: string
           pass_type?: string
           pm_approved_at?: string | null
@@ -14378,6 +14387,10 @@ export type Database = {
           rejected_at?: string | null
           rejected_by?: string | null
           rejection_reason?: string | null
+          renewal_count?: number | null
+          renewal_expires_at?: string | null
+          renewed_at?: string | null
+          renewed_by?: string | null
           requested_by: string
           safety_approved_at?: string | null
           safety_approved_by?: string | null
@@ -14386,6 +14399,7 @@ export type Database = {
           security_approval_status?: string | null
           security_approved_at?: string | null
           security_approved_by?: string | null
+          start_date?: string | null
           status?: string
           tenant_id: string
           time_window_end?: string | null
@@ -14409,6 +14423,7 @@ export type Database = {
           driver_id?: string | null
           driver_mobile?: string | null
           driver_name?: string | null
+          end_date?: string | null
           entry_confirmed_at?: string | null
           entry_confirmed_by?: string | null
           entry_gate_id?: string | null
@@ -14422,6 +14437,7 @@ export type Database = {
           id?: string
           is_internal_request?: boolean | null
           material_description?: string
+          original_end_date?: string | null
           pass_date?: string
           pass_type?: string
           pm_approved_at?: string | null
@@ -14435,6 +14451,10 @@ export type Database = {
           rejected_at?: string | null
           rejected_by?: string | null
           rejection_reason?: string | null
+          renewal_count?: number | null
+          renewal_expires_at?: string | null
+          renewed_at?: string | null
+          renewed_by?: string | null
           requested_by?: string
           safety_approved_at?: string | null
           safety_approved_by?: string | null
@@ -14443,6 +14463,7 @@ export type Database = {
           security_approval_status?: string | null
           security_approved_at?: string | null
           security_approved_by?: string | null
+          start_date?: string | null
           status?: string
           tenant_id?: string
           time_window_end?: string | null
@@ -25406,6 +25427,10 @@ export type Database = {
       }
       get_auth_tenant_id: { Args: never; Returns: string }
       get_auth_tenant_id_bypass: { Args: never; Returns: string }
+      get_auto_approver_for_gate_pass: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       get_badge_statistics: {
         Args: never
         Returns: {

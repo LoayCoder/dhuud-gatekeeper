@@ -91,9 +91,17 @@ export function AppUpdateBroadcastPanel() {
                 )}
               </div>
               
-              <div className="text-sm text-muted-foreground">
-                <Clock className="inline-block h-4 w-4 me-1" />
-                {t('admin.updates.buildDate', 'Build Date')}: {format(new Date(versionInfo.buildDate), 'PPpp')}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                <div>
+                  <Clock className="inline-block h-4 w-4 me-1" />
+                  {t('admin.updates.buildDate', 'Build Date')}: {format(new Date(versionInfo.buildDate), 'PPpp')}
+                </div>
+                {versionInfo.publishedAt && (
+                  <div>
+                    <Send className="inline-block h-4 w-4 me-1" />
+                    {t('admin.updates.publishedAt', 'Published At')}: {format(new Date(versionInfo.publishedAt), 'PPpp')}
+                  </div>
+                )}
               </div>
 
               {versionInfo.releaseNotes.length > 0 && (

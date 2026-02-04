@@ -1,16 +1,17 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, Truck, Search, CheckCircle, Clock, XCircle } from "lucide-react";
+import { Plus, Truck, Search, CheckCircle, Clock, XCircle, AlertCircle, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import ContractorPortalLayout from "@/components/contractor-portal/ContractorPortalLayout";
-import ContractorGatePassRequest from "@/components/contractor-portal/ContractorGatePassRequest";
+import { GatePassFormDialog } from "@/components/contractors/GatePassFormDialog";
 import { useContractorPortalData, useContractorGatePasses } from "@/hooks/contractor-management";
 import { format } from "date-fns";
 import { ContractorPortalRoute } from "@/components/access-control";
+import { ContractorProject } from "@/hooks/contractor-management/use-contractor-projects";
 
 function ContractorPortalGatePassesContent() {
   const { t } = useTranslation();
@@ -28,12 +29,18 @@ function ContractorPortalGatePassesContent() {
     switch (status) {
       case "approved":
         return <Badge className="bg-green-500"><CheckCircle className="h-3 w-3 me-1" />{t("common.approved", "Approved")}</Badge>;
-      case "pending_pm_approval":
-        return <Badge variant="outline" className="text-warning border-warning"><Clock className="h-3 w-3 me-1" />{t("contractors.gatePasses.pendingPM", "Pending PM")}</Badge>;
-      case "pending_safety_approval":
-        return <Badge variant="outline" className="text-blue-500 border-blue-500"><Clock className="h-3 w-3 me-1" />{t("contractors.gatePasses.pendingSafety", "Pending Safety")}</Badge>;
+      case "pending_contractor_approval":
+        return <Badge variant="outline" className="text-warning border-warning"><Clock className="h-3 w-3 me-1" />{t("contractors.gatePasses.pendingContractor", "Pending Consultant")}</Badge>;
+      case "pending_club_mgmt_ack":
+        return <Badge variant="outline" className="text-blue-500 border-blue-500"><AlertCircle className="h-3 w-3 me-1" />{t("contractors.gatePasses.pendingClubMgmt", "Pending Golf Club")}</Badge>;
+      case "pending_security_approval":
+        return <Badge variant="outline" className="text-purple-500 border-purple-500"><Shield className="h-3 w-3 me-1" />{t("contractors.gatePasses.pendingSecurity", "Pending Security")}</Badge>;
       case "rejected":
         return <Badge variant="destructive"><XCircle className="h-3 w-3 me-1" />{t("common.rejected", "Rejected")}</Badge>;
+      case "used":
+        return <Badge className="bg-blue-500">{t("contractors.gatePasses.used", "Used")}</Badge>;
+      case "completed":
+        return <Badge variant="secondary">{t("contractors.gatePasses.completed", "Completed")}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -50,6 +57,9 @@ function ContractorPortalGatePassesContent() {
   }
 
   const activeProjects = projects?.filter(p => p.status === "active") || [];
+
+  // Cast projects to ContractorProject type since the portal fetch includes the required fields
+  const mappedProjects = activeProjects as unknown as ContractorProject[];
 
   return (
     <ContractorPortalLayout>
@@ -107,7 +117,17 @@ function ContractorPortalGatePassesContent() {
           </CardContent>
         </Card>
 
-        {company && <ContractorGatePassRequest open={isFormOpen} onOpenChange={setIsFormOpen} companyId={company.id} projects={activeProjects} />}
+        {/* Unified Gate Pass Form Dialog */}
+        {company && (
+          <GatePassFormDialog
+            open={isFormOpen}
+            onOpenChange={setIsFormOpen}
+            projects={mappedProjects}
+            canCreateInternal={false}
+            canCreateExternal={true}
+            contractorCompanyId={company.id}
+          />
+        )}
       </div>
     </ContractorPortalLayout>
   );

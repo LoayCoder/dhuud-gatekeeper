@@ -15,7 +15,9 @@ export interface MaterialGatePass {
   vehicle_plate: string | null;
   driver_name: string | null;
   driver_mobile: string | null;
-  pass_date: string;
+  pass_date: string; // Pass validity date
+  start_date?: string | null; // Start date (if date range is used)
+  end_date?: string | null; // End date (if date range is used)
   time_window_start: string | null;
   time_window_end: string | null;
   status: string;
@@ -36,6 +38,11 @@ export interface MaterialGatePass {
   created_at: string;
   is_internal_request: boolean;
   approval_from_id: string | null;
+  // Renewal tracking (optional, added via migration)
+  renewal_count?: number;
+  renewed_by?: string | null;
+  renewed_at?: string | null;
+  renewal_expires_at?: string | null;
   project?: { project_name: string; company?: { company_name: string } } | null;
   company?: { company_name: string } | null;
   approval_from?: { full_name: string } | null;
@@ -68,7 +75,9 @@ export interface CreateGatePassData {
   vehicle_plate?: string;
   driver_name?: string;
   driver_mobile?: string;
-  pass_date: string;
+  pass_date?: string; // Pass validity date
+  start_date?: string; // Pass validity start date (future use)
+  end_date?: string; // Pass validity end date (future use)
   time_window_start?: string;
   time_window_end?: string;
   items: GatePassItemInput[];
@@ -88,13 +97,14 @@ export function useMaterialGatePasses(filters: GatePassFilters = {}) {
         .from("material_gate_passes")
         .select(`
           id, reference_number, project_id, company_id, pass_type, material_description,
-          quantity, vehicle_plate, driver_name, driver_mobile, pass_date,
+          quantity, vehicle_plate, driver_name, driver_mobile, pass_date, start_date, end_date,
           time_window_start, time_window_end, status, requested_by,
           pm_approved_by, pm_approved_at, pm_notes,
           safety_approved_by, safety_approved_at, safety_notes,
           rejected_by, rejected_at, rejection_reason,
           guard_verified_by, guard_verified_at, entry_time, exit_time, created_at,
           is_internal_request, approval_from_id,
+          renewal_count, renewed_by, renewed_at, renewal_expires_at,
           project:contractor_projects(project_name, company:contractor_companies(company_name)),
           company:contractor_companies(company_name),
           requester:profiles!requested_by(full_name)
@@ -136,27 +146,19 @@ export function usePendingGatePassApprovals() {
     queryFn: async () => {
       if (!tenantId || !user?.id) return [];
 
-      // Use RPC to get passes the user can approve
-      const { data: approvalData, error: rpcError } = await supabase
-        .rpc("get_user_pending_gate_passes", {
-          p_user_id: user.id,
-          p_tenant_id: tenantId,
-        });
+      // Consolidated pending statuses for the entire workflow
+      const pendingStatuses = [
+        "pending_dept_approval",       // Internal workflow - Dept Rep approval
+        "pending_contractor_approval", // External workflow - Contractor Consultant approval
+        "pending_club_mgmt_ack",       // Both workflows - Golf Club Management acknowledgment
+        "pending_security_approval",   // Both workflows - Security Supervisor approval
+        "pending_dept_ack",            // External workflow - Dept Rep acknowledgment (legacy)
+        // Legacy statuses for backward compatibility
+        "pending_pm_approval",
+        "pending_safety_approval",
+      ];
 
-      if (rpcError) {
-        console.error("RPC error:", rpcError);
-        // Fallback to direct query if RPC fails
-        return [];
-      }
-
-      // Get the IDs of passes user can approve
-      const approvableIds = (approvalData || [])
-        .filter((r: { can_approve: boolean }) => r.can_approve)
-        .map((r: { gate_pass_id: string }) => r.gate_pass_id);
-
-      if (approvableIds.length === 0) return [];
-
-      // Fetch full pass data for approvable passes
+      // Fetch all pending passes in the tenant
       const { data: passes, error } = await supabase
         .from("material_gate_passes")
         .select(`
@@ -171,11 +173,26 @@ export function usePendingGatePassApprovals() {
         `)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
-        .in("id", approvableIds)
+        .in("status", pendingStatuses)
+        .neq("requested_by", user.id) // Exclude own requests (can't self-approve)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return (passes || []) as MaterialGatePass[];
+
+      // Filter based on user's ability to approve each pass
+      // For internal pending_dept_approval: only show if user is the designated approver
+      const filteredPasses = (passes || []).filter((pass) => {
+        const p = pass as unknown as MaterialGatePass;
+        if (p.is_internal_request && p.status === "pending_dept_approval") {
+          // Internal requests: user must be the designated approver
+          return p.approval_from_id === user.id;
+        }
+        // All other pending statuses are visible
+        // (actual role-based authorization checked server-side during approval via RPC)
+        return true;
+      });
+
+      return filteredPasses as unknown as MaterialGatePass[];
     },
     enabled: !!tenantId && !!user?.id,
   });
@@ -191,6 +208,9 @@ export function useTodayApprovedPasses() {
     queryFn: async () => {
       if (!tenantId) return [];
 
+      // Include all active pass statuses: approved (ready), used (entry recorded), completed
+      const activeStatuses = ["approved", "used", "completed"];
+
       const { data, error } = await supabase
         .from("material_gate_passes")
         .select(`
@@ -204,7 +224,7 @@ export function useTodayApprovedPasses() {
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
         .eq("pass_date", today)
-        .eq("status", "approved")
+        .in("status", activeStatuses)
         .order("time_window_start", { ascending: true });
 
       if (error) throw error;
@@ -272,7 +292,10 @@ export function useCreateGatePass() {
           vehicle_plate: data.vehicle_plate || null,
           driver_name: data.driver_name || null,
           driver_mobile: data.driver_mobile || null,
-          pass_date: data.pass_date,
+          // Use pass_date or start_date/end_date for pass validity
+          start_date: data.start_date || data.pass_date || null,
+          end_date: data.end_date || data.pass_date || null,
+          pass_date: data.pass_date || data.start_date, // Keep legacy field in sync
           time_window_start: data.time_window_start || null,
           time_window_end: data.time_window_end || null,
           tenant_id: tenantId,
@@ -467,22 +490,22 @@ export function useRejectGatePass() {
     mutationFn: async ({ passId, reason }: { passId: string; reason: string }) => {
       if (!user?.id) throw new Error("Not authenticated");
 
-      const { error } = await supabase
-        .from("material_gate_passes")
-        .update({
-          rejected_by: user.id,
-          rejected_at: new Date().toISOString(),
-          rejection_reason: reason,
-          status: "rejected",
-        })
-        .eq("id", passId);
+      // Use unified RPC for rejection - ensures proper audit logging and validation
+      const { data, error } = await supabase.rpc("approve_gate_pass_unified", {
+        p_user_id: user.id,
+        p_gate_pass_id: passId,
+        p_action: "reject",
+        p_notes: reason,
+      });
 
       if (error) throw error;
-      return { passId };
+      return { passId, newStatus: data };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["material-gate-passes"] });
       queryClient.invalidateQueries({ queryKey: ["pending-gate-pass-approvals"] });
+      queryClient.invalidateQueries({ queryKey: ["my-gate-passes"] });
+      queryClient.invalidateQueries({ queryKey: ["gate-pass-details"] });
       toast.success("Gate pass rejected");
     },
     onError: (error) => {
@@ -502,15 +525,25 @@ export function useVerifyGatePass() {
       // 1. Fetch pass details
       const { data: pass, error: fetchError } = await supabase
         .from("material_gate_passes")
-        .select("*")
+        .select("id, vehicle_plate, driver_name, driver_mobile, material_description, reference_number, status")
         .eq("id", passId)
         .single();
 
       if (fetchError || !pass) throw new Error("Gate pass not found");
 
+      // Validate pass status before action
+      if (action === "entry" && pass.status !== "approved") {
+        throw new Error(`Cannot record entry: pass status is ${pass.status}, expected 'approved'`);
+      }
+      if (action === "exit" && pass.status !== "used") {
+        throw new Error(`Cannot record exit: pass status is ${pass.status}, expected 'used'`);
+      }
+
+      const now = new Date().toISOString();
+
       if (action === "entry") {
-        // 2. Create Unified Entry Log
-        // This triggers the DB function `sync_gate_entry_to_parent` to update the pass status
+        // Create Unified Entry Log with FK link to material_gate_passes
+        // The DB trigger `sync_gate_entry_to_parent` will automatically update pass status to 'used'
         const { error } = await supabase
           .from("gate_entry_logs")
           .insert({
@@ -520,29 +553,51 @@ export function useVerifyGatePass() {
             person_name: pass.driver_name || "Driver",
             mobile_number: pass.driver_mobile,
             car_plate: pass.vehicle_plate,
-            purpose: pass.material_description ? `Material Transport: ${pass.material_description.substring(0, 50)}...` : "Material Transport",
-            entry_time: new Date().toISOString(),
+            purpose: pass.material_description
+              ? `Material: ${pass.material_description.substring(0, 50)}${pass.material_description.length > 50 ? '...' : ''}`
+              : "Material Transport",
+            notes: `Gate Pass: ${pass.reference_number}`,
+            entry_time: now,
             access_type: "entry",
-            validation_status: "valid"
-          } as any);
+            validation_status: "valid",
+            material_gate_pass_id: passId, // FK link - triggers sync_gate_entry_to_parent
+          });
 
         if (error) throw error;
 
       } else {
-        const now = new Date().toISOString();
-        // 3. Record Exit on existing log - search by pass ID in notes or by matching criteria
-        // Note: material_gate_pass_id column may not exist, so search by vehicle plate + active entry
-        const { data: openLog } = await (supabase
+        // Find the open entry log by FK link first (preferred), then by vehicle plate (fallback)
+        let openLog: { id: string } | null = null;
+
+        // Primary: Find by FK link
+        const { data: fkLogs } = await supabase
           .from("gate_entry_logs")
           .select("id")
-          .eq("car_plate", pass.vehicle_plate)
-          .eq("entry_type", "vehicle")
+          .eq("tenant_id", profile.tenant_id)
+          .eq("material_gate_pass_id", passId)
           .is("exit_time", null)
           .order("entry_time", { ascending: false })
-          .limit(1)
-          .single() as any);
+          .limit(1);
+
+        openLog = fkLogs?.[0] || null;
+
+        // Fallback: Find by vehicle plate if no FK match
+        if (!openLog && pass.vehicle_plate) {
+          const { data: plateLogs } = await supabase
+            .from("gate_entry_logs")
+            .select("id")
+            .eq("tenant_id", profile.tenant_id)
+            .eq("car_plate", pass.vehicle_plate)
+            .eq("entry_type", "vehicle")
+            .is("exit_time", null)
+            .order("entry_time", { ascending: false })
+            .limit(1);
+
+          openLog = plateLogs?.[0] || null;
+        }
 
         if (openLog) {
+          // Update exit_time on the log - DB trigger handles pass status update to 'completed'
           const { error } = await supabase
             .from("gate_entry_logs")
             .update({ exit_time: now })
@@ -550,17 +605,18 @@ export function useVerifyGatePass() {
 
           if (error) throw error;
         } else {
-          // Fallback for legacy passes without logs
-          console.warn("No unified log found for pass exit. Updating legacy table directly.");
+          // Fallback for legacy passes without entry logs
+          console.warn("No entry log found for pass exit. Updating pass directly.");
           const { error } = await supabase
             .from("material_gate_passes")
             .update({
               exit_time: now,
               guard_verified_by: user.id,
               guard_verified_at: now,
-              status: 'completed'
+              status: "completed",
             })
             .eq("id", passId);
+
           if (error) throw error;
         }
       }
@@ -570,9 +626,9 @@ export function useVerifyGatePass() {
     onSuccess: (_, { action }) => {
       queryClient.invalidateQueries({ queryKey: ["material-gate-passes"] });
       queryClient.invalidateQueries({ queryKey: ["today-approved-passes"] });
-      queryClient.invalidateQueries({ queryKey: ["unified-access-logs"] });
-      queryClient.invalidateQueries({ queryKey: ["unified-access-stats"] });
-      toast.success(action === "entry" ? "Entry recorded in Unified Log" : "Exit recorded");
+      queryClient.invalidateQueries({ queryKey: ["gate-entries"] });
+      queryClient.invalidateQueries({ queryKey: ["gate-pass-details"] });
+      toast.success(action === "entry" ? "Entry recorded" : "Exit recorded - pass completed");
     },
     onError: (error) => {
       toast.error(`Failed to verify: ${error.message}`);
@@ -622,13 +678,14 @@ export function useBulkApproveGatePasses() {
             continue;
           }
 
-          // Parse RPC response
-          const response = data as { success: boolean; error?: string; new_status?: string };
-          if (!response.success) {
-            results.failed++;
-            results.errors.push({ passId, error: response.error || "Approval failed" });
-          } else {
+          // RPC returns string (new_status) on success, not an object
+          // If data is a string, approval succeeded
+          if (typeof data === "string") {
             results.success++;
+          } else {
+            // Fallback for unexpected response
+            results.failed++;
+            results.errors.push({ passId, error: "Unexpected response format" });
           }
         } catch (error) {
           results.failed++;
@@ -666,23 +723,20 @@ export function useBulkRejectGatePasses() {
       if (!user?.id) throw new Error("Not authenticated");
       
       const results: BulkResult = { success: 0, failed: 0, errors: [] };
-      const now = new Date().toISOString();
 
       for (const passId of passIds) {
         try {
-          const { error: updateError } = await supabase
-            .from("material_gate_passes")
-            .update({
-              rejected_by: user.id,
-              rejected_at: now,
-              rejection_reason: reason,
-              status: "rejected",
-            })
-            .eq("id", passId);
+          // Use unified RPC for rejection - ensures proper audit logging
+          const { data, error } = await supabase.rpc("approve_gate_pass_unified", {
+            p_user_id: user.id,
+            p_gate_pass_id: passId,
+            p_action: "reject",
+            p_notes: reason,
+          });
 
-          if (updateError) {
+          if (error) {
             results.failed++;
-            results.errors.push({ passId, error: updateError.message });
+            results.errors.push({ passId, error: error.message });
           } else {
             results.success++;
           }
@@ -697,6 +751,8 @@ export function useBulkRejectGatePasses() {
     onSuccess: (results) => {
       queryClient.invalidateQueries({ queryKey: ["material-gate-passes"] });
       queryClient.invalidateQueries({ queryKey: ["pending-gate-pass-approvals"] });
+      queryClient.invalidateQueries({ queryKey: ["my-gate-passes"] });
+      queryClient.invalidateQueries({ queryKey: ["gate-pass-details"] });
       
       if (results.success > 0 && results.failed === 0) {
         toast.success(`${results.success} passes rejected`);

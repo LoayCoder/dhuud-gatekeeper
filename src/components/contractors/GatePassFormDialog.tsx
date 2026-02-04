@@ -14,6 +14,8 @@ import { Plus, Trash2, X, ImageIcon, User, Building2 } from "lucide-react";
 import { compressImage } from "@/lib/upload-utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { GatePassItemPhotoUpload } from "./GatePassItemPhotoUpload";
+import { getToday, calculateMaxEndDate, validateDateRange, adjustEndDateForStartChange } from "@/hooks/use-date-range-validation";
 
 interface GatePassFormDialogProps {
   open: boolean;
@@ -21,6 +23,7 @@ interface GatePassFormDialogProps {
   projects: ContractorProject[];
   canCreateInternal?: boolean;
   canCreateExternal?: boolean;
+  contractorCompanyId?: string; // Pre-set company ID for contractor portal context
 }
 
 interface GatePassItem {
@@ -29,6 +32,8 @@ interface GatePassItem {
   description: string;
   quantity: string;
   unit: string;
+  photos: File[];
+  photoPreviewUrls: string[];
 }
 
 const UNIT_OPTIONS = [
@@ -55,6 +60,8 @@ const createEmptyItem = (): GatePassItem => ({
   description: "",
   quantity: "",
   unit: "",
+  photos: [],
+  photoPreviewUrls: [],
 });
 
 export function GatePassFormDialog({ 
@@ -63,6 +70,7 @@ export function GatePassFormDialog({
   projects,
   canCreateInternal = false,
   canCreateExternal = false,
+  contractorCompanyId,
 }: GatePassFormDialogProps) {
   const { t, i18n } = useTranslation();
   const createPass = useCreateGatePass();
@@ -85,6 +93,7 @@ export function GatePassFormDialog({
   // Determine if current language is Arabic
   const isArabic = i18n.language === 'ar';
 
+  const today = getToday();
   const [formData, setFormData] = useState({
     project_id: "",
     company_id: "",
@@ -92,7 +101,8 @@ export function GatePassFormDialog({
     vehicle_plate: "",
     driver_name: "",
     driver_mobile: "",
-    pass_date: new Date().toISOString().split("T")[0],
+    start_date: today,
+    end_date: today,
     time_window_start: "",
     time_window_end: "",
     approval_from_id: "", // For internal requests
@@ -136,6 +146,8 @@ export function GatePassFormDialog({
 
   const handleRemoveItem = (id: string) => {
     if (items.length > 1) {
+      const itemToRemove = items.find((i) => i.id === id);
+      itemToRemove?.photoPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
       setItems(items.filter((item) => item.id !== id));
     }
   };
@@ -144,25 +156,37 @@ export function GatePassFormDialog({
     setItems(items.map((item) => (item.id === id ? { ...item, [field]: value } : item)));
   };
 
+  const handleItemPhotosChange = (id: string, photos: File[], previewUrls: string[]) => {
+    setItems(
+      items.map((item) =>
+        item.id === id
+          ? { ...item, photos, photoPreviewUrls: previewUrls }
+          : item
+      )
+    );
+  };
+
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files) return;
+    if (!files || files.length === 0) return;
 
-    const remainingSlots = 3 - photos.length;
-    const filesToAdd = Array.from(files).slice(0, remainingSlots);
+    // Only allow 1 photo per gate pass
+    const file = files[0];
 
-    for (const file of filesToAdd) {
-      try {
-        const compressed = await compressImage(file, 1920, 0.8);
-        setPhotos((prev) => [...prev, compressed]);
-        const previewUrl = URL.createObjectURL(compressed);
-        setPhotoPreviewUrls((prev) => [...prev, previewUrl]);
-      } catch {
-        setPhotos((prev) => [...prev, file]);
-        const previewUrl = URL.createObjectURL(file);
-        setPhotoPreviewUrls((prev) => [...prev, previewUrl]);
-      }
+    // Clear existing photo first
+    photoPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
+
+    let photoToSet = file;
+    try {
+      // Compress to 1280px max width with 0.75 quality for optimal size
+      photoToSet = await compressImage(file, 1280, 0.75);
+    } catch (err) {
+      console.error("Image compression failed, using original file.", err);
     }
+
+    setPhotos([photoToSet]);
+    const previewUrl = URL.createObjectURL(photoToSet);
+    setPhotoPreviewUrls([previewUrl]);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -176,6 +200,7 @@ export function GatePassFormDialog({
   };
 
   const resetForm = () => {
+    const resetToday = getToday();
     setFormData({
       project_id: "",
       company_id: "",
@@ -183,17 +208,25 @@ export function GatePassFormDialog({
       vehicle_plate: "",
       driver_name: "",
       driver_mobile: "",
-      pass_date: new Date().toISOString().split("T")[0],
+      start_date: resetToday,
+      end_date: resetToday,
       time_window_start: "",
       time_window_end: "",
       approval_from_id: "",
     });
     setSelectedProject(null);
+    // Cleanup item photos
+    items.forEach((item) => item.photoPreviewUrls.forEach((url) => URL.revokeObjectURL(url)));
     setItems([createEmptyItem()]);
+    // Cleanup global photos
     photoPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
     setPhotos([]);
     setPhotoPreviewUrls([]);
   };
+
+  // Date range validation using shared utilities
+  const maxEndDate = calculateMaxEndDate(formData.start_date, 7);
+  const dateRangeError = validateDateRange(formData.start_date, formData.end_date, 7, t);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -201,15 +234,23 @@ export function GatePassFormDialog({
     const validItems = items.filter((item) => item.item_name.trim() !== "");
     if (validItems.length === 0) return;
 
+    const mappedItems = validItems.map(({ item_name, description, quantity, unit, photos }) => ({
+      item_name,
+      description: description || undefined,
+      quantity: quantity || undefined,
+      unit: unit || undefined,
+      photos,
+    }));
+
     // Determine if this is an internal request (no project selected)
     const isInternalRequest = isInternalUser && !formData.project_id;
-    
+
     // For external users or project-based requests: need PM
     // For internal requests: need approval_from_id
     if (!isInternalRequest) {
       const pmId = selectedProject?.project_manager_id;
       if (!pmId) return;
-      
+
       await createPass.mutateAsync({
         project_id: formData.project_id,
         company_id: formData.company_id,
@@ -219,21 +260,17 @@ export function GatePassFormDialog({
         vehicle_plate: formData.vehicle_plate || undefined,
         driver_name: formData.driver_name || undefined,
         driver_mobile: formData.driver_mobile || undefined,
-        pass_date: formData.pass_date,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
         time_window_start: formData.time_window_start || undefined,
         time_window_end: formData.time_window_end || undefined,
-        items: validItems.map(({ item_name, description, quantity, unit }) => ({
-          item_name,
-          description: description || undefined,
-          quantity: quantity || undefined,
-          unit: unit || undefined,
-        })),
+        items: mappedItems,
         photos,
       });
     } else {
       // Internal request - needs approver selection
       if (!formData.approval_from_id) return;
-      
+
       await createPass.mutateAsync({
         pass_type: formData.pass_type,
         approval_from_id: formData.approval_from_id,
@@ -241,15 +278,11 @@ export function GatePassFormDialog({
         vehicle_plate: formData.vehicle_plate || undefined,
         driver_name: formData.driver_name || undefined,
         driver_mobile: formData.driver_mobile || undefined,
-        pass_date: formData.pass_date,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
         time_window_start: formData.time_window_start || undefined,
         time_window_end: formData.time_window_end || undefined,
-        items: validItems.map(({ item_name, description, quantity, unit }) => ({
-          item_name,
-          description: description || undefined,
-          quantity: quantity || undefined,
-          unit: unit || undefined,
-        })),
+        items: mappedItems,
         photos,
       });
     }
@@ -260,14 +293,15 @@ export function GatePassFormDialog({
 
   const hasValidItem = items.some((item) => item.item_name.trim() !== "");
   const hasProjectManager = !!selectedProject?.project_manager_id;
-  
+
   // Determine if internal request mode (employee with no project selected)
   const isInternalRequestMode = isInternalUser && !formData.project_id;
-  
+
   // Can submit if:
   // 1. Has valid items AND
   // 2. Either has project with PM OR is internal request with approver
-  const canSubmit = hasValidItem && (
+  // 3. No date range errors
+  const canSubmit = hasValidItem && !dateRangeError && (
     (!isInternalRequestMode && hasProjectManager) ||
     (isInternalRequestMode && !!formData.approval_from_id)
   );
@@ -407,16 +441,17 @@ export function GatePassFormDialog({
           {/* Items Table */}
           <div className="space-y-2">
             <Label>{t("contractors.gatePasses.items", "Items")} *</Label>
-            <div className="border rounded-md">
+            <div className="border rounded-md overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[50px] text-center">SR#</TableHead>
-                    <TableHead className="w-[180px]">{t("contractors.gatePasses.itemName", "Item Name")} *</TableHead>
-                    <TableHead>{t("contractors.gatePasses.description", "Description")}</TableHead>
+                    <TableHead className="w-[40px] text-center">SR#</TableHead>
+                    <TableHead className="min-w-[150px]">{t("contractors.gatePasses.itemName", "Item Name")} *</TableHead>
+                    <TableHead className="min-w-[150px]">{t("contractors.gatePasses.description", "Description")}</TableHead>
                     <TableHead className="w-[80px]">{t("contractors.gatePasses.quantity", "Qty")}</TableHead>
-                    <TableHead className="w-[140px]">{t("contractors.gatePasses.unit", "Unit")}</TableHead>
-                    <TableHead className="w-[50px]"></TableHead>
+                    <TableHead className="w-[120px]">{t("contractors.gatePasses.unit", "Unit")}</TableHead>
+                    <TableHead className="min-w-[140px]">{t("contractors.gatePasses.photos", "Photos")}</TableHead>
+                    <TableHead className="w-[40px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -465,6 +500,14 @@ export function GatePassFormDialog({
                         </Select>
                       </TableCell>
                       <TableCell>
+                        <GatePassItemPhotoUpload
+                          photos={item.photos}
+                          photoPreviewUrls={item.photoPreviewUrls}
+                          onPhotosChange={(photos, urls) => handleItemPhotosChange(item.id, photos, urls)}
+                          maxPhotos={3}
+                        />
+                      </TableCell>
+                      <TableCell>
                         <Button
                           type="button"
                           variant="ghost"
@@ -487,15 +530,15 @@ export function GatePassFormDialog({
             </Button>
           </div>
 
-          {/* Photos */}
+          {/* Photo - Single compressed photo */}
           <div className="space-y-2">
             <Label>
-              {t("contractors.gatePasses.photos", "Photos")} ({photos.length}/3)
+              {t("contractors.gatePasses.generalDocuments", "General Documents (Optional)")} ({photos.length}/3)
             </Label>
             <div className="flex flex-wrap gap-3">
               {photoPreviewUrls.map((url, index) => (
-                <div key={index} className="relative w-20 h-20 rounded-md overflow-hidden border">
-                  <img src={url} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
+                <div key={index} className="relative w-24 h-24 rounded-md overflow-hidden border">
+                  <img src={url} alt={t("contractors.gatePasses.attachedPhoto", "Attached photo")} className="w-full h-full object-cover" />
                   <button
                     type="button"
                     onClick={() => handleRemovePhoto(index)}
@@ -505,11 +548,11 @@ export function GatePassFormDialog({
                   </button>
                 </div>
               ))}
-              {photos.length < 3 && (
+              {photos.length === 0 && (
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-20 h-20 border-2 border-dashed rounded-md flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                  className="w-24 h-24 border-2 border-dashed rounded-md flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors"
                 >
                   <ImageIcon className="h-6 w-6" />
                   <span className="text-xs mt-1">{t("contractors.gatePasses.addPhoto", "Add")}</span>
@@ -520,41 +563,78 @@ export function GatePassFormDialog({
               ref={fileInputRef}
               type="file"
               accept="image/jpeg,image/png,image/webp"
-              multiple
               onChange={handlePhotoSelect}
               className="hidden"
             />
             <p className="text-xs text-muted-foreground">
-              {t("contractors.gatePasses.maxPhotos", "Max 3 photos. Images will be compressed automatically.")}
+              {t("contractors.gatePasses.singlePhotoNote", "Single photo. Image will be compressed automatically.")}
             </p>
           </div>
 
-          {/* Date & Time */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>{t("contractors.gatePasses.passDate", "Pass Date")} *</Label>
-              <Input
-                type="date"
-                value={formData.pass_date}
-                onChange={(e) => setFormData({ ...formData, pass_date: e.target.value })}
-                required
-              />
+          {/* Date Range & Time */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t("contractors.gatePasses.startDate", "Start Date")} *</Label>
+                <Input
+                  type="date"
+                  value={formData.start_date}
+                  min={today}
+                  onChange={(e) => {
+                    const newStartDate = e.target.value;
+                    const newEndDate = adjustEndDateForStartChange(newStartDate, formData.end_date, 7);
+                    setFormData({ ...formData, start_date: newStartDate, end_date: newEndDate });
+                  }}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("contractors.gatePasses.endDate", "End Date")} *</Label>
+                <Input
+                  type="date"
+                  value={formData.end_date}
+                  min={formData.start_date}
+                  max={maxEndDate}
+                  onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                  required
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>{t("contractors.gatePasses.timeWindowStart", "Time From")}</Label>
-              <Input
-                type="time"
-                value={formData.time_window_start}
-                onChange={(e) => setFormData({ ...formData, time_window_start: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>{t("contractors.gatePasses.timeWindowEnd", "Time To")}</Label>
-              <Input
-                type="time"
-                value={formData.time_window_end}
-                onChange={(e) => setFormData({ ...formData, time_window_end: e.target.value })}
-              />
+            {dateRangeError && (
+              <p className="text-xs text-destructive">{dateRangeError}</p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              {t("contractors.gatePasses.dateRangeNote", "Pass validity can span up to 7 days maximum.")}
+            </p>
+
+            {/* Time Window */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>
+                  {t("contractors.gatePasses.timeWindowStart", "Time From")}
+                  <span className="text-muted-foreground text-xs ms-1">
+                    ({t("common.optional", "Optional")})
+                  </span>
+                </Label>
+                <Input
+                  type="time"
+                  value={formData.time_window_start}
+                  onChange={(e) => setFormData({ ...formData, time_window_start: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>
+                  {t("contractors.gatePasses.timeWindowEnd", "Time To")}
+                  <span className="text-muted-foreground text-xs ms-1">
+                    ({t("common.optional", "Optional")})
+                  </span>
+                </Label>
+                <Input
+                  type="time"
+                  value={formData.time_window_end}
+                  onChange={(e) => setFormData({ ...formData, time_window_end: e.target.value })}
+                />
+              </div>
             </div>
           </div>
 

@@ -5,13 +5,14 @@ import { MaterialGatePass, GatePassFilters } from "./use-material-gate-passes";
 
 const GATE_PASS_SELECT = `
   id, reference_number, project_id, company_id, pass_type, material_description,
-  quantity, vehicle_plate, driver_name, driver_mobile, pass_date,
+  quantity, vehicle_plate, driver_name, driver_mobile, pass_date, start_date, end_date,
   time_window_start, time_window_end, status, requested_by,
   pm_approved_by, pm_approved_at, pm_notes,
   safety_approved_by, safety_approved_at, safety_notes,
   rejected_by, rejected_at, rejection_reason,
   guard_verified_by, guard_verified_at, entry_time, exit_time, created_at,
   is_internal_request, approval_from_id,
+  renewal_count, renewed_by, renewed_at, renewal_expires_at,
   project:contractor_projects(project_name, department_id, company:contractor_companies(company_name)),
   company:contractor_companies(company_name),
   requester:profiles!requested_by(full_name),
@@ -167,6 +168,35 @@ export function useDeptPendingApprovals() {
         }
       }
 
+      // 3. INTERNAL requests pending Golf Club Management acknowledgment
+      // Check if current user is in Golf Club Management department
+      if (departmentId) {
+        // First get the user's department name
+        const { data: userDept } = await supabase
+          .from("departments")
+          .select("id, name")
+          .eq("id", departmentId)
+          .maybeSingle();
+
+        // Check if user is in Golf Club Management department
+        const isGolfClubMgmt = userDept?.name?.toLowerCase().includes("golf club management");
+
+        if (isGolfClubMgmt) {
+          // User is in Golf Club Management - fetch all internal pending_club_mgmt_ack
+          const { data: clubMgmtPasses, error: clubMgmtError } = await supabase
+            .from("material_gate_passes")
+            .select(GATE_PASS_SELECT)
+            .eq("tenant_id", tenantId)
+            .eq("is_internal_request", true)
+            .eq("status", "pending_club_mgmt_ack")
+            .is("deleted_at", null)
+            .order("created_at", { ascending: false });
+
+          if (clubMgmtError) throw clubMgmtError;
+          if (clubMgmtPasses) allPending.push(...(clubMgmtPasses as MaterialGatePass[]));
+        }
+      }
+
       // Sort by created_at descending
       allPending.sort((a, b) => 
         new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
@@ -195,6 +225,9 @@ export function useDeptTodayPasses() {
 
       const allPasses: MaterialGatePass[] = [];
 
+      // Active pass statuses: approved (ready), used (entry recorded), completed (both entry/exit)
+      const activeStatuses = ["approved", "used", "completed"];
+
       // 1. INTERNAL requests approved and scheduled for today
       const { data: internalPasses, error: internalError } = await supabase
         .from("material_gate_passes")
@@ -203,7 +236,7 @@ export function useDeptTodayPasses() {
         .eq("approval_from_id", userId)
         .eq("is_internal_request", true)
         .eq("pass_date", today)
-        .in("status", ["approved", "entry_verified", "completed"])
+        .in("status", activeStatuses)
         .is("deleted_at", null)
         .order("time_window_start", { ascending: true });
 
@@ -230,7 +263,7 @@ export function useDeptTodayPasses() {
             .in("project_id", projectIds)
             .eq("is_internal_request", false)
             .eq("pass_date", today)
-            .in("status", ["approved", "entry_verified", "completed"])
+            .in("status", activeStatuses)
             .is("deleted_at", null)
             .order("time_window_start", { ascending: true });
 
@@ -315,22 +348,24 @@ export function useDeptGatePassStats() {
 
       // Calculate stats
       const total = allPasses.length;
-      
-      // Pending includes new workflow statuses
+
+      // Pending includes all approval stages in the current workflow
       const pendingStatuses = [
-        "pending_dept_approval", 
-        "pending_contractor_approval", 
-        "pending_club_mgmt_ack",
-        "pending_security_approval",
-        // Legacy statuses
-        "pending", 
-        "pm_approved"
+        "pending_dept_approval",        // Internal: Dept Rep approval
+        "pending_contractor_approval",  // External: Contractor Consultant approval
+        "pending_club_mgmt_ack",        // Both: Golf Club Management acknowledgment
+        "pending_security_approval",    // Both: Security Supervisor approval
+        // Legacy statuses (for backward compatibility)
+        "pending_dept_ack",
+        "pending_pm_approval",
+        "pending_safety_approval",
       ];
       const pending = allPasses.filter(p => pendingStatuses.includes(p.status)).length;
-      
-      const approvedToday = allPasses.filter(p => 
-        p.pass_date === today && 
-        (p.status === "approved" || p.status === "entry_verified" || p.status === "completed")
+
+      // Active passes scheduled for today (approved, used, or completed)
+      const approvedToday = allPasses.filter(p =>
+        p.pass_date === today &&
+        (p.status === "approved" || p.status === "used" || p.status === "completed")
       ).length;
       
       const completedThisWeek = allPasses.filter(p => 

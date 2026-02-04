@@ -36,6 +36,23 @@ function detectQRFormat(data: string): ScanResult {
       rawData: data,
     };
   }
+
+  if (upperData.startsWith('MGP:')) {
+    return {
+      entityType: 'gatepass',
+      token: data.substring(4).trim(),
+      rawData: data,
+    };
+  }
+
+  // Handle standard GP- prefix
+  if (upperData.startsWith('GP-')) {
+    return {
+      entityType: 'gatepass',
+      token: data.trim(),
+      rawData: data,
+    };
+  }
   
   if (upperData.startsWith('VISITOR:')) {
     return {

@@ -57,6 +57,7 @@ export function useVerifyGatePassQR() {
       if (gatePass.status !== "approved" && gatePass.status !== "used") {
         const statusMessages: Record<string, string> = {
           pending_contractor_approval: "Gate pass pending contractor consultant approval",
+          pending_club_mgmt_ack: "Gate pass pending Golf Club Management acknowledgment",
           pending_dept_ack: "Gate pass pending department acknowledgment",
           pending_dept_approval: "Gate pass pending department approval",
           pending_security_approval: "Gate pass pending security approval",
@@ -137,14 +138,20 @@ export function useConfirmGatePassEntry() {
       // Fetch pass data for the entry log
       const { data: pass, error: fetchError } = await supabase
         .from("material_gate_passes")
-        .select("vehicle_plate, driver_name, driver_mobile, material_description, reference_number")
+        .select("vehicle_plate, driver_name, driver_mobile, material_description, reference_number, status")
         .eq("id", gatePassId)
         .single();
 
       if (fetchError || !pass) throw new Error("Gate pass not found");
 
+      // Validate pass status
+      if (pass.status !== "approved") {
+        throw new Error(`Cannot record entry: pass status is '${pass.status}', expected 'approved'`);
+      }
+
       // Create entry log with FK link
-      await supabase.from("gate_entry_logs").insert({
+      // The DB trigger `sync_gate_entry_to_parent` will automatically update pass status to 'used'
+      const { error } = await supabase.from("gate_entry_logs").insert({
         tenant_id: tenantId,
         guard_id: user.id,
         entry_type: "vehicle",
@@ -152,27 +159,14 @@ export function useConfirmGatePassEntry() {
         mobile_number: pass.driver_mobile,
         car_plate: pass.vehicle_plate,
         purpose: pass.material_description
-          ? `Material: ${pass.material_description.substring(0, 50)}`
+          ? `Material: ${pass.material_description.substring(0, 50)}${pass.material_description.length > 50 ? '...' : ''}`
           : "Material Transport",
         notes: `Gate Pass: ${pass.reference_number}`,
         entry_time: now,
         access_type: "entry",
         validation_status: "valid",
-        material_gate_pass_id: gatePassId,
+        material_gate_pass_id: gatePassId, // FK link triggers sync_gate_entry_to_parent
       });
-
-      // Update gate pass status
-      const { error } = await supabase
-        .from("material_gate_passes")
-        .update({
-          entry_time: now,
-          entry_confirmed_at: now,
-          entry_confirmed_by: user.id,
-          guard_verified_by: user.id,
-          guard_verified_at: now,
-          status: "used",
-        })
-        .eq("id", gatePassId);
 
       if (error) throw error;
     },
@@ -180,6 +174,7 @@ export function useConfirmGatePassEntry() {
       queryClient.invalidateQueries({ queryKey: ["material-gate-passes"] });
       queryClient.invalidateQueries({ queryKey: ["today-approved-passes"] });
       queryClient.invalidateQueries({ queryKey: ["gate-entries"] });
+      queryClient.invalidateQueries({ queryKey: ["gate-pass-details"] });
       toast.success("Entry confirmed");
     },
     onError: (error: Error) => {
@@ -199,7 +194,23 @@ export function useConfirmGatePassExit() {
 
       const now = new Date().toISOString();
 
-      // Find and close the entry log by FK link first, then vehicle plate
+      // Fetch pass to validate status
+      const { data: pass, error: passError } = await supabase
+        .from("material_gate_passes")
+        .select("vehicle_plate, status")
+        .eq("id", gatePassId)
+        .single();
+
+      if (passError || !pass) throw new Error("Gate pass not found");
+
+      // Validate pass status
+      if (pass.status !== "used") {
+        throw new Error(`Cannot record exit: pass status is '${pass.status}', expected 'used'`);
+      }
+
+      // Find the entry log by FK link first (preferred), then vehicle plate (fallback)
+      let logId: string | null = null;
+
       const { data: fkLogs } = await supabase
         .from("gate_entry_logs")
         .select("id")
@@ -209,56 +220,52 @@ export function useConfirmGatePassExit() {
         .order("entry_time", { ascending: false })
         .limit(1);
 
-      let logId = fkLogs?.[0]?.id;
+      logId = fkLogs?.[0]?.id || null;
 
       // Fallback: Find by vehicle plate if no FK match
-      if (!logId) {
-        const { data: pass } = await supabase
-          .from("material_gate_passes")
-          .select("vehicle_plate")
-          .eq("id", gatePassId)
-          .single();
+      if (!logId && pass.vehicle_plate) {
+        const { data: plateLogs } = await supabase
+          .from("gate_entry_logs")
+          .select("id")
+          .eq("tenant_id", tenantId)
+          .eq("car_plate", pass.vehicle_plate)
+          .eq("entry_type", "vehicle")
+          .is("exit_time", null)
+          .order("entry_time", { ascending: false })
+          .limit(1);
 
-        if (pass?.vehicle_plate) {
-          const { data: plateLogs } = await supabase
-            .from("gate_entry_logs")
-            .select("id")
-            .eq("tenant_id", tenantId)
-            .eq("car_plate", pass.vehicle_plate)
-            .is("exit_time", null)
-            .order("entry_time", { ascending: false })
-            .limit(1);
-          logId = plateLogs?.[0]?.id;
-        }
+        logId = plateLogs?.[0]?.id || null;
       }
 
-      // Close the entry log if found
       if (logId) {
-        await supabase
+        // Update exit_time on the log - DB trigger handles pass status update to 'completed'
+        const { error } = await supabase
           .from("gate_entry_logs")
           .update({ exit_time: now })
           .eq("id", logId);
+
+        if (error) throw error;
+      } else {
+        // Fallback for legacy passes without entry logs
+        console.warn("No entry log found for pass exit. Updating pass directly.");
+        const { error } = await supabase
+          .from("material_gate_passes")
+          .update({
+            exit_time: now,
+            guard_verified_by: user.id,
+            guard_verified_at: now,
+            status: "completed",
+          })
+          .eq("id", gatePassId);
+
+        if (error) throw error;
       }
-
-      // Update gate pass status
-      const { error } = await supabase
-        .from("material_gate_passes")
-        .update({
-          exit_time: now,
-          exit_confirmed_at: now,
-          exit_confirmed_by: user.id,
-          guard_verified_by: user.id,
-          guard_verified_at: now,
-          status: "completed",
-        })
-        .eq("id", gatePassId);
-
-      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["material-gate-passes"] });
       queryClient.invalidateQueries({ queryKey: ["today-approved-passes"] });
       queryClient.invalidateQueries({ queryKey: ["gate-entries"] });
+      queryClient.invalidateQueries({ queryKey: ["gate-pass-details"] });
       toast.success("Exit confirmed - Pass completed");
     },
     onError: (error: Error) => {

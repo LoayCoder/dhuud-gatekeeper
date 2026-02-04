@@ -375,11 +375,335 @@ export const incidentWorkflowV1_1: WorkflowDefinition = {
   ]
 };
 
+// ============= INTERNAL GATE PASS WORKFLOW =============
+export const internalGatePassWorkflow: WorkflowDefinition = {
+  id: 'internal-gate-pass-v1',
+  name: 'Internal Gate Pass Workflow',
+  nameAr: 'سير عمل تصريح البوابة الداخلي',
+  description: 'Workflow for internal employee material gate pass requests',
+  descriptionAr: 'سير عمل لطلبات تصريح بوابة المواد للموظفين الداخليين',
+  category: 'contractor',
+  version: '1.0',
+  steps: [
+    // --- 1. REQUEST SUBMISSION ---
+    {
+      id: 'request_submit',
+      type: 'start',
+      label: 'Submit Gate Pass Request',
+      labelAr: 'تقديم طلب تصريح البوابة',
+      actor: 'Internal Employee',
+      actorAr: 'موظف داخلي',
+      dbStatus: 'pending_dept_approval',
+      description: 'Employee submits material movement request with items & photos',
+      descriptionAr: 'يقدم الموظف طلب نقل المواد مع العناصر والصور'
+    },
+    
+    // --- 2. DEPARTMENT APPROVAL ---
+    {
+      id: 'dept_approval',
+      type: 'approval',
+      label: 'Department Approval',
+      labelAr: 'موافقة القسم',
+      actor: 'Dept Rep / Manager',
+      actorAr: 'ممثل القسم / المدير',
+      dbStatus: 'pending_dept_approval',
+      description: 'Auto-routed: Employee → Dept Rep, Dept Rep → Manager',
+      descriptionAr: 'توجيه تلقائي: موظف ← ممثل القسم، ممثل القسم ← المدير'
+    },
+    {
+      id: 'dept_decision',
+      type: 'decision',
+      label: 'Approved?',
+      labelAr: 'تمت الموافقة؟'
+    },
+    
+    // --- 3. GOLF CLUB MANAGEMENT ACKNOWLEDGMENT ---
+    {
+      id: 'club_mgmt_ack',
+      type: 'approval',
+      label: 'Golf Club Management Acknowledgment',
+      labelAr: 'إقرار إدارة النادي',
+      actor: 'Golf Club Management Rep',
+      actorAr: 'ممثل إدارة نادي الجولف',
+      dbStatus: 'pending_club_mgmt_ack',
+      description: 'Mandatory site entry acknowledgment',
+      descriptionAr: 'إقرار دخول الموقع إلزامي'
+    },
+    {
+      id: 'club_mgmt_decision',
+      type: 'decision',
+      label: 'Acknowledged?',
+      labelAr: 'تم الإقرار؟'
+    },
+    
+    // --- 4. SECURITY APPROVAL ---
+    {
+      id: 'security_approval',
+      type: 'approval',
+      label: 'Security Supervisor Approval',
+      labelAr: 'موافقة مشرف الأمن',
+      actor: 'Security Supervisor',
+      actorAr: 'مشرف الأمن',
+      dbStatus: 'pending_security_approval',
+      description: 'Final approval & QR code generation',
+      descriptionAr: 'الموافقة النهائية وإنشاء رمز QR'
+    },
+    {
+      id: 'security_decision',
+      type: 'decision',
+      label: 'Approved?',
+      labelAr: 'تمت الموافقة؟'
+    },
+    
+    // --- 5. APPROVED STATUS ---
+    {
+      id: 'pass_approved',
+      type: 'action',
+      label: 'Pass Approved (QR Generated)',
+      labelAr: 'تمت الموافقة على التصريح (تم إنشاء QR)',
+      dbStatus: 'approved',
+      notificationAction: 'gate_pass_approved'
+    },
+    
+    // --- 6. GATE OPERATIONS ---
+    {
+      id: 'guard_scan_entry',
+      type: 'action',
+      label: 'Security Guard: Scan & Verify Entry',
+      labelAr: 'حارس الأمن: مسح والتحقق من الدخول',
+      actor: 'Security Guard',
+      actorAr: 'حارس الأمن',
+      dbStatus: 'used',
+      description: 'Item-by-item verification with photos',
+      descriptionAr: 'التحقق من عنصر تلو الآخر مع الصور'
+    },
+    {
+      id: 'movement_type_check',
+      type: 'decision',
+      label: 'Entry & Exit Pass?',
+      labelAr: 'تصريح دخول وخروج؟'
+    },
+    {
+      id: 'guard_scan_exit',
+      type: 'action',
+      label: 'Security Guard: Scan & Verify Exit',
+      labelAr: 'حارس الأمن: مسح والتحقق من الخروج',
+      actor: 'Security Guard',
+      actorAr: 'حارس الأمن',
+      dbStatus: 'completed',
+      description: 'Vehicle & driver matching validation',
+      descriptionAr: 'التحقق من مطابقة المركبة والسائق'
+    },
+    
+    // --- 7. COMPLETION ---
+    {
+      id: 'pass_completed',
+      type: 'end',
+      label: 'Pass Completed',
+      labelAr: 'اكتمل التصريح',
+      dbStatus: 'completed'
+    },
+    
+    // --- REJECTION PATH ---
+    {
+      id: 'pass_rejected',
+      type: 'end',
+      label: 'Pass Rejected',
+      labelAr: 'تم رفض التصريح',
+      dbStatus: 'rejected'
+    }
+  ],
+  connections: [
+    // Main flow
+    { from: 'request_submit', to: 'dept_approval' },
+    { from: 'dept_approval', to: 'dept_decision' },
+    { from: 'dept_decision', to: 'club_mgmt_ack', condition: 'approve' },
+    { from: 'dept_decision', to: 'pass_rejected', condition: 'reject' },
+    
+    { from: 'club_mgmt_ack', to: 'club_mgmt_decision' },
+    { from: 'club_mgmt_decision', to: 'security_approval', condition: 'approve' },
+    { from: 'club_mgmt_decision', to: 'pass_rejected', condition: 'reject' },
+    
+    { from: 'security_approval', to: 'security_decision' },
+    { from: 'security_decision', to: 'pass_approved', condition: 'approve' },
+    { from: 'security_decision', to: 'pass_rejected', condition: 'reject' },
+    
+    // Gate operations
+    { from: 'pass_approved', to: 'guard_scan_entry' },
+    { from: 'guard_scan_entry', to: 'movement_type_check' },
+    { from: 'movement_type_check', to: 'guard_scan_exit', condition: 'yes', label: 'In & Out', labelAr: 'دخول وخروج' },
+    { from: 'movement_type_check', to: 'pass_completed', condition: 'no', label: 'Entry Only', labelAr: 'دخول فقط' },
+    { from: 'guard_scan_exit', to: 'pass_completed' }
+  ]
+};
+
+// ============= EXTERNAL (CONTRACTOR) GATE PASS WORKFLOW =============
+export const externalGatePassWorkflow: WorkflowDefinition = {
+  id: 'external-gate-pass-v1',
+  name: 'External Gate Pass Workflow',
+  nameAr: 'سير عمل تصريح البوابة الخارجي',
+  description: 'Workflow for contractor material gate pass requests',
+  descriptionAr: 'سير عمل لطلبات تصريح بوابة مواد المقاولين',
+  category: 'contractor',
+  version: '1.0',
+  steps: [
+    // --- 1. REQUEST SUBMISSION ---
+    {
+      id: 'request_submit',
+      type: 'start',
+      label: 'Submit Gate Pass Request',
+      labelAr: 'تقديم طلب تصريح البوابة',
+      actor: 'Contractor Representative',
+      actorAr: 'ممثل المقاول',
+      dbStatus: 'pending_contractor_approval',
+      description: 'Contractor submits material movement request with items & photos',
+      descriptionAr: 'يقدم المقاول طلب نقل المواد مع العناصر والصور'
+    },
+    
+    // --- 2. CONTRACTOR CONSULTANT APPROVAL ---
+    {
+      id: 'contractor_approval',
+      type: 'approval',
+      label: 'Contractor Consultant Approval',
+      labelAr: 'موافقة استشاري المقاول',
+      actor: 'Contractor Consultant',
+      actorAr: 'استشاري المقاول',
+      dbStatus: 'pending_contractor_approval',
+      description: 'Reviews contractor request and material list',
+      descriptionAr: 'مراجعة طلب المقاول وقائمة المواد'
+    },
+    {
+      id: 'contractor_decision',
+      type: 'decision',
+      label: 'Approved?',
+      labelAr: 'تمت الموافقة؟'
+    },
+    
+    // --- 3. GOLF CLUB MANAGEMENT ACKNOWLEDGMENT ---
+    {
+      id: 'club_mgmt_ack',
+      type: 'approval',
+      label: 'Golf Club Management Acknowledgment',
+      labelAr: 'إقرار إدارة النادي',
+      actor: 'Golf Club Management Rep',
+      actorAr: 'ممثل إدارة نادي الجولف',
+      dbStatus: 'pending_club_mgmt_ack',
+      description: 'Mandatory site entry acknowledgment',
+      descriptionAr: 'إقرار دخول الموقع إلزامي'
+    },
+    {
+      id: 'club_mgmt_decision',
+      type: 'decision',
+      label: 'Acknowledged?',
+      labelAr: 'تم الإقرار؟'
+    },
+    
+    // --- 4. SECURITY APPROVAL ---
+    {
+      id: 'security_approval',
+      type: 'approval',
+      label: 'Security Supervisor Approval',
+      labelAr: 'موافقة مشرف الأمن',
+      actor: 'Security Supervisor',
+      actorAr: 'مشرف الأمن',
+      dbStatus: 'pending_security_approval',
+      description: 'Final approval & QR code generation',
+      descriptionAr: 'الموافقة النهائية وإنشاء رمز QR'
+    },
+    {
+      id: 'security_decision',
+      type: 'decision',
+      label: 'Approved?',
+      labelAr: 'تمت الموافقة؟'
+    },
+    
+    // --- 5. APPROVED STATUS ---
+    {
+      id: 'pass_approved',
+      type: 'action',
+      label: 'Pass Approved (QR Generated)',
+      labelAr: 'تمت الموافقة على التصريح (تم إنشاء QR)',
+      dbStatus: 'approved',
+      notificationAction: 'gate_pass_approved'
+    },
+    
+    // --- 6. GATE OPERATIONS ---
+    {
+      id: 'guard_scan_entry',
+      type: 'action',
+      label: 'Security Guard: Scan & Verify Entry',
+      labelAr: 'حارس الأمن: مسح والتحقق من الدخول',
+      actor: 'Security Guard',
+      actorAr: 'حارس الأمن',
+      dbStatus: 'used',
+      description: 'Item-by-item verification with photos',
+      descriptionAr: 'التحقق من عنصر تلو الآخر مع الصور'
+    },
+    {
+      id: 'movement_type_check',
+      type: 'decision',
+      label: 'Entry & Exit Pass?',
+      labelAr: 'تصريح دخول وخروج؟'
+    },
+    {
+      id: 'guard_scan_exit',
+      type: 'action',
+      label: 'Security Guard: Scan & Verify Exit',
+      labelAr: 'حارس الأمن: مسح والتحقق من الخروج',
+      actor: 'Security Guard',
+      actorAr: 'حارس الأمن',
+      dbStatus: 'completed',
+      description: 'Vehicle & driver matching validation',
+      descriptionAr: 'التحقق من مطابقة المركبة والسائق'
+    },
+    
+    // --- 7. COMPLETION ---
+    {
+      id: 'pass_completed',
+      type: 'end',
+      label: 'Pass Completed',
+      labelAr: 'اكتمل التصريح',
+      dbStatus: 'completed'
+    },
+    
+    // --- REJECTION PATH ---
+    {
+      id: 'pass_rejected',
+      type: 'end',
+      label: 'Pass Rejected',
+      labelAr: 'تم رفض التصريح',
+      dbStatus: 'rejected'
+    }
+  ],
+  connections: [
+    // Main flow
+    { from: 'request_submit', to: 'contractor_approval' },
+    { from: 'contractor_approval', to: 'contractor_decision' },
+    { from: 'contractor_decision', to: 'club_mgmt_ack', condition: 'approve' },
+    { from: 'contractor_decision', to: 'pass_rejected', condition: 'reject' },
+    
+    { from: 'club_mgmt_ack', to: 'club_mgmt_decision' },
+    { from: 'club_mgmt_decision', to: 'security_approval', condition: 'approve' },
+    { from: 'club_mgmt_decision', to: 'pass_rejected', condition: 'reject' },
+    
+    { from: 'security_approval', to: 'security_decision' },
+    { from: 'security_decision', to: 'pass_approved', condition: 'approve' },
+    { from: 'security_decision', to: 'pass_rejected', condition: 'reject' },
+    
+    // Gate operations
+    { from: 'pass_approved', to: 'guard_scan_entry' },
+    { from: 'guard_scan_entry', to: 'movement_type_check' },
+    { from: 'movement_type_check', to: 'guard_scan_exit', condition: 'yes', label: 'In & Out', labelAr: 'دخول وخروج' },
+    { from: 'movement_type_check', to: 'pass_completed', condition: 'no', label: 'Entry Only', labelAr: 'دخول فقط' },
+    { from: 'guard_scan_exit', to: 'pass_completed' }
+  ]
+};
+
 // ============= ALL WORKFLOWS =============
 export const allWorkflows: WorkflowDefinition[] = [
-  incidentWorkflowV1_1, // Primary V1.1 Workflow
-  // Note: Additional workflows (observationWorkflowComplete, contractorViolationWorkflow) 
-  // can be added here when defined
+  incidentWorkflowV1_1,
+  internalGatePassWorkflow,
+  externalGatePassWorkflow,
 ];
 
 export function getWorkflowsByCategory(category: WorkflowCategory): WorkflowDefinition[] {
@@ -389,5 +713,3 @@ export function getWorkflowsByCategory(category: WorkflowCategory): WorkflowDefi
 export function getWorkflowById(id: string): WorkflowDefinition | undefined {
   return allWorkflows.find(w => w.id === id);
 }
-
-// ... existing helpers

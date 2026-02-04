@@ -109,10 +109,11 @@ export function GatePassDetailDialog({
 
   // Check if pass is in a pending status that allows actions
   const isPendingAction = [
-    "pending_contractor_approval",
-    "pending_dept_ack",          // External: after contractor approval
-    "pending_dept_approval",     // Internal: first stage
-    "pending_security_approval", // Internal: second stage
+    "pending_contractor_approval", // External: Contractor Consultant approval
+    "pending_club_mgmt_ack",       // Both: Golf Club Management acknowledgment
+    "pending_dept_ack",            // External: Dept Rep acknowledgment (legacy)
+    "pending_dept_approval",       // Internal: Dept Rep approval
+    "pending_security_approval",   // Both: Security Supervisor approval
     // Legacy statuses
     "pending_pm_approval",
     "pending_safety_approval",
@@ -362,9 +363,11 @@ function ItemsPhotosTab({
   isLoadingPhotos: boolean;
   t: ReturnType<typeof useTranslation>["t"];
 }) {
+  const generalPhotos = photos?.filter((p) => !p.item_id) || [];
+
   return (
     <div className="space-y-6 pe-4">
-      {/* Items Section */}
+      {/* Items Section with Attached Photos */}
       <div className="space-y-3">
         <h4 className="text-sm font-medium flex items-center gap-2">
           <Package className="h-4 w-4" />
@@ -378,23 +381,56 @@ function ItemsPhotosTab({
           </div>
         ) : items && items.length > 0 ? (
           <div className="space-y-2">
-            {items.map((item) => (
-              <div key={item.id} className="p-3 rounded-lg border bg-muted/30">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-medium text-sm">{item.item_name}</p>
-                    {item.description && (
-                      <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
+            {items.map((item) => {
+              const itemPhotos = photos?.filter((p) => p.item_id === item.id) || [];
+
+              return (
+                <div key={item.id} className="p-3 rounded-lg border bg-muted/30">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-medium text-sm">{item.item_name}</p>
+                      {item.description && (
+                        <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
+                      )}
+                    </div>
+                    {item.quantity && (
+                      <Badge variant="outline" className="text-xs">
+                        {item.quantity} {item.unit || ""}
+                      </Badge>
                     )}
                   </div>
-                  {item.quantity && (
-                    <Badge variant="outline" className="text-xs">
-                      {item.quantity} {item.unit || ""}
-                    </Badge>
+
+                  {/* Item Photos */}
+                  {itemPhotos.length > 0 && (
+                    <div className="mt-3 pt-3 border-t">
+                      <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                        <ImageIcon className="h-3 w-3" />
+                        {t("contractors.gatePasses.photos", "Photos")}
+                      </p>
+                      <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                        {itemPhotos.map((photo) => (
+                          <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden border bg-background">
+                            {photo.signedUrl ? (
+                              <a href={photo.signedUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
+                                <img
+                                  src={photo.signedUrl}
+                                  alt={photo.file_name}
+                                  className="w-full h-full object-cover hover:opacity-90 transition-opacity"
+                                />
+                              </a>
+                            ) : (
+                              <div className="w-full h-full bg-muted flex items-center justify-center">
+                                <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="text-sm text-muted-foreground py-4 text-center">
@@ -403,42 +439,42 @@ function ItemsPhotosTab({
         )}
       </div>
 
-      {/* Photos Section */}
-      <div className="space-y-3">
-        <h4 className="text-sm font-medium flex items-center gap-2">
-          <ImageIcon className="h-4 w-4" />
-          {t("contractors.gatePassDetail.photos", "Photos")}
-        </h4>
-        {isLoadingPhotos ? (
-          <div className="grid grid-cols-3 gap-2">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="aspect-square rounded-lg" />
-            ))}
-          </div>
-        ) : photos && photos.length > 0 ? (
-          <div className="grid grid-cols-3 gap-2">
-            {photos.map((photo) => (
-              <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden border">
-                {photo.signedUrl ? (
-                  <img
-                    src={photo.signedUrl}
-                    alt={photo.file_name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-muted flex items-center justify-center">
-                    <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground py-4 text-center">
-            {t("contractors.gatePassDetail.noPhotos", "No photos attached")}
-          </p>
-        )}
-      </div>
+      {/* General / Legacy Photos Section */}
+      {(isLoadingPhotos || generalPhotos.length > 0) && (
+        <div className="space-y-3 pt-2 border-t">
+          <h4 className="text-sm font-medium flex items-center gap-2">
+            <ImageIcon className="h-4 w-4" />
+            {t("contractors.gatePasses.generalDocuments", "General Documents")}
+          </h4>
+          {isLoadingPhotos ? (
+            <div className="grid grid-cols-3 gap-2">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="aspect-square rounded-lg" />
+              ))}
+            </div>
+          ) : generalPhotos.length > 0 ? (
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+              {generalPhotos.map((photo) => (
+                <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden border">
+                  {photo.signedUrl ? (
+                    <a href={photo.signedUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
+                      <img
+                        src={photo.signedUrl}
+                        alt={photo.file_name}
+                        className="w-full h-full object-cover hover:opacity-90 transition-opacity"
+                      />
+                    </a>
+                  ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 interface VersionInfo {
   version: string;
   buildDate: string;
+  publishedAt?: string;
   releaseNotes: string[];
   priority: 'normal' | 'important' | 'critical';
 }
@@ -27,7 +28,7 @@ const VERSION_STORAGE_KEY = 'app-current-version';
 const DISMISS_COUNT_KEY = 'app-update-dismiss-count';
 const DISMISS_TIME_KEY = 'app-update-dismiss-time';
 const PENDING_RELEASE_NOTES_KEY = 'app-pending-release-notes';
-const CHECK_INTERVAL = 30 * 60 * 1000; // 30 minutes
+const CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
 const REMIND_LATER_DURATION = 60 * 60 * 1000; // 1 hour
 const DONT_REMIND_TODAY_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -214,7 +215,7 @@ export function useAppUpdateCheck(): AppUpdateState {
     // Check on mount (with small delay to let app initialize)
     const initialCheck = setTimeout(() => {
       checkForUpdates();
-    }, 3000);
+    }, 2000);
 
     // Periodic check every 30 minutes
     checkIntervalRef.current = setInterval(() => {
@@ -252,6 +253,18 @@ export function useAppUpdateCheck(): AppUpdateState {
     window.addEventListener('online', handleOnline);
     return () => {
       window.removeEventListener('online', handleOnline);
+    };
+  }, [checkForUpdates]);
+
+  // Check when window gains focus
+  useEffect(() => {
+    const handleFocus = () => {
+      checkForUpdates();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
     };
   }, [checkForUpdates]);
 

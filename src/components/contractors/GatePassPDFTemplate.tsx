@@ -132,10 +132,13 @@ const pdfTranslations: Record<PDFLanguage, PDFTranslation> = {
     },
     statusLabels: {
       approved: 'Approved',
-      pending_pm_approval: 'Pending PM',
-      pending_safety_approval: 'Pending Safety',
+      pending_dept_approval: 'Pending Dept',
+      pending_contractor_approval: 'Pending Contractor',
+      pending_club_mgmt_ack: 'Pending Golf Club',
+      pending_security_approval: 'Pending Security',
       rejected: 'Rejected',
       completed: 'Completed',
+      used: 'Used',
     },
   },
   ar: {
@@ -183,20 +186,26 @@ const pdfTranslations: Record<PDFLanguage, PDFTranslation> = {
     },
     statusLabels: {
       approved: 'موافق عليه',
-      pending_pm_approval: 'بانتظار مدير المشروع',
-      pending_safety_approval: 'بانتظار السلامة',
+      pending_dept_approval: 'بانتظار الموافقة',
+      pending_contractor_approval: 'بانتظار المستشار',
+      pending_club_mgmt_ack: 'بانتظار إدارة النادي',
+      pending_security_approval: 'بانتظار الأمن',
       rejected: 'مرفوض',
       completed: 'مكتمل',
+      used: 'مستخدم',
     },
   },
 };
 
 const statusColors: Record<string, { bg: string; text: string }> = {
   approved: { bg: '#22c55e', text: '#ffffff' },
-  pending_pm_approval: { bg: '#f59e0b', text: '#ffffff' },
-  pending_safety_approval: { bg: '#f59e0b', text: '#ffffff' },
+  pending_dept_approval: { bg: '#f59e0b', text: '#ffffff' },
+  pending_contractor_approval: { bg: '#f59e0b', text: '#ffffff' },
+  pending_club_mgmt_ack: { bg: '#3b82f6', text: '#ffffff' },
+  pending_security_approval: { bg: '#8b5cf6', text: '#ffffff' },
   rejected: { bg: '#ef4444', text: '#ffffff' },
   completed: { bg: '#4b5563', text: '#ffffff' },
+  used: { bg: '#0ea5e9', text: '#ffffff' },
 };
 
 const passTypeColors: Record<string, { bg: string; text: string }> = {

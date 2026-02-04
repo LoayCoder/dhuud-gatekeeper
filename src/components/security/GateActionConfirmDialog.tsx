@@ -19,7 +19,7 @@ interface GateActionConfirmDialogProps {
   onOpenChange: (open: boolean) => void;
   action: GateActionType;
   personName: string;
-  personType: 'worker' | 'visitor';
+  personType: 'worker' | 'visitor' | 'gatepass';
   onConfirm: () => void;
   isLoading?: boolean;
   entryTime?: string;
@@ -93,7 +93,9 @@ export function GateActionConfirmDialog({
           <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-sm">
             <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0" />
             <span className="text-amber-800 dark:text-amber-200">
-              {t('security.gateAction.workerOnSiteWarning', '{{type}} is currently on site', { type: personType === 'worker' ? 'Worker' : 'Visitor' })}
+              {t('security.gateAction.workerOnSiteWarning', '{{type}} is currently on site', {
+                type: personType === 'worker' ? 'Worker' : personType === 'visitor' ? 'Visitor' : 'Gate Pass'
+              })}
             </span>
           </div>
         )}
