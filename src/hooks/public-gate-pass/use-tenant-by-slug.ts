@@ -1,18 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export interface PublicTenant {
-  id: string;
-  name: string;
-  slug: string;
-  logo_url: string | null;
-  brand_color: string;
-  allow_public_gate_pass_requests: boolean;
-  public_gate_pass_instructions: string | null;
-  public_gate_pass_instructions_ar: string | null;
-  emergency_contact_number?: string | null;
-  emergency_contact_name?: string | null;
-}
+// Import type from centralized types file
+import type { PublicTenant } from "@/types/public-gate-pass.types";
+
+// Re-export for convenience
+export type { PublicTenant } from "@/types/public-gate-pass.types";
 
 /**
  * Fetch tenant information by slug for public pages

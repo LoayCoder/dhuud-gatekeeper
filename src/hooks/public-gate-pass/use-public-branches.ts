@@ -1,16 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { PublicBranch } from "@/types/public-gate-pass.types";
 
-export interface PublicBranch {
-  id: string;
-  name: string;
-  location: string | null;
-  address: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  contact_phone: string | null;
-  contact_email: string | null;
-}
+// Re-export from centralized types file
+export type { PublicBranch } from "@/types/public-gate-pass.types";
 
 /**
  * Fetch branches for a tenant that has public gate pass enabled
