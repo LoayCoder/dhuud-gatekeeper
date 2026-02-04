@@ -5820,7 +5820,30 @@
       "invitations": "Invitations",
       "modules": "Modules",
       "trial": "Trial & Status",
-      "security": "Security"
+      "security": "Security",
+      "publicFeatures": "Public Features"
+    },
+    "publicFeatures": {
+      "gatePass": {
+        "title": "Public Gate Pass Requests",
+        "description": "Allow visitors and contractors to submit gate pass requests via a public URL without authentication.",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "publicUrl": "Public Request URL",
+        "copyUrl": "Copy URL",
+        "urlCopied": "URL copied to clipboard",
+        "instructions": "Request Instructions",
+        "instructionsDesc": "Optional instructions shown to visitors on the public form.",
+        "instructionsEn": "Instructions (English)",
+        "instructionsAr": "Instructions (Arabic)",
+        "placeholderEn": "e.g., Please arrive at Gate 2 and present this pass to security...",
+        "placeholderAr": "مثال: يرجى الوصول إلى البوابة 2 وتقديم هذا التصريح للأمن...",
+        "updated": "Public Features Updated",
+        "updatedDesc": "Public gate pass settings have been saved.",
+        "toggleUpdated": "Setting Updated",
+        "toggleEnabled": "Public gate pass requests are now enabled.",
+        "toggleDisabled": "Public gate pass requests are now disabled."
+      }
     },
     "security": {
       "mfaTrustDuration": "MFA Trusted Device Duration",

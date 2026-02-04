@@ -12,6 +12,7 @@ import { InvitationManagement } from './InvitationManagement';
 import { TenantModuleControl } from './TenantModuleControl';
 import { TenantTrialControl } from './TenantTrialControl';
 import { TenantSecurityControl } from './TenantSecurityControl';
+import { TenantPublicFeaturesControl } from './TenantPublicFeaturesControl';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Tenant = Tables<'tenants'>;
@@ -37,11 +38,12 @@ export function TenantDetailDialog({ open, onOpenChange, tenant }: TenantDetailD
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 overflow-hidden flex flex-col">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="invitations">{t('tenantManagement.detail.invitations')}</TabsTrigger>
             <TabsTrigger value="modules">{t('tenantManagement.detail.modules')}</TabsTrigger>
             <TabsTrigger value="trial">{t('tenantManagement.detail.trial')}</TabsTrigger>
             <TabsTrigger value="security">{t('tenantManagement.detail.security')}</TabsTrigger>
+            <TabsTrigger value="publicFeatures">{t('tenantManagement.detail.publicFeatures')}</TabsTrigger>
           </TabsList>
           <TabsContent value="invitations" className="flex-1 overflow-auto mt-4">
             <InvitationManagement tenant={tenant} />
@@ -54,6 +56,9 @@ export function TenantDetailDialog({ open, onOpenChange, tenant }: TenantDetailD
           </TabsContent>
           <TabsContent value="security" className="flex-1 overflow-auto mt-4">
             <TenantSecurityControl tenant={tenant} />
+          </TabsContent>
+          <TabsContent value="publicFeatures" className="flex-1 overflow-auto mt-4">
+            <TenantPublicFeaturesControl tenant={tenant} />
           </TabsContent>
         </Tabs>
       </DialogContent>

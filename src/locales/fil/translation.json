@@ -3141,7 +3141,30 @@
       "invitations": "Mga Invitation",
       "modules": "Mga Module",
       "trial": "Trial at Katayuan",
-      "security": "Seguridad"
+      "security": "Seguridad",
+      "publicFeatures": "Mga Pampublikong Feature"
+    },
+    "publicFeatures": {
+      "gatePass": {
+        "title": "Mga Pampublikong Gate Pass Request",
+        "description": "Payagan ang mga bisita at contractor na magsumite ng mga gate pass request sa pamamagitan ng pampublikong URL nang walang authentication.",
+        "enabled": "Naka-enable",
+        "disabled": "Naka-disable",
+        "publicUrl": "Pampublikong Request URL",
+        "copyUrl": "Kopyahin ang URL",
+        "urlCopied": "Nakopya ang URL sa clipboard",
+        "instructions": "Mga Tagubilin sa Paghiling",
+        "instructionsDesc": "Mga opsyonal na tagubilin na ipinapakita sa mga bisita sa pampublikong form.",
+        "instructionsEn": "Mga Tagubilin (Ingles)",
+        "instructionsAr": "Mga Tagubilin (Arabic)",
+        "placeholderEn": "Hal: Mangyaring dumating sa Gate 2 at ipakita ang pass na ito sa security...",
+        "placeholderAr": "مثال: يرجى الوصول إلى البوابة 2 وتقديم هذا التصريح للأمن...",
+        "updated": "Na-update ang Mga Pampublikong Feature",
+        "updatedDesc": "Nai-save ang mga setting ng pampublikong gate pass.",
+        "toggleUpdated": "Na-update ang Setting",
+        "toggleEnabled": "Naka-enable na ngayon ang mga pampublikong gate pass request.",
+        "toggleDisabled": "Naka-disable na ngayon ang mga pampublikong gate pass request."
+      }
     },
     "security": {
       "mfaTrustDuration": "Tagal ng Pinagkakatiwalaang Device ng MFA",
