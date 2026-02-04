@@ -1,210 +1,217 @@
 
-# Gate Pass System Consolidation Plan
+# Fix Public Gate Pass Build Errors
 
-## Executive Summary
-The Gate Pass system has grown organically and now contains duplicate creation flows, conflicting approval logic, and legacy status references. This plan consolidates the system into a single, unified workflow.
+## Current Situation
 
----
+The public gate pass frontend code was created but the **database migrations have NOT been applied** to the live database. This causes TypeScript build errors because the hooks reference columns and RPC functions that don't exist yet.
 
-## Confirmed Duplications
+### Build Errors Summary
 
-### 1. Creation Components (DUPLICATE)
+| Error Location | Issue | Root Cause |
+|----------------|-------|------------|
+| `use-tenant-by-slug.ts` | `logo_url` column doesn't exist | Column is actually `logo_light_url` / `logo_dark_url` |
+| `use-public-branches.ts` | `address`, `contact_phone`, `contact_email` don't exist | These columns were never added to `branches` table |
+| `use-public-gate-pass.ts` | `submit_public_gate_pass` RPC doesn't exist | RPC function not created in database |
+| `use-public-gate-pass.ts` | `get_public_gate_pass_status` RPC doesn't exist | RPC function not created in database |
+| `use-tenant-by-slug.ts` | `allow_public_gate_pass_requests` doesn't exist | Column not added to `tenants` table |
 
-| Component | Location | Status |
-|-----------|----------|--------|
-| `GatePassFormDialog` | `src/components/contractors/GatePassFormDialog.tsx` | **AUTHORITATIVE** - Full-featured, uses unified hook |
-| `GatePassCreateWizard` | `src/components/contractors/gate-pass-create/` | **AUTHORITATIVE** - PWA wizard, uses unified hook |
-| `ContractorGatePassRequest` | `src/components/contractor-portal/ContractorGatePassRequest.tsx` | **LEGACY** - Simple form, uses legacy hook |
+### Database Reality Check
 
-### 2. Creation Hooks (DUPLICATE)
+**Current `tenants` table columns:**
+- Has: `logo_light_url`, `logo_dark_url` (NOT `logo_url`)
+- Missing: `allow_public_gate_pass_requests`, `public_gate_pass_instructions`, `public_gate_pass_instructions_ar`
 
-| Hook | Location | Initial Status Set | Status |
-|------|----------|-------------------|--------|
-| `useCreateGatePass` | `use-material-gate-passes.ts` line 237 | `pending_dept_approval` / `pending_contractor_approval` | **AUTHORITATIVE** |
-| `useContractorPortalRequestGatePass` | `use-contractor-portal.ts` line 222 | `pending_pm_approval` (**WRONG**) | **LEGACY** |
+**Current `branches` table columns:**
+- Has: `id`, `name`, `location`, `latitude`, `longitude`, `tenant_id`
+- Missing: `address`, `contact_phone`, `contact_email`
 
-### 3. Approval Logic (DUPLICATE)
-
-| Component | Location | Status |
-|-----------|----------|--------|
-| `approve_gate_pass_unified` RPC | Database | **AUTHORITATIVE** - Full workflow validation |
-| `useApproveGatePass` hook | `use-material-gate-passes.ts` line 441 | **AUTHORITATIVE** - Calls RPC |
-| `useRejectGatePass` hook | `use-material-gate-passes.ts` line 485 | **LEGACY** - Direct DB update, bypasses RPC |
-| `approve-gate-pass` edge function | `supabase/functions/approve-gate-pass/` | **LEGACY** - Parallel logic, outdated workflow |
-
-### 4. Legacy Status References
-
-Found in 25+ files:
-- `pending_pm_approval` - Old external workflow status
-- `pending_safety_approval` - Old external workflow status
+**RPC Functions:**
+- `submit_public_gate_pass` - Does NOT exist
+- `get_public_gate_pass_status` - Does NOT exist
 
 ---
 
-## Consolidation Actions
+## Fix Strategy
 
-### Phase 1: Remove Duplicate Creation Flow
+I recommend a **Two-Phase Approach**:
 
-**Action 1.1: Delete Legacy Contractor Portal Form**
-- Delete: `src/components/contractor-portal/ContractorGatePassRequest.tsx`
-- Update: `src/pages/contractor-portal/GatePasses.tsx`
-  - Replace `ContractorGatePassRequest` with `GatePassFormDialog`
-  - Pass contractor company context to the dialog
+### Phase 1: Fix Frontend to Match CURRENT Database (Immediate)
 
-**Action 1.2: Remove Legacy Creation Hook**
-- Delete export: `useContractorPortalRequestGatePass` from `use-contractor-portal.ts` (lines 222-278)
-- Delete alias: `useCreateContractorGatePass` from `use-contractor-portal.ts` (line 304)
-- Remove import from `ContractorGatePassRequest.tsx` (will be deleted)
+Update hooks to use existing columns and remove references to non-existent ones. This will fix build errors immediately.
 
-### Phase 2: Unify Approval Logic
+**Changes:**
 
-**Action 2.1: Update Rejection to Use RPC**
-- Modify: `useRejectGatePass` in `use-material-gate-passes.ts`
-- Change from direct `.update()` to calling `approve_gate_pass_unified` RPC with `action: "reject"`
-- This ensures audit logging and proper status validation
+1. **`use-tenant-by-slug.ts`** - Use `logo_light_url` instead of `logo_url`
+2. **`use-public-branches.ts`** - Remove `address`, `contact_phone`, `contact_email` from select
+3. **`use-public-gate-pass.ts`** - Temporarily stub the RPC calls to throw "Feature not configured" errors
 
-**Action 2.2: Delete Legacy Edge Function**
-- Delete: `supabase/functions/approve-gate-pass/` directory
-- Deploy function deletion via Supabase
+### Phase 2: Apply Database Migrations (After build is fixed)
 
-### Phase 3: Clean Legacy Status References
-
-**Action 3.1: Update UI Components**
-Files requiring updates (remove/replace legacy statuses):
-- `src/pages/contractor-portal/GatePasses.tsx`
-- `src/components/contractors/MyGatePassesTab.tsx`
-- `src/components/contractors/GatePassApprovalActions.tsx`
-- `src/components/contractors/GatePassPDFTemplate.tsx`
-- `src/pages/dept-gate-passes/PendingApprovals.tsx`
-- `src/hooks/use-my-workflow-tasks.ts`
-
-**Action 3.2: Map Legacy to Unified Statuses**
-```
-pending_pm_approval     → pending_contractor_approval (external)
-pending_safety_approval → pending_security_approval (both)
-```
+Create proper database migration to add:
+1. `allow_public_gate_pass_requests` column to `tenants`
+2. `public_gate_pass_instructions` / `public_gate_pass_instructions_ar` columns to `tenants`
+3. `address`, `contact_phone`, `contact_email` columns to `branches`
+4. Public requester columns to `material_gate_passes`
+5. RPC functions `submit_public_gate_pass` and `get_public_gate_pass_status`
+6. RLS policies for anonymous access
 
 ---
 
-## Unified Workflow Reference
+## Technical Details
 
-### Internal Gate Pass Flow
-```text
-┌──────────────┐    ┌────────────────────┐    ┌─────────────────────┐    ┌───────────────┐
-│   Employee   │───▶│ pending_dept_      │───▶│ pending_club_       │───▶│ pending_      │
-│   Creates    │    │ approval           │    │ mgmt_ack            │    │ security_     │
-└──────────────┘    │ (Dept Rep/Manager) │    │ (Golf Club Mgmt)    │    │ approval      │
-                    └────────────────────┘    └─────────────────────┘    │ (Security     │
-                                                                         │  Supervisor)  │
-                                                                         └───────┬───────┘
-                                                                                 │
-                    ┌──────────────────────────────────────────────────────────────┘
-                    ▼
-              ┌───────────┐    ┌────────────┐    ┌─────────────┐
-              │ approved  │───▶│   used     │───▶│  completed  │
-              │ (QR Ready)│    │ (Entry)    │    │   (Exit)    │
-              └───────────┘    └────────────┘    └─────────────┘
+### Phase 1 File Changes
+
+#### 1. `src/hooks/public-gate-pass/use-tenant-by-slug.ts`
+
+```typescript
+// Change logo_url to logo_light_url
+export interface PublicTenant {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;        // Keep for interface compatibility
+  brand_color: string;
+  allow_public_gate_pass_requests: boolean;
+  // ...
+}
+
+// In query, select logo_light_url and map to logo_url
+const { data, error } = await supabase
+  .from("tenants")
+  .select(`
+    id,
+    name,
+    slug,
+    logo_light_url,
+    brand_color,
+    emergency_contact_number,
+    emergency_contact_name
+  `)
+  .eq("slug", slug)
+  .single();
+
+// Map to interface
+return {
+  ...data,
+  logo_url: data.logo_light_url,
+  allow_public_gate_pass_requests: false, // Default until migration
+  public_gate_pass_instructions: null,
+  public_gate_pass_instructions_ar: null,
+} as PublicTenant;
 ```
 
-### External Gate Pass Flow
-```text
-┌──────────────┐    ┌────────────────────┐    ┌─────────────────────┐    ┌───────────────┐
-│  Contractor  │───▶│ pending_           │───▶│ pending_club_       │───▶│ pending_      │
-│   Creates    │    │ contractor_        │    │ mgmt_ack            │    │ security_     │
-└──────────────┘    │ approval           │    │ (Golf Club Mgmt)    │    │ approval      │
-                    │ (Consultant)       │    └─────────────────────┘    │ (Security     │
-                    └────────────────────┘                               │  Supervisor)  │
-                                                                         └───────┬───────┘
-                                                                                 │
-                    ┌──────────────────────────────────────────────────────────────┘
-                    ▼
-              ┌───────────┐    ┌────────────┐    ┌─────────────┐
-              │ approved  │───▶│   used     │───▶│  completed  │
-              │ (QR Ready)│    │ (Entry)    │    │   (Exit)    │
-              └───────────┘    └────────────┘    └─────────────┘
+#### 2. `src/hooks/public-gate-pass/use-public-branches.ts`
+
+```typescript
+// Remove non-existent columns, keep only what exists
+export interface PublicBranch {
+  id: string;
+  name: string;
+  location: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  // Remove: address, contact_phone, contact_email
+}
+
+const { data, error } = await supabase
+  .from("branches")
+  .select(`
+    id,
+    name,
+    location,
+    latitude,
+    longitude
+  `)
+  .eq("tenant_id", tenantId)
+  .order("name", { ascending: true });
 ```
 
----
+#### 3. `src/hooks/public-gate-pass/use-public-gate-pass.ts`
 
-## Technical Implementation Details
-
-### File Changes Summary
-
-| Action | File | Change Type |
-|--------|------|-------------|
-| Delete | `src/components/contractor-portal/ContractorGatePassRequest.tsx` | Remove file |
-| Delete | `supabase/functions/approve-gate-pass/` | Remove directory |
-| Modify | `src/pages/contractor-portal/GatePasses.tsx` | Replace form, update imports |
-| Modify | `src/hooks/contractor-management/use-contractor-portal.ts` | Remove legacy hooks |
-| Modify | `src/hooks/contractor-management/use-material-gate-passes.ts` | Update `useRejectGatePass` |
-| Modify | `src/components/contractors/MyGatePassesTab.tsx` | Update status references |
-| Modify | `src/components/contractors/GatePassApprovalActions.tsx` | Remove legacy cases |
-| Modify | `src/components/contractors/GatePassPDFTemplate.tsx` | Update status labels |
-| Modify | `src/pages/contractor-portal/GatePasses.tsx` | Update status badges |
-| Modify | `src/pages/dept-gate-passes/PendingApprovals.tsx` | Update status map |
-| Modify | `src/hooks/use-my-workflow-tasks.ts` | Update status filter |
-
-### Contractor Portal Form Replacement
-
-The Contractor Portal page (`/contractor-portal/gate-passes`) will use `GatePassFormDialog` with these props:
-```tsx
-<GatePassFormDialog
-  open={isFormOpen}
-  onOpenChange={setIsFormOpen}
-  projects={activeProjects}
-  canCreateInternal={false}
-  canCreateExternal={true}
-  contractorCompanyId={company.id}
-/>
-```
-
-A new prop `contractorCompanyId` will be added to `GatePassFormDialog` to pre-fill the company context for contractor users.
-
-### Rejection Hook Update
-
-```tsx
-// use-material-gate-passes.ts - useRejectGatePass
-export function useRejectGatePass() {
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
-
+```typescript
+// Remove RPC calls - throw clear error until database is ready
+export function useSubmitPublicGatePass() {
   return useMutation({
-    mutationFn: async ({ passId, reason }: { passId: string; reason: string }) => {
-      if (!user?.id) throw new Error("Not authenticated");
-
-      // Use unified RPC instead of direct update
-      const { data, error } = await supabase.rpc("approve_gate_pass_unified", {
-        p_user_id: user.id,
-        p_gate_pass_id: passId,
-        p_action: "reject",
-        p_notes: reason,
-      });
-
-      if (error) throw error;
-      return { passId, newStatus: data };
+    mutationFn: async (data: PublicGatePassSubmission): Promise<PublicGatePassSubmissionResult> => {
+      // Temporary: Feature requires database migration
+      throw new Error("Public gate pass feature is not yet configured. Database migration required.");
     },
-    // ... rest of mutation config
+  });
+}
+
+export function usePublicGatePassStatus(tenantSlug: string | undefined, token: string | undefined) {
+  return useQuery({
+    queryKey: ["public-gate-pass-status", tenantSlug, token],
+    queryFn: async (): Promise<PublicGatePassStatusResponse> => {
+      throw new Error("Public gate pass feature is not yet configured. Database migration required.");
+    },
+    enabled: false, // Disable until migration is applied
   });
 }
 ```
 
----
+#### 4. `src/types/public-gate-pass.types.ts`
 
-## Backward Compatibility
-
-The database constraint `material_gate_passes_status_check` already includes all statuses (legacy and unified). Existing passes with `pending_pm_approval` or `pending_safety_approval` will continue to work because:
-
-1. The `approve_gate_pass_unified` RPC handles these legacy statuses
-2. UI will display them with appropriate labels (mapped to modern equivalents)
-3. No database migration needed - status column is unchanged
+Update `PublicTenant` and `PublicBranch` interfaces to match actual schema temporarily.
 
 ---
 
-## Testing Checklist
+### Phase 2: Database Migration
 
-After implementation:
-1. Create external gate pass from Contractor Portal
-2. Create internal gate pass from My Gate Passes
-3. Approve gate pass through all workflow stages
-4. Reject gate pass (verify audit log created)
-5. Verify existing passes with legacy statuses still display correctly
-6. Scan approved gate pass QR code at security checkpoint
+After Phase 1 fixes the build, apply this migration:
+
+```sql
+-- 1. Add public gate pass columns to tenants
+ALTER TABLE tenants
+ADD COLUMN IF NOT EXISTS allow_public_gate_pass_requests BOOLEAN DEFAULT false,
+ADD COLUMN IF NOT EXISTS public_gate_pass_instructions TEXT,
+ADD COLUMN IF NOT EXISTS public_gate_pass_instructions_ar TEXT;
+
+-- 2. Add contact columns to branches  
+ALTER TABLE branches
+ADD COLUMN IF NOT EXISTS address TEXT,
+ADD COLUMN IF NOT EXISTS contact_phone TEXT,
+ADD COLUMN IF NOT EXISTS contact_email TEXT;
+
+-- 3. Add public requester columns to material_gate_passes
+ALTER TABLE material_gate_passes
+ADD COLUMN IF NOT EXISTS is_public_request BOOLEAN DEFAULT false,
+ADD COLUMN IF NOT EXISTS public_access_token UUID DEFAULT gen_random_uuid(),
+ADD COLUMN IF NOT EXISTS public_requester_name TEXT,
+ADD COLUMN IF NOT EXISTS public_requester_phone TEXT,
+ADD COLUMN IF NOT EXISTS public_requester_email TEXT,
+ADD COLUMN IF NOT EXISTS public_requester_company TEXT,
+ADD COLUMN IF NOT EXISTS notify_whatsapp BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS notify_email BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS notify_sms BOOLEAN DEFAULT false,
+ADD COLUMN IF NOT EXISTS token_expires_at TIMESTAMPTZ;
+
+-- 4. Create RPC functions (submit_public_gate_pass, get_public_gate_pass_status)
+-- 5. Create RLS policies for anon role
+-- 6. Create rate limiting table
+```
+
+---
+
+## Execution Order
+
+1. **Fix hooks** (Phase 1) - Immediate build fix
+2. **Test that app builds** - Verify no TypeScript errors
+3. **Apply database migration** (Phase 2) - Add columns and RPCs
+4. **Update hooks to use real RPCs** - Remove stubs
+5. **Test end-to-end** - Submit and track public gate pass
+
+---
+
+## Files to Modify
+
+| File | Action | Phase |
+|------|--------|-------|
+| `src/hooks/public-gate-pass/use-tenant-by-slug.ts` | Use `logo_light_url`, add defaults | 1 |
+| `src/hooks/public-gate-pass/use-public-branches.ts` | Remove missing columns | 1 |
+| `src/hooks/public-gate-pass/use-public-gate-pass.ts` | Stub RPCs with clear error | 1 |
+| `src/types/public-gate-pass.types.ts` | Update interfaces | 1 |
+| Database migration | Add columns, RPCs, RLS | 2 |
+| Hooks (revisit) | Enable real RPC calls | 2 |
+
+This approach ensures the build is fixed immediately while preparing for the full database migration.
