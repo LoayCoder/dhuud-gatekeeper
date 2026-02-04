@@ -11,9 +11,13 @@ export {
   getStoredPublicToken,
   clearStoredPublicToken,
 } from "./use-public-gate-pass";
+
+// Re-export types from centralized types file
 export type {
   PublicGatePassSubmission,
-  PublicGatePassResult,
-  PublicGatePassStatus,
+  PublicGatePassSubmissionResult,
+  PublicGatePassStatusData,
   PublicGatePassStatusResponse,
-} from "./use-public-gate-pass";
+  PublicGatePassStatus,
+  GatePassType,
+} from "@/types/public-gate-pass.types";

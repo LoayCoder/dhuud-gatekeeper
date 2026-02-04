@@ -3,82 +3,22 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-// Types for public gate pass
-export interface PublicGatePassSubmission {
-  tenant_slug: string;
-  branch_id?: string;
-  requester_name: string;
-  requester_phone: string; // E.164 format
-  requester_email?: string;
-  requester_company?: string;
-  pass_type: "in" | "out" | "in_out";
-  material_description: string;
-  quantity?: string;
-  vehicle_plate?: string;
-  driver_name?: string;
-  driver_mobile?: string;
-  pass_date: string; // YYYY-MM-DD
-  time_window_start?: string; // HH:MM
-  time_window_end?: string; // HH:MM
-  notify_whatsapp?: boolean;
-  notify_email?: boolean;
-  notify_sms?: boolean;
-}
+// Import types from centralized types file
+import type {
+  PublicGatePassSubmission,
+  PublicGatePassSubmissionResult,
+  PublicGatePassStatusResponse,
+} from "@/types/public-gate-pass.types";
 
-export interface PublicGatePassResult {
-  success: boolean;
-  error?: string;
-  gate_pass_id?: string;
-  reference_number?: string;
-  public_access_token?: string;
-  tracking_url?: string;
-}
-
-export interface PublicGatePassStatus {
-  id: string;
-  reference_number: string;
-  status: string;
-  pass_type: string;
-  pass_date: string;
-  time_window_start: string | null;
-  time_window_end: string | null;
-  material_description: string;
-  quantity: string | null;
-  vehicle_plate: string | null;
-  driver_name: string | null;
-  driver_mobile: string | null;
-  requester_name: string;
-  requester_phone: string;
-  requester_company: string | null;
-  created_at: string;
-  pm_approved_at: string | null;
-  safety_approved_at: string | null;
-  rejected_at: string | null;
-  rejection_reason: string | null;
-  entry_time: string | null;
-  exit_time: string | null;
-}
-
-export interface PublicGatePassStatusResponse {
-  success: boolean;
-  error?: string;
-  gate_pass?: PublicGatePassStatus;
-  branch?: {
-    name: string;
-    location: string | null;
-    address: string | null;
-    latitude: number | null;
-    longitude: number | null;
-    phone: string | null;
-  };
-  tenant?: {
-    name: string;
-    logo_url: string | null;
-    brand_color: string;
-    instructions: string | null;
-    instructions_ar: string | null;
-  };
-}
+// Re-export types for convenience
+export type {
+  PublicGatePassSubmission,
+  PublicGatePassSubmissionResult,
+  PublicGatePassStatusResponse,
+  PublicGatePassStatusData,
+  PublicGatePassStatus,
+  GatePassType,
+} from "@/types/public-gate-pass.types";
 
 /**
  * Get client IP address for rate limiting
@@ -101,7 +41,7 @@ export function useSubmitPublicGatePass() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: PublicGatePassSubmission): Promise<PublicGatePassResult> => {
+    mutationFn: async (data: PublicGatePassSubmission): Promise<PublicGatePassSubmissionResult> => {
       // Get client IP for rate limiting
       const clientIp = await getClientIP();
 
@@ -128,7 +68,7 @@ export function useSubmitPublicGatePass() {
       });
 
       if (error) throw error;
-      return result as PublicGatePassResult;
+      return result as PublicGatePassSubmissionResult;
     },
     onSuccess: (result) => {
       if (result.success) {
