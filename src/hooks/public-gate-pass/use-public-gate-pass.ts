@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -21,19 +21,69 @@ export type {
 } from "@/types/public-gate-pass.types";
 
 /**
+ * Get client IP address for rate limiting
+ * This is a best-effort approach; actual IP validation happens server-side
+ */
+async function getClientIP(): Promise<string | null> {
+  try {
+    const response = await fetch("https://api.ipify.org?format=json");
+    const data = await response.json();
+    return data.ip;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Submit a public gate pass request
- * NOTE: This requires the database migration to be applied first.
- * The RPC function 'submit_public_gate_pass' must exist in the database.
  */
 export function useSubmitPublicGatePass() {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: async (_data: PublicGatePassSubmission): Promise<PublicGatePassSubmissionResult> => {
-      // TODO: Enable after database migration is applied
-      // The RPC function 'submit_public_gate_pass' does not exist yet
-      throw new Error(
-        "Public gate pass feature is not yet configured. " +
-        "Database migration required to enable this feature."
+    mutationFn: async (data: PublicGatePassSubmission): Promise<PublicGatePassSubmissionResult> => {
+      // Get client IP for rate limiting
+      const clientIp = await getClientIP();
+
+      // Call the RPC function using .rpc() with type assertion
+      const { data: result, error } = await supabase.rpc(
+        "submit_public_gate_pass" as never,
+        {
+          p_tenant_slug: data.tenant_slug,
+          p_branch_id: data.branch_id || null,
+          p_requester_name: data.requester_name,
+          p_requester_phone: data.requester_phone,
+          p_requester_email: data.requester_email || null,
+          p_requester_company: data.requester_company || null,
+          p_pass_type: data.pass_type,
+          p_material_description: data.material_description,
+          p_quantity: data.quantity || null,
+          p_vehicle_plate: data.vehicle_plate || null,
+          p_driver_name: data.driver_name || null,
+          p_driver_mobile: data.driver_mobile || null,
+          p_pass_date: data.pass_date,
+          p_time_window_start: data.time_window_start || null,
+          p_time_window_end: data.time_window_end || null,
+          p_notify_whatsapp: data.notify_whatsapp ?? true,
+          p_notify_email: data.notify_email ?? true,
+          p_notify_sms: data.notify_sms ?? false,
+          p_client_ip: clientIp,
+        } as never
       );
+
+      if (error) throw error;
+      return result as unknown as PublicGatePassSubmissionResult;
+    },
+    onSuccess: (result) => {
+      if (result.success) {
+        // Store token in localStorage for status page
+        if (result.public_access_token) {
+          localStorage.setItem("public_gate_pass_token", result.public_access_token);
+        }
+        toast.success("Gate pass request submitted successfully!");
+      } else {
+        toast.error(result.error || "Failed to submit gate pass request");
+      }
     },
     onError: (error) => {
       toast.error(`Failed to submit: ${error.message}`);
@@ -43,22 +93,28 @@ export function useSubmitPublicGatePass() {
 
 /**
  * Get public gate pass status by token
- * NOTE: This requires the database migration to be applied first.
- * The RPC function 'get_public_gate_pass_status' must exist in the database.
  */
 export function usePublicGatePassStatus(tenantSlug: string | undefined, token: string | undefined) {
   return useQuery({
     queryKey: ["public-gate-pass-status", tenantSlug, token],
     queryFn: async (): Promise<PublicGatePassStatusResponse> => {
-      // TODO: Enable after database migration is applied
-      // The RPC function 'get_public_gate_pass_status' does not exist yet
-      throw new Error(
-        "Public gate pass feature is not yet configured. " +
-        "Database migration required to enable this feature."
+      if (!tenantSlug || !token) throw new Error("Tenant slug and token are required");
+
+      // Call the RPC function using .rpc() with type assertion
+      const { data, error } = await supabase.rpc(
+        "get_public_gate_pass_status" as never,
+        {
+          p_tenant_slug: tenantSlug,
+          p_access_token: token,
+        } as never
       );
+
+      if (error) throw error;
+      return data as unknown as PublicGatePassStatusResponse;
     },
-    enabled: false, // Disabled until migration is applied
-    staleTime: 10000,
+    enabled: !!tenantSlug && !!token,
+    staleTime: 10000, // Consider stale after 10 seconds
+    // Note: No refetchInterval - real-time updates are handled by usePublicGatePassRealtime
   });
 }
 
