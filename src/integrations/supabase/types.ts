@@ -21798,6 +21798,7 @@ export type Database = {
           notes: string | null
           plan_id: string | null
           preferred_currency: string
+          public_gate_pass_domain: string | null
           public_gate_pass_instructions: string | null
           public_gate_pass_instructions_ar: string | null
           secondary_color: string | null
@@ -21860,6 +21861,7 @@ export type Database = {
           notes?: string | null
           plan_id?: string | null
           preferred_currency?: string
+          public_gate_pass_domain?: string | null
           public_gate_pass_instructions?: string | null
           public_gate_pass_instructions_ar?: string | null
           secondary_color?: string | null
@@ -21922,6 +21924,7 @@ export type Database = {
           notes?: string | null
           plan_id?: string | null
           preferred_currency?: string
+          public_gate_pass_domain?: string | null
           public_gate_pass_instructions?: string | null
           public_gate_pass_instructions_ar?: string | null
           secondary_color?: string | null

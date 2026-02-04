@@ -1,15 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Globe, Copy, Check } from 'lucide-react';
+import { Globe, Copy, Check, Link } from 'lucide-react';
 import type { Tables } from '@/integrations/supabase/types';
 
 interface TenantPublicFeaturesControlProps {
@@ -21,16 +22,35 @@ export function TenantPublicFeaturesControl({ tenant }: TenantPublicFeaturesCont
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
+  // Optimistic local state for toggle
+  const [isEnabled, setIsEnabled] = useState(tenant.allow_public_gate_pass_requests ?? false);
+  const [customDomain, setCustomDomain] = useState(tenant.public_gate_pass_domain ?? '');
   const [instructionsEn, setInstructionsEn] = useState(tenant.public_gate_pass_instructions ?? '');
   const [instructionsAr, setInstructionsAr] = useState(tenant.public_gate_pass_instructions_ar ?? '');
   const [copied, setCopied] = useState(false);
 
-  const publicUrl = `${window.location.origin}/${tenant.slug}/request`;
+  // Sync with parent when tenant prop changes
+  useEffect(() => {
+    setIsEnabled(tenant.allow_public_gate_pass_requests ?? false);
+    setCustomDomain(tenant.public_gate_pass_domain ?? '');
+    setInstructionsEn(tenant.public_gate_pass_instructions ?? '');
+    setInstructionsAr(tenant.public_gate_pass_instructions_ar ?? '');
+  }, [tenant.id, tenant.allow_public_gate_pass_requests, tenant.public_gate_pass_domain, tenant.public_gate_pass_instructions, tenant.public_gate_pass_instructions_ar]);
+
+  // Generate public URL with custom domain support
+  const getPublicUrl = () => {
+    const baseUrl = customDomain?.trim() || window.location.origin;
+    const cleanBase = baseUrl.replace(/\/$/, '');
+    return `${cleanBase}/${tenant.slug}/request`;
+  };
+
+  const publicUrl = getPublicUrl();
   
-  const isEnabled = tenant.allow_public_gate_pass_requests ?? false;
   const hasInstructionChanges = 
     instructionsEn !== (tenant.public_gate_pass_instructions ?? '') ||
     instructionsAr !== (tenant.public_gate_pass_instructions_ar ?? '');
+
+  const hasDomainChanges = customDomain !== (tenant.public_gate_pass_domain ?? '');
 
   const toggleMutation = useMutation({
     mutationFn: async (enabled: boolean) => {
@@ -47,6 +67,31 @@ export function TenantPublicFeaturesControl({ tenant }: TenantPublicFeaturesCont
         description: enabled
           ? t('tenantManagement.publicFeatures.gatePass.toggleEnabled')
           : t('tenantManagement.publicFeatures.gatePass.toggleDisabled'),
+      });
+    },
+    onError: (error, variables) => {
+      // Rollback optimistic update on error
+      setIsEnabled(!variables);
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const domainMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from('tenants')
+        .update({ public_gate_pass_domain: customDomain.trim() || null })
+        .eq('id', tenant.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tenants'] });
+      toast({
+        title: t('tenantManagement.publicFeatures.gatePass.domainSaved'),
       });
     },
     onError: (error) => {
@@ -84,6 +129,11 @@ export function TenantPublicFeaturesControl({ tenant }: TenantPublicFeaturesCont
       });
     },
   });
+
+  const handleToggle = (checked: boolean) => {
+    setIsEnabled(checked); // Optimistic update
+    toggleMutation.mutate(checked);
+  };
 
   const handleCopyUrl = async () => {
     try {
@@ -125,11 +175,38 @@ export function TenantPublicFeaturesControl({ tenant }: TenantPublicFeaturesCont
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Custom Domain */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Link className="h-4 w-4" />
+              {t('tenantManagement.publicFeatures.gatePass.customDomain')}
+            </Label>
+            <div className="flex items-center gap-2">
+              <Input
+                value={customDomain}
+                onChange={(e) => setCustomDomain(e.target.value)}
+                placeholder={t('tenantManagement.publicFeatures.gatePass.customDomainPlaceholder')}
+                className="flex-1"
+                dir="ltr"
+              />
+              <Button
+                variant="outline"
+                onClick={() => domainMutation.mutate()}
+                disabled={domainMutation.isPending || !hasDomainChanges}
+              >
+                {t('common.save')}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t('tenantManagement.publicFeatures.gatePass.customDomainDesc')}
+            </p>
+          </div>
+
           {/* Public URL */}
           <div className="space-y-2">
             <Label>{t('tenantManagement.publicFeatures.gatePass.publicUrl')}</Label>
             <div className="flex items-center gap-2">
-              <code className="flex-1 rounded-md bg-muted px-3 py-2 text-sm font-mono truncate">
+              <code className="flex-1 rounded-md bg-muted px-3 py-2 text-sm font-mono truncate" dir="ltr">
                 {publicUrl}
               </code>
               <Button
@@ -160,7 +237,7 @@ export function TenantPublicFeaturesControl({ tenant }: TenantPublicFeaturesCont
             <Switch
               id="public-gate-pass-toggle"
               checked={isEnabled}
-              onCheckedChange={(checked) => toggleMutation.mutate(checked)}
+              onCheckedChange={handleToggle}
               disabled={toggleMutation.isPending}
             />
           </div>
