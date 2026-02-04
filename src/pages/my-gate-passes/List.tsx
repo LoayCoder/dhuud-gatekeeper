@@ -207,7 +207,7 @@ function MyGatePassListContent() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t("gatePasses.referenceNumber", "Reference")}</TableHead>
-                    <TableHead>{t("gatePasses.type", "Type")}</TableHead>
+                    <TableHead>{t("common.type", "Type")}</TableHead>
                     <TableHead>{t("gatePasses.material", "Material")}</TableHead>
                     <TableHead>{t("gatePasses.passDate", "Date")}</TableHead>
                     <TableHead>{t("gatePasses.vehicle", "Vehicle")}</TableHead>
