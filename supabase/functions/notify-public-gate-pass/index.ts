@@ -81,7 +81,7 @@ serve(async (req) => {
     }
 
     const results: { type: string; success: boolean; error?: string }[] = [];
-    const fullTrackingUrl = `${supabaseUrl.replace('.supabase.co', '.vercel.app')}${tracking_url}`;
+    const fullTrackingUrl = `${Deno.env.get('SITE_URL')!}${tracking_url}`;
     const truncatedMaterial = material_description?.substring(0, 100) || 'N/A';
 
     // Send notifications based on event type
