@@ -26,7 +26,7 @@ import { SplashWrapper } from "./components/layout";
 import { lazyWithRetry } from "./lib/lazy-with-retry";
 
 // Route imports
-import { publicRoutes, protectedLayoutRoutes } from "./routes";
+import { publicRoutes, publicGatePassRoutes, protectedLayoutRoutes } from "./routes";
 
 // Critical path pages - loaded immediately
 import Dashboard from "./pages/Dashboard";
@@ -73,6 +73,11 @@ const App = () => (
                         {/* Public Routes (login, signup, legal, tokens) */}
                         {publicRoutes.map((route, index) => (
                           <Route key={`public-${index}`} path={route.path} element={route.element} />
+                        ))}
+
+                        {/* Public Gate Pass Routes (no auth required) */}
+                        {publicGatePassRoutes.map((route, index) => (
+                          <Route key={`public-gp-${index}`} path={route.path} element={route.element} />
                         ))}
 
                         {/* Home Screen - Simple landing without sidebar */}

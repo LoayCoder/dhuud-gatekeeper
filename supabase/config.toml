@@ -350,3 +350,9 @@ verify_jwt = false
 
 [functions.dept-rep-gate-pass-digest]
 verify_jwt = false
+
+[functions.notify-public-gate-pass]
+verify_jwt = false
+
+[functions.generate-public-gate-pass-pdf]
+verify_jwt = false
