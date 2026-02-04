@@ -105,8 +105,8 @@ export function usePublicGatePassStatus(tenantSlug: string | undefined, token: s
       return data as PublicGatePassStatusResponse;
     },
     enabled: !!tenantSlug && !!token,
-    refetchInterval: 30000, // Poll every 30 seconds for status updates
     staleTime: 10000, // Consider stale after 10 seconds
+    // Note: No refetchInterval - real-time updates are handled by usePublicGatePassRealtime
   });
 }
 
