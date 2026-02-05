@@ -249,11 +249,17 @@ export function GatePassFormDialog({
     // For internal requests: need approval_from_id
     if (!isInternalRequest) {
       const pmId = selectedProject?.project_manager_id;
-      if (!pmId) return;
+      // Ensure company_id is present (fallback to project's company_id if formData is empty)
+      const companyId = formData.company_id || selectedProject?.company_id;
+
+      if (!pmId || !companyId) {
+        toast.error(t("contractors.gatePasses.missingProjectInfoError", "Missing project manager or company ID. Please ensure a project with an assigned manager is selected."));
+        return;
+      }
 
       await createPass.mutateAsync({
         project_id: formData.project_id,
-        company_id: formData.company_id,
+        company_id: companyId,
         pass_type: formData.pass_type,
         pm_approved_by: pmId,
         is_internal_request: false,
