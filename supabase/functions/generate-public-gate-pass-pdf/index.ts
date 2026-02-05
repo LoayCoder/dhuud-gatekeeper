@@ -1,12 +1,12 @@
+// deno-lint-ignore-file no-explicit-any
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-// @deno-types="https://esm.sh/v128/@types/pdfmake@0.2.7/build/pdfmake.d.ts"
-import pdfMake from "https://esm.sh/pdfmake@0.2.7/build/pdfmake.min.js";
-import pdfFonts from "https://esm.sh/pdfmake@0.2.7/build/vfs_fonts.js";
+import pdfMake from "https://esm.sh/pdfmake@0.2.10/build/pdfmake.min.js";
+import pdfFonts from "https://esm.sh/pdfmake@0.2.10/build/vfs_fonts.js";
 import QRCode from "https://esm.sh/qrcode@1.5.3";
 
 // Initialize pdfMake with fonts
-pdfMake.vfs = pdfFonts.pdfMake.vfs;
+(pdfMake as any).vfs = (pdfFonts as any).pdfMake.vfs;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -330,10 +330,10 @@ serve(async (req) => {
     };
 
     // Generate PDF
-    const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+    const pdfDocGenerator = (pdfMake as any).createPdf(docDefinition);
 
-    const pdfBuffer = await new Promise<Uint8Array>((resolve, reject) => {
-      pdfDocGenerator.getBuffer((buffer: Uint8Array) => {
+    const pdfBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+      pdfDocGenerator.getBuffer((buffer: ArrayBuffer) => {
         if (buffer) {
           resolve(buffer);
         } else {
@@ -343,7 +343,7 @@ serve(async (req) => {
     });
 
     // Return PDF
-    return new Response(pdfBuffer, {
+    return new Response(new Uint8Array(pdfBuffer), {
       headers: {
         ...corsHeaders,
         'Content-Type': 'application/pdf',
