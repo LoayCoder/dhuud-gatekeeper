@@ -1,95 +1,95 @@
 
 
-# Fix: Column "reference_id" Does Not Exist Error
+# Fix: Constraint Violation and Build Error
 
-## Root Cause
+## Two Issues Identified
 
-The `submit_public_gate_pass` database function references a **non-existent column** `reference_id`, but the actual column in the `material_gate_passes` table is named `reference_number`.
+### Issue 1: Database Constraint Violation
+**Error**: `new row for relation "material_gate_passes" violates check constraint "material_gate_passes_request_type_check"`
 
-| Location | Column Name Used | Actual Column Name |
-|----------|------------------|-------------------|
-| RPC Function (line 183) | `reference_id` | **Should be** `reference_number` |
-| RPC Function (line 176) | `v_reference_id` | Variable name (OK) |
-| Database Table | N/A | `reference_number` |
-
-## Technical Fix
-
-Create a migration to update the `submit_public_gate_pass` function, replacing `reference_id` with `reference_number` in the INSERT statement.
-
-### Migration SQL
+**Root Cause**: The `submit_public_gate_pass` function doesn't account for the existing constraint logic:
 
 ```sql
--- Fix submit_public_gate_pass function: change reference_id to reference_number
-CREATE OR REPLACE FUNCTION submit_public_gate_pass(
-  -- ... same parameters ...
-) RETURNS JSONB
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  v_tenant_id UUID;
-  v_tenant_name TEXT;
-  v_gate_pass_id UUID;
-  v_access_token UUID;
-  v_reference_number TEXT;  -- renamed variable for clarity
-  v_rate_limit_count INTEGER;
-  v_branch_valid BOOLEAN;
-BEGIN
-  -- ... same validation logic ...
-
-  -- Generate access token and reference number
-  v_access_token := gen_random_uuid();
-  v_reference_number := 'PUB-' || to_char(now(), 'YYYYMMDD') || '-' || 
-                        substring(v_access_token::text from 1 for 8);
-
-  -- Create the gate pass (FIXED: use reference_number instead of reference_id)
-  INSERT INTO material_gate_passes (
-    tenant_id,
-    branch_id,
-    reference_number,  -- ← FIXED: was reference_id
-    pass_type,
-    -- ... rest of columns ...
-  ) VALUES (
-    v_tenant_id,
-    p_branch_id,
-    v_reference_number,  -- ← FIXED: was v_reference_id
-    p_pass_type,
-    -- ... rest of values ...
-  )
-  RETURNING id INTO v_gate_pass_id;
-
-  RETURN jsonb_build_object(
-    'success', true,
-    'gate_pass_id', v_gate_pass_id,
-    'reference_number', v_reference_number,  -- ← Also update return key
-    'public_access_token', v_access_token,
-    'message', 'Gate pass request submitted successfully'
-  );
-END;
-$$;
+CHECK (
+  (is_internal_request = true) OR 
+  ((is_internal_request = false) AND (project_id IS NOT NULL) AND (company_id IS NOT NULL))
+)
 ```
+
+When the function inserts a public gate pass:
+- `is_internal_request` defaults to `false`
+- `project_id` and `company_id` are both `NULL`
+- This violates the second condition (external requests need project AND company)
+
+**Solution**: Update the constraint to handle the new `is_public_request` case as a third valid scenario.
+
+### Issue 2: Build Error - Missing Import
+**Error**: `Cannot find name 'toast'` in `GatePassFormDialog.tsx` line 256
+
+**Root Cause**: `toast.error()` is used but `toast` from `sonner` was never imported.
+
+**Solution**: Add the missing import.
+
+---
+
+## Technical Changes
+
+### 1. Database Migration - Update Constraint
+
+Drop the old constraint and create a new one that handles all three cases:
+
+```sql
+-- Drop the existing constraint
+ALTER TABLE material_gate_passes 
+  DROP CONSTRAINT IF EXISTS material_gate_passes_request_type_check;
+
+-- Create updated constraint that handles:
+-- 1. Internal requests (is_internal_request = true)
+-- 2. External requests (project_id and company_id required)
+-- 3. Public requests (is_public_request = true, no project/company needed)
+ALTER TABLE material_gate_passes 
+  ADD CONSTRAINT material_gate_passes_request_type_check 
+  CHECK (
+    (is_internal_request = true) OR
+    (is_public_request = true) OR
+    ((is_internal_request = false) AND (project_id IS NOT NULL) AND (company_id IS NOT NULL))
+  );
+```
+
+### 2. Fix GatePassFormDialog.tsx - Add Missing Import
+
+```typescript
+// Add to imports at top of file
+import { toast } from "sonner";
+```
+
+---
 
 ## Files to Modify
 
 | File | Action |
 |------|--------|
-| Database Migration | **Create** - Fix the `submit_public_gate_pass` function |
+| Database Migration | **Create** - Update `material_gate_passes_request_type_check` constraint |
+| `src/components/contractors/GatePassFormDialog.tsx` | **Modify** - Add missing `toast` import |
 
-## Additional Fix: Handle `requested_by` NOT NULL Constraint
+---
 
-The `material_gate_passes` table requires `requested_by` (line 14348, 14422), which is a user ID. For public requests without authentication, this needs to be handled:
+## Constraint Logic After Fix
 
-**Option A**: Make `requested_by` nullable for public requests (requires ALTER TABLE)
-**Option B**: Use a system/placeholder UUID for public requests
-**Option C**: Use `approval_from_id` or another nullable field
-
-I will use **Option B**: Create a constant system UUID or use the `public_requester_name` field to identify the requester, while setting `requested_by` to a placeholder value that the function can generate.
-
-Actually, looking more carefully, the function doesn't set `requested_by` at all, which is also a problem since it's a required column. We need to handle this as well.
-
-## Complete Fix Summary
-
-1. Change `reference_id` to `reference_number` in the INSERT statement
-2. Handle the `requested_by` NOT NULL constraint for public requests
+```text
+Valid INSERT scenarios:
+┌─────────────────────────────────────────────────────────────────┐
+│ Scenario 1: Internal Request                                    │
+│   is_internal_request = true                                    │
+│   (project_id and company_id can be NULL)                       │
+├─────────────────────────────────────────────────────────────────┤
+│ Scenario 2: Public Request                                      │
+│   is_public_request = true                                      │
+│   (project_id and company_id can be NULL)                       │
+├─────────────────────────────────────────────────────────────────┤
+│ Scenario 3: External/Contractor Request                         │
+│   is_internal_request = false AND is_public_request = false     │
+│   project_id IS NOT NULL AND company_id IS NOT NULL             │
+└─────────────────────────────────────────────────────────────────┘
+```
 
