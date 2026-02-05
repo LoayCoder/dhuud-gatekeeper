@@ -3634,6 +3634,7 @@ export type Database = {
           location: string | null
           longitude: number | null
           name: string
+          phone: string | null
           tenant_id: string
         }
         Insert: {
@@ -3647,6 +3648,7 @@ export type Database = {
           location?: string | null
           longitude?: number | null
           name: string
+          phone?: string | null
           tenant_id: string
         }
         Update: {
@@ -3660,6 +3662,7 @@ export type Database = {
           location?: string | null
           longitude?: number | null
           name?: string
+          phone?: string | null
           tenant_id?: string
         }
         Relationships: [
