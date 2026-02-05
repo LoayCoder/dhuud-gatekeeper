@@ -1,95 +1,48 @@
 
 
-# Fix: Constraint Violation and Build Error
+# Apply Migration: Fix Public Gate Pass Status Function
 
-## Two Issues Identified
+## Problem Confirmed
 
-### Issue 1: Database Constraint Violation
-**Error**: `new row for relation "material_gate_passes" violates check constraint "material_gate_passes_request_type_check"`
+The migration file `supabase/migrations/20260205012818_fix_public_gate_pass_status.sql` exists in your codebase but the **function was never updated** in the database.
 
-**Root Cause**: The `submit_public_gate_pass` function doesn't account for the existing constraint logic:
+| Item | Current Database State | Expected (Migration File) |
+|------|------------------------|---------------------------|
+| Column reference | `reference_id` (wrong) | `reference_number` |
+| Return structure | `{ data: {...} }` | `{ gate_pass: {...}, branch: {...}, tenant: {...} }` |
+| Missing fields | Many | `driver_mobile`, `requester_phone`, `entry_time`, `exit_time`, etc. |
+| Tenant info | Not returned | Full branding data |
 
-```sql
-CHECK (
-  (is_internal_request = true) OR 
-  ((is_internal_request = false) AND (project_id IS NOT NULL) AND (company_id IS NOT NULL))
-)
-```
+## What Will Be Fixed
 
-When the function inserts a public gate pass:
-- `is_internal_request` defaults to `false`
-- `project_id` and `company_id` are both `NULL`
-- This violates the second condition (external requests need project AND company)
+The migration will update the `get_public_gate_pass_status` function to:
 
-**Solution**: Update the constraint to handle the new `is_public_request` case as a third valid scenario.
+1. Use correct column `reference_number`
+2. Return proper nested structure matching frontend types
+3. Include all required fields for the status page
+4. Return complete branch location data
+5. Return tenant branding info (logo, colors, instructions)
 
-### Issue 2: Build Error - Missing Import
-**Error**: `Cannot find name 'toast'` in `GatePassFormDialog.tsx` line 256
+## Technical Details
 
-**Root Cause**: `toast.error()` is used but `toast` from `sonner` was never imported.
-
-**Solution**: Add the missing import.
-
----
-
-## Technical Changes
-
-### 1. Database Migration - Update Constraint
-
-Drop the old constraint and create a new one that handles all three cases:
+The fix uses `CREATE OR REPLACE FUNCTION` which safely updates the existing function without affecting stored data.
 
 ```sql
--- Drop the existing constraint
-ALTER TABLE material_gate_passes 
-  DROP CONSTRAINT IF EXISTS material_gate_passes_request_type_check;
-
--- Create updated constraint that handles:
--- 1. Internal requests (is_internal_request = true)
--- 2. External requests (project_id and company_id required)
--- 3. Public requests (is_public_request = true, no project/company needed)
-ALTER TABLE material_gate_passes 
-  ADD CONSTRAINT material_gate_passes_request_type_check 
-  CHECK (
-    (is_internal_request = true) OR
-    (is_public_request = true) OR
-    ((is_internal_request = false) AND (project_id IS NOT NULL) AND (company_id IS NOT NULL))
-  );
+RETURN jsonb_build_object(
+  'success', true,
+  'gate_pass', jsonb_build_object(
+    'id', v_gate_pass.id,
+    'reference_number', v_gate_pass.reference_number,
+    'driver_mobile', v_gate_pass.driver_mobile,
+    'requester_phone', v_gate_pass.public_requester_phone,
+    ...
+  ),
+  'branch', jsonb_build_object(...),
+  'tenant', jsonb_build_object(...)
+);
 ```
 
-### 2. Fix GatePassFormDialog.tsx - Add Missing Import
+## Action Required
 
-```typescript
-// Add to imports at top of file
-import { toast } from "sonner";
-```
-
----
-
-## Files to Modify
-
-| File | Action |
-|------|--------|
-| Database Migration | **Create** - Update `material_gate_passes_request_type_check` constraint |
-| `src/components/contractors/GatePassFormDialog.tsx` | **Modify** - Add missing `toast` import |
-
----
-
-## Constraint Logic After Fix
-
-```text
-Valid INSERT scenarios:
-┌─────────────────────────────────────────────────────────────────┐
-│ Scenario 1: Internal Request                                    │
-│   is_internal_request = true                                    │
-│   (project_id and company_id can be NULL)                       │
-├─────────────────────────────────────────────────────────────────┤
-│ Scenario 2: Public Request                                      │
-│   is_public_request = true                                      │
-│   (project_id and company_id can be NULL)                       │
-├─────────────────────────────────────────────────────────────────┤
-│ Scenario 3: External/Contractor Request                         │
-│   is_internal_request = false AND is_public_request = false     │
-│   project_id IS NOT NULL AND company_id IS NOT NULL             │
-└─────────────────────────────────────────────────────────────────┘
-```
+I will run the migration to update the database function. After approval, the public gate pass status page will correctly display all information.
 
