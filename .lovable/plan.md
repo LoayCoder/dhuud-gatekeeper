@@ -1,162 +1,95 @@
 
-# Fix Public Gate Pass Toggle and Custom Domain URL
 
-## Issues Identified
+# Fix: Column "reference_id" Does Not Exist Error
 
-### Issue 1: Toggle Badge Not Updating After Toggle
-The toggle switch successfully updates the database (toast shows "enabled"), but the badge still shows "Disabled". This happens because:
+## Root Cause
 
-1. `TenantManagement.tsx` stores `detailTenant` in local state
-2. When user clicks "Manage", it sets `detailTenant` from the tenants list
-3. When toggle mutation runs, it invalidates `['tenants']` query
-4. BUT `detailTenant` is NOT updated because it's a snapshot stored in state
-5. React-Query refetches the list, but the dialog still shows stale data
+The `submit_public_gate_pass` database function references a **non-existent column** `reference_id`, but the actual column in the `material_gate_passes` table is named `reference_number`.
 
-**Solution**: Use optimistic local state in `TenantPublicFeaturesControl` to immediately update the UI while the mutation runs, similar to how the `Switch` component should reflect changes instantly.
+| Location | Column Name Used | Actual Column Name |
+|----------|------------------|-------------------|
+| RPC Function (line 183) | `reference_id` | **Should be** `reference_number` |
+| RPC Function (line 176) | `v_reference_id` | Variable name (OK) |
+| Database Table | N/A | `reference_number` |
 
-### Issue 2: Public URL Shows Preview Domain Instead of Custom Domain
-Currently the URL is generated as:
-```typescript
-const publicUrl = `${window.location.origin}/${tenant.slug}/request`;
-```
-This returns the Lovable preview URL. User needs it to show their production domain like `www.dhuud.com`.
+## Technical Fix
 
-**Solution**: Add a `public_gate_pass_domain` column to the `tenants` table to store the custom domain, then use it to generate the correct URL.
+Create a migration to update the `submit_public_gate_pass` function, replacing `reference_id` with `reference_number` in the INSERT statement.
 
----
-
-## Technical Changes
-
-### 1. Database Migration
-Add a new column to store the custom domain for public gate pass URLs:
+### Migration SQL
 
 ```sql
-ALTER TABLE tenants
-ADD COLUMN IF NOT EXISTS public_gate_pass_domain TEXT;
+-- Fix submit_public_gate_pass function: change reference_id to reference_number
+CREATE OR REPLACE FUNCTION submit_public_gate_pass(
+  -- ... same parameters ...
+) RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_tenant_id UUID;
+  v_tenant_name TEXT;
+  v_gate_pass_id UUID;
+  v_access_token UUID;
+  v_reference_number TEXT;  -- renamed variable for clarity
+  v_rate_limit_count INTEGER;
+  v_branch_valid BOOLEAN;
+BEGIN
+  -- ... same validation logic ...
 
--- Example: 'https://www.dhuud.com'
-COMMENT ON COLUMN tenants.public_gate_pass_domain IS 
-  'Custom domain URL for public gate pass requests (e.g., https://www.dhuud.com)';
+  -- Generate access token and reference number
+  v_access_token := gen_random_uuid();
+  v_reference_number := 'PUB-' || to_char(now(), 'YYYYMMDD') || '-' || 
+                        substring(v_access_token::text from 1 for 8);
+
+  -- Create the gate pass (FIXED: use reference_number instead of reference_id)
+  INSERT INTO material_gate_passes (
+    tenant_id,
+    branch_id,
+    reference_number,  -- ← FIXED: was reference_id
+    pass_type,
+    -- ... rest of columns ...
+  ) VALUES (
+    v_tenant_id,
+    p_branch_id,
+    v_reference_number,  -- ← FIXED: was v_reference_id
+    p_pass_type,
+    -- ... rest of values ...
+  )
+  RETURNING id INTO v_gate_pass_id;
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'gate_pass_id', v_gate_pass_id,
+    'reference_number', v_reference_number,  -- ← Also update return key
+    'public_access_token', v_access_token,
+    'message', 'Gate pass request submitted successfully'
+  );
+END;
+$$;
 ```
-
-### 2. Update `TenantPublicFeaturesControl.tsx`
-
-**Fix Toggle with Optimistic State**:
-```typescript
-// Add local state to track enabled status
-const [isEnabled, setIsEnabled] = useState(tenant.allow_public_gate_pass_requests ?? false);
-const [customDomain, setCustomDomain] = useState(tenant.public_gate_pass_domain ?? '');
-
-// Sync with parent when tenant prop changes (e.g., after re-fetch)
-useEffect(() => {
-  setIsEnabled(tenant.allow_public_gate_pass_requests ?? false);
-  setCustomDomain(tenant.public_gate_pass_domain ?? '');
-}, [tenant.id, tenant.allow_public_gate_pass_requests, tenant.public_gate_pass_domain]);
-
-// Update toggle handler for optimistic UI
-const handleToggle = (checked: boolean) => {
-  setIsEnabled(checked); // Optimistic update
-  toggleMutation.mutate(checked);
-};
-
-// Rollback on error
-onError: (error, variables) => {
-  setIsEnabled(!variables); // Revert optimistic update
-  toast({ title: t('common.error'), ... });
-};
-```
-
-**Fix URL Generation**:
-```typescript
-// Use custom domain if configured, otherwise fall back to current origin
-const getPublicUrl = () => {
-  const baseUrl = customDomain?.trim() || window.location.origin;
-  // Ensure no trailing slash
-  const cleanBase = baseUrl.replace(/\/$/, '');
-  return `${cleanBase}/${tenant.slug}/request`;
-};
-
-const publicUrl = getPublicUrl();
-```
-
-**Add Custom Domain Input Field**:
-```text
-+----------------------------------------------------------+
-|  Custom Domain (Optional)                                |
-|  [Input: https://www.dhuud.com]                          |
-|  Configure a custom domain for the public URL.           |
-|  Leave empty to use the default system domain.           |
-|                                            [Save Domain] |
-+----------------------------------------------------------+
-```
-
-### 3. Update Translation Files
-
-Add new keys for the domain configuration:
-
-```json
-// English
-"customDomain": "Custom Domain",
-"customDomainDesc": "Configure a custom domain for the public gate pass URL. Leave empty to use the default system domain.",
-"customDomainPlaceholder": "https://www.example.com",
-"domainSaved": "Custom domain saved successfully."
-
-// Arabic
-"customDomain": "النطاق المخصص",
-"customDomainDesc": "قم بتكوين نطاق مخصص لرابط تصريح البوابة العام. اتركه فارغاً لاستخدام نطاق النظام الافتراضي.",
-"customDomainPlaceholder": "https://www.example.com",
-"domainSaved": "تم حفظ النطاق المخصص بنجاح."
-```
-
----
-
-## Component Structure After Fix
-
-```text
-+----------------------------------------------------------+
-|  [Globe Icon] Public Gate Pass Requests       [Enabled]  |
-|  ------------------------------------------------        |
-|  Allow visitors and contractors to submit gate           |
-|  pass requests via public URL.                           |
-|                                                          |
-|  Custom Domain (Optional)                                |
-|  [Input: https://www.dhuud.com]               [Save]     |
-|  Configure a custom domain for the public URL.           |
-|                                                          |
-|  Public Request URL                                      |
-|  [https://www.dhuud.com/golf-saudi/request]       [Copy] |
-|                                                          |
-|  [Toggle Switch ON]  Enable Public Gate Pass Requests    |
-+----------------------------------------------------------+
-```
-
----
 
 ## Files to Modify
 
 | File | Action |
 |------|--------|
-| Database Migration | **Create** - Add `public_gate_pass_domain` column |
-| `src/components/tenants/TenantPublicFeaturesControl.tsx` | **Modify** - Add optimistic toggle, custom domain input, fix URL generation |
-| `src/locales/en/translation.json` | **Modify** - Add custom domain translation keys |
-| `src/locales/ar/translation.json` | **Modify** - Add Arabic translations |
-| `src/locales/hi/translation.json` | **Modify** - Add Hindi translations |
-| `src/locales/ur/translation.json` | **Modify** - Add Urdu translations |
-| `src/locales/fil/translation.json` | **Modify** - Add Filipino translations |
+| Database Migration | **Create** - Fix the `submit_public_gate_pass` function |
 
----
+## Additional Fix: Handle `requested_by` NOT NULL Constraint
 
-## Result After Implementation
+The `material_gate_passes` table requires `requested_by` (line 14348, 14422), which is a user ID. For public requests without authentication, this needs to be handled:
 
-1. **Toggle**: Badge will update immediately when toggle is clicked (optimistic UI)
-2. **URL**: Will show custom domain (e.g., `https://www.dhuud.com/golf-saudi/request`) when configured
-3. **Admin Control**: Admins can configure the custom domain per tenant
-4. **Fallback**: If no custom domain is set, uses the current system domain
+**Option A**: Make `requested_by` nullable for public requests (requires ALTER TABLE)
+**Option B**: Use a system/placeholder UUID for public requests
+**Option C**: Use `approval_from_id` or another nullable field
 
----
+I will use **Option B**: Create a constant system UUID or use the `public_requester_name` field to identify the requester, while setting `requested_by` to a placeholder value that the function can generate.
 
-## Security Considerations
+Actually, looking more carefully, the function doesn't set `requested_by` at all, which is also a problem since it's a required column. We need to handle this as well.
 
-- Custom domain input should be validated for URL format
-- Domain should allow only HTTPS URLs in production
-- The domain is only used for display/copy purposes; actual routing depends on DNS and hosting configuration
+## Complete Fix Summary
+
+1. Change `reference_id` to `reference_number` in the INSERT statement
+2. Handle the `requested_by` NOT NULL constraint for public requests
+
