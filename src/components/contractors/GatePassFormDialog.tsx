@@ -253,7 +253,7 @@ export function GatePassFormDialog({
       const companyId = formData.company_id || selectedProject?.company_id;
 
       if (!pmId || !companyId) {
-        console.error("Missing required project information (PM or Company ID)");
+        toast.error(t("contractors.gatePasses.missingProjectInfoError", "Missing project manager or company ID. Please ensure a project with an assigned manager is selected."));
         return;
       }
 
