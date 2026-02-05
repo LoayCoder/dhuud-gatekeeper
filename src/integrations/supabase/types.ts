@@ -14345,7 +14345,7 @@ export type Database = {
           renewal_expires_at: string | null
           renewed_at: string | null
           renewed_by: string | null
-          requested_by: string
+          requested_by: string | null
           safety_approved_at: string | null
           safety_approved_by: string | null
           safety_notes: string | null
@@ -14419,7 +14419,7 @@ export type Database = {
           renewal_expires_at?: string | null
           renewed_at?: string | null
           renewed_by?: string | null
-          requested_by: string
+          requested_by?: string | null
           safety_approved_at?: string | null
           safety_approved_by?: string | null
           safety_notes?: string | null
@@ -14493,7 +14493,7 @@ export type Database = {
           renewal_expires_at?: string | null
           renewed_at?: string | null
           renewed_by?: string | null
-          requested_by?: string
+          requested_by?: string | null
           safety_approved_at?: string | null
           safety_approved_by?: string | null
           safety_notes?: string | null
