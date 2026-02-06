@@ -28,6 +28,7 @@ import { VisitorApprovalQueue } from '@/components/security/VisitorApprovalQueue
 import { WorkerApprovalQueue } from '@/components/contractors/WorkerApprovalQueue';
 import { WorkerSecurityApprovalQueue } from '@/components/contractors/WorkerSecurityApprovalQueue';
 import { GatePassApprovalQueue } from '@/components/contractors/GatePassApprovalQueue';
+import { GatePassApprovalHistoryTab } from '@/components/contractors/GatePassApprovalHistoryTab';
 
 export default function AccessControlDashboard() {
   const { t } = useTranslation();
