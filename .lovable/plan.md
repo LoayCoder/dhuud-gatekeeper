@@ -1,100 +1,157 @@
 
+# Fix: Public Gate Pass Notifications Not Being Sent
 
-# Public Gate Pass WhatsApp Notifications & PDF Distribution
+## Problem Analysis
 
-## Overview
+| Component | Current State | Issue |
+|-----------|--------------|-------|
+| Gate pass `PUB-20260205-2c524b70` | Status: `pending_club_mgmt_ack` | Created correctly |
+| `notify-public-gate-pass` edge function | Exists, works | **Never invoked** |
+| `submit_public_gate_pass` RPC | Creates record only | No notification trigger |
+| `useSubmitPublicGatePass` hook | Shows toast, stores token | **Missing edge function call** |
+| Database triggers | None exist | **No trigger for notifications** |
+| Notification logs | Empty for this request | Confirms nothing was sent |
 
-This plan implements automatic WhatsApp notifications throughout the public gate pass lifecycle, ensuring requesters receive confirmation messages when they submit a request and when it is approved (with a PDF download link).
+**Root Cause:** The notification edge function exists but is never called anywhere in the flow.
 
-## Current State Analysis
+---
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| `notify-public-gate-pass` Edge Function | ✅ Exists | Handles submitted/approved/rejected/acknowledged events |
-| `generate-public-gate-pass-pdf` Edge Function | ✅ Exists | Generates downloadable PDF with QR code |
-| Submission notification trigger | ❌ Missing | Hook doesn't call the edge function |
-| Approval notification trigger | ❌ Missing | Approval workflow doesn't notify public requesters |
-| PDF link in approval message | ❌ Missing | Message mentions QR but no direct PDF link |
+## Solution: Two-Part Implementation
 
-## What Users Will Experience
-
-```text
-1. SUBMISSION
-   ─────────────
-   User submits request → Receives WhatsApp:
-   "✅ Your gate pass request has been received.
-    Reference: PUB-20260205-abc123
-    Track status: [link]
-    Pending with: Golf Club Management"
-
-2. APPROVAL
-   ─────────────
-   Request approved → Receives WhatsApp:
-   "🎉 Your gate pass has been APPROVED!
-    Reference: PUB-20260205-abc123
-    Download PDF: [direct link]
-    Show QR code at the gate."
-```
-
-## Technical Implementation
-
-### 1. Update Submission Hook to Trigger Notification
+### Part 1: Call Notification Edge Function on Submission
 
 **File:** `src/hooks/public-gate-pass/use-public-gate-pass.ts`
 
-After successful submission, call the `notify-public-gate-pass` edge function:
+Update the `onSuccess` callback to call the `notify-public-gate-pass` edge function:
 
 ```typescript
 onSuccess: async (result, variables) => {
-  if (result.success && result.gate_pass_id) {
-    // Store token for status page
+  if (result.success) {
+    // Store token in localStorage for status page
     if (result.public_access_token) {
       localStorage.setItem("public_gate_pass_token", result.public_access_token);
     }
     
-    // Trigger WhatsApp notification (fire-and-forget)
-    supabase.functions.invoke('notify-public-gate-pass', {
-      body: {
-        gate_pass_id: result.gate_pass_id,
-        tenant_id: variables.tenant_id,
-        branch_id: variables.branch_id,
-        reference_number: result.reference_number,
-        requester_name: variables.requester_name,
-        requester_phone: variables.requester_phone,
-        requester_email: variables.requester_email,
-        requester_company: variables.requester_company,
-        material_description: variables.material_description,
-        pass_date: variables.pass_date,
-        tracking_url: `/${variables.tenant_slug}/track/${result.public_access_token}`,
-        event_type: 'submitted',
-      }
-    }).catch(err => console.error('Notification failed:', err));
+    // Trigger WhatsApp notification to requester AND staff
+    try {
+      await supabase.functions.invoke('notify-public-gate-pass', {
+        body: {
+          gate_pass_id: result.gate_pass_id,
+          tenant_id: variables.tenant_id,  // Need to pass this
+          branch_id: variables.branch_id,
+          reference_number: result.reference_number,
+          requester_name: variables.requester_name,
+          requester_phone: variables.requester_phone,
+          requester_email: variables.requester_email,
+          requester_company: variables.requester_company,
+          material_description: variables.material_description,
+          pass_date: variables.pass_date,
+          tracking_url: `/${variables.tenant_slug}/track/${result.public_access_token}`,
+          event_type: 'submitted',
+        }
+      });
+    } catch (err) {
+      console.error('[Public Gate Pass] Notification failed:', err);
+      // Don't fail the submission - notification is best-effort
+    }
     
     toast.success("Gate pass request submitted successfully!");
+  } else {
+    toast.error(result.error || "Failed to submit gate pass request");
   }
-};
+},
 ```
 
-### 2. Create Database Trigger for Approval Notifications
+**Issue:** The hook doesn't have `tenant_id` - we need to get it from the tenant slug.
 
-**New Migration:** Create a trigger that fires when a public gate pass status changes to `approved` or `rejected`
+**Solution:** Update the `PublicGatePassSubmission` type to include `tenant_id` OR fetch it in the form component and pass it.
+
+---
+
+### Part 2: Fix Edge Function Staff Query
+
+**File:** `supabase/functions/notify-public-gate-pass/index.ts`
+
+The edge function has a **critical bug** - it queries `user_roles.role` which uses the old role string format, not the new `roles.code` format via `user_role_assignments`.
+
+Current broken query:
+```typescript
+.eq('user_roles.role', 'golf_club_mgmt')  // ❌ Wrong - no such role
+```
+
+Also uses `mobile_number` which doesn't exist (should be `phone_number`).
+
+**Fix the staff query:**
+```typescript
+// Get Golf Club Management department reps for this tenant
+const { data: golfClubDept } = await supabase
+  .from('departments')
+  .select('id')
+  .eq('tenant_id', tenant_id)
+  .or("name.eq.Golf Club Management,name.ilike.%golf%club%management%")
+  .is('deleted_at', null)
+  .limit(1)
+  .single();
+
+if (golfClubDept) {
+  const { data: staffUsers } = await supabase
+    .from('profiles')
+    .select(`
+      id,
+      full_name,
+      phone_number,
+      preferred_language,
+      user_role_assignments!inner(
+        roles!inner(code)
+      )
+    `)
+    .eq('tenant_id', tenant_id)
+    .eq('assigned_department_id', golfClubDept.id)
+    .in('user_role_assignments.roles.code', ['department_representative', 'department_manager'])
+    .eq('is_active', true)
+    .is('deleted_at', null);
+  
+  // staffUsers now contains the correct reps like Khalid Al Shuhail
+}
+```
+
+---
+
+### Part 3: Create Database Trigger for Status Changes
+
+**Migration:** Create trigger for approval/rejection notifications
 
 ```sql
+-- Enable pg_net extension if not already enabled
+CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA extensions;
+
+-- Function to notify on public gate pass status changes
 CREATE OR REPLACE FUNCTION notify_public_gate_pass_status_change()
 RETURNS TRIGGER AS $$
+DECLARE
+  v_tenant_slug TEXT;
+  v_supabase_url TEXT;
+  v_service_key TEXT;
 BEGIN
-  -- Only process public requests
-  IF NEW.is_public_request = true THEN
-    -- Check for status change to approved or rejected
-    IF (OLD.status IS DISTINCT FROM NEW.status) AND 
-       (NEW.status IN ('approved', 'rejected')) THEN
-      
-      -- Call edge function via pg_net
-      PERFORM net.http_post(
-        url := current_setting('app.supabase_url') || '/functions/v1/notify-public-gate-pass',
+  -- Only process public requests with relevant status changes
+  IF NEW.is_public_request = true 
+     AND OLD.status IS DISTINCT FROM NEW.status 
+     AND NEW.status IN ('approved', 'rejected', 'pending_security_approval') THEN
+    
+    -- Get tenant slug
+    SELECT slug INTO v_tenant_slug FROM tenants WHERE id = NEW.tenant_id;
+    
+    -- Get config values
+    v_supabase_url := current_setting('app.supabase_url', true);
+    v_service_key := current_setting('app.service_role_key', true);
+    
+    -- Only proceed if we have the config
+    IF v_supabase_url IS NOT NULL AND v_service_key IS NOT NULL THEN
+      PERFORM extensions.http_post(
+        url := v_supabase_url || '/functions/v1/notify-public-gate-pass',
         headers := jsonb_build_object(
           'Content-Type', 'application/json',
-          'Authorization', 'Bearer ' || current_setting('app.service_role_key')
+          'Authorization', 'Bearer ' || v_service_key
         ),
         body := jsonb_build_object(
           'gate_pass_id', NEW.id,
@@ -106,9 +163,13 @@ BEGIN
           'requester_email', NEW.public_requester_email,
           'requester_company', NEW.public_requester_company,
           'material_description', NEW.material_description,
-          'pass_date', NEW.pass_date,
-          'tracking_url', '/' || (SELECT slug FROM tenants WHERE id = NEW.tenant_id) || '/track/' || NEW.public_access_token,
-          'event_type', NEW.status,
+          'pass_date', NEW.pass_date::text,
+          'tracking_url', '/' || v_tenant_slug || '/track/' || NEW.public_access_token,
+          'event_type', CASE 
+            WHEN NEW.status = 'approved' THEN 'approved'
+            WHEN NEW.status = 'rejected' THEN 'rejected'
+            WHEN NEW.status = 'pending_security_approval' THEN 'acknowledged'
+          END,
           'rejection_reason', NEW.rejection_reason
         )
       );
@@ -119,155 +180,87 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Create trigger
+DROP TRIGGER IF EXISTS trg_notify_public_gate_pass_status ON material_gate_passes;
 CREATE TRIGGER trg_notify_public_gate_pass_status
   AFTER UPDATE ON material_gate_passes
   FOR EACH ROW
   EXECUTE FUNCTION notify_public_gate_pass_status_change();
 ```
 
-### 3. Enhance Approval WhatsApp Message with PDF Link
-
-**File:** `supabase/functions/notify-public-gate-pass/index.ts`
-
-Update the approval message to include:
-- Direct PDF download link
-- Information about who approved
-- Clear call-to-action
-
-```typescript
-} else if (event_type === 'approved') {
-  // Generate PDF URL
-  const pdfUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/generate-public-gate-pass-pdf?token=${public_access_token}&tenant=${tenant.slug}`;
-  
-  const approvalMessage = `
-🎉 *${tenant.name} - Gate Pass APPROVED*
-
-Great news! Your gate pass has been approved.
-
-📋 Reference: ${reference_number}
-📅 Valid Date: ${pass_date}
-${branchName ? `📍 Location: ${branchName}` : ''}
-
-📱 *View your pass with QR code:*
-${fullTrackingUrl}
-
-📄 *Download PDF for printing:*
-${pdfUrl}
-
-⚠️ Present the QR code or printed PDF at the security gate.
-`.trim();
-
-  // Also send bilingual version
-  const approvalMessageAr = `
-🎉 *${tenant.name} - تمت الموافقة على التصريح*
-
-تمت الموافقة على طلب تصريح المرور الخاص بك.
-
-📋 المرجع: ${reference_number}
-📅 تاريخ الصلاحية: ${pass_date}
-${branchName ? `📍 الموقع: ${branchName}` : ''}
-
-📱 *اعرض تصريحك مع رمز QR:*
-${fullTrackingUrl}
-
-📄 *تحميل PDF للطباعة:*
-${pdfUrl}
-
-⚠️ قدم رمز QR أو PDF المطبوع عند بوابة الأمن.
-`.trim();
-
-  // Send bilingual message
-  const combinedMessage = `${approvalMessageAr}\n\n---\n\n${approvalMessage}`;
-```
-
-### 4. Add "Pending With" Information to Submission Confirmation
-
-Update submission message to show who the request is pending with:
-
-```typescript
-if (event_type === 'submitted') {
-  const requesterMessage = `
-✅ *${tenant.name} - طلب تصريح جديد*
-✅ *${tenant.name} - Gate Pass Submitted*
-
-تم استلام طلبك بنجاح.
-Your gate pass request has been received.
-
-📋 المرجع | Reference: ${reference_number}
-📅 التاريخ | Date: ${pass_date}
-📦 المواد | Materials: ${truncatedMaterial}
-${branchName ? `📍 الموقع | Location: ${branchName}` : ''}
-
-⏳ *في انتظار | Pending with:*
-Golf Club Management
-
-🔗 *تتبع الحالة | Track status:*
-${fullTrackingUrl}
-
-سيتم إشعارك عند مراجعة طلبك.
-You will be notified when your request is reviewed.
-`.trim();
-```
+---
 
 ## Files to Modify
 
 | File | Action | Purpose |
 |------|--------|---------|
-| `src/hooks/public-gate-pass/use-public-gate-pass.ts` | **Modify** | Add notification trigger on submission success |
-| `supabase/functions/notify-public-gate-pass/index.ts` | **Modify** | Enhance messages with PDF link and "pending with" info |
+| `src/hooks/public-gate-pass/use-public-gate-pass.ts` | **Modify** | Add edge function call on submission success |
+| `src/types/public-gate-pass.types.ts` | **Modify** | Add `tenant_id` to submission type |
+| `supabase/functions/notify-public-gate-pass/index.ts` | **Modify** | Fix staff query (use correct role assignment pattern) |
 | Database Migration | **Create** | Add trigger for approval/rejection notifications |
 
-## Message Flow Diagram
+---
+
+## Notification Flow After Fix
 
 ```text
-┌─────────────────┐     ┌──────────────────────┐     ┌─────────────────┐
-│  User Submits   │────▶│ submit_public_gate_  │────▶│  Gate Pass      │
-│  Request        │     │ pass RPC             │     │  Created        │
-└─────────────────┘     └──────────────────────┘     └────────┬────────┘
-                                                              │
-                        ┌──────────────────────┐              │
-                        │ notify-public-gate-  │◀─────────────┘
-                        │ pass (submitted)     │
-                        └──────────┬───────────┘
-                                   │
-                        ┌──────────▼───────────┐
-                        │  WhatsApp to User:   │
-                        │  "Request received,  │
-                        │   pending with..."   │
-                        └──────────────────────┘
+USER SUBMITS REQUEST
+        │
+        ▼
+┌───────────────────────┐
+│ submit_public_gate_   │
+│ pass RPC              │
+└───────────┬───────────┘
+            │
+            ▼
+┌───────────────────────┐
+│ useSubmitPublicGate   │──▶ supabase.functions.invoke('notify-public-gate-pass')
+│ Pass hook (onSuccess) │               │
+└───────────────────────┘               │
+                                        ▼
+                           ┌────────────────────────┐
+                           │ Edge Function:         │
+                           │ - WhatsApp to Requester│
+                           │ - WhatsApp to Khalid   │
+                           │   Al Shuhail (Rep)     │
+                           │ - In-app notification  │
+                           └────────────────────────┘
 
-┌─────────────────┐     ┌──────────────────────┐     ┌─────────────────┐
-│  Staff Approves │────▶│ approve_gate_pass_   │────▶│  Status =       │
-│  Request        │     │ unified RPC          │     │  'approved'     │
-└─────────────────┘     └──────────────────────┘     └────────┬────────┘
-                                                              │
-                        ┌──────────────────────┐              │
-                        │ DB Trigger:          │◀─────────────┘
-                        │ trg_notify_public_   │
-                        │ gate_pass_status     │
-                        └──────────┬───────────┘
-                                   │
-                        ┌──────────▼───────────┐
-                        │ notify-public-gate-  │
-                        │ pass (approved)      │
-                        └──────────┬───────────┘
-                                   │
-                        ┌──────────▼───────────┐
-                        │  WhatsApp to User:   │
-                        │  "APPROVED! Download │
-                        │   PDF: [link]"       │
-                        └──────────────────────┘
+STAFF APPROVES/REJECTS
+        │
+        ▼
+┌───────────────────────┐
+│ approve_gate_pass_    │
+│ unified RPC           │
+└───────────┬───────────┘
+            │
+            ▼
+┌───────────────────────┐
+│ DB Trigger:           │──▶ notify-public-gate-pass edge function
+│ trg_notify_public_... │
+└───────────────────────┘
+            │
+            ▼
+┌───────────────────────┐
+│ WhatsApp to Requester │
+│ with status update    │
+└───────────────────────┘
 ```
 
-## Testing Checklist
+---
 
-After implementation:
-1. Submit a new public gate pass request
-2. Verify WhatsApp received with "pending with Golf Club Management"
-3. Log in as Golf Club Management and acknowledge
-4. Verify requester receives acknowledgment WhatsApp
-5. Log in as Security Supervisor and approve
-6. Verify requester receives approval WhatsApp with PDF link
-7. Click PDF link and verify download works
-8. Test rejection flow - verify rejection WhatsApp received
+## Golf Club Management Representative
 
+The database confirms that **Khalid Al Shuhail** (`+966509993439`) is the Golf Club Management department representative who should receive notification of new public gate pass requests.
+
+---
+
+## Testing After Implementation
+
+1. Submit a new public gate pass request from Golf Saudi portal
+2. Verify requester receives WhatsApp confirmation with tracking link
+3. Verify Khalid Al Shuhail receives WhatsApp notification about new request
+4. Login as Khalid and acknowledge the request
+5. Verify requester receives acknowledgment WhatsApp
+6. Approve the request as Security Supervisor
+7. Verify requester receives approval WhatsApp with PDF link
