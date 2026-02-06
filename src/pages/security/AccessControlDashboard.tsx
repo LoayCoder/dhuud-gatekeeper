@@ -37,6 +37,7 @@ export default function AccessControlDashboard() {
   const [entityFilter, setEntityFilter] = useState<EntityType | 'all'>('all');
   const [dateFilter, setDateFilter] = useState<'today' | '7days' | '30days'>('today');
   const [searchQuery, setSearchQuery] = useState('');
+  const [gatePassSubTab, setGatePassSubTab] = useState('pending');
 
   // Stats
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useUnifiedAccessStats();
