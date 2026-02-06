@@ -44,8 +44,7 @@ export function OneSignalProvider({ children }: { children: React.ReactNode }) {
         await OneSignal.init({
           appId: ONESIGNAL_APP_ID,
           allowLocalhostAsSecureOrigin: import.meta.env.DEV,
-          serviceWorkerParam: { scope: '/push/onesignal/' },
-          serviceWorkerPath: '/OneSignalSDKWorker.js',
+          serviceWorkerPath: 'OneSignalSDKWorker.js',
         });
 
         setIsInitialized(true);
