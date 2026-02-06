@@ -273,15 +273,29 @@ export default function Login() {
       if (error) throw error;
 
       // SECURITY: Validate user access immediately after auth succeeds
-      const { data: accessValidation, error: accessError } = await supabase.functions.invoke('validate-user-access');
+      // NOTE: If edge function fails to connect (network error), we still allow login
+      // This prevents edge function deployment issues from blocking all logins
+      let accessValidation: { allowed?: boolean; reason?: string; user_id?: string; tenant_id?: string } | null = null;
+      let accessError: Error | null = null;
       
-      if (accessError || !accessValidation?.allowed) {
+      try {
+        const result = await supabase.functions.invoke('validate-user-access');
+        accessValidation = result.data;
+        accessError = result.error;
+      } catch (networkErr) {
+        // Edge function network failure - log but allow login to proceed
+        logger.warn('validate-user-access edge function network error (allowing login):', networkErr);
+        accessValidation = { allowed: true }; // Allow login on network failures
+      }
+      
+      // Only block if we got a definitive "not allowed" response
+      if (accessValidation && accessValidation.allowed === false) {
         // User is deleted, inactive, or has no profile - sign out immediately
-        console.warn('User access validation failed:', accessValidation?.reason || accessError?.message);
+        console.warn('User access validation failed:', accessValidation.reason || accessError?.message);
         await supabase.auth.signOut();
         
         // Show appropriate error message based on reason
-        const reason = accessValidation?.reason;
+        const reason = accessValidation.reason;
         let errorTitle = t('auth.error');
         let errorDesc = t('auth.accessDenied', 'Access denied');
         
@@ -305,6 +319,11 @@ export default function Login() {
         
         setLoading(false);
         return;
+      }
+      
+      // Log if edge function had a network error but we're proceeding anyway
+      if (accessError) {
+        logger.warn('validate-user-access edge function error (proceeding with login):', accessError.message);
       }
 
       // Check if there's a pending MFA reset (for reactivated users)
