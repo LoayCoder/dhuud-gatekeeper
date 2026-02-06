@@ -8,6 +8,7 @@ import type {
   PublicGatePassSubmission,
   PublicGatePassSubmissionResult,
   PublicGatePassStatusResponse,
+  PublicGatePassItem,
 } from "@/types/public-gate-pass.types";
 
 // Re-export types for convenience
@@ -18,6 +19,7 @@ export type {
   PublicGatePassStatusData,
   PublicGatePassStatus,
   GatePassType,
+  PublicGatePassItem,
 } from "@/types/public-gate-pass.types";
 
 /**
@@ -45,6 +47,19 @@ export function useSubmitPublicGatePass() {
       // Get client IP for rate limiting
       const clientIp = await getClientIP();
 
+      // Prepare items array for RPC
+      const itemsJsonb = data.items?.map(item => ({
+        sr_number: item.sr_number || null,
+        item_name: item.item_name,
+        description: item.description || null,
+        quantity: item.quantity || null,
+        unit: item.unit || null,
+        photo_path: item.photo_path || null,
+        photo_file_name: item.photo_file_name || null,
+        photo_file_size: item.photo_file_size || null,
+        photo_mime_type: item.photo_mime_type || null,
+      })) || [];
+
       // Call the RPC function using .rpc() with type assertion
       const { data: result, error } = await supabase.rpc(
         "submit_public_gate_pass" as never,
@@ -56,9 +71,11 @@ export function useSubmitPublicGatePass() {
           p_requester_email: data.requester_email || null,
           p_requester_company: data.requester_company || null,
           p_pass_type: data.pass_type,
-          p_material_description: data.material_description,
+          p_material_description: data.material_description || null,
           p_quantity: data.quantity || null,
           p_vehicle_plate: data.vehicle_plate || null,
+          p_vehicle_plate_letters: data.vehicle_plate_letters || null,
+          p_vehicle_plate_numbers: data.vehicle_plate_numbers || null,
           p_driver_name: data.driver_name || null,
           p_driver_mobile: data.driver_mobile || null,
           p_pass_date: data.pass_date,
@@ -68,6 +85,7 @@ export function useSubmitPublicGatePass() {
           p_notify_email: data.notify_email ?? true,
           p_notify_sms: data.notify_sms ?? false,
           p_client_ip: clientIp,
+          p_items: itemsJsonb,
         } as never
       );
 
@@ -85,6 +103,11 @@ export function useSubmitPublicGatePass() {
           localStorage.setItem("public_gate_pass_token", result.public_access_token);
         }
         
+        // Build material description from items for notification
+        const materialDescription = variables.items?.map(i => i.item_name).join(', ') 
+          || variables.material_description 
+          || '';
+        
         // Trigger WhatsApp notification to requester AND staff (fire-and-forget)
         try {
           console.log('[Public Gate Pass] Triggering notification for:', result.reference_number);
@@ -98,7 +121,7 @@ export function useSubmitPublicGatePass() {
               requester_phone: variables.requester_phone,
               requester_email: variables.requester_email,
               requester_company: variables.requester_company,
-              material_description: variables.material_description,
+              material_description: materialDescription,
               pass_date: variables.pass_date,
               tracking_url: `/${variables.tenant_slug}/track/${result.public_access_token}`,
               event_type: 'submitted',
