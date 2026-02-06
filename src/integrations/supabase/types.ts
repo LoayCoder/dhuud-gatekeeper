@@ -14364,6 +14364,8 @@ export type Database = {
           token_expires_at: string | null
           updated_at: string
           vehicle_plate: string | null
+          vehicle_plate_letters: string | null
+          vehicle_plate_numbers: string | null
         }
         Insert: {
           approval_from_id?: string | null
@@ -14438,6 +14440,8 @@ export type Database = {
           token_expires_at?: string | null
           updated_at?: string
           vehicle_plate?: string | null
+          vehicle_plate_letters?: string | null
+          vehicle_plate_numbers?: string | null
         }
         Update: {
           approval_from_id?: string | null
@@ -14512,6 +14516,8 @@ export type Database = {
           token_expires_at?: string | null
           updated_at?: string
           vehicle_plate?: string | null
+          vehicle_plate_letters?: string | null
+          vehicle_plate_numbers?: string | null
         }
         Relationships: [
           {
@@ -18044,6 +18050,72 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "ptw_types_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_gate_pass_items: {
+        Row: {
+          created_at: string | null
+          deleted_at: string | null
+          description: string | null
+          gate_pass_id: string
+          id: string
+          item_name: string
+          photo_file_name: string | null
+          photo_file_size: number | null
+          photo_mime_type: string | null
+          photo_storage_path: string | null
+          quantity: string | null
+          sr_number: string | null
+          tenant_id: string
+          unit: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          gate_pass_id: string
+          id?: string
+          item_name: string
+          photo_file_name?: string | null
+          photo_file_size?: number | null
+          photo_mime_type?: string | null
+          photo_storage_path?: string | null
+          quantity?: string | null
+          sr_number?: string | null
+          tenant_id: string
+          unit?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          gate_pass_id?: string
+          id?: string
+          item_name?: string
+          photo_file_name?: string | null
+          photo_file_size?: number | null
+          photo_mime_type?: string | null
+          photo_storage_path?: string | null
+          quantity?: string | null
+          sr_number?: string | null
+          tenant_id?: string
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_gate_pass_items_gate_pass_id_fkey"
+            columns: ["gate_pass_id"]
+            isOneToOne: false
+            referencedRelation: "material_gate_passes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_gate_pass_items_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -25934,10 +26006,15 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string
       }
-      get_public_gate_pass_status: {
-        Args: { p_access_token: string; p_tenant_slug: string }
-        Returns: Json
-      }
+      get_public_gate_pass_status:
+        | {
+            Args: { p_access_token: string; p_tenant_slug: string }
+            Returns: Json
+          }
+        | {
+            Args: { p_access_token: string; p_tenant_slug: string }
+            Returns: Json
+          }
       get_rate_limit_stats: { Args: never; Returns: Json }
       get_recent_hsse_events: { Args: { p_limit?: number }; Returns: Json }
       get_residual_risk_metrics: {
@@ -26652,30 +26729,58 @@ export type Database = {
         }
         Returns: Json
       }
-      submit_public_gate_pass: {
-        Args: {
-          p_branch_id?: string
-          p_client_ip?: string
-          p_driver_mobile?: string
-          p_driver_name?: string
-          p_material_description?: string
-          p_notify_email?: boolean
-          p_notify_sms?: boolean
-          p_notify_whatsapp?: boolean
-          p_pass_date?: string
-          p_pass_type?: string
-          p_quantity?: string
-          p_requester_company?: string
-          p_requester_email?: string
-          p_requester_name?: string
-          p_requester_phone?: string
-          p_tenant_slug: string
-          p_time_window_end?: string
-          p_time_window_start?: string
-          p_vehicle_plate?: string
-        }
-        Returns: Json
-      }
+      submit_public_gate_pass:
+        | {
+            Args: {
+              p_branch_id?: string
+              p_client_ip?: string
+              p_driver_mobile?: string
+              p_driver_name?: string
+              p_items?: Json
+              p_material_description?: string
+              p_notify_email?: boolean
+              p_notify_sms?: boolean
+              p_notify_whatsapp?: boolean
+              p_pass_date?: string
+              p_pass_type?: string
+              p_quantity?: string
+              p_requester_company?: string
+              p_requester_email?: string
+              p_requester_name?: string
+              p_requester_phone?: string
+              p_tenant_slug: string
+              p_time_window_end?: string
+              p_time_window_start?: string
+              p_vehicle_plate?: string
+              p_vehicle_plate_letters?: string
+              p_vehicle_plate_numbers?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_branch_id?: string
+              p_client_ip?: string
+              p_driver_mobile?: string
+              p_driver_name?: string
+              p_material_description?: string
+              p_notify_email?: boolean
+              p_notify_sms?: boolean
+              p_notify_whatsapp?: boolean
+              p_pass_date?: string
+              p_pass_type?: string
+              p_quantity?: string
+              p_requester_company?: string
+              p_requester_email?: string
+              p_requester_name?: string
+              p_requester_phone?: string
+              p_tenant_slug: string
+              p_time_window_end?: string
+              p_time_window_start?: string
+              p_vehicle_plate?: string
+            }
+            Returns: Json
+          }
       toggle_event_category: {
         Args: {
           p_category_id: string
