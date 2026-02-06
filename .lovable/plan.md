@@ -1,75 +1,89 @@
 
-# Fix: AI Analyze Edge Function CORS Headers
 
-## Problem Identified
+# Fix OneSignal Push Notifications
 
-The **"AI Analyze"** button on the incident report page (/incidents/report) is failing with:
-> "Failed to send a request to the Edge Function"
+## Problem Summary
 
-The root cause is a **CORS header mismatch** in the `analyze-observation` edge function.
+The push notification popup is not appearing because OneSignal is failing to initialize due to a **service worker path mismatch**.
 
-## Technical Details
+## Root Cause
 
-### What's Happening
+The OneSignal initialization configuration has conflicting settings:
 
-1. User clicks "AI Analyze" on the incident/observation form
-2. Browser sends a preflight OPTIONS request to check if the POST is allowed
-3. The Supabase JS client now includes these new headers:
-   - `x-supabase-client-platform`
-   - `x-supabase-client-platform-version`  
-   - `x-supabase-client-runtime`
-   - `x-supabase-client-runtime-version`
-4. The `analyze-observation` function only allows: `authorization, x-client-info, apikey, content-type`
-5. Browser blocks the request because the headers are not permitted
-
-### Comparison
-
-| Edge Function | CORS Headers | Status |
-|--------------|--------------|--------|
-| `analyze-incident` | Uses shared `cors.ts` module | Working |
-| `analyze-observation` | Has hardcoded incomplete headers | Broken |
-
-**analyze-observation/index.ts (line 12-15):**
 ```typescript
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};  // ❌ Missing new Supabase client headers
+// src/contexts/OneSignalContext.tsx
+await OneSignal.init({
+  serviceWorkerParam: { scope: '/push/onesignal/' },  // Sets scope to subdirectory
+  serviceWorkerPath: '/OneSignalSDKWorker.js',         // But file is at root
+});
 ```
 
-**Required headers:**
-```typescript
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
-```
+When you navigate to `/push/onesignal/OneSignalSDKWorker.js`, it returns a **404 error**. The file only exists at the root `/OneSignalSDKWorker.js`.
+
+This causes OneSignal to silently fail during initialization, which is why:
+- No push notification prompt appears
+- The subscription toggle in Profile does nothing
+- No data is reflected in OneSignal dashboard
 
 ## Solution
 
-Update `supabase/functions/analyze-observation/index.ts` to include all required CORS headers that the Supabase client sends.
+### Option A (Recommended): Simplify the Service Worker Configuration
 
-### File Change
+Remove the custom scope since the service worker file is at the root. This is the standard OneSignal setup.
 
-**`supabase/functions/analyze-observation/index.ts`**
+**File to Modify:** `src/contexts/OneSignalContext.tsx`
 
-Update lines 12-15:
+**Change (lines 44-49):**
 
 ```typescript
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+// BEFORE
+await OneSignal.init({
+  appId: ONESIGNAL_APP_ID,
+  allowLocalhostAsSecureOrigin: import.meta.env.DEV,
+  serviceWorkerParam: { scope: '/push/onesignal/' },
+  serviceWorkerPath: '/OneSignalSDKWorker.js',
+});
+
+// AFTER
+await OneSignal.init({
+  appId: ONESIGNAL_APP_ID,
+  allowLocalhostAsSecureOrigin: import.meta.env.DEV,
+  serviceWorkerPath: 'OneSignalSDKWorker.js', // No leading slash, no scope
+});
 ```
+
+### Why This Works
+
+- Removes the conflicting `serviceWorkerParam.scope`
+- Uses the default root scope (`/`)
+- Points to the correct service worker file at `/OneSignalSDKWorker.js`
+
+## Additional: Prevent PWA Service Worker Conflict
+
+Since this project has its own PWA service worker (`sw.js`), we should also verify there are no conflicts. The OneSignal service worker should operate independently.
+
+## Technical Notes
+
+| Setting | Before | After |
+|---------|--------|-------|
+| Service Worker Scope | `/push/onesignal/` | `/` (default) |
+| Service Worker Path | `/OneSignalSDKWorker.js` | `OneSignalSDKWorker.js` |
+| File Location | `/public/OneSignalSDKWorker.js` | No change |
 
 ## Expected Outcome
 
 After this fix:
-- The preflight OPTIONS request will succeed
-- The AI Analyze button will work again
-- Observations submitted from /incidents/report will be analyzed by AI
 
-## Notes
+1. OneSignal will initialize successfully (logs will show "OneSignal: Initialized successfully")
+2. The push notification permission prompt will appear for new users
+3. The Profile page toggle will work and update OneSignal subscription
+4. Users will appear in your OneSignal dashboard
 
-- The `analyze-incident` function uses the shared `cors.ts` module which has similar headers, but for consistency it should also be verified
-- All other edge functions should be audited to ensure they include these headers if called from the browser
+## Testing Steps
+
+1. Clear browser cache/service workers (DevTools > Application > Clear storage)
+2. Reload the page
+3. Check console for "OneSignal: Initialized successfully"
+4. Enable notifications in Profile settings
+5. Verify subscription appears in OneSignal dashboard
+
