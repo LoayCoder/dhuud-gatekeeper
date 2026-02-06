@@ -2,20 +2,20 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Bell, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useNotificationPermission } from '@/hooks/use-notification-permission';
+import { useOneSignal } from '@/contexts/OneSignalContext';
 
 const DISMISSED_KEY = 'notification-prompt-dismissed';
 
 export function NotificationPermissionPrompt() {
   const { t } = useTranslation();
-  const { permission, isSupported, requestPermission } = useNotificationPermission();
+  const { permissionState, isSupported, isInitialized, requestPermission } = useOneSignal();
   const [isDismissed, setIsDismissed] = useState(true);
   const [isRequesting, setIsRequesting] = useState(false);
 
   // Check if prompt should be shown on mount
   useEffect(() => {
-    // Don't show if not supported or permission already decided
-    if (!isSupported || permission !== 'default') {
+    // Don't show if not supported, not initialized, or permission already decided
+    if (!isSupported || !isInitialized || permissionState !== 'default') {
       setIsDismissed(true);
       return;
     }
@@ -33,15 +33,15 @@ export function NotificationPermissionPrompt() {
     }
     
     setIsDismissed(false);
-  }, [permission, isSupported]);
+  }, [permissionState, isSupported, isInitialized]);
 
   // Auto-dismiss when permission changes from default
   useEffect(() => {
-    if (permission === 'granted' || permission === 'denied') {
+    if (permissionState === 'granted' || permissionState === 'denied') {
       localStorage.setItem(DISMISSED_KEY, Date.now().toString());
       setIsDismissed(true);
     }
-  }, [permission]);
+  }, [permissionState]);
 
   const handleEnable = async () => {
     setIsRequesting(true);
@@ -61,7 +61,7 @@ export function NotificationPermissionPrompt() {
   };
 
   // Don't render if dismissed or not applicable
-  if (!isSupported || permission !== 'default' || isDismissed) {
+  if (!isSupported || !isInitialized || permissionState !== 'default' || isDismissed) {
     return null;
   }
 
