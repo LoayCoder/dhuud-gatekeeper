@@ -182,12 +182,11 @@ export function useDeptPendingApprovals() {
         const isGolfClubMgmt = userDept?.name?.toLowerCase().includes("golf club management");
 
         if (isGolfClubMgmt) {
-          // User is in Golf Club Management - fetch all internal pending_club_mgmt_ack
+          // User is in Golf Club Management - fetch all pending_club_mgmt_ack (internal AND public)
           const { data: clubMgmtPasses, error: clubMgmtError } = await supabase
             .from("material_gate_passes")
             .select(GATE_PASS_SELECT)
             .eq("tenant_id", tenantId)
-            .eq("is_internal_request", true)
             .eq("status", "pending_club_mgmt_ack")
             .is("deleted_at", null)
             .order("created_at", { ascending: false });
