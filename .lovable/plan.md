@@ -1,127 +1,75 @@
 
-# Enhance Gate Passes Tab in Access Control Dashboard
+# Fix: AI Analyze Edge Function CORS Headers
 
-## Problem
+## Problem Identified
 
-Currently, the **Gate Passes** tab (`/security/access-control`) only shows the `GatePassApprovalQueue` component (pending approvals). The user wants this tab to have a complete sub-tab structure similar to the Gate Guard Dashboard (`/security/gate-dashboard`), including:
+The **"AI Analyze"** button on the incident report page (/incidents/report) is failing with:
+> "Failed to send a request to the Edge Function"
 
-1. **Pending Approvals** - Gate passes waiting for security approval
-2. **Approval History** - Gate passes the user has previously approved/rejected
+The root cause is a **CORS header mismatch** in the `analyze-observation` edge function.
 
-## Current vs Proposed Structure
+## Technical Details
 
-| Current | Proposed |
-|---------|----------|
-| Gate Passes Tab → Shows only `GatePassApprovalQueue` | Gate Passes Tab → Sub-tabs: Pending Approvals + Approval History |
+### What's Happening
+
+1. User clicks "AI Analyze" on the incident/observation form
+2. Browser sends a preflight OPTIONS request to check if the POST is allowed
+3. The Supabase JS client now includes these new headers:
+   - `x-supabase-client-platform`
+   - `x-supabase-client-platform-version`  
+   - `x-supabase-client-runtime`
+   - `x-supabase-client-runtime-version`
+4. The `analyze-observation` function only allows: `authorization, x-client-info, apikey, content-type`
+5. Browser blocks the request because the headers are not permitted
+
+### Comparison
+
+| Edge Function | CORS Headers | Status |
+|--------------|--------------|--------|
+| `analyze-incident` | Uses shared `cors.ts` module | Working |
+| `analyze-observation` | Has hardcoded incomplete headers | Broken |
+
+**analyze-observation/index.ts (line 12-15):**
+```typescript
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};  // ❌ Missing new Supabase client headers
+```
+
+**Required headers:**
+```typescript
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+};
+```
 
 ## Solution
 
-Update the **Gate Passes** tab content in `AccessControlDashboard.tsx` to include nested sub-tabs:
+Update `supabase/functions/analyze-observation/index.ts` to include all required CORS headers that the Supabase client sends.
 
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│                     Gate Passes Tab                              │
-│  ┌───────────────────┐ ┌───────────────────┐                    │
-│  │ Pending Approvals │ │ Approval History  │                    │
-│  └───────────────────┘ └───────────────────┘                    │
-│                                                                  │
-│  ┌─────────────────────────────────────────────────────────────┐│
-│  │                                                              ││
-│  │   (Content: GatePassApprovalQueue OR ApprovalHistoryTab)    ││
-│  │                                                              ││
-│  └─────────────────────────────────────────────────────────────┘│
-└─────────────────────────────────────────────────────────────────┘
-```
+### File Change
 
-## File to Modify
+**`supabase/functions/analyze-observation/index.ts`**
 
-**`src/pages/security/AccessControlDashboard.tsx`**
-
-## Changes
-
-### 1. Add Import for GatePassApprovalHistoryTab
+Update lines 12-15:
 
 ```typescript
-import { GatePassApprovalHistoryTab } from '@/components/contractors/GatePassApprovalHistoryTab';
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+};
 ```
 
-### 2. Add State for Gate Pass Sub-Tab
+## Expected Outcome
 
-```typescript
-const [gatePassSubTab, setGatePassSubTab] = useState('pending');
-```
+After this fix:
+- The preflight OPTIONS request will succeed
+- The AI Analyze button will work again
+- Observations submitted from /incidents/report will be analyzed by AI
 
-### 3. Update Gate Passes Tab Content
+## Notes
 
-Replace the simple Card with a nested Tabs structure:
-
-```typescript
-{/* Gate Passes Tab - Dedicated tab for Security Supervisor */}
-<TabsContent value="gatepasses" className="space-y-4 mt-4">
-  <Card>
-    <CardHeader className="pb-3">
-      <CardTitle className="flex items-center gap-2 text-lg">
-        <Package className="h-5 w-5 text-green-600" />
-        {t('security.accessControl.gatePassApprovals', 'Gate Pass Approvals')}
-      </CardTitle>
-      <CardDescription>
-        {t('security.accessControl.gatePassDescription', 'Material gate passes pending your security approval')}
-      </CardDescription>
-    </CardHeader>
-    <CardContent className="pt-0">
-      {/* Sub-tabs for Pending and History */}
-      <Tabs value={gatePassSubTab} onValueChange={setGatePassSubTab}>
-        <TabsList className="mb-4">
-          <TabsTrigger value="pending" className="gap-2">
-            <ClipboardCheck className="h-4 w-4" />
-            {t('contractors.gatePasses.pendingApprovals', 'Pending Approvals')}
-            {pendingGatePassApprovals.length > 0 && (
-              <Badge variant="destructive" className="ms-1">
-                {pendingGatePassApprovals.length}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="history" className="gap-2">
-            <History className="h-4 w-4" />
-            {t('contractors.gatePasses.tabs.approvalHistory', 'Approval History')}
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="pending">
-          <GatePassApprovalQueue passes={pendingGatePassApprovals} />
-        </TabsContent>
-
-        <TabsContent value="history">
-          <GatePassApprovalHistoryTab />
-        </TabsContent>
-      </Tabs>
-    </CardContent>
-  </Card>
-</TabsContent>
-```
-
-## Visual Result
-
-After this change, the Gate Passes tab will display:
-
-1. **Header**: "Gate Pass Approvals" with description
-2. **Sub-tabs**:
-   - **Pending Approvals** (default): Shows gate passes at `pending_security_approval` status with approval/reject buttons
-   - **Approval History**: Shows gate passes the user has previously approved or rejected, with search and filter capabilities
-
-## Benefits
-
-- **Complete workflow visibility**: Security guards can see both pending work AND their past actions
-- **Consistency**: Matches the structure in Gate Guard Dashboard
-- **Auditability**: Easy to review what has been approved/rejected and by whom
-- **Mobile-friendly**: Sub-tabs are scrollable and touch-friendly
-
-## Additional Consideration
-
-The existing `GatePassApprovalHistoryTab` component already:
-- Fetches the user's approval history via `useGatePassApprovalHistory` hook
-- Shows approved/rejected counts with badges
-- Has search and filter functionality
-- Opens detail dialog on row click
-
-No changes needed to the history component itself - it's already production-ready.
+- The `analyze-incident` function uses the shared `cors.ts` module which has similar headers, but for consistency it should also be verified
+- All other edge functions should be audited to ensure they include these headers if called from the browser
