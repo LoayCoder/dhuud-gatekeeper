@@ -20,7 +20,10 @@ import { PlaceholderPage } from "./components/shared";
 import { PageLoader } from "./components/ui/page-loader";
 import { NetworkStatusIndicator, OnlineRetryHandler, ServiceWorkerUpdateNotifier } from "./components/pwa";
 import { NotificationPermissionPrompt } from "./components/notifications";
+import { OneSignalProvider } from "./contexts/OneSignalContext";
 import { useSwNotificationListener } from "./hooks/use-sw-notification-listener";
+import { useOneSignalNotificationSetup } from "./hooks/use-onesignal-notification-setup";
+import { useOneSignalClickHandler } from "./hooks/use-onesignal-click-handler";
 import { usePrefetchOnIdle } from "./hooks/use-prefetch";
 import { SplashWrapper } from "./components/layout";
 import { lazyWithRetry } from "./lib/lazy-with-retry";
@@ -48,6 +51,14 @@ function AppInitializer() {
   return null;
 }
 
+// Component to bind OneSignal user identity, tags, and deep-link click handling.
+// Must be rendered inside BrowserRouter + AuthProvider + OneSignalProvider.
+function OneSignalSetup() {
+  useOneSignalNotificationSetup();
+  useOneSignalClickHandler();
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <NextThemesProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
@@ -60,10 +71,12 @@ const App = () => (
           <ServiceWorkerUpdateNotifier />
           <NotificationPermissionPrompt />
           <AppInitializer />
+          <OneSignalProvider>
           <BrowserRouter>
             <AuthProvider>
               <BranchProvider>
                 <SessionTimeoutProvider>
+                  <OneSignalSetup />
                   <ErrorBoundary fallback={<SessionFallbackUI />}>
                     <SessionManagementProvider />
                     <SessionTimeoutWarning />
@@ -134,6 +147,7 @@ const App = () => (
               </BranchProvider>
             </AuthProvider>
           </BrowserRouter>
+          </OneSignalProvider>
         </TooltipProvider>
       </ThemeProvider>
     </NextThemesProvider>
