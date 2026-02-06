@@ -46,9 +46,6 @@ export function OneSignalProvider({ children }: { children: React.ReactNode }) {
           allowLocalhostAsSecureOrigin: import.meta.env.DEV,
           serviceWorkerParam: { scope: '/push/onesignal/' },
           serviceWorkerPath: '/OneSignalSDKWorker.js',
-          notifyButton: {
-            enable: false,
-          },
         });
 
         setIsInitialized(true);

@@ -157,9 +157,9 @@ You will be notified when your request is reviewed.
 
         // Filter for department representatives/managers
         const repManagerUserIds = (roleAssignments || [])
-          .filter((item: { roles: { code: string } }) => {
-            const roleCode = item.roles?.code;
-            return roleCode === 'department_representative' || roleCode === 'department_manager';
+          .filter((item: { user_id: string; roles: { code: string }[] }) => {
+            const roles = item.roles || [];
+            return roles.some((r) => r.code === 'department_representative' || r.code === 'department_manager');
           })
           .map((item: { user_id: string }) => item.user_id);
 
