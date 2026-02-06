@@ -98,9 +98,9 @@ serve(async (req) => {
       data: data || {},
       // Web-specific settings
       chrome_web_badge:
-        "https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png",
+        Deno.env.get("ONESIGNAL_CHROME_WEB_BADGE_URL"),
       chrome_web_icon:
-        "https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png",
+        Deno.env.get("ONESIGNAL_CHROME_WEB_ICON_URL"),
       // web_url is intentionally omitted to let the client click handler manage navigation
       ttl: 86400,
       priority: 10,
