@@ -58,20 +58,36 @@ export default function Login() {
       setEmail(invitationEmail);
     }
 
-    // Check if already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Check if already logged in - but VALIDATE the session first
+    const checkExistingSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        // Check MFA status
+        // CRITICAL: Validate the session is actually valid server-side before MFA check
+        // This prevents "missing sub claim" errors from stale local sessions
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error || !user) {
+          // Session is stale/invalid - clear it silently and stay on login page
+          logger.debug('Stale session detected, clearing...');
+          await supabase.auth.signOut({ scope: 'local' });
+          return;
+        }
+        // Session is valid, check MFA status
         checkMFAAndNavigate();
       }
-    });
+    };
+    
+    checkExistingSession();
 
     // Listen for auth changes - but don't auto-navigate if MFA is pending
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session && !showMFADialog) {
-        checkMFAAndNavigate();
+        // Validate session before MFA check
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (!error && user) {
+          checkMFAAndNavigate();
+        }
       }
     });
 
