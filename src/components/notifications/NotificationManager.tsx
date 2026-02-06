@@ -30,7 +30,8 @@ export function NotificationManager() {
         data: { route: '/dashboard' },
       });
       toast.success(t('notifications.testSent', 'Test notification sent'));
-    } catch {
+    } catch (error) {
+      logger.error('Failed to send test notification', error);
       toast.error(t('notifications.testFailed', 'Failed to send test notification'));
     } finally {
       setIsSendingTest(false);
