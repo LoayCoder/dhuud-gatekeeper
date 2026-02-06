@@ -1,137 +1,134 @@
 
+# Fix Service Worker Timeout in Push Notification Profile Toggle
 
-# Fix OneSignal Web Push - Complete Implementation
+## Problem Summary
 
-## Problems Identified
-
-Based on your detailed plan, I found **4 issues** preventing subscriptions from reflecting in OneSignal:
-
-### Issue 1: NotificationPermissionPrompt Outside OneSignalProvider (ROOT CAUSE)
-
-The permission prompt component is rendered **before** OneSignalProvider initializes:
-
-```text
-Current App.tsx structure:
-┌─────────────────────────────────┐
-│ <NotificationPermissionPrompt/> │  ← Uses browser Notification API only
-├─────────────────────────────────┤
-│ <OneSignalProvider>             │  ← OneSignal context starts here
-│   └─ <OneSignalSetup/>          │  ← User login/tags happen here
-│ </OneSignalProvider>            │
-└─────────────────────────────────┘
+When you click the Push Notifications toggle in Profile, you see:
+```
+Error checking push subscription: Error: Service worker timeout
 ```
 
-When a user clicks "Enable" in the prompt, it calls `Notification.requestPermission()` directly (browser API) instead of `OneSignal.Notifications.requestPermission()`. This grants browser permission but does NOT create a OneSignal subscription.
+This happens because the project has **two conflicting push notification systems**:
 
-### Issue 2: Missing Backend Secrets
+| System | Service Worker | Hook/Context | Purpose |
+|--------|---------------|--------------|---------|
+| OneSignal (new) | `OneSignalSDKWorker.js` | `useOneSignal` | Third-party push service |
+| Custom VAPID (old) | `sw.js` | `usePushSubscription` | Self-hosted Web Push |
 
-The Edge Function `send-onesignal-notification` requires:
-- `ONESIGNAL_APP_ID` - Your OneSignal App ID
-- `ONESIGNAL_REST_API_KEY` - Your OneSignal REST API Key
+The Profile page uses `usePushSubscription` (the old system), which waits for `sw.js` to be ready. But in development mode, `register-sw.ts` **unregisters all service workers** to avoid HMR caching issues. This causes the timeout.
 
-These are NOT configured. Without them, the backend cannot send notifications.
+## Solution: Unify on OneSignal
 
-### Issue 3: Service Worker Path Format
+Since you've integrated OneSignal for push notifications, we should update the Profile page to use the OneSignal system instead of the old VAPID-based system.
 
-Your plan specifies `/OneSignalSDKWorker.js` (with leading slash), but code uses `'OneSignalSDKWorker.js'` (without). OneSignal documentation recommends the leading slash.
-
-### Issue 4: Edge Function CORS Headers
-
-The `send-onesignal-notification` function is missing new Supabase client headers.
-
----
-
-## Solution
-
-### Step 1: Move NotificationPermissionPrompt Inside OneSignalProvider
-
-**File:** `src/App.tsx`
-
-Move the prompt component inside the `OneSignalProvider` so it has access to OneSignal context:
-
-```tsx
-// BEFORE (incorrect)
-<NotificationPermissionPrompt />
-<AppInitializer />
-<OneSignalProvider>
-
-// AFTER (correct)
-<AppInitializer />
-<OneSignalProvider>
-  <NotificationPermissionPrompt />  // Now inside provider
-```
-
-### Step 2: Update NotificationPermissionPrompt to Use OneSignal
-
-**File:** `src/components/notifications/NotificationPermissionPrompt.tsx`
-
-Change from using browser `Notification.requestPermission()` to using OneSignal's SDK:
-
-```typescript
-// BEFORE: Uses browser API
-import { useNotificationPermission } from '@/hooks/use-notification-permission';
-const { permission, isSupported, requestPermission } = useNotificationPermission();
-
-// AFTER: Uses OneSignal SDK
-import { useOneSignal } from '@/contexts/OneSignalContext';
-const { permissionState, isSupported, requestPermission } = useOneSignal();
-```
-
-### Step 3: Fix Service Worker Path
-
-**File:** `src/contexts/OneSignalContext.tsx`
-
-Add leading slash as per OneSignal documentation:
-
-```typescript
-// BEFORE
-serviceWorkerPath: 'OneSignalSDKWorker.js',
-
-// AFTER
-serviceWorkerPath: '/OneSignalSDKWorker.js',
-```
-
-### Step 4: Add Missing Backend Secrets
-
-Two secrets need to be added to Supabase:
-
-| Secret Name | Where to Find It |
-|-------------|------------------|
-| `ONESIGNAL_APP_ID` | OneSignal Dashboard → Settings → Keys & IDs → App ID |
-| `ONESIGNAL_REST_API_KEY` | OneSignal Dashboard → Settings → Keys & IDs → REST API Key |
-
-### Step 5: Update Edge Function CORS Headers
-
-**File:** `supabase/functions/send-onesignal-notification/index.ts`
-
-```typescript
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
-```
-
----
-
-## Files to Modify
+### Files to Modify
 
 | File | Change |
 |------|--------|
-| `src/App.tsx` | Move `NotificationPermissionPrompt` inside `OneSignalProvider` |
-| `src/components/notifications/NotificationPermissionPrompt.tsx` | Switch from `useNotificationPermission` to `useOneSignal` |
-| `src/contexts/OneSignalContext.tsx` | Add leading slash to service worker path |
-| `supabase/functions/send-onesignal-notification/index.ts` | Update CORS headers |
+| `src/components/profile/NotificationPreferences.tsx` | Replace `usePushSubscription` with `useOneSignal` |
+| `src/hooks/use-push-subscription.ts` | Mark as deprecated or remove if no longer needed |
 
----
+### Step 1: Update NotificationPreferences.tsx
 
-## Testing After Fix
+Replace the VAPID-based hook with OneSignal context:
 
-1. Clear browser cache and service workers (DevTools → Application → Clear storage)
-2. Reload the page
-3. Check console for "OneSignal: Initialized successfully"
-4. Click "Enable Notifications" button
-5. Grant permission when browser prompts
-6. Check OneSignal Dashboard → Audience → Users
-7. You should see your subscription with External ID = your Supabase user ID
+```typescript
+// BEFORE
+import { usePushSubscription } from '@/hooks/use-push-subscription';
+const { isSubscribed, isLoading: isPushLoading, subscribe, unsubscribe, error: pushError, isAuthenticated } = usePushSubscription();
 
+// AFTER
+import { useOneSignal } from '@/contexts/OneSignalContext';
+const { 
+  isInitialized, 
+  isSupported, 
+  permissionState, 
+  requestPermission, 
+  loginUser, 
+  logoutUser 
+} = useOneSignal();
+```
+
+### Step 2: Update handlePushToggle Logic
+
+```typescript
+// NEW: Use OneSignal for push toggle
+const handlePushToggle = async (checked: boolean) => {
+  setIsToggling(true);
+  try {
+    if (checked) {
+      await requestPermission();
+      if (user?.id) {
+        await loginUser(user.id);
+      }
+      toast({
+        title: t('notifications.pushSubscribed'),
+        description: t('notifications.pushSubscribedDescription'),
+      });
+    } else {
+      await logoutUser();
+      toast({
+        title: t('notifications.pushUnsubscribed'),
+        description: t('notifications.pushUnsubscribedDescription'),
+      });
+    }
+  } catch (error) {
+    // error handling
+  } finally {
+    setIsToggling(false);
+  }
+};
+```
+
+### Step 3: Update Test Push Function
+
+The test push should call the `send-onesignal-notification` Edge Function (already created):
+
+```typescript
+const handleTestPushNotification = async () => {
+  const response = await supabase.functions.invoke('send-onesignal-notification', {
+    body: {
+      external_ids: [user.id],
+      title: 'Test Push Notification',
+      body: 'If you see this, OneSignal push is working!'
+    }
+  });
+};
+```
+
+### Step 4: Update Switch State
+
+```typescript
+// Derive subscription state from OneSignal
+const isSubscribed = permissionState === 'granted';
+const isPushLoading = !isInitialized;
+```
+
+## Development vs Production
+
+| Environment | Behavior |
+|-------------|----------|
+| Development | `sw.js` is unregistered (HMR conflict avoidance). OneSignal uses its own worker independently |
+| Production | Both `sw.js` (offline/caching) and `OneSignalSDKWorker.js` (push) work in parallel |
+
+OneSignal manages its own service worker lifecycle, so it doesn't need `navigator.serviceWorker.ready` from the main SW.
+
+## Additional Cleanup (Optional)
+
+Consider deprecating these files if OneSignal fully replaces custom push:
+
+- `src/hooks/use-push-subscription.ts` - Old VAPID-based hook
+- `src/hooks/use-push-test.ts` - Old test hook (uses VAPID system)
+- Edge functions for VAPID push (if any)
+
+The database table `push_subscriptions` becomes unused with OneSignal (OneSignal stores subscriptions on their servers).
+
+## Expected Outcome
+
+After this fix:
+
+1. No more "Service worker timeout" error
+2. Profile toggle works immediately (uses OneSignal SDK directly)
+3. Push subscriptions appear in OneSignal Dashboard
+4. Test push button sends via OneSignal API
+5. Works in both development and production environments
