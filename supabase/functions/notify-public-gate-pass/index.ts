@@ -57,10 +57,10 @@ serve(async (req) => {
     console.log(`[notify-public-gate-pass] Processing ${event_type} for gate pass ${reference_number}`);
     console.log(`[notify-public-gate-pass] Tenant ID: ${tenant_id}, Branch ID: ${branch_id}`);
 
-    // Get tenant details
+    // Get tenant details including custom domain
     const { data: tenant, error: tenantError } = await supabase
       .from('tenants')
-      .select('id, name, slug')
+      .select('id, name, slug, public_gate_pass_domain')
       .eq('id', tenant_id)
       .single();
 
