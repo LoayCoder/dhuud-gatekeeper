@@ -446,6 +446,18 @@ export function useApproveGatePass() {
     mutationFn: async ({ passId, action, notes }: { passId: string; action: "approve" | "reject"; notes?: string }) => {
       if (!user?.id) throw new Error("Not authenticated");
 
+      // Get gate pass details first (needed for public notification)
+      const { data: gatePass } = await supabase
+        .from("material_gate_passes")
+        .select(`
+          id, is_public_request, public_requester_name, public_requester_phone,
+          public_requester_email, public_requester_company, material_description,
+          pass_date, reference_number, public_access_token, tenant_id, branch_id,
+          tenants(slug)
+        `)
+        .eq("id", passId)
+        .single();
+
       // Use the unified RPC for approval/rejection
       const { data, error } = await supabase.rpc("approve_gate_pass_unified", {
         p_user_id: user.id,
@@ -458,6 +470,40 @@ export function useApproveGatePass() {
       
       // RPC returns the new status as a string
       const newStatus = data as string;
+      
+      // Trigger notification for public gate passes
+      if (gatePass?.is_public_request && (newStatus === "approved" || newStatus === "rejected" || newStatus === "pending_security_approval")) {
+        const tenantSlug = (gatePass.tenants as { slug: string } | null)?.slug || "";
+        const eventType = newStatus === "approved" ? "approved" : 
+                         newStatus === "rejected" ? "rejected" : 
+                         "acknowledged";
+        
+        try {
+          console.log(`[Gate Pass] Triggering ${eventType} notification for public gate pass:`, gatePass.reference_number);
+          await supabase.functions.invoke("notify-public-gate-pass", {
+            body: {
+              gate_pass_id: gatePass.id,
+              tenant_id: gatePass.tenant_id,
+              branch_id: gatePass.branch_id,
+              reference_number: gatePass.reference_number,
+              requester_name: gatePass.public_requester_name,
+              requester_phone: gatePass.public_requester_phone,
+              requester_email: gatePass.public_requester_email,
+              requester_company: gatePass.public_requester_company,
+              material_description: gatePass.material_description,
+              pass_date: gatePass.pass_date,
+              tracking_url: `/${tenantSlug}/track/${gatePass.public_access_token}`,
+              public_access_token: gatePass.public_access_token,
+              event_type: eventType,
+              rejection_reason: action === "reject" ? notes : null,
+            },
+          });
+          console.log(`[Gate Pass] ${eventType} notification sent successfully`);
+        } catch (notifyError) {
+          console.error("[Gate Pass] Failed to send notification:", notifyError);
+          // Don't fail the approval - notification is best-effort
+        }
+      }
       
       return { passId, newStatus };
     },
