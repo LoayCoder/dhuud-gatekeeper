@@ -7,6 +7,7 @@ import { useOneSignal } from '@/contexts/OneSignalContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { triggerWorkflowNotification } from '@/lib/onesignal-workflow';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 export function NotificationManager() {
   const { t } = useTranslation();

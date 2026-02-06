@@ -17,9 +17,11 @@ export function useOneSignalClickHandler() {
   useEffect(() => {
     if (!isInitialized) return;
 
-    const handleClick = (event: { notification: { additionalData?: Record<string, unknown> } }) => {
+    const handleClick = (event: unknown) => {
       try {
-        const route = event?.notification?.additionalData?.route as string | undefined;
+        const clickEvent = event as { notification?: { additionalData?: object } };
+        const additionalData = clickEvent?.notification?.additionalData as Record<string, unknown> | undefined;
+        const route = additionalData?.route as string | undefined;
         if (route && typeof route === 'string' && route.startsWith('/')) {
           logger.debug(`OneSignal: Deep link navigation to ${route}`);
           navigate(route);
@@ -29,11 +31,11 @@ export function useOneSignalClickHandler() {
       }
     };
 
-    OneSignal.Notifications.addEventListener('click', handleClick);
+    OneSignal.Notifications.addEventListener('click', handleClick as (obj: unknown) => void);
 
     return () => {
       try {
-        OneSignal.Notifications.removeEventListener('click', handleClick);
+        OneSignal.Notifications.removeEventListener('click', handleClick as (obj: unknown) => void);
       } catch {
         // Ignore cleanup errors
       }
