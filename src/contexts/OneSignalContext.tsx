@@ -55,8 +55,8 @@ export function OneSignalProvider({ children }: { children: React.ReactNode }) {
         logger.debug('OneSignal: Initialized successfully.');
 
         // Read initial permission state
-        const currentPermission = OneSignal.Notifications.permission;
-        setPermissionState(currentPermission ? 'granted' : 'default');
+        const browserPerm = 'Notification' in window ? Notification.permission : 'default';
+        setPermissionState(browserPerm === 'denied' ? 'denied' : OneSignal.Notifications.permission ? 'granted' : 'default');
 
         // Listen for permission changes
         OneSignal.Notifications.addEventListener('permissionChange', (granted: boolean) => {
