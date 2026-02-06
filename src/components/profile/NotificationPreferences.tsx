@@ -7,14 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import { useNotificationPermission } from "@/hooks/use-notification-permission";
 import { toast } from "@/hooks/use-toast";
 import { NotificationHistory } from "./NotificationHistory";
 import { NotificationSoundSettings } from "./NotificationSoundSettings";
 import { NotificationCategoryPreferences } from "./NotificationCategoryPreferences";
 import { PushNotificationTypePreferences } from "./PushNotificationTypePreferences";
 import { AssetNotificationPreferences } from "@/components/settings/AssetNotificationPreferences";
-import { usePushSubscription } from "@/hooks/use-push-subscription";
+import { useOneSignal } from "@/contexts/OneSignalContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/lib/logger";
@@ -25,10 +24,25 @@ export function NotificationPreferences() {
   const { t, i18n } = useTranslation();
   const isRTL = RTL_LANGUAGES.includes(i18n.language);
   const direction = isRTL ? 'rtl' : 'ltr';
-  const { permission, isSupported, isGranted, isDenied, requestPermission } = useNotificationPermission();
-  const { isSubscribed, isLoading: isPushLoading, subscribe, unsubscribe, error: pushError, isAuthenticated } = usePushSubscription();
-  const { user } = useAuth();
+  
+  // OneSignal for push notifications
+  const { 
+    isInitialized, 
+    isSupported, 
+    permissionState, 
+    requestPermission, 
+    loginUser, 
+    logoutUser 
+  } = useOneSignal();
+  
+  const { user, isAuthenticated } = useAuth();
   const [isToggling, setIsToggling] = useState(false);
+  
+  // Derive push state from OneSignal
+  const isSubscribed = permissionState === 'granted';
+  const isPushLoading = !isInitialized;
+  const isGranted = permissionState === 'granted';
+  const isDenied = permissionState === 'denied';
   const [isSendingTest, setIsSendingTest] = useState(false);
   
   const [syncNotifications, setSyncNotifications] = useState(() => {
@@ -71,13 +85,16 @@ export function NotificationPreferences() {
   }, [periodicSyncEnabled]);
 
   const handleEnableNotifications = async () => {
-    const granted = await requestPermission();
-    if (granted) {
+    try {
+      await requestPermission();
+      if (user?.id) {
+        await loginUser(user.id);
+      }
       toast({
         title: t('notifications.enabled'),
         description: t('notifications.enabledDescription'),
       });
-    } else {
+    } catch (error) {
       toast({
         title: t('notifications.deniedTitle'),
         description: t('notifications.deniedDescription'),
@@ -97,22 +114,20 @@ export function NotificationPreferences() {
     setIsToggling(true);
     try {
       if (checked) {
-        const success = await subscribe();
-        if (success) {
-          toast({
-            title: t('notifications.pushSubscribed', 'Push notifications enabled'),
-            description: t('notifications.pushSubscribedDescription', 'You will now receive push notifications on this device.'),
-          });
+        await requestPermission();
+        if (user?.id) {
+          await loginUser(user.id);
         }
-        // If not successful, the error is already set in the hook state and displayed in UI
+        toast({
+          title: t('notifications.pushSubscribed', 'Push notifications enabled'),
+          description: t('notifications.pushSubscribedDescription', 'You will now receive push notifications on this device.'),
+        });
       } else {
-        const success = await unsubscribe();
-        if (success) {
-          toast({
-            title: t('notifications.pushUnsubscribed', 'Push notifications disabled'),
-            description: t('notifications.pushUnsubscribedDescription', 'You will no longer receive push notifications on this device.'),
-          });
-        }
+        await logoutUser();
+        toast({
+          title: t('notifications.pushUnsubscribed', 'Push notifications disabled'),
+          description: t('notifications.pushUnsubscribedDescription', 'You will no longer receive push notifications on this device.'),
+        });
       }
     } catch (error) {
       toast({
@@ -137,17 +152,15 @@ export function NotificationPreferences() {
 
     setIsSendingTest(true);
     try {
-      logger.debug('[TestPush] Sending test notification to user:', user.id);
+      logger.debug('[TestPush] Sending OneSignal test notification to user:', user.id);
       
-      const response = await supabase.functions.invoke('send-push-notification', {
+      // Use OneSignal Edge Function
+      const response = await supabase.functions.invoke('send-onesignal-notification', {
         body: {
-          user_ids: [user.id],
-          payload: {
-            title: 'Test Push Notification ✅',
-            body: 'If you see this, push notifications are working correctly!',
-            tag: 'test-notification',
-            data: { type: 'test' }
-          }
+          userIds: [user.id],
+          heading: 'Test Push Notification ✅',
+          content: 'If you see this, OneSignal push notifications are working correctly!',
+          data: { type: 'test', timestamp: Date.now() }
         }
       });
 
@@ -161,21 +174,16 @@ export function NotificationPreferences() {
       const result = response.data;
       logger.debug('[TestPush] Result:', result);
 
-      if (result?.sent > 0) {
+      if (result?.success) {
         toast({
           title: t('notifications.testSent', 'Test notification sent!'),
           description: t('notifications.testSentDescription', 'You should receive a push notification shortly.'),
         });
-      } else if (result?.message?.includes('No active subscriptions')) {
-        toast({
-          title: t('notifications.noSubscription', 'No active subscription'),
-          description: t('notifications.resubscribe', 'Please toggle push notifications off and on again to re-subscribe.'),
-          variant: "destructive",
-        });
       } else {
         toast({
-          title: t('notifications.testSent', 'Request sent'),
-          description: result?.message || 'Check if you receive the notification.',
+          title: t('notifications.testError', 'Send failed'),
+          description: result?.error || 'Check console for details.',
+          variant: "destructive",
         });
       }
     } catch (error) {
@@ -316,10 +324,10 @@ export function NotificationPreferences() {
                 </div>
               )}
               
-              {/* Only show errors when authenticated */}
-              {isAuthenticated && pushError && (
+              {/* Permission denied message */}
+              {isAuthenticated && isDenied && (
                 <p className="text-sm text-destructive mt-1">
-                  {pushError}
+                  {t('notifications.permissionDenied', 'Notifications blocked. Enable in browser settings.')}
                 </p>
               )}
             </div>
