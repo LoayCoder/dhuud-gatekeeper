@@ -69,9 +69,9 @@ const App = () => (
           <NetworkStatusIndicator />
           <OnlineRetryHandler />
           <ServiceWorkerUpdateNotifier />
-          <NotificationPermissionPrompt />
           <AppInitializer />
           <OneSignalProvider>
+            <NotificationPermissionPrompt />
           <BrowserRouter>
             <AuthProvider>
               <BranchProvider>
