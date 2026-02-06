@@ -72,14 +72,44 @@ export function useSubmitPublicGatePass() {
       );
 
       if (error) throw error;
+      
+      // Store the submission data for use in onSuccess
+      (result as PublicGatePassSubmissionResult & { _submissionData?: PublicGatePassSubmission })._submissionData = data;
+      
       return result as unknown as PublicGatePassSubmissionResult;
     },
-    onSuccess: (result) => {
+    onSuccess: async (result, variables) => {
       if (result.success) {
         // Store token in localStorage for status page
         if (result.public_access_token) {
           localStorage.setItem("public_gate_pass_token", result.public_access_token);
         }
+        
+        // Trigger WhatsApp notification to requester AND staff (fire-and-forget)
+        try {
+          console.log('[Public Gate Pass] Triggering notification for:', result.reference_number);
+          await supabase.functions.invoke('notify-public-gate-pass', {
+            body: {
+              gate_pass_id: result.gate_pass_id,
+              tenant_id: variables.tenant_id,
+              branch_id: variables.branch_id,
+              reference_number: result.reference_number,
+              requester_name: variables.requester_name,
+              requester_phone: variables.requester_phone,
+              requester_email: variables.requester_email,
+              requester_company: variables.requester_company,
+              material_description: variables.material_description,
+              pass_date: variables.pass_date,
+              tracking_url: `/${variables.tenant_slug}/track/${result.public_access_token}`,
+              event_type: 'submitted',
+            }
+          });
+          console.log('[Public Gate Pass] Notification triggered successfully');
+        } catch (err) {
+          // Don't fail the submission - notification is best-effort
+          console.error('[Public Gate Pass] Notification failed:', err);
+        }
+        
         toast.success("Gate pass request submitted successfully!");
       } else {
         toast.error(result.error || "Failed to submit gate pass request");
