@@ -5,12 +5,19 @@ export function registerServiceWorker() {
     return;
   }
 
-  // In development, unregister service workers to avoid caching issues with HMR
+  // In development, unregister custom service workers to avoid caching issues with HMR
+  // BUT preserve OneSignal's service worker for push notifications
   if (import.meta.env.DEV) {
     navigator.serviceWorker.getRegistrations().then(registrations => {
       registrations.forEach(registration => {
+        // Check if this is OneSignal's service worker - do NOT unregister it
+        const swUrl = registration.active?.scriptURL || registration.installing?.scriptURL || registration.waiting?.scriptURL || '';
+        if (swUrl.includes('OneSignalSDKWorker')) {
+          logger.debug('[SW] Preserving OneSignal service worker in development mode');
+          return;
+        }
         registration.unregister();
-        logger.debug('[SW] Unregistered service worker in development mode');
+        logger.debug('[SW] Unregistered non-OneSignal service worker in development mode');
       });
     });
     return;
