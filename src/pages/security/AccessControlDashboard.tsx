@@ -28,6 +28,7 @@ import { VisitorApprovalQueue } from '@/components/security/VisitorApprovalQueue
 import { WorkerApprovalQueue } from '@/components/contractors/WorkerApprovalQueue';
 import { WorkerSecurityApprovalQueue } from '@/components/contractors/WorkerSecurityApprovalQueue';
 import { GatePassApprovalQueue } from '@/components/contractors/GatePassApprovalQueue';
+import { GatePassApprovalHistoryTab } from '@/components/contractors/GatePassApprovalHistoryTab';
 
 export default function AccessControlDashboard() {
   const { t } = useTranslation();
@@ -36,6 +37,7 @@ export default function AccessControlDashboard() {
   const [entityFilter, setEntityFilter] = useState<EntityType | 'all'>('all');
   const [dateFilter, setDateFilter] = useState<'today' | '7days' | '30days'>('today');
   const [searchQuery, setSearchQuery] = useState('');
+  const [gatePassSubTab, setGatePassSubTab] = useState('pending');
 
   // Stats
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useUnifiedAccessStats();
@@ -334,16 +336,38 @@ export default function AccessControlDashboard() {
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Package className="h-5 w-5 text-green-600" />
                 {t('security.accessControl.gatePassApprovals', 'Gate Pass Approvals')}
-                {pendingGatePassApprovals.length > 0 && (
-                  <Badge variant="destructive">{pendingGatePassApprovals.length}</Badge>
-                )}
               </CardTitle>
               <CardDescription>
                 {t('security.accessControl.gatePassDescription', 'Material gate passes pending your security approval')}
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <GatePassApprovalQueue passes={pendingGatePassApprovals} />
+            <CardContent className="pt-0">
+              {/* Sub-tabs for Pending and History */}
+              <Tabs value={gatePassSubTab} onValueChange={setGatePassSubTab}>
+                <TabsList className="mb-4">
+                  <TabsTrigger value="pending" className="gap-2">
+                    <ClipboardCheck className="h-4 w-4" />
+                    {t('contractors.gatePasses.pendingApprovals', 'Pending Approvals')}
+                    {pendingGatePassApprovals.length > 0 && (
+                      <Badge variant="destructive" className="ms-1">
+                        {pendingGatePassApprovals.length}
+                      </Badge>
+                    )}
+                  </TabsTrigger>
+                  <TabsTrigger value="history" className="gap-2">
+                    <History className="h-4 w-4" />
+                    {t('contractors.gatePasses.tabs.approvalHistory', 'Approval History')}
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="pending">
+                  <GatePassApprovalQueue passes={pendingGatePassApprovals} />
+                </TabsContent>
+
+                <TabsContent value="history">
+                  <GatePassApprovalHistoryTab />
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         </TabsContent>
