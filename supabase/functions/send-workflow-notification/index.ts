@@ -1,12 +1,13 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendEmail, type EmailModule, getAppUrl, emailButton, wrapEmailHtml, getCommonTranslations } from "../_shared/email-sender.ts";
-import { 
-  WORKFLOW_TRANSLATIONS, 
-  getTranslations, 
+import { sendWhatsAppText } from "../_shared/whatsapp-provider.ts";
+import {
+  WORKFLOW_TRANSLATIONS,
+  getTranslations,
   replaceVariables,
   isRTL,
-  type SupportedLanguage 
+  type SupportedLanguage
 } from "../_shared/email-translations.ts";
 
 const corsHeaders = {
@@ -91,6 +92,104 @@ async function sendEmailWithTracking(supabase: any, tenantId: string, tenantName
 async function getRecipientLanguage(supabase: any, recipientId: string): Promise<string> {
   const { data } = await supabase.from("profiles").select("preferred_language").eq("id", recipientId).single();
   return data?.preferred_language || 'en';
+}
+
+/**
+ * Build a concise WhatsApp summary for a workflow action.
+ * Returns null if no WhatsApp should be sent for this action.
+ */
+function buildWhatsAppMessage(
+  action: string,
+  referenceId: string,
+  tenantName: string,
+  extras: { notes?: string; reason?: string; recipientName?: string; incidentTitle?: string }
+): string | null {
+  const ref = referenceId;
+  const name = extras.recipientName || '';
+  const greeting = name ? `Dear ${name},\n\n` : '';
+
+  switch (action) {
+    case "expert_return":
+      return `${greeting}⚠️ *${tenantName} – Report Returned*\n\nYour report *${ref}* has been returned for revision.${extras.reason ? `\nReason: ${extras.reason}` : ''}\n\nPlease revise and resubmit.`;
+    case "expert_reject":
+      return `${greeting}❌ *${tenantName} – Report Rejected*\n\nYour report *${ref}* has been rejected.${extras.reason ? `\nReason: ${extras.reason}` : ''}\n\nPlease review the feedback.`;
+    case "expert_investigate":
+      return `${greeting}🔍 *${tenantName} – Investigation Assigned*\n\nIncident *${ref}* has been assigned for investigation.${extras.incidentTitle ? `\nTitle: ${extras.incidentTitle}` : ''}${extras.notes ? `\nNotes: ${extras.notes}` : ''}\n\nPlease review in the portal.`;
+    case "investigator_assigned":
+      return `${greeting}📋 *${tenantName} – You Are Assigned as Investigator*\n\nYou have been assigned to investigate incident *${ref}*.${extras.incidentTitle ? `\nTitle: ${extras.incidentTitle}` : ''}\n\nPlease begin your investigation.`;
+    case "expert_assign_actions":
+      return `${greeting}📝 *${tenantName} – Actions Assigned for Review*\n\nCorrective actions for *${ref}* are ready for your review.${extras.incidentTitle ? `\nTitle: ${extras.incidentTitle}` : ''}\n\nPlease review in the portal.`;
+    case "close_on_spot":
+      return `${greeting}✅ *${tenantName} – Observation Closed On-Spot*\n\nObservation *${ref}* has been closed on-spot.${extras.notes ? `\nNotes: ${extras.notes}` : ''}`;
+    case "observation_closed":
+      return `${greeting}✅ *${tenantName} – Observation Closed*\n\nObservation *${ref}* has been closed successfully.`;
+    case "incident_closed":
+      return `${greeting}✅ *${tenantName} – Incident Closed*\n\nIncident *${ref}* investigation has been closed.`;
+    case "dept_rep_incident_review":
+      return `${greeting}🔔 *${tenantName} – New Event Requires Review*\n\nEvent report *${ref}* has been assigned to your department.${extras.incidentTitle ? `\nTitle: ${extras.incidentTitle}` : ''}\n\nPlease review and take action.`;
+    case "escalation_reject":
+      return `${greeting}❌ *${tenantName} – Escalation Rejected*\n\nYour escalation for *${ref}* has been rejected.${extras.notes ? `\nReason: ${extras.notes}` : ''}`;
+    case "escalation_accept_observation":
+      return `${greeting}✅ *${tenantName} – Escalation Accepted*\n\nThe escalation for observation *${ref}* has been accepted.`;
+    case "escalation_upgraded":
+      return `${greeting}⬆️ *${tenantName} – Observation Upgraded to Incident*\n\nObservation *${ref}* has been upgraded to an incident for investigation.${extras.notes ? `\nNotes: ${extras.notes}` : ''}`;
+    case "violation_pending_approval":
+      return `${greeting}⚠️ *${tenantName} – Violation Pending Approval*\n\nViolation for *${ref}* requires your approval.\n\nPlease review in the portal.`;
+    case "violation_fine_pending":
+      return `${greeting}💰 *${tenantName} – Fine Pending Approval*\n\nA fine for violation *${ref}* requires your approval.\n\nPlease review in the portal.`;
+    case "violation_acknowledgment_required":
+      return `${greeting}📋 *${tenantName} – Violation Acknowledgment Required*\n\nViolation *${ref}* requires your acknowledgment.\n\nPlease review and acknowledge.`;
+    case "violation_contested":
+      return `${greeting}⚡ *${tenantName} – Violation Contested*\n\nThe contractor has contested violation *${ref}*.${extras.notes ? `\nContest reason: ${extras.notes}` : ''}\n\nPlease review.`;
+    case "violation_rejected_review":
+      return `${greeting}❌ *${tenantName} – Violation/Fine Rejected*\n\nViolation *${ref}* has been rejected and needs review.${extras.notes ? `\nReason: ${extras.notes}` : ''}`;
+    case "violation_finalized":
+      return `${greeting}✅ *${tenantName} – Violation Finalized*\n\nViolation *${ref}* has been finalized.`;
+    case "violation_cancelled":
+      return `${greeting}🚫 *${tenantName} – Violation Cancelled*\n\nViolation *${ref}* has been cancelled.${extras.notes ? `\nReason: ${extras.notes}` : ''}`;
+    default:
+      return null;
+  }
+}
+
+/**
+ * Collect user IDs from the workflow case to resolve phone numbers.
+ * Each action case may target the reporter, approval_manager, investigator, or role-based users.
+ */
+// deno-lint-ignore no-explicit-any
+function getRecipientUserIds(action: string, incident: any, payload: WorkflowNotificationRequest): string[] {
+  const ids: string[] = [];
+  switch (action) {
+    case "expert_return":
+    case "expert_reject":
+    case "close_on_spot":
+    case "observation_closed":
+    case "incident_closed":
+      if (incident.reporter_id) ids.push(incident.reporter_id);
+      break;
+    case "expert_investigate":
+    case "expert_assign_actions":
+    case "dept_rep_incident_review":
+    case "escalation_reject":
+      if (incident.approval_manager_id) ids.push(incident.approval_manager_id);
+      break;
+    case "investigator_assigned":
+      if (payload.investigatorId) ids.push(payload.investigatorId);
+      break;
+    case "escalation_accept_observation":
+    case "escalation_upgraded":
+    case "violation_finalized":
+    case "violation_cancelled":
+      if (incident.reporter_id) ids.push(incident.reporter_id);
+      if (incident.approval_manager_id) ids.push(incident.approval_manager_id);
+      if (payload.investigatorId) ids.push(payload.investigatorId);
+      break;
+    // violation_pending_approval uses approval_manager_id
+    case "violation_pending_approval":
+      if (incident.approval_manager_id) ids.push(incident.approval_manager_id);
+      break;
+  }
+  return [...new Set(ids.filter(Boolean))];
 }
 
 serve(async (req: Request) => {
@@ -778,7 +877,52 @@ serve(async (req: Request) => {
       result = await sendEmailWithTracking(supabase, incident.tenant_id, tenantName, action, recipients, subject, htmlContent, incidentId, { ...payload, language: recipientLang });
     }
 
-    return new Response(JSON.stringify({ success: true, action, recipientCount: recipients.length, sentCount: result.sentCount, language: recipientLang }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // --- WhatsApp Notification ---
+    let whatsappSentCount = 0;
+    const whatsappMessage = buildWhatsAppMessage(action, incident.reference_id, tenantName, {
+      notes: payload.notes,
+      reason: payload.returnReason || payload.rejectionReason,
+      recipientName: reporterProfile?.full_name,
+      incidentTitle: incident.title,
+    });
+
+    if (whatsappMessage) {
+      // Resolve phone numbers for the targeted recipients
+      const recipientUserIds = getRecipientUserIds(action, incident, payload);
+      // For role-based actions (violation_contested, violation_rejected_review, violation_fine_pending, violation_acknowledgment_required)
+      // phone numbers are resolved from the same profiles queried in each case;
+      // for simplicity we look them up from profiles table by user ID.
+      const phoneNumbers: string[] = [];
+      for (const uid of recipientUserIds) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("phone_number")
+          .eq("id", uid)
+          .single();
+        if (profile?.phone_number) {
+          phoneNumbers.push(profile.phone_number);
+        }
+      }
+
+      // Deduplicate
+      const uniquePhones = [...new Set(phoneNumbers)];
+      for (const phone of uniquePhones) {
+        try {
+          const waResult = await sendWhatsAppText(phone, whatsappMessage);
+          if (waResult.success) {
+            whatsappSentCount++;
+            console.log(`[WhatsApp] Sent workflow notification to ${phone}`);
+          } else {
+            console.error(`[WhatsApp] Failed to send to ${phone}: ${waResult.error}`);
+          }
+        } catch (waError) {
+          console.error(`[WhatsApp] Error sending to ${phone}:`, waError);
+        }
+      }
+      console.log(`[WhatsApp] Sent ${whatsappSentCount}/${uniquePhones.length} workflow WhatsApp messages for action ${action}`);
+    }
+
+    return new Response(JSON.stringify({ success: true, action, recipientCount: recipients.length, sentCount: result.sentCount, whatsappSentCount, language: recipientLang }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (error: unknown) {
     console.error("Error in send-workflow-notification:", error);
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });

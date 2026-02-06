@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getAppUrl, emailButton, sendEmail } from "../_shared/email-sender.ts";
+import { sendWhatsAppText } from "../_shared/whatsapp-provider.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -78,7 +79,7 @@ serve(async (req) => {
     const assigneeIds = Array.from(actionsByAssignee.keys());
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
-      .select('id, full_name, email')
+      .select('id, full_name, email, phone_number')
       .in('id', assigneeIds);
 
     if (profilesError) {
@@ -172,6 +173,23 @@ serve(async (req) => {
       } catch (emailError) {
         console.error(`Failed to send email to ${email}:`, emailError);
         errors.push(`${email}: ${emailError instanceof Error ? emailError.message : 'Unknown error'}`);
+      }
+
+      // Send WhatsApp notification
+      const phone = profile?.phone_number;
+      if (phone) {
+        try {
+          const actionSummary = assigneeActions.map(a => `- ${a.title} (${a.priority || 'medium'})`).join('\n');
+          const waMessage = `📋 *Investigation Submitted – ${incident.reference_id}*\n\nDear ${profile?.full_name || 'Team Member'},\n\nAn investigation has been submitted and you have *${assigneeActions.length}* corrective action(s) assigned:\n\n${actionSummary}\n\nPlease review and complete your actions.`;
+          const waResult = await sendWhatsAppText(phone, waMessage);
+          if (waResult.success) {
+            console.log(`[WhatsApp] Investigation notification sent to ${phone}`);
+          } else {
+            console.error(`[WhatsApp] Failed: ${phone}: ${waResult.error}`);
+          }
+        } catch (waErr) {
+          console.error(`[WhatsApp] Error sending to ${phone}:`, waErr);
+        }
       }
     }
 

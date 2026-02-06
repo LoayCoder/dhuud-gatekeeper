@@ -211,7 +211,7 @@ serve(async (req) => {
     // Build target user query based on audience
     let usersQuery = supabase
       .from('profiles')
-      .select('id, full_name, email:phone_number, preferred_language, assigned_branch_id, assigned_site_id')
+      .select('id, full_name, preferred_language, assigned_branch_id, assigned_site_id')
       .eq('tenant_id', notification.tenant_id)
       .eq('is_active', true)
       .eq('has_login', true);
