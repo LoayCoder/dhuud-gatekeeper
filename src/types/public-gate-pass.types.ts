@@ -5,7 +5,9 @@
 // Status types for public gate passes
 export type PublicGatePassStatus =
   | 'pending_mgmt'      // Initial status - waiting for management acknowledgment
+  | 'pending_club_mgmt_ack' // Pending club management acknowledgment
   | 'acknowledged'      // Management has acknowledged the request
+  | 'pending_security_approval' // Waiting for security approval
   | 'pending_pm'        // Waiting for PM approval (legacy compatibility)
   | 'pending_safety'    // Waiting for safety approval (legacy compatibility)
   | 'approved'          // Fully approved - pass is valid
@@ -44,6 +46,21 @@ export interface PublicBranch {
   contact_email: string | null;
 }
 
+// Single item in a gate pass
+export interface PublicGatePassItem {
+  id?: string;
+  sr_number?: string;
+  item_name: string;
+  description?: string;
+  quantity?: string;
+  unit?: string;
+  photo_path?: string;       // Storage path after upload
+  photo_file_name?: string;
+  photo_file_size?: number;
+  photo_mime_type?: string;
+  photo_url?: string;        // Full URL for display (returned from API)
+}
+
 // Form data for submitting a public gate pass request
 export interface PublicGatePassFormData {
   // Requester information
@@ -57,11 +74,14 @@ export interface PublicGatePassFormData {
 
   // Pass details
   pass_type: GatePassType;
-  material_description: string;
-  quantity?: string;
+  material_description?: string;  // Legacy - now derived from items
+  quantity?: string;              // Legacy - now per-item
+  items: PublicGatePassItem[];    // Multi-item support
 
-  // Vehicle & Driver
-  vehicle_plate?: string;
+  // Vehicle & Driver (structured plate)
+  vehicle_plate?: string;         // Legacy combined field
+  vehicle_plate_letters?: string; // Separated plate letters
+  vehicle_plate_numbers?: string; // Separated plate numbers
   driver_name?: string;
   driver_mobile?: string;
 
@@ -104,6 +124,8 @@ export interface PublicGatePassStatusData {
   material_description: string;
   quantity: string | null;
   vehicle_plate: string | null;
+  vehicle_plate_letters: string | null;
+  vehicle_plate_numbers: string | null;
   driver_name: string | null;
   driver_mobile: string | null;
   requester_name: string;
@@ -116,6 +138,7 @@ export interface PublicGatePassStatusData {
   rejection_reason: string | null;
   entry_time: string | null;
   exit_time: string | null;
+  items?: PublicGatePassItem[];  // Multi-item support
 }
 
 // Full status response including tenant and branch info
@@ -211,11 +234,25 @@ export const PUBLIC_GATE_PASS_STATUS_CONFIG: Record<PublicGatePassStatus, Status
     icon: 'Clock',
     step: 1,
   },
+  pending_club_mgmt_ack: {
+    label: 'Pending Management',
+    labelAr: 'في انتظار الإدارة',
+    color: 'bg-blue-500',
+    icon: 'Clock',
+    step: 1,
+  },
   acknowledged: {
     label: 'Acknowledged',
     labelAr: 'تم الاستلام',
     color: 'bg-amber-500',
     icon: 'CheckCircle2',
+    step: 2,
+  },
+  pending_security_approval: {
+    label: 'Pending Security',
+    labelAr: 'في انتظار الأمن',
+    color: 'bg-amber-500',
+    icon: 'Clock',
     step: 2,
   },
   pending_pm: {

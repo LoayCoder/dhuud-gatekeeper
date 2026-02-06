@@ -401,73 +401,98 @@ export default function PublicStatusPage() {
 
             <Separator />
 
-            {/* Material Info */}
-            <div className="space-y-2">
+            {/* Items List with Photos */}
+            {gatePass.items && gatePass.items.length > 0 ? (
+              <div className="space-y-3">
+                <p className="font-medium text-sm flex items-center gap-2">
+                  <Package className="h-4 w-4 text-muted-foreground" />
+                  {isRTL ? "البنود" : "Items"} ({gatePass.items.length})
+                </p>
+                <div className="space-y-2">
+                  {gatePass.items.map((item, idx) => (
+                    <div key={item.id || idx} className="flex gap-3 p-2 bg-muted/50 rounded-lg">
+                      {item.photo_url && (
+                        <img
+                          src={item.photo_url}
+                          alt={item.item_name}
+                          className="w-16 h-16 rounded object-cover shrink-0"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">
+                          {item.sr_number && <span className="text-muted-foreground">{item.sr_number} - </span>}
+                          {item.item_name}
+                        </p>
+                        {item.description && (
+                          <p className="text-xs text-muted-foreground line-clamp-2">{item.description}</p>
+                        )}
+                        {(item.quantity || item.unit) && (
+                          <Badge variant="secondary" className="mt-1 text-xs">
+                            {item.quantity} {item.unit}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
               <div className="flex items-start gap-3 text-sm">
                 <Package className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium">
-                    {isRTL ? "وصف المواد" : "Materials"}
-                  </p>
-                  <p className="text-muted-foreground">
-                    {gatePass.material_description}
-                  </p>
+                  <p className="font-medium">{isRTL ? "المواد" : "Materials"}</p>
+                  <p className="text-muted-foreground">{gatePass.material_description}</p>
                   {gatePass.quantity && (
-                    <Badge variant="secondary" className="mt-1">
-                      {gatePass.quantity}
-                    </Badge>
+                    <Badge variant="secondary" className="mt-1">{gatePass.quantity}</Badge>
                   )}
                 </div>
               </div>
+            )}
 
-              {(gatePass.vehicle_plate || gatePass.driver_name) && (
-                <div className="flex items-start gap-3 text-sm">
-                  <Truck className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                  <div>
-                    {gatePass.vehicle_plate && (
-                      <p className="font-medium">{gatePass.vehicle_plate}</p>
-                    )}
-                    {gatePass.driver_name && (
-                      <p className="text-muted-foreground">
-                        {gatePass.driver_name}
-                        {gatePass.driver_mobile && ` - ${gatePass.driver_mobile}`}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
+            <Separator />
 
-              <div className="flex items-center gap-3 text-sm">
-                <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+            {/* Vehicle Info */}
+            {(gatePass.vehicle_plate || gatePass.vehicle_plate_letters || gatePass.driver_name) && (
+              <div className="flex items-start gap-3 text-sm">
+                <Truck className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-medium">
-                    {format(new Date(gatePass.pass_date), "PPP")}
-                  </span>
-                  {gatePass.time_window_start && (
-                    <span className="text-muted-foreground">
-                      {" "}
-                      ({gatePass.time_window_start}
-                      {gatePass.time_window_end && ` - ${gatePass.time_window_end}`})
-                    </span>
+                  {(gatePass.vehicle_plate_letters || gatePass.vehicle_plate_numbers) ? (
+                    <p className="font-medium font-mono">
+                      {gatePass.vehicle_plate_letters} | {gatePass.vehicle_plate_numbers}
+                    </p>
+                  ) : gatePass.vehicle_plate && (
+                    <p className="font-medium">{gatePass.vehicle_plate}</p>
+                  )}
+                  {gatePass.driver_name && (
+                    <p className="text-muted-foreground">
+                      {gatePass.driver_name}
+                      {gatePass.driver_mobile && ` - ${gatePass.driver_mobile}`}
+                    </p>
                   )}
                 </div>
               </div>
+            )}
 
-              <div className="flex items-center gap-3 text-sm">
-                <Badge variant="outline">
-                  {gatePass.pass_type === "in"
-                    ? isRTL
-                      ? "دخول"
-                      : "Entry"
-                    : gatePass.pass_type === "out"
-                    ? isRTL
-                      ? "خروج"
-                      : "Exit"
-                    : isRTL
-                    ? "دخول وخروج"
-                    : "Entry & Exit"}
-                </Badge>
+            {/* Schedule */}
+            <div className="flex items-center gap-3 text-sm">
+              <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+              <div>
+                <span className="font-medium">{format(new Date(gatePass.pass_date), "PPP")}</span>
+                {gatePass.time_window_start && (
+                  <span className="text-muted-foreground">
+                    {" "}({gatePass.time_window_start}{gatePass.time_window_end && ` - ${gatePass.time_window_end}`})
+                  </span>
+                )}
               </div>
+            </div>
+
+            {/* Pass Type */}
+            <div className="flex items-center gap-3 text-sm">
+              <Badge variant="outline">
+                {gatePass.pass_type === "in" ? (isRTL ? "دخول" : "Entry")
+                  : gatePass.pass_type === "out" ? (isRTL ? "خروج" : "Exit")
+                  : (isRTL ? "دخول وخروج" : "Entry & Exit")}
+              </Badge>
             </div>
           </CardContent>
         </Card>
