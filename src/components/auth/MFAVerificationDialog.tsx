@@ -105,17 +105,50 @@ export function MFAVerificationDialog({
     setLoading(true);
 
     try {
+      // CRITICAL: Validate session is still valid before MFA challenge
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        // Session expired - sign out and close dialog
+        toast({
+          title: t('mfaVerification.verificationFailed'),
+          description: t('auth.sessionExpired', 'Session expired. Please log in again.'),
+          variant: "destructive",
+        });
+        await supabase.auth.signOut({ scope: 'local' });
+        onCancel();
+        onOpenChange(false);
+        setLoading(false);
+        return;
+      }
+
       // Create challenge
       const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
         factorId,
       });
 
       if (challengeError) {
-        toast({
-          title: t('mfaVerification.verificationFailed'),
-          description: challengeError.message,
-          variant: "destructive",
-        });
+        // Handle "missing sub claim" or other auth errors
+        const isAuthError = challengeError.message?.includes('missing sub claim') ||
+                           challengeError.message?.includes('bad_jwt') ||
+                           challengeError.message?.includes('invalid claim');
+        
+        if (isAuthError) {
+          toast({
+            title: t('mfaVerification.verificationFailed'),
+            description: t('auth.sessionExpired', 'Session expired. Please log in again.'),
+            variant: "destructive",
+          });
+          await supabase.auth.signOut({ scope: 'local' });
+          onCancel();
+          onOpenChange(false);
+        } else {
+          toast({
+            title: t('mfaVerification.verificationFailed'),
+            description: challengeError.message,
+            variant: "destructive",
+          });
+        }
         setLoading(false);
         return;
       }

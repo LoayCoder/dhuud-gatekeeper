@@ -58,20 +58,36 @@ export default function Login() {
       setEmail(invitationEmail);
     }
 
-    // Check if already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Check if already logged in - but VALIDATE the session first
+    const checkExistingSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        // Check MFA status
+        // CRITICAL: Validate the session is actually valid server-side before MFA check
+        // This prevents "missing sub claim" errors from stale local sessions
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error || !user) {
+          // Session is stale/invalid - clear it silently and stay on login page
+          logger.debug('Stale session detected, clearing...');
+          await supabase.auth.signOut({ scope: 'local' });
+          return;
+        }
+        // Session is valid, check MFA status
         checkMFAAndNavigate();
       }
-    });
+    };
+    
+    checkExistingSession();
 
     // Listen for auth changes - but don't auto-navigate if MFA is pending
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session && !showMFADialog) {
-        checkMFAAndNavigate();
+        // Validate session before MFA check
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (!error && user) {
+          checkMFAAndNavigate();
+        }
       }
     });
 
@@ -79,35 +95,62 @@ export default function Login() {
   }, [navigate, invitationEmail, showMFADialog]);
 
   const checkMFAAndNavigate = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    
-    if (aal?.currentLevel === 'aal1' && aal?.nextLevel === 'aal2') {
-      // User needs to complete MFA - but check if device is trusted first
-      if (user) {
+    try {
+      // CRITICAL: Validate session is still valid before any MFA operations
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        // Session is invalid - clear and stay on login page
+        logger.debug('Invalid session in checkMFAAndNavigate, clearing...');
+        await supabase.auth.signOut({ scope: 'local' });
+        return;
+      }
+      
+      const { data: aal, error: aalError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      
+      if (aalError) {
+        // MFA check failed - likely invalid session
+        logger.warn('AAL check failed:', aalError.message);
+        await supabase.auth.signOut({ scope: 'local' });
+        return;
+      }
+      
+      if (aal?.currentLevel === 'aal1' && aal?.nextLevel === 'aal2') {
+        // User needs to complete MFA - but check if device is trusted first
         const isTrusted = await checkTrustedDevice(user.id);
         if (isTrusted) {
           // Device is trusted, skip MFA
           navigate(returnTo);
           return;
         }
+        
+        // Device not trusted, show MFA dialog
+        const { data: factors, error: factorsError } = await supabase.auth.mfa.listFactors();
+        
+        if (factorsError) {
+          logger.warn('Failed to list MFA factors:', factorsError.message);
+          await supabase.auth.signOut({ scope: 'local' });
+          return;
+        }
+        
+        const totpFactor = factors?.totp?.find(f => f.status === 'verified');
+        
+        if (totpFactor) {
+          setCurrentUserId(user.id);
+          setMfaFactorId(totpFactor.id);
+          setShowMFADialog(true);
+          return;
+        }
       }
       
-      // Device not trusted, show MFA dialog
-      const { data: factors } = await supabase.auth.mfa.listFactors();
-      const totpFactor = factors?.totp?.find(f => f.status === 'verified');
-      
-      if (totpFactor) {
-        setCurrentUserId(user?.id || null);
-        setMfaFactorId(totpFactor.id);
-        setShowMFADialog(true);
-        return;
+      // No MFA required or already at AAL2
+      if (aal?.currentLevel === 'aal2' || aal?.nextLevel !== 'aal2') {
+        navigate(returnTo);
       }
-    }
-    
-    // No MFA required or already at AAL2
-    if (aal?.currentLevel === 'aal2' || aal?.nextLevel !== 'aal2') {
-      navigate(returnTo);
+    } catch (err) {
+      logger.error('Error in checkMFAAndNavigate:', err);
+      // Clear session on any error to prevent stuck state
+      await supabase.auth.signOut({ scope: 'local' });
     }
   };
 
