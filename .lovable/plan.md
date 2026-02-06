@@ -1,266 +1,134 @@
 
-# Fix: Public Gate Pass Notifications Not Being Sent
+# Fix: Use Correct Domain for Tracking URLs & Update Status Page
 
-## Problem Analysis
+## Problem Summary
 
-| Component | Current State | Issue |
-|-----------|--------------|-------|
-| Gate pass `PUB-20260205-2c524b70` | Status: `pending_club_mgmt_ack` | Created correctly |
-| `notify-public-gate-pass` edge function | Exists, works | **Never invoked** |
-| `submit_public_gate_pass` RPC | Creates record only | No notification trigger |
-| `useSubmitPublicGatePass` hook | Shows toast, stores token | **Missing edge function call** |
-| Database triggers | None exist | **No trigger for notifications** |
-| Notification logs | Empty for this request | Confirms nothing was sent |
+| Issue | Current Behavior | Expected Behavior |
+|-------|------------------|-------------------|
+| Tracking URL in WhatsApp | Uses `golf-saudi.lovable.app` | Should use `www.dhuud.com` (from tenant settings) |
+| Status page mapping | Missing `pending_security_approval` status | Should show "Pending with Security" step |
 
-**Root Cause:** The notification edge function exists but is never called anywhere in the flow.
-
----
-
-## Solution: Two-Part Implementation
-
-### Part 1: Call Notification Edge Function on Submission
-
-**File:** `src/hooks/public-gate-pass/use-public-gate-pass.ts`
-
-Update the `onSuccess` callback to call the `notify-public-gate-pass` edge function:
-
-```typescript
-onSuccess: async (result, variables) => {
-  if (result.success) {
-    // Store token in localStorage for status page
-    if (result.public_access_token) {
-      localStorage.setItem("public_gate_pass_token", result.public_access_token);
-    }
-    
-    // Trigger WhatsApp notification to requester AND staff
-    try {
-      await supabase.functions.invoke('notify-public-gate-pass', {
-        body: {
-          gate_pass_id: result.gate_pass_id,
-          tenant_id: variables.tenant_id,  // Need to pass this
-          branch_id: variables.branch_id,
-          reference_number: result.reference_number,
-          requester_name: variables.requester_name,
-          requester_phone: variables.requester_phone,
-          requester_email: variables.requester_email,
-          requester_company: variables.requester_company,
-          material_description: variables.material_description,
-          pass_date: variables.pass_date,
-          tracking_url: `/${variables.tenant_slug}/track/${result.public_access_token}`,
-          event_type: 'submitted',
-        }
-      });
-    } catch (err) {
-      console.error('[Public Gate Pass] Notification failed:', err);
-      // Don't fail the submission - notification is best-effort
-    }
-    
-    toast.success("Gate pass request submitted successfully!");
-  } else {
-    toast.error(result.error || "Failed to submit gate pass request");
-  }
-},
-```
-
-**Issue:** The hook doesn't have `tenant_id` - we need to get it from the tenant slug.
-
-**Solution:** Update the `PublicGatePassSubmission` type to include `tenant_id` OR fetch it in the form component and pass it.
+**Confirmed Database State:**
+- Gate Pass: `PUB-20260205-565a7432`
+- Status: `pending_security_approval` (after Khalid acknowledged)
+- Tenant's configured domain: `https://www.dhuud.com`
 
 ---
 
-### Part 2: Fix Edge Function Staff Query
+## Solution
+
+### Part 1: Fix Tracking URL in Edge Function
 
 **File:** `supabase/functions/notify-public-gate-pass/index.ts`
 
-The edge function has a **critical bug** - it queries `user_roles.role` which uses the old role string format, not the new `roles.code` format via `user_role_assignments`.
+Update to fetch and use `public_gate_pass_domain` from tenant settings:
 
-Current broken query:
 ```typescript
-.eq('user_roles.role', 'golf_club_mgmt')  // ❌ Wrong - no such role
-```
-
-Also uses `mobile_number` which doesn't exist (should be `phone_number`).
-
-**Fix the staff query:**
-```typescript
-// Get Golf Club Management department reps for this tenant
-const { data: golfClubDept } = await supabase
-  .from('departments')
-  .select('id')
-  .eq('tenant_id', tenant_id)
-  .or("name.eq.Golf Club Management,name.ilike.%golf%club%management%")
-  .is('deleted_at', null)
-  .limit(1)
+// Current code (line 61-65):
+const { data: tenant, error: tenantError } = await supabase
+  .from('tenants')
+  .select('id, name, slug')
+  .eq('id', tenant_id)
   .single();
 
-if (golfClubDept) {
-  const { data: staffUsers } = await supabase
-    .from('profiles')
-    .select(`
-      id,
-      full_name,
-      phone_number,
-      preferred_language,
-      user_role_assignments!inner(
-        roles!inner(code)
-      )
-    `)
-    .eq('tenant_id', tenant_id)
-    .eq('assigned_department_id', golfClubDept.id)
-    .in('user_role_assignments.roles.code', ['department_representative', 'department_manager'])
-    .eq('is_active', true)
-    .is('deleted_at', null);
-  
-  // staffUsers now contains the correct reps like Khalid Al Shuhail
-}
+// Updated code:
+const { data: tenant, error: tenantError } = await supabase
+  .from('tenants')
+  .select('id, name, slug, public_gate_pass_domain')
+  .eq('id', tenant_id)
+  .single();
 ```
+
+Update the URL construction (line 87-88):
+
+```typescript
+// Current code:
+const siteUrl = Deno.env.get('SITE_URL') || `https://${tenant.slug}.lovable.app`;
+
+// Updated code - prioritize tenant's configured domain:
+const siteUrl = tenant.public_gate_pass_domain 
+  || Deno.env.get('SITE_URL') 
+  || `https://${tenant.slug}.lovable.app`;
+```
+
+**Result:** WhatsApp messages will now include `https://www.dhuud.com/golf-saudi/track/...`
 
 ---
 
-### Part 3: Create Database Trigger for Status Changes
+### Part 2: Add Missing Status to Tracking Page
 
-**Migration:** Create trigger for approval/rejection notifications
+**File:** `src/pages/public-gate-pass/PublicStatusPage.tsx`
 
-```sql
--- Enable pg_net extension if not already enabled
-CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA extensions;
+Add `pending_security_approval` and `pending_club_mgmt_ack` to the `STATUS_CONFIG`:
 
--- Function to notify on public gate pass status changes
-CREATE OR REPLACE FUNCTION notify_public_gate_pass_status_change()
-RETURNS TRIGGER AS $$
-DECLARE
-  v_tenant_slug TEXT;
-  v_supabase_url TEXT;
-  v_service_key TEXT;
-BEGIN
-  -- Only process public requests with relevant status changes
-  IF NEW.is_public_request = true 
-     AND OLD.status IS DISTINCT FROM NEW.status 
-     AND NEW.status IN ('approved', 'rejected', 'pending_security_approval') THEN
-    
-    -- Get tenant slug
-    SELECT slug INTO v_tenant_slug FROM tenants WHERE id = NEW.tenant_id;
-    
-    -- Get config values
-    v_supabase_url := current_setting('app.supabase_url', true);
-    v_service_key := current_setting('app.service_role_key', true);
-    
-    -- Only proceed if we have the config
-    IF v_supabase_url IS NOT NULL AND v_service_key IS NOT NULL THEN
-      PERFORM extensions.http_post(
-        url := v_supabase_url || '/functions/v1/notify-public-gate-pass',
-        headers := jsonb_build_object(
-          'Content-Type', 'application/json',
-          'Authorization', 'Bearer ' || v_service_key
-        ),
-        body := jsonb_build_object(
-          'gate_pass_id', NEW.id,
-          'tenant_id', NEW.tenant_id,
-          'branch_id', NEW.branch_id,
-          'reference_number', NEW.reference_number,
-          'requester_name', NEW.public_requester_name,
-          'requester_phone', NEW.public_requester_phone,
-          'requester_email', NEW.public_requester_email,
-          'requester_company', NEW.public_requester_company,
-          'material_description', NEW.material_description,
-          'pass_date', NEW.pass_date::text,
-          'tracking_url', '/' || v_tenant_slug || '/track/' || NEW.public_access_token,
-          'event_type', CASE 
-            WHEN NEW.status = 'approved' THEN 'approved'
-            WHEN NEW.status = 'rejected' THEN 'rejected'
-            WHEN NEW.status = 'pending_security_approval' THEN 'acknowledged'
-          END,
-          'rejection_reason', NEW.rejection_reason
-        )
-      );
-    END IF;
-  END IF;
-  
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+```typescript
+// Add after line 52 (after 'acknowledged')
+pending_club_mgmt_ack: {
+  label: "Pending Management",
+  labelAr: "في انتظار الإدارة",
+  color: "bg-blue-500",
+  icon: <Clock className="h-4 w-4" />,
+  step: 1,
+},
+pending_security_approval: {
+  label: "Pending Security",
+  labelAr: "في انتظار الأمن",
+  color: "bg-amber-500",
+  icon: <Clock className="h-4 w-4" />,
+  step: 2,
+},
+```
 
--- Create trigger
-DROP TRIGGER IF EXISTS trg_notify_public_gate_pass_status ON material_gate_passes;
-CREATE TRIGGER trg_notify_public_gate_pass_status
-  AFTER UPDATE ON material_gate_passes
-  FOR EACH ROW
-  EXECUTE FUNCTION notify_public_gate_pass_status_change();
+Update the `STEPS` array for a more accurate workflow:
+
+```typescript
+const STEPS = [
+  { step: 1, label: "Submitted", labelAr: "تم التقديم" },
+  { step: 2, label: "Acknowledged", labelAr: "تم الاستلام" },
+  { step: 3, label: "Approved", labelAr: "تمت الموافقة" },
+];
 ```
 
 ---
 
 ## Files to Modify
 
-| File | Action | Purpose |
-|------|--------|---------|
-| `src/hooks/public-gate-pass/use-public-gate-pass.ts` | **Modify** | Add edge function call on submission success |
-| `src/types/public-gate-pass.types.ts` | **Modify** | Add `tenant_id` to submission type |
-| `supabase/functions/notify-public-gate-pass/index.ts` | **Modify** | Fix staff query (use correct role assignment pattern) |
-| Database Migration | **Create** | Add trigger for approval/rejection notifications |
+| File | Change |
+|------|--------|
+| `supabase/functions/notify-public-gate-pass/index.ts` | Fetch `public_gate_pass_domain` and use it for tracking URL |
+| `src/pages/public-gate-pass/PublicStatusPage.tsx` | Add `pending_club_mgmt_ack` and `pending_security_approval` statuses |
 
 ---
 
-## Notification Flow After Fix
+## Expected Result After Fix
 
-```text
-USER SUBMITS REQUEST
-        │
-        ▼
-┌───────────────────────┐
-│ submit_public_gate_   │
-│ pass RPC              │
-└───────────┬───────────┘
-            │
-            ▼
-┌───────────────────────┐
-│ useSubmitPublicGate   │──▶ supabase.functions.invoke('notify-public-gate-pass')
-│ Pass hook (onSuccess) │               │
-└───────────────────────┘               │
-                                        ▼
-                           ┌────────────────────────┐
-                           │ Edge Function:         │
-                           │ - WhatsApp to Requester│
-                           │ - WhatsApp to Khalid   │
-                           │   Al Shuhail (Rep)     │
-                           │ - In-app notification  │
-                           └────────────────────────┘
-
-STAFF APPROVES/REJECTS
-        │
-        ▼
-┌───────────────────────┐
-│ approve_gate_pass_    │
-│ unified RPC           │
-└───────────┬───────────┘
-            │
-            ▼
-┌───────────────────────┐
-│ DB Trigger:           │──▶ notify-public-gate-pass edge function
-│ trg_notify_public_... │
-└───────────────────────┘
-            │
-            ▼
-┌───────────────────────┐
-│ WhatsApp to Requester │
-│ with status update    │
-└───────────────────────┘
+**WhatsApp Messages will show:**
+```
+🔗 *تتبع الحالة | Track status:*
+https://www.dhuud.com/golf-saudi/track/565a7432-95e8-42ba-acdb-2210c0150bc0
 ```
 
+**Tracking Page will show:**
+- Step 1: ✅ Submitted (completed)
+- Step 2: 🔄 Acknowledged / Pending Security (current)
+- Step 3: ⏳ Approved (pending)
+
 ---
 
-## Golf Club Management Representative
+## Notification Flow Diagram
 
-The database confirms that **Khalid Al Shuhail** (`+966509993439`) is the Golf Club Management department representative who should receive notification of new public gate pass requests.
-
----
-
-## Testing After Implementation
-
-1. Submit a new public gate pass request from Golf Saudi portal
-2. Verify requester receives WhatsApp confirmation with tracking link
-3. Verify Khalid Al Shuhail receives WhatsApp notification about new request
-4. Login as Khalid and acknowledge the request
-5. Verify requester receives acknowledgment WhatsApp
-6. Approve the request as Security Supervisor
-7. Verify requester receives approval WhatsApp with PDF link
+```text
+┌────────────────────────────────────────────────────────────┐
+│                    TENANT SETTINGS                         │
+│         public_gate_pass_domain = www.dhuud.com            │
+└─────────────────────────┬──────────────────────────────────┘
+                          │
+                          ▼
+┌────────────────────────────────────────────────────────────┐
+│              notify-public-gate-pass                        │
+│                                                             │
+│  1. Fetch tenant including public_gate_pass_domain         │
+│  2. Use domain for tracking URL: www.dhuud.com/...         │
+│  3. Send WhatsApp with correct link                        │
+└────────────────────────────────────────────────────────────┘
+```
