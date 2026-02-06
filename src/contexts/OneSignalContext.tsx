@@ -41,6 +41,8 @@ export function OneSignalProvider({ children }: { children: React.ReactNode }) {
 
     const initOneSignal = async () => {
       try {
+        logger.info('OneSignal: Starting initialization with App ID:', ONESIGNAL_APP_ID.substring(0, 8) + '...');
+        
         await OneSignal.init({
           appId: ONESIGNAL_APP_ID,
           allowLocalhostAsSecureOrigin: import.meta.env.DEV,
@@ -48,19 +50,21 @@ export function OneSignalProvider({ children }: { children: React.ReactNode }) {
         });
 
         setIsInitialized(true);
-        logger.debug('OneSignal: Initialized successfully.');
+        logger.info('OneSignal: Initialized successfully ✅');
 
         // Read initial permission state
         const browserPerm = 'Notification' in window ? Notification.permission : 'default';
-        setPermissionState(browserPerm === 'denied' ? 'denied' : OneSignal.Notifications.permission ? 'granted' : 'default');
+        const osPermission = OneSignal.Notifications.permission;
+        logger.debug('OneSignal: Browser permission:', browserPerm, '| OneSignal permission:', osPermission);
+        setPermissionState(browserPerm === 'denied' ? 'denied' : osPermission ? 'granted' : 'default');
 
         // Listen for permission changes
         OneSignal.Notifications.addEventListener('permissionChange', (granted: boolean) => {
           setPermissionState(granted ? 'granted' : 'denied');
-          logger.debug(`OneSignal: Permission changed to ${granted ? 'granted' : 'denied'}`);
+          logger.info(`OneSignal: Permission changed to ${granted ? 'granted ✅' : 'denied ❌'}`);
         });
       } catch (error) {
-        logger.error('OneSignal: Initialization failed:', error);
+        logger.error('OneSignal: Initialization failed ❌:', error);
         setIsSupported(false);
       }
     };
