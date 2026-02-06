@@ -60,7 +60,13 @@ export function GatePassApprovalQueue({ passes }: GatePassApprovalQueueProps) {
   if (passes.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
-        {t("contractors.gatePasses.noPendingApprovals", "No pending approvals")}
+        <Truck className="h-12 w-12 mx-auto mb-3 opacity-50" />
+        <p className="font-medium">
+          {t("contractors.gatePasses.noPendingApprovals", "No pending approvals")}
+        </p>
+        <p className="text-sm mt-1">
+          {t("contractors.gatePasses.noPendingForRole", "There are no gate passes waiting for your approval at this time")}
+        </p>
       </div>
     );
   }

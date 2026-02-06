@@ -146,19 +146,66 @@ export function usePendingGatePassApprovals() {
     queryFn: async () => {
       if (!tenantId || !user?.id) return [];
 
-      // Consolidated pending statuses for the entire workflow
-      const pendingStatuses = [
-        "pending_dept_approval",       // Internal workflow - Dept Rep approval
-        "pending_contractor_approval", // External workflow - Contractor Consultant approval
-        "pending_club_mgmt_ack",       // Both workflows - Golf Club Management acknowledgment
-        "pending_security_approval",   // Both workflows - Security Supervisor approval
-        "pending_dept_ack",            // External workflow - Dept Rep acknowledgment (legacy)
-        // Legacy statuses for backward compatibility
-        "pending_pm_approval",
-        "pending_safety_approval",
-      ];
+      // Step 1: Get user's roles
+      const { data: userRoles } = await supabase
+        .from("user_role_assignments")
+        .select("roles(code)")
+        .eq("user_id", user.id)
+        .eq("tenant_id", tenantId);
 
-      // Fetch all pending passes in the tenant
+      const roleCodes = (userRoles || [])
+        .map((r: { roles: { code: string } | null }) => r.roles?.code)
+        .filter(Boolean) as string[];
+
+      // Step 2: Determine which statuses this user can approve based on their roles
+      const allowedStatuses: string[] = [];
+
+      // Security Supervisor/Manager -> pending_security_approval
+      if (roleCodes.includes("security_supervisor") || roleCodes.includes("security_manager")) {
+        allowedStatuses.push("pending_security_approval");
+      }
+
+      // Contractor Consultant -> pending_contractor_approval
+      if (roleCodes.includes("contractor_consultant")) {
+        allowedStatuses.push("pending_contractor_approval");
+      }
+
+      // Department Representative/Manager -> pending_dept_approval, pending_club_mgmt_ack
+      if (roleCodes.includes("department_representative") || roleCodes.includes("department_manager")) {
+        allowedStatuses.push("pending_dept_approval");
+        allowedStatuses.push("pending_club_mgmt_ack");
+        allowedStatuses.push("pending_dept_ack"); // Legacy status
+      }
+
+      // Admin can see all pending statuses
+      if (roleCodes.includes("admin")) {
+        allowedStatuses.push(
+          "pending_dept_approval",
+          "pending_contractor_approval",
+          "pending_club_mgmt_ack",
+          "pending_security_approval",
+          "pending_dept_ack",
+          "pending_pm_approval",
+          "pending_safety_approval"
+        );
+      }
+
+      // If user has no approval roles, return empty
+      if (allowedStatuses.length === 0) {
+        console.log("[GatePassApprovals] User has no approval roles:", { userId: user.id, roleCodes });
+        return [];
+      }
+
+      // Deduplicate statuses
+      const uniqueStatuses = [...new Set(allowedStatuses)];
+
+      console.log("[GatePassApprovals] Role-based filtering:", {
+        userId: user.id,
+        roleCodes,
+        allowedStatuses: uniqueStatuses
+      });
+
+      // Step 3: Fetch only passes the user can approve based on their role
       const { data: passes, error } = await supabase
         .from("material_gate_passes")
         .select(`
@@ -173,23 +220,30 @@ export function usePendingGatePassApprovals() {
         `)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
-        .in("status", pendingStatuses)
+        .in("status", uniqueStatuses)
         .neq("requested_by", user.id) // Exclude own requests (can't self-approve)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      // Filter based on user's ability to approve each pass
-      // For internal pending_dept_approval: only show if user is the designated approver
+      // Step 4: Apply additional filtering for specific statuses
       const filteredPasses = (passes || []).filter((pass) => {
         const p = pass as unknown as MaterialGatePass;
+        
+        // For internal pending_dept_approval: only show if user is the designated approver
         if (p.is_internal_request && p.status === "pending_dept_approval") {
-          // Internal requests: user must be the designated approver
           return p.approval_from_id === user.id;
         }
-        // All other pending statuses are visible
-        // (actual role-based authorization checked server-side during approval via RPC)
+        
+        // For pending_club_mgmt_ack: server validates on approval, show all for now
+        // For pending_security_approval: show all to security roles
+        // For pending_contractor_approval: show all to contractor consultants
         return true;
+      });
+
+      console.log("[GatePassApprovals] Results:", {
+        totalFetched: passes?.length || 0,
+        afterFiltering: filteredPasses.length
       });
 
       return filteredPasses as unknown as MaterialGatePass[];
