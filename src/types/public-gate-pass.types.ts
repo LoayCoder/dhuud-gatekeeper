@@ -79,6 +79,7 @@ export interface PublicGatePassFormData {
 // API submission payload
 export interface PublicGatePassSubmission extends PublicGatePassFormData {
   tenant_slug: string;
+  tenant_id?: string; // Optional - resolved from tenant_slug if not provided
 }
 
 // API response from submission
