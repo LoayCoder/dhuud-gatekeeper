@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import OneSignal from 'react-onesignal';
 import { logger } from '@/lib/logger';
+import { useOneSignal } from '@/contexts/OneSignalContext';
 
 /**
  * Listens for OneSignal notification click events and navigates
@@ -11,10 +12,10 @@ import { logger } from '@/lib/logger';
  */
 export function useOneSignalClickHandler() {
   const navigate = useNavigate();
+  const { isInitialized } = useOneSignal();
 
   useEffect(() => {
-    // Guard: OneSignal may not be loaded yet
-    if (!OneSignal?.Notifications) return;
+    if (!isInitialized) return;
 
     const handleClick = (event: { notification: { additionalData?: Record<string, unknown> } }) => {
       try {
@@ -37,5 +38,5 @@ export function useOneSignalClickHandler() {
         // Ignore cleanup errors
       }
     };
-  }, [navigate]);
+  }, [navigate, isInitialized]);
 }
