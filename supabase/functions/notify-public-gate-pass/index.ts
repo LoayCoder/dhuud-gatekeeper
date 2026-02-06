@@ -84,7 +84,10 @@ serve(async (req) => {
     }
 
     const results: { type: string; success: boolean; error?: string }[] = [];
-    const siteUrl = Deno.env.get('SITE_URL') || `https://${tenant.slug}.lovable.app`;
+    // Prioritize tenant's configured custom domain for tracking URLs
+    const siteUrl = tenant.public_gate_pass_domain 
+      || Deno.env.get('SITE_URL') 
+      || `https://${tenant.slug}.lovable.app`;
     const fullTrackingUrl = tracking_url.startsWith('http') ? tracking_url : `${siteUrl}${tracking_url}`;
     const truncatedMaterial = material_description?.substring(0, 100) || 'N/A';
 

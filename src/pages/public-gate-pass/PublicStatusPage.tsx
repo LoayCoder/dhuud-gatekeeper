@@ -44,11 +44,25 @@ const STATUS_CONFIG: Record<
     icon: <Clock className="h-4 w-4" />,
     step: 1,
   },
+  pending_club_mgmt_ack: {
+    label: "Pending Management",
+    labelAr: "في انتظار الإدارة",
+    color: "bg-blue-500",
+    icon: <Clock className="h-4 w-4" />,
+    step: 1,
+  },
   acknowledged: {
     label: "Acknowledged",
     labelAr: "تم الاستلام",
     color: "bg-amber-500",
     icon: <CheckCircle2 className="h-4 w-4" />,
+    step: 2,
+  },
+  pending_security_approval: {
+    label: "Pending Security",
+    labelAr: "في انتظار الأمن",
+    color: "bg-amber-500",
+    icon: <Clock className="h-4 w-4" />,
     step: 2,
   },
   pending_pm: {
