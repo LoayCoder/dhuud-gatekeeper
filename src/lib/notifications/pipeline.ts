@@ -186,67 +186,64 @@ async function deliverInApp(
   template: ReturnType<typeof resolveTemplate>,
   config: { relatedEntityType?: string; relatedEntityId?: string }
 ): Promise<DeliveryResult[]> {
-  const results: DeliveryResult[] = [];
-
-  // If no explicit recipients, use actorId context (for self-notifications)
   const targetRecipients = recipients.length > 0 ? recipients : [];
+  if (targetRecipients.length === 0) return [];
 
-  for (const recipient of targetRecipients) {
-    try {
-      const lang = recipient.language || 'en';
-      let title = event.eventType;
-      let body: string | undefined;
-      let titleAr: string | undefined;
-      let bodyAr: string | undefined;
+  // Build all notification rows up-front for a single bulk insert
+  const notificationsToInsert = targetRecipients.map(recipient => {
+    const lang = recipient.language || 'en';
+    let title = event.eventType;
+    let body: string | undefined;
+    let titleAr: string | undefined;
+    let bodyAr: string | undefined;
 
-      if (template) {
-        const rendered = renderTemplateForChannel(template, 'in_app', event.variables, lang);
-        if (rendered) {
-          title = rendered.title || title;
-          body = rendered.body;
-        }
-        // Also render Arabic version
-        const renderedAr = renderTemplateForChannel(template, 'in_app', event.variables, 'ar');
-        if (renderedAr) {
-          titleAr = renderedAr.title;
-          bodyAr = renderedAr.body;
-        }
+    if (template) {
+      const rendered = renderTemplateForChannel(template, 'in_app', event.variables, lang);
+      if (rendered) {
+        title = rendered.title || title;
+        body = rendered.body;
       }
-
-      const { error } = await supabase
-        .from('notifications')
-        .insert({
-          tenant_id: event.tenantId,
-          user_id: recipient.userId,
-          title,
-          title_ar: titleAr,
-          body,
-          body_ar: bodyAr,
-          type: event.eventType,
-          related_entity_type: config.relatedEntityType || event.source.entityType,
-          related_entity_id: config.relatedEntityId || event.source.entityId,
-          is_read: false,
-        });
-
-      results.push({
-        channel: 'in_app',
-        recipientId: recipient.userId,
-        status: error ? 'failed' : 'sent',
-        error: error?.message,
-        timestamp: new Date().toISOString(),
-      });
-    } catch (err) {
-      results.push({
-        channel: 'in_app',
-        recipientId: recipient.userId,
-        status: 'failed',
-        error: err instanceof Error ? err.message : 'Unknown error',
-        timestamp: new Date().toISOString(),
-      });
+      const renderedAr = renderTemplateForChannel(template, 'in_app', event.variables, 'ar');
+      if (renderedAr) {
+        titleAr = renderedAr.title;
+        bodyAr = renderedAr.body;
+      }
     }
-  }
 
-  return results;
+    return {
+      tenant_id: event.tenantId,
+      user_id: recipient.userId,
+      title,
+      title_ar: titleAr,
+      body,
+      body_ar: bodyAr,
+      type: event.eventType,
+      related_entity_type: config.relatedEntityType || event.source.entityType,
+      related_entity_id: config.relatedEntityId || event.source.entityId,
+      is_read: false,
+    };
+  });
+
+  try {
+    const { error } = await supabase.from('notifications').insert(notificationsToInsert);
+    const timestamp = new Date().toISOString();
+    return targetRecipients.map(recipient => ({
+      channel: 'in_app' as NotificationChannel,
+      recipientId: recipient.userId,
+      status: error ? 'failed' as const : 'sent' as const,
+      error: error?.message,
+      timestamp,
+    }));
+  } catch (err) {
+    const timestamp = new Date().toISOString();
+    return targetRecipients.map(recipient => ({
+      channel: 'in_app' as NotificationChannel,
+      recipientId: recipient.userId,
+      status: 'failed' as const,
+      error: err instanceof Error ? err.message : 'Unknown error',
+      timestamp,
+    }));
+  }
 }
 
 /**
@@ -318,62 +315,74 @@ async function deliverEmail(
   template: ReturnType<typeof resolveTemplate>,
   _config: { emailSubject?: string }
 ): Promise<DeliveryResult[]> {
-  const results: DeliveryResult[] = [];
+  if (recipients.length === 0) return [];
 
-  for (const recipient of recipients) {
-    if (!recipient.email) {
-      results.push({
+  // Separate recipients with and without email addresses
+  const skipped: DeliveryResult[] = [];
+  const toSend: NotificationRecipient[] = [];
+
+  for (const r of recipients) {
+    if (!r.email) {
+      skipped.push({
         channel: 'email',
-        recipientId: recipient.userId,
+        recipientId: r.userId,
         status: 'skipped',
         error: 'No email address',
         timestamp: new Date().toISOString(),
       });
-      continue;
-    }
-
-    try {
-      let subject = _config.emailSubject || event.eventType;
-      let body = '';
-
-      if (template) {
-        const rendered = renderTemplateForChannel(template, 'email', event.variables, recipient.language);
-        if (rendered) {
-          subject = rendered.subject || subject;
-          body = rendered.body || '';
-        }
-      }
-
-      const { error } = await supabase.functions.invoke('send-email-template', {
-        body: {
-          to: recipient.email,
-          subject,
-          body,
-          variables: event.variables,
-          language: recipient.language || 'en',
-          tenant_id: event.tenantId,
-        },
-      });
-
-      results.push({
-        channel: 'email',
-        recipientId: recipient.userId,
-        status: error ? 'failed' : 'sent',
-        error: error?.message,
-        timestamp: new Date().toISOString(),
-      });
-    } catch (err) {
-      results.push({
-        channel: 'email',
-        recipientId: recipient.userId,
-        status: 'failed',
-        error: err instanceof Error ? err.message : 'Unknown error',
-        timestamp: new Date().toISOString(),
-      });
+    } else {
+      toSend.push(r);
     }
   }
 
-  return results;
+  if (toSend.length === 0) return skipped;
+
+  // Fire all edge-function invocations concurrently instead of sequentially
+  const deliveryResults = await Promise.all(
+    toSend.map(async (recipient): Promise<DeliveryResult> => {
+      try {
+        let subject = _config.emailSubject || event.eventType;
+        let body = '';
+
+        if (template) {
+          const rendered = renderTemplateForChannel(template, 'email', event.variables, recipient.language);
+          if (rendered) {
+            subject = rendered.subject || subject;
+            body = rendered.body || '';
+          }
+        }
+
+        const { error } = await supabase.functions.invoke('send-email-template', {
+          body: {
+            to: recipient.email,
+            subject,
+            body,
+            variables: event.variables,
+            language: recipient.language || 'en',
+            tenant_id: event.tenantId,
+          },
+        });
+
+        return {
+          channel: 'email',
+          recipientId: recipient.userId,
+          status: error ? 'failed' : 'sent',
+          error: error?.message,
+          timestamp: new Date().toISOString(),
+        };
+      } catch (err) {
+        return {
+          channel: 'email',
+          recipientId: recipient.userId,
+          status: 'failed',
+          error: err instanceof Error ? err.message : 'Unknown error',
+          timestamp: new Date().toISOString(),
+        };
+      }
+    })
+  );
+
+  return [...skipped, ...deliveryResults];
 }
 
 /**
@@ -385,59 +394,71 @@ async function deliverWhatsApp(
   template: ReturnType<typeof resolveTemplate>,
   _config: Record<string, unknown>
 ): Promise<DeliveryResult[]> {
-  const results: DeliveryResult[] = [];
+  if (recipients.length === 0) return [];
 
-  for (const recipient of recipients) {
-    if (!recipient.phone) {
-      results.push({
+  // Separate recipients with and without phone numbers
+  const skipped: DeliveryResult[] = [];
+  const toSend: NotificationRecipient[] = [];
+
+  for (const r of recipients) {
+    if (!r.phone) {
+      skipped.push({
         channel: 'whatsapp',
-        recipientId: recipient.userId,
+        recipientId: r.userId,
         status: 'skipped',
         error: 'No phone number',
         timestamp: new Date().toISOString(),
       });
-      continue;
-    }
-
-    try {
-      let message = '';
-
-      if (template) {
-        const rendered = renderTemplateForChannel(template, 'whatsapp', event.variables, recipient.language);
-        if (rendered) {
-          message = rendered.body || '';
-        }
-      }
-
-      const { error } = await supabase.functions.invoke('send-gate-whatsapp', {
-        body: {
-          mobile_number: recipient.phone,
-          message,
-          tenant_id: event.tenantId,
-          notification_type: event.eventType,
-          variables: event.variables,
-        },
-      });
-
-      results.push({
-        channel: 'whatsapp',
-        recipientId: recipient.userId,
-        status: error ? 'failed' : 'sent',
-        error: error?.message,
-        timestamp: new Date().toISOString(),
-      });
-    } catch (err) {
-      results.push({
-        channel: 'whatsapp',
-        recipientId: recipient.userId,
-        status: 'failed',
-        error: err instanceof Error ? err.message : 'Unknown error',
-        timestamp: new Date().toISOString(),
-      });
+    } else {
+      toSend.push(r);
     }
   }
 
-  return results;
+  if (toSend.length === 0) return skipped;
+
+  // Fire all edge-function invocations concurrently instead of sequentially
+  const deliveryResults = await Promise.all(
+    toSend.map(async (recipient): Promise<DeliveryResult> => {
+      try {
+        let message = '';
+
+        if (template) {
+          const rendered = renderTemplateForChannel(template, 'whatsapp', event.variables, recipient.language);
+          if (rendered) {
+            message = rendered.body || '';
+          }
+        }
+
+        const { error } = await supabase.functions.invoke('send-gate-whatsapp', {
+          body: {
+            mobile_number: recipient.phone,
+            message,
+            tenant_id: event.tenantId,
+            notification_type: event.eventType,
+            variables: event.variables,
+          },
+        });
+
+        return {
+          channel: 'whatsapp',
+          recipientId: recipient.userId,
+          status: error ? 'failed' : 'sent',
+          error: error?.message,
+          timestamp: new Date().toISOString(),
+        };
+      } catch (err) {
+        return {
+          channel: 'whatsapp',
+          recipientId: recipient.userId,
+          status: 'failed',
+          error: err instanceof Error ? err.message : 'Unknown error',
+          timestamp: new Date().toISOString(),
+        };
+      }
+    })
+  );
+
+  return [...skipped, ...deliveryResults];
 }
 
 // ============================================================================

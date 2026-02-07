@@ -310,11 +310,12 @@ async function fetchGatePassStats(tenantId: string, now: string) {
   };
 }
 
-async function fetchInspectionStats(tenantId: string, userId: string) {
-  const [totalRes, scheduledRes, auditRes, findingsRes] = await Promise.all([
+async function fetchInspectionStats(tenantId: string, _userId: string) {
+  // All queries use server-side count aggregation — no client-side filtering
+  const [totalRes, scheduledRes, auditTotalRes, auditInProgressRes, auditCompletedRes, findingsRes] = await Promise.all([
     supabase
       .from('inspection_sessions')
-      .select('status', { count: 'exact' })
+      .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId),
     supabase
       .from('inspection_sessions')
@@ -323,9 +324,21 @@ async function fetchInspectionStats(tenantId: string, userId: string) {
       .eq('status', 'scheduled'),
     supabase
       .from('inspection_sessions')
-      .select('status, session_type')
+      .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId)
       .eq('session_type', 'audit'),
+    supabase
+      .from('inspection_sessions')
+      .select('*', { count: 'exact', head: true })
+      .eq('tenant_id', tenantId)
+      .eq('session_type', 'audit')
+      .eq('status', 'in_progress'),
+    supabase
+      .from('inspection_sessions')
+      .select('*', { count: 'exact', head: true })
+      .eq('tenant_id', tenantId)
+      .eq('session_type', 'audit')
+      .in('status', ['completed', 'closed']),
     supabase
       .from('area_inspection_findings')
       .select('*', { count: 'exact', head: true })
@@ -333,17 +346,13 @@ async function fetchInspectionStats(tenantId: string, userId: string) {
       .in('status', ['open', 'action_assigned']),
   ]);
 
-  const auditData = auditRes.data || [];
-  const auditInProgress = auditData.filter(a => a.status === 'in_progress').length;
-  const auditCompleted = auditData.filter(a => ['completed', 'closed'].includes(a.status)).length;
-
   return {
     total: totalRes.count || 0,
     scheduled: scheduledRes.count || 0,
     pendingActions: findingsRes.count || 0,
-    auditTotal: auditData.length,
-    auditInProgress,
-    auditCompleted,
+    auditTotal: auditTotalRes.count || 0,
+    auditInProgress: auditInProgressRes.count || 0,
+    auditCompleted: auditCompletedRes.count || 0,
     openFindings: findingsRes.count || 0,
   };
 }
