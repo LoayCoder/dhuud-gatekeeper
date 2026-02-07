@@ -84,11 +84,11 @@ export function useActionCenterStats() {
         // Incident stats
         fetchIncidentStats(tenantId),
         // Corrective action stats (covers incidents + observations + inspections)
-        fetchCorrectiveActionStats(tenantId, user.id, now),
+        fetchCorrectiveActionStats(tenantId, now),
         // Gate pass stats
         fetchGatePassStats(tenantId, now),
         // Inspection stats
-        fetchInspectionStats(tenantId, user.id),
+        fetchInspectionStats(tenantId),
         // Contractor stats
         fetchContractorStats(tenantId),
         // Induction stats
@@ -237,7 +237,7 @@ async function fetchIncidentStats(tenantId: string) {
   };
 }
 
-async function fetchCorrectiveActionStats(tenantId: string, _userId: string, now: string) {
+async function fetchCorrectiveActionStats(tenantId: string, now: string) {
   const empty = {
     incidentOverdue: 0, incidentPending: 0, incidentInProgress: 0, incidentCompleted: 0,
     observationOverdue: 0, observationPending: 0, observationInProgress: 0, observationCompleted: 0,
@@ -310,7 +310,7 @@ async function fetchGatePassStats(tenantId: string, now: string) {
   };
 }
 
-async function fetchInspectionStats(tenantId: string, _userId: string) {
+async function fetchInspectionStats(tenantId: string) {
   // All queries use server-side count aggregation — no client-side filtering
   const [totalRes, scheduledRes, auditTotalRes, auditInProgressRes, auditCompletedRes, findingsRes] = await Promise.all([
     supabase
