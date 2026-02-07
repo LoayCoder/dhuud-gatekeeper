@@ -23,7 +23,7 @@ import { NotificationPipelineStatus } from '@/components/action-center/Notificat
 
 export default function ActionCenter() {
   const { t } = useTranslation();
-  const { profile } = useAuth();
+  const { profile, isAdmin } = useAuth();
   const { hasModule } = useModuleAccess();
   const { hasRole, hasRoleInCategory } = useUserRoles();
   const { data: stats, isLoading } = useActionCenterStats();
@@ -34,8 +34,7 @@ export default function ActionCenter() {
   const hasInspectionsAccess = hasModule('audits') || hasModule('hsse_core');
   const hasContractorAccess = hasModule('hsse_core') || hasModule('security');
 
-  // Role-based visibility
-  const isAdmin = profile?.is_admin === true;
+  // Role-based visibility - isAdmin comes from useAuth() context
   const isHSSERole = hasRoleInCategory('hsse');
   const isSecurityRole = hasRole('security_guard') || hasRole('security_supervisor') || hasRole('security_manager');
   const isInspectorRole = hasRole('inspector') || hasRole('auditor') || hasRole('hsse_expert');

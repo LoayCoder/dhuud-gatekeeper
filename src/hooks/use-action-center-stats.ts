@@ -213,18 +213,18 @@ export function useActionCenterStats() {
 
 // Helper functions to fetch stats per module
 async function fetchIncidentStats(tenantId: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const incidentsTable = (supabase as any).from('incidents');
+  
   const [totalRes, openInvRes, pendingAppRes] = await Promise.all([
-    supabase
-      .from('incidents')
+    incidentsTable
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId),
-    supabase
-      .from('incidents')
+    incidentsTable
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId)
       .in('investigation_status', ['pending', 'in_progress']),
-    supabase
-      .from('incidents')
+    incidentsTable
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId)
       .eq('investigation_status', 'pending'),
@@ -246,54 +246,56 @@ async function fetchCorrectiveActionStats(tenantId: string, now: string) {
 
   // Server-side aggregation via RPC — single query with COUNT FILTER
   // instead of fetching all rows and looping client-side
-  const { data, error } = await supabase.rpc('get_corrective_action_stats', {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase.rpc as any)('get_corrective_action_stats', {
     p_tenant_id: tenantId,
     p_now: now,
   });
 
   if (error || !data) return empty;
 
+  // Cast to expected shape since RPC returns JSON
+  const stats = data as Record<string, number>;
+
   return {
-    incidentOverdue: Number(data.incidentOverdue) || 0,
-    incidentPending: Number(data.incidentPending) || 0,
-    incidentInProgress: Number(data.incidentInProgress) || 0,
-    incidentCompleted: Number(data.incidentCompleted) || 0,
-    observationOverdue: Number(data.observationOverdue) || 0,
-    observationPending: Number(data.observationPending) || 0,
-    observationInProgress: Number(data.observationInProgress) || 0,
-    observationCompleted: Number(data.observationCompleted) || 0,
-    inspectionOverdue: Number(data.inspectionOverdue) || 0,
-    inspectionPending: Number(data.inspectionPending) || 0,
-    inspectionInProgress: Number(data.inspectionInProgress) || 0,
-    inspectionCompleted: Number(data.inspectionCompleted) || 0,
+    incidentOverdue: Number(stats.incidentOverdue) || 0,
+    incidentPending: Number(stats.incidentPending) || 0,
+    incidentInProgress: Number(stats.incidentInProgress) || 0,
+    incidentCompleted: Number(stats.incidentCompleted) || 0,
+    observationOverdue: Number(stats.observationOverdue) || 0,
+    observationPending: Number(stats.observationPending) || 0,
+    observationInProgress: Number(stats.observationInProgress) || 0,
+    observationCompleted: Number(stats.observationCompleted) || 0,
+    inspectionOverdue: Number(stats.inspectionOverdue) || 0,
+    inspectionPending: Number(stats.inspectionPending) || 0,
+    inspectionInProgress: Number(stats.inspectionInProgress) || 0,
+    inspectionCompleted: Number(stats.inspectionCompleted) || 0,
   };
 }
 
 async function fetchGatePassStats(tenantId: string, now: string) {
   const today = new Date().toISOString().split('T')[0];
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const gatePassTable = (supabase as any).from('gate_passes');
+  
   const [totalRes, pendingRes, activeRes, completedRes, todayRes] = await Promise.all([
-    supabase
-      .from('gate_passes')
+    gatePassTable
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId),
-    supabase
-      .from('gate_passes')
+    gatePassTable
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId)
       .in('status', ['pending', 'pending_dept_approval', 'pending_security_approval']),
-    supabase
-      .from('gate_passes')
+    gatePassTable
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId)
       .eq('status', 'approved'),
-    supabase
-      .from('gate_passes')
+    gatePassTable
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId)
       .in('status', ['completed', 'expired']),
-    supabase
-      .from('gate_passes')
+    gatePassTable
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId)
       .eq('status', 'approved')
@@ -390,13 +392,14 @@ async function fetchContractorStats(tenantId: string) {
 }
 
 async function fetchInductionStats(tenantId: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const workersTable = (supabase as any).from('contractor_workers');
+  
   const [totalRes, completedRes] = await Promise.all([
-    supabase
-      .from('contractor_workers')
+    workersTable
       .select('induction_completed', { count: 'exact' })
       .eq('tenant_id', tenantId),
-    supabase
-      .from('contractor_workers')
+    workersTable
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId)
       .eq('induction_completed', true),
@@ -414,13 +417,14 @@ async function fetchInductionStats(tenantId: string) {
 }
 
 async function fetchUserStats(tenantId: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const profilesTable = (supabase as any).from('profiles');
+  
   const [totalRes, activeRes] = await Promise.all([
-    supabase
-      .from('profiles')
+    profilesTable
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId),
-    supabase
-      .from('profiles')
+    profilesTable
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId)
       .eq('account_status', 'active'),
