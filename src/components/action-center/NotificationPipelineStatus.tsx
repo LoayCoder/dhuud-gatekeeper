@@ -34,21 +34,20 @@ export function NotificationPipelineStatus() {
     queryFn: async (): Promise<DeliveryStatusSummary> => {
       if (!tenantId) return { total: 0, sent: 0, delivered: 0, failed: 0, pending: 0 };
 
-      // Aggregate from notification_logs (the pipeline audit table)
-      const { data, error } = await supabase
-        .from('notification_logs')
-        .select('status')
-        .eq('tenant_id', tenantId)
-        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+      // Server-side aggregation via RPC — returns a single JSON summary
+      // instead of fetching all rows and counting client-side
+      const { data, error } = await supabase.rpc('get_notification_summary', {
+        p_tenant_id: tenantId,
+      });
 
       if (error || !data) return { total: 0, sent: 0, delivered: 0, failed: 0, pending: 0 };
 
       return {
-        total: data.length,
-        sent: data.filter(d => d.status === 'sent').length,
-        delivered: data.filter(d => d.status === 'delivered').length,
-        failed: data.filter(d => d.status === 'failed').length,
-        pending: data.filter(d => d.status === 'pending').length,
+        total: Number(data.total) || 0,
+        sent: Number(data.sent) || 0,
+        delivered: Number(data.delivered) || 0,
+        failed: Number(data.failed) || 0,
+        pending: Number(data.pending) || 0,
       };
     },
     enabled: !!tenantId,
