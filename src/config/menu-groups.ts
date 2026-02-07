@@ -26,6 +26,7 @@ import {
   Users,
   Clock,
   Database,
+  Zap,
 } from "lucide-react";
 
 export interface MenuGroup {
@@ -50,11 +51,18 @@ export const menuGroups: MenuGroup[] = [
     sortOrder: 1,
   },
   {
+    code: "action_center",
+    title: { en: "Action Center", ar: "مركز العمليات" },
+    translationKey: "navigation.actionCenter",
+    icon: Zap,
+    sortOrder: 2,
+  },
+  {
     code: "my_actions",
     title: { en: "My Actions", ar: "إجراءاتي" },
     translationKey: "navigation.myActions",
     icon: ClipboardCheck,
-    sortOrder: 2,
+    sortOrder: 3,
   },
   {
     code: "hsse_management",

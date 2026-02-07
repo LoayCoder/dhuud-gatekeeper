@@ -325,6 +325,15 @@ export const routeRegistry: RouteDefinition[] = [
     sortOrder: 1,
   },
   {
+    path: "/action-center",
+    menuCode: "action_center",
+    title: { en: "Action Center", ar: "مركز العمليات" },
+    icon: Sparkles,
+    component: lazyWithRetry(() => import("@/pages/ActionCenter")),
+    protection: "protected",
+    sortOrder: 2,
+  },
+  {
     path: "/profile",
     menuCode: "profile",
     title: { en: "Profile", ar: "الملف الشخصي" },

@@ -1,0 +1,9 @@
+export { IncidentsModule } from './IncidentsModule';
+export { ObservationsModule } from './ObservationsModule';
+export { GatePassesModule } from './GatePassesModule';
+export { InspectionsModule } from './InspectionsModule';
+export { AuditsModule } from './AuditsModule';
+export { UserManagementModule } from './UserManagementModule';
+export { PasswordResetModule } from './PasswordResetModule';
+export { ContractorsModule } from './ContractorsModule';
+export { VideoInductionModule } from './VideoInductionModule';
