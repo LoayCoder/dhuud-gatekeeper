@@ -474,14 +474,31 @@ export default function PublicStatusPage() {
             )}
 
             {/* Schedule */}
-            <div className="flex items-center gap-3 text-sm">
-              <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+            <div className="flex items-start gap-3 text-sm">
+              <Calendar className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
               <div>
-                <span className="font-medium">{format(new Date(gatePass.pass_date), "PPP")}</span>
-                {gatePass.time_window_start && (
-                  <span className="text-muted-foreground">
-                    {" "}({gatePass.time_window_start}{gatePass.time_window_end && ` - ${gatePass.time_window_end}`})
-                  </span>
+                {gatePass.pass_type === "in_out" && gatePass.start_date && gatePass.end_date && gatePass.start_date !== gatePass.end_date ? (
+                  <>
+                    <p className="font-medium">
+                      {format(new Date(gatePass.start_date), "PPP")} — {format(new Date(gatePass.end_date), "PPP")}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {isRTL ? "صالح حتى 7 أيام" : "Valid up to 7 days"}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-medium">
+                      {format(new Date(gatePass.start_date || gatePass.pass_date), "PPP")}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {gatePass.pass_type === "in"
+                        ? (isRTL ? "صالح ليوم واحد فقط (دخول)" : "Valid for one day only (entry)")
+                        : gatePass.pass_type === "out"
+                        ? (isRTL ? "صالح ليوم واحد فقط (خروج)" : "Valid for one day only (exit)")
+                        : (isRTL ? "صالح ليوم واحد" : "Valid for one day")}
+                    </p>
+                  </>
                 )}
               </div>
             </div>

@@ -30,6 +30,7 @@ import {
   CheckCircle2,
   XCircle,
   Plus,
+  Info,
 } from "lucide-react";
 import {
   useTenantBySlug,
@@ -38,7 +39,7 @@ import {
 } from "@/hooks/public-gate-pass";
 import { PublicGatePassItemForm, GatePassItemData } from "./components/PublicGatePassItemForm";
 import { PublicVehiclePlateInput } from "./components/PublicVehiclePlateInput";
-import { format } from "date-fns";
+import { format, addDays, isBefore, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -80,9 +81,8 @@ export default function PublicRequestPage() {
   const [vehiclePlateNumbers, setVehiclePlateNumbers] = useState("");
   const [driverName, setDriverName] = useState("");
   const [driverMobile, setDriverMobile] = useState("");
-  const [passDate, setPassDate] = useState<Date>(new Date());
-  const [timeWindowStart, setTimeWindowStart] = useState("");
-  const [timeWindowEnd, setTimeWindowEnd] = useState("");
+  const [startDate, setStartDate] = useState<Date>(new Date());
+  const [endDate, setEndDate] = useState<Date>(new Date());
   const [notifyWhatsapp, setNotifyWhatsapp] = useState(true);
   const [notifyEmail, setNotifyEmail] = useState(true);
   const [notifySms, setNotifySms] = useState(false);
@@ -90,6 +90,40 @@ export default function PublicRequestPage() {
   // Validation state
   const [showValidation, setShowValidation] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+
+  // Whether the current pass type uses a date range (in_out) or single date (in/out)
+  const isDateRange = passType === "in_out";
+  const maxEndDate = addDays(startDate, 6); // max 7 days from start
+
+  // When pass type changes to single-date mode, sync end date to start date
+  const handlePassTypeChange = (newType: "in" | "out" | "in_out") => {
+    setPassType(newType);
+    if (newType !== "in_out") {
+      // Single-date mode: end date must equal start date
+      setEndDate(startDate);
+    }
+  };
+
+  // When start date changes in date range mode, auto-adjust end date if needed
+  const handleStartDateChange = (d: Date) => {
+    setStartDate(d);
+    if (!isDateRange) {
+      // Single-date mode: keep end date in sync
+      setEndDate(d);
+    } else {
+      // Ensure end date is not before new start date and not beyond 7-day max
+      if (isBefore(endDate, d)) {
+        setEndDate(d);
+      } else if (isBefore(addDays(d, 6), endDate)) {
+        setEndDate(addDays(d, 6));
+      }
+    }
+  };
+
+  // Validate end date is within range
+  const dateRangeError = isDateRange && isBefore(addDays(startDate, 6), endDate)
+    ? (isRTL ? "لا يمكن أن يتجاوز النطاق 7 أيام" : "Date range cannot exceed 7 days")
+    : null;
 
   const { data: tenant, isLoading: loadingTenant, error: tenantError } = useTenantBySlug(tenantSlug);
   const { data: branches, isLoading: loadingBranches } = usePublicBranches(tenant?.id);
@@ -138,16 +172,19 @@ export default function PublicRequestPage() {
     // Required fields
     if (!requesterName.trim() || requesterName.length < 2) return false;
     if (!requesterPhone.trim() || !phoneRegex.test(requesterPhone)) return false;
-    
+
     // At least one item required
     if (items.length === 0) return false;
-    
+
     // Each item must have name and photo
     for (const item of items) {
       if (!item.item_name.trim()) return false;
       if (!item.photo) return false;
     }
-    
+
+    // Date range validation
+    if (dateRangeError) return false;
+
     return true;
   };
 
@@ -237,9 +274,8 @@ export default function PublicRequestPage() {
         vehicle_plate_numbers: vehiclePlateNumbers || undefined,
         driver_name: driverName || undefined,
         driver_mobile: driverMobile || undefined,
-        pass_date: format(passDate, "yyyy-MM-dd"),
-        time_window_start: timeWindowStart || undefined,
-        time_window_end: timeWindowEnd || undefined,
+        start_date: format(startDate, "yyyy-MM-dd"),
+        end_date: format(endDate, "yyyy-MM-dd"),
         notify_whatsapp: notifyWhatsapp,
         notify_email: notifyEmail,
         notify_sms: notifySms,
@@ -491,7 +527,7 @@ export default function PublicRequestPage() {
               {/* Pass Type */}
               <div className="space-y-2">
                 <Label>{isRTL ? "نوع التصريح" : "Pass Type"} *</Label>
-                <Select value={passType} onValueChange={(v) => setPassType(v as typeof passType)}>
+                <Select value={passType} onValueChange={(v) => handlePassTypeChange(v as typeof passType)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -501,6 +537,17 @@ export default function PublicRequestPage() {
                     <SelectItem value="in_out">{isRTL ? "دخول وخروج" : "Entry & Exit"}</SelectItem>
                   </SelectContent>
                 </Select>
+                {/* Helper text based on pass type */}
+                <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                  <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                  <span>
+                    {passType === "in_out"
+                      ? (isRTL ? "صالح حتى 7 أيام. يمكن الدخول والخروج في أي وقت خلال الفترة المعتمدة" : "Valid up to 7 days. Entry and exit can occur anytime within the approved date range")
+                      : passType === "in"
+                      ? (isRTL ? "صالح ليوم واحد فقط. سيتم تسجيل وقت الدخول بواسطة حارس الأمن" : "Valid for one day only. Entry time is logged by the security guard")
+                      : (isRTL ? "صالح ليوم واحد فقط. سيتم تسجيل وقت الخروج بواسطة حارس الأمن" : "Valid for one day only. Exit time is logged by the security guard")}
+                  </span>
+                </div>
               </div>
 
               {/* Items List */}
@@ -587,55 +634,122 @@ export default function PublicRequestPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Pass Date */}
-              <div className="space-y-2">
-                <Label>{isRTL ? "تاريخ التصريح" : "Pass Date"} *</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full ps-3 text-start font-normal",
-                        !passDate && "text-muted-foreground"
-                      )}
-                    >
-                      {passDate ? format(passDate, "PPP") : (
-                        <span>{isRTL ? "اختر التاريخ" : "Pick a date"}</span>
-                      )}
-                      <CalendarIcon className="ms-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={passDate}
-                      onSelect={(d) => d && setPassDate(d)}
-                      disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+              {isDateRange ? (
+                /* Entry & Exit: Start Date + End Date (max 7 days) */
+                <>
+                  <div className="space-y-2">
+                    <Label>{isRTL ? "تاريخ البدء" : "Start Date"} *</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full ps-3 text-start font-normal",
+                            !startDate && "text-muted-foreground"
+                          )}
+                        >
+                          {startDate ? format(startDate, "PPP") : (
+                            <span>{isRTL ? "اختر التاريخ" : "Pick a date"}</span>
+                          )}
+                          <CalendarIcon className="ms-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={startDate}
+                          onSelect={(d) => d && handleStartDateChange(d)}
+                          disabled={(date) => isBefore(date, startOfDay(new Date()))}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
 
-              {/* Time Window */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>{isRTL ? "من الساعة" : "From"}</Label>
-                  <Input 
-                    type="time" 
-                    value={timeWindowStart}
-                    onChange={(e) => setTimeWindowStart(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>{isRTL ? "إلى الساعة" : "To"}</Label>
-                  <Input 
-                    type="time" 
-                    value={timeWindowEnd}
-                    onChange={(e) => setTimeWindowEnd(e.target.value)}
-                  />
-                </div>
-              </div>
+                  <div className="space-y-2">
+                    <Label>{isRTL ? "تاريخ الانتهاء" : "End Date"} *</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full ps-3 text-start font-normal",
+                            !endDate && "text-muted-foreground"
+                          )}
+                        >
+                          {endDate ? format(endDate, "PPP") : (
+                            <span>{isRTL ? "اختر التاريخ" : "Pick a date"}</span>
+                          )}
+                          <CalendarIcon className="ms-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={endDate}
+                          onSelect={(d) => d && setEndDate(d)}
+                          disabled={(date) =>
+                            isBefore(date, startDate) || isBefore(maxEndDate, date)
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {dateRangeError && (
+                    <p className="text-xs text-destructive">{dateRangeError}</p>
+                  )}
+
+                  <p className="text-xs text-muted-foreground">
+                    {isRTL
+                      ? "التصريح صالح حتى 7 أيام كحد أقصى. الدخول والخروج لا يحتاجان أن يكونا في نفس اليوم"
+                      : "Pass valid up to 7 days maximum. Entry and exit do not need to be on the same day."}
+                  </p>
+                </>
+              ) : (
+                /* Entry Only / Exit Only: Single Date */
+                <>
+                  <div className="space-y-2">
+                    <Label>
+                      {passType === "in"
+                        ? (isRTL ? "تاريخ الدخول" : "Entry Date")
+                        : (isRTL ? "تاريخ الخروج" : "Exit Date")} *
+                    </Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full ps-3 text-start font-normal",
+                            !startDate && "text-muted-foreground"
+                          )}
+                        >
+                          {startDate ? format(startDate, "PPP") : (
+                            <span>{isRTL ? "اختر التاريخ" : "Pick a date"}</span>
+                          )}
+                          <CalendarIcon className="ms-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={startDate}
+                          onSelect={(d) => d && handleStartDateChange(d)}
+                          disabled={(date) => isBefore(date, startOfDay(new Date()))}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground">
+                    {passType === "in"
+                      ? (isRTL ? "صالح ليوم واحد فقط. سيتم تسجيل وقت الدخول بواسطة حارس الأمن" : "Valid for one day only. Entry time is logged by the security guard at access time.")
+                      : (isRTL ? "صالح ليوم واحد فقط. سيتم تسجيل وقت الخروج بواسطة حارس الأمن" : "Valid for one day only. Exit time is logged by the security guard at access time.")}
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
 

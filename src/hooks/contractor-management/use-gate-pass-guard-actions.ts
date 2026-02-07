@@ -109,13 +109,66 @@ export function useGuardGateAction() {
       // Fetch additional pass details needed for the log
       const { data: passData, error: fetchError } = await supabase
         .from('material_gate_passes')
-        .select('vehicle_plate, driver_name, driver_mobile, material_description, pass_type')
+        .select('vehicle_plate, driver_name, driver_mobile, material_description, pass_type, start_date, end_date')
         .eq('id', passId)
         .single();
 
       if (fetchError || !passData) {
         error = fetchError || new Error(`Gate pass with ID ${passId} not found.`);
-      } else if (action === 'entry') {
+      }
+
+      // Validate pass_type vs action
+      if (!error && passData) {
+        const pt = passData.pass_type as string;
+
+        // Entry-only pass: block exit
+        if (pt === 'in' && action === 'exit') {
+          await logGateAudit({
+            action: 'gate_pass_denied',
+            passId,
+            passReference,
+            result: 'denied',
+            reason: 'Exit not allowed on entry-only pass',
+            validationMethod,
+            metadata,
+          }, tenantId, user.id, profile?.full_name || null);
+          throw new Error('This is an Entry-only pass. Exit is not allowed.');
+        }
+
+        // Exit-only pass: block entry
+        if (pt === 'out' && action === 'entry') {
+          await logGateAudit({
+            action: 'gate_pass_denied',
+            passId,
+            passReference,
+            result: 'denied',
+            reason: 'Entry not allowed on exit-only pass',
+            validationMethod,
+            metadata,
+          }, tenantId, user.id, profile?.full_name || null);
+          throw new Error('This is an Exit-only pass. Entry is not allowed.');
+        }
+
+        // Check date validity
+        const today = new Date().toISOString().split('T')[0];
+        const startDate = passData.start_date || today;
+        const endDate = passData.end_date || startDate;
+
+        if (today < startDate || today > endDate) {
+          await logGateAudit({
+            action: 'gate_pass_denied',
+            passId,
+            passReference,
+            result: 'denied',
+            reason: `Access attempt outside allowed date range (${startDate} to ${endDate})`,
+            validationMethod,
+            metadata,
+          }, tenantId, user.id, profile?.full_name || null);
+          throw new Error(`Gate pass is only valid from ${startDate} to ${endDate}`);
+        }
+      }
+
+      if (!error && passData && action === 'entry') {
         // Create Unified Entry Log with FK link to gate pass
         // The DB trigger `sync_gate_entry_to_parent` will automatically:
         // - Update material_gate_passes.status to 'used'
@@ -142,7 +195,7 @@ export function useGuardGateAction() {
           });
 
         error = insertError;
-      } else {
+      } else if (!error && passData && action === 'exit') {
         // EXIT action - validate vehicle/driver matching for in_out passes
         const { data: validation, error: validationError } = await supabase.rpc('validate_gate_pass_exit', {
           p_gate_pass_id: passId,
@@ -402,7 +455,7 @@ export function useVerifyPassByReference() {
         };
       }
 
-      // Check time window
+      // Check time window (for passes that have it set)
       const warnings: string[] = [];
       if (pass.time_window_start && pass.time_window_end) {
         const now = new Date();
@@ -417,7 +470,35 @@ export function useVerifyPassByReference() {
         }
       }
 
-      // Check if already completed
+      // Determine allowed action based on pass_type
+      const passType = pass.pass_type as string;
+      let allowedAction: 'entry' | 'exit' | 'both' = 'both';
+
+      if (passType === 'in') {
+        allowedAction = 'entry';
+      } else if (passType === 'out') {
+        allowedAction = 'exit';
+      }
+
+      // Check if already completed based on pass_type
+      if (passType === 'in' && pass.entry_time) {
+        return {
+          is_valid: false,
+          errors: ['Entry has already been recorded for this entry-only pass'],
+          warnings: [],
+          pass: formatPassData(pass),
+        };
+      }
+
+      if (passType === 'out' && pass.exit_time) {
+        return {
+          is_valid: false,
+          errors: ['Exit has already been recorded for this exit-only pass'],
+          warnings: [],
+          pass: formatPassData(pass),
+        };
+      }
+
       if (pass.entry_time && pass.exit_time) {
         return {
           is_valid: false,
@@ -427,11 +508,19 @@ export function useVerifyPassByReference() {
         };
       }
 
+      // Add warning about what action will be performed
+      if (allowedAction === 'entry') {
+        warnings.push('Entry-only pass — exit is not permitted');
+      } else if (allowedAction === 'exit') {
+        warnings.push('Exit-only pass — entry is not permitted');
+      }
+
       return {
         is_valid: true,
         errors: [],
         warnings,
         pass: formatPassData(pass),
+        allowed_action: allowedAction,
       };
     },
   });
