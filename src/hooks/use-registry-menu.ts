@@ -116,32 +116,20 @@ export function useRegistryMenu() {
     const items: RegistryMenuItem[] = [];
     const topLevelGroups = getTopLevelMenuGroups();
     
+    // Direct link groups (not expandable, just a single route)
+    const directLinkGroups = ["dashboard", "action_center", "support"];
+    
     for (const group of topLevelGroups) {
-      // Special handling for dashboard - it's a direct link, not a group
-      if (group.code === "dashboard") {
-        const dashboardRoute = routeRegistry.find(r => r.menuCode === "dashboard");
-        if (dashboardRoute) {
+      // Special handling for direct link items
+      if (directLinkGroups.includes(group.code)) {
+        const route = routeRegistry.find(r => r.menuCode === group.code);
+        if (route) {
           items.push({
-            title: t("navigation.dashboard", language === "ar" ? dashboardRoute.title.ar : dashboardRoute.title.en),
-            url: dashboardRoute.path,
-            icon: dashboardRoute.icon,
-            menuCode: dashboardRoute.menuCode,
-            isActive: currentPath === dashboardRoute.path,
-          });
-        }
-        continue;
-      }
-      
-      // Special handling for support - direct link
-      if (group.code === "support") {
-        const supportRoute = routeRegistry.find(r => r.menuCode === "support");
-        if (supportRoute) {
-          items.push({
-            title: t("navigation.support", language === "ar" ? supportRoute.title.ar : supportRoute.title.en),
-            url: supportRoute.path,
-            icon: supportRoute.icon,
-            menuCode: supportRoute.menuCode,
-            isActive: currentPath === supportRoute.path,
+            title: t(group.translationKey, language === "ar" ? route.title.ar : route.title.en),
+            url: route.path,
+            icon: route.icon,
+            menuCode: route.menuCode,
+            isActive: currentPath === route.path,
           });
         }
         continue;
