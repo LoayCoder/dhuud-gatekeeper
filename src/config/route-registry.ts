@@ -94,6 +94,7 @@ import {
   Sparkles,
   Award,
   Trophy,
+  Zap,
 } from "lucide-react";
 import type { RouteDefinition } from "./route-registry-types";
 import { lazyWithRetry } from "@/lib/lazy-with-retry";
@@ -328,7 +329,7 @@ export const routeRegistry: RouteDefinition[] = [
     path: "/action-center",
     menuCode: "action_center",
     title: { en: "Action Center", ar: "مركز العمليات" },
-    icon: Sparkles,
+    icon: Zap,
     component: lazyWithRetry(() => import("@/pages/ActionCenter")),
     protection: "protected",
     sortOrder: 2,
