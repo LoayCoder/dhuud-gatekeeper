@@ -25949,6 +25949,7 @@ export type Database = {
         Args: { p_notification_id: string }
         Returns: Json
       }
+      get_notification_summary: { Args: { p_tenant_id: string }; Returns: Json }
       get_observation_trend_analytics: {
         Args: {
           p_branch_id?: string
