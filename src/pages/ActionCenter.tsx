@@ -19,6 +19,7 @@ import {
   ContractorsModule,
   VideoInductionModule,
 } from '@/components/action-center';
+import { NotificationPipelineStatus } from '@/components/action-center/NotificationPipelineStatus';
 
 export default function ActionCenter() {
   const { t } = useTranslation();
@@ -72,6 +73,8 @@ export default function ActionCenter() {
           description={t('actionCenter.overviewDesc', 'Cross-module summary of items requiring attention')}
         />
         <ActionCenterStatsBar stats={stats} isLoading={isLoading} />
+        {/* Notification delivery status — admin only */}
+        {isAdmin && <NotificationPipelineStatus />}
       </section>
 
       {/* Operations Section: Incidents & Observations */}

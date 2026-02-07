@@ -1,5 +1,6 @@
 export { ActionCenterStatsBar } from './ActionCenterStatsBar';
 export { ActionModuleCard } from './ActionModuleCard';
+export { NotificationPipelineStatus } from './NotificationPipelineStatus';
 export {
   IncidentsModule,
   ObservationsModule,
