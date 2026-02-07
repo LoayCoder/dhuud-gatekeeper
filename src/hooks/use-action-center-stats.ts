@@ -84,11 +84,11 @@ export function useActionCenterStats() {
         // Incident stats
         fetchIncidentStats(tenantId),
         // Corrective action stats (covers incidents + observations + inspections)
-        fetchCorrectiveActionStats(tenantId, user.id, now),
+        fetchCorrectiveActionStats(tenantId, now),
         // Gate pass stats
         fetchGatePassStats(tenantId, now),
         // Inspection stats
-        fetchInspectionStats(tenantId, user.id),
+        fetchInspectionStats(tenantId),
         // Contractor stats
         fetchContractorStats(tenantId),
         // Induction stats
