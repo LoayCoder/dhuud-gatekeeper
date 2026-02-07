@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendEmail, wrapEmailHtml, emailButton, getAppUrl } from "../_shared/email-sender.ts";
+import { sendWhatsAppText } from "../_shared/whatsapp-provider.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -145,7 +147,60 @@ serve(async (req) => {
           console.error(`[notify-dept-rep-gate-pass] Push notification failed for ${rep.user_id}:`, pushErr);
         }
 
-        // 3. Log to auto_notification_logs for audit trail
+        // 3. Send email notification
+        if (rep.email) {
+          try {
+            const appUrl = getAppUrl();
+            const emailHtml = wrapEmailHtml(`
+              <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+                <h2 style="color: white; margin: 0;">${isArabic ? notificationContent.title_ar : notificationContent.title}</h2>
+              </div>
+              <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+                <p>${isArabic ? notificationContent.body_ar : notificationContent.body}</p>
+                <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+                  <tr><td style="padding: 8px 0; color: #6b7280;">${isArabic ? 'المرجع' : 'Reference'}:</td><td style="padding: 8px 0; font-weight: 600;">${reference_number}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #6b7280;">${isArabic ? 'مقدم الطلب' : 'Requester'}:</td><td style="padding: 8px 0;">${requester_name}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #6b7280;">${isArabic ? 'المشروع' : 'Project'}:</td><td style="padding: 8px 0;">${isArabic ? (project.name_ar || project.name) : project.name}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #6b7280;">${isArabic ? 'التاريخ' : 'Date'}:</td><td style="padding: 8px 0;">${pass_date}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #6b7280;">${isArabic ? 'المواد' : 'Materials'}:</td><td style="padding: 8px 0;">${truncatedMaterial}</td></tr>
+                </table>
+                ${emailButton(isArabic ? 'مراجعة التصريح' : 'Review Gate Pass', `${appUrl}/dept-gate-passes`, '#1e40af', isArabic)}
+              </div>
+            `, isArabic ? 'ar' : 'en');
+            const emailResult = await sendEmail({
+              to: rep.email,
+              subject: `${isArabic ? 'تصريح دخول جديد' : 'New Gate Pass'} - ${reference_number}`,
+              html: emailHtml,
+              module: 'visitor_alert',
+            });
+            if (emailResult.success) {
+              console.log(`[notify-dept-rep-gate-pass] Email sent to ${rep.email}`);
+            } else {
+              console.error(`[notify-dept-rep-gate-pass] Email failed for ${rep.email}: ${emailResult.error}`);
+            }
+          } catch (emailErr) {
+            console.error(`[notify-dept-rep-gate-pass] Email error for ${rep.user_id}:`, emailErr);
+          }
+        }
+
+        // 4. Send WhatsApp notification
+        if (rep.phone_number) {
+          try {
+            const waMsg = isArabic
+              ? `🆕 *تصريح دخول جديد*\n\n📋 المرجع: ${reference_number}\n👤 مقدم الطلب: ${requester_name}\n📦 المواد: ${truncatedMaterial}\n📅 التاريخ: ${pass_date}\n🏗️ المشروع: ${project.name_ar || project.name}\n\n⚡ يرجى مراجعة الطلب.`
+              : `🆕 *New Gate Pass Submitted*\n\n📋 Reference: ${reference_number}\n👤 Requester: ${requester_name}\n📦 Materials: ${truncatedMaterial}\n📅 Date: ${pass_date}\n🏗️ Project: ${project.name}\n\n⚡ Please review and take action.`;
+            const waResult = await sendWhatsAppText(rep.phone_number, waMsg);
+            if (waResult.success) {
+              console.log(`[notify-dept-rep-gate-pass] WhatsApp sent to ${rep.phone_number}`);
+            } else {
+              console.error(`[notify-dept-rep-gate-pass] WhatsApp failed for ${rep.phone_number}: ${waResult.error}`);
+            }
+          } catch (waErr) {
+            console.error(`[notify-dept-rep-gate-pass] WhatsApp error for ${rep.user_id}:`, waErr);
+          }
+        }
+
+        // 5. Log to auto_notification_logs for audit trail
         await supabase
           .from('auto_notification_logs')
           .insert({

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { sendEmail, getAppUrl, emailButton } from "../_shared/email-sender.ts";
+import { sendWhatsAppText } from "../_shared/whatsapp-provider.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -148,7 +149,91 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Email sent successfully:", result);
 
-    return new Response(JSON.stringify({ success: result.success, messageId: result.messageId }), { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    // --- WhatsApp Notification ---
+    let whatsappSentCount = 0;
+    // Build a concise WhatsApp message based on the incident email type
+    let waMessage: string | null = null;
+    const ref = payload.incident_reference;
+    const title = payload.incident_title;
+    switch (type) {
+      case 'severity_proposed':
+        waMessage = `🔔 *Severity Change Proposed – ${ref}*\n\nA severity change from *${getSeverityLabel(payload.current_severity)}* to *${getSeverityLabel(payload.proposed_severity || '')}* has been proposed for "${title}".\n\nProposed by: ${payload.actor_name}\n\nPlease review in the portal.`;
+        break;
+      case 'severity_approved':
+        waMessage = `✅ *Severity Change Approved – ${ref}*\n\nSeverity for "${title}" has been updated from *${getSeverityLabel(payload.original_severity || '')}* to *${getSeverityLabel(payload.current_severity)}*.\n\nApproved by: ${payload.actor_name}`;
+        break;
+      case 'severity_rejected':
+        waMessage = `❌ *Severity Change Rejected – ${ref}*\n\nThe proposed severity change to *${getSeverityLabel(payload.proposed_severity || '')}* for "${title}" has been rejected. Reverted to *${getSeverityLabel(payload.original_severity || '')}*.\n\nRejected by: ${payload.actor_name}`;
+        break;
+      case 'closure_requested':
+        waMessage = `🔒 *Closure Requested – ${ref}*\n\nA closure has been requested for "${title}" by ${payload.actor_name}.${payload.closure_notes ? `\nNotes: ${payload.closure_notes}` : ''}\n\nPlease review.`;
+        break;
+      case 'closure_approved':
+        waMessage = `✅ *Incident Closed – ${ref}*\n\n"${title}" has been officially closed by ${payload.actor_name}.`;
+        break;
+      case 'closure_rejected':
+        waMessage = `❌ *Closure Rejected – ${ref}*\n\nThe closure request for "${title}" has been rejected by ${payload.actor_name}.${payload.rejection_notes ? `\nReason: ${payload.rejection_notes}` : ''}`;
+        break;
+      case 'dept_rep_assignment':
+        waMessage = `📋 *New Event Assigned – ${ref}*\n\n"${title}" has been assigned to your department for review.\n\nSeverity: ${getSeverityLabel(payload.current_severity)}\nReported by: ${payload.reporter_name || payload.actor_name}\n\nPlease review and take action.`;
+        break;
+    }
+
+    if (waMessage) {
+      // Collect phone numbers of the same recipients that received emails
+      const recipientUserIds: string[] = [];
+      if (type === 'dept_rep_assignment') {
+        const { data: incident } = await supabase
+          .from('incidents')
+          .select('department_id')
+          .eq('id', payload.incident_id)
+          .single();
+        if (incident?.department_id) {
+          const { data: deptRepUsers } = await supabase
+            .from('user_role_assignments')
+            .select('user_id, profiles!inner(department_id), roles!inner(code)')
+            .eq('roles.code', 'department_representative')
+            .eq('profiles.department_id', incident.department_id);
+          (deptRepUsers || []).forEach((u: { user_id: string }) => recipientUserIds.push(u.user_id));
+        }
+      } else {
+        const { data: hsseUsers } = await supabase
+          .from('user_role_assignments')
+          .select('user_id, roles!inner(code)')
+          .in('roles.code', ['hsse_manager', 'hsse_officer', 'admin']);
+        (hsseUsers || []).forEach((u: { user_id: string }) => recipientUserIds.push(u.user_id));
+      }
+
+      // Batch fetch phone numbers in a single query instead of N+1
+      const uniqueUserIds = [...new Set(recipientUserIds)];
+      const { data: phoneProfiles, error: phoneError } = await supabase
+        .from('profiles')
+        .select('phone_number')
+        .in('id', uniqueUserIds)
+        .not('phone_number', 'is', null);
+
+      if (phoneError) {
+        console.error('[WhatsApp] Error fetching profiles for phone numbers:', phoneError);
+      }
+
+      const uniquePhones = [...new Set((phoneProfiles || []).map(p => p.phone_number!))];
+      for (const phone of uniquePhones) {
+        try {
+          const waResult = await sendWhatsAppText(phone, waMessage);
+          if (waResult.success) {
+            whatsappSentCount++;
+            console.log(`[WhatsApp] Incident notification sent to ${phone}`);
+          } else {
+            console.error(`[WhatsApp] Failed: ${phone}: ${waResult.error}`);
+          }
+        } catch (waErr) {
+          console.error(`[WhatsApp] Error sending to ${phone}:`, waErr);
+        }
+      }
+      console.log(`[WhatsApp] Sent ${whatsappSentCount} incident WhatsApp messages for type ${type}`);
+    }
+
+    return new Response(JSON.stringify({ success: result.success, messageId: result.messageId, whatsappSentCount }), { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } });
   } catch (error: unknown) {
     console.error("Error in send-incident-email:", error);
     const message = error instanceof Error ? error.message : "Unknown error";

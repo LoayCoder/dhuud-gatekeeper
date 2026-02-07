@@ -1,12 +1,13 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendEmail, type EmailModule, getAppUrl, emailButton, wrapEmailHtml, getCommonTranslations, formatDateForLocale, getPriorityLabel } from "../_shared/email-sender.ts";
-import { 
-  ACTION_TRANSLATIONS, 
-  getTranslations, 
+import { sendWhatsAppText } from "../_shared/whatsapp-provider.ts";
+import {
+  ACTION_TRANSLATIONS,
+  getTranslations,
   replaceVariables,
   isRTL,
-  type SupportedLanguage 
+  type SupportedLanguage
 } from "../_shared/email-translations.ts";
 
 const corsHeaders = {
@@ -510,8 +511,60 @@ serve(async (req: Request) => {
 
     console.log(`Email sent successfully in ${lang}:`, result.messageId);
 
+    // --- WhatsApp Notification ---
+    let whatsappSent = false;
+    try {
+      // Look up recipient phone number
+      let recipientPhone: string | null = null;
+      if (data.recipient_id) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("phone_number")
+          .eq("id", data.recipient_id)
+          .single();
+        recipientPhone = profile?.phone_number || null;
+      }
+
+      if (recipientPhone) {
+        const tenant = data.tenant_name || 'DHUUD';
+        let waMessage: string | null = null;
+
+        switch (data.type) {
+          case 'action_assigned':
+            waMessage = `📋 *${tenant} – Action Assigned*\n\nDear ${data.recipient_name},\n\nYou have been assigned a corrective action:\n*${data.action_title}*\n\nPriority: ${data.action_priority || 'Medium'}\nDue: ${data.due_date || 'Not set'}\nIncident: ${data.incident_reference || 'N/A'}\n\nPlease review and complete.`;
+            break;
+          case 'witness_request_created':
+            waMessage = `📝 *${tenant} – Witness Statement Requested*\n\nDear ${data.recipient_name},\n\nYou have been requested to provide a witness statement for incident *${data.incident_reference || 'N/A'}*.${data.assignment_instructions ? `\n\nInstructions: ${data.assignment_instructions}` : ''}\n\nPlease submit your statement.`;
+            break;
+          case 'action_returned':
+            waMessage = `⚠️ *${tenant} – Action Returned*\n\nDear ${data.recipient_name},\n\nYour corrective action *${data.action_title}* has been returned for revision.${data.rejection_notes ? `\nNotes: ${data.rejection_notes}` : ''}\n\nPlease revise and resubmit.`;
+            break;
+          case 'action_closed':
+            waMessage = `✅ *${tenant} – Action Closed*\n\nDear ${data.recipient_name},\n\nYour corrective action *${data.action_title}* has been verified and closed.${data.verifier_name ? `\nVerified by: ${data.verifier_name}` : ''}`;
+            break;
+          case 'witness_statement_returned':
+            waMessage = `⚠️ *${tenant} – Witness Statement Returned*\n\nDear ${data.recipient_name},\n\nYour witness statement for incident *${data.incident_reference || 'N/A'}* has been returned for revision.${data.return_reason ? `\nReason: ${data.return_reason}` : ''}\n\nPlease revise and resubmit.`;
+            break;
+        }
+
+        if (waMessage) {
+          const waResult = await sendWhatsAppText(recipientPhone, waMessage);
+          whatsappSent = waResult.success;
+          if (waResult.success) {
+            console.log(`[WhatsApp] Action notification sent to ${recipientPhone}`);
+          } else {
+            console.error(`[WhatsApp] Failed to send to ${recipientPhone}: ${waResult.error}`);
+          }
+        }
+      } else {
+        console.log(`[WhatsApp] No phone number for recipient ${data.recipient_id}, skipping`);
+      }
+    } catch (waError) {
+      console.error("[WhatsApp] Error sending action notification:", waError);
+    }
+
     return new Response(
-      JSON.stringify({ success: true, messageId: result.messageId, language: lang }),
+      JSON.stringify({ success: true, messageId: result.messageId, language: lang, whatsappSent }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   } catch (error: unknown) {

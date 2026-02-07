@@ -104,8 +104,8 @@ function generateWhatsAppMessage(
   const priorityLabel = PRIORITY_LABELS[alert.priority]?.[lang] || PRIORITY_LABELS['critical'][lang];
   
   const locationText = alert.location || siteName || '-';
-  const gpsLink = alert.gps_lat && alert.gps_lng 
-    ? `https://maps.google.com/?q=${alert.gps_lat},${alert.gps_lng}` 
+  const gpsLink = (alert.gps_lat != null && alert.gps_lng != null)
+    ? `https://maps.google.com/?q=${alert.gps_lat},${alert.gps_lng}`
     : '';
   
   const immediateAction: Record<SupportedLanguage, string> = {
@@ -151,8 +151,8 @@ function generateEmailContent(
   const rtl = isRTL(lang);
   
   const locationText = alert.location || siteName || '-';
-  const gpsLink = alert.gps_lat && alert.gps_lng 
-    ? `https://maps.google.com/?q=${alert.gps_lat},${alert.gps_lng}` 
+  const gpsLink = (alert.gps_lat != null && alert.gps_lng != null)
+    ? `https://maps.google.com/?q=${alert.gps_lat},${alert.gps_lng}`
     : '';
 
   const subject = `${priorityEmoji} ${alertLabel} - ${locationText}`;
@@ -211,7 +211,7 @@ function generateEmailContent(
             <td style="padding: 12px 0;">${alert.details}</td>
           </tr>
           ` : ''}
-          ${alert.gps_lat && alert.gps_lng ? `
+          ${(alert.gps_lat != null && alert.gps_lng != null) ? `
           <tr>
             <td style="padding: 12px 0; color: #64748b; font-weight: bold;">GPS:</td>
             <td style="padding: 12px 0;">${alert.gps_lat.toFixed(6)}, ${alert.gps_lng.toFixed(6)}</td>
@@ -265,7 +265,7 @@ function generatePushPayload(
   ];
 
   // Add map action if GPS coordinates available
-  if (alert.gps_lat && alert.gps_lng) {
+  if (alert.gps_lat != null && alert.gps_lng != null) {
     actions.push({ action: 'map', title: mapLabel });
   }
 
@@ -519,7 +519,7 @@ Deno.serve(async (req) => {
             to: recipient.email,
             subject: emailContent.subject,
             html: emailContent.html,
-            module: 'incident_workflow',
+            module: 'security_alert',
             tenantName
           });
 

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendWaSenderTextMessage } from "../_shared/wasender-whatsapp.ts";
+import { sendEmail, wrapEmailHtml, emailButton, getAppUrl } from "../_shared/email-sender.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -277,6 +278,34 @@ ${branchName ? `📍 Location: ${branchName}` : ''}
         }
       }
 
+      // Send email to requester if email is available
+      if (requester_email) {
+        try {
+          const emailHtml = wrapEmailHtml(`
+            <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+              <h2 style="color: white; margin: 0;">Gate Pass Request Received</h2>
+            </div>
+            <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+              <p>Dear ${requester_name},</p>
+              <p>Your gate pass request has been received and is pending review.</p>
+              <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+                <tr><td style="padding: 8px 0; color: #6b7280;">Reference:</td><td style="padding: 8px 0; font-weight: 600;">${reference_number}</td></tr>
+                <tr><td style="padding: 8px 0; color: #6b7280;">Date:</td><td style="padding: 8px 0;">${pass_date}</td></tr>
+                <tr><td style="padding: 8px 0; color: #6b7280;">Materials:</td><td style="padding: 8px 0;">${truncatedMaterial}</td></tr>
+                ${branchName ? `<tr><td style="padding: 8px 0; color: #6b7280;">Location:</td><td style="padding: 8px 0;">${branchName}</td></tr>` : ''}
+              </table>
+              ${emailButton("Track Status", fullTrackingUrl, "#1e40af")}
+              <p style="color: #6b7280; font-size: 12px; margin-top: 20px;">You will be notified when your request is reviewed.</p>
+            </div>
+          `, 'en', tenant.name);
+          const emailResult = await sendEmail({ to: requester_email, subject: `Gate Pass Submitted - ${reference_number}`, html: emailHtml, module: 'visitor_alert', tenantName: tenant.name });
+          results.push({ type: 'requester_email', success: emailResult.success, error: emailResult.error });
+        } catch (emailErr) {
+          console.error('[notify-public-gate-pass] Email error:', emailErr);
+          results.push({ type: 'requester_email', success: false, error: String(emailErr) });
+        }
+      }
+
     } else if (event_type === 'approved') {
       // Generate PDF URL for approved passes
       const pdfUrl = `${supabaseUrl}/functions/v1/generate-public-gate-pass-pdf?token=${public_access_token || ''}&tenant=${tenant.slug}`;
@@ -310,6 +339,34 @@ ${pdfUrl}
         error: approvalResult.error,
       });
 
+      // Send approval email if email available
+      if (requester_email) {
+        try {
+          const emailHtml = wrapEmailHtml(`
+            <div style="background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+              <h2 style="color: white; margin: 0;">Gate Pass Approved</h2>
+            </div>
+            <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+              <p>Dear ${requester_name},</p>
+              <p>Your gate pass request has been <strong>approved</strong>.</p>
+              <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+                <tr><td style="padding: 8px 0; color: #6b7280;">Reference:</td><td style="padding: 8px 0; font-weight: 600;">${reference_number}</td></tr>
+                <tr><td style="padding: 8px 0; color: #6b7280;">Valid Date:</td><td style="padding: 8px 0;">${pass_date}</td></tr>
+                ${branchName ? `<tr><td style="padding: 8px 0; color: #6b7280;">Location:</td><td style="padding: 8px 0;">${branchName}</td></tr>` : ''}
+              </table>
+              <div style="background: #dcfce7; border: 1px solid #86efac; border-radius: 6px; padding: 16px; margin: 16px 0;">
+                <p style="margin: 0; color: #166534;">Please show the QR code or printed PDF at the security gate upon arrival.</p>
+              </div>
+              ${emailButton("View Pass & QR Code", fullTrackingUrl, "#16a34a")}
+            </div>
+          `, 'en', tenant.name);
+          const emailResult = await sendEmail({ to: requester_email, subject: `Gate Pass Approved - ${reference_number}`, html: emailHtml, module: 'visitor_alert', tenantName: tenant.name });
+          results.push({ type: 'approval_email', success: emailResult.success, error: emailResult.error });
+        } catch (emailErr) {
+          results.push({ type: 'approval_email', success: false, error: String(emailErr) });
+        }
+      }
+
     } else if (event_type === 'rejected') {
       // Send rejection notification to requester (Bilingual)
       const rejectionMessage = `
@@ -332,6 +389,30 @@ You may submit a new request if needed.
         success: rejectionResult.success,
         error: rejectionResult.error,
       });
+
+      // Send rejection email if email available
+      if (requester_email) {
+        try {
+          const emailHtml = wrapEmailHtml(`
+            <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+              <h2 style="color: white; margin: 0;">Gate Pass Request Declined</h2>
+            </div>
+            <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+              <p>Dear ${requester_name},</p>
+              <p>Unfortunately, your gate pass request has been <strong>declined</strong>.</p>
+              <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+                <tr><td style="padding: 8px 0; color: #6b7280;">Reference:</td><td style="padding: 8px 0; font-weight: 600;">${reference_number}</td></tr>
+                ${rejection_reason ? `<tr><td style="padding: 8px 0; color: #6b7280;">Reason:</td><td style="padding: 8px 0;">${rejection_reason}</td></tr>` : ''}
+              </table>
+              <p>You may submit a new request if needed.</p>
+            </div>
+          `, 'en', tenant.name);
+          const emailResult = await sendEmail({ to: requester_email, subject: `Gate Pass Declined - ${reference_number}`, html: emailHtml, module: 'visitor_alert', tenantName: tenant.name });
+          results.push({ type: 'rejection_email', success: emailResult.success, error: emailResult.error });
+        } catch (emailErr) {
+          results.push({ type: 'rejection_email', success: false, error: String(emailErr) });
+        }
+      }
 
     } else if (event_type === 'acknowledged') {
       // Send acknowledgment notification to requester (Bilingual)

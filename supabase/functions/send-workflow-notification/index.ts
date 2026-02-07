@@ -1,12 +1,13 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendEmail, type EmailModule, getAppUrl, emailButton, wrapEmailHtml, getCommonTranslations } from "../_shared/email-sender.ts";
-import { 
-  WORKFLOW_TRANSLATIONS, 
-  getTranslations, 
+import { sendWhatsAppText } from "../_shared/whatsapp-provider.ts";
+import {
+  WORKFLOW_TRANSLATIONS,
+  getTranslations,
   replaceVariables,
   isRTL,
-  type SupportedLanguage 
+  type SupportedLanguage
 } from "../_shared/email-translations.ts";
 
 const corsHeaders = {
@@ -93,6 +94,64 @@ async function getRecipientLanguage(supabase: any, recipientId: string): Promise
   return data?.preferred_language || 'en';
 }
 
+/**
+ * Build a concise WhatsApp summary for a workflow action.
+ * Returns null if no WhatsApp should be sent for this action.
+ */
+function buildWhatsAppMessage(
+  action: string,
+  referenceId: string,
+  tenantName: string,
+  extras: { notes?: string; reason?: string; recipientName?: string; incidentTitle?: string }
+): string | null {
+  const ref = referenceId;
+  const name = extras.recipientName || '';
+  const greeting = name ? `Dear ${name},\n\n` : '';
+
+  switch (action) {
+    case "expert_return":
+      return `${greeting}⚠️ *${tenantName} – Report Returned*\n\nYour report *${ref}* has been returned for revision.${extras.reason ? `\nReason: ${extras.reason}` : ''}\n\nPlease revise and resubmit.`;
+    case "expert_reject":
+      return `${greeting}❌ *${tenantName} – Report Rejected*\n\nYour report *${ref}* has been rejected.${extras.reason ? `\nReason: ${extras.reason}` : ''}\n\nPlease review the feedback.`;
+    case "expert_investigate":
+      return `${greeting}🔍 *${tenantName} – Investigation Assigned*\n\nIncident *${ref}* has been assigned for investigation.${extras.incidentTitle ? `\nTitle: ${extras.incidentTitle}` : ''}${extras.notes ? `\nNotes: ${extras.notes}` : ''}\n\nPlease review in the portal.`;
+    case "investigator_assigned":
+      return `${greeting}📋 *${tenantName} – You Are Assigned as Investigator*\n\nYou have been assigned to investigate incident *${ref}*.${extras.incidentTitle ? `\nTitle: ${extras.incidentTitle}` : ''}\n\nPlease begin your investigation.`;
+    case "expert_assign_actions":
+      return `${greeting}📝 *${tenantName} – Actions Assigned for Review*\n\nCorrective actions for *${ref}* are ready for your review.${extras.incidentTitle ? `\nTitle: ${extras.incidentTitle}` : ''}\n\nPlease review in the portal.`;
+    case "close_on_spot":
+      return `${greeting}✅ *${tenantName} – Observation Closed On-Spot*\n\nObservation *${ref}* has been closed on-spot.${extras.notes ? `\nNotes: ${extras.notes}` : ''}`;
+    case "observation_closed":
+      return `${greeting}✅ *${tenantName} – Observation Closed*\n\nObservation *${ref}* has been closed successfully.`;
+    case "incident_closed":
+      return `${greeting}✅ *${tenantName} – Incident Closed*\n\nIncident *${ref}* investigation has been closed.`;
+    case "dept_rep_incident_review":
+      return `${greeting}🔔 *${tenantName} – New Event Requires Review*\n\nEvent report *${ref}* has been assigned to your department.${extras.incidentTitle ? `\nTitle: ${extras.incidentTitle}` : ''}\n\nPlease review and take action.`;
+    case "escalation_reject":
+      return `${greeting}❌ *${tenantName} – Escalation Rejected*\n\nYour escalation for *${ref}* has been rejected.${extras.notes ? `\nReason: ${extras.notes}` : ''}`;
+    case "escalation_accept_observation":
+      return `${greeting}✅ *${tenantName} – Escalation Accepted*\n\nThe escalation for observation *${ref}* has been accepted.`;
+    case "escalation_upgraded":
+      return `${greeting}⬆️ *${tenantName} – Observation Upgraded to Incident*\n\nObservation *${ref}* has been upgraded to an incident for investigation.${extras.notes ? `\nNotes: ${extras.notes}` : ''}`;
+    case "violation_pending_approval":
+      return `${greeting}⚠️ *${tenantName} – Violation Pending Approval*\n\nViolation for *${ref}* requires your approval.\n\nPlease review in the portal.`;
+    case "violation_fine_pending":
+      return `${greeting}💰 *${tenantName} – Fine Pending Approval*\n\nA fine for violation *${ref}* requires your approval.\n\nPlease review in the portal.`;
+    case "violation_acknowledgment_required":
+      return `${greeting}📋 *${tenantName} – Violation Acknowledgment Required*\n\nViolation *${ref}* requires your acknowledgment.\n\nPlease review and acknowledge.`;
+    case "violation_contested":
+      return `${greeting}⚡ *${tenantName} – Violation Contested*\n\nThe contractor has contested violation *${ref}*.${extras.notes ? `\nContest reason: ${extras.notes}` : ''}\n\nPlease review.`;
+    case "violation_rejected_review":
+      return `${greeting}❌ *${tenantName} – Violation/Fine Rejected*\n\nViolation *${ref}* has been rejected and needs review.${extras.notes ? `\nReason: ${extras.notes}` : ''}`;
+    case "violation_finalized":
+      return `${greeting}✅ *${tenantName} – Violation Finalized*\n\nViolation *${ref}* has been finalized.`;
+    case "violation_cancelled":
+      return `${greeting}🚫 *${tenantName} – Violation Cancelled*\n\nViolation *${ref}* has been cancelled.${extras.notes ? `\nReason: ${extras.notes}` : ''}`;
+    default:
+      return null;
+  }
+}
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -114,15 +173,17 @@ serve(async (req: Request) => {
     const reporterProfile = (incident.profiles as any)?.[0] || null;
 
     let recipients: string[] = [];
+    const waRecipientUserIds: string[] = [];
     let subject = "";
     let htmlContent = "";
     let recipientLang = reporterProfile?.preferred_language || 'en';
 
     const appUrl = getAppUrl();
-    
+
     switch (action) {
       case "expert_return": {
         if (reporterProfile?.email) recipients.push(reporterProfile.email);
+        if (incident.reporter_id) waRecipientUserIds.push(incident.reporter_id);
         const t = getTranslations(WORKFLOW_TRANSLATIONS, recipientLang).expert_return;
         const common = getCommonTranslations(recipientLang);
         const rtl = isRTL(recipientLang as SupportedLanguage);
@@ -148,6 +209,7 @@ serve(async (req: Request) => {
       }
       case "expert_reject": {
         if (reporterProfile?.email) recipients.push(reporterProfile.email);
+        if (incident.reporter_id) waRecipientUserIds.push(incident.reporter_id);
         const t = getTranslations(WORKFLOW_TRANSLATIONS, recipientLang).expert_reject;
         const common = getCommonTranslations(recipientLang);
         const rtl = isRTL(recipientLang as SupportedLanguage);
@@ -172,6 +234,7 @@ serve(async (req: Request) => {
       }
       case "expert_investigate": {
         if (incident.approval_manager_id) {
+          waRecipientUserIds.push(incident.approval_manager_id);
           const { data: manager } = await supabase.from("profiles").select("email, full_name, preferred_language").eq("id", incident.approval_manager_id).single();
           if (manager?.email) {
             recipients.push(manager.email);
@@ -203,6 +266,7 @@ serve(async (req: Request) => {
       }
       case "investigator_assigned": {
         if (payload.investigatorId) {
+          waRecipientUserIds.push(payload.investigatorId);
           const { data: investigator } = await supabase.from("profiles").select("email, full_name, preferred_language").eq("id", payload.investigatorId).single();
           if (investigator?.email) {
             recipients.push(investigator.email);
@@ -234,6 +298,7 @@ serve(async (req: Request) => {
       case "expert_assign_actions": {
         // Notify department representative that observation needs their review
         if (incident.approval_manager_id) {
+          waRecipientUserIds.push(incident.approval_manager_id);
           const { data: deptRep } = await supabase.from("profiles").select("email, full_name, preferred_language").eq("id", incident.approval_manager_id).single();
           if (deptRep?.email) {
             recipients.push(deptRep.email);
@@ -266,6 +331,7 @@ serve(async (req: Request) => {
       case "close_on_spot": {
         // Notify reporter that their observation was closed on spot
         if (reporterProfile?.email) recipients.push(reporterProfile.email);
+        if (incident.reporter_id) waRecipientUserIds.push(incident.reporter_id);
         const t = getTranslations(WORKFLOW_TRANSLATIONS, recipientLang).close_on_spot;
         const common = getCommonTranslations(recipientLang);
         const rtl = isRTL(recipientLang as SupportedLanguage);
@@ -291,6 +357,7 @@ serve(async (req: Request) => {
       case "observation_closed": {
         // Notify reporter that their observation has been closed
         if (reporterProfile?.email) recipients.push(reporterProfile.email);
+        if (incident.reporter_id) waRecipientUserIds.push(incident.reporter_id);
         const t = getTranslations(WORKFLOW_TRANSLATIONS, recipientLang).observation_closed;
         const common = getCommonTranslations(recipientLang);
         const rtl = isRTL(recipientLang as SupportedLanguage);
@@ -315,6 +382,7 @@ serve(async (req: Request) => {
       case "incident_closed": {
         // Notify reporter that incident investigation has been closed
         if (reporterProfile?.email) recipients.push(reporterProfile.email);
+        if (incident.reporter_id) waRecipientUserIds.push(incident.reporter_id);
         const t = getTranslations(WORKFLOW_TRANSLATIONS, recipientLang).incident_closed;
         const common = getCommonTranslations(recipientLang);
         const rtl = isRTL(recipientLang as SupportedLanguage);
@@ -339,6 +407,7 @@ serve(async (req: Request) => {
       case "dept_rep_incident_review": {
         // Notify dept rep that a new incident requires their review
         if (incident.approval_manager_id) {
+          waRecipientUserIds.push(incident.approval_manager_id);
           const { data: deptRep } = await supabase.from("profiles").select("email, full_name, preferred_language").eq("id", incident.approval_manager_id).single();
           if (deptRep?.email) {
             recipients.push(deptRep.email);
@@ -370,6 +439,7 @@ serve(async (req: Request) => {
       case "escalation_reject": {
         // Notify Dept Rep that their escalation was rejected
         if (incident.approval_manager_id) {
+          waRecipientUserIds.push(incident.approval_manager_id);
           const { data: deptRep } = await supabase.from("profiles").select("email, full_name, preferred_language").eq("id", incident.approval_manager_id).single();
           if (deptRep?.email) {
             recipients.push(deptRep.email);
@@ -401,7 +471,9 @@ serve(async (req: Request) => {
       case "escalation_accept_observation": {
         // Notify Dept Rep and Reporter that observation was accepted
         if (reporterProfile?.email) recipients.push(reporterProfile.email);
+        if (incident.reporter_id) waRecipientUserIds.push(incident.reporter_id);
         if (incident.approval_manager_id) {
+          waRecipientUserIds.push(incident.approval_manager_id);
           const { data: deptRep } = await supabase.from("profiles").select("email").eq("id", incident.approval_manager_id).single();
           if (deptRep?.email && !recipients.includes(deptRep.email)) recipients.push(deptRep.email);
         }
@@ -429,7 +501,9 @@ serve(async (req: Request) => {
       case "escalation_upgraded": {
         // Notify Reporter, Dept Rep, and Investigator about upgrade
         if (reporterProfile?.email) recipients.push(reporterProfile.email);
+        if (incident.reporter_id) waRecipientUserIds.push(incident.reporter_id);
         if (incident.approval_manager_id) {
+          waRecipientUserIds.push(incident.approval_manager_id);
           const { data: deptRep } = await supabase.from("profiles").select("email").eq("id", incident.approval_manager_id).single();
           if (deptRep?.email && !recipients.includes(deptRep.email)) recipients.push(deptRep.email);
         }
@@ -471,6 +545,7 @@ serve(async (req: Request) => {
       case "violation_pending_approval": {
         // Notify Department Manager that violation needs approval
         if (incident.approval_manager_id) {
+          waRecipientUserIds.push(incident.approval_manager_id);
           const { data: deptManager } = await supabase.from("profiles").select("email, full_name, preferred_language").eq("id", incident.approval_manager_id).single();
           if (deptManager?.email) {
             recipients.push(deptManager.email);
@@ -534,6 +609,7 @@ serve(async (req: Request) => {
         
         const controllerId = (incidentWithContractor?.contractor_companies as any)?.controller_id;
         if (controllerId) {
+          waRecipientUserIds.push(controllerId);
           const { data: controller } = await supabase.from("profiles").select("email, full_name, preferred_language").eq("id", controllerId).single();
           if (controller?.email) {
             recipients.push(controller.email);
@@ -586,6 +662,7 @@ serve(async (req: Request) => {
         
         const siteRepId = (incidentData?.contractor_companies as any)?.site_representative_id;
         if (siteRepId) {
+          waRecipientUserIds.push(siteRepId);
           const { data: siteRep } = await supabase.from("profiles").select("email, full_name, preferred_language").eq("id", siteRepId).single();
           if (siteRep?.email) {
             recipients.push(siteRep.email);
@@ -625,9 +702,10 @@ serve(async (req: Request) => {
         const { data: hsseExperts } = await supabase.from("user_roles")
           .select("user_id, profiles!user_roles_user_id_fkey(email, full_name, preferred_language)")
           .eq("role", "hsse_expert");
-        
+
         if (hsseExperts && hsseExperts.length > 0) {
           for (const expert of hsseExperts) {
+            if (expert.user_id) waRecipientUserIds.push(expert.user_id);
             const profile = (expert.profiles as any);
             if (profile?.email) recipients.push(profile.email);
             if (!recipientLang || recipientLang === 'en') recipientLang = profile?.preferred_language || 'en';
@@ -661,9 +739,10 @@ serve(async (req: Request) => {
         const { data: hsseExperts } = await supabase.from("user_roles")
           .select("user_id, profiles!user_roles_user_id_fkey(email, full_name, preferred_language)")
           .eq("role", "hsse_expert");
-        
+
         if (hsseExperts && hsseExperts.length > 0) {
           for (const expert of hsseExperts) {
+            if (expert.user_id) waRecipientUserIds.push(expert.user_id);
             const profile = (expert.profiles as any);
             if (profile?.email) recipients.push(profile.email);
             if (!recipientLang || recipientLang === 'en') recipientLang = profile?.preferred_language || 'en';
@@ -695,7 +774,8 @@ serve(async (req: Request) => {
       case "violation_finalized": {
         // Notify all parties (reporter, contractor rep) of final decision
         if (reporterProfile?.email) recipients.push(reporterProfile.email);
-        
+        if (incident.reporter_id) waRecipientUserIds.push(incident.reporter_id);
+
         // Also notify contractor site rep
         const { data: incidentData } = await supabase.from("incidents")
           .select(`
@@ -703,9 +783,10 @@ serve(async (req: Request) => {
             contractor_companies!related_contractor_company_id(site_representative_id)
           `)
           .eq("id", incidentId).single();
-        
+
         const siteRepId = (incidentData?.contractor_companies as any)?.site_representative_id;
         if (siteRepId) {
+          waRecipientUserIds.push(siteRepId);
           const { data: siteRep } = await supabase.from("profiles").select("email").eq("id", siteRepId).single();
           if (siteRep?.email && !recipients.includes(siteRep.email)) recipients.push(siteRep.email);
         }
@@ -735,14 +816,16 @@ serve(async (req: Request) => {
       case "violation_cancelled": {
         // Notify all parties that violation was cancelled
         if (reporterProfile?.email) recipients.push(reporterProfile.email);
-        
+        if (incident.reporter_id) waRecipientUserIds.push(incident.reporter_id);
+
         // Also notify contractor site rep
         const { data: incidentData } = await supabase.from("incidents")
           .select(`contractor_companies!related_contractor_company_id(site_representative_id)`)
           .eq("id", incidentId).single();
-        
+
         const siteRepId = (incidentData?.contractor_companies as any)?.site_representative_id;
         if (siteRepId) {
+          waRecipientUserIds.push(siteRepId);
           const { data: siteRep } = await supabase.from("profiles").select("email").eq("id", siteRepId).single();
           if (siteRep?.email && !recipients.includes(siteRep.email)) recipients.push(siteRep.email);
         }
@@ -778,7 +861,46 @@ serve(async (req: Request) => {
       result = await sendEmailWithTracking(supabase, incident.tenant_id, tenantName, action, recipients, subject, htmlContent, incidentId, { ...payload, language: recipientLang });
     }
 
-    return new Response(JSON.stringify({ success: true, action, recipientCount: recipients.length, sentCount: result.sentCount, language: recipientLang }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // --- WhatsApp Notification ---
+    let whatsappSentCount = 0;
+    const whatsappMessage = buildWhatsAppMessage(action, incident.reference_id, tenantName, {
+      notes: payload.notes,
+      reason: payload.returnReason || payload.rejectionReason,
+      recipientName: reporterProfile?.full_name,
+      incidentTitle: incident.title,
+    });
+
+    if (whatsappMessage && waRecipientUserIds.length > 0) {
+      // Batch fetch phone numbers in a single query
+      const uniqueUserIds = [...new Set(waRecipientUserIds)];
+      const { data: phoneProfiles, error: phoneError } = await supabase
+        .from("profiles")
+        .select("phone_number")
+        .in("id", uniqueUserIds)
+        .not("phone_number", "is", null);
+
+      if (phoneError) {
+        console.error("[WhatsApp] Error fetching profiles for phone numbers:", phoneError);
+      }
+
+      const uniquePhones = [...new Set((phoneProfiles || []).map(p => p.phone_number!))];
+      for (const phone of uniquePhones) {
+        try {
+          const waResult = await sendWhatsAppText(phone, whatsappMessage);
+          if (waResult.success) {
+            whatsappSentCount++;
+            console.log(`[WhatsApp] Sent workflow notification to ${phone}`);
+          } else {
+            console.error(`[WhatsApp] Failed to send to ${phone}: ${waResult.error}`);
+          }
+        } catch (waError) {
+          console.error(`[WhatsApp] Error sending to ${phone}:`, waError);
+        }
+      }
+      console.log(`[WhatsApp] Sent ${whatsappSentCount}/${uniquePhones.length} workflow WhatsApp messages for action ${action}`);
+    }
+
+    return new Response(JSON.stringify({ success: true, action, recipientCount: recipients.length, sentCount: result.sentCount, whatsappSentCount, language: recipientLang }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (error: unknown) {
     console.error("Error in send-workflow-notification:", error);
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
