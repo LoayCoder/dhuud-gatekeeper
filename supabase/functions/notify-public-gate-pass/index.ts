@@ -363,6 +363,7 @@ ${pdfUrl}
           const emailResult = await sendEmail({ to: requester_email, subject: `Gate Pass Approved - ${reference_number}`, html: emailHtml, module: 'visitor_alert', tenantName: tenant.name });
           results.push({ type: 'approval_email', success: emailResult.success, error: emailResult.error });
         } catch (emailErr) {
+          console.error(`[notify-public-gate-pass] Approval email error for ${requester_email}:`, emailErr);
           results.push({ type: 'approval_email', success: false, error: String(emailErr) });
         }
       }
@@ -410,6 +411,7 @@ You may submit a new request if needed.
           const emailResult = await sendEmail({ to: requester_email, subject: `Gate Pass Declined - ${reference_number}`, html: emailHtml, module: 'visitor_alert', tenantName: tenant.name });
           results.push({ type: 'rejection_email', success: emailResult.success, error: emailResult.error });
         } catch (emailErr) {
+          console.error(`[notify-public-gate-pass] Rejection email error for ${requester_email}:`, emailErr);
           results.push({ type: 'rejection_email', success: false, error: String(emailErr) });
         }
       }
