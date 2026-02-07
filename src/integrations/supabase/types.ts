@@ -25772,7 +25772,11 @@ export type Database = {
       }
       get_hsse_event_dashboard_stats:
         | {
-            Args: { p_end_date?: string; p_start_date?: string }
+            Args: {
+              p_branch_id?: string
+              p_end_date?: string
+              p_start_date?: string
+            }
             Returns: Json
           }
         | {
@@ -25863,15 +25867,7 @@ export type Database = {
           p_site_id?: string
           p_start_date?: string
         }
-        Returns: {
-          dart: number
-          ltifr: number
-          month: string
-          severity_rate: number
-          total_incidents: number
-          total_manhours: number
-          trir: number
-        }[]
+        Returns: Json
       }
       get_kpi_period_comparison: {
         Args: {
@@ -25882,13 +25878,7 @@ export type Database = {
           p_previous_start: string
           p_site_id?: string
         }
-        Returns: {
-          current_value: number
-          metric_name: string
-          percent_change: number
-          previous_value: number
-          trend_direction: string
-        }[]
+        Returns: Json
       }
       get_lagging_indicators: {
         Args: {
