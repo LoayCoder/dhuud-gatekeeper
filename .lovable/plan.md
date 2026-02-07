@@ -1,34 +1,49 @@
 
 
-## OneSignal Push Notifications Configuration
+## Apply Notification Summary RPC Migration
 
-### Current Issue
-The `VITE_ONESIGNAL_APP_ID` environment variable is currently empty, causing OneSignal to skip initialization and display "Notifications are not supported in this browser."
+### Current State
+- The migration file `supabase/migrations/20260217000000_add_notification_summary_rpc.sql` exists but has **not been applied** to the database
+- The `notification_logs` table exists with the correct schema including `tenant_id`, `status`, and `created_at` columns
+- The `NotificationPipelineStatus` component is already calling `supabase.rpc('get_notification_summary', { p_tenant_id })` but the function doesn't exist yet
 
-### Solution
+### What This Migration Does
+Creates an efficient server-side aggregation function that:
+- Counts notifications by status (sent, delivered, failed, pending) for a tenant
+- Filters to only the last 24 hours
+- Returns a single JSON object instead of fetching all rows client-side
 
-**Step 1: Add the OneSignal App ID Secret**
-- Configure `VITE_ONESIGNAL_APP_ID` with value: `429a7a2d-7d30-42eb-88a8-4dcf50ce881d`
+### Migration SQL
+```sql
+CREATE OR REPLACE FUNCTION get_notification_summary(p_tenant_id uuid)
+RETURNS json
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+AS $$
+  SELECT json_build_object(
+    'total', count(*),
+    'sent', count(*) FILTER (WHERE status = 'sent'),
+    'delivered', count(*) FILTER (WHERE status = 'delivered'),
+    'failed', count(*) FILTER (WHERE status = 'failed'),
+    'pending', count(*) FILTER (WHERE status = 'pending')
+  )
+  FROM notification_logs
+  WHERE tenant_id = p_tenant_id
+    AND created_at >= now() - interval '24 hours';
+$$;
+```
 
-**Step 2: Verification After Secret is Added**
-1. Perform a hard refresh (Ctrl+Shift+R / Cmd+Shift+R)
-2. Check browser console for: `OneSignal: Initialized successfully ✅`
-3. Navigate to Profile page
-4. The "Push Notifications" card should now show the enable button instead of "not supported"
-5. Click "Enable Notifications" and accept the browser permission prompt
-6. Test with "Send Test Notification" button
+### Implementation Steps
+
+| Step | Action |
+|------|--------|
+| 1 | Apply the migration using the database migration tool |
+| 2 | Verify the function was created successfully |
 
 ### Technical Details
-
-| Component | Status |
-|-----------|--------|
-| `OneSignalSDKWorker.js` | Already in place |
-| `OneSignalContext.tsx` | Ready with logging |
-| `register-sw.ts` | Updated to preserve OneSignal SW |
-| Backend secrets | `ONESIGNAL_APP_ID` and `ONESIGNAL_REST_API_KEY` need verification |
-
-### Expected Outcome
-After adding the App ID, OneSignal will initialize successfully, allowing users to:
-- Enable push notifications from their profile
-- Receive real-time notifications for approvals, status changes, and other workflow events
+- **Function Type**: `STABLE` - indicates no side effects, can be optimized
+- **Security**: `SECURITY DEFINER` - runs with the permissions of the function owner
+- **Parameter**: `p_tenant_id` follows the `p_` prefix naming convention
+- **Return**: JSON object with total, sent, delivered, failed, pending counts
 
