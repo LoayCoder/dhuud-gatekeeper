@@ -889,23 +889,19 @@ serve(async (req: Request) => {
     if (whatsappMessage) {
       // Resolve phone numbers for the targeted recipients
       const recipientUserIds = getRecipientUserIds(action, incident, payload);
-      // For role-based actions (violation_contested, violation_rejected_review, violation_fine_pending, violation_acknowledgment_required)
-      // phone numbers are resolved from the same profiles queried in each case;
-      // for simplicity we look them up from profiles table by user ID.
-      const phoneNumbers: string[] = [];
-      for (const uid of recipientUserIds) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("phone_number")
-          .eq("id", uid)
-          .single();
-        if (profile?.phone_number) {
-          phoneNumbers.push(profile.phone_number);
-        }
+      // Batch fetch phone numbers in a single query instead of N+1
+      const uniqueUserIds = [...new Set(recipientUserIds)];
+      const { data: phoneProfiles, error: phoneError } = await supabase
+        .from("profiles")
+        .select("phone_number")
+        .in("id", uniqueUserIds)
+        .not("phone_number", "is", null);
+
+      if (phoneError) {
+        console.error("[WhatsApp] Error fetching profiles for phone numbers:", phoneError);
       }
 
-      // Deduplicate
-      const uniquePhones = [...new Set(phoneNumbers)];
+      const uniquePhones = [...new Set((phoneProfiles || []).map(p => p.phone_number!))];
       for (const phone of uniquePhones) {
         try {
           const waResult = await sendWhatsAppText(phone, whatsappMessage);

@@ -204,18 +204,20 @@ const handler = async (req: Request): Promise<Response> => {
         (hsseUsers || []).forEach((u: { user_id: string }) => recipientUserIds.push(u.user_id));
       }
 
-      // Look up phone numbers
-      const phoneNumbers: string[] = [];
-      for (const uid of [...new Set(recipientUserIds)]) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('phone_number')
-          .eq('id', uid)
-          .single();
-        if (profile?.phone_number) phoneNumbers.push(profile.phone_number);
+      // Batch fetch phone numbers in a single query instead of N+1
+      const uniqueUserIds = [...new Set(recipientUserIds)];
+      const { data: phoneProfiles, error: phoneError } = await supabase
+        .from('profiles')
+        .select('phone_number')
+        .in('id', uniqueUserIds)
+        .not('phone_number', 'is', null);
+
+      if (phoneError) {
+        console.error('[WhatsApp] Error fetching profiles for phone numbers:', phoneError);
       }
 
-      for (const phone of [...new Set(phoneNumbers)]) {
+      const uniquePhones = [...new Set((phoneProfiles || []).map(p => p.phone_number!))];
+      for (const phone of uniquePhones) {
         try {
           const waResult = await sendWhatsAppText(phone, waMessage);
           if (waResult.success) {
