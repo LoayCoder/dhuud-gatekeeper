@@ -67,8 +67,20 @@ export function MaterialPassVerificationPanel() {
   const autoRecordAction = async (passData: MaterialPassResult['pass'], validationMethod: 'qr_scan' | 'manual_entry') => {
     if (!passData) return;
 
-    // Determine action based on current state
-    const action: 'entry' | 'exit' = passData.entry_time ? 'exit' : 'entry';
+    // Determine action based on pass_type and current state
+    let action: 'entry' | 'exit';
+    const passType = passData.pass_type as string;
+
+    if (passType === 'in') {
+      // Entry-only pass
+      action = 'entry';
+    } else if (passType === 'out') {
+      // Exit-only pass
+      action = 'exit';
+    } else {
+      // Entry & Exit: determine based on current state
+      action = passData.entry_time ? 'exit' : 'entry';
+    }
 
     try {
       await guardAction.mutateAsync({
@@ -346,7 +358,10 @@ export function MaterialPassVerificationPanel() {
                       {t('security.materialPass.type', 'Type')}
                     </p>
                     <Badge variant="outline" className="mt-1">
-                      {result.pass.pass_type === 'incoming' ? '📥 Incoming' : '📤 Outgoing'}
+                      {result.pass.pass_type === 'in' ? t('security.materialPass.entryOnly', 'Entry Only')
+                        : result.pass.pass_type === 'out' ? t('security.materialPass.exitOnly', 'Exit Only')
+                        : result.pass.pass_type === 'in_out' ? t('security.materialPass.entryAndExit', 'Entry & Exit')
+                        : result.pass.pass_type}
                     </Badge>
                   </div>
                   <div>

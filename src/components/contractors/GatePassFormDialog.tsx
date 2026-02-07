@@ -614,35 +614,10 @@ export function GatePassFormDialog({
               {t("contractors.gatePasses.dateRangeNote", "Pass validity can span up to 7 days maximum.")}
             </p>
 
-            {/* Time Window */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>
-                  {t("contractors.gatePasses.timeWindowStart", "Time From")}
-                  <span className="text-muted-foreground text-xs ms-1">
-                    ({t("common.optional", "Optional")})
-                  </span>
-                </Label>
-                <Input
-                  type="time"
-                  value={formData.time_window_start}
-                  onChange={(e) => setFormData({ ...formData, time_window_start: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>
-                  {t("contractors.gatePasses.timeWindowEnd", "Time To")}
-                  <span className="text-muted-foreground text-xs ms-1">
-                    ({t("common.optional", "Optional")})
-                  </span>
-                </Label>
-                <Input
-                  type="time"
-                  value={formData.time_window_end}
-                  onChange={(e) => setFormData({ ...formData, time_window_end: e.target.value })}
-                />
-              </div>
-            </div>
+            {/* Time Note: Actual entry/exit times logged by security guard */}
+            <p className="text-xs text-muted-foreground">
+              {t("contractors.gatePasses.timeLoggedByGuard", "Actual entry and exit times are recorded by the security guard at access time.")}
+            </p>
           </div>
 
           {/* Vehicle & Driver */}
