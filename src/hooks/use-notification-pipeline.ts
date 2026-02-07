@@ -29,7 +29,7 @@ import {
   type PipelineResult,
 } from '@/lib/notifications';
 
-const log = logger.scoped('useNotificationPipeline');
+const log = logger.scope('useNotificationPipeline');
 
 interface NotifyParams {
   eventType: ActionEventType;

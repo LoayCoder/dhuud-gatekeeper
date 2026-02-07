@@ -52,7 +52,7 @@ import { mapActionEventToDeliveries } from './action-event-mapper';
 import { resolveTemplate, renderTemplateForChannel } from './template-registry';
 import { isDuplicateEvent, markEventProcessed, generateEventId } from './idempotency';
 
-const log = logger.scoped('NotificationPipeline');
+const log = logger.scope('NotificationPipeline');
 
 // ============================================================================
 // MAIN PIPELINE FUNCTION
@@ -126,7 +126,7 @@ export async function processActionEvent(event: ActionEvent): Promise<PipelineRe
           results.push(...await deliverEmail(event, eligibleRecipients, template, config));
           break;
         case 'whatsapp':
-          results.push(...await deliverWhatsApp(event, eligibleRecipients, template, config));
+          results.push(...await deliverWhatsApp(event, eligibleRecipients, template, config as unknown as Record<string, unknown>));
           break;
       }
     } catch (error) {
@@ -192,7 +192,7 @@ async function deliverInApp(
   // Build all notification rows up-front for a single bulk insert
   const notificationsToInsert = targetRecipients.map(recipient => {
     const lang = recipient.language || 'en';
-    let title = event.eventType;
+    let title: string = String(event.eventType);
     let body: string | undefined;
     let titleAr: string | undefined;
     let bodyAr: string | undefined;
@@ -210,6 +210,7 @@ async function deliverInApp(
       }
     }
 
+    // Return notification row for bulk insert
     return {
       tenant_id: event.tenantId,
       user_id: recipient.userId,
@@ -217,7 +218,7 @@ async function deliverInApp(
       title_ar: titleAr,
       body,
       body_ar: bodyAr,
-      type: event.eventType,
+      type: event.eventType as string,
       related_entity_type: config.relatedEntityType || event.source.entityType,
       related_entity_id: config.relatedEntityId || event.source.entityId,
       is_read: false,
@@ -257,7 +258,7 @@ async function deliverPush(
 ): Promise<DeliveryResult[]> {
   if (recipients.length === 0) return [];
 
-  let title = event.eventType;
+  let title: string = String(event.eventType);
   let body = '';
 
   if (template) {
@@ -486,7 +487,8 @@ async function filterByPreferences(
   if (channel === 'push') {
     try {
       const userIds = recipients.map(r => r.userId);
-      const { data: prefs } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: prefs } = await (supabase as any)
         .from('push_notification_preferences')
         .select(`user_id, ${preferenceCategory}`)
         .in('user_id', userIds);
@@ -494,9 +496,9 @@ async function filterByPreferences(
       if (!prefs) return recipients;
 
       const optedOut = new Set(
-        prefs
-          .filter(p => p[preferenceCategory as keyof typeof p] === false)
-          .map(p => p.user_id)
+        (prefs as Array<Record<string, unknown>>)
+          .filter(p => p[preferenceCategory] === false)
+          .map(p => p.user_id as string)
       );
 
       return recipients.filter(r => !optedOut.has(r.userId));
@@ -509,7 +511,8 @@ async function filterByPreferences(
   if (channel === 'email') {
     try {
       const userIds = recipients.map(r => r.userId);
-      const { data: prefs } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: prefs } = await (supabase as any)
         .from('email_notification_preferences')
         .select(`user_id, ${preferenceCategory}`)
         .in('user_id', userIds);
@@ -517,9 +520,9 @@ async function filterByPreferences(
       if (!prefs) return recipients;
 
       const optedOut = new Set(
-        prefs
-          .filter(p => p[preferenceCategory as keyof typeof p] === false)
-          .map(p => p.user_id)
+        (prefs as Array<Record<string, unknown>>)
+          .filter(p => p[preferenceCategory] === false)
+          .map(p => p.user_id as string)
       );
 
       return recipients.filter(r => !optedOut.has(r.userId));
@@ -566,7 +569,8 @@ async function writeAuditLog(
     };
 
     // Log to notification_logs table for audit trail
-    await supabase.from('notification_logs').insert({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from('notification_logs').insert({
       tenant_id: event.tenantId,
       user_id: event.actorId,
       channel: channels.join(','),
