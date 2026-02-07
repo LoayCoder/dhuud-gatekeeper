@@ -237,40 +237,36 @@ async function fetchIncidentStats(tenantId: string) {
   };
 }
 
-async function fetchCorrectiveActionStats(tenantId: string, userId: string, now: string) {
-  const { data: actions } = await supabase
-    .from('corrective_actions')
-    .select('status, due_date, source_type')
-    .eq('tenant_id', tenantId);
-
-  const result = {
+async function fetchCorrectiveActionStats(tenantId: string, _userId: string, now: string) {
+  const empty = {
     incidentOverdue: 0, incidentPending: 0, incidentInProgress: 0, incidentCompleted: 0,
     observationOverdue: 0, observationPending: 0, observationInProgress: 0, observationCompleted: 0,
     inspectionOverdue: 0, inspectionPending: 0, inspectionInProgress: 0, inspectionCompleted: 0,
   };
 
-  if (!actions) return result;
+  // Server-side aggregation via RPC — single query with COUNT FILTER
+  // instead of fetching all rows and looping client-side
+  const { data, error } = await supabase.rpc('get_corrective_action_stats', {
+    p_tenant_id: tenantId,
+    p_now: now,
+  });
 
-  for (const action of actions) {
-    const isOverdue = action.due_date && new Date(action.due_date) < new Date(now) &&
-      !['completed', 'verified', 'closed'].includes(action.status);
+  if (error || !data) return empty;
 
-    const sourceType = action.source_type || 'incident';
-    const prefix = sourceType === 'observation' ? 'observation' :
-      sourceType === 'inspection' ? 'inspection' : 'incident';
-
-    if (isOverdue) {
-      result[`${prefix}Overdue` as keyof typeof result]++;
-    } else if (action.status === 'assigned') {
-      result[`${prefix}Pending` as keyof typeof result]++;
-    } else if (action.status === 'in_progress') {
-      result[`${prefix}InProgress` as keyof typeof result]++;
-    } else if (['completed', 'verified', 'closed'].includes(action.status)) {
-      result[`${prefix}Completed` as keyof typeof result]++;
-    }
-  }
-
-  return result;
+  return {
+    incidentOverdue: Number(data.incidentOverdue) || 0,
+    incidentPending: Number(data.incidentPending) || 0,
+    incidentInProgress: Number(data.incidentInProgress) || 0,
+    incidentCompleted: Number(data.incidentCompleted) || 0,
+    observationOverdue: Number(data.observationOverdue) || 0,
+    observationPending: Number(data.observationPending) || 0,
+    observationInProgress: Number(data.observationInProgress) || 0,
+    observationCompleted: Number(data.observationCompleted) || 0,
+    inspectionOverdue: Number(data.inspectionOverdue) || 0,
+    inspectionPending: Number(data.inspectionPending) || 0,
+    inspectionInProgress: Number(data.inspectionInProgress) || 0,
+    inspectionCompleted: Number(data.inspectionCompleted) || 0,
+  };
 }
 
 async function fetchGatePassStats(tenantId: string, now: string) {
