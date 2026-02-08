@@ -1,127 +1,112 @@
 
-# Fix Leading Indicators Progress Bar and Data Accuracy
 
-## Problems Identified
+# Add Export Button for HSSE Events List
 
-### Problem 1: Visual Progress Bar Bug
-The `LeadingIndicatorsCard` component uses a double-layered progress bar approach that creates visual artifacts:
+## Summary
 
-1. A `<Progress>` component with a primary-colored indicator
-2. An overlapping absolute-positioned `<div>` with status color on top
-
-When values are 0%, the `rounded-full` styling on both elements creates a small visible bar even though the width should be 0%.
-
-### Problem 2: Data Calculation Issues
-
-**Corrective Actions Mismatch:**
-- UI shows "0/4 closed" 
-- Database has 5 actions created in the last month
-- The RPC function logic is inconsistent: it counts actions created in the date range for `v_actions_closed`, but counts ALL actions with `due_date <= p_end_date` for `v_actions_due`
-
-**Hazard Count Slight Discrepancy:**
-- UI shows "36 hazards identified"
-- Database has 38 unsafe_condition observations in the last month
-- Minor discrepancy likely due to timing/branch filtering
+The export button UI already exists in the page header but isn't connected to any functionality. This plan will wire it up to export all filtered HSSE Events to Excel or PDF format, including a **Status** column with proper translations.
 
 ---
 
-## Technical Implementation Plan
+## What Will Be Built
 
-### Fix 1: Simplify Progress Bar Rendering
+### Export Functionality
+- Export all filtered HSSE Events (respects current filters like status, severity, date range, branch)
+- Two export formats: **Excel** and **PDF**
+- Secure export with permission validation and audit logging
+- RTL-compatible with proper Arabic/English labels
 
-**File:** `src/components/incidents/dashboard/LeadingIndicatorsCard.tsx`
+### Export Columns (Including Status)
 
-Remove the redundant double-layer approach. Use only the `<Progress>` component with dynamic indicator color based on status.
+| Column | Label (English) | Label (Arabic) |
+|--------|-----------------|----------------|
+| Reference | Reference | المرجع |
+| Title | Title | العنوان |
+| Event Type | Event Type | نوع الحدث |
+| Subtype | Subtype | النوع الفرعي |
+| **Status** | **Status** | **الحالة** |
+| Severity | Severity | الخطورة |
+| Occurred At | Occurred At | تاريخ الحدوث |
+| Location | Location | الموقع |
+| Branch | Branch | الفرع |
+| Created At | Created At | تاريخ الإنشاء |
+
+### Status Values Formatting
+Status values will be formatted as human-readable labels (using translation keys like `incidents.status.submitted` → "Submitted" or "مقدم"):
+- `submitted` → Submitted / مقدم
+- `pending_review` → Pending Review / قيد المراجعة
+- `investigation_in_progress` → Under Investigation / قيد التحقيق
+- `closed` → Closed / مغلق
+- etc.
+
+---
+
+## Technical Implementation
+
+### 1. Create Export Hook
+**New file:** `src/hooks/use-hsse-events-export.ts`
+
+This hook will:
+- Fetch complete incident data for export (more fields than list view)
+- Apply the current filters (status, severity, event type, branch, date range)
+- Format data with proper translations for status and other fields
+- Handle empty state gracefully
+
+### 2. Wire Up IncidentList Page
+**Modified file:** `src/pages/incidents/IncidentList.tsx`
+
+Changes:
+- Create `handleExport` function that:
+  1. Fetches full incident data with current filters
+  2. Formats status using translation function (`t('incidents.status.{status}')`)
+  3. Calls `performSecureExport` with audit logging
+  4. Shows success/error toast
+- Pass `onExport={handleExport}` to `IncidentListHeader` component
+
+### Flow Diagram
 
 ```text
-Current (problematic):
-1. <Progress value={...} className="h-2" />
-2. <div className="absolute ... statusColors[status]" style={{width: ...}} />
-
-Fixed (single layer):
-1. <Progress value={...} className="h-2" indicatorClassName={statusColors[status]} />
-```
-
-However, since the `Progress` component doesn't support `indicatorClassName`, we need to either:
-- **Option A:** Update the `Progress` component to accept a custom indicator class
-- **Option B:** Remove the `<Progress>` and use only the colored `<div>` with proper zero-value handling
-
-**Recommended: Option A** - Add `indicatorClassName` prop to the Progress component for flexibility.
-
-### Fix 2: Fix `get_leading_indicators` RPC Function - Actions Query
-
-**Migration:** Update the actions query to use consistent date filtering
-
-```sql
--- Current (inconsistent):
-SELECT 
-  COUNT(*) FILTER (WHERE status IN ('verified', 'closed')),
-  COUNT(*) FILTER (WHERE due_date <= p_end_date)  -- BUG: Not filtered by created_at
-INTO v_actions_closed, v_actions_due
-FROM corrective_actions
-WHERE ...
-  AND created_at >= p_start_date
-  AND created_at <= p_end_date;
-
--- Fixed (consistent):
-SELECT 
-  COUNT(*) FILTER (WHERE status IN ('verified', 'closed')),
-  COUNT(*)  -- Total actions in date range (for "closed out of total" ratio)
-INTO v_actions_closed, v_actions_total
-FROM corrective_actions
-WHERE ...
-  AND created_at >= p_start_date
-  AND created_at <= p_end_date;
-```
-
-### Fix 3: Handle Zero Values in Progress Bar
-
-Add explicit handling for 0% values to prevent visual artifacts:
-
-```typescript
-// Ensure width is truly 0 when value is 0
-const progressValue = indicator.value === 0 ? 0 : 
-  (indicator.isPercentage 
-    ? indicator.value 
-    : Math.min((indicator.value / indicator.maxValue) * 100, 100));
+User clicks "Export to Excel" or "Export to PDF"
+    ↓
+Fetch incidents matching current filters
+    ↓
+Format data:
+  - Status → t('incidents.status.{status}')
+  - Severity → t('incidents.severity.{severity}')
+  - Dates → localized format
+    ↓
+Call performSecureExport (validates permission + logs audit)
+    ↓
+Download file / Show toast
 ```
 
 ---
 
 ## Files to Modify
 
-### 1. `src/components/ui/progress.tsx`
-- Add optional `indicatorClassName` prop to allow custom indicator colors
-- This enables status-based coloring without double-layering
+| File | Change |
+|------|--------|
+| `src/hooks/use-hsse-events-export.ts` | **New** - Export data fetching and formatting |
+| `src/pages/incidents/IncidentList.tsx` | Add export handler, pass to header |
 
-### 2. `src/components/incidents/dashboard/LeadingIndicatorsCard.tsx`
-- Remove the redundant absolute-positioned `<div>` overlay
-- Use the enhanced `Progress` component with `indicatorClassName`
-- Add explicit zero-value handling
+---
 
-### 3. Database Migration
-- Fix `get_leading_indicators` function to use consistent filtering for actions
-- Ensure `v_actions_due` counts actions created within the date range, not all-time
+## Security & Audit
+
+- Permission validation via `validateExportPermission` with menu code `hsse_incidents`
+- Audit logging via `logExport` with entity type `incident`
+- Tenant isolation enforced in database query
+- Only HSSE-access users see the export button (already implemented)
 
 ---
 
 ## Expected Results
 
 After implementation:
-1. Progress bars will show no visual artifact when values are 0%
-2. Progress bar colors will correctly reflect status (success/warning/critical)
-3. Action counts will match database reality (e.g., "0/5 closed" instead of "0/4")
-4. Hazard counts will accurately reflect the filtered date range
-5. Single-layer progress bar reduces DOM complexity
+1. Export button (download icon) appears for HSSE users in the header
+2. Clicking shows dropdown with Excel and PDF options
+3. Export includes all visible columns plus **Status** with human-readable labels
+4. Filters apply to exported data (only filtered incidents are exported)
+5. Export action is logged for audit purposes
+6. Empty state shows toast message when no data to export
 
----
-
-## Validation Checklist
-
-| Check | Expected Result |
-|-------|-----------------|
-| 0% values show empty bar | No visible bar element |
-| 50% values show half-filled bar | Correct width with status color |
-| Status colors work | Success/warning/critical colors display |
-| Action counts match DB | Numbers match corrective_actions query |
-| Hazard counts match DB | Numbers match observations query |
