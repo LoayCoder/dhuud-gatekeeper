@@ -582,7 +582,8 @@ $$;
 GRANT EXECUTE ON FUNCTION public.validate_gate_pass_guard_access(UUID, TEXT) TO authenticated;
 
 -- Re-grant execute on submit_public_gate_pass to anon (dropped with old overloads)
-GRANT EXECUTE ON FUNCTION public.submit_public_gate_pass TO anon;
+-- Full signature specified to prevent ambiguity if future overloads are added
+GRANT EXECUTE ON FUNCTION public.submit_public_gate_pass(TEXT, UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, DATE, BOOLEAN, BOOLEAN, BOOLEAN, TEXT, JSONB, DATE, DATE) TO anon;
 
 -- Reload PostgREST schema cache so it picks up the new function signature
 NOTIFY pgrst, 'reload schema';
