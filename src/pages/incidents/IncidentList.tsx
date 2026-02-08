@@ -30,7 +30,8 @@ import { useDeletionPassword } from '@/hooks/use-deletion-password';
 import { useUserRoles } from '@/hooks/use-user-roles';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAITags } from '@/hooks/use-ai-tags';
-import { useEffect, useState, useMemo } from 'react';
+import { useHSSEEventsExport } from '@/hooks/use-hsse-events-export';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import {
   IncidentListHeader,
@@ -51,6 +52,7 @@ export default function IncidentList() {
   const { user, isAdmin } = useAuth();
   const { hasRole } = useUserRoles();
   const { tags: incidentTags } = useAITags('incident');
+  const { exportEvents } = useHSSEEventsExport();
   const [hasHSSEAccess, setHasHSSEAccess] = useState(false);
   
   // View mode state (persisted in URL)
@@ -263,6 +265,10 @@ export default function IncidentList() {
     navigate(`/incidents/investigate?incident=${incidentId}`);
   };
 
+  const handleExport = useCallback((format: 'pdf' | 'excel') => {
+    exportEvents(format, filters);
+  }, [exportEvents, filters]);
+
   const handleDeleteClick = (incidentId: string, status: string | null) => {
     setIncidentToDelete(incidentId);
     setIncidentToDeleteStatus(status);
@@ -321,6 +327,7 @@ export default function IncidentList() {
         hasHSSEAccess={hasHSSEAccess}
         viewMode={viewMode}
         onViewModeChange={handleViewModeChange}
+        onExport={handleExport}
       />
 
       {/* Summary Section - KPI Strip */}
