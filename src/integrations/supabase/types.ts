@@ -26729,58 +26729,33 @@ export type Database = {
         }
         Returns: Json
       }
-      submit_public_gate_pass:
-        | {
-            Args: {
-              p_branch_id?: string
-              p_client_ip?: string
-              p_driver_mobile?: string
-              p_driver_name?: string
-              p_items?: Json
-              p_material_description?: string
-              p_notify_email?: boolean
-              p_notify_sms?: boolean
-              p_notify_whatsapp?: boolean
-              p_pass_date?: string
-              p_pass_type?: string
-              p_quantity?: string
-              p_requester_company?: string
-              p_requester_email?: string
-              p_requester_name?: string
-              p_requester_phone?: string
-              p_tenant_slug: string
-              p_time_window_end?: string
-              p_time_window_start?: string
-              p_vehicle_plate?: string
-              p_vehicle_plate_letters?: string
-              p_vehicle_plate_numbers?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_branch_id?: string
-              p_client_ip?: string
-              p_driver_mobile?: string
-              p_driver_name?: string
-              p_material_description?: string
-              p_notify_email?: boolean
-              p_notify_sms?: boolean
-              p_notify_whatsapp?: boolean
-              p_pass_date?: string
-              p_pass_type?: string
-              p_quantity?: string
-              p_requester_company?: string
-              p_requester_email?: string
-              p_requester_name?: string
-              p_requester_phone?: string
-              p_tenant_slug: string
-              p_time_window_end?: string
-              p_time_window_start?: string
-              p_vehicle_plate?: string
-            }
-            Returns: Json
-          }
+      submit_public_gate_pass: {
+        Args: {
+          p_tenant_slug: string
+          p_branch_id?: string
+          p_requester_name?: string
+          p_requester_phone?: string
+          p_requester_email?: string
+          p_requester_company?: string
+          p_pass_type?: string
+          p_material_description?: string
+          p_quantity?: string
+          p_vehicle_plate?: string
+          p_vehicle_plate_letters?: string
+          p_vehicle_plate_numbers?: string
+          p_driver_name?: string
+          p_driver_mobile?: string
+          p_pass_date?: string
+          p_notify_whatsapp?: boolean
+          p_notify_email?: boolean
+          p_notify_sms?: boolean
+          p_client_ip?: string
+          p_items?: Json
+          p_start_date?: string
+          p_end_date?: string
+        }
+        Returns: Json
+      }
       toggle_event_category: {
         Args: {
           p_category_id: string
