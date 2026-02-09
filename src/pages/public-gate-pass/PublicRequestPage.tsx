@@ -191,23 +191,27 @@ export default function PublicRequestPage() {
   // Upload photo to storage
   const uploadPhoto = async (file: File, gatePassRef: string, index: number): Promise<{ path: string; fileName: string; size: number; mimeType: string }> => {
     const timestamp = Date.now();
-    const ext = file.name.split('.').pop() || 'jpg';
+    // Use extension matching the actual MIME type to avoid storage rejection
+    const mimeToExt: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+    const ext = mimeToExt[file.type] || 'jpg';
+    const contentType = mimeToExt[file.type] ? file.type : 'image/jpeg';
     const path = `${gatePassRef}/${index + 1}-${timestamp}.${ext}`;
-    
+
     const { error } = await supabase.storage
       .from('public-gate-pass-photos')
       .upload(path, file, {
         cacheControl: '3600',
+        contentType,
         upsert: false,
       });
-    
+
     if (error) throw error;
-    
+
     return {
       path,
       fileName: file.name,
       size: file.size,
-      mimeType: file.type,
+      mimeType: contentType,
     };
   };
 

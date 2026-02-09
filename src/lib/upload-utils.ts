@@ -55,13 +55,14 @@ export async function compressImage(
             return;
           }
 
-          // If compressed is larger, use original
-          if (blob.size >= file.size) {
+          // If compressed is larger and original is already a supported type, use original
+          const supportedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+          if (blob.size >= file.size && supportedTypes.includes(file.type)) {
             resolve(file);
             return;
           }
 
-          // Create new file with same name
+          // Create new file with same name but correct JPEG type
           const compressedFile = new File([blob], file.name, {
             type: 'image/jpeg',
             lastModified: Date.now(),
