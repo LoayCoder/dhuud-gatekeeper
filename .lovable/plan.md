@@ -1,48 +1,74 @@
 
 
-# Link All Golf Saudi Incidents to LIV 2026 Major Event
+# Fix `submit_public_gate_pass` Schema Cache Error
 
-## Summary
+## Root Cause
 
-Create a new major event called **LIV 2026** for the Golf Saudi tenant and link all **103 existing incidents** to it.
+The migration `20260218000000_gate_pass_entry_exit_rules.sql` **never executed** against the live database. The database still contains **two old overloads** of `submit_public_gate_pass`:
 
-## What Will Be Done
+- **19-param version** (from Feb 4 migration) -- no `p_items`, no `p_start_date`/`p_end_date`
+- **22-param version** (from Feb 6 migration) -- has `p_time_window_start`/`p_time_window_end` (TIME type), no `p_start_date`/`p_end_date`
 
-### Step 1: Create the LIV 2026 Event
+The frontend sends `p_start_date` and `p_end_date` which don't match either overload, causing PostgREST to fail with "Could not find the function."
 
-Insert a new record into the `special_events` table:
-- **Name:** LIV 2026
-- **Tenant:** Golf Saudi (`e30ae1a5-7eab-4776-bd0b-bb0b391e68e8`)
-- **Dates:** January 1, 2026 - December 31, 2026
-- **Active:** Yes
+## Fix
 
-### Step 2: Link All 103 Incidents
+Create a **new migration** that applies the exact same logic from `20260218000000`:
 
-Update all 103 Golf Saudi incidents (where `deleted_at IS NULL`) to set their `special_event_id` to the newly created LIV 2026 event.
+### Step 1: Drop all existing overloads
+Use a `DO` block to iterate `pg_proc` and drop every `submit_public_gate_pass` overload.
 
-## Technical Details
-
-Two data operations will be executed:
-
-```sql
--- 1. Create the LIV 2026 event
-INSERT INTO special_events (tenant_id, name, start_at, end_at, is_active)
-VALUES ('e30ae1a5-...', 'LIV 2026', '2026-01-01', '2026-12-31', true);
-
--- 2. Link all Golf Saudi incidents to it
-UPDATE incidents
-SET special_event_id = '<new_event_id>'
-WHERE tenant_id = 'e30ae1a5-...'
-  AND deleted_at IS NULL;
+### Step 2: Recreate the function with the correct 22-param signature
+Parameters (in order):
+```
+p_tenant_slug TEXT, p_branch_id UUID, p_requester_name TEXT,
+p_requester_phone TEXT, p_requester_email TEXT, p_requester_company TEXT,
+p_pass_type TEXT, p_material_description TEXT, p_quantity TEXT,
+p_vehicle_plate TEXT, p_vehicle_plate_letters TEXT, p_vehicle_plate_numbers TEXT,
+p_driver_name TEXT, p_driver_mobile TEXT, p_pass_date DATE,
+p_notify_whatsapp BOOLEAN, p_notify_email BOOLEAN, p_notify_sms BOOLEAN,
+p_client_ip TEXT, p_items JSONB, p_start_date DATE, p_end_date DATE
 ```
 
-## Expected Results
+Key changes vs old versions:
+- Removed `p_time_window_start` and `p_time_window_end` (TIME)
+- Added `p_start_date` and `p_end_date` (DATE) at the end
+- Added pass_type-based date validation (in/out = single day, in_out = max 7 days)
 
-- A new "LIV 2026" event appears in the Manage Major Events page
-- All 103 Golf Saudi incidents show as linked to LIV 2026
-- The Active Event Banner displays "LIV 2026" when reporters submit new incidents
-- New incidents during 2026 will automatically be associated with LIV 2026
+### Step 3: Also recreate supporting functions
+- `validate_gate_pass_dates()` trigger function
+- `validate_gate_pass_guard_access()` function
+- `get_public_gate_pass_status()` function (updated to return start_date/end_date)
 
-## No Code Changes Required
+### Step 4: Grant permissions and reload schema cache
+- `GRANT EXECUTE ... TO anon` on `submit_public_gate_pass`
+- `GRANT EXECUTE ... TO authenticated` on `validate_gate_pass_guard_access`
+- `NOTIFY pgrst, 'reload schema'`
 
-This is a data-only operation -- no code modifications needed. The existing UI already supports displaying linked events.
+## No Frontend Code Changes Needed
+
+The frontend hook (`src/hooks/public-gate-pass/use-public-gate-pass.ts`) already sends the correct parameters matching the new function signature. Once the migration runs, the schema cache will update and the RPC call will succeed.
+
+## Security & Isolation
+
+The function enforces multi-tenant isolation by:
+1. Resolving `tenant_id` from `p_tenant_slug` (validates tenant exists and has public gate pass enabled)
+2. All inserts include `tenant_id` scoping
+3. Rate limiting is per-tenant per-phone
+4. Function is `SECURITY DEFINER` with `SET search_path = public` to prevent search path injection
+5. `GRANT EXECUTE TO anon` -- required since public users aren't authenticated
+
+## Files to Modify
+
+| File | Change |
+|------|--------|
+| New migration SQL | Drop old overloads, recreate all 4 functions with correct signatures, grant permissions, reload schema |
+
+## Expected Result
+
+After migration runs:
+- Public gate pass submission works without errors
+- Only one function overload exists (22 params, correct types)
+- Schema cache reflects the new signature
+- `p_start_date` / `p_end_date` are properly accepted and validated
+
