@@ -14358,6 +14358,7 @@ export type Database = {
           security_approved_by: string | null
           start_date: string | null
           status: string
+          submission_ip: string | null
           tenant_id: string
           time_window_end: string | null
           time_window_start: string | null
@@ -14434,6 +14435,7 @@ export type Database = {
           security_approved_by?: string | null
           start_date?: string | null
           status?: string
+          submission_ip?: string | null
           tenant_id: string
           time_window_end?: string | null
           time_window_start?: string | null
@@ -14510,6 +14512,7 @@ export type Database = {
           security_approved_by?: string | null
           start_date?: string | null
           status?: string
+          submission_ip?: string | null
           tenant_id?: string
           time_window_end?: string | null
           time_window_start?: string | null
@@ -18059,6 +18062,7 @@ export type Database = {
       }
       public_gate_pass_items: {
         Row: {
+          branch_id: string | null
           created_at: string | null
           deleted_at: string | null
           description: string | null
@@ -18070,11 +18074,13 @@ export type Database = {
           photo_mime_type: string | null
           photo_storage_path: string | null
           quantity: string | null
+          sort_order: number | null
           sr_number: string | null
           tenant_id: string
           unit: string | null
         }
         Insert: {
+          branch_id?: string | null
           created_at?: string | null
           deleted_at?: string | null
           description?: string | null
@@ -18086,11 +18092,13 @@ export type Database = {
           photo_mime_type?: string | null
           photo_storage_path?: string | null
           quantity?: string | null
+          sort_order?: number | null
           sr_number?: string | null
           tenant_id: string
           unit?: string | null
         }
         Update: {
+          branch_id?: string | null
           created_at?: string | null
           deleted_at?: string | null
           description?: string | null
@@ -18102,11 +18110,19 @@ export type Database = {
           photo_mime_type?: string | null
           photo_storage_path?: string | null
           quantity?: string | null
+          sort_order?: number | null
           sr_number?: string | null
           tenant_id?: string
           unit?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "public_gate_pass_items_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "public_gate_pass_items_gate_pass_id_fkey"
             columns: ["gate_pass_id"]
@@ -26724,33 +26740,61 @@ export type Database = {
         }
         Returns: Json
       }
-      submit_public_gate_pass: {
-        Args: {
-          p_branch_id: string
-          p_client_ip?: string
-          p_driver_mobile: string
-          p_driver_name: string
-          p_end_date?: string
-          p_items?: Json
-          p_material_description: string
-          p_notify_email?: boolean
-          p_notify_sms?: boolean
-          p_notify_whatsapp?: boolean
-          p_pass_date: string
-          p_pass_type: string
-          p_quantity: string
-          p_requester_company: string
-          p_requester_email: string
-          p_requester_name: string
-          p_requester_phone: string
-          p_start_date?: string
-          p_tenant_slug: string
-          p_vehicle_plate: string
-          p_vehicle_plate_letters: string
-          p_vehicle_plate_numbers: string
-        }
-        Returns: Json
-      }
+      submit_public_gate_pass:
+        | {
+            Args: {
+              p_branch_id: string
+              p_captcha_token: string
+              p_driver_mobile: string
+              p_driver_name: string
+              p_end_date: string
+              p_items?: Json
+              p_material_description: string
+              p_notes: string
+              p_pass_type: string
+              p_project_id: string
+              p_purpose: string
+              p_quantity: string
+              p_requester_company: string
+              p_requester_email: string
+              p_requester_name: string
+              p_requester_phone: string
+              p_start_date: string
+              p_submission_ip: string
+              p_tenant_slug: string
+              p_vehicle_plate: string
+              p_vehicle_plate_letters: string
+              p_vehicle_plate_numbers: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_branch_id: string
+              p_client_ip?: string
+              p_driver_mobile: string
+              p_driver_name: string
+              p_end_date?: string
+              p_items?: Json
+              p_material_description: string
+              p_notify_email?: boolean
+              p_notify_sms?: boolean
+              p_notify_whatsapp?: boolean
+              p_pass_date: string
+              p_pass_type: string
+              p_quantity: string
+              p_requester_company: string
+              p_requester_email: string
+              p_requester_name: string
+              p_requester_phone: string
+              p_start_date?: string
+              p_tenant_slug: string
+              p_vehicle_plate: string
+              p_vehicle_plate_letters: string
+              p_vehicle_plate_numbers: string
+            }
+            Returns: Json
+          }
       toggle_event_category: {
         Args: {
           p_category_id: string
@@ -26830,8 +26874,8 @@ export type Database = {
         Returns: Json
       }
       validate_gate_pass_guard_access:
+        | { Args: { p_gate_pass_id: string }; Returns: Json }
         | { Args: { p_action: string; p_gate_pass_id: string }; Returns: Json }
-        | { Args: { p_qr_token: string }; Returns: Json }
       validate_invitation_code: {
         Args: { p_code: string }
         Returns: {
