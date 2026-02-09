@@ -16,7 +16,7 @@ export type DrillDownFilter = {
 
 export function useDashboardDrilldown() {
   const navigate = useNavigate();
-  
+
   // Optional context - returns null when outside DrilldownProvider
   const drilldownContext = useDrilldownContextOptional();
 
@@ -28,30 +28,40 @@ export function useDashboardDrilldown() {
     }
 
     // If we have drilldown context, use the modal
-    if (drilldownContext) {
+    // DISABLED: Modal is broken ("No events match"), forcing navigation to full list page
+    /* if (drilldownContext) {
       const modalTitle = title || generateFilterTitle(filters);
       drilldownContext.openDrilldown(filters, modalTitle);
       return;
-    }
+    } */
 
     // Fallback to navigation
     const params = new URLSearchParams();
-    if (filters.eventType) params.set('eventType', filters.eventType);
+    // Map eventType to 'type' for IncidentList compatibility
+    if (filters.eventType) {
+      // Map 'incident' to empty string if it's the default, or keep specific types
+      // Actually IncidentList expects 'type' param
+      params.set('type', filters.eventType);
+    }
+
+    // Map other filters
     if (filters.incidentType) params.set('incidentType', filters.incidentType);
     if (filters.severity) params.set('severity', filters.severity);
     if (filters.status) params.set('status', filters.status);
-    if (filters.branchId) params.set('branchId', filters.branchId);
+    if (filters.branchId) params.set('branch', filters.branchId); // IncidentList uses 'branch'
     if (filters.siteId) params.set('siteId', filters.siteId);
     if (filters.departmentId) params.set('departmentId', filters.departmentId);
     if (filters.rootCauseCategory) params.set('rootCauseCategory', filters.rootCauseCategory);
 
     const queryString = params.toString();
-    navigate(`/incidents/investigate${queryString ? `?${queryString}` : ''}`);
+    // Point to IncidentList (/incidents) instead of investigation workspace
+    navigate(`/incidents${queryString ? `?${queryString}` : ''}`);
   }, [navigate, drilldownContext]);
 
   const drillDownToActions = useCallback((filter?: 'overdue' | 'pending') => {
     const params = filter ? `?filter=${filter}` : '';
-    navigate(`/my-actions${params}`);
+    // Point to the correct MyActions route
+    navigate(`/incidents/my-actions${params}`);
   }, [navigate]);
 
   return { drillDown, drillDownToActions };
