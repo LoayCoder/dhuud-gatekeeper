@@ -1,96 +1,109 @@
 
 
-# Deep Fix: All `submit_public_gate_pass` and Related Function Issues
+# Complete Fix: All Column Mismatches in Gate Pass Functions
 
-## Problems Found
+## Problem
 
-There are **multiple bugs** across the gate pass database functions, not just in `submit_public_gate_pass`:
+A full audit reveals **14+ column mismatches** between the database functions and actual table schemas. The functions reference columns that either don't exist or have different names.
 
-### 1. `get_public_gate_pass_status` -- TWO overloads, both broken
+## Audit Results
 
-There are **two versions** of this function in the database:
+### `material_gate_passes` table -- Missing columns the functions expect:
 
-| Overload | Parameter type | Bugs |
-|----------|---------------|------|
-| OID 110487 | `p_access_token TEXT` | References `tenants.deleted_at` (does not exist) and `tenants.logo_url` (should be `logo_light_url`) |
-| OID 109286 | `p_access_token UUID` | References `tenants.deleted_at` is NOT present (good), but still references legacy `time_window_start/end` fields and missing `start_date/end_date` in response |
+| Missing Column | Type | Purpose |
+|---|---|---|
+| `vehicle_plate_letters` | TEXT | Separated plate letters (Arabic) |
+| `vehicle_plate_numbers` | TEXT | Separated plate numbers |
+| `token_expires_at` | TIMESTAMPTZ | Token expiration for public access |
+| `submission_ip` | TEXT | Client IP for rate limiting audit |
 
-### 2. `submit_public_gate_pass` -- Currently correct
-The latest migration fixed this function. No `deleted_at` on tenants. Signature matches frontend.
+### `material_gate_passes` table -- Wrong column names in functions:
 
-### 3. `validate_gate_pass_dates` -- Currently correct
-Trigger function works properly with `start_date`/`end_date`.
+| Function uses | Should be |
+|---|---|
+| `requester_name` | `public_requester_name` |
+| `requester_phone` | `public_requester_phone` |
+| `requester_email` | `public_requester_email` |
+| `requester_company` | `public_requester_company` |
+| `reference_id` | `reference_number` |
+| `qr_token` | `qr_code_token` |
 
-### 4. `validate_gate_pass_guard_access` -- Currently correct
-Uses `start_date`/`end_date` properly, no invalid column references.
+### `public_gate_pass_items` table -- Missing columns:
 
-## Root Cause of Current Error
+| Missing Column | Type | Purpose |
+|---|---|---|
+| `branch_id` | UUID | Tenant isolation on items |
+| `sort_order` | INTEGER | Item ordering |
 
-The error "column deleted_at does not exist" is coming from `get_public_gate_pass_status` (the TEXT overload, OID 110487), which is called during status tracking after submission. The frontend likely calls this function as part of the submission flow or immediately after.
+### `public_gate_pass_items` table -- Wrong column names:
 
-**Wait** -- the user said the error is on **submit**. Let me re-examine: the `submit_public_gate_pass` function itself was already fixed in the last migration. But there could be a **trigger** on `material_gate_passes` that fires on INSERT and calls something referencing `tenants.deleted_at`. The trigger `trg_notify_public_gate_pass_status` calls `notify_public_gate_pass_status_change()` on UPDATE -- not INSERT. So the submit function itself should work.
+| Function uses | Should be |
+|---|---|
+| `item_description` | `description` |
 
-The most likely scenario: the previous migration to fix `submit_public_gate_pass` may not have deployed successfully, OR there's a cached old version. Either way, the comprehensive fix below will resolve everything.
+### `public_gate_pass_items` -- Type mismatch:
 
-## Fix: Single Migration to Clean Everything
+| Column | Function casts to | Actual type |
+|---|---|---|
+| `quantity` | INTEGER | TEXT |
 
-### Step 1: Drop duplicate `get_public_gate_pass_status` overloads
-Drop both overloads and recreate a single clean version.
+## Fix Strategy
 
-### Step 2: Recreate `get_public_gate_pass_status` (single version, UUID param)
-- Remove `deleted_at IS NULL` filter on `tenants` table
-- Use `logo_light_url` instead of `logo_url`
-- Include `start_date` and `end_date` in the response
-- Remove legacy `time_window_start/end` references
+**Single atomic migration** with two parts:
 
-### Step 3: Drop and recreate `submit_public_gate_pass`
-Even though it was "fixed" before, recreate it fresh to guarantee no stale version exists:
-- No `deleted_at` filter on `tenants`
-- Correct 22-parameter signature with `p_start_date`/`p_end_date`
-- Full tenant isolation via `tenant_id` scoping
+### Part 1: Add missing columns (additive, non-destructive)
 
-### Step 4: Recreate `validate_gate_pass_guard_access`
-Already correct but include in the atomic migration for completeness.
+Add to `material_gate_passes`:
+- `vehicle_plate_letters TEXT`
+- `vehicle_plate_numbers TEXT`
+- `token_expires_at TIMESTAMPTZ`
+- `submission_ip TEXT`
 
-### Step 5: Ensure `validate_gate_pass_dates` trigger exists
-Already correct but verify trigger is attached.
+Add to `public_gate_pass_items`:
+- `branch_id UUID REFERENCES branches(id)`
+- `sort_order INTEGER DEFAULT 0`
 
-### Step 6: Permissions and schema cache
+### Part 2: Recreate all functions with correct column names
+
+**`submit_public_gate_pass`** -- Fix all column references:
+- `public_requester_name` instead of `requester_name`
+- `public_requester_phone` instead of `requester_phone`
+- `public_requester_email` instead of `requester_email`
+- `public_requester_company` instead of `requester_company`
+- `reference_number` instead of `reference_id`
+- Use newly added columns for `vehicle_plate_letters`, `vehicle_plate_numbers`, `token_expires_at`, `submission_ip`
+
+**`get_public_gate_pass_status`** -- Fix all column references:
+- `reference_number` instead of `reference_id`
+- `public_requester_name` instead of `requester_name`
+- `public_requester_company` instead of `requester_company`
+- `qr_code_token` instead of `qr_token`
+- `description` instead of `item_description` for items
+- Keep `quantity` as TEXT (no INT cast)
+
+**`validate_gate_pass_dates`** and **`validate_gate_pass_guard_access`** -- Verify and recreate for completeness.
+
+### Part 3: Permissions and cache reload
 ```
-GRANT EXECUTE ON FUNCTION submit_public_gate_pass(...) TO anon;
-GRANT EXECUTE ON FUNCTION get_public_gate_pass_status(...) TO anon;
-GRANT EXECUTE ON FUNCTION validate_gate_pass_guard_access(...) TO authenticated;
-NOTIFY pgrst, 'reload schema';
+GRANT EXECUTE to anon/authenticated
+NOTIFY pgrst, 'reload schema'
 ```
 
-## Technical Details
+## No Frontend Changes Needed
 
-### Tables with NO `deleted_at` column (must never filter on it):
-- `tenants` -- confirmed no `deleted_at` column
-
-### Tables WITH `deleted_at` column (safe to filter):
-- `material_gate_passes` -- has `deleted_at`
-- `branches` -- has `deleted_at`
-- `public_gate_pass_items` -- has `deleted_at`
-
-### Column name corrections:
-- `tenants.logo_url` does NOT exist; correct column is `logo_light_url`
+The frontend hook already sends the correct parameter names (`p_requester_name`, `p_requester_phone`, etc.) -- these are RPC parameters, not column names. The column mapping happens inside the SQL function.
 
 ## Files to Modify
 
 | File | Change |
 |------|--------|
-| New migration SQL | Drop all overloads of `submit_public_gate_pass` and `get_public_gate_pass_status`, recreate both with correct column references, grant permissions, reload schema cache |
-
-## No Frontend Changes Needed
-
-The frontend hooks already use the correct parameter names and types.
+| New migration SQL | Add missing columns, drop and recreate all 4 functions with correct column references, grant permissions, reload schema |
 
 ## Expected Result
 
-- Public gate pass submission works without "deleted_at" errors
-- Status tracking works without column reference errors
-- Only one overload of each function exists (no ambiguity)
-- Schema cache is refreshed
+- All column references match the actual database schema
+- Public gate pass submission works without any column errors
+- Status tracking works correctly
 - Full tenant isolation maintained
+- No data loss (additive columns only)
 
