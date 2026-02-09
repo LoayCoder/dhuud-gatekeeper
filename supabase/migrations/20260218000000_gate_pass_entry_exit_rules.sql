@@ -581,9 +581,19 @@ $$;
 -- Grant execute to authenticated users (security guards)
 GRANT EXECUTE ON FUNCTION public.validate_gate_pass_guard_access(UUID, TEXT) TO authenticated;
 
--- Re-grant execute on submit_public_gate_pass to anon (dropped with old overloads)
+-- Re-grant execute on submit_public_gate_pass to both anon and authenticated
+-- (authenticated users visiting the public form should also be able to submit)
 -- Full signature specified to prevent ambiguity if future overloads are added
-GRANT EXECUTE ON FUNCTION public.submit_public_gate_pass(TEXT, UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, DATE, BOOLEAN, BOOLEAN, BOOLEAN, TEXT, JSONB, DATE, DATE) TO anon;
+GRANT EXECUTE ON FUNCTION public.submit_public_gate_pass(TEXT, UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, DATE, BOOLEAN, BOOLEAN, BOOLEAN, TEXT, JSONB, DATE, DATE) TO anon, authenticated;
+
+-- Fix storage INSERT policy: allow both anon and authenticated to upload photos
+-- The original policy (from 20260206 migration) only granted INSERT to anon,
+-- causing uploads to fail for authenticated users visiting the public form
+DROP POLICY IF EXISTS "Anon can upload public gate pass photos" ON storage.objects;
+CREATE POLICY "Public gate pass photo uploads"
+ON storage.objects FOR INSERT
+TO anon, authenticated
+WITH CHECK (bucket_id = 'public-gate-pass-photos');
 
 -- Reload PostgREST schema cache so it picks up the new function signature
 NOTIFY pgrst, 'reload schema';

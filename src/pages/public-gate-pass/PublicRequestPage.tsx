@@ -237,9 +237,10 @@ export default function PublicRequestPage() {
         if (item.photo) {
           try {
             photoData = await uploadPhoto(item.photo, tempRef, i);
-          } catch (uploadError) {
+          } catch (uploadError: any) {
             console.error('Photo upload failed:', uploadError);
-            toast.error(isRTL ? `فشل رفع صورة البند ${i + 1}` : `Failed to upload photo for item ${i + 1}`);
+            const detail = uploadError?.message || uploadError?.error || '';
+            toast.error(isRTL ? `فشل رفع صورة البند ${i + 1}${detail ? ': ' + detail : ''}` : `Failed to upload photo for item ${i + 1}${detail ? ': ' + detail : ''}`);
             setIsUploading(false);
             return;
           }
