@@ -66,11 +66,11 @@ export function useSubmitPublicGatePass() {
         {
           p_tenant_slug: data.tenant_slug,
           p_branch_id: data.branch_id || null,
+          p_pass_type: data.pass_type || 'in',
           p_requester_name: data.requester_name,
           p_requester_phone: data.requester_phone,
           p_requester_email: data.requester_email || null,
           p_requester_company: data.requester_company || null,
-          p_pass_type: data.pass_type,
           p_material_description: data.material_description || null,
           p_quantity: data.quantity || null,
           p_vehicle_plate: data.vehicle_plate || null,
@@ -78,13 +78,13 @@ export function useSubmitPublicGatePass() {
           p_vehicle_plate_numbers: data.vehicle_plate_numbers || null,
           p_driver_name: data.driver_name || null,
           p_driver_mobile: data.driver_mobile || null,
-          p_pass_date: data.pass_date || data.start_date,
+          p_project_id: null,
+          p_purpose: null,
+          p_notes: null,
+          p_submission_ip: clientIp,
+          p_captcha_token: null,
           p_start_date: data.start_date,
           p_end_date: data.end_date,
-          p_notify_whatsapp: data.notify_whatsapp ?? true,
-          p_notify_email: data.notify_email ?? true,
-          p_notify_sms: data.notify_sms ?? false,
-          p_client_ip: clientIp,
           p_items: itemsJsonb,
         } as never
       );
@@ -157,7 +157,6 @@ export function usePublicGatePassStatus(tenantSlug: string | undefined, token: s
       const { data, error } = await supabase.rpc(
         "get_public_gate_pass_status" as never,
         {
-          p_tenant_slug: tenantSlug,
           p_access_token: token,
         } as never
       );
