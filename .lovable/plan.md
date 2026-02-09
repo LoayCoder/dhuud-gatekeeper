@@ -1,112 +1,48 @@
 
 
-# Add Export Button for HSSE Events List
+# Link All Golf Saudi Incidents to LIV 2026 Major Event
 
 ## Summary
 
-The export button UI already exists in the page header but isn't connected to any functionality. This plan will wire it up to export all filtered HSSE Events to Excel or PDF format, including a **Status** column with proper translations.
+Create a new major event called **LIV 2026** for the Golf Saudi tenant and link all **103 existing incidents** to it.
 
----
+## What Will Be Done
 
-## What Will Be Built
+### Step 1: Create the LIV 2026 Event
 
-### Export Functionality
-- Export all filtered HSSE Events (respects current filters like status, severity, date range, branch)
-- Two export formats: **Excel** and **PDF**
-- Secure export with permission validation and audit logging
-- RTL-compatible with proper Arabic/English labels
+Insert a new record into the `special_events` table:
+- **Name:** LIV 2026
+- **Tenant:** Golf Saudi (`e30ae1a5-7eab-4776-bd0b-bb0b391e68e8`)
+- **Dates:** January 1, 2026 - December 31, 2026
+- **Active:** Yes
 
-### Export Columns (Including Status)
+### Step 2: Link All 103 Incidents
 
-| Column | Label (English) | Label (Arabic) |
-|--------|-----------------|----------------|
-| Reference | Reference | المرجع |
-| Title | Title | العنوان |
-| Event Type | Event Type | نوع الحدث |
-| Subtype | Subtype | النوع الفرعي |
-| **Status** | **Status** | **الحالة** |
-| Severity | Severity | الخطورة |
-| Occurred At | Occurred At | تاريخ الحدوث |
-| Location | Location | الموقع |
-| Branch | Branch | الفرع |
-| Created At | Created At | تاريخ الإنشاء |
+Update all 103 Golf Saudi incidents (where `deleted_at IS NULL`) to set their `special_event_id` to the newly created LIV 2026 event.
 
-### Status Values Formatting
-Status values will be formatted as human-readable labels (using translation keys like `incidents.status.submitted` → "Submitted" or "مقدم"):
-- `submitted` → Submitted / مقدم
-- `pending_review` → Pending Review / قيد المراجعة
-- `investigation_in_progress` → Under Investigation / قيد التحقيق
-- `closed` → Closed / مغلق
-- etc.
+## Technical Details
 
----
+Two data operations will be executed:
 
-## Technical Implementation
+```sql
+-- 1. Create the LIV 2026 event
+INSERT INTO special_events (tenant_id, name, start_at, end_at, is_active)
+VALUES ('e30ae1a5-...', 'LIV 2026', '2026-01-01', '2026-12-31', true);
 
-### 1. Create Export Hook
-**New file:** `src/hooks/use-hsse-events-export.ts`
-
-This hook will:
-- Fetch complete incident data for export (more fields than list view)
-- Apply the current filters (status, severity, event type, branch, date range)
-- Format data with proper translations for status and other fields
-- Handle empty state gracefully
-
-### 2. Wire Up IncidentList Page
-**Modified file:** `src/pages/incidents/IncidentList.tsx`
-
-Changes:
-- Create `handleExport` function that:
-  1. Fetches full incident data with current filters
-  2. Formats status using translation function (`t('incidents.status.{status}')`)
-  3. Calls `performSecureExport` with audit logging
-  4. Shows success/error toast
-- Pass `onExport={handleExport}` to `IncidentListHeader` component
-
-### Flow Diagram
-
-```text
-User clicks "Export to Excel" or "Export to PDF"
-    ↓
-Fetch incidents matching current filters
-    ↓
-Format data:
-  - Status → t('incidents.status.{status}')
-  - Severity → t('incidents.severity.{severity}')
-  - Dates → localized format
-    ↓
-Call performSecureExport (validates permission + logs audit)
-    ↓
-Download file / Show toast
+-- 2. Link all Golf Saudi incidents to it
+UPDATE incidents
+SET special_event_id = '<new_event_id>'
+WHERE tenant_id = 'e30ae1a5-...'
+  AND deleted_at IS NULL;
 ```
-
----
-
-## Files to Modify
-
-| File | Change |
-|------|--------|
-| `src/hooks/use-hsse-events-export.ts` | **New** - Export data fetching and formatting |
-| `src/pages/incidents/IncidentList.tsx` | Add export handler, pass to header |
-
----
-
-## Security & Audit
-
-- Permission validation via `validateExportPermission` with menu code `hsse_incidents`
-- Audit logging via `logExport` with entity type `incident`
-- Tenant isolation enforced in database query
-- Only HSSE-access users see the export button (already implemented)
-
----
 
 ## Expected Results
 
-After implementation:
-1. Export button (download icon) appears for HSSE users in the header
-2. Clicking shows dropdown with Excel and PDF options
-3. Export includes all visible columns plus **Status** with human-readable labels
-4. Filters apply to exported data (only filtered incidents are exported)
-5. Export action is logged for audit purposes
-6. Empty state shows toast message when no data to export
+- A new "LIV 2026" event appears in the Manage Major Events page
+- All 103 Golf Saudi incidents show as linked to LIV 2026
+- The Active Event Banner displays "LIV 2026" when reporters submit new incidents
+- New incidents during 2026 will automatically be associated with LIV 2026
 
+## No Code Changes Required
+
+This is a data-only operation -- no code modifications needed. The existing UI already supports displaying linked events.
