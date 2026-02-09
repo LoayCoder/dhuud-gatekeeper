@@ -1,32 +1,31 @@
 
 
-# Fix: Add Missing `purpose` and `notes` Columns
+# Fix: `pass_date` NOT NULL violation
 
-## Problem
+## Root Cause
 
-The `submit_public_gate_pass` function inserts into `purpose` and `notes` columns on `material_gate_passes`, but neither column exists in the table.
+The `submit_public_gate_pass` function correctly inserts `start_date` and `end_date` but does **not** set the legacy `pass_date` column. Previously, a trigger (`validate_gate_pass_dates`) would auto-fill `pass_date := start_date`, but the trigger was later rewritten and that line was removed. Since `pass_date` is NOT NULL, the insert fails.
 
 ## Fix
 
-A single migration to add both missing columns:
+Update the `validate_gate_pass_dates` trigger function to sync `pass_date` from `start_date` before returning, restoring backward compatibility. This is a single SQL migration -- no frontend changes needed.
 
 ```text
-ALTER TABLE material_gate_passes ADD COLUMN purpose TEXT;
-ALTER TABLE material_gate_passes ADD COLUMN notes TEXT;
+-- Add to the trigger function, just before RETURN NEW:
+NEW.pass_date := NEW.start_date;
 ```
-
-Both are nullable TEXT columns with no default -- safe, additive, non-destructive.
 
 ## Technical Details
 
-- **No function changes needed** -- the function already references these columns correctly
-- **No frontend changes needed** -- the hook already sends `p_purpose` and `p_notes` (as null)
-- **No RLS impact** -- existing policies cover all columns on the table
-- After adding the columns, trigger a schema reload: `NOTIFY pgrst, 'reload schema';`
+- The `pass_date` column is `NOT NULL` with no default value
+- The current function body (`submit_public_gate_pass`, OID 115359) inserts `start_date` and `end_date` but omits `pass_date`
+- The trigger fires `BEFORE INSERT` so setting `pass_date` there will satisfy the constraint
+- This restores the behavior that existed in the original `validate_gate_pass_dates` function from migration `20260203000000`
+- No frontend or function changes required -- just the trigger fix
 
-## Files to Modify
+## Files to Create
 
 | File | Change |
 |------|--------|
-| New migration SQL | `ALTER TABLE material_gate_passes ADD COLUMN purpose TEXT; ADD COLUMN notes TEXT;` |
+| New migration SQL | Recreate `validate_gate_pass_dates()` to sync `pass_date := start_date` |
 
