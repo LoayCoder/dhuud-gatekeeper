@@ -18,7 +18,7 @@ interface Props {
   isLoading?: boolean;
 }
 
-// Colors for each incident type using CSS variables
+// Colors for each incident type using CSS variables and standardized HSL
 const INCIDENT_TYPE_COLORS: Record<string, string> = {
   // New HSSE event types
   safety: 'hsl(var(--chart-1))',
@@ -32,36 +32,25 @@ const INCIDENT_TYPE_COLORS: Record<string, string> = {
   community_third_party: 'hsl(30, 80%, 55%)',
   compliance_regulatory: 'hsl(0, 65%, 50%)',
   emergency_crisis: 'hsl(290, 70%, 50%)',
-  // Legacy subtypes
-  first_aid: 'hsl(120, 60%, 45%)',
-  near_miss: 'hsl(45, 90%, 50%)',
+
+  // Legacy subtypes - Aligned with Severity Colors
+  first_aid: 'hsl(142, 71%, 45%)', // Level 1 (Green)
+  near_miss: 'hsl(210, 15%, 60%)', // Neutral/Gray
   environmental: 'hsl(var(--chart-4))',
   property_damage: 'hsl(48, 96%, 53%)',
-  medical_treatment: 'hsl(200, 70%, 50%)',
-  lost_time: 'hsl(0, 70%, 50%)',
-  fatality: 'hsl(0, 90%, 35%)',
-  restricted_work: 'hsl(30, 80%, 55%)',
+  medical_treatment: 'hsl(45, 90%, 50%)', // Level 2 (Yellow)
+  lost_time: 'hsl(0, 70%, 50%)', // Level 4 (Orange-Red)
+  fatality: 'hsl(0, 90%, 35%)', // Level 5 (Critical Red)
+  restricted_work: 'hsl(30, 80%, 55%)', // Level 3 (Orange)
   vehicle: 'hsl(340, 75%, 55%)',
   equipment: 'hsl(260, 60%, 50%)',
+
+  // HSSE safety subtypes
   fall_from_height: 'hsl(var(--chart-1))',
   slip_trip_fall: 'hsl(var(--chart-2))',
   heat_stress: 'hsl(25, 90%, 55%)',
   chemical_exposure: 'hsl(280, 70%, 50%)',
 };
-
-const INCIDENT_TYPE_KEYS = [
-  'safety',
-  'health',
-  'process_safety',
-  'environment',
-  'security',
-  'property_asset_damage',
-  'road_traffic_vehicle',
-  'quality_service',
-  'community_third_party',
-  'compliance_regulatory',
-  'emergency_crisis',
-];
 
 export function IncidentTypeBreakdownChart({ data, isLoading }: Props) {
   const { t } = useTranslation();
@@ -81,7 +70,7 @@ export function IncidentTypeBreakdownChart({ data, isLoading }: Props) {
       community_third_party: t('incidents.hsseEventTypes.communityThirdParty', 'Community / Third-Party'),
       compliance_regulatory: t('incidents.hsseEventTypes.complianceRegulatory', 'Compliance / Regulatory'),
       emergency_crisis: t('incidents.hsseEventTypes.emergencyCrisis', 'Emergency / Crisis'),
-      
+
       // Legacy subtypes (subtype field - for older incidents)
       first_aid: t('incidents.incidentTypes.first_aid', 'First Aid'),
       near_miss: t('incidents.incidentTypes.near_miss', 'Near Miss'),
@@ -93,7 +82,7 @@ export function IncidentTypeBreakdownChart({ data, isLoading }: Props) {
       restricted_work: t('incidents.incidentTypes.restricted_work', 'Restricted Work'),
       vehicle: t('incidents.incidentTypes.vehicle', 'Vehicle Incident'),
       equipment: t('incidents.incidentTypes.equipment', 'Equipment Incident'),
-      
+
       // HSSE safety subtypes
       fall_from_height: t('incidents.hsseSubtypes.safety.fallFromHeight', 'Fall from Height'),
       slip_trip_fall: t('incidents.hsseSubtypes.safety.slipTripFallSameLevel', 'Slip/Trip/Fall'),
@@ -107,7 +96,7 @@ export function IncidentTypeBreakdownChart({ data, isLoading }: Props) {
       dropped_object: t('incidents.hsseSubtypes.safety.droppedObject', 'Dropped Object'),
       confined_space: t('incidents.hsseSubtypes.safety.confinedSpace', 'Confined Space'),
       tool_equipment_injury: t('incidents.hsseSubtypes.safety.toolEquipmentInjury', 'Tool/Equipment Injury'),
-      
+
       // HSSE health subtypes
       heat_stress: t('incidents.hsseSubtypes.health.heatStressDehydration', 'Heat Stress'),
       chemical_exposure: t('incidents.hsseSubtypes.health.chemicalExposure', 'Chemical Exposure'),

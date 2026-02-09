@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback, useMemo } from "react";
-import { logger } from '@/lib/logger';
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,18 +12,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  RefreshCw, 
+import {
+  RefreshCw,
   Activity,
   Clock,
-  Users,
   BarChart3,
   Building2,
   MapPin,
   LineChart,
   PieChart,
-  GitBranch,
-  Lightbulb,
   Eye,
   Flame,
   ArrowRightLeft,
@@ -65,22 +61,17 @@ import {
   InvestigationProgressChart,
   BranchComparisonChart,
   DepartmentAnalyticsChart,
-  EnhancedAIInsightsPanel,
   QuickActionsCard,
   RecentEventsCard,
   DateRangeFilter,
   EnhancedKPIGrid,
   MajorEventsTimeline,
-  RootCauseDistributionChart,
-  CauseFlowDiagram,
   BranchHeatmapGrid,
   SiteBubbleMap,
   TemporalHeatmap,
   DashboardExportDropdown,
   LiveUpdateIndicator,
   AutoRefreshToggle,
-  DrilldownModal,
-  RootCauseParetoChart,
   IncidentWaterfallChart,
   DashboardCacheStatus,
   DaysSinceCounter,
@@ -107,6 +98,7 @@ import {
   CrossBranchSummaryCard,
   CrossBranchAnalytics,
   CrossBranchHeatmap,
+  DrilldownModal,
 } from "@/components/incidents/dashboard";
 import { useHSSEAlerts } from "@/hooks/use-hsse-alerts";
 
@@ -115,7 +107,7 @@ type DateRange = 'week' | 'month' | '30days' | '90days' | 'ytd';
 export default function HSSEEventDashboard() {
   const { t } = useTranslation();
   const [refreshKey, setRefreshKey] = useState(0);
-  const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 30));
+  const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 90));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
   const [kpiDateRange, setKpiDateRange] = useState<DateRange>('month');
   const [branchId, setBranchId] = useState<string>('');
@@ -165,7 +157,7 @@ export default function HSSEEventDashboard() {
   const { data: dashboardData, isLoading: dashboardLoading, refetch: refetchDashboard, dataUpdatedAt: dashboardUpdatedAt, isFetching: dashboardFetching } = useHSSEEventDashboard(startDate, endDate);
   const { data: locationData, isLoading: locationLoading, dataUpdatedAt: locationUpdatedAt, isFetching: locationFetching } = useEventsByLocation();
   const { data: reporters, isLoading: reportersLoading } = useTopReporters(10);
-  const { insights, isLoading: aiLoading, generateInsights } = useHSSERiskAnalytics();
+  const { generateInsights } = useHSSERiskAnalytics();
   const { data: rcaData, isLoading: rcaLoading, dataUpdatedAt: rcaUpdatedAt, isFetching: rcaFetching } = useRCAAnalytics(startDate, endDate);
   const { data: heatmapData, isLoading: heatmapLoading } = useLocationHeatmap(startDate, endDate);
   const { data: progressionData, isLoading: progressionLoading, dataUpdatedAt: progressionUpdatedAt, isFetching: progressionFetching } = useIncidentProgression(startDate, endDate);
@@ -200,13 +192,17 @@ export default function HSSEEventDashboard() {
 
   const { isConnected, newEventCount, acknowledgeEvents } = useDashboardRealtime(handleRefresh);
 
-  // HSSE Alerts - use existing summary data for alerts
+  // Construct synthetic alert objects for the useHSSEAlerts hook
+  // TODO: Replace with real high-severity incident fetching for better alert details
   const alertIncidents = useMemo(() => {
     if (!dashboardData) return [];
-    // Build a simplified incidents array from severity data for alert detection
+
+    // Create dummy objects to trigger the alert logic based on counts
+    // This maintains the notifications without needing a separate heavy query
     const incidents: any[] = [];
     const criticalCount = dashboardData.by_severity?.level_5 ?? 0;
     const highCount = dashboardData.by_severity?.level_4 ?? 0;
+
     for (let i = 0; i < criticalCount; i++) {
       incidents.push({ severity: 'critical', created_at: new Date().toISOString() });
     }
@@ -218,20 +214,24 @@ export default function HSSEEventDashboard() {
 
   const alertActions = useMemo(() => {
     if (!dashboardData?.actions) return [];
-    // Build simplified actions array for alert detection
+
     const actions: any[] = [];
     const overdueCount = dashboardData.actions.overdue_actions ?? 0;
     const openCount = dashboardData.actions.open_actions ?? 0;
+
+    // Create dummy overdue actions
     for (let i = 0; i < overdueCount; i++) {
-      actions.push({ status: 'open', due_date: new Date(Date.now() - 86400000).toISOString() });
+      actions.push({ status: 'open', due_date: subDays(new Date(), 1).toISOString() });
     }
+    // Create dummy open actions (not overdue)
     for (let i = 0; i < (openCount - overdueCount); i++) {
       actions.push({ status: 'open', due_date: new Date(Date.now() + 86400000).toISOString() });
     }
     return actions;
   }, [dashboardData]);
 
-  const { alerts: hsseAlerts, hasCritical: hasHSSECritical } = useHSSEAlerts({
+  // We are not using hasHSSECritical directly, but the hook is needed for side effects (toasts)
+  useHSSEAlerts({
     incidents: alertIncidents,
     actions: alertActions,
     inspections: [],
@@ -245,40 +245,6 @@ export default function HSSEEventDashboard() {
   const handleDateRangeChange = (start: Date | undefined, end: Date | undefined) => {
     setStartDate(start);
     setEndDate(end);
-  };
-
-  const handleGenerateAIInsights = () => {
-    logger.debug("Generate AI Insights clicked", { dashboardData: !!dashboardData, locationData: !!locationData });
-    
-    // Allow generation even if locationData is null - use empty defaults
-    if (dashboardData) {
-      const aiContext = {
-        ...dashboardData,
-        locationData: locationData || { by_branch: [], by_department: [] },
-        rca_data: rcaData ? {
-          total_rcas: rcaData.root_cause_distribution?.length || 0,
-          top_categories: rcaData.root_cause_distribution?.slice(0, 5).map((r: any) => r.category) || [],
-          major_events_count: rcaData.major_events?.length || 0,
-        } : null,
-        observation_behaviors: dashboardData.by_subtype ? {
-          positive: (dashboardData.by_subtype as any)?.safe_condition || 0,
-          negative: ((dashboardData.by_subtype as any)?.unsafe_act || 0) + ((dashboardData.by_subtype as any)?.unsafe_condition || 0),
-          ratio: ((dashboardData.by_subtype as any)?.safe_condition || 0) > 0 && 
-                 (((dashboardData.by_subtype as any)?.unsafe_act || 0) + ((dashboardData.by_subtype as any)?.unsafe_condition || 0)) > 0
-            ? `${(((dashboardData.by_subtype as any)?.safe_condition || 0) / 
-                  (((dashboardData.by_subtype as any)?.unsafe_act || 0) + ((dashboardData.by_subtype as any)?.unsafe_condition || 0) || 1)).toFixed(2)}:1`
-            : 'N/A',
-        } : null,
-        near_miss_data: {
-          total: dashboardData.summary?.near_miss_count || 0,
-          rate: `${dashboardData.summary?.near_miss_rate || 0}%`,
-        },
-      };
-      logger.debug("Calling generateInsights with context", Object.keys(aiContext));
-      generateInsights(aiContext);
-    } else {
-      logger.warn("Cannot generate insights: dashboardData is null");
-    }
   };
 
   // Convert trend data to sparkline format
@@ -332,7 +298,7 @@ export default function HSSEEventDashboard() {
             <p className="text-muted-foreground text-sm">{t('hsseDashboard.subtitle')}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <DashboardCacheStatus 
+            <DashboardCacheStatus
               cacheInfos={[
                 { dataUpdatedAt: dashboardUpdatedAt, isFetching: dashboardFetching },
                 { dataUpdatedAt: locationUpdatedAt, isFetching: locationFetching },
@@ -340,14 +306,14 @@ export default function HSSEEventDashboard() {
                 { dataUpdatedAt: progressionUpdatedAt, isFetching: progressionFetching },
               ]}
             />
-            <LiveUpdateIndicator 
-              isConnected={isConnected} 
+            <LiveUpdateIndicator
+              isConnected={isConnected}
               newEventCount={newEventCount}
               onAcknowledge={handleRefreshAndAcknowledge}
             />
             <AutoRefreshToggle onRefresh={handleRefresh} disabled={isLoading || kpiLoading} />
             <DateRangeFilter onDateRangeChange={handleDateRangeChange} />
-            <DashboardExportDropdown 
+            <DashboardExportDropdown
               dashboardRef={dashboardRef}
               dashboardData={dashboardData}
               locationData={locationData}
@@ -367,12 +333,12 @@ export default function HSSEEventDashboard() {
 
         {/* Critical Alerts Banner */}
         {dashboardData && (
-          <CriticalAlertBanner 
+          <CriticalAlertBanner
             summary={{
               critical_count: dashboardData.by_severity?.level_5 ?? 0,
               high_count: dashboardData.by_severity?.level_4 ?? 0,
               total_count: dashboardData.summary?.total_events ?? 0,
-            }} 
+            }}
             actionStats={{
               overdue: dashboardData.actions?.overdue_actions ?? 0,
               total: dashboardData.actions?.total_actions ?? 0,
@@ -383,7 +349,7 @@ export default function HSSEEventDashboard() {
 
         {/* Data Quality Indicator */}
         {dashboardData && (
-          <DataQualityIndicator 
+          <DataQualityIndicator
             incidents={alertIncidents}
             observations={[]}
             actions={alertActions}
@@ -401,16 +367,18 @@ export default function HSSEEventDashboard() {
               {dashboardLoading ? (
                 <Card><CardContent className="h-[260px] flex items-center justify-center"><Skeleton className="h-[220px] w-full" /></CardContent></Card>
               ) : dashboardData ? (
-                <ExecutiveSummaryCard 
-                  summary={dashboardData.summary} 
+                <ExecutiveSummaryCard
+                  summary={dashboardData.summary}
                   actions={dashboardData.actions}
                   trir={laggingData?.trir}
                   ltifr={laggingData?.ltifr}
-                  actionClosureRate={leadingData?.action_closure_pct}
+                  actionClosureRate={dashboardData.actions.total_actions > 0
+                    ? Math.round((dashboardData.actions.actions_closed / dashboardData.actions.total_actions) * 100)
+                    : 0}
                 />
               ) : null}
             </div>
-            
+
             {/* Days Since Counter */}
             <DaysSinceCounter
               days={daysSince ?? 0}
@@ -540,8 +508,8 @@ export default function HSSEEventDashboard() {
         </div>
 
         {/* ========== SECTION 2: KPI Analysis (Consolidated 4 Tabs) ========== */}
-        <DashboardSection 
-          title={t('hsseDashboard.kpiAnalysis', 'KPI Analysis')} 
+        <DashboardSection
+          title={t('hsseDashboard.kpiAnalysis', 'KPI Analysis')}
           icon={Activity}
           defaultExpanded={true}
         >
@@ -597,8 +565,8 @@ export default function HSSEEventDashboard() {
         </DashboardSection>
 
         {/* ========== SECTION 3: Event Distribution ========== */}
-        <DashboardSection 
-          title={t('hsseDashboard.eventDistribution', 'Event Distribution')} 
+        <DashboardSection
+          title={t('hsseDashboard.eventDistribution', 'Event Distribution')}
           icon={PieChart}
           defaultExpanded={false}
         >
@@ -615,7 +583,7 @@ export default function HSSEEventDashboard() {
               </>
             ) : null}
           </div>
-          
+
           {dashboardLoading ? (
             <Card><CardContent className="h-[300px] flex items-center justify-center"><Skeleton className="h-[250px] w-full" /></CardContent></Card>
           ) : dashboardData ? (
@@ -626,8 +594,8 @@ export default function HSSEEventDashboard() {
         </DashboardSection>
 
         {/* ========== SECTION 4: Trend Analysis ========== */}
-        <DashboardSection 
-          title={t('hsseDashboard.trendAnalysis', 'Trend Analysis')} 
+        <DashboardSection
+          title={t('hsseDashboard.trendAnalysis', 'Trend Analysis')}
           icon={LineChart}
           defaultExpanded={false}
         >
@@ -638,8 +606,8 @@ export default function HSSEEventDashboard() {
           ) : null}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <IncidentWaterfallChart 
-              data={progressionData?.waterfall || []} 
+            <IncidentWaterfallChart
+              data={progressionData?.waterfall || []}
               isLoading={progressionLoading}
               dataUpdatedAt={progressionUpdatedAt}
               isFetching={progressionFetching}
@@ -649,8 +617,8 @@ export default function HSSEEventDashboard() {
         </DashboardSection>
 
         {/* ========== SECTION 5: Actions & Investigations ========== */}
-        <DashboardSection 
-          title={t('hsseDashboard.actionsInvestigations', 'Actions & Investigations')} 
+        <DashboardSection
+          title={t('hsseDashboard.actionsInvestigations', 'Actions & Investigations')}
           icon={Flame}
           defaultExpanded={false}
         >
@@ -672,8 +640,8 @@ export default function HSSEEventDashboard() {
         </DashboardSection>
 
         {/* ========== SECTION 6: Location Analytics ========== */}
-        <DashboardSection 
-          title={t('hsseDashboard.locationAnalytics', 'Location Analytics')} 
+        <DashboardSection
+          title={t('hsseDashboard.locationAnalytics', 'Location Analytics')}
           icon={MapPin}
           defaultExpanded={false}
         >
@@ -723,15 +691,15 @@ export default function HSSEEventDashboard() {
         </DashboardSection>
 
         {/* ========== SECTION 7: Observations ========== */}
-        <DashboardSection 
-          title={t('hsseDashboard.observations', 'Observations')} 
+        <DashboardSection
+          title={t('hsseDashboard.observations', 'Observations')}
           icon={Eye}
           defaultExpanded={false}
         >
           {/* Near Miss and Heinrich Pyramid Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {dashboardData && (
-              <NearMissWidget 
+              <NearMissWidget
                 nearMissCount={dashboardData.by_event_type?.near_miss ?? 0}
                 incidentCount={dashboardData.by_event_type?.incident ?? 0}
               />
@@ -751,7 +719,7 @@ export default function HSSEEventDashboard() {
             {dashboardLoading ? (
               <Card><CardContent className="h-[300px] flex items-center justify-center"><Skeleton className="h-[250px] w-full" /></CardContent></Card>
             ) : dashboardData ? (
-              <PositiveObservationCard 
+              <PositiveObservationCard
                 data={dashboardData.by_subtype ? {
                   safe_act_count: (dashboardData.by_subtype as Record<string, number>)?.safe_act ?? 0,
                   safe_condition_count: (dashboardData.by_subtype as Record<string, number>)?.safe_condition ?? 0,
@@ -765,8 +733,8 @@ export default function HSSEEventDashboard() {
           </div>
 
           <ObservationTrendChart startDate={startDate} endDate={endDate} branchId={branchId || undefined} siteId={siteId || undefined} />
-          
-          <ObservationRatioBreakdown 
+
+          <ObservationRatioBreakdown
             startDate={startDate}
             endDate={endDate}
             branchId={branchId || undefined}
@@ -775,19 +743,19 @@ export default function HSSEEventDashboard() {
         </DashboardSection>
 
         {/* ========== SECTION 7.5: Cross-Branch Analytics ========== */}
-        <DashboardSection 
-          title={t('hsseDashboard.crossBranchAnalytics', 'Cross-Branch Analytics')} 
+        <DashboardSection
+          title={t('hsseDashboard.crossBranchAnalytics', 'Cross-Branch Analytics')}
           icon={ArrowRightLeft}
           defaultExpanded={false}
         >
           <div className="grid gap-4 lg:grid-cols-3">
-            <CrossBranchSummaryCard 
-              startDate={startDate} 
-              endDate={endDate} 
+            <CrossBranchSummaryCard
+              startDate={startDate}
+              endDate={endDate}
             />
             <div className="lg:col-span-2">
-              <CrossBranchAnalytics 
-                startDate={startDate} 
+              <CrossBranchAnalytics
+                startDate={startDate}
                 endDate={endDate}
                 locationBranchId={locationBranchFilter}
                 reporterBranchId={reporterBranchFilter}
@@ -796,55 +764,13 @@ export default function HSSEEventDashboard() {
               />
             </div>
           </div>
-          <CrossBranchHeatmap 
-            startDate={startDate} 
-            endDate={endDate} 
+          <CrossBranchHeatmap
+            startDate={startDate}
+            endDate={endDate}
           />
         </DashboardSection>
-
-        {/* ========== SECTION 8: Root Cause Analysis ========== */}
-        <DashboardSection 
-          title={t('hsseDashboard.rootCauseAnalysis', 'Root Cause Analysis')} 
-          icon={GitBranch}
-          defaultExpanded={false}
-        >
-          <RootCauseParetoChart 
-            data={rcaData?.root_cause_distribution || []} 
-            isLoading={rcaLoading} 
-            dataUpdatedAt={rcaUpdatedAt}
-            isFetching={rcaFetching}
-          />
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <RootCauseDistributionChart data={rcaData?.root_cause_distribution || []} isLoading={rcaLoading} />
-            {rcaLoading ? (
-              <Card><CardContent className="h-[400px] flex items-center justify-center"><Skeleton className="h-[350px] w-full" /></CardContent></Card>
-            ) : rcaData ? (
-              <CauseFlowDiagram data={rcaData.cause_flow} />
-            ) : null}
-          </div>
-        </DashboardSection>
-
-        {/* ========== SECTION 9: AI Insights ========== */}
-        <DashboardSection 
-          title={t('hsseDashboard.aiInsights', 'AI Insights')} 
-          icon={Lightbulb}
-          defaultExpanded={false}
-          badge={
-            <Badge variant="secondary" className="text-xs">AI</Badge>
-          }
-        >
-          <EnhancedAIInsightsPanel 
-            insights={insights} 
-            isLoading={aiLoading} 
-            onRefresh={handleGenerateAIInsights}
-            lastUpdated={insights ? new Date() : undefined}
-          />
-        </DashboardSection>
-        
-        {/* Drilldown Modal */}
-        <DrilldownModal />
       </div>
+      <DrilldownModal />
     </DrilldownProvider>
   );
 }

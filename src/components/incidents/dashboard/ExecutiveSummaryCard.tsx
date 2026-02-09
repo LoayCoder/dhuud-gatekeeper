@@ -2,10 +2,10 @@ import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Shield, 
-  AlertTriangle, 
-  CheckCircle2, 
+import {
+  Shield,
+  AlertTriangle,
+  CheckCircle2,
   XCircle,
   TrendingUp,
   TrendingDown,
@@ -34,8 +34,8 @@ function getOverallSafetyScore(
   const priorities: string[] = [];
 
   // Deduct points for overdue actions (major issue)
-  const overdueRate = actions.open_actions > 0 
-    ? (actions.overdue_actions / actions.open_actions) * 100 
+  const overdueRate = actions.open_actions > 0
+    ? (actions.overdue_actions / actions.open_actions) * 100
     : 0;
   if (overdueRate > 25) {
     score -= 30;
@@ -101,37 +101,37 @@ function getOverallSafetyScore(
   return { score, status, priorities: priorities.slice(0, 3) };
 }
 
-export function ExecutiveSummaryCard({ 
-  summary, 
+export function ExecutiveSummaryCard({
+  summary,
   actions,
   trir,
   ltifr,
   actionClosureRate,
 }: ExecutiveSummaryCardProps) {
   const { t } = useTranslation();
-  
+
   const { score, status, priorities } = getOverallSafetyScore(summary, actions, trir, ltifr);
 
   const priorityLabels: Record<string, { label: string; icon: typeof AlertTriangle }> = {
-    overdue_actions: { 
+    overdue_actions: {
       label: t('executiveSummary.overdueActions', 'Overdue corrective actions require attention'),
-      icon: XCircle 
+      icon: XCircle
     },
-    overdue_incidents: { 
+    overdue_incidents: {
       label: t('executiveSummary.overdueIncidents', 'Overdue incident investigations'),
-      icon: AlertTriangle 
+      icon: AlertTriangle
     },
-    open_investigations: { 
+    open_investigations: {
       label: t('executiveSummary.openInvestigations', 'Multiple open investigations'),
-      icon: Activity 
+      icon: Activity
     },
-    high_trir: { 
+    high_trir: {
       label: t('executiveSummary.highTrir', 'TRIR above target threshold'),
-      icon: TrendingUp 
+      icon: TrendingUp
     },
-    high_ltifr: { 
+    high_ltifr: {
       label: t('executiveSummary.highLtifr', 'LTIFR above target threshold'),
-      icon: TrendingUp 
+      icon: TrendingUp
     },
   };
 
@@ -161,8 +161,8 @@ export function ExecutiveSummaryCard({
             <Shield className="h-5 w-5" />
             {t('executiveSummary.title', 'Safety Overview')}
           </CardTitle>
-          <Badge 
-            variant="outline" 
+          <Badge
+            variant="outline"
             className={cn(
               "font-semibold",
               status === 'green' && "border-success text-success",
@@ -178,32 +178,45 @@ export function ExecutiveSummaryCard({
         {/* Safety Score Gauge */}
         <div className="flex items-center gap-6">
           <div className="relative flex-shrink-0">
-            <div className="w-24 h-24 rounded-full border-8 border-muted flex items-center justify-center relative">
+            <div className="w-24 h-24 flex items-center justify-center relative">
               <svg className="absolute inset-0 w-full h-full -rotate-90">
+                {/* Background Track */}
                 <circle
-                  className={cn("transition-all duration-500", statusColors[status])}
+                  className="text-gray-200 dark:text-gray-800"
                   strokeWidth="8"
                   stroke="currentColor"
                   fill="transparent"
                   r="38"
                   cx="48"
                   cy="48"
+                />
+                {/* Progress Circle */}
+                <circle
+                  className={cn("transition-all duration-500", status === 'red' ? 'text-destructive' : status === 'amber' ? 'text-warning' : 'text-success')}
+                  strokeWidth="8"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  fill="transparent"
+                  r="38"
+                  cx="48"
+                  cy="48"
                   style={{
-                    strokeDasharray: `${score * 2.39} 239`,
+                    strokeDasharray: `${2 * Math.PI * 38}`,
+                    strokeDashoffset: `${2 * Math.PI * 38 * (1 - score / 100)}`,
                   }}
                 />
               </svg>
-              <span className="text-2xl font-bold">{score}</span>
+              <span className={cn("text-2xl font-bold", status === 'red' ? 'text-destructive' : status === 'amber' ? 'text-warning' : 'text-success')}>{score}</span>
             </div>
           </div>
-          
+
           <div className="flex-1 space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">{t('executiveSummary.overallScore', 'Overall Safety Score')}</span>
               <span className="font-medium">{score}/100</span>
             </div>
-            <Progress 
-              value={score} 
+            <Progress
+              value={score}
               className="h-2"
             />
             <p className="text-xs text-muted-foreground">
@@ -246,9 +259,9 @@ export function ExecutiveSummaryCard({
               {t('executiveSummary.topPriorities', 'Top Priorities')}
             </p>
             {priorities.map((priority) => {
-              const { label, icon: PriorityIcon } = priorityLabels[priority] || { 
-                label: priority, 
-                icon: AlertTriangle 
+              const { label, icon: PriorityIcon } = priorityLabels[priority] || {
+                label: priority,
+                icon: AlertTriangle
               };
               return (
                 <div key={priority} className="flex items-center gap-2 text-sm">
