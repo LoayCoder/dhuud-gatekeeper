@@ -157,7 +157,6 @@ export function usePublicGatePassStatus(tenantSlug: string | undefined, token: s
       const { data, error } = await supabase.rpc(
         "get_public_gate_pass_status" as never,
         {
-          p_tenant_slug: tenantSlug,
           p_access_token: token,
         } as never
       );
