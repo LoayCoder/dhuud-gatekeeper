@@ -26731,7 +26731,7 @@ export type Database = {
       }
       submit_public_gate_pass: {
         Args: {
-          p_branch_id?: string
+          p_branch_id: string
           p_client_ip?: string
           p_driver_mobile?: string
           p_driver_name?: string
@@ -26746,8 +26746,8 @@ export type Database = {
           p_quantity?: string
           p_requester_company?: string
           p_requester_email?: string
-          p_requester_name?: string
-          p_requester_phone?: string
+          p_requester_name: string
+          p_requester_phone: string
           p_start_date?: string
           p_tenant_slug: string
           p_vehicle_plate?: string
