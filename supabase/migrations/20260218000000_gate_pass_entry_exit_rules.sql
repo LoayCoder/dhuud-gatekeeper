@@ -51,7 +51,28 @@ BEGIN
 END;
 $$;
 
--- 2. UPDATE submit_public_gate_pass TO USE start_date/end_date AND REMOVE TIME PARAMS
+-- 2. DROP ALL OVERLOADS of submit_public_gate_pass to avoid PostgREST ambiguity
+-- Previous migrations created multiple overloads with different param counts/types:
+--   - 19 params (initial, Feb 4), 22 params (multi-item, Feb 6), 24 params (this migration)
+-- PostgreSQL keeps all overloads since CREATE OR REPLACE only replaces same-signature functions
+DO $$
+DECLARE
+  r RECORD;
+BEGIN
+  FOR r IN
+    SELECT p.oid::regprocedure AS func_signature
+    FROM pg_proc p
+    JOIN pg_namespace n ON p.pronamespace = n.oid
+    WHERE p.proname = 'submit_public_gate_pass'
+      AND n.nspname = 'public'
+  LOOP
+    EXECUTE 'DROP FUNCTION IF EXISTS ' || r.func_signature;
+  END LOOP;
+END;
+$$;
+
+-- RECREATE submit_public_gate_pass with correct signature
+-- Removed p_time_window_start and p_time_window_end (time is logged by guards, not requesters)
 CREATE OR REPLACE FUNCTION public.submit_public_gate_pass(
   p_tenant_slug TEXT,
   p_branch_id UUID DEFAULT NULL,
@@ -68,8 +89,6 @@ CREATE OR REPLACE FUNCTION public.submit_public_gate_pass(
   p_driver_name TEXT DEFAULT NULL,
   p_driver_mobile TEXT DEFAULT NULL,
   p_pass_date DATE DEFAULT CURRENT_DATE,
-  p_time_window_start TIME DEFAULT NULL,
-  p_time_window_end TIME DEFAULT NULL,
   p_notify_whatsapp BOOLEAN DEFAULT true,
   p_notify_email BOOLEAN DEFAULT true,
   p_notify_sms BOOLEAN DEFAULT false,
@@ -561,3 +580,10 @@ $$;
 
 -- Grant execute to authenticated users (security guards)
 GRANT EXECUTE ON FUNCTION public.validate_gate_pass_guard_access(UUID, TEXT) TO authenticated;
+
+-- Re-grant execute on submit_public_gate_pass to anon (dropped with old overloads)
+-- Full signature specified to prevent ambiguity if future overloads are added
+GRANT EXECUTE ON FUNCTION public.submit_public_gate_pass(TEXT, UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, DATE, BOOLEAN, BOOLEAN, BOOLEAN, TEXT, JSONB, DATE, DATE) TO anon;
+
+-- Reload PostgREST schema cache so it picks up the new function signature
+NOTIFY pgrst, 'reload schema';
