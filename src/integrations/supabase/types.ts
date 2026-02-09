@@ -14322,6 +14322,7 @@ export type Database = {
           is_internal_request: boolean | null
           is_public_request: boolean | null
           material_description: string
+          notes: string | null
           notify_email: boolean | null
           notify_sms: boolean | null
           notify_whatsapp: boolean | null
@@ -14337,6 +14338,7 @@ export type Database = {
           public_requester_email: string | null
           public_requester_name: string | null
           public_requester_phone: string | null
+          purpose: string | null
           qr_code_token: string | null
           qr_generated_at: string | null
           quantity: string | null
@@ -14399,6 +14401,7 @@ export type Database = {
           is_internal_request?: boolean | null
           is_public_request?: boolean | null
           material_description: string
+          notes?: string | null
           notify_email?: boolean | null
           notify_sms?: boolean | null
           notify_whatsapp?: boolean | null
@@ -14414,6 +14417,7 @@ export type Database = {
           public_requester_email?: string | null
           public_requester_name?: string | null
           public_requester_phone?: string | null
+          purpose?: string | null
           qr_code_token?: string | null
           qr_generated_at?: string | null
           quantity?: string | null
@@ -14476,6 +14480,7 @@ export type Database = {
           is_internal_request?: boolean | null
           is_public_request?: boolean | null
           material_description?: string
+          notes?: string | null
           notify_email?: boolean | null
           notify_sms?: boolean | null
           notify_whatsapp?: boolean | null
@@ -14491,6 +14496,7 @@ export type Database = {
           public_requester_email?: string | null
           public_requester_name?: string | null
           public_requester_phone?: string | null
+          purpose?: string | null
           qr_code_token?: string | null
           qr_generated_at?: string | null
           quantity?: string | null
