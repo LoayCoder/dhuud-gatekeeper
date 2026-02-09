@@ -50,7 +50,7 @@ export function LeadingIndicatorsCard({ data, isLoading }: LeadingIndicatorsCard
 
   const getTarget = (code: string) => targets?.find((t) => t.kpi_code === code);
 
-  const statusColors = {
+  const statusIndicatorColors: Record<string, string> = {
     success: 'bg-success',
     warning: 'bg-warning',
     critical: 'bg-destructive',
@@ -134,21 +134,20 @@ export function LeadingIndicatorsCard({ data, isLoading }: LeadingIndicatorsCard
                 </div>
               </div>
 
-              <div className="relative">
-                <Progress
-                  value={indicator.isPercentage ? indicator.value : Math.min((indicator.value / indicator.maxValue) * 100, 100)}
-                  className="h-2"
-                />
-                <div
-                  className={cn(
-                    'absolute top-0 h-2 rounded-full transition-all',
-                    statusColors[status]
-                  )}
-                  style={{
-                    width: `${indicator.isPercentage ? indicator.value : Math.min((indicator.value / indicator.maxValue) * 100, 100)}%`,
-                  }}
-                />
-              </div>
+              {(() => {
+                const progressValue = indicator.value === 0 
+                  ? 0 
+                  : (indicator.isPercentage 
+                      ? indicator.value 
+                      : Math.min((indicator.value / indicator.maxValue) * 100, 100));
+                return (
+                  <Progress
+                    value={progressValue}
+                    className="h-2"
+                    indicatorClassName={statusIndicatorColors[status]}
+                  />
+                );
+              })()}
 
               <p className="text-xs text-muted-foreground">
                 {indicator.count} {indicator.countLabel}

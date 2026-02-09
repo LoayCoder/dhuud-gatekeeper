@@ -85,10 +85,12 @@ export interface PublicGatePassFormData {
   driver_name?: string;
   driver_mobile?: string;
 
-  // Schedule
-  pass_date: string;            // YYYY-MM-DD
-  time_window_start?: string;   // HH:MM
-  time_window_end?: string;     // HH:MM
+  // Schedule - Date-based only (no time fields for users)
+  // For in_out: start_date + end_date (up to 7 days)
+  // For in/out: single date (start_date only, end_date = start_date)
+  start_date: string;           // YYYY-MM-DD
+  end_date: string;             // YYYY-MM-DD
+  pass_date?: string;           // DEPRECATED: kept for backward compat
 
   // Notification preferences
   notify_whatsapp?: boolean;
@@ -119,6 +121,8 @@ export interface PublicGatePassStatusData {
   status: PublicGatePassStatus;
   pass_type: GatePassType;
   pass_date: string;
+  start_date: string | null;
+  end_date: string | null;
   time_window_start: string | null;
   time_window_end: string | null;
   material_description: string;
