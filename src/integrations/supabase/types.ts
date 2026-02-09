@@ -26006,15 +26006,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string
       }
-      get_public_gate_pass_status:
-        | {
-            Args: { p_access_token: string; p_tenant_slug: string }
-            Returns: Json
-          }
-        | {
-            Args: { p_access_token: string; p_tenant_slug: string }
-            Returns: Json
-          }
+      get_public_gate_pass_status: {
+        Args: { p_access_token: string }
+        Returns: Json
+      }
       get_rate_limit_stats: { Args: never; Returns: Json }
       get_recent_hsse_events: { Args: { p_limit?: number }; Returns: Json }
       get_residual_risk_metrics: {
@@ -26733,26 +26728,26 @@ export type Database = {
         Args: {
           p_branch_id: string
           p_client_ip?: string
-          p_driver_mobile?: string
-          p_driver_name?: string
+          p_driver_mobile: string
+          p_driver_name: string
           p_end_date?: string
           p_items?: Json
-          p_material_description?: string
+          p_material_description: string
           p_notify_email?: boolean
           p_notify_sms?: boolean
           p_notify_whatsapp?: boolean
-          p_pass_date?: string
-          p_pass_type?: string
-          p_quantity?: string
-          p_requester_company?: string
-          p_requester_email?: string
+          p_pass_date: string
+          p_pass_type: string
+          p_quantity: string
+          p_requester_company: string
+          p_requester_email: string
           p_requester_name: string
           p_requester_phone: string
           p_start_date?: string
           p_tenant_slug: string
-          p_vehicle_plate?: string
-          p_vehicle_plate_letters?: string
-          p_vehicle_plate_numbers?: string
+          p_vehicle_plate: string
+          p_vehicle_plate_letters: string
+          p_vehicle_plate_numbers: string
         }
         Returns: Json
       }
@@ -26834,10 +26829,9 @@ export type Database = {
         }
         Returns: Json
       }
-      validate_gate_pass_guard_access: {
-        Args: { p_action: string; p_gate_pass_id: string }
-        Returns: Json
-      }
+      validate_gate_pass_guard_access:
+        | { Args: { p_action: string; p_gate_pass_id: string }; Returns: Json }
+        | { Args: { p_qr_token: string }; Returns: Json }
       validate_invitation_code: {
         Args: { p_code: string }
         Returns: {
