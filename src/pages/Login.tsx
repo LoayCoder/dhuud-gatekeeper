@@ -75,7 +75,7 @@ export default function Login() {
         checkMFAAndNavigate();
       }
     };
-    
+
     checkExistingSession();
 
     // Listen for auth changes - but don't auto-navigate if MFA is pending
@@ -98,23 +98,23 @@ export default function Login() {
     try {
       // CRITICAL: Validate session is still valid before any MFA operations
       const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
+
       if (userError || !user) {
         // Session is invalid - clear and stay on login page
         logger.debug('Invalid session in checkMFAAndNavigate, clearing...');
         await supabase.auth.signOut({ scope: 'local' });
         return;
       }
-      
+
       const { data: aal, error: aalError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-      
+
       if (aalError) {
         // MFA check failed - likely invalid session
         logger.warn('AAL check failed:', aalError.message);
         await supabase.auth.signOut({ scope: 'local' });
         return;
       }
-      
+
       if (aal?.currentLevel === 'aal1' && aal?.nextLevel === 'aal2') {
         // User needs to complete MFA - but check if device is trusted first
         const isTrusted = await checkTrustedDevice(user.id);
@@ -123,18 +123,18 @@ export default function Login() {
           navigate(returnTo);
           return;
         }
-        
+
         // Device not trusted, show MFA dialog
         const { data: factors, error: factorsError } = await supabase.auth.mfa.listFactors();
-        
+
         if (factorsError) {
           logger.warn('Failed to list MFA factors:', factorsError.message);
           await supabase.auth.signOut({ scope: 'local' });
           return;
         }
-        
+
         const totpFactor = factors?.totp?.find(f => f.status === 'verified');
-        
+
         if (totpFactor) {
           setCurrentUserId(user.id);
           setMfaFactorId(totpFactor.id);
@@ -142,7 +142,7 @@ export default function Login() {
           return;
         }
       }
-      
+
       // No MFA required or already at AAL2
       if (aal?.currentLevel === 'aal2' || aal?.nextLevel !== 'aal2') {
         navigate(returnTo);
@@ -171,7 +171,7 @@ export default function Login() {
   const detectSuspiciousLogin = async (userId: string | undefined, success: boolean, failureReason?: string) => {
     try {
       const deviceInfo = getDeviceFingerprint();
-      
+
       const response = await supabase.functions.invoke('detect-suspicious-login', {
         body: {
           user_id: userId,
@@ -200,7 +200,7 @@ export default function Login() {
           description: t('security.newDeviceDescription', 'You\'re logging in from a new device.'),
         });
       }
-      
+
       return response.data;
     } catch (error) {
       logger.error('Failed to detect suspicious login:', error);
@@ -210,7 +210,7 @@ export default function Login() {
 
   const handleMFASuccess = async () => {
     setShowMFADialog(false);
-    
+
     // Fetch tenant branding after successful MFA
     await refreshTenantData();
 
@@ -229,7 +229,7 @@ export default function Login() {
         .eq('is_deleted', false)
         .eq('is_active', true)
         .single();
-      
+
       if (profile?.tenant_id) {
         verifyDevice(user.id, profile.tenant_id);
       }
@@ -257,11 +257,11 @@ export default function Login() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       // Validate input
       loginSchema.parse({ email, password });
-      
+
       setLoading(true);
       passwordRef.current = password;
 
@@ -277,7 +277,7 @@ export default function Login() {
       // This prevents edge function deployment issues from blocking all logins
       let accessValidation: { allowed?: boolean; reason?: string; user_id?: string; tenant_id?: string } | null = null;
       let accessError: Error | null = null;
-      
+
       try {
         const result = await supabase.functions.invoke('validate-user-access');
         accessValidation = result.data;
@@ -287,18 +287,18 @@ export default function Login() {
         logger.warn('validate-user-access edge function network error (allowing login):', networkErr);
         accessValidation = { allowed: true }; // Allow login on network failures
       }
-      
+
       // Only block if we got a definitive "not allowed" response
       if (accessValidation && accessValidation.allowed === false) {
         // User is deleted, inactive, or has no profile - sign out immediately
         console.warn('User access validation failed:', accessValidation.reason || accessError?.message);
         await supabase.auth.signOut();
-        
+
         // Show appropriate error message based on reason
         const reason = accessValidation.reason;
         let errorTitle = t('auth.error');
         let errorDesc = t('auth.accessDenied', 'Access denied');
-        
+
         if (reason === 'user_deleted') {
           errorTitle = t('auth.accountDeleted', 'Account Deactivated');
           errorDesc = t('auth.accountDeletedDesc', 'Your account has been deactivated. Please contact your administrator.');
@@ -309,18 +309,18 @@ export default function Login() {
           errorTitle = t('auth.noProfile', 'No Access');
           errorDesc = t('auth.noProfileDesc', 'You do not have access to this organization.');
         }
-        
+
         toast({
           title: errorTitle,
           description: errorDesc,
           variant: 'destructive',
           duration: 10000,
         });
-        
+
         setLoading(false);
         return;
       }
-      
+
       // Log if edge function had a network error but we're proceeding anyway
       if (accessError) {
         logger.warn('validate-user-access edge function error (proceeding with login):', accessError.message);
@@ -332,7 +332,7 @@ export default function Login() {
         try {
           const resetData = JSON.parse(pendingMfaReset);
           logger.debug('Pending MFA reset detected for reactivated user:', resetData);
-          
+
           // Call the reset-user-mfa edge function to clear any old MFA data
           const { error: resetError } = await supabase.functions.invoke('reset-user-mfa', {
             body: {
@@ -341,13 +341,13 @@ export default function Login() {
               reason: resetData.reason || 'user_reactivation'
             }
           });
-          
+
           if (resetError) {
             logger.warn('MFA reset for reactivated user failed (non-blocking):', resetError);
           } else {
             logger.debug('MFA reset successful for reactivated user');
           }
-          
+
           // Clear the pending reset flag
           sessionStorage.removeItem('pending_mfa_reset');
         } catch (parseError) {
@@ -359,7 +359,7 @@ export default function Login() {
       // Check if MFA is required
       const { data: { user } } = await supabase.auth.getUser();
       const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-      
+
       if (aal?.currentLevel === 'aal1' && aal?.nextLevel === 'aal2') {
         // User has 2FA enabled - check if device is trusted first
         if (user) {
@@ -369,10 +369,10 @@ export default function Login() {
             await refreshTenantData();
             startSessionTracking();
             await logUserActivity({ eventType: 'login' });
-            
+
             // Detect suspicious login (non-blocking)
             detectSuspiciousLogin(user.id, true);
-            
+
             clearInvitationData();
             toast({
               title: t('auth.welcomeBack'),
@@ -387,7 +387,7 @@ export default function Login() {
         // Device not trusted - show verification dialog
         const { data: factors } = await supabase.auth.mfa.listFactors();
         const totpFactor = factors?.totp?.find(f => f.status === 'verified');
-        
+
         if (totpFactor) {
           setCurrentUserId(user?.id || null);
           setMfaFactorId(totpFactor.id);
@@ -401,11 +401,11 @@ export default function Login() {
       await refreshTenantData();
       startSessionTracking();
       await logUserActivity({ eventType: 'login' });
-      
+
       // Detect suspicious login (non-blocking)
       const { data: { user: loggedInUser } } = await supabase.auth.getUser();
       detectSuspiciousLogin(loggedInUser?.id, true);
-      
+
       // Verify device for invitation bypass on future logins
       if (loggedInUser) {
         // MULTI-TENANT: Use user_id to fetch profile
@@ -416,12 +416,12 @@ export default function Login() {
           .eq('is_deleted', false)
           .eq('is_active', true)
           .single();
-        
+
         if (profile?.tenant_id) {
           verifyDevice(loggedInUser.id, profile.tenant_id);
         }
       }
-      
+
       clearInvitationData();
 
       toast({
@@ -433,12 +433,12 @@ export default function Login() {
       checkPasswordBreach(password);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : t('auth.failedToLogin');
-      
+
       // Log failed login attempt (non-blocking)
       if (!(err instanceof z.ZodError)) {
         detectSuspiciousLogin(undefined, false, errorMessage);
       }
-      
+
       if (err instanceof z.ZodError) {
         toast({
           title: t('auth.validationError'),
@@ -480,14 +480,17 @@ export default function Login() {
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-gradient-to-br from-background via-background to-muted/30">
+    <div className="relative flex h-screen flex-col overflow-hidden bg-background">
+      {/* Premium Background */}
+      <div className="mesh-gradient" />
+
       {/* Header - compact and shrink-0 */}
-      <header className="flex shrink-0 items-center justify-between px-4 py-2 sm:px-6 sm:py-3">
-        <div className="flex items-center gap-3">
-          <img 
-            src={displayLogo} 
-            alt={displayName} 
-            className="h-7 object-contain sm:h-8"
+      <header className="animate-in fade-in z-10 flex shrink-0 items-center justify-between px-4 py-4 sm:px-8 sm:py-6">
+        <div className="flex items-center gap-3 transition-transform duration-300 hover:scale-105">
+          <img
+            src={displayLogo}
+            alt={displayName}
+            className="h-8 object-contain sm:h-10"
             onError={(e) => {
               e.currentTarget.src = fallbackLogo;
             }}
@@ -497,24 +500,29 @@ export default function Login() {
       </header>
 
       {/* Main Content - flex-1 with overflow handling */}
-      <main className="flex min-h-0 flex-1 items-center justify-center overflow-auto px-4 py-2">
-        <Card className="w-full max-w-sm border-border/50 bg-card/80 shadow-lg backdrop-blur-sm sm:max-w-md">
-          <CardHeader className="space-y-2 pb-4 text-center">
-            <h1 className="text-lg font-semibold tracking-tight sm:text-xl">{displayName}</h1>
+      <main className="z-10 flex min-h-0 flex-1 items-center justify-center overflow-auto px-4 py-6">
+        <Card className="glass-card animate-in slide-up w-full max-w-[420px] overflow-hidden border-white/20 shadow-2xl">
+          <CardHeader className="space-y-3 pb-6 pt-8 text-center">
+            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Shield className="h-6 w-6" />
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              {displayName}
+            </h1>
             {isRememberedTenant ? (
-              <p className="text-xs text-muted-foreground sm:text-sm">
+              <p className="text-sm text-muted-foreground">
                 {t('auth.welcomeBackTo', { org: displayName })}
               </p>
             ) : (
-              <p className="text-xs text-muted-foreground sm:text-sm">{t('auth.signInToAccount')}</p>
+              <p className="text-sm text-muted-foreground">{t('auth.signInToAccount')}</p>
             )}
           </CardHeader>
 
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6 pb-8">
             {/* Login Form */}
-            <form onSubmit={handleLogin} className="space-y-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-sm font-medium">
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-semibold tracking-wide">
                   {t('auth.email')}
                 </Label>
                 <Input
@@ -525,18 +533,18 @@ export default function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={loading}
-                  className="h-10"
+                  className="premium-input bg-background/50 backdrop-blur-sm"
                 />
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-sm font-medium">
+                  <Label htmlFor="password" className="text-sm font-semibold tracking-wide">
                     {t('auth.password')}
                   </Label>
-                  <Link 
-                    to="/forgot-password" 
-                    className="text-xs text-primary hover:text-primary/80 hover:underline"
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs font-medium text-primary transition-colors hover:text-primary/70 hover:underline"
                   >
                     {t('auth.forgotPassword')}
                   </Link>
@@ -549,13 +557,13 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={loading}
-                  className="h-10"
+                  className="premium-input bg-background/50 backdrop-blur-sm"
                 />
               </div>
 
-              <Button 
-                type="submit" 
-                className="h-10 w-full font-medium" 
+              <Button
+                type="submit"
+                className="premium-button hover-scale w-full rounded-xl bg-primary text-primary-foreground"
                 disabled={loading || biometricLoading}
               >
                 {loading ? (
@@ -571,13 +579,13 @@ export default function Login() {
 
             {/* Biometric Login */}
             {isBiometricSupported && (
-              <>
+              <div className="space-y-4">
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t border-border/50" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">
+                    <span className="bg-card/0 px-2 text-muted-foreground backdrop-blur-none">
                       {t('auth.or')}
                     </span>
                   </div>
@@ -585,27 +593,27 @@ export default function Login() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-10 w-full"
+                  className="hover-scale h-11 w-full rounded-xl border-border/50 bg-background/30 font-medium backdrop-blur-sm transition-all hover:bg-background/50"
                   disabled={loading || biometricLoading}
                   onClick={handleBiometricLogin}
                 >
                   {biometricLoading ? (
                     <Loader2 className="me-2 h-4 w-4 animate-spin" />
                   ) : (
-                    <Fingerprint className="me-2 h-4 w-4" />
+                    <Fingerprint className="me-2 h-5 w-5 text-primary" />
                   )}
                   {t('auth.signInWithBiometric')}
                 </Button>
-              </>
+              </div>
             )}
 
             {/* Not your organization link - only shown when remembering a tenant */}
             {isRememberedTenant && (
-              <div className="text-center">
+              <div className="text-center pt-2">
                 <button
                   type="button"
                   onClick={clearRememberedTenant}
-                  className="text-xs text-muted-foreground hover:text-foreground hover:underline"
+                  className="text-xs font-medium text-muted-foreground transition-colors hover:text-primary hover:underline"
                 >
                   {t('auth.notYourOrganization')}
                 </button>
@@ -613,15 +621,15 @@ export default function Login() {
             )}
 
             {/* Invite Code Link */}
-            <div className="rounded-lg border border-dashed border-border/50 bg-muted/30 p-3 text-center">
-              <p className="text-xs text-muted-foreground sm:text-sm">
+            <div className="mt-4 rounded-xl border border-dashed border-primary/20 bg-primary/5 p-4 text-center transition-colors hover:bg-primary/10">
+              <p className="mb-1 text-xs text-muted-foreground">
                 {t('invite.haveInviteCode', 'Have an invitation code?')}
               </p>
               <Button
                 type="button"
                 variant="link"
                 onClick={() => navigate('/invite?newCode=true')}
-                className="h-auto p-0 text-xs font-medium text-primary sm:text-sm"
+                className="h-auto p-0 text-sm font-bold text-primary"
               >
                 {t('invite.enterCodeHere', 'Enter your code here')}
               </Button>
@@ -631,21 +639,21 @@ export default function Login() {
       </main>
 
       {/* Footer - compact and shrink-0 */}
-      <footer className="flex shrink-0 flex-col items-center gap-2 px-4 py-3 text-center sm:gap-3 sm:py-4">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground sm:text-sm">
+      <footer className="animate-in fade-in z-10 flex shrink-0 flex-col items-center gap-3 px-4 py-6 text-center sm:py-8">
+        <div className="flex items-center gap-2 rounded-full bg-primary/5 px-4 py-1.5 text-xs font-medium text-primary sm:text-sm">
           <Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           <span>{t('security.protectedByZeroTrust')}</span>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground sm:gap-4">
-          <Link to="/terms" className="hover:text-foreground hover:underline">
+        <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground sm:gap-6">
+          <Link to="/terms" className="transition-colors hover:text-primary hover:underline">
             {t('legal.termsOfService')}
           </Link>
-          <span>•</span>
-          <Link to="/privacy" className="hover:text-foreground hover:underline">
+          <span className="opacity-20">•</span>
+          <Link to="/privacy" className="transition-colors hover:text-primary hover:underline">
             {t('legal.privacyPolicy')}
           </Link>
-          <span>•</span>
-          <Link to="/cookies" className="hover:text-foreground hover:underline">
+          <span className="opacity-20">•</span>
+          <Link to="/cookies" className="transition-colors hover:text-primary hover:underline">
             {t('legal.cookiePolicy')}
           </Link>
         </div>

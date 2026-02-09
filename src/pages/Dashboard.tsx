@@ -43,7 +43,7 @@ export default function Dashboard() {
     <EnterprisePage
       title=""
       description=""
-      className="space-y-6"
+      className="space-y-6 animate-in fade-in"
     >
       {/* Header with greeting */}
       <DashboardHeader />
@@ -52,19 +52,19 @@ export default function Dashboard() {
       <HSEMessageCarousel />
 
       {/* My Stats Section */}
-      <section className="space-y-3">
+      <section className="space-y-3 animate-in slide-up" style={{ animationDelay: '100ms' }}>
         <SectionHeader title={t('dashboard.stats.sectionTitle', 'My Statistics')} />
         <MyReportingStatsCard />
       </section>
 
       {/* Quick Actions */}
-      <section className="space-y-3">
+      <section className="space-y-3 animate-in slide-up" style={{ animationDelay: '200ms' }}>
         <SectionHeader title={t('dashboard.quickActions.sectionTitle', 'Quick Actions')} />
         <QuickReportButtons />
       </section>
 
       {/* Recognition & Achievements - Side by Side */}
-      <section className="space-y-3">
+      <section className="space-y-3 animate-in slide-up" style={{ animationDelay: '300ms' }}>
         <SectionHeader title={t('dashboard.recognition.sectionTitle', 'Recognition & Achievements')} />
         <div className="grid gap-4 md:grid-cols-2">
           <MyRankCard />
@@ -73,17 +73,19 @@ export default function Dashboard() {
       </section>
 
       {/* Active Challenge */}
-      <ActiveChallengeCard />
+      <div className="animate-in slide-up" style={{ animationDelay: '400ms' }}>
+        <ActiveChallengeCard />
+      </div>
 
       {/* AI Insights */}
-      <section className="space-y-3">
+      <section className="space-y-3 animate-in slide-up" style={{ animationDelay: '500ms' }}>
         <SectionHeader title={t('dashboard.insights.sectionTitle', 'AI Insights')} />
         <AIInsightsCard />
       </section>
 
       {/* Actions & Tasks (if user has access) */}
       {canSeeActions && (
-        <section className="space-y-3">
+        <section className="space-y-3 animate-in slide-up" style={{ animationDelay: '600ms' }}>
           <SectionHeader title={t('dashboard.personal.actionsTitle', 'My Tasks')} />
           <div className="grid gap-4 md:grid-cols-2">
             <MyActionsWidget />

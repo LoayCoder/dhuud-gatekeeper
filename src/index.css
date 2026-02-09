@@ -636,4 +636,63 @@ All colors MUST be HSL.
     @apply bg-muted border-muted text-muted-foreground;
   }
 
+  /* ========================================
+     PREMIUM UI UTILITIES
+     ======================================== */
+  
+  .glass-card {
+    @apply bg-card/60 backdrop-blur-xl border-white/20 dark:border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)];
+  }
+
+  .mesh-gradient {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-color: hsl(var(--background));
+    background-image: 
+      radial-gradient(at 0% 0%, hsla(var(--primary), 0.15) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(var(--accent), 0.1) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, hsla(var(--primary), 0.1) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, hsla(var(--accent), 0.05) 0px, transparent 50%);
+    filter: blur(100px);
+    opacity: 0.8;
+  }
+
+  .animate-in {
+    animation-duration: 0.5s;
+    animation-fill-mode: both;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .fade-in {
+    @keyframes fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    animation-name: fade-in;
+  }
+
+  .slide-up {
+    @keyframes slide-up {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    animation-name: slide-up;
+  }
+
+  .hover-scale {
+    @apply transition-transform duration-300 hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .premium-input {
+    @apply h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary/50;
+  }
+
+  .premium-button {
+    @apply h-11 font-semibold shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 active:shadow-sm transition-all duration-300;
+  }
+
 }
