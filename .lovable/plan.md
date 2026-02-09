@@ -1,109 +1,83 @@
 
 
-# Complete Fix: All Column Mismatches in Gate Pass Functions
+# Unified Fix: Frontend-to-Database Parameter Alignment
 
-## Problem
+## Root Cause
 
-A full audit reveals **14+ column mismatches** between the database functions and actual table schemas. The functions reference columns that either don't exist or have different names.
+The database functions have been fixed multiple times, but the **frontend hook** (`use-public-gate-pass.ts`) sends parameters that don't match the function signatures. PostgREST rejects unknown parameters, which causes confusing errors.
 
-## Audit Results
+## Mismatches Found
 
-### `material_gate_passes` table -- Missing columns the functions expect:
+### `submit_public_gate_pass` -- Frontend vs Database
 
-| Missing Column | Type | Purpose |
+| Frontend sends | Database expects | Status |
 |---|---|---|
-| `vehicle_plate_letters` | TEXT | Separated plate letters (Arabic) |
-| `vehicle_plate_numbers` | TEXT | Separated plate numbers |
-| `token_expires_at` | TIMESTAMPTZ | Token expiration for public access |
-| `submission_ip` | TEXT | Client IP for rate limiting audit |
+| `p_pass_date` | (not a parameter) | EXTRA -- must remove |
+| `p_notify_whatsapp` | (not a parameter) | EXTRA -- must remove |
+| `p_notify_email` | (not a parameter) | EXTRA -- must remove |
+| `p_notify_sms` | (not a parameter) | EXTRA -- must remove |
+| `p_client_ip` | `p_submission_ip` | WRONG NAME |
+| (not sent) | `p_project_id` | MISSING -- send null |
+| (not sent) | `p_purpose` | MISSING -- send null |
+| (not sent) | `p_notes` | MISSING -- send null |
+| (not sent) | `p_captcha_token` | MISSING -- send null |
+| (not sent) | `p_material_description` | MISSING -- send null |
+| (not sent) | `p_quantity` | MISSING -- send null |
+| (not sent) | `p_vehicle_plate` | MISSING -- send null |
+| (not sent) | `p_pass_type` | MISSING -- derive from form |
 
-### `material_gate_passes` table -- Wrong column names in functions:
+### `get_public_gate_pass_status` -- Frontend vs Database
 
-| Function uses | Should be |
-|---|---|
-| `requester_name` | `public_requester_name` |
-| `requester_phone` | `public_requester_phone` |
-| `requester_email` | `public_requester_email` |
-| `requester_company` | `public_requester_company` |
-| `reference_id` | `reference_number` |
-| `qr_token` | `qr_code_token` |
-
-### `public_gate_pass_items` table -- Missing columns:
-
-| Missing Column | Type | Purpose |
+| Frontend sends | Database expects | Status |
 |---|---|---|
-| `branch_id` | UUID | Tenant isolation on items |
-| `sort_order` | INTEGER | Item ordering |
+| `p_tenant_slug` + `p_access_token` | `p_access_token` only | EXTRA param `p_tenant_slug` |
 
-### `public_gate_pass_items` table -- Wrong column names:
+## Fix Plan
 
-| Function uses | Should be |
-|---|---|
-| `item_description` | `description` |
+### 1. Fix `use-public-gate-pass.ts` hook
 
-### `public_gate_pass_items` -- Type mismatch:
+Update the `mutationFn` in `useSubmitPublicGatePass` to send **exactly** the 22 parameters the database function expects:
 
-| Column | Function casts to | Actual type |
-|---|---|---|
-| `quantity` | INTEGER | TEXT |
-
-## Fix Strategy
-
-**Single atomic migration** with two parts:
-
-### Part 1: Add missing columns (additive, non-destructive)
-
-Add to `material_gate_passes`:
-- `vehicle_plate_letters TEXT`
-- `vehicle_plate_numbers TEXT`
-- `token_expires_at TIMESTAMPTZ`
-- `submission_ip TEXT`
-
-Add to `public_gate_pass_items`:
-- `branch_id UUID REFERENCES branches(id)`
-- `sort_order INTEGER DEFAULT 0`
-
-### Part 2: Recreate all functions with correct column names
-
-**`submit_public_gate_pass`** -- Fix all column references:
-- `public_requester_name` instead of `requester_name`
-- `public_requester_phone` instead of `requester_phone`
-- `public_requester_email` instead of `requester_email`
-- `public_requester_company` instead of `requester_company`
-- `reference_number` instead of `reference_id`
-- Use newly added columns for `vehicle_plate_letters`, `vehicle_plate_numbers`, `token_expires_at`, `submission_ip`
-
-**`get_public_gate_pass_status`** -- Fix all column references:
-- `reference_number` instead of `reference_id`
-- `public_requester_name` instead of `requester_name`
-- `public_requester_company` instead of `requester_company`
-- `qr_code_token` instead of `qr_token`
-- `description` instead of `item_description` for items
-- Keep `quantity` as TEXT (no INT cast)
-
-**`validate_gate_pass_dates`** and **`validate_gate_pass_guard_access`** -- Verify and recreate for completeness.
-
-### Part 3: Permissions and cache reload
 ```
-GRANT EXECUTE to anon/authenticated
-NOTIFY pgrst, 'reload schema'
+p_tenant_slug, p_branch_id, p_pass_type,
+p_requester_name, p_requester_phone, p_requester_email, p_requester_company,
+p_material_description, p_quantity, p_vehicle_plate,
+p_vehicle_plate_letters, p_vehicle_plate_numbers,
+p_driver_name, p_driver_mobile,
+p_project_id, p_purpose, p_notes, p_submission_ip,
+p_captcha_token, p_start_date, p_end_date, p_items
 ```
 
-## No Frontend Changes Needed
+Remove: `p_pass_date`, `p_notify_whatsapp`, `p_notify_email`, `p_notify_sms`
+Rename: `p_client_ip` to `p_submission_ip`
+Add missing: `p_pass_type`, `p_material_description`, `p_quantity`, `p_vehicle_plate`, `p_project_id`, `p_purpose`, `p_notes`, `p_captcha_token` (as null where not provided)
 
-The frontend hook already sends the correct parameter names (`p_requester_name`, `p_requester_phone`, etc.) -- these are RPC parameters, not column names. The column mapping happens inside the SQL function.
+### 2. Fix `get_public_gate_pass_status` call
+
+Remove `p_tenant_slug` from the RPC call -- the function only accepts `p_access_token`.
+
+### 3. Fix `PublicGatePassSubmission` type
+
+Add the missing fields (`pass_type`, `vehicle_plate`, etc.) to the submission interface so the form data flows correctly into the hook.
+
+### 4. Verify `PublicRequestPage.tsx` form submission
+
+The form already provides `pass_type`, `vehicle_plate_letters/numbers`, `driver_name/mobile`, `start_date`, `end_date`, and `items`. Need to ensure these all flow through to the RPC call correctly.
 
 ## Files to Modify
 
 | File | Change |
 |------|--------|
-| New migration SQL | Add missing columns, drop and recreate all 4 functions with correct column references, grant permissions, reload schema |
+| `src/hooks/public-gate-pass/use-public-gate-pass.ts` | Fix RPC parameter names to match the 22-param function signature exactly; fix `get_public_gate_pass_status` call to only send `p_access_token` |
+| `src/types/public-gate-pass.types.ts` | Ensure `PublicGatePassSubmission` type includes all needed fields |
+
+## No Database Changes Needed
+
+The database functions are correct. This is purely a frontend parameter mismatch fix.
 
 ## Expected Result
 
-- All column references match the actual database schema
-- Public gate pass submission works without any column errors
-- Status tracking works correctly
-- Full tenant isolation maintained
-- No data loss (additive columns only)
-
+- Public gate pass submission sends exactly the right parameters
+- No more "column does not exist" errors (these are actually parameter mismatch errors surfaced as column errors)
+- Status tracking works with the single-parameter function
+- All data flows correctly from form to database
