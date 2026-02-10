@@ -8937,13 +8937,13 @@ export type Database = {
           category_id: string
           commissioning_date: string | null
           condition_rating:
-          | Database["public"]["Enums"]["asset_condition"]
-          | null
+            | Database["public"]["Enums"]["asset_condition"]
+            | null
           created_at: string | null
           created_by: string | null
           criticality_level:
-          | Database["public"]["Enums"]["asset_criticality"]
-          | null
+            | Database["public"]["Enums"]["asset_criticality"]
+            | null
           currency: string | null
           current_book_value: number | null
           custom_fields: Json | null
@@ -9003,13 +9003,13 @@ export type Database = {
           category_id: string
           commissioning_date?: string | null
           condition_rating?:
-          | Database["public"]["Enums"]["asset_condition"]
-          | null
+            | Database["public"]["Enums"]["asset_condition"]
+            | null
           created_at?: string | null
           created_by?: string | null
           criticality_level?:
-          | Database["public"]["Enums"]["asset_criticality"]
-          | null
+            | Database["public"]["Enums"]["asset_criticality"]
+            | null
           currency?: string | null
           current_book_value?: number | null
           custom_fields?: Json | null
@@ -9069,13 +9069,13 @@ export type Database = {
           category_id?: string
           commissioning_date?: string | null
           condition_rating?:
-          | Database["public"]["Enums"]["asset_condition"]
-          | null
+            | Database["public"]["Enums"]["asset_condition"]
+            | null
           created_at?: string | null
           created_by?: string | null
           criticality_level?:
-          | Database["public"]["Enums"]["asset_criticality"]
-          | null
+            | Database["public"]["Enums"]["asset_criticality"]
+            | null
           currency?: string | null
           current_book_value?: number | null
           custom_fields?: Json | null
@@ -11018,14 +11018,14 @@ export type Database = {
           no_investigation_justification: string | null
           occurred_at: string | null
           original_potential_severity_v2:
-          | Database["public"]["Enums"]["severity_level_v2"]
-          | null
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
           original_severity:
-          | Database["public"]["Enums"]["severity_level"]
-          | null
+            | Database["public"]["Enums"]["severity_level"]
+            | null
           original_severity_v2:
-          | Database["public"]["Enums"]["severity_level_v2"]
-          | null
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
           patrol_checkpoint_id: string | null
           patrol_id: string | null
           potential_severity_approved_at: string | null
@@ -11033,8 +11033,8 @@ export type Database = {
           potential_severity_justification: string | null
           potential_severity_pending_approval: boolean | null
           potential_severity_v2:
-          | Database["public"]["Enums"]["severity_level_v2"]
-          | null
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
           ready_for_closure: boolean | null
           recognition_type: string | null
           recognized_contractor_worker_id: string | null
@@ -11065,8 +11065,8 @@ export type Database = {
           severity_approved_at: string | null
           severity_approved_by: string | null
           severity_auto_calculated:
-          | Database["public"]["Enums"]["severity_level_v2"]
-          | null
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
           severity_change_justification: string | null
           severity_override_reason: string | null
           severity_pending_approval: boolean | null
@@ -11249,14 +11249,14 @@ export type Database = {
           no_investigation_justification?: string | null
           occurred_at?: string | null
           original_potential_severity_v2?:
-          | Database["public"]["Enums"]["severity_level_v2"]
-          | null
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
           original_severity?:
-          | Database["public"]["Enums"]["severity_level"]
-          | null
+            | Database["public"]["Enums"]["severity_level"]
+            | null
           original_severity_v2?:
-          | Database["public"]["Enums"]["severity_level_v2"]
-          | null
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
           patrol_checkpoint_id?: string | null
           patrol_id?: string | null
           potential_severity_approved_at?: string | null
@@ -11264,8 +11264,8 @@ export type Database = {
           potential_severity_justification?: string | null
           potential_severity_pending_approval?: boolean | null
           potential_severity_v2?:
-          | Database["public"]["Enums"]["severity_level_v2"]
-          | null
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
           ready_for_closure?: boolean | null
           recognition_type?: string | null
           recognized_contractor_worker_id?: string | null
@@ -11296,8 +11296,8 @@ export type Database = {
           severity_approved_at?: string | null
           severity_approved_by?: string | null
           severity_auto_calculated?:
-          | Database["public"]["Enums"]["severity_level_v2"]
-          | null
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
           severity_change_justification?: string | null
           severity_override_reason?: string | null
           severity_pending_approval?: boolean | null
@@ -11480,14 +11480,14 @@ export type Database = {
           no_investigation_justification?: string | null
           occurred_at?: string | null
           original_potential_severity_v2?:
-          | Database["public"]["Enums"]["severity_level_v2"]
-          | null
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
           original_severity?:
-          | Database["public"]["Enums"]["severity_level"]
-          | null
+            | Database["public"]["Enums"]["severity_level"]
+            | null
           original_severity_v2?:
-          | Database["public"]["Enums"]["severity_level_v2"]
-          | null
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
           patrol_checkpoint_id?: string | null
           patrol_id?: string | null
           potential_severity_approved_at?: string | null
@@ -11495,8 +11495,8 @@ export type Database = {
           potential_severity_justification?: string | null
           potential_severity_pending_approval?: boolean | null
           potential_severity_v2?:
-          | Database["public"]["Enums"]["severity_level_v2"]
-          | null
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
           ready_for_closure?: boolean | null
           recognition_type?: string | null
           recognized_contractor_worker_id?: string | null
@@ -11527,8 +11527,8 @@ export type Database = {
           severity_approved_at?: string | null
           severity_approved_by?: string | null
           severity_auto_calculated?:
-          | Database["public"]["Enums"]["severity_level_v2"]
-          | null
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
           severity_change_justification?: string | null
           severity_override_reason?: string | null
           severity_pending_approval?: boolean | null
@@ -14322,6 +14322,7 @@ export type Database = {
           is_internal_request: boolean | null
           is_public_request: boolean | null
           material_description: string
+          notes: string | null
           notify_email: boolean | null
           notify_sms: boolean | null
           notify_whatsapp: boolean | null
@@ -14337,6 +14338,7 @@ export type Database = {
           public_requester_email: string | null
           public_requester_name: string | null
           public_requester_phone: string | null
+          purpose: string | null
           qr_code_token: string | null
           qr_generated_at: string | null
           quantity: string | null
@@ -14399,6 +14401,7 @@ export type Database = {
           is_internal_request?: boolean | null
           is_public_request?: boolean | null
           material_description: string
+          notes?: string | null
           notify_email?: boolean | null
           notify_sms?: boolean | null
           notify_whatsapp?: boolean | null
@@ -14414,6 +14417,7 @@ export type Database = {
           public_requester_email?: string | null
           public_requester_name?: string | null
           public_requester_phone?: string | null
+          purpose?: string | null
           qr_code_token?: string | null
           qr_generated_at?: string | null
           quantity?: string | null
@@ -14476,6 +14480,7 @@ export type Database = {
           is_internal_request?: boolean | null
           is_public_request?: boolean | null
           material_description?: string
+          notes?: string | null
           notify_email?: boolean | null
           notify_sms?: boolean | null
           notify_whatsapp?: boolean | null
@@ -14491,6 +14496,7 @@ export type Database = {
           public_requester_email?: string | null
           public_requester_name?: string | null
           public_requester_phone?: string | null
+          purpose?: string | null
           qr_code_token?: string | null
           qr_generated_at?: string | null
           quantity?: string | null
@@ -16258,8 +16264,8 @@ export type Database = {
           contract_start?: string | null
           contractor_company_name?: string | null
           contractor_type?:
-          | Database["public"]["Enums"]["contractor_type"]
-          | null
+            | Database["public"]["Enums"]["contractor_type"]
+            | null
           created_at?: string | null
           deleted_at?: string | null
           deletion_password_hash?: string | null
@@ -16302,8 +16308,8 @@ export type Database = {
           contract_start?: string | null
           contractor_company_name?: string | null
           contractor_type?:
-          | Database["public"]["Enums"]["contractor_type"]
-          | null
+            | Database["public"]["Enums"]["contractor_type"]
+            | null
           created_at?: string | null
           deleted_at?: string | null
           deletion_password_hash?: string | null
@@ -20881,8 +20887,8 @@ export type Database = {
           reviewed_at: string | null
           reviewed_by: string | null
           status:
-          | Database["public"]["Enums"]["subscription_request_status"]
-          | null
+            | Database["public"]["Enums"]["subscription_request_status"]
+            | null
           tenant_id: string
           tenant_notes: string | null
           updated_at: string | null
@@ -20907,8 +20913,8 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?:
-          | Database["public"]["Enums"]["subscription_request_status"]
-          | null
+            | Database["public"]["Enums"]["subscription_request_status"]
+            | null
           tenant_id: string
           tenant_notes?: string | null
           updated_at?: string | null
@@ -20933,8 +20939,8 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?:
-          | Database["public"]["Enums"]["subscription_request_status"]
-          | null
+            | Database["public"]["Enums"]["subscription_request_status"]
+            | null
           tenant_id?: string
           tenant_notes?: string | null
           updated_at?: string | null
@@ -21749,8 +21755,8 @@ export type Database = {
           contract_end?: string | null
           contract_start?: string | null
           contractor_type?:
-          | Database["public"]["Enums"]["contractor_type"]
-          | null
+            | Database["public"]["Enums"]["contractor_type"]
+            | null
           created_at?: string | null
           created_by?: string | null
           deleted_at?: string | null
@@ -21778,8 +21784,8 @@ export type Database = {
           contract_end?: string | null
           contract_start?: string | null
           contractor_type?:
-          | Database["public"]["Enums"]["contractor_type"]
-          | null
+            | Database["public"]["Enums"]["contractor_type"]
+            | null
           created_at?: string | null
           created_by?: string | null
           deleted_at?: string | null
@@ -22744,8 +22750,8 @@ export type Database = {
           building_id: string | null
           created_at: string | null
           current_approval_stage:
-          | Database["public"]["Enums"]["visitor_approval_stage"]
-          | null
+            | Database["public"]["Enums"]["visitor_approval_stage"]
+            | null
           deleted_at: string | null
           department_id: string | null
           entry_logged_at: string | null
@@ -22786,8 +22792,8 @@ export type Database = {
           building_id?: string | null
           created_at?: string | null
           current_approval_stage?:
-          | Database["public"]["Enums"]["visitor_approval_stage"]
-          | null
+            | Database["public"]["Enums"]["visitor_approval_stage"]
+            | null
           deleted_at?: string | null
           department_id?: string | null
           entry_logged_at?: string | null
@@ -22828,8 +22834,8 @@ export type Database = {
           building_id?: string | null
           created_at?: string | null
           current_approval_stage?:
-          | Database["public"]["Enums"]["visitor_approval_stage"]
-          | null
+            | Database["public"]["Enums"]["visitor_approval_stage"]
+            | null
           deleted_at?: string | null
           department_id?: string | null
           entry_logged_at?: string | null
@@ -23115,8 +23121,8 @@ export type Database = {
           branch_id: string | null
           created_at: string | null
           decision:
-          | Database["public"]["Enums"]["visitor_approval_decision"]
-          | null
+            | Database["public"]["Enums"]["visitor_approval_decision"]
+            | null
           decision_at: string | null
           delegate_of: string | null
           deleted_at: string | null
@@ -23142,8 +23148,8 @@ export type Database = {
           branch_id?: string | null
           created_at?: string | null
           decision?:
-          | Database["public"]["Enums"]["visitor_approval_decision"]
-          | null
+            | Database["public"]["Enums"]["visitor_approval_decision"]
+            | null
           decision_at?: string | null
           delegate_of?: string | null
           deleted_at?: string | null
@@ -23169,8 +23175,8 @@ export type Database = {
           branch_id?: string | null
           created_at?: string | null
           decision?:
-          | Database["public"]["Enums"]["visitor_approval_decision"]
-          | null
+            | Database["public"]["Enums"]["visitor_approval_decision"]
+            | null
           decision_at?: string | null
           delegate_of?: string | null
           deleted_at?: string | null
@@ -23380,8 +23386,8 @@ export type Database = {
           sent_at?: string | null
           sent_via?: string | null
           status?:
-          | Database["public"]["Enums"]["visitor_induction_status"]
-          | null
+            | Database["public"]["Enums"]["visitor_induction_status"]
+            | null
           tenant_id: string
           updated_at?: string | null
           video_id?: string | null
@@ -23407,8 +23413,8 @@ export type Database = {
           sent_at?: string | null
           sent_via?: string | null
           status?:
-          | Database["public"]["Enums"]["visitor_induction_status"]
-          | null
+            | Database["public"]["Enums"]["visitor_induction_status"]
+            | null
           tenant_id?: string
           updated_at?: string | null
           video_id?: string | null
@@ -23490,8 +23496,8 @@ export type Database = {
           rejection_reason: string | null
           site_id: string | null
           status:
-          | Database["public"]["Enums"]["visitor_self_registration_status"]
-          | null
+            | Database["public"]["Enums"]["visitor_self_registration_status"]
+            | null
           tenant_id: string
         }
         Insert: {
@@ -23521,8 +23527,8 @@ export type Database = {
           rejection_reason?: string | null
           site_id?: string | null
           status?:
-          | Database["public"]["Enums"]["visitor_self_registration_status"]
-          | null
+            | Database["public"]["Enums"]["visitor_self_registration_status"]
+            | null
           tenant_id: string
         }
         Update: {
@@ -23552,8 +23558,8 @@ export type Database = {
           rejection_reason?: string | null
           site_id?: string | null
           status?:
-          | Database["public"]["Enums"]["visitor_self_registration_status"]
-          | null
+            | Database["public"]["Enums"]["visitor_self_registration_status"]
+            | null
           tenant_id?: string
         }
         Relationships: [
@@ -23690,8 +23696,8 @@ export type Database = {
           company_name: string | null
           created_at: string | null
           default_access_level:
-          | Database["public"]["Enums"]["visitor_access_level"]
-          | null
+            | Database["public"]["Enums"]["visitor_access_level"]
+            | null
           deleted_at: string | null
           department_id: string | null
           destination_id: string | null
@@ -23740,8 +23746,8 @@ export type Database = {
           company_name?: string | null
           created_at?: string | null
           default_access_level?:
-          | Database["public"]["Enums"]["visitor_access_level"]
-          | null
+            | Database["public"]["Enums"]["visitor_access_level"]
+            | null
           deleted_at?: string | null
           department_id?: string | null
           destination_id?: string | null
@@ -23790,8 +23796,8 @@ export type Database = {
           company_name?: string | null
           created_at?: string | null
           default_access_level?:
-          | Database["public"]["Enums"]["visitor_access_level"]
-          | null
+            | Database["public"]["Enums"]["visitor_access_level"]
+            | null
           deleted_at?: string | null
           department_id?: string | null
           destination_id?: string | null
@@ -24989,56 +24995,56 @@ export type Database = {
         Returns: string
       }
       assign_investigation_team:
-      | {
-        Args: {
-          _assignment_notes?: string
-          _incident_id: string
-          _investigation_type: string
-          _investigator_id?: string
-          _team_leader_id?: string
-          _team_member_ids?: string[]
-          _user_id: string
-        }
-        Returns: Json
-      }
-      | {
-        Args: {
-          p_incident_id: string
-          p_investigator_id: string
-          p_team_members?: string[]
-        }
-        Returns: Json
-      }
-      | {
-        Args: {
-          p_assigned_by: string
-          p_assignment_notes?: string
-          p_incident_id: string
-          p_investigation_type?: string
-          p_lead_investigator_id: string
-          p_target_completion_date?: string
-          p_team_member_ids?: string[]
-        }
-        Returns: Json
-      }
+        | {
+            Args: {
+              _assignment_notes?: string
+              _incident_id: string
+              _investigation_type: string
+              _investigator_id?: string
+              _team_leader_id?: string
+              _team_member_ids?: string[]
+              _user_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_incident_id: string
+              p_investigator_id: string
+              p_team_members?: string[]
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_assigned_by: string
+              p_assignment_notes?: string
+              p_incident_id: string
+              p_investigation_type?: string
+              p_lead_investigator_id: string
+              p_target_completion_date?: string
+              p_team_member_ids?: string[]
+            }
+            Returns: Json
+          }
       assign_team_task:
-      | {
-        Args: { p_assignee_id: string; p_task_id: string }
-        Returns: boolean
-      }
-      | {
-        Args: {
-          p_assigned_by: string
-          p_assignee_id: string
-          p_description: string
-          p_due_date: string
-          p_notes?: string
-          p_priority: string
-          p_task_id: string
-          p_task_type: string
-        }
-        Returns: Json
-      }
+        | {
+            Args: { p_assignee_id: string; p_task_id: string }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p_assigned_by: string
+              p_assignee_id: string
+              p_description: string
+              p_due_date: string
+              p_notes?: string
+              p_priority: string
+              p_task_id: string
+              p_task_type: string
+            }
+            Returns: Json
+          }
       auto_block_ip: {
         Args: {
           _block_type: string
@@ -25092,21 +25098,21 @@ export type Database = {
         Returns: string
       }
       calculate_next_schedule_time:
-      | {
-        Args: { p_current_next_at: string; p_frequency: string }
-        Returns: string
-      }
-      | {
-        Args: {
-          p_last_sent_at?: string
-          p_schedule_day_of_month: number
-          p_schedule_days_of_week: number[]
-          p_schedule_time: string
-          p_schedule_timezone: string
-          p_schedule_type: string
-        }
-        Returns: string
-      }
+        | {
+            Args: { p_current_next_at: string; p_frequency: string }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_last_sent_at?: string
+              p_schedule_day_of_month: number
+              p_schedule_days_of_week: number[]
+              p_schedule_time: string
+              p_schedule_timezone: string
+              p_schedule_type: string
+            }
+            Returns: string
+          }
       calculate_profile_billing: {
         Args: { p_billing_month: string; p_tenant_id: string }
         Returns: Json
@@ -25120,23 +25126,23 @@ export type Database = {
         Returns: string
       }
       calculate_subscription_price:
-      | {
-        Args: {
-          p_module_ids: string[]
-          p_plan_id: string
-          p_user_count: number
-        }
-        Returns: Json
-      }
-      | {
-        Args: {
-          p_billing_period?: string
-          p_module_ids: string[]
-          p_plan_id: string
-          p_user_count: number
-        }
-        Returns: Json
-      }
+        | {
+            Args: {
+              p_module_ids: string[]
+              p_plan_id: string
+              p_user_count: number
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_billing_period?: string
+              p_module_ids: string[]
+              p_plan_id: string
+              p_user_count: number
+            }
+            Returns: Json
+          }
       can_access_branch: {
         Args: { _branch_id: string; _user_id: string }
         Returns: boolean
@@ -25154,14 +25160,14 @@ export type Database = {
         Returns: boolean
       }
       can_approve_gate_pass:
-      | {
-        Args: { p_gate_pass_id: string; p_user_id: string }
-        Returns: boolean
-      }
-      | {
-        Args: { p_gate_pass_id: string; p_stage: string; p_user_id: string }
-        Returns: Json
-      }
+        | {
+            Args: { p_gate_pass_id: string; p_user_id: string }
+            Returns: boolean
+          }
+        | {
+            Args: { p_gate_pass_id: string; p_stage: string; p_user_id: string }
+            Returns: Json
+          }
       can_approve_investigation: {
         Args: { _incident_id: string; _user_id: string }
         Returns: boolean
@@ -25227,11 +25233,11 @@ export type Database = {
         Returns: boolean
       }
       can_view_pii:
-      | { Args: { p_user_id: string }; Returns: boolean }
-      | {
-        Args: { p_target_user_id: string; p_user_id: string }
-        Returns: boolean
-      }
+        | { Args: { p_user_id: string }; Returns: boolean }
+        | {
+            Args: { p_target_user_id: string; p_user_id: string }
+            Returns: boolean
+          }
       can_view_profile: {
         Args: { p_target_profile_id: string; p_viewer_id: string }
         Returns: boolean
@@ -25437,26 +25443,26 @@ export type Database = {
         Returns: Json
       }
       dept_rep_reject_observation:
-      | {
-        Args: { p_incident_id: string; p_rejection_reason: string }
-        Returns: Json
-      }
-      | {
-        Args: {
-          p_incident_id: string
-          p_notes?: string
-          p_rejection_reason: string
-        }
-        Returns: Json
-      }
-      | {
-        Args: {
-          p_incident_id: string
-          p_rejection_reason: string
-          p_user_id: string
-        }
-        Returns: Json
-      }
+        | {
+            Args: { p_incident_id: string; p_rejection_reason: string }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_incident_id: string
+              p_notes?: string
+              p_rejection_reason: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_incident_id: string
+              p_rejection_reason: string
+              p_user_id: string
+            }
+            Returns: Json
+          }
       expire_old_gate_passes: { Args: never; Returns: undefined }
       find_contractor_consultant_for_branch: {
         Args: { p_branch_id: string; p_tenant_id: string }
@@ -25706,36 +25712,36 @@ export type Database = {
         }[]
       }
       get_emergency_notification_recipients:
-      | {
-        Args: {
-          p_alert_type: string
-          p_site_id: string
-          p_tenant_id: string
-        }
-        Returns: {
-          email: string
-          full_name: string
-          phone_number: string
-          preferred_language: string
-          role_code: string
-          user_id: string
-        }[]
-      }
-      | {
-        Args: {
-          p_alert_type: string
-          p_branch_id: string
-          p_tenant_id: string
-        }
-        Returns: {
-          email: string
-          full_name: string
-          phone_number: string
-          preferred_language: string
-          role_code: string
-          user_id: string
-        }[]
-      }
+        | {
+            Args: {
+              p_alert_type: string
+              p_site_id: string
+              p_tenant_id: string
+            }
+            Returns: {
+              email: string
+              full_name: string
+              phone_number: string
+              preferred_language: string
+              role_code: string
+              user_id: string
+            }[]
+          }
+        | {
+            Args: {
+              p_alert_type: string
+              p_branch_id: string
+              p_tenant_id: string
+            }
+            Returns: {
+              email: string
+              full_name: string
+              phone_number: string
+              preferred_language: string
+              role_code: string
+              user_id: string
+            }[]
+          }
       get_events_by_location: {
         Args: { p_end_date?: string; p_start_date?: string }
         Returns: Json
@@ -25787,18 +25793,18 @@ export type Database = {
         }[]
       }
       get_hsse_event_dashboard_stats:
-      | {
-        Args: {
-          p_branch_id?: string
-          p_end_date?: string
-          p_start_date?: string
-        }
-        Returns: Json
-      }
-      | {
-        Args: { p_end_date?: string; p_start_date?: string }
-        Returns: Json
-      }
+        | {
+            Args: {
+              p_branch_id?: string
+              p_end_date?: string
+              p_start_date?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: { p_end_date?: string; p_start_date?: string }
+            Returns: Json
+          }
       get_hsse_response_time_distribution: {
         Args: { p_tenant_id: string }
         Returns: {
@@ -25906,23 +25912,23 @@ export type Database = {
         Returns: Json
       }
       get_leading_indicators:
-      | {
-        Args: {
-          p_branch_id?: string
-          p_end_date?: string
-          p_start_date?: string
-        }
-        Returns: Json
-      }
-      | {
-        Args: {
-          p_branch_id?: string
-          p_end_date: string
-          p_site_id?: string
-          p_start_date: string
-        }
-        Returns: Json
-      }
+        | {
+            Args: {
+              p_branch_id?: string
+              p_end_date?: string
+              p_start_date?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_branch_id?: string
+              p_end_date?: string
+              p_site_id?: string
+              p_start_date?: string
+            }
+            Returns: Json
+          }
       get_managers_for_team_assignment: {
         Args: { p_exclude_user_id: string; p_tenant_id: string }
         Returns: {
@@ -26165,27 +26171,27 @@ export type Database = {
         }[]
       }
       get_user_pending_gate_passes:
-      | {
-        Args: { p_user_id: string }
-        Returns: {
-          approval_role: string
-          created_at: string
-          id: string
-          is_internal_request: boolean
-          project_name: string
-          reference_id: string
-          requester_name: string
-          status: string
-        }[]
-      }
-      | {
-        Args: { p_tenant_id: string; p_user_id: string }
-        Returns: {
-          approval_stage: string
-          can_approve: boolean
-          gate_pass_id: string
-        }[]
-      }
+        | {
+            Args: { p_user_id: string }
+            Returns: {
+              approval_role: string
+              created_at: string
+              id: string
+              is_internal_request: boolean
+              project_name: string
+              reference_id: string
+              requester_name: string
+              status: string
+            }[]
+          }
+        | {
+            Args: { p_tenant_id: string; p_user_id: string }
+            Returns: {
+              approval_stage: string
+              can_approve: boolean
+              gate_pass_id: string
+            }[]
+          }
       get_user_primary_branch: { Args: { _user_id: string }; Returns: string }
       get_user_role: { Args: { _user_id: string }; Returns: string }
       get_user_roles: {
@@ -26297,14 +26303,14 @@ export type Database = {
       has_hsse_manager_access: { Args: { p_user_id: string }; Returns: boolean }
       has_ptw_access: { Args: { _user_id: string }; Returns: boolean }
       has_role:
-      | {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      | { Args: { _role: string; _user_id: string }; Returns: boolean }
+        | {
+            Args: {
+              _role: Database["public"]["Enums"]["app_role"]
+              _user_id: string
+            }
+            Returns: boolean
+          }
+        | { Args: { _role: string; _user_id: string }; Returns: boolean }
       has_role_by_code: {
         Args: { p_role_code: string; p_user_id: string }
         Returns: boolean
@@ -26327,23 +26333,23 @@ export type Database = {
         Returns: Json
       }
       hsse_review_rejection:
-      | {
-        Args: {
-          p_decision: string
-          p_incident_id: string
-          p_notes?: string
-        }
-        Returns: Json
-      }
-      | {
-        Args: {
-          p_decision: string
-          p_incident_id: string
-          p_notes: string
-          p_user_id: string
-        }
-        Returns: Json
-      }
+        | {
+            Args: {
+              p_decision: string
+              p_incident_id: string
+              p_notes?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_decision: string
+              p_incident_id: string
+              p_notes: string
+              p_user_id: string
+            }
+            Returns: Json
+          }
       hsse_review_violation: {
         Args: {
           p_decision: string
@@ -26359,23 +26365,23 @@ export type Database = {
         Returns: Json
       }
       hsse_validate_observation_closure:
-      | {
-        Args: {
-          p_decision: string
-          p_incident_id: string
-          p_notes?: string
-        }
-        Returns: Json
-      }
-      | {
-        Args: {
-          p_decision: string
-          p_incident_id: string
-          p_user_id: string
-          p_validation_notes: string
-        }
-        Returns: Json
-      }
+        | {
+            Args: {
+              p_decision: string
+              p_incident_id: string
+              p_notes?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_decision: string
+              p_incident_id: string
+              p_user_id: string
+              p_validation_notes: string
+            }
+            Returns: Json
+          }
       incident_is_reporter_editable: {
         Args: { _incident_id: string }
         Returns: boolean
@@ -26385,32 +26391,32 @@ export type Database = {
         Returns: undefined
       }
       insert_guard_tracking:
-      | {
-        Args: {
-          p_accuracy?: number
-          p_battery_level?: number
-          p_guard_id: string
-          p_latitude: number
-          p_longitude: number
-          p_roster_id?: string
-          p_tenant_id: string
-        }
-        Returns: string
-      }
-      | {
-        Args: {
-          p_accuracy?: number
-          p_battery_level?: number
-          p_distance_from_zone?: number
-          p_guard_id: string
-          p_is_within_zone?: boolean
-          p_latitude: number
-          p_longitude: number
-          p_roster_id?: string
-          p_tenant_id: string
-        }
-        Returns: string
-      }
+        | {
+            Args: {
+              p_accuracy?: number
+              p_battery_level?: number
+              p_guard_id: string
+              p_latitude: number
+              p_longitude: number
+              p_roster_id?: string
+              p_tenant_id: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_accuracy?: number
+              p_battery_level?: number
+              p_distance_from_zone?: number
+              p_guard_id: string
+              p_is_within_zone?: boolean
+              p_latitude: number
+              p_longitude: number
+              p_roster_id?: string
+              p_tenant_id: string
+            }
+            Returns: string
+          }
       invalidate_other_user_sessions: {
         Args: {
           p_current_session_token: string
@@ -26556,35 +26562,35 @@ export type Database = {
         }[]
       }
       process_dept_manager_incident_approval:
-      | {
-        Args: {
-          _decision: string
-          _incident_id: string
-          _notes?: string
-          _updated_description?: string
-          _updated_initial_actions?: string
-          _user_id: string
-        }
-        Returns: Json
-      }
-      | {
-        Args: {
-          p_decision: string
-          p_incident_id: string
-          p_notes?: string
-        }
-        Returns: Json
-      }
-      | {
-        Args: {
-          p_decision: string
-          p_incident_id: string
-          p_notes?: string
-          p_updated_description?: string
-          p_updated_title?: string
-        }
-        Returns: Json
-      }
+        | {
+            Args: {
+              _decision: string
+              _incident_id: string
+              _notes?: string
+              _updated_description?: string
+              _updated_initial_actions?: string
+              _user_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_decision: string
+              p_incident_id: string
+              p_notes?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_decision: string
+              p_incident_id: string
+              p_notes?: string
+              p_updated_description?: string
+              p_updated_title?: string
+            }
+            Returns: Json
+          }
       process_dept_rep_incident_decision: {
         Args: {
           _decision: string
@@ -26604,21 +26610,21 @@ export type Database = {
         Returns: Json
       }
       reroute_observation_to_new_site:
-      | {
-        Args: { p_incident_id: string; p_new_branch_id: string }
-        Returns: Json
-      }
-      | {
-        Args: {
-          p_admin_notes?: string
-          p_incident_id: string
-          p_new_branch_id: string
-          p_new_contractor_id: string
-          p_new_site_id: string
-          p_reset_workflow?: boolean
-        }
-        Returns: Json
-      }
+        | {
+            Args: { p_incident_id: string; p_new_branch_id: string }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_admin_notes?: string
+              p_incident_id: string
+              p_new_branch_id: string
+              p_new_contractor_id: string
+              p_new_site_id: string
+              p_reset_workflow?: boolean
+            }
+            Returns: Json
+          }
       reset_notification_matrix_to_defaults: {
         Args: { p_tenant_id: string }
         Returns: undefined
@@ -26714,24 +26720,24 @@ export type Database = {
         Returns: undefined
       }
       submit_clinic_review:
-      | {
-        Args: {
-          p_incident_id: string
-          p_injury_classification?: string
-          p_injury_confirmed?: boolean
-          p_review_notes: string
-          p_treatment_provided?: string
-        }
-        Returns: Json
-      }
-      | {
-        Args: {
-          p_incident_id: string
-          p_review_notes: string
-          p_user_id: string
-        }
-        Returns: Json
-      }
+        | {
+            Args: {
+              p_incident_id: string
+              p_injury_classification?: string
+              p_injury_confirmed?: boolean
+              p_review_notes: string
+              p_treatment_provided?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_incident_id: string
+              p_review_notes: string
+              p_user_id: string
+            }
+            Returns: Json
+          }
       submit_contractor_violation: {
         Args: {
           p_incident_id: string
@@ -26740,58 +26746,30 @@ export type Database = {
         }
         Returns: Json
       }
-      submit_public_gate_pass:
-      | {
-        Args: {
-          p_branch_id: string
-          p_captcha_token: string
-          p_driver_mobile: string
-          p_driver_name: string
-          p_end_date: string
-          p_items?: Json
-          p_material_description: string
-          p_notes: string
-          p_pass_type: string
-          p_project_id: string
-          p_purpose: string
-          p_quantity: string
-          p_requester_company: string
-          p_requester_email: string
-          p_requester_name: string
-          p_requester_phone: string
-          p_start_date: string
-          p_submission_ip: string
-          p_tenant_slug: string
-          p_vehicle_plate: string
-          p_vehicle_plate_letters: string
-          p_vehicle_plate_numbers: string
-        }
-        Returns: Json
-      }
-      | {
+      submit_public_gate_pass: {
         Args: {
           p_branch_id: string
           p_client_ip?: string
-          p_driver_mobile: string
-          p_driver_name: string
+          p_driver_mobile?: string
+          p_driver_name?: string
           p_end_date?: string
           p_items?: Json
-          p_material_description: string
+          p_material_description?: string
           p_notify_email?: boolean
           p_notify_sms?: boolean
           p_notify_whatsapp?: boolean
-          p_pass_date: string
-          p_pass_type: string
-          p_quantity: string
-          p_requester_company: string
-          p_requester_email: string
+          p_pass_date?: string
+          p_pass_type?: string
+          p_quantity?: string
+          p_requester_company?: string
+          p_requester_email?: string
           p_requester_name: string
           p_requester_phone: string
           p_start_date?: string
           p_tenant_slug: string
-          p_vehicle_plate: string
-          p_vehicle_plate_letters: string
-          p_vehicle_plate_numbers: string
+          p_vehicle_plate?: string
+          p_vehicle_plate_letters?: string
+          p_vehicle_plate_numbers?: string
         }
         Returns: Json
       }
@@ -26834,29 +26812,29 @@ export type Database = {
         Returns: string
       }
       upsert_notification_matrix_rule:
-      | {
-        Args: {
-          p_channels: string[]
-          p_condition_type?: string
-          p_severity_level: string
-          p_stakeholder_role: string
-          p_tenant_id: string
-          p_user_id?: string
-        }
-        Returns: string
-      }
-      | {
-        Args: {
-          p_channels: string[]
-          p_condition_type?: string
-          p_severity_level: string
-          p_stakeholder_role: string
-          p_tenant_id: string
-          p_user_id?: string
-          p_whatsapp_template_id?: string
-        }
-        Returns: string
-      }
+        | {
+            Args: {
+              p_channels: string[]
+              p_condition_type?: string
+              p_severity_level: string
+              p_stakeholder_role: string
+              p_tenant_id: string
+              p_user_id?: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_channels: string[]
+              p_condition_type?: string
+              p_severity_level: string
+              p_stakeholder_role: string
+              p_tenant_id: string
+              p_user_id?: string
+              p_whatsapp_template_id?: string
+            }
+            Returns: string
+          }
       use_mfa_backup_code: {
         Args: { p_code_hash: string; p_user_id: string }
         Returns: boolean
@@ -26874,8 +26852,8 @@ export type Database = {
         Returns: Json
       }
       validate_gate_pass_guard_access:
-      | { Args: { p_gate_pass_id: string }; Returns: Json }
-      | { Args: { p_action: string; p_gate_pass_id: string }; Returns: Json }
+        | { Args: { p_gate_pass_id: string }; Returns: Json }
+        | { Args: { p_action: string; p_gate_pass_id: string }; Returns: Json }
       validate_invitation_code: {
         Args: { p_code: string }
         Returns: {
@@ -26934,230 +26912,230 @@ export type Database = {
     }
     Enums: {
       activity_event_type:
-      | "login"
-      | "logout"
-      | "session_timeout"
-      | "session_extended"
-      | "mfa_enabled"
-      | "mfa_disabled"
-      | "mfa_verification_failed"
-      | "user_created"
-      | "user_updated"
-      | "user_deactivated"
-      | "user_activated"
-      | "user_deleted"
-      | "backup_code_used"
+        | "login"
+        | "logout"
+        | "session_timeout"
+        | "session_extended"
+        | "mfa_enabled"
+        | "mfa_disabled"
+        | "mfa_verification_failed"
+        | "user_created"
+        | "user_updated"
+        | "user_deactivated"
+        | "user_activated"
+        | "user_deleted"
+        | "backup_code_used"
       app_role:
-      | "admin"
-      | "user"
-      | "security_manager"
-      | "security_supervisor"
-      | "security_guard"
-      | "client_site_representative"
-      | "contractor_consultant"
-      | "contractor_site_representative"
-      | "contract_controller"
-      | "hsse_expert"
-      | "receptionist"
+        | "admin"
+        | "user"
+        | "security_manager"
+        | "security_supervisor"
+        | "security_guard"
+        | "client_site_representative"
+        | "contractor_consultant"
+        | "contractor_site_representative"
+        | "contract_controller"
+        | "hsse_expert"
+        | "receptionist"
       asset_condition: "excellent" | "good" | "fair" | "poor" | "critical"
       asset_criticality: "low" | "medium" | "high" | "critical"
       asset_document_type:
-      | "manual"
-      | "certificate"
-      | "purchase_order"
-      | "warranty"
-      | "compliance"
-      | "inspection_report"
-      | "maintenance_record"
-      | "other"
+        | "manual"
+        | "certificate"
+        | "purchase_order"
+        | "warranty"
+        | "compliance"
+        | "inspection_report"
+        | "maintenance_record"
+        | "other"
       asset_ownership: "company" | "contractor" | "leased" | "rented"
       asset_status:
-      | "active"
-      | "out_of_service"
-      | "under_maintenance"
-      | "retired"
-      | "missing"
-      | "pending_inspection"
+        | "active"
+        | "out_of_service"
+        | "under_maintenance"
+        | "retired"
+        | "missing"
+        | "pending_inspection"
       contractor_type: "long_term" | "short_term"
       hsse_category_code:
-      | "safety"
-      | "health"
-      | "process_safety"
-      | "environment"
-      | "security"
-      | "property_asset_damage"
-      | "road_traffic_vehicle"
-      | "quality_service"
-      | "community_third_party"
-      | "compliance_regulatory"
-      | "emergency_crisis"
+        | "safety"
+        | "health"
+        | "process_safety"
+        | "environment"
+        | "security"
+        | "property_asset_damage"
+        | "road_traffic_vehicle"
+        | "quality_service"
+        | "community_third_party"
+        | "compliance_regulatory"
+        | "emergency_crisis"
       hsse_notification_category:
-      | "weather_risk"
-      | "regulation"
-      | "safety_alert"
-      | "policy_update"
-      | "training"
-      | "general"
+        | "weather_risk"
+        | "regulation"
+        | "safety_alert"
+        | "policy_update"
+        | "training"
+        | "general"
       hsse_notification_priority: "critical" | "high" | "medium" | "low"
       hsse_notification_target:
-      | "all_users"
-      | "specific_roles"
-      | "specific_branches"
-      | "specific_sites"
+        | "all_users"
+        | "specific_roles"
+        | "specific_branches"
+        | "specific_sites"
       hsse_notification_type: "mandatory" | "informational"
       incident_status:
-      | "submitted"
-      | "pending_review"
-      | "investigation_pending"
-      | "investigation_in_progress"
-      | "closed"
-      | "expert_screening"
-      | "returned_to_reporter"
-      | "expert_rejected"
-      | "no_investigation_required"
-      | "pending_manager_approval"
-      | "manager_rejected"
-      | "hsse_manager_escalation"
-      | "pending_dept_rep_approval"
-      | "pending_dept_rep_incident_review"
-      | "observation_actions_pending"
-      | "pending_closure"
-      | "investigation_closed"
-      | "pending_final_closure"
-      | "pending_hsse_validation"
-      | "pending_hsse_rejection_review"
-      | "pending_dept_rep_mandatory_action"
-      | "closed_rejected_approved_by_hsse"
-      | "pending_legal_review"
-      | "dispute_resolution"
-      | "monitoring_30_day"
-      | "monitoring_60_day"
-      | "monitoring_90_day"
-      | "pending_contractor_dispute_review"
-      | "pending_department_manager_approval"
-      | "pending_clinic_review"
-      | "pending_consultant_screening"
-      | "pending_consultant_review"
-      | "pending_consultant_actions"
-      | "pending_action_dispute_review"
-      | "pending_department_manager_violation_approval"
-      | "pending_contract_controller_approval"
-      | "pending_contractor_site_rep_approval"
-      | "pending_hsse_violation_review"
-      | "contractor_violation_enforced"
-      | "contractor_violation_approved_fine"
-      | "contractor_violation_cancelled"
-      | "contractor_violation_warning"
-      | "contractor_violation_terminated"
+        | "submitted"
+        | "pending_review"
+        | "investigation_pending"
+        | "investigation_in_progress"
+        | "closed"
+        | "expert_screening"
+        | "returned_to_reporter"
+        | "expert_rejected"
+        | "no_investigation_required"
+        | "pending_manager_approval"
+        | "manager_rejected"
+        | "hsse_manager_escalation"
+        | "pending_dept_rep_approval"
+        | "pending_dept_rep_incident_review"
+        | "observation_actions_pending"
+        | "pending_closure"
+        | "investigation_closed"
+        | "pending_final_closure"
+        | "pending_hsse_validation"
+        | "pending_hsse_rejection_review"
+        | "pending_dept_rep_mandatory_action"
+        | "closed_rejected_approved_by_hsse"
+        | "pending_legal_review"
+        | "dispute_resolution"
+        | "monitoring_30_day"
+        | "monitoring_60_day"
+        | "monitoring_90_day"
+        | "pending_contractor_dispute_review"
+        | "pending_department_manager_approval"
+        | "pending_clinic_review"
+        | "pending_consultant_screening"
+        | "pending_consultant_review"
+        | "pending_consultant_actions"
+        | "pending_action_dispute_review"
+        | "pending_department_manager_violation_approval"
+        | "pending_contract_controller_approval"
+        | "pending_contractor_site_rep_approval"
+        | "pending_hsse_violation_review"
+        | "contractor_violation_enforced"
+        | "contractor_violation_approved_fine"
+        | "contractor_violation_cancelled"
+        | "contractor_violation_warning"
+        | "contractor_violation_terminated"
       maintenance_frequency:
-      | "daily"
-      | "weekly"
-      | "monthly"
-      | "quarterly"
-      | "semi_annually"
-      | "annually"
-      | "custom"
+        | "daily"
+        | "weekly"
+        | "monthly"
+        | "quarterly"
+        | "semi_annually"
+        | "annually"
+        | "custom"
       maintenance_type:
-      | "preventive"
-      | "predictive"
-      | "condition_based"
-      | "corrective"
+        | "preventive"
+        | "predictive"
+        | "condition_based"
+        | "corrective"
       module_code:
-      | "hsse_core"
-      | "visitor_management"
-      | "incidents"
-      | "audits"
-      | "reports_analytics"
-      | "api_access"
-      | "priority_support"
-      | "asset_management"
+        | "hsse_core"
+        | "visitor_management"
+        | "incidents"
+        | "audits"
+        | "reports_analytics"
+        | "api_access"
+        | "priority_support"
+        | "asset_management"
       page_status: "draft" | "published"
       page_type: "visitor_badge" | "worker_pass" | "worker_induction"
       profile_type: "visitor" | "member" | "contractor"
       role_category:
-      | "general"
-      | "hsse"
-      | "environmental"
-      | "ptw"
-      | "security"
-      | "audit"
-      | "food_safety"
-      | "contractor"
+        | "general"
+        | "hsse"
+        | "environmental"
+        | "ptw"
+        | "security"
+        | "audit"
+        | "food_safety"
+        | "contractor"
       severity_level: "low" | "medium" | "high" | "critical"
       severity_level_v2:
-      | "level_1"
-      | "level_2"
-      | "level_3"
-      | "level_4"
-      | "level_5"
+        | "level_1"
+        | "level_2"
+        | "level_3"
+        | "level_4"
+        | "level_5"
       subscription_event_type:
-      | "plan_changed"
-      | "trial_started"
-      | "trial_ended"
-      | "subscription_activated"
-      | "subscription_canceled"
-      | "subscription_renewed"
-      | "user_limit_changed"
-      | "payment_succeeded"
-      | "payment_failed"
-      | "request_submitted"
-      | "request_approved"
-      | "request_declined"
-      | "request_modified"
+        | "plan_changed"
+        | "trial_started"
+        | "trial_ended"
+        | "subscription_activated"
+        | "subscription_canceled"
+        | "subscription_renewed"
+        | "user_limit_changed"
+        | "payment_succeeded"
+        | "payment_failed"
+        | "request_submitted"
+        | "request_approved"
+        | "request_declined"
+        | "request_modified"
       subscription_request_status:
-      | "pending"
-      | "under_review"
-      | "approved"
-      | "declined"
-      | "modified"
-      | "canceled"
+        | "pending"
+        | "under_review"
+        | "approved"
+        | "declined"
+        | "modified"
+        | "canceled"
       subscription_request_type:
-      | "new"
-      | "upgrade"
-      | "downgrade"
-      | "modify"
-      | "cancel"
+        | "new"
+        | "upgrade"
+        | "downgrade"
+        | "modify"
+        | "cancel"
       supported_language: "ar" | "en" | "ur" | "hi" | "fil" | "zh"
       tenant_status: "active" | "suspended" | "disabled"
       ticket_category: "billing" | "technical" | "feature_request" | "general"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status:
-      | "open"
-      | "in_progress"
-      | "waiting_customer"
-      | "resolved"
-      | "closed"
+        | "open"
+        | "in_progress"
+        | "waiting_customer"
+        | "resolved"
+        | "closed"
       user_type:
-      | "employee"
-      | "contractor_longterm"
-      | "contractor_shortterm"
-      | "member"
-      | "visitor"
+        | "employee"
+        | "contractor_longterm"
+        | "contractor_shortterm"
+        | "member"
+        | "visitor"
       visit_status:
-      | "pending_security"
-      | "approved"
-      | "rejected"
-      | "checked_in"
-      | "checked_out"
-      | "expired"
+        | "pending_security"
+        | "approved"
+        | "rejected"
+        | "checked_in"
+        | "checked_out"
+        | "expired"
       visitor_access_level: "escort_required" | "supervised" | "unrestricted"
       visitor_approval_decision:
-      | "pending"
-      | "approved"
-      | "rejected"
-      | "escalated"
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "escalated"
       visitor_approval_stage: "area_rep" | "hsse" | "security" | "site_client"
       visitor_induction_status:
-      | "pending"
-      | "sent"
-      | "viewed"
-      | "completed"
-      | "expired"
+        | "pending"
+        | "sent"
+        | "viewed"
+        | "completed"
+        | "expired"
       visitor_self_registration_status:
-      | "pending"
-      | "approved"
-      | "rejected"
-      | "expired"
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "expired"
       visitor_type: "guest" | "contractor_visitor" | "trainer" | "vip"
     }
     CompositeTypes: {
@@ -27172,116 +27150,116 @@ type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-  | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-  : never = never,
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
-  ? R
-  : never
+    ? R
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])
-  ? (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-      Row: infer R
-    }
-  ? R
-  : never
-  : never
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
+      Insert: infer I
+    }
+    ? I
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Update: infer U
-  }
-  ? U
-  : never
+      Update: infer U
+    }
+    ? U
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Update: infer U
-  }
-  ? U
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-  | keyof DefaultSchema["Enums"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-  : never
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-  | keyof DefaultSchema["CompositeTypes"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-  : never
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
 
 export const Constants = {
   public: {
