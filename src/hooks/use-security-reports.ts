@@ -117,7 +117,7 @@ export function useAttendanceExport(filters: AttendanceExportFilters) {
             employee_id
           ),
           zone:security_zones!guard_attendance_logs_zone_id_fkey(
-            name
+            zone_name
           )
         `)
         .is('deleted_at', null)
@@ -343,7 +343,7 @@ export function useGuardReportData(guardId: string, startDate: string, endDate: 
           overtime_minutes,
           gps_validated,
           status,
-          zone:security_zones!guard_attendance_logs_zone_id_fkey(name)
+          zone:security_zones!guard_attendance_logs_zone_id_fkey(zone_name)
         `)
         .eq('guard_id', guardId)
         .is('deleted_at', null)
@@ -622,9 +622,9 @@ export function useSecurityZones() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('security_zones')
-        .select('id, name')
+        .select('id, zone_name')
         .is('deleted_at', null)
-        .order('name');
+        .order('zone_name');
 
       if (error) throw error;
       return data || [];
