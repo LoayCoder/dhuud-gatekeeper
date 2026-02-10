@@ -37,6 +37,32 @@ async function getClientIP(): Promise<string | null> {
 }
 
 /**
+ * Helper function to handle error responses from gate pass submission
+ * Provides user-friendly messages based on error codes
+ */
+function handleGatePassError(error: string | undefined, errorCode?: string): void {
+  if (!error) {
+    toast.error("Failed to submit gate pass request");
+    return;
+  }
+
+  // Check error code first (most reliable)
+  if (errorCode === 'MISSING_MATERIAL_DESCRIPTION') {
+    toast.error("Please provide either a material description or add at least one item with a name");
+    return;
+  }
+
+  // Fallback to error message (for backward compatibility)
+  if (error.includes('Material description is required')) {
+    toast.error("Please provide either a material description or add at least one item with a name");
+    return;
+  }
+
+  // Default: show the raw error message
+  toast.error(error);
+}
+
+/**
  * Submit a public gate pass request
  */
 export function useSubmitPublicGatePass() {
@@ -71,7 +97,7 @@ export function useSubmitPublicGatePass() {
           p_requester_phone: data.requester_phone,
           p_requester_email: data.requester_email || null,
           p_requester_company: data.requester_company || null,
-          p_material_description: data.material_description || null,
+          p_material_description: data.material_description?.trim() || null,
           p_quantity: data.quantity || null,
           p_vehicle_plate: data.vehicle_plate || null,
           p_vehicle_plate_letters: data.vehicle_plate_letters || null,
@@ -102,12 +128,12 @@ export function useSubmitPublicGatePass() {
         if (result.public_access_token) {
           localStorage.setItem("public_gate_pass_token", result.public_access_token);
         }
-        
+
         // Build material description from items for notification
-        const materialDescription = variables.items?.map(i => i.item_name).join(', ') 
-          || variables.material_description 
+        const materialDescription = variables.items?.map(i => i.item_name).join(', ')
+          || variables.material_description
           || '';
-        
+
         // Trigger WhatsApp notification to requester AND staff (fire-and-forget)
         try {
           console.log('[Public Gate Pass] Triggering notification for:', result.reference_number);
@@ -132,14 +158,16 @@ export function useSubmitPublicGatePass() {
           // Don't fail the submission - notification is best-effort
           console.error('[Public Gate Pass] Notification failed:', err);
         }
-        
+
         toast.success("Gate pass request submitted successfully!");
       } else {
-        toast.error(result.error || "Failed to submit gate pass request");
+        // Use helper function to handle errors with error codes
+        handleGatePassError(result.error, result.error_code);
       }
     },
     onError: (error) => {
-      toast.error(`Failed to submit: ${error.message}`);
+      // Use helper function for consistency
+      handleGatePassError(error.message);
     },
   });
 }
