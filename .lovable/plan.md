@@ -1,31 +1,48 @@
 
 
-# Fix: `pass_date` NOT NULL violation
+## Fix: "column deleted_at does not exist" in Public Gate Pass Submission
 
-## Root Cause
+### Root Cause
 
-The `submit_public_gate_pass` function correctly inserts `start_date` and `end_date` but does **not** set the legacy `pass_date` column. Previously, a trigger (`validate_gate_pass_dates`) would auto-fill `pass_date := start_date`, but the trigger was later rewritten and that line was removed. Since `pass_date` is NOT NULL, the insert fails.
+The `submit_public_gate_pass` database function contains this query on **line 45**:
 
-## Fix
-
-Update the `validate_gate_pass_dates` trigger function to sync `pass_date` from `start_date` before returning, restoring backward compatibility. This is a single SQL migration -- no frontend changes needed.
-
-```text
--- Add to the trigger function, just before RETURN NEW:
-NEW.pass_date := NEW.start_date;
+```sql
+SELECT id, name, allow_public_gate_pass_requests INTO v_tenant_record
+FROM tenants WHERE slug = p_tenant_slug AND deleted_at IS NULL;
 ```
 
-## Technical Details
+The `tenants` table **does not have a `deleted_at` column**. This causes the error every time a public gate pass is submitted.
 
-- The `pass_date` column is `NOT NULL` with no default value
-- The current function body (`submit_public_gate_pass`, OID 115359) inserts `start_date` and `end_date` but omits `pass_date`
-- The trigger fires `BEFORE INSERT` so setting `pass_date` there will satisfy the constraint
-- This restores the behavior that existed in the original `validate_gate_pass_dates` function from migration `20260203000000`
-- No frontend or function changes required -- just the trigger fix
+### Fix (Single Migration)
 
-## Files to Create
+Remove the `AND deleted_at IS NULL` filter from the tenant lookup in the `submit_public_gate_pass` function. The line should become:
+
+```sql
+SELECT id, name, allow_public_gate_pass_requests INTO v_tenant_record
+FROM tenants WHERE slug = p_tenant_slug;
+```
+
+### Bonus Fix (Same Migration)
+
+While auditing, I also found a recurring error: **`column security_zones_1.name does not exist`** in `src/hooks/use-security-reports.ts`. The `security_zones` table uses `zone_name`, not `name`. Three places in that file reference `.name` instead of `.zone_name`:
+
+1. **Line 119-121**: Join select uses `name` instead of `zone_name`
+2. **Line 346**: Join select uses `name` instead of `zone_name`  
+3. **Lines 625-627**: Direct query selects `id, name` and orders by `name` -- should be `zone_name`
+
+### Changes Summary
 
 | File | Change |
 |------|--------|
-| New migration SQL | Recreate `validate_gate_pass_dates()` to sync `pass_date := start_date` |
+| **Database migration** | Update `submit_public_gate_pass` function to remove `deleted_at IS NULL` from `tenants` query |
+| **`src/hooks/use-security-reports.ts`** | Replace `name` with `zone_name` in 3 locations for `security_zones` queries |
+
+### Technical Details
+
+**Migration SQL** will re-create the `submit_public_gate_pass` function with the single-line fix on the tenant lookup query. The rest of the function remains unchanged.
+
+**Frontend fix** in `use-security-reports.ts`:
+- Line 120: `name` to `zone_name`
+- Line 346: `name` to `zone_name`  
+- Lines 625/627: `name` to `zone_name`
 
