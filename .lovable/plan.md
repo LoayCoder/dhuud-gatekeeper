@@ -1,67 +1,49 @@
 
 
-## Fix: Permanently Remove Duplicate `submit_public_gate_pass` and Keep One Clean Version
+## Fix: Leading Indicators Card Disappeared
 
-### Problem
+### Root Cause
 
-Two overloads of `submit_public_gate_pass` exist in the database with different parameter orders. PostgREST cannot resolve the ambiguity, breaking all submissions.
+The `get_leading_indicators` RPC has **two versions** in the database (same problem as the gate pass function):
 
-| OID | Parameter Order (key difference) | Body |
-|-----|----------------------------------|------|
-| 116538 | `...p_pass_date, p_notify_*, p_client_ip, p_items, p_start_date, p_end_date` | Old `photo_path` bug |
-| 116541 | `...p_items, p_pass_date, p_notify_*, p_client_ip, p_start_date, p_end_date` | Has `photo_storage_path` fix |
+| OID | Parameters | Issue |
+|-----|-----------|-------|
+| 112751 (old) | 3 params: `p_start_date, p_end_date, p_branch_id` | References `site_id` on `corrective_actions` table, which does NOT exist -- causes SQL error |
+| 34742 (new) | 4 params: `p_start_date, p_end_date, p_branch_id, p_site_id` | Correct version we just applied, also references `site_id` on `corrective_actions` |
 
-The frontend sends parameters matching OID 116538's order.
+Both versions fail because the `corrective_actions` table has no `site_id` column. The old version crashes immediately; the new version would crash when `p_site_id` is non-null, but even with null it fails because PostgreSQL still parses/compiles the query referencing the missing column.
 
-### Solution: Single Database Migration
+The frontend sends 4 parameters (including `p_site_id`), which may also trigger PostgREST ambiguity between the two overloads.
 
-**Step 1** -- Drop both functions by exact type signature:
+### Fix (Single Migration)
+
+**Step 1**: Drop both versions by exact signature.
 
 ```sql
-DROP FUNCTION IF EXISTS public.submit_public_gate_pass(
-  text, uuid, text, text, text, text, text, text, text, text,
-  text, text, text, text, date, boolean, boolean, boolean, text, jsonb, date, date
-);
-DROP FUNCTION IF EXISTS public.submit_public_gate_pass(
-  text, uuid, text, text, text, text, text, text, text, text,
-  text, text, text, text, jsonb, date, boolean, boolean, boolean, text, date, date
-);
+DROP FUNCTION IF EXISTS public.get_leading_indicators(date, date, uuid);
+DROP FUNCTION IF EXISTS public.get_leading_indicators(date, date, uuid, uuid);
 ```
 
-**Step 2** -- Recreate a single function combining:
-- **Parameter order** from OID 116538 (matches the frontend hook)
-- **Function body** from OID 116541 (has the `photo_storage_path` fix)
-
-The recreated function signature:
-```
-(p_tenant_slug text, p_branch_id uuid, p_requester_name text, p_requester_phone text,
- p_requester_email text, p_requester_company text, p_pass_type text,
- p_material_description text, p_quantity text, p_vehicle_plate text,
- p_vehicle_plate_letters text, p_vehicle_plate_numbers text,
- p_driver_name text, p_driver_mobile text, p_pass_date date,
- p_notify_whatsapp boolean, p_notify_email boolean, p_notify_sms boolean,
- p_client_ip text, p_items jsonb, p_start_date date, p_end_date date)
-```
-
-The body includes the corrected item-insertion loop:
-```sql
-jsonb_to_recordset(p_items) AS x(
-  sr_number TEXT, item_name TEXT, description TEXT,
-  quantity TEXT, unit TEXT, photo_storage_path TEXT,
-  photo_file_name TEXT, photo_file_size INTEGER, photo_mime_type TEXT
-)
-```
-
-### Verification
-
-- Frontend hook (`use-public-gate-pass.ts` line 95-120) sends params in OID 116538 order -- confirmed match
-- Frontend sends items with `photo_storage_path` key (line 83) -- confirmed match with new function body
-- No frontend changes needed
+**Step 2**: Recreate a single version that:
+- Accepts all 4 parameters (`p_start_date`, `p_end_date`, `p_branch_id`, `p_site_id`)
+- Removes the `site_id` filter from the `corrective_actions` query (since that column does not exist on that table)
+- Keeps the `site_id` filter on the `incidents` table queries (where the column does exist)
 
 ### Changes Summary
 
 | Target | Action |
 |--------|--------|
-| Database migration | Drop both duplicate functions, recreate single clean version |
+| Database migration | Drop both duplicates, recreate single version with corrected `corrective_actions` query |
 | Frontend | No changes needed |
+
+### Technical Detail
+
+The corrective_actions query will change from:
+
+```sql
+-- BROKEN: site_id does not exist on corrective_actions
+AND (p_site_id IS NULL OR site_id = p_site_id)
+```
+
+to simply omitting that line for the `corrective_actions` section, while keeping it for the `incidents` queries where `site_id` does exist.
 
