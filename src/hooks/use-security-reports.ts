@@ -622,9 +622,9 @@ export function useSecurityZones() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('security_zones')
-        .select('id, name')
+        .select('id, zone_name')
         .is('deleted_at', null)
-        .order('name');
+        .order('zone_name');
 
       if (error) throw error;
       return data || [];
