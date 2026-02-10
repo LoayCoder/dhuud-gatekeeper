@@ -87,16 +87,21 @@ export function useSubmitPublicGatePass() {
       })) || [];
 
       // Call the RPC function using .rpc() with type assertion
+      // DB function signature: p_tenant_slug, p_branch_id, p_requester_name, p_requester_phone,
+      // p_requester_email, p_requester_company, p_pass_type, p_material_description, p_quantity,
+      // p_vehicle_plate, p_vehicle_plate_letters, p_vehicle_plate_numbers, p_driver_name,
+      // p_driver_mobile, p_pass_date, p_notify_whatsapp, p_notify_email, p_notify_sms,
+      // p_client_ip, p_items, p_start_date, p_end_date
       const { data: result, error } = await supabase.rpc(
         "submit_public_gate_pass" as never,
         {
           p_tenant_slug: data.tenant_slug,
           p_branch_id: data.branch_id || null,
-          p_pass_type: data.pass_type || 'in',
           p_requester_name: data.requester_name,
           p_requester_phone: data.requester_phone,
           p_requester_email: data.requester_email || null,
           p_requester_company: data.requester_company || null,
+          p_pass_type: data.pass_type || 'in',
           p_material_description: data.material_description?.trim() || null,
           p_quantity: data.quantity || null,
           p_vehicle_plate: data.vehicle_plate || null,
@@ -104,14 +109,14 @@ export function useSubmitPublicGatePass() {
           p_vehicle_plate_numbers: data.vehicle_plate_numbers || null,
           p_driver_name: data.driver_name || null,
           p_driver_mobile: data.driver_mobile || null,
-          p_project_id: null,
-          p_purpose: null,
-          p_notes: null,
-          p_submission_ip: clientIp,
-          p_captcha_token: null,
+          p_pass_date: data.start_date,
+          p_notify_whatsapp: data.notify_whatsapp ?? true,
+          p_notify_email: data.notify_email ?? true,
+          p_notify_sms: data.notify_sms ?? false,
+          p_client_ip: clientIp,
+          p_items: itemsJsonb,
           p_start_date: data.start_date,
           p_end_date: data.end_date,
-          p_items: itemsJsonb,
         } as never
       );
 
