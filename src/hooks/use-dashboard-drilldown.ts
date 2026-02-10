@@ -12,6 +12,7 @@ export type DrillDownFilter = {
   departmentId?: string;
   incidentId?: string;
   rootCauseCategory?: string;
+  customFilter?: 'overdue' | 'pending';
 };
 
 export function useDashboardDrilldown() {
@@ -28,16 +29,23 @@ export function useDashboardDrilldown() {
     }
 
     // If we have drilldown context, use the modal
-    // DISABLED: Modal is broken ("No events match"), forcing navigation to full list page
-    /* if (drilldownContext) {
+    if (drilldownContext) {
       const modalTitle = title || generateFilterTitle(filters);
       drilldownContext.openDrilldown(filters, modalTitle);
       return;
-    } */
+    }
 
     // Fallback to navigation
     const params = new URLSearchParams();
+
     // Map eventType to 'type' for IncidentList compatibility
+    // For corrective actions, redirect to My Actions page
+    if (filters.eventType === 'corrective_action') {
+      if (filters.customFilter) params.set('filter', filters.customFilter);
+      navigate(`/incidents/my-actions${params.toString() ? `?${params.toString()}` : ''}`);
+      return;
+    }
+
     if (filters.eventType) {
       // Map 'incident' to empty string if it's the default, or keep specific types
       // Actually IncidentList expects 'type' param
@@ -59,10 +67,12 @@ export function useDashboardDrilldown() {
   }, [navigate, drilldownContext]);
 
   const drillDownToActions = useCallback((filter?: 'overdue' | 'pending') => {
-    const params = filter ? `?filter=${filter}` : '';
-    // Point to the correct MyActions route
-    navigate(`/incidents/my-actions${params}`);
-  }, [navigate]);
+    // Use the unified drillDown function which handles the modal
+    drillDown({
+      eventType: 'corrective_action',
+      customFilter: filter
+    }, filter === 'overdue' ? 'Overdue Actions' : filter === 'pending' ? 'Pending Actions' : 'Corrective Actions');
+  }, [drillDown]);
 
   return { drillDown, drillDownToActions };
 }

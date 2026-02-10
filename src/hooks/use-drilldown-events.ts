@@ -10,14 +10,17 @@ export interface DrilldownEvent {
   severity: string | null;
   status: string;
   occurred_at: string;
+  updated_at: string;
   reporter_name: string | null;
   branch_name: string | null;
+  assignee_name: string | null;
 }
 
 const SELECT_INCIDENT_FIELDS = `
-  id, reference_id, title, event_type, severity, status, occurred_at,
+  id, reference_id, title, event_type, severity, severity_v2, status, occurred_at, updated_at,
   reporter:profiles!incidents_reporter_id_fkey(full_name),
-  branch:branches(name)
+  assignee:profiles!incidents_approval_manager_id_fkey(full_name),
+  branch:branches!incidents_branch_id_fkey(name)
 `;
 
 function mapToEvent(item: Record<string, unknown>): DrilldownEvent {
@@ -26,11 +29,13 @@ function mapToEvent(item: Record<string, unknown>): DrilldownEvent {
     reference_id: item.reference_id as string,
     title: item.title as string,
     event_type: item.event_type as string,
-    severity: item.severity as string | null,
+    severity: (item.severity_v2 || item.severity) as string | null,
     status: item.status as string,
     occurred_at: item.occurred_at as string,
+    updated_at: item.updated_at as string,
     reporter_name: (item.reporter as { full_name?: string } | null)?.full_name || null,
     branch_name: (item.branch as { name?: string } | null)?.name || null,
+    assignee_name: (item.assignee as { full_name?: string } | null)?.full_name || null,
   };
 }
 
@@ -38,10 +43,51 @@ export function useDrilldownEvents(filters: DrillDownFilter, enabled: boolean) {
   return useQuery({
     queryKey: ["drilldown-events", filters],
     queryFn: async () => {
+      // HANDLE CORRECTIVE ACTIONS
+      if (filters.eventType === 'corrective_action') {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const db = supabase as any;
+        let query = db
+          .from("corrective_actions")
+          .select(`
+            id, reference_id, title, status, priority, due_date, created_at, updated_at,
+            assignee:profiles!corrective_actions_assigned_to_fkey(full_name)
+          `)
+          .is("deleted_at", null)
+          .order("created_at", { ascending: false })
+          .limit(50);
+
+        if (filters.customFilter === 'overdue') {
+          query = query.lt('due_date', new Date().toISOString().split('T')[0])
+            .not('status', 'in', '("verified","closed","rejected")');
+        } else if (filters.customFilter === 'pending') {
+          query = query.not('status', 'in', '("verified","closed","rejected")');
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+
+        return (data || []).map((item: any) => ({
+          id: item.id,
+          reference_id: item.reference_id,
+          title: item.title,
+          event_type: 'corrective_action',
+          severity: item.priority, // Map priority to severity
+          status: item.status,
+          occurred_at: item.created_at, // Map created_at to occurred_at
+          updated_at: item.updated_at || item.created_at,
+          reporter_name: null,
+          branch_name: null,
+          assignee_name: item.assignee?.full_name || null
+        }));
+      }
+
+      // HANDLE ROOT CAUSE (Existing logic)
       if (filters.rootCauseCategory) {
         return fetchIncidentsByRootCause(filters.rootCauseCategory);
       }
-      
+
+      // HANDLE INCIDENTS (Existing logic)
       // Use type assertion to avoid deep type instantiation
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const db = supabase as any;
