@@ -343,7 +343,7 @@ export function useGuardReportData(guardId: string, startDate: string, endDate: 
           overtime_minutes,
           gps_validated,
           status,
-          zone:security_zones!guard_attendance_logs_zone_id_fkey(name)
+          zone:security_zones!guard_attendance_logs_zone_id_fkey(zone_name)
         `)
         .eq('guard_id', guardId)
         .is('deleted_at', null)
