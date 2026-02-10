@@ -80,7 +80,7 @@ export function useSubmitPublicGatePass() {
         description: item.description || null,
         quantity: item.quantity || null,
         unit: item.unit || null,
-        photo_path: item.photo_path || null,
+        photo_storage_path: item.photo_path || null,
         photo_file_name: item.photo_file_name || null,
         photo_file_size: item.photo_file_size || null,
         photo_mime_type: item.photo_mime_type || null,

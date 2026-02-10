@@ -125,11 +125,16 @@ BEGIN
     FOR v_item IN SELECT * FROM jsonb_array_elements(p_items)
     LOOP
       INSERT INTO public_gate_pass_items (
-        gate_pass_id, tenant_id, branch_id, item_name, description, quantity, unit, sort_order, created_at
+        gate_pass_id, tenant_id, branch_id, sr_number, item_name, description, quantity, unit,
+        photo_storage_path, photo_file_name, photo_file_size, photo_mime_type,
+        sort_order, created_at
       ) VALUES (
         v_pass_id, v_tenant_id, v_branch_uuid,
+        v_item->>'sr_number',
         COALESCE(v_item->>'item_name', 'Item ' || (v_item_index + 1)),
         v_item->>'description', v_item->>'quantity', v_item->>'unit',
+        v_item->>'photo_storage_path', v_item->>'photo_file_name',
+        (v_item->>'photo_file_size')::INTEGER, v_item->>'photo_mime_type',
         v_item_index, NOW()
       );
       v_item_index := v_item_index + 1;
@@ -181,8 +186,10 @@ BEGIN
   END IF;
 
   SELECT COALESCE(jsonb_agg(jsonb_build_object(
-    'id', pi.id, 'item_name', pi.item_name, 'description', pi.description,
-    'quantity', pi.quantity, 'unit', pi.unit
+    'id', pi.id, 'sr_number', pi.sr_number, 'item_name', pi.item_name,
+    'description', pi.description, 'quantity', pi.quantity, 'unit', pi.unit,
+    'photo_storage_path', pi.photo_storage_path, 'photo_file_name', pi.photo_file_name,
+    'photo_file_size', pi.photo_file_size, 'photo_mime_type', pi.photo_mime_type
   ) ORDER BY pi.sort_order, pi.created_at), '[]'::JSONB)
   INTO v_items
   FROM public_gate_pass_items pi
