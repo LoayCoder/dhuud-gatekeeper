@@ -26748,28 +26748,28 @@ export type Database = {
       }
       submit_public_gate_pass: {
         Args: {
-          p_branch_id: string
-          p_captcha_token: string
-          p_driver_mobile: string
-          p_driver_name: string
-          p_end_date: string
+          p_branch_id?: string
+          p_client_ip?: string
+          p_driver_mobile?: string
+          p_driver_name?: string
+          p_end_date?: string
           p_items?: Json
-          p_material_description: string
-          p_notes: string
-          p_pass_type: string
-          p_project_id: string
-          p_purpose: string
-          p_quantity: string
-          p_requester_company: string
-          p_requester_email: string
-          p_requester_name: string
-          p_requester_phone: string
-          p_start_date: string
-          p_submission_ip: string
+          p_material_description?: string
+          p_notify_email?: boolean
+          p_notify_sms?: boolean
+          p_notify_whatsapp?: boolean
+          p_pass_date?: string
+          p_pass_type?: string
+          p_quantity?: string
+          p_requester_company?: string
+          p_requester_email?: string
+          p_requester_name?: string
+          p_requester_phone?: string
+          p_start_date?: string
           p_tenant_slug: string
-          p_vehicle_plate: string
-          p_vehicle_plate_letters: string
-          p_vehicle_plate_numbers: string
+          p_vehicle_plate?: string
+          p_vehicle_plate_letters?: string
+          p_vehicle_plate_numbers?: string
         }
         Returns: Json
       }
