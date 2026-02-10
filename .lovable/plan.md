@@ -1,91 +1,67 @@
 
 
-## Fix: Photos Not Showing on Gate Pass Tracking Page
+## Fix: Permanently Remove Duplicate `submit_public_gate_pass` and Keep One Clean Version
 
-### Root Cause (Two Bugs)
+### Problem
 
-**Bug 1: Photo path never saved to database (JSONB key mismatch)**
+Two overloads of `submit_public_gate_pass` exist in the database with different parameter orders. PostgREST cannot resolve the ambiguity, breaking all submissions.
 
-The frontend sends items to the RPC with key `photo_storage_path`:
-```js
-{ photo_storage_path: "temp-xxx/1-123456.jpg", ... }
+| OID | Parameter Order (key difference) | Body |
+|-----|----------------------------------|------|
+| 116538 | `...p_pass_date, p_notify_*, p_client_ip, p_items, p_start_date, p_end_date` | Old `photo_path` bug |
+| 116541 | `...p_items, p_pass_date, p_notify_*, p_client_ip, p_start_date, p_end_date` | Has `photo_storage_path` fix |
+
+The frontend sends parameters matching OID 116538's order.
+
+### Solution: Single Database Migration
+
+**Step 1** -- Drop both functions by exact type signature:
+
+```sql
+DROP FUNCTION IF EXISTS public.submit_public_gate_pass(
+  text, uuid, text, text, text, text, text, text, text, text,
+  text, text, text, text, date, boolean, boolean, boolean, text, jsonb, date, date
+);
+DROP FUNCTION IF EXISTS public.submit_public_gate_pass(
+  text, uuid, text, text, text, text, text, text, text, text,
+  text, text, text, text, jsonb, date, boolean, boolean, boolean, text, date, date
+);
 ```
 
-But the RPC's `jsonb_to_recordset` mapping expects a different key (`photo_path`):
+**Step 2** -- Recreate a single function combining:
+- **Parameter order** from OID 116538 (matches the frontend hook)
+- **Function body** from OID 116541 (has the `photo_storage_path` fix)
+
+The recreated function signature:
+```
+(p_tenant_slug text, p_branch_id uuid, p_requester_name text, p_requester_phone text,
+ p_requester_email text, p_requester_company text, p_pass_type text,
+ p_material_description text, p_quantity text, p_vehicle_plate text,
+ p_vehicle_plate_letters text, p_vehicle_plate_numbers text,
+ p_driver_name text, p_driver_mobile text, p_pass_date date,
+ p_notify_whatsapp boolean, p_notify_email boolean, p_notify_sms boolean,
+ p_client_ip text, p_items jsonb, p_start_date date, p_end_date date)
+```
+
+The body includes the corrected item-insertion loop:
 ```sql
 jsonb_to_recordset(p_items) AS x(
-  ..., photo_path TEXT, ...
+  sr_number TEXT, item_name TEXT, description TEXT,
+  quantity TEXT, unit TEXT, photo_storage_path TEXT,
+  photo_file_name TEXT, photo_file_size INTEGER, photo_mime_type TEXT
 )
 ```
 
-Since `photo_storage_path` does not match `photo_path`, PostgreSQL maps it as NULL. This is confirmed by the database showing `photo_storage_path = NULL` for all items, even though:
-- Photos ARE successfully uploaded to the `public-gate-pass-photos` storage bucket
-- `photo_file_name`, `photo_file_size`, and `photo_mime_type` save correctly (their keys match)
+### Verification
 
-**Bug 2: Tracking RPC doesn't return photo data**
-
-The `get_public_gate_pass_status` function builds item JSON with only 5 fields:
-```sql
-'id', pi.id, 'item_name', pi.item_name, 'description', pi.description,
-'quantity', pi.quantity, 'unit', pi.unit
-```
-
-Missing: `photo_storage_path` and `sr_number`. Even if Bug 1 were fixed, photos still wouldn't appear on the tracking page.
-
-### Fix Plan
-
-**1. Database Migration -- Fix `submit_public_gate_pass`**
-
-Change the `jsonb_to_recordset` column alias from `photo_path` to `photo_storage_path` so it matches the frontend JSONB key:
-
-```sql
--- Before:
-jsonb_to_recordset(p_items) AS x(
-  ..., photo_path TEXT, ...
-)
--- After:
-jsonb_to_recordset(p_items) AS x(
-  ..., photo_storage_path TEXT, ...
-)
-```
-
-And update the INSERT to use the new column alias:
-```sql
--- Before: v_item_record.photo_path
--- After:  v_item_record.photo_storage_path
-```
-
-**2. Database Migration -- Fix `get_public_gate_pass_status`**
-
-Add `photo_storage_path` and `sr_number` to the items JSON output:
-
-```sql
-jsonb_build_object(
-  'id', pi.id, 'sr_number', pi.sr_number,
-  'item_name', pi.item_name, 'description', pi.description,
-  'quantity', pi.quantity, 'unit', pi.unit,
-  'photo_storage_path', pi.photo_storage_path
-)
-```
-
-**3. Frontend -- `PublicStatusPage.tsx`**
-
-Update the items rendering to construct `photo_url` from `photo_storage_path` using the storage public URL pattern:
-```
-{SUPABASE_URL}/storage/v1/object/public/public-gate-pass-photos/{photo_storage_path}
-```
-
-The frontend already checks `item.photo_url` (line 414) -- we just need to compute it from the storage path returned by the RPC.
+- Frontend hook (`use-public-gate-pass.ts` line 95-120) sends params in OID 116538 order -- confirmed match
+- Frontend sends items with `photo_storage_path` key (line 83) -- confirmed match with new function body
+- No frontend changes needed
 
 ### Changes Summary
 
-| File / Target | Change |
-|---|---|
-| Database migration | Fix `submit_public_gate_pass` -- change `photo_path` to `photo_storage_path` in `jsonb_to_recordset` |
-| Database migration | Fix `get_public_gate_pass_status` -- add `photo_storage_path` and `sr_number` to items JSON |
-| `src/pages/public-gate-pass/PublicStatusPage.tsx` | Compute `photo_url` from `photo_storage_path` + Supabase storage URL |
-
-### Note on Existing Data
-
-Previously submitted items have `photo_storage_path = NULL` due to Bug 1. Those historical records cannot show photos retroactively. New submissions after this fix will correctly save and display item photos.
+| Target | Action |
+|--------|--------|
+| Database migration | Drop both duplicate functions, recreate single clean version |
+| Frontend | No changes needed |
 
