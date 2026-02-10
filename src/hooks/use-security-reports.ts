@@ -117,7 +117,7 @@ export function useAttendanceExport(filters: AttendanceExportFilters) {
             employee_id
           ),
           zone:security_zones!guard_attendance_logs_zone_id_fkey(
-            name
+            zone_name
           )
         `)
         .is('deleted_at', null)
