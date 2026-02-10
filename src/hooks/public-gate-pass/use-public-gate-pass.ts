@@ -71,7 +71,7 @@ export function useSubmitPublicGatePass() {
           p_requester_phone: data.requester_phone,
           p_requester_email: data.requester_email || null,
           p_requester_company: data.requester_company || null,
-          p_material_description: data.material_description || null,
+          p_material_description: data.material_description?.trim() || null,
           p_quantity: data.quantity || null,
           p_vehicle_plate: data.vehicle_plate || null,
           p_vehicle_plate_letters: data.vehicle_plate_letters || null,
@@ -135,11 +135,23 @@ export function useSubmitPublicGatePass() {
         
         toast.success("Gate pass request submitted successfully!");
       } else {
-        toast.error(result.error || "Failed to submit gate pass request");
+        // Handle specific error messages with better UX
+        const errorMessage = result.error || "Failed to submit gate pass request";
+        if (errorMessage.includes('Material description is required')) {
+          toast.error("Please provide either a material description or add at least one item with a name");
+        } else {
+          toast.error(errorMessage);
+        }
       }
     },
     onError: (error) => {
-      toast.error(`Failed to submit: ${error.message}`);
+      // Handle specific validation errors with better UX
+      if (error.message?.includes('Material description is required') ||
+          error.message?.includes('material_description')) {
+        toast.error("Please provide either a material description or add at least one item with a name");
+      } else {
+        toast.error(`Failed to submit: ${error.message}`);
+      }
     },
   });
 }
