@@ -25911,24 +25911,15 @@ export type Database = {
         }
         Returns: Json
       }
-      get_leading_indicators:
-        | {
-            Args: {
-              p_branch_id?: string
-              p_end_date?: string
-              p_start_date?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_branch_id?: string
-              p_end_date?: string
-              p_site_id?: string
-              p_start_date?: string
-            }
-            Returns: Json
-          }
+      get_leading_indicators: {
+        Args: {
+          p_branch_id?: string
+          p_end_date?: string
+          p_site_id?: string
+          p_start_date?: string
+        }
+        Returns: Json
+      }
       get_managers_for_team_assignment: {
         Args: { p_exclude_user_id: string; p_tenant_id: string }
         Returns: {
