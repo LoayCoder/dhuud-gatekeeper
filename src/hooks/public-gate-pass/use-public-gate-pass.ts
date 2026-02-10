@@ -37,6 +37,32 @@ async function getClientIP(): Promise<string | null> {
 }
 
 /**
+ * Helper function to handle error responses from gate pass submission
+ * Provides user-friendly messages based on error codes
+ */
+function handleGatePassError(error: string | undefined, errorCode?: string): void {
+  if (!error) {
+    toast.error("Failed to submit gate pass request");
+    return;
+  }
+
+  // Check error code first (most reliable)
+  if (errorCode === 'MISSING_MATERIAL_DESCRIPTION') {
+    toast.error("Please provide either a material description or add at least one item with a name");
+    return;
+  }
+
+  // Fallback to error message (for backward compatibility)
+  if (error.includes('Material description is required')) {
+    toast.error("Please provide either a material description or add at least one item with a name");
+    return;
+  }
+
+  // Default: show the raw error message
+  toast.error(error);
+}
+
+/**
  * Submit a public gate pass request
  */
 export function useSubmitPublicGatePass() {
@@ -54,13 +80,18 @@ export function useSubmitPublicGatePass() {
         description: item.description || null,
         quantity: item.quantity || null,
         unit: item.unit || null,
-        photo_path: item.photo_path || null,
+        photo_storage_path: item.photo_path || null,
         photo_file_name: item.photo_file_name || null,
         photo_file_size: item.photo_file_size || null,
         photo_mime_type: item.photo_mime_type || null,
       })) || [];
 
       // Call the RPC function using .rpc() with type assertion
+      // DB function signature: p_tenant_slug, p_branch_id, p_requester_name, p_requester_phone,
+      // p_requester_email, p_requester_company, p_pass_type, p_material_description, p_quantity,
+      // p_vehicle_plate, p_vehicle_plate_letters, p_vehicle_plate_numbers, p_driver_name,
+      // p_driver_mobile, p_pass_date, p_notify_whatsapp, p_notify_email, p_notify_sms,
+      // p_client_ip, p_items, p_start_date, p_end_date
       const { data: result, error } = await supabase.rpc(
         "submit_public_gate_pass" as never,
         {
@@ -70,22 +101,22 @@ export function useSubmitPublicGatePass() {
           p_requester_phone: data.requester_phone,
           p_requester_email: data.requester_email || null,
           p_requester_company: data.requester_company || null,
-          p_pass_type: data.pass_type,
-          p_material_description: data.material_description || null,
+          p_pass_type: data.pass_type || 'in',
+          p_material_description: data.material_description?.trim() || null,
           p_quantity: data.quantity || null,
           p_vehicle_plate: data.vehicle_plate || null,
           p_vehicle_plate_letters: data.vehicle_plate_letters || null,
           p_vehicle_plate_numbers: data.vehicle_plate_numbers || null,
           p_driver_name: data.driver_name || null,
           p_driver_mobile: data.driver_mobile || null,
-          p_pass_date: data.pass_date || data.start_date,
-          p_start_date: data.start_date,
-          p_end_date: data.end_date,
+          p_pass_date: data.start_date,
           p_notify_whatsapp: data.notify_whatsapp ?? true,
           p_notify_email: data.notify_email ?? true,
           p_notify_sms: data.notify_sms ?? false,
           p_client_ip: clientIp,
           p_items: itemsJsonb,
+          p_start_date: data.start_date,
+          p_end_date: data.end_date,
         } as never
       );
 
@@ -102,12 +133,12 @@ export function useSubmitPublicGatePass() {
         if (result.public_access_token) {
           localStorage.setItem("public_gate_pass_token", result.public_access_token);
         }
-        
+
         // Build material description from items for notification
-        const materialDescription = variables.items?.map(i => i.item_name).join(', ') 
-          || variables.material_description 
+        const materialDescription = variables.items?.map(i => i.item_name).join(', ')
+          || variables.material_description
           || '';
-        
+
         // Trigger WhatsApp notification to requester AND staff (fire-and-forget)
         try {
           console.log('[Public Gate Pass] Triggering notification for:', result.reference_number);
@@ -132,14 +163,16 @@ export function useSubmitPublicGatePass() {
           // Don't fail the submission - notification is best-effort
           console.error('[Public Gate Pass] Notification failed:', err);
         }
-        
+
         toast.success("Gate pass request submitted successfully!");
       } else {
-        toast.error(result.error || "Failed to submit gate pass request");
+        // Use helper function to handle errors with error codes
+        handleGatePassError(result.error, result.error_code);
       }
     },
     onError: (error) => {
-      toast.error(`Failed to submit: ${error.message}`);
+      // Use helper function for consistency
+      handleGatePassError(error.message);
     },
   });
 }
@@ -157,7 +190,6 @@ export function usePublicGatePassStatus(tenantSlug: string | undefined, token: s
       const { data, error } = await supabase.rpc(
         "get_public_gate_pass_status" as never,
         {
-          p_tenant_slug: tenantSlug,
           p_access_token: token,
         } as never
       );

@@ -409,11 +409,15 @@ export default function PublicStatusPage() {
                   {isRTL ? "البنود" : "Items"} ({gatePass.items.length})
                 </p>
                 <div className="space-y-2">
-                  {gatePass.items.map((item, idx) => (
+                  {gatePass.items.map((item, idx) => {
+                    const photoUrl = item.photo_storage_path
+                      ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/public-gate-pass-photos/${item.photo_storage_path}`
+                      : item.photo_url || null;
+                    return (
                     <div key={item.id || idx} className="flex gap-3 p-2 bg-muted/50 rounded-lg">
-                      {item.photo_url && (
+                      {photoUrl && (
                         <img
-                          src={item.photo_url}
+                          src={photoUrl}
                           alt={item.item_name}
                           className="w-16 h-16 rounded object-cover shrink-0"
                         />
@@ -433,7 +437,8 @@ export default function PublicStatusPage() {
                         )}
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ) : (

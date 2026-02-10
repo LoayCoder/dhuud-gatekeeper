@@ -1,109 +1,67 @@
 
 
-# Complete Fix: All Column Mismatches in Gate Pass Functions
+## Fix: Permanently Remove Duplicate `submit_public_gate_pass` and Keep One Clean Version
 
-## Problem
+### Problem
 
-A full audit reveals **14+ column mismatches** between the database functions and actual table schemas. The functions reference columns that either don't exist or have different names.
+Two overloads of `submit_public_gate_pass` exist in the database with different parameter orders. PostgREST cannot resolve the ambiguity, breaking all submissions.
 
-## Audit Results
+| OID | Parameter Order (key difference) | Body |
+|-----|----------------------------------|------|
+| 116538 | `...p_pass_date, p_notify_*, p_client_ip, p_items, p_start_date, p_end_date` | Old `photo_path` bug |
+| 116541 | `...p_items, p_pass_date, p_notify_*, p_client_ip, p_start_date, p_end_date` | Has `photo_storage_path` fix |
 
-### `material_gate_passes` table -- Missing columns the functions expect:
+The frontend sends parameters matching OID 116538's order.
 
-| Missing Column | Type | Purpose |
-|---|---|---|
-| `vehicle_plate_letters` | TEXT | Separated plate letters (Arabic) |
-| `vehicle_plate_numbers` | TEXT | Separated plate numbers |
-| `token_expires_at` | TIMESTAMPTZ | Token expiration for public access |
-| `submission_ip` | TEXT | Client IP for rate limiting audit |
+### Solution: Single Database Migration
 
-### `material_gate_passes` table -- Wrong column names in functions:
+**Step 1** -- Drop both functions by exact type signature:
 
-| Function uses | Should be |
-|---|---|
-| `requester_name` | `public_requester_name` |
-| `requester_phone` | `public_requester_phone` |
-| `requester_email` | `public_requester_email` |
-| `requester_company` | `public_requester_company` |
-| `reference_id` | `reference_number` |
-| `qr_token` | `qr_code_token` |
-
-### `public_gate_pass_items` table -- Missing columns:
-
-| Missing Column | Type | Purpose |
-|---|---|---|
-| `branch_id` | UUID | Tenant isolation on items |
-| `sort_order` | INTEGER | Item ordering |
-
-### `public_gate_pass_items` table -- Wrong column names:
-
-| Function uses | Should be |
-|---|---|
-| `item_description` | `description` |
-
-### `public_gate_pass_items` -- Type mismatch:
-
-| Column | Function casts to | Actual type |
-|---|---|---|
-| `quantity` | INTEGER | TEXT |
-
-## Fix Strategy
-
-**Single atomic migration** with two parts:
-
-### Part 1: Add missing columns (additive, non-destructive)
-
-Add to `material_gate_passes`:
-- `vehicle_plate_letters TEXT`
-- `vehicle_plate_numbers TEXT`
-- `token_expires_at TIMESTAMPTZ`
-- `submission_ip TEXT`
-
-Add to `public_gate_pass_items`:
-- `branch_id UUID REFERENCES branches(id)`
-- `sort_order INTEGER DEFAULT 0`
-
-### Part 2: Recreate all functions with correct column names
-
-**`submit_public_gate_pass`** -- Fix all column references:
-- `public_requester_name` instead of `requester_name`
-- `public_requester_phone` instead of `requester_phone`
-- `public_requester_email` instead of `requester_email`
-- `public_requester_company` instead of `requester_company`
-- `reference_number` instead of `reference_id`
-- Use newly added columns for `vehicle_plate_letters`, `vehicle_plate_numbers`, `token_expires_at`, `submission_ip`
-
-**`get_public_gate_pass_status`** -- Fix all column references:
-- `reference_number` instead of `reference_id`
-- `public_requester_name` instead of `requester_name`
-- `public_requester_company` instead of `requester_company`
-- `qr_code_token` instead of `qr_token`
-- `description` instead of `item_description` for items
-- Keep `quantity` as TEXT (no INT cast)
-
-**`validate_gate_pass_dates`** and **`validate_gate_pass_guard_access`** -- Verify and recreate for completeness.
-
-### Part 3: Permissions and cache reload
-```
-GRANT EXECUTE to anon/authenticated
-NOTIFY pgrst, 'reload schema'
+```sql
+DROP FUNCTION IF EXISTS public.submit_public_gate_pass(
+  text, uuid, text, text, text, text, text, text, text, text,
+  text, text, text, text, date, boolean, boolean, boolean, text, jsonb, date, date
+);
+DROP FUNCTION IF EXISTS public.submit_public_gate_pass(
+  text, uuid, text, text, text, text, text, text, text, text,
+  text, text, text, text, jsonb, date, boolean, boolean, boolean, text, date, date
+);
 ```
 
-## No Frontend Changes Needed
+**Step 2** -- Recreate a single function combining:
+- **Parameter order** from OID 116538 (matches the frontend hook)
+- **Function body** from OID 116541 (has the `photo_storage_path` fix)
 
-The frontend hook already sends the correct parameter names (`p_requester_name`, `p_requester_phone`, etc.) -- these are RPC parameters, not column names. The column mapping happens inside the SQL function.
+The recreated function signature:
+```
+(p_tenant_slug text, p_branch_id uuid, p_requester_name text, p_requester_phone text,
+ p_requester_email text, p_requester_company text, p_pass_type text,
+ p_material_description text, p_quantity text, p_vehicle_plate text,
+ p_vehicle_plate_letters text, p_vehicle_plate_numbers text,
+ p_driver_name text, p_driver_mobile text, p_pass_date date,
+ p_notify_whatsapp boolean, p_notify_email boolean, p_notify_sms boolean,
+ p_client_ip text, p_items jsonb, p_start_date date, p_end_date date)
+```
 
-## Files to Modify
+The body includes the corrected item-insertion loop:
+```sql
+jsonb_to_recordset(p_items) AS x(
+  sr_number TEXT, item_name TEXT, description TEXT,
+  quantity TEXT, unit TEXT, photo_storage_path TEXT,
+  photo_file_name TEXT, photo_file_size INTEGER, photo_mime_type TEXT
+)
+```
 
-| File | Change |
-|------|--------|
-| New migration SQL | Add missing columns, drop and recreate all 4 functions with correct column references, grant permissions, reload schema |
+### Verification
 
-## Expected Result
+- Frontend hook (`use-public-gate-pass.ts` line 95-120) sends params in OID 116538 order -- confirmed match
+- Frontend sends items with `photo_storage_path` key (line 83) -- confirmed match with new function body
+- No frontend changes needed
 
-- All column references match the actual database schema
-- Public gate pass submission works without any column errors
-- Status tracking works correctly
-- Full tenant isolation maintained
-- No data loss (additive columns only)
+### Changes Summary
+
+| Target | Action |
+|--------|--------|
+| Database migration | Drop both duplicate functions, recreate single clean version |
+| Frontend | No changes needed |
 

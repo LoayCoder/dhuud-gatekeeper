@@ -54,7 +54,8 @@ export interface PublicGatePassItem {
   description?: string;
   quantity?: string;
   unit?: string;
-  photo_path?: string;       // Storage path after upload
+  photo_storage_path?: string; // Storage path after upload (matches DB column)
+  photo_path?: string;       // Legacy alias
   photo_file_name?: string;
   photo_file_size?: number;
   photo_mime_type?: string;
@@ -108,6 +109,7 @@ export interface PublicGatePassSubmission extends PublicGatePassFormData {
 export interface PublicGatePassSubmissionResult {
   success: boolean;
   error?: string;
+  error_code?: string; // Structured error code for reliable client-side handling
   gate_pass_id?: string;
   reference_number?: string;
   public_access_token?: string;
