@@ -1,5 +1,20 @@
 -- Fix NULL material_description constraint violation in submit_public_gate_pass
 -- This migration adds validation to ensure material_description is never NULL
+--
+-- Key improvements:
+-- 1. Filters out empty/whitespace-only item names during STRING_AGG
+-- 2. Validates material_description before INSERT to prevent constraint violations
+-- 3. Returns structured error codes for reliable client-side error handling
+--
+-- Error codes added:
+-- - MISSING_REQUIRED_FIELDS: requester name or phone is missing
+-- - INVALID_DATE_RANGE: end date is before start date
+-- - SINGLE_DAY_PASS_VIOLATION: entry/exit only pass spans multiple days
+-- - DATE_RANGE_EXCEEDS_LIMIT: entry & exit pass exceeds 7 days
+-- - TENANT_NOT_FOUND: organization slug not found
+-- - PUBLIC_REQUESTS_DISABLED: tenant doesn't allow public requests
+-- - RATE_LIMIT_EXCEEDED: too many submissions from same phone
+-- - MISSING_MATERIAL_DESCRIPTION: no material description or valid items
 
 CREATE OR REPLACE FUNCTION public.submit_public_gate_pass(
   p_tenant_slug TEXT,
@@ -49,7 +64,8 @@ BEGIN
   IF p_requester_name IS NULL OR p_requester_phone IS NULL THEN
     RETURN jsonb_build_object(
       'success', false,
-      'error', 'Requester name and phone are required'
+      'error', 'Requester name and phone are required',
+      'error_code', 'MISSING_REQUIRED_FIELDS'
     );
   END IF;
 
@@ -64,7 +80,8 @@ BEGIN
   IF v_date_diff < 0 THEN
     RETURN jsonb_build_object(
       'success', false,
-      'error', 'End date must be on or after start date'
+      'error', 'End date must be on or after start date',
+      'error_code', 'INVALID_DATE_RANGE'
     );
   END IF;
 
@@ -73,7 +90,8 @@ BEGIN
     IF v_date_diff > 0 THEN
       RETURN jsonb_build_object(
         'success', false,
-        'error', 'Entry-only and Exit-only passes are valid for one day only'
+        'error', 'Entry-only and Exit-only passes are valid for one day only',
+        'error_code', 'SINGLE_DAY_PASS_VIOLATION'
       );
     END IF;
   ELSE
@@ -81,7 +99,8 @@ BEGIN
     IF v_date_diff > 6 THEN
       RETURN jsonb_build_object(
         'success', false,
-        'error', 'Entry & Exit date range cannot exceed 7 days'
+        'error', 'Entry & Exit date range cannot exceed 7 days',
+        'error_code', 'DATE_RANGE_EXCEEDS_LIMIT'
       );
     END IF;
   END IF;
@@ -96,14 +115,16 @@ BEGIN
   IF v_tenant_record.id IS NULL THEN
     RETURN jsonb_build_object(
       'success', false,
-      'error', 'Organization not found'
+      'error', 'Organization not found',
+      'error_code', 'TENANT_NOT_FOUND'
     );
   END IF;
 
   IF NOT v_tenant_record.allow_public_gate_pass_requests THEN
     RETURN jsonb_build_object(
       'success', false,
-      'error', 'Public gate pass requests are not enabled for this organization'
+      'error', 'Public gate pass requests are not enabled for this organization',
+      'error_code', 'PUBLIC_REQUESTS_DISABLED'
     );
   END IF;
 
@@ -122,7 +143,8 @@ BEGIN
     IF v_rate_limit_count >= 5 THEN
       RETURN jsonb_build_object(
         'success', false,
-        'error', 'Rate limit exceeded. Please try again later.'
+        'error', 'Rate limit exceeded. Please try again later.',
+        'error_code', 'RATE_LIMIT_EXCEEDED'
       );
     END IF;
   END IF;
@@ -138,10 +160,12 @@ BEGIN
   END IF;
 
   -- Build material description from items if provided
+  -- Filter out items with null, empty, or whitespace-only names
   IF jsonb_array_length(p_items) > 0 THEN
     SELECT STRING_AGG(item->>'item_name', ', ')
     INTO v_material_description
-    FROM jsonb_array_elements(p_items) AS item;
+    FROM jsonb_array_elements(p_items) AS item
+    WHERE NULLIF(TRIM(item->>'item_name'), '') IS NOT NULL;
   ELSE
     v_material_description := p_material_description;
   END IF;
@@ -151,7 +175,8 @@ BEGIN
   IF v_material_description IS NULL OR TRIM(v_material_description) = '' THEN
     RETURN jsonb_build_object(
       'success', false,
-      'error', 'Material description is required. Please provide either a description or at least one item with a name.'
+      'error', 'Material description is required. Please provide either a description or at least one item with a name.',
+      'error_code', 'MISSING_MATERIAL_DESCRIPTION'
     );
   END IF;
 
