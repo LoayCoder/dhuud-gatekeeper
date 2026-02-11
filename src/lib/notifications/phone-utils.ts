@@ -74,8 +74,9 @@ export function getPhoneValidationError(phone: string | null | undefined): strin
   if (normalized) return null;
 
   const cleaned = phone.replace(/[\s\-\(\)\.]/g, '');
-  if (cleaned.length < 7) return 'Phone number too short (minimum 7 digits)';
-  if (cleaned.length > 16) return 'Phone number too long (maximum 15 digits)';
+  const digitsOnly = cleaned.replace(/\D/g, '');
+  if (digitsOnly.length < 7) return 'Phone number too short (minimum 7 digits)';
+  if (digitsOnly.length > 15) return 'Phone number too long (maximum 15 digits)';
   if (/[a-zA-Z]/.test(cleaned)) return 'Phone number contains letters';
 
   return 'Invalid phone number format. Expected E.164 format: +<countryCode><number>';
