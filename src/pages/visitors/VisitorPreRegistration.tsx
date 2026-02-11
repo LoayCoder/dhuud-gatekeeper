@@ -24,7 +24,6 @@ import { VisitorPhotoCapture } from '@/components/security/VisitorPhotoCapture';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useVisitorWorkflowSettings } from '@/hooks/use-visitor-workflow-settings';
 import { supabase } from '@/integrations/supabase/client';
-import { supabase } from '@/integrations/supabase/client';
 import { NATIONALITIES } from '@/lib/nationalities';
 import { isValidPhoneNumber } from "react-phone-number-input";
 import { DhuudPhoneInput } from "@/components/ui/phone-input";
