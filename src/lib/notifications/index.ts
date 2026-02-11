@@ -57,3 +57,5 @@ export {
   isValidE164,
   getPhoneValidationError,
 } from './phone-utils';
+
+export type { PhoneNormalizationOptions } from './phone-utils';

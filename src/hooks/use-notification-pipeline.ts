@@ -19,6 +19,7 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { logger } from '@/lib/logger';
+import { supabase } from '@/integrations/supabase/client';
 import {
   processActionEvent,
   createActionEvent,
@@ -30,6 +31,9 @@ import {
 } from '@/lib/notifications';
 
 const log = logger.scope('useNotificationPipeline');
+
+/** Cached tenant phone country code to avoid repeated DB lookups */
+const tenantPhoneCodeCache = new Map<string, string | null>();
 
 interface NotifyParams {
   eventType: ActionEventType;
@@ -71,6 +75,18 @@ export function useNotificationPipeline(): UseNotificationPipelineReturn {
     setLastError(null);
 
     try {
+      // Fetch tenant's default phone country code (cached)
+      let defaultPhoneCountryCode: string | null = null;
+      if (!tenantPhoneCodeCache.has(profile.tenant_id)) {
+        const { data: tenant } = await supabase
+          .from('tenants')
+          .select('default_phone_country_code')
+          .eq('id', profile.tenant_id)
+          .single();
+        tenantPhoneCodeCache.set(profile.tenant_id, tenant?.default_phone_country_code ?? null);
+      }
+      defaultPhoneCountryCode = tenantPhoneCodeCache.get(profile.tenant_id) ?? null;
+
       const event = createActionEvent({
         eventType: params.eventType,
         priority: params.priority,
@@ -79,7 +95,10 @@ export function useNotificationPipeline(): UseNotificationPipelineReturn {
         source: params.source,
         variables: params.variables,
         recipientOverrides: params.recipientOverrides,
-        metadata: params.metadata,
+        metadata: {
+          ...params.metadata,
+          ...(defaultPhoneCountryCode ? { defaultPhoneCountryCode } : {}),
+        },
       });
 
       const result = await processActionEvent(event);

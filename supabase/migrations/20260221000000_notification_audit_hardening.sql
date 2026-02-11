@@ -2,11 +2,21 @@
 -- NOTIFICATION AUDIT HARDENING MIGRATION
 --
 -- Adds:
+-- 0. Tenant default_phone_country_code for configurable phone normalization
 -- 1. Idempotency key + unique constraint to notification_logs
 -- 2. Improved indexes for notification delivery tracking
 -- 3. Event dedup constraint on auto_notification_logs
 -- 4. notification_health view for monitoring
 -- =============================================================================
+
+-- 0. Add default_phone_country_code to tenants (configurable per tenant)
+--    Stores the dial code without +, e.g. '966' for Saudi Arabia, '971' for UAE.
+--    Used by the notification pipeline for local phone number normalization.
+ALTER TABLE public.tenants
+  ADD COLUMN IF NOT EXISTS default_phone_country_code TEXT DEFAULT '966';
+
+COMMENT ON COLUMN public.tenants.default_phone_country_code IS
+  'Default country dial code (without +) for normalizing local phone numbers. E.g. 966=Saudi Arabia, 971=UAE, 44=UK.';
 
 -- 1. Add idempotency_key column to notification_logs (server-side dedup)
 DO $$

@@ -51,7 +51,7 @@ import { EVENT_TO_PREFERENCE } from './types';
 import { mapActionEventToDeliveries } from './action-event-mapper';
 import { resolveTemplate, renderTemplateForChannel } from './template-registry';
 import { isDuplicateEvent, markEventProcessed, generateEventId } from './idempotency';
-import { normalizePhoneE164 } from './phone-utils';
+import { normalizePhoneE164, type PhoneNormalizationOptions } from './phone-utils';
 
 const log = logger.scope('NotificationPipeline');
 
@@ -402,6 +402,11 @@ async function deliverWhatsApp(
   const skipped: DeliveryResult[] = [];
   const toSend: NotificationRecipient[] = [];
 
+  // Use tenant's default country code for local number normalization
+  const phoneOptions: PhoneNormalizationOptions = {
+    defaultCountryCode: event.metadata?.defaultPhoneCountryCode as string | undefined,
+  };
+
   for (const r of recipients) {
     if (!r.phone) {
       skipped.push({
@@ -412,8 +417,8 @@ async function deliverWhatsApp(
         timestamp: new Date().toISOString(),
       });
     } else {
-      // Normalize phone number to E.164 before sending
-      const normalizedPhone = normalizePhoneE164(r.phone);
+      // Normalize phone number to E.164 using tenant's default country code
+      const normalizedPhone = normalizePhoneE164(r.phone, phoneOptions);
       if (!normalizedPhone) {
         skipped.push({
           channel: 'whatsapp',

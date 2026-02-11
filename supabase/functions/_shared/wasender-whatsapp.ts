@@ -38,34 +38,39 @@ export interface WaSenderResponse {
 /**
  * Format phone number to E.164 format WITH + prefix
  * WaSender expects format like: +966501234567
+ *
+ * Uses DEFAULT_PHONE_COUNTRY_CODE env var if set, otherwise falls back to '966' (Saudi Arabia).
+ * This allows multi-tenant deployments to configure the default per environment.
  */
 function formatPhoneNumber(phone: string): string {
+  const defaultCountryCode = Deno.env.get('DEFAULT_PHONE_COUNTRY_CODE') || '966';
+
   // Remove any whatsapp: prefix
   let cleaned = phone.replace(/^whatsapp:/, '');
-  
+
   // Remove spaces, dashes, parentheses
   cleaned = cleaned.replace(/[\s\-\(\)]/g, '');
-  
+
   // Handle 00 international prefix
   if (cleaned.startsWith('00')) {
     cleaned = '+' + cleaned.substring(2);
   }
-  
-  // If starts with 0, assume Saudi Arabia
+
+  // If starts with 0, use configurable default country code
   if (cleaned.startsWith('0') && !cleaned.startsWith('00')) {
-    cleaned = '+966' + cleaned.substring(1);
+    cleaned = '+' + defaultCountryCode + cleaned.substring(1);
   }
-  
-  // If just 9 digits, assume Saudi Arabia
+
+  // If just 9 digits, use configurable default country code
   if (/^\d{9}$/.test(cleaned)) {
-    cleaned = '+966' + cleaned;
+    cleaned = '+' + defaultCountryCode + cleaned;
   }
-  
+
   // Ensure + prefix exists
   if (!cleaned.startsWith('+')) {
     cleaned = '+' + cleaned;
   }
-  
+
   return cleaned;
 }
 
