@@ -1,42 +1,44 @@
 
 
-## Fix: Duplicate Branch Names in Dropdown (Defensive Deduplication)
+## Fix: Duplicate RGC on Public Gate Pass Page
 
 ### Root Cause
 
-The database only has **one** active "RGC" branch (the old one was soft-deleted on 2025-12-29). The duplicate showing in the UI is caused by **stale React Query cache** in the browser. A hard refresh (Ctrl+Shift+R) will immediately fix it.
+The public gate pass page (`/golf-saudi/request`) uses `usePublicBranches` hook, which was **not** included in the previous deduplication fix. More critically, this hook **does not filter soft-deleted branches** (`deleted_at IS NULL`).
 
-### Preventive Fix
+The database has two "RGC" rows:
+- `d0ac82c0...` -- soft-deleted on 2025-12-29 (should be hidden)
+- `8a74df12...` -- active (should be shown)
 
-Add deduplication by `id` to the branch query results in **3 locations** to ensure this never happens again, even with stale caches:
+Since the query lacks `.is('deleted_at', null)`, both appear in the dropdown.
 
-### File Changes
+### Fix
 
-**1. `src/contexts/BranchContext.tsx`**
-- After fetching `allBranches` (line 78), deduplicate by `id` before setting state:
-```ts
-const uniqueBranches = allBranches?.filter(
-  (b, i, arr) => arr.findIndex(x => x.id === b.id) === i
-) || [];
-setAccessibleBranches(uniqueBranches);
+**File: `src/hooks/public-gate-pass/use-public-branches.ts`**
+
+Two changes to `usePublicBranches` function:
+
+1. Add `.is('deleted_at', null)` filter to the query (line 38, before `.order()`)
+2. Add defensive deduplication by `id` on the result (consistent with all other branch hooks)
+
+The same `.is('deleted_at', null)` filter should also be added to `usePublicBranch` for consistency, though it is less likely to hit a deleted branch since it queries by specific ID.
+
+### Technical Detail
+
+```text
+Before (line 37-38):
+  .eq("tenant_id", tenantId)
+  .order("name", { ascending: true });
+
+After:
+  .eq("tenant_id", tenantId)
+  .is("deleted_at", null)
+  .order("name", { ascending: true });
+
+Result dedup:
+  return (data || []).filter(
+    (b, i, arr) => arr.findIndex(x => x.id === b.id) === i
+  ) as PublicBranch[];
 ```
-- Same dedup for the assignments-based branch list (line 138)
 
-**2. `src/hooks/use-org-hierarchy.ts` (`useTenantBranches`)**
-- Deduplicate query results before returning
-
-**3. `src/hooks/use-branches.ts`**
-- Deduplicate query results before returning
-
-### Also Fix: Build Errors (unrelated but blocking)
-
-**4. `src/hooks/use-push-subscription.ts`** (lines 207, 292)
-- Add type assertion for `pushManager` property: `(registration as any).pushManager`
-
-**5. `src/pages/public-gate-pass/PublicStatusPage.tsx`** (line 454)
-- Fix undefined `isCompleted` variable -- derive it from the status data
-
-### Immediate Action for User
-
-Hard refresh the browser (Ctrl+Shift+R) to clear the stale cache and see only one RGC immediately.
-
+No database migration needed. Single file change.
