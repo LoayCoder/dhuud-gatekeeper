@@ -8,6 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Camera, ImagePlus, Trash2, X, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { compressImage } from "@/lib/upload-utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export interface GatePassItemData {
   id: string;
@@ -255,12 +262,26 @@ export function PublicGatePassItemForm({
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">{isRTL ? "الوحدة" : "Unit"}</Label>
-              <Input
-                placeholder={isRTL ? "قطعة" : "Pcs"}
+              <Select
                 value={item.unit}
-                onChange={(e) => onUpdate(index, "unit", e.target.value)}
-                className="text-center"
-              />
+                onValueChange={(value) => onUpdate(index, "unit", value)}
+              >
+                <SelectTrigger className="text-center">
+                  <SelectValue placeholder={isRTL ? "اختر" : "Select"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PCS">{isRTL ? "قطعة" : "PCS"}</SelectItem>
+                  <SelectItem value="BOX">{isRTL ? "صندوق" : "BOX"}</SelectItem>
+                  <SelectItem value="KG">{isRTL ? "كيلوجرام" : "KG"}</SelectItem>
+                  <SelectItem value="M">{isRTL ? "متر" : "M"}</SelectItem>
+                  <SelectItem value="L">{isRTL ? "لتر" : "L"}</SelectItem>
+                  <SelectItem value="ROLL">{isRTL ? "لفة" : "ROLL"}</SelectItem>
+                  <SelectItem value="SET">{isRTL ? "طقم" : "SET"}</SelectItem>
+                  <SelectItem value="PAIR">{isRTL ? "زوج" : "PAIR"}</SelectItem>
+                  <SelectItem value="PACK">{isRTL ? "حزمة" : "PACK"}</SelectItem>
+                  <SelectItem value="DOZ">{isRTL ? "دزينة" : "DOZ"}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">{isRTL ? "الرقم التسلسلي" : "Serial #"}</Label>
