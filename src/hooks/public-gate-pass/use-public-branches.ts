@@ -35,10 +35,13 @@ export function usePublicBranches(tenantId: string | undefined) {
           contact_email
         `)
         .eq("tenant_id", tenantId)
+        .is("deleted_at", null)
         .order("name", { ascending: true });
 
       if (error) throw error;
-      return (data || []) as PublicBranch[];
+      return (data || []).filter(
+        (b, i, arr) => arr.findIndex(x => x.id === b.id) === i
+      ) as PublicBranch[];
     },
     enabled: !!tenantId,
     staleTime: 5 * 60 * 1000,
