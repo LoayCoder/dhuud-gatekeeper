@@ -1,9 +1,10 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { QRCodeSVG } from "qrcode.react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,12 +17,6 @@ import {
   AlertTriangle,
   FileText,
   MapPin,
-  Phone,
-  Package,
-  Truck,
-  Calendar,
-  User,
-  Building2,
   ExternalLink,
   Download,
   RefreshCw,
@@ -29,7 +24,9 @@ import {
   ArrowLeft,
   Timer,
   ShieldCheck,
-  Check
+  Check,
+  Expand,
+  X
 } from "lucide-react";
 import {
   usePublicGatePassStatus,
@@ -389,35 +386,86 @@ export default function PublicStatusPage() {
               <Separator />
 
               {/* Items */}
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <h4 className="text-sm font-medium flex items-center gap-2">
                   <Package className="h-4 w-4 text-muted-foreground" />
-                  {isRTL ? "المواد" : "Items"} <Badge variant="secondary" className="text-[10px] h-5 px-1.5">{gatePass.items?.length || 0}</Badge>
+                  {isRTL ? "المواد" : "Items"} <Badge variant="secondary" className="text-xs h-5 px-1.5">{gatePass.items?.length || 0}</Badge>
                 </h4>
-                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                <div className="space-y-3">
                   {gatePass.items?.map((item: any) => (
-                    <div key={item.id} className="flex gap-3 p-2 border rounded-lg hover:bg-muted/20 transition-colors">
-                      <div className="h-12 w-12 rounded overflow-hidden bg-muted shrink-0">
-                        {item.photo_storage_path ? (
-                          <img
-                            src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/public-gate-pass-photos/${item.photo_storage_path}`}
-                            alt={item.item_name}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="h-full w-full flex items-center justify-center text-muted-foreground">
-                            <Package className="h-5 w-5" />
+                    <Card key={item.id} className="overflow-hidden border shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex">
+                        {/* Image Section */}
+                        <div className="w-24 h-24 sm:w-32 sm:h-32 bg-muted shrink-0 relative group cursor-pointer border-e">
+                          {item.photo_storage_path ? (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <div className="w-full h-full relative">
+                                  <img
+                                    src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/public-gate-pass-photos/${item.photo_storage_path}`}
+                                    alt={item.item_name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                    <Expand className="text-white drop-shadow-md h-6 w-6" />
+                                  </div>
+                                </div>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black/90 border-none sm:rounded-lg">
+                                <div className="relative w-full h-full flex items-center justify-center p-2 sm:p-4">
+                                  <img
+                                    src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/public-gate-pass-photos/${item.photo_storage_path}`}
+                                    alt={item.item_name}
+                                    className="max-w-full max-h-[85vh] object-contain rounded-md"
+                                  />
+                                  <div className="absolute bottom-4 left-0 right-0 text-center pointer-events-none">
+                                    <span className="inline-block bg-black/50 text-white px-3 py-1 rounded-full text-sm backdrop-blur-sm">
+                                      {item.item_name}
+                                    </span>
+                                  </div>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-muted/50">
+                              <Package className="h-8 w-8 opacity-20" />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Details Section */}
+                        <div className="flex-1 p-3 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-start justify-between gap-2">
+                              <h5 className="font-semibold text-base line-clamp-2 leading-tight">{item.item_name}</h5>
+                              <Badge variant="outline" className="shrink-0 font-mono text-xs">
+                                {item.quantity} {item.unit}
+                              </Badge>
+                            </div>
+                            {item.description && (
+                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+                                {item.description}
+                              </p>
+                            )}
                           </div>
-                        )}
+
+                          {item.sr_number && (
+                            <div className="mt-2 pt-2 border-t flex items-center gap-1.5 text-xs text-muted-foreground w-full">
+                              <div className="font-mono bg-muted px-1.5 py-0.5 rounded text-[10px] tracking-wider uppercase">SN</div>
+                              <span className="font-medium font-mono truncate">{item.sr_number}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0 py-0.5">
-                        <p className="text-sm font-medium truncate">{item.item_name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {item.quantity} {item.unit} {item.sr_number ? `• SN: ${item.sr_number}` : ''}
-                        </p>
-                      </div>
-                    </div>
+                    </Card>
                   ))}
+
+                  {(!gatePass.items || gatePass.items.length === 0) && (
+                    <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-lg border border-dashed">
+                      <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">{isRTL ? "لا يوجد مواد" : "No items listed"}</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
