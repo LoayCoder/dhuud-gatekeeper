@@ -75,7 +75,10 @@ export function BranchProvider({ children }: { children: React.ReactNode }) {
           .order("name");
 
         if (error) throw error;
-        setAccessibleBranches(allBranches || []);
+        const uniqueBranches = (allBranches || []).filter(
+          (b, i, arr) => arr.findIndex(x => x.id === b.id) === i
+        );
+        setAccessibleBranches(uniqueBranches);
         setBranchAssignments([]);
         
         // For full access users, default to "All Branches" (null) unless they have a stored preference
@@ -158,7 +161,10 @@ export function BranchProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        setAccessibleBranches(branches);
+        const uniqueBranches = branches.filter(
+          (b, i, arr) => arr.findIndex(x => x.id === b.id) === i
+        );
+        setAccessibleBranches(uniqueBranches);
         setBranchAssignments(formattedAssignments);
 
         // Set primary branch as active for non-full-access users

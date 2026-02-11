@@ -32,7 +32,9 @@ export function useBranches() {
         .order('name');
 
       if (error) throw error;
-      return data as Branch[];
+      return (data as Branch[]).filter(
+        (b, i, arr) => arr.findIndex(x => x.id === b.id) === i
+      );
     },
     staleTime: 10 * 60 * 1000,
   });

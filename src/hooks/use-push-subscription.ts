@@ -204,7 +204,7 @@ export function usePushSubscription() {
       );
       
       const registration = await Promise.race([swPromise, timeoutPromise]);
-      const subscription = await registration.pushManager.getSubscription();
+      const subscription = await (registration as any).pushManager.getSubscription();
 
       setState({
         isSubscribed: !!subscription,
@@ -289,7 +289,7 @@ export function usePushSubscription() {
       logger.debug('[Push] Service worker ready:', registration.scope);
 
       logger.debug('[Push] Subscribing to push manager...');
-      const subscription = await registration.pushManager.subscribe({
+      const subscription = await (registration as any).pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey,
       });
