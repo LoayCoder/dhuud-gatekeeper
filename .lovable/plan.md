@@ -1,44 +1,65 @@
 
 
-## Fix: Duplicate RGC on Public Gate Pass Page
+## Fix: Public Gate Pass Tracking Page - Items Not Displaying + Build Errors
 
-### Root Cause
+### Problem Summary
 
-The public gate pass page (`/golf-saudi/request`) uses `usePublicBranches` hook, which was **not** included in the previous deduplication fix. More critically, this hook **does not filter soft-deleted branches** (`deleted_at IS NULL`).
+Three distinct issues:
 
-The database has two "RGC" rows:
-- `d0ac82c0...` -- soft-deleted on 2025-12-29 (should be hidden)
-- `8a74df12...` -- active (should be shown)
+1. **Items show "0"**: The `get_public_gate_pass_status` RPC returns `items` as a **sibling** of `gate_pass` in the JSON response, but the UI reads `gatePass.items` (nested inside gate_pass) -- which is always `undefined`.
+2. **Vehicle plate empty**: The RPC returns only `vehicle_plate` (combined), but the UI reads `vehicle_plate_letters` and `vehicle_plate_numbers` (separate fields not in the RPC response).
+3. **Build error**: Duplicate `import { supabase }` on lines 26-27 of `VisitorPreRegistration.tsx`.
 
-Since the query lacks `.is('deleted_at', null)`, both appear in the dropdown.
+### Database Evidence
 
-### Fix
+The data exists correctly in the database:
+- 2 items in `public_gate_pass_items` with photos
+- `vehicle_plate_letters = 'DDD'`, `vehicle_plate_numbers = '1765'`
 
-**File: `src/hooks/public-gate-pass/use-public-branches.ts`**
-
-Two changes to `usePublicBranches` function:
-
-1. Add `.is('deleted_at', null)` filter to the query (line 38, before `.order()`)
-2. Add defensive deduplication by `id` on the result (consistent with all other branch hooks)
-
-The same `.is('deleted_at', null)` filter should also be added to `usePublicBranch` for consistency, though it is less likely to hit a deleted branch since it queries by specific ID.
-
-### Technical Detail
+But the RPC response structure is:
 
 ```text
-Before (line 37-38):
-  .eq("tenant_id", tenantId)
-  .order("name", { ascending: true });
-
-After:
-  .eq("tenant_id", tenantId)
-  .is("deleted_at", null)
-  .order("name", { ascending: true });
-
-Result dedup:
-  return (data || []).filter(
-    (b, i, arr) => arr.findIndex(x => x.id === b.id) === i
-  ) as PublicBranch[];
+{
+  "success": true,
+  "gate_pass": { id, status, requester_name, vehicle_plate, ... },  <-- NO items, NO plate_letters/numbers
+  "items": [ {item_name, quantity, photo_storage_path, ...} ],      <-- items are HERE (sibling)
+  "branch": { ... },
+  "tenant": { ... }
+}
 ```
 
-No database migration needed. Single file change.
+### Fix Plan
+
+#### 1. Database Migration: Update `get_public_gate_pass_status` RPC
+
+Modify the RPC to include `items` inside the `gate_pass` object and add `vehicle_plate_letters`/`vehicle_plate_numbers`:
+
+- Add `mgp.vehicle_plate_letters`, `mgp.vehicle_plate_numbers` to the SELECT
+- Nest `v_items` inside the `gate_pass` JSON object instead of as a sibling
+- Keep backward compatibility by also returning `items` at root level
+
+#### 2. Fix `src/pages/public-gate-pass/PublicStatusPage.tsx`
+
+- Destructure `items` from `data` alongside `gate_pass`, `branch`, `tenant`
+- Use `items` (from root level) instead of `gatePass.items` for rendering
+- Use `gatePass.vehicle_plate_letters`/`vehicle_plate_numbers` with fallback to splitting `gatePass.vehicle_plate`
+
+#### 3. Fix `src/pages/visitors/VisitorPreRegistration.tsx`
+
+- Remove the duplicate `import { supabase }` on line 27
+
+### File Changes
+
+| File | Change |
+|------|--------|
+| Database migration | Update `get_public_gate_pass_status` to include `vehicle_plate_letters`, `vehicle_plate_numbers` in gate_pass and nest items |
+| `src/pages/public-gate-pass/PublicStatusPage.tsx` | Destructure `items` from root response; use for rendering; fix vehicle plate display |
+| `src/pages/visitors/VisitorPreRegistration.tsx` | Remove duplicate import line 27 |
+
+### Expected Result
+
+- Items section shows "2" with both item cards, photos, and quantities
+- Vehicle plate shows "DDD 1765" correctly
+- Build succeeds without errors
+- All data fields render from actual database values
+
