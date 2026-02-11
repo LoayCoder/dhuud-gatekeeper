@@ -21874,7 +21874,6 @@ export type Database = {
           country: string | null
           cr_number: string | null
           created_at: string | null
-          default_phone_country_code: string | null
           emergency_contact_name: string | null
           emergency_contact_number: string | null
           employee_count: number | null
@@ -21938,7 +21937,6 @@ export type Database = {
           country?: string | null
           cr_number?: string | null
           created_at?: string | null
-          default_phone_country_code?: string | null
           emergency_contact_name?: string | null
           emergency_contact_number?: string | null
           employee_count?: number | null
@@ -22002,7 +22000,6 @@ export type Database = {
           country?: string | null
           cr_number?: string | null
           created_at?: string | null
-          default_phone_country_code?: string | null
           emergency_contact_name?: string | null
           emergency_contact_number?: string | null
           employee_count?: number | null

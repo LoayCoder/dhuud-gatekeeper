@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
 import { Shield, AlertTriangle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface DaysSinceCounterProps {
   days: number;
@@ -8,6 +9,7 @@ interface DaysSinceCounterProps {
 }
 
 export function DaysSinceCounter({ days, label, milestone = 100 }: DaysSinceCounterProps) {
+  const { t } = useTranslation();
   const isAchievement = days >= milestone;
   const progress = Math.min((days / milestone) * 100, 100);
 
@@ -47,12 +49,19 @@ export function DaysSinceCounter({ days, label, milestone = 100 }: DaysSinceCoun
                   : 'text-foreground'
             )}
           >
-            {days === 999 ? '∞' : days}
+            {days === 999 ? '0' : days}
           </span>
         </div>
 
         {/* Label */}
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
+
+        {/* No recordable injuries subtitle */}
+        {days === 999 && (
+          <p className="mt-1 text-xs font-semibold text-emerald-600">
+            {t('kpiDashboard.noRecordableInjuries', 'No Recordable Injuries')}
+          </p>
+        )}
 
         {/* Progress bar to next milestone */}
         {days !== 999 && (
