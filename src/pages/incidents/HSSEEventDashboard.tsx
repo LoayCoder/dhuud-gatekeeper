@@ -381,7 +381,7 @@ export default function HSSEEventDashboard() {
 
             {/* Days Since Counter */}
             <DaysSinceCounter
-              days={daysSince ?? 0}
+              days={daysSince ?? 999}
               label={t('kpiDashboard.daysSinceRecordable', 'Days Since Last Recordable Injury')}
               milestone={100}
             />
