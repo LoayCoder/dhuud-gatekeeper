@@ -50,3 +50,12 @@ export {
   generateEventId,
   cleanupDedupCache,
 } from './idempotency';
+
+// Phone utilities
+export {
+  normalizePhoneE164,
+  isValidE164,
+  getPhoneValidationError,
+} from './phone-utils';
+
+export type { PhoneNormalizationOptions } from './phone-utils';
