@@ -54,12 +54,12 @@ export function PublicGatePassItemForm({
         // Compress image (max 1280px, 75% quality)
         const compressedFile = await compressImage(file, 1280, 0.75);
         const url = URL.createObjectURL(compressedFile);
-        
+
         // Revoke old URL if exists
         if (item.photoPreviewUrl) {
           URL.revokeObjectURL(item.photoPreviewUrl);
         }
-        
+
         onUpdate(index, "photo", compressedFile);
         onUpdate(index, "photoPreviewUrl" as keyof GatePassItemData, url);
       } catch (error) {
@@ -81,157 +81,111 @@ export function PublicGatePassItemForm({
   }, [index, item.photoPreviewUrl, onUpdate]);
 
   return (
+
     <Card className={cn(
-      "relative transition-all",
-      hasPhotoError || hasNameError ? "border-destructive" : ""
+      "relative transition-all overflow-hidden border-l-4",
+      hasPhotoError || hasNameError ? "border-l-destructive border-t-destructive/50 border-r-destructive/50 border-b-destructive/50" : "border-l-primary"
     )}>
       <CardContent className="pt-4 space-y-4">
         {/* Item Header with Remove Button */}
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-muted-foreground">
-            {isRTL ? `البند ${index + 1}` : `Item ${index + 1}`}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+              {index + 1}
+            </span>
+            <span className="text-sm font-medium text-muted-foreground">
+              {isRTL ? "تفاصيل البند" : "Item Details"}
+            </span>
+          </div>
           {canRemove && (
             <Button
               type="button"
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={() => onRemove(index)}
-              className="h-8 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+              className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 -me-2"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
           )}
         </div>
 
-        {/* SR Number & Item Name Row */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="col-span-1">
-            <Label className="text-xs">
-              {isRTL ? "الرقم التسلسلي" : "SR #"}
-            </Label>
-            <Input
-              placeholder={isRTL ? "مثال: 001" : "e.g., 001"}
-              value={item.sr_number}
-              onChange={(e) => onUpdate(index, "sr_number", e.target.value)}
-              className="h-10 mt-1"
-            />
-          </div>
-          <div className="col-span-2">
-            <Label className={cn("text-xs", hasNameError && "text-destructive")}>
-              {isRTL ? "اسم البند" : "Item Name"} *
-            </Label>
-            <Input
-              placeholder={isRTL ? "اسم البند أو المادة" : "Item or material name"}
-              value={item.item_name}
-              onChange={(e) => onUpdate(index, "item_name", e.target.value)}
-              className={cn("h-10 mt-1", hasNameError && "border-destructive")}
-            />
-          </div>
-        </div>
-
-        {/* Description */}
-        <div>
-          <Label className="text-xs">
-            {isRTL ? "الوصف" : "Description"}
-          </Label>
-          <Textarea
-            placeholder={isRTL ? "وصف إضافي (اختياري)" : "Additional description (optional)"}
-            value={item.description}
-            onChange={(e) => onUpdate(index, "description", e.target.value)}
-            rows={2}
-            className="mt-1 resize-none"
-          />
-        </div>
-
-        {/* Quantity & Unit Row */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <Label className="text-xs">
-              {isRTL ? "الكمية" : "Quantity"}
-            </Label>
-            <Input
-              placeholder={isRTL ? "مثال: 10" : "e.g., 10"}
-              value={item.quantity}
-              onChange={(e) => onUpdate(index, "quantity", e.target.value)}
-              className="h-10 mt-1"
-            />
-          </div>
-          <div>
-            <Label className="text-xs">
-              {isRTL ? "الوحدة" : "Unit"}
-            </Label>
-            <Input
-              placeholder={isRTL ? "مثال: صندوق" : "e.g., boxes"}
-              value={item.unit}
-              onChange={(e) => onUpdate(index, "unit", e.target.value)}
-              className="h-10 mt-1"
-            />
-          </div>
-        </div>
-
-        {/* Photo Upload Section */}
+        {/* Photo Upload - Prominent at top for mobile primarily */}
         <div className="space-y-2">
           <Label className={cn(
-            "text-xs flex items-center gap-1",
+            "text-xs font-semibold flex items-center gap-1",
             hasPhotoError && "text-destructive"
           )}>
-            {isRTL ? "صورة البند" : "Item Photo"} *
-            {hasPhotoError && (
-              <AlertCircle className="h-3 w-3" />
-            )}
+            {hasPhotoError && <AlertCircle className="h-3 w-3" />}
+            {isRTL ? "صورة البند (مطلوب)" : "Item Photo (Required)"}
           </Label>
 
           {item.photoPreviewUrl ? (
-            <div className="relative inline-block">
+            <div className="relative w-full h-48 bg-muted rounded-lg overflow-hidden group">
               <img
                 src={item.photoPreviewUrl}
                 alt={item.item_name || `Item ${index + 1}`}
-                className="h-24 w-24 rounded-lg object-cover border"
+                className="w-full h-full object-cover transition-transform group-hover:scale-105"
               />
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="h-8"
+                >
+                  {isRTL ? "تغيير" : "Change"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  onClick={removePhoto}
+                  className="h-8"
+                >
+                  {isRTL ? "حذف" : "Remove"}
+                </Button>
+              </div>
+              {/* Mobile fallback for actions since hover doesn't exist */}
               <button
                 type="button"
                 onClick={removePhoto}
-                className="absolute -top-2 -end-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-colors shadow"
+                className="absolute top-2 end-2 p-1.5 bg-destructive text-white rounded-full shadow-md md:hidden"
               >
-                <X className="h-3 w-3" />
+                <X className="h-4 w-4" />
               </button>
             </div>
           ) : (
-            <div className="flex gap-2">
-              {/* Camera Button */}
+            <div className="grid grid-cols-2 gap-3">
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
-                onClick={() => cameraInputRef.current?.click()}
                 className={cn(
-                  "flex-1 h-12",
-                  hasPhotoError && "border-destructive text-destructive"
+                  "h-24 flex flex-col gap-2 border-dashed border-2",
+                  hasPhotoError && "border-destructive/50 bg-destructive/5 text-destructive hover:bg-destructive/10"
                 )}
+                onClick={() => cameraInputRef.current?.click()}
               >
-                <Camera className="h-4 w-4 me-2" />
-                {isRTL ? "التقط" : "Capture"}
+                <Camera className="h-6 w-6" />
+                <span className="text-xs">{isRTL ? "التقاط صورة" : "Take Photo"}</span>
               </Button>
 
-              {/* File Upload Button */}
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
-                onClick={() => fileInputRef.current?.click()}
                 className={cn(
-                  "flex-1 h-12",
-                  hasPhotoError && "border-destructive text-destructive"
+                  "h-24 flex flex-col gap-2 border-dashed border-2",
+                  hasPhotoError && "border-destructive/50 bg-destructive/5 text-destructive hover:bg-destructive/10"
                 )}
+                onClick={() => fileInputRef.current?.click()}
               >
-                <ImagePlus className="h-4 w-4 me-2" />
-                {isRTL ? "اختر" : "Choose"}
+                <ImagePlus className="h-6 w-6" />
+                <span className="text-xs">{isRTL ? "اختيار من المعرض" : "Upload Image"}</span>
               </Button>
             </div>
           )}
 
-          {/* Hidden file inputs */}
           <input
             ref={cameraInputRef}
             type="file"
@@ -247,12 +201,77 @@ export function PublicGatePassItemForm({
             className="hidden"
             onChange={handleFileChange}
           />
-
           {hasPhotoError && (
-            <p className="text-xs text-destructive">
-              {isRTL ? "صورة البند مطلوبة" : "Item photo is required"}
+            <p className="text-[10px] text-destructive font-medium animate-pulse">
+              {isRTL ? "صورة البند مطلوبة لإكمال الطلب" : "Item photo is required to proceed"}
             </p>
           )}
+        </div>
+
+        <div className="grid gap-4">
+          {/* Item Name */}
+          <div className="space-y-1.5">
+            <Label className={cn("text-xs font-semibold", hasNameError && "text-destructive")}>
+              {isRTL ? "اسم البند / المادة" : "Item Name / Material"} *
+            </Label>
+            <Input
+              placeholder={isRTL ? "مثال: كابلات نحاسية" : "e.g., Copper Cables"}
+              value={item.item_name}
+              onChange={(e) => onUpdate(index, "item_name", e.target.value)}
+              className={cn(hasNameError && "border-destructive bg-destructive/5")}
+            />
+            {hasNameError && (
+              <span className="text-[10px] text-destructive">
+                {isRTL ? "اسم البند مطلوب" : "Item name is required"}
+              </span>
+            )}
+          </div>
+
+          {/* Description */}
+          <div className="space-y-1.5">
+            <Label className="text-xs">
+              {isRTL ? "الوصف (اختياري)" : "Description (Optional)"}
+            </Label>
+            <Textarea
+              placeholder={isRTL ? "مواصفات إضافية، لون، حجم..." : "Additional specs, color, size..."}
+              value={item.description}
+              onChange={(e) => onUpdate(index, "description", e.target.value)}
+              rows={2}
+              className="resize-none text-sm"
+            />
+          </div>
+
+          {/* 3-Col Layout for details */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs">{isRTL ? "الكمية" : "Quantity"}</Label>
+              <Input
+                placeholder="0"
+                type="number"
+                value={item.quantity}
+                onChange={(e) => onUpdate(index, "quantity", e.target.value)}
+                className="text-center"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">{isRTL ? "الوحدة" : "Unit"}</Label>
+              <Input
+                placeholder={isRTL ? "قطعة" : "Pcs"}
+                value={item.unit}
+                onChange={(e) => onUpdate(index, "unit", e.target.value)}
+                className="text-center"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">{isRTL ? "الرقم التسلسلي" : "Serial #"}</Label>
+              <Input
+                placeholder="#"
+                value={item.sr_number}
+                onChange={(e) => onUpdate(index, "sr_number", e.target.value)}
+                className="text-center font-mono text-xs"
+              />
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
