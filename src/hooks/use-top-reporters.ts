@@ -15,16 +15,18 @@ export interface TopReporter {
   rank: number;
 }
 
-export function useTopReporters(limit: number = 10, startDate?: Date, endDate?: Date) {
+export function useTopReporters(limit: number = 10, startDate?: Date, endDate?: Date, branchId?: string, siteId?: string) {
   const { profile } = useAuth();
 
   return useQuery({
-    queryKey: ['top-reporters', profile?.tenant_id, limit, startDate?.toISOString(), endDate?.toISOString()],
+    queryKey: ['top-reporters', profile?.tenant_id, limit, startDate?.toISOString(), endDate?.toISOString(), branchId, siteId],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_top_reporters', {
         p_limit: limit,
         p_start_date: startDate?.toISOString().split('T')[0] || null,
         p_end_date: endDate?.toISOString().split('T')[0] || null,
+        p_branch_id: branchId || null,
+        p_site_id: siteId || null,
       });
 
       if (error) throw error;

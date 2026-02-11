@@ -61,36 +61,23 @@ export interface EventsByLocationData {
   by_department: DepartmentEventData[];
 }
 
-export function useEventsByLocation(startDate?: Date, endDate?: Date) {
+export function useEventsByLocation(startDate?: Date, endDate?: Date, branchId?: string, siteId?: string) {
   const { profile } = useAuth();
   const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
 
   return useQuery({
-    queryKey: ['events-by-location', profile?.tenant_id, ...branchQueryKey, startDate?.toISOString(), endDate?.toISOString()],
+    queryKey: ['events-by-location', profile?.tenant_id, ...branchQueryKey, startDate?.toISOString(), endDate?.toISOString(), branchId, siteId],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_events_by_location', {
         p_start_date: startDate?.toISOString().split('T')[0] || null,
         p_end_date: endDate?.toISOString().split('T')[0] || null,
+        p_branch_id: branchId || null,
+        p_site_id: siteId || null,
       });
 
       if (error) throw error;
-      
-      const result = data as unknown as EventsByLocationData;
-      
-      // If not in "all branches" mode, filter the results to only show selected branch(es)
-      if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
-        return {
-          by_branch: result.by_branch?.filter(b => branchIds.includes(b.branch_id)) || [],
-          by_site: result.by_site?.filter(s => {
-            // Filter sites by checking if their branch is in the selected branches
-            const branchData = result.by_branch?.find(b => b.branch_name === s.branch_name);
-            return branchData && branchIds.includes(branchData.branch_id);
-          }) || [],
-          by_department: result.by_department || [], // Departments are tenant-level, show all
-        };
-      }
-      
-      return result;
+
+      return data as unknown as EventsByLocationData;
     },
     enabled: !!profile?.tenant_id,
     // Enhanced caching for better performance

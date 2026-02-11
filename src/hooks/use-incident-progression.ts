@@ -29,11 +29,11 @@ const STATUS_STAGES: { key: string; label: string; order: number }[] = [
   { key: 'pending_closure', label: 'Pending Closure', order: 5 },
 ];
 
-export function useIncidentProgression(startDate?: Date, endDate?: Date) {
+export function useIncidentProgression(startDate?: Date, endDate?: Date, branchId?: string, siteId?: string) {
   const { profile } = useAuth();
 
   const query = useQuery({
-    queryKey: ['incident-progression', profile?.tenant_id, startDate?.toISOString(), endDate?.toISOString()],
+    queryKey: ['incident-progression', profile?.tenant_id, startDate?.toISOString(), endDate?.toISOString(), branchId, siteId],
     queryFn: async (): Promise<IncidentProgressionData> => {
       // Fetch all non-deleted incidents
       let query = supabase
@@ -47,13 +47,19 @@ export function useIncidentProgression(startDate?: Date, endDate?: Date) {
       if (endDate) {
         query = query.lte('created_at', endDate.toISOString());
       }
+      if (branchId) {
+        query = query.eq('branch_id', branchId);
+      }
+      if (siteId) {
+        query = query.eq('site_id', siteId);
+      }
 
       const { data: incidents, error } = await query;
       if (error) throw error;
 
       // Count incidents by status
       const statusCounts: Record<string, { current: number; entering: number; leaving: number }> = {};
-      
+
       STATUS_STAGES.forEach(stage => {
         statusCounts[stage.key] = { current: 0, entering: 0, leaving: 0 };
       });
@@ -63,7 +69,7 @@ export function useIncidentProgression(startDate?: Date, endDate?: Date) {
 
       (incidents || []).forEach((inc: any) => {
         const status = inc.status || 'submitted';
-        
+
         if (status === 'closed') {
           closedCount++;
         } else {
@@ -91,7 +97,7 @@ export function useIncidentProgression(startDate?: Date, endDate?: Date) {
 
       // Intermediate stages - show net movement
       let runningTotal = totalEvents;
-      
+
       // Calculate closed/resolved as leaving
       runningTotal -= closedCount;
       if (closedCount > 0) {

@@ -12,14 +12,15 @@ import { toast } from 'sonner';
 import ExcelJS from 'exceljs';
 import { jsPDF } from 'jspdf';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useDocumentBranding } from '@/hooks/use-document-branding';
 import { useAuth } from '@/contexts/AuthContext';
 import { validateExportPermission } from '@/lib/secure-export';
 import { logExport } from '@/lib/audit-logger';
-import type { 
-  LaggingIndicators, 
-  LeadingIndicators, 
-  ResponseMetrics, 
-  PeopleMetrics 
+import type {
+  LaggingIndicators,
+  LeadingIndicators,
+  ResponseMetrics,
+  PeopleMetrics
 } from '@/hooks/use-kpi-indicators';
 
 interface KPIDashboardExportProps {
@@ -42,6 +43,13 @@ export function KPIDashboardExport({
   const { t } = useTranslation();
   const { tenantName } = useTheme();
   const { user } = useAuth();
+  const { getHeaderConfig, getFooterConfig } = useDocumentBranding();
+
+  // Build filter info string
+  const filterInfo = [
+    filters?.branch ? `Branch: ${filters.branch}` : null,
+    filters?.site ? `Site: ${filters.site}` : null,
+  ].filter(Boolean).join(' | ');
   const [isExporting, setIsExporting] = useState(false);
 
   const menuCode = 'kpi_dashboard';
@@ -81,6 +89,9 @@ export function KPIDashboardExport({
       ];
 
       summarySheet.addRow({ kpi: t('common.dateRange', 'Date Range'), value: `${dateRange.start} - ${dateRange.end}`, unit: '' });
+      if (filterInfo) {
+        summarySheet.addRow({ kpi: 'Filters Applied', value: filterInfo, unit: '' });
+      }
       summarySheet.addRow({});
 
       if (laggingData) {
@@ -199,16 +210,22 @@ export function KPIDashboardExport({
 
       const doc = new jsPDF('landscape', 'mm', 'a4');
       const pageWidth = doc.internal.pageSize.getWidth();
+      const headerConfig = getHeaderConfig();
+      const footerConfig = getFooterConfig();
 
-      // Header
+      // Header with document branding
       doc.setFontSize(20);
       doc.setTextColor(0, 51, 102);
-      doc.text(t('kpiDashboard.title', 'HSSE Manager KPI Dashboard'), pageWidth / 2, 20, { align: 'center' });
+      doc.text(headerConfig.primaryText || t('kpiDashboard.title', 'HSSE Manager KPI Dashboard'), pageWidth / 2, 20, { align: 'center' });
 
       doc.setFontSize(12);
       doc.setTextColor(100, 100, 100);
-      doc.text(`${tenantName || 'Organization'}`, pageWidth / 2, 28, { align: 'center' });
+      doc.text(headerConfig.secondaryText || tenantName || 'Organization', pageWidth / 2, 28, { align: 'center' });
       doc.text(`${t('common.dateRange', 'Date Range')}: ${dateRange.start} - ${dateRange.end}`, pageWidth / 2, 35, { align: 'center' });
+      if (filterInfo) {
+        doc.setFontSize(10);
+        doc.text(`Filters: ${filterInfo}`, pageWidth / 2, 42, { align: 'center' });
+      }
 
       // KPI Summary
       let yPos = 50;
@@ -262,12 +279,18 @@ export function KPIDashboardExport({
         doc.text(`Repeat Rate: ${responseData.repeat_incident_rate.toFixed(2)}`, 185, yPos);
       }
 
-      // Footer
+      // Footer with document branding
       const pageHeight = doc.internal.pageSize.getHeight();
       doc.setFontSize(9);
       doc.setTextColor(128, 128, 128);
-      doc.text(`Generated: ${new Date().toLocaleString()}`, 20, pageHeight - 10);
-      doc.text(`Page 1 of 1`, pageWidth - 30, pageHeight - 10);
+      const footerText = footerConfig.text || `Generated: ${new Date().toLocaleString()}`;
+      doc.text(footerText, 20, pageHeight - 10);
+      if (footerConfig.showDatePrinted) {
+        doc.text(`Printed: ${new Date().toLocaleString()}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+      }
+      if (footerConfig.showPageNumbers) {
+        doc.text(`Page 1 of 1`, pageWidth - 30, pageHeight - 10);
+      }
 
       doc.save(`KPI_Dashboard_${dateRange.start}_${dateRange.end}.pdf`);
       toast.success(t('kpiDashboard.exportSuccess', 'Report exported successfully'));

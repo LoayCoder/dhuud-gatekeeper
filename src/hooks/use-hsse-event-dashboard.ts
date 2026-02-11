@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useBranchFilter } from "@/hooks/use-branch-filter";
 import { format, parseISO, startOfMonth, subMonths, isSameMonth } from "date-fns";
 
 export interface DashboardSummary {
@@ -89,19 +88,18 @@ export interface HSSEEventDashboardData {
   actions: ActionStats;
 }
 
-export function useHSSEEventDashboard(startDate?: Date, endDate?: Date) {
+export function useHSSEEventDashboard(startDate?: Date, endDate?: Date, branchId?: string, siteId?: string) {
   const { profile } = useAuth();
-  const { activeBranchId, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
 
   return useQuery({
-    queryKey: ['hsse-event-dashboard', profile?.tenant_id, ...branchQueryKey, startDate?.toISOString(), endDate?.toISOString()],
+    queryKey: ['hsse-event-dashboard', profile?.tenant_id, startDate?.toISOString(), endDate?.toISOString(), branchId, siteId],
     queryFn: async () => {
       // 1. Fetch raw incidents based on date range and filters
       let query = supabase
         .from('incidents')
         .select(`
           id, event_type, subtype, status, severity_v2, created_at, updated_at, 
-          occurred_at, incident_type, branch_id
+          occurred_at, incident_type, branch_id, site_id
         `)
         .eq('tenant_id', profile?.tenant_id)
         .is('deleted_at', null);
@@ -110,12 +108,14 @@ export function useHSSEEventDashboard(startDate?: Date, endDate?: Date) {
         query = query.gte('created_at', startDate.toISOString());
       }
       if (endDate) {
-        // Add one day to include the end date fully if needed, or assume inclusive
         query = query.lte('created_at', endDate.toISOString());
       }
 
-      if (!isAllBranchesMode && activeBranchId) {
-        query = query.eq('branch_id', activeBranchId);
+      if (branchId) {
+        query = query.eq('branch_id', branchId);
+      }
+      if (siteId) {
+        query = query.eq('site_id', siteId);
       }
 
       const { data: incidents, error } = await query;
@@ -266,6 +266,8 @@ export function useHSSEEventDashboard(startDate?: Date, endDate?: Date) {
       const monthly_trend = Array.from(trendMap.values());
 
       // 3. Fetch Corrective Actions (Parallel Fetch)
+      // Filter by incident_ids that matched branch/site to keep actions consistent
+      const matchedIncidentIds = incidents.map((i: any) => i.id);
       let actionsQuery = supabase
         .from('corrective_actions')
         .select('id, status, due_date, priority, created_at, completed_date, incident_id')
@@ -274,6 +276,20 @@ export function useHSSEEventDashboard(startDate?: Date, endDate?: Date) {
 
       if (startDate) actionsQuery = actionsQuery.gte('created_at', startDate.toISOString());
       if (endDate) actionsQuery = actionsQuery.lte('created_at', endDate.toISOString());
+
+      // When branch/site filter is active, only include actions for matching incidents
+      if (branchId || siteId) {
+        if (matchedIncidentIds.length > 0) {
+          actionsQuery = actionsQuery.in('incident_id', matchedIncidentIds);
+        } else {
+          // No matching incidents — return empty actions
+          const dashboardData: HSSEEventDashboardData = {
+            summary, by_status, by_severity, by_event_type, by_subtype, monthly_trend,
+            actions: { open_actions: 0, overdue_actions: 0, critical_actions: 0, high_priority_actions: 0, total_actions: 0, actions_closed: 0, actions_in_progress: 0, actions_pending_verification: 0 },
+          };
+          return dashboardData;
+        }
+      }
 
       const { data: actionsData, error: actionsError } = await actionsQuery;
       if (actionsError) throw actionsError;

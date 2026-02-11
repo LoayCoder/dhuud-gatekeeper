@@ -7,11 +7,11 @@ export interface IncidentTypeCount {
   count: number;
 }
 
-export function useIncidentTypeDistribution(startDate?: Date, endDate?: Date) {
+export function useIncidentTypeDistribution(startDate?: Date, endDate?: Date, branchId?: string, siteId?: string) {
   const { profile } = useAuth();
 
   return useQuery({
-    queryKey: ['incident-type-distribution', profile?.tenant_id, startDate?.toISOString(), endDate?.toISOString()],
+    queryKey: ['incident-type-distribution', profile?.tenant_id, startDate?.toISOString(), endDate?.toISOString(), branchId, siteId],
     queryFn: async () => {
       if (!profile?.tenant_id) return [];
 
@@ -28,6 +28,12 @@ export function useIncidentTypeDistribution(startDate?: Date, endDate?: Date) {
       }
       if (endDate) {
         query = query.lte('occurred_at', endDate.toISOString());
+      }
+      if (branchId) {
+        query = query.eq('branch_id', branchId);
+      }
+      if (siteId) {
+        query = query.eq('site_id', siteId);
       }
 
       const { data, error } = await query;

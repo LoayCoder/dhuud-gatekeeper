@@ -51,11 +51,11 @@ const SEVERITY_WEIGHTS: Record<SeverityLevelV2, number> = {
   'level_1': 1,
 };
 
-export function useLocationHeatmap(startDate?: Date, endDate?: Date) {
+export function useLocationHeatmap(startDate?: Date, endDate?: Date, branchId?: string, siteId?: string) {
   const { profile } = useAuth();
 
   return useQuery({
-    queryKey: ['location-heatmap', profile?.tenant_id, startDate?.toISOString(), endDate?.toISOString()],
+    queryKey: ['location-heatmap', profile?.tenant_id, startDate?.toISOString(), endDate?.toISOString(), branchId, siteId],
     queryFn: async (): Promise<LocationHeatmapData> => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let query = (supabase as any)
@@ -68,6 +68,12 @@ export function useLocationHeatmap(startDate?: Date, endDate?: Date) {
       }
       if (endDate) {
         query = query.lte('occurred_at', endDate.toISOString());
+      }
+      if (branchId) {
+        query = query.eq('branch_id', branchId);
+      }
+      if (siteId) {
+        query = query.eq('site_id', siteId);
       }
 
       const { data: incidents, error } = await query;

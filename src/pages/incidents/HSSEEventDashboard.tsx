@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from "react";
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -116,10 +116,14 @@ export default function HSSEEventDashboard() {
   const [locationBranchFilter, setLocationBranchFilter] = useState<string>('');
   const dashboardRef = useRef<HTMLDivElement>(null);
 
-  // Branch/Site data
   const { data: branches } = useBranches();
   const { data: sites } = useSites(branchId || undefined);
   const { data: targets } = useKPITargets();
+
+  // Reset siteId when branchId changes
+  useEffect(() => {
+    setSiteId('');
+  }, [branchId]);
 
   // Calculate KPI date range
   const { kpiStartDate, kpiEndDate } = useMemo(() => {
@@ -154,14 +158,14 @@ export default function HSSEEventDashboard() {
   }, [kpiDateRange]);
 
   // Event dashboard data
-  const { data: dashboardData, isLoading: dashboardLoading, refetch: refetchDashboard, dataUpdatedAt: dashboardUpdatedAt, isFetching: dashboardFetching } = useHSSEEventDashboard(startDate, endDate);
-  const { data: locationData, isLoading: locationLoading, dataUpdatedAt: locationUpdatedAt, isFetching: locationFetching } = useEventsByLocation();
-  const { data: reporters, isLoading: reportersLoading } = useTopReporters(10);
+  const { data: dashboardData, isLoading: dashboardLoading, refetch: refetchDashboard, dataUpdatedAt: dashboardUpdatedAt, isFetching: dashboardFetching } = useHSSEEventDashboard(startDate, endDate, branchId || undefined, siteId || undefined);
+  const { data: locationData, isLoading: locationLoading, dataUpdatedAt: locationUpdatedAt, isFetching: locationFetching } = useEventsByLocation(startDate, endDate, branchId || undefined, siteId || undefined);
+  const { data: reporters, isLoading: reportersLoading } = useTopReporters(10, startDate, endDate, branchId || undefined, siteId || undefined);
   const { generateInsights } = useHSSERiskAnalytics();
-  const { data: rcaData, isLoading: rcaLoading, dataUpdatedAt: rcaUpdatedAt, isFetching: rcaFetching } = useRCAAnalytics(startDate, endDate);
-  const { data: heatmapData, isLoading: heatmapLoading } = useLocationHeatmap(startDate, endDate);
-  const { data: progressionData, isLoading: progressionLoading, dataUpdatedAt: progressionUpdatedAt, isFetching: progressionFetching } = useIncidentProgression(startDate, endDate);
-  const { data: incidentTypeData, isLoading: incidentTypeLoading } = useIncidentTypeDistribution(startDate, endDate);
+  const { data: rcaData, isLoading: rcaLoading, dataUpdatedAt: rcaUpdatedAt, isFetching: rcaFetching } = useRCAAnalytics(startDate, endDate, branchId || undefined, siteId || undefined);
+  const { data: heatmapData, isLoading: heatmapLoading } = useLocationHeatmap(startDate, endDate, branchId || undefined, siteId || undefined);
+  const { data: progressionData, isLoading: progressionLoading, dataUpdatedAt: progressionUpdatedAt, isFetching: progressionFetching } = useIncidentProgression(startDate, endDate, branchId || undefined, siteId || undefined);
+  const { data: incidentTypeData, isLoading: incidentTypeLoading } = useIncidentTypeDistribution(startDate, endDate, branchId || undefined, siteId || undefined);
 
   // KPI data
   const { data: laggingData, isLoading: laggingLoading, refetch: refetchLagging } = useLaggingIndicators(kpiStartDate, kpiEndDate, branchId || undefined, siteId || undefined);
@@ -318,6 +322,14 @@ export default function HSSEEventDashboard() {
               dashboardData={dashboardData}
               locationData={locationData}
               rcaData={rcaData}
+              startDate={startDate}
+              endDate={endDate}
+              branchName={branchId ? branches?.find(b => b.id === branchId)?.name : undefined}
+              siteName={siteId ? sites?.find(s => s.id === siteId)?.name : undefined}
+              laggingData={laggingData ?? null}
+              leadingData={leadingData ?? null}
+              responseData={responseData ?? null}
+              peopleData={peopleData ?? null}
             />
             <Button variant="outline" size="sm" onClick={handleRefreshAndAcknowledge} disabled={isLoading || kpiLoading} className="relative">
               <RefreshCw className={`h-4 w-4 me-2 ${isLoading || kpiLoading ? 'animate-spin' : ''}`} />
@@ -478,6 +490,10 @@ export default function HSSEEventDashboard() {
             responseData={responseData ?? null}
             peopleData={peopleData ?? null}
             dateRange={{ start: kpiStartDate, end: kpiEndDate }}
+            filters={{
+              branch: branchId ? branches?.find(b => b.id === branchId)?.name : undefined,
+              site: siteId ? sites?.find(s => s.id === siteId)?.name : undefined,
+            }}
           />
         </div>
 
@@ -757,6 +773,8 @@ export default function HSSEEventDashboard() {
               <CrossBranchAnalytics
                 startDate={startDate}
                 endDate={endDate}
+                branchId={branchId || undefined}
+                siteId={siteId || undefined}
                 locationBranchId={locationBranchFilter}
                 reporterBranchId={reporterBranchFilter}
                 onLocationBranchChange={setLocationBranchFilter}

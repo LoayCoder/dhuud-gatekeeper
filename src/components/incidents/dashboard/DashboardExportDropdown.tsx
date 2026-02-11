@@ -11,14 +11,15 @@ import { Button } from "@/components/ui/button";
 import { Download, FileText, FileSpreadsheet, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { exportToCSV, ExportColumn } from "@/lib/export-utils";
-import { 
-  generateBrandedPDFFromElement, 
+import {
+  generateBrandedPDFFromElement,
   preloadImageWithDimensions,
 } from "@/lib/pdf-utils";
 import { useDocumentBranding } from "@/hooks/use-document-branding";
 import { useTheme } from "@/contexts/ThemeContext";
 import type { HSSEEventDashboardData } from "@/hooks/use-hsse-event-dashboard";
 import type { EventsByLocationData } from "@/hooks/use-events-by-location";
+import type { LaggingIndicators, LeadingIndicators, ResponseMetrics, PeopleMetrics } from "@/hooks/use-kpi-indicators";
 import ExcelJS from "exceljs";
 import { format } from "date-fns";
 
@@ -31,6 +32,14 @@ interface DashboardExportDropdownProps {
   dashboardData?: HSSEEventDashboardData;
   locationData?: EventsByLocationData;
   rcaData?: RCAData;
+  startDate?: Date;
+  endDate?: Date;
+  branchName?: string;
+  siteName?: string;
+  laggingData?: LaggingIndicators | null;
+  leadingData?: LeadingIndicators | null;
+  responseData?: ResponseMetrics | null;
+  peopleData?: PeopleMetrics | null;
 }
 
 export function DashboardExportDropdown({
@@ -38,6 +47,14 @@ export function DashboardExportDropdown({
   dashboardData,
   locationData,
   rcaData,
+  startDate,
+  endDate,
+  branchName,
+  siteName,
+  laggingData,
+  leadingData,
+  responseData,
+  peopleData,
 }: DashboardExportDropdownProps) {
   const { t, i18n } = useTranslation();
   const [isExporting, setIsExporting] = useState(false);
@@ -45,6 +62,16 @@ export function DashboardExportDropdown({
   const { activeLogoUrl } = useTheme();
 
   const isRTL = i18n.dir() === "rtl";
+
+  // Build filter summary string for exports
+  const getFilterSummary = () => {
+    const parts: string[] = [];
+    if (startDate) parts.push(`From: ${format(startDate, 'yyyy-MM-dd')}`);
+    if (endDate) parts.push(`To: ${format(endDate, 'yyyy-MM-dd')}`);
+    if (branchName) parts.push(`Branch: ${branchName}`);
+    if (siteName) parts.push(`Site: ${siteName}`);
+    return parts.length > 0 ? parts.join(' | ') : 'All Data';
+  };
 
   // Generate filename with date
   const getExportFilename = (type: string, extension: string) => {
@@ -56,7 +83,7 @@ export function DashboardExportDropdown({
   const getKPIData = () => {
     if (!dashboardData) return [];
     const { summary, actions } = dashboardData;
-    
+
     return [
       { metric: t('hsseDashboard.totalEvents'), value: summary.total_events, period: t('hsseDashboard.export.currentPeriod') },
       { metric: t('hsseDashboard.totalIncidents'), value: summary.total_incidents, period: t('hsseDashboard.export.currentPeriod') },
@@ -239,7 +266,7 @@ export function DashboardExportDropdown({
   const handleCSVExport = () => {
     try {
       const kpiData = getKPIData();
-      
+
       exportToCSV(
         kpiData as Record<string, unknown>[],
         getExportFilename('KPIs', 'csv'),
@@ -263,19 +290,26 @@ export function DashboardExportDropdown({
       // Sheet 1: Summary KPIs
       const summarySheet = workbook.addWorksheet(t('hsseDashboard.export.sheetSummary'));
       const kpiData = getKPIData();
-      
+
       summarySheet.columns = kpiColumns.map(col => ({
         header: col.label,
         key: col.key,
         width: 25,
       }));
+
+      // Add filter info row at top
+      const filterRow = summarySheet.insertRow(1, [getFilterSummary(), '', '']);
+      summarySheet.mergeCells(1, 1, 1, 3);
+      filterRow.font = { italic: true, color: { argb: 'FF666666' } };
+      filterRow.alignment = { horizontal: 'left' };
+
       summarySheet.addRows(kpiData);
-      styleHeaderRow(summarySheet);
+      styleHeaderRow(summarySheet, 2); // header is now row 2
 
       // Sheet 2: Distribution Data
       const distSheet = workbook.addWorksheet(t('hsseDashboard.export.sheetDistribution'));
       const distData = getDistributionData();
-      
+
       distSheet.columns = distributionColumns.map(col => ({
         header: col.label,
         key: col.key,
@@ -287,7 +321,7 @@ export function DashboardExportDropdown({
       // Sheet 3: Monthly Trends
       const trendSheet = workbook.addWorksheet(t('hsseDashboard.export.sheetTrends'));
       const trendData = getTrendData();
-      
+
       trendSheet.columns = trendColumns.map(col => ({
         header: col.label,
         key: col.key,
@@ -299,7 +333,7 @@ export function DashboardExportDropdown({
       // Sheet 4: Location Analytics
       const locSheet = workbook.addWorksheet(t('hsseDashboard.export.sheetLocations'));
       const locData = getLocationData();
-      
+
       locSheet.columns = locationColumns.map(col => ({
         header: col.label,
         key: col.key,
@@ -311,7 +345,7 @@ export function DashboardExportDropdown({
       // Sheet 5: RCA Summary
       const rcaSheet = workbook.addWorksheet(t('hsseDashboard.export.sheetRCA'));
       const rcaRows = getRCAData();
-      
+
       rcaSheet.columns = rcaColumns.map(col => ({
         header: col.label,
         key: col.key,
@@ -320,12 +354,46 @@ export function DashboardExportDropdown({
       rcaSheet.addRows(rcaRows);
       styleHeaderRow(rcaSheet);
 
+      // Sheet 6: KPI Indicators (lagging/leading/response/people)
+      if (laggingData || leadingData || responseData || peopleData) {
+        const kpiSheet = workbook.addWorksheet('KPI Indicators');
+        kpiSheet.columns = [
+          { header: 'Category', key: 'category', width: 22 },
+          { header: 'Metric', key: 'metric', width: 35 },
+          { header: 'Value', key: 'value', width: 18 },
+          { header: 'Unit', key: 'unit', width: 18 },
+        ];
+
+        if (laggingData) {
+          kpiSheet.addRow({ category: 'Lagging', metric: 'TRIR', value: laggingData.trir.toFixed(2), unit: 'per 200k hrs' });
+          kpiSheet.addRow({ category: 'Lagging', metric: 'LTIFR', value: laggingData.ltifr.toFixed(2), unit: 'per 200k hrs' });
+          kpiSheet.addRow({ category: 'Lagging', metric: 'DART Rate', value: laggingData.dart_rate.toFixed(2), unit: 'per 200k hrs' });
+          kpiSheet.addRow({ category: 'Lagging', metric: 'Fatality Rate', value: laggingData.fatality_rate.toFixed(4), unit: 'per 200k hrs' });
+          kpiSheet.addRow({ category: 'Lagging', metric: 'Severity Rate', value: laggingData.severity_rate.toFixed(2), unit: 'days/incident' });
+        }
+        if (leadingData) {
+          kpiSheet.addRow({ category: 'Leading', metric: 'Near Miss Rate', value: leadingData.near_miss_rate.toFixed(2), unit: 'per 200k hrs' });
+          kpiSheet.addRow({ category: 'Leading', metric: 'Action Closure %', value: leadingData.action_closure_pct.toFixed(1), unit: '%' });
+          kpiSheet.addRow({ category: 'Leading', metric: 'Observation Completion %', value: leadingData.observation_completion_pct.toFixed(1), unit: '%' });
+        }
+        if (responseData) {
+          kpiSheet.addRow({ category: 'Response', metric: 'Avg Investigation Days', value: responseData.avg_investigation_days.toFixed(1), unit: 'days' });
+          kpiSheet.addRow({ category: 'Response', metric: 'Within Target %', value: responseData.within_target_pct.toFixed(1), unit: '%' });
+          kpiSheet.addRow({ category: 'Response', metric: 'Repeat Incident Rate', value: responseData.repeat_incident_rate.toFixed(2), unit: '' });
+        }
+        if (peopleData) {
+          kpiSheet.addRow({ category: 'People', metric: 'Total Man-Hours', value: peopleData.total_manhours, unit: 'hrs' });
+          kpiSheet.addRow({ category: 'People', metric: 'Contractor Ratio', value: (peopleData.contractor_ratio * 100).toFixed(1), unit: '%' });
+        }
+        styleHeaderRow(kpiSheet);
+      }
+
       // Generate and download
       const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { 
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       });
-      
+
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -380,8 +448,8 @@ export function DashboardExportDropdown({
 }
 
 // Helper to style header row in Excel
-function styleHeaderRow(sheet: ExcelJS.Worksheet) {
-  const headerRow = sheet.getRow(1);
+function styleHeaderRow(sheet: ExcelJS.Worksheet, rowNumber: number = 1) {
+  const headerRow = sheet.getRow(rowNumber);
   headerRow.font = { bold: true };
   headerRow.fill = {
     type: 'pattern',

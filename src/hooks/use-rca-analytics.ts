@@ -49,7 +49,7 @@ export interface RCAAnalyticsData {
 // Helper to categorize root causes
 function categorizeRootCause(text: string): string {
   const lowerText = text.toLowerCase();
-  
+
   if (lowerText.includes('training') || lowerText.includes('competenc') || lowerText.includes('skill')) {
     return 'Training & Competency';
   }
@@ -80,15 +80,15 @@ function categorizeRootCause(text: string): string {
   if (lowerText.includes('environment') || lowerText.includes('weather') || lowerText.includes('condition')) {
     return 'Environmental Conditions';
   }
-  
+
   return 'Other';
 }
 
-export function useRCAAnalytics(startDate?: Date, endDate?: Date) {
+export function useRCAAnalytics(startDate?: Date, endDate?: Date, branchId?: string, siteId?: string) {
   const { profile } = useAuth();
 
   const query = useQuery({
-    queryKey: ['rca-analytics', profile?.tenant_id, startDate?.toISOString(), endDate?.toISOString()],
+    queryKey: ['rca-analytics', profile?.tenant_id, startDate?.toISOString(), endDate?.toISOString(), branchId, siteId],
     queryFn: async (): Promise<RCAAnalyticsData> => {
       // Fetch investigations with RCA data
       let investigationsQuery = supabase
@@ -122,6 +122,12 @@ export function useRCAAnalytics(startDate?: Date, endDate?: Date) {
       }
       if (endDate) {
         eventsQuery = eventsQuery.lte('occurred_at', endDate.toISOString());
+      }
+      if (branchId) {
+        eventsQuery = eventsQuery.eq('branch_id', branchId);
+      }
+      if (siteId) {
+        eventsQuery = eventsQuery.eq('site_id', siteId);
       }
 
       const { data: majorEvents, error: eventsError } = await eventsQuery;

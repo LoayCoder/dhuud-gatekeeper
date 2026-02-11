@@ -31,6 +31,8 @@ import { cn } from "@/lib/utils";
 interface CrossBranchAnalyticsProps {
   startDate?: Date;
   endDate?: Date;
+  branchId?: string; // Global branch filter
+  siteId?: string;   // Global site filter (though matrix usually focuses on branch level)
   locationBranchId?: string;
   reporterBranchId?: string;
   onLocationBranchChange?: (branchId: string) => void;
@@ -41,8 +43,10 @@ interface CrossBranchAnalyticsProps {
 export function CrossBranchAnalytics({
   startDate,
   endDate,
-  locationBranchId,
-  reporterBranchId,
+  branchId,
+  siteId,
+  locationBranchId: propLocationBranchId,
+  reporterBranchId: propReporterBranchId,
   onLocationBranchChange,
   onReporterBranchChange,
   className,
@@ -50,12 +54,26 @@ export function CrossBranchAnalytics({
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
 
+  // If global branchId is provided, it typically biases the "Location Branch" or "Reporter Branch" 
+  // depending on what we want to analyze. For this view (Observations by Location), 
+  // let's default the location filter to the global branch ID if set.
+
+  // However, we still want local control. So we can use internal state initialized with props, 
+  // but if we want to enforce global filter, we should respond to it.
+
+  // Actually, existing props locationBranchId comes from parent state. 
+  // Let's assume onLocationBranchChange updates that parent state.
+  // But wait, the dashboard parent passes global 'branchId'.
+  // We should likely treat 'branchId' as the primary filter for "Location".
+
+  const effectiveLocationBranchId = propLocationBranchId || branchId;
+
   const { data: branches } = useBranches();
   const { data, isLoading } = useCrossBranchAnalytics({
     startDate,
     endDate,
-    locationBranchId,
-    reporterBranchId,
+    locationBranchId: effectiveLocationBranchId,
+    reporterBranchId: propReporterBranchId,
   });
 
   // Prepare chart data
@@ -95,10 +113,12 @@ export function CrossBranchAnalytics({
           <div className="flex flex-wrap gap-2">
             {/* Location Branch Filter */}
             <Select
-              value={locationBranchId || "all"}
+              value={effectiveLocationBranchId || "all"}
               onValueChange={(v) =>
                 onLocationBranchChange?.(v === "all" ? "" : v)
               }
+              // Disable if global filter is enforced (optional UX choice, usually good to let user drill out if allowed, but for now strict consistency)
+              disabled={!!branchId}
             >
               <SelectTrigger className="w-[150px] h-8">
                 <MapPin className="me-2 h-3.5 w-3.5" />
@@ -123,7 +143,7 @@ export function CrossBranchAnalytics({
 
             {/* Reporter Branch Filter */}
             <Select
-              value={reporterBranchId || "all"}
+              value={propReporterBranchId || "all"}
               onValueChange={(v) =>
                 onReporterBranchChange?.(v === "all" ? "" : v)
               }
