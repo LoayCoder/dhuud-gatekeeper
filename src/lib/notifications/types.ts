@@ -28,10 +28,12 @@ export type ActionEventType =
   | 'incident.status_changed'
   | 'incident.closed'
   | 'incident.escalated'
+  | 'incident.rejected'
   | 'incident.investigation_started'
   | 'incident.investigation_completed'
   // Observations
   | 'observation.created'
+  | 'observation.assigned'
   | 'observation.reviewed'
   | 'observation.escalated'
   | 'observation.closed'
@@ -61,6 +63,7 @@ export type ActionEventType =
   | 'action.verified'
   | 'action.returned'
   | 'action.overdue'
+  | 'action.closed'
   | 'action.extension_requested'
   | 'action.extension_approved'
   | 'action.extension_rejected'
@@ -92,6 +95,8 @@ export type ActionEventType =
   // Emergency
   | 'emergency.alert_created'
   | 'emergency.alert_acknowledged'
+  | 'emergency.escalated'
+  | 'emergency.closed'
   // HSSE Broadcast
   | 'hsse.notification_published'
   // Approvals
@@ -273,17 +278,35 @@ export const EVENT_TO_PREFERENCE: Partial<Record<ActionEventType, PreferenceCate
   'incident.created': 'incidents_new',
   'incident.assigned': 'incidents_assigned',
   'incident.status_changed': 'incidents_status_change',
+  'incident.closed': 'incidents_status_change',
+  'incident.escalated': 'incidents_status_change',
+  'incident.rejected': 'incidents_status_change',
+  'incident.investigation_started': 'incidents_status_change',
+  'incident.investigation_completed': 'incidents_status_change',
   'observation.created': 'incidents_new',
+  'observation.assigned': 'incidents_assigned',
+  'observation.reviewed': 'incidents_status_change',
+  'observation.escalated': 'incidents_status_change',
+  'observation.closed': 'incidents_status_change',
+  'action.assigned': 'incidents_assigned',
+  'action.overdue': 'sla_overdue',
+  'action.returned': 'incidents_status_change',
+  'action.closed': 'incidents_status_change',
   'approval.requested': 'approvals_requested',
   'approval.granted': 'approvals_decision',
   'approval.denied': 'approvals_decision',
   'sla.warning': 'sla_warnings',
   'sla.overdue': 'sla_overdue',
   'sla.escalated': 'sla_escalations',
+  'gate_pass.requested': 'gate_pass_approval',
   'gate_pass.approved': 'gate_pass_approval',
   'gate_pass.rejected': 'gate_pass_approval',
+  'contractor.registered': 'contractor_alerts',
   'contractor.approved': 'contractor_alerts',
   'contractor.rejected': 'contractor_alerts',
+  'contractor.compliance_expiring': 'contractor_alerts',
+  'contractor.worker_approved': 'contractor_alerts',
+  'contractor.worker_rejected': 'contractor_alerts',
   'hsse.notification_published': 'system_announcements',
 };
 

@@ -67,9 +67,221 @@ const BUILTIN_TEMPLATES: Record<string, NotificationTemplate> = {
         bodyPattern: 'Incident assigned — {{priority}} priority',
         tag: 'incident-assigned-{{entity_id}}',
       },
+      whatsapp: {
+        contentPattern: '*Incident Assigned to You*\nRef: {{reference_id}}\nTitle: {{title}}\nPriority: {{priority}}\nDue: {{due_date}}\n\nPlease take action promptly.',
+      },
     },
     variableKeys: ['reference_id', 'title', 'priority', 'due_date', 'entity_id'],
     defaultPriority: 'high',
+  },
+
+  incident_status_changed: {
+    slug: 'incident_status_changed',
+    channels: {
+      in_app: {
+        titlePattern: 'Incident Updated: {{reference_id}}',
+        titlePatternAr: 'تحديث حادثة: {{reference_id}}',
+        bodyPattern: '{{reference_id}} status changed to {{new_status}}',
+        bodyPatternAr: '{{reference_id}} تم تغيير الحالة إلى {{new_status}}',
+      },
+      push: {
+        titlePattern: 'Update: {{reference_id}}',
+        bodyPattern: 'Status: {{new_status}}',
+        tag: 'incident-status-{{entity_id}}',
+      },
+    },
+    variableKeys: ['reference_id', 'new_status', 'entity_id'],
+    defaultPriority: 'medium',
+  },
+
+  incident_closed: {
+    slug: 'incident_closed',
+    channels: {
+      in_app: {
+        titlePattern: 'Incident Closed: {{reference_id}}',
+        titlePatternAr: 'تم إغلاق الحادثة: {{reference_id}}',
+        bodyPattern: '{{reference_id}} has been closed. {{closure_notes}}',
+        bodyPatternAr: 'تم إغلاق {{reference_id}}. {{closure_notes}}',
+      },
+      push: {
+        titlePattern: 'Closed: {{reference_id}}',
+        bodyPattern: 'Incident {{reference_id}} resolved',
+        tag: 'incident-closed-{{entity_id}}',
+      },
+    },
+    variableKeys: ['reference_id', 'closure_notes', 'entity_id'],
+    defaultPriority: 'low',
+  },
+
+  incident_escalated: {
+    slug: 'incident_escalated',
+    channels: {
+      in_app: {
+        titlePattern: 'ESCALATED: {{reference_id}}',
+        titlePatternAr: 'تصعيد: {{reference_id}}',
+        bodyPattern: '{{reference_id}} escalated to {{escalation_target}} — {{severity}}',
+        bodyPatternAr: '{{reference_id}} تم تصعيده إلى {{escalation_target}} — {{severity}}',
+      },
+      email: {
+        subjectPattern: '[ESCALATION] Incident {{reference_id}} — {{severity}}',
+        bodyPattern: 'Incident {{reference_id}} has been escalated.\n\nTitle: {{title}}\nSeverity: {{severity}}\nEscalated to: {{escalation_target}}\nReason: {{escalation_reason}}\n\nImmediate attention required.',
+      },
+      push: {
+        titlePattern: 'ESCALATED: {{reference_id}}',
+        bodyPattern: '{{severity}} — escalated to {{escalation_target}}',
+        tag: 'incident-escalated-{{entity_id}}',
+      },
+      whatsapp: {
+        contentPattern: '*INCIDENT ESCALATED*\nRef: {{reference_id}}\nSeverity: {{severity}}\nTitle: {{title}}\nEscalated to: {{escalation_target}}\n\nImmediate attention required.',
+      },
+    },
+    variableKeys: ['reference_id', 'title', 'severity', 'escalation_target', 'escalation_reason', 'entity_id'],
+    defaultPriority: 'critical',
+  },
+
+  incident_rejected: {
+    slug: 'incident_rejected',
+    channels: {
+      in_app: {
+        titlePattern: 'Incident Rejected: {{reference_id}}',
+        titlePatternAr: 'تم رفض الحادثة: {{reference_id}}',
+        bodyPattern: '{{reference_id}} was rejected. Reason: {{rejection_reason}}',
+        bodyPatternAr: 'تم رفض {{reference_id}}. السبب: {{rejection_reason}}',
+      },
+      email: {
+        subjectPattern: 'Incident Rejected: {{reference_id}}',
+        bodyPattern: 'Incident {{reference_id}} has been rejected.\n\nTitle: {{title}}\nRejected by: {{rejected_by}}\nReason: {{rejection_reason}}',
+      },
+      push: {
+        titlePattern: 'Rejected: {{reference_id}}',
+        bodyPattern: '{{rejection_reason}}',
+        tag: 'incident-rejected-{{entity_id}}',
+      },
+    },
+    variableKeys: ['reference_id', 'title', 'rejected_by', 'rejection_reason', 'entity_id'],
+    defaultPriority: 'medium',
+  },
+
+  incident_investigation_started: {
+    slug: 'incident_investigation_started',
+    channels: {
+      in_app: {
+        titlePattern: 'Investigation Started: {{reference_id}}',
+        titlePatternAr: 'بدأ التحقيق: {{reference_id}}',
+        bodyPattern: 'Investigation for {{reference_id}} has been initiated by {{investigator_name}}',
+        bodyPatternAr: 'بدأ التحقيق في {{reference_id}} بواسطة {{investigator_name}}',
+      },
+      push: {
+        titlePattern: 'Investigation: {{reference_id}}',
+        bodyPattern: 'Investigation started by {{investigator_name}}',
+        tag: 'incident-investigation-{{entity_id}}',
+      },
+    },
+    variableKeys: ['reference_id', 'investigator_name', 'entity_id'],
+    defaultPriority: 'medium',
+  },
+
+  incident_investigation_completed: {
+    slug: 'incident_investigation_completed',
+    channels: {
+      in_app: {
+        titlePattern: 'Investigation Complete: {{reference_id}}',
+        titlePatternAr: 'اكتمل التحقيق: {{reference_id}}',
+        bodyPattern: 'Investigation for {{reference_id}} is complete. Pending review.',
+        bodyPatternAr: 'اكتمل التحقيق في {{reference_id}}. في انتظار المراجعة.',
+      },
+      email: {
+        subjectPattern: 'Investigation Complete: {{reference_id}}',
+        bodyPattern: 'The investigation for incident {{reference_id}} has been completed.\n\nTitle: {{title}}\nInvestigator: {{investigator_name}}\n\nPlease review the findings.',
+      },
+      push: {
+        titlePattern: 'Investigation Done: {{reference_id}}',
+        bodyPattern: 'Pending review',
+        tag: 'incident-investigation-done-{{entity_id}}',
+      },
+    },
+    variableKeys: ['reference_id', 'title', 'investigator_name', 'entity_id'],
+    defaultPriority: 'medium',
+  },
+
+  // --- OBSERVATIONS ---
+  observation_created: {
+    slug: 'observation_created',
+    channels: {
+      in_app: {
+        titlePattern: 'New Observation: {{reference_id}}',
+        titlePatternAr: 'ملاحظة جديدة: {{reference_id}}',
+        bodyPattern: '{{reporter_name}} reported an observation at {{location}}',
+        bodyPatternAr: '{{reporter_name}} أبلغ عن ملاحظة في {{location}}',
+      },
+      push: {
+        titlePattern: 'Observation: {{reference_id}}',
+        bodyPattern: '{{observation_type}} at {{location}}',
+        tag: 'observation-{{entity_id}}',
+      },
+    },
+    variableKeys: ['reference_id', 'reporter_name', 'location', 'observation_type', 'entity_id'],
+    defaultPriority: 'medium',
+  },
+
+  observation_assigned: {
+    slug: 'observation_assigned',
+    channels: {
+      in_app: {
+        titlePattern: 'Observation Assigned: {{reference_id}}',
+        titlePatternAr: 'تم تعيين ملاحظة: {{reference_id}}',
+        bodyPattern: 'You have been assigned to review observation {{reference_id}}',
+        bodyPatternAr: 'تم تعيينك لمراجعة الملاحظة {{reference_id}}',
+      },
+      email: {
+        subjectPattern: 'Action Required: Observation {{reference_id}} assigned to you',
+        bodyPattern: 'You have been assigned to review observation {{reference_id}}.\n\nType: {{observation_type}}\nLocation: {{location}}\nReported by: {{reporter_name}}\n\nPlease review and take action.',
+      },
+      push: {
+        titlePattern: 'Assigned: {{reference_id}}',
+        bodyPattern: 'Observation assigned for review',
+        tag: 'observation-assigned-{{entity_id}}',
+      },
+    },
+    variableKeys: ['reference_id', 'observation_type', 'location', 'reporter_name', 'entity_id'],
+    defaultPriority: 'medium',
+  },
+
+  observation_escalated: {
+    slug: 'observation_escalated',
+    channels: {
+      in_app: {
+        titlePattern: 'Observation Escalated: {{reference_id}}',
+        titlePatternAr: 'تصعيد ملاحظة: {{reference_id}}',
+        bodyPattern: '{{reference_id}} escalated to {{escalation_target}}',
+        bodyPatternAr: '{{reference_id}} تم تصعيده إلى {{escalation_target}}',
+      },
+      email: {
+        subjectPattern: '[Escalation] Observation {{reference_id}}',
+        bodyPattern: 'Observation {{reference_id}} has been escalated.\n\nType: {{observation_type}}\nLocation: {{location}}\nEscalated to: {{escalation_target}}\n\nPlease review promptly.',
+      },
+      push: {
+        titlePattern: 'Escalated: {{reference_id}}',
+        bodyPattern: 'Observation escalated to {{escalation_target}}',
+        tag: 'observation-escalated-{{entity_id}}',
+      },
+    },
+    variableKeys: ['reference_id', 'observation_type', 'location', 'escalation_target', 'entity_id'],
+    defaultPriority: 'high',
+  },
+
+  observation_closed: {
+    slug: 'observation_closed',
+    channels: {
+      in_app: {
+        titlePattern: 'Observation Closed: {{reference_id}}',
+        titlePatternAr: 'تم إغلاق الملاحظة: {{reference_id}}',
+        bodyPattern: 'Observation {{reference_id}} has been closed',
+        bodyPatternAr: 'تم إغلاق الملاحظة {{reference_id}}',
+      },
+    },
+    variableKeys: ['reference_id', 'entity_id'],
+    defaultPriority: 'low',
   },
 
   // --- CORRECTIVE ACTIONS ---
@@ -142,6 +354,134 @@ const BUILTIN_TEMPLATES: Record<string, NotificationTemplate> = {
     defaultPriority: 'high',
   },
 
+  action_started: {
+    slug: 'action_started',
+    channels: {
+      in_app: {
+        titlePattern: 'Action Started: {{reference_id}}',
+        titlePatternAr: 'بدأ الإجراء: {{reference_id}}',
+        bodyPattern: '{{action_title}} is now in progress',
+        bodyPatternAr: '{{action_title}} قيد التنفيذ الآن',
+      },
+    },
+    variableKeys: ['reference_id', 'action_title', 'entity_id'],
+    defaultPriority: 'low',
+  },
+
+  action_completed: {
+    slug: 'action_completed',
+    channels: {
+      in_app: {
+        titlePattern: 'Action Completed: {{reference_id}}',
+        titlePatternAr: 'اكتمل الإجراء: {{reference_id}}',
+        bodyPattern: '{{action_title}} completed — pending verification',
+        bodyPatternAr: '{{action_title}} مكتمل — في انتظار التحقق',
+      },
+      push: {
+        titlePattern: 'Completed: {{reference_id}}',
+        bodyPattern: '{{action_title}} — awaiting verification',
+        tag: 'action-completed-{{entity_id}}',
+      },
+    },
+    variableKeys: ['reference_id', 'action_title', 'entity_id'],
+    defaultPriority: 'medium',
+  },
+
+  action_verified: {
+    slug: 'action_verified',
+    channels: {
+      in_app: {
+        titlePattern: 'Action Verified: {{reference_id}}',
+        titlePatternAr: 'تم التحقق من الإجراء: {{reference_id}}',
+        bodyPattern: '{{action_title}} has been verified by {{verifier_name}}',
+        bodyPatternAr: 'تم التحقق من {{action_title}} بواسطة {{verifier_name}}',
+      },
+      push: {
+        titlePattern: 'Verified: {{reference_id}}',
+        bodyPattern: '{{action_title}} verified',
+        tag: 'action-verified-{{entity_id}}',
+      },
+    },
+    variableKeys: ['reference_id', 'action_title', 'verifier_name', 'entity_id'],
+    defaultPriority: 'medium',
+  },
+
+  action_closed: {
+    slug: 'action_closed',
+    channels: {
+      in_app: {
+        titlePattern: 'Action Closed: {{reference_id}}',
+        titlePatternAr: 'تم إغلاق الإجراء: {{reference_id}}',
+        bodyPattern: '{{action_title}} has been closed',
+        bodyPatternAr: 'تم إغلاق {{action_title}}',
+      },
+      push: {
+        titlePattern: 'Closed: {{reference_id}}',
+        bodyPattern: '{{action_title}} closed',
+        tag: 'action-closed-{{entity_id}}',
+      },
+    },
+    variableKeys: ['reference_id', 'action_title', 'entity_id'],
+    defaultPriority: 'low',
+  },
+
+  action_extension_requested: {
+    slug: 'action_extension_requested',
+    channels: {
+      in_app: {
+        titlePattern: 'Extension Requested: {{reference_id}}',
+        titlePatternAr: 'طلب تمديد: {{reference_id}}',
+        bodyPattern: '{{requester_name}} requested a deadline extension for {{action_title}}',
+        bodyPatternAr: '{{requester_name}} طلب تمديد الموعد النهائي لـ {{action_title}}',
+      },
+      push: {
+        titlePattern: 'Extension: {{reference_id}}',
+        bodyPattern: 'Extension requested for {{action_title}}',
+        tag: 'action-extension-{{entity_id}}',
+      },
+    },
+    variableKeys: ['reference_id', 'action_title', 'requester_name', 'new_due_date', 'entity_id'],
+    defaultPriority: 'medium',
+  },
+
+  action_extension_approved: {
+    slug: 'action_extension_approved',
+    channels: {
+      in_app: {
+        titlePattern: 'Extension Approved: {{reference_id}}',
+        titlePatternAr: 'تمت الموافقة على التمديد: {{reference_id}}',
+        bodyPattern: 'New deadline: {{new_due_date}}',
+        bodyPatternAr: 'الموعد الجديد: {{new_due_date}}',
+      },
+      push: {
+        titlePattern: 'Approved: {{reference_id}}',
+        bodyPattern: 'Extension approved — new due date: {{new_due_date}}',
+        tag: 'action-extension-approved-{{entity_id}}',
+      },
+    },
+    variableKeys: ['reference_id', 'new_due_date', 'entity_id'],
+    defaultPriority: 'medium',
+  },
+
+  action_extension_rejected: {
+    slug: 'action_extension_rejected',
+    channels: {
+      in_app: {
+        titlePattern: 'Extension Denied: {{reference_id}}',
+        titlePatternAr: 'تم رفض التمديد: {{reference_id}}',
+        bodyPattern: 'Extension request denied. Original deadline: {{due_date}}',
+        bodyPatternAr: 'تم رفض طلب التمديد. الموعد الأصلي: {{due_date}}',
+      },
+      push: {
+        titlePattern: 'Denied: {{reference_id}}',
+        bodyPattern: 'Extension denied — due: {{due_date}}',
+        tag: 'action-extension-denied-{{entity_id}}',
+      },
+    },
+    variableKeys: ['reference_id', 'due_date', 'entity_id'],
+    defaultPriority: 'high',
+  },
+
   // --- GATE PASSES ---
   gate_pass_requested: {
     slug: 'gate_pass_requested',
@@ -183,6 +523,89 @@ const BUILTIN_TEMPLATES: Record<string, NotificationTemplate> = {
     },
     variableKeys: ['pass_type', 'valid_date', 'approver_name', 'reference_id', 'entity_id'],
     defaultPriority: 'medium',
+  },
+
+  gate_pass_rejected: {
+    slug: 'gate_pass_rejected',
+    channels: {
+      in_app: {
+        titlePattern: 'Gate Pass Rejected',
+        titlePatternAr: 'تم رفض التصريح',
+        bodyPattern: 'Your {{pass_type}} gate pass has been rejected. Reason: {{rejection_reason}}',
+        bodyPatternAr: 'تم رفض تصريح {{pass_type}} الخاص بك. السبب: {{rejection_reason}}',
+      },
+      email: {
+        subjectPattern: 'Gate Pass Rejected — {{reference_id}}',
+        bodyPattern: 'Your gate pass request has been rejected.\n\nReference: {{reference_id}}\nType: {{pass_type}}\nReason: {{rejection_reason}}\n\nYou may submit a new request if needed.',
+      },
+      push: {
+        titlePattern: 'Pass Rejected',
+        bodyPattern: '{{pass_type}} pass rejected',
+        tag: 'gate-pass-rejected-{{entity_id}}',
+      },
+      whatsapp: {
+        contentPattern: '*Gate Pass Rejected*\nRef: {{reference_id}}\nType: {{pass_type}}\nReason: {{rejection_reason}}\n\nYou may submit a new request.',
+      },
+    },
+    variableKeys: ['pass_type', 'reference_id', 'rejection_reason', 'entity_id'],
+    defaultPriority: 'medium',
+  },
+
+  gate_pass_checked_in: {
+    slug: 'gate_pass_checked_in',
+    channels: {
+      in_app: {
+        titlePattern: 'Gate Pass Entry: {{reference_id}}',
+        titlePatternAr: 'دخول التصريح: {{reference_id}}',
+        bodyPattern: '{{holder_name}} checked in with pass {{reference_id}}',
+        bodyPatternAr: '{{holder_name}} دخل بالتصريح {{reference_id}}',
+      },
+      push: {
+        titlePattern: 'Entry: {{reference_id}}',
+        bodyPattern: '{{holder_name}} checked in',
+        tag: 'gate-pass-entry-{{entity_id}}',
+      },
+    },
+    variableKeys: ['reference_id', 'holder_name', 'entity_id'],
+    defaultPriority: 'low',
+  },
+
+  gate_pass_checked_out: {
+    slug: 'gate_pass_checked_out',
+    channels: {
+      in_app: {
+        titlePattern: 'Gate Pass Exit: {{reference_id}}',
+        titlePatternAr: 'خروج التصريح: {{reference_id}}',
+        bodyPattern: '{{holder_name}} checked out with pass {{reference_id}}',
+        bodyPatternAr: '{{holder_name}} خرج بالتصريح {{reference_id}}',
+      },
+      push: {
+        titlePattern: 'Exit: {{reference_id}}',
+        bodyPattern: '{{holder_name}} checked out',
+        tag: 'gate-pass-exit-{{entity_id}}',
+      },
+    },
+    variableKeys: ['reference_id', 'holder_name', 'entity_id'],
+    defaultPriority: 'low',
+  },
+
+  gate_pass_expired: {
+    slug: 'gate_pass_expired',
+    channels: {
+      in_app: {
+        titlePattern: 'Gate Pass Expired: {{reference_id}}',
+        titlePatternAr: 'انتهى التصريح: {{reference_id}}',
+        bodyPattern: 'Your {{pass_type}} gate pass has expired',
+        bodyPatternAr: 'انتهت صلاحية تصريح {{pass_type}} الخاص بك',
+      },
+      push: {
+        titlePattern: 'Expired: {{reference_id}}',
+        bodyPattern: '{{pass_type}} pass expired',
+        tag: 'gate-pass-expired-{{entity_id}}',
+      },
+    },
+    variableKeys: ['reference_id', 'pass_type', 'entity_id'],
+    defaultPriority: 'low',
   },
 
   // --- INSPECTIONS ---
@@ -278,6 +701,133 @@ const BUILTIN_TEMPLATES: Record<string, NotificationTemplate> = {
     defaultPriority: 'critical',
   },
 
+  emergency_acknowledged: {
+    slug: 'emergency_acknowledged',
+    channels: {
+      in_app: {
+        titlePattern: 'Emergency Acknowledged: {{alert_type}}',
+        titlePatternAr: 'تم الإقرار بالطوارئ: {{alert_type}}',
+        bodyPattern: '{{responder_name}} acknowledged the {{alert_type}} alert at {{location}}',
+        bodyPatternAr: '{{responder_name}} أقر بإنذار {{alert_type}} في {{location}}',
+      },
+    },
+    variableKeys: ['alert_type', 'responder_name', 'location', 'entity_id'],
+    defaultPriority: 'high',
+  },
+
+  emergency_escalated: {
+    slug: 'emergency_escalated',
+    channels: {
+      in_app: {
+        titlePattern: 'EMERGENCY ESCALATED: {{alert_type}}',
+        titlePatternAr: 'تصعيد طوارئ: {{alert_type}}',
+        bodyPattern: 'Emergency {{alert_type}} at {{location}} escalated to {{escalation_target}}',
+        bodyPatternAr: 'تم تصعيد طوارئ {{alert_type}} في {{location}} إلى {{escalation_target}}',
+      },
+      email: {
+        subjectPattern: '[EMERGENCY ESCALATION] {{alert_type}} — {{location}}',
+        bodyPattern: 'An emergency alert has been escalated.\n\nType: {{alert_type}}\nLocation: {{location}}\nEscalated to: {{escalation_target}}\nDescription: {{description}}\n\nImmediate response required.',
+      },
+      push: {
+        titlePattern: 'ESCALATED: {{alert_type}}',
+        bodyPattern: '{{location}} — escalated to {{escalation_target}}',
+        icon: '/emergency-icon.png',
+        tag: 'emergency-escalated-{{entity_id}}',
+      },
+      whatsapp: {
+        contentPattern: '*EMERGENCY ESCALATION*\nType: {{alert_type}}\nLocation: {{location}}\nEscalated to: {{escalation_target}}\nDescription: {{description}}\n\nImmediate response required.',
+      },
+    },
+    variableKeys: ['alert_type', 'location', 'escalation_target', 'description', 'entity_id'],
+    defaultPriority: 'critical',
+  },
+
+  emergency_closed: {
+    slug: 'emergency_closed',
+    channels: {
+      in_app: {
+        titlePattern: 'Emergency Resolved: {{alert_type}}',
+        titlePatternAr: 'تم حل الطوارئ: {{alert_type}}',
+        bodyPattern: '{{alert_type}} at {{location}} has been resolved',
+        bodyPatternAr: 'تم حل {{alert_type}} في {{location}}',
+      },
+      push: {
+        titlePattern: 'Resolved: {{alert_type}}',
+        bodyPattern: 'Emergency at {{location}} resolved',
+        tag: 'emergency-closed-{{entity_id}}',
+      },
+    },
+    variableKeys: ['alert_type', 'location', 'entity_id'],
+    defaultPriority: 'medium',
+  },
+
+  // --- SLA ---
+  sla_warning: {
+    slug: 'sla_warning',
+    channels: {
+      in_app: {
+        titlePattern: 'SLA Warning: {{reference_id}}',
+        titlePatternAr: 'تحذير SLA: {{reference_id}}',
+        bodyPattern: '{{entity_type}} {{reference_id}} is approaching SLA deadline',
+        bodyPatternAr: '{{entity_type}} {{reference_id}} يقترب من الموعد النهائي',
+      },
+      push: {
+        titlePattern: 'SLA Warning',
+        bodyPattern: '{{reference_id}} due soon',
+        tag: 'sla-warning-{{entity_id}}',
+      },
+    },
+    variableKeys: ['reference_id', 'entity_type', 'days_remaining', 'entity_id'],
+    defaultPriority: 'high',
+  },
+
+  sla_overdue: {
+    slug: 'sla_overdue',
+    channels: {
+      in_app: {
+        titlePattern: 'SLA Overdue: {{reference_id}}',
+        titlePatternAr: 'تجاوز SLA: {{reference_id}}',
+        bodyPattern: '{{entity_type}} {{reference_id}} is {{days_overdue}} days overdue',
+        bodyPatternAr: '{{entity_type}} {{reference_id}} متأخر {{days_overdue}} أيام',
+      },
+      email: {
+        subjectPattern: '[SLA OVERDUE] {{reference_id}} — {{days_overdue}} days',
+        bodyPattern: 'An SLA deadline has been breached.\n\nReference: {{reference_id}}\nType: {{entity_type}}\nDays Overdue: {{days_overdue}}\n\nPlease take immediate action.',
+      },
+      push: {
+        titlePattern: 'OVERDUE: {{reference_id}}',
+        bodyPattern: '{{days_overdue}} days overdue',
+        tag: 'sla-overdue-{{entity_id}}',
+      },
+    },
+    variableKeys: ['reference_id', 'entity_type', 'days_overdue', 'entity_id'],
+    defaultPriority: 'high',
+  },
+
+  // --- HSSE BROADCAST ---
+  hsse_broadcast: {
+    slug: 'hsse_broadcast',
+    channels: {
+      in_app: {
+        titlePattern: '{{category}}: {{title}}',
+        titlePatternAr: '{{category}}: {{title_ar}}',
+        bodyPattern: '{{body}}',
+        bodyPatternAr: '{{body_ar}}',
+      },
+      email: {
+        subjectPattern: '[{{priority}}] {{category}}: {{title}}',
+        bodyPattern: '{{body}}\n\nCategory: {{category}}\nPriority: {{priority}}',
+      },
+      push: {
+        titlePattern: '{{category}}',
+        bodyPattern: '{{title}}',
+        tag: 'hsse-{{entity_id}}',
+      },
+    },
+    variableKeys: ['title', 'title_ar', 'body', 'body_ar', 'category', 'priority', 'entity_id'],
+    defaultPriority: 'medium',
+  },
+
   // --- APPROVALS ---
   approval_requested: {
     slug: 'approval_requested',
@@ -295,6 +845,44 @@ const BUILTIN_TEMPLATES: Record<string, NotificationTemplate> = {
       },
     },
     variableKeys: ['approval_type', 'requester_name', 'item_reference', 'entity_id'],
+    defaultPriority: 'medium',
+  },
+
+  approval_granted: {
+    slug: 'approval_granted',
+    channels: {
+      in_app: {
+        titlePattern: 'Approved: {{approval_type}}',
+        titlePatternAr: 'تمت الموافقة: {{approval_type}}',
+        bodyPattern: '{{item_reference}} has been approved by {{approver_name}}',
+        bodyPatternAr: 'تمت الموافقة على {{item_reference}} بواسطة {{approver_name}}',
+      },
+      push: {
+        titlePattern: 'Approved',
+        bodyPattern: '{{approval_type}} — {{item_reference}} approved',
+        tag: 'approval-granted-{{entity_id}}',
+      },
+    },
+    variableKeys: ['approval_type', 'item_reference', 'approver_name', 'entity_id'],
+    defaultPriority: 'medium',
+  },
+
+  approval_denied: {
+    slug: 'approval_denied',
+    channels: {
+      in_app: {
+        titlePattern: 'Denied: {{approval_type}}',
+        titlePatternAr: 'تم الرفض: {{approval_type}}',
+        bodyPattern: '{{item_reference}} has been denied. Reason: {{denial_reason}}',
+        bodyPatternAr: 'تم رفض {{item_reference}}. السبب: {{denial_reason}}',
+      },
+      push: {
+        titlePattern: 'Denied',
+        bodyPattern: '{{approval_type}} — {{item_reference}} denied',
+        tag: 'approval-denied-{{entity_id}}',
+      },
+    },
+    variableKeys: ['approval_type', 'item_reference', 'denial_reason', 'entity_id'],
     defaultPriority: 'medium',
   },
 };

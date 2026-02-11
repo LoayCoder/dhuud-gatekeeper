@@ -41,24 +41,26 @@ const DEFAULT_CHANNEL_MAP: Record<ActionEventType, NotificationChannel[]> = {
   'incident.created':                 ['in_app', 'push', 'email'],
   'incident.assigned':                ['in_app', 'push', 'email'],
   'incident.status_changed':          ['in_app', 'push'],
-  'incident.closed':                  ['in_app'],
+  'incident.closed':                  ['in_app', 'push'],
   'incident.escalated':               ['in_app', 'push', 'email', 'whatsapp'],
+  'incident.rejected':                ['in_app', 'push', 'email'],
   'incident.investigation_started':   ['in_app', 'push'],
-  'incident.investigation_completed': ['in_app', 'push'],
+  'incident.investigation_completed': ['in_app', 'push', 'email'],
 
   // Observations
   'observation.created':    ['in_app', 'push'],
+  'observation.assigned':   ['in_app', 'push', 'email'],
   'observation.reviewed':   ['in_app'],
   'observation.escalated':  ['in_app', 'push', 'email'],
   'observation.closed':     ['in_app'],
 
   // Gate Passes
-  'gate_pass.requested':    ['in_app', 'push'],
-  'gate_pass.approved':     ['in_app', 'push', 'email'],
-  'gate_pass.rejected':     ['in_app', 'push'],
-  'gate_pass.expired':      ['in_app'],
-  'gate_pass.checked_in':   ['in_app'],
-  'gate_pass.checked_out':  ['in_app'],
+  'gate_pass.requested':    ['in_app', 'push', 'email'],
+  'gate_pass.approved':     ['in_app', 'push', 'email', 'whatsapp'],
+  'gate_pass.rejected':     ['in_app', 'push', 'email', 'whatsapp'],
+  'gate_pass.expired':      ['in_app', 'push'],
+  'gate_pass.checked_in':   ['in_app', 'push'],
+  'gate_pass.checked_out':  ['in_app', 'push'],
 
   // Inspections
   'inspection.scheduled':       ['in_app', 'push'],
@@ -81,6 +83,7 @@ const DEFAULT_CHANNEL_MAP: Record<ActionEventType, NotificationChannel[]> = {
   'action.verified':            ['in_app', 'push'],
   'action.returned':            ['in_app', 'push', 'email'],
   'action.overdue':             ['in_app', 'push', 'email'],
+  'action.closed':              ['in_app', 'push'],
   'action.extension_requested': ['in_app', 'push'],
   'action.extension_approved':  ['in_app', 'push'],
   'action.extension_rejected':  ['in_app', 'push'],
@@ -118,6 +121,8 @@ const DEFAULT_CHANNEL_MAP: Record<ActionEventType, NotificationChannel[]> = {
   // Emergency
   'emergency.alert_created':      ['in_app', 'push', 'whatsapp'],
   'emergency.alert_acknowledged': ['in_app'],
+  'emergency.escalated':          ['in_app', 'push', 'email', 'whatsapp'],
+  'emergency.closed':             ['in_app', 'push'],
 
   // HSSE Broadcast
   'hsse.notification_published': ['in_app', 'push', 'email'],
@@ -142,10 +147,12 @@ const DEFAULT_TEMPLATE_MAP: Record<ActionEventType, string> = {
   'incident.status_changed':          'incident_status_changed',
   'incident.closed':                  'incident_closed',
   'incident.escalated':               'incident_escalated',
+  'incident.rejected':                'incident_rejected',
   'incident.investigation_started':   'incident_investigation_started',
   'incident.investigation_completed': 'incident_investigation_completed',
 
   'observation.created':   'observation_created',
+  'observation.assigned':  'observation_assigned',
   'observation.reviewed':  'observation_reviewed',
   'observation.escalated': 'observation_escalated',
   'observation.closed':    'observation_closed',
@@ -175,6 +182,7 @@ const DEFAULT_TEMPLATE_MAP: Record<ActionEventType, string> = {
   'action.verified':            'action_verified',
   'action.returned':            'action_returned',
   'action.overdue':             'action_overdue',
+  'action.closed':              'action_closed',
   'action.extension_requested': 'action_extension_requested',
   'action.extension_approved':  'action_extension_approved',
   'action.extension_rejected':  'action_extension_rejected',
@@ -206,6 +214,8 @@ const DEFAULT_TEMPLATE_MAP: Record<ActionEventType, string> = {
 
   'emergency.alert_created':      'emergency_alert',
   'emergency.alert_acknowledged': 'emergency_acknowledged',
+  'emergency.escalated':          'emergency_escalated',
+  'emergency.closed':             'emergency_closed',
 
   'hsse.notification_published': 'hsse_broadcast',
 

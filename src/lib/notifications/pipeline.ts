@@ -51,6 +51,7 @@ import { EVENT_TO_PREFERENCE } from './types';
 import { mapActionEventToDeliveries } from './action-event-mapper';
 import { resolveTemplate, renderTemplateForChannel } from './template-registry';
 import { isDuplicateEvent, markEventProcessed, generateEventId } from './idempotency';
+import { normalizePhoneE164 } from './phone-utils';
 
 const log = logger.scope('NotificationPipeline');
 
@@ -411,7 +412,19 @@ async function deliverWhatsApp(
         timestamp: new Date().toISOString(),
       });
     } else {
-      toSend.push(r);
+      // Normalize phone number to E.164 before sending
+      const normalizedPhone = normalizePhoneE164(r.phone);
+      if (!normalizedPhone) {
+        skipped.push({
+          channel: 'whatsapp',
+          recipientId: r.userId,
+          status: 'skipped',
+          error: `Invalid phone number format: ${r.phone}`,
+          timestamp: new Date().toISOString(),
+        });
+      } else {
+        toSend.push({ ...r, phone: normalizedPhone });
+      }
     }
   }
 
@@ -430,13 +443,14 @@ async function deliverWhatsApp(
           }
         }
 
-        const { error } = await supabase.functions.invoke('send-gate-whatsapp', {
+        const { error } = await supabase.functions.invoke('send-whatsapp-notification', {
           body: {
-            mobile_number: recipient.phone,
+            to: recipient.phone,
             message,
             tenant_id: event.tenantId,
-            notification_type: event.eventType,
-            variables: event.variables,
+            event_type: event.eventType,
+            entity_type: event.source.entityType,
+            entity_id: event.source.entityId,
           },
         });
 
@@ -545,43 +559,50 @@ async function writeAuditLog(
   durationMs: number
 ): Promise<void> {
   try {
-    const channels = [...new Set(results.map(r => r.channel))];
-    const entry: NotificationAuditEntry = {
-      eventId: event.eventId,
-      eventType: event.eventType,
-      tenantId: event.tenantId,
-      actorId: event.actorId,
-      sourceEntityType: event.source.entityType,
-      sourceEntityId: event.source.entityId,
-      channels,
-      recipientCount: results.length,
-      deliveredCount: results.filter(r => r.status === 'sent' || r.status === 'delivered').length,
-      failedCount: results.filter(r => r.status === 'failed').length,
-      skippedCount: results.filter(r => r.status === 'skipped').length,
-      deduplicatedCount: 0,
-      pipelineStartedAt: event.timestamp,
-      pipelineCompletedAt: new Date().toISOString(),
-      durationMs,
-      metadata: {
-        priority: event.priority,
-        referenceId: event.source.referenceId,
-      },
-    };
+    // Write per-delivery log entries (not a single summary)
+    // This allows querying per channel, per recipient, per status
+    const logEntries = results
+      .filter(r => r.status !== 'skipped')
+      .map(r => ({
+        tenant_id: event.tenantId,
+        user_id: r.recipientId,
+        channel: r.channel,
+        template_name: event.eventType,
+        status: r.status === 'sent' ? 'sent' : 'failed',
+        is_final: r.status === 'failed',
+        to_address: r.recipientId,
+        subject: `[Pipeline] ${event.eventType}`,
+        related_entity_type: event.source.entityType,
+        related_entity_id: event.source.entityId,
+        idempotency_key: `${event.eventId}:${r.channel}:${r.recipientId}`,
+        error_message: r.error || null,
+        metadata: {
+          event_id: event.eventId,
+          priority: event.priority,
+          reference_id: event.source.referenceId,
+          duration_ms: durationMs,
+          actor_id: event.actorId,
+        },
+      }));
 
-    // Log to notification_logs table for audit trail
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any).from('notification_logs').insert({
-      tenant_id: event.tenantId,
-      user_id: event.actorId,
-      channel: channels.join(','),
-      template_name: event.eventType,
-      status: results.some(r => r.status === 'failed') ? 'partial' : 'sent',
-      is_final: true,
-      to_address: `${results.length} recipients`,
-      subject: `[Pipeline] ${event.eventType} — ${event.eventId}`,
-    });
+    if (logEntries.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any).from('notification_logs').upsert(
+        logEntries,
+        { onConflict: 'idempotency_key', ignoreDuplicates: true }
+      );
+      if (error) {
+        log.warn('Audit log upsert partial failure:', error.message);
+      }
+    }
 
-    log.debug('Audit log written for event:', event.eventId);
+    // Log skipped count for debugging
+    const skippedCount = results.filter(r => r.status === 'skipped').length;
+    if (skippedCount > 0) {
+      log.debug(`Skipped ${skippedCount} deliveries for event ${event.eventId}`);
+    }
+
+    log.debug('Audit log written for event:', event.eventId, `(${logEntries.length} entries)`);
   } catch (error) {
     // Never fail the pipeline due to audit logging errors
     log.error('Failed to write audit log:', error);
