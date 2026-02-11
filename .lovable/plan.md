@@ -1,65 +1,39 @@
 
 
-## Fix: Public Gate Pass Tracking Page - Items Not Displaying + Build Errors
+## Fix: Public Gate Pass Submission Notifications Not Sending
 
-### Problem Summary
+### Root Cause
 
-Three distinct issues:
+The `notify-public-gate-pass` edge function **is not registered in `supabase/config.toml`**. Without an entry there, the function is never deployed, so all calls to it from the frontend fail silently (the `try/catch` in `use-public-gate-pass.ts` swallows the error).
 
-1. **Items show "0"**: The `get_public_gate_pass_status` RPC returns `items` as a **sibling** of `gate_pass` in the JSON response, but the UI reads `gatePass.items` (nested inside gate_pass) -- which is always `undefined`.
-2. **Vehicle plate empty**: The RPC returns only `vehicle_plate` (combined), but the UI reads `vehicle_plate_letters` and `vehicle_plate_numbers` (separate fields not in the RPC response).
-3. **Build error**: Duplicate `import { supabase }` on lines 26-27 of `VisitorPreRegistration.tsx`.
+The function code itself is complete and correct -- it handles WhatsApp + email for both the requester and Golf Club Management staff. It just needs to be deployed.
 
-### Database Evidence
+### Fix
 
-The data exists correctly in the database:
-- 2 items in `public_gate_pass_items` with photos
-- `vehicle_plate_letters = 'DDD'`, `vehicle_plate_numbers = '1765'`
+**File: `supabase/config.toml`**
 
-But the RPC response structure is:
+Add the missing entry:
 
-```text
-{
-  "success": true,
-  "gate_pass": { id, status, requester_name, vehicle_plate, ... },  <-- NO items, NO plate_letters/numbers
-  "items": [ {item_name, quantity, photo_storage_path, ...} ],      <-- items are HERE (sibling)
-  "branch": { ... },
-  "tenant": { ... }
-}
+```toml
+[functions.notify-public-gate-pass]
+verify_jwt = false
 ```
 
-### Fix Plan
+`verify_jwt = false` is correct here because this function is called from the public (unauthenticated) gate pass submission flow.
 
-#### 1. Database Migration: Update `get_public_gate_pass_status` RPC
+### What This Enables
 
-Modify the RPC to include `items` inside the `gate_pass` object and add `vehicle_plate_letters`/`vehicle_plate_numbers`:
+Once deployed, on submission the function will:
+1. Send a **WhatsApp confirmation** to the requester with reference number, date, materials, and tracking link (bilingual Arabic/English)
+2. Send a **WhatsApp notification** to Golf Club Management staff (rep/manager roles) about the new request
+3. Send an **email confirmation** to the requester (if email was provided)
 
-- Add `mgp.vehicle_plate_letters`, `mgp.vehicle_plate_numbers` to the SELECT
-- Nest `v_items` inside the `gate_pass` JSON object instead of as a sibling
-- Keep backward compatibility by also returning `items` at root level
+### No Other Changes Needed
 
-#### 2. Fix `src/pages/public-gate-pass/PublicStatusPage.tsx`
+- The function code (`supabase/functions/notify-public-gate-pass/index.ts`) is complete
+- The frontend call in `use-public-gate-pass.ts` (lines 145-160) is correct
+- The `WASENDER_API_KEY` secret is already configured
+- The database trigger (`trg_notify_public_gate_pass_status`) also exists for status-change notifications
 
-- Destructure `items` from `data` alongside `gate_pass`, `branch`, `tenant`
-- Use `items` (from root level) instead of `gatePass.items` for rendering
-- Use `gatePass.vehicle_plate_letters`/`vehicle_plate_numbers` with fallback to splitting `gatePass.vehicle_plate`
-
-#### 3. Fix `src/pages/visitors/VisitorPreRegistration.tsx`
-
-- Remove the duplicate `import { supabase }` on line 27
-
-### File Changes
-
-| File | Change |
-|------|--------|
-| Database migration | Update `get_public_gate_pass_status` to include `vehicle_plate_letters`, `vehicle_plate_numbers` in gate_pass and nest items |
-| `src/pages/public-gate-pass/PublicStatusPage.tsx` | Destructure `items` from root response; use for rendering; fix vehicle plate display |
-| `src/pages/visitors/VisitorPreRegistration.tsx` | Remove duplicate import line 27 |
-
-### Expected Result
-
-- Items section shows "2" with both item cards, photos, and quantities
-- Vehicle plate shows "DDD 1765" correctly
-- Build succeeds without errors
-- All data fields render from actual database values
+Single config line addition. The function will auto-deploy once added.
 
