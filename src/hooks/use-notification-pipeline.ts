@@ -82,8 +82,9 @@ export function useNotificationPipeline(): UseNotificationPipelineReturn {
           .from('tenants')
           .select('default_phone_country_code')
           .eq('id', profile.tenant_id)
-          .single();
-        tenantPhoneCodeCache.set(profile.tenant_id, tenant?.default_phone_country_code ?? null);
+          .maybeSingle();
+        const code = (tenant as unknown as Record<string, unknown> | null)?.default_phone_country_code as string | null;
+        tenantPhoneCodeCache.set(profile.tenant_id, code ?? null);
       }
       defaultPhoneCountryCode = tenantPhoneCodeCache.get(profile.tenant_id) ?? null;
 
