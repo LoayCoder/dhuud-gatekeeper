@@ -1,49 +1,42 @@
 
 
-## Fix: Leading Indicators Card Disappeared
+## Fix: Duplicate Branch Names in Dropdown (Defensive Deduplication)
 
 ### Root Cause
 
-The `get_leading_indicators` RPC has **two versions** in the database (same problem as the gate pass function):
+The database only has **one** active "RGC" branch (the old one was soft-deleted on 2025-12-29). The duplicate showing in the UI is caused by **stale React Query cache** in the browser. A hard refresh (Ctrl+Shift+R) will immediately fix it.
 
-| OID | Parameters | Issue |
-|-----|-----------|-------|
-| 112751 (old) | 3 params: `p_start_date, p_end_date, p_branch_id` | References `site_id` on `corrective_actions` table, which does NOT exist -- causes SQL error |
-| 34742 (new) | 4 params: `p_start_date, p_end_date, p_branch_id, p_site_id` | Correct version we just applied, also references `site_id` on `corrective_actions` |
+### Preventive Fix
 
-Both versions fail because the `corrective_actions` table has no `site_id` column. The old version crashes immediately; the new version would crash when `p_site_id` is non-null, but even with null it fails because PostgreSQL still parses/compiles the query referencing the missing column.
+Add deduplication by `id` to the branch query results in **3 locations** to ensure this never happens again, even with stale caches:
 
-The frontend sends 4 parameters (including `p_site_id`), which may also trigger PostgREST ambiguity between the two overloads.
+### File Changes
 
-### Fix (Single Migration)
-
-**Step 1**: Drop both versions by exact signature.
-
-```sql
-DROP FUNCTION IF EXISTS public.get_leading_indicators(date, date, uuid);
-DROP FUNCTION IF EXISTS public.get_leading_indicators(date, date, uuid, uuid);
+**1. `src/contexts/BranchContext.tsx`**
+- After fetching `allBranches` (line 78), deduplicate by `id` before setting state:
+```ts
+const uniqueBranches = allBranches?.filter(
+  (b, i, arr) => arr.findIndex(x => x.id === b.id) === i
+) || [];
+setAccessibleBranches(uniqueBranches);
 ```
+- Same dedup for the assignments-based branch list (line 138)
 
-**Step 2**: Recreate a single version that:
-- Accepts all 4 parameters (`p_start_date`, `p_end_date`, `p_branch_id`, `p_site_id`)
-- Removes the `site_id` filter from the `corrective_actions` query (since that column does not exist on that table)
-- Keeps the `site_id` filter on the `incidents` table queries (where the column does exist)
+**2. `src/hooks/use-org-hierarchy.ts` (`useTenantBranches`)**
+- Deduplicate query results before returning
 
-### Changes Summary
+**3. `src/hooks/use-branches.ts`**
+- Deduplicate query results before returning
 
-| Target | Action |
-|--------|--------|
-| Database migration | Drop both duplicates, recreate single version with corrected `corrective_actions` query |
-| Frontend | No changes needed |
+### Also Fix: Build Errors (unrelated but blocking)
 
-### Technical Detail
+**4. `src/hooks/use-push-subscription.ts`** (lines 207, 292)
+- Add type assertion for `pushManager` property: `(registration as any).pushManager`
 
-The corrective_actions query will change from:
+**5. `src/pages/public-gate-pass/PublicStatusPage.tsx`** (line 454)
+- Fix undefined `isCompleted` variable -- derive it from the status data
 
-```sql
--- BROKEN: site_id does not exist on corrective_actions
-AND (p_site_id IS NULL OR site_id = p_site_id)
-```
+### Immediate Action for User
 
-to simply omitting that line for the `corrective_actions` section, while keeping it for the `incidents` queries where `site_id` does exist.
+Hard refresh the browser (Ctrl+Shift+R) to clear the stale cache and see only one RGC immediately.
 
