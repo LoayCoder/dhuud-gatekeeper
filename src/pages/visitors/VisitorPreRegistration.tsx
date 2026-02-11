@@ -24,11 +24,14 @@ import { VisitorPhotoCapture } from '@/components/security/VisitorPhotoCapture';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useVisitorWorkflowSettings } from '@/hooks/use-visitor-workflow-settings';
 import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { NATIONALITIES } from '@/lib/nationalities';
+import { isValidPhoneNumber } from "react-phone-number-input";
+import { DhuudPhoneInput } from "@/components/ui/phone-input";
 
 const formSchema = z.object({
   full_name: z.string().min(2, 'Name is required'),
-  phone: z.string().min(8, 'Valid phone number is required'),
+  phone: z.string().refine((val) => isValidPhoneNumber(val), { message: 'Valid phone number is required' }),
   company_name: z.string().min(1, 'Company name is required'),
   national_id: z.string().min(1, 'National ID is required'),
   nationality: z.string().min(1, 'Nationality is required'),
@@ -45,7 +48,7 @@ const formSchema = z.object({
   user_type: z.enum(['internal', 'external']),
   host_id: z.string().optional(),
   host_name: z.string().optional(),
-  host_phone: z.string().optional(),
+  host_phone: z.string().optional().refine((val) => !val || isValidPhoneNumber(val), { message: 'Valid phone number is required' }),
   host_email: z.string().email('Valid email is required'),
 }).refine((data) => {
   // For internal users, host_id is required
@@ -93,7 +96,7 @@ export default function VisitorPreRegistration() {
   const [requestSubmitted, setRequestSubmitted] = useState(false);
   const [submittedVisitorName, setSubmittedVisitorName] = useState('');
   const [visitorPhoto, setVisitorPhoto] = useState<Blob | null>(null);
-  
+
   const { data: branches = [] } = useTenantBranches();
   const { data: sites = [] } = useTenantSites();
   const { data: departments = [] } = useTenantDepartments();
@@ -146,7 +149,7 @@ export default function VisitorPreRegistration() {
   // Cascading filters: Departments filtered by selected branch (including hybrid departments with branch_id = null)
   const filteredDepartments = useMemo(() => {
     if (!selectedBranchId) return [];
-    return departments.filter(d => 
+    return departments.filter(d =>
       d.branch_id === null || d.branch_id === selectedBranchId
     );
   }, [departments, selectedBranchId]);
@@ -155,7 +158,7 @@ export default function VisitorPreRegistration() {
   useEffect(() => {
     const currentSiteId = form.getValues('site_id');
     const currentDeptId = form.getValues('department_id');
-    
+
     // Reset site if it doesn't belong to the new branch
     if (currentSiteId && !filteredSites.find(s => s.id === currentSiteId)) {
       form.setValue('site_id', '');
@@ -212,7 +215,7 @@ export default function VisitorPreRegistration() {
       if (workflowSettings?.max_visit_duration_hours) {
         const durationHours = (validUntilDate.getTime() - validFromDate.getTime()) / (1000 * 60 * 60);
         if (durationHours > workflowSettings.max_visit_duration_hours) {
-          form.setError('end_time', { 
+          form.setError('end_time', {
             message: t('visitors.register.maxDurationExceeded', 'Visit duration exceeds maximum allowed ({{hours}} hours)', { hours: workflowSettings.max_visit_duration_hours })
           });
           return;
@@ -226,7 +229,7 @@ export default function VisitorPreRegistration() {
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('visitor-photos')
           .upload(fileName, visitorPhoto, { contentType: 'image/jpeg' });
-        
+
         if (uploadError) {
           console.error('Photo upload failed:', uploadError);
         } else {
@@ -420,10 +423,11 @@ export default function VisitorPreRegistration() {
                       <FormItem>
                         <FormLabel>{t('visitors.fields.phone', 'Mobile Number')} *</FormLabel>
                         <FormControl>
-                          <Input 
-                            {...field} 
-                            type="tel" 
-                            placeholder={t('visitors.placeholders.phone', 'Enter mobile number')} 
+                          <DhuudPhoneInput
+                            {...field}
+                            placeholder={t('visitors.placeholders.phone', 'Enter mobile number')}
+                            defaultCountry="SA"
+                            onChange={(value) => field.onChange(value)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -526,7 +530,7 @@ export default function VisitorPreRegistration() {
               {/* Host Information */}
               <div className="space-y-4">
                 <h3 className="font-semibold text-lg">{t('visitors.register.sections.host', 'Host Information')}</h3>
-                
+
                 {userType === 'internal' ? (
                   <FormField
                     control={form.control}
@@ -582,7 +586,12 @@ export default function VisitorPreRegistration() {
                         <FormItem>
                           <FormLabel>{t('visitors.fields.hostPhone', 'Host Mobile')} *</FormLabel>
                           <FormControl>
-                            <Input {...field} type="tel" placeholder={t('visitors.placeholders.hostPhone', 'For WhatsApp notification')} />
+                            <DhuudPhoneInput
+                              {...field}
+                              placeholder={t('visitors.placeholders.hostPhone', 'For WhatsApp notification')}
+                              defaultCountry="SA"
+                              onChange={(value) => field.onChange(value)}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -608,7 +617,7 @@ export default function VisitorPreRegistration() {
               {/* Visit Details with Separate Date/Time Fields */}
               <div className="space-y-4">
                 <h3 className="font-semibold text-lg">{t('visitors.register.sections.visit')}</h3>
-                
+
                 {/* Branch and Site Row */}
                 <div className="grid gap-4 md:grid-cols-2">
                   <FormField
@@ -766,13 +775,13 @@ export default function VisitorPreRegistration() {
                 <Button type="button" variant="outline" onClick={() => navigate('/visitors')}>
                   {t('common.cancel')}
                 </Button>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={
-                    createVisitor.isPending || 
-                    createVisitRequest.isPending || 
-                    isBlacklisted || 
-                    checkingBlacklist || 
+                    createVisitor.isPending ||
+                    createVisitRequest.isPending ||
+                    isBlacklisted ||
+                    checkingBlacklist ||
                     (workflowSettings?.require_photo && !visitorPhoto)
                   }
                 >

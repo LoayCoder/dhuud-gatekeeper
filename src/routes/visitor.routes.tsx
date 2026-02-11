@@ -14,7 +14,7 @@ const VisitorList = lazyWithRetry(() => import("@/pages/visitors/VisitorList"));
 export const visitorRoutes: RouteObject[] = [
   // Redirect to unified access control
   { path: "visitors", element: <Navigate to="/security/access-control?tab=visitors" replace /> },
-  { path: "visitors/register", element: <SecurityRoute><VisitorPreRegistration /></SecurityRoute> },
+  { path: "visitors/register", element: <VisitorPreRegistration /> },
   { path: "visitors/checkpoint", element: <Navigate to="/security/gate-dashboard" replace /> },
   { path: "visitors/list", element: <SecurityRoute><VisitorList /></SecurityRoute> },
   { path: "visitors/blacklist", element: <Navigate to="/security/blacklist" replace /> },

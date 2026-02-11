@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { isValidPhoneNumber } from "react-phone-number-input";
+import { DhuudPhoneInput } from "@/components/ui/phone-input";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -66,7 +68,7 @@ const createEmptyItem = (): GatePassItemData => ({
 });
 
 // Phone validation regex (supports international formats)
-const phoneRegex = /^\+?[1-9]\d{7,14}$/;
+
 
 export default function PublicRequestPage() {
   const { tenantSlug } = useParams<{ tenantSlug: string }>();
@@ -186,7 +188,7 @@ export default function PublicRequestPage() {
     if (step === 1) {
       // Requester Info
       if (!requesterName.trim() || requesterName.length < 2) isValid = false;
-      if (!requesterPhone.trim() || !phoneRegex.test(requesterPhone)) isValid = false;
+      if (!requesterPhone || !isValidPhoneNumber(requesterPhone)) isValid = false;
       // Branch is optional unless logic dictates otherwise, but let's say optional for public
     } else if (step === 2) {
       // Vehicle Info
@@ -199,7 +201,7 @@ export default function PublicRequestPage() {
       // Let's require Plate Numbers + Letters.
       if (!vehiclePlateLetters || !vehiclePlateNumbers) isValid = false;
       if (!driverName.trim()) isValid = false;
-      if (driverMobile && !phoneRegex.test(driverMobile)) isValid = false;
+      if (driverMobile && !isValidPhoneNumber(driverMobile)) isValid = false;
       // Date validations
       if (dateRangeError) isValid = false;
     } else if (step === 3) {
@@ -445,16 +447,13 @@ export default function PublicRequestPage() {
                 <div className="space-y-2">
                   <Label>{isRTL ? "رقم الجوال" : "Mobile Number"} *</Label>
                   <div className="relative">
-                    <Phone className="absolute start-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="tel"
-                      dir="ltr"
+                    <DhuudPhoneInput
                       value={requesterPhone}
-                      onChange={e => setRequesterPhone(e.target.value)}
-                      className="ps-10"
+                      onChange={setRequesterPhone}
                       placeholder="+966..."
+                      defaultCountry="SA"
                     />
-                    {showValidation && !phoneRegex.test(requesterPhone) && <p className="text-xs text-destructive mt-1">{isRTL ? "رقم غير صحيح" : "Invalid number"}</p>}
+                    {showValidation && (!requesterPhone || !isValidPhoneNumber(requesterPhone)) && <p className="text-xs text-destructive mt-1">{isRTL ? "رقم غير صحيح" : "Invalid number"}</p>}
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -537,12 +536,11 @@ export default function PublicRequestPage() {
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs">{isRTL ? "جوال السائق" : "Driver Mobile"}</Label>
-                      <Input
-                        type="tel"
-                        dir="ltr"
+                      <DhuudPhoneInput
                         value={driverMobile}
-                        onChange={e => setDriverMobile(e.target.value)}
+                        onChange={setDriverMobile}
                         placeholder="+966.."
+                        defaultCountry="SA"
                       />
                     </div>
                   </div>
