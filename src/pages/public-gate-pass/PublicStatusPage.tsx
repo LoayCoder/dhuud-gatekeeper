@@ -211,6 +211,7 @@ export default function PublicStatusPage() {
   const statusInfo = STATUS_CONFIG[gatePass.status] || STATUS_CONFIG.pending_mgmt;
   const currentTimelineStep = getTimelineCurrentStep(gatePass.status);
   const isRejected = gatePass.status === 'rejected' || gatePass.status === 'cancelled';
+  const isCompleted = gatePass.status === 'used' || gatePass.status === 'expired';
 
   const mapsUrl = branch?.latitude && branch?.longitude
     ? `https://www.google.com/maps/dir/?api=1&destination=${branch.latitude},${branch.longitude}`
