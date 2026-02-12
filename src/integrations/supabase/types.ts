@@ -26004,9 +26004,9 @@ export type Database = {
       get_people_metrics: {
         Args: {
           p_branch_id?: string
-          p_end_date: string
+          p_end_date?: string
           p_site_id?: string
-          p_start_date: string
+          p_start_date?: string
         }
         Returns: Json
       }
