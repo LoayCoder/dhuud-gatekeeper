@@ -1,51 +1,39 @@
 
 
-## Fix: "Days Since Last Recordable Injury" Showing Infinity
+## Fix: Recent Events Card Ignoring Branch Filter
 
 ### Root Cause
 
-The database function `get_days_since_last_recordable` returns `999` when no recordable injuries are found. The `DaysSinceCounter` component then renders this as the infinity symbol (`∞`) on line 50.
+The `useRecentEvents` hook does not wait for the branch context to finish loading before running its query. While the branch data is still loading, `isAllBranchesMode` defaults to a state that bypasses the branch filter, causing the query to fetch ALL events across all branches. This result gets cached by React Query, and subsequent branch changes may serve this stale cached data.
 
-This is by design but gives a confusing user experience. There are no recordable injuries in the database for the current tenant/branch, so the system shows infinity instead of a meaningful message.
+Other dashboard queries (like the RPC calls) correctly receive the branch ID as a parameter. But `useRecentEvents` relies entirely on the `useBranchFilter()` hook's reactive state, which can be in an indeterminate state during initial load.
 
 ### Fix
 
-**File: `src/components/incidents/dashboard/DaysSinceCounter.tsx`**
+**File: `src/hooks/use-recent-events.ts`**
 
-Replace the `999 = ∞` display logic with a user-friendly "No Recordable Injuries" state:
-
-- When `days === 999`: show a Shield icon (green), display **"0"** as the counter value, and add a subtitle: **"No Recordable Injuries"** (translatable)
-- Remove the infinity symbol entirely
-- Keep the green emerald styling to indicate a positive safety status
-- Hide the milestone progress bar (already done for 999)
-
-**File: `src/pages/incidents/HSSEEventDashboard.tsx`** (line 384)
-
-Change the fallback from `daysSince ?? 0` to `daysSince ?? 999` so that a loading/null state defaults to the "no injuries" state rather than falsely showing "0 days since last injury."
-
-### Technical Detail
+1. Import `isLoading` from `useBranchFilter()`
+2. Add `!isLoading` to the `enabled` condition so the query waits for branch data before executing
+3. This ensures `branchIds` and `isAllBranchesMode` have their correct values before the first query runs
 
 ```text
-DaysSinceCounter.tsx changes:
+Line 21: Add isLoading to destructured values from useBranchFilter()
+  Before: const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
+  After:  const { branchIds, isAllBranchesMode, isLoading: branchLoading, queryKey: branchQueryKey } = useBranchFilter();
 
-Line 50 (counter display):
-  Before: {days === 999 ? '∞' : days}
-  After:  {days === 999 ? '0' : days}
-
-After line 55 (label), add conditional subtitle:
-  If days === 999: show "No Recordable Injuries" text in emerald color
-
-HSSEEventDashboard.tsx line 384:
-  Before: days={daysSince ?? 0}
-  After:  days={daysSince ?? 999}
+Line 61: Gate the query on branch loading state
+  Before: enabled: !!profile?.tenant_id,
+  After:  enabled: !!profile?.tenant_id && !branchLoading,
 ```
 
-### Acceptance Criteria
+### Why This Works
 
-- No infinity symbol displayed anywhere
-- No NaN or blank values
-- When no recordable injuries: shows "0" with "No Recordable Injuries" subtitle in green
-- When recordable injuries exist: shows correct day count with milestone progress
-- Works with branch/site filters
-- All text translatable (i18n keys added)
+- The query will not fire until the branch context has resolved the user's branch assignments
+- Once resolved, the correct `branchIds` and `isAllBranchesMode` values are used in the query
+- The query key already includes `branchQueryKey`, so switching branches will correctly trigger a refetch with proper filter values
+- When dgc branch is selected and has 0 events, the card will correctly show the "No Data" empty state
+
+### Files Changed
+
+- `src/hooks/use-recent-events.ts` (2 lines changed)
 
