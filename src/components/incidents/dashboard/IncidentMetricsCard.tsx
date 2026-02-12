@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
 import {
   BarChart,
   Bar,
@@ -10,12 +9,12 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
+  Cell,
   LineChart,
   Line,
 } from 'recharts';
 import { useIncidentMetricsBySeverity, useIncidentFrequencyTrend } from '@/hooks/use-incident-metrics';
-import { Flame, Leaf, Car, ShieldAlert, AlertTriangle, Heart, Stethoscope, Bandage, CircleDot } from 'lucide-react';
+import { Flame, AlertTriangle } from 'lucide-react';
 
 interface IncidentMetricsCardProps {
   startDate: string;
@@ -24,65 +23,50 @@ interface IncidentMetricsCardProps {
   siteId?: string;
 }
 
+const SEVERITY_COLORS: Record<string, string> = {
+  level_1: 'hsl(142, 71%, 45%)',
+  level_2: 'hsl(48, 96%, 53%)',
+  level_3: 'hsl(25, 95%, 53%)',
+  level_4: 'hsl(0, 84%, 60%)',
+  level_5: 'hsl(0, 84%, 40%)',
+  unassigned: 'hsl(217, 19%, 55%)',
+};
+
 export function IncidentMetricsCard({ startDate, endDate, branchId, siteId }: IncidentMetricsCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
   const { data: severityData, isLoading: severityLoading } = useIncidentMetricsBySeverity(
-    startDate,
-    endDate,
-    branchId,
-    siteId
+    startDate, endDate, branchId, siteId
   );
   const { data: trendData, isLoading: trendLoading } = useIncidentFrequencyTrend(
-    startDate,
-    endDate,
-    branchId,
-    siteId
+    startDate, endDate, branchId, siteId
   );
 
-  // Transform data for stacked bar chart — include ALL categories
-  const severityChartData = severityData
-    ? [
-      {
-        name: t('kpiDashboard.incidentsBySeverity', 'Incidents by Severity'),
-        [t('kpiDashboard.fatality', 'Fatality')]: severityData.fatality,
-        [t('kpiDashboard.lostTimeInjury', 'LTI')]: severityData.lost_time_injury,
-        [t('kpiDashboard.restrictedWork', 'Restricted')]: severityData.restricted_work,
-        [t('kpiDashboard.medicalTreatment', 'Medical')]: severityData.medical_treatment,
-        [t('kpiDashboard.firstAid', 'First Aid')]: severityData.first_aid,
-        [t('kpiDashboard.nearMiss', 'Near Miss')]: severityData.near_miss,
-        [t('kpiDashboard.environmentalIncidents', 'Environmental')]: severityData.environmental,
-        [t('kpiDashboard.vehicleIncidents', 'Vehicle/Equipment')]: severityData.vehicle_equipment,
-        [t('kpiDashboard.securityIncidents', 'Security')]: severityData.security,
-      },
-    ]
-    : [];
+  // Build horizontal bar chart data from 5-level severity
+  const chartData = severityData ? [
+    { name: t('severity.level5.label', 'Level 5 - Catastrophic'), value: severityData.level_5, key: 'level_5' },
+    { name: t('severity.level4.label', 'Level 4 - Major'), value: severityData.level_4, key: 'level_4' },
+    { name: t('severity.level3.label', 'Level 3 - Serious'), value: severityData.level_3, key: 'level_3' },
+    { name: t('severity.level2.label', 'Level 2 - Moderate'), value: severityData.level_2, key: 'level_2' },
+    { name: t('severity.level1.label', 'Level 1 - Low'), value: severityData.level_1, key: 'level_1' },
+    { name: t('severity.unassigned', 'N/A'), value: severityData.unassigned, key: 'unassigned' },
+  ].filter(item => item.value > 0) : [];
 
-  const severityColors: Record<string, string> = {
-    [t('kpiDashboard.fatality', 'Fatality')]: 'hsl(0, 90%, 35%)',
-    [t('kpiDashboard.lostTimeInjury', 'LTI')]: 'hsl(0, 70%, 50%)',
-    [t('kpiDashboard.restrictedWork', 'Restricted')]: 'hsl(30, 80%, 55%)',
-    [t('kpiDashboard.medicalTreatment', 'Medical')]: 'hsl(45, 90%, 50%)',
-    [t('kpiDashboard.firstAid', 'First Aid')]: 'hsl(142, 71%, 45%)',
-    [t('kpiDashboard.nearMiss', 'Near Miss')]: 'hsl(210, 15%, 60%)',
-    [t('kpiDashboard.environmentalIncidents', 'Environmental')]: 'hsl(142, 60%, 40%)',
-    [t('kpiDashboard.vehicleIncidents', 'Vehicle/Equipment')]: 'hsl(210, 70%, 50%)',
-    [t('kpiDashboard.securityIncidents', 'Security')]: 'hsl(0, 60%, 50%)',
-  };
+  const total = chartData.reduce((sum, item) => sum + item.value, 0);
 
   if (severityLoading || trendLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2">
         <Skeleton className="h-[300px]" />
         <Skeleton className="h-[300px]" />
-        <Skeleton className="h-[150px]" />
       </div>
     );
   }
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      {/* Stacked Bar Chart - Incidents by Severity */}
-      <Card className="md:col-span-2">
+      {/* Severity Distribution */}
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base font-semibold">
             <AlertTriangle className="h-5 w-5 text-orange-500" />
@@ -90,70 +74,45 @@ export function IncidentMetricsCard({ startDate, endDate, branchId, siteId }: In
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={severityChartData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" horizontal={false} />
-              <XAxis type="number" tick={{ fontSize: 12 }} allowDecimals={false} />
-              <YAxis type="category" dataKey="name" hide />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                }}
-                itemStyle={{ fontSize: '12px', padding: '2px 0' }}
-                cursor={{ fill: 'transparent' }}
-              />
-              <Legend wrapperStyle={{ paddingTop: '10px' }} />
-              {Object.entries(severityColors).map(([key, color]) => (
-                <Bar key={key} dataKey={key} stackId="a" fill={color} radius={[0, 4, 4, 0]} barSize={40} />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
+          {total === 0 ? (
+            <div className="flex h-[250px] items-center justify-center text-muted-foreground text-sm">
+              {t('hsseDashboard.noData', 'No data available')}
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart
+                data={chartData}
+                layout="vertical"
+                margin={{ left: isRTL ? 10 : 120, right: isRTL ? 120 : 10 }}
+              >
+                <XAxis type="number" allowDecimals={false} />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  width={110}
+                  tick={{ fontSize: 11 }}
+                  orientation={isRTL ? 'right' : 'left'}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px',
+                  }}
+                  formatter={(value: number) => [value, t('hsseDashboard.count', 'Count')]}
+                />
+                <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>
+                  {chartData.map((entry) => (
+                    <Cell key={entry.key} fill={SEVERITY_COLORS[entry.key] || SEVERITY_COLORS.unassigned} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </CardContent>
       </Card>
 
-      {/* Special Incident Type Counts */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base font-semibold">
-            <CircleDot className="h-5 w-5 text-primary" />
-            {t('kpiDashboard.specialIncidentTypes', 'Incident Categories')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between rounded-lg border p-3 bg-emerald-500/5 border-emerald-500/20">
-            <div className="flex items-center gap-3">
-              <Leaf className="h-5 w-5 text-emerald-600" />
-              <span className="font-medium text-sm">{t('kpiDashboard.environmentalIncidents', 'Environmental')}</span>
-            </div>
-            <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-700 border-emerald-500/30">
-              {severityData?.environmental ?? 0}
-            </Badge>
-          </div>
-          <div className="flex items-center justify-between rounded-lg border p-3 bg-blue-500/5 border-blue-500/20">
-            <div className="flex items-center gap-3">
-              <Car className="h-5 w-5 text-blue-600" />
-              <span className="font-medium text-sm">{t('kpiDashboard.vehicleIncidents', 'Vehicle/Equipment')}</span>
-            </div>
-            <Badge variant="secondary" className="bg-blue-500/10 text-blue-700 border-blue-500/30">
-              {severityData?.vehicle_equipment ?? 0}
-            </Badge>
-          </div>
-          <div className="flex items-center justify-between rounded-lg border p-3 bg-red-500/5 border-red-500/20">
-            <div className="flex items-center gap-3">
-              <ShieldAlert className="h-5 w-5 text-red-600" />
-              <span className="font-medium text-sm">{t('kpiDashboard.securityIncidents', 'Security')}</span>
-            </div>
-            <Badge variant="secondary" className="bg-red-500/10 text-red-700 border-red-500/30">
-              {severityData?.security ?? 0}
-            </Badge>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Frequency Trend Line Chart */}
+      {/* Frequency Trend */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base font-semibold">
@@ -163,7 +122,7 @@ export function IncidentMetricsCard({ startDate, endDate, branchId, siteId }: In
         </CardHeader>
         <CardContent>
           {trendData && trendData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={250}>
               <LineChart data={trendData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" vertical={false} />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
@@ -173,9 +132,7 @@ export function IncidentMetricsCard({ startDate, endDate, branchId, siteId }: In
                     backgroundColor: 'hsl(var(--card))',
                     border: '1px solid hsl(var(--border))',
                     borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                   }}
-                  itemStyle={{ fontSize: '12px' }}
                 />
                 <Line
                   type="monotone"
@@ -188,7 +145,7 @@ export function IncidentMetricsCard({ startDate, endDate, branchId, siteId }: In
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex h-[200px] items-center justify-center text-muted-foreground text-sm">
+            <div className="flex h-[250px] items-center justify-center text-muted-foreground text-sm">
               {t('hsseDashboard.noData', 'No trending data available')}
             </div>
           )}
