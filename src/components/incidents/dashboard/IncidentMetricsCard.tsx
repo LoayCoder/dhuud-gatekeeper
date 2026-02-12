@@ -39,7 +39,7 @@ export function IncidentMetricsCard({ startDate, endDate, branchId, siteId }: In
     siteId
   );
 
-  // Transform data for stacked bar chart
+  // Transform data for stacked bar chart — include ALL categories
   const severityChartData = severityData
     ? [
       {
@@ -50,17 +50,23 @@ export function IncidentMetricsCard({ startDate, endDate, branchId, siteId }: In
         [t('kpiDashboard.medicalTreatment', 'Medical')]: severityData.medical_treatment,
         [t('kpiDashboard.firstAid', 'First Aid')]: severityData.first_aid,
         [t('kpiDashboard.nearMiss', 'Near Miss')]: severityData.near_miss,
+        [t('kpiDashboard.environmentalIncidents', 'Environmental')]: severityData.environmental,
+        [t('kpiDashboard.vehicleIncidents', 'Vehicle/Equipment')]: severityData.vehicle_equipment,
+        [t('kpiDashboard.securityIncidents', 'Security')]: severityData.security,
       },
     ]
     : [];
 
-  const severityColors = {
-    [t('kpiDashboard.fatality', 'Fatality')]: 'hsl(0, 90%, 35%)', // Critical/Red
-    [t('kpiDashboard.lostTimeInjury', 'LTI')]: 'hsl(0, 70%, 50%)', // High/Orange-Red
-    [t('kpiDashboard.restrictedWork', 'Restricted')]: 'hsl(30, 80%, 55%)', // Medium/Orange
-    [t('kpiDashboard.medicalTreatment', 'Medical')]: 'hsl(45, 90%, 50%)', // Low/Yellow
-    [t('kpiDashboard.firstAid', 'First Aid')]: 'hsl(142, 71%, 45%)', // Very Low/Green
-    [t('kpiDashboard.nearMiss', 'Near Miss')]: 'hsl(210, 15%, 60%)', // Neutral/Gray
+  const severityColors: Record<string, string> = {
+    [t('kpiDashboard.fatality', 'Fatality')]: 'hsl(0, 90%, 35%)',
+    [t('kpiDashboard.lostTimeInjury', 'LTI')]: 'hsl(0, 70%, 50%)',
+    [t('kpiDashboard.restrictedWork', 'Restricted')]: 'hsl(30, 80%, 55%)',
+    [t('kpiDashboard.medicalTreatment', 'Medical')]: 'hsl(45, 90%, 50%)',
+    [t('kpiDashboard.firstAid', 'First Aid')]: 'hsl(142, 71%, 45%)',
+    [t('kpiDashboard.nearMiss', 'Near Miss')]: 'hsl(210, 15%, 60%)',
+    [t('kpiDashboard.environmentalIncidents', 'Environmental')]: 'hsl(142, 60%, 40%)',
+    [t('kpiDashboard.vehicleIncidents', 'Vehicle/Equipment')]: 'hsl(210, 70%, 50%)',
+    [t('kpiDashboard.securityIncidents', 'Security')]: 'hsl(0, 60%, 50%)',
   };
 
   if (severityLoading || trendLoading) {
