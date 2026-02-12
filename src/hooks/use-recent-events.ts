@@ -18,7 +18,7 @@ export interface RecentEvent {
 
 export function useRecentEvents(limit: number = 10) {
   const { profile } = useAuth();
-  const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
+  const { branchIds, isAllBranchesMode, isLoading: branchLoading, queryKey: branchQueryKey } = useBranchFilter();
 
   return useQuery({
     queryKey: ['recent-hsse-events', profile?.tenant_id, ...branchQueryKey, limit],
@@ -58,7 +58,7 @@ export function useRecentEvents(limit: number = 10) {
         branch_id: incident.branch_id,
       })) as RecentEvent[];
     },
-    enabled: !!profile?.tenant_id,
+    enabled: !!profile?.tenant_id && !branchLoading,
     staleTime: 60 * 1000, // 1 minute
   });
 }
