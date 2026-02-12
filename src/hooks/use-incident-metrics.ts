@@ -19,17 +19,52 @@ export interface IncidentTrendDataPoint {
   count: number;
 }
 
-// Query incidents directly instead of using RPC (RPC doesn't exist yet)
-// Now supports automatic branch filtering via useBranchFilter
+// Maps real DB subtypes to severity categories
+function classifySubtype(subtype: string | null): keyof IncidentMetricsBySeverity | null {
+  switch (subtype) {
+    case 'fatality':
+      return 'fatality';
+    case 'lost_time':
+    case 'lost_time_injury':
+    case 'fall_from_height':
+    case 'slip_trip_fall_same_level':
+    case 'struck_by':
+      return 'lost_time_injury';
+    case 'restricted_work':
+    case 'restricted_duty':
+      return 'restricted_work';
+    case 'medical_treatment':
+      return 'medical_treatment';
+    case 'first_aid':
+      return 'first_aid';
+    case 'near_miss':
+      return 'near_miss';
+    case 'environmental':
+    case 'utility_outage':
+    case 'chemical_spill':
+      return 'environmental';
+    case 'vehicle':
+    case 'equipment':
+    case 'equipment_damage':
+      return 'vehicle_equipment';
+    case 'security':
+    case 'unauthorized_access':
+      return 'security';
+    default:
+      // Catch-all: count as near_miss so no incident is silently dropped
+      return subtype ? 'near_miss' : null;
+  }
+}
+
+// Filters to event_type='incident' only, with branch filter race-condition fix
 export function useIncidentMetricsBySeverity(
   startDate: string,
   endDate: string,
   branchId?: string,
   siteId?: string
 ) {
-  const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
+  const { branchIds, isAllBranchesMode, isLoading: branchLoading, queryKey: branchQueryKey } = useBranchFilter();
   
-  // If explicit branchId is passed, use it; otherwise use the context branch filter
   const effectiveBranchIds = branchId ? [branchId] : branchIds;
   const shouldFilterByBranch = branchId ? true : !isAllBranchesMode;
 
@@ -39,11 +74,11 @@ export function useIncidentMetricsBySeverity(
       let query = supabase
         .from('incidents')
         .select('injury_classification, event_type, subtype')
+        .eq('event_type', 'incident')
         .gte('occurred_at', startDate)
         .lte('occurred_at', endDate)
         .is('deleted_at', null);
 
-      // Apply branch filter
       if (shouldFilterByBranch && effectiveBranchIds && effectiveBranchIds.length > 0) {
         if (effectiveBranchIds.length === 1) {
           query = query.eq('branch_id', effectiveBranchIds[0]);
@@ -56,7 +91,6 @@ export function useIncidentMetricsBySeverity(
       const { data, error } = await query;
       if (error) throw error;
 
-      // Aggregate metrics from raw data
       const metrics: IncidentMetricsBySeverity = {
         fatality: 0,
         lost_time_injury: 0,
@@ -70,53 +104,16 @@ export function useIncidentMetricsBySeverity(
       };
 
       (data ?? []).forEach((incident) => {
-        // Try injury_classification first, then fall back to subtype for legacy data
         const classification = incident.injury_classification || incident.subtype;
-
-        switch (classification) {
-          case 'fatality':
-            metrics.fatality++;
-            break;
-          case 'lost_time':
-          case 'lost_time_injury':
-            metrics.lost_time_injury++;
-            break;
-          case 'restricted_work':
-          case 'restricted_duty':
-            metrics.restricted_work++;
-            break;
-          case 'medical_treatment':
-            metrics.medical_treatment++;
-            break;
-          case 'first_aid':
-            metrics.first_aid++;
-            break;
-          case 'near_miss':
-            metrics.near_miss++;
-            break;
-          case 'environmental':
-            metrics.environmental++;
-            break;
-          case 'vehicle':
-          case 'equipment':
-            metrics.vehicle_equipment++;
-            break;
-          case 'security':
-            metrics.security++;
-            break;
-        }
-
-        // Also check event_type for special types (in case subtype doesn't match)
-        if (incident.event_type === 'environmental' && classification !== 'environmental') {
-          metrics.environmental++;
-        }
-        if (incident.event_type === 'security' && classification !== 'security') {
-          metrics.security++;
+        const category = classifySubtype(classification);
+        if (category) {
+          metrics[category]++;
         }
       });
 
       return metrics;
     },
+    enabled: !branchLoading,
     staleTime: 5 * 60 * 1000,
   });
 }
@@ -127,9 +124,8 @@ export function useIncidentFrequencyTrend(
   branchId?: string,
   siteId?: string
 ) {
-  const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
+  const { branchIds, isAllBranchesMode, isLoading: branchLoading, queryKey: branchQueryKey } = useBranchFilter();
   
-  // If explicit branchId is passed, use it; otherwise use the context branch filter
   const effectiveBranchIds = branchId ? [branchId] : branchIds;
   const shouldFilterByBranch = branchId ? true : !isAllBranchesMode;
 
@@ -139,12 +135,12 @@ export function useIncidentFrequencyTrend(
       let query = supabase
         .from('incidents')
         .select('occurred_at')
+        .eq('event_type', 'incident')
         .gte('occurred_at', startDate)
         .lte('occurred_at', endDate)
         .is('deleted_at', null)
         .not('occurred_at', 'is', null);
 
-      // Apply branch filter
       if (shouldFilterByBranch && effectiveBranchIds && effectiveBranchIds.length > 0) {
         if (effectiveBranchIds.length === 1) {
           query = query.eq('branch_id', effectiveBranchIds[0]);
@@ -157,22 +153,21 @@ export function useIncidentFrequencyTrend(
       const { data, error } = await query;
       if (error) throw error;
 
-      // Group by month
       const monthCounts: Record<string, number> = {};
       (data ?? []).forEach((incident) => {
         if (incident.occurred_at) {
-          const month = incident.occurred_at.substring(0, 7); // YYYY-MM
+          const month = incident.occurred_at.substring(0, 7);
           monthCounts[month] = (monthCounts[month] || 0) + 1;
         }
       });
 
-      // Convert to array sorted by month
       const trend: IncidentTrendDataPoint[] = Object.entries(monthCounts)
         .map(([month, count]) => ({ month, count }))
         .sort((a, b) => a.month.localeCompare(b.month));
 
       return trend;
     },
+    enabled: !branchLoading,
     staleTime: 5 * 60 * 1000,
   });
 }
