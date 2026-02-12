@@ -3,15 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useBranchFilter } from '@/hooks/use-branch-filter';
 
 export interface IncidentMetricsBySeverity {
-  fatality: number;
-  lost_time_injury: number;
-  restricted_work: number;
-  medical_treatment: number;
-  first_aid: number;
-  near_miss: number;
-  environmental: number;
-  vehicle_equipment: number;
-  security: number;
+  level_1: number;
+  level_2: number;
+  level_3: number;
+  level_4: number;
+  level_5: number;
+  unassigned: number;
 }
 
 export interface IncidentTrendDataPoint {
@@ -19,44 +16,6 @@ export interface IncidentTrendDataPoint {
   count: number;
 }
 
-// Maps real DB subtypes to severity categories
-function classifySubtype(subtype: string | null): keyof IncidentMetricsBySeverity | null {
-  switch (subtype) {
-    case 'fatality':
-      return 'fatality';
-    case 'lost_time':
-    case 'lost_time_injury':
-    case 'fall_from_height':
-    case 'slip_trip_fall_same_level':
-    case 'struck_by':
-      return 'lost_time_injury';
-    case 'restricted_work':
-    case 'restricted_duty':
-      return 'restricted_work';
-    case 'medical_treatment':
-      return 'medical_treatment';
-    case 'first_aid':
-      return 'first_aid';
-    case 'near_miss':
-      return 'near_miss';
-    case 'environmental':
-    case 'utility_outage':
-    case 'chemical_spill':
-      return 'environmental';
-    case 'vehicle':
-    case 'equipment':
-    case 'equipment_damage':
-      return 'vehicle_equipment';
-    case 'security':
-    case 'unauthorized_access':
-      return 'security';
-    default:
-      // Catch-all: count as near_miss so no incident is silently dropped
-      return subtype ? 'near_miss' : null;
-  }
-}
-
-// Filters to event_type='incident' only, with branch filter race-condition fix
 export function useIncidentMetricsBySeverity(
   startDate: string,
   endDate: string,
@@ -73,7 +32,7 @@ export function useIncidentMetricsBySeverity(
     queryFn: async () => {
       let query = supabase
         .from('incidents')
-        .select('injury_classification, event_type, subtype')
+        .select('severity_v2')
         .eq('event_type', 'incident')
         .gte('occurred_at', startDate)
         .lte('occurred_at', endDate)
@@ -92,22 +51,20 @@ export function useIncidentMetricsBySeverity(
       if (error) throw error;
 
       const metrics: IncidentMetricsBySeverity = {
-        fatality: 0,
-        lost_time_injury: 0,
-        restricted_work: 0,
-        medical_treatment: 0,
-        first_aid: 0,
-        near_miss: 0,
-        environmental: 0,
-        vehicle_equipment: 0,
-        security: 0,
+        level_1: 0,
+        level_2: 0,
+        level_3: 0,
+        level_4: 0,
+        level_5: 0,
+        unassigned: 0,
       };
 
       (data ?? []).forEach((incident) => {
-        const classification = incident.injury_classification || incident.subtype;
-        const category = classifySubtype(classification);
-        if (category) {
-          metrics[category]++;
+        const sev = incident.severity_v2 as string | null;
+        if (sev && sev in metrics) {
+          metrics[sev as keyof IncidentMetricsBySeverity]++;
+        } else {
+          metrics.unassigned++;
         }
       });
 
