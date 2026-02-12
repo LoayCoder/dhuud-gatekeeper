@@ -27,6 +27,9 @@ export interface IncidentInjury {
   restricted_duty_days: number;
   recorded_by: string | null;
   recorder_role: 'investigator' | 'medical_staff' | 'first_aider' | null;
+  person_type: 'employee' | 'contractor' | 'visitor' | 'public';
+  involvement_type: 'injured_person' | 'witness' | 'driver' | 'suspect';
+  injury_classification: 'LTI' | 'MTC' | 'RWC' | 'FAC' | 'FAT' | 'NM' | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -64,6 +67,9 @@ export interface CreateIncidentInjuryInput {
   days_lost?: number;
   restricted_duty_days?: number;
   recorder_role?: 'investigator' | 'medical_staff' | 'first_aider' | null;
+  person_type?: 'employee' | 'contractor' | 'visitor' | 'public';
+  involvement_type?: 'injured_person' | 'witness' | 'driver' | 'suspect';
+  injury_classification?: 'LTI' | 'MTC' | 'RWC' | 'FAC' | 'FAT' | 'NM' | null;
 }
 
 export interface UpdateIncidentInjuryInput extends Partial<Omit<CreateIncidentInjuryInput, 'incident_id'>> {
@@ -149,6 +155,9 @@ export function useCreateIncidentInjury() {
         days_lost: input.days_lost,
         restricted_duty_days: input.restricted_duty_days,
         recorder_role: input.recorder_role,
+        person_type: input.person_type || 'employee',
+        involvement_type: input.involvement_type || 'injured_person',
+        injury_classification: input.injury_classification || null,
         tenant_id: profile.tenant_id,
         recorded_by: user.id,
       };
@@ -204,6 +213,9 @@ export function useUpdateIncidentInjury() {
       if (updates.days_lost !== undefined) updateData.days_lost = updates.days_lost;
       if (updates.restricted_duty_days !== undefined) updateData.restricted_duty_days = updates.restricted_duty_days;
       if (updates.recorder_role !== undefined) updateData.recorder_role = updates.recorder_role;
+      if (updates.person_type !== undefined) updateData.person_type = updates.person_type;
+      if (updates.involvement_type !== undefined) updateData.involvement_type = updates.involvement_type;
+      if (updates.injury_classification !== undefined) updateData.injury_classification = updates.injury_classification;
 
       const { data, error } = await supabase
         .from('incident_injuries')

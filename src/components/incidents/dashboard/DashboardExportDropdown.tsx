@@ -382,8 +382,9 @@ export function DashboardExportDropdown({
           kpiSheet.addRow({ category: 'Response', metric: 'Repeat Incident Rate', value: responseData.repeat_incident_rate.toFixed(2), unit: '' });
         }
         if (peopleData) {
-          kpiSheet.addRow({ category: 'People', metric: 'Total Man-Hours', value: peopleData.total_manhours, unit: 'hrs' });
-          kpiSheet.addRow({ category: 'People', metric: 'Contractor Ratio', value: (peopleData.contractor_ratio * 100).toFixed(1), unit: '%' });
+          kpiSheet.addRow({ category: 'People', metric: 'Total Injured', value: peopleData.total_injured, unit: '' });
+          kpiSheet.addRow({ category: 'People', metric: 'Employee %', value: peopleData.employee_pct.toFixed(1), unit: '%' });
+          kpiSheet.addRow({ category: 'People', metric: 'Contractor %', value: peopleData.contractor_pct.toFixed(1), unit: '%' });
         }
         styleHeaderRow(kpiSheet);
       }
