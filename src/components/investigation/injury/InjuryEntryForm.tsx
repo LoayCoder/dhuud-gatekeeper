@@ -48,6 +48,9 @@ import {
 import type { IncidentInjury, CreateIncidentInjuryInput } from '@/hooks/use-incident-injuries';
 
 const formSchema = z.object({
+  person_type: z.enum(['employee', 'contractor', 'visitor', 'public'], { required_error: 'Person type is required' }),
+  involvement_type: z.enum(['injured_person', 'witness', 'driver', 'suspect'], { required_error: 'Involvement type is required' }),
+  injury_classification: z.enum(['LTI', 'MTC', 'RWC', 'FAC', 'FAT', 'NM']).optional().nullable(),
   injured_person_name: z.string().min(1, 'Name is required'),
   national_id: z.string().optional().nullable(),
   is_platform_user: z.boolean().default(false),
@@ -65,6 +68,15 @@ const formSchema = z.object({
   days_lost: z.number().min(0).default(0),
   restricted_duty_days: z.number().min(0).default(0),
   recorder_role: z.enum(['investigator', 'medical_staff', 'first_aider']).optional().nullable(),
+}).refine((data) => {
+  // injury_classification is required when involvement_type is 'injured_person'
+  if (data.involvement_type === 'injured_person' && !data.injury_classification) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Injury classification is required for injured persons',
+  path: ['injury_classification'],
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -90,6 +102,9 @@ export function InjuryEntryForm({
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      person_type: initialData?.person_type || 'employee',
+      involvement_type: initialData?.involvement_type || 'injured_person',
+      injury_classification: initialData?.injury_classification || null,
       injured_person_name: initialData?.injured_person_name || '',
       national_id: initialData?.national_id || '',
       is_platform_user: initialData?.is_platform_user || false,
@@ -124,9 +139,14 @@ export function InjuryEntryForm({
     }
   };
 
+  const watchInvolvementType = form.watch('involvement_type');
+
   const handleFormSubmit = async (data: FormData) => {
     await onSubmit({
       incident_id: incidentId,
+      person_type: data.person_type,
+      involvement_type: data.involvement_type,
+      injury_classification: data.involvement_type === 'injured_person' ? (data.injury_classification || null) : null,
       injured_person_name: data.injured_person_name,
       national_id: data.national_id || null,
       is_platform_user: data.is_platform_user,
@@ -156,6 +176,86 @@ export function InjuryEntryForm({
           <h3 className="font-medium text-sm text-muted-foreground">
             {t('investigation.injuries.personDetails', 'Person Details')}
           </h3>
+
+          {/* Person Type & Involvement Type */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="person_type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('investigation.injuries.fields.personType', 'Person Type')} *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('common.select', 'Select...')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="employee">{isRTL ? 'موظف' : 'Employee'}</SelectItem>
+                      <SelectItem value="contractor">{isRTL ? 'مقاول' : 'Contractor'}</SelectItem>
+                      <SelectItem value="visitor">{isRTL ? 'زائر' : 'Visitor'}</SelectItem>
+                      <SelectItem value="public">{isRTL ? 'جمهور' : 'Public'}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="involvement_type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('investigation.injuries.fields.involvementType', 'Involvement Type')} *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('common.select', 'Select...')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="injured_person">{isRTL ? 'شخص مصاب' : 'Injured Person'}</SelectItem>
+                      <SelectItem value="witness">{isRTL ? 'شاهد' : 'Witness'}</SelectItem>
+                      <SelectItem value="driver">{isRTL ? 'سائق' : 'Driver'}</SelectItem>
+                      <SelectItem value="suspect">{isRTL ? 'مشتبه به' : 'Suspect'}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Injury Classification - only when injured_person */}
+          {watchInvolvementType === 'injured_person' && (
+            <FormField
+              control={form.control}
+              name="injury_classification"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('investigation.injuries.fields.injuryClassification', 'Injury Classification (OSHA)')} *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || ''}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('common.select', 'Select...')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="FAT">{isRTL ? 'وفاة (FAT)' : 'Fatality (FAT)'}</SelectItem>
+                      <SelectItem value="LTI">{isRTL ? 'إصابة بفقدان وقت (LTI)' : 'Lost Time Injury (LTI)'}</SelectItem>
+                      <SelectItem value="RWC">{isRTL ? 'حالة عمل مقيد (RWC)' : 'Restricted Work Case (RWC)'}</SelectItem>
+                      <SelectItem value="MTC">{isRTL ? 'حالة علاج طبي (MTC)' : 'Medical Treatment Case (MTC)'}</SelectItem>
+                      <SelectItem value="FAC">{isRTL ? 'حالة إسعافات أولية (FAC)' : 'First Aid Case (FAC)'}</SelectItem>
+                      <SelectItem value="NM">{isRTL ? 'حادث وشيك (NM)' : 'Near Miss (NM)'}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
           {/* Person Lookup */}
           <div className="space-y-2">

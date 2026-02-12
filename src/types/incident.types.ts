@@ -223,6 +223,15 @@ export interface IncidentStatistics {
   lostTimeRate: number;
 }
 
+// Person type for injury records
+export type PersonType = 'employee' | 'contractor' | 'visitor' | 'public';
+
+// Involvement type for injury records
+export type InvolvementType = 'injured_person' | 'witness' | 'driver' | 'suspect';
+
+// OSHA injury classification
+export type InjuryClassification = 'LTI' | 'MTC' | 'RWC' | 'FAC' | 'FAT' | 'NM';
+
 // Incident attachment
 export interface IncidentAttachment {
   id: string;

@@ -10202,15 +10202,18 @@ export type Database = {
           id: string
           incident_id: string
           injured_person_name: string
+          injury_classification: string | null
           injury_date: string | null
           injury_description: string | null
           injury_severity: string | null
           injury_type: string[] | null
+          involvement_type: string
           is_platform_user: boolean | null
           linked_contractor_worker_id: string | null
           linked_user_id: string | null
           medical_attention_required: boolean | null
           national_id: string | null
+          person_type: string
           recorded_by: string | null
           recorder_role: string | null
           restricted_duty_days: number | null
@@ -10230,15 +10233,18 @@ export type Database = {
           id?: string
           incident_id: string
           injured_person_name: string
+          injury_classification?: string | null
           injury_date?: string | null
           injury_description?: string | null
           injury_severity?: string | null
           injury_type?: string[] | null
+          involvement_type?: string
           is_platform_user?: boolean | null
           linked_contractor_worker_id?: string | null
           linked_user_id?: string | null
           medical_attention_required?: boolean | null
           national_id?: string | null
+          person_type?: string
           recorded_by?: string | null
           recorder_role?: string | null
           restricted_duty_days?: number | null
@@ -10258,15 +10264,18 @@ export type Database = {
           id?: string
           incident_id?: string
           injured_person_name?: string
+          injury_classification?: string | null
           injury_date?: string | null
           injury_description?: string | null
           injury_severity?: string | null
           injury_type?: string[] | null
+          involvement_type?: string
           is_platform_user?: boolean | null
           linked_contractor_worker_id?: string | null
           linked_user_id?: string | null
           medical_attention_required?: boolean | null
           national_id?: string | null
+          person_type?: string
           recorded_by?: string | null
           recorder_role?: string | null
           restricted_duty_days?: number | null
@@ -25845,6 +25854,15 @@ export type Database = {
           was_condition_match: boolean
           whatsapp_template_id: string
         }[]
+      }
+      get_incident_people_metrics: {
+        Args: {
+          p_branch_id?: string
+          p_end_date: string
+          p_site_id?: string
+          p_start_date: string
+        }
+        Returns: Json
       }
       get_inspection_analytics: {
         Args: {

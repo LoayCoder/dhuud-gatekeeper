@@ -172,12 +172,11 @@ export function KPIDashboardExport({
           { header: 'Metric', key: 'metric', width: 30 },
           { header: 'Value', key: 'value', width: 15 },
         ];
-        peopleSheet.addRow({ metric: 'Total Man-Hours', value: peopleData.total_manhours });
-        peopleSheet.addRow({ metric: 'Employee Hours', value: peopleData.employee_hours });
-        peopleSheet.addRow({ metric: 'Contractor Hours', value: peopleData.contractor_hours });
-        peopleSheet.addRow({ metric: 'Employee Incidents', value: peopleData.employee_incidents });
-        peopleSheet.addRow({ metric: 'Contractor Incidents', value: peopleData.contractor_incidents });
-        peopleSheet.addRow({ metric: 'Contractor Ratio', value: (peopleData.contractor_ratio * 100).toFixed(1) + '%' });
+        peopleSheet.addRow({ metric: 'Total Injured', value: peopleData.total_injured });
+        peopleSheet.addRow({ metric: 'Employee Count', value: peopleData.employee_count });
+        peopleSheet.addRow({ metric: 'Contractor Count', value: peopleData.contractor_count });
+        peopleSheet.addRow({ metric: 'Employee %', value: peopleData.employee_pct.toFixed(1) + '%' });
+        peopleSheet.addRow({ metric: 'Contractor %', value: peopleData.contractor_pct.toFixed(1) + '%' });
         peopleSheet.getRow(1).font = { bold: true };
       }
 

@@ -37,14 +37,15 @@ export interface ResponseMetrics {
 }
 
 export interface PeopleMetrics {
-  total_manhours: number;
-  employee_hours: number;
-  contractor_hours: number;
-  employee_incidents: number;
-  contractor_incidents: number;
-  contractor_ratio: number;
+  total_injured: number;
+  employee_count: number;
+  contractor_count: number;
+  visitor_count: number;
+  public_count: number;
   employee_pct: number;
   contractor_pct: number;
+  by_classification: Record<string, number>;
+  top_body_parts: Array<{ body_part: string; count: number }>;
 }
 
 export interface KPITarget {
@@ -133,7 +134,7 @@ export function usePeopleMetrics(
   return useQuery({
     queryKey: ['people-metrics', startDate, endDate, branchId, siteId],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_people_metrics', {
+      const { data, error } = await supabase.rpc('get_incident_people_metrics', {
         p_start_date: startDate,
         p_end_date: endDate,
         p_branch_id: branchId || null,
