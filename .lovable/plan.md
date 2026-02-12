@@ -1,79 +1,105 @@
-## Fix: Historical Trend (12 Months) Chart Not Showing Data
-
-### Root Cause
-
-The `get_kpi_historical_trend` database function references **non-existent** columns and tables:
-
-1. `**incidents.is_lost_time**` -- This column does NOT exist. Only `is_recordable` and `lost_workdays` exist.
-2. `**manhour_entries**` table -- This table does NOT exist at all. The function tries to join against it for manhour data.
-
-When the RPC executes, these missing references cause it to error out, returning no data to the chart.
-
-### Fix
-
-Update the `get_kpi_historical_trend` database function to work with actual schema:
-
-1. **Replace `is_lost_time**` with a derived condition: `lost_workdays > 0` (an incident with lost workdays is effectively a lost-time incident)
-2. **Remove the `manhour_entries` subquery** and use a fixed default of 200,000 manhours (the standard OSHA basis) until a manhour tracking table is created
-3. **DART cases**: Use `is_recordable = true AND lost_workdays > 0` (already correct pattern, just needs the `is_lost_time` removal)
-
-### SQL Migration
-
-```sql
-CREATE OR REPLACE FUNCTION get_kpi_historical_trend(
-  p_start_date DATE DEFAULT NULL,
-  p_end_date DATE DEFAULT NULL,
-  p_branch_id UUID DEFAULT NULL,
-  p_site_id UUID DEFAULT NULL
-) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER AS $$
-DECLARE
-  v_tenant_id UUID;
-  v_result jsonb;
-  v_start DATE;
-  v_end DATE;
-BEGIN
-  v_tenant_id := get_auth_tenant_id();
-  IF v_tenant_id IS NULL THEN
-    RAISE EXCEPTION 'Tenant ID not found';
-  END IF;
-
-  v_start := COALESCE(p_start_date, CURRENT_DATE - INTERVAL '12 months');
-  v_end := COALESCE(p_end_date, CURRENT_DATE);
-
-  SELECT COALESCE(jsonb_agg(...), '[]') INTO v_result
-  FROM (
-    SELECT 
-      ...
-      -- Changed: is_lost_time -> lost_workdays > 0
-      COUNT(*) FILTER (WHERE i.lost_workdays > 0) as lost_time_incidents,
-      -- Removed: manhour_entries subquery (table doesn't exist)
-      -- Uses fixed 200000 default
-      200000 as total_manhours,
-      ...
-    FROM incidents i
-    WHERE ...
-  ) monthly_data;
-
-  RETURN v_result;
-END;
-$$;
-```
-
-### Changes Summary
 
 
-| Issue               | Before (broken)                               | After (fixed)            |
-| ------------------- | --------------------------------------------- | ------------------------ |
-| Lost-time incidents | `i.is_lost_time = true` (column missing)      | `i.lost_workdays > 0`    |
-| Manhours            | Subquery to `manhour_entries` (table missing) | Fixed default `200000`   |
-| DART cases          | References `is_lost_time`                     | Uses `lost_workdays > 0` |
+## Operationalize People Metrics - Comprehensive Plan
 
+### Current State
 
-### Files Changed
+- The `incident_injuries` table exists with injury data (body diagram, severity, types, days lost) but is **missing** three critical columns: `person_type`, `involvement_type`, and `injury_classification`.
+- The current `get_people_metrics` RPC reads `worker_type` from the `incidents` table (which is always NULL) and uses hardcoded manhour defaults. It does not query `incident_injuries` at all.
+- The `PeopleMetricsCard` component shows manhour breakdowns and employee/contractor ratios but has no charts, no body-part analysis, and no injury classification pyramid.
+- The `InjuryEntryForm` captures detailed injury data but does not ask **who** the person is (employee/contractor/visitor) or **how** they were involved (injured vs. witness), nor does it capture OSHA classification (LTI, MTC, etc.).
 
-- **Database migration**: Replace the `get_kpi_historical_trend` function with corrected column/table references
+---
 
-### Expected Result
+### Phase 1: Database Schema Update (Migration)
 
-After the fix, the chart will display monthly bars for TRIR, LTIFR, DART, and Severity Rate based on actual incident data (23 incidents across Jan-Feb 2026).
+Add three new columns to `incident_injuries`:
+
+| Column | Type | Values | Default |
+|--------|------|--------|---------|
+| `person_type` | TEXT | `employee`, `contractor`, `visitor`, `public` | `employee` |
+| `involvement_type` | TEXT | `injured_person`, `witness`, `driver`, `suspect` | `injured_person` |
+| `injury_classification` | TEXT | `LTI`, `MTC`, `RWC`, `FAC`, `FAT`, `NM` | NULL |
+
+All three default to sensible values so existing records remain valid. The defaults ensure backward compatibility (existing 2 injury records become `employee` / `injured_person`).
+
+---
+
+### Phase 2: New RPC - `get_incident_people_metrics`
+
+Replace the current `get_people_metrics` with a new, accurate RPC that queries `incident_injuries` directly:
+
+- **Filter**: Only rows where `involvement_type = 'injured_person'` and `deleted_at IS NULL`
+- **Exclude**: Security/theft incidents (join to `incidents` table, exclude `incident_type` in security/theft categories)
+- **Return aggregates**:
+  1. Count by `person_type` (employee vs contractor vs visitor vs public)
+  2. Count by `injury_classification` (the Safety Pyramid: FAT, LTI, MTC, RWC, FAC, NM)
+  3. Count by `body_parts_affected` (flattened array, top 5 for heatmap)
+  4. Total injured count
+  5. Employee/contractor split percentages
+
+---
+
+### Phase 3: Update InjuryEntryForm
+
+Add three new fields to the injury form (`InjuryEntryForm.tsx`):
+
+1. **Person Type** selector (Employee / Contractor / Visitor / Public) - required
+2. **Involvement Type** selector (Injured Person / Witness / Driver / Suspect) - required
+3. **Injury Classification** selector (LTI / MTC / RWC / FAC / Fatality / Near Miss) - required only when `involvement_type = 'injured_person'`
+
+These fields appear at the top of the "Person Details" section, right after the person name lookup.
+
+Update the Zod schema, form defaults, and submit handler to include these fields.
+
+---
+
+### Phase 4: Update Incident Report Form
+
+In `IncidentReport.tsx`, when `has_injury = true` and the event category is Safety-related:
+- The `injury_classification` field (already in the schema at line 83) will be validated as required
+- No changes needed for Security/Theft incidents since `has_injury` defaults to false for those
+
+This is a lightweight change since the detailed injury data entry happens in the Investigation phase via `InjuryEntryForm`.
+
+---
+
+### Phase 5: Redesign PeopleMetricsCard
+
+Replace the current manhour-focused card with injury-focused analytics:
+
+1. **Pie Chart** (using Recharts `PieChart`): Employee vs. Contractor injury split
+2. **Horizontal Bar Chart**: Top 5 body parts injured
+3. **Summary Badges**: Total injuries, LTI count, FAC count, and TRIR (if manhours available, otherwise raw count)
+4. **Empty State**: "No injuries recorded in this period" with a subtle icon when no data exists
+
+The component will connect to the new `get_incident_people_metrics` RPC.
+
+---
+
+### Phase 6: Update Hook and Type Definitions
+
+- Update `use-kpi-indicators.ts`: Replace `usePeopleMetrics` to call the new `get_incident_people_metrics` RPC
+- Update `PeopleMetrics` interface to match the new return shape
+- Update `incident.types.ts` with the new enum types for person_type, involvement_type, and injury_classification
+- Update `use-incident-injuries.ts` interfaces to include the 3 new fields
+
+---
+
+### Technical Details
+
+**Files to create:**
+- `supabase/migrations/XXXXXX_add_people_metrics_columns.sql` - Schema changes + new RPC
+
+**Files to modify:**
+- `src/components/investigation/injury/InjuryEntryForm.tsx` - Add 3 new fields
+- `src/hooks/use-incident-injuries.ts` - Update interfaces with new columns
+- `src/hooks/use-kpi-indicators.ts` - Update PeopleMetrics interface and hook
+- `src/components/incidents/dashboard/PeopleMetricsCard.tsx` - Full redesign with charts
+- `src/types/incident.types.ts` - Add new type definitions
+- `src/pages/incidents/IncidentReport.tsx` - Conditional validation for injury_classification
+
+**Verification logic:**
+- A "Theft" incident with a "Suspect" (`involvement_type = 'suspect'`) will NOT increase injury counts (filtered out by `involvement_type = 'injured_person'`)
+- A "Safety" incident with an "LTI" (`involvement_type = 'injured_person'`, `injury_classification = 'LTI'`) WILL increase the count
+
