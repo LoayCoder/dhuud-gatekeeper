@@ -1,39 +1,92 @@
 
 
-## Fix: Recent Events Card Ignoring Branch Filter
+## Fix: Incident Metrics Card Not Reflecting Real Data
 
-### Root Cause
+### Problems Identified
 
-The `useRecentEvents` hook does not wait for the branch context to finish loading before running its query. While the branch data is still loading, `isAllBranchesMode` defaults to a state that bypasses the branch filter, causing the query to fetch ALL events across all branches. This result gets cached by React Query, and subsequent branch changes may serve this stale cached data.
+**Problem 1: Severity chart is empty because classification logic doesn't match actual data**
+The `useIncidentMetricsBySeverity` hook classifies incidents using `injury_classification` or `subtype`. However, the database shows `injury_classification` is NULL for every record, and the actual `subtype` values (`utility_outage`, `fall_from_height`, `slip_trip_fall_same_level`, `equipment_damage`, etc.) don't match any of the hardcoded switch cases (`fatality`, `lost_time`, `restricted_work`, `medical_treatment`). Only `near_miss`, `first_aid`, and `environmental` have matches. This causes most incidents to be uncounted, resulting in an empty chart.
 
-Other dashboard queries (like the RPC calls) correctly receive the branch ID as a parameter. But `useRecentEvents` relies entirely on the `useBranchFilter()` hook's reactive state, which can be in an indeterminate state during initial load.
+**Problem 2: Observations are mixed into incident metrics**
+Neither `useIncidentMetricsBySeverity` nor `useIncidentFrequencyTrend` filter by `event_type = 'incident'`. The database has 113 observations vs 23 incidents. The frequency trend shows ~110+ events because it includes observations, giving a misleading count for "Incident Frequency."
 
-### Fix
+**Problem 3: Branch filter race condition**
+Same pattern as the recently fixed Recent Events bug -- the hooks don't wait for `useBranchFilter()` to finish loading before executing queries.
 
-**File: `src/hooks/use-recent-events.ts`**
-
-1. Import `isLoading` from `useBranchFilter()`
-2. Add `!isLoading` to the `enabled` condition so the query waits for branch data before executing
-3. This ensures `branchIds` and `isAllBranchesMode` have their correct values before the first query runs
+### Data Reality
 
 ```text
-Line 21: Add isLoading to destructured values from useBranchFilter()
+Total records: 137 (23 incidents, 114 observations)
+All injury_classification values: NULL
+Incident subtypes: utility_outage(15), fall_from_height(2), near_miss(1),
+                   equipment_damage(1), first_aid(1), environmental(1),
+                   slip_trip_fall_same_level(1), unauthorized_access(1)
+```
+
+### Fix Plan
+
+**File: `src/hooks/use-incident-metrics.ts`**
+
+1. Add `isLoading` from `useBranchFilter()` and gate both queries with `enabled: !branchLoading`
+
+2. In `useIncidentMetricsBySeverity`:
+   - Add `.eq('event_type', 'incident')` filter to exclude observations
+   - Expand the switch statement to map real subtypes to severity categories:
+     - `fall_from_height`, `slip_trip_fall_same_level` -> `lost_time_injury` (or appropriate category)
+     - `utility_outage` -> classify as `environmental` or a general bucket
+     - `equipment_damage` -> `vehicle_equipment`
+     - `unauthorized_access` -> `security`
+   - Add a catch-all that increments an "other/unclassified" counter so no incident is silently dropped
+
+3. In `useIncidentFrequencyTrend`:
+   - Add `.eq('event_type', 'incident')` filter to count only incidents, not observations
+
+**File: `src/components/incidents/dashboard/IncidentMetricsCard.tsx`**
+
+4. Update the severity chart and categories to handle the "unclassified" bucket so incidents that don't fit predefined categories are still visible rather than silently lost
+
+### Detailed Changes
+
+**`use-incident-metrics.ts` -- Both hooks:**
+```text
+Line 30: Add isLoading
   Before: const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
   After:  const { branchIds, isAllBranchesMode, isLoading: branchLoading, queryKey: branchQueryKey } = useBranchFilter();
 
-Line 61: Gate the query on branch loading state
-  Before: enabled: !!profile?.tenant_id,
-  After:  enabled: !!profile?.tenant_id && !branchLoading,
+Add event_type filter to both queries:
+  .eq('event_type', 'incident')
+
+Add enabled condition to both queries:
+  enabled: !branchLoading
 ```
 
-### Why This Works
+**`use-incident-metrics.ts` -- Severity classification (expanded switch):**
+```text
+Add new cases:
+  'fall_from_height', 'slip_trip_fall_same_level', 'struck_by' -> lost_time_injury
+  'utility_outage' -> environmental  
+  'equipment_damage' -> vehicle_equipment
+  'unauthorized_access' -> security
+  default -> near_miss (catch-all for unclassified)
 
-- The query will not fire until the branch context has resolved the user's branch assignments
-- Once resolved, the correct `branchIds` and `isAllBranchesMode` values are used in the query
-- The query key already includes `branchQueryKey`, so switching branches will correctly trigger a refetch with proper filter values
-- When dgc branch is selected and has 0 events, the card will correctly show the "No Data" empty state
+Remove the double-counting logic at lines 109-115 that adds to 
+environmental/security based on event_type (since we now filter to 
+event_type='incident' only and handle subtypes properly)
+```
+
+**`use-incident-metrics.ts` -- Frequency trend (line 130):**
+```text
+Same isLoading + event_type filter additions
+```
+
+### Expected Results After Fix
+
+- "Incidents by Severity" chart will show real data (23 incidents classified by subtype)
+- "Incident Categories" badges will show correct counts (Environmental: 1+15, Vehicle/Equipment: 1, Security: 1)
+- "Incident Frequency Trend" will show only incident counts (~18 in Jan, ~5 in Feb) instead of inflated numbers including observations
+- Branch filter will work correctly from first load
 
 ### Files Changed
 
-- `src/hooks/use-recent-events.ts` (2 lines changed)
+- `src/hooks/use-incident-metrics.ts` (branch loading gate, event_type filter, expanded classification)
 
