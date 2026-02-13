@@ -34,7 +34,7 @@ export function TrendBadge({ current, previous, invertColors = true }: TrendBadg
       {isUp && <TrendingUp className="h-3 w-3" />}
       {isDown && <TrendingDown className="h-3 w-3" />}
       {isSteady && <Minus className="h-3 w-3" />}
-      <span>{Math.abs(Math.round(diff))}%</span>
+      <span>{Math.abs(Math.round(diff)) || 0}%</span>
     </span>
   );
 }
