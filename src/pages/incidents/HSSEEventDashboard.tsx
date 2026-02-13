@@ -18,14 +18,15 @@ import {
   Clock,
   BarChart3,
   Building2,
-  MapPin,
   LineChart,
   PieChart,
   Eye,
   Flame,
   ArrowRightLeft,
+  Calendar,
+  MapPin,
 } from "lucide-react";
-import { subDays, subMonths, startOfYear, format } from "date-fns";
+import { format } from "date-fns";
 import { useHSSEEventDashboard } from "@/hooks/use-hsse-event-dashboard";
 import { useEventsByLocation } from "@/hooks/use-events-by-location";
 import { useTopReporters } from "@/hooks/use-top-reporters";
@@ -36,7 +37,6 @@ import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
 import { useIncidentProgression } from "@/hooks/use-incident-progression";
 import { useDashboardPrefetch } from "@/hooks/use-dashboard-prefetch";
 import { useBranches } from "@/hooks/use-branches";
-import { useSites } from "@/hooks/use-sites";
 import { useIncidentTypeDistribution } from "@/hooks/use-incident-type-distribution";
 import {
   useLaggingIndicators,
@@ -63,7 +63,6 @@ import {
   DepartmentAnalyticsChart,
   QuickActionsCard,
   RecentEventsCard,
-  DateRangeFilter,
   EnhancedKPIGrid,
   MajorEventsTimeline,
   BranchHeatmapGrid,
@@ -101,83 +100,74 @@ import {
   DrilldownModal,
 } from "@/components/incidents/dashboard";
 import { useHSSEAlerts } from "@/hooks/use-hsse-alerts";
-
-type DateRange = 'week' | 'month' | '30days' | '90days' | 'ytd';
+import { subDays } from "date-fns";
 
 export default function HSSEEventDashboard() {
   const { t } = useTranslation();
   const [refreshKey, setRefreshKey] = useState(0);
-  const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 90));
-  const [endDate, setEndDate] = useState<Date | undefined>(new Date());
-  const [kpiDateRange, setKpiDateRange] = useState<DateRange>('month');
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [branchId, setBranchId] = useState<string>('');
-  const [siteId, setSiteId] = useState<string>('');
   const [reporterBranchFilter, setReporterBranchFilter] = useState<string>('');
   const [locationBranchFilter, setLocationBranchFilter] = useState<string>('');
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   const { data: branches } = useBranches();
-  const { data: sites } = useSites(branchId || undefined);
   const { data: targets } = useKPITargets();
 
-  // Reset siteId when branchId changes
-  useEffect(() => {
-    setSiteId('');
-  }, [branchId]);
+  // Generate year list from 2023 to current year
+  const yearOptions = useMemo(() => {
+    const years: number[] = [];
+    for (let y = 2023; y <= currentYear; y++) {
+      years.push(y);
+    }
+    return years.reverse(); // Most recent first
+  }, [currentYear]);
 
-  // Calculate KPI date range
-  const { kpiStartDate, kpiEndDate } = useMemo(() => {
+  // Calculate date range based on selected year (YTD logic)
+  const { yearStartDate, yearEndDate, startDate, endDate } = useMemo(() => {
     const today = new Date();
     let start: Date;
-    const end = today;
+    let end: Date;
 
-    switch (kpiDateRange) {
-      case 'week':
-        start = subDays(today, 7);
-        break;
-      case 'month':
-        start = subMonths(today, 1);
-        break;
-      case '30days':
-        start = subDays(today, 30);
-        break;
-      case '90days':
-        start = subDays(today, 90);
-        break;
-      case 'ytd':
-        start = startOfYear(today);
-        break;
-      default:
-        start = subMonths(today, 1);
+    if (selectedYear === currentYear) {
+      // Current year: Jan 1 to today
+      start = new Date(currentYear, 0, 1);
+      end = today;
+    } else {
+      // Past year: full year
+      start = new Date(selectedYear, 0, 1);
+      end = new Date(selectedYear, 11, 31);
     }
 
     return {
-      kpiStartDate: format(start, 'yyyy-MM-dd'),
-      kpiEndDate: format(end, 'yyyy-MM-dd'),
+      yearStartDate: format(start, 'yyyy-MM-dd'),
+      yearEndDate: format(end, 'yyyy-MM-dd'),
+      startDate: start,
+      endDate: end,
     };
-  }, [kpiDateRange]);
+  }, [selectedYear, currentYear]);
 
-  // Event dashboard data
-  const { data: dashboardData, isLoading: dashboardLoading, refetch: refetchDashboard, dataUpdatedAt: dashboardUpdatedAt, isFetching: dashboardFetching } = useHSSEEventDashboard(startDate, endDate, branchId || undefined, siteId || undefined);
-  const { data: locationData, isLoading: locationLoading, dataUpdatedAt: locationUpdatedAt, isFetching: locationFetching } = useEventsByLocation(startDate, endDate, branchId || undefined, siteId || undefined);
-  const { data: reporters, isLoading: reportersLoading } = useTopReporters(10, startDate, endDate, branchId || undefined, siteId || undefined);
+  // Event dashboard data — use year-derived dates, no siteId
+  const { data: dashboardData, isLoading: dashboardLoading, refetch: refetchDashboard, dataUpdatedAt: dashboardUpdatedAt, isFetching: dashboardFetching } = useHSSEEventDashboard(startDate, endDate, branchId || undefined);
+  const { data: locationData, isLoading: locationLoading, dataUpdatedAt: locationUpdatedAt, isFetching: locationFetching } = useEventsByLocation(startDate, endDate, branchId || undefined);
+  const { data: reporters, isLoading: reportersLoading } = useTopReporters(10, startDate, endDate, branchId || undefined);
   const { generateInsights } = useHSSERiskAnalytics();
-  const { data: rcaData, isLoading: rcaLoading, dataUpdatedAt: rcaUpdatedAt, isFetching: rcaFetching } = useRCAAnalytics(startDate, endDate, branchId || undefined, siteId || undefined);
-  const { data: heatmapData, isLoading: heatmapLoading } = useLocationHeatmap(startDate, endDate, branchId || undefined, siteId || undefined);
-  const { data: progressionData, isLoading: progressionLoading, dataUpdatedAt: progressionUpdatedAt, isFetching: progressionFetching } = useIncidentProgression(startDate, endDate, branchId || undefined, siteId || undefined);
-  const { data: incidentTypeData, isLoading: incidentTypeLoading } = useIncidentTypeDistribution(startDate, endDate, branchId || undefined, siteId || undefined);
+  const { data: rcaData, isLoading: rcaLoading, dataUpdatedAt: rcaUpdatedAt, isFetching: rcaFetching } = useRCAAnalytics(startDate, endDate, branchId || undefined);
+  const { data: heatmapData, isLoading: heatmapLoading } = useLocationHeatmap(startDate, endDate, branchId || undefined);
+  const { data: progressionData, isLoading: progressionLoading, dataUpdatedAt: progressionUpdatedAt, isFetching: progressionFetching } = useIncidentProgression(startDate, endDate, branchId || undefined);
+  const { data: incidentTypeData, isLoading: incidentTypeLoading } = useIncidentTypeDistribution(startDate, endDate, branchId || undefined);
 
-  // KPI data
-  const { data: laggingData, isLoading: laggingLoading, refetch: refetchLagging } = useLaggingIndicators(kpiStartDate, kpiEndDate, branchId || undefined, siteId || undefined);
-  const { data: leadingData, isLoading: leadingLoading, refetch: refetchLeading } = useLeadingIndicators(kpiStartDate, kpiEndDate, branchId || undefined, siteId || undefined);
-  const { data: responseData, isLoading: responseLoading, refetch: refetchResponse } = useResponseMetrics(kpiStartDate, kpiEndDate, branchId || undefined, siteId || undefined);
-  const { data: peopleData, isLoading: peopleLoading, refetch: refetchPeople } = usePeopleMetrics(kpiStartDate, kpiEndDate, branchId || undefined, siteId || undefined);
-  const { data: daysSince, refetch: refetchDays } = useDaysSinceLastRecordable(branchId || undefined, siteId || undefined);
+  // KPI data — use year-derived dates, no siteId
+  const { data: laggingData, isLoading: laggingLoading, refetch: refetchLagging } = useLaggingIndicators(yearStartDate, yearEndDate, branchId || undefined);
+  const { data: leadingData, isLoading: leadingLoading, refetch: refetchLeading } = useLeadingIndicators(yearStartDate, yearEndDate, branchId || undefined);
+  const { data: responseData, isLoading: responseLoading, refetch: refetchResponse } = useResponseMetrics(yearStartDate, yearEndDate, branchId || undefined);
+  const { data: peopleData, isLoading: peopleLoading, refetch: refetchPeople } = usePeopleMetrics(yearStartDate, yearEndDate, branchId || undefined);
+  const { data: daysSince, refetch: refetchDays } = useDaysSinceLastRecordable(branchId || undefined);
 
-  // Trend data
-  const periodForComparison = kpiDateRange === 'week' ? 'week' : kpiDateRange === '90days' ? '90days' : kpiDateRange === 'ytd' ? 'ytd' : 'month';
-  const { data: trendData, isLoading: trendLoading, refetch: refetchTrend } = useKPIHistoricalTrend(undefined, undefined, branchId || undefined, siteId || undefined);
-  const { data: periodComparison, refetch: refetchComparison } = useKPIPeriodComparison(periodForComparison, branchId || undefined, siteId || undefined);
+  // Trend data — pass year-derived dates
+  const { data: trendData, isLoading: trendLoading, refetch: refetchTrend } = useKPIHistoricalTrend(yearStartDate, yearEndDate, branchId || undefined);
+  const { data: periodComparison, refetch: refetchComparison } = useKPIPeriodComparison('ytd', branchId || undefined);
 
   // Prefetch dashboard data for improved performance
   useDashboardPrefetch(startDate, endDate);
@@ -197,16 +187,11 @@ export default function HSSEEventDashboard() {
   const { isConnected, newEventCount, acknowledgeEvents } = useDashboardRealtime(handleRefresh);
 
   // Construct synthetic alert objects for the useHSSEAlerts hook
-  // TODO: Replace with real high-severity incident fetching for better alert details
   const alertIncidents = useMemo(() => {
     if (!dashboardData) return [];
-
-    // Create dummy objects to trigger the alert logic based on counts
-    // This maintains the notifications without needing a separate heavy query
     const incidents: any[] = [];
     const criticalCount = dashboardData.by_severity?.level_5 ?? 0;
     const highCount = dashboardData.by_severity?.level_4 ?? 0;
-
     for (let i = 0; i < criticalCount; i++) {
       incidents.push({ severity: 'critical', created_at: new Date().toISOString() });
     }
@@ -218,23 +203,18 @@ export default function HSSEEventDashboard() {
 
   const alertActions = useMemo(() => {
     if (!dashboardData?.actions) return [];
-
     const actions: any[] = [];
     const overdueCount = dashboardData.actions.overdue_actions ?? 0;
     const openCount = dashboardData.actions.open_actions ?? 0;
-
-    // Create dummy overdue actions
     for (let i = 0; i < overdueCount; i++) {
       actions.push({ status: 'open', due_date: subDays(new Date(), 1).toISOString() });
     }
-    // Create dummy open actions (not overdue)
     for (let i = 0; i < (openCount - overdueCount); i++) {
       actions.push({ status: 'open', due_date: new Date(Date.now() + 86400000).toISOString() });
     }
     return actions;
   }, [dashboardData]);
 
-  // We are not using hasHSSECritical directly, but the hook is needed for side effects (toasts)
   useHSSEAlerts({
     incidents: alertIncidents,
     actions: alertActions,
@@ -244,11 +224,6 @@ export default function HSSEEventDashboard() {
   const handleRefreshAndAcknowledge = () => {
     handleRefresh();
     acknowledgeEvents();
-  };
-
-  const handleDateRangeChange = (start: Date | undefined, end: Date | undefined) => {
-    setStartDate(start);
-    setEndDate(end);
   };
 
   // Convert trend data to sparkline format
@@ -272,7 +247,6 @@ export default function HSSEEventDashboard() {
     const checkKPI = (code: string, label: string, value: number) => {
       const target = targets.find((t) => t.kpi_code === code);
       if (!target) return;
-
       const status = getKPIStatus(value, target);
       if (status === 'warning') {
         kpiAlerts.push({ code, label, value, threshold: target.warning_threshold, severity: 'warning' });
@@ -316,7 +290,6 @@ export default function HSSEEventDashboard() {
               onAcknowledge={handleRefreshAndAcknowledge}
             />
             <AutoRefreshToggle onRefresh={handleRefresh} disabled={isLoading || kpiLoading} />
-            <DateRangeFilter onDateRangeChange={handleDateRangeChange} />
             <DashboardExportDropdown
               dashboardRef={dashboardRef}
               dashboardData={dashboardData}
@@ -325,7 +298,6 @@ export default function HSSEEventDashboard() {
               startDate={startDate}
               endDate={endDate}
               branchName={branchId ? branches?.find(b => b.id === branchId)?.name : undefined}
-              siteName={siteId ? sites?.find(s => s.id === siteId)?.name : undefined}
               laggingData={laggingData ?? null}
               leadingData={leadingData ?? null}
               responseData={responseData ?? null}
@@ -410,7 +382,7 @@ export default function HSSEEventDashboard() {
             trend={periodComparison?.trir?.trend_direction as 'up' | 'down' | 'stable'}
             invertColors={true}
             isLoading={laggingLoading}
-            periodLabel={getPeriodLabel(periodForComparison)}
+            periodLabel={getPeriodLabel('ytd')}
           />
           <KPITrendCard
             title="LTIFR"
@@ -420,7 +392,7 @@ export default function HSSEEventDashboard() {
             trend={periodComparison?.ltifr?.trend_direction as 'up' | 'down' | 'stable'}
             invertColors={true}
             isLoading={laggingLoading}
-            periodLabel={getPeriodLabel(periodForComparison)}
+            periodLabel={getPeriodLabel('ytd')}
           />
           <KPITrendCard
             title={t('kpiDashboard.actionClosure', 'Action Closure')}
@@ -431,7 +403,7 @@ export default function HSSEEventDashboard() {
             invertColors={false}
             suffix="%"
             isLoading={leadingLoading}
-            periodLabel={getPeriodLabel(periodForComparison)}
+            periodLabel={getPeriodLabel('ytd')}
           />
           <KPITrendCard
             title={t('kpiDashboard.avgInvestigationDays', 'Avg Investigation')}
@@ -442,19 +414,20 @@ export default function HSSEEventDashboard() {
           />
         </div>
 
-        {/* KPI Filters Row */}
+        {/* KPI Filters Row — Year selector + Branch (no Site) */}
         <div className="flex flex-wrap items-center gap-2 p-3 bg-muted/50 rounded-lg">
           <span className="text-sm font-medium text-muted-foreground">{t('kpiDashboard.filters', 'KPI Filters')}:</span>
-          <Select value={kpiDateRange} onValueChange={(v) => setKpiDateRange(v as DateRange)}>
-            <SelectTrigger className="w-[140px] h-8">
+          <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
+            <SelectTrigger className="w-[120px] h-8">
+              <Calendar className="me-2 h-4 w-4" />
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="week">{t('common.lastWeek', 'Last Week')}</SelectItem>
-              <SelectItem value="month">{t('common.lastMonth', 'Last Month')}</SelectItem>
-              <SelectItem value="30days">{t('common.last30Days', 'Last 30 Days')}</SelectItem>
-              <SelectItem value="90days">{t('common.last90Days', 'Last 90 Days')}</SelectItem>
-              <SelectItem value="ytd">{t('common.ytd', 'Year to Date')}</SelectItem>
+              {yearOptions.map((year) => (
+                <SelectItem key={year} value={String(year)}>
+                  {year}{year === currentYear ? ` (${t('common.ytd', 'YTD')})` : ''}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
 
@@ -471,29 +444,16 @@ export default function HSSEEventDashboard() {
             </SelectContent>
           </Select>
 
-          <Select value={siteId || 'all'} onValueChange={(v) => setSiteId(v === 'all' ? '' : v)} disabled={!branchId}>
-            <SelectTrigger className="w-[160px] h-8">
-              <MapPin className="me-2 h-4 w-4" />
-              <SelectValue placeholder={t('common.allSites', 'All Sites')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('common.allSites', 'All Sites')}</SelectItem>
-              {sites?.map((site) => (
-                <SelectItem key={site.id} value={site.id}>{site.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
           <KPIDashboardExport
             laggingData={laggingData ?? null}
             leadingData={leadingData ?? null}
             responseData={responseData ?? null}
             peopleData={peopleData ?? null}
-            dateRange={{ start: kpiStartDate, end: kpiEndDate }}
+            dateRange={{ start: yearStartDate, end: yearEndDate }}
             filters={{
               branch: branchId ? branches?.find(b => b.id === branchId)?.name : undefined,
-              site: siteId ? sites?.find(s => s.id === siteId)?.name : undefined,
             }}
+            selectedYear={selectedYear}
           />
         </div>
 
@@ -549,7 +509,6 @@ export default function HSSEEventDashboard() {
               </TabsTrigger>
             </TabsList>
 
-            {/* Safety KPIs Tab (Merged Lagging + Leading) */}
             <TabsContent value="safety" className="space-y-4">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <LaggingIndicatorsCard data={laggingData ?? null} isLoading={laggingLoading} />
@@ -557,7 +516,6 @@ export default function HSSEEventDashboard() {
               </div>
             </TabsContent>
 
-            {/* Operations Tab (Merged Response + People) */}
             <TabsContent value="operations" className="space-y-4">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <ResponseMetricsCard data={responseData ?? null} isLoading={responseLoading} />
@@ -571,10 +529,9 @@ export default function HSSEEventDashboard() {
 
             <TabsContent value="metrics">
               <IncidentMetricsCard
-                startDate={kpiStartDate}
-                endDate={kpiEndDate}
+                startDate={yearStartDate}
+                endDate={yearEndDate}
                 branchId={branchId || undefined}
-                siteId={siteId || undefined}
               />
             </TabsContent>
           </Tabs>
@@ -748,13 +705,12 @@ export default function HSSEEventDashboard() {
             <ResidualRiskCard startDate={startDate} endDate={endDate} />
           </div>
 
-          <ObservationTrendChart startDate={startDate} endDate={endDate} branchId={branchId || undefined} siteId={siteId || undefined} />
+          <ObservationTrendChart startDate={startDate} endDate={endDate} branchId={branchId || undefined} />
 
           <ObservationRatioBreakdown
             startDate={startDate}
             endDate={endDate}
             branchId={branchId || undefined}
-            siteId={siteId || undefined}
           />
         </DashboardSection>
 
@@ -774,7 +730,6 @@ export default function HSSEEventDashboard() {
                 startDate={startDate}
                 endDate={endDate}
                 branchId={branchId || undefined}
-                siteId={siteId || undefined}
                 locationBranchId={locationBranchFilter}
                 reporterBranchId={reporterBranchFilter}
                 onLocationBranchChange={setLocationBranchFilter}
