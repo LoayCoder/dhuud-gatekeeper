@@ -1,53 +1,43 @@
 
-## Fix: Action Closure and Avg Investigation KPI Cards Showing 0.00
 
-### Root Cause Analysis
+## Fix: Avg Investigation Days Still Showing 0.00
 
-**Action Closure (0.00%)**:
-The `get_leading_indicators` RPC counts actions where `status = 'completed'`, but no corrective action in the database has that status. The actual statuses in use are `assigned` and `in_progress`. The app's own Corrective Action Donut Chart expects statuses like `closed`, `pending_verification`, and `overdue` -- but `completed` is never used. The RPC needs to count **all closure-equivalent statuses** (`completed`, `closed`, `verified`) to accurately reflect action closure rate.
+### Root Cause
 
-**Avg Investigation (0.00 days)**:
-The `get_response_metrics` RPC joins the `investigations` table and requires `completed_at IS NOT NULL`. However, **all 8 investigations have `completed_at = NULL`**. The system actually tracks investigation completion through:
-- `incidents.investigation_approved_at` (the approval timestamp)
-- `incidents.status = 'investigation_closed'` (2 incidents have this status)
+The previous fix correctly expanded the WHERE clause to match incidents with `status = 'investigation_closed'`, but the **duration calculation** still fails because it uses:
 
-The RPC never checks these fields, so it sees zero completed investigations and returns 0.
+```
+COALESCE(inv.completed_at, i.investigation_approved_at) - i.occurred_at
+```
 
-### Database Fixes
+For the 2 closed investigations, **both** `inv.completed_at` and `i.investigation_approved_at` are NULL. The COALESCE returns NULL, making the entire expression NULL, and `AVG(NULL)` returns 0.
 
-**1. Fix `get_response_metrics` RPC:**
-- For avg investigation days: Use `incidents.investigation_approved_at` as the completion marker (falling back to `investigations.completed_at` if present)
-- Also consider incidents with `status = 'investigation_closed'` as completed
-- Calculate duration from `incidents.occurred_at` to the completion timestamp
-- For within-target percentage: Same logic, check if duration is within 14 days
+### The Fix
 
-**2. Fix `get_leading_indicators` RPC (action closure only):**
-- Change the closed-actions filter from `status = 'completed'` to `status IN ('completed', 'closed', 'verified')` to catch all closure-equivalent statuses
-
-### Changes Summary
+Add `i.updated_at` as a third fallback in the COALESCE chain. When an incident transitions to `investigation_closed`, its `updated_at` timestamp reflects when that closure happened.
 
 ```text
-+----------------------------+-----------------------------------+-----------------------------------+
-| Metric                     | Before (broken)                   | After (fixed)                     |
-+----------------------------+-----------------------------------+-----------------------------------+
-| Action Closure %           | Counts status = 'completed' only  | Counts 'completed', 'closed',     |
-|                            | (no records match)                | 'verified' statuses               |
-+----------------------------+-----------------------------------+-----------------------------------+
-| Avg Investigation Days     | Requires investigations.          | Uses incidents.                   |
-|                            | completed_at (always NULL)        | investigation_approved_at or      |
-|                            |                                   | status = 'investigation_closed'   |
-+----------------------------+-----------------------------------+-----------------------------------+
-| Within Target %            | Same broken dependency            | Same fix as above                 |
-+----------------------------+-----------------------------------+-----------------------------------+
+Before:  COALESCE(inv.completed_at, i.investigation_approved_at)
+After:   COALESCE(inv.completed_at, i.investigation_approved_at, i.updated_at)
 ```
+
+This applies in two places within the `get_response_metrics` RPC:
+1. The AVG calculation (line 167)
+2. The within-target FILTER clause (line 190)
+
+### Action Closure: No Fix Needed
+
+Action Closure showing 0.00% is **correct**. All 6 corrective actions are in `assigned` (5) or `in_progress` (1) status. None have been closed yet.
+
+### Expected Result After Fix
+
+- Incident 1: Dec 8, 2025 to Jan 9, 2026 = ~31 days
+- Incident 2: Jan 6, 2026 to Feb 9, 2026 = ~34 days
+- **Avg Investigation Days: ~32.5 days** (instead of 0.00)
+- **Within Target (14 days): 0.0%** (both exceed 14 days, which is accurate)
 
 ### Files Changed
 
-- **Database migration only**: One migration file to update both `get_response_metrics` and `get_leading_indicators` RPCs
-- **No frontend changes needed** -- the hooks and components already handle the returned data correctly; only the SQL calculations are wrong
+- **Database migration only**: One migration to update the `get_response_metrics` RPC with the additional COALESCE fallback
+- No frontend changes needed
 
-### Expected Result
-
-- **Action Closure**: Will correctly show the percentage of corrective actions that have been completed/closed/verified
-- **Avg Investigation**: Will show the actual average days from incident occurrence to investigation approval/closure for the 2 incidents that have reached `investigation_closed` status
-- Both cards will display real numbers instead of 0.00
