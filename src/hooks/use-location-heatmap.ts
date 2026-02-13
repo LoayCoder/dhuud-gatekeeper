@@ -151,9 +151,18 @@ export function useLocationHeatmap(startDate?: Date, endDate?: Date, branchId?: 
       const maxBranchEvents = Math.max(...branches.map(b => b.total_events), 1);
       const maxSiteEvents = Math.max(...sites.map(s => s.total_events), 1);
 
-      // Normalize branch density scores
+      // Severity-weighted density: reflects actual risk, not just volume
       branches.forEach(b => {
-        b.density_score = Math.round((b.total_events / maxBranchEvents) * 100);
+        const weightedScore =
+          (b.level_5_count * 5) +
+          (b.level_4_count * 4) +
+          (b.level_3_count * 3) +
+          (b.level_2_count * 2) +
+          (b.level_1_count * 1);
+        const maxPossible = b.total_events * 5;
+        b.density_score = maxPossible > 0
+          ? Math.round((weightedScore / maxPossible) * 100)
+          : 0;
       });
 
       // Build temporal grid (7 days × 24 hours)
