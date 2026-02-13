@@ -1,81 +1,63 @@
 
 
-## Dashboard Audit Report and Fix Plan
+## Fix: Branch Event Density Always Showing "Critical"
 
-### Audit Summary
+### Problem
 
-I found **4 broken database functions** causing errors on the HSSE Event Dashboard. Here is each issue and the fix.
+The density score is calculated by dividing each branch's event count by the maximum branch event count (`total_events / maxBranchEvents * 100`). This means:
+- With **1 branch**: it always scores 100% (Critical)
+- With **multiple branches**: the top branch is always Critical regardless of actual risk
 
----
+This is misleading -- a branch with 5 low-severity events should not appear the same as one with 100 catastrophic events.
 
-### Issue 1: `get_dashboard_quick_action_counts` -- Status 400
-- **Error:** `invalid input value for enum incident_status: "pending_expert_screening"`
-- **Root Cause:** The function references two non-existent enum values: `pending_expert_screening` and `pending_site_client_approval`. The actual enum values are `expert_screening` and there is no `pending_site_client_approval`.
-- **Fix:** Update the function SQL to use the correct enum values.
+### Solution: Severity-Weighted Density
 
-### Issue 2: `get_top_reporters` -- Status 404
-- **Error:** Hook sends `p_branch_id` and `p_site_id` params, but the DB function only accepts `(p_limit, p_start_date, p_end_date)`.
-- **Fix:** Either update the DB function to accept `p_branch_id` and `p_site_id`, OR update the hook to stop sending them. The better approach is to **update the DB function** so branch/site filtering works with the dashboard filters.
+Replace the pure count-based normalization with a **severity-weighted density score** that reflects actual risk, not just volume.
 
-### Issue 3: `get_events_by_location` -- Status 404
-- **Error:** Hook sends `p_branch_id` and `p_site_id` params, but the DB function only accepts `(p_start_date, p_end_date)`.
-- **Fix:** Same approach -- **update the DB function** to accept `p_branch_id` and `p_site_id` parameters.
+**Weighting formula:**
+```
+weighted_score = (level_5 * 5) + (level_4 * 4) + (level_3 * 3) + (level_2 * 2) + (level_1 * 1)
+max_possible = total_events * 5  (if all were catastrophic)
+density_score = (weighted_score / max_possible) * 100
+```
 
-### Issue 4: `get_kpi_historical_trend` -- Status 400
-- **Error:** `column i.incident_date does not exist`
-- **Root Cause:** The function references `i.incident_date` but the `incidents` table uses `occurred_at` instead.
-- **Fix:** Replace all references to `i.incident_date` with `i.occurred_at` in the function.
+This means:
+- A branch with all Level 1 events scores ~20% (Low/green)
+- A branch with all Level 5 events scores 100% (Critical/red)
+- Mixed severity falls in between proportionally
 
----
+### File Change
 
-### What's Working (Confirmed OK)
+**`src/hooks/use-location-heatmap.ts`** (lines ~148-151)
 
-The following dashboard components and their hooks are returning 200 and functioning correctly:
+Replace the current normalization block:
+```typescript
+// Current (broken)
+branches.forEach(b => {
+  b.density_score = Math.round((b.total_events / maxBranchEvents) * 100);
+});
+```
 
-- Executive Summary (via `get_hsse_event_dashboard`)
-- Cross-Branch Analytics (via `get_cross_branch_analytics`) -- correctly ignores branch filter, respects year/month
-- Lagging Indicators (via `get_lagging_indicators`)
-- Leading Indicators (via `get_leading_indicators`)
-- Response Metrics (via `get_response_metrics`)
-- People Metrics (via `get_incident_people_metrics`)
-- Days Since Last Recordable (via `get_days_since_last_recordable`)
-- KPI Period Comparison (via `get_kpi_period_comparison`)
-- Observation Trend (via `get_observation_trend_analytics`)
-- Residual Risk (via `get_residual_risk_metrics`)
-- Recent Events Card -- correctly filtering by branch, year, and month
-- Cross-Branch Summary and Heatmap -- correctly ignoring branch filter
+With severity-weighted calculation:
+```typescript
+// Fixed: severity-weighted density
+branches.forEach(b => {
+  const weightedScore =
+    (b.level_5_count * 5) +
+    (b.level_4_count * 4) +
+    (b.level_3_count * 3) +
+    (b.level_2_count * 2) +
+    (b.level_1_count * 1);
+  const maxPossible = b.total_events * 5;
+  b.density_score = maxPossible > 0
+    ? Math.round((weightedScore / maxPossible) * 100)
+    : 0;
+});
+```
 
-### Filter Integration Status
+No changes needed to `BranchHeatmapGrid.tsx` -- the existing color thresholds (0-24 Low, 25-49 Medium, 50-74 High, 75-100 Critical) will now reflect actual severity mix rather than relative volume.
 
-| Component | Branch Filter | Year/Month Filter | Status |
-|-----------|--------------|-------------------|--------|
-| Executive Summary | Respects | Respects | OK |
-| KPI Cards (TRIR, LTIFR, etc.) | Respects | Respects | OK |
-| Recent Events | Respects | Respects | OK |
-| Cross-Branch Analytics | Ignores (correct) | Respects | OK |
-| Top Reporters | Respects | Respects | BROKEN (404) |
-| Location Analytics | Respects | Respects | BROKEN (404) |
-| Quick Action Counts | N/A | N/A | BROKEN (400) |
-| KPI Historical Trend | Respects | Respects | BROKEN (400) |
+### Expected Result
 
----
-
-### Implementation Plan
-
-**Step 1: Fix `get_dashboard_quick_action_counts`** (DB migration)
-- Replace `pending_expert_screening` with `expert_screening`
-- Replace `pending_site_client_approval` with a valid status or remove it
-
-**Step 2: Fix `get_top_reporters`** (DB migration)
-- Add `p_branch_id UUID DEFAULT NULL` and `p_site_id UUID DEFAULT NULL` parameters
-- Add branch/site WHERE clauses to the query
-
-**Step 3: Fix `get_events_by_location`** (DB migration)
-- Add `p_branch_id UUID DEFAULT NULL` and `p_site_id UUID DEFAULT NULL` parameters
-- Add branch/site WHERE clauses to the query
-
-**Step 4: Fix `get_kpi_historical_trend`** (DB migration)
-- Replace all `i.incident_date` references with `i.occurred_at`
-
-All 4 fixes are database-only migrations. No frontend code changes required -- the hooks are already sending the correct parameters.
+With the current data (114 events in RGC), the density color will depend on the actual severity distribution of those events rather than always showing red/Critical.
 
