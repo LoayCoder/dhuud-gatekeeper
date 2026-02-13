@@ -8,8 +8,10 @@ interface DaysSinceCounterProps {
   milestone?: number;
 }
 
-export function DaysSinceCounter({ days, label, milestone = 100 }: DaysSinceCounterProps) {
+export function DaysSinceCounter({ days: rawDays, label, milestone = 100 }: DaysSinceCounterProps) {
   const { t } = useTranslation();
+  // Guard against NaN, Infinity, or negative values
+  const days = (!Number.isFinite(rawDays) || rawDays < 0) ? 999 : rawDays;
   const isAchievement = days >= milestone;
   const progress = Math.min((days / milestone) * 100, 100);
 

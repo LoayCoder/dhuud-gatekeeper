@@ -29,7 +29,7 @@ interface KPIDashboardExportProps {
   responseData: ResponseMetrics | null;
   peopleData: PeopleMetrics | null;
   dateRange: { start: string; end: string };
-  filters?: { branch?: string; site?: string };
+  filters?: { branch?: string; site?: string; year?: number; month?: string };
 }
 
 export function KPIDashboardExport({
@@ -47,8 +47,9 @@ export function KPIDashboardExport({
 
   // Build filter info string
   const filterInfo = [
+    filters?.year ? `Year: ${filters.year}` : null,
+    filters?.month ? `Month: ${filters.month}` : null,
     filters?.branch ? `Branch: ${filters.branch}` : null,
-    filters?.site ? `Site: ${filters.site}` : null,
   ].filter(Boolean).join(' | ');
   const [isExporting, setIsExporting] = useState(false);
 

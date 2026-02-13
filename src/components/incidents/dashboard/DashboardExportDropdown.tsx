@@ -36,6 +36,8 @@ interface DashboardExportDropdownProps {
   endDate?: Date;
   branchName?: string;
   siteName?: string;
+  selectedYear?: number;
+  selectedMonth?: string;
   laggingData?: LaggingIndicators | null;
   leadingData?: LeadingIndicators | null;
   responseData?: ResponseMetrics | null;
@@ -51,6 +53,8 @@ export function DashboardExportDropdown({
   endDate,
   branchName,
   siteName,
+  selectedYear,
+  selectedMonth,
   laggingData,
   leadingData,
   responseData,
@@ -66,10 +70,11 @@ export function DashboardExportDropdown({
   // Build filter summary string for exports
   const getFilterSummary = () => {
     const parts: string[] = [];
+    if (selectedYear) parts.push(`Year: ${selectedYear}`);
+    if (selectedMonth) parts.push(`Month: ${selectedMonth}`);
     if (startDate) parts.push(`From: ${format(startDate, 'yyyy-MM-dd')}`);
     if (endDate) parts.push(`To: ${format(endDate, 'yyyy-MM-dd')}`);
     if (branchName) parts.push(`Branch: ${branchName}`);
-    if (siteName) parts.push(`Site: ${siteName}`);
     return parts.length > 0 ? parts.join(' | ') : 'All Data';
   };
 
