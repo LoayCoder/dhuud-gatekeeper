@@ -60,7 +60,7 @@ export function useLocationHeatmap(startDate?: Date, endDate?: Date, branchId?: 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let query = (supabase as any)
         .from('incidents')
-        .select('id, branch_id, site_id, severity_v2, event_type, occurred_at, branches!inner(id, name), sites(id, name)')
+        .select('id, branch_id, site_id, severity_v2, event_type, occurred_at, branches!incidents_branch_id_fkey!inner(id, name), sites(id, name)')
         .is('deleted_at', null);
 
       if (startDate) {
