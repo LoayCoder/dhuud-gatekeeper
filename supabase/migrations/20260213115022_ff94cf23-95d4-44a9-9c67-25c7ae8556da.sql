@@ -1,0 +1,1 @@
+ALTER TABLE public.branches ADD COLUMN name_ar TEXT;
