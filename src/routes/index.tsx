@@ -19,6 +19,7 @@ export { adminRoutes } from "./admin.routes";
 export { deptGatePassRoutes } from "./dept-gate-passes.routes";
 export { myGatePassRoutes } from "./my-gate-passes.routes";
 export { actionCenterRoutes } from "./action-center.routes";
+export { achievementsRoutes } from "./achievements.routes";
 
 // Import for combined route generation
 import { publicRoutes } from "./public.routes";
@@ -33,6 +34,7 @@ import { adminRoutes } from "./admin.routes";
 import { deptGatePassRoutes } from "./dept-gate-passes.routes";
 import { myGatePassRoutes } from "./my-gate-passes.routes";
 import { actionCenterRoutes } from "./action-center.routes";
+import { achievementsRoutes } from "./achievements.routes";
 
 /**
  * All protected routes that require MainLayout wrapper
@@ -52,6 +54,7 @@ export const protectedLayoutRoutes: RouteObject[] = [
   ...deptGatePassRoutes,
   ...myGatePassRoutes,
   ...actionCenterRoutes,
+  ...achievementsRoutes,
 ];
 
 /**

@@ -1,119 +1,70 @@
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
-import { useModuleAccess } from '@/hooks/use-module-access';
-import { useUserRoles } from '@/hooks/use-user-roles';
 import { EnterprisePage } from '@/components/layout/EnterprisePage';
-import { SectionHeader } from '@/components/ui/section-header';
+import { DashboardHeader } from '@/components/dashboard/personal';
+import { useUserOverviewStats } from '@/hooks/use-user-overview-stats';
 import {
-  DashboardHeader,
-  HSEMessageCarousel,
-  MyReportingStatsCard,
-  MyRankCard,
-  AIInsightsCard,
-  QuickReportButtons,
-  RecentActivityFeed,
-  MyActionsWidget,
-  MyVisitorsWidget,
-  MyGatePassesWidget,
-  MyInspectionsWidget,
-  MyBadgesSection,
-} from '@/components/dashboard/personal';
-import { ActiveChallengeCard } from '@/components/dashboard/personal/ActiveChallengeCard';
-import { MyInvestigationTasksCard } from '@/components/investigation/MyInvestigationTasksCard';
+  MyTasksSection,
+  MyIncidentsSection,
+  MyObservationsSection,
+  MyCorrectiveActionsSection,
+  MyApprovalsSection
+} from '@/components/dashboard/personal/UserOverviewWidgets';
+import { QuickActionsSection } from '@/components/dashboard/personal/QuickActionsSection';
+import { RecognitionSection } from '@/components/dashboard/personal/RecognitionSection';
 export default function Dashboard() {
   const { t } = useTranslation();
-  const { hasModule } = useModuleAccess();
-  const { hasRole, hasRoleInCategory } = useUserRoles();
+  const { data: stats, isLoading } = useUserOverviewStats();
 
-  // Module access checks
-  const hasHSSEAccess = hasModule('hsse_core') || hasModule('incidents');
-  const hasSecurityAccess = hasModule('security');
-  const hasInspectionsAccess = hasModule('audits') || hasModule('hsse_core');
-
-  // Role-based visibility
-  const isSecurityRole = hasRole('security_guard') || hasRole('security_supervisor') || hasRole('security_manager');
-  const isInspectorRole = hasRole('inspector') || hasRole('auditor') || hasRole('hsse_expert');
-  const isHSSERole = hasRoleInCategory('hsse');
-  const canSeeVisitors = hasSecurityAccess || isSecurityRole;
-  const canSeeGatePasses = hasSecurityAccess;
-  const canSeeInspections = hasInspectionsAccess || isInspectorRole;
-  const canSeeActions = hasHSSEAccess || isHSSERole || hasRole('manager') || hasRole('department_representative');
+  if (isLoading || !stats) {
+    return (
+      <EnterprisePage title="" description="" className="space-y-6">
+        <DashboardHeader />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-muted/20 animate-pulse rounded-xl" />)}
+        </div>
+      </EnterprisePage>
+    );
+  }
 
   return (
     <EnterprisePage
       title=""
       description=""
-      className="space-y-6 animate-in fade-in"
+      className="space-y-8 animate-in fade-in relative"
     >
-      {/* Header with greeting */}
-      <DashboardHeader />
-
-      {/* HSE Message Carousel */}
-      <HSEMessageCarousel />
-
-      {/* My Stats Section */}
-      <section className="space-y-3 animate-in slide-up" style={{ animationDelay: '100ms' }}>
-        <SectionHeader title={t('dashboard.stats.sectionTitle', 'My Statistics')} />
-        <MyReportingStatsCard />
-      </section>
-
-      {/* Quick Actions */}
-      <section className="space-y-3 animate-in slide-up" style={{ animationDelay: '200ms' }}>
-        <SectionHeader title={t('dashboard.quickActions.sectionTitle', 'Quick Actions')} />
-        <QuickReportButtons />
-      </section>
-
-      {/* Recognition & Achievements - Side by Side */}
-      <section className="space-y-3 animate-in slide-up" style={{ animationDelay: '300ms' }}>
-        <SectionHeader title={t('dashboard.recognition.sectionTitle', 'Recognition & Achievements')} />
-        <div className="grid gap-4 md:grid-cols-2">
-          <MyRankCard />
-          <MyBadgesSection />
-        </div>
-      </section>
-
-      {/* Active Challenge */}
-      <div className="animate-in slide-up" style={{ animationDelay: '400ms' }}>
-        <ActiveChallengeCard />
+      {/* Background Decor */}
+      <div className="fixed inset-0 -z-10 pointer-events-none">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl opacity-50 mix-blend-multiply dark:mix-blend-screen animate-blob" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-3xl opacity-50 mix-blend-multiply dark:mix-blend-screen animate-blob animation-delay-2000" />
       </div>
 
-      {/* AI Insights */}
-      <section className="space-y-3 animate-in slide-up" style={{ animationDelay: '500ms' }}>
-        <SectionHeader title={t('dashboard.insights.sectionTitle', 'AI Insights')} />
-        <AIInsightsCard />
-      </section>
+      {/* Header with greeting */}
+      <div className="animate-in slide-in-from-bottom-4 fade-in duration-500">
+        <DashboardHeader />
+      </div>
 
-      {/* Actions & Tasks (if user has access) */}
-      {canSeeActions && (
-        <section className="space-y-3 animate-in slide-up" style={{ animationDelay: '600ms' }}>
-          <SectionHeader title={t('dashboard.personal.actionsTitle', 'My Tasks')} />
-          <div className="grid gap-4 md:grid-cols-2">
-            <MyActionsWidget />
-            <RecentActivityFeed />
-          </div>
-          {/* Investigation Team Tasks */}
-          <MyInvestigationTasksCard />
-        </section>
-      )}
+      {/* Quick Actions */}
+      <QuickActionsSection />
 
-      {/* Security Section */}
-      {(canSeeVisitors || canSeeGatePasses) && (
-        <section className="space-y-3">
-          <SectionHeader title={t('dashboard.personal.accessControl', 'Visitors & Access')} />
-          <div className="grid gap-4 md:grid-cols-2">
-            {canSeeVisitors && <MyVisitorsWidget />}
-            {canSeeGatePasses && <MyGatePassesWidget />}
-          </div>
-        </section>
-      )}
+      {/* 1. My Tasks */}
+      <MyTasksSection stats={stats} />
 
-      {/* Inspections */}
-      {canSeeInspections && (
-        <section className="space-y-3">
-          <SectionHeader title={t('dashboard.personal.inspections', 'My Inspections')} />
-          <MyInspectionsWidget />
-        </section>
-      )}
+      {/* Recognition & Achievements - Moving up as it's engaging */}
+      <RecognitionSection />
+
+      {/* 2. My Incidents */}
+      <MyIncidentsSection stats={stats} />
+
+      {/* 3. My Corrective Actions */}
+      <MyCorrectiveActionsSection stats={stats} />
+
+      {/* 4. My Observations */}
+      <MyObservationsSection stats={stats} />
+
+      {/* 5. My Approvals */}
+      <MyApprovalsSection stats={stats} />
+
     </EnterprisePage>
   );
 }
