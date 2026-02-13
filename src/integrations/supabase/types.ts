@@ -3634,6 +3634,7 @@ export type Database = {
           location: string | null
           longitude: number | null
           name: string
+          name_ar: string | null
           phone: string | null
           tenant_id: string
         }
@@ -3648,6 +3649,7 @@ export type Database = {
           location?: string | null
           longitude?: number | null
           name: string
+          name_ar?: string | null
           phone?: string | null
           tenant_id: string
         }
@@ -3662,6 +3664,7 @@ export type Database = {
           location?: string | null
           longitude?: number | null
           name?: string
+          name_ar?: string | null
           phone?: string | null
           tenant_id?: string
         }
