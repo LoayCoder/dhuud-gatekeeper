@@ -790,7 +790,7 @@ export default function HSSEEventDashboard() {
               <CrossBranchAnalytics
                 startDate={startDate}
                 endDate={endDate}
-                branchId={branchId || undefined}
+                branchId={undefined}
                 siteId={undefined}
                 locationBranchId={locationBranchFilter}
                 reporterBranchId={reporterBranchFilter}
