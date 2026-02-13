@@ -25755,7 +25755,12 @@ export type Database = {
             }[]
           }
       get_events_by_location: {
-        Args: { p_end_date?: string; p_start_date?: string }
+        Args: {
+          p_branch_id?: string
+          p_end_date?: string
+          p_site_id?: string
+          p_start_date?: string
+        }
         Returns: Json
       }
       get_findings_distribution: { Args: never; Returns: Json }
@@ -26122,7 +26127,13 @@ export type Database = {
         }[]
       }
       get_top_reporters: {
-        Args: { p_end_date?: string; p_limit?: number; p_start_date?: string }
+        Args: {
+          p_branch_id?: string
+          p_end_date?: string
+          p_limit?: number
+          p_site_id?: string
+          p_start_date?: string
+        }
         Returns: Json
       }
       get_trash_assets: {
