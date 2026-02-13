@@ -1,105 +1,53 @@
 
+## Fix: Action Closure and Avg Investigation KPI Cards Showing 0.00
 
-## Operationalize People Metrics - Comprehensive Plan
+### Root Cause Analysis
 
-### Current State
+**Action Closure (0.00%)**:
+The `get_leading_indicators` RPC counts actions where `status = 'completed'`, but no corrective action in the database has that status. The actual statuses in use are `assigned` and `in_progress`. The app's own Corrective Action Donut Chart expects statuses like `closed`, `pending_verification`, and `overdue` -- but `completed` is never used. The RPC needs to count **all closure-equivalent statuses** (`completed`, `closed`, `verified`) to accurately reflect action closure rate.
 
-- The `incident_injuries` table exists with injury data (body diagram, severity, types, days lost) but is **missing** three critical columns: `person_type`, `involvement_type`, and `injury_classification`.
-- The current `get_people_metrics` RPC reads `worker_type` from the `incidents` table (which is always NULL) and uses hardcoded manhour defaults. It does not query `incident_injuries` at all.
-- The `PeopleMetricsCard` component shows manhour breakdowns and employee/contractor ratios but has no charts, no body-part analysis, and no injury classification pyramid.
-- The `InjuryEntryForm` captures detailed injury data but does not ask **who** the person is (employee/contractor/visitor) or **how** they were involved (injured vs. witness), nor does it capture OSHA classification (LTI, MTC, etc.).
+**Avg Investigation (0.00 days)**:
+The `get_response_metrics` RPC joins the `investigations` table and requires `completed_at IS NOT NULL`. However, **all 8 investigations have `completed_at = NULL`**. The system actually tracks investigation completion through:
+- `incidents.investigation_approved_at` (the approval timestamp)
+- `incidents.status = 'investigation_closed'` (2 incidents have this status)
 
----
+The RPC never checks these fields, so it sees zero completed investigations and returns 0.
 
-### Phase 1: Database Schema Update (Migration)
+### Database Fixes
 
-Add three new columns to `incident_injuries`:
+**1. Fix `get_response_metrics` RPC:**
+- For avg investigation days: Use `incidents.investigation_approved_at` as the completion marker (falling back to `investigations.completed_at` if present)
+- Also consider incidents with `status = 'investigation_closed'` as completed
+- Calculate duration from `incidents.occurred_at` to the completion timestamp
+- For within-target percentage: Same logic, check if duration is within 14 days
 
-| Column | Type | Values | Default |
-|--------|------|--------|---------|
-| `person_type` | TEXT | `employee`, `contractor`, `visitor`, `public` | `employee` |
-| `involvement_type` | TEXT | `injured_person`, `witness`, `driver`, `suspect` | `injured_person` |
-| `injury_classification` | TEXT | `LTI`, `MTC`, `RWC`, `FAC`, `FAT`, `NM` | NULL |
+**2. Fix `get_leading_indicators` RPC (action closure only):**
+- Change the closed-actions filter from `status = 'completed'` to `status IN ('completed', 'closed', 'verified')` to catch all closure-equivalent statuses
 
-All three default to sensible values so existing records remain valid. The defaults ensure backward compatibility (existing 2 injury records become `employee` / `injured_person`).
+### Changes Summary
 
----
+```text
++----------------------------+-----------------------------------+-----------------------------------+
+| Metric                     | Before (broken)                   | After (fixed)                     |
++----------------------------+-----------------------------------+-----------------------------------+
+| Action Closure %           | Counts status = 'completed' only  | Counts 'completed', 'closed',     |
+|                            | (no records match)                | 'verified' statuses               |
++----------------------------+-----------------------------------+-----------------------------------+
+| Avg Investigation Days     | Requires investigations.          | Uses incidents.                   |
+|                            | completed_at (always NULL)        | investigation_approved_at or      |
+|                            |                                   | status = 'investigation_closed'   |
++----------------------------+-----------------------------------+-----------------------------------+
+| Within Target %            | Same broken dependency            | Same fix as above                 |
++----------------------------+-----------------------------------+-----------------------------------+
+```
 
-### Phase 2: New RPC - `get_incident_people_metrics`
+### Files Changed
 
-Replace the current `get_people_metrics` with a new, accurate RPC that queries `incident_injuries` directly:
+- **Database migration only**: One migration file to update both `get_response_metrics` and `get_leading_indicators` RPCs
+- **No frontend changes needed** -- the hooks and components already handle the returned data correctly; only the SQL calculations are wrong
 
-- **Filter**: Only rows where `involvement_type = 'injured_person'` and `deleted_at IS NULL`
-- **Exclude**: Security/theft incidents (join to `incidents` table, exclude `incident_type` in security/theft categories)
-- **Return aggregates**:
-  1. Count by `person_type` (employee vs contractor vs visitor vs public)
-  2. Count by `injury_classification` (the Safety Pyramid: FAT, LTI, MTC, RWC, FAC, NM)
-  3. Count by `body_parts_affected` (flattened array, top 5 for heatmap)
-  4. Total injured count
-  5. Employee/contractor split percentages
+### Expected Result
 
----
-
-### Phase 3: Update InjuryEntryForm
-
-Add three new fields to the injury form (`InjuryEntryForm.tsx`):
-
-1. **Person Type** selector (Employee / Contractor / Visitor / Public) - required
-2. **Involvement Type** selector (Injured Person / Witness / Driver / Suspect) - required
-3. **Injury Classification** selector (LTI / MTC / RWC / FAC / Fatality / Near Miss) - required only when `involvement_type = 'injured_person'`
-
-These fields appear at the top of the "Person Details" section, right after the person name lookup.
-
-Update the Zod schema, form defaults, and submit handler to include these fields.
-
----
-
-### Phase 4: Update Incident Report Form
-
-In `IncidentReport.tsx`, when `has_injury = true` and the event category is Safety-related:
-- The `injury_classification` field (already in the schema at line 83) will be validated as required
-- No changes needed for Security/Theft incidents since `has_injury` defaults to false for those
-
-This is a lightweight change since the detailed injury data entry happens in the Investigation phase via `InjuryEntryForm`.
-
----
-
-### Phase 5: Redesign PeopleMetricsCard
-
-Replace the current manhour-focused card with injury-focused analytics:
-
-1. **Pie Chart** (using Recharts `PieChart`): Employee vs. Contractor injury split
-2. **Horizontal Bar Chart**: Top 5 body parts injured
-3. **Summary Badges**: Total injuries, LTI count, FAC count, and TRIR (if manhours available, otherwise raw count)
-4. **Empty State**: "No injuries recorded in this period" with a subtle icon when no data exists
-
-The component will connect to the new `get_incident_people_metrics` RPC.
-
----
-
-### Phase 6: Update Hook and Type Definitions
-
-- Update `use-kpi-indicators.ts`: Replace `usePeopleMetrics` to call the new `get_incident_people_metrics` RPC
-- Update `PeopleMetrics` interface to match the new return shape
-- Update `incident.types.ts` with the new enum types for person_type, involvement_type, and injury_classification
-- Update `use-incident-injuries.ts` interfaces to include the 3 new fields
-
----
-
-### Technical Details
-
-**Files to create:**
-- `supabase/migrations/XXXXXX_add_people_metrics_columns.sql` - Schema changes + new RPC
-
-**Files to modify:**
-- `src/components/investigation/injury/InjuryEntryForm.tsx` - Add 3 new fields
-- `src/hooks/use-incident-injuries.ts` - Update interfaces with new columns
-- `src/hooks/use-kpi-indicators.ts` - Update PeopleMetrics interface and hook
-- `src/components/incidents/dashboard/PeopleMetricsCard.tsx` - Full redesign with charts
-- `src/types/incident.types.ts` - Add new type definitions
-- `src/pages/incidents/IncidentReport.tsx` - Conditional validation for injury_classification
-
-**Verification logic:**
-- A "Theft" incident with a "Suspect" (`involvement_type = 'suspect'`) will NOT increase injury counts (filtered out by `involvement_type = 'injured_person'`)
-- A "Safety" incident with an "LTI" (`involvement_type = 'injured_person'`, `injury_classification = 'LTI'`) WILL increase the count
-
+- **Action Closure**: Will correctly show the percentage of corrective actions that have been completed/closed/verified
+- **Avg Investigation**: Will show the actual average days from incident occurrence to investigation approval/closure for the 2 incidents that have reached `investigation_closed` status
+- Both cards will display real numbers instead of 0.00
