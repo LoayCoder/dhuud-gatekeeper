@@ -30,7 +30,6 @@ interface KPIDashboardExportProps {
   peopleData: PeopleMetrics | null;
   dateRange: { start: string; end: string };
   filters?: { branch?: string; site?: string };
-  selectedYear?: number;
 }
 
 export function KPIDashboardExport({
@@ -40,7 +39,6 @@ export function KPIDashboardExport({
   peopleData,
   dateRange,
   filters,
-  selectedYear,
 }: KPIDashboardExportProps) {
   const { t } = useTranslation();
   const { tenantName } = useTheme();
@@ -49,8 +47,8 @@ export function KPIDashboardExport({
 
   // Build filter info string
   const filterInfo = [
-    selectedYear ? `Year: ${selectedYear}` : null,
     filters?.branch ? `Branch: ${filters.branch}` : null,
+    filters?.site ? `Site: ${filters.site}` : null,
   ].filter(Boolean).join(' | ');
   const [isExporting, setIsExporting] = useState(false);
 

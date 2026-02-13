@@ -1,92 +1,43 @@
 
 
-## Add Year Filter + YTD Logic + Branch-Based Filtering
+## Fix: Avg Investigation Days Still Showing 0.00
 
-### Overview
+### Root Cause
 
-Replace the existing KPI date range dropdown (Week/Month/30 Days/90 Days/YTD) with a **Year selector** that automatically applies YTD logic. Remove the Site filter from the KPI section. All dashboard sections will respond to the selected Year and Branch.
+The previous fix correctly expanded the WHERE clause to match incidents with `status = 'investigation_closed'`, but the **duration calculation** still fails because it uses:
 
----
+```
+COALESCE(inv.completed_at, i.investigation_approved_at) - i.occurred_at
+```
 
-### How It Works
+For the 2 closed investigations, **both** `inv.completed_at` and `i.investigation_approved_at` are NULL. The COALESCE returns NULL, making the entire expression NULL, and `AVG(NULL)` returns 0.
 
-**Year Selection Logic:**
-- Default = Current Year (2026)
-- Dynamic year list generated from 2023 to current year
-- If selected year = current year: filter from Jan 1 to today
-- If selected year = past year: filter full year (Jan 1 to Dec 31)
+### The Fix
 
-**Branch Filtering:**
-- Keep the existing Branch dropdown
-- Remove the Site dropdown from the KPI filter bar
-- Stop passing `siteId` to KPI hooks and chart components
-- All components receive `branchId` and the year-derived date range
+Add `i.updated_at` as a third fallback in the COALESCE chain. When an incident transitions to `investigation_closed`, its `updated_at` timestamp reflects when that closure happened.
 
-**Export:**
-- Both KPI Export and Dashboard Export will reflect the selected year and branch
+```text
+Before:  COALESCE(inv.completed_at, i.investigation_approved_at)
+After:   COALESCE(inv.completed_at, i.investigation_approved_at, i.updated_at)
+```
 
----
+This applies in two places within the `get_response_metrics` RPC:
+1. The AVG calculation (line 167)
+2. The within-target FILTER clause (line 190)
 
-### Technical Changes
+### Action Closure: No Fix Needed
 
-**File: `src/pages/incidents/HSSEEventDashboard.tsx`** (Main dashboard page)
+Action Closure showing 0.00% is **correct**. All 6 corrective actions are in `assigned` (5) or `in_progress` (1) status. None have been closed yet.
 
-1. Replace `kpiDateRange` state (`'week' | 'month' | '30days' | '90days' | 'ytd'`) with `selectedYear` state (number, default = current year)
-2. Replace the `kpiStartDate/kpiEndDate` memo to use year-based YTD logic:
-   ```
-   if selectedYear === currentYear:
-     start = Jan 1 of currentYear
-     end = today
-   else:
-     start = Jan 1 of selectedYear
-     end = Dec 31 of selectedYear
-   ```
-3. Replace the KPI date range `<Select>` with a Year `<Select>` (dynamically listing 2023 through current year)
-4. Remove the Site `<Select>` from the KPI filter bar
-5. Remove `siteId` from all KPI hook calls (`useLaggingIndicators`, `useLeadingIndicators`, `useResponseMetrics`, `usePeopleMetrics`, `useDaysSinceLastRecordable`)
-6. Remove `siteId` from chart component props (`IncidentMetricsCard`, `ObservationTrendChart`, `ObservationRatioBreakdown`)
-7. Update `useKPIHistoricalTrend` call to pass the year-derived start/end dates instead of `undefined`
-8. Update `useKPIPeriodComparison` to use a year-appropriate comparison (current year vs previous year)
-9. Update both export components to reflect year + branch (no site)
-10. Pass year-derived dates to `CrossBranchSummaryCard`, `CrossBranchAnalytics`, `CrossBranchHeatmap`, and `ResidualRiskCard` so they also reflect the selected year
-11. Update the general `DateRangeFilter` and its `startDate/endDate` state to also be driven by the selected year (so event distribution, trend analysis, location analytics, and observations sections all use the same year filter)
+### Expected Result After Fix
 
-**File: `src/components/incidents/dashboard/DateRangeFilter.tsx`**
+- Incident 1: Dec 8, 2025 to Jan 9, 2026 = ~31 days
+- Incident 2: Jan 6, 2026 to Feb 9, 2026 = ~34 days
+- **Avg Investigation Days: ~32.5 days** (instead of 0.00)
+- **Within Target (14 days): 0.0%** (both exceed 14 days, which is accurate)
 
-- This filter controls the non-KPI sections (Event Distribution, Trends, Location, Observations). It currently defaults to "Last 30 Days."
-- Remove this component from the header. The year selector in the KPI filter bar will serve as the single source of truth for all sections.
+### Files Changed
 
-**File: `src/components/incidents/dashboard/KPIDashboardExport.tsx`**
-
-- Update to show the selected year in the export metadata instead of the old date range format
-
-**File: `src/components/incidents/dashboard/DashboardExportDropdown.tsx`**
-
-- Update filter summary to show year and branch (drop site reference)
-
-**No backend/RPC changes needed** -- all RPCs already accept `p_start_date` and `p_end_date` parameters, and `p_site_id` is optional (NULL = no filter). The change is purely frontend: we compute the correct date range from the selected year and stop passing site IDs.
-
----
-
-### What Changes for the User
-
-| Before | After |
-|--------|-------|
-| KPI filters: Week / Month / 30d / 90d / YTD | KPI filters: Year dropdown (2023-2026) |
-| Separate date range filter in header for charts | Removed -- everything uses selected year |
-| Site filter in KPI bar | Removed |
-| Charts may show different date range than KPIs | All sections use same year + branch |
-| Export may not match visible data | Export precisely matches selected year + branch |
-
----
-
-### Files Modified
-
-- `src/pages/incidents/HSSEEventDashboard.tsx` -- Main orchestration (year state, remove site, unify date range)
-- `src/components/incidents/dashboard/DashboardExportDropdown.tsx` -- Update filter summary
-- `src/components/incidents/dashboard/KPIDashboardExport.tsx` -- Update date range display
-
-### Files Removed (from usage, not deleted)
-
-- `DateRangeFilter` component will no longer be rendered in the dashboard (component file stays for potential reuse elsewhere)
+- **Database migration only**: One migration to update the `get_response_metrics` RPC with the additional COALESCE fallback
+- No frontend changes needed
 
