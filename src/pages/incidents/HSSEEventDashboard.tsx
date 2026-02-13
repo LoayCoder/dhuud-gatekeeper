@@ -537,7 +537,7 @@ export default function HSSEEventDashboard() {
         {/* Quick Actions & Recent Events Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <QuickActionsCard />
-          <RecentEventsCard />
+          <RecentEventsCard branchId={branchId || undefined} startDate={startDate} endDate={endDate} />
         </div>
 
         {/* ========== SECTION 2: KPI Analysis (Consolidated 4 Tabs) ========== */}

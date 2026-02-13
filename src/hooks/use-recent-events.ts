@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useBranchFilter } from "@/hooks/use-branch-filter";
 
 export interface RecentEvent {
   id: string;
@@ -16,14 +15,21 @@ export interface RecentEvent {
   branch_id?: string | null;
 }
 
-export function useRecentEvents(limit: number = 10) {
+interface RecentEventsFilters {
+  branchId?: string;
+  startDate?: Date;
+  endDate?: Date;
+}
+
+export function useRecentEvents(limit: number = 10, filters?: RecentEventsFilters) {
   const { profile } = useAuth();
-  const { branchIds, isAllBranchesMode, isLoading: branchLoading, queryKey: branchQueryKey } = useBranchFilter();
+  const branchId = filters?.branchId;
+  const startDate = filters?.startDate;
+  const endDate = filters?.endDate;
 
   return useQuery({
-    queryKey: ['recent-hsse-events', profile?.tenant_id, ...branchQueryKey, limit],
+    queryKey: ['recent-hsse-events', profile?.tenant_id, branchId || 'all', startDate?.toISOString(), endDate?.toISOString(), limit],
     queryFn: async () => {
-      // Query incidents directly with branch filter
       let query = supabase
         .from('incidents')
         .select('id, reference_id, description, event_type, subtype, status, severity, created_at, occurred_at, branch_id')
@@ -31,20 +37,23 @@ export function useRecentEvents(limit: number = 10) {
         .order('created_at', { ascending: false })
         .limit(limit);
       
-      // Apply branch filter if not in "all branches" mode
-      if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
-        if (branchIds.length === 1) {
-          query = query.eq('branch_id', branchIds[0]);
-        } else {
-          query = query.in('branch_id', branchIds);
-        }
+      // Apply branch filter
+      if (branchId) {
+        query = query.eq('branch_id', branchId);
+      }
+
+      // Apply date range filter
+      if (startDate) {
+        query = query.gte('created_at', startDate.toISOString());
+      }
+      if (endDate) {
+        query = query.lte('created_at', endDate.toISOString());
       }
 
       const { data, error } = await query;
 
       if (error) throw error;
       
-      // Transform to expected format
       return (data || []).map(incident => ({
         id: incident.id,
         reference_id: incident.reference_id || '',
@@ -58,7 +67,7 @@ export function useRecentEvents(limit: number = 10) {
         branch_id: incident.branch_id,
       })) as RecentEvent[];
     },
-    enabled: !!profile?.tenant_id && !branchLoading,
-    staleTime: 60 * 1000, // 1 minute
+    enabled: !!profile?.tenant_id,
+    staleTime: 60 * 1000,
   });
 }
