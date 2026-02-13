@@ -53,10 +53,16 @@ function EventRow({ event }: { event: RecentEvent }) {
   );
 }
 
-export function RecentEventsCard() {
+interface RecentEventsCardProps {
+  branchId?: string;
+  startDate?: Date;
+  endDate?: Date;
+}
+
+export function RecentEventsCard({ branchId, startDate, endDate }: RecentEventsCardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { data: events, isLoading } = useRecentEvents(3);
+  const { data: events, isLoading } = useRecentEvents(3, { branchId, startDate, endDate });
 
   if (isLoading) {
     return (
