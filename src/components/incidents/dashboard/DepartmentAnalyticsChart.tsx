@@ -99,14 +99,14 @@ export function DepartmentAnalyticsChart({ data }: Props) {
             <BarChart 
               data={chartData} 
               layout="vertical"
-              margin={{ left: isRTL ? 10 : 100, right: isRTL ? 100 : 20, top: 5, bottom: 5 }}
+              margin={{ left: isRTL ? 10 : 120, right: isRTL ? 120 : 10, top: 5, bottom: 5 }}
             >
               <XAxis type="number" hide />
               <YAxis 
                 type="category" 
                 dataKey="name" 
-                width={90}
-                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                width={115}
+                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))', textAnchor: isRTL ? 'start' : 'end' }}
                 axisLine={false}
                 tickLine={false}
                 orientation={isRTL ? 'right' : 'left'}
