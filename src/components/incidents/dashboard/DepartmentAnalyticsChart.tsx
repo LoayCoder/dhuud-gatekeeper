@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from "recharts";
 import { Users, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { DepartmentEventData } from "@/hooks/use-events-by-location";
 
 interface Props {
@@ -55,10 +55,7 @@ export function DepartmentAnalyticsChart({ data }: Props) {
         : 0;
       
       return {
-        name: dept.department_name.length > 15 
-          ? dept.department_name.slice(0, 15) + '...' 
-          : dept.department_name,
-        fullName: dept.department_name,
+        name: dept.department_name,
         incidents: dept.incidents,
         observations: dept.observations || 0,
         total: dept.total_events,
@@ -72,6 +69,8 @@ export function DepartmentAnalyticsChart({ data }: Props) {
     })
     .sort((a, b) => b.incidents - a.incidents)
     .slice(0, 10);
+
+  const maxIncidents = Math.max(...chartData.map(d => d.incidents), 1);
 
   // Calculate department with highest risk
   const highRiskDepts = chartData.filter(d => d.overdueRate >= 25);
@@ -92,72 +91,108 @@ export function DepartmentAnalyticsChart({ data }: Props) {
           )}
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Horizontal bar chart for incidents */}
-        <div className="animate-chart-slide-up">
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart 
-              data={chartData} 
-              layout="vertical"
-              margin={{ left: isRTL ? 10 : 120, right: isRTL ? 120 : 10, top: 5, bottom: 5 }}
-            >
-              <XAxis type="number" hide />
-              <YAxis 
-                type="category" 
-                dataKey="name" 
-                width={115}
-                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))', textAnchor: isRTL ? 'start' : 'end' }}
-                axisLine={false}
-                tickLine={false}
-                orientation={isRTL ? 'right' : 'left'}
-              />
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--popover))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                }}
-                formatter={(value: number) => [value, t('hsseDashboard.incidents')]}
-                labelFormatter={(label, payload) => {
-                  if (payload && payload[0]) {
-                    return payload[0].payload.fullName;
-                  }
-                  return label;
-                }}
-              />
-              <Bar 
-                dataKey="incidents" 
-                radius={[0, 4, 4, 0]}
-                barSize={18}
-                isAnimationActive={true}
-                animationDuration={600}
-                animationBegin={150}
-                animationEasing="ease-out"
-              >
-                {chartData.map((entry, index) => (
-                  <Cell key={index} fill={entry.riskColor} className="hover:opacity-80 transition-opacity duration-200" />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+      <CardContent className="space-y-5">
+        {/* Custom horizontal bar rows */}
+        <TooltipProvider>
+          <div className="space-y-3">
+            {chartData.map((dept) => {
+              const barWidth = Math.max((dept.incidents / maxIncidents) * 100, 2);
+              return (
+                <Tooltip key={dept.name}>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-3 group cursor-default">
+                      {/* Department name - fixed width, no truncation issues */}
+                      <div 
+                        className="shrink-0 text-xs text-muted-foreground text-end min-w-0"
+                        style={{ width: '140px' }}
+                        dir={isRTL ? 'rtl' : 'ltr'}
+                      >
+                        <span className="block truncate" title={dept.name}>
+                          {dept.name}
+                        </span>
+                      </div>
+
+                      {/* Bar + count */}
+                      <div className="flex-1 flex items-center gap-2 min-w-0">
+                        <div className="flex-1 h-5 bg-muted/40 rounded overflow-hidden">
+                          <div
+                            className="h-full rounded transition-all duration-500 ease-out group-hover:opacity-80"
+                            style={{
+                              width: `${barWidth}%`,
+                              backgroundColor: dept.riskColor,
+                              minWidth: dept.incidents > 0 ? '4px' : '0px',
+                            }}
+                          />
+                        </div>
+                        <span 
+                          className="text-xs font-semibold tabular-nums shrink-0"
+                          style={{ color: dept.riskColor, minWidth: '24px' }}
+                        >
+                          {dept.incidents}
+                        </span>
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    <div className="space-y-1">
+                      <p className="font-semibold">{dept.name}</p>
+                      <p>{t('hsseDashboard.incidents')}: {dept.incidents}</p>
+                      <p>{t('hsseDashboard.observations', 'Observations')}: {dept.observations}</p>
+                      <p>{t('hsseDashboard.openActions', 'Open Actions')}: {dept.actions_open}</p>
+                      <p>{t('hsseDashboard.overdueActions', 'Overdue')}: {dept.actions_overdue}</p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </div>
+        </TooltipProvider>
 
         {/* Department Risk Summary */}
         <div className="border-t pt-4">
-          <p className="text-xs text-muted-foreground mb-2 font-medium">
+          <p className="text-xs text-muted-foreground mb-3 font-medium">
             {t('hsseDashboard.actionOverdueRate', 'Action Overdue Rate by Department')}
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <div className="space-y-2">
             {chartData.slice(0, 6).map((dept) => (
               <div 
-                key={dept.fullName} 
-                className="p-2 rounded-lg bg-muted/50 flex items-center justify-between"
+                key={dept.name} 
+                className="flex items-center gap-3 p-2 rounded-lg bg-muted/30"
               >
-                <span className="text-xs truncate flex-1">{dept.name}</span>
-                <div className="flex items-center gap-1">
+                {/* Department name */}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span 
+                        className="text-xs truncate shrink-0"
+                        style={{ width: '140px' }}
+                        title={dept.name}
+                      >
+                        {dept.name}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-xs">
+                      {dept.name}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                {/* Overdue rate bar */}
+                <div className="flex-1 h-2 bg-muted/50 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.max(dept.overdueRate, dept.overdueRate > 0 ? 3 : 0)}%`,
+                      backgroundColor: dept.riskColor,
+                    }}
+                  />
+                </div>
+
+                {/* Rate + trend */}
+                <div className="flex items-center gap-1.5 shrink-0">
                   <Badge 
                     variant="outline" 
-                    className="text-[10px] px-1.5"
+                    className="text-[10px] px-1.5 tabular-nums"
                     style={{ 
                       borderColor: dept.riskColor,
                       color: dept.riskColor,
@@ -169,7 +204,7 @@ export function DepartmentAnalyticsChart({ data }: Props) {
                     dept.trend > 0 ? (
                       <TrendingUp className="h-3 w-3 text-destructive" />
                     ) : (
-                      <TrendingDown className="h-3 w-3 text-green-600" />
+                      <TrendingDown className="h-3 w-3" style={{ color: 'hsl(var(--chart-3))' }} />
                     )
                   )}
                 </div>
