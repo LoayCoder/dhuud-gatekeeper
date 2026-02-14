@@ -25,7 +25,7 @@ export function GatePassApprovalQueue({ passes }: GatePassApprovalQueueProps) {
   const [approvalNotes, setApprovalNotes] = useState<Record<string, string>>({});
   const [rejectingPass, setRejectingPass] = useState<MaterialGatePass | null>(null);
   const [viewingPass, setViewingPass] = useState<MaterialGatePass | null>(null);
-  
+
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showBulkApproveDialog, setShowBulkApproveDialog] = useState(false);
@@ -130,8 +130,8 @@ export function GatePassApprovalQueue({ passes }: GatePassApprovalQueueProps) {
           const stage = getApprovalStage(pass.status);
           const isSelected = selectedIds.has(pass.id);
           return (
-            <Card 
-              key={pass.id} 
+            <Card
+              key={pass.id}
               className={cn(
                 "overflow-hidden transition-all",
                 isSelected && "ring-2 ring-primary"
@@ -161,9 +161,11 @@ export function GatePassApprovalQueue({ passes }: GatePassApprovalQueueProps) {
               <CardContent className="pt-4 space-y-3">
                 <div>
                   <p className="text-sm text-muted-foreground">
-                    {pass.is_internal_request 
+                    {pass.is_internal_request
                       ? t("contractors.gatePasses.internalRequest", "Internal Request")
-                      : pass.project?.project_name}
+                      : pass.is_public_request
+                        ? t("contractors.gatePasses.publicRequest", "Public Request")
+                        : pass.project?.project_name}
                   </p>
                   <p className="text-sm font-medium mt-1">{pass.material_description}</p>
                 </div>
@@ -173,7 +175,11 @@ export function GatePassApprovalQueue({ passes }: GatePassApprovalQueueProps) {
                   <div className="flex items-center gap-1 text-muted-foreground">
                     <User className="h-3.5 w-3.5" />
                     <span>{t("contractors.gatePasses.requestedBy", "Requested by")}:</span>
-                    <span className="font-medium text-foreground">{pass.requester?.full_name || "-"}</span>
+                    <span className="font-medium text-foreground">
+                      {pass.is_public_request
+                        ? (pass.public_requester_name || "Public User")
+                        : (pass.requester?.full_name || "-")}
+                    </span>
                   </div>
                   {pass.is_internal_request && pass.approval_from && (
                     <div className="flex items-center gap-1 text-muted-foreground">

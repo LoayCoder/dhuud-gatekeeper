@@ -64,7 +64,8 @@ export function GatePassDetailDialog({
     open ? pass?.id || null : null
   );
   const { data: photos, isLoading: isLoadingPhotos } = useGatePassPhotos(
-    open ? pass?.id || null : null
+    open ? pass?.id || null : null,
+    pass?.is_public_request || false
   );
 
   if (!pass) return null;
@@ -258,7 +259,12 @@ function DetailsTab({
           <Package className="h-4 w-4" />
           {t("contractors.gatePassDetail.materialDescription", "Material Description")}
         </h4>
-        <p className="text-sm">{data.material_description}</p>
+        <p className="text-sm font-medium mt-1">
+          {data.material_description ||
+            (items && items.length > 0
+              ? `${items[0].item_name}${items.length > 1 ? ` + ${items.length - 1} more` : ''}`
+              : t("contractors.gatePasses.noDescription", "No material description provided"))}
+        </p>
         {data.quantity && (
           <p className="text-sm text-muted-foreground">
             {t("common.quantity", "Quantity")}: {data.quantity}
@@ -274,10 +280,12 @@ function DetailsTab({
             {t("contractors.gatePasses.project", "Project")}
           </h4>
           <p className="text-sm">
-            {data.project?.project_name || 
-              (data.is_internal_request 
+            {data.project?.project_name ||
+              (data.is_internal_request
                 ? t("contractors.gatePasses.internalRequest", "Internal Request")
-                : "-")}
+                : data.is_public_request
+                  ? t("contractors.gatePasses.publicRequest", "Public Request")
+                  : "-")}
           </p>
           {data.project?.company?.company_name && (
             <p className="text-xs text-muted-foreground">{data.project.company.company_name}</p>
@@ -342,8 +350,30 @@ function DetailsTab({
                 .toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <span className="text-sm">{(passDetails?.requester as GatePassApproverProfile)?.full_name || data.requester?.full_name || "-"}</span>
+          <span className="text-sm">
+            {pass.is_public_request
+              ? (pass.public_requester_name || "Public User")
+              : ((passDetails?.requester as GatePassApproverProfile)?.full_name || data.requester?.full_name || "-")}
+          </span>
         </div>
+
+        {/* Additional Public Requester Info */}
+        {pass.is_public_request && (
+          <div className="mt-2 pt-2 border-t grid grid-cols-2 gap-2 text-xs">
+            {pass.public_requester_phone && (
+              <div>
+                <span className="text-muted-foreground block">{t("common.phone", "Phone")}</span>
+                <span className="font-medium" dir="ltr">{pass.public_requester_phone}</span>
+              </div>
+            )}
+            {pass.public_requester_company && (
+              <div>
+                <span className="text-muted-foreground block">{t("common.company", "Company")}</span>
+                <span className="font-medium">{pass.public_requester_company}</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -433,49 +463,84 @@ function ItemsPhotosTab({
             })}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground py-4 text-center">
-            {t("contractors.gatePassDetail.noItems", "No items listed")}
-          </p>
+          items && items.length === 0 && (!photos || photos.length === 0) ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">
+              {t("contractors.gatePassDetail.noItems", "No items or photos listed")}
+            </p>
+          ) : null
         )}
       </div>
 
-      {/* General / Legacy Photos Section */}
-      {(isLoadingPhotos || generalPhotos.length > 0) && (
+      {/* Public Gate Pass Photos - Direct from storage if no items found OR just generally for public requests */}
+      {/* Show if we have photos but no items, OR if we have photos that aren't linked to items displayed above */}
+      {photos && photos.length > 0 && (!items || items.length === 0) && (
         <div className="space-y-3 pt-2 border-t">
           <h4 className="text-sm font-medium flex items-center gap-2">
             <ImageIcon className="h-4 w-4" />
-            {t("contractors.gatePasses.generalDocuments", "General Documents")}
+            {t("contractors.gatePasses.photos", "Submitted Photos")}
           </h4>
-          {isLoadingPhotos ? (
-            <div className="grid grid-cols-3 gap-2">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="aspect-square rounded-lg" />
-              ))}
-            </div>
-          ) : generalPhotos.length > 0 ? (
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-              {generalPhotos.map((photo) => (
-                <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden border">
-                  {photo.signedUrl ? (
-                    <a href={photo.signedUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
-                      <img
-                        src={photo.signedUrl}
-                        alt={photo.file_name}
-                        className="w-full h-full object-cover hover:opacity-90 transition-opacity"
-                      />
-                    </a>
-                  ) : (
-                    <div className="w-full h-full bg-muted flex items-center justify-center">
-                      <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : null}
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+            {photos.map((photo) => (
+              <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden border">
+                {photo.signedUrl ? (
+                  <a href={photo.signedUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
+                    <img
+                      src={photo.signedUrl}
+                      alt={photo.file_name}
+                      className="w-full h-full object-cover hover:opacity-90 transition-opacity"
+                    />
+                  </a>
+                ) : (
+                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                    <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
-    </div>
+      {/* General / Legacy Photos Section (Public Gate Pass photos are handled above or here if consistent) */}
+
+      {/* General / Legacy Photos Section */}
+      {
+        (isLoadingPhotos || generalPhotos.length > 0) && (
+          <div className="space-y-3 pt-2 border-t">
+            <h4 className="text-sm font-medium flex items-center gap-2">
+              <ImageIcon className="h-4 w-4" />
+              {t("contractors.gatePasses.generalDocuments", "General Documents")}
+            </h4>
+            {isLoadingPhotos ? (
+              <div className="grid grid-cols-3 gap-2">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="aspect-square rounded-lg" />
+                ))}
+              </div>
+            ) : generalPhotos.length > 0 ? (
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                {generalPhotos.map((photo) => (
+                  <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden border">
+                    {photo.signedUrl ? (
+                      <a href={photo.signedUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
+                        <img
+                          src={photo.signedUrl}
+                          alt={photo.file_name}
+                          className="w-full h-full object-cover hover:opacity-90 transition-opacity"
+                        />
+                      </a>
+                    ) : (
+                      <div className="w-full h-full bg-muted flex items-center justify-center">
+                        <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        )
+      }
+    </div >
   );
 }
 
@@ -548,7 +613,7 @@ function TimelineTab({
   if (passDetails.pm_approved_at && passDetails.pm_approver) {
     events.push({
       type: "dept_approved",
-      label: passDetails.is_internal_request 
+      label: passDetails.is_internal_request
         ? t("contractors.gatePassDetail.timeline.deptApproved", "Dept Rep Approved")
         : t("contractors.gatePassDetail.timeline.deptAck", "Dept Rep Acknowledged"),
       timestamp: passDetails.pm_approved_at,

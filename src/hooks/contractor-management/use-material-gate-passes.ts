@@ -47,6 +47,11 @@ export interface MaterialGatePass {
   company?: { company_name: string } | null;
   approval_from?: { full_name: string } | null;
   requester?: { full_name: string } | null;
+  is_public_request?: boolean;
+  public_requester_name?: string | null;
+  public_requester_phone?: string | null;
+  public_requester_email?: string | null;
+  public_requester_company?: string | null;
 }
 
 export interface GatePassFilters {
@@ -213,6 +218,8 @@ export function usePendingGatePassApprovals() {
           quantity, vehicle_plate, driver_name, driver_mobile, pass_date,
           time_window_start, time_window_end, status, requested_by, created_at,
           is_internal_request, approval_from_id,
+          is_public_request, public_requester_name, public_requester_phone,
+          public_requester_email, public_requester_company,
           project:contractor_projects(project_name, company:contractor_companies(company_name)),
           company:contractor_companies(company_name),
           requester:profiles!requested_by(full_name),
@@ -229,12 +236,12 @@ export function usePendingGatePassApprovals() {
       // Step 4: Apply additional filtering for specific statuses
       const filteredPasses = (passes || []).filter((pass) => {
         const p = pass as unknown as MaterialGatePass;
-        
+
         // For internal pending_dept_approval: only show if user is the designated approver
         if (p.is_internal_request && p.status === "pending_dept_approval") {
           return p.approval_from_id === user.id;
         }
-        
+
         // For pending_club_mgmt_ack: server validates on approval, show all for now
         // For pending_security_approval: show all to security roles
         // For pending_contractor_approval: show all to contractor consultants
@@ -305,7 +312,7 @@ export function useCreateGatePass() {
       });
 
       if (permError) throw permError;
-      
+
       const permission = permissionCheck as { allowed: boolean; reason?: string };
       if (!permission.allowed) {
         throw new Error(permission.reason || "You do not have permission to create this gate pass");
@@ -317,7 +324,7 @@ export function useCreateGatePass() {
         .from("material_gate_passes")
         .select("*", { count: "exact", head: true })
         .eq("tenant_id", tenantId);
-      
+
       const sequence = (count || 0) + 1;
       const reference_number = `GP-${year}-${String(sequence).padStart(5, "0")}`;
 
@@ -386,14 +393,14 @@ export function useCreateGatePass() {
           for (let i = 0; i < data.items.length; i++) {
             const item = data.items[i];
             const insertedItem = insertedItems[i];
-            
+
             if (item.photos && item.photos.length > 0 && insertedItem) {
               const photoRecords = [];
 
               for (const photo of item.photos) {
                 // Compress image before upload (maxWidth: 1280, quality: 0.75)
                 const compressedPhoto = await compressImage(photo, 1280, 0.75);
-                
+
                 const fileName = `${tenantId}/${result.id}/${insertedItem.id}/${crypto.randomUUID()}-${photo.name}`;
                 const { error: uploadError } = await supabase.storage
                   .from("gate-pass-photos")
@@ -469,7 +476,7 @@ export function useCreateGatePass() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["material-gate-passes"] });
       toast.success("Gate pass created successfully");
-      
+
       // Notify department representatives about the new gate pass
       if (data?.project_id && tenantId) {
         supabase.functions.invoke('notify-dept-rep-gate-pass', {
@@ -521,17 +528,17 @@ export function useApproveGatePass() {
       });
 
       if (error) throw error;
-      
+
       // RPC returns the new status as a string
       const newStatus = data as string;
-      
+
       // Trigger notification for public gate passes
       if (gatePass?.is_public_request && (newStatus === "approved" || newStatus === "rejected" || newStatus === "pending_security_approval")) {
         const tenantSlug = (gatePass.tenants as { slug: string } | null)?.slug || "";
-        const eventType = newStatus === "approved" ? "approved" : 
-                         newStatus === "rejected" ? "rejected" : 
-                         "acknowledged";
-        
+        const eventType = newStatus === "approved" ? "approved" :
+          newStatus === "rejected" ? "rejected" :
+            "acknowledged";
+
         try {
           console.log(`[Gate Pass] Triggering ${eventType} notification for public gate pass:`, gatePass.reference_number);
           await supabase.functions.invoke("notify-public-gate-pass", {
@@ -558,7 +565,7 @@ export function useApproveGatePass() {
           // Don't fail the approval - notification is best-effort
         }
       }
-      
+
       return { passId, newStatus };
     },
     onSuccess: (result) => {
@@ -567,7 +574,7 @@ export function useApproveGatePass() {
       queryClient.invalidateQueries({ queryKey: ["today-approved-passes"] });
       queryClient.invalidateQueries({ queryKey: ["my-gate-passes"] });
       queryClient.invalidateQueries({ queryKey: ["gate-pass-details"] });
-      
+
       if (result.newStatus === "rejected") {
         toast.success("Gate pass rejected");
       } else if (result.newStatus === "approved") {
@@ -821,7 +828,7 @@ export function useBulkRejectGatePasses() {
   return useMutation({
     mutationFn: async ({ passIds, reason }: BulkRejectParams): Promise<BulkResult> => {
       if (!user?.id) throw new Error("Not authenticated");
-      
+
       const results: BulkResult = { success: 0, failed: 0, errors: [] };
 
       for (const passId of passIds) {
@@ -853,7 +860,7 @@ export function useBulkRejectGatePasses() {
       queryClient.invalidateQueries({ queryKey: ["pending-gate-pass-approvals"] });
       queryClient.invalidateQueries({ queryKey: ["my-gate-passes"] });
       queryClient.invalidateQueries({ queryKey: ["gate-pass-details"] });
-      
+
       if (results.success > 0 && results.failed === 0) {
         toast.success(`${results.success} passes rejected`);
       } else if (results.success > 0 && results.failed > 0) {

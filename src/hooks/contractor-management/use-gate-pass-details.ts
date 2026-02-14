@@ -99,6 +99,11 @@ export interface GatePassDetailData {
   rejector?: GatePassApproverProfile | null;
   guard?: GatePassApproverProfile | null;
   approval_from?: GatePassApproverProfile | null;
+  is_public_request?: boolean;
+  public_requester_name?: string | null;
+  public_requester_phone?: string | null;
+  public_requester_email?: string | null;
+  public_requester_company?: string | null;
 }
 
 export function useGatePassDetails(passId: string | null) {
@@ -126,6 +131,8 @@ export function useGatePassDetails(passId: string | null) {
           rejected_by, rejected_at, rejection_reason,
           guard_verified_by, guard_verified_at, entry_time, exit_time, created_at,
           is_internal_request, approval_from_id, qr_code_token, qr_generated_at,
+          is_public_request, public_requester_name, public_requester_phone,
+          public_requester_email, public_requester_company,
           project:contractor_projects(project_name, company:contractor_companies(company_name)),
           company:contractor_companies(company_name)
         `)
@@ -164,9 +171,19 @@ export function useGatePassDetails(passId: string | null) {
 
       const profileMap = new Map((profiles || []).map(p => [p.id, p]));
 
+      const requesterProfile = passDataExt.is_public_request
+        ? {
+          id: 'public',
+          full_name: passDataExt.public_requester_name || 'Public User',
+          avatar_url: null,
+          email: passDataExt.public_requester_email,
+          phone: passDataExt.public_requester_phone
+        } as any
+        : (profileMap.get(passDataExt.requested_by) || null);
+
       return {
         ...passDataExt,
-        requester: profileMap.get(passDataExt.requested_by) || null,
+        requester: requesterProfile,
         contractor_approver: passDataExt.contractor_approved_by ? profileMap.get(passDataExt.contractor_approved_by) || null : null,
         pm_approver: passDataExt.pm_approved_by ? profileMap.get(passDataExt.pm_approved_by) || null : null,
         club_mgmt_acker: passDataExt.club_mgmt_ack_by ? profileMap.get(passDataExt.club_mgmt_ack_by) || null : null,
@@ -205,12 +222,12 @@ export function useGatePassItems(passId: string | null) {
   });
 }
 
-export function useGatePassPhotos(passId: string | null) {
+export function useGatePassPhotos(passId: string | null, isPublic: boolean = false) {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
 
   return useQuery({
-    queryKey: ["gate-pass-photos", passId],
+    queryKey: ["gate-pass-photos", passId, isPublic],
     queryFn: async () => {
       if (!passId || !tenantId) return [];
 
@@ -243,13 +260,16 @@ export function useGatePassPhotos(passId: string | null) {
         ...(generalPhotos || []).map(p => ({ ...p, item_id: null }))
       ];
 
+      // Determine bucket based on request type
+      const bucketName = isPublic ? "public-gate-pass-photos" : "gate-pass-photos";
+
       // Generate signed URLs for each photo
       const photosWithUrls: GatePassPhoto[] = [];
       // Process in parallel for better performance
       await Promise.all(
         allPhotos.map(async (photo) => {
           const { data: signedData } = await supabase.storage
-            .from("gate-pass-photos")
+            .from(bucketName)
             .createSignedUrl(photo.storage_path, 3600); // 1 hour expiry
 
           if (signedData?.signedUrl) {
