@@ -314,10 +314,10 @@ export function useIncidents({ page = 1, pageSize = 20, filters }: UseIncidentsO
           query = query.or(`title.ilike.%${filters.search}%,reference_id.ilike.%${filters.search}%`);
         }
         if (filters.status && filters.status !== 'all') {
-          query = query.eq('status', filters.status);
+          query = query.eq('status', filters.status as any);
         }
         if (filters.severity && filters.severity !== 'all') {
-          query = query.eq('severity_v2', filters.severity);
+          query = query.eq('severity_v2', filters.severity as any);
         }
         if (filters.eventType && filters.eventType !== 'all') {
           query = query.eq('event_type', filters.eventType);

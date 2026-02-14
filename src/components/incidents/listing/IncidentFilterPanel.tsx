@@ -354,7 +354,7 @@ export function IncidentFilterPanel({
                 <label className="text-sm font-medium">{t('common.dateRange', 'Date Range')}</label>
                 <DatePickerWithRange
                   date={filters.dateRange}
-                  setDate={(range) => onFiltersChange({ ...filters, dateRange: range })}
+                  onDateChange={(range) => onFiltersChange({ ...filters, dateRange: range })}
                   className="w-full"
                 />
               </div>

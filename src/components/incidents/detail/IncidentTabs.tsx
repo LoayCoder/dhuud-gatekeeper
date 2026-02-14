@@ -7,10 +7,10 @@ import { IncidentEvidenceTab } from "./IncidentEvidenceTab";
 import { AuditLogPanel } from "@/components/investigation/AuditLogPanel";
 import { LayoutDashboard, Clock, CheckSquare, FileText, History } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Incident } from "@/types/incidents";
+import { Incident } from "@/types/incident.types";
 
 interface IncidentTabsProps {
-    incident: Incident;
+    incident: any;
     isPrinting?: boolean;
 }
 
@@ -63,11 +63,7 @@ export function IncidentTabs({ incident, isPrinting }: IncidentTabsProps) {
                 </TabsContent>
 
                 <TabsContent value="audit" className="m-0 focus-visible:ring-0">
-                    <AuditLogPanel
-                        referenceId={incident.id}
-                        tableName="incidents"
-                        excludeColumns={['updated_at', 'search_vector']}
-                    />
+                    <AuditLogPanel incidentId={incident.id} />
                 </TabsContent>
             </div>
         </Tabs>

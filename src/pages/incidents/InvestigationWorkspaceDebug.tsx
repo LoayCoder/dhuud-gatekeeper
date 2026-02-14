@@ -295,12 +295,12 @@ export default function InvestigationWorkspaceDebug() {
                     ) : (
                         <div className="flex flex-col gap-4">
                             <p className="text-sm text-muted-foreground">
-                                Incidents Loaded: {incidents?.length || 0}
+                                Incidents Loaded: {incidents?.data?.length || 0}
                             </p>
 
                             {/* Manually render list to see if Select crashes */}
                             <div className="space-y-2">
-                                {incidents?.slice(0, 3).map(inc => (
+                                {incidents?.data?.slice(0, 3).map(inc => (
                                     <div key={inc.id} className="p-2 border rounded flex justify-between">
                                         <span>{inc.title}</span>
                                         <IncidentStatusBadge status={inc.status} />

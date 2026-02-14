@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Incident } from '@/types/incident.types';
 
 interface IncidentEvidenceTabProps {
-    incident: Incident;
+    incident: any;
 }
 
 export function IncidentEvidenceTab({ incident }: IncidentEvidenceTabProps) {
@@ -29,13 +29,13 @@ export function IncidentEvidenceTab({ incident }: IncidentEvidenceTabProps) {
                     mediaAttachments={mediaAttachments}
                     incidentMetadata={{
                         referenceId: incident.reference_id,
-                        occurredAt: incident.occurred_at,
-                        location: incident.location || undefined,
-                        branchName: incident.branch?.name,
-                        siteName: incident.site?.name,
-                        contractorName: incident.related_contractor_company?.company_name,
-                        latitude: incident.latitude,
-                        longitude: incident.longitude,
+                        occurredAt: (incident as any).occurred_at,
+                        location: (incident as any).location || undefined,
+                        branchName: (incident as any).branch?.name,
+                        siteName: (incident as any).site?.name,
+                        contractorName: (incident as any).related_contractor_company?.company_name,
+                        latitude: (incident as any).latitude,
+                        longitude: (incident as any).longitude,
                     }}
                     fallbackTimestamp={incident.created_at}
                 />

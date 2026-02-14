@@ -318,7 +318,7 @@ export default function InvestigationWorkspace() {
   ].includes(status);
 
   // Filter incidents that need investigation (not closed status)
-  const investigableIncidents = incidents?.filter(
+  const investigableIncidents = incidents?.data?.filter(
     (inc) => inc.status !== 'closed'
   );
 

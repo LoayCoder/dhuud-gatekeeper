@@ -96,7 +96,7 @@ export function useUserOverviewStats() {
             // We need separate queries for different "My Incident" categories to be precise
             const fetchMyIncidents = async () => {
                 // Assigned Investigations (I am investigator)
-                const { data: assignedData } = await supabase
+                const { data: assignedData } = await (supabase as any)
                     .from('incidents')
                     .select('id, reference_id, title, status, severity, created_at, stage')
                     .eq('tenant_id', tenantId)
@@ -105,7 +105,7 @@ export function useUserOverviewStats() {
                     .neq('status', 'cancelled'); // Assuming cancelled exists or just closed
 
                 // Pending Reports (I reported, and it's draft or pending submission/info)
-                const { data: reportedData } = await supabase
+                const { data: reportedData } = await (supabase as any)
                     .from('incidents')
                     .select('id, reference_id, title, status, severity, created_at, stage')
                     .eq('tenant_id', tenantId)
@@ -151,7 +151,7 @@ export function useUserOverviewStats() {
             const fetchMyObservations = async () => {
                 // "Assigned" might mean I observed it, or I am assigned to fix it (if observations have assignees)
                 // Usually observations are "Reported By Me".
-                const { data: reported } = await supabase
+                const { data: reported } = await (supabase as any)
                     .from('observations') // Assuming table name
                     .select('id, reference_number, description, status, created_at, observation_type')
                     .eq('tenant_id', tenantId)
@@ -196,15 +196,15 @@ export function useUserOverviewStats() {
                     .eq('user_id', user.id);
 
                 const userRoles = (rolesData || []).map(r => r.role);
-                const isHsseManager = userRoles.includes('hsse_manager');
+                const isHsseManager = userRoles.includes('hsse_manager' as any);
                 const isHsseExpert = userRoles.includes('hsse_expert');
                 const isAdmin = userRoles.includes('admin');
-                const isManager = userRoles.includes('manager');
+                const isManager = userRoles.includes('manager' as any);
 
                 // B. Incidents Pending Approval
                 // 1. HSSE Manager Escalation & Pending Final Closure (HSSE Manager/Admin)
                 if (isHsseManager || isAdmin) {
-                    const { data: hsseIncidents } = await supabase
+                    const { data: hsseIncidents } = await (supabase as any)
                         .from('incidents')
                         .select('id, reference_id, title, status, created_at, reporter:profiles(full_name)')
                         .eq('tenant_id', tenantId)
@@ -228,7 +228,7 @@ export function useUserOverviewStats() {
                 // Ideally check if user matches the reporter's department manager. 
                 // Simplified: If user is "manager", show all "pending_manager_approval" (Refine if needed)
                 if (isManager || isAdmin) { // This is broad, but better than nothing for now
-                    const { data: managerIncidents } = await supabase
+                    const { data: managerIncidents } = await (supabase as any)
                         .from('incidents')
                         .select('id, reference_id, title, status, created_at, reporter:profiles(full_name)')
                         .eq('tenant_id', tenantId)
