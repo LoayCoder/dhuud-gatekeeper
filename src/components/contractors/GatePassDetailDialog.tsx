@@ -175,6 +175,7 @@ export function GatePassDetailDialog({
               <ItemsPhotosTab
                 items={items || []}
                 photos={photos || []}
+                materialDescription={passDetails?.material_description || pass.material_description}
                 isLoadingItems={isLoadingItems}
                 isLoadingPhotos={isLoadingPhotos}
                 t={t}
@@ -387,12 +388,14 @@ function DetailsTab({
 function ItemsPhotosTab({
   items,
   photos,
+  materialDescription,
   isLoadingItems,
   isLoadingPhotos,
   t,
 }: {
   items: ReturnType<typeof useGatePassItems>["data"];
   photos: ReturnType<typeof useGatePassPhotos>["data"];
+  materialDescription?: string | null;
   isLoadingItems: boolean;
   isLoadingPhotos: boolean;
   t: ReturnType<typeof useTranslation>["t"];
@@ -466,13 +469,20 @@ function ItemsPhotosTab({
               );
             })}
           </div>
-        ) : (
-          items && items.length === 0 && (!photos || photos.length === 0) ? (
+        ) : items && items.length === 0 ? (
+          materialDescription ? (
+            <div className="p-3 rounded-lg border bg-muted/30">
+              <p className="text-xs text-muted-foreground mb-1">
+                {t("contractors.gatePassDetail.materialDescription", "Material Description")}
+              </p>
+              <p className="font-medium text-sm">{materialDescription}</p>
+            </div>
+          ) : (!photos || photos.length === 0) ? (
             <p className="text-sm text-muted-foreground py-4 text-center">
               {t("contractors.gatePassDetail.noItems", "No items or photos listed")}
             </p>
           ) : null
-        )}
+        ) : null}
       </div>
 
       {/* Public Gate Pass Photos - Direct from storage if no items found OR just generally for public requests */}
@@ -700,6 +710,27 @@ function TimelineTab({
       actor: passDetails.guard as GatePassApproverProfile,
       icon: LogOut,
       color: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
+    });
+  }
+
+  // Add current pending step indicator
+  const pendingStepLabels: Record<string, string> = {
+    pending_security_approval: t("contractors.gatePassDetail.timeline.pendingSecurity", "Pending Security Supervisor Approval"),
+    pending_club_mgmt_ack: t("contractors.gatePassDetail.timeline.pendingClubMgmt", "Pending Golf Club Management"),
+    pending_contractor_approval: t("contractors.gatePassDetail.timeline.pendingContractor", "Pending Contractor Approval"),
+    pending_dept_ack: t("contractors.gatePassDetail.timeline.pendingDeptAck", "Pending Dept Acknowledgment"),
+    pending_dept_approval: t("contractors.gatePassDetail.timeline.pendingDeptApproval", "Pending Dept Approval"),
+    pending_pm_approval: t("contractors.gatePassDetail.timeline.pendingPm", "Pending PM Approval"),
+    pending_safety_approval: t("contractors.gatePassDetail.timeline.pendingSafety", "Pending Safety Approval"),
+  };
+  const pendingLabel = pendingStepLabels[passDetails.status];
+  if (pendingLabel) {
+    events.push({
+      type: "pending",
+      label: pendingLabel,
+      timestamp: new Date().toISOString(),
+      icon: Clock,
+      color: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
     });
   }
 
