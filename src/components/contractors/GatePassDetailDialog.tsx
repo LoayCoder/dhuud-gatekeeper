@@ -137,7 +137,7 @@ export function GatePassDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <div className="flex items-center justify-between gap-4">
             <DialogTitle className="flex items-center gap-2">
@@ -163,7 +163,7 @@ export function GatePassDetailDialog({
             </TabsTrigger>
           </TabsList>
 
-          <ScrollArea className="flex-1 mt-4">
+          <ScrollArea className="flex-1 min-h-0 mt-4">
             <TabsContent value="details" className="mt-0 space-y-4">
               <DetailsTab
                 pass={pass}
