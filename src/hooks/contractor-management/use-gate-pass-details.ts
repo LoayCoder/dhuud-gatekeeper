@@ -126,6 +126,7 @@ export function useGatePassDetails(passId: string | null) {
           time_window_start, time_window_end, status, requested_by,
           contractor_approved_by, contractor_approved_at, contractor_approval_notes,
           pm_approved_by, pm_approved_at, pm_notes,
+          club_mgmt_ack_by, club_mgmt_ack_at, club_mgmt_ack_notes,
           security_approved_by, security_approved_at, security_approval_notes,
           safety_approved_by, safety_approved_at, safety_notes,
           rejected_by, rejected_at, rejection_reason,
