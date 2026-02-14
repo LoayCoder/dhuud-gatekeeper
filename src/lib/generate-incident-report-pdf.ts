@@ -226,15 +226,15 @@ async function fetchEvidenceItems(incidentId: string, includeUploader: boolean =
     .eq('incident_id', incidentId)
     .is('deleted_at', null)
     .order('created_at', { ascending: false });
-  
+
   if (!data) return [];
-  
+
   // Fetch uploader and reviewer names if needed
   const uploaderIds = [...new Set([
     ...data.map(e => e.uploaded_by).filter(Boolean),
     ...data.map(e => e.reviewed_by).filter(Boolean)
   ])] as string[];
-  
+
   let profileMap = new Map<string, string>();
   if (includeUploader && uploaderIds.length > 0) {
     const { data: profiles } = await supabase
@@ -243,7 +243,7 @@ async function fetchEvidenceItems(incidentId: string, includeUploader: boolean =
       .in('id', uploaderIds);
     profiles?.forEach(p => profileMap.set(p.id, p.full_name));
   }
-  
+
   return data.map(e => ({
     id: e.id,
     evidence_type: e.evidence_type,
@@ -260,16 +260,16 @@ async function fetchEvidenceItems(incidentId: string, includeUploader: boolean =
 
 async function fetchActionEvidence(actionIds: string[]): Promise<Map<string, ActionEvidenceItem[]>> {
   if (actionIds.length === 0) return new Map();
-  
+
   const { data } = await supabase
     .from('action_evidence')
     .select('id, action_id, file_name, description, created_at, uploaded_by')
     .in('action_id', actionIds)
     .is('deleted_at', null)
     .order('created_at', { ascending: true });
-  
+
   if (!data) return new Map();
-  
+
   const uploaderIds = [...new Set(data.map(e => e.uploaded_by).filter(Boolean))] as string[];
   let profileMap = new Map<string, string>();
   if (uploaderIds.length > 0) {
@@ -279,7 +279,7 @@ async function fetchActionEvidence(actionIds: string[]): Promise<Map<string, Act
       .in('id', uploaderIds);
     profiles?.forEach(p => profileMap.set(p.id, p.full_name));
   }
-  
+
   const evidenceByAction = new Map<string, ActionEvidenceItem[]>();
   data.forEach(e => {
     const item: ActionEvidenceItem = {
@@ -295,7 +295,7 @@ async function fetchActionEvidence(actionIds: string[]): Promise<Map<string, Act
     }
     evidenceByAction.get(e.action_id)!.push(item);
   });
-  
+
   return evidenceByAction;
 }
 
@@ -314,9 +314,9 @@ async function fetchContractorViolation(incidentId: string): Promise<ContractorV
     `)
     .eq('id', incidentId)
     .single();
-  
+
   if (!incident || !incident.related_contractor_company) return null;
-  
+
   let acknowledgedByName = null;
   if (incident.violation_contractor_acknowledged_by) {
     const { data: profile } = await supabase
@@ -326,7 +326,7 @@ async function fetchContractorViolation(incidentId: string): Promise<ContractorV
       .single();
     acknowledgedByName = profile?.full_name;
   }
-  
+
   return {
     contractor_company_name: incident.related_contractor_company?.name,
     violation_category: incident.violation_type_id,
@@ -353,15 +353,15 @@ async function fetchUpgradeHistory(incidentId: string): Promise<UpgradeHistoryDa
     `)
     .eq('id', incidentId)
     .single();
-  
+
   if (!incident || (!incident.source_observation_id && !incident.upgraded_to_incident_id)) return null;
-  
+
   // Fetch related observation/incident reference IDs
   let sourceObsRef = null;
   let upgradedIncRef = null;
   let upgradedByName = null;
   let escalationDecisionByName = null;
-  
+
   if (incident.source_observation_id) {
     const { data: sourceObs } = await supabase
       .from('incidents')
@@ -370,7 +370,7 @@ async function fetchUpgradeHistory(incidentId: string): Promise<UpgradeHistoryDa
       .single();
     sourceObsRef = sourceObs?.reference_id;
   }
-  
+
   if (incident.upgraded_to_incident_id) {
     const { data: upgradedInc } = await supabase
       .from('incidents')
@@ -379,7 +379,7 @@ async function fetchUpgradeHistory(incidentId: string): Promise<UpgradeHistoryDa
       .single();
     upgradedIncRef = upgradedInc?.reference_id;
   }
-  
+
   const userIds = [incident.upgraded_by, incident.escalation_decision_by].filter(Boolean) as string[];
   if (userIds.length > 0) {
     const { data: profiles } = await supabase
@@ -390,7 +390,7 @@ async function fetchUpgradeHistory(incidentId: string): Promise<UpgradeHistoryDa
     upgradedByName = incident.upgraded_by ? profileMap.get(incident.upgraded_by) : null;
     escalationDecisionByName = incident.escalation_decision_by ? profileMap.get(incident.escalation_decision_by) : null;
   }
-  
+
   return {
     source_observation_ref: sourceObsRef,
     upgraded_to_incident_ref: upgradedIncRef,
@@ -434,37 +434,39 @@ async function fetchWorkflowDecisions(incidentId: string): Promise<WorkflowDecis
       hsse_validation_status
     `)
     .eq('id', incidentId)
-    .single() as { data: {
-      closure_request_notes?: string | null;
-      closure_approved_by?: string | null;
-      closure_approved_at?: string | null;
-      dept_rep_approved_by?: string | null;
-      dept_rep_approved_at?: string | null;
-      dept_rep_notes?: string | null;
-      expert_screened_by?: string | null;
-      expert_screened_at?: string | null;
-      expert_screening_notes?: string | null;
-      expert_recommendation?: string | null;
-      approval_manager_id?: string | null;
-      manager_decision?: string | null;
-      manager_decision_at?: string | null;
-      hsse_manager_decision?: string | null;
-      hsse_manager_decision_by?: string | null;
-      hsse_manager_justification?: string | null;
-      escalation_decision?: string | null;
-      escalation_decision_at?: string | null;
-      escalation_decision_by?: string | null;
-      escalation_decision_notes?: string | null;
-      hsse_validated_by?: string | null;
-      hsse_validated_at?: string | null;
-      hsse_validation_notes?: string | null;
-      hsse_validation_status?: string | null;
-    } | null };
-  
+    .single() as {
+      data: {
+        closure_request_notes?: string | null;
+        closure_approved_by?: string | null;
+        closure_approved_at?: string | null;
+        dept_rep_approved_by?: string | null;
+        dept_rep_approved_at?: string | null;
+        dept_rep_notes?: string | null;
+        expert_screened_by?: string | null;
+        expert_screened_at?: string | null;
+        expert_screening_notes?: string | null;
+        expert_recommendation?: string | null;
+        approval_manager_id?: string | null;
+        manager_decision?: string | null;
+        manager_decision_at?: string | null;
+        hsse_manager_decision?: string | null;
+        hsse_manager_decision_by?: string | null;
+        hsse_manager_justification?: string | null;
+        escalation_decision?: string | null;
+        escalation_decision_at?: string | null;
+        escalation_decision_by?: string | null;
+        escalation_decision_notes?: string | null;
+        hsse_validated_by?: string | null;
+        hsse_validated_at?: string | null;
+        hsse_validation_notes?: string | null;
+        hsse_validation_status?: string | null;
+      } | null
+    };
+
   if (!incident) return [];
-  
+
   const decisions: WorkflowDecision[] = [];
-  
+
   // Collect all user IDs
   const userIds = [
     incident.closure_approved_by,
@@ -475,7 +477,7 @@ async function fetchWorkflowDecisions(incidentId: string): Promise<WorkflowDecis
     incident.escalation_decision_by,
     incident.hsse_validated_by
   ].filter(Boolean) as string[];
-  
+
   let profileMap = new Map<string, string>();
   if (userIds.length > 0) {
     const { data: profiles } = await supabase
@@ -484,7 +486,7 @@ async function fetchWorkflowDecisions(incidentId: string): Promise<WorkflowDecis
       .in('id', userIds);
     profiles?.forEach(p => profileMap.set(p.id, p.full_name));
   }
-  
+
   // Dept Rep Approval
   if (incident.dept_rep_approved_by) {
     decisions.push({
@@ -495,7 +497,7 @@ async function fetchWorkflowDecisions(incidentId: string): Promise<WorkflowDecis
       status: 'approved'
     });
   }
-  
+
   // HSSE Expert Screening
   if (incident.expert_screened_by) {
     decisions.push({
@@ -506,7 +508,7 @@ async function fetchWorkflowDecisions(incidentId: string): Promise<WorkflowDecis
       status: incident.expert_recommendation || 'screened'
     });
   }
-  
+
   // Manager Decision
   if (incident.manager_decision && incident.approval_manager_id) {
     decisions.push({
@@ -516,7 +518,7 @@ async function fetchWorkflowDecisions(incidentId: string): Promise<WorkflowDecis
       status: incident.manager_decision
     });
   }
-  
+
   // HSSE Manager Escalation
   if (incident.hsse_manager_decision) {
     decisions.push({
@@ -527,7 +529,7 @@ async function fetchWorkflowDecisions(incidentId: string): Promise<WorkflowDecis
       status: incident.hsse_manager_decision
     });
   }
-  
+
   // Escalation Review
   if (incident.escalation_decision) {
     decisions.push({
@@ -538,7 +540,7 @@ async function fetchWorkflowDecisions(incidentId: string): Promise<WorkflowDecis
       status: incident.escalation_decision
     });
   }
-  
+
   // HSSE Validation
   if (incident.hsse_validated_by) {
     decisions.push({
@@ -549,7 +551,7 @@ async function fetchWorkflowDecisions(incidentId: string): Promise<WorkflowDecis
       status: incident.hsse_validation_status || 'validated'
     });
   }
-  
+
   // Closure Approval
   if (incident.closure_approved_by) {
     decisions.push({
@@ -559,7 +561,7 @@ async function fetchWorkflowDecisions(incidentId: string): Promise<WorkflowDecis
       notes: incident.closure_request_notes
     });
   }
-  
+
   return decisions;
 }
 
@@ -599,7 +601,7 @@ async function fetchRCAData(incidentId: string): Promise<RCAData | null> {
     .select('why_1, why_2, why_3, why_4, why_5, immediate_cause, underlying_cause')
     .eq('incident_id', incidentId)
     .maybeSingle() as { data: RCAData | null };
-  
+
   if (!data) return null;
 
   const { data: rootCauses } = await supabase
@@ -628,36 +630,36 @@ async function fetchCorrectiveActions(incidentId: string, fullDetails: boolean, 
     .eq('incident_id', incidentId)
     .is('deleted_at', null)
     .order('created_at', { ascending: false });
-  
+
   if (!data) return [];
-  
+
   // Fetch assigned user names and departments
   const userIds = [...new Set([
     ...data.map(a => a.assigned_to).filter(Boolean),
     ...data.map(a => a.verified_by).filter(Boolean)
   ])] as string[];
   const deptIds = [...new Set(data.map(a => a.responsible_department_id).filter(Boolean))] as string[];
-  
-  const { data: profiles } = userIds.length > 0 
+
+  const { data: profiles } = userIds.length > 0
     ? await supabase.from('profiles').select('id, full_name').in('id', userIds)
     : { data: [] as Array<{ id: string; full_name: string }> };
-  
+
   const { data: departments } = deptIds.length > 0
     ? await supabase.from('departments').select('id, name').in('id', deptIds)
     : { data: [] as Array<{ id: string; name: string }> };
-  
+
   const profileMap = new Map<string, string>();
   profiles?.forEach(p => profileMap.set(p.id, p.full_name));
-  
+
   const deptMap = new Map<string, string>();
   departments?.forEach(d => deptMap.set(d.id, d.name));
-  
+
   // Fetch action evidence if needed
   let evidenceByAction = new Map<string, ActionEvidenceItem[]>();
   if (includeEvidence) {
     evidenceByAction = await fetchActionEvidence(data.map(a => a.id));
   }
-  
+
   return data.map(a => ({
     id: a.id,
     title: a.title,
@@ -683,24 +685,24 @@ async function fetchAuditLogs(incidentId: string, accessLevel: ReportAccessLevel
     .select('action, actor_id, created_at, details, old_value, new_value')
     .eq('incident_id', incidentId)
     .order('created_at', { ascending: true });
-  
+
   // For managers (non-full mode), filter to allowed actions only
   if (accessLevel === 'manager' && !fullAuditLog) {
     query = query.in('action', MANAGER_AUDIT_ACTIONS);
   }
-  
+
   const { data } = await query;
   if (!data) return [];
-  
+
   // Fetch actor names
   const actorIds = [...new Set(data.map(l => l.actor_id).filter(Boolean))] as string[];
-  const { data: profiles } = actorIds.length > 0 
+  const { data: profiles } = actorIds.length > 0
     ? await supabase.from('profiles').select('id, full_name').in('id', actorIds)
     : { data: [] as Array<{ id: string; full_name: string }> };
-  
+
   const profileMap = new Map<string, string>();
   profiles?.forEach(p => profileMap.set(p.id, p.full_name));
-  
+
   return data.map(log => ({
     action: formatAuditAction(log.action),
     actor_name: log.actor_id ? profileMap.get(log.actor_id) || 'System' : 'System',
@@ -816,7 +818,7 @@ function buildLegalDocumentHeader(incident: IncidentReportData['incident'], isRT
   const now = new Date();
   const timestamp = format(now, 'yyyy-MM-dd HH:mm:ss');
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  
+
   return `
     <div style="margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%); color: white; border-radius: 8px; text-align: center;">
       <div style="font-size: 10px; letter-spacing: 2px; margin-bottom: 8px; opacity: 0.9;">
@@ -835,22 +837,22 @@ function buildLegalDocumentHeader(incident: IncidentReportData['incident'], isRT
 
 function buildConfidentialityBanner(incident: IncidentReportData['incident'], isRTL: boolean): string {
   if (!incident.confidentiality_level || incident.confidentiality_level === 'none') return '';
-  
+
   const levelColors: Record<string, string> = {
     confidential: 'background: #fef2f2; border-color: #dc2626; color: #991b1b;',
     restricted: 'background: #fffbeb; border-color: #d97706; color: #92400e;',
     internal: 'background: #f0f9ff; border-color: #0284c7; color: #075985;'
   };
-  
+
   const levelLabels: Record<string, { en: string; ar: string }> = {
     confidential: { en: 'CONFIDENTIAL', ar: 'سري' },
     restricted: { en: 'RESTRICTED', ar: 'محدود' },
     internal: { en: 'INTERNAL ONLY', ar: 'للاستخدام الداخلي فقط' }
   };
-  
+
   const style = levelColors[incident.confidentiality_level] || levelColors.internal;
   const label = levelLabels[incident.confidentiality_level] || levelLabels.internal;
-  
+
   return `
     <div style="margin-bottom: 16px; padding: 10px 16px; border: 2px solid; border-radius: 6px; text-align: center; font-weight: 600; font-size: 12px; ${style}">
       🔒 ${isRTL ? label.ar : label.en}
@@ -861,11 +863,11 @@ function buildConfidentialityBanner(incident: IncidentReportData['incident'], is
 
 function buildUpgradeHistoryHtml(upgradeHistory: UpgradeHistoryData | null, isRTL: boolean): string {
   if (!upgradeHistory) return '';
-  
+
   const textAlign = isRTL ? 'right' : 'left';
-  
+
   let content = '';
-  
+
   if (upgradeHistory.source_observation_ref) {
     content += `
       <div style="margin-bottom: 16px; padding: 12px; background: #f0fdf4; border: 1px solid #22c55e; border-radius: 6px;">
@@ -891,7 +893,7 @@ function buildUpgradeHistoryHtml(upgradeHistory: UpgradeHistoryData | null, isRT
       </div>
     `;
   }
-  
+
   if (upgradeHistory.upgraded_to_incident_ref) {
     content += `
       <div style="margin-bottom: 16px; padding: 12px; background: #fff7ed; border: 1px solid #f97316; border-radius: 6px;">
@@ -907,7 +909,7 @@ function buildUpgradeHistoryHtml(upgradeHistory: UpgradeHistoryData | null, isRT
       </div>
     `;
   }
-  
+
   if (upgradeHistory.escalation_decision) {
     content += `
       <div style="margin-bottom: 16px; padding: 12px; background: #faf5ff; border: 1px solid #a855f7; border-radius: 6px;">
@@ -938,12 +940,12 @@ function buildUpgradeHistoryHtml(upgradeHistory: UpgradeHistoryData | null, isRT
       </div>
     `;
   }
-  
+
   if (!content) return '';
-  
+
   return `
-    <h3 style="margin: 24px 0 10px; font-size: 14px; font-weight: 600; color: #333; border-top: 2px solid #e5e7eb; padding-top: 16px;">
-      ${isRTL ? 'سجل الترقية/التصعيد' : 'Upgrade/Escalation History'}
+    <h3 class="brand-header">
+      ${isRTL ? 'تاريخ الترقية/التصعيد' : 'Upgrade/Escalation History'}
     </h3>
     ${content}
   `;
@@ -951,7 +953,7 @@ function buildUpgradeHistoryHtml(upgradeHistory: UpgradeHistoryData | null, isRT
 
 function buildWorkflowDecisionsHtml(decisions: WorkflowDecision[], isRTL: boolean): string {
   if (decisions.length === 0) return '';
-  
+
   const decisionTypeLabels: Record<string, { en: string; ar: string }> = {
     dept_rep_approval: { en: 'Department Representative Approval', ar: 'موافقة ممثل القسم' },
     hsse_expert_screening: { en: 'HSSE Expert Screening', ar: 'فحص خبير HSSE' },
@@ -961,9 +963,9 @@ function buildWorkflowDecisionsHtml(decisions: WorkflowDecision[], isRTL: boolea
     initial_approval: { en: 'Initial Approval', ar: 'الموافقة الأولية' },
     closure_approval: { en: 'Closure Approval', ar: 'موافقة الإغلاق' }
   };
-  
+
   return `
-    <h3 style="margin: 24px 0 10px; font-size: 14px; font-weight: 600; color: #333; border-top: 2px solid #e5e7eb; padding-top: 16px;">
+    <h3 class="brand-header">
       ${isRTL ? 'قرارات سير العمل' : 'Workflow Decisions'}
     </h3>
     <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
@@ -978,8 +980,8 @@ function buildWorkflowDecisionsHtml(decisions: WorkflowDecision[], isRTL: boolea
       </thead>
       <tbody>
         ${decisions.map(d => {
-          const label = decisionTypeLabels[d.type] || { en: d.type, ar: d.type };
-          return `
+    const label = decisionTypeLabels[d.type] || { en: d.type, ar: d.type };
+    return `
             <tr>
               <td style="padding: 8px; border: 1px solid #ddd; font-weight: 500;">${isRTL ? label.ar : label.en}</td>
               <td style="padding: 8px; border: 1px solid #ddd;">
@@ -990,7 +992,7 @@ function buildWorkflowDecisionsHtml(decisions: WorkflowDecision[], isRTL: boolea
               <td style="padding: 8px; border: 1px solid #ddd; font-size: 11px; color: #6b7280;">${d.notes || '-'}</td>
             </tr>
           `;
-        }).join('')}
+  }).join('')}
       </tbody>
     </table>
   `;
@@ -998,9 +1000,9 @@ function buildWorkflowDecisionsHtml(decisions: WorkflowDecision[], isRTL: boolea
 
 function buildContractorViolationHtml(violation: ContractorViolationData | null, isRTL: boolean): string {
   if (!violation) return '';
-  
+
   return `
-    <h3 style="margin: 24px 0 10px; font-size: 14px; font-weight: 600; color: #333; border-top: 2px solid #e5e7eb; padding-top: 16px;">
+    <h3 class="brand-header">
       ${isRTL ? 'تفاصيل مخالفة المقاول' : 'Contractor Violation Details'}
     </h3>
     <div style="padding: 12px; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px;">
@@ -1038,15 +1040,15 @@ function buildContractorViolationHtml(violation: ContractorViolationData | null,
 
 function buildBasicInfoHtml(incident: IncidentReportData['incident'], isRTL: boolean): string {
   const textAlign = isRTL ? 'right' : 'left';
-  
+
   // Determine category and subcategory display
-  const incidentCategory = incident.incident_type 
+  const incidentCategory = incident.incident_type
     ? getHSSEEventTypeLabel(incident.incident_type, isRTL)
-    : incident.subtype 
-      ? getHSSESubtypeLabel(incident.subtype, isRTL) 
+    : incident.subtype
+      ? getHSSESubtypeLabel(incident.subtype, isRTL)
       : '-';
   const incidentSubCategory = incident.subtype ? getHSSESubtypeLabel(incident.subtype, isRTL) : '-';
-  
+
   return `
     <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px;">
       <tr>
@@ -1126,13 +1128,13 @@ function buildBasicInfoHtml(incident: IncidentReportData['incident'], isRTL: boo
       ` : ''}
     </table>
     
-    <h3 style="margin: 20px 0 10px; font-size: 14px; font-weight: 600; color: #333;">${isRTL ? 'الوصف' : 'Description'}</h3>
+    <h3 class="brand-header">${isRTL ? 'الوصف' : 'Description'}</h3>
     <div style="padding: 12px; border: 1px solid #ddd; border-radius: 4px; background: #f9fafb; white-space: pre-wrap; font-size: 13px;">
       ${incident.description || '-'}
     </div>
     
     ${incident.immediate_actions ? `
-    <h3 style="margin: 20px 0 10px; font-size: 14px; font-weight: 600; color: #333;">${isRTL ? 'الإجراءات الفورية' : 'Immediate Actions'}</h3>
+    <h3 class="brand-header">${isRTL ? 'الإجراءات الفورية' : 'Immediate Actions'}</h3>
     <div style="padding: 12px; border: 1px solid #ddd; border-radius: 4px; background: #f9fafb; white-space: pre-wrap; font-size: 13px;">
       ${incident.immediate_actions}
     </div>
@@ -1158,11 +1160,11 @@ function buildBasicInfoHtml(incident: IncidentReportData['incident'], isRTL: boo
 
 function buildManagerActionsHtml(actions: CorrectiveAction[], isRTL: boolean): string {
   if (actions.length === 0) return '';
-  
+
   const textAlign = isRTL ? 'right' : 'left';
-  
+
   return `
-    <h3 style="margin: 24px 0 10px; font-size: 14px; font-weight: 600; color: #333; border-top: 2px solid #e5e7eb; padding-top: 16px;">
+    <h3 class="brand-header">
       ${isRTL ? 'الإجراءات التصحيحية' : 'Corrective Actions'} (${actions.length})
     </h3>
     <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
@@ -1203,12 +1205,12 @@ function getActionStatusStyle(status: string): string {
 
 function buildFullEvidenceHtml(evidence: EvidenceItem[], isRTL: boolean, fullLegalMode: boolean = false): string {
   if (evidence.length === 0) return '';
-  
+
   const textAlign = isRTL ? 'right' : 'left';
-  
+
   return `
-    <h3 style="margin: 24px 0 10px; font-size: 14px; font-weight: 600; color: #333; border-top: 2px solid #e5e7eb; padding-top: 16px;">
-      ${isRTL ? 'الأدلة المجمعة' : 'Evidence Collected'} (${evidence.length})
+    <h3 class="brand-header">
+      ${isRTL ? 'الأدلة والمرفقات' : 'Evidence & Attachments'} (${evidence.length})
     </h3>
     <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
       <thead>
@@ -1237,10 +1239,10 @@ function buildFullEvidenceHtml(evidence: EvidenceItem[], isRTL: boolean, fullLeg
             <td style="padding: 8px; border: 1px solid #ddd; text-align: center; font-size: 11px;">${e.created_at ? format(new Date(e.created_at), 'PP p') : '-'}</td>
             ${fullLegalMode ? `
             <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
-              ${e.is_reviewed 
-                ? `<span style="color: #16a34a; font-size: 10px;">✓ ${e.reviewed_by_name || ''}</span>`
-                : `<span style="color: #9ca3af; font-size: 10px;">${isRTL ? 'معلق' : 'Pending'}</span>`
-              }
+              ${e.is_reviewed
+        ? `<span style="color: #16a34a; font-size: 10px;">✓ ${e.reviewed_by_name || ''}</span>`
+        : `<span style="color: #9ca3af; font-size: 10px;">${isRTL ? 'معلق' : 'Pending'}</span>`
+      }
             </td>
             ` : ''}
           </tr>
@@ -1252,9 +1254,9 @@ function buildFullEvidenceHtml(evidence: EvidenceItem[], isRTL: boolean, fullLeg
 
 function buildFullWitnessesHtml(witnesses: WitnessStatement[], isRTL: boolean): string {
   if (witnesses.length === 0) return '';
-  
+
   return `
-    <h3 style="margin: 24px 0 10px; font-size: 14px; font-weight: 600; color: #333; border-top: 2px solid #e5e7eb; padding-top: 16px;">
+    <h3 class="brand-header">
       ${isRTL ? 'إفادات الشهود' : 'Witness Statements'} (${witnesses.length})
     </h3>
     ${witnesses.map((w, i) => `
@@ -1280,9 +1282,9 @@ function buildFullWitnessesHtml(witnesses: WitnessStatement[], isRTL: boolean): 
 
 function buildFullRCAHtml(rca: RCAData, isRTL: boolean): string {
   const paddingDir = isRTL ? 'padding-right' : 'padding-left';
-  
+
   return `
-    <h3 style="margin: 24px 0 10px; font-size: 14px; font-weight: 600; color: #333; border-top: 2px solid #e5e7eb; padding-top: 16px;">
+    <h3 class="brand-header">
       ${isRTL ? 'تحليل السبب الجذري' : 'Root Cause Analysis'}
     </h3>
     
@@ -1290,14 +1292,14 @@ function buildFullRCAHtml(rca: RCAData, isRTL: boolean): string {
     <h4 style="margin: 12px 0 8px; font-size: 13px; font-weight: 600; color: #4b5563;">${isRTL ? 'طريقة الـ 5 لماذا' : '5 Whys Analysis'}</h4>
     <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 16px;">
       ${[1, 2, 3, 4, 5].map(n => {
-        const why = rca[`why_${n}` as keyof RCAData] as string | null;
-        return why ? `
+    const why = rca[`why_${n}` as keyof RCAData] as string | null;
+    return why ? `
         <tr>
           <td style="padding: 10px; border: 1px solid #ddd; background: #f0f9ff; font-weight: 600; width: 12%; color: #0369a1;">${isRTL ? 'لماذا' : 'Why'} ${n}</td>
           <td style="padding: 10px; border: 1px solid #ddd; line-height: 1.4;">${why}</td>
         </tr>
         ` : '';
-      }).join('')}
+  }).join('')}
     </table>
     ` : ''}
     
@@ -1337,9 +1339,9 @@ function buildFullRCAHtml(rca: RCAData, isRTL: boolean): string {
 
 function buildFullActionsHtml(actions: CorrectiveAction[], isRTL: boolean, includeEvidence: boolean = false): string {
   if (actions.length === 0) return '';
-  
+
   return `
-    <h3 style="margin: 24px 0 10px; font-size: 14px; font-weight: 600; color: #333; border-top: 2px solid #e5e7eb; padding-top: 16px;">
+    <h3 class="brand-header">
       ${isRTL ? 'الإجراءات التصحيحية والوقائية' : 'Corrective & Preventive Actions'} (${actions.length})
     </h3>
     ${actions.map((a, i) => `
@@ -1408,25 +1410,25 @@ function buildFullActionsHtml(actions: CorrectiveAction[], isRTL: boolean, inclu
 
 function buildAuditLogHtml(logs: AuditLogEntry[], accessLevel: ReportAccessLevel, isRTL: boolean, isFullAuditLog: boolean = false): string {
   if (logs.length === 0) return '';
-  
-  const title = isFullAuditLog 
+
+  const title = isFullAuditLog
     ? (isRTL ? 'سجل المراجعة الكامل (مسار التدقيق القانوني)' : 'Complete Audit Trail (Legal Audit Log)')
-    : accessLevel === 'hsse_full' 
+    : accessLevel === 'hsse_full'
       ? (isRTL ? 'سجل المراجعة الكامل' : 'Complete Audit Trail')
       : (isRTL ? 'سجل المراجعة' : 'Audit Log');
-  
+
   const textAlign = isRTL ? 'right' : 'left';
-  
+
   return `
     <div style="page-break-before: always;">
-      <h3 style="margin: 24px 0 10px; font-size: 14px; font-weight: 600; color: #333; border-bottom: 2px solid #333; padding-bottom: 8px;">
+      <h3 class="brand-header">
         ${title}
       </h3>
       ${isFullAuditLog ? `
       <div style="margin-bottom: 16px; padding: 10px; background: #f0f9ff; border: 1px solid #0284c7; border-radius: 6px; font-size: 11px; color: #075985;">
-        ${isRTL 
-          ? '⚠️ هذا السجل يحتوي على جميع الإجراءات المنفذة على هذا السجل، بما في ذلك المشاهدات والتعديلات والتحديثات. يُعد هذا السجل وثيقة قانونية لأغراض التدقيق.'
-          : '⚠️ This log contains ALL actions performed on this record, including views, edits, and updates. This serves as a legal audit document for compliance purposes.'}
+        ${isRTL
+        ? '⚠️ هذا السجل يحتوي على جميع الإجراءات المنفذة على هذا السجل، بما في ذلك المشاهدات والتعديلات والتحديثات. يُعد هذا السجل وثيقة قانونية لأغراض التدقيق.'
+        : '⚠️ This log contains ALL actions performed on this record, including views, edits, and updates. This serves as a legal audit document for compliance purposes.'}
       </div>
       ` : ''}
       <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
@@ -1458,9 +1460,9 @@ function buildAuditLogHtml(logs: AuditLogEntry[], accessLevel: ReportAccessLevel
 
 function buildInvestigationHtml(investigation: InvestigationData, isRTL: boolean): string {
   const textAlign = isRTL ? 'right' : 'left';
-  
+
   return `
-    <h3 style="margin: 24px 0 10px; font-size: 14px; font-weight: 600; color: #333; border-top: 2px solid #e5e7eb; padding-top: 16px;">
+    <h3 class="brand-header">
       ${isRTL ? 'تفاصيل التحقيق' : 'Investigation Details'}
     </h3>
     <table style="width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 13px;">
@@ -1524,21 +1526,21 @@ function getSeverityBadgeStyle(severity: string | null): string {
 
 function buildEnvironmentalContaminationsHtml(entries: EnvironmentalContaminationData[], isRTL: boolean): string {
   if (entries.length === 0) return '';
-  
+
   const textAlign = isRTL ? 'right' : 'left';
   const totalCost = entries.reduce((sum, e) => sum + (e.total_environmental_cost || 0), 0);
   const breachCount = entries.filter(e => e.regulatory_breach_flagged).length;
-  
+
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat(isRTL ? 'ar-SA' : 'en-US', { 
-      style: 'currency', 
+    return new Intl.NumberFormat(isRTL ? 'ar-SA' : 'en-US', {
+      style: 'currency',
       currency: 'SAR',
       maximumFractionDigits: 0
     }).format(amount);
   };
-  
+
   return `
-    <h3 style="margin: 24px 0 10px; font-size: 14px; font-weight: 600; color: #16a34a; border-top: 2px solid #e5e7eb; padding-top: 16px;">
+    <h3 class="brand-header">
       🌿 ${isRTL ? 'الأثر البيئي' : 'Environmental Impact'} (${entries.length})
     </h3>
     
@@ -1581,11 +1583,10 @@ function buildEnvironmentalContaminationsHtml(entries: EnvironmentalContaminatio
             <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${e.volume_released ? `${e.volume_released} m³` : '-'}</td>
             <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${e.area_affected_sqm ? `${e.area_affected_sqm} m²` : '-'}</td>
             <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
-              <span style="padding: 2px 6px; border-radius: 4px; font-size: 10px; ${
-                e.spill_severity === 'tier_3_major' ? 'background: #fecaca; color: #991b1b;' :
-                e.spill_severity === 'tier_2_moderate' ? 'background: #ffedd5; color: #ea580c;' :
-                'background: #fef3c7; color: #d97706;'
-              }">${e.spill_severity?.replace(/_/g, ' ') || '-'}</span>
+              <span style="padding: 2px 6px; border-radius: 4px; font-size: 10px; ${e.spill_severity === 'tier_3_major' ? 'background: #fecaca; color: #991b1b;' :
+      e.spill_severity === 'tier_2_moderate' ? 'background: #ffedd5; color: #ea580c;' :
+        'background: #fef3c7; color: #d97706;'
+    }">${e.spill_severity?.replace(/_/g, ' ') || '-'}</span>
               ${e.regulatory_breach_flagged ? `<div style="margin-top: 4px; font-size: 9px; color: #dc2626;">⚠️ ${isRTL ? 'مخالفة' : 'Breach'}</div>` : ''}
             </td>
             <td style="padding: 8px; border: 1px solid #ddd; text-align: center; font-weight: 500;">${e.total_environmental_cost ? formatCurrency(e.total_environmental_cost) : '-'}</td>
@@ -1598,24 +1599,24 @@ function buildEnvironmentalContaminationsHtml(entries: EnvironmentalContaminatio
 
 function buildPropertyDamagesHtml(damages: PropertyDamageData[], isRTL: boolean): string {
   if (damages.length === 0) return '';
-  
+
   const textAlign = isRTL ? 'right' : 'left';
   const totalRepairCost = damages.reduce((sum, d) => sum + (d.repair_cost_estimate || 0), 0);
   const totalReplacementCost = damages.reduce((sum, d) => sum + (d.replacement_cost_estimate || 0), 0);
   const totalDowntime = damages.reduce((sum, d) => sum + (d.downtime_hours || 0), 0);
   const currency = damages[0]?.cost_currency || 'SAR';
-  
+
   // Format currency
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat(isRTL ? 'ar-SA' : 'en-US', { 
-      style: 'currency', 
+    return new Intl.NumberFormat(isRTL ? 'ar-SA' : 'en-US', {
+      style: 'currency',
       currency: currency,
       maximumFractionDigits: 0
     }).format(amount);
   };
-  
+
   return `
-    <h3 style="margin: 24px 0 10px; font-size: 14px; font-weight: 600; color: #ea580c; border-top: 2px solid #e5e7eb; padding-top: 16px;">
+    <h3 class="brand-header">
       🔧 ${isRTL ? 'أضرار الممتلكات' : 'Property Damage'} (${damages.length})
     </h3>
     
@@ -1674,14 +1675,11 @@ function buildPropertyDamagesHtml(damages: PropertyDamageData[], isRTL: boolean)
               ${d.downtime_hours > 0 ? `<div style="font-size: 9px; color: #6b7280;">${d.downtime_hours}h</div>` : ''}
             </td>
             <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
-              <span style="padding: 2px 6px; border-radius: 4px; font-size: 10px; ${
-                d.repair_status === 'completed' ? 'background: #dcfce7; color: #166534;' :
-                d.repair_status === 'in_progress' ? 'background: #dbeafe; color: #1e40af;' :
-                d.repair_status === 'not_repairable' ? 'background: #fee2e2; color: #991b1b;' :
-                'background: #f3f4f6; color: #6b7280;'
-              }">
-                ${getPropertyDamageLabel(d.repair_status, isRTL)}
-              </span>
+              <span style="padding: 2px 6px; border-radius: 4px; font-size: 10px; ${d.repair_status === 'completed' ? 'background: #dcfce7; color: #166534;' :
+      d.repair_status === 'in_progress' ? 'background: #dbeafe; color: #1e40af;' :
+        d.repair_status === 'not_repairable' ? 'background: #fee2e2; color: #991b1b;' :
+          'background: #f3f4f6; color: #6b7280;'
+    }">${getPropertyDamageLabel(d.repair_status, isRTL)}</span>
             </td>
           </tr>
           ${d.damage_description ? `
@@ -1708,21 +1706,22 @@ function buildPropertyDamagesHtml(damages: PropertyDamageData[], isRTL: boolean)
 function buildDocumentIntegrityFooter(incident: IncidentReportData['incident'], isRTL: boolean): string {
   const now = new Date();
   const documentId = `${incident.reference_id || incident.id}-${now.getTime()}`;
-  
+
   return `
     <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #1e3a5f;">
       <div style="display: flex; justify-content: space-between; font-size: 10px; color: #6b7280;">
         <div>
-          <strong>${isRTL ? 'معرف الوثيقة:' : 'Document ID:'}</strong> ${documentId}
+          <strong>${isRTL ? 'معرف الوثيقة:' : 'Document ID:'} </strong> ${documentId}
         </div>
         <div>
-          <strong>${isRTL ? 'تم الإنشاء:' : 'Generated:'}</strong> ${format(now, 'yyyy-MM-dd HH:mm:ss')}
+          <strong>${isRTL ? 'تم الإنشاء:' : 'Generated:'} </strong> ${format(now, 'yyyy-MM-dd HH:mm:ss')}
         </div>
       </div>
       <div style="margin-top: 12px; padding: 10px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px; font-size: 10px; color: #4b5563; text-align: center;">
-        ${isRTL 
-          ? 'هذه الوثيقة تم إنشاؤها إلكترونياً وتُعتبر سجلاً رسمياً. أي تعديل غير مصرح به يُعد انتهاكاً لسياسة الشركة.'
-          : 'This document was electronically generated and constitutes an official record. Any unauthorized modification is a violation of company policy.'}
+        ${isRTL
+      ? 'هذه الوثيقة تم إنشاؤها إلكترونياً وتُعتبر سجلاً رسمياً. أي تعديل غير مصرح به يُعد انتهاكاً لسياسة الشركة.'
+      : 'This document was electronically generated and constitutes an official record. Any unauthorized modification is a violation of company policy.'
+    }
       </div>
     </div>
   `;
@@ -1759,7 +1758,7 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
     .single();
   const generatedByName = currentUser?.full_name || 'Unknown';
 
-  // Define sections based on access level and mode
+  // Calculate section visibility based on inputs
   const sections = {
     showLegalHeader: isLegalDocument,
     showConfidentialityBanner: isLegalDocument,
@@ -1778,10 +1777,52 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
     includeActionEvidence: fullLegalMode,
     includeEvidenceUploaders: fullLegalMode,
     showPropertyDamages: incident.has_damage && (accessLevel === 'hsse_full' || isLegalDocument),
-    showEnvironmentalContaminations: (incident.event_type === 'environmental' || incident.event_type === 'environment' || 
+    showEnvironmentalContaminations: (incident.event_type === 'environmental' || incident.event_type === 'environment' ||
       ['oil_chemical_spill_land', 'spill_to_water', 'air_emission', 'soil_contamination', 'waste_mismanagement', 'wildlife_impact', 'non_compliant_discharge'].includes(incident.subtype || '')) &&
-      (accessLevel === 'hsse_full' || isLegalDocument),
+      (accessLevel === 'hsse_full' || isLegalDocument)
   };
+
+  // Dynamic Styles based on Branding
+  const primaryBrandColor = settings?.headerBgColor && settings.headerBgColor !== '#ffffff' ? settings.headerBgColor : '#1e3a5f';
+  const secondaryBrandColor = settings?.headerTextColor && settings.headerTextColor !== '#ffffff' ? settings.headerTextColor : '#ffffff';
+
+  // Choose text color for headers based on background contrast (simple check)
+  // If brand color is light, use dark text. If dark, use white.
+  // For now assuming the user sets a decent header color, defaulting to white text on brand header.
+  const headerTextColor = '#ffffff';
+
+  const brandingStyles = `
+    <style>
+      .brand-header {
+        background-color: ${primaryBrandColor} !important;
+        color: ${headerTextColor} !important;
+        padding: 8px 12px;
+        border-radius: 4px;
+        margin-top: 24px;
+        margin-bottom: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .brand-sub-header {
+        color: ${primaryBrandColor};
+        border-bottom: 2px solid ${primaryBrandColor}20; /* 20 is hex opacity */
+        padding-bottom: 4px;
+        margin-bottom: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .brand-accent {
+        color: ${primaryBrandColor};
+      }
+    </style>
+  `;
 
   // Fetch data based on sections needed
   let investigation: InvestigationData | null = null;
@@ -1872,8 +1913,8 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
   const evidenceHtml = sections.showEvidence ? buildFullEvidenceHtml(evidence, isRTL, fullLegalMode) : '';
   const witnessesHtml = sections.showWitnesses ? buildFullWitnessesHtml(witnesses, isRTL) : '';
   const rcaHtml = sections.showRCA && rca ? buildFullRCAHtml(rca, isRTL) : '';
-  const actionsHtml = sections.showActionsFull 
-    ? buildFullActionsHtml(actions, isRTL, sections.includeActionEvidence) 
+  const actionsHtml = sections.showActionsFull
+    ? buildFullActionsHtml(actions, isRTL, sections.includeActionEvidence)
     : (sections.showActionsBasic ? buildManagerActionsHtml(actions, isRTL) : '');
   const auditLogHtml = sections.showAuditLog ? buildAuditLogHtml(auditLogs, accessLevel, isRTL, includeFullAuditLog) : '';
   const propertyDamagesHtml = sections.showPropertyDamages ? buildPropertyDamagesHtml(propertyDamages, isRTL) : '';
@@ -1883,22 +1924,24 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
   // Report type badge for title section
   const reportTypeLabel = isLegalDocument
     ? (isRTL ? 'وثيقة قانونية كاملة' : 'Full Legal Document')
-    : accessLevel === 'hsse_full' 
+    : accessLevel === 'hsse_full'
       ? (isRTL ? 'التقرير الكامل للتحقيق' : 'Full Investigation Report')
       : (isRTL ? 'تقرير ملخص' : 'Summary Report');
 
   // Manager restricted notice (only for non-legal mode)
   const restrictedNotice = accessLevel === 'manager' && !isLegalDocument ? `
     <div style="margin: 16px 0; padding: 12px; background: #fffbeb; border: 1px solid #fbbf24; border-radius: 6px; font-size: 12px; color: #92400e;">
-      ${isRTL 
-        ? 'ملاحظة: هذا تقرير ملخص. للحصول على التفاصيل الكاملة بما في ذلك التحقيقات والأدلة وتحليل السبب الجذري، يرجى التواصل مع فريق HSSE.'
-        : 'Note: This is a summary report. For full details including investigation, evidence, and root cause analysis, please contact the HSSE team.'}
+      ${isRTL
+      ? 'ملاحظة: هذا تقرير ملخص. للحصول على التفاصيل الكاملة بما في ذلك التحقيقات والأدلة وتحليل السبب الجذري، يرجى التواصل مع فريق HSSE.'
+      : 'Note: This is a summary report. For full details including investigation, evidence, and root cause analysis, please contact the HSSE team.'
+    }
     </div>
   ` : '';
 
   // Build content-only HTML
   container.innerHTML = `
     <div style="font-family: 'Rubik', Arial, sans-serif; color: #333;">
+      ${brandingStyles}
       ${legalHeaderHtml}
       ${confidentialityBannerHtml}
       

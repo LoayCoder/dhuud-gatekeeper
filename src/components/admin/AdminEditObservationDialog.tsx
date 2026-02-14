@@ -79,7 +79,7 @@ export function AdminEditObservationDialog({
   // Fetch data
   const { data: branches, isLoading: loadingBranches } = useBranches();
   const { data: sites, isLoading: loadingSites } = useSites(selectedBranchId || undefined);
-  
+
   // Fetch contractor companies - use company_name column per schema
   const { data: contractors, isLoading: loadingContractors } = useQuery({
     queryKey: ['contractor-companies-for-edit', selectedBranchId],
@@ -113,7 +113,7 @@ export function AdminEditObservationDialog({
   const editMutation = useAdminEditObservation();
 
   // Check if any changes were made
-  const hasChanges = 
+  const hasChanges =
     selectedBranchId !== (incident.branch_id || incident.branch?.id) ||
     selectedSiteId !== (incident.site_id || incident.site?.id) ||
     selectedContractorId !== (incident as any).related_contractor_company_id;
@@ -139,7 +139,7 @@ export function AdminEditObservationDialog({
   // Get display names for preview
   const selectedBranchName = branches?.find(b => b.id === selectedBranchId)?.name;
   const selectedSiteName = sites?.find(s => s.id === selectedSiteId)?.name;
-  const selectedContractorName = isRTL 
+  const selectedContractorName = isRTL
     ? contractors?.find(c => c.id === selectedContractorId)?.company_name_ar || contractors?.find(c => c.id === selectedContractorId)?.company_name
     : contractors?.find(c => c.id === selectedContractorId)?.company_name;
 
@@ -194,7 +194,7 @@ export function AdminEditObservationDialog({
             >
               <SelectTrigger>
                 <SelectValue placeholder={
-                  !selectedBranchId 
+                  !selectedBranchId
                     ? t('admin.editObservation.selectBranchFirst', 'Select branch first...')
                     : t('admin.editObservation.selectSite', 'Select site...')
                 } />
@@ -339,7 +339,7 @@ export function AdminEditObservationDialog({
             disabled={!hasChanges || editMutation.isPending}
           >
             {editMutation.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
-            {shouldReroute 
+            {shouldReroute
               ? t('admin.editObservation.saveAndReroute', 'Save & Re-route')
               : t('common.save', 'Save Changes')}
           </Button>

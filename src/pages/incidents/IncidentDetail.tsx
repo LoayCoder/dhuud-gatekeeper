@@ -45,6 +45,7 @@ import {
   IncidentDamageCard,
   IncidentInfoSidebar,
 } from '@/components/incidents/detail';
+import { IncidentTabs } from '@/components/incidents/detail/IncidentTabs';
 
 export default function IncidentDetail() {
   const { id } = useParams<{ id: string }>();
@@ -111,13 +112,13 @@ export default function IncidentDetail() {
   const getCurrentOwner = () => {
     if (!incident) return null;
     const status = incident.status as string;
-    
+
     if (status === 'submitted' || status === 'pending_review') {
       return { role: t('incidents.workflowOwners.hsse_expert', 'HSSE Expert'), name: null };
     }
     // Contractor Consultant screening statuses (expert_screening is legacy)
-    if (status === 'expert_screening' || status === 'pending_consultant_screening' || 
-        status === 'pending_consultant_review' || status === 'pending_consultant_actions') {
+    if (status === 'expert_screening' || status === 'pending_consultant_screening' ||
+      status === 'pending_consultant_review' || status === 'pending_consultant_actions') {
       return { role: t('incidents.workflowOwners.consultant', 'Contractor Consultant'), name: null };
     }
     if (status === 'pending_manager_approval' || status === 'hsse_manager_escalation') {
@@ -134,9 +135,9 @@ export default function IncidentDetail() {
     }
     if (status === 'investigation_in_progress' || status === 'investigation_pending') {
       const investigatorName = (investigation?.investigator as any)?.full_name;
-      return { 
-        role: t('incidents.workflowOwners.investigator', 'Investigator'), 
-        name: investigatorName || null 
+      return {
+        role: t('incidents.workflowOwners.investigator', 'Investigator'),
+        name: investigatorName || null
       };
     }
     if (status === 'pending_closure' || status === 'pending_final_closure' || status === 'observation_actions_pending') {
@@ -159,12 +160,12 @@ export default function IncidentDetail() {
   };
 
   const currentOwner = getCurrentOwner();
-  
+
   // Determine back navigation path based on where user came from
   const searchParams = new URLSearchParams(location.search);
   const fromPage = searchParams.get('from');
   const backPath = fromPage === 'my-actions' ? '/incidents/my-actions' : '/incidents';
-  
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
 
@@ -178,16 +179,16 @@ export default function IncidentDetail() {
 
   const handlePrintReport = async (options?: { fullLegalMode?: boolean; includeFullAuditLog?: boolean }) => {
     if (!incident || !profile?.tenant_id) return;
-    
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) {
       toast.error(t('common.error'));
       return;
     }
-    
+
     setIsPrinting(true);
     toast.loading(t('incidents.reportGenerating'));
-    
+
     try {
       await generateIncidentReportPDF({
         incident,
@@ -263,6 +264,9 @@ export default function IncidentDetail() {
           site: incident.site,
           location: incident.location,
           occurred_at: incident.occurred_at,
+          branch_id: incident.branch_id,
+          site_id: incident.site_id,
+          related_contractor_company_id: incident.related_contractor_company_id,
         }}
         backPath={backPath}
         isAdmin={isAdmin}
@@ -273,7 +277,7 @@ export default function IncidentDetail() {
 
       {/* Escalation Alert Banner */}
       {(incident as any).requires_escalation && (
-        <EscalationAlertBanner 
+        <EscalationAlertBanner
           incident={{
             id: incident.id,
             requires_escalation: (incident as any).requires_escalation,
@@ -285,29 +289,20 @@ export default function IncidentDetail() {
               id: (incident as any).contractor_company.id,
               company_name: (incident as any).contractor_company.company_name,
             } : null,
-          }} 
+          }}
         />
       )}
 
-      {/* HSSE Enforcement Banner - Show when observation is enforced */}
+      {/* HSSE Enforcement Banner */}
       {(incident as any).hsse_enforced_at && (
-        <HSSEEnforcementBanner 
+        <HSSEEnforcementBanner
           enforcedAt={(incident as any).hsse_enforced_at}
           enforcedBy={(incident as any).hsse_enforced_by_profile}
           enforcementNotes={(incident as any).enforcement_notes}
         />
       )}
 
-      {/* Observation Workflow Tracker */}
-      {incident.event_type === 'observation' && (
-        <ObservationWorkflowTracker 
-          incident={incident}
-          variant="horizontal"
-          showSeverityRouting={true}
-        />
-      )}
-
-      {/* Workflow Approval Cards */}
+      {/* Workflow Approval Cards - Keep them above tabs for visibility/actionability */}
       {incident.event_type === 'observation' && (
         <>
           <HSSEValidationCard incident={incident} onComplete={() => window.location.reload()} />
@@ -317,7 +312,6 @@ export default function IncidentDetail() {
         </>
       )}
 
-      {/* Contractor Violation Approval Cards (existing flow) */}
       {incident.related_contractor_company_id && !(incident as any).consultant_assigned_id && (
         <>
           <DeptManagerViolationApprovalCard incident={incident} onComplete={() => window.location.reload()} />
@@ -327,263 +321,8 @@ export default function IncidentDetail() {
         </>
       )}
 
-
-      {/* Contractor Violation Section (Read-only display when finalized) */}
-      {incident.related_contractor_company_id && (incident as any).violation_final_status && (
-        <ContractorViolationSection incident={incident} isEditable={false} />
-      )}
-
-      {/* Main Content Grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left Column - Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Risk Assessment Panel */}
-          <IncidentRiskPanel
-            actualSeverity={incident.severity_v2}
-            potentialSeverity={(incident as any).potential_severity_v2}
-            eventType={incident.event_type}
-          />
-
-          {/* Description Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('incidents.description')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                {incident.description}
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Immediate Actions */}
-          {incident.immediate_actions && (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('incidents.immediateActions')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="whitespace-pre-wrap text-sm">{incident.immediate_actions}</p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Classification Card */}
-          {incident.event_type === 'incident' && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Tag className="h-4 w-4" />
-                  {t('incidents.classification', 'Classification')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-4 sm:grid-cols-2">
-                {(() => {
-                  // Derive category from incident_type OR from subtype using HSSE mapping
-                  const derivedCategory = (incident as any).incident_type || 
-                    (incident.subtype ? getHsseEventTypeForSubtype(incident.subtype) : null);
-                  
-                  return (
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">
-                        {t('incidents.incidentCategory', 'Incident Category')}
-                      </p>
-                      <p className="font-medium">
-                        {derivedCategory 
-                          ? String(t(`incidents.hsseEventTypes.${snakeToCamel(derivedCategory)}`, 
-                                     { defaultValue: t(`incidents.hsseEventTypes.${derivedCategory}`, { defaultValue: derivedCategory }) as string }))
-                          : '—'
-                        }
-                      </p>
-                    </div>
-                  );
-                })()}
-                {incident.subtype && (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">
-                      {t('incidents.incidentSubCategory', 'Sub Category')}
-                    </p>
-                    <p className="font-medium">
-                      {getSubtypeTranslation(t, incident.event_type, incident.subtype, (incident as any).incident_type)}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Location Details Card */}
-          {(incident.location || incident.branch || incident.site || (incident.latitude && incident.longitude)) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Building className="h-4 w-4" />
-                  {t('incidents.locationDetails')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {incident.branch && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">{t('incidents.branch')}</p>
-                      <p className="font-medium">{incident.branch.name}</p>
-                    </div>
-                  )}
-                  {incident.site && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">{t('incidents.site')}</p>
-                      <p className="font-medium">{incident.site.name}</p>
-                    </div>
-                  )}
-                  {incident.department_info && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">{t('incidents.responsibleDepartment')}</p>
-                      <p className="font-medium">{incident.department_info.name}</p>
-                    </div>
-                  )}
-                  {/* Location text or GPS fallback - show if any location data exists */}
-                  {(() => {
-                    const locationValue = incident.location ||
-                      incident.location_city ||
-                      (incident.latitude && incident.longitude 
-                        ? t('incidents.gpsCoordinatesAvailable', 'GPS Coordinates Available')
-                        : null);
-                    
-                    // Only show this field if we have location text or GPS coords AND no site/branch shown
-                    if (!locationValue || (incident.site && incident.branch)) return null;
-                    if (!incident.location && (incident.site || incident.branch)) return null;
-                    
-                    return (
-                      <div className="sm:col-span-2">
-                        <p className="text-sm text-muted-foreground">{t('incidents.location')}</p>
-                        <p className="font-medium">{locationValue}</p>
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                {/* GPS Coordinates - with fallback to site location */}
-                {(() => {
-                  const effectiveLatitude = incident.latitude || incident.site?.latitude;
-                  const effectiveLongitude = incident.longitude || incident.site?.longitude;
-                  const isUsingFallbackLocation = !incident.latitude && incident.site?.latitude;
-                  
-                  if (!effectiveLatitude || !effectiveLongitude) return null;
-                  
-                  return (
-                    <div className="space-y-2">
-                      {isUsingFallbackLocation && (
-                        <Badge variant="secondary" className="text-xs">
-                          {t('incidents.approximateLocation', 'Approximate Location (Site)')}
-                        </Badge>
-                      )}
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm font-mono">
-                            {effectiveLatitude.toFixed(6)}, {effectiveLongitude.toFixed(6)}
-                          </span>
-                        </div>
-                        <Button variant="outline" size="sm" asChild>
-                          <a 
-                            href={`https://www.google.com/maps?q=${effectiveLatitude},${effectiveLongitude}`}
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="gap-2"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            {t('incidents.viewOnMap')}
-                          </a>
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Injury & Damage Cards */}
-          <IncidentInjuryCard
-            hasInjury={incident.has_injury || false}
-            injuryDetails={incident.injury_details as any}
-            injuryClassification={(incident as any).injury_classification}
-          />
-          
-          <IncidentDamageCard
-            hasDamage={incident.has_damage || false}
-            damageDetails={incident.damage_details as any}
-          />
-
-          {/* Special Event Linkage */}
-          {incident.special_event && (
-            <Card className="border-primary/50">
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  {t('incidents.linkedEvent')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Badge variant="secondary">{incident.special_event.name}</Badge>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Report Against Contractor */}
-          {incident.related_contractor_company && (
-            <Card className="border-amber-500/50">
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2 text-amber-600 dark:text-amber-500">
-                  <Building2 className="h-4 w-4" />
-                  {t('quickObservation.reportAgainstContractor', 'Report Against Contractor')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Badge variant="secondary" className="text-sm">
-                  {incident.related_contractor_company.company_name}
-                </Badge>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Attachments Section */}
-          <Card>
-            <CardContent className="pt-6">
-              <IncidentAttachmentsSection 
-                incidentId={id!}
-                mediaAttachments={mediaAttachments}
-                incidentMetadata={{
-                  referenceId: incident.reference_id,
-                  occurredAt: incident.occurred_at,
-                  location: incident.location || undefined,
-                  branchName: incident.branch?.name,
-                  siteName: incident.site?.name,
-                  contractorName: incident.related_contractor_company?.company_name,
-                  organizationName: tenantInfo?.name,
-                  latitude: incident.latitude,
-                  longitude: incident.longitude,
-                }}
-                fallbackTimestamp={incident.created_at}
-              />
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Column - Sidebar */}
-        <div className="space-y-6">
-          {/* Workflow Status Card */}
-          <IncidentWorkflowCard
-            status={incident.status}
-            eventType={incident.event_type}
-            assignedTo={currentOwner ? (currentOwner.name ? `${currentOwner.name} (${currentOwner.role})` : currentOwner.role) : undefined}
-            isContractorObservation={!!incident.related_contractor_company_id && incident.event_type === 'observation'}
-          />
-
-          {/* Info Sidebar */}
-          <IncidentInfoSidebar incident={incident} />
-        </div>
-      </div>
+      {/* Main Content Tabs */}
+      <IncidentTabs incident={incident} isPrinting={isPrinting} />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -596,7 +335,7 @@ export default function IncidentDetail() {
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleConfirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >

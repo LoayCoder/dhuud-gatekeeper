@@ -1,7 +1,7 @@
 {
-  "version": "2026.02.07.001",
-  "buildDate": "2026-02-07T19:10:17.594Z",
-  "publishedAt": "2026-02-07T19:10:17.594Z",
+  "version": "2026.02.14.002",
+  "buildDate": "2026-02-13T23:38:07.252Z",
+  "publishedAt": "2026-02-13T23:38:07.252Z",
   "releaseNotes": [
     "Auto-update version system implemented",
     "Version now updates automatically on publish"

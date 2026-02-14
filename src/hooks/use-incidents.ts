@@ -80,7 +80,7 @@ export function useCreateIncident() {
       if (sessionError || !sessionData.session?.user?.id) {
         throw new Error('Your session has expired. Please refresh the page and try again.');
       }
-      
+
       const freshUserId = sessionData.session.user.id;
 
       if (!profile?.tenant_id) {
@@ -89,17 +89,17 @@ export function useCreateIncident() {
 
       // Determine if this is an observation (simplified workflow)
       const isObservation = data.event_type === 'observation';
-      
+
       // Get department representative for auto-routing
       const reporterDeptId = data.department_id || profile?.assigned_department_id || null;
       let deptRepId: string | null = null;
-      
+
       if (reporterDeptId) {
         const { data: deptRep } = await supabase
           .rpc('get_department_representative', { p_department_id: reporterDeptId });
         deptRepId = deptRep || null;
       }
-      
+
       // Determine initial status based on event type:
       // - Observations: 'submitted' triggers database auto-routing (contractor consultant vs dept rep)
       // - Incidents: pending_dept_rep_incident_review (mandatory Dept Rep review, read-only)
@@ -111,7 +111,7 @@ export function useCreateIncident() {
       } else {
         initialStatus = 'pending_dept_rep_incident_review';
       }
-      
+
       const insertData: IncidentInsert & { risk_rating?: string; severity_v2?: string; severity_override_reason?: string; erp_activated?: boolean } = {
         tenant_id: profile.tenant_id,
         reporter_id: freshUserId,
@@ -151,7 +151,7 @@ export function useCreateIncident() {
       if (data.location_district) (insertData as Record<string, unknown>).location_district = data.location_district;
       if (data.location_street) (insertData as Record<string, unknown>).location_street = data.location_street;
       if (data.location_formatted) (insertData as Record<string, unknown>).location_formatted = data.location_formatted;
-      
+
       // Add severity_v2 for BOTH incidents AND observations (unified 5-level system)
       if (data.severity) {
         (insertData as Record<string, unknown>).severity_v2 = data.severity;
@@ -165,7 +165,7 @@ export function useCreateIncident() {
           }
         }
       }
-      
+
       // Add risk_rating for observations (cast to any to bypass type check for new column)
       if (isObservation && data.risk_rating) {
         (insertData as Record<string, unknown>).risk_rating = data.risk_rating;
@@ -231,7 +231,7 @@ export function useCreateIncident() {
     onSuccess: (incident) => {
       queryClient.invalidateQueries({ queryKey: ['incidents'] });
       // Toast removed - SubmissionSuccessDialog handles success feedback now
-      
+
       // Trigger matrix-based notification dispatcher (fire and forget)
       supabase.functions.invoke('dispatch-incident-notification', {
         body: { incident_id: incident.id, event_type: 'incident_created' }
@@ -240,10 +240,10 @@ export function useCreateIncident() {
     onError: (error) => {
       // Check for duplicate key error on reference_id (both old global and new per-tenant constraints)
       const errorMsg = error.message?.toLowerCase() || '';
-      const isDuplicateRef = errorMsg.includes('duplicate key') && 
-                             (errorMsg.includes('reference_id') || 
-                              errorMsg.includes('tenant_reference_id'));
-      
+      const isDuplicateRef = errorMsg.includes('duplicate key') &&
+        (errorMsg.includes('reference_id') ||
+          errorMsg.includes('tenant_reference_id'));
+
       if (isDuplicateRef) {
         // Race condition - this should be extremely rare after the advisory lock fix
         toast({
@@ -262,14 +262,29 @@ export function useCreateIncident() {
   });
 }
 
-export function useIncidents() {
+export interface UseIncidentsOptions {
+  page?: number;
+  pageSize?: number;
+  filters?: {
+    search?: string;
+    status?: string;
+    severity?: string;
+    eventType?: string;
+    branchId?: string;
+    contractorId?: string;
+    dateRange?: { from: Date; to?: Date };
+    tags?: string[];
+  };
+}
+
+export function useIncidents({ page = 1, pageSize = 20, filters }: UseIncidentsOptions = {}) {
   const { profile } = useAuth();
   const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
 
   return useQuery({
-    queryKey: ['incidents', profile?.tenant_id, ...branchQueryKey],
+    queryKey: ['incidents', profile?.tenant_id, page, pageSize, filters, ...branchQueryKey],
     queryFn: async () => {
-      if (!profile?.tenant_id) return [];
+      if (!profile?.tenant_id) return { data: [], count: 0 };
 
       let query = supabase
         .from('incidents')
@@ -280,26 +295,68 @@ export function useIncidents() {
           branch:branches!branch_id(name),
           site:sites!site_id(name),
           related_contractor_company:contractor_companies!incidents_related_contractor_company_id_fkey(id, company_name)
-        `)
+        `, { count: 'exact' })
         .eq('tenant_id', profile.tenant_id)
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false })
-        .range(0, 99); // Limit to first 100 incidents for performance
+        .is('deleted_at', null);
 
-      // Apply branch filter
+      // Apply branch filter (global or specific)
       if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
-        query = branchIds.length === 1
-          ? query.eq('branch_id', branchIds[0])
-          : query.in('branch_id', branchIds);
+        if (branchIds.length === 1) {
+          query = query.eq('branch_id', branchIds[0]);
+        } else {
+          query = query.in('branch_id', branchIds);
+        }
       }
 
-      const { data, error } = await query;
+      // Apply Filters
+      if (filters) {
+        if (filters.search) {
+          query = query.or(`title.ilike.%${filters.search}%,reference_id.ilike.%${filters.search}%`);
+        }
+        if (filters.status && filters.status !== 'all') {
+          query = query.eq('status', filters.status);
+        }
+        if (filters.severity && filters.severity !== 'all') {
+          query = query.eq('severity_v2', filters.severity);
+        }
+        if (filters.eventType && filters.eventType !== 'all') {
+          query = query.eq('event_type', filters.eventType);
+        }
+        if (filters.branchId && filters.branchId !== 'all') {
+          query = query.eq('branch_id', filters.branchId);
+        }
+        if (filters.contractorId) {
+          query = query.eq('related_contractor_company_id', filters.contractorId);
+        }
+        if (filters.dateRange?.from) {
+          query = query.gte('occurred_at', filters.dateRange.from.toISOString());
+          if (filters.dateRange.to) {
+            // Add 1 day to include the end date fully
+            const nextDay = new Date(filters.dateRange.to);
+            nextDay.setDate(nextDay.getDate() + 1);
+            query = query.lt('occurred_at', nextDay.toISOString());
+          }
+        }
+        if (filters.tags && filters.tags.length > 0) {
+          query = query.contains('tags', filters.tags);
+        }
+      }
+
+      // Pagination
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      const { data, error, count } = await query
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
       if (error) throw error;
-      return data;
+
+      return { data, count };
     },
     enabled: !!profile?.tenant_id,
-    staleTime: 2 * 60 * 1000, // 2 minutes before refetch
-    gcTime: 10 * 60 * 1000, // 10 minutes in cache
+    staleTime: 60 * 1000, // 1 minute
+    placeholderData: (previousData) => previousData, // Keep previous data while fetching new page
   });
 }
 
@@ -417,7 +474,7 @@ export function useIncident(id: string | undefined) {
         .single();
 
       if (error) throw error;
-      
+
       // Cast and add new fields that may not be in types yet
       const extended = data as unknown as Record<string, unknown>;
       return {
@@ -544,21 +601,21 @@ export function useUpdateMyActionStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ 
-      id, 
+    mutationFn: async ({
+      id,
       status,
       progressNotes,
       completionNotes,
       overdueJustification,
-    }: { 
-      id: string; 
+    }: {
+      id: string;
       status: string;
       progressNotes?: string;
       completionNotes?: string;
       overdueJustification?: string;
     }) => {
       const updateData: Record<string, unknown> = { status };
-      
+
       // If starting work, set started_at and progress notes
       if (status === 'in_progress') {
         updateData.started_at = new Date().toISOString();
@@ -566,7 +623,7 @@ export function useUpdateMyActionStatus() {
           updateData.progress_notes = progressNotes;
         }
       }
-      
+
       // If marking as completed, set completion data
       if (status === 'completed') {
         updateData.completed_date = new Date().toISOString().split('T')[0];
@@ -597,13 +654,13 @@ export function useUpdateMyActionStatus() {
       // Optimistically update to the new status
       queryClient.setQueryData(['my-corrective-actions', user?.id], (old: unknown[]) =>
         old?.map((action: Record<string, unknown>) =>
-          action.id === id 
-            ? { 
-                ...action, 
-                status,
-                ...(status === 'in_progress' ? { started_at: new Date().toISOString() } : {}),
-                ...(status === 'completed' ? { completed_date: new Date().toISOString().split('T')[0] } : {}),
-              } 
+          action.id === id
+            ? {
+              ...action,
+              status,
+              ...(status === 'in_progress' ? { started_at: new Date().toISOString() } : {}),
+              ...(status === 'completed' ? { completed_date: new Date().toISOString().split('T')[0] } : {}),
+            }
             : action
         )
       );

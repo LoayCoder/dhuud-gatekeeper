@@ -48,20 +48,15 @@ export default function IncidentList() {
   const direction = i18n.dir();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { data: incidents, isLoading, refetch } = useIncidents();
   const { user, isAdmin } = useAuth();
   const { hasRole } = useUserRoles();
-  const { tags: incidentTags } = useAITags('incident');
-  const { exportEvents } = useHSSEEventsExport();
-  const [hasHSSEAccess, setHasHSSEAccess] = useState(false);
-  
-  // View mode state (persisted in URL)
-  const viewMode = (searchParams.get('view') as 'cards' | 'table') || 'cards';
-  
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
+
   // Parse tags from URL
   const urlTags = searchParams.get('tags');
   const initialTags = urlTags ? urlTags.split(',').filter(Boolean) : [];
-  
+
   // Filters state
   const [filters, setFilters] = useState<IncidentFilters>({
     search: searchParams.get('search') || '',
@@ -73,12 +68,42 @@ export default function IncidentList() {
     dateRange: undefined,
     tags: initialTags,
   });
-  
+
+  // Memoize filters for useIncidents to prevent infinite re-fetching
+  const incidentsFilters = useMemo(() => ({
+    search: filters.search,
+    status: filters.status,
+    severity: filters.severity,
+    eventType: filters.eventType,
+    branchId: filters.branchId,
+    contractorId: filters.contractorId,
+    dateRange: filters.dateRange,
+    tags: filters.tags
+  }), [filters]);
+
+  // Fetch incidents with server-side filtering and pagination
+  const { data: incidentsData, isLoading, refetch } = useIncidents({
+    page,
+    pageSize,
+    filters: incidentsFilters
+  });
+
+  const incidents = incidentsData?.data || [];
+  const totalCount = incidentsData?.count || 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  const { tags: incidentTags } = useAITags('incident');
+  const { exportEvents } = useHSSEEventsExport();
+  const [hasHSSEAccess, setHasHSSEAccess] = useState(false);
+
+  // View mode state (persisted in URL)
+  const viewMode = (searchParams.get('view') as 'cards' | 'table') || 'cards';
+
   // Regular delete dialog (for non-closed incidents by admin)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [incidentToDelete, setIncidentToDelete] = useState<string | null>(null);
   const [incidentToDeleteStatus, setIncidentToDeleteStatus] = useState<string | null>(null);
-  
+
   // Password-protected delete dialog (for closed incidents by HSSE Manager)
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [deletionPassword, setDeletionPassword] = useState('');
@@ -105,110 +130,57 @@ export default function IncidentList() {
     }
   }, [isHSSEManager, checkStatus]);
 
-  // Filter incidents
-  const filteredIncidents = useMemo(() => {
-    if (!incidents) return [];
-    
-    return incidents.filter((incident) => {
-      // Search filter
-      if (filters.search) {
-        const searchLower = filters.search.toLowerCase();
-        const matchesSearch = 
-          incident.title?.toLowerCase().includes(searchLower) ||
-          incident.reference_id?.toLowerCase().includes(searchLower);
-        if (!matchesSearch) return false;
-      }
-      
-      // Status filter
-      if (filters.status && incident.status !== filters.status) return false;
-      
-      // Severity filter
-      if (filters.severity && incident.severity_v2 !== filters.severity) return false;
-      
-      // Event type filter
-      if (filters.eventType && incident.event_type !== filters.eventType) return false;
-      
-      // Branch filter
-      if (filters.branchId && incident.branch_id !== filters.branchId) return false;
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [filters]);
 
-      // Contractor filter
-      if (filters.contractorId) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const incidentContractor = (incident as any).related_contractor_company;
-        // If incident has no contractor, but we are filtering for one, exclude it
-        // If incident has contractor, but ID doesn't match, exclude it
-        if (!incidentContractor || incidentContractor.id !== filters.contractorId) {
-          return false;
-        }
-      }
-      
-      // Date range filter
-      if (filters.dateRange?.from && incident.occurred_at) {
-        const occurredAt = parseISO(incident.occurred_at);
-        const from = filters.dateRange.from;
-        const to = filters.dateRange.to || filters.dateRange.from;
-        if (!isWithinInterval(occurredAt, { start: from, end: to })) return false;
-      }
-      
-      // Tags filter - incident must have ALL selected tags
-      if (filters.tags.length > 0) {
-        const incidentTags = (incident as any).tags as string[] | null;
-        if (!incidentTags || !Array.isArray(incidentTags)) return false;
-        const hasAllTags = filters.tags.every(tag => incidentTags.includes(tag));
-        if (!hasAllTags) return false;
-      }
-      
-      return true;
-    });
-  }, [incidents, filters]);
-
-  // Calculate KPI stats using correct status logic
+  // Client-side KPI stats (Note: Currently reflects only the fetched page. Ideally should be server-side aggregated)
+  // For now, we will hide the strict counts or just show them for the current view, 
+  // but to avoid confusion let's keep the component but maybe accept it's "Current View Stats" 
+  // or we need a separate hook for global stats.
   const kpiStats = useMemo(() => {
     if (!incidents) return { totalOpen: 0, criticalHigh: 0, overdue: 0, pendingActions: 0 };
-    
-    // Closed = truly completed (green)
+
     const closedStatuses = ['closed', 'no_investigation_required', 'investigation_closed'];
-    // Rejected = terminal but not successful
     const rejectedStatuses = ['expert_rejected', 'manager_rejected'];
-    // Critical/Major severities
     const criticalSeverities = ['level_4', 'level_5'];
-    // Action required statuses (pending approvals)
     const pendingActionStatuses = [
-      'pending_manager_approval', 
-      'pending_dept_rep_approval', 
+      'pending_manager_approval',
+      'pending_dept_rep_approval',
       'pending_dept_rep_incident_review',
       'pending_hsse_escalation_review',
       'hsse_manager_escalation',
-      'pending_closure', 
+      'pending_closure',
       'pending_final_closure'
     ];
-    
-    // Open = Everything EXCEPT closed and rejected
-    const totalOpen = incidents.filter(i => 
-      !closedStatuses.includes(i.status || '') && 
-      !rejectedStatuses.includes(i.status || '')
+
+    const totalOpen = incidents.filter(i =>
+      !closedStatuses.includes(i.status || '') &&
+      !rejectedStatuses.includes(i.status || '') &&
+      !pendingActionStatuses.includes(i.status || '')
     ).length;
-    
-    const criticalHigh = incidents.filter(i => 
+
+    const criticalHigh = incidents.filter(i =>
       criticalSeverities.includes(i.severity_v2 || '') &&
       !closedStatuses.includes(i.status || '')
     ).length;
-    
+
     const overdue = incidents.filter(i => {
       if (!i.occurred_at || closedStatuses.includes(i.status || '')) return false;
       return isPast(addDays(new Date(i.occurred_at), 7));
     }).length;
-    
-    const pendingActions = incidents.filter(i => 
+
+    const pendingActions = incidents.filter(i =>
       pendingActionStatuses.includes(i.status || '')
     ).length;
-    
+
     return { totalOpen, criticalHigh, overdue, pendingActions };
   }, [incidents]);
 
   // Get unique branches for filter - fetch branches separately
   const [branches, setBranches] = useState<Array<{ id: string; name: string }>>([]);
-  
+
   useEffect(() => {
     const fetchBranches = async () => {
       const { data } = await supabase
@@ -272,7 +244,7 @@ export default function IncidentList() {
   const handleDeleteClick = (incidentId: string, status: string | null) => {
     setIncidentToDelete(incidentId);
     setIncidentToDeleteStatus(status);
-    
+
     if (status === 'closed') {
       setPasswordDialogOpen(true);
     } else {
@@ -290,15 +262,16 @@ export default function IncidentList() {
       await deleteIncident.mutateAsync(incidentToDelete);
       setDeleteDialogOpen(false);
       setIncidentToDelete(null);
+      refetch(); // Refetch to update list
     }
   };
 
   const handlePasswordDelete = async () => {
     if (!incidentToDelete || !deletionPassword) return;
-    
+
     setPasswordError(null);
     const success = await deleteClosedIncident(incidentToDelete, deletionPassword);
-    
+
     if (success) {
       setPasswordDialogOpen(false);
       setIncidentToDelete(null);
@@ -322,8 +295,8 @@ export default function IncidentList() {
     <div className="container py-6 space-y-6" dir={direction}>
       {/* Header */}
       <IncidentListHeader
-        totalCount={incidents?.length || 0}
-        filteredCount={filteredIncidents.length}
+        totalCount={totalCount}
+        filteredCount={totalCount}
         hasHSSEAccess={hasHSSEAccess}
         viewMode={viewMode}
         onViewModeChange={handleViewModeChange}
@@ -367,36 +340,65 @@ export default function IncidentList() {
             </Card>
           ))}
         </div>
-      ) : filteredIncidents && filteredIncidents.length > 0 ? (
-        viewMode === 'table' ? (
-          <IncidentTableView
-            incidents={filteredIncidents.map(i => ({
-              ...i,
-              incident_type: (i as any).incident_type,
-            }))}
-            hasHSSEAccess={hasHSSEAccess}
-            isAdmin={isAdmin}
-            isHSSEManager={isHSSEManager}
-            onStartInvestigation={handleStartInvestigation}
-            onDelete={handleDeleteClick}
-          />
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredIncidents.map((incident) => (
-              <IncidentCardEnhanced
-                key={incident.id}
-                incident={{
-                  ...incident,
-                  incident_type: (incident as any).incident_type,
-                }}
-                hasHSSEAccess={hasHSSEAccess}
-                canDelete={canDeleteIncident(incident.status)}
-                onStartInvestigation={handleStartInvestigation}
-                onDelete={handleDeleteClick}
-              />
-            ))}
-          </div>
-        )
+      ) : incidents && incidents.length > 0 ? (
+        <div className="space-y-4">
+          {viewMode === 'table' ? (
+            <IncidentTableView
+              incidents={incidents.map(i => ({
+                ...i,
+                incident_type: (i as any).incident_type,
+              }))}
+              hasHSSEAccess={hasHSSEAccess}
+              isAdmin={isAdmin}
+              isHSSEManager={isHSSEManager}
+              onStartInvestigation={handleStartInvestigation}
+              onDelete={handleDeleteClick}
+            />
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {incidents.map((incident) => (
+                <IncidentCardEnhanced
+                  key={incident.id}
+                  incident={{
+                    ...incident,
+                    incident_type: (incident as any).incident_type,
+                  }}
+                  hasHSSEAccess={hasHSSEAccess}
+                  canDelete={canDeleteIncident(incident.status)}
+                  onStartInvestigation={handleStartInvestigation}
+                  onDelete={handleDeleteClick}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t pt-4">
+              <div className="text-sm text-muted-foreground">
+                {t('common.showing', 'Showing')} {(page - 1) * pageSize + 1} {t('common.to', 'to')} {Math.min(page * pageSize, totalCount)} {t('common.of', 'of')} {totalCount} {t('common.results', 'results')}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                >
+                  {t('common.previous', 'Previous')}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                >
+                  {t('common.next', 'Next')}
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
       ) : (
         <Card className="py-12">
           <CardContent className="flex flex-col items-center justify-center text-center">
@@ -430,7 +432,7 @@ export default function IncidentList() {
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleConfirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
@@ -452,7 +454,7 @@ export default function IncidentList() {
               {t('profile.deletionPassword.enterPassword')}
             </DialogDescription>
           </DialogHeader>
-          
+
           {!isConfigured ? (
             <div className="py-4">
               <p className="text-sm text-destructive">
@@ -476,20 +478,20 @@ export default function IncidentList() {
                   }}
                 />
               </div>
-              
+
               {passwordError && (
                 <p className="text-sm text-destructive">{passwordError}</p>
               )}
             </div>
           )}
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => handlePasswordDialogClose(false)}>
               {t('common.cancel')}
             </Button>
             {isConfigured && (
-              <Button 
-                onClick={handlePasswordDelete} 
+              <Button
+                onClick={handlePasswordDelete}
                 disabled={isDeletingClosed || !deletionPassword}
                 variant="destructive"
               >
