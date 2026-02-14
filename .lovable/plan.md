@@ -1,41 +1,36 @@
 
 
-## Fix: Investigation Workspace - Restore Full Incident Selection and Investigation
+## Fix: "Approve & Lock" Error — Missing Columns on `incidents` Table
 
 ### Problem
-The `/incidents/investigate` route is currently pointing to `InvestigationWorkspaceDebug` -- a stripped-down debug page that only lists incidents without any selection or investigation functionality. This was likely left over from previous debugging.
+When an HSSE Manager/Expert clicks "Approve & Lock" to start an investigation, it fails with:
+> `Could not find the 'approval_notes' column of 'incidents' in the schema cache`
 
-### Root Cause
-In `src/routes/incident.routes.tsx`, line 14:
-```typescript
-// The REAL workspace is commented out:
-// const InvestigationWorkspace = lazyWithRetry(() => import("@/pages/incidents/InvestigationWorkspace"));
+The `ApprovalWorkflowBanner.tsx` component updates 4 columns that do not exist on the `incidents` table:
+- `approved_by`
+- `approved_at`
+- `approval_notes`
+- `investigation_locked`
 
-// The DEBUG version is active:
-const InvestigationWorkspace = lazyWithRetry(() => import("@/pages/incidents/InvestigationWorkspaceDebug"));
+### Fix
+
+**Step 1: Database Migration** — Add the 4 missing columns to `incidents`:
+
+```sql
+ALTER TABLE public.incidents
+  ADD COLUMN IF NOT EXISTS approved_by UUID REFERENCES public.profiles(id),
+  ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS approval_notes TEXT,
+  ADD COLUMN IF NOT EXISTS investigation_locked BOOLEAN DEFAULT false;
 ```
 
-### Fix (1 file, 1 line change)
+No code changes are needed — the `ApprovalWorkflowBanner.tsx` already references these columns correctly. Once the columns exist, the update query will succeed.
 
-**File: `src/routes/incident.routes.tsx`** (line 13-14)
+**Step 2: Verify** — The existing RLS policies on `incidents` will cover these new columns automatically since RLS operates at the row level.
 
-Swap the import back to the real workspace:
-- Uncomment line 13 (real workspace import)
-- Comment out or remove line 14 (debug workspace import)
+### Files Modified
+- None (database migration only)
 
-```typescript
-const InvestigationWorkspace = lazyWithRetry(() => import("@/pages/incidents/InvestigationWorkspace"));
-// const InvestigationWorkspace = lazyWithRetry(() => import("@/pages/incidents/InvestigationWorkspaceDebug"));
-```
-
-This restores:
-- The Select dropdown for choosing incidents
-- My Pending / All Incidents toggle
-- Full investigation tabs (Overview, Evidence, Witnesses, RCA, Actions, Audit Log)
-- Workflow cards, closure dialogs, and all investigation functionality
-
-### Technical Details
-- The real `InvestigationWorkspace.tsx` (1273 lines) is fully functional with all previous fixes applied (`.data` access, type casts, etc.)
-- No other files need changes
-- The debug file can remain in the codebase for future use but will not be served
-
+### Risk
+- Low risk — purely additive (new nullable columns with a default for `investigation_locked`).
+- No existing data or queries are affected.
