@@ -62,7 +62,8 @@ export function GatePassDetailDialog({
     open ? pass?.id || null : null
   );
   const { data: items, isLoading: isLoadingItems } = useGatePassItems(
-    open ? pass?.id || null : null
+    open ? pass?.id || null : null,
+    pass?.is_public_request || false
   );
   const { data: photos, isLoading: isLoadingPhotos } = useGatePassPhotos(
     open ? pass?.id || null : null,

@@ -10,6 +10,8 @@ export interface GatePassItem {
   quantity: string | null;
   unit: string | null;
   created_at: string;
+  sr_number?: string | null;
+  photo_storage_path?: string | null;
 }
 
 export interface GatePassPhoto {
@@ -199,14 +201,37 @@ export function useGatePassDetails(passId: string | null) {
   });
 }
 
-export function useGatePassItems(passId: string | null) {
+export function useGatePassItems(passId: string | null, isPublic: boolean = false) {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
 
   return useQuery({
-    queryKey: ["gate-pass-items", passId],
+    queryKey: ["gate-pass-items", passId, isPublic],
     queryFn: async () => {
       if (!passId || !tenantId) return [];
+
+      if (isPublic) {
+        // Public passes store items in public_gate_pass_items
+        const { data, error } = await supabase
+          .from("public_gate_pass_items")
+          .select("id, gate_pass_id, item_name, description, quantity, unit, sr_number, photo_storage_path, created_at")
+          .eq("gate_pass_id", passId)
+          .is("deleted_at", null)
+          .order("sort_order", { ascending: true });
+
+        if (error) throw error;
+        return (data || []).map(item => ({
+          id: item.id,
+          gate_pass_id: item.gate_pass_id,
+          item_name: item.item_name,
+          description: item.description,
+          quantity: item.quantity,
+          unit: item.unit,
+          created_at: item.created_at,
+          sr_number: item.sr_number,
+          photo_storage_path: item.photo_storage_path,
+        })) as GatePassItem[];
+      }
 
       const { data, error } = await supabase
         .from("gate_pass_items")
@@ -232,6 +257,44 @@ export function useGatePassPhotos(passId: string | null, isPublic: boolean = fal
     queryFn: async () => {
       if (!passId || !tenantId) return [];
 
+      if (isPublic) {
+        // Public passes embed photos in public_gate_pass_items via photo_storage_path
+        const { data: publicItems, error: pubError } = await supabase
+          .from("public_gate_pass_items")
+          .select("id, gate_pass_id, photo_storage_path, item_name, created_at")
+          .eq("gate_pass_id", passId)
+          .not("photo_storage_path", "is", null)
+          .is("deleted_at", null);
+
+        if (pubError) throw pubError;
+
+        const photosWithUrls: GatePassPhoto[] = [];
+        await Promise.all(
+          (publicItems || []).map(async (item) => {
+            if (!item.photo_storage_path) return;
+            const { data: signedData } = await supabase.storage
+              .from("public-gate-pass-photos")
+              .createSignedUrl(item.photo_storage_path, 3600);
+
+            if (signedData?.signedUrl) {
+              photosWithUrls.push({
+                id: item.id,
+                gate_pass_id: item.gate_pass_id,
+                item_id: item.id, // link photo to item
+                storage_path: item.photo_storage_path,
+                file_name: item.item_name || "photo",
+                file_size: null,
+                mime_type: null,
+                uploaded_by: null,
+                created_at: item.created_at,
+                signedUrl: signedData.signedUrl,
+              });
+            }
+          })
+        );
+        return photosWithUrls;
+      }
+
       // 1. Fetch from gate_pass_item_photos (item-level photos)
       const { data: itemPhotos, error: itemError } = await supabase
         .from("gate_pass_item_photos")
@@ -254,24 +317,18 @@ export function useGatePassPhotos(passId: string | null, isPublic: boolean = fal
 
       if (generalError) throw generalError;
 
-      // Combine both sources
-      // Map general photos to match the GatePassPhoto interface (item_id: null)
       const allPhotos: GatePassPhoto[] = [
         ...(itemPhotos || []),
         ...(generalPhotos || []).map(p => ({ ...p, item_id: null }))
       ];
 
-      // Determine bucket based on request type
-      const bucketName = isPublic ? "public-gate-pass-photos" : "gate-pass-photos";
-
-      // Generate signed URLs for each photo
+      const bucketName = "gate-pass-photos";
       const photosWithUrls: GatePassPhoto[] = [];
-      // Process in parallel for better performance
       await Promise.all(
         allPhotos.map(async (photo) => {
           const { data: signedData } = await supabase.storage
             .from(bucketName)
-            .createSignedUrl(photo.storage_path, 3600); // 1 hour expiry
+            .createSignedUrl(photo.storage_path, 3600);
 
           if (signedData?.signedUrl) {
             photosWithUrls.push({
