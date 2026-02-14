@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -7,6 +7,16 @@ import { ArrowLeft, ArrowRight, Check, Plus, Calendar as CalendarIcon, Clock, Tr
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -48,9 +58,12 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showValidationErrors, setShowValidationErrors] = useState(false);
 
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
   // Form state
   const [passType, setPassType] = useState<PassTypeValue>("in_out");
   const [passDate, setPassDate] = useState<Date>(new Date());
+  const [endDate, setEndDate] = useState<Date>(new Date());
   const [timeWindowStart, setTimeWindowStart] = useState("");
   const [timeWindowEnd, setTimeWindowEnd] = useState("");
   const [approverId, setApproverId] = useState("");
@@ -141,14 +154,27 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
     }
   };
 
+  // Handle date changes for multi-day
+  const isDateRange = passType === "in_out";
+  const handlePassDateChange = (d: Date) => {
+    setPassDate(d);
+    if (!isDateRange || endDate < d) {
+      setEndDate(d);
+    }
+  };
+
   // Submit
-  const handleSubmit = async () => {
+  const handleSubmitClick = () => {
     setShowValidationErrors(true);
     if (!step1Valid || !step2Valid) {
       toast.error(t("gatePasses.wizard.validationError", "Please complete all required fields"));
       return;
     }
+    setShowConfirmDialog(true);
+  };
 
+  const handleConfirmedSubmit = async () => {
+    setShowConfirmDialog(false);
     setIsSubmitting(true);
     try {
       await createGatePass.mutateAsync({
@@ -157,6 +183,8 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
         driver_name: driverName || undefined,
         driver_mobile: driverMobile || undefined,
         pass_date: format(passDate, "yyyy-MM-dd"),
+        start_date: format(passDate, "yyyy-MM-dd"),
+        end_date: format(endDate, "yyyy-MM-dd"),
         time_window_start: timeWindowStart || undefined,
         time_window_end: timeWindowEnd || undefined,
         approval_from_id: approverId,
@@ -171,7 +199,6 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
         photos: [],
       });
 
-      // Success haptic
       if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
       toast.success(t("myGatePasses.createSuccess", "Gate pass request created successfully"));
       onSuccess?.();
@@ -249,9 +276,9 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Date picker */}
+                  {/* Date pickers */}
                   <div className="space-y-2">
-                    <Label>{t("gatePasses.passDate", "Pass Date")} *</Label>
+                    <Label>{isDateRange ? t("gatePasses.startDate", "Start Date") : t("gatePasses.passDate", "Pass Date")} *</Label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
@@ -266,13 +293,39 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
                         <Calendar
                           mode="single"
                           selected={passDate}
-                          onSelect={(date) => date && setPassDate(date)}
+                          onSelect={(date) => date && handlePassDateChange(date)}
                           disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                           initialFocus
                         />
                       </PopoverContent>
                     </Popover>
                   </div>
+
+                  {isDateRange && (
+                    <div className="space-y-2">
+                      <Label>{t("gatePasses.endDate", "End Date")} *</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn("w-full h-12 justify-start text-start font-normal")}
+                          >
+                            <CalendarIcon className="me-2 h-4 w-4" />
+                            {format(endDate, "PPP")}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={endDate}
+                            onSelect={(date) => date && setEndDate(date)}
+                            disabled={(date) => date < passDate || date > new Date(passDate.getTime() + 6 * 86400000)}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  )}
 
                   {/* Time window */}
                   <div className="grid grid-cols-2 gap-3">
@@ -559,7 +612,7 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
               <ArrowRight className="h-4 w-4 ms-2 rtl:rotate-180" />
             </Button>
           ) : (
-            <Button onClick={handleSubmit} disabled={isSubmitting} className="h-12 flex-1 bg-success hover:bg-success/90">
+            <Button onClick={handleSubmitClick} disabled={isSubmitting} className="h-12 flex-1 bg-success hover:bg-success/90">
               {isSubmitting ? (
                 <Loader2 className="h-4 w-4 animate-spin me-2" />
               ) : (
@@ -570,6 +623,36 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
           )}
         </div>
       </div>
+
+      {/* Submission Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent dir={isRTL ? "rtl" : "ltr"}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("gatePasses.wizard.confirmTitle", "Submit Gate Pass Request?")}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <span className="block">
+                {t("gatePasses.wizard.confirmMessage", "Please confirm the details are correct before submitting.")}
+              </span>
+              <span className="block text-sm">
+                <strong>{t("gatePasses.passType", "Type")}:</strong> {t(`gatePasses.passType.${passType}`, passType)}
+                {" • "}
+                <strong>{t("gatePasses.passDate", "Date")}:</strong> {format(passDate, "PPP")}
+                {isDateRange && ` → ${format(endDate, "PPP")}`}
+                {" • "}
+                <strong>{t("gatePasses.items", "Items")}:</strong> {items.length}
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel", "Cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmedSubmit} className="bg-success hover:bg-success/90">
+              {t("gatePasses.wizard.submit", "Submit Request")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

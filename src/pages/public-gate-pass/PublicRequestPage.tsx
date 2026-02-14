@@ -257,9 +257,22 @@ export default function PublicRequestPage() {
     };
   };
 
+  // Upload photo with retry
+  const uploadPhotoWithRetry = async (file: File, gatePassRef: string, index: number, retries = 1): Promise<{ path: string; fileName: string; size: number; mimeType: string }> => {
+    try {
+      return await uploadPhoto(file, gatePassRef, index);
+    } catch (err) {
+      if (retries > 0) {
+        console.warn(`[PublicGatePass] Photo upload retry for item ${index + 1}`);
+        return uploadPhotoWithRetry(file, gatePassRef, index, retries - 1);
+      }
+      throw err;
+    }
+  };
+
   // Submit handler
   const handleSubmit = async () => {
-    if (!validateStep(3)) { // Validate items again just in case
+    if (!validateStep(3)) {
       toast.error(isRTL ? "يرجى التحقق من البنود" : "Please check the items");
       return;
     }
@@ -276,7 +289,7 @@ export default function PublicRequestPage() {
         let photoData = null;
         if (item.photo) {
           try {
-            photoData = await uploadPhoto(item.photo, tempRef, i);
+            photoData = await uploadPhotoWithRetry(item.photo, tempRef, i);
           } catch (uploadError) {
             console.error('Photo upload failed:', uploadError);
             toast.error(isRTL ? `فشل رفع صورة البند ${i + 1}` : `Failed to upload photo for item ${i + 1}`);
@@ -672,10 +685,31 @@ export default function PublicRequestPage() {
                     <span className="font-mono">{vehiclePlateLetters} {vehiclePlateNumbers}</span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground block text-xs">{isRTL ? "عدد المواد" : "Items Count"}</span>
+                   <span className="text-muted-foreground block text-xs">{isRTL ? "عدد المواد" : "Items Count"}</span>
                     <span className="font-medium">{items.length}</span>
                   </div>
                 </div>
+
+                {/* Item photo thumbnails in review */}
+                {items.some(i => i.photoPreviewUrl) && (
+                  <div className="space-y-2 pt-2 border-t">
+                    <span className="text-xs text-muted-foreground">{isRTL ? "صور المواد" : "Item Photos"}</span>
+                    <div className="flex flex-wrap gap-2">
+                      {items.map((item, idx) => item.photoPreviewUrl ? (
+                        <div key={idx} className="relative">
+                          <img
+                            src={item.photoPreviewUrl}
+                            alt={item.item_name || `Item ${idx + 1}`}
+                            className="h-14 w-14 rounded-lg object-cover border"
+                          />
+                          <span className="absolute -top-1 -end-1 bg-primary text-primary-foreground text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
+                            {idx + 1}
+                          </span>
+                        </div>
+                      ) : null)}
+                    </div>
+                  </div>
+                )}
 
                 <Separator />
 

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { useGatePassDetails, useGatePassItems } from './use-gate-pass-details';
+import { useGatePassDetails } from './use-gate-pass-details';
+import { useGatePassMedia } from './use-gate-pass-media';
 import { generateBrandedPDFFromElement } from '@/lib/pdf-utils';
 import { useTranslation } from 'react-i18next';
 import { useDocumentBranding } from '@/hooks/use-document-branding';
@@ -18,11 +19,13 @@ interface GeneratePDFOptions {
 export function useGatePassPDF(passId: string | undefined) {
   const { t } = useTranslation();
   const { data: passDetails, isLoading: isLoadingDetails } = useGatePassDetails(passId);
-  const { data: items, isLoading: isLoadingItems } = useGatePassItems(passId);
+  const isPublic = passDetails?.is_public_request || false;
+  const { items, isLoading: isLoadingMedia } = useGatePassMedia(passId || null, isPublic);
   const { getHeaderConfig, getFooterConfig, getWatermarkConfig, logoUrl, tenantName } = useDocumentBranding();
   const [isGenerating, setIsGenerating] = useState(false);
 
   const generatePDF = useCallback(async (options: GeneratePDFOptions = {}) => {
+    const itemsData = items || [];
     if (!passDetails) {
       throw new Error('Gate pass not found');
     }
@@ -83,10 +86,10 @@ export function useGatePassPDF(passId: string | undefined) {
         primaryLanguage: options.primaryLanguage || 'en',
         showQR: options.showQR !== false,
         includeItems: options.includeItems !== false,
-        items: items?.map(item => ({
+        items: itemsData.map(item => ({
           ...item,
           quantity: item.quantity ? Number(item.quantity) : null,
-        })) || [],
+        })),
       });
       
       container.innerHTML = templateHtml;
@@ -139,12 +142,12 @@ export function useGatePassPDF(passId: string | undefined) {
     } finally {
       setIsGenerating(false);
     }
-  }, [passDetails, items, t, getHeaderConfig, getFooterConfig, getWatermarkConfig, logoUrl, tenantName]);
+  }, [passDetails, items, t, getHeaderConfig, getFooterConfig, getWatermarkConfig, logoUrl, tenantName, isPublic]);
 
   return {
     passDetails,
     items,
-    isLoading: isLoadingDetails || isLoadingItems,
+    isLoading: isLoadingDetails || isLoadingMedia,
     isGenerating,
     generatePDF,
   };

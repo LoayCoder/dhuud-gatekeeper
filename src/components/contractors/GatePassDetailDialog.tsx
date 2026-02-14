@@ -26,6 +26,8 @@ import {
   LogOut,
   Package,
   ImageIcon,
+  Expand,
+  X,
 } from "lucide-react";
 import { MaterialGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
 import {
@@ -38,6 +40,7 @@ import {
 import { cn } from "@/lib/utils";
 import { GatePassPDFExportButton } from "./GatePassPDFExportButton";
 import { GatePassApprovalActions } from "./GatePassApprovalActions";
+import { GatePassPhoto as GatePassPhotoComponent } from "@/components/ui/gate-pass-photo";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface GatePassDetailDialogProps {
@@ -322,7 +325,11 @@ function DetailsTab({
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-muted-foreground">{t("contractors.gatePassDetail.plateNumber", "Plate")}:</span>
-              <span className="ms-2 font-medium">{data.vehicle_plate || "-"}</span>
+              <span className="ms-2 font-medium font-mono">
+                {data.is_public_request && (data as any).vehicle_plate_letters && (data as any).vehicle_plate_numbers
+                  ? `${(data as any).vehicle_plate_letters} ${(data as any).vehicle_plate_numbers}`
+                  : data.vehicle_plate || "-"}
+              </span>
             </div>
             <div>
               <span className="text-muted-foreground">{t("contractors.gatePassDetail.driverName", "Driver")}:</span>
@@ -427,6 +434,9 @@ function ItemsPhotosTab({
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="font-medium text-sm">{item.item_name}</p>
+                      {item.sr_number && (
+                        <p className="text-xs text-muted-foreground mt-0.5 font-mono">SN: {item.sr_number}</p>
+                      )}
                       {item.description && (
                         <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
                       )}
@@ -447,21 +457,12 @@ function ItemsPhotosTab({
                       </p>
                       <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                         {itemPhotos.map((photo) => (
-                          <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden border bg-background">
-                            {photo.signedUrl ? (
-                              <a href={photo.signedUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
-                                <img
-                                  src={photo.signedUrl}
-                                  alt={photo.file_name}
-                                  className="w-full h-full object-cover hover:opacity-90 transition-opacity"
-                                />
-                              </a>
-                            ) : (
-                              <div className="w-full h-full bg-muted flex items-center justify-center">
-                                <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                              </div>
-                            )}
-                          </div>
+                          <GatePassPhotoComponent
+                            key={photo.id}
+                            signedUrl={photo.signedUrl}
+                            alt={photo.file_name}
+                            className="aspect-square"
+                          />
                         ))}
                       </div>
                     </div>
@@ -496,21 +497,12 @@ function ItemsPhotosTab({
           </h4>
           <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
             {photos.map((photo) => (
-              <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden border">
-                {photo.signedUrl ? (
-                  <a href={photo.signedUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
-                    <img
-                      src={photo.signedUrl}
-                      alt={photo.file_name}
-                      className="w-full h-full object-cover hover:opacity-90 transition-opacity"
-                    />
-                  </a>
-                ) : (
-                  <div className="w-full h-full bg-muted flex items-center justify-center">
-                    <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                )}
-              </div>
+              <GatePassPhotoComponent
+                key={photo.id}
+                signedUrl={photo.signedUrl}
+                alt={photo.file_name}
+                className="aspect-square"
+              />
             ))}
           </div>
         </div>
@@ -534,21 +526,12 @@ function ItemsPhotosTab({
             ) : generalPhotos.length > 0 ? (
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                 {generalPhotos.map((photo) => (
-                  <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden border">
-                    {photo.signedUrl ? (
-                      <a href={photo.signedUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
-                        <img
-                          src={photo.signedUrl}
-                          alt={photo.file_name}
-                          className="w-full h-full object-cover hover:opacity-90 transition-opacity"
-                        />
-                      </a>
-                    ) : (
-                      <div className="w-full h-full bg-muted flex items-center justify-center">
-                        <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
+                  <GatePassPhotoComponent
+                    key={photo.id}
+                    signedUrl={photo.signedUrl}
+                    alt={photo.file_name}
+                    className="aspect-square"
+                  />
                 ))}
               </div>
             ) : null}
