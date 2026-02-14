@@ -200,14 +200,12 @@ export function GatePassDetailDialog({
 
         {/* Approval Actions - shown when pass is pending and user can act */}
         {isPendingAction && (
-          <DialogFooter className="border-t pt-4">
-            <div className="w-full">
-              <GatePassApprovalActions
-                pass={pass}
-                onSuccess={handleApprovalSuccess}
-              />
-            </div>
-          </DialogFooter>
+          <div className="border-t pt-3 mt-2">
+            <GatePassApprovalActions
+              pass={pass}
+              onSuccess={handleApprovalSuccess}
+            />
+          </div>
         )}
       </DialogContent>
     </Dialog>
