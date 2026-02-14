@@ -221,7 +221,7 @@ export function usePendingGatePassApprovals() {
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
         .in("status", uniqueStatuses)
-        .neq("requested_by", user.id) // Exclude own requests (can't self-approve)
+        .or(`requested_by.neq.${user.id},requested_by.is.null`) // Exclude own requests but include public (NULL) submissions
         .order("created_at", { ascending: false });
 
       if (error) throw error;
