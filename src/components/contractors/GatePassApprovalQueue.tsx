@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Check, X, Truck, Clock, User, Eye } from "lucide-react";
+import { Check, X, Truck, Clock, User, Eye, Package, ImageIcon } from "lucide-react";
 import { MaterialGatePass, useApproveGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
 import { GatePassRejectionDialog } from "./GatePassRejectionDialog";
 import { GatePassDetailDialog } from "./GatePassDetailDialog";
@@ -168,6 +168,15 @@ export function GatePassApprovalQueue({ passes }: GatePassApprovalQueueProps) {
                         : pass.project?.project_name}
                   </p>
                   <p className="text-sm font-medium mt-1">{pass.material_description}</p>
+                  {/* Item count indicator derived from material description */}
+                  {pass.material_description && pass.material_description.includes(';') && (
+                    <div className="flex items-center gap-1 mt-1">
+                      <Badge variant="outline" className="text-xs gap-1">
+                        <Package className="h-3 w-3" />
+                        {pass.material_description.split(';').length} {t("contractors.gatePasses.items", "items")}
+                      </Badge>
+                    </div>
+                  )}
                 </div>
 
                 {/* Requester and Designated Approver Info */}

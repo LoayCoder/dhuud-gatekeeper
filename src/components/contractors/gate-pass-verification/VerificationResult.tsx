@@ -19,6 +19,7 @@ import { GatePassVerificationResult } from '@/hooks/contractor-management/use-ga
 
 interface VerificationResultProps {
   result: GatePassVerificationResult;
+  itemCount?: number;
   className?: string;
 }
 
@@ -75,7 +76,7 @@ function getStatusConfig(valid: boolean, status?: string): {
   };
 }
 
-export function VerificationResult({ result, className }: VerificationResultProps) {
+export function VerificationResult({ result, itemCount, className }: VerificationResultProps) {
   const { t } = useTranslation();
   const statusConfig = getStatusConfig(result.valid, result.message);
   const StatusIcon = statusConfig.icon;
@@ -131,11 +132,20 @@ export function VerificationResult({ result, className }: VerificationResultProp
             {/* Pass Type & Status */}
             <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="secondary" className="text-sm">
+                {result.gatePass.pass_type === 'in' && t('contractors.gatePasses.passTypeIn', 'Material In')}
+                {result.gatePass.pass_type === 'out' && t('contractors.gatePasses.passTypeOut', 'Material Out')}
+                {result.gatePass.pass_type === 'in_out' && t('contractors.gatePasses.passTypeInOut', 'Entry & Exit')}
                 {result.gatePass.pass_type === 'material_in' && t('contractors.gatePasses.materialIn', 'Material In')}
                 {result.gatePass.pass_type === 'material_out' && t('contractors.gatePasses.materialOut', 'Material Out')}
                 {result.gatePass.pass_type === 'equipment_in' && t('contractors.gatePasses.equipmentIn', 'Equipment In')}
                 {result.gatePass.pass_type === 'equipment_out' && t('contractors.gatePasses.equipmentOut', 'Equipment Out')}
               </Badge>
+              {typeof itemCount === 'number' && itemCount > 0 && (
+                <Badge variant="outline" className="text-sm gap-1">
+                  <Package className="h-3 w-3" />
+                  {itemCount} {t('contractors.gatePasses.items', 'items')}
+                </Badge>
+              )}
               {result.gatePass.entry_time && (
                 <Badge variant="outline" className="text-sm gap-1 text-green-600 border-green-300">
                   <CheckCircle2 className="h-3 w-3" />
