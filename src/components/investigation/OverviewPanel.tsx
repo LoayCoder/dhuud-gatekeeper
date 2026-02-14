@@ -18,9 +18,10 @@ interface OverviewPanelProps {
   incident: IncidentWithDetails | undefined;
   investigation: Investigation | null;
   onRefresh: () => void;
+  canApprove?: boolean;
 }
 
-export function OverviewPanel({ incident, investigation, onRefresh }: OverviewPanelProps) {
+export function OverviewPanel({ incident, investigation, onRefresh, canApprove }: OverviewPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const { isAdmin } = useAuth();
@@ -55,6 +56,7 @@ export function OverviewPanel({ incident, investigation, onRefresh }: OverviewPa
         incident={incident} 
         investigation={investigation}
         onRefresh={onRefresh}
+        canApprove={canApprove}
       />
 
       {/* Two-column layout for main info */}

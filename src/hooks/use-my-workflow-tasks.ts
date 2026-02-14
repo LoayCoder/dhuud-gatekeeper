@@ -68,10 +68,10 @@ export function useMyAssignedInvestigations() {
         })
       );
 
-      // Filter to only show active investigations (not closed)
+      // Filter to only show active investigations (not terminal statuses)
       const activeInvestigations = investigationsWithIncidents.filter(inv => {
         const status = inv.incident?.status;
-        return status && !['closed', 'rejected'].includes(status);
+        return status && !['closed', 'rejected', 'rejected_invalid'].includes(status);
       });
 
       return activeInvestigations as MyAssignedInvestigation[];

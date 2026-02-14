@@ -535,7 +535,7 @@ export function useMyReportedIncidents() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
         .from('incidents')
-        .select('id, reference_id, title, status, severity, event_type, created_at, occurred_at, site:sites(id, name), branch:branches(id, name)')
+        .select('id, reference_id, title, status, severity, event_type, created_at, occurred_at, site:sites(id, name), branch:branches!incidents_branch_id_fkey(id, name)')
         .eq('reporter_id', user.id)
         .eq('tenant_id', profile.tenant_id)
         .is('deleted_at', null)
