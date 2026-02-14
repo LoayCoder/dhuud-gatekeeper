@@ -10904,6 +10904,9 @@ export type Database = {
           ai_analysis_result: Json | null
           all_actions_verified: boolean | null
           approval_manager_id: string | null
+          approval_notes: string | null
+          approved_at: string | null
+          approved_by: string | null
           assigned_environmental_expert_id: string | null
           auto_declassify_to: string | null
           branch_id: string | null
@@ -11000,6 +11003,7 @@ export type Database = {
           investigation_approved_at: string | null
           investigation_approved_by: string | null
           investigation_complete: boolean | null
+          investigation_locked: boolean | null
           is_admin_override: boolean | null
           is_recordable: boolean | null
           latitude: number | null
@@ -11135,6 +11139,9 @@ export type Database = {
           ai_analysis_result?: Json | null
           all_actions_verified?: boolean | null
           approval_manager_id?: string | null
+          approval_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           assigned_environmental_expert_id?: string | null
           auto_declassify_to?: string | null
           branch_id?: string | null
@@ -11231,6 +11238,7 @@ export type Database = {
           investigation_approved_at?: string | null
           investigation_approved_by?: string | null
           investigation_complete?: boolean | null
+          investigation_locked?: boolean | null
           is_admin_override?: boolean | null
           is_recordable?: boolean | null
           latitude?: number | null
@@ -11366,6 +11374,9 @@ export type Database = {
           ai_analysis_result?: Json | null
           all_actions_verified?: boolean | null
           approval_manager_id?: string | null
+          approval_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           assigned_environmental_expert_id?: string | null
           auto_declassify_to?: string | null
           branch_id?: string | null
@@ -11462,6 +11473,7 @@ export type Database = {
           investigation_approved_at?: string | null
           investigation_approved_by?: string | null
           investigation_complete?: boolean | null
+          investigation_locked?: boolean | null
           is_admin_override?: boolean | null
           is_recordable?: boolean | null
           latitude?: number | null
@@ -11599,6 +11611,13 @@ export type Database = {
           {
             foreignKeyName: "incidents_approval_manager_id_fkey"
             columns: ["approval_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_approved_by_fkey"
+            columns: ["approved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
