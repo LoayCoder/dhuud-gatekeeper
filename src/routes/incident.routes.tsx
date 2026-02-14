@@ -10,8 +10,8 @@ import { lazyWithRetry } from "@/lib/lazy-with-retry";
 const IncidentList = lazyWithRetry(() => import("@/pages/incidents/IncidentList"));
 const IncidentReport = lazyWithRetry(() => import("@/pages/incidents/IncidentReport"));
 const IncidentDetail = lazyWithRetry(() => import("@/pages/incidents/IncidentDetail"));
-// const InvestigationWorkspace = lazyWithRetry(() => import("@/pages/incidents/InvestigationWorkspace"));
-const InvestigationWorkspace = lazyWithRetry(() => import("@/pages/incidents/InvestigationWorkspaceDebug"));
+const InvestigationWorkspace = lazyWithRetry(() => import("@/pages/incidents/InvestigationWorkspace"));
+// const InvestigationWorkspace = lazyWithRetry(() => import("@/pages/incidents/InvestigationWorkspaceDebug"));
 const MyActions = lazyWithRetry(() => import("@/pages/incidents/MyActions"));
 const HSSEEventDashboard = lazyWithRetry(() => import("@/pages/incidents/HSSEEventDashboard"));
 
