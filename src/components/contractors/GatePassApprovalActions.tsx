@@ -83,9 +83,9 @@ export function GatePassApprovalActions({ pass, onSuccess }: GatePassApprovalAct
   };
 
   return (
-    <div className="space-y-4 pt-4 border-t">
-      <div className="space-y-2">
-        <Label htmlFor="approval-notes">
+    <div className="space-y-3">
+      <div className="space-y-1.5">
+        <Label htmlFor="approval-notes" className="text-xs text-muted-foreground">
           {t("contractors.gatePasses.approvalNotes", "Notes (Optional)")}
         </Label>
         <Textarea
@@ -93,28 +93,32 @@ export function GatePassApprovalActions({ pass, onSuccess }: GatePassApprovalAct
           placeholder={t("contractors.gatePasses.notesPlaceholder", "Add any notes about this approval...")}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="resize-none"
+          className="resize-none text-sm"
           rows={2}
         />
       </div>
 
-      <div className="flex gap-2 justify-end">
+      <div className="flex gap-2">
         <Button
           variant="destructive"
+          size="sm"
+          className="flex-1"
           onClick={() => setIsRejecting(true)}
           disabled={approvePass.isPending}
         >
-          <XCircle className="h-4 w-4 me-2" />
+          <XCircle className="h-4 w-4 me-1.5" />
           {t("contractors.gatePasses.reject", "Reject")}
         </Button>
         <Button
+          size="sm"
+          className="flex-[2]"
           onClick={handleApprove}
           disabled={approvePass.isPending}
         >
           {approvePass.isPending ? (
-            <Loader2 className="h-4 w-4 me-2 animate-spin" />
+            <Loader2 className="h-4 w-4 me-1.5 animate-spin" />
           ) : (
-            <CheckCircle2 className="h-4 w-4 me-2" />
+            <CheckCircle2 className="h-4 w-4 me-1.5" />
           )}
           {getActionLabel()}
         </Button>
