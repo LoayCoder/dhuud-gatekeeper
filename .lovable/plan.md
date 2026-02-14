@@ -1,43 +1,58 @@
 
 
-## Fix: Public Gate Passes Hidden from Security Supervisor Queue
+## Fix: Gate Pass Details Dialog -- Empty Tabs and Missing Timeline Data
 
-### Problem
-The Gate Pass tab on `/security/access-control` shows "No pending approvals" even though there are public gate passes at `pending_security_approval` status.
+### Problems Identified
 
-### Root Cause
-In `usePendingGatePassApprovals` (line 224 of `use-material-gate-passes.ts`):
+1. **Build Error (blocks all rendering):** The `DetailsTab` sub-component references an `items` variable (line 264) that is not in its scope. The `items` data is fetched in the parent `GatePassDetailDialog` but never passed down. This causes a TypeScript build failure, which prevents the entire dialog from rendering -- explaining why Details, Material Description, and Items tabs all appear empty.
 
+2. **Timeline Missing Golf Club Management Step:** The database query in `useGatePassDetails` does not include `club_mgmt_ack_by`, `club_mgmt_ack_at`, or `club_mgmt_ack_notes` in its SELECT statement. A TypeScript cast pretends the fields exist, but no data is actually fetched. The timeline therefore never shows the "Golf Club Management acknowledged" event.
+
+### Fix 1: Pass `items` prop to `DetailsTab` (GatePassDetailDialog.tsx)
+
+Add `items` to the `DetailsTab` props interface and pass it from the parent:
+
+**Parent call (around line 163):**
 ```typescript
-.neq("requested_by", user.id) // Exclude own requests (can't self-approve)
+<DetailsTab
+  pass={pass}
+  passDetails={passDetails}
+  items={items || []}          // ADD THIS
+  isLoading={isLoadingDetails}
+  getStatusBadge={getStatusBadge}
+  t={t}
+/>
 ```
 
-Public gate passes submitted by unauthenticated users have `requested_by = NULL`. In SQL, `NULL != 'some_id'` evaluates to `NULL` (falsy), so PostgREST **excludes all rows where `requested_by` is NULL**.
-
-This means every public gate pass is silently filtered out.
-
-### Database Evidence
-- 2 passes at `pending_security_approval`: both are public (`PUB-20260210-*`) with `requested_by = NULL`
-- The logged-in user (`luay.madkhali`) has both `security_supervisor` and `security_manager` roles -- the role check passes correctly
-- The filter logic is correct for internal passes but breaks for public ones
-
-### Fix (1 file, 1 line)
-
-**File:** `src/hooks/contractor-management/use-material-gate-passes.ts` (line 224)
-
-Replace the simple `.neq()` with an `.or()` filter that also includes NULL values:
-
+**Component signature (around line 211):**
 ```typescript
-// Before:
-.neq("requested_by", user.id)
-
-// After:
-.or(`requested_by.neq.${user.id},requested_by.is.null`)
+function DetailsTab({
+  pass,
+  passDetails,
+  items,                       // ADD THIS
+  isLoading,
+  getStatusBadge,
+  t,
+}: {
+  pass: MaterialGatePass;
+  passDetails: ...;
+  items: GatePassItem[];       // ADD THIS
+  isLoading: boolean;
+  getStatusBadge: ...;
+  t: ...;
+}) {
 ```
 
-This keeps the self-approval prevention for authenticated users while correctly including public submissions where `requested_by` is NULL.
+### Fix 2: Add missing columns to database query (use-gate-pass-details.ts)
 
-### Technical Details
-- PostgREST `.neq()` uses SQL `!=` which returns NULL (not TRUE) when compared against NULL values
-- The `.or()` syntax explicitly handles both cases: non-matching user IDs AND null values
-- No other files need changes -- the `GatePassApprovalQueue` component already renders whatever the hook returns
+Add `club_mgmt_ack_by, club_mgmt_ack_at, club_mgmt_ack_notes` to the SELECT in the `useGatePassDetails` query (line 130), so the timeline can render the acknowledgment step.
+
+### Files Modified
+| File | Change |
+|------|--------|
+| `src/components/contractors/GatePassDetailDialog.tsx` | Pass `items` prop to `DetailsTab`; add `items` to its type signature |
+| `src/hooks/contractor-management/use-gate-pass-details.ts` | Add `club_mgmt_ack_by, club_mgmt_ack_at, club_mgmt_ack_notes` to SELECT query |
+
+### Risk
+- Low -- purely fixing missing prop threading and an incomplete SELECT statement
+- No schema or RLS changes needed
