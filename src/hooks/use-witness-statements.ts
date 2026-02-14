@@ -209,7 +209,7 @@ export function useMyAssignedWitnessStatements() {
 
       const { data, error } = await supabase
         .from("witness_statements")
-        .select("id, incident_id, witness_name, witness_contact, statement_text, status, created_at, return_reason, return_count, returned_at")
+        .select("id, incident_id, witness_name, witness_contact, statement_text, assignment_status, created_at, return_reason, return_count, returned_at")
         .eq("assigned_witness_id", user.id)
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
@@ -223,7 +223,7 @@ export function useMyAssignedWitnessStatements() {
         contact: row.witness_contact,
         statement: row.statement_text,
         statement_method: 'text' as StatementType, // Default - column may not exist
-        status: row.status as WitnessStatus,
+        status: (row.assignment_status || 'pending') as WitnessStatus,
         created_at: row.created_at,
         return_reason: row.return_reason,
         return_count: row.return_count || 0,

@@ -27,9 +27,10 @@ interface ApprovalWorkflowBannerProps {
   incident: IncidentWithDetails;
   investigation: Investigation | null;
   onRefresh: () => void;
+  canApprove?: boolean;
 }
 
-export function ApprovalWorkflowBanner({ incident, investigation, onRefresh }: ApprovalWorkflowBannerProps) {
+export function ApprovalWorkflowBanner({ incident, investigation, onRefresh, canApprove }: ApprovalWorkflowBannerProps) {
   const { t } = useTranslation();
   const { profile, user } = useAuth();
   const queryClient = useQueryClient();
@@ -234,15 +235,17 @@ export function ApprovalWorkflowBanner({ incident, investigation, onRefresh }: A
               <span className="text-muted-foreground">
                 {t('investigation.workflow.approvePrompt', 'Investigator assigned. Approve to lock reporter data and start investigation.')}
               </span>
-              <Button 
-                onClick={() => setShowApproveDialog(true)}
-                size="sm"
-                variant="default"
-                className="gap-2"
-              >
-                <CheckCircle className="h-4 w-4" />
-                {t('investigation.workflow.approveBtn', 'Approve & Lock')}
-              </Button>
+              {canApprove !== false && (
+                <Button 
+                  onClick={() => setShowApproveDialog(true)}
+                  size="sm"
+                  variant="default"
+                  className="gap-2"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  {t('investigation.workflow.approveBtn', 'Approve & Lock')}
+                </Button>
+              )}
             </AlertDescription>
           </Alert>
         );

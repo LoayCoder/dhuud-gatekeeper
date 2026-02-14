@@ -298,6 +298,8 @@ export default function InvestigationWorkspace() {
   // Cast to string to handle new enum values not yet in types
   const status = incidentData?.status as string | undefined;
   const investigationAllowed = status && [
+    'investigation_pending',
+    'under_investigation',
     'investigation_in_progress', 
     'pending_closure', 
     'pending_final_closure', 
@@ -1017,6 +1019,7 @@ export default function InvestigationWorkspace() {
                     incident={selectedIncident} 
                     investigation={investigation ?? null}
                     onRefresh={handleRefresh}
+                    canApprove={canApprove}
                   />
                 </TabsContent>
 
