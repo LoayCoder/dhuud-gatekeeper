@@ -318,14 +318,12 @@ export function useCreateGatePass() {
         throw new Error(permission.reason || "You do not have permission to create this gate pass");
       }
 
-      // Generate reference number
+      // Generate reference number using database sequence (prevents race conditions)
       const year = new Date().getFullYear();
-      const { count } = await supabase
-        .from("material_gate_passes")
-        .select("*", { count: "exact", head: true })
-        .eq("tenant_id", tenantId);
-
-      const sequence = (count || 0) + 1;
+      const { data: seqResult, error: seqError } = await supabase
+        .rpc("nextval_gate_pass_ref" as never, {} as never);
+      
+      const sequence = seqError ? Date.now() % 100000 : Number(seqResult);
       const reference_number = `GP-${year}-${String(sequence).padStart(5, "0")}`;
 
       // Create combined material description from items for backward compatibility

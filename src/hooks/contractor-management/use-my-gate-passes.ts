@@ -58,7 +58,7 @@ export function useMyGatePasses(filters: GatePassFilters = {}) {
 
 export interface ApprovalHistoryPass extends MaterialGatePass {
   approvalAction: "approved" | "rejected";
-  approvalRole: "pm" | "safety";
+  approvalRole: "pm" | "safety" | "contractor" | "club_mgmt" | "security";
   approvalAt: string;
   approvalNotes: string | null;
 }
@@ -75,7 +75,7 @@ export function useGatePassApprovalHistory() {
     queryFn: async () => {
       if (!tenantId || !user?.id) return [];
 
-      // Fetch passes where user was an approver or rejector
+      // Fetch passes where user was an approver or rejector (all workflow stages)
       const { data, error } = await supabase
         .from("material_gate_passes")
         .select(`
@@ -84,6 +84,9 @@ export function useGatePassApprovalHistory() {
           time_window_start, time_window_end, status, requested_by,
           pm_approved_by, pm_approved_at, pm_notes,
           safety_approved_by, safety_approved_at, safety_notes,
+          contractor_approved_by, contractor_approved_at,
+          club_mgmt_ack_by, club_mgmt_ack_at,
+          security_approved_by, security_approved_at,
           rejected_by, rejected_at, rejection_reason,
           guard_verified_by, guard_verified_at, entry_time, exit_time, created_at,
           is_internal_request, approval_from_id,
@@ -93,15 +96,22 @@ export function useGatePassApprovalHistory() {
         `)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
-        .or(`pm_approved_by.eq.${user.id},safety_approved_by.eq.${user.id},rejected_by.eq.${user.id}`)
+        .or(`pm_approved_by.eq.${user.id},safety_approved_by.eq.${user.id},rejected_by.eq.${user.id},contractor_approved_by.eq.${user.id},club_mgmt_ack_by.eq.${user.id},security_approved_by.eq.${user.id}`)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
       // Transform to include approval action details
-      const passes: ApprovalHistoryPass[] = (data || []).map((pass: MaterialGatePass) => {
+      const passes: ApprovalHistoryPass[] = (data || []).map((pass: MaterialGatePass & {
+        contractor_approved_by?: string | null;
+        contractor_approved_at?: string | null;
+        club_mgmt_ack_by?: string | null;
+        club_mgmt_ack_at?: string | null;
+        security_approved_by?: string | null;
+        security_approved_at?: string | null;
+      }) => {
         let approvalAction: "approved" | "rejected" = "approved";
-        let approvalRole: "pm" | "safety" = "pm";
+        let approvalRole: "pm" | "safety" | "contractor" | "club_mgmt" | "security" = "pm";
         let approvalAt = pass.pm_approved_at || "";
         let approvalNotes = pass.pm_notes;
 
@@ -109,6 +119,18 @@ export function useGatePassApprovalHistory() {
           approvalAction = "rejected";
           approvalAt = pass.rejected_at || "";
           approvalNotes = pass.rejection_reason;
+        } else if (pass.security_approved_by === user.id) {
+          approvalRole = "security";
+          approvalAt = pass.security_approved_at || "";
+          approvalNotes = null;
+        } else if (pass.club_mgmt_ack_by === user.id) {
+          approvalRole = "club_mgmt";
+          approvalAt = pass.club_mgmt_ack_at || "";
+          approvalNotes = null;
+        } else if (pass.contractor_approved_by === user.id) {
+          approvalRole = "contractor";
+          approvalAt = pass.contractor_approved_at || "";
+          approvalNotes = null;
         } else if (pass.safety_approved_by === user.id) {
           approvalRole = "safety";
           approvalAt = pass.safety_approved_at || "";

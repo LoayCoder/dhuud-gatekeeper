@@ -26586,6 +26586,7 @@ export type Database = {
         Args: { p_badge_ids: string[] }
         Returns: undefined
       }
+      nextval_gate_pass_ref: { Args: never; Returns: number }
       point_in_polygon: {
         Args: { p_lat: number; p_lng: number; p_polygon: Json }
         Returns: boolean

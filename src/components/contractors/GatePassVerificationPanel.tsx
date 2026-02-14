@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import {
   useConfirmGatePassExit,
   GatePassVerificationResult 
 } from "@/hooks/contractor-management/use-gate-pass-verification";
+import { useGatePassItems, useGatePassPhotos } from "@/hooks/contractor-management/use-gate-pass-details";
 import { 
   FullScreenScanner,
   VerificationResult,
@@ -45,17 +46,47 @@ export function GatePassVerificationPanel() {
 
   const isLoading = verifyQR.isPending || confirmEntry.isPending || confirmExit.isPending;
 
-  // Mock items for demo - in production, fetch from gate_pass_items table
-  const mockItems: GatePassItem[] = verificationResult?.gatePass ? [
-    {
-      id: '1',
-      sr_number: '001',
-      item_name: verificationResult.gatePass.material_description?.split(',')[0] || 'Material',
-      description: verificationResult.gatePass.material_description,
-      quantity: parseInt(verificationResult.gatePass.quantity || '1') || 1,
-      unit: 'pcs',
+  // Fetch real items and photos after QR verification
+  const verifiedPassId = verificationResult?.valid ? verificationResult.gatePass?.id || null : null;
+  const isPublic = verificationResult?.gatePass?.is_public_request || false;
+  const { data: rawItems, isLoading: itemsLoading } = useGatePassItems(verifiedPassId, isPublic);
+  const { data: photos, isLoading: photosLoading } = useGatePassPhotos(verifiedPassId, isPublic);
+
+  // Map fetched items to GatePassItem format with photo URLs
+  const realItems: GatePassItem[] = useMemo(() => {
+    if (!rawItems || rawItems.length === 0) {
+      // Fallback: create a single item from material_description if no items table data
+      if (verificationResult?.gatePass) {
+        return [{
+          id: 'fallback-1',
+          sr_number: '001',
+          item_name: verificationResult.gatePass.material_description?.split(';')[0]?.split('(')[0]?.trim() || 'Material',
+          description: verificationResult.gatePass.material_description,
+          quantity: parseInt(verificationResult.gatePass.quantity || '1') || 1,
+          unit: 'pcs',
+          photos: [],
+        }];
+      }
+      return [];
     }
-  ] : [];
+    return rawItems.map((item, idx) => {
+      // Find photos for this item
+      const itemPhotos = (photos || [])
+        .filter(p => p.item_id === item.id)
+        .map(p => p.signedUrl)
+        .filter(Boolean) as string[];
+
+      return {
+        id: item.id,
+        sr_number: item.sr_number || String(idx + 1).padStart(3, '0'),
+        item_name: item.item_name,
+        description: item.description,
+        quantity: parseInt(item.quantity || '1') || 1,
+        unit: item.unit || 'pcs',
+        photos: itemPhotos,
+      };
+    });
+  }, [rawItems, photos, verificationResult]);
 
   const handleScan = useCallback(async (code: string) => {
     // Haptic feedback
@@ -145,8 +176,8 @@ export function GatePassVerificationPanel() {
   // Check if all verifications are complete
   const hasVehicle = verificationResult?.gatePass?.vehicle_plate || verificationResult?.gatePass?.driver_name;
   const allVehicleChecks = !hasVehicle || (vehicleVerified.plateMatches && vehicleVerified.driverVerified);
-  const allItemChecks = mockItems.length === 0 || itemsVerified;
-  const canConfirmEntry = verificationResult?.valid && !verificationResult.gatePass?.entry_time && allVehicleChecks && allItemChecks;
+  const allItemChecks = realItems.length === 0 || itemsVerified;
+  const canConfirmEntry = verificationResult?.valid && !verificationResult.gatePass?.entry_time && allVehicleChecks && allItemChecks && !itemsLoading;
   const canConfirmExit = verificationResult?.valid && verificationResult.gatePass?.entry_time && !verificationResult.gatePass?.exit_time;
 
   return (
@@ -199,7 +230,7 @@ export function GatePassVerificationPanel() {
       {/* Verification Result */}
       {verificationResult && (
         <div className="flex-1 space-y-4">
-          <VerificationResult result={verificationResult} />
+          <VerificationResult result={verificationResult} itemCount={realItems.length} />
 
           {/* Vehicle Verification - Only for valid passes with vehicle info */}
           {verificationResult.valid && verificationResult.gatePass && !verificationResult.gatePass.entry_time && (
@@ -212,11 +243,22 @@ export function GatePassVerificationPanel() {
           )}
 
           {/* Items Confirmation - Only for valid passes before entry */}
-          {verificationResult.valid && verificationResult.gatePass && !verificationResult.gatePass.entry_time && mockItems.length > 0 && (
-            <ItemsConfirmationList
-              items={mockItems}
-              onAllVerified={handleItemsVerified}
-            />
+          {verificationResult.valid && verificationResult.gatePass && !verificationResult.gatePass.entry_time && (
+            <>
+              {(itemsLoading || photosLoading) ? (
+                <Card>
+                  <CardContent className="p-6 flex items-center justify-center gap-2">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    <span className="text-muted-foreground">{t("common.loading", "Loading items...")}</span>
+                  </CardContent>
+                </Card>
+              ) : realItems.length > 0 ? (
+                <ItemsConfirmationList
+                  items={realItems}
+                  onAllVerified={handleItemsVerified}
+                />
+              ) : null}
+            </>
           )}
         </div>
       )}
@@ -301,7 +343,7 @@ export function GatePassVerificationPanel() {
                     {allVehicleChecks ? "✓" : "○"} Vehicle
                   </Badge>
                 )}
-                {mockItems.length > 0 && (
+                {realItems.length > 0 && (
                   <Badge 
                     variant={allItemChecks ? "default" : "secondary"}
                     className={cn(
@@ -309,7 +351,7 @@ export function GatePassVerificationPanel() {
                       allItemChecks && "bg-green-600"
                     )}
                   >
-                    {allItemChecks ? "✓" : "○"} Items ({mockItems.length})
+                    {allItemChecks ? "✓" : "○"} Items ({realItems.length})
                   </Badge>
                 )}
               </div>

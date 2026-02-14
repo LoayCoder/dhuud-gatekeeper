@@ -11,6 +11,8 @@ export interface GatePassVerificationResult {
     reference_number: string;
     pass_type: string;
     pass_date: string;
+    start_date: string | null;
+    end_date: string | null;
     time_window_start: string | null;
     time_window_end: string | null;
     material_description: string;
@@ -23,6 +25,7 @@ export interface GatePassVerificationResult {
     exit_time: string | null;
     project_name: string;
     company_name: string;
+    is_public_request: boolean;
   };
 }
 
@@ -38,9 +41,10 @@ export function useVerifyGatePassQR() {
       const { data: gatePass, error } = await supabase
         .from("material_gate_passes")
         .select(`
-          id, reference_number, pass_type, pass_date, time_window_start, time_window_end,
+          id, reference_number, pass_type, pass_date, start_date, end_date,
+          time_window_start, time_window_end,
           material_description, quantity, vehicle_plate, driver_name, driver_mobile,
-          status, entry_time, exit_time, qr_code_token, qr_generated_at,
+          status, entry_time, exit_time, qr_code_token, qr_generated_at, is_public_request,
           project:contractor_projects(project_name, company:contractor_companies(company_name))
         `)
         .eq("qr_code_token", qrToken)
@@ -74,15 +78,15 @@ export function useVerifyGatePassQR() {
         };
       }
 
-      // Check if pass date is today
+      // Check if pass is valid for today (supports date ranges)
       const today = new Date().toISOString().split("T")[0];
-      if (gatePass.pass_date !== today) {
-        return { 
-          valid: false, 
-          message: gatePass.pass_date < today 
-            ? "Gate pass has expired" 
-            : "Gate pass is for a future date" 
-        };
+      const startDate = gatePass.start_date || gatePass.pass_date;
+      const endDate = gatePass.end_date || gatePass.pass_date;
+      if (today < startDate) {
+        return { valid: false, message: "Gate pass is for a future date" };
+      }
+      if (today > endDate) {
+        return { valid: false, message: "Gate pass has expired" };
       }
 
       // Check time window if specified
@@ -106,6 +110,8 @@ export function useVerifyGatePassQR() {
           reference_number: gatePass.reference_number,
           pass_type: gatePass.pass_type,
           pass_date: gatePass.pass_date,
+          start_date: gatePass.start_date || null,
+          end_date: gatePass.end_date || null,
           time_window_start: gatePass.time_window_start,
           time_window_end: gatePass.time_window_end,
           material_description: gatePass.material_description,
@@ -118,6 +124,7 @@ export function useVerifyGatePassQR() {
           exit_time: gatePass.exit_time,
           project_name: gatePass.project?.project_name || "",
           company_name: gatePass.project?.company?.company_name || "",
+          is_public_request: gatePass.is_public_request || false,
         },
       };
     },
