@@ -1,79 +1,86 @@
 
 
-## Fix: Gate Pass Details Dialog -- Remaining Issues
+## Fix: Public Gate Pass Items and Photos Not Showing in Detail Dialog
 
-### Current State After Previous Fix
-The previous fix correctly added `items` prop to `DetailsTab` and `club_mgmt_ack_*` columns to the database query. However, the user is still seeing problems. Here is what is happening:
+### Root Cause
 
-### Problem 1: "No items listed" on Items and Photos tab
-These public gate passes (`PUB-20260210-*`) **genuinely have zero rows** in `gate_pass_items` -- the public request form stores the description directly in `material_description` on the pass itself, not as separate item rows. The dialog currently shows a blank "No items or photos listed" message with no context.
+Public gate passes store their items and photos in a **different table** than internal ones:
 
-**Fix:** When there are no items but the pass has a `material_description`, show the material description as a fallback in the Items and Photos tab. Pass the `pass` object (or `passDetails`) to `ItemsPhotosTab` so it can display the description.
+- Internal passes: items in `gate_pass_items`, photos in `gate_pass_item_photos` / `gate_pass_photos`
+- Public passes: items in `public_gate_pass_items` (with `photo_storage_path` embedded in each item row)
 
-### Problem 2: Timeline not reflecting the right data
-The database query now fetches `club_mgmt_ack_*` fields correctly (verified via network response), but the timeline code at line 632 checks `passDetails.club_mgmt_ack_at && passDetails.club_mgmt_acker`. The `club_mgmt_acker` is resolved from profile lookup using `club_mgmt_ack_by`. This should work since the profile fetch includes that ID. However, the TypeScript cast at line 149 may cause issues if the Supabase types haven't regenerated -- the fields might not be available on `passData` before the cast. The cast is applied correctly, so this should work. The likely cause was the user testing before the build deployed.
+The `useGatePassItems` hook only queries `gate_pass_items`, so it returns zero rows for public passes. Similarly, `useGatePassPhotos` queries `gate_pass_item_photos` and `gate_pass_photos`, which are also empty for public passes.
 
-**Additional improvement:** For public gate passes, the timeline should also show the current pending step (e.g., "Pending Security Supervisor Approval") as an active/current step, not just completed events. Currently it only shows completed events, which can make the timeline look incomplete.
+The public tracking page works because it uses the `get_public_gate_pass_status` RPC, which correctly reads from `public_gate_pass_items`.
 
-### Problem 3: Material Description still empty on Details tab
-The code at line 267 uses `data.material_description` which should work since the query returns it. But `data` is set to `passDetails || pass` at line 238. The `pass` object comes from the approval queue which uses a different query (`usePendingGatePassApprovals`). If `passDetails` hasn't loaded yet or fails, it falls back to `pass` which should also have `material_description`. This should work correctly after the build deploys.
+### Database Evidence
 
-### Summary of Changes
-
-| # | File | Change |
-|---|------|--------|
-| 1 | `src/components/contractors/GatePassDetailDialog.tsx` | Pass `pass`/`passDetails` to `ItemsPhotosTab`; show `material_description` as fallback when no items exist |
-| 2 | `src/components/contractors/GatePassDetailDialog.tsx` | Add a "pending" step indicator in the timeline for the current workflow stage |
-
-### Technical Details
-
-**Fix 1 -- ItemsPhotosTab fallback for public passes:**
-
-Update the parent call:
-```typescript
-<ItemsPhotosTab
-  items={items || []}
-  photos={photos || []}
-  materialDescription={passDetails?.material_description || pass.material_description}
-  isLoadingItems={isLoadingItems}
-  isLoadingPhotos={isLoadingPhotos}
-  t={t}
-/>
+```
+public_gate_pass_items for PUB-20260210-62c1e933:
+- "Dicta elit inventor" with photo: temp-1770762086550-x64edp/1-1770762086550.jpg
+- "hjkhkhgkj" with photo: temp-1770762086550-x64edp/2-1770762089328.jpg
 ```
 
-Update `ItemsPhotosTab` to accept `materialDescription` prop and show it when no items exist:
-```typescript
-// When items is empty, show material description instead of just "No items"
-{items.length === 0 && materialDescription && (
-  <div className="p-3 rounded-lg border bg-muted/30">
-    <p className="font-medium text-sm">{materialDescription}</p>
-  </div>
-)}
-```
+### Fix (1 file)
 
-**Fix 2 -- Timeline pending step:**
+**File:** `src/hooks/contractor-management/use-gate-pass-details.ts`
 
-After all completed events, add a "pending" step based on current `status`:
+**Change 1 -- `useGatePassItems`:** When the pass is public, query `public_gate_pass_items` instead of `gate_pass_items`. Add an `isPublic` parameter (similar to the existing `useGatePassPhotos` which already accepts this flag).
+
 ```typescript
-// Add current pending step
-const pendingStepLabels: Record<string, string> = {
-  pending_security_approval: "Pending Security Supervisor Approval",
-  pending_club_mgmt_ack: "Pending Golf Club Management",
-  pending_contractor_approval: "Pending Contractor Approval",
-  // etc.
-};
-if (pendingStepLabels[passDetails.status]) {
-  events.push({
-    type: "pending",
-    label: t(`contractors.gatePassDetail.timeline.${passDetails.status}`, pendingStepLabels[passDetails.status]),
-    timestamp: null,
-    icon: Clock,
-    color: "bg-amber-100 text-amber-800 ...",
-  });
+export function useGatePassItems(passId: string | null, isPublic: boolean = false) {
+  // ...
+  if (isPublic) {
+    // Query public_gate_pass_items for public submissions
+    const { data, error } = await supabase
+      .from("public_gate_pass_items")
+      .select("id, gate_pass_id, item_name, description, quantity, unit, sr_number, photo_storage_path, created_at")
+      .eq("gate_pass_id", passId)
+      .is("deleted_at", null)
+      .order("sort_order", { ascending: true });
+    // ...
+  } else {
+    // existing gate_pass_items query
+  }
 }
 ```
 
+**Change 2 -- `useGatePassPhotos`:** When the pass is public, build photo entries from the `photo_storage_path` column in `public_gate_pass_items` (since public passes embed photos directly in the items table). Generate signed URLs from the `public-gate-pass-photos` bucket.
+
+```typescript
+if (isPublic) {
+  // Fetch items with photos from public_gate_pass_items
+  const { data: publicItems } = await supabase
+    .from("public_gate_pass_items")
+    .select("id, gate_pass_id, photo_storage_path, item_name, created_at")
+    .eq("gate_pass_id", passId)
+    .not("photo_storage_path", "is", null)
+    .is("deleted_at", null);
+
+  // Convert each item's photo_storage_path into a GatePassPhoto entry
+  // Generate signed URLs from 'public-gate-pass-photos' bucket
+}
+```
+
+**Change 3 -- Caller update in `GatePassDetailDialog.tsx`:** Pass `isPublic` to `useGatePassItems`:
+
+```typescript
+const { data: items, isLoading: isLoadingItems } = useGatePassItems(
+  open ? pass?.id || null : null,
+  pass?.is_public_request || false  // ADD isPublic flag
+);
+```
+
+### Technical Details
+
+| # | File | Change |
+|---|------|--------|
+| 1 | `src/hooks/contractor-management/use-gate-pass-details.ts` | Add `isPublic` param to `useGatePassItems`; query `public_gate_pass_items` when true |
+| 2 | `src/hooks/contractor-management/use-gate-pass-details.ts` | Update `useGatePassPhotos` to extract photos from `public_gate_pass_items.photo_storage_path` when public |
+| 3 | `src/components/contractors/GatePassDetailDialog.tsx` | Pass `isPublic` flag to `useGatePassItems` call |
+
 ### Risk
-- Low -- UI-only changes, no database or RLS modifications
-- Backward compatible with internal gate passes that do have items
+- Low -- additive changes with no schema modifications
+- Internal gate passes are unaffected (the `isPublic=false` default preserves existing behavior)
+- The `GatePassItem` type may need extending to include `sr_number` and `photo_storage_path` fields for public items
 
