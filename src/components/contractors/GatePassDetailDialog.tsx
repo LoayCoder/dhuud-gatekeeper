@@ -33,6 +33,7 @@ import {
   useGatePassItems,
   useGatePassPhotos,
   GatePassApproverProfile,
+  GatePassItem,
 } from "@/hooks/contractor-management/use-gate-pass-details";
 import { cn } from "@/lib/utils";
 import { GatePassPDFExportButton } from "./GatePassPDFExportButton";
@@ -163,6 +164,7 @@ export function GatePassDetailDialog({
               <DetailsTab
                 pass={pass}
                 passDetails={passDetails}
+                items={items || []}
                 isLoading={isLoadingDetails}
                 getStatusBadge={getStatusBadge}
                 t={t}
@@ -211,12 +213,14 @@ export function GatePassDetailDialog({
 function DetailsTab({
   pass,
   passDetails,
+  items,
   isLoading,
   getStatusBadge,
   t,
 }: {
   pass: MaterialGatePass;
   passDetails: ReturnType<typeof useGatePassDetails>["data"];
+  items: GatePassItem[];
   isLoading: boolean;
   getStatusBadge: (status: string) => JSX.Element;
   t: ReturnType<typeof useTranslation>["t"];
