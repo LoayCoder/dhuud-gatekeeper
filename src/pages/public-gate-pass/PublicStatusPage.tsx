@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
@@ -29,7 +29,8 @@ import {
   ShieldCheck,
   Check,
   Expand,
-  X
+  X,
+  Loader2,
 } from "lucide-react";
 import {
   usePublicGatePassStatus,
@@ -37,6 +38,23 @@ import {
 } from "@/hooks/public-gate-pass";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+
+/** Renders a public gate pass photo using a signed URL instead of a raw public URL */
+function PublicPhotoImage({ path, alt, className }: { path: string; alt: string; className?: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.storage.from("public-gate-pass-photos").createSignedUrl(path, 600)
+      .then(({ data }) => { setUrl(data?.signedUrl || null); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [path]);
+
+  if (loading) return <div className={cn("bg-muted animate-pulse", className || "w-full h-full")} />;
+  if (!url) return <div className={cn("bg-muted flex items-center justify-center", className || "w-full h-full")}><Package className="h-6 w-6 opacity-20" /></div>;
+  return <img src={url} alt={alt} className={className || "w-full h-full object-cover"} />;
+}
 
 // Detailed Status Configuration
 const STATUS_CONFIG: Record<
@@ -146,6 +164,20 @@ function getTimelineCurrentStep(status: string): number {
   if (['used', 'completed'].includes(status)) return 4;
   if (['rejected', 'cancelled', 'expired'].includes(status)) return 2; // Stops at review
   return 1;
+}
+
+function RefreshButton({ refetch, isRTL }: { refetch: () => Promise<any>; isRTL: boolean }) {
+  const [refreshing, setRefreshing] = useState(false);
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try { await refetch(); } finally { setRefreshing(false); }
+  };
+  return (
+    <Button variant="outline" className="flex-1" onClick={handleRefresh} disabled={refreshing}>
+      {refreshing ? <Loader2 className="h-4 w-4 me-2 animate-spin" /> : <RefreshCw className="h-4 w-4 me-2" />}
+      {isRTL ? "تحديث" : "Refresh"}
+    </Button>
+  );
 }
 
 export default function PublicStatusPage() {
@@ -404,11 +436,7 @@ export default function PublicStatusPage() {
                             <Dialog>
                               <DialogTrigger asChild>
                                 <div className="w-full h-full relative">
-                                  <img
-                                    src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/public-gate-pass-photos/${item.photo_storage_path}`}
-                                    alt={item.item_name}
-                                    className="w-full h-full object-cover"
-                                  />
+                                  <PublicPhotoImage path={item.photo_storage_path} alt={item.item_name} />
                                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                                     <Expand className="text-white drop-shadow-md h-6 w-6" />
                                   </div>
@@ -416,11 +444,7 @@ export default function PublicStatusPage() {
                               </DialogTrigger>
                               <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black/90 border-none sm:rounded-lg">
                                 <div className="relative w-full h-full flex items-center justify-center p-2 sm:p-4">
-                                  <img
-                                    src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/public-gate-pass-photos/${item.photo_storage_path}`}
-                                    alt={item.item_name}
-                                    className="max-w-full max-h-[85vh] object-contain rounded-md"
-                                  />
+                                  <PublicPhotoImage path={item.photo_storage_path} alt={item.item_name} className="max-w-full max-h-[85vh] object-contain rounded-md" />
                                   <div className="absolute bottom-4 left-0 right-0 text-center pointer-events-none">
                                     <span className="inline-block bg-black/50 text-white px-3 py-1 rounded-full text-sm backdrop-blur-sm">
                                       {item.item_name}
@@ -504,10 +528,7 @@ export default function PublicStatusPage() {
         {/* Footer Actions */}
         <div className="flex gap-3 pt-4">
           {!isRejected && !isCompleted && (
-            <Button variant="outline" className="flex-1" onClick={() => refetch()}>
-              <RefreshCw className="h-4 w-4 me-2" />
-              {isRTL ? "تحديث" : "Refresh"}
-            </Button>
+            <RefreshButton refetch={refetch} isRTL={isRTL} />
           )}
           {gatePass.status === 'approved' && (
             <Button className="flex-1" asChild>
