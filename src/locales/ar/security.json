@@ -244,5 +244,77 @@
   "punctuality": "الالتزام بالمواعيد",
   "geofenceCompliance": "الالتزام بالمنطقة الجغرافية",
   "attendance": "الحضور",
-  "incidents": "الحوادث"
+  "incidents": "الحوادث",
+  "accessControl": {
+    "selectGate": "البوابة / المنطقة",
+    "title": "مراقبة الدخول",
+    "description": "إدارة دخول الزوار والعمال الموحدة",
+    "scanQR": "مسح QR",
+    "scanQRDescription": "مسح رمز QR للزوار أو العمال أو تصريح مرور",
+    "gateDashboard": "عمليات البوابة",
+    "totalOnSite": "المجموع في الموقع",
+    "visitorsOnSite": "الزوار",
+    "workersOnSite": "العمال",
+    "pendingApprovals": "الموافقات المعلقة",
+    "currentlyOnSite": "حالياً في الموقع",
+    "onSiteDescription": "جميع الزوار والعمال المسجل دخولهم حالياً",
+    "preRegister": "تسجيل مسبق",
+    "visitorApprovals": "موافقات الزوار",
+    "workerApprovals": "موافقات العمال",
+    "securityApprovals": "موافقات الأمن",
+    "gatePassApprovals": "موافقات تصاريح البوابة",
+    "gatePassDescription": "تصاريح دخول المواد بانتظار موافقة الأمن",
+    "visitorAccess": "دخول الزوار",
+    "visitorAccessDescription": "عمليات دخول وخروج الزوار الأخيرة",
+    "workerAccess": "دخول العمال",
+    "workerAccessDescription": "عمليات دخول وخروج عمال المقاولين الأخيرة",
+    "accessHistory": "سجل الدخول",
+    "accessHistoryDescription": "سجل كامل لجميع عمليات الدخول والخروج",
+    "status": {
+      "valid": "صالح",
+      "warning": "تحذير",
+      "denied": "مرفوض"
+    },
+    "onSite": "في الموقع",
+    "exit": "خروج",
+    "recordExit": "تسجيل الخروج",
+    "person": "الشخص",
+    "type": "النوع",
+    "entryTime": "دخول",
+    "exitTime": "خروج",
+    "entryRecorded": "تم تسجيل الدخول بنجاح",
+    "entryFailed": "فشل في تسجيل الدخول",
+    "exitRecorded": "تم تسجيل الخروج بنجاح",
+    "exitFailed": "فشل في تسجيل الخروج",
+    "noEntries": "لا توجد سجلات دخول",
+    "entityTypes": {
+      "visitor": "الزوار",
+      "worker": "العمال",
+      "contractor": "المقاولين",
+      "employee": "الموظفين",
+      "vehicle": "المركبات"
+    },
+    "tabs": {
+      "onSite": "في الموقع",
+      "approvals": "الموافقات",
+      "gatePasses": "تصاريح البوابة",
+      "visitors": "الزوار",
+      "workers": "العمال",
+      "analytics": "التحليلات",
+      "history": "السجل"
+    },
+    "analytics": {
+      "approvalVelocity": "سرعة الموافقة",
+      "avgProcessTime": "متوسط وقت المعالجة",
+      "rejectionRate": "معدل الرفض",
+      "detailedAnalytics": "تحليلات مفصلة",
+      "detailedDescription": "عرض شامل لأداء العمليات الأمنية.",
+      "chartPlaceholder": "سيتم عرض الرسم البياني هنا"
+    },
+    "trends": {
+      "fromYesterday": "عن الأمس",
+      "fromLastMonth": "عن الشهر الماضي",
+      "fromLastWeek": "عن الأسبوع الماضي"
+    }
+  }
 }

@@ -62,7 +62,7 @@ export function GatePassApprovalCard({
     onReject,
     getApprovalStage,
 }: GatePassApprovalCardProps) {
-    const { t, i18n } = useTranslation();
+    const { t, i18n } = useTranslation(['security', 'contractorPortal', 'translation']);
     const dateLocale = i18n.language === "ar" ? ar : enUS;
     const approvePass = useApproveGatePass();
     const { data: zones } = useSecurityZones({ isActive: true });
@@ -179,7 +179,7 @@ export function GatePassApprovalCard({
                                 {pass.is_public_request && (
                                     <Badge variant="outline" className="text-[10px] h-5 px-1.5 gap-1 font-normal border-blue-200 text-blue-700 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800">
                                         <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400 shrink-0" />
-                                        {t("contractors.gatePasses.public", "Public")}
+                                        {t("contractorPortal.gatePasses.public", "Public")}
                                     </Badge>
                                 )}
 
@@ -206,7 +206,7 @@ export function GatePassApprovalCard({
 
                                 {/* Stage/Step Indicator */}
                                 {stage.step > 0 && (
-                                    <span className="text-[10px] text-muted-foreground ml-auto sm:ml-0 font-medium">
+                                    <span className="text-[10px] text-muted-foreground ms-auto sm:ms-0 font-medium">
                                         {t("common.step", "Step")} {stage.step}
                                     </span>
                                 )}
@@ -265,7 +265,7 @@ export function GatePassApprovalCard({
                     <div className="px-3 py-2 border-b bg-muted/40 flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                             <Package className="w-3.5 h-3.5" />
-                            {t("contractors.gatePasses.materials", "Materials")}
+                            {t("contractorPortal.gatePasses.materials", "Materials")}
                         </div>
                         {itemCount > 0 && (
                             <Badge variant="outline" className="text-[10px] h-4 px-1.5 bg-background border-muted-foreground/20 text-muted-foreground">
@@ -360,7 +360,7 @@ export function GatePassApprovalCard({
                     {(isExpanded || showHoldInput) && (
                         <div className="animate-in fade-in slide-in-from-top-1 mb-1">
                             <Textarea
-                                placeholder={t("contractors.gatePasses.addNotePlaceholder", "Add a note...")}
+                                placeholder={t("contractorPortal.gatePasses.addNotePlaceholder", "Add a note...")}
                                 className="min-h-[60px] text-sm resize-none focus-visible:ring-1"
                                 value={approvalNote}
                                 onChange={(e) => setApprovalNote(e.target.value)}
@@ -373,12 +373,12 @@ export function GatePassApprovalCard({
                         {/* Gate Selection - Integrated with Actions */}
                         {isSecurityRole && (
                             <div className="flex-1 min-w-0">
-                                <span className="text-[10px] font-medium text-muted-foreground mb-1 block pl-0.5">
-                                    {t("security.accessControl.selectGate", "Gate / Zone")} <span className="text-destructive">*</span>
+                                <span className="text-[10px] font-medium text-muted-foreground mb-1 block ps-0.5">
+                                    {t("accessControl.selectGate", "Gate / Zone")} <span className="text-destructive">*</span>
                                 </span>
                                 <Select value={selectedGateId} onValueChange={setSelectedGateId}>
                                     <SelectTrigger className="h-8 text-xs w-full bg-background" onClick={(e) => e.stopPropagation()}>
-                                        <SelectValue placeholder={t("security.accessControl.selectGate", "Select Gate...")} />
+                                        <SelectValue placeholder={t("accessControl.selectGate", "Select Gate...")} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {zones?.map((zone) => (
@@ -424,7 +424,7 @@ export function GatePassApprovalCard({
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className={cn("h-8 w-8 ml-auto shrink-0 text-muted-foreground", showHoldInput && "text-amber-600 bg-amber-50")}
+                                className={cn("h-8 w-8 ms-auto shrink-0 text-muted-foreground", showHoldInput && "text-amber-600 bg-amber-50")}
                                 onClick={handleHold}
                                 title={t("common.hold", "Hold / Add Note")}
                             >

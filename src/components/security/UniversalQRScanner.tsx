@@ -28,7 +28,7 @@ interface UniversalQRScannerProps {
  */
 function detectQRFormat(data: string): ScanResult {
   const upperData = data.toUpperCase().trim();
-  
+
   if (upperData.startsWith('WORKER:')) {
     return {
       entityType: 'worker',
@@ -53,7 +53,7 @@ function detectQRFormat(data: string): ScanResult {
       rawData: data,
     };
   }
-  
+
   if (upperData.startsWith('VISITOR:')) {
     return {
       entityType: 'visitor',
@@ -61,7 +61,7 @@ function detectQRFormat(data: string): ScanResult {
       rawData: data,
     };
   }
-  
+
   if (upperData.startsWith('GATEPASS:')) {
     return {
       entityType: 'gatepass',
@@ -69,7 +69,7 @@ function detectQRFormat(data: string): ScanResult {
       rawData: data,
     };
   }
-  
+
   // Check for CONTRACTOR: prefix (legacy)
   if (upperData.startsWith('CONTRACTOR:')) {
     return {
@@ -78,7 +78,7 @@ function detectQRFormat(data: string): ScanResult {
       rawData: data,
     };
   }
-  
+
   // UUID format - could be any entity
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (uuidRegex.test(data.trim())) {
@@ -88,7 +88,7 @@ function detectQRFormat(data: string): ScanResult {
       rawData: data,
     };
   }
-  
+
   // Default to unknown
   return {
     entityType: 'unknown',
@@ -105,7 +105,7 @@ const entityConfig: Record<QREntityType, { icon: typeof User; label: string; col
 };
 
 export function UniversalQRScanner({ open, onOpenChange, onScan }: UniversalQRScannerProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['security', 'translation']);
   const [lastDetectedType, setLastDetectedType] = useState<QREntityType | null>(null);
 
   const handleScan = (decodedText: string) => {
@@ -122,8 +122,8 @@ export function UniversalQRScanner({ open, onOpenChange, onScan }: UniversalQRSc
         onOpenChange(isOpen);
       }}
       onScan={handleScan}
-      title={t('security.accessControl.scanQR', 'Scan Access QR Code')}
-      description={t('security.accessControl.scanQRDescription', 'Scan visitor, worker, or gate pass QR code')}
+      title={t('accessControl.scanQR', 'Scan Access QR Code')}
+      description={t('accessControl.scanQRDescription', 'Scan visitor, worker, or gate pass QR code')}
       icon={<QrCode className="h-5 w-5 text-primary" />}
       containerId="universal-qr-scanner"
       qrboxSize={{ width: 280, height: 280 }}
@@ -134,13 +134,13 @@ export function UniversalQRScanner({ open, onOpenChange, onScan }: UniversalQRSc
           const config = entityConfig[type];
           const Icon = config.icon;
           return (
-            <Badge 
-              key={type} 
-              variant="outline" 
+            <Badge
+              key={type}
+              variant="outline"
               className={`gap-1.5 ${lastDetectedType === type ? config.color + ' text-white' : ''}`}
             >
               <Icon className="h-3 w-3" />
-              {t(`security.accessControl.entityTypes.${type}`, config.label)}
+              {t(`accessControl.entityTypes.${type}`, config.label)}
             </Badge>
           );
         })}

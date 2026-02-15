@@ -236,10 +236,10 @@ export function useUnifiedAccessLogs(filters: UnifiedAccessFilters = {}) {
           results.push(...gateData.map(entry => ({
             ...entry,
             entity_type: (entry.entry_type || 'visitor') as EntityType,
-            validation_errors: Array.isArray(entry.validation_errors) 
+            validation_errors: Array.isArray(entry.validation_errors)
               ? entry.validation_errors as string[]
-              : entry.validation_errors 
-                ? [String(entry.validation_errors)] 
+              : entry.validation_errors
+                ? [String(entry.validation_errors)]
                 : null,
           })));
         }
@@ -275,7 +275,7 @@ export function useUnifiedAccessLogs(filters: UnifiedAccessFilters = {}) {
         if (!workerError && workerData && workerData.length > 0) {
           // Fetch worker details
           const workerIds = [...new Set(workerData.map(log => log.worker_id).filter(Boolean))] as string[];
-          
+
           const { data: workers } = await supabase
             .from('contractor_workers')
             .select(`id, full_name, full_name_ar, photo_path, national_id, company:contractor_companies(company_name)`)
@@ -313,7 +313,7 @@ export function useUnifiedAccessLogs(filters: UnifiedAccessFilters = {}) {
           // Filter by search if applicable
           if (filters.search) {
             const searchLower = filters.search.toLowerCase();
-            results.push(...workerEntries.filter(e => 
+            results.push(...workerEntries.filter(e =>
               e.person_name.toLowerCase().includes(searchLower) ||
               e.worker?.national_id?.toLowerCase().includes(searchLower)
             ));
@@ -350,7 +350,7 @@ export function useRecordUnifiedEntry() {
   const tenantId = profile?.tenant_id;
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t } = useTranslation(['security', 'translation']);
 
   return useMutation({
     mutationFn: async (params: {
@@ -410,10 +410,10 @@ export function useRecordUnifiedEntry() {
       queryClient.invalidateQueries({ queryKey: ['unified-access-logs'] });
       queryClient.invalidateQueries({ queryKey: ['unified-access-stats'] });
       queryClient.invalidateQueries({ queryKey: ['gate-entries'] });
-      toast({ title: t('security.accessControl.entryRecorded', 'Entry recorded successfully') });
+      toast({ title: t('accessControl.entryRecorded', 'Entry recorded successfully') });
     },
     onError: (error) => {
-      toast({ title: t('security.accessControl.entryFailed', 'Failed to record entry'), variant: 'destructive' });
+      toast({ title: t('accessControl.entryFailed', 'Failed to record entry'), variant: 'destructive' });
       console.error('Entry error:', error);
     },
   });
@@ -425,12 +425,12 @@ export function useRecordUnifiedEntry() {
 export function useRecordUnifiedExit() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t } = useTranslation(['security', 'translation']);
 
   return useMutation({
     mutationFn: async (params: { entryId: string; source?: 'gate_entry_logs' | 'contractor_access_logs' }) => {
       const table = params.source || 'gate_entry_logs';
-      
+
       const { data, error } = await supabase
         .from(table)
         .update({ exit_time: new Date().toISOString() })
@@ -446,10 +446,10 @@ export function useRecordUnifiedExit() {
       queryClient.invalidateQueries({ queryKey: ['unified-access-stats'] });
       queryClient.invalidateQueries({ queryKey: ['gate-entries'] });
       queryClient.invalidateQueries({ queryKey: ['worker-access-logs'] });
-      toast({ title: t('security.accessControl.exitRecorded', 'Exit recorded successfully') });
+      toast({ title: t('accessControl.exitRecorded', 'Exit recorded successfully') });
     },
     onError: (error) => {
-      toast({ title: t('security.accessControl.exitFailed', 'Failed to record exit'), variant: 'destructive' });
+      toast({ title: t('accessControl.exitFailed', 'Failed to record exit'), variant: 'destructive' });
       console.error('Exit error:', error);
     },
   });

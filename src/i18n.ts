@@ -20,7 +20,7 @@ export const defaultNS = 'translation';
 
 export const resources = {
   en: { translation: en },
-  ar: { 
+  ar: {
     translation: ar,
     auth: arAuth,
     common: arCommon,
@@ -80,7 +80,7 @@ i18n
     // Fallback mechanism for missing keys
     saveMissing: true,
     returnEmptyString: false,
-    
+
     // When a default value is provided in t(), use it instead of transforming the key
     // This ensures t("key", "Default Text") returns "Default Text" when key is missing
     parseMissingKeyHandler: (key: string, defaultValue?: string) => {
@@ -102,18 +102,20 @@ i18n
 
 // Dynamic RTL/LTR and font switching
 i18n.on('languageChanged', (lng) => {
-  const dir = RTL_LANGUAGES.includes(lng) ? 'rtl' : 'ltr';
+  const baseLang = lng.split('-')[0];
+  const dir = RTL_LANGUAGES.includes(baseLang) ? 'rtl' : 'ltr';
   document.documentElement.dir = dir;
   document.documentElement.lang = lng;
-  
+
   // Apply language-specific font
-  const fontFamily = LANGUAGE_FONTS[lng] || LANGUAGE_FONTS.en;
+  const fontFamily = LANGUAGE_FONTS[baseLang] || LANGUAGE_FONTS[lng] || LANGUAGE_FONTS.en;
   document.documentElement.style.setProperty('--font-rubik', fontFamily);
 });
 
 // Initialize direction on load
 const initLang = i18n.language || 'en';
-document.documentElement.dir = RTL_LANGUAGES.includes(initLang) ? 'rtl' : 'ltr';
+const initBaseLang = initLang.split('-')[0];
+document.documentElement.dir = RTL_LANGUAGES.includes(initBaseLang) ? 'rtl' : 'ltr';
 document.documentElement.lang = initLang;
 
 export default i18n;

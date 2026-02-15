@@ -63,10 +63,10 @@ export function GatePassApprovalQueue({ passes }: GatePassApprovalQueueProps) {
       <div className="text-center py-12 text-muted-foreground">
         <Truck className="h-12 w-12 mx-auto mb-3 opacity-50" />
         <p className="font-medium">
-          {t("contractors.gatePasses.noPendingApprovals", "No pending approvals")}
+          {t("contractorPortal.gatePasses.noPendingApprovals", "No pending approvals")}
         </p>
         <p className="text-sm mt-1">
-          {t("contractors.gatePasses.noPendingForRole", "There are no gate passes waiting for your approval at this time")}
+          {t("contractorPortal.gatePasses.noPendingForRole", "There are no gate passes waiting for your approval at this time")}
         </p>
       </div>
     );
@@ -83,20 +83,20 @@ export function GatePassApprovalQueue({ passes }: GatePassApprovalQueueProps) {
   const getApprovalStage = (status: string) => {
     switch (status) {
       case "pending_contractor_approval":
-        return { label: t("contractors.gatePasses.awaitingContractor", "Awaiting Contractor Approval"), step: 1, role: "contractor_consultant" };
+        return { label: t("contractorPortal.gatePasses.awaitingContractor", "Awaiting Contractor Approval"), step: 1, role: "contractor_consultant" };
       case "pending_dept_ack":
-        return { label: t("contractors.gatePasses.awaitingDeptAck", "Awaiting Dept Acknowledgment"), step: 2, role: "department_representative" };
+        return { label: t("contractorPortal.gatePasses.awaitingDeptAck", "Awaiting Dept Acknowledgment"), step: 2, role: "department_representative" };
       case "pending_dept_approval":
-        return { label: t("contractors.gatePasses.awaitingDeptApproval", "Awaiting Dept Approval"), step: 1, role: "department_representative" };
+        return { label: t("contractorPortal.gatePasses.awaitingDeptApproval", "Awaiting Dept Approval"), step: 1, role: "department_representative" };
       case "pending_club_mgmt_ack":
-        return { label: t("contractors.gatePasses.awaitingClubMgmtAck", "Awaiting Golf Club Management"), step: 2, role: "golf_club_management_department_representative" };
+        return { label: t("contractorPortal.gatePasses.awaitingClubMgmtAck", "Awaiting Golf Club Management"), step: 2, role: "golf_club_management_department_representative" };
       case "pending_security_approval":
-        return { label: t("contractors.gatePasses.awaitingSecurity", "Awaiting Security Approval"), step: 3, role: "security_supervisor" };
+        return { label: t("contractorPortal.gatePasses.awaitingSecurity", "Awaiting Security Approval"), step: 3, role: "security_supervisor" };
       // Legacy statuses for backward compatibility
       case "pending_pm_approval":
-        return { label: t("contractors.gatePasses.awaitingPm", "Awaiting PM Approval"), step: 1, role: "pm" };
+        return { label: t("contractorPortal.gatePasses.awaitingPm", "Awaiting PM Approval"), step: 1, role: "pm" };
       case "pending_safety_approval":
-        return { label: t("contractors.gatePasses.awaitingSafety", "Awaiting Safety Approval"), step: 2, role: "safety" };
+        return { label: t("contractorPortal.gatePasses.awaitingSafety", "Awaiting Safety Approval"), step: 2, role: "safety" };
       default:
         return { label: status, step: 0, role: "unknown" };
     }
@@ -113,7 +113,7 @@ export function GatePassApprovalQueue({ passes }: GatePassApprovalQueueProps) {
             onCheckedChange={toggleSelectAll}
           />
           <label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
-            {t("contractors.gatePasses.bulk.selectAll", "Select All")} ({passes.length})
+            {t("contractorPortal.gatePasses.bulk.selectAll", "Select All")} ({passes.length})
           </label>
         </div>
       )}

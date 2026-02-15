@@ -34,27 +34,27 @@ const entityColors: Record<EntityType, string> = {
 
 function getStatusBadge(status: string | null | undefined) {
   if (!status) return null;
-  
+
   switch (status) {
     case 'valid':
-      return <Badge variant="default" className="bg-green-600"><CheckCircle2 className="h-3 w-3 me-1" />Valid</Badge>;
+      return <Badge variant="default" className="bg-green-600"><CheckCircle2 className="h-3 w-3 me-1" />{t('accessControl.status.valid', 'Valid')}</Badge>;
     case 'warning':
-      return <Badge variant="secondary" className="bg-yellow-500 text-white"><AlertTriangle className="h-3 w-3 me-1" />Warning</Badge>;
+      return <Badge variant="secondary" className="bg-yellow-500 text-white"><AlertTriangle className="h-3 w-3 me-1" />{t('accessControl.status.warning', 'Warning')}</Badge>;
     case 'denied':
-      return <Badge variant="destructive"><XCircle className="h-3 w-3 me-1" />Denied</Badge>;
+      return <Badge variant="destructive"><XCircle className="h-3 w-3 me-1" />{t('accessControl.status.denied', 'Denied')}</Badge>;
     default:
       return <Badge variant="outline">{status}</Badge>;
   }
 }
 
-export function UnifiedAccessLogTable({ 
-  entries, 
-  isLoading, 
-  onRecordExit, 
+export function UnifiedAccessLogTable({
+  entries,
+  isLoading,
+  onRecordExit,
   showExitButton = true,
-  compact = false 
+  compact = false
 }: UnifiedAccessLogTableProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['security', 'translation']);
 
   if (isLoading) {
     return (
@@ -76,7 +76,7 @@ export function UnifiedAccessLogTable({
     return (
       <div className="text-center py-8 text-muted-foreground">
         <Clock className="mx-auto h-12 w-12 mb-4 opacity-50" />
-        <p>{t('security.accessControl.noEntries', 'No access entries found')}</p>
+        <p>{t('accessControl.noEntries', 'No access entries found')}</p>
       </div>
     );
   }
@@ -91,22 +91,22 @@ export function UnifiedAccessLogTable({
           const initials = entry.person_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '?';
 
           return (
-            <div 
-              key={entry.id} 
+            <div
+              key={entry.id}
               className={`flex items-center gap-3 p-3 border rounded-lg ${isOnSite ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800' : ''}`}
             >
               <Avatar className="h-9 w-9 flex-shrink-0">
                 <AvatarFallback className={colorClass}>{initials}</AvatarFallback>
               </Avatar>
-              
+
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="font-medium truncate text-sm">{entry.person_name}</span>
                   <Badge variant="outline" className="text-xs gap-1">
                     <Icon className="h-3 w-3" />
-                    {t(`security.accessControl.entityTypes.${entry.entity_type}`, entry.entity_type)}
+                    {t(`accessControl.entityTypes.${entry.entity_type}`, entry.entity_type)}
                   </Badge>
-                  {isOnSite && <Badge variant="default" className="bg-green-600 text-xs">On Site</Badge>}
+                  {isOnSite && <Badge variant="default" className="bg-green-600 text-xs">{t('accessControl.onSite', 'On Site')}</Badge>}
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
                   <Clock className="h-3 w-3" />
@@ -124,16 +124,16 @@ export function UnifiedAccessLogTable({
                   )}
                 </div>
               </div>
-              
+
               {showExitButton && isOnSite && onRecordExit && (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => onRecordExit(entry.id, entry.worker ? 'contractor_access_logs' : 'gate_entry_logs')}
                   className="gap-1 text-xs"
                 >
                   <LogOut className="h-3 w-3" />
-                  Exit
+                  {t('accessControl.exit', 'Exit')}
                 </Button>
               )}
             </div>
@@ -147,11 +147,11 @@ export function UnifiedAccessLogTable({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>{t('security.accessControl.person', 'Person')}</TableHead>
-          <TableHead>{t('security.accessControl.type', 'Type')}</TableHead>
-          <TableHead>{t('security.accessControl.entryTime', 'Entry')}</TableHead>
-          <TableHead>{t('security.accessControl.exitTime', 'Exit')}</TableHead>
-          <TableHead>{t('security.accessControl.status', 'Status')}</TableHead>
+          <TableHead>{t('accessControl.person', 'Person')}</TableHead>
+          <TableHead>{t('accessControl.type', 'Type')}</TableHead>
+          <TableHead>{t('accessControl.entryTime', 'Entry')}</TableHead>
+          <TableHead>{t('accessControl.exitTime', 'Exit')}</TableHead>
+          <TableHead>{t('accessControl.status', 'Status')}</TableHead>
           {showExitButton && <TableHead className="text-end">{t('common.actions', 'Actions')}</TableHead>}
         </TableRow>
       </TableHeader>
@@ -183,7 +183,7 @@ export function UnifiedAccessLogTable({
               <TableCell>
                 <Badge variant="outline" className="gap-1">
                   <Icon className="h-3 w-3" />
-                  {t(`security.accessControl.entityTypes.${entry.entity_type}`, entry.entity_type)}
+                  {t(`accessControl.entityTypes.${entry.entity_type}`, entry.entity_type)}
                 </Badge>
               </TableCell>
               <TableCell>
@@ -194,7 +194,7 @@ export function UnifiedAccessLogTable({
                 {entry.exit_time ? (
                   <div className="text-sm">{format(new Date(entry.exit_time), 'HH:mm')}</div>
                 ) : (
-                  <Badge variant="default" className="bg-green-600">On Site</Badge>
+                  <Badge variant="default" className="bg-green-600">{t('accessControl.onSite', 'On Site')}</Badge>
                 )}
               </TableCell>
               <TableCell>
@@ -203,14 +203,14 @@ export function UnifiedAccessLogTable({
               {showExitButton && (
                 <TableCell className="text-end">
                   {isOnSite && onRecordExit && (
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => onRecordExit(entry.id, entry.worker ? 'contractor_access_logs' : 'gate_entry_logs')}
                       className="gap-1"
                     >
                       <LogOut className="h-4 w-4" />
-                      {t('security.accessControl.recordExit', 'Record Exit')}
+                      {t('accessControl.recordExit', 'Record Exit')}
                     </Button>
                   )}
                 </TableCell>

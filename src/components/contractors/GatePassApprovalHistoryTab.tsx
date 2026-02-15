@@ -58,10 +58,10 @@ export function GatePassApprovalHistoryTab() {
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2">
           <History className="h-5 w-5 text-primary" />
-          {t("contractors.gatePasses.history.title", "Approval History")}
+          {t("contractorPortal.gatePasses.history.title", "Approval History")}
         </CardTitle>
         <CardDescription>
-          {t("contractors.gatePasses.history.description", "Gate passes you have approved or rejected")}
+          {t("contractorPortal.gatePasses.history.description", "Gate passes you have approved or rejected")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -69,12 +69,12 @@ export function GatePassApprovalHistoryTab() {
         <div className="flex flex-wrap gap-2">
           <Badge variant="outline" className="gap-1 text-green-600 border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
             <CheckCircle className="h-3 w-3" />
-            {t("contractors.gatePasses.history.approvedBy", "Approved by you")}
+            {t("contractorPortal.gatePasses.history.approvedBy", "Approved by you")}
             <span className="font-bold">{approvedCount}</span>
           </Badge>
           <Badge variant="outline" className="gap-1 text-red-600 border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-800">
             <XCircle className="h-3 w-3" />
-            {t("contractors.gatePasses.history.rejectedBy", "Rejected by you")}
+            {t("contractorPortal.gatePasses.history.rejectedBy", "Rejected by you")}
             <span className="font-bold">{rejectedCount}</span>
           </Badge>
         </div>
@@ -84,7 +84,7 @@ export function GatePassApprovalHistoryTab() {
           <div className="relative">
             <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder={t("contractors.gatePasses.searchPlaceholder", "Search by reference, material...")}
+              placeholder={t("contractorPortal.gatePasses.searchPlaceholder", "Search by reference, material...")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="ps-9"
@@ -93,7 +93,7 @@ export function GatePassApprovalHistoryTab() {
           <Select value={actionFilter} onValueChange={(v) => setActionFilter(v as typeof actionFilter)}>
             <SelectTrigger>
               <Filter className="h-4 w-4 me-2" />
-              <SelectValue placeholder={t("contractors.gatePasses.history.action", "Action")} />
+              <SelectValue placeholder={t("contractorPortal.gatePasses.history.action", "Action")} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("common.all", "All")}</SelectItem>
@@ -113,19 +113,19 @@ export function GatePassApprovalHistoryTab() {
         ) : filteredPasses.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <History className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p>{t("contractors.gatePasses.history.noHistory", "No approval history")}</p>
+            <p>{t("contractorPortal.gatePasses.history.noHistory", "No approval history")}</p>
           </div>
         ) : (
           <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t("contractors.gatePasses.reference", "Reference")}</TableHead>
-                  <TableHead>{t("contractors.gatePasses.material", "Material")}</TableHead>
-                  <TableHead>{t("contractors.gatePasses.requester", "Requester")}</TableHead>
-                  <TableHead>{t("contractors.gatePasses.history.action", "Action")}</TableHead>
-                  <TableHead>{t("contractors.gatePasses.history.actionDate", "Date")}</TableHead>
-                  <TableHead>{t("contractors.gatePasses.status.label", "Current Status")}</TableHead>
+                  <TableHead>{t("contractorPortal.gatePasses.reference", "Reference")}</TableHead>
+                  <TableHead>{t("contractorPortal.gatePasses.material", "Material")}</TableHead>
+                  <TableHead>{t("contractorPortal.gatePasses.requester", "Requester")}</TableHead>
+                  <TableHead>{t("contractorPortal.gatePasses.history.action", "Action")}</TableHead>
+                  <TableHead>{t("contractorPortal.gatePasses.history.actionDate", "Date")}</TableHead>
+                  <TableHead>{t("contractorPortal.gatePasses.status.label", "Current Status")}</TableHead>
                   <TableHead className="w-[80px]"></TableHead>
                 </TableRow>
               </TableHeader>

@@ -31,7 +31,7 @@ import { GatePassApprovalQueue } from '@/components/contractors/GatePassApproval
 import { GatePassApprovalHistoryTab } from '@/components/contractors/GatePassApprovalHistoryTab';
 
 export default function AccessControlDashboard() {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['security', 'translation']);
   const [activeTab, setActiveTab] = useState('overview');
   const [scannerOpen, setScannerOpen] = useState(false);
   const [entityFilter, setEntityFilter] = useState<EntityType | 'all'>('all');
@@ -101,28 +101,28 @@ export default function AccessControlDashboard() {
 
   const statCards = [
     {
-      label: t('security.accessControl.totalOnSite', 'Total On Site'),
+      label: t('accessControl.totalOnSite', 'Total On Site'),
       value: stats?.totalOnSite ?? 0,
       icon: Users,
       color: 'text-primary',
       bgColor: 'bg-primary/10',
     },
     {
-      label: t('security.accessControl.visitorsOnSite', 'Visitors'),
+      label: t('accessControl.visitorsOnSite', 'Visitors'),
       value: stats?.visitorsOnSite ?? 0,
       icon: Users,
       color: 'text-blue-600 dark:text-blue-400',
       bgColor: 'bg-blue-500/10',
     },
     {
-      label: t('security.accessControl.workersOnSite', 'Workers'),
+      label: t('accessControl.workersOnSite', 'Workers'),
       value: stats?.workersOnSite ?? 0,
       icon: HardHat,
       color: 'text-amber-600 dark:text-amber-400',
       bgColor: 'bg-amber-500/10',
     },
     {
-      label: t('security.accessControl.pendingApprovals', 'Pending Approvals'),
+      label: t('accessControl.pendingApprovals', 'Pending Approvals'),
       value: totalPendingApprovals,
       icon: Clock,
       color: totalPendingApprovals > 0 ? 'text-destructive' : 'text-muted-foreground',
@@ -138,22 +138,22 @@ export default function AccessControlDashboard() {
           <Shield className="h-7 w-7 text-primary flex-shrink-0" />
           <div>
             <h1 className="text-xl sm:text-2xl font-bold">
-              {t('security.accessControl.title', 'Access Control')}
+              {t('accessControl.title', 'Access Control')}
             </h1>
             <p className="text-sm text-muted-foreground">
-              {t('security.accessControl.description', 'Unified visitor and worker access management')}
+              {t('accessControl.description', 'Unified visitor and worker access management')}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={() => setScannerOpen(true)} className="gap-2">
             <QrCode className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('security.accessControl.scanQR', 'Scan QR')}</span>
+            <span className="hidden sm:inline">{t('accessControl.scanQR', 'Scan QR')}</span>
           </Button>
           <Button variant="outline" asChild className="gap-2">
             <Link to="/security/gate-dashboard">
               <LayoutDashboard className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('security.accessControl.gateDashboard', 'Gate Operations')}</span>
+              <span className="hidden sm:inline">{t('accessControl.gateDashboard', 'Gate Operations')}</span>
             </Link>
           </Button>
           <Button onClick={() => refetchStats()} variant="ghost" size="icon">
@@ -168,16 +168,16 @@ export default function AccessControlDashboard() {
           <Card
             key={stat.label}
             className={cn(
-              "overflow-hidden transition-all duration-200 hover:shadow-md cursor-pointer border-l-4",
-              stat.color.includes('destructive') ? 'border-l-destructive' :
-                stat.color.includes('primary') ? 'border-l-primary' :
-                  stat.color.includes('blue') ? 'border-l-blue-500' :
-                    'border-l-amber-500'
+              "overflow-hidden transition-all duration-200 hover:shadow-md cursor-pointer border-s-4", // Changed border-l to border-s for RTL
+              stat.color.includes('destructive') ? 'border-s-destructive' :
+                stat.color.includes('primary') ? 'border-s-primary' :
+                  stat.color.includes('blue') ? 'border-s-blue-500' :
+                    'border-s-amber-500' // Changed border-l to border-s for RTL
             )}
             onClick={() => {
-              if (stat.label === t('security.accessControl.pendingApprovals', 'Pending Approvals')) {
+              if (stat.label === t('accessControl.pendingApprovals', 'Pending Approvals')) {
                 setActiveTab('approvals');
-              } else if (stat.label === t('security.accessControl.totalOnSite', 'Total On Site')) {
+              } else if (stat.label === t('accessControl.totalOnSite', 'Total On Site')) {
                 setActiveTab('overview');
               }
             }}
@@ -193,20 +193,20 @@ export default function AccessControlDashboard() {
                       <p className="text-3xl font-bold tracking-tight">{stat.value}</p>
                       {/* Trend indicator placeholder */}
                       <span className="text-xs font-medium text-muted-foreground flex items-center">
-                        from yesterday
+                        {t('accessControl.trends.fromYesterday', 'from yesterday')}
                       </span>
                     </div>
                   )}
                 </div>
                 <div className={cn('p-2.5 rounded-xl', stat.bgColor)}>
                   <stat.icon className={cn('h-5 w-5', stat.color,
-                    stat.label === t('security.accessControl.pendingApprovals', 'Pending Approvals') && stat.value > 0 ? "animate-pulse" : ""
+                    stat.label === t('accessControl.pendingApprovals', 'Pending Approvals') && stat.value > 0 ? "animate-pulse" : ""
                   )} />
                 </div>
               </div>
             </CardContent>
             {/* Progress bar placeholder at bottom */}
-            {stat.label === t('security.accessControl.pendingApprovals', 'Pending Approvals') && stat.value > 0 && (
+            {stat.label === t('accessControl.pendingApprovals', 'Pending Approvals') && stat.value > 0 && (
               <div className="h-1 w-full bg-destructive/20">
                 <div className="h-full bg-destructive w-[45%]" />
               </div>
@@ -221,7 +221,7 @@ export default function AccessControlDashboard() {
           <TabsList className="inline-flex w-max sm:w-full h-auto p-1 bg-muted/60 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <TabsTrigger value="overview" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('security.accessControl.tabs.onSite', 'On Site')}</span>
+              <span className="hidden sm:inline">{t('accessControl.tabs.onSite', 'On Site')}</span>
               <span className="sm:hidden">On Site</span>
               {(stats?.totalOnSite ?? 0) > 0 && (
                 <Badge variant="secondary" className="ms-1 text-[10px] h-5 px-1.5 min-w-[1.25rem]">{stats?.totalOnSite}</Badge>
@@ -230,7 +230,7 @@ export default function AccessControlDashboard() {
 
             <TabsTrigger value="approvals" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <ClipboardCheck className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('security.accessControl.tabs.approvals', 'Approvals')}</span>
+              <span className="hidden sm:inline">{t('accessControl.tabs.approvals', 'Approvals')}</span>
               <span className="sm:hidden">Apps</span>
               {totalPendingApprovals > 0 && (
                 <Badge variant="destructive" className="ms-1 text-[10px] h-5 px-1.5 min-w-[1.25rem] animate-pulse">{totalPendingApprovals}</Badge>
@@ -239,7 +239,7 @@ export default function AccessControlDashboard() {
 
             <TabsTrigger value="gatepasses" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <Package className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('security.accessControl.tabs.gatePasses', 'Gate Passes')}</span>
+              <span className="hidden sm:inline">{t('accessControl.tabs.gatePasses', 'Gate Passes')}</span>
               <span className="sm:hidden">Passes</span>
               {pendingGatePassApprovals.length > 0 && (
                 <Badge variant="destructive" className="ms-1 text-[10px] h-5 px-1.5 min-w-[1.25rem]">{pendingGatePassApprovals.length}</Badge>
@@ -248,25 +248,25 @@ export default function AccessControlDashboard() {
 
             <TabsTrigger value="visitors" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('security.accessControl.tabs.visitors', 'Visitors')}</span>
+              <span className="hidden sm:inline">{t('accessControl.tabs.visitors', 'Visitors')}</span>
               <span className="sm:hidden">Vis</span>
             </TabsTrigger>
 
             <TabsTrigger value="workers" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <HardHat className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('security.accessControl.tabs.workers', 'Workers')}</span>
+              <span className="hidden sm:inline">{t('accessControl.tabs.workers', 'Workers')}</span>
               <span className="sm:hidden">Wrk</span>
             </TabsTrigger>
 
             <TabsTrigger value="analytics" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <LayoutDashboard className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('security.accessControl.tabs.analytics', 'Analytics')}</span>
+              <span className="hidden sm:inline">{t('accessControl.tabs.analytics', 'Analytics')}</span>
               <span className="sm:hidden">Analytic</span>
             </TabsTrigger>
 
             <TabsTrigger value="history" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <History className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('security.accessControl.tabs.history', 'History')}</span>
+              <span className="hidden sm:inline">{t('accessControl.tabs.history', 'History')}</span>
               <span className="sm:hidden">Hist</span>
             </TabsTrigger>
           </TabsList>
@@ -280,17 +280,17 @@ export default function AccessControlDashboard() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <CheckCircle2 className="h-5 w-5 text-green-600" />
-                    {t('security.accessControl.currentlyOnSite', 'Currently On Site')}
+                    {t('accessControl.currentlyOnSite', 'Currently On Site')}
                     <Badge variant="secondary">{onSiteEntries.length}</Badge>
                   </CardTitle>
                   <CardDescription>
-                    {t('security.accessControl.onSiteDescription', 'All visitors and workers currently checked in')}
+                    {t('accessControl.onSiteDescription', 'All visitors and workers currently checked in')}
                   </CardDescription>
                 </div>
                 <Button variant="outline" size="sm" asChild>
                   <Link to="/visitors/register" className="gap-2">
                     <UserPlus className="h-4 w-4" />
-                    {t('security.accessControl.preRegister', 'Pre-Register')}
+                    {t('accessControl.preRegister', 'Pre-Register')}
                   </Link>
                 </Button>
               </div>
@@ -315,7 +315,7 @@ export default function AccessControlDashboard() {
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Users className="h-5 w-5 text-blue-600" />
-                  {t('security.accessControl.visitorApprovals', 'Visitor Approvals')}
+                  {t('accessControl.visitorApprovals', 'Visitor Approvals')}
                   {pendingVisitorApprovals.length > 0 && (
                     <Badge variant="destructive">{pendingVisitorApprovals.length}</Badge>
                   )}
@@ -331,7 +331,7 @@ export default function AccessControlDashboard() {
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <HardHat className="h-5 w-5 text-amber-600" />
-                  {t('security.accessControl.workerApprovals', 'Worker Approvals')}
+                  {t('accessControl.workerApprovals', 'Worker Approvals')}
                   {pendingWorkerApprovals.length > 0 && (
                     <Badge variant="destructive">{pendingWorkerApprovals.length}</Badge>
                   )}
@@ -348,7 +348,7 @@ export default function AccessControlDashboard() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Shield className="h-5 w-5 text-primary" />
-                {t('security.accessControl.securityApprovals', 'Security Approvals')}
+                {t('accessControl.securityApprovals', 'Security Approvals')}
                 {pendingSecurityApprovals.length > 0 && (
                   <Badge variant="default">{pendingSecurityApprovals.length}</Badge>
                 )}
@@ -364,7 +364,7 @@ export default function AccessControlDashboard() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Package className="h-5 w-5 text-green-600" />
-                {t('security.accessControl.gatePassApprovals', 'Gate Pass Approvals')}
+                {t('accessControl.gatePassApprovals', 'Gate Pass Approvals')}
                 {pendingGatePassApprovals.length > 0 && (
                   <Badge variant="destructive">{pendingGatePassApprovals.length}</Badge>
                 )}
@@ -382,10 +382,10 @@ export default function AccessControlDashboard() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Package className="h-5 w-5 text-green-600" />
-                {t('security.accessControl.gatePassApprovals', 'Gate Pass Approvals')}
+                {t('accessControl.gatePassApprovals', 'Gate Pass Approvals')}
               </CardTitle>
               <CardDescription>
-                {t('security.accessControl.gatePassDescription', 'Material gate passes pending your security approval')}
+                {t('accessControl.gatePassDescription', 'Material gate passes pending your security approval')}
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
@@ -394,7 +394,7 @@ export default function AccessControlDashboard() {
                 <TabsList className="mb-4">
                   <TabsTrigger value="pending" className="gap-2">
                     <ClipboardCheck className="h-4 w-4" />
-                    {t('contractors.gatePasses.pendingApprovals', 'Pending Approvals')}
+                    {t('contractorPortal.gatePasses.pendingApprovals', 'Pending Approvals')}
                     {pendingGatePassApprovals.length > 0 && (
                       <Badge variant="destructive" className="ms-1">
                         {pendingGatePassApprovals.length}
@@ -403,7 +403,7 @@ export default function AccessControlDashboard() {
                   </TabsTrigger>
                   <TabsTrigger value="history" className="gap-2">
                     <History className="h-4 w-4" />
-                    {t('contractors.gatePasses.tabs.approvalHistory', 'Approval History')}
+                    {t('contractorPortal.gatePasses.tabs.approvalHistory', 'Approval History')}
                   </TabsTrigger>
                 </TabsList>
 
@@ -425,10 +425,10 @@ export default function AccessControlDashboard() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-blue-600" />
-                {t('security.accessControl.visitorAccess', 'Visitor Access')}
+                {t('accessControl.visitorAccess', 'Visitor Access')}
               </CardTitle>
               <CardDescription>
-                {t('security.accessControl.visitorAccessDescription', 'Recent visitor entries and exits')}
+                {t('accessControl.visitorAccessDescription', 'Recent visitor entries and exits')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -447,10 +447,10 @@ export default function AccessControlDashboard() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2">
                 <HardHat className="h-5 w-5 text-amber-600" />
-                {t('security.accessControl.workerAccess', 'Worker Access')}
+                {t('accessControl.workerAccess', 'Worker Access')}
               </CardTitle>
               <CardDescription>
-                {t('security.accessControl.workerAccessDescription', 'Recent contractor worker entries and exits')}
+                {t('accessControl.workerAccessDescription', 'Recent contractor worker entries and exits')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -471,10 +471,10 @@ export default function AccessControlDashboard() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <History className="h-5 w-5" />
-                    {t('security.accessControl.accessHistory', 'Access History')}
+                    {t('accessControl.accessHistory', 'Access History')}
                   </CardTitle>
                   <CardDescription>
-                    {t('security.accessControl.accessHistoryDescription', 'Complete log of all entries and exits')}
+                    {t('accessControl.accessHistoryDescription', 'Complete log of all entries and exits')}
                   </CardDescription>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -490,8 +490,8 @@ export default function AccessControlDashboard() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t('common.all', 'All')}</SelectItem>
-                      <SelectItem value="visitor">{t('security.accessControl.entityTypes.visitor', 'Visitors')}</SelectItem>
-                      <SelectItem value="worker">{t('security.accessControl.entityTypes.worker', 'Workers')}</SelectItem>
+                      <SelectItem value="visitor">{t('accessControl.entityTypes.visitor', 'Visitors')}</SelectItem>
+                      <SelectItem value="worker">{t('accessControl.entityTypes.worker', 'Workers')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <Select value={dateFilter} onValueChange={(v) => setDateFilter(v as 'today' | '7days' | '30days')}>
@@ -520,40 +520,40 @@ export default function AccessControlDashboard() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm font-medium">Approval Velocity</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('accessControl.analytics.approvalVelocity', 'Approval Velocity')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">12/hr</div>
-                <p className="text-xs text-muted-foreground">+20.1% from last month</p>
+                <p className="text-xs text-muted-foreground">{t('accessControl.trends.fromLastMonth', '+20.1% from last month')}</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm font-medium">Avg Process Time</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('accessControl.analytics.avgProcessTime', 'Avg Process Time')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">4m 30s</div>
-                <p className="text-xs text-muted-foreground">-1m from last month</p>
+                <p className="text-xs text-muted-foreground">{t('accessControl.trends.fromLastMonth', '-1m from last month')}</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm font-medium">Rejection Rate</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('accessControl.analytics.rejectionRate', 'Rejection Rate')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">8.2%</div>
-                <p className="text-xs text-muted-foreground">+2% from last week</p>
+                <p className="text-xs text-muted-foreground">{t('accessControl.trends.fromLastWeek', '+2% from last week')}</p>
               </CardContent>
             </Card>
           </div>
 
           <Card className="col-span-3">
             <CardHeader>
-              <CardTitle>Detailed Analytics</CardTitle>
-              <CardDescription>Comprehensive view of security operations performance.</CardDescription>
+              <CardTitle>{t('accessControl.analytics.detailedAnalytics', 'Detailed Analytics')}</CardTitle>
+              <CardDescription>{t('accessControl.analytics.detailedDescription', 'Comprehensive view of security operations performance.')}</CardDescription>
             </CardHeader>
             <CardContent className="h-[300px] flex items-center justify-center text-muted-foreground border-dashed border-2 rounded-md m-4">
-              Chart visualization would go here
+              {t('accessControl.analytics.chartPlaceholder', 'Chart visualization would go here')}
             </CardContent>
           </Card>
         </TabsContent>
