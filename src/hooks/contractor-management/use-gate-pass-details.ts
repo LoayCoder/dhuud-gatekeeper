@@ -201,6 +201,7 @@ export function useGatePassDetails(passId: string | null) {
   });
 }
 
+/** @deprecated Use useGatePassMedia from use-gate-pass-media.ts instead */
 export function useGatePassItems(passId: string | null, isPublic: boolean = false) {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
@@ -248,6 +249,7 @@ export function useGatePassItems(passId: string | null, isPublic: boolean = fals
   });
 }
 
+/** @deprecated Use useGatePassMedia from use-gate-pass-media.ts instead */
 export function useGatePassPhotos(passId: string | null, isPublic: boolean = false) {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;

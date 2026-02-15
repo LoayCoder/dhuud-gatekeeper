@@ -37,16 +37,16 @@ function MyGatePassHistoryContent() {
     );
   };
 
-  const getRoleBadge = (role: "pm" | "safety") => {
-    return role === "pm" ? (
-      <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">
-        {t("gatePasses.role.pm", "Dept/PM")}
-      </Badge>
-    ) : (
-      <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
-        {t("gatePasses.role.safety", "Security")}
-      </Badge>
-    );
+  const getRoleBadge = (role: "pm" | "safety" | "contractor" | "club_mgmt" | "security") => {
+    const config: Record<string, { label: string; className: string }> = {
+      pm: { label: t("gatePasses.role.pm", "Dept/PM"), className: "text-blue-600 border-blue-200 bg-blue-50" },
+      safety: { label: t("gatePasses.role.safety", "Safety"), className: "text-green-600 border-green-200 bg-green-50" },
+      contractor: { label: t("gatePasses.role.contractor", "Contractor"), className: "text-orange-600 border-orange-200 bg-orange-50" },
+      club_mgmt: { label: t("gatePasses.role.clubMgmt", "Club Mgmt"), className: "text-purple-600 border-purple-200 bg-purple-50" },
+      security: { label: t("gatePasses.role.security", "Security"), className: "text-emerald-600 border-emerald-200 bg-emerald-50" },
+    };
+    const c = config[role] || config.pm;
+    return <Badge variant="outline" className={c.className}>{c.label}</Badge>;
   };
 
   return (

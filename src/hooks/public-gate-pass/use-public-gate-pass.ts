@@ -102,7 +102,9 @@ export function useSubmitPublicGatePass() {
           p_requester_email: data.requester_email || null,
           p_requester_company: data.requester_company || null,
           p_pass_type: data.pass_type || 'in',
-          p_material_description: data.material_description?.trim() || null,
+          p_material_description: data.material_description?.trim()
+            || data.items?.map(i => i.item_name).join(', ')
+            || 'Materials',
           p_quantity: data.quantity || null,
           p_vehicle_plate: data.vehicle_plate || null,
           p_vehicle_plate_letters: data.vehicle_plate_letters || null,

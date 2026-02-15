@@ -196,12 +196,46 @@ export function useDeptPendingApprovals() {
         }
       }
 
+      // 4. PUBLIC requests pending security approval (visible to security supervisors)
+      // This is handled by the role-based usePendingGatePassApprovals hook,
+      // but we also include them here for dept view completeness
+      const { data: userRoles } = await supabase
+        .from("user_role_assignments")
+        .select("roles(code)")
+        .eq("user_id", userId)
+        .eq("tenant_id", tenantId);
+
+      const roleCodes = (userRoles || [])
+        .map((r: { roles: { code: string } | null }) => r.roles?.code)
+        .filter(Boolean) as string[];
+
+      if (roleCodes.includes("security_supervisor") || roleCodes.includes("security_manager")) {
+        const { data: securityPasses, error: secError } = await supabase
+          .from("material_gate_passes")
+          .select(GATE_PASS_SELECT)
+          .eq("tenant_id", tenantId)
+          .eq("status", "pending_security_approval")
+          .is("deleted_at", null)
+          .order("created_at", { ascending: false });
+
+        if (secError) throw secError;
+        if (securityPasses) allPending.push(...(securityPasses as MaterialGatePass[]));
+      }
+
+      // Deduplicate by ID
+      const seenIds = new Set<string>();
+      const deduped = allPending.filter(p => {
+        if (seenIds.has(p.id)) return false;
+        seenIds.add(p.id);
+        return true;
+      });
+
       // Sort by created_at descending
-      allPending.sort((a, b) => 
+      deduped.sort((a, b) => 
         new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
       );
 
-      return allPending;
+      return deduped;
     },
     enabled: !!tenantId && !!userId,
   });

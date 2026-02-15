@@ -26,6 +26,8 @@ import {
   LogOut,
   Package,
   ImageIcon,
+  Expand,
+  X,
 } from "lucide-react";
 import { MaterialGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
 import {
@@ -38,6 +40,7 @@ import {
 import { cn } from "@/lib/utils";
 import { GatePassPDFExportButton } from "./GatePassPDFExportButton";
 import { GatePassApprovalActions } from "./GatePassApprovalActions";
+import { GatePassPhoto as GatePassPhotoComponent } from "@/components/ui/gate-pass-photo";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface GatePassDetailDialogProps {
@@ -134,7 +137,7 @@ export function GatePassDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <div className="flex items-center justify-between gap-4">
             <DialogTitle className="flex items-center gap-2">
@@ -160,7 +163,7 @@ export function GatePassDetailDialog({
             </TabsTrigger>
           </TabsList>
 
-          <ScrollArea className="flex-1 mt-4">
+          <ScrollArea className="flex-1 min-h-0 mt-4">
             <TabsContent value="details" className="mt-0 space-y-4">
               <DetailsTab
                 pass={pass}
@@ -197,14 +200,12 @@ export function GatePassDetailDialog({
 
         {/* Approval Actions - shown when pass is pending and user can act */}
         {isPendingAction && (
-          <DialogFooter className="border-t pt-4">
-            <div className="w-full">
-              <GatePassApprovalActions
-                pass={pass}
-                onSuccess={handleApprovalSuccess}
-              />
-            </div>
-          </DialogFooter>
+          <div className="border-t pt-3 mt-2">
+            <GatePassApprovalActions
+              pass={pass}
+              onSuccess={handleApprovalSuccess}
+            />
+          </div>
         )}
       </DialogContent>
     </Dialog>
@@ -322,7 +323,11 @@ function DetailsTab({
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-muted-foreground">{t("contractors.gatePassDetail.plateNumber", "Plate")}:</span>
-              <span className="ms-2 font-medium">{data.vehicle_plate || "-"}</span>
+              <span className="ms-2 font-medium font-mono">
+                {data.is_public_request && (data as any).vehicle_plate_letters && (data as any).vehicle_plate_numbers
+                  ? `${(data as any).vehicle_plate_letters} ${(data as any).vehicle_plate_numbers}`
+                  : data.vehicle_plate || "-"}
+              </span>
             </div>
             <div>
               <span className="text-muted-foreground">{t("contractors.gatePassDetail.driverName", "Driver")}:</span>
@@ -427,6 +432,9 @@ function ItemsPhotosTab({
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="font-medium text-sm">{item.item_name}</p>
+                      {item.sr_number && (
+                        <p className="text-xs text-muted-foreground mt-0.5 font-mono">SN: {item.sr_number}</p>
+                      )}
                       {item.description && (
                         <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
                       )}
@@ -447,21 +455,12 @@ function ItemsPhotosTab({
                       </p>
                       <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                         {itemPhotos.map((photo) => (
-                          <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden border bg-background">
-                            {photo.signedUrl ? (
-                              <a href={photo.signedUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
-                                <img
-                                  src={photo.signedUrl}
-                                  alt={photo.file_name}
-                                  className="w-full h-full object-cover hover:opacity-90 transition-opacity"
-                                />
-                              </a>
-                            ) : (
-                              <div className="w-full h-full bg-muted flex items-center justify-center">
-                                <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                              </div>
-                            )}
-                          </div>
+                          <GatePassPhotoComponent
+                            key={photo.id}
+                            signedUrl={photo.signedUrl}
+                            alt={photo.file_name}
+                            className="aspect-square"
+                          />
                         ))}
                       </div>
                     </div>
@@ -496,21 +495,12 @@ function ItemsPhotosTab({
           </h4>
           <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
             {photos.map((photo) => (
-              <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden border">
-                {photo.signedUrl ? (
-                  <a href={photo.signedUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
-                    <img
-                      src={photo.signedUrl}
-                      alt={photo.file_name}
-                      className="w-full h-full object-cover hover:opacity-90 transition-opacity"
-                    />
-                  </a>
-                ) : (
-                  <div className="w-full h-full bg-muted flex items-center justify-center">
-                    <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                )}
-              </div>
+              <GatePassPhotoComponent
+                key={photo.id}
+                signedUrl={photo.signedUrl}
+                alt={photo.file_name}
+                className="aspect-square"
+              />
             ))}
           </div>
         </div>
@@ -534,21 +524,12 @@ function ItemsPhotosTab({
             ) : generalPhotos.length > 0 ? (
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                 {generalPhotos.map((photo) => (
-                  <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden border">
-                    {photo.signedUrl ? (
-                      <a href={photo.signedUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
-                        <img
-                          src={photo.signedUrl}
-                          alt={photo.file_name}
-                          className="w-full h-full object-cover hover:opacity-90 transition-opacity"
-                        />
-                      </a>
-                    ) : (
-                      <div className="w-full h-full bg-muted flex items-center justify-center">
-                        <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
+                  <GatePassPhotoComponent
+                    key={photo.id}
+                    signedUrl={photo.signedUrl}
+                    alt={photo.file_name}
+                    className="aspect-square"
+                  />
                 ))}
               </div>
             ) : null}
