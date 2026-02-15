@@ -260,6 +260,19 @@ function DetailsTab({
         )}
       </div>
 
+      {/* Assigned Gate Display */}
+      {passDetails?.security_approval_notes?.match(/\[Gate: (.*?)\]/)?.[1] && (
+        <div className="p-4 rounded-lg border bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 flex items-center gap-2 mb-1">
+            <LogIn className="h-3.5 w-3.5" />
+            {t("security.materialPass.assignedGate", "Assigned Gate / Zone")}
+          </h4>
+          <p className="text-lg font-bold text-blue-700 dark:text-blue-300">
+            {passDetails.security_approval_notes.match(/\[Gate: (.*?)\]/)?.[1]}
+          </p>
+        </div>
+      )}
+
       {/* Material Description */}
       <div className="p-4 rounded-lg border space-y-2">
         <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -344,47 +357,51 @@ function DetailsTab({
       )}
 
       {/* Requester Info */}
-      <div className="p-4 rounded-lg border space-y-2">
+      <div className="p-4 rounded-lg border space-y-4">
         <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
           <User className="h-4 w-4" />
           {t("contractors.gatePasses.requestedBy", "Requested By")}
         </h4>
-        <div className="flex items-center gap-2">
-          <Avatar className="h-6 w-6">
-            <AvatarImage src={(passDetails?.requester as GatePassApproverProfile)?.avatar_url || undefined} />
-            <AvatarFallback className="text-xs">
-              {((passDetails?.requester as GatePassApproverProfile)?.full_name || data.requester?.full_name || "?")
-                .split(" ")
-                .map((n) => n[0])
-                .join("")
-                .slice(0, 2)
-                .toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <span className="text-sm">
-            {pass.is_public_request
-              ? (pass.public_requester_name || "Public User")
-              : ((passDetails?.requester as GatePassApproverProfile)?.full_name || data.requester?.full_name || "-")}
-          </span>
-        </div>
 
-        {/* Additional Public Requester Info */}
-        {pass.is_public_request && (
-          <div className="mt-2 pt-2 border-t grid grid-cols-2 gap-2 text-xs">
-            {pass.public_requester_phone && (
-              <div>
-                <span className="text-muted-foreground block">{t("common.phone", "Phone")}</span>
-                <span className="font-medium" dir="ltr">{pass.public_requester_phone}</span>
-              </div>
-            )}
-            {pass.public_requester_company && (
-              <div>
-                <span className="text-muted-foreground block">{t("common.company", "Company")}</span>
-                <span className="font-medium">{pass.public_requester_company}</span>
-              </div>
-            )}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={(passDetails?.requester as GatePassApproverProfile)?.avatar_url || undefined} />
+              <AvatarFallback className="text-xs">
+                {((passDetails?.requester as GatePassApproverProfile)?.full_name || data.requester?.full_name || "?")
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">
+                {data.is_public_request
+                  ? (data.public_requester_name || t("common.publicUser", "Public User"))
+                  : ((passDetails?.requester as GatePassApproverProfile)?.full_name || data.requester?.full_name || "-")}
+              </span>
+              {!data.is_public_request && (passDetails?.requester as any)?.email && (
+                <span className="text-xs text-muted-foreground">{(passDetails?.requester as any).email}</span>
+              )}
+            </div>
           </div>
-        )}
+
+          {/* Additional Public Requester Info - Using consistent grid layout */}
+          {data.is_public_request && (
+            <div className="grid grid-cols-2 gap-4 text-sm pt-2 border-t">
+              <div>
+                <span className="text-muted-foreground">{t("common.phone", "Phone")}:</span>
+                <span className="ms-2 font-medium font-mono" dir="ltr">{data.public_requester_phone || "-"}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">{t("common.company", "Company")}:</span>
+                <span className="ms-2 font-medium">{data.public_requester_company || "-"}</span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

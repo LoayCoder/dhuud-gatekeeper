@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
-import { 
-  Truck, QrCode, Package, Clock, CheckCircle2, XCircle, 
+import {
+  Truck, QrCode, Package, Clock, CheckCircle2, XCircle,
   AlertTriangle, LogIn, LogOut, Phone, Car, Hash, ShieldAlert
 } from 'lucide-react';
 import { ScannerDialog } from '@/components/ui/scanner-dialog';
@@ -36,6 +36,7 @@ interface MaterialPassResult {
     exit_time: string | null;
     project_name: string;
     company_name: string;
+    assigned_gate?: string | null;
   };
   items?: Array<{
     item_name: string;
@@ -276,8 +277,8 @@ export function MaterialPassVerificationPanel() {
             <div
               className={cn(
                 'p-4 rounded-lg flex items-center gap-3',
-                result.is_valid 
-                  ? 'bg-green-500/10 border border-green-500/30' 
+                result.is_valid
+                  ? 'bg-green-500/10 border border-green-500/30'
                   : 'bg-destructive/10 border border-destructive/30'
               )}
             >
@@ -291,7 +292,7 @@ export function MaterialPassVerificationPanel() {
                   'font-bold text-lg',
                   result.is_valid ? 'text-green-700 dark:text-green-300' : 'text-destructive'
                 )}>
-                  {result.is_valid 
+                  {result.is_valid
                     ? t('security.materialPass.valid', 'VALID PASS')
                     : t('security.materialPass.invalid', 'INVALID PASS')
                   }
@@ -351,7 +352,7 @@ export function MaterialPassVerificationPanel() {
             {result.pass && (
               <div className="space-y-3">
                 <Separator />
-                
+
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
                     <p className="text-muted-foreground text-xs">
@@ -360,8 +361,8 @@ export function MaterialPassVerificationPanel() {
                     <Badge variant="outline" className="mt-1">
                       {result.pass.pass_type === 'in' ? t('security.materialPass.entryOnly', 'Entry Only')
                         : result.pass.pass_type === 'out' ? t('security.materialPass.exitOnly', 'Exit Only')
-                        : result.pass.pass_type === 'in_out' ? t('security.materialPass.entryAndExit', 'Entry & Exit')
-                        : result.pass.pass_type}
+                          : result.pass.pass_type === 'in_out' ? t('security.materialPass.entryAndExit', 'Entry & Exit')
+                            : result.pass.pass_type}
                     </Badge>
                   </div>
                   <div>
@@ -376,6 +377,17 @@ export function MaterialPassVerificationPanel() {
                     </p>
                     <p className="font-medium">{result.pass.company_name}</p>
                   </div>
+                  {result.pass.assigned_gate && (
+                    <div className="col-span-2 bg-blue-50 dark:bg-blue-900/20 p-2 rounded border border-blue-100 dark:border-blue-800">
+                      <p className="text-blue-600 dark:text-blue-400 text-xs font-semibold flex items-center gap-1.5 uppercase tracking-wider">
+                        <LogIn className="h-3 w-3" />
+                        {t('security.materialPass.assignedGate', 'Assigned Gate / Zone')}
+                      </p>
+                      <p className="font-bold text-lg text-blue-700 dark:text-blue-300 mt-0.5">
+                        {result.pass.assigned_gate}
+                      </p>
+                    </div>
+                  )}
                   {result.pass.time_window_start && result.pass.time_window_end && (
                     <div>
                       <p className="text-muted-foreground text-xs flex items-center gap-1">
@@ -407,7 +419,7 @@ export function MaterialPassVerificationPanel() {
                           </p>
                           <p className="font-medium">{result.pass.driver_name}</p>
                           {result.pass.driver_mobile && (
-                            <a 
+                            <a
                               href={`tel:${result.pass.driver_mobile}`}
                               className="text-xs text-primary flex items-center gap-1"
                             >

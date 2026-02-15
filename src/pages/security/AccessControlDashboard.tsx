@@ -3,8 +3,8 @@ import { logger } from '@/lib/logger';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { startOfDay, startOfWeek, subDays } from 'date-fns';
-import { 
-  Shield, Users, HardHat, Clock, CheckCircle2, AlertTriangle, 
+import {
+  Shield, Users, HardHat, Clock, CheckCircle2, AlertTriangle,
   QrCode, ClipboardCheck, History, RefreshCw, UserPlus, Package,
   LayoutDashboard
 } from 'lucide-react';
@@ -41,7 +41,7 @@ export default function AccessControlDashboard() {
 
   // Stats
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useUnifiedAccessStats();
-  
+
   // Pending approvals
   const { data: pendingVisitorApprovals = [] } = usePendingSecurityRequests();
   const { data: pendingWorkerApprovals = [] } = usePendingWorkerApprovals();
@@ -163,64 +163,111 @@ export default function AccessControlDashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {statCards.map((stat) => (
-          <Card key={stat.label} className="overflow-hidden">
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className={cn('p-2 rounded-lg flex-shrink-0', stat.bgColor)}>
-                  <stat.icon className={cn('h-4 w-4 sm:h-5 sm:w-5', stat.color)} />
-                </div>
-                <div className="min-w-0">
+          <Card
+            key={stat.label}
+            className={cn(
+              "overflow-hidden transition-all duration-200 hover:shadow-md cursor-pointer border-l-4",
+              stat.color.includes('destructive') ? 'border-l-destructive' :
+                stat.color.includes('primary') ? 'border-l-primary' :
+                  stat.color.includes('blue') ? 'border-l-blue-500' :
+                    'border-l-amber-500'
+            )}
+            onClick={() => {
+              if (stat.label === t('security.accessControl.pendingApprovals', 'Pending Approvals')) {
+                setActiveTab('approvals');
+              } else if (stat.label === t('security.accessControl.totalOnSite', 'Total On Site')) {
+                setActiveTab('overview');
+              }
+            }}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
                   {statsLoading ? (
-                    <Skeleton className="h-6 w-12" />
+                    <Skeleton className="h-8 w-16 mt-2" />
                   ) : (
-                    <p className="text-xl sm:text-2xl font-bold">{stat.value}</p>
+                    <div className="flex items-baseline gap-2 mt-1">
+                      <p className="text-3xl font-bold tracking-tight">{stat.value}</p>
+                      {/* Trend indicator placeholder */}
+                      <span className="text-xs font-medium text-muted-foreground flex items-center">
+                        from yesterday
+                      </span>
+                    </div>
                   )}
-                  <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1">{stat.label}</p>
+                </div>
+                <div className={cn('p-2.5 rounded-xl', stat.bgColor)}>
+                  <stat.icon className={cn('h-5 w-5', stat.color,
+                    stat.label === t('security.accessControl.pendingApprovals', 'Pending Approvals') && stat.value > 0 ? "animate-pulse" : ""
+                  )} />
                 </div>
               </div>
             </CardContent>
+            {/* Progress bar placeholder at bottom */}
+            {stat.label === t('security.accessControl.pendingApprovals', 'Pending Approvals') && stat.value > 0 && (
+              <div className="h-1 w-full bg-destructive/20">
+                <div className="h-full bg-destructive w-[45%]" />
+              </div>
+            )}
           </Card>
         ))}
       </div>
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
-          <TabsList className="inline-flex w-max sm:w-full sm:grid sm:grid-cols-6">
-            <TabsTrigger value="overview" className="gap-1.5 text-xs sm:text-sm whitespace-nowrap">
-              <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              {t('security.accessControl.tabs.onSite', 'On Site')}
+        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-thin pb-2">
+          <TabsList className="inline-flex w-max sm:w-full h-auto p-1 bg-muted/60 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <TabsTrigger value="overview" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('security.accessControl.tabs.onSite', 'On Site')}</span>
+              <span className="sm:hidden">On Site</span>
               {(stats?.totalOnSite ?? 0) > 0 && (
-                <Badge variant="secondary" className="ms-1 text-xs">{stats?.totalOnSite}</Badge>
+                <Badge variant="secondary" className="ms-1 text-[10px] h-5 px-1.5 min-w-[1.25rem]">{stats?.totalOnSite}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="approvals" className="gap-1.5 text-xs sm:text-sm whitespace-nowrap">
-              <ClipboardCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              {t('security.accessControl.tabs.approvals', 'Approvals')}
+
+            <TabsTrigger value="approvals" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <ClipboardCheck className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('security.accessControl.tabs.approvals', 'Approvals')}</span>
+              <span className="sm:hidden">Apps</span>
               {totalPendingApprovals > 0 && (
-                <Badge variant="destructive" className="ms-1 text-xs">{totalPendingApprovals}</Badge>
+                <Badge variant="destructive" className="ms-1 text-[10px] h-5 px-1.5 min-w-[1.25rem] animate-pulse">{totalPendingApprovals}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="gatepasses" className="gap-1.5 text-xs sm:text-sm whitespace-nowrap">
-              <Package className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              {t('security.accessControl.tabs.gatePasses', 'Gate Passes')}
+
+            <TabsTrigger value="gatepasses" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <Package className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('security.accessControl.tabs.gatePasses', 'Gate Passes')}</span>
+              <span className="sm:hidden">Passes</span>
               {pendingGatePassApprovals.length > 0 && (
-                <Badge variant="destructive" className="ms-1 text-xs">{pendingGatePassApprovals.length}</Badge>
+                <Badge variant="destructive" className="ms-1 text-[10px] h-5 px-1.5 min-w-[1.25rem]">{pendingGatePassApprovals.length}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="visitors" className="gap-1.5 text-xs sm:text-sm whitespace-nowrap">
-              <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              {t('security.accessControl.tabs.visitors', 'Visitors')}
+
+            <TabsTrigger value="visitors" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('security.accessControl.tabs.visitors', 'Visitors')}</span>
+              <span className="sm:hidden">Vis</span>
             </TabsTrigger>
-            <TabsTrigger value="workers" className="gap-1.5 text-xs sm:text-sm whitespace-nowrap">
-              <HardHat className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              {t('security.accessControl.tabs.workers', 'Workers')}
+
+            <TabsTrigger value="workers" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <HardHat className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('security.accessControl.tabs.workers', 'Workers')}</span>
+              <span className="sm:hidden">Wrk</span>
             </TabsTrigger>
-            <TabsTrigger value="history" className="gap-1.5 text-xs sm:text-sm whitespace-nowrap">
-              <History className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              {t('security.accessControl.tabs.history', 'History')}
+
+            <TabsTrigger value="analytics" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <LayoutDashboard className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('security.accessControl.tabs.analytics', 'Analytics')}</span>
+              <span className="sm:hidden">Analytic</span>
+            </TabsTrigger>
+
+            <TabsTrigger value="history" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <History className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('security.accessControl.tabs.history', 'History')}</span>
+              <span className="sm:hidden">Hist</span>
             </TabsTrigger>
           </TabsList>
         </div>
@@ -466,6 +513,47 @@ export default function AccessControlDashboard() {
                 isLoading={logsLoading}
                 onRecordExit={handleRecordExit}
               />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="analytics" className="space-y-4 mt-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Approval Velocity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">12/hr</div>
+                <p className="text-xs text-muted-foreground">+20.1% from last month</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Avg Process Time</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">4m 30s</div>
+                <p className="text-xs text-muted-foreground">-1m from last month</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Rejection Rate</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">8.2%</div>
+                <p className="text-xs text-muted-foreground">+2% from last week</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="col-span-3">
+            <CardHeader>
+              <CardTitle>Detailed Analytics</CardTitle>
+              <CardDescription>Comprehensive view of security operations performance.</CardDescription>
+            </CardHeader>
+            <CardContent className="h-[300px] flex items-center justify-center text-muted-foreground border-dashed border-2 rounded-md m-4">
+              Chart visualization would go here
             </CardContent>
           </Card>
         </TabsContent>

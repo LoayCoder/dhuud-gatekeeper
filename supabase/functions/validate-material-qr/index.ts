@@ -29,6 +29,7 @@ interface ValidationResult {
     exit_time: string | null;
     project_name: string;
     company_name: string;
+    assigned_gate?: string | null;
   };
   items?: Array<{
     item_name: string;
@@ -97,6 +98,8 @@ Deno.serve(async (req) => {
         status,
         entry_time,
         exit_time,
+        exit_time,
+        security_approval_notes,
         project:contractor_projects(project_name),
         company:contractor_companies(company_name)
       `)
@@ -182,7 +185,9 @@ Deno.serve(async (req) => {
       entry_time: pass.entry_time,
       exit_time: pass.exit_time,
       project_name: (pass.project as any)?.project_name || 'Unknown',
+      project_name: (pass.project as any)?.project_name || 'Unknown',
       company_name: (pass.company as any)?.company_name || 'Unknown',
+      assigned_gate: (pass.security_approval_notes?.match(/\[Gate: (.*?)\]/)?.[1]) || null,
     };
 
     result.items = items || [];

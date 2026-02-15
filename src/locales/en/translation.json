@@ -1677,7 +1677,6 @@
     "executiveReport": "Executive Report",
     "actionSlaSettings": "Action SLA Settings",
     "manhoursManagement": "Manhours Management",
-    
     "menuAccess": "Menu Access",
     "purchaseRequests": "Purchase Requests",
     "platformSettings": "Platform Settings",
@@ -10095,5 +10094,10 @@
     "saveFailed": "Failed to save part result",
     "resultsSaved": "Part results saved",
     "bulkSaveFailed": "Failed to save part results"
+  },
+  "security": {
+    "materialPass": {
+      "assignedGate": "Assigned Gate / Zone"
+    }
   }
 }
