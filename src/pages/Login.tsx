@@ -272,29 +272,32 @@ export default function Login() {
 
       if (error) throw error;
 
-      // SECURITY: Validate user access immediately after auth succeeds
-      // NOTE: If edge function fails to connect (network error), we still allow login
-      // This prevents edge function deployment issues from blocking all logins
+      // PARALLEL GROUP A: Run access validation, getUser, and AAL check concurrently
+      // These are all needed before we can make MFA/routing decisions
       let accessValidation: { allowed?: boolean; reason?: string; user_id?: string; tenant_id?: string } | null = null;
       let accessError: Error | null = null;
 
-      try {
-        const result = await supabase.functions.invoke('validate-user-access');
-        accessValidation = result.data;
-        accessError = result.error;
-      } catch (networkErr) {
-        // Edge function network failure - log but allow login to proceed
-        logger.warn('validate-user-access edge function network error (allowing login):', networkErr);
-        accessValidation = { allowed: true }; // Allow login on network failures
-      }
+      const accessValidationPromise = supabase.functions.invoke('validate-user-access')
+        .then(result => {
+          accessValidation = result.data;
+          accessError = result.error;
+        })
+        .catch((networkErr) => {
+          logger.warn('validate-user-access edge function network error (allowing login):', networkErr);
+          accessValidation = { allowed: true };
+        });
+
+      const [, { data: { user: authUser } }, { data: aal }] = await Promise.all([
+        accessValidationPromise,
+        supabase.auth.getUser(),
+        supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
+      ]);
 
       // Only block if we got a definitive "not allowed" response
       if (accessValidation && accessValidation.allowed === false) {
-        // User is deleted, inactive, or has no profile - sign out immediately
         console.warn('User access validation failed:', accessValidation.reason || accessError?.message);
         await supabase.auth.signOut();
 
-        // Show appropriate error message based on reason
         const reason = accessValidation.reason;
         let errorTitle = t('auth.error');
         let errorDesc = t('auth.accessDenied', 'Access denied');
@@ -321,7 +324,6 @@ export default function Login() {
         return;
       }
 
-      // Log if edge function had a network error but we're proceeding anyway
       if (accessError) {
         logger.warn('validate-user-access edge function error (proceeding with login):', accessError.message);
       }
@@ -356,29 +358,30 @@ export default function Login() {
         }
       }
 
-      // Check if MFA is required
-      const { data: { user } } = await supabase.auth.getUser();
-      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      // Check if MFA is required (user and aal already fetched in Group A)
+      const user = authUser;
 
       if (aal?.currentLevel === 'aal1' && aal?.nextLevel === 'aal2') {
         // User has 2FA enabled - check if device is trusted first
         if (user) {
           const isTrusted = await checkTrustedDevice(user.id);
           if (isTrusted) {
-            // Device is trusted, skip MFA and proceed with login
-            await refreshTenantData();
+            // Device is trusted, skip MFA - PARALLEL GROUP B
+            await Promise.all([
+              refreshTenantData(),
+              logUserActivity({ eventType: 'login' }),
+            ]);
             startSessionTracking();
-            await logUserActivity({ eventType: 'login' });
 
-            // Detect suspicious login (non-blocking)
+            // Non-blocking fire-and-forget
             detectSuspiciousLogin(user.id, true);
+            checkPasswordBreach(password);
 
             clearInvitationData();
             toast({
               title: t('auth.welcomeBack'),
               description: t('auth.loginSuccess'),
             });
-            checkPasswordBreach(password);
             navigate(returnTo);
             return;
           }
@@ -397,29 +400,31 @@ export default function Login() {
         }
       }
 
-      // No MFA required - proceed with login
-      await refreshTenantData();
+      // No MFA required - PARALLEL GROUP B: session setup
+      await Promise.all([
+        refreshTenantData(),
+        logUserActivity({ eventType: 'login' }),
+      ]);
       startSessionTracking();
-      await logUserActivity({ eventType: 'login' });
 
-      // Detect suspicious login (non-blocking)
-      const { data: { user: loggedInUser } } = await supabase.auth.getUser();
-      detectSuspiciousLogin(loggedInUser?.id, true);
+      // FIRE-AND-FORGET GROUP C: non-blocking telemetry
+      detectSuspiciousLogin(user?.id, true);
+      checkPasswordBreach(password);
 
-      // Verify device for invitation bypass on future logins
-      if (loggedInUser) {
-        // MULTI-TENANT: Use user_id to fetch profile
-        const { data: profile } = await supabase
+      // Verify device (non-blocking)
+      if (user) {
+        supabase
           .from('profiles')
           .select('tenant_id')
-          .eq('user_id', loggedInUser.id)
+          .eq('user_id', user.id)
           .eq('is_deleted', false)
           .eq('is_active', true)
-          .single();
-
-        if (profile?.tenant_id) {
-          verifyDevice(loggedInUser.id, profile.tenant_id);
-        }
+          .single()
+          .then(({ data: profile }) => {
+            if (profile?.tenant_id) {
+              verifyDevice(user.id, profile.tenant_id);
+            }
+          });
       }
 
       clearInvitationData();
@@ -429,8 +434,7 @@ export default function Login() {
         description: t('auth.loginSuccess'),
       });
 
-      // Check for breached password after successful login (non-blocking)
-      checkPasswordBreach(password);
+      // Check for breached password after successful login (non-blocking) - already fired above
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : t('auth.failedToLogin');
 

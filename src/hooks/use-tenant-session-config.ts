@@ -6,8 +6,8 @@ interface TenantSessionConfig {
   warningThresholdMinutes: number;
 }
 
-const DEFAULT_TIMEOUT_MINUTES = 15;
-const DEFAULT_WARNING_THRESHOLD_MINUTES = 2;
+const DEFAULT_TIMEOUT_MINUTES = 60;
+const DEFAULT_WARNING_THRESHOLD_MINUTES = 5;
 
 /**
  * Hook to fetch the tenant's session timeout configuration.
