@@ -323,38 +323,86 @@ function DetailsTab({
               {data.time_window_start} - {data.time_window_end}
             </p>
           )}
+
+          {/* Expiry Countdown */}
+          <div className="pt-2 border-t mt-1">
+            {(() => {
+              const expiryDate = new Date(data.end_date || data.pass_date);
+              // Set to end of day to be generous if no time specified, or parse time window if needed. 
+              // For now, assuming end of the passed date.
+              expiryDate.setHours(23, 59, 59, 999);
+
+              const now = new Date();
+              const isExpired = now > expiryDate;
+
+              // Calculate remaining
+              const diffTime = Math.abs(expiryDate.getTime() - now.getTime());
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              // using ceil for days to match common strictness, or calculate exact d/h
+
+              // More precise calc using date-fns logic manually or if imported
+              const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+              const hours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+              if (isExpired) {
+                return (
+                  <div className="flex items-center gap-1.5 text-destructive text-xs font-semibold">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive"></span>
+                    </span>
+                    {t("common.expired", "Expired")}
+                  </div>
+                );
+              }
+
+              return (
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider">
+                    {t("common.remainingTime", "Remaining Time")}
+                  </span>
+                  <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {days}d {hours}h
+                  </span>
+                </div>
+              );
+            })()}
+          </div>
         </div>
       </div>
 
       {/* Vehicle & Driver Info */}
-      {(data.vehicle_plate || data.driver_name) && (
-        <div className="p-4 rounded-lg border space-y-2">
-          <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-            <Truck className="h-4 w-4" />
-            {t("contractors.gatePassDetail.vehicleInfo", "Vehicle & Driver")}
-          </h4>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-muted-foreground">{t("contractors.gatePassDetail.plateNumber", "Plate")}:</span>
-              <span className="ms-2 font-medium font-mono">
-                {data.is_public_request && (data as any).vehicle_plate_letters && (data as any).vehicle_plate_numbers
-                  ? `${(data as any).vehicle_plate_letters} ${(data as any).vehicle_plate_numbers}`
-                  : data.vehicle_plate || "-"}
-              </span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">{t("contractors.gatePassDetail.driverName", "Driver")}:</span>
-              <span className="ms-2 font-medium">{data.driver_name || "-"}</span>
-            </div>
-            {data.driver_mobile && (
-              <div className="col-span-2">
-                <span className="text-muted-foreground">{t("contractors.gatePassDetail.driverMobile", "Mobile")}:</span>
-                <span className="ms-2 font-medium">{data.driver_mobile}</span>
+      {
+        (data.vehicle_plate || data.driver_name) && (
+          <div className="p-4 rounded-lg border space-y-2">
+            <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Truck className="h-4 w-4" />
+              {t("contractors.gatePassDetail.vehicleInfo", "Vehicle & Driver")}
+            </h4>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground">{t("contractors.gatePassDetail.plateNumber", "Plate")}:</span>
+                <span className="ms-2 font-medium font-mono">
+                  {data.is_public_request && (data as any).vehicle_plate_letters && (data as any).vehicle_plate_numbers
+                    ? `${(data as any).vehicle_plate_letters} ${(data as any).vehicle_plate_numbers}`
+                    : data.vehicle_plate || "-"}
+                </span>
               </div>
-            )}
+              <div>
+                <span className="text-muted-foreground">{t("contractors.gatePassDetail.driverName", "Driver")}:</span>
+                <span className="ms-2 font-medium">{data.driver_name || "-"}</span>
+              </div>
+              {data.driver_mobile && (
+                <div className="col-span-2">
+                  <span className="text-muted-foreground">{t("contractors.gatePassDetail.driverMobile", "Mobile")}:</span>
+                  <span className="ms-2 font-medium">{data.driver_mobile}</span>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Requester Info */}
       <div className="p-4 rounded-lg border space-y-4">
@@ -403,7 +451,7 @@ function DetailsTab({
           )}
         </div>
       </div>
-    </div>
+    </div >
   );
 }
 

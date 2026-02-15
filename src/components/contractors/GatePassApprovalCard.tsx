@@ -182,15 +182,27 @@ export function GatePassApprovalCard({
                                         {t("contractors.gatePasses.public", "Public")}
                                     </Badge>
                                 )}
-                                <Badge
-                                    variant={getStatusBadgeVariant(stage.role)}
-                                    className={cn(
-                                        "text-[10px] h-5 px-1.5 font-medium whitespace-nowrap",
-                                        pass.status === 'pending_security_approval' && "bg-amber-100 text-amber-800 hover:bg-amber-100 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800"
-                                    )}
-                                >
-                                    {stage.label}
-                                </Badge>
+
+                                {/* Expiry Check & Status Badge */}
+                                {(() => {
+                                    const expiryDate = new Date(pass.end_date || pass.pass_date);
+                                    expiryDate.setHours(23, 59, 59, 999);
+                                    const isExpired = new Date() > expiryDate && pass.status !== 'completed' && pass.status !== 'used' && pass.status !== 'rejected';
+
+                                    return (
+                                        <Badge
+                                            variant={isExpired ? "destructive" : getStatusBadgeVariant(stage.role)}
+                                            className={cn(
+                                                "text-[10px] h-5 px-1.5 font-medium whitespace-nowrap",
+                                                !isExpired && pass.status === 'pending_security_approval' && "bg-amber-100 text-amber-800 hover:bg-amber-100 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800",
+                                                isExpired && "animate-pulse"
+                                            )}
+                                        >
+                                            {isExpired ? t("common.expired", "Expired") : stage.label}
+                                        </Badge>
+                                    );
+                                })()}
+
 
                                 {/* Stage/Step Indicator */}
                                 {stage.step > 0 && (
