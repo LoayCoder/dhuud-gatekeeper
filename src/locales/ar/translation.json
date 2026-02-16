@@ -12775,6 +12775,20 @@
     "recentlyApproved": "وافقت مؤخراً",
     "recentlyRejected": "رفضت مؤخراً",
     "installApp": "تثبيت التطبيق",
-    "myAccount": "حسابي"
+    "myAccount": "حسابي",
+    "recognitionAndAchievements": "التقدير والإنجازات",
+    "yourHsseRanking": "ترتيبك في الصحة والسلامة",
+    "company": "الشركة",
+    "department": "القسم",
+    "level": "المستوى",
+    "keepReporting": "\"استمر في الإبلاغ لتتقدم!\"",
+    "myAchievements": "إنجازاتي",
+    "viewAll": "عرض الكل",
+    "points": "نقاط",
+    "badgesEarned": "شارات مكتسبة",
+    "collectedBadges": "الشارات المجمعة",
+    "nextGoal": "الهدف التالي",
+    "progress": "التقدم",
+    "allBadgesUnlocked": "تم فتح جميع الشارات!"
   }
 }
