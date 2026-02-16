@@ -15,32 +15,32 @@ export function QuickActionsSection() {
 
     const actions = [
         {
-            title: 'Report Incident',
-            description: 'Log an HSSE incident',
+            title: t('dashboard.reportIncident', 'Report Incident'),
+            description: t('dashboard.reportIncidentDesc', 'Log an HSSE incident'),
             icon: AlertTriangle,
             color: 'text-red-500',
             bg: 'bg-red-500/10',
-            path: '/incidents/report' // Verify route
+            path: '/incidents/report'
         },
         {
-            title: 'Report Observation',
-            description: 'Share an HSSE observation',
+            title: t('dashboard.reportObservation', 'Report Observation'),
+            description: t('dashboard.reportObservationDesc', 'Share an HSSE observation'),
             icon: Eye,
             color: 'text-blue-500',
             bg: 'bg-blue-500/10',
-            path: '/observations/new' // Verify route
+            path: '/observations/new'
         },
         {
-            title: 'My Actions',
-            description: 'View assigned tasks',
+            title: t('dashboard.myActions', 'My Actions'),
+            description: t('dashboard.myActionsDesc', 'View assigned tasks'),
             icon: ClipboardList,
             color: 'text-orange-500',
             bg: 'bg-orange-500/10',
-            path: '/action-center' // Closest match to "My Actions" list
+            path: '/action-center'
         },
         {
-            title: 'Create Gate Pass',
-            description: 'Request material movement',
+            title: t('dashboard.createGatePass', 'Create Gate Pass'),
+            description: t('dashboard.createGatePassDesc', 'Request material movement'),
             icon: Package,
             color: 'text-yellow-500',
             bg: 'bg-yellow-500/10',
@@ -50,7 +50,7 @@ export function QuickActionsSection() {
 
     return (
         <div className="space-y-4">
-            <h2 className="text-xl font-semibold tracking-tight">Quick Actions</h2>
+            <h2 className="text-xl font-semibold tracking-tight">{t('dashboard.quickActions', 'Quick Actions')}</h2>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {actions.map((action, index) => (
                     <Card
@@ -60,7 +60,7 @@ export function QuickActionsSection() {
                     >
                         <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 bg-gradient-to-r ${action.bg.replace('/10', '/20')} to-transparent`} />
 
-                        <div className="relative flex items-center space-x-4">
+                        <div className="relative flex items-center gap-4">
                             <div className={`p-3 rounded-xl ${action.bg} group-hover:scale-110 transition-transform duration-300`}>
                                 <action.icon className={`w-6 h-6 ${action.color}`} />
                             </div>

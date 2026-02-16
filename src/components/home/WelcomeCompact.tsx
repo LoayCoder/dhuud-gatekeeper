@@ -63,7 +63,7 @@ export function WelcomeCompact({ className }: WelcomeCompactProps) {
   }
 
   return (
-    <div className={cn("text-end", className)}>
+    <div className={cn(className)}>
       <p className="text-sm font-medium text-foreground">
         {t('home.welcome')}, {firstName} 👋
       </p>
