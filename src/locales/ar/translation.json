@@ -6578,6 +6578,8 @@
   },
   "navigation": {
     "dashboard": "لوحة المعلومات",
+    "deptGatePasses": "تصاريح القسم",
+    "myGatePasses": "تصاريحي",
     "hsseManagement": "إدارة الصحة والسلامة",
     "hsseEvents": "أحداث الصحة والسلامة",
     "eventList": "قائمة الأحداث",
@@ -10597,6 +10599,8 @@
     },
     "nav": {
       "dashboard": "لوحة المعلومات",
+      "deptGatePassesREMOVED": "REMOVE_ME",
+      "myGatePassesREMOVED": "REMOVE_ME",
       "companies": "الشركات",
       "projects": "المشاريع",
       "workers": "العمال",
@@ -13776,5 +13780,57 @@
     "none": "لا شيء",
     "saving": "جاري الحفظ...",
     "offline": "غير متصل"
+  },
+  "myGatePasses": {
+    "list": {
+      "title": "طلباتي"
+    },
+    "create": {
+      "title": "طلب جديد"
+    },
+    "history": {
+      "title": "سجل الموافقات"
+    }
+  },
+  "deptGatePasses": {
+    "dashboard": {
+      "title": "لوحة تصاريح القسم",
+      "description": "إدارة تصاريح البوابة لقسمك",
+      "totalPasses": "إجمالي التصاريح",
+      "pendingApproval": "بانتظار الموافقة",
+      "approvedToday": "تمت الموافقة اليوم",
+      "completedThisWeek": "مكتملة",
+      "reviewPending": "مراجعة المعلقة",
+      "viewToday": "عرض تصاريح اليوم",
+      "viewAll": "عرض الكل",
+      "recentPasses": "أحدث التصاريح",
+      "recentPassesDesc": "أحدث تصاريح البوابة في قسمك",
+      "noRecentPasses": "لا توجد تصاريح حديثة"
+    },
+    "list": {
+      "title": "جميع التصاريح"
+    },
+    "approvals": {
+      "title": "الموافقات المعلقة"
+    },
+    "today": {
+      "title": "تصاريح اليوم"
+    }
+  },
+  "gatePasses": {
+    "status": {
+      "pending": "قيد الانتظار",
+      "pending_dept_approval": "بانتظار القسم",
+      "pending_contractor_approval": "بانتظار المقاول",
+      "pending_club_mgmt_ack": "بانتظار إدارة النادي",
+      "pending_security": "بانتظار الأمن",
+      "pending_security_approval": "بانتظار الأمن",
+      "pm_approved": "موافقة مدير المشروع",
+      "approved": "تمت الموافقة",
+      "rejected": "مرفوض",
+      "entry_verified": "تم التحقق من الدخول",
+      "completed": "مكتمل"
+    },
+    "internalRequest": "طلب داخلي"
   }
 }
