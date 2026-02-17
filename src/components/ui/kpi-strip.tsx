@@ -48,7 +48,11 @@ export function KPIStrip({ items, className, compact = false }: KPIStripProps) {
     <div
       className={cn(
         'grid gap-3',
-        items.length <= 4 ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5',
+        items.length <= 3
+          ? 'grid-cols-1 sm:grid-cols-3'
+          : items.length <= 4
+            ? 'grid-cols-2 sm:grid-cols-4'
+            : 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-5',
         className
       )}
     >
@@ -77,58 +81,58 @@ function KPICard({ item, compact = false }: KPICardProps) {
         isActive && 'ring-2 ring-primary border-primary'
       )}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <p className={cn(
-            'text-muted-foreground truncate',
-            compact ? 'text-xs' : 'text-xs sm:text-sm'
-          )}>
-            {label}
-          </p>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className={cn(
-              'font-semibold text-foreground',
-              compact ? 'text-xl' : 'text-2xl'
-            )}>
-              {value}
-            </span>
-            {trendValue && (
-              <span className={cn(
-                'text-xs font-medium',
-                trend === 'up' && 'text-success',
-                trend === 'down' && 'text-destructive',
-                trend === 'neutral' && 'text-muted-foreground'
-              )}>
-                {trendValue}
-              </span>
-            )}
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {status && <StatusDot status={status} size="md" />}
-          {Icon && (
-            <div className={cn(
-              'rounded-lg',
-              compact ? 'p-1.5' : 'p-2',
-              status === 'critical' ? 'bg-destructive/10' :
+      {/* Top row: icon + status dot */}
+      <div className="flex items-center justify-between mb-3">
+        {Icon && (
+          <div className={cn(
+            'rounded-lg',
+            compact ? 'p-1.5' : 'p-2',
+            status === 'critical' ? 'bg-destructive/10' :
               status === 'pending' ? 'bg-warning/10' :
-              status === 'completed' ? 'bg-success/10' :
-              status === 'informational' ? 'bg-info/10' :
-              'bg-muted'
-            )}>
-              <Icon className={cn(
-                compact ? 'h-4 w-4' : 'h-5 w-5',
-                status === 'critical' ? 'text-destructive' :
+                status === 'completed' ? 'bg-success/10' :
+                  status === 'informational' ? 'bg-info/10' :
+                    'bg-muted'
+          )}>
+            <Icon className={cn(
+              compact ? 'h-4 w-4' : 'h-5 w-5',
+              status === 'critical' ? 'text-destructive' :
                 status === 'pending' ? 'text-warning' :
-                status === 'completed' ? 'text-success' :
-                status === 'informational' ? 'text-info' :
-                'text-muted-foreground'
-              )} />
-            </div>
-          )}
-        </div>
+                  status === 'completed' ? 'text-success' :
+                    status === 'informational' ? 'text-info' :
+                      'text-muted-foreground'
+            )} />
+          </div>
+        )}
+        {status && <StatusDot status={status} size="md" />}
       </div>
+
+      {/* Value */}
+      <div className="flex items-baseline gap-2">
+        <span className={cn(
+          'font-semibold text-foreground',
+          compact ? 'text-xl' : 'text-2xl'
+        )}>
+          {value}
+        </span>
+        {trendValue && (
+          <span className={cn(
+            'text-xs font-medium',
+            trend === 'up' && 'text-success',
+            trend === 'down' && 'text-destructive',
+            trend === 'neutral' && 'text-muted-foreground'
+          )}>
+            {trendValue}
+          </span>
+        )}
+      </div>
+
+      {/* Label - full width, wraps naturally */}
+      <p className={cn(
+        'text-muted-foreground mt-1 leading-snug',
+        compact ? 'text-xs' : 'text-xs sm:text-sm'
+      )}>
+        {label}
+      </p>
     </div>
   );
 

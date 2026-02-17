@@ -50,17 +50,17 @@ export function LiveGuardMapWidget({ className, compact = false }: LiveGuardMapW
   // Calculate status counts
   const statusCounts = useMemo(() => {
     const counts: Record<GuardStatus, number> = { active: 0, warning: 0, alert: 0, offline: 0 };
-    
+
     guardLocations.forEach((loc: any) => {
       const hasAlert = alerts.some((a: any) => a.guard_id === loc.guard_id);
       const isStale = new Date().getTime() - new Date(loc.recorded_at).getTime() > 10 * 60 * 1000;
-      
+
       if (isStale) counts.offline++;
       else if (hasAlert) counts.alert++;
       else if (loc.is_within_zone === false) counts.warning++;
       else counts.active++;
     });
-    
+
     return counts;
   }, [guardLocations, alerts]);
 
@@ -145,7 +145,7 @@ export function LiveGuardMapWidget({ className, compact = false }: LiveGuardMapW
 
       const hasAlert = alerts.some((a: any) => a.guard_id === loc.guard_id);
       const isStale = new Date().getTime() - new Date(loc.recorded_at).getTime() > 10 * 60 * 1000;
-      
+
       let status: GuardStatus = 'active';
       if (isStale) status = 'offline';
       else if (hasAlert) status = 'alert';
@@ -183,7 +183,7 @@ export function LiveGuardMapWidget({ className, compact = false }: LiveGuardMapW
           </CardTitle>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="text-xs">
-              {guardLocations.length} {t('security.guards', 'guards')}
+              {guardLocations.length} {t('security.guardsCount', 'guards')}
             </Badge>
             <Button
               variant="ghost"
