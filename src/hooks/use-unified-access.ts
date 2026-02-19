@@ -79,66 +79,77 @@ export function useUnifiedAccessStats() {
     queryFn: async () => {
       if (!tenantId) return null;
 
-      // Get visitors on site from gate_entry_logs
-      const { count: visitorsOnSite } = await supabase
-        .from('gate_entry_logs')
-        .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', tenantId)
-        .eq('entry_type', 'visitor')
-        .gte('entry_time', today)
-        .is('exit_time', null)
-        .is('deleted_at', null);
+      const [
+        { count: visitorsOnSite },
+        { count: workersOnSiteNew },
+        { count: workersOnSiteLegacy },
+        { count: todayVisitorEntries },
+        { count: pendingVisitorApprovals },
+        { count: pendingWorkerApprovals },
+        { count: pendingGatePassApprovals }
+      ] = await Promise.all([
+        // Get visitors on site from gate_entry_logs
+        supabase
+          .from('gate_entry_logs')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', tenantId)
+          .eq('entry_type', 'visitor')
+          .gte('entry_time', today)
+          .is('exit_time', null)
+          .is('deleted_at', null),
 
-      // Get workers on site from gate_entry_logs (new unified) + contractor_access_logs (legacy)
-      const { count: workersOnSiteNew } = await supabase
-        .from('gate_entry_logs')
-        .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', tenantId)
-        .eq('entry_type', 'worker')
-        .gte('entry_time', today)
-        .is('exit_time', null)
-        .is('deleted_at', null);
+        // Get workers on site from gate_entry_logs (new unified)
+        supabase
+          .from('gate_entry_logs')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', tenantId)
+          .eq('entry_type', 'worker')
+          .gte('entry_time', today)
+          .is('exit_time', null)
+          .is('deleted_at', null),
 
-      const { count: workersOnSiteLegacy } = await supabase
-        .from('contractor_access_logs')
-        .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', tenantId)
-        .not('worker_id', 'is', null)
-        .gte('entry_time', today)
-        .is('exit_time', null)
-        .is('deleted_at', null);
+        // Get workers on site from contractor_access_logs (legacy)
+        supabase
+          .from('contractor_access_logs')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', tenantId)
+          .not('worker_id', 'is', null)
+          .gte('entry_time', today)
+          .is('exit_time', null)
+          .is('deleted_at', null),
 
-      // Get today's entries
-      const { count: todayVisitorEntries } = await supabase
-        .from('gate_entry_logs')
-        .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', tenantId)
-        .gte('entry_time', today)
-        .is('deleted_at', null);
+        // Get today's entries
+        supabase
+          .from('gate_entry_logs')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', tenantId)
+          .gte('entry_time', today)
+          .is('deleted_at', null),
 
-      // Get pending visitor approvals
-      const { count: pendingVisitorApprovals } = await supabase
-        .from('visit_requests')
-        .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', tenantId)
-        .eq('status', 'pending_security')
-        .is('deleted_at', null);
+        // Get pending visitor approvals
+        supabase
+          .from('visit_requests')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', tenantId)
+          .eq('status', 'pending_security')
+          .is('deleted_at', null),
 
-      // Get pending worker approvals
-      const { count: pendingWorkerApprovals } = await supabase
-        .from('contractor_workers')
-        .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', tenantId)
-        .eq('approval_status', 'pending')
-        .is('deleted_at', null);
+        // Get pending worker approvals
+        supabase
+          .from('contractor_workers')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', tenantId)
+          .eq('approval_status', 'pending')
+          .is('deleted_at', null),
 
-      // Get pending gate pass approvals
-      const { count: pendingGatePassApprovals } = await supabase
-        .from('material_gate_passes')
-        .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', tenantId)
-        .in('status', ['pending_pm_approval', 'pending_safety_approval'])
-        .is('deleted_at', null);
+        // Get pending gate pass approvals
+        supabase
+          .from('material_gate_passes')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', tenantId)
+          .in('status', ['pending_pm_approval', 'pending_safety_approval'])
+          .is('deleted_at', null)
+      ]);
 
       const workersOnSite = (workersOnSiteNew || 0) + (workersOnSiteLegacy || 0);
 

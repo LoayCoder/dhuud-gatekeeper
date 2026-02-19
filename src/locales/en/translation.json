@@ -4804,6 +4804,7 @@
     "subscription": "Subscription",
     "platform": "Platform",
     "enterpriseHsse": "Enterprise HSSE",
+    "training": "Training",
     "inspectionDashboard": "Inspection Dashboard",
     "inspectionSessions": "Inspection Sessions",
     "inspectionSchedules": "Inspection Schedules",
@@ -10357,6 +10358,7 @@
     }
   },
   "actions": {
+    "close": "Close",
     "activeActions": "Active Actions",
     "closedActions": "Closed Actions",
     "dueSoon": "Due Soon",
@@ -10498,6 +10500,7 @@
     "reject": "Reject"
   },
   "security": {
+    "protectedByZeroTrust": "Protected by Zero Trust Security",
     "menu": {
       "securityDashboard": "Security Dashboard",
       "accessDashboard": "Access Dashboard",
@@ -11264,5 +11267,47 @@
       "completed": "Completed"
     },
     "internalRequest": "Internal Request"
+  },
+  "ptw": {
+    "nav": {
+      "title": "Permit to Work",
+      "dashboard": "PTW Dashboard",
+      "projects": "Project Mobilization",
+      "console": "Permit Console",
+      "createPermit": "Create Permit",
+      "riskAssessments": "Risk Assessments",
+      "mobilization": "Mobilization"
+    },
+    "dashboard": {
+      "title": "Permit to Work",
+      "description": "Manage work permits and project mobilization",
+      "quickActions": "Quick Actions",
+      "quickActionsDesc": "Common permit to work operations",
+      "recentPermits": "Recent Permits",
+      "recentPermitsDesc": "Latest permit requests",
+      "noPermits": "No permits yet"
+    },
+    "actions": {
+      "viewMobilization": "View Project Mobilization",
+      "permitConsole": "Permit Console (Map)",
+      "requestPermit": "Request New Permit"
+    },
+    "stats": {
+      "activePermits": "Active Permits",
+      "pendingApproval": "Pending Approval",
+      "expiringToday": "Expiring Today",
+      "suspended": "Suspended",
+      "extended": "Extended",
+      "closedThisWeek": "Closed"
+    },
+    "charts": {
+      "statusDistribution": "Status Distribution",
+      "typeDistribution": "Permit Types",
+      "weeklyTrend": "7-Day Permit Trend",
+      "noData": "No permit data available",
+      "requested": "Requested",
+      "active": "Active",
+      "closed": "Closed"
+    }
   }
 }

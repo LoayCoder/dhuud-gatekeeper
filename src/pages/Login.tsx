@@ -265,10 +265,20 @@ export default function Login() {
       setLoading(true);
       passwordRef.current = password;
 
-      const { error } = await supabase.auth.signInWithPassword({
+      // Create a timeout for the initial sign in
+      const signInTimeoutPromise = new Promise<{ data: { user: any; session: any }; error: any }>((_, reject) => {
+        setTimeout(() => reject(new Error('Sign in request timed out')), 10000);
+      });
+
+      const signInPromise = supabase.auth.signInWithPassword({
         email,
         password,
-      });
+      }) as Promise<{ data: { user: any; session: any }; error: any }>;
+
+      const { data: { user: signInUser, session }, error } = await Promise.race([
+        signInPromise,
+        signInTimeoutPromise
+      ]);
 
       if (error) throw error;
 
@@ -287,11 +297,36 @@ export default function Login() {
           accessValidation = { allowed: true };
         });
 
-      const [, { data: { user: authUser } }, { data: aal }] = await Promise.all([
+      // Create a timeout promise
+      const authChecksTimeoutPromise = new Promise<{ timeout: true }>((resolve) => {
+        setTimeout(() => resolve({ timeout: true }), 8000);
+      });
+
+      const authChecksPromise = Promise.all([
         accessValidationPromise,
         supabase.auth.getUser(),
         supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
-      ]);
+      ]).then((results) => ({ timeout: false, results }));
+
+      // Race against the clock
+      const raceResult = await Promise.race([authChecksPromise, authChecksTimeoutPromise]);
+
+      let authUser = signInUser;
+      let aal = null;
+
+      if (raceResult.timeout) {
+        logger.warn('Auth checks timed out - proceeding with initial signin user');
+        // We stick with signInUser and default AAL (null)
+        // We also assume access allowed if validation timed out
+        if (!accessValidation) accessValidation = { allowed: true };
+      } else {
+        // Success
+        const { results } = raceResult as { timeout: false, results: any[] };
+        const [, { data: { user: fetchedUser } }, { data: fetchedAal }] = results;
+        if (fetchedUser) authUser = fetchedUser;
+        aal = fetchedAal;
+      }
+
 
       // Only block if we got a definitive "not allowed" response
       if (accessValidation && accessValidation.allowed === false) {
