@@ -1,92 +1,103 @@
 
 
-# Login Flow Optimization, Session Timeout, and Config Bug Fix
+# HSSE Incident Workflow Update: Unified Expert Routing + Severity Change Approval
 
-## Problem Summary
+## Overview
 
-1. **Slow login**: The `handleLogin` function in `Login.tsx` runs 7+ network calls sequentially, causing 2-5 second delays
-2. **Frequent logouts**: Tenant session timeout is set to 15 minutes, which is too short for active users
-3. **Config bug**: `use-tenant-session-config.ts` queries `.eq('id', user.id)` instead of `.eq('user_id', user.id)`, causing the tenant config to never load (always falls back to 15-minute default)
-
----
-
-## Fix 1: Tenant Session Config Bug
-
-**File:** `src/hooks/use-tenant-session-config.ts`
-
-Change line 32 from `.eq('id', user.id)` to `.eq('user_id', user.id)` so the profile lookup actually finds the user's record and loads the correct tenant timeout.
+This plan updates the HSSE incident workflow with three main changes:
+1. Route ALL severity levels (1-5) to HSSE Expert after Dept Rep approval (removing the 1-2 vs 3-5 split)
+2. When HSSE Expert changes severity during screening, require Department Manager approval before proceeding
+3. Fix offline sync to include `severity_v2` and create a status constants file to reduce hardcoded strings
 
 ---
 
-## Fix 2: Increase Default Session Timeout
+## Change 1: Unified Routing to HSSE Expert
 
-**File:** `src/hooks/use-tenant-session-config.ts`
+**Current behavior:** `process_dept_rep_incident_decision` routes Level 1-2 to `pending_expert_screening` and Level 3-5 to `pending_department_manager_approval`.
 
-- Change `DEFAULT_TIMEOUT_MINUTES` from `15` to `60` (1 hour)
-- Change `DEFAULT_WARNING_THRESHOLD_MINUTES` from `2` to `5`
+**New behavior:** ALL levels route to `pending_expert_screening` when approved.
 
-Additionally, update the tenant records in the database:
+**File:** New migration `supabase/migrations/20260220_update_incident_routing.sql`
 
-**Database Migration:**
 ```sql
-UPDATE tenants SET session_timeout_minutes = 60 WHERE session_timeout_minutes = 15;
+CREATE OR REPLACE FUNCTION public.process_dept_rep_incident_decision(
+  _incident_id uuid, _user_id uuid, _decision text, _justification text
+) RETURNS jsonb ...
 ```
 
-This gives users a 1-hour inactivity window with a 5-minute warning, which is standard for enterprise apps.
+The key change is removing the `IF _severity_level <= 2` conditional and always setting `_new_status := 'pending_expert_screening'` when decision is `approved`.
 
 ---
 
-## Fix 3: Parallelize Login Flow
+## Change 2: Severity Change Triggers Dept Manager Approval
 
-**File:** `src/pages/Login.tsx`
+**Workflow logic:** When HSSE Expert screens an incident and recommends `investigate`:
+- If severity was changed during screening (expert modified `severity_v2`), route to `pending_department_manager_approval` for Dept Manager sign-off
+- If severity is unchanged, route directly to `pending_manager_approval` (existing flow)
 
-The current `handleLogin` function (lines 258-457) executes these calls sequentially:
+**File:** `src/hooks/use-hsse-workflow.ts` -- `useExpertScreening` mutation
 
-1. `signInWithPassword` (must be first)
-2. `validate-user-access` edge function
-3. `getUser`
-4. `mfa.getAuthenticatorAssuranceLevel`
-5. `checkTrustedDevice`
-6. `refreshTenantData`
-7. `logUserActivity`
-8. `detectSuspiciousLogin`
-9. `verifyDevice` (profile query + device verify)
+In the `investigate` case (line 172-179), add a check: compare the incident's `original_severity_v2` (or the value before expert edit) with current `severity_v2`. If different, set `newStatus = 'pending_department_manager_approval'` and flag `severity_pending_approval = true`. If same, keep existing `pending_manager_approval` routing.
 
-**Optimization strategy:**
-
-After `signInWithPassword` succeeds (step 1 must remain first), parallelize the remaining calls into groups:
-
-- **Group A (blocking -- needed for flow decisions):** Run `validate-user-access` and `getUser` + `mfa.getAuthenticatorAssuranceLevel` in parallel using `Promise.all`
-- **Group B (after MFA decision):** Run `refreshTenantData`, `startSessionTracking`, and `logUserActivity` in parallel using `Promise.all`
-- **Group C (non-blocking -- fire and forget):** `detectSuspiciousLogin`, `checkPasswordBreach`, and `verifyDevice` run after navigation without awaiting
-
-This reduces the login time from ~7 sequential round trips to ~3 sequential groups.
-
-### Before (simplified):
-```
-signIn -> validate-access -> getUser -> getAAL -> checkTrusted -> refreshTenant -> logActivity -> detectSuspicious
-(7 sequential calls = ~2-5s)
-```
-
-### After:
-```
-signIn -> [validate-access + getUser + getAAL] -> [refreshTenant + logActivity] -> navigate (fire-and-forget: detect + verify)
-(3 sequential steps = ~1-2s)
-```
+This reuses the existing `pending_department_manager_approval` status and the existing `SeverityApprovalCard` / `usePendingApprovals` infrastructure for manager approval of severity changes.
 
 ---
 
-## Files Summary
+## Change 3: Status Constants File
 
-| # | File | Change |
-|---|------|--------|
-| 1 | `src/hooks/use-tenant-session-config.ts` | Fix `.eq('id')` to `.eq('user_id')`, increase defaults to 60min/5min |
-| 2 | `src/pages/Login.tsx` | Parallelize post-auth network calls in `handleLogin` |
-| 3 | Database migration | Update existing tenant timeout from 15 to 60 minutes |
+**New file:** `src/types/incident-statuses.ts`
 
-## Risk Assessment
+Export all incident status strings as named constants to reduce hardcoded strings across the codebase:
 
-- **Config fix**: Zero risk -- corrects a clear bug
-- **Timeout increase**: Low risk -- improves UX, tenant admins can still customize via settings
-- **Login parallelization**: Low risk -- same calls, just concurrent. Auth flow logic (MFA gating) preserved
+```typescript
+export const INCIDENT_STATUS = {
+  DRAFT: 'draft',
+  SUBMITTED: 'submitted',
+  PENDING_EXPERT_SCREENING: 'pending_expert_screening',
+  PENDING_DEPT_REP_APPROVAL: 'pending_dept_rep_approval',
+  PENDING_MANAGER_APPROVAL: 'pending_manager_approval',
+  PENDING_DEPARTMENT_MANAGER_APPROVAL: 'pending_department_manager_approval',
+  INVESTIGATION_PENDING: 'investigation_pending',
+  UNDER_INVESTIGATION: 'under_investigation',
+  // ... all statuses
+} as const;
+```
+
+Then update key files to import from this constants file:
+- `src/hooks/use-hsse-workflow.ts`
+- `src/hooks/use-incident-progression.ts`
+- `src/components/incidents/IncidentStatusBadge.tsx`
+
+(Gradual migration -- not all 40+ files at once, just the ones touched by this change.)
+
+---
+
+## Change 4: Offline Sync -- Include `severity_v2`
+
+**File:** `src/lib/offline-report-sync.ts`
+
+The `syncSingleReport` function (line 174-215) builds an `incidentData` object but does not include `severity_v2`. Add `severity_v2` from `form_data.severity_v2` (if present) so that offline-created incidents carry the correct 5-level severity into the database.
+
+**File:** `src/hooks/use-offline-reporting.ts`
+
+No changes needed -- this hook caches reference data only, not form fields. The form data shape is defined in `use-offline-report-queue.ts` which already allows arbitrary fields.
+
+---
+
+## Technical Summary
+
+| # | File | Change Type | Description |
+|---|------|------------|-------------|
+| 1 | `supabase/migrations/20260220_update_incident_routing.sql` | New (migration) | Override `process_dept_rep_incident_decision` -- all severities to expert |
+| 2 | `src/hooks/use-hsse-workflow.ts` | Modify | Expert screening: if severity changed, route to dept manager approval |
+| 3 | `src/types/incident-statuses.ts` | New | Status constants file |
+| 4 | `src/hooks/use-incident-progression.ts` | Modify | Import from status constants |
+| 5 | `src/lib/offline-report-sync.ts` | Modify | Include `severity_v2` in synced incident data |
+
+## Verification
+
+- **Routing test:** Submit incidents at Level 1 and Level 5. Both should appear in HSSE Expert queue after Dept Rep approval.
+- **Severity change test:** As HSSE Expert, change severity during screening and approve for investigation. Verify it routes to Dept Manager queue instead of directly to Manager Approval.
+- **No-change test:** As HSSE Expert, approve without changing severity. Verify it routes to Manager Approval as before.
+- **Offline test:** Create an offline report with severity_v2 set, sync, and verify the field persists.
 
