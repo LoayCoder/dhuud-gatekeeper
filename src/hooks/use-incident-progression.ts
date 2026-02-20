@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { WaterfallStage } from "@/components/incidents/dashboard/IncidentWaterfallChart";
+import { INCIDENT_STATUS } from "@/types/incident-statuses";
 
 // Dashboard cache configuration
 export const DASHBOARD_CACHE_CONFIG = {
@@ -22,11 +23,11 @@ export interface IncidentProgressionData {
 }
 
 const STATUS_STAGES: { key: string; label: string; order: number }[] = [
-  { key: 'submitted', label: 'Submitted', order: 1 },
-  { key: 'expert_screening', label: 'Screening', order: 2 },
-  { key: 'pending_manager_approval', label: 'Pending Approval', order: 3 },
-  { key: 'investigation_in_progress', label: 'In Investigation', order: 4 },
-  { key: 'pending_closure', label: 'Pending Closure', order: 5 },
+  { key: INCIDENT_STATUS.SUBMITTED, label: 'Submitted', order: 1 },
+  { key: INCIDENT_STATUS.PENDING_EXPERT_SCREENING, label: 'Screening', order: 2 },
+  { key: INCIDENT_STATUS.PENDING_MANAGER_APPROVAL, label: 'Pending Approval', order: 3 },
+  { key: INCIDENT_STATUS.INVESTIGATION_IN_PROGRESS, label: 'In Investigation', order: 4 },
+  { key: INCIDENT_STATUS.PENDING_CLOSURE, label: 'Pending Closure', order: 5 },
 ];
 
 export function useIncidentProgression(startDate?: Date, endDate?: Date, branchId?: string, siteId?: string) {

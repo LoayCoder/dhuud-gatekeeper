@@ -11,7 +11,7 @@ import { IncidentWithDetails } from "@/hooks/use-incidents";
 import { Investigation } from "@/hooks/use-investigation";
 
 export function ReviewStage() {
-    const { incident, investigation, refresh, canAdvance, advanceStage } = useInvestigationContext();
+    const { incident, investigation, refresh } = useInvestigationContext();
     const { t } = useTranslation();
 
     if (!incident) return null;
@@ -28,13 +28,11 @@ export function ReviewStage() {
             </div>
 
             <ApprovalWorkflowBanner
-                incident={incident as IncidentWithDetails}
-                investigation={investigation as Investigation}
+                incident={incident as unknown as IncidentWithDetails}
+                investigation={investigation as unknown as Investigation}
                 onRefresh={refresh}
-                canApprove={true} // Logic handled within banner component based on roles
+                canApprove={true}
             />
-
-            {/* Additional Review Components or Summary could go here */}
         </div>
     );
 }
@@ -79,7 +77,7 @@ export function ClosureStage() {
                     </CardHeader>
                     <CardContent>
                         <Button onClick={() => setClosureDialogOpen(true)}>
-                            <FileCheck className="h-4 w-4 mr-2" />
+                            <FileCheck className="h-4 w-4 me-2" />
                             {t('investigation.closure.requestClosure', 'Request Closure')}
                         </Button>
                     </CardContent>
@@ -90,7 +88,6 @@ export function ClosureStage() {
                 open={closureDialogOpen}
                 onOpenChange={setClosureDialogOpen}
                 incidentId={incident.id}
-                onSuccess={refresh}
             />
         </div>
     );

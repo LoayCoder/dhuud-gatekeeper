@@ -137,12 +137,8 @@ export function GatePassApprovalCard({
         return "border-border";
     };
 
-    const getStatusBadgeVariant = (role: string) => {
-        // CHANGED: Security approval should not be destructive (red) unless it's an urgent issue. 
-        // Pending should be secondary (gray/neutral) or warning (yellow/orange).
-        // Using secondary to match other pending states, or could add specific warning variant.
-        // For now, keeping consistent with other pending states as per user request to not be red.
-        if (pass.status === 'pending_security_approval') return "secondary"; // Changed from destructive
+    const getStatusBadgeVariant = (role: string): "default" | "destructive" | "info" | "outline" | "secondary" | "success" | "warning" => {
+        if (pass.status === 'pending_security_approval') return "secondary";
         return "secondary";
     };
 
@@ -246,7 +242,7 @@ export function GatePassApprovalCard({
                 {/* Requester Info */}
                 <div className="flex items-start gap-3">
                     <Avatar className="h-8 w-8 border shrink-0">
-                        <AvatarImage src={pass.requester?.avatar_url || undefined} />
+                        <AvatarImage src={undefined} />
                         <AvatarFallback className="text-[10px] bg-primary/5 text-primary">
                             {requesterInitials}
                         </AvatarFallback>
@@ -340,16 +336,20 @@ export function GatePassApprovalCard({
                 {passPhotos.length > 0 && (
                     <div className="flex gap-2 overflow-x-auto pb-1 pt-1 scrollbar-none">
                         {passPhotos.map((photo) => (
-                            <GatePassPhotoView
+                            <div
                                 key={photo.id}
-                                signedUrl={photo.signedUrl}
-                                alt={photo.file_name}
-                                className="w-10 h-10 rounded object-cover border shrink-0 hover:opacity-90 cursor-pointer"
+                                className="shrink-0 cursor-pointer"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     onViewDetails(pass);
                                 }}
-                            />
+                            >
+                                <GatePassPhotoView
+                                    signedUrl={photo.signedUrl}
+                                    alt={photo.file_name}
+                                    className="w-10 h-10 rounded object-cover border hover:opacity-90"
+                                />
+                            </div>
                         ))}
                     </div>
                 )}
