@@ -13985,5 +13985,229 @@
     "you": "أنت",
     "noData": "لا توجد بيانات للوحة الصدارة",
     "startReporting": "ابدأ في الإبلاغ للظهور في لوحة الصدارة!"
+  },
+  "incidents": {
+    "backToList": "العودة إلى قائمة الحوادث",
+    "workflowOwners": {
+      "hsse_expert": "خبير الصحة والسلامة والبيئة",
+      "consultant": "استشاري المقاول",
+      "department_manager": "مدير القسم",
+      "department_rep": "ممثل القسم",
+      "investigator": "المحقق",
+      "hsse_manager": "مدير الصحة والسلامة والبيئة",
+      "awaiting_assignment": "بانتظار التعيين"
+    },
+    "closedOnSpot": {
+      "label": "إغلاق فوري"
+    }
+  },
+  "workflow": {
+    "tabsLockedMessage": "أكمل سير العمل لفتح علامات التبويب",
+    "title": "حالة سير العمل",
+    "observationWorkflow": "تقدم سير عمل الملاحظة",
+    "incidentWorkflow": "سير عمل التحقيق في الحادث",
+    "step": "خطوة",
+    "status": {
+      "completed": "مكتمل",
+      "inProgress": "قيد التنفيذ",
+      "rejected": "مرفوض",
+      "pending": "معلق"
+    },
+    "steps": {
+      "submitted": "تم تقديم التقرير",
+      "deptRepReview": "مراجعة ممثل القسم",
+      "upgradedToIncident": "تم الترقية إلى حادث",
+      "actionExecution": "تنفيذ الإجراءات",
+      "hsseValidation": "تحقق الصحة والسلامة والبيئة",
+      "closed": "مغلق",
+      "rejected": "مرفوض",
+      "returned": "أعيد للتصحيح",
+      "managerApproval": "موافقة المدير",
+      "hsseEscalation": "مراجعة مدير الصحة والسلامة والبيئة",
+      "investigatorAssignment": "تعيين المحقق",
+      "investigation": "التحقيق",
+      "closure": "الإغلاق"
+    },
+    "actors": {
+      "reporter": "المبلغ"
+    },
+    "descriptions": {
+      "submitted": "تم إنشاء التقرير الأولي",
+      "awaitingDeptRep": "بانتظار مراجعة ممثل القسم",
+      "deptRepApproved": "تمت المراجعة والموافقة",
+      "upgraded": "تم التصعيد إلى تحقيق كامل في الحادث",
+      "actionsInProgress": "جاري تنفيذ الإجراءات التصحيحية",
+      "actionsComplete": "تم إكمال جميع الإجراءات",
+      "awaitingHSSE": "بانتظار تحقق الصحة والسلامة والبيئة",
+      "hsseValidated": "تم التحقق بواسطة الصحة والسلامة والبيئة",
+      "closed": "تم إغلاق الملاحظة بنجاح",
+      "rejected": "تم رفض التقرير من قبل ممثل القسم",
+      "returned": "أعيد إلى المبلغ للحصول على معلومات إضافية",
+      "awaitingManager": "بانتظار موافقة المدير",
+      "managerApproved": "تمت الموافقة من قبل المدير",
+      "awaitingHSSEManager": "تم التصعيد إلى مدير الصحة والسلامة والبيئة لاتخاذ القرار",
+      "awaitingAssignment": "بانتظار تعيين المحقق",
+      "investigatorAssigned": "تم تعيين المحقق",
+      "investigationInProgress": "التحقيق جاري",
+      "investigationComplete": "تم إكمال التحقيق",
+      "awaitingClosure": "بانتظار الموافقة على الإغلاق",
+      "closureApproved": "مغلق"
+    },
+    "assignInvestigator": {
+      "title": "تعيين محقق",
+      "approved": "تمت الموافقة على التحقيق",
+      "description": "لقد وافق المدير على التحقيق. يرجى تعيين محقق للبدء.",
+      "selectInvestigator": "اختر المحقق",
+      "placeholder": "اختر محققاً...",
+      "noInvestigators": "لا يوجد محققون متاحون",
+      "notesLabel": "ملاحظات / تعليمات التعيين",
+      "notesPlaceholder": "أدخل أي تعليمات محددة أو ملاحظات للمحقق...",
+      "start": "تعيين وبدء التحقيق"
+    }
+  },
+  "investigation": {
+    "subtitle": "مساحة عمل التحقيق",
+    "description": "التحقيق في الحوادث وجمع الأدلة وتتبع الإجراءات التصحيحية",
+    "selectIncident": "اختر حادثاً للتحقيق",
+    "selectIncidentPlaceholder": "اختر حادثاً للبدء...",
+    "showingPendingApprovals": "يتم عرض الحوادث التي تتطلب إجراء منك",
+    "showingAllIncidents": "يتم عرض جميع الحوادث المفتوحة",
+    "myPendingApprovals": "طلباتي المعلقة",
+    "myPending": "معلقة",
+    "allIncidents": "كل الحوادث",
+    "all": "الكل",
+    "stepper": {
+      "triage": "الفرز والموافقة",
+      "assignment": "التعيين",
+      "dataCollection": "جمع البيانات/h",
+      "analysis": "التحليل (RCA)",
+      "review": "المراجعة والإغلاق"
+    },
+    "overview": {
+      "investigatorAwaitingApproval": "بانتظار الموافقة على تعيين المحقق"
+    },
+    "tabs": {
+      "overview": "نظرة عامة",
+      "evidence": "الأدلة",
+      "witnesses": "الشهود",
+      "rca": "تحليل الأسباب الجذرية",
+      "actions": "الإجراءات التصحيحية",
+      "submit": "إكمال وإرسال"
+    },
+    "assignment": {
+      "restricted": {
+        "title": "التعيين معلق",
+        "message": "ليس لديك صلاحية لتعيين محققين لهذا الحادث."
+      }
+    },
+    "stages": {
+      "analysis": {
+        "title": "التحليل وتخطيط الإجراءات",
+        "subtitle": "تحديد الأسباب الجذرية وتخطيط الإجراءات التصحيحية."
+      },
+      "transition": {
+        "analysis": "الانتقال إلى مرحلة التحليل"
+      },
+      "proceedToAnalysis": "المتابعة إلى تحليل الأسباب الجذرية",
+      "review": {
+        "title": "المراجعة والموافقة",
+        "subtitle": "مراجعة نتائج التحقيق والحصول على الموافقات اللازمة."
+      },
+      "closure": {
+        "title": "إغلاق التحقيق",
+        "subtitle": "إنهاء وإغلاق التحقيق."
+      }
+    },
+    "closure": {
+      "completed": "التحقيق مغلق",
+      "completedDesc": "تم إكمال وإغلاق هذا التحقيق بنجاح.",
+      "actions": "إجراءات الإغلاق",
+      "actionsDesc": "أكمل الخطوات النهائية لإغلاق هذا التحقيق.",
+      "requestClosure": "طلب الإغلاق"
+    },
+    "submit": {
+      "title": "إرسال التحقيق",
+      "checklist": "قائمة التحقق",
+      "fiveWhys": "تحليل 5 لماذا (حد أدنى 3)",
+      "immediateCause": "السبب المباشر",
+      "underlyingCause": "السبب الكامن",
+      "rootCauses": "الأسباب الجذرية",
+      "actions": "الإجراءات التصحيحية",
+      "causeCoverage": "تغطية الأسباب",
+      "incomplete": "أكمل ما يلي قبل الإرسال:",
+      "button": "إرسال التحقيق للمراجعة",
+      "note": "سيتم إشعار جميع المسؤولين عن الإجراءات عبر البريد الإلكتروني"
+    },
+    "startInvestigation": "بدء التحقيق",
+    "rca": {
+      "noInvestigation": "لم يتم بدء تحقيق في هذا الحادث.",
+      "lockedStatus": "تحليل الأسباب الجذرية مقفل. المدخلات معطلة.",
+      "lockedClosed": "الحادث مغلق. التحليل للقراءة فقط.",
+      "lockedBy": "تم القفل بتاريخ {{date}}",
+      "unlock": "إلغاء قفل التحليل",
+      "fiveWhys": "تحليل 5 لماذا",
+      "immediateCause": "السبب المباشر",
+      "immediateCauseDesc": "ما الذي تسبب بشكل مباشر في الحادث؟",
+      "immediateCausePlaceholder": "صف السبب المباشر...",
+      "underlyingCause": "السبب الكامن",
+      "underlyingCauseDesc": "ما هي الظروف التي سمحت بحدوث ذلك؟",
+      "underlyingCausePlaceholder": "صف الظروف الكامنة...",
+      "rootCauses": "الأسباب الجذرية",
+      "summarySection": "ملخص التحليل",
+      "autoSaving": "جاري الحفظ...",
+      "autoSaved": "تم الحفظ تلقائياً",
+      "lockAnalysis": "قفل التحليل",
+      "saveAnalysis": "حفظ التحليل",
+      "rootCause": "سبب جذري",
+      "contributingFactor": "عامل مساهم",
+      "ai": {
+        "suggest": "اقتراح الذكاء الاصطناعي",
+        "rewrite": "إعادة صياغة"
+      }
+    },
+    "readOnlyOversight": "أنت تشاهد هذا التحقيق في وضع للقراءة فقط. يمكن للمحقق المعين فقط إجراء التغييرات.",
+    "actions": {
+      "title": "الإجراءات التصحيحية",
+      "addAction": "إضافة إجراء",
+      "editAction": "تعديل الإجراء التصحيحي",
+      "newAction": "إجراء تصحيحي جديد",
+      "linkedCauseType": "ربط بالسبب",
+      "selectCauseType": "اختر نوع السبب...",
+      "selectRootCause": "اختر السبب الجذري",
+      "selectContributingFactor": "اختر العامل المساهم",
+      "selectCause": "اختر السبب...",
+      "actionTitle": "عنوان الإجراء",
+      "titlePlaceholder": "أدخل عنوان الإجراء...",
+      "description": "الوصف",
+      "descriptionPlaceholder": "أدخل الوصف (10 أحرف كحد أدنى)...",
+      "category": "الفئة",
+      "categories": {
+        "engineering": "هندسي",
+        "administrative": "إداري",
+        "ppe": "معدات الحماية الشخصية",
+        "training": "تدريب",
+        "procedureUpdate": "تحديث الإجراءات"
+      },
+      "type": "النوع",
+      "types": {
+        "corrective": "تصحيحي",
+        "preventive": "وقائي",
+        "improvement": "تحسين"
+      },
+      "priority": "الأولوية",
+      "startDate": "تاريخ البدء",
+      "dueDate": "تاريخ الاستحقاق",
+      "department": "القسم",
+      "selectDepartment": "اختر القسم...",
+      "assignedTo": "معين لـ",
+      "selectAssignee": "اختر المعين...",
+      "lockedClosed": "هذا الحادث مغلق. لا يمكن تعديل الإجراءات التصحيحية.",
+      "ai": {
+        "selectCauseFirst": "اختر سبباً أولاً",
+        "suggestAction": "اقتراح إجراء بالذكاء الاصطناعي",
+        "suggestionApplied": "تم تطبيق اقتراح الذكاء الاصطناعي",
+        "parseError": "فشل في تحليل اقتراح الذكاء الاصطناعي"
+      }
+    }
   }
 }

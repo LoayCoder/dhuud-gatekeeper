@@ -11309,5 +11309,225 @@
       "active": "Active",
       "closed": "Closed"
     }
+  },
+  "incidents": {
+    "backToList": "Back to Event List",
+    "workflowOwners": {
+      "hsse_expert": "HSSE Expert",
+      "consultant": "Contractor Consultant",
+      "department_manager": "Department Manager",
+      "department_rep": "Department Representative",
+      "investigator": "Investigator",
+      "hsse_manager": "HSSE Manager",
+      "awaiting_assignment": "Awaiting Assignment"
+    },
+    "closedOnSpot": {
+      "label": "Close On Spot"
+    }
+  },
+  "workflow": {
+    "tabsLockedMessage": "Complete the approval workflow to unlock investigation tabs",
+    "title": "Workflow Status",
+    "observationWorkflow": "Observation workflow progress",
+    "incidentWorkflow": "Incident investigation workflow",
+    "step": "Step",
+    "status": {
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "rejected": "Rejected",
+      "pending": "Pending"
+    },
+    "steps": {
+      "submitted": "Report Submitted",
+      "deptRepReview": "Department Rep Review",
+      "upgradedToIncident": "Upgraded to Incident",
+      "actionExecution": "Action Execution",
+      "hsseValidation": "HSSE Validation",
+      "closed": "Closed",
+      "rejected": "Rejected",
+      "returned": "Returned for Correction",
+      "managerApproval": "Manager Approval",
+      "hsseEscalation": "HSSE Manager Review",
+      "investigatorAssignment": "Investigator Assignment",
+      "investigation": "Investigation",
+      "closure": "Closure"
+    },
+    "actors": {
+      "reporter": "Reporter"
+    },
+    "descriptions": {
+      "submitted": "Initial report created",
+      "awaitingDeptRep": "Awaiting department representative review",
+      "deptRepApproved": "Reviewed and approved",
+      "upgraded": "Escalated to full incident investigation",
+      "actionsInProgress": "Corrective actions being executed",
+      "actionsComplete": "All actions completed",
+      "awaitingHSSE": "Awaiting HSSE validation",
+      "hsseValidated": "Validated by HSSE",
+      "closed": "Observation closed successfully",
+      "rejected": "Report rejected by department rep",
+      "returned": "Returned to reporter for additional information",
+      "awaitingManager": "Awaiting manager approval",
+      "managerApproved": "Approved by manager",
+      "awaitingHSSEManager": "Escalated to HSSE Manager for decision",
+      "awaitingAssignment": "Awaiting investigator assignment",
+      "investigatorAssigned": "Investigator assigned",
+      "investigationInProgress": "Investigation in progress",
+      "investigationComplete": "Investigation completed",
+      "awaitingClosure": "Awaiting closure approval",
+      "closureApproved": "Closed"
+    },
+    "assignInvestigator": {
+      "title": "Assign Investigator",
+      "approved": "Investigation Approved",
+      "description": "Manager has approved the investigation. Please assign an investigator to begin.",
+      "selectInvestigator": "Select Investigator",
+      "placeholder": "Choose an investigator...",
+      "noInvestigators": "No investigators available",
+      "notesLabel": "Assignment Notes / Instructions",
+      "notesPlaceholder": "Enter any specific instructions or notes for the investigator...",
+      "start": "Assign & Start Investigation"
+    }
+  },
+  "investigation": {
+    "subtitle": "Investigation Workspace",
+    "description": "Investigate incidents, collect evidence, and track corrective actions",
+    "selectIncident": "Select Incident to Investigate",
+    "selectIncidentPlaceholder": "Choose an incident to investigate...",
+    "showingPendingApprovals": "Showing incidents pending your action",
+    "showingAllIncidents": "Showing all open incidents",
+    "myPendingApprovals": "My Pending",
+    "myPending": "Pending",
+    "allIncidents": "All Incidents",
+    "all": "All",
+    "stepper": {
+      "triage": "Triage & Approval",
+      "assignment": "Assignment",
+      "dataCollection": "Data Collection",
+      "analysis": "Analysis (RCA)",
+      "review": "Review & Closure"
+    },
+    "overview": {
+      "investigatorAwaitingApproval": "Investigator assignment awaiting approval"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "evidence": "Evidence",
+      "witnesses": "Witnesses",
+      "rca": "Root Cause Analysis",
+      "actions": "Corrective Actions",
+      "submit": "Complete & Submit"
+    },
+    "assignment": {
+      "restricted": {
+        "title": "Assignment Pending",
+        "message": "You do not have permission to assign investigators for this incident."
+      }
+    },
+    "stages": {
+      "analysis": {
+        "title": "Analysis & Action Planning",
+        "subtitle": "Determine root causes and plan corrective actions."
+      },
+      "transition": {
+        "analysis": "Moving to Analysis Phase"
+      },
+      "proceedToAnalysis": "Proceed to Root Cause Analysis",
+      "review": {
+        "title": "Review & Approval",
+        "subtitle": "Review investigation findings and obtain necessary approvals."
+      },
+      "closure": {
+        "title": "Investigation Closure",
+        "subtitle": "Finalize and close the investigation."
+      }
+    },
+    "closure": {
+      "completed": "Investigation Closed",
+      "completedDesc": "This investigation has been successfully completed and closed.",
+      "actions": "Closure Actions",
+      "actionsDesc": "Complete the final steps to close this investigation.",
+      "requestClosure": "Request Closure"
+    },
+    "submit": {
+      "title": "Submit Investigation",
+      "checklist": "Investigation Checklist",
+      "fiveWhys": "5-Whys Analysis (min. 3)",
+      "immediateCause": "Immediate Cause",
+      "underlyingCause": "Underlying Cause",
+      "rootCauses": "Root Causes",
+      "actions": "Corrective Actions",
+      "causeCoverage": "Cause Coverage",
+      "incomplete": "Complete the following before submitting:",
+      "button": "Submit Investigation for Review",
+      "note": "All assigned action owners will be notified via email"
+    },
+    "startInvestigation": "Start Investigation",
+    "rca": {
+      "noInvestigation": "No investigation has been started for this incident.",
+      "lockedStatus": "RCA is locked. Inputs are disabled.",
+      "lockedClosed": "Incident closed. Analysis is read-only.",
+      "lockedBy": "Locked on {{date}}",
+      "unlock": "Unlock RCA",
+      "fiveWhys": "5 Whys Analysis",
+      "immediateCause": "Immediate Cause",
+      "immediateCauseDesc": "What directly caused the incident?",
+      "immediateCausePlaceholder": "Describe the immediate cause...",
+      "underlyingCause": "Underlying Cause",
+      "underlyingCauseDesc": "What conditions enabled this?",
+      "underlyingCausePlaceholder": "Describe underlying conditions...",
+      "rootCauses": "Root Causes",
+      "summarySection": "Summary of RCA",
+      "autoSaving": "Auto-saving...",
+      "autoSaved": "Auto-saved",
+      "ai": {
+        "suggest": "AI Suggest",
+        "rewrite": "AI Rewrite"
+      }
+    },
+    "readOnlyOversight": "You are viewing this investigation in read-only mode. Only the assigned investigator can make changes.",
+    "actions": {
+      "title": "Corrective Actions",
+      "addAction": "Add Action",
+      "editAction": "Edit Corrective Action",
+      "newAction": "New Corrective Action",
+      "linkedCauseType": "Link to Cause",
+      "selectCauseType": "Select cause type...",
+      "selectRootCause": "Select Root Cause",
+      "selectContributingFactor": "Select Contributing Factor",
+      "selectCause": "Select cause...",
+      "actionTitle": "Action Title",
+      "titlePlaceholder": "Enter action title...",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter description (min 10 characters)...",
+      "category": "Category",
+      "categories": {
+        "engineering": "Engineering",
+        "administrative": "Administrative",
+        "ppe": "PPE",
+        "training": "Training",
+        "procedureUpdate": "Procedure Update"
+      },
+      "type": "Type",
+      "types": {
+        "corrective": "Corrective",
+        "preventive": "Preventive",
+        "improvement": "Improvement"
+      },
+      "priority": "Priority",
+      "startDate": "Start Date",
+      "dueDate": "Due Date",
+      "department": "Department",
+      "selectDepartment": "Select department...",
+      "assignedTo": "Assigned To",
+      "selectAssignee": "Select assignee...",
+      "lockedClosed": "This incident is closed. Corrective actions cannot be modified.",
+      "ai": {
+        "selectCauseFirst": "Select a cause first",
+        "suggestAction": "AI Suggest Action",
+        "suggestionApplied": "AI suggestion applied",
+        "parseError": "Failed to parse AI suggestion"
+      }
+    }
   }
 }

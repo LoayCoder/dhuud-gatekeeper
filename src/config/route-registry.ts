@@ -301,7 +301,7 @@ export const routeRegistry: RouteDefinition[] = [
   // -------------------------------------------------------------------------
   // PROTECTED ROUTES (Requires Auth)
   // -------------------------------------------------------------------------
-  
+
   // Home & Dashboard
   {
     path: "/",
@@ -403,7 +403,7 @@ export const routeRegistry: RouteDefinition[] = [
     menuCode: "investigation_workspace",
     title: { en: "Investigation Workspace", ar: "مساحة التحقيق" },
     icon: ClipboardCheck,
-    component: lazyWithRetry(() => import("@/pages/incidents/InvestigationWorkspace")),
+    component: lazyWithRetry(() => import("@/features/investigation/InvestigationPage")),
     protection: "hsse",
     parentCode: "hsse_events",
     sortOrder: 4,
@@ -1268,7 +1268,7 @@ export const routeRegistry: RouteDefinition[] = [
   // -------------------------------------------------------------------------
   // ADMIN ROUTES
   // -------------------------------------------------------------------------
-  
+
   // SLA Management
   {
     path: "/admin/sla-dashboard",
