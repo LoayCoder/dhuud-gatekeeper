@@ -38,8 +38,8 @@ export const InvestigationProvider = ({ children }: { children: ReactNode }) => 
 
     // Calculate Workflow State
     const { currentStage, userRole, allowedActions, userPermissions } = useInvestigationWorkflow(
-        incident as Incident | null,
-        investigation as InvestigationRecord | null
+        incident as unknown as Incident | null,
+        investigation as unknown as InvestigationRecord | null
     );
 
     const refresh = () => {
@@ -52,8 +52,8 @@ export const InvestigationProvider = ({ children }: { children: ReactNode }) => 
 
     const value: InvestigationContextType = {
         incidentId,
-        incident: (incident as Incident) || null,
-        investigation: (investigation as InvestigationRecord) || null,
+        incident: (incident as unknown as Incident) || null,
+        investigation: (investigation as unknown as InvestigationRecord) || null,
         isLoading: isIncidentLoading || isInvestigationLoading,
         error: (incidentError as Error) || (investigationError as Error) || null,
         currentStage,

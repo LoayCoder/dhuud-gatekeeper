@@ -170,11 +170,28 @@ export function useExpertScreening() {
           updateData.approval_manager_id = deptManagerId;
           break;
         case 'investigate':
-          // Get department manager and set pending approval
+          // Get department manager
           const { data: managerId } = await supabase
             .rpc('get_incident_department_manager', { p_incident_id: incidentId });
           
-          newStatus = 'pending_manager_approval';
+          // Check if severity was changed during screening
+          const { data: currentIncident } = await supabase
+            .from('incidents')
+            .select('severity_v2, original_severity_v2')
+            .eq('id', incidentId)
+            .single();
+          
+          const severityChanged = currentIncident?.original_severity_v2 &&
+            currentIncident.severity_v2 !== currentIncident.original_severity_v2;
+          
+          if (severityChanged) {
+            // Severity was modified — route to Dept Manager for approval
+            newStatus = 'pending_department_manager_approval';
+            updateData.severity_pending_approval = true;
+          } else {
+            // No severity change — standard flow
+            newStatus = 'pending_manager_approval';
+          }
           updateData.approval_manager_id = managerId;
           break;
         default:

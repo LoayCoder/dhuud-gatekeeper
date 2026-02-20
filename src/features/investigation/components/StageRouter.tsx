@@ -5,8 +5,7 @@ import { TriageStage } from "./stages/TriageStage";
 import { AssignmentStage } from "./stages/AssignmentStage";
 import { DataCollectionStage } from "./stages/DataCollectionStage";
 import { AnalysisStage } from "./stages/AnalysisStage";
-import { ReviewStage } from "./stages/ReviewStage";
-import { ClosureStage } from "./stages/ClosureStage";
+import { ReviewStage, ClosureStage } from "./stages/ReviewStage";
 
 export function StageRouter() {
     const { currentStage } = useInvestigationContext();

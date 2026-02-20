@@ -182,6 +182,7 @@ async function syncSingleReport(report: OfflineReport): Promise<{ id: string; re
     location: form_data.location,
     department: form_data.department_id,
     severity: isObservation ? null : form_data.severity,
+    severity_v2: (form_data as any).severity_v2 || null,
     risk_rating: isObservation ? form_data.risk_rating : null,
     immediate_actions: form_data.immediate_actions,
     immediate_actions_data: immediateActionsData,

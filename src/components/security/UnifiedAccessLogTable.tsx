@@ -32,16 +32,16 @@ const entityColors: Record<EntityType, string> = {
   vehicle: 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300',
 };
 
-function getStatusBadge(status: string | null | undefined) {
+function getStatusBadge(status: string | null | undefined, translate: (key: string, fallback: string) => string) {
   if (!status) return null;
 
   switch (status) {
     case 'valid':
-      return <Badge variant="default" className="bg-green-600"><CheckCircle2 className="h-3 w-3 me-1" />{t('accessControl.status.valid', 'Valid')}</Badge>;
+      return <Badge variant="default" className="bg-green-600"><CheckCircle2 className="h-3 w-3 me-1" />{translate('accessControl.status.valid', 'Valid')}</Badge>;
     case 'warning':
-      return <Badge variant="secondary" className="bg-yellow-500 text-white"><AlertTriangle className="h-3 w-3 me-1" />{t('accessControl.status.warning', 'Warning')}</Badge>;
+      return <Badge variant="secondary" className="bg-yellow-500 text-white"><AlertTriangle className="h-3 w-3 me-1" />{translate('accessControl.status.warning', 'Warning')}</Badge>;
     case 'denied':
-      return <Badge variant="destructive"><XCircle className="h-3 w-3 me-1" />{t('accessControl.status.denied', 'Denied')}</Badge>;
+      return <Badge variant="destructive"><XCircle className="h-3 w-3 me-1" />{translate('accessControl.status.denied', 'Denied')}</Badge>;
     default:
       return <Badge variant="outline">{status}</Badge>;
   }
@@ -198,7 +198,7 @@ export function UnifiedAccessLogTable({
                 )}
               </TableCell>
               <TableCell>
-                {getStatusBadge(entry.validation_status)}
+                {getStatusBadge(entry.validation_status, t)}
               </TableCell>
               {showExitButton && (
                 <TableCell className="text-end">
