@@ -354,7 +354,7 @@ export function useReporterResponse() {
             throw new Error('Maximum expert resubmissions (3) exceeded. Please submit a new report.');
           }
 
-          newStatus = 'pending_expert_screening';
+          newStatus = 'expert_screening';
           updateData = {
             status: newStatus,
             expert_resubmission_count: currentCount + 1,
