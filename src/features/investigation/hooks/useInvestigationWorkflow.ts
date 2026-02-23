@@ -51,6 +51,8 @@ export function useInvestigationWorkflow(
             case 'pending_dept_rep_approval':
             case 'pending_dept_rep_incident_review':
             case 'pending_hsse_escalation_review':
+            case 'pending_no_investigation_approval':
+            case 'pending_legal_review':
                 return WorkflowStage.Triage;
 
             case 'investigation_pending':

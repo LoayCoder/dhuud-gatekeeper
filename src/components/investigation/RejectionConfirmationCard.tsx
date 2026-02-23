@@ -36,6 +36,9 @@ export function RejectionConfirmationCard({ incident, onComplete }: RejectionCon
   }
   
   const extendedIncident = incident as ExtendedIncident;
+  const resubmissionCount = (incident as any).expert_resubmission_count || 0;
+  const maxResubmissions = 3;
+  const resubmissionsExhausted = resubmissionCount >= maxResubmissions;
   
   const handleConfirm = () => {
     reporterResponse.mutate({
@@ -86,6 +89,18 @@ export function RejectionConfirmationCard({ incident, onComplete }: RejectionCon
           </Alert>
         )}
         
+        {/* C5: Resubmission count indicator */}
+        <div className="flex items-center gap-2 text-sm">
+          <Badge variant={resubmissionsExhausted ? "destructive" : "secondary"}>
+            {t('workflow.rejectionConfirm.resubmissionCount', 'Resubmissions: {{count}}/{{max}}', { count: resubmissionCount, max: maxResubmissions })}
+          </Badge>
+          {resubmissionsExhausted && (
+            <span className="text-destructive text-xs">
+              {t('workflow.rejectionConfirm.maxResubmissions', 'Maximum resubmissions reached. Please submit a new report.')}
+            </span>
+          )}
+        </div>
+
         {showDisputeForm ? (
           <div className="space-y-4">
             <div className="space-y-2">
