@@ -11005,6 +11005,7 @@ export type Database = {
           investigation_approved_by: string | null
           investigation_complete: boolean | null
           investigation_locked: boolean | null
+          investigation_started_at: string | null
           is_admin_override: boolean | null
           is_recordable: boolean | null
           latitude: number | null
@@ -11094,6 +11095,7 @@ export type Database = {
           severity_pending_approval: boolean | null
           severity_v2: Database["public"]["Enums"]["severity_level_v2"] | null
           site_id: string | null
+          sla_breached: boolean | null
           source_observation_id: string | null
           special_event_id: string | null
           status: Database["public"]["Enums"]["incident_status"] | null
@@ -11246,6 +11248,7 @@ export type Database = {
           investigation_approved_by?: string | null
           investigation_complete?: boolean | null
           investigation_locked?: boolean | null
+          investigation_started_at?: string | null
           is_admin_override?: boolean | null
           is_recordable?: boolean | null
           latitude?: number | null
@@ -11335,6 +11338,7 @@ export type Database = {
           severity_pending_approval?: boolean | null
           severity_v2?: Database["public"]["Enums"]["severity_level_v2"] | null
           site_id?: string | null
+          sla_breached?: boolean | null
           source_observation_id?: string | null
           special_event_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"] | null
@@ -11487,6 +11491,7 @@ export type Database = {
           investigation_approved_by?: string | null
           investigation_complete?: boolean | null
           investigation_locked?: boolean | null
+          investigation_started_at?: string | null
           is_admin_override?: boolean | null
           is_recordable?: boolean | null
           latitude?: number | null
@@ -11576,6 +11581,7 @@ export type Database = {
           severity_pending_approval?: boolean | null
           severity_v2?: Database["public"]["Enums"]["severity_level_v2"] | null
           site_id?: string | null
+          sla_breached?: boolean | null
           source_observation_id?: string | null
           special_event_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"] | null
@@ -25308,6 +25314,20 @@ export type Database = {
           table_name: string
         }[]
       }
+      check_duplicate_incident: {
+        Args: {
+          p_department_id: string
+          p_occurred_at: string
+          p_tenant_id: string
+          p_title: string
+        }
+        Returns: {
+          duplicate_id: string
+          duplicate_reference_id: string
+          duplicate_title: string
+          similarity_score: number
+        }[]
+      }
       check_incident_closure_prerequisites: {
         Args: { p_incident_id: string }
         Returns: Json
@@ -26708,6 +26728,8 @@ export type Database = {
         Returns: undefined
       }
       seed_tenant_badges: { Args: { p_tenant_id: string }; Returns: undefined }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       site_client_approve_actions: {
         Args: { p_decision: string; p_incident_id: string; p_notes?: string }
         Returns: Json
@@ -26955,6 +26977,10 @@ export type Database = {
       }
       validate_worker_qr_access: {
         Args: { p_qr_token: string; p_site_id?: string }
+        Returns: Json
+      }
+      verify_hsse_manager_access: {
+        Args: { p_incident_id?: string; p_user_id: string }
         Returns: Json
       }
       verify_mfa_backup_code: {

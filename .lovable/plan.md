@@ -1,87 +1,146 @@
 
 
-# Test Report: C4, C5, C10 Flows -- Gaps Found
+# Plan: Bring All 5 Features to 10/10
 
-## Summary
+## Gaps Identified
 
-After tracing each flow through the codebase (hooks, components, migrations, workflow routing), here are the findings and required fixes.
-
----
-
-## C4: No Investigation Approval Gate
-
-**What it should do:** When HSSE Expert marks "No Investigation Required," the incident goes to Dept Manager for approval before closing.
-
-**What works:**
-- Migration added `pending_no_investigation_approval` status to enum
-- `use-hsse-workflow.ts` line 186: Expert screening correctly routes to `pending_no_investigation_approval`
-- `IncidentStatusBadge.tsx`: Badge config exists for this status
-- Grandfathering migration ran for existing records
-
-**Gaps found (3 issues):**
-
-| # | Issue | File(s) | Fix |
-|---|-------|---------|-----|
-| 1 | No UI card exists for Dept Manager to approve/reject "no investigation" decisions | New: `NoInvestigationApprovalCard.tsx` | Create a card similar to `DeptManagerIncidentApprovalCard` with Approve (closes incident as `no_investigation_required`) and Reject (returns to `pending_expert_screening`) actions |
-| 2 | `pending_no_investigation_approval` is missing from `TriageStage.tsx` switch statement | `src/features/investigation/components/stages/TriageStage.tsx` | Add case routing to the new `NoInvestigationApprovalCard` |
-| 3 | `pending_no_investigation_approval` is missing from `useInvestigationWorkflow.ts` stage mapping | `src/features/investigation/hooks/useInvestigationWorkflow.ts` line 44-54 | Add to Triage stage cases |
+| Feature | Gap | Severity |
+|---------|-----|----------|
+| C11 | `investigation_started_at` is never set when status transitions to `investigation_in_progress` -- SLA check finds 0 rows | Critical |
+| C11 | pg_cron job not registered -- edge function never runs automatically | Critical |
+| C12 | pg_cron job not registered | Critical |
+| C13 | pg_cron job not registered | Critical |
+| C13 | No batch limit -- could timeout on large datasets | Medium |
+| C16 | No frontend integration -- RPC exists but nothing calls it before incident creation | Medium |
+| C18 | Only checks `hsse_manager` role code, not `hsse_director` or other roles in `hsse_management` category | Low |
+| C11 | No backfill of `investigation_started_at` for existing incidents already in `investigation_in_progress` | Medium |
 
 ---
 
-## C5: Expert Resubmission Cap (Max 3)
+## Changes
 
-**What it should do:** After expert rejection, reporter can resubmit up to 3 times. On the 4th attempt, the system blocks resubmission.
+### 1. Database Migration -- Auto-populate triggers + backfill
 
-**What works:**
-- `use-hsse-workflow.ts` lines 344-365: `resubmit_to_expert` action increments `expert_resubmission_count` and throws error at >= 3
-- `expert_resubmission_count` column exists in DB
+Create a migration that:
 
-**Gaps found (2 issues):**
+**a) Trigger: auto-set `investigation_started_at`** when status changes to `investigation_in_progress`:
 
-| # | Issue | File(s) | Fix |
-|---|-------|---------|-----|
-| 1 | **Bug**: Resubmit routes to `expert_screening` (line 357) instead of `pending_expert_screening` | `src/hooks/use-hsse-workflow.ts` | Change `newStatus = 'expert_screening'` to `newStatus = 'pending_expert_screening'` |
-| 2 | `RejectionConfirmationCard.tsx` does not show resubmission count or disable the resubmit button when max is reached | `src/components/investigation/RejectionConfirmationCard.tsx` | Fetch `expert_resubmission_count`, show count badge, disable "Resubmit to Expert" button at count >= 3 with explanation message |
+```text
+CREATE OR REPLACE FUNCTION set_investigation_started_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.status = 'investigation_in_progress'
+     AND (OLD.status IS DISTINCT FROM 'investigation_in_progress')
+     AND NEW.investigation_started_at IS NULL THEN
+    NEW.investigation_started_at := NOW();
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_set_investigation_started_at
+  BEFORE UPDATE ON incidents
+  FOR EACH ROW
+  EXECUTE FUNCTION set_investigation_started_at();
+```
+
+**b) Backfill** existing incidents in `investigation_in_progress` that have null `investigation_started_at`:
+
+```text
+UPDATE incidents
+SET investigation_started_at = COALESCE(
+  (SELECT MIN(created_at) FROM incident_audit_logs
+   WHERE incident_id = incidents.id
+     AND action IN ('status_changed', 'investigation_assigned')),
+  updated_at, created_at
+)
+WHERE status = 'investigation_in_progress'
+  AND investigation_started_at IS NULL
+  AND deleted_at IS NULL;
+```
+
+**c) Upgrade C18** to check all roles in the `hsse_management` category by joining to `role_categories`:
+
+```text
+DROP FUNCTION IF EXISTS verify_hsse_manager_access(UUID, UUID);
+
+CREATE OR REPLACE FUNCTION verify_hsse_manager_access(...)
+-- Now checks: r.code = ANY(rc.roles) where rc.category_name = 'hsse_management'
+-- Falls back to direct r.code = 'hsse_manager' if no role_categories row exists
+```
+
+### 2. Frontend Hook -- `use-duplicate-check.ts` (C16 integration)
+
+New hook that calls the `check_duplicate_incident` RPC:
+
+```text
+export function useDuplicateCheck() {
+  return useMutation({
+    mutationFn: async ({ tenantId, departmentId, title, occurredAt }) => {
+      const { data } = await supabase.rpc('check_duplicate_incident', {
+        p_tenant_id: tenantId,
+        p_department_id: departmentId,
+        p_title: title,
+        p_occurred_at: occurredAt,
+      });
+      return data || [];
+    }
+  });
+}
+```
+
+### 3. Frontend UI -- Duplicate Warning Dialog
+
+Add to the incident creation form (before submit):
+- Call `checkDuplicate` mutation with form values
+- If results returned, show an AlertDialog listing potential duplicates with reference IDs, titles, and similarity scores
+- User can "Proceed Anyway" or "Cancel"
+
+### 4. Set `investigation_started_at` in workflow hook
+
+In `src/hooks/use-hsse-workflow.ts` line 648, add `investigation_started_at`:
+
+```text
+.update({
+  status: 'investigation_in_progress',
+  investigation_started_at: new Date().toISOString()
+})
+```
+
+Also update `src/hooks/use-incident-closure.ts` line 341 and `src/hooks/use-dispute-resolution.ts` lines 155/159 where the same transition occurs.
+
+### 5. Edge Function -- Add batch limit to C13
+
+Update `handleEvidencePurge` to process max 100 records per table per run:
+
+```text
+.lt('created_at', retentionCutoff)
+.limit(100)
+```
+
+Add a `has_more` flag in the response so the scheduler knows to re-invoke.
+
+### 6. Register pg_cron jobs (via data insert tool)
+
+Three `cron.schedule()` calls using `net.http_post`:
+
+- `hsse-sla-check`: hourly (`0 * * * *`) with `?job=sla_check`
+- `hsse-monitoring-termination`: daily 6AM (`0 6 * * *`) with `?job=monitoring_termination`
+- `hsse-evidence-purge`: weekly Sunday 3AM (`0 3 * * 0`) with `?job=evidence_purge`
 
 ---
 
-## C10: OSHA Auto-Flag
+## File Summary
 
-**What it should do:** When an incident includes fatality/hospitalization/amputation/eye-loss keywords, auto-flag as OSHA reportable and notify.
-
-**What works:**
-- `use-incidents.ts` lines 230-252: Keyword detection runs on incident creation, sets `osha_reportable = true`, dispatches notification
-- `IncidentStatusBadge.tsx`: Badge exists for `osha_reportable` status
-- `incident-status-colors.ts`: Color mapping exists
-- DB column `osha_reportable` exists with index
-
-**Gaps found (2 issues):**
-
-| # | Issue | File(s) | Fix |
-|---|-------|---------|-----|
-| 1 | No OSHA indicator shown on incident detail or investigation workspace pages | `src/pages/incidents/IncidentDetail.tsx` or `InvestigationWorkspace.tsx` | Add a prominent red "OSHA Reportable" alert banner when `incident.osha_reportable === true` |
-| 2 | OSHA check only runs at creation time -- if injury details are edited later to include OSHA keywords, the flag is never set | `src/hooks/use-incidents.ts` (update mutation) | Add the same keyword check in the incident update/edit mutation |
-
----
-
-## Implementation Plan
-
-### New Files
-1. `src/components/investigation/NoInvestigationApprovalCard.tsx` -- Dept Manager card for C4 gate
-
-### Modified Files
-1. `src/hooks/use-hsse-workflow.ts` -- Fix `expert_screening` to `pending_expert_screening` (C5 bug)
-2. `src/features/investigation/components/stages/TriageStage.tsx` -- Add `pending_no_investigation_approval` case
-3. `src/features/investigation/hooks/useInvestigationWorkflow.ts` -- Add `pending_no_investigation_approval` to Triage stage mapping
-4. `src/components/investigation/RejectionConfirmationCard.tsx` -- Show resubmission count + disable at max (C5 UI)
-5. `src/pages/incidents/IncidentDetail.tsx` -- Add OSHA banner (C10 UI)
-6. `src/hooks/use-incidents.ts` -- Add OSHA keyword check to update mutation (C10 edit-time)
-7. `src/hooks/use-dept-manager-incident-approval.ts` -- Add `approveNoInvestigation` / `rejectNoInvestigation` mutation (C4 backend)
-
-### Priority Order
-1. C5 status bug fix (1 line, highest impact -- broken routing)
-2. C4 approval gate (new card + routing -- missing workflow step)
-3. C10 OSHA UI indicator (visibility gap)
-4. C10 edit-time OSHA check (edge case)
-5. C5 resubmission count UI (polish)
+| # | File | Action | Purpose |
+|---|------|--------|---------|
+| 1 | Migration SQL | New | Trigger for `investigation_started_at`, backfill, upgraded C18 RPC |
+| 2 | `src/hooks/use-duplicate-check.ts` | New | C16 frontend hook |
+| 3 | `src/components/incidents/DuplicateWarningDialog.tsx` | New | C16 warning UI |
+| 4 | `src/hooks/use-hsse-workflow.ts` | Edit | Set `investigation_started_at` on status transition |
+| 5 | `src/hooks/use-incident-closure.ts` | Edit | Set `investigation_started_at` on reopen to investigation |
+| 6 | `src/hooks/use-dispute-resolution.ts` | Edit | Set `investigation_started_at` on dispute resolution |
+| 7 | `supabase/functions/hsse-cron/index.ts` | Edit | Add batch limit (100) to evidence purge |
+| 8 | pg_cron SQL (data insert) | Insert | Register 3 cron schedules |
+| 9 | Incident creation form | Edit | Wire duplicate check before submit |
 
