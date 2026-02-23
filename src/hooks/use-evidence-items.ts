@@ -284,6 +284,17 @@ export function useDeleteEvidence() {
         throw new Error('Evidence not found');
       }
 
+      // C8: Check litigation hold — block deletion if active
+      const { data: incident } = await supabase
+        .from('incidents')
+        .select('litigation_hold')
+        .eq('id', evidence.incident_id)
+        .single();
+
+      if ((incident as any)?.litigation_hold === true) {
+        throw new Error('Evidence cannot be deleted: this incident is under litigation hold. Contact the legal team to release the hold first.');
+      }
+
       // Log to incident audit
       await supabase.from('incident_audit_logs').insert({
         incident_id: evidence.incident_id,

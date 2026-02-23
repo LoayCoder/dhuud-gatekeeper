@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { CheckSquare, Plus, ExternalLink, Calendar, User } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
+import { formatStatusLabel } from '@/lib/incident-status-colors';
 
 interface IncidentActionsTabProps {
     incidentId: string;
@@ -75,7 +76,7 @@ export function IncidentActionsTab({ incidentId }: IncidentActionsTabProps) {
                                     <div className="flex items-start justify-between">
                                         <h4 className="font-medium text-base">{action.title}</h4>
                                         <Badge variant={action.status === 'completed' || action.status === 'verified' ? 'default' : 'secondary'}>
-                                            {action.status?.replace(/_/g, ' ')}
+                                            {formatStatusLabel(action.status)}
                                         </Badge>
                                     </div>
                                     {action.description && (

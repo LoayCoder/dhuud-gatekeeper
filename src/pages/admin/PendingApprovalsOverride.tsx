@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { 
-  ShieldCheck, Clock, Eye, Filter, AlertTriangle, 
+import {
+  ShieldCheck, Clock, Eye, Filter, AlertTriangle,
   FileWarning, Truck, Users, Building2, UserCheck, Package
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,6 +40,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAllPendingApprovals, useApprovalCounts, type UnifiedPendingApproval, type ApprovalCategory } from '@/hooks/use-all-pending-approvals';
 import { useAdminOverrideApproval } from '@/hooks/use-admin-override-approval';
 import { PageLoader } from '@/components/ui/page-loader';
+import { formatStatusLabel } from '@/lib/incident-status-colors';
 
 const CATEGORY_CONFIG: Record<ApprovalCategory, { icon: React.ElementType; color: string; label: string }> = {
   incident: { icon: FileWarning, color: 'text-destructive', label: 'admin.approvals.categories.incident' },
@@ -154,8 +155,8 @@ export default function PendingApprovalsOverride() {
           const Icon = config.icon;
           const count = counts[category];
           return (
-            <Card 
-              key={category} 
+            <Card
+              key={category}
               className={`cursor-pointer transition-all hover:shadow-md ${activeTab === category ? 'ring-2 ring-primary' : ''}`}
               onClick={() => setActiveTab(category)}
             >
@@ -194,8 +195,8 @@ export default function PendingApprovalsOverride() {
                 </SelectContent>
               </Select>
             </div>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => { setActiveTab('all'); setMinDaysFilter(0); }}
             >
               {t('common.clearFilters', 'Clear Filters')}
@@ -262,7 +263,7 @@ export default function PendingApprovalsOverride() {
                         <TableCell className="max-w-[200px] truncate">{approval.title}</TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-                            {t(`incident.statuses.${approval.status}`, approval.status.replace(/_/g, ' '))}
+                            {t(`incident.statuses.${approval.status}`, formatStatusLabel(approval.status))}
                           </Badge>
                         </TableCell>
                         <TableCell>

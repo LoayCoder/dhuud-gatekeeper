@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { formatStatusLabel } from '@/lib/incident-status-colors';
 import {
   FileText,
   Search,
@@ -85,11 +86,23 @@ const statusConfig: Record<string, {
     icon: XCircle,
     colorClass: 'bg-destructive/10 text-destructive border-destructive/30'
   },
+  dept_rep_rejected: {
+    icon: XCircle,
+    colorClass: 'bg-destructive/10 text-destructive border-destructive/30'
+  },
   pending_manager_approval: {
     icon: UserCheck,
     colorClass: 'bg-warning/10 text-warning border-warning/30'
   },
   hsse_manager_escalation: {
+    icon: ArrowUpCircle,
+    colorClass: 'bg-warning/10 text-warning border-warning/30'
+  },
+  pending_no_investigation_approval: {
+    icon: FileCheck,
+    colorClass: 'bg-warning/10 text-warning border-warning/30'
+  },
+  pending_escalation_approval: {
     icon: ArrowUpCircle,
     colorClass: 'bg-warning/10 text-warning border-warning/30'
   },
@@ -145,6 +158,10 @@ const statusConfig: Record<string, {
     icon: FileText,
     colorClass: 'bg-destructive/10 text-destructive border-destructive/30'
   },
+  osha_reportable: {
+    icon: AlertTriangle,
+    colorClass: 'bg-destructive/10 text-destructive border-destructive/30'
+  },
 
   // --- Action Management ---
   observation_actions_pending: {
@@ -185,7 +202,7 @@ const statusConfig: Record<string, {
     icon: FileCheck,
     colorClass: 'bg-pending/10 text-pending border-pending/30'
   },
-  
+
   // --- Closed ---
   closed: {
     icon: Lock,
@@ -198,23 +215,28 @@ const statusConfig: Record<string, {
   no_investigation_required: {
     icon: CheckCircle2,
     colorClass: 'bg-muted text-muted-foreground border-border'
+  },
+  closed_rejected_approved_by_hsse: {
+    icon: CheckCircle2,
+    colorClass: 'bg-muted text-muted-foreground border-border'
   }
 };
 
 export function IncidentStatusBadge({ status, className }: IncidentStatusBadgeProps) {
   const { t } = useTranslation();
-  
+
   const config = statusConfig[status] || {
     icon: FileText,
     colorClass: 'bg-muted text-muted-foreground border-border'
   };
-  
+
   const Icon = config.icon;
-  const label = t(`incidents.status.${status}`, { defaultValue: status.replace(/_/g, ' ') });
-  
+  // C19: Use formatStatusLabel for Title Case fallback instead of raw snake_case
+  const label = t(`incidents.status.${status}`, { defaultValue: formatStatusLabel(status) });
+
   return (
-    <Badge 
-      variant="outline" 
+    <Badge
+      variant="outline"
       className={cn(
         "gap-1.5 font-medium border",
         config.colorClass,

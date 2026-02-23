@@ -7,6 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import type { ClientSiteRepIncidentSummary, ClientSiteRepIncidentDetail } from "@/hooks/contractor-management/use-client-site-rep-data";
+import { formatStatusLabel } from "@/lib/incident-status-colors";
 
 interface IncidentsSummaryCardProps {
   summary: ClientSiteRepIncidentSummary;
@@ -88,16 +89,16 @@ export function IncidentsSummaryCard({ summary, allIncidents = [] }: IncidentsSu
 
   // Open statuses for filtering
   const openStatuses = [
-    "submitted", 
-    "pending_review", 
-    "pending_dept_rep_approval", 
+    "submitted",
+    "pending_review",
+    "pending_dept_rep_approval",
     "pending_manager_approval"
   ];
 
   // Filter incidents based on active filter
   const filteredIncidents = useMemo(() => {
     if (!activeFilter) return allIncidents;
-    
+
     if (activeFilter === "open") {
       return allIncidents.filter(i => openStatuses.includes(i.status));
     }
@@ -129,15 +130,14 @@ export function IncidentsSummaryCard({ summary, allIncidents = [] }: IncidentsSu
             </CardTitle>
           </CardHeader>
         </CollapsibleTrigger>
-        
+
         <CardContent>
           <div className="grid grid-cols-3 gap-3">
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className={`${stat.bg} rounded-lg p-3 text-center cursor-pointer hover:opacity-80 transition-all ${
-                  activeFilter === stat.status ? "ring-2 ring-primary ring-offset-2" : ""
-                }`}
+                className={`${stat.bg} rounded-lg p-3 text-center cursor-pointer hover:opacity-80 transition-all ${activeFilter === stat.status ? "ring-2 ring-primary ring-offset-2" : ""
+                  }`}
                 onClick={(e) => handleStatusClick(e, stat.status)}
                 role="button"
                 tabIndex={0}
@@ -155,11 +155,11 @@ export function IncidentsSummaryCard({ summary, allIncidents = [] }: IncidentsSu
           <div className="border-t px-4 pb-4 pt-3 space-y-2">
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-medium text-muted-foreground">
-                {activeFilter 
-                  ? t("clientSiteRep.showingFilteredEvents", "Showing {{status}} events ({{count}})", { 
-                      status: activeFilter === "investigation_in_progress" ? "under investigation" : activeFilter, 
-                      count: filteredIncidents.length 
-                    })
+                {activeFilter
+                  ? t("clientSiteRep.showingFilteredEvents", "Showing {{status}} events ({{count}})", {
+                    status: activeFilter === "investigation_in_progress" ? "under investigation" : activeFilter,
+                    count: filteredIncidents.length
+                  })
                   : t("clientSiteRep.allEvents", "All HSSE Events ({{count}})", { count: allIncidents.length })
                 }
               </p>
@@ -170,7 +170,7 @@ export function IncidentsSummaryCard({ summary, allIncidents = [] }: IncidentsSu
                 </Button>
               )}
             </div>
-            
+
             {visibleIncidents.length > 0 ? (
               visibleIncidents.map((incident) => (
                 <div
@@ -193,7 +193,7 @@ export function IncidentsSummaryCard({ summary, allIncidents = [] }: IncidentsSu
                   </div>
                   <div className="flex flex-col items-end gap-1 ms-3">
                     <Badge variant={getStatusBadgeVariant(incident.status)}>
-                      {incident.status.replace(/_/g, " ")}
+                      {formatStatusLabel(incident.status)}
                     </Badge>
                     <span className="text-xs text-muted-foreground capitalize">
                       {incident.event_type}
@@ -203,7 +203,7 @@ export function IncidentsSummaryCard({ summary, allIncidents = [] }: IncidentsSu
               ))
             ) : (
               <p className="text-sm text-muted-foreground text-center py-4">
-                {activeFilter 
+                {activeFilter
                   ? t("clientSiteRep.noEventsMatchFilter", "No events match this filter")
                   : t("clientSiteRep.noEventsFound", "No HSSE events found")
                 }
@@ -211,8 +211,8 @@ export function IncidentsSummaryCard({ summary, allIncidents = [] }: IncidentsSu
             )}
 
             {hasMore && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full mt-3"
                 onClick={() => setVisibleCount(prev => prev + ITEMS_PER_PAGE)}
               >

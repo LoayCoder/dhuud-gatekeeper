@@ -37,6 +37,7 @@ import { useAITags, type AITag } from '@/hooks/use-ai-tags';
 import { useContractorCompanies } from '@/hooks/contractor-management/use-contractor-companies';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { formatStatusLabel } from '@/lib/incident-status-colors';
 
 export interface IncidentFilters {
   search: string;
@@ -213,7 +214,7 @@ export function IncidentFilterPanel({
                     <SelectItem value="all">{t('common.all', 'All Statuses')}</SelectItem>
                     {STATUS_OPTIONS.map((status) => (
                       <SelectItem key={status} value={status}>
-                        {t(`incidents.status.${status}`, status.replace(/_/g, ' '))}
+                        {t(`incidents.status.${status}`, formatStatusLabel(status))}
                       </SelectItem>
                     ))}
                   </SelectContent>

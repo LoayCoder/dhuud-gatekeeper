@@ -226,6 +226,32 @@ export function useCreateIncident() {
         .single();
 
       if (error) throw error;
+
+      // C10: OSHA Auto-Flag — check for fatality, hospitalization, amputation, loss-of-eye
+      if (!isObservation && data.has_injury && data.injury_details) {
+        const oshaKeywords = [
+          'fatality', 'fatal', 'death', 'deceased', 'died',
+          'hospitalization', 'hospitalized', 'hospital', 'inpatient',
+          'amputation', 'amputated', 'severed',
+          'loss of eye', 'eye loss', 'blinded', 'blindness', 'enucleation',
+        ];
+        const injuryText = data.injury_details.toLowerCase();
+        const isOshaReportable = oshaKeywords.some(kw => injuryText.includes(kw));
+
+        if (isOshaReportable) {
+          // Set OSHA flag on the incident
+          await supabase
+            .from('incidents')
+            .update({ osha_reportable: true } as any)
+            .eq('id', incident.id);
+
+          // Dispatch OSHA notification (fire and forget)
+          supabase.functions.invoke('dispatch-incident-notification', {
+            body: { incident_id: incident.id, event_type: 'osha_reportable_detected' }
+          }).catch(err => console.warn('Failed to dispatch OSHA notification:', err));
+        }
+      }
+
       return incident;
     },
     onSuccess: (incident) => {

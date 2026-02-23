@@ -31,11 +31,11 @@ export async function syncOfflineReports(): Promise<SyncResult> {
     const pendingReports = allEntries
       .filter(entry => entry.key.startsWith('offline_report_'))
       .map(entry => ({ key: entry.key, report: entry.data }))
-      .filter(({ report }) => 
-        report.sync_status === 'pending' || 
+      .filter(({ report }) =>
+        report.sync_status === 'pending' ||
         (report.sync_status === 'failed' && report.retry_count < 3)
       )
-      .sort((a, b) => 
+      .sort((a, b) =>
         new Date(a.report.created_at).getTime() - new Date(b.report.created_at).getTime()
       );
 
@@ -181,8 +181,8 @@ async function syncSingleReport(report: OfflineReport): Promise<{ id: string; re
     occurred_at: form_data.occurred_at,
     location: form_data.location,
     department: form_data.department_id,
-    severity: isObservation ? null : form_data.severity,
-    severity_v2: (form_data as any).severity_v2 || null,
+    severity: null,
+    severity_v2: form_data.severity || null,
     risk_rating: isObservation ? form_data.risk_rating : null,
     immediate_actions: form_data.immediate_actions,
     immediate_actions_data: immediateActionsData,
@@ -201,8 +201,8 @@ async function syncSingleReport(report: OfflineReport): Promise<{ id: string; re
     department_id: form_data.department_id,
     latitude: gps_data?.latitude,
     longitude: gps_data?.longitude,
-    related_contractor_company_id: form_data.is_against_contractor 
-      ? form_data.related_contractor_company_id 
+    related_contractor_company_id: form_data.is_against_contractor
+      ? form_data.related_contractor_company_id
       : null,
     tenant_id,
     reported_by: user_id,
@@ -310,10 +310,10 @@ async function updateReportStatus(
 export async function hasPendingReports(): Promise<boolean> {
   try {
     const allEntries = await offlineDataCache.getAll<OfflineReport>(CACHE_STORES.PENDING_ACTIONS);
-    return allEntries.some(entry => 
-      entry.key.startsWith('offline_report_') && 
-      (entry.data.sync_status === 'pending' || 
-       (entry.data.sync_status === 'failed' && entry.data.retry_count < 3))
+    return allEntries.some(entry =>
+      entry.key.startsWith('offline_report_') &&
+      (entry.data.sync_status === 'pending' ||
+        (entry.data.sync_status === 'failed' && entry.data.retry_count < 3))
     );
   } catch {
     return false;

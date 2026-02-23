@@ -1,18 +1,18 @@
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Search, 
-  AlertTriangle, 
+import {
+  Search,
+  AlertTriangle,
   FileText,
   Calendar,
   ExternalLink
@@ -20,6 +20,7 @@ import {
 import { useQuickActionDrilldown, QuickActionType, QuickActionItem } from "@/hooks/use-quick-action-drilldown";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { formatStatusLabel } from "@/lib/incident-status-colors";
 
 interface QuickActionDrilldownModalProps {
   open: boolean;
@@ -27,7 +28,7 @@ interface QuickActionDrilldownModalProps {
   actionType: QuickActionType | null;
 }
 
-const ACTION_CONFIG: Record<QuickActionType, { 
+const ACTION_CONFIG: Record<QuickActionType, {
   icon: React.ComponentType<{ className?: string }>;
   titleKey: string;
   color: string;
@@ -86,20 +87,20 @@ function ItemCard({ item, onClick }: { item: QuickActionItem; onClick: () => voi
         </div>
         <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
       </div>
-      
+
       <p className="text-sm font-medium line-clamp-2">{item.title}</p>
-      
+
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <Badge variant={getStatusBadgeVariant(item.status)} className="text-xs">
-          {t(`incidentStatus.${item.status}`, item.status.replace(/_/g, ' '))}
+          {t(`incidentStatus.${item.status}`, formatStatusLabel(item.status))}
         </Badge>
-        
+
         {item.severity && (
           <span className={cn("text-xs font-medium", getSeverityColor(item.severity))}>
             {t(`common.priority${item.severity.charAt(0).toUpperCase() + item.severity.slice(1)}`, item.severity)}
           </span>
         )}
-        
+
         {item.due_date && (
           <div className={cn(
             "flex items-center gap-1 text-xs",
@@ -114,10 +115,10 @@ function ItemCard({ item, onClick }: { item: QuickActionItem; onClick: () => voi
   );
 }
 
-export function QuickActionDrilldownModal({ 
-  open, 
-  onOpenChange, 
-  actionType 
+export function QuickActionDrilldownModal({
+  open,
+  onOpenChange,
+  actionType
 }: QuickActionDrilldownModalProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -146,7 +147,7 @@ export function QuickActionDrilldownModal({
             {t(config.titleKey)}
           </DialogTitle>
         </DialogHeader>
-        
+
         <ScrollArea className="flex-1 -mx-6 px-6">
           {isLoading ? (
             <div className="space-y-2">
@@ -157,9 +158,9 @@ export function QuickActionDrilldownModal({
           ) : items && items.length > 0 ? (
             <div className="space-y-2 pb-4">
               {items.map((item) => (
-                <ItemCard 
-                  key={item.id} 
-                  item={item} 
+                <ItemCard
+                  key={item.id}
+                  item={item}
                   onClick={() => handleItemClick(item)}
                 />
               ))}

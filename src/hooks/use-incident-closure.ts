@@ -61,7 +61,7 @@ export const useIncidentClosureEligibility = useCanCloseIncident;
 export function useIncidentClosureApproval(incidentId: string) {
   const approveMutation = useApproveIncidentClosure();
   const rejectMutation = useRejectIncidentClosure();
-  
+
   return {
     approveClosureMutation: {
       mutate: ({ notes }: { notes?: string }) => approveMutation.mutate({ incidentId }),
@@ -178,13 +178,13 @@ export function useApproveIncidentClosure() {
           const base64Data = signatureDataUrl.replace(/^data:image\/\w+;base64,/, '');
           const byteArray = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
           const blob = new Blob([byteArray], { type: 'image/png' });
-          
+
           // Upload to storage
           const fileName = `${incidentId}/closure-signature-${Date.now()}.png`;
           const { error: uploadError } = await supabase.storage
             .from('incident-evidence')
             .upload(fileName, blob, { contentType: 'image/png' });
-          
+
           if (!uploadError) {
             signaturePath = fileName;
           } else {
@@ -230,8 +230,8 @@ export function useApproveIncidentClosure() {
         tenant_id: profile.tenant_id,
         actor_id: user.id,
         action: actionType,
-        new_value: { 
-          approved_at: new Date().toISOString(), 
+        new_value: {
+          approved_at: new Date().toISOString(),
           target_status: targetStatus,
           approval_notes: approvalNotes || null,
           has_signature: !!signaturePath,
@@ -458,6 +458,18 @@ export function useReopenIncident() {
         throw new Error('User not authenticated');
       }
 
+      // C7: Enforce max 3 reopens
+      const { data: incident } = await supabase
+        .from('incidents')
+        .select('reopen_count')
+        .eq('id', incidentId)
+        .single();
+
+      const currentReopenCount = (incident as any)?.reopen_count || 0;
+      if (currentReopenCount >= 3) {
+        throw new Error('Maximum reopens (3) exceeded for this incident. Please submit a new report instead.');
+      }
+
       // Call RPC function for server-side role enforcement
       // Type assertion needed until types regenerate
       const { data, error } = await (supabase.rpc as any)('reopen_closed_incident', {
@@ -466,6 +478,13 @@ export function useReopenIncident() {
       });
 
       if (error) throw error;
+
+      // Increment reopen_count on success
+      await supabase
+        .from('incidents')
+        .update({ reopen_count: currentReopenCount + 1 } as any)
+        .eq('id', incidentId);
+
       return data;
     },
     onSuccess: (_, { incidentId }) => {

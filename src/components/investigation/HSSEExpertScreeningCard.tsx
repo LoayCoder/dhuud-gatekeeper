@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { 
-  ClipboardCheck, 
-  RotateCcw, 
-  XCircle, 
+import {
+  ClipboardCheck,
+  RotateCcw,
+  XCircle,
   FileX,
   ArrowRight,
   ClipboardList,
@@ -17,12 +17,18 @@ import {
 import { ReturnToReporterDialog } from "./ReturnToReporterDialog";
 import { RejectReportDialog } from "./RejectReportDialog";
 import { NoInvestigationDialog } from "./NoInvestigationDialog";
-import { 
-  useExpertScreening, 
+import {
+  useExpertScreening,
   useCanPerformExpertScreening,
-  useIncidentDepartmentManager 
+  useIncidentDepartmentManager
 } from "@/hooks/use-hsse-workflow";
-import type { IncidentWithDetails } from "@/hooks/use-incidents";
+import {
+  HSSE_SEVERITY_LEVELS,
+  type SeverityLevelV2,
+  getSeverityConfig
+} from "@/lib/hsse-severity-levels";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertTriangle } from "lucide-react";
 
 interface HSSEExpertScreeningCardProps {
   incident: IncidentWithDetails;
@@ -32,30 +38,34 @@ interface HSSEExpertScreeningCardProps {
 export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScreeningCardProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
-  
+
   const [notes, setNotes] = useState("");
+  const [screeningSeverity, setScreeningSeverity] = useState<SeverityLevelV2 | undefined>(
+    incident.severity_v2 as SeverityLevelV2 | undefined
+  );
   const [showReturnDialog, setShowReturnDialog] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [showNoInvestigationDialog, setShowNoInvestigationDialog] = useState(false);
-  
+
   const { data: canScreen } = useCanPerformExpertScreening();
   const { data: departmentManager, isLoading: loadingManager } = useIncidentDepartmentManager(incident.id);
   const expertScreening = useExpertScreening();
-  
+
   if (!canScreen) {
     return null;
   }
-  
+
   const handleRecommendInvestigation = () => {
     expertScreening.mutate({
       incidentId: incident.id,
       recommendation: 'investigate',
       notes,
+      newSeverity: screeningSeverity !== incident.severity_v2 ? screeningSeverity : undefined,
     }, {
       onSuccess: onComplete,
     });
   };
-  
+
   const handleReturn = (reason: string, instructions: string) => {
     expertScreening.mutate({
       incidentId: incident.id,
@@ -70,7 +80,7 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
       },
     });
   };
-  
+
   const handleReject = (reason: string) => {
     expertScreening.mutate({
       incidentId: incident.id,
@@ -84,7 +94,7 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
       },
     });
   };
-  
+
   const handleNoInvestigation = (justification: string) => {
     expertScreening.mutate({
       incidentId: incident.id,
@@ -98,7 +108,7 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
       },
     });
   };
-  
+
   // Handler for assigning actions (observation workflow)
   const handleAssignActions = () => {
     expertScreening.mutate({
@@ -109,7 +119,7 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
       onSuccess: onComplete,
     });
   };
-  
+
   // Check if this is an observation
   const isObservation = incident.event_type === 'observation';
 
@@ -144,7 +154,56 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
               rows={3}
             />
           </div>
-          
+
+          {/* Severity Modification (Only for non-observations) */}
+          {!isObservation && (
+            <div className="space-y-2">
+              <Label htmlFor="screening-severity" className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-warning" />
+                {t('investigation.severityAssessment', 'Severity Assessment')}
+              </Label>
+              <div className="rounded-md border p-3 bg-muted/20 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">{t('investigation.expertSeverityChangeNote', 'You can adjust the severity if the initial assessment was incorrect.')}</span>
+                </div>
+
+                <Select
+                  value={screeningSeverity}
+                  onValueChange={(v) => setScreeningSeverity(v as SeverityLevelV2)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={t('investigation.selectSeverity', 'Select Severity')} />
+                  </SelectTrigger>
+                  <SelectContent dir={direction}>
+                    {HSSE_SEVERITY_LEVELS.map((level) => {
+                      const config = getSeverityConfig(level.value);
+                      return (
+                        <SelectItem
+                          key={level.value}
+                          value={level.value}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: config?.color }}
+                            />
+                            <span>{t(level.labelKey)}</span>
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+
+                {screeningSeverity !== incident.severity_v2 && (
+                  <div className="text-xs text-amber-600 flex items-center gap-1 bg-amber-50 p-2 rounded">
+                    <span>Changed from <strong>{incident.severity_v2 ? t(`severity.${incident.severity_v2}.label`) : 'N/A'}</strong>. This will require Department Manager approval.</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Department Manager Info */}
           {loadingManager ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -168,7 +227,7 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
               </p>
             </div>
           )}
-          
+
           {/* Action Buttons */}
           <div className="flex flex-col gap-3 pt-2">
             {/* Top row - Return & Reject */}
@@ -182,7 +241,7 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
                 <RotateCcw className="h-4 w-4 shrink-0" />
                 <span className="truncate">{t('workflow.expertScreening.returnToReporter', 'Return for Correction')}</span>
               </Button>
-              
+
               <Button
                 variant="outline"
                 className="flex items-center justify-center gap-2 text-destructive border-destructive/50 hover:bg-destructive/10"
@@ -193,7 +252,7 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
                 <span className="truncate">{t('workflow.expertScreening.reject', 'Reject Report')}</span>
               </Button>
             </div>
-            
+
             {/* Bottom row - No Investigation & Main Action */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Button
@@ -205,7 +264,7 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
                 <FileX className="h-4 w-4 shrink-0" />
                 <span className="truncate">{t('workflow.expertScreening.noInvestigation', 'No Investigation Required')}</span>
               </Button>
-              
+
               {/* Show different button based on event type */}
               {isObservation ? (
                 <Button
@@ -238,21 +297,21 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
           </div>
         </CardContent>
       </Card>
-      
+
       <ReturnToReporterDialog
         open={showReturnDialog}
         onOpenChange={setShowReturnDialog}
         onConfirm={handleReturn}
         isLoading={expertScreening.isPending}
       />
-      
+
       <RejectReportDialog
         open={showRejectDialog}
         onOpenChange={setShowRejectDialog}
         onConfirm={handleReject}
         isLoading={expertScreening.isPending}
       />
-      
+
       <NoInvestigationDialog
         open={showNoInvestigationDialog}
         onOpenChange={setShowNoInvestigationDialog}
