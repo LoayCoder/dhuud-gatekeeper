@@ -339,6 +339,7 @@ export function useRejectIncidentClosure() {
         .from('incidents')
         .update({
           status: 'investigation_in_progress',
+          investigation_started_at: new Date().toISOString(),
           closure_rejection_notes: rejectionNotes,
           closure_requested_by: null,
           closure_requested_at: null,

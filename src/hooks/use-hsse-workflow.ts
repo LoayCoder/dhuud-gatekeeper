@@ -645,7 +645,10 @@ export function useStartInvestigation() {
       // Update incident status
       const { error: incidentError } = await supabase
         .from('incidents')
-        .update({ status: 'investigation_in_progress' })
+        .update({
+          status: 'investigation_in_progress',
+          investigation_started_at: new Date().toISOString(),
+        })
         .eq('id', incidentId);
 
       if (incidentError) throw incidentError;
