@@ -185,7 +185,6 @@ Deno.serve(async (req) => {
       entry_time: pass.entry_time,
       exit_time: pass.exit_time,
       project_name: (pass.project as any)?.project_name || 'Unknown',
-      project_name: (pass.project as any)?.project_name || 'Unknown',
       company_name: (pass.company as any)?.company_name || 'Unknown',
       assigned_gate: (pass.security_approval_notes?.match(/\[Gate: (.*?)\]/)?.[1]) || null,
     };

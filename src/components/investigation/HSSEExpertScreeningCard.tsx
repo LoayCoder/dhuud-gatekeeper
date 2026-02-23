@@ -31,7 +31,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertTriangle } from "lucide-react";
 
 interface HSSEExpertScreeningCardProps {
-  incident: IncidentWithDetails;
+  incident: any;
   onComplete: () => void;
 }
 

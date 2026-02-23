@@ -10976,6 +10976,7 @@ export type Database = {
           expert_rejected_at: string | null
           expert_rejected_by: string | null
           expert_rejection_reason: string | null
+          expert_resubmission_count: number | null
           expert_screened_at: string | null
           expert_screened_by: string | null
           expert_screening_notes: string | null
@@ -11011,6 +11012,7 @@ export type Database = {
           legal_review_notes: string | null
           legal_reviewed_at: string | null
           legal_reviewer_id: string | null
+          litigation_hold: boolean | null
           location: string | null
           location_city: string | null
           location_country: string | null
@@ -11022,6 +11024,8 @@ export type Database = {
           manager_decision: string | null
           manager_decision_at: string | null
           manager_rejection_reason: string | null
+          manager_severity_override: boolean | null
+          manager_severity_override_reason: string | null
           media_attachments: Json | null
           mediation_completed_at: string | null
           mediation_decision: string | null
@@ -11042,6 +11046,7 @@ export type Database = {
           original_severity_v2:
             | Database["public"]["Enums"]["severity_level_v2"]
             | null
+          osha_reportable: boolean | null
           patrol_checkpoint_id: string | null
           patrol_id: string | null
           potential_severity_approved_at: string | null
@@ -11060,6 +11065,7 @@ export type Database = {
           reference_id: string | null
           rejection_return_count: number | null
           related_contractor_company_id: string | null
+          reopen_count: number | null
           reporter_branch_id: string | null
           reporter_dispute_notes: string | null
           reporter_disputes_rejection: boolean | null
@@ -11211,6 +11217,7 @@ export type Database = {
           expert_rejected_at?: string | null
           expert_rejected_by?: string | null
           expert_rejection_reason?: string | null
+          expert_resubmission_count?: number | null
           expert_screened_at?: string | null
           expert_screened_by?: string | null
           expert_screening_notes?: string | null
@@ -11246,6 +11253,7 @@ export type Database = {
           legal_review_notes?: string | null
           legal_reviewed_at?: string | null
           legal_reviewer_id?: string | null
+          litigation_hold?: boolean | null
           location?: string | null
           location_city?: string | null
           location_country?: string | null
@@ -11257,6 +11265,8 @@ export type Database = {
           manager_decision?: string | null
           manager_decision_at?: string | null
           manager_rejection_reason?: string | null
+          manager_severity_override?: boolean | null
+          manager_severity_override_reason?: string | null
           media_attachments?: Json | null
           mediation_completed_at?: string | null
           mediation_decision?: string | null
@@ -11277,6 +11287,7 @@ export type Database = {
           original_severity_v2?:
             | Database["public"]["Enums"]["severity_level_v2"]
             | null
+          osha_reportable?: boolean | null
           patrol_checkpoint_id?: string | null
           patrol_id?: string | null
           potential_severity_approved_at?: string | null
@@ -11295,6 +11306,7 @@ export type Database = {
           reference_id?: string | null
           rejection_return_count?: number | null
           related_contractor_company_id?: string | null
+          reopen_count?: number | null
           reporter_branch_id?: string | null
           reporter_dispute_notes?: string | null
           reporter_disputes_rejection?: boolean | null
@@ -11446,6 +11458,7 @@ export type Database = {
           expert_rejected_at?: string | null
           expert_rejected_by?: string | null
           expert_rejection_reason?: string | null
+          expert_resubmission_count?: number | null
           expert_screened_at?: string | null
           expert_screened_by?: string | null
           expert_screening_notes?: string | null
@@ -11481,6 +11494,7 @@ export type Database = {
           legal_review_notes?: string | null
           legal_reviewed_at?: string | null
           legal_reviewer_id?: string | null
+          litigation_hold?: boolean | null
           location?: string | null
           location_city?: string | null
           location_country?: string | null
@@ -11492,6 +11506,8 @@ export type Database = {
           manager_decision?: string | null
           manager_decision_at?: string | null
           manager_rejection_reason?: string | null
+          manager_severity_override?: boolean | null
+          manager_severity_override_reason?: string | null
           media_attachments?: Json | null
           mediation_completed_at?: string | null
           mediation_decision?: string | null
@@ -11512,6 +11528,7 @@ export type Database = {
           original_severity_v2?:
             | Database["public"]["Enums"]["severity_level_v2"]
             | null
+          osha_reportable?: boolean | null
           patrol_checkpoint_id?: string | null
           patrol_id?: string | null
           potential_severity_approved_at?: string | null
@@ -11530,6 +11547,7 @@ export type Database = {
           reference_id?: string | null
           rejection_return_count?: number | null
           related_contractor_company_id?: string | null
+          reopen_count?: number | null
           reporter_branch_id?: string | null
           reporter_dispute_notes?: string | null
           reporter_disputes_rejection?: boolean | null
@@ -26980,6 +26998,7 @@ export type Database = {
         | "contract_controller"
         | "hsse_expert"
         | "receptionist"
+        | "legal_reviewer"
       asset_condition: "excellent" | "good" | "fair" | "poor" | "critical"
       asset_criticality: "low" | "medium" | "high" | "critical"
       asset_document_type:
@@ -27070,6 +27089,10 @@ export type Database = {
         | "contractor_violation_cancelled"
         | "contractor_violation_warning"
         | "contractor_violation_terminated"
+        | "pending_no_investigation_approval"
+        | "osha_reportable"
+        | "pending_escalation_approval"
+        | "dept_rep_rejected"
       maintenance_frequency:
         | "daily"
         | "weekly"
@@ -27334,6 +27357,7 @@ export const Constants = {
         "contract_controller",
         "hsse_expert",
         "receptionist",
+        "legal_reviewer",
       ],
       asset_condition: ["excellent", "good", "fair", "poor", "critical"],
       asset_criticality: ["low", "medium", "high", "critical"],
@@ -27430,6 +27454,10 @@ export const Constants = {
         "contractor_violation_cancelled",
         "contractor_violation_warning",
         "contractor_violation_terminated",
+        "pending_no_investigation_approval",
+        "osha_reportable",
+        "pending_escalation_approval",
+        "dept_rep_rejected",
       ],
       maintenance_frequency: [
         "daily",
