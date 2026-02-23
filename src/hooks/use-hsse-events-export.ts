@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { performSecureExport, type ReportColumn } from '@/lib/secure-export';
 import { toast } from '@/hooks/use-toast';
+import { formatStatusLabel } from '@/lib/incident-status-colors';
 import { format } from 'date-fns';
 import type { IncidentFilters } from '@/components/incidents/listing';
 
@@ -51,7 +52,7 @@ export function useHSSEEventsExport() {
     const translated = t(translationKey);
     // If translation returns the key itself, format the status nicely
     if (translated === translationKey) {
-      return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      return formatStatusLabel(status);
     }
     return translated;
   }, [t]);
@@ -113,7 +114,7 @@ export function useHSSEEventsExport() {
 
     // Apply filters in memory to avoid type issues with dynamic filter values
     let filteredData = data || [];
-    
+
     if (filters.status) {
       filteredData = filteredData.filter(i => i.status === filters.status);
     }
@@ -125,8 +126,8 @@ export function useHSSEEventsExport() {
     }
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
-      filteredData = filteredData.filter(i => 
-        i.title?.toLowerCase().includes(searchLower) || 
+      filteredData = filteredData.filter(i =>
+        i.title?.toLowerCase().includes(searchLower) ||
         i.reference_id?.toLowerCase().includes(searchLower)
       );
     }

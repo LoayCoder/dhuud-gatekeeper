@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useDashboardDrilldown } from "@/hooks/use-dashboard-drilldown";
+import { formatStatusLabel } from "@/lib/incident-status-colors";
 import type { StatusDistribution } from "@/hooks/use-hsse-event-dashboard";
 
 interface Props {
@@ -21,7 +22,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 const STATUS_ORDER = [
   'submitted',
-  'expert_screening', 
+  'expert_screening',
   'pending_manager_approval',
   'investigation_in_progress',
   'pending_closure',
@@ -36,7 +37,7 @@ export function StatusDistributionChart({ data }: Props) {
 
   const dataRecord = data as unknown as Record<string, number>;
   const chartData = STATUS_ORDER.map(key => ({
-    name: t(`status.${key}`, key.replace(/_/g, ' ')),
+    name: t(`status.${key}`, formatStatusLabel(key)),
     value: dataRecord[key] || 0,
     key,
   })).filter(item => item.value > 0);
@@ -85,14 +86,14 @@ export function StatusDistributionChart({ data }: Props) {
                 animationEasing="ease-out"
               >
                 {chartData.map((entry) => (
-                  <Cell 
-                    key={entry.key} 
+                  <Cell
+                    key={entry.key}
                     fill={STATUS_COLORS[entry.key]}
                     className="cursor-pointer hover:opacity-80 transition-opacity duration-200"
                   />
                 ))}
               </Pie>
-              <Tooltip 
+              <Tooltip
                 formatter={(value: number) => [value, t('hsseDashboard.count')]}
                 contentStyle={{
                   backgroundColor: 'hsl(var(--popover))',
@@ -106,13 +107,13 @@ export function StatusDistributionChart({ data }: Props) {
             {chartData.map((item) => {
               const percentage = ((item.value / total) * 100).toFixed(0);
               return (
-                <div 
-                  key={item.key} 
+                <div
+                  key={item.key}
                   className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5 transition-colors"
                   onClick={() => handleClick(item.key)}
                 >
-                  <div 
-                    className="w-2.5 h-2.5 rounded-full shrink-0" 
+                  <div
+                    className="w-2.5 h-2.5 rounded-full shrink-0"
                     style={{ backgroundColor: STATUS_COLORS[item.key] }}
                   />
                   <span className="text-muted-foreground truncate flex-1">{item.name}</span>
