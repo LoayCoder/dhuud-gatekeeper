@@ -235,7 +235,7 @@ export function useCreateIncident() {
           'amputation', 'amputated', 'severed',
           'loss of eye', 'eye loss', 'blinded', 'blindness', 'enucleation',
         ];
-        const injuryText = data.injury_details.toLowerCase();
+        const injuryText = (typeof data.injury_details === 'string' ? data.injury_details : (data.injury_details as any)?.description || '').toLowerCase();
         const isOshaReportable = oshaKeywords.some(kw => injuryText.includes(kw));
 
         if (isOshaReportable) {
