@@ -14,6 +14,7 @@ import {
     DisputeResolutionCard,
     MonitoringCheckCard
 } from "@/components/investigation";
+import { NoInvestigationApprovalCard } from "@/components/investigation/NoInvestigationApprovalCard";
 import { IncidentWithDetails } from "@/hooks/use-incidents";
 
 export function TriageStage() {
@@ -87,6 +88,14 @@ export function TriageStage() {
             return (
                 <HSSEEscalationReviewCard
                     incident={incident as unknown as any}
+                    onComplete={refresh}
+                />
+            );
+
+        case 'pending_no_investigation_approval':
+            return (
+                <NoInvestigationApprovalCard
+                    incident={incident as IncidentWithDetails}
                     onComplete={refresh}
                 />
             );

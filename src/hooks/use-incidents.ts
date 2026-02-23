@@ -486,6 +486,8 @@ export function useIncident(id: string | undefined) {
           related_contractor_company_id,
           approval_manager_id,
           consultant_screening_notes,
+          osha_reportable,
+          expert_resubmission_count,
           reporter:profiles!incidents_reporter_id_fkey(id, full_name),
           closure_requester:profiles!incidents_closure_requested_by_fkey(id, full_name),
           branch:branches!incidents_branch_id_fkey(id, name),

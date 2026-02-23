@@ -5,6 +5,7 @@ import { IncidentAttachmentsSection } from '@/components/incidents/IncidentAttac
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Alert } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog,
@@ -274,6 +275,21 @@ export default function IncidentDetail() {
         onPrint={handlePrintReport}
         onDelete={() => setDeleteDialogOpen(true)}
       />
+
+      {/* C10: OSHA Reportable Banner */}
+      {(incident as any).osha_reportable && (
+        <Alert variant="destructive" className="border-destructive bg-destructive/10">
+          <AlertTriangle className="h-5 w-5" />
+          <div className="ms-2">
+            <p className="font-semibold text-destructive">
+              {t('incidents.oshaReportable.title', 'OSHA Reportable Incident')}
+            </p>
+            <p className="text-sm text-destructive/80">
+              {t('incidents.oshaReportable.description', 'This incident involves fatality, hospitalization, amputation, or loss of eye and must be reported to OSHA within regulatory timeframes.')}
+            </p>
+          </div>
+        </Alert>
+      )}
 
       {/* Escalation Alert Banner */}
       {(incident as any).requires_escalation && (
