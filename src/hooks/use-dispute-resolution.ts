@@ -153,10 +153,12 @@ export function useMediationDecision() {
         case 'maintain_rejection':
           // Agree with manager, reopen investigation
           newStatus = 'investigation_in_progress';
+          updateData.investigation_started_at = new Date().toISOString();
           break;
         case 'partial_rework':
           // Partial rework needed
           newStatus = 'investigation_in_progress';
+          updateData.investigation_started_at = new Date().toISOString();
           updateData.rework_required = true;
           break;
         default:

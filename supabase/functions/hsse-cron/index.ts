@@ -202,11 +202,12 @@ async function handleEvidencePurge(supabase: any) {
   let totalPurged = 0;
   let skippedLitigation = 0;
 
-  // --- Process incident_evidence table ---
+  // --- Process incident_evidence table (batch limit 100) ---
   const { data: oldEvidence, error: evErr } = await supabase
     .from('incident_evidence')
     .select('id, incident_id, tenant_id, file_url, file_name, created_at')
-    .lt('created_at', retentionCutoff);
+    .lt('created_at', retentionCutoff)
+    .limit(100);
 
   if (evErr) {
     console.error('[evidence_purge] incident_evidence query error:', evErr);
@@ -258,12 +259,13 @@ async function handleEvidencePurge(supabase: any) {
     totalPurged++;
   }
 
-  // --- Process evidence_items table ---
+  // --- Process evidence_items table (batch limit 100) ---
   const { data: oldItems, error: itemErr } = await supabase
     .from('evidence_items')
     .select('id, incident_id, tenant_id, storage_path, file_name, created_at')
     .lt('created_at', retentionCutoff)
-    .is('deleted_at', null);
+    .is('deleted_at', null)
+    .limit(100);
 
   if (itemErr) {
     console.error('[evidence_purge] evidence_items query error:', itemErr);
@@ -311,13 +313,18 @@ async function handleEvidencePurge(supabase: any) {
     totalPurged++;
   }
 
-  console.log(`[evidence_purge] Purged: ${totalPurged}, Skipped (litigation): ${skippedLitigation}`);
+  const hasMoreEvidence = (oldEvidence?.length || 0) >= 100;
+  const hasMoreItems = (oldItems?.length || 0) >= 100;
+  const hasMore = hasMoreEvidence || hasMoreItems;
+
+  console.log(`[evidence_purge] Purged: ${totalPurged}, Skipped (litigation): ${skippedLitigation}, has_more: ${hasMore}`);
 
   return new Response(
     JSON.stringify({
       job: 'evidence_purge',
       purged: totalPurged,
       skipped_litigation: skippedLitigation,
+      has_more: hasMore,
     }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
