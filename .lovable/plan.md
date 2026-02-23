@@ -1,103 +1,87 @@
 
 
-# HSSE Incident Workflow Update: Unified Expert Routing + Severity Change Approval
+# Test Report: C4, C5, C10 Flows -- Gaps Found
 
-## Overview
+## Summary
 
-This plan updates the HSSE incident workflow with three main changes:
-1. Route ALL severity levels (1-5) to HSSE Expert after Dept Rep approval (removing the 1-2 vs 3-5 split)
-2. When HSSE Expert changes severity during screening, require Department Manager approval before proceeding
-3. Fix offline sync to include `severity_v2` and create a status constants file to reduce hardcoded strings
+After tracing each flow through the codebase (hooks, components, migrations, workflow routing), here are the findings and required fixes.
 
 ---
 
-## Change 1: Unified Routing to HSSE Expert
+## C4: No Investigation Approval Gate
 
-**Current behavior:** `process_dept_rep_incident_decision` routes Level 1-2 to `pending_expert_screening` and Level 3-5 to `pending_department_manager_approval`.
+**What it should do:** When HSSE Expert marks "No Investigation Required," the incident goes to Dept Manager for approval before closing.
 
-**New behavior:** ALL levels route to `pending_expert_screening` when approved.
+**What works:**
+- Migration added `pending_no_investigation_approval` status to enum
+- `use-hsse-workflow.ts` line 186: Expert screening correctly routes to `pending_no_investigation_approval`
+- `IncidentStatusBadge.tsx`: Badge config exists for this status
+- Grandfathering migration ran for existing records
 
-**File:** New migration `supabase/migrations/20260220_update_incident_routing.sql`
+**Gaps found (3 issues):**
 
-```sql
-CREATE OR REPLACE FUNCTION public.process_dept_rep_incident_decision(
-  _incident_id uuid, _user_id uuid, _decision text, _justification text
-) RETURNS jsonb ...
-```
-
-The key change is removing the `IF _severity_level <= 2` conditional and always setting `_new_status := 'pending_expert_screening'` when decision is `approved`.
-
----
-
-## Change 2: Severity Change Triggers Dept Manager Approval
-
-**Workflow logic:** When HSSE Expert screens an incident and recommends `investigate`:
-- If severity was changed during screening (expert modified `severity_v2`), route to `pending_department_manager_approval` for Dept Manager sign-off
-- If severity is unchanged, route directly to `pending_manager_approval` (existing flow)
-
-**File:** `src/hooks/use-hsse-workflow.ts` -- `useExpertScreening` mutation
-
-In the `investigate` case (line 172-179), add a check: compare the incident's `original_severity_v2` (or the value before expert edit) with current `severity_v2`. If different, set `newStatus = 'pending_department_manager_approval'` and flag `severity_pending_approval = true`. If same, keep existing `pending_manager_approval` routing.
-
-This reuses the existing `pending_department_manager_approval` status and the existing `SeverityApprovalCard` / `usePendingApprovals` infrastructure for manager approval of severity changes.
+| # | Issue | File(s) | Fix |
+|---|-------|---------|-----|
+| 1 | No UI card exists for Dept Manager to approve/reject "no investigation" decisions | New: `NoInvestigationApprovalCard.tsx` | Create a card similar to `DeptManagerIncidentApprovalCard` with Approve (closes incident as `no_investigation_required`) and Reject (returns to `pending_expert_screening`) actions |
+| 2 | `pending_no_investigation_approval` is missing from `TriageStage.tsx` switch statement | `src/features/investigation/components/stages/TriageStage.tsx` | Add case routing to the new `NoInvestigationApprovalCard` |
+| 3 | `pending_no_investigation_approval` is missing from `useInvestigationWorkflow.ts` stage mapping | `src/features/investigation/hooks/useInvestigationWorkflow.ts` line 44-54 | Add to Triage stage cases |
 
 ---
 
-## Change 3: Status Constants File
+## C5: Expert Resubmission Cap (Max 3)
 
-**New file:** `src/types/incident-statuses.ts`
+**What it should do:** After expert rejection, reporter can resubmit up to 3 times. On the 4th attempt, the system blocks resubmission.
 
-Export all incident status strings as named constants to reduce hardcoded strings across the codebase:
+**What works:**
+- `use-hsse-workflow.ts` lines 344-365: `resubmit_to_expert` action increments `expert_resubmission_count` and throws error at >= 3
+- `expert_resubmission_count` column exists in DB
 
-```typescript
-export const INCIDENT_STATUS = {
-  DRAFT: 'draft',
-  SUBMITTED: 'submitted',
-  PENDING_EXPERT_SCREENING: 'pending_expert_screening',
-  PENDING_DEPT_REP_APPROVAL: 'pending_dept_rep_approval',
-  PENDING_MANAGER_APPROVAL: 'pending_manager_approval',
-  PENDING_DEPARTMENT_MANAGER_APPROVAL: 'pending_department_manager_approval',
-  INVESTIGATION_PENDING: 'investigation_pending',
-  UNDER_INVESTIGATION: 'under_investigation',
-  // ... all statuses
-} as const;
-```
+**Gaps found (2 issues):**
 
-Then update key files to import from this constants file:
-- `src/hooks/use-hsse-workflow.ts`
-- `src/hooks/use-incident-progression.ts`
-- `src/components/incidents/IncidentStatusBadge.tsx`
-
-(Gradual migration -- not all 40+ files at once, just the ones touched by this change.)
+| # | Issue | File(s) | Fix |
+|---|-------|---------|-----|
+| 1 | **Bug**: Resubmit routes to `expert_screening` (line 357) instead of `pending_expert_screening` | `src/hooks/use-hsse-workflow.ts` | Change `newStatus = 'expert_screening'` to `newStatus = 'pending_expert_screening'` |
+| 2 | `RejectionConfirmationCard.tsx` does not show resubmission count or disable the resubmit button when max is reached | `src/components/investigation/RejectionConfirmationCard.tsx` | Fetch `expert_resubmission_count`, show count badge, disable "Resubmit to Expert" button at count >= 3 with explanation message |
 
 ---
 
-## Change 4: Offline Sync -- Include `severity_v2`
+## C10: OSHA Auto-Flag
 
-**File:** `src/lib/offline-report-sync.ts`
+**What it should do:** When an incident includes fatality/hospitalization/amputation/eye-loss keywords, auto-flag as OSHA reportable and notify.
 
-The `syncSingleReport` function (line 174-215) builds an `incidentData` object but does not include `severity_v2`. Add `severity_v2` from `form_data.severity_v2` (if present) so that offline-created incidents carry the correct 5-level severity into the database.
+**What works:**
+- `use-incidents.ts` lines 230-252: Keyword detection runs on incident creation, sets `osha_reportable = true`, dispatches notification
+- `IncidentStatusBadge.tsx`: Badge exists for `osha_reportable` status
+- `incident-status-colors.ts`: Color mapping exists
+- DB column `osha_reportable` exists with index
 
-**File:** `src/hooks/use-offline-reporting.ts`
+**Gaps found (2 issues):**
 
-No changes needed -- this hook caches reference data only, not form fields. The form data shape is defined in `use-offline-report-queue.ts` which already allows arbitrary fields.
+| # | Issue | File(s) | Fix |
+|---|-------|---------|-----|
+| 1 | No OSHA indicator shown on incident detail or investigation workspace pages | `src/pages/incidents/IncidentDetail.tsx` or `InvestigationWorkspace.tsx` | Add a prominent red "OSHA Reportable" alert banner when `incident.osha_reportable === true` |
+| 2 | OSHA check only runs at creation time -- if injury details are edited later to include OSHA keywords, the flag is never set | `src/hooks/use-incidents.ts` (update mutation) | Add the same keyword check in the incident update/edit mutation |
 
 ---
 
-## Technical Summary
+## Implementation Plan
 
-| # | File | Change Type | Description |
-|---|------|------------|-------------|
-| 1 | `supabase/migrations/20260220_update_incident_routing.sql` | New (migration) | Override `process_dept_rep_incident_decision` -- all severities to expert |
-| 2 | `src/hooks/use-hsse-workflow.ts` | Modify | Expert screening: if severity changed, route to dept manager approval |
-| 3 | `src/types/incident-statuses.ts` | New | Status constants file |
-| 4 | `src/hooks/use-incident-progression.ts` | Modify | Import from status constants |
-| 5 | `src/lib/offline-report-sync.ts` | Modify | Include `severity_v2` in synced incident data |
+### New Files
+1. `src/components/investigation/NoInvestigationApprovalCard.tsx` -- Dept Manager card for C4 gate
 
-## Verification
+### Modified Files
+1. `src/hooks/use-hsse-workflow.ts` -- Fix `expert_screening` to `pending_expert_screening` (C5 bug)
+2. `src/features/investigation/components/stages/TriageStage.tsx` -- Add `pending_no_investigation_approval` case
+3. `src/features/investigation/hooks/useInvestigationWorkflow.ts` -- Add `pending_no_investigation_approval` to Triage stage mapping
+4. `src/components/investigation/RejectionConfirmationCard.tsx` -- Show resubmission count + disable at max (C5 UI)
+5. `src/pages/incidents/IncidentDetail.tsx` -- Add OSHA banner (C10 UI)
+6. `src/hooks/use-incidents.ts` -- Add OSHA keyword check to update mutation (C10 edit-time)
+7. `src/hooks/use-dept-manager-incident-approval.ts` -- Add `approveNoInvestigation` / `rejectNoInvestigation` mutation (C4 backend)
 
-- **Routing test:** Submit incidents at Level 1 and Level 5. Both should appear in HSSE Expert queue after Dept Rep approval.
-- **Severity change test:** As HSSE Expert, change severity during screening and approve for investigation. Verify it routes to Dept Manager queue instead of directly to Manager Approval.
-- **No-change test:** As HSSE Expert, approve without changing severity. Verify it routes to Manager Approval as before.
-- **Offline test:** Create an offline report with severity_v2 set, sync, and verify the field persists.
+### Priority Order
+1. C5 status bug fix (1 line, highest impact -- broken routing)
+2. C4 approval gate (new card + routing -- missing workflow step)
+3. C10 OSHA UI indicator (visibility gap)
+4. C10 edit-time OSHA check (edge case)
+5. C5 resubmission count UI (polish)
 
