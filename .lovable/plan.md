@@ -1,87 +1,245 @@
 
 
-# Test Report: C4, C5, C10 Flows -- Gaps Found
+# Implement 5 Deferred HSSE Workflow Server-Side Features
 
-## Summary
+## Overview
 
-After tracing each flow through the codebase (hooks, components, migrations, workflow routing), here are the findings and required fixes.
-
----
-
-## C4: No Investigation Approval Gate
-
-**What it should do:** When HSSE Expert marks "No Investigation Required," the incident goes to Dept Manager for approval before closing.
-
-**What works:**
-- Migration added `pending_no_investigation_approval` status to enum
-- `use-hsse-workflow.ts` line 186: Expert screening correctly routes to `pending_no_investigation_approval`
-- `IncidentStatusBadge.tsx`: Badge config exists for this status
-- Grandfathering migration ran for existing records
-
-**Gaps found (3 issues):**
-
-| # | Issue | File(s) | Fix |
-|---|-------|---------|-----|
-| 1 | No UI card exists for Dept Manager to approve/reject "no investigation" decisions | New: `NoInvestigationApprovalCard.tsx` | Create a card similar to `DeptManagerIncidentApprovalCard` with Approve (closes incident as `no_investigation_required`) and Reject (returns to `pending_expert_screening`) actions |
-| 2 | `pending_no_investigation_approval` is missing from `TriageStage.tsx` switch statement | `src/features/investigation/components/stages/TriageStage.tsx` | Add case routing to the new `NoInvestigationApprovalCard` |
-| 3 | `pending_no_investigation_approval` is missing from `useInvestigationWorkflow.ts` stage mapping | `src/features/investigation/hooks/useInvestigationWorkflow.ts` line 44-54 | Add to Triage stage cases |
+Implement C11 (Investigation 30-Day SLA), C12 (Monitoring 90-Day Auto-Close), C13 (Evidence Retention Purge), C16 (Duplicate Detection), and C18 (HSSE Manager Verification) as database functions, edge functions, and cron jobs.
 
 ---
 
-## C5: Expert Resubmission Cap (Max 3)
+## Current State Summary
 
-**What it should do:** After expert rejection, reporter can resubmit up to 3 times. On the 4th attempt, the system blocks resubmission.
-
-**What works:**
-- `use-hsse-workflow.ts` lines 344-365: `resubmit_to_expert` action increments `expert_resubmission_count` and throws error at >= 3
-- `expert_resubmission_count` column exists in DB
-
-**Gaps found (2 issues):**
-
-| # | Issue | File(s) | Fix |
-|---|-------|---------|-----|
-| 1 | **Bug**: Resubmit routes to `expert_screening` (line 357) instead of `pending_expert_screening` | `src/hooks/use-hsse-workflow.ts` | Change `newStatus = 'expert_screening'` to `newStatus = 'pending_expert_screening'` |
-| 2 | `RejectionConfirmationCard.tsx` does not show resubmission count or disable the resubmit button when max is reached | `src/components/investigation/RejectionConfirmationCard.tsx` | Fetch `expert_resubmission_count`, show count badge, disable "Resubmit to Expert" button at count >= 3 with explanation message |
+- **Investigation SLA Edge Function** already exists at `supabase/functions/investigation-sla-escalation/index.ts` -- it handles per-severity SLA configs. C11 adds a simpler 30-day blanket breach flag on the `incidents` table itself.
+- **`incidents` table** has `monitoring_started_at`, `litigation_hold`, but does NOT have `sla_breached` or `investigation_started_at` columns yet.
+- **Evidence** is stored in two tables: `incident_evidence` and `evidence_items`, with files in the `incident-attachments` storage bucket.
+- **`pg_trgm` extension** is NOT enabled -- needed for C16.
+- **`user_role_assignments`** uses `role_id` (UUID FK to `roles` table), not text role codes. The `roles` table has `code` (e.g., `hsse_manager`).
+- **`has_hsse_incident_access()`** function already exists for broad HSSE role checks.
 
 ---
 
-## C10: OSHA Auto-Flag
+## Feature 1: C11 -- Investigation 30-Day SLA Auto-Escalation
 
-**What it should do:** When an incident includes fatality/hospitalization/amputation/eye-loss keywords, auto-flag as OSHA reportable and notify.
+### Database Migration
 
-**What works:**
-- `use-incidents.ts` lines 230-252: Keyword detection runs on incident creation, sets `osha_reportable = true`, dispatches notification
-- `IncidentStatusBadge.tsx`: Badge exists for `osha_reportable` status
-- `incident-status-colors.ts`: Color mapping exists
-- DB column `osha_reportable` exists with index
+Add two columns to `incidents`:
 
-**Gaps found (2 issues):**
+```text
+ALTER TABLE incidents ADD COLUMN IF NOT EXISTS investigation_started_at TIMESTAMPTZ;
+ALTER TABLE incidents ADD COLUMN IF NOT EXISTS sla_breached BOOLEAN DEFAULT FALSE;
+CREATE INDEX IF NOT EXISTS idx_incidents_sla_breached ON incidents (sla_breached) WHERE sla_breached = TRUE;
+```
 
-| # | Issue | File(s) | Fix |
-|---|-------|---------|-----|
-| 1 | No OSHA indicator shown on incident detail or investigation workspace pages | `src/pages/incidents/IncidentDetail.tsx` or `InvestigationWorkspace.tsx` | Add a prominent red "OSHA Reportable" alert banner when `incident.osha_reportable === true` |
-| 2 | OSHA check only runs at creation time -- if injury details are edited later to include OSHA keywords, the flag is never set | `src/hooks/use-incidents.ts` (update mutation) | Add the same keyword check in the incident update/edit mutation |
+### Edge Function: `hsse-cron/index.ts`
+
+Create a single unified cron edge function that accepts a `job` query parameter (`sla_check`, `monitoring_termination`, `evidence_purge`).
+
+**`sla_check` job logic:**
+1. Query incidents where `status = 'investigation_in_progress'`, `investigation_started_at < NOW() - 30 days`, `sla_breached IS NOT TRUE`, `deleted_at IS NULL`
+2. For each match:
+   - Update `sla_breached = true`
+   - Insert audit log: `{ action: 'sla_30d_breach', incident_id, details: { days_elapsed } }`
+   - Call `dispatch-incident-notification` with `event_type: 'sla_30d_breach'`
+3. Do NOT change status or close investigation
+
+### Cron Schedule
+
+Hourly: `0 * * * *`
 
 ---
 
-## Implementation Plan
+## Feature 2: C12 -- Monitoring 90-Day Auto-Termination
 
-### New Files
-1. `src/components/investigation/NoInvestigationApprovalCard.tsx` -- Dept Manager card for C4 gate
+### Edge Function (same `hsse-cron`)
 
-### Modified Files
-1. `src/hooks/use-hsse-workflow.ts` -- Fix `expert_screening` to `pending_expert_screening` (C5 bug)
-2. `src/features/investigation/components/stages/TriageStage.tsx` -- Add `pending_no_investigation_approval` case
-3. `src/features/investigation/hooks/useInvestigationWorkflow.ts` -- Add `pending_no_investigation_approval` to Triage stage mapping
-4. `src/components/investigation/RejectionConfirmationCard.tsx` -- Show resubmission count + disable at max (C5 UI)
-5. `src/pages/incidents/IncidentDetail.tsx` -- Add OSHA banner (C10 UI)
-6. `src/hooks/use-incidents.ts` -- Add OSHA keyword check to update mutation (C10 edit-time)
-7. `src/hooks/use-dept-manager-incident-approval.ts` -- Add `approveNoInvestigation` / `rejectNoInvestigation` mutation (C4 backend)
+**`monitoring_termination` job logic:**
+1. Query incidents where status contains `monitoring` (covers `monitoring_30_day`, `monitoring_60_day`, `monitoring_90_day`), `monitoring_started_at < NOW() - 90 days`, `deleted_at IS NULL`
+2. For each match:
+   - Update `status = 'closed'`, `closed_at = NOW()`
+   - Insert audit log: `{ action: 'monitoring_auto_terminated_90d' }`
+   - Call `dispatch-incident-notification` with `event_type: 'monitoring_auto_terminated'`
 
-### Priority Order
-1. C5 status bug fix (1 line, highest impact -- broken routing)
-2. C4 approval gate (new card + routing -- missing workflow step)
-3. C10 OSHA UI indicator (visibility gap)
-4. C10 edit-time OSHA check (edge case)
-5. C5 resubmission count UI (polish)
+### Cron Schedule
+
+Daily at 6:00 AM UTC: `0 6 * * *`
+
+---
+
+## Feature 3: C13 -- Evidence Retention Purge
+
+### Edge Function (same `hsse-cron`)
+
+**`evidence_purge` job logic:**
+1. Query both `incident_evidence` and `evidence_items` where `created_at < NOW() - 2555 days` (7 years)
+2. For each record, join to `incidents` to check `litigation_hold` -- skip if `true`
+3. Delete the physical file from `incident-attachments` storage bucket using the `file_url` / `storage_path`
+4. Delete the database row (hard delete -- retention period has passed)
+5. Insert audit log: `{ action: 'evidence_purged_retention', details: { file_name, evidence_id, reason: '7yr_retention_expired' } }`
+
+### Safety Measures
+- Check `litigation_hold` per-incident before any deletion
+- Log every deletion to `incident_audit_logs`
+- Idempotent: already-deleted files are skipped gracefully
+
+### Cron Schedule
+
+Weekly, Sunday 3:00 AM UTC: `0 3 * * 0`
+
+---
+
+## Feature 4: C16 -- Tenant-Scoped Duplicate Detection
+
+### Database Migration
+
+```text
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE OR REPLACE FUNCTION public.check_duplicate_incident(
+  p_tenant_id UUID,
+  p_department_id UUID,
+  p_title TEXT,
+  p_occurred_at TIMESTAMPTZ
+) RETURNS TABLE (
+  duplicate_id UUID,
+  duplicate_reference_id TEXT,
+  duplicate_title TEXT,
+  similarity_score REAL
+)
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT
+    i.id AS duplicate_id,
+    i.reference_id AS duplicate_reference_id,
+    i.title AS duplicate_title,
+    similarity(i.title, p_title) AS similarity_score
+  FROM incidents i
+  WHERE i.tenant_id = p_tenant_id
+    AND i.department_id = p_department_id
+    AND i.deleted_at IS NULL
+    AND i.status != 'closed'
+    AND similarity(i.title, p_title) >= 0.6
+    AND i.occurred_at BETWEEN p_occurred_at - INTERVAL '24 hours'
+                        AND p_occurred_at + INTERVAL '24 hours'
+  ORDER BY similarity_score DESC
+  LIMIT 5;
+$$;
+```
+
+Also add a GIN trigram index for performance:
+
+```text
+CREATE INDEX IF NOT EXISTS idx_incidents_title_trgm ON incidents USING gin (title gin_trgm_ops);
+```
+
+### Frontend Integration (not in this scope)
+
+The frontend will call `supabase.rpc('check_duplicate_incident', { p_tenant_id, p_department_id, p_title, p_occurred_at })` before inserting and show a warning dialog.
+
+---
+
+## Feature 5: C18 -- HSSE Manager Role Verification
+
+### Database Migration
+
+```text
+CREATE OR REPLACE FUNCTION public.verify_hsse_manager_access(
+  p_user_id UUID,
+  p_incident_id UUID DEFAULT NULL
+) RETURNS JSONB
+LANGUAGE plpgsql STABLE SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_role_code TEXT;
+  v_branch_id UUID;
+  v_incident_branch UUID;
+BEGIN
+  -- Check if user has hsse_manager role
+  SELECT r.code, ura.branch_id
+  INTO v_role_code, v_branch_id
+  FROM user_role_assignments ura
+  JOIN roles r ON r.id = ura.role_id
+  WHERE ura.user_id = p_user_id
+    AND r.code = 'hsse_manager'
+  LIMIT 1;
+
+  IF v_role_code IS NULL THEN
+    RETURN jsonb_build_object(
+      'authorized', false,
+      'reason', 'User does not have hsse_manager role'
+    );
+  END IF;
+
+  -- If incident provided, verify branch match
+  IF p_incident_id IS NOT NULL THEN
+    SELECT branch_id INTO v_incident_branch
+    FROM incidents
+    WHERE id = p_incident_id AND deleted_at IS NULL;
+
+    IF v_incident_branch IS NULL THEN
+      RETURN jsonb_build_object('authorized', false, 'reason', 'Incident not found');
+    END IF;
+
+    IF v_branch_id IS NOT NULL AND v_branch_id != v_incident_branch THEN
+      RETURN jsonb_build_object(
+        'authorized', false,
+        'reason', 'Branch mismatch',
+        'user_branch', v_branch_id,
+        'incident_branch', v_incident_branch
+      );
+    END IF;
+  END IF;
+
+  RETURN jsonb_build_object(
+    'authorized', true,
+    'role', 'hsse_manager',
+    'branch_id', v_branch_id
+  );
+END;
+$$;
+```
+
+---
+
+## File Summary
+
+| # | File | Type | Feature |
+|---|------|------|---------|
+| 1 | `supabase/migrations/20260223_c11_c12_c13_c16_c18.sql` | New (migration) | Add `investigation_started_at`, `sla_breached` columns; enable `pg_trgm`; create `check_duplicate_incident` and `verify_hsse_manager_access` RPCs |
+| 2 | `supabase/functions/hsse-cron/index.ts` | New (edge function) | Unified cron handler for C11, C12, C13 |
+| 3 | `supabase/config.toml` | Modify | Add `[functions.hsse-cron]` with `verify_jwt = false` |
+
+### Cron Scheduling (pg_cron + pg_net)
+
+Three `cron.schedule()` calls to invoke the edge function:
+- C11: hourly (`0 * * * *`) with `?job=sla_check`
+- C12: daily 6AM UTC (`0 6 * * *`) with `?job=monitoring_termination`
+- C13: weekly Sunday 3AM UTC (`0 3 * * 0`) with `?job=evidence_purge`
+
+These will be set up via the data insert tool (not migration) since they contain project-specific URLs and keys.
+
+### Rollback
+
+```text
+-- Columns
+ALTER TABLE incidents DROP COLUMN IF EXISTS sla_breached;
+ALTER TABLE incidents DROP COLUMN IF EXISTS investigation_started_at;
+
+-- Functions
+DROP FUNCTION IF EXISTS check_duplicate_incident(UUID, UUID, TEXT, TIMESTAMPTZ);
+DROP FUNCTION IF EXISTS verify_hsse_manager_access(UUID, UUID);
+
+-- Extension (only if no other features use it)
+DROP EXTENSION IF EXISTS pg_trgm;
+
+-- Index
+DROP INDEX IF EXISTS idx_incidents_title_trgm;
+
+-- Cron jobs
+SELECT cron.unschedule('hsse-sla-check');
+SELECT cron.unschedule('hsse-monitoring-termination');
+SELECT cron.unschedule('hsse-evidence-purge');
+```
 
