@@ -78,7 +78,11 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         case "pending_consultant_screening":
         case "pending_consultant_review":
         case "pending_consultant_verification":
-            return buildOwner(null, "Contractor Consultant", true);
+            return buildOwner(
+                incident.approval_manager?.full_name || null,
+                "Contractor Consultant",
+                !incident.approval_manager?.full_name
+            );
 
         // Contractor Implementation & Observations actions
         case "pending_contractor_implementation":
