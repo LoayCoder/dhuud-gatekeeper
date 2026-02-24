@@ -1,68 +1,48 @@
 
 
-# Show Auto-Detected Branch Name and Location in Quick Observation
+# Fix Full Branch Access Audit Issues
 
-## Problem
-When GPS auto-detects the nearest site, the Quick Observation card only shows the **site name** and distance. It does not display:
-1. The **Branch Name** the detected site belongs to
-2. The **GPS coordinates/location** that were captured
+## Two Issues to Fix
 
-Users need to see this information at a glance and have the ability to change the branch/site selection.
+### 1. Clean Up Stale Branch Assignments (Database)
 
-## What Changes
+Two users have `has_full_branch_access = true` but still have active records in `user_branch_assignments`. These legacy records should be soft-deleted for data consistency.
 
-### 1. Enhanced GPS Detection Display (QuickObservationCard.tsx, lines ~1025-1031)
-
-When GPS detects a site, update the display to show:
-- **Site Name** (already shown)
-- **Branch Name** (new) -- pulled from `gpsDetectedSite.site.branch_name`
-- **GPS Coordinates** (new) -- from the form's `latitude`/`longitude` values
-- A small "Change" button to allow manual override
-
-```text
-Current display:
-  [pin] Main Campus
-  [badge] Within 45m
-
-New display:
-  [pin] Main Campus
-  [building] Branch: RGC Branch
-  [badge] Within 45m | GPS: 24.7136, 46.6753
-  [button] Change Site
+**Migration SQL:**
+```sql
+UPDATE public.user_branch_assignments
+SET deleted_at = NOW()
+WHERE user_id IN (
+  SELECT id FROM public.profiles
+  WHERE has_full_branch_access = true
+)
+AND deleted_at IS NULL;
 ```
 
-### 2. Add "Change Site" Toggle
+Additionally, add a trigger so that whenever `has_full_branch_access` is set to `true` on a profile, any active `user_branch_assignments` for that user are automatically soft-deleted -- preventing future inconsistencies.
 
-When GPS auto-detects a site, the manual site dropdown is currently hidden (only shown when no site is detected). Add a toggle/button so users can:
-- See the auto-detected branch + site + location
-- Click "Change" to reveal the site dropdown and override the selection
-- When they change the site, the branch name updates accordingly
+### 2. Fix Hybrid Department Filtering in UserFormDialog.tsx
 
-### 3. Show Branch Name for Manually Selected Sites Too
+In `UserFormDialog.tsx` (line ~306), when a multi-branch user selects branches, departments with `branch_id = null` (shared/hybrid departments) are excluded from the dropdown because `null` is never found in the `selectedBranchIds` array.
 
-When a user manually selects a site from the dropdown, show the branch name of the selected site above the dropdown (using `selectedSite?.branch_name`).
+**Fix:** Update the filter to also include departments where `branch_id` is null:
+```typescript
+// Before
+depts = depts.filter((d) => selectedBranchIds.includes(d.branch_id));
 
-### 4. Fix Existing Bug: `site.branch?.name` Reference
+// After
+depts = depts.filter((d) => !d.branch_id || selectedBranchIds.includes(d.branch_id));
+```
 
-The dropdown items at line 1099 reference `site.branch?.name`, but `useTenantSites` returns `branch_name` as a flat property. Fix this to use `site.branch_name` consistently.
+### 3. Add Audit Logging for Full Access Toggle
 
-## Technical Details
+When `has_full_branch_access` is toggled on or off, this is a critical privilege change. The existing `useAdminAuditLog` hook already tracks user updates with change detection via `detectUserChanges`, and `has_full_branch_access` is not currently in the tracked fields list.
 
-### Files Modified
+**Fix:** Add `has_full_branch_access` to the `fieldsToTrack` array in `use-admin-audit-log.ts` so this change is captured in audit logs.
 
-1. **`src/components/incidents/QuickObservationCard.tsx`**
-   - Lines ~1025-1031: Expand the GPS-detected display block to include branch name and coordinates
-   - Lines ~1053-1074: Add a "Change Site" button that toggles showing the manual site dropdown even when GPS detected a site
-   - Lines ~1097-1104: Fix `site.branch?.name` to `site.branch_name`
-   - Add a new state variable `showManualSiteOverride` to control dropdown visibility after GPS detection
-   - Show branch name for the `selectedSite` when manually chosen
+## Files Modified
 
-2. **`src/locales/en/translation.json`**
-   - Add keys: `quickObservation.detectedBranch`, `quickObservation.gpsCoordinates`, `quickObservation.changeSite`
-
-3. **`src/locales/ar/translation.json`**
-   - Add Arabic translations for the same keys
-
-### No Database Changes Required
-This is a UI-only enhancement using data already available from `useTenantSites`.
+1. **New migration file** -- Soft-delete stale branch assignments + add cleanup trigger
+2. **`src/components/admin/users/UserFormDialog.tsx`** -- Fix hybrid department filter (line ~306)
+3. **`src/hooks/use-admin-audit-log.ts`** -- Add `has_full_branch_access` to tracked fields
 
