@@ -11610,6 +11610,9 @@
     "manualSiteSelection": "أو اختر الموقع يدوياً",
     "selectSitePlaceholder": "اختر موقع...",
     "crossBranchNote": "أنت تُبلّغ من {{branchName}}. سيتم توجيه سير العمل عبر فرعك الأصلي.",
+    "detectedBranch": "الفرع: {{branch}}",
+    "gpsCoordinates": "إحداثيات: {{lat}}، {{lng}}",
+    "changeSite": "تغيير",
     "observationDate": "تاريخ الملاحظة",
     "observationTime": "وقت الملاحظة",
     "validation": {

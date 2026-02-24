@@ -9568,6 +9568,9 @@
     "manualSiteSelection": "Or select site manually",
     "selectSitePlaceholder": "Select a site...",
     "crossBranchNote": "You are reporting from {{branchName}}. Workflow will follow your home branch.",
+    "detectedBranch": "Branch: {{branch}}",
+    "gpsCoordinates": "GPS: {{lat}}, {{lng}}",
+    "changeSite": "Change",
     "observationDate": "Observation Date",
     "observationTime": "Observation Time",
     "validation": {
