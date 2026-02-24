@@ -75,98 +75,130 @@ export function UnifiedTimelineTracker({ incident }: UnifiedTimelineTrackerProps
     const steps = getSteps();
 
     return (
-        <Card className="border-0 shadow-md">
-            <CardContent className="p-0">
-                {/* Mobile: Vertical Scroll Container (Passive), Desktop: Horizontal Flex */}
-                <div className="overflow-y-auto max-h-[400px] md:max-h-none md:overflow-visible">
-                    {/* 
-            sticky top-0 ensures the currently active mobile step stays at the top of the viewport 
-            while scrolling the history, but only if we structure it as a vertical list on small screens.
-          */}
-                    <div className="flex flex-col md:flex-row relative">
-                        <TooltipProvider>
-                            {steps.map((step, index) => {
-                                const isCurrent = step.state === 'current';
-                                const isCompleted = step.state === 'completed';
-                                const Icon = isCompleted ? CheckCircle : step.icon;
+        <Card className="border shadow-md bg-card">
+            <CardContent className="p-4 md:p-6">
+                {/* Desktop: Horizontal | Mobile: Vertical */}
+                <div className="flex flex-col md:flex-row md:items-start gap-0">
+                    <TooltipProvider>
+                        {steps.map((step, index) => {
+                            const isCurrent = step.state === 'current';
+                            const isCompleted = step.state === 'completed';
+                            const isUpcoming = step.state === 'upcoming';
+                            const Icon = isCompleted ? CheckCircle : step.icon;
 
-                                const bgClass = ROLE_BG_COLORS[step.roleCategory];
-                                const textClass = ROLE_TEXT_COLORS[step.roleCategory];
-                                const borderClass = ROLE_BORDER_COLORS[step.roleCategory];
+                            const textClass = ROLE_TEXT_COLORS[step.roleCategory];
+                            const bgClass = ROLE_BG_COLORS[step.roleCategory];
+                            const borderClass = ROLE_BORDER_COLORS[step.roleCategory];
 
-                                return (
-                                    <div
-                                        key={step.id}
-                                        className={cn(
-                                            "flex md:flex-1 relative pb-8 md:pb-0 pt-4 md:pt-6 px-2",
-                                            isCurrent && "sticky top-0 z-10 bg-background md:static" // Sticky on mobile specifically
-                                        )}
-                                    >
-                                        {/* 
-                                         * Added Container Panel for distinct boundary definition 
-                                         */}
-                                        <div className={cn(
-                                            "absolute inset-y-0 left-0 right-0 md:inset-0 rounded-lg border bg-card/40 transition-all",
-                                            isCurrent ? "border-primary/30 bg-primary/5 shadow-sm" : "border-border/50",
-                                            step.state === 'upcoming' && "opacity-50 border-dashed"
-                                        )} />
-
-                                        {/* Vertical line (Mobile) */}
-                                        {index < steps.length - 1 && (
+                            return (
+                                <div key={step.id} className="flex md:flex-col md:flex-1 md:items-center relative">
+                                    {/* Mobile layout: icon + content row */}
+                                    <div className="flex md:hidden items-start gap-4 py-3 ps-1">
+                                        {/* Vertical connector + circle */}
+                                        <div className="flex flex-col items-center">
                                             <div className={cn(
-                                                "absolute left-[2.7rem] w-[2px] md:hidden z-0",
-                                                isCompleted ? "bg-primary" : "bg-muted"
-                                            )} style={{ top: "calc(3.5rem + 15px)", bottom: "calc(-1.5rem + 15px)" }} />
-                                        )}
+                                                "flex items-center justify-center w-10 h-10 rounded-full shrink-0 text-sm font-bold transition-all",
+                                                isCompleted && "bg-primary text-primary-foreground shadow-sm",
+                                                isCurrent && "bg-background text-primary ring-2 ring-primary ring-offset-2 ring-offset-background",
+                                                isUpcoming && "bg-muted border-2 border-muted-foreground/20 text-muted-foreground"
+                                            )}>
+                                                {isUpcoming ? <span>{index + 1}</span> : <Icon className="w-5 h-5" />}
+                                            </div>
+                                            {index < steps.length - 1 && (
+                                                <div className={cn(
+                                                    "w-0.5 h-8 mt-1",
+                                                    isCompleted ? "bg-primary" : "bg-muted-foreground/20"
+                                                )} />
+                                            )}
+                                        </div>
+                                        {/* Label + role badge */}
+                                        <div className="flex flex-col gap-1.5 pt-2">
+                                            <span className={cn(
+                                                "text-sm font-semibold",
+                                                isCurrent && "text-primary",
+                                                isCompleted && "text-foreground",
+                                                isUpcoming && "text-muted-foreground"
+                                            )}>
+                                                {step.label}
+                                            </span>
+                                            <span className={cn(
+                                                "text-[11px] font-medium px-2 py-0.5 rounded-full border w-fit",
+                                                bgClass, borderClass, textClass
+                                            )}>
+                                                {step.typicalRole}
+                                            </span>
+                                        </div>
+                                    </div>
 
-                                        {/* Horizontal line (Desktop) */}
-                                        {index < steps.length - 1 && (
-                                            <div className={cn(
-                                                "hidden md:block absolute top-[3.25rem] h-[2px] z-0",
-                                                isCompleted ? "bg-primary" : "bg-muted"
-                                            )} style={{ left: "calc(50% + 28px)", right: "calc(-50% + 28px)" }} />
-                                        )}
-
+                                    {/* Desktop layout: column with horizontal connector */}
+                                    <div className="hidden md:flex md:flex-col md:items-center md:w-full">
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <div className={cn(
-                                                    "flex md:flex-col items-center gap-4 md:gap-3 w-full px-4 md:px-2 py-4 z-10 relative",
-                                                    step.state === 'upcoming' && "opacity-80"
+                                                    "flex flex-col items-center gap-2 px-2 py-3 rounded-xl transition-all w-full",
+                                                    isCurrent && "bg-primary/5"
                                                 )}>
-                                                    {/* Node Circle */}
-                                                    <div className={cn(
-                                                        "flex items-center justify-center shrink-0 w-10 h-10 rounded-full transition-all relative z-20",
-                                                        isCompleted ? "bg-primary text-primary-foreground shadow-sm" :
-                                                            isCurrent ? "bg-background text-primary ring-2 ring-primary ring-offset-4 ring-offset-background" :
-                                                                "bg-background border-2 border-muted-foreground/30 text-muted-foreground"
-                                                    )}>
-                                                        <Icon className="w-5 h-5" />
+                                                    {/* Circle + connector row */}
+                                                    <div className="flex items-center w-full">
+                                                        {/* Left connector */}
+                                                        {index > 0 && (
+                                                            <div className={cn(
+                                                                "h-0.5 flex-1 rounded-full",
+                                                                isCompleted || isCurrent ? "bg-primary" : "bg-muted-foreground/20"
+                                                            )} />
+                                                        )}
+                                                        {index === 0 && <div className="flex-1" />}
+
+                                                        {/* Node circle */}
+                                                        <div className={cn(
+                                                            "flex items-center justify-center w-10 h-10 rounded-full shrink-0 text-sm font-bold transition-all mx-1",
+                                                            isCompleted && "bg-primary text-primary-foreground shadow-sm",
+                                                            isCurrent && "bg-background text-primary ring-2 ring-primary ring-offset-2 ring-offset-background",
+                                                            isUpcoming && "bg-muted border-2 border-muted-foreground/20 text-muted-foreground"
+                                                        )}>
+                                                            {isUpcoming ? <span>{index + 1}</span> : <Icon className="w-5 h-5" />}
+                                                        </div>
+
+                                                        {/* Right connector */}
+                                                        {index < steps.length - 1 && (
+                                                            <div className={cn(
+                                                                "h-0.5 flex-1 rounded-full",
+                                                                isCompleted ? "bg-primary" : "bg-muted-foreground/20"
+                                                            )} />
+                                                        )}
+                                                        {index === steps.length - 1 && <div className="flex-1" />}
                                                     </div>
 
-                                                    {/* Node Label */}
-                                                    <div className="flex flex-col md:items-center text-left md:text-center mt-1">
-                                                        <span className={cn(
-                                                            "text-sm font-bold tracking-tight",
-                                                            isCurrent ? "text-primary dark:text-foreground" :
-                                                                isCompleted ? "text-foreground" :
-                                                                    "text-muted-foreground"
-                                                        )}>
-                                                            {step.label}
-                                                        </span>
-                                                    </div>
+                                                    {/* Label */}
+                                                    <span className={cn(
+                                                        "text-xs font-semibold text-center leading-tight",
+                                                        isCurrent && "text-primary",
+                                                        isCompleted && "text-foreground",
+                                                        isUpcoming && "text-muted-foreground"
+                                                    )}>
+                                                        {step.label}
+                                                    </span>
+
+                                                    {/* Role badge */}
+                                                    <span className={cn(
+                                                        "text-[10px] font-medium px-2 py-0.5 rounded-full border",
+                                                        bgClass, borderClass, textClass
+                                                    )}>
+                                                        {step.typicalRole}
+                                                    </span>
                                                 </div>
                                             </TooltipTrigger>
                                             <TooltipContent side="top" className={cn("border shadow-lg", bgClass, borderClass)}>
                                                 <p className={cn("text-xs font-semibold", textClass)}>
-                                                    Typically handled by: {step.typicalRole}
+                                                    {t('workflow.handledBy', 'Typically handled by')}: {step.typicalRole}
                                                 </p>
                                             </TooltipContent>
                                         </Tooltip>
                                     </div>
-                                );
-                            })}
-                        </TooltipProvider>
-                    </div>
+                                </div>
+                            );
+                        })}
+                    </TooltipProvider>
                 </div>
             </CardContent>
         </Card>

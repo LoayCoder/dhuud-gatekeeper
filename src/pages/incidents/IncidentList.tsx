@@ -347,7 +347,7 @@ export default function IncidentList() {
               incidents={incidents.map(i => ({
                 ...i,
                 incident_type: (i as any).incident_type,
-              }))}
+              })) as any}
               hasHSSEAccess={hasHSSEAccess}
               isAdmin={isAdmin}
               isHSSEManager={isHSSEManager}
@@ -362,7 +362,7 @@ export default function IncidentList() {
                   incident={{
                     ...incident,
                     incident_type: (incident as any).incident_type,
-                  }}
+                  } as any}
                   hasHSSEAccess={hasHSSEAccess}
                   canDelete={canDeleteIncident(incident.status)}
                   onStartInvestigation={handleStartInvestigation}

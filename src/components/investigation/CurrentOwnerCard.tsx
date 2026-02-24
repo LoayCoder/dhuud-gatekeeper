@@ -60,7 +60,7 @@ export function CurrentOwnerCard({ incident }: { incident: IncidentWithDetails }
 
     // Determine if the card should have a warning style (e.g., for critical roles or specific states)
     // For now, let's assume 'critical' category implies warning, or if owner.isWarning is explicitly set
-    const isWarning = category === 'critical'; // Example condition
+    const isWarning = category === 'warning';
 
     return (
         <Card className={cn("border shadow-md overflow-hidden flex p-0", borderClass, bgClass)}>
