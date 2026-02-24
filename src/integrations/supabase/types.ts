@@ -25414,10 +25414,16 @@ export type Database = {
         Args: { _completion_notes?: string; _task_id: string; _user_id: string }
         Returns: Json
       }
-      consultant_complete_screening: {
-        Args: { p_incident_id: string; p_notes?: string }
-        Returns: Json
-      }
+      consultant_complete_screening:
+        | { Args: { p_incident_id: string; p_notes?: string }; Returns: Json }
+        | {
+            Args: {
+              p_incident_id: string
+              p_review_notes?: string
+              p_user_id?: string
+            }
+            Returns: Json
+          }
       consultant_identify_violation: {
         Args: {
           p_incident_id: string
