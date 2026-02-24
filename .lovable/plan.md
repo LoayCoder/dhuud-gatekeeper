@@ -1,53 +1,76 @@
 
 
-# Fix: UI Cleanup for UnifiedTimelineTracker + Build Errors
+# Fix Duplicate Validation Logic: Branch-Scoped Uniqueness (Updated)
 
-## Part 1: Build Error Fixes (4 errors)
+## Problem
+Currently, all organizational entities enforce **tenant-wide** name uniqueness. This blocks creating entities like a Site called "Main Campus" under Branch B if one already exists under Branch A.
 
-### 1a. Edge Function TypeScript errors (3 errors in `hsse-cron/index.ts`)
-The `error` and `e` variables in catch blocks are typed as `unknown` in strict TypeScript/Deno. Fix by casting:
+## Updated Rule
+- **Sites, Buildings, Floors, Zones, Departments, Sections**: Uniqueness is scoped to the **same branch** -- duplicates across different branches are allowed.
+- **Divisions**: Remain **tenant-wide unique** -- no duplicate Division names allowed, even across branches.
+- **Branches**: Remain **tenant-wide unique** (unchanged).
 
-- **Line 39**: `(error as Error).message`
-- **Line 108**: `(e as Error).message`  
-- **Line 185**: `(e as Error).message`
+## What Changes
 
-### 1b. CurrentOwnerCard type mismatch (line 63)
-Comparing `RoleCategory` (which has values: `internal | contractor | hsse | warning | system`) to `'critical'` which doesn't exist in the union. Change `'critical'` to `'warning'` since that's the actual danger/warning category.
+### 1. Database Migration
 
-### 1c. IncidentList type errors (lines 347, 362)
-The `investigations` field from the Supabase query returns an **array** of objects, but TypeScript is inferring it as a single object. The existing `as any` cast on `incident_type` needs to extend to the whole object, or we cast `investigations` properly. The simplest fix: cast the full mapped object `as any` for both the table view and card view props.
+Drop and recreate unique indexes for branch-scoped entities only. Divisions index stays as-is.
 
----
+```text
+| Entity          | Constraint                                              |
+|-----------------|---------------------------------------------------------|
+| Sites           | (tenant_id, branch_id, LOWER(name))          -- NEW    |
+| Departments     | (tenant_id, COALESCE(branch_id, nil), LOWER(name)) NEW |
+| Sections        | (tenant_id, COALESCE(branch_id, nil), LOWER(name)) NEW |
+| Divisions       | (tenant_id, LOWER(name))                -- UNCHANGED   |
+| Branches        | (tenant_id, LOWER(name))                -- UNCHANGED   |
+```
 
-## Part 2: UnifiedTimelineTracker UI Improvements (selected element)
+Migration SQL:
 
-The current tracker has overlapping absolute panels, cramped text on mobile, and unclear step boundaries. Changes:
+```sql
+-- Drop old tenant-wide indexes (Sites, Departments, Sections only)
+DROP INDEX IF EXISTS idx_sites_unique_tenant_name;
+DROP INDEX IF EXISTS idx_departments_unique_tenant_name;
+DROP INDEX IF EXISTS idx_sections_unique_tenant_name;
 
-### Mobile (vertical layout)
-- Remove the confusing absolute background panel overlay -- use a simpler inline layout
-- Increase padding and spacing between steps  
-- Add a role badge pill below each step label showing the typical role
-- Make the connector line cleaner with proper alignment
+-- Recreate as branch-scoped
+CREATE UNIQUE INDEX idx_sites_unique_branch_name
+  ON public.sites (tenant_id, branch_id, LOWER(name))
+  WHERE deleted_at IS NULL;
 
-### Desktop (horizontal layout)
-- Give each step more breathing room with `gap-2` between flex items
-- Center labels better under the node circles
-- Add the step number inside the circle for upcoming steps
-- Make the current step more visually distinct with a subtle background highlight
+CREATE UNIQUE INDEX idx_departments_unique_branch_name
+  ON public.departments (tenant_id, COALESCE(branch_id, '00000000-0000-0000-0000-000000000000'::uuid), LOWER(name))
+  WHERE deleted_at IS NULL;
 
-### Responsive improvements
-- Use `text-start` instead of `text-left` (RTL compliance)
-- Remove `max-h-[400px]` scroll container on mobile -- let the tracker take its natural height (only 5 steps, no need for scrolling)
-- Simplify the sticky behavior -- remove it, as 5 steps fit without scrolling
+CREATE UNIQUE INDEX idx_sections_unique_branch_name
+  ON public.sections (tenant_id, COALESCE(branch_id, '00000000-0000-0000-0000-000000000000'::uuid), LOWER(name))
+  WHERE deleted_at IS NULL;
 
----
+-- Divisions index is NOT changed -- stays tenant-wide
+```
 
-## Files Changed
+### 2. Frontend: Update Duplicate Checks in OrgStructure.tsx
 
-| File | Change |
-|------|--------|
-| `supabase/functions/hsse-cron/index.ts` | Cast `error`/`e` as `Error` in 3 catch blocks |
-| `src/components/investigation/CurrentOwnerCard.tsx` | Change `'critical'` to `'warning'` |
-| `src/pages/incidents/IncidentList.tsx` | Cast incident objects to fix `investigations` type |
-| `src/components/investigation/UnifiedTimelineTracker.tsx` | Rewrite layout for clarity and responsiveness |
+Update in-memory duplicate checks for **Sites, Departments, and Sections only** to compare within the same branch:
+
+- **Sites**: Filter by `branch_id === parentId`
+- **Departments**: Filter by `branch_id === selectedBranch` (or both null for hybrid)
+- **Sections**: Filter by `branch_id === selectedBranch` (or both null for hybrid)
+- **Divisions**: No change -- keep tenant-wide duplicate check
+
+### 3. Translation Messages
+
+Update error messages for Sites, Departments, and Sections to say "already exists **in this branch**."
+
+Divisions message stays as "already exists" (tenant-wide).
+
+Updates in both `en/translation.json` and `ar/translation.json`.
+
+## Files Modified
+
+1. **New migration file** -- Drop old indexes for Sites/Departments/Sections, create branch-scoped replacements
+2. **`src/pages/admin/OrgStructure.tsx`** -- Update 3 duplicate check blocks (Sites, Departments, Sections)
+3. **`src/locales/en/translation.json`** -- Update duplicate error messages for Sites/Departments/Sections
+4. **`src/locales/ar/translation.json`** -- Update Arabic duplicate error messages for Sites/Departments/Sections
 
