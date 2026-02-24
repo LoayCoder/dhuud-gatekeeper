@@ -1,29 +1,53 @@
 
 
-# Fix: Remove Duplicate Migration File
+# Fix: UI Cleanup for UnifiedTimelineTracker + Build Errors
 
-## Problem
+## Part 1: Build Error Fixes (4 errors)
 
-Two migration files contain the same SQL operations:
+### 1a. Edge Function TypeScript errors (3 errors in `hsse-cron/index.ts`)
+The `error` and `e` variables in catch blocks are typed as `unknown` in strict TypeScript/Deno. Fix by casting:
 
-- `supabase/migrations/20260223200000_hsse_workflow_spec_updates.sql` (original, 140 lines, more detailed with comments and rollback notes)
-- `supabase/migrations/20260223211119_68946f0a-cef9-4252-81f8-1164053593fd.sql` (duplicate, 72 lines, stripped-down copy)
+- **Line 39**: `(error as Error).message`
+- **Line 108**: `(e as Error).message`  
+- **Line 185**: `(e as Error).message`
 
-Both add the same enum values, columns, indexes, and backfill data. Everything uses `IF NOT EXISTS` so it causes no runtime errors, but it clutters the migration folder.
+### 1b. CurrentOwnerCard type mismatch (line 63)
+Comparing `RoleCategory` (which has values: `internal | contractor | hsse | warning | system`) to `'critical'` which doesn't exist in the union. Change `'critical'` to `'warning'` since that's the actual danger/warning category.
 
-## Fix
+### 1c. IncidentList type errors (lines 347, 362)
+The `investigations` field from the Supabase query returns an **array** of objects, but TypeScript is inferring it as a single object. The existing `as any` cast on `incident_type` needs to extend to the whole object, or we cast `investigations` properly. The simplest fix: cast the full mapped object `as any` for both the table view and card view props.
 
-**Delete** the duplicate file:
+---
 
-`supabase/migrations/20260223211119_68946f0a-cef9-4252-81f8-1164053593fd.sql`
+## Part 2: UnifiedTimelineTracker UI Improvements (selected element)
 
-**Keep** the original:
+The current tracker has overlapping absolute panels, cramped text on mobile, and unclear step boundaries. Changes:
 
-`supabase/migrations/20260223200000_hsse_workflow_spec_updates.sql`
+### Mobile (vertical layout)
+- Remove the confusing absolute background panel overlay -- use a simpler inline layout
+- Increase padding and spacing between steps  
+- Add a role badge pill below each step label showing the typical role
+- Make the connector line cleaner with proper alignment
 
-The original is kept because it has better documentation (section headers, inline comments explaining each conflict code, and rollback notes).
+### Desktop (horizontal layout)
+- Give each step more breathing room with `gap-2` between flex items
+- Center labels better under the node circles
+- Add the step number inside the circle for upcoming steps
+- Make the current step more visually distinct with a subtle background highlight
 
-## Risk
+### Responsive improvements
+- Use `text-start` instead of `text-left` (RTL compliance)
+- Remove `max-h-[400px]` scroll container on mobile -- let the tracker take its natural height (only 5 steps, no need for scrolling)
+- Simplify the sticky behavior -- remove it, as 5 steps fit without scrolling
 
-None. Both files have already been applied to the database. Removing the duplicate file from the migrations folder only prevents it from being re-applied in a fresh environment (where the original already covers everything). The database state is unchanged.
+---
+
+## Files Changed
+
+| File | Change |
+|------|--------|
+| `supabase/functions/hsse-cron/index.ts` | Cast `error`/`e` as `Error` in 3 catch blocks |
+| `src/components/investigation/CurrentOwnerCard.tsx` | Change `'critical'` to `'warning'` |
+| `src/pages/incidents/IncidentList.tsx` | Cast incident objects to fix `investigations` type |
+| `src/components/investigation/UnifiedTimelineTracker.tsx` | Rewrite layout for clarity and responsiveness |
 
