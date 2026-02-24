@@ -1,5 +1,5 @@
 // Investigation Workspace - Main page for incident investigation
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -9,18 +9,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  Loader2, 
-  FileSearch, 
-  Users, 
-  Search, 
-  ListChecks, 
-  LayoutDashboard, 
-  Lock, 
-  AlertCircle, 
-  ClipboardCheck, 
-  List, 
-  Eye, 
+import {
+  Loader2,
+  FileSearch,
+  Users,
+  Search,
+  ListChecks,
+  LayoutDashboard,
+  Lock,
+  AlertCircle,
+  ClipboardCheck,
+  List,
+  Eye,
   RotateCcw,
   FileText,
   RefreshCw,
@@ -29,7 +29,8 @@ import {
   UserCheck,
   HeartPulse,
   Leaf,
-  Scale
+  Scale,
+  Clock
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,16 +41,17 @@ import { useCanApproveInvestigation } from "@/hooks/use-hsse-workflow";
 import { usePendingIncidentApprovals } from "@/hooks/use-pending-approvals";
 import { useInvestigationEditAccess } from "@/hooks/use-investigation-edit-access";
 import { useUserRoles } from "@/hooks/use-user-roles";
-import { 
-  EvidenceManager, 
-  WitnessPanel, 
-  RCAPanel, 
-  ActionsPanel, 
-  AuditLogPanel, 
-  OverviewPanel, 
-  IncidentClosureRequestDialog, 
+import {
+  EvidenceManager,
+  WitnessPanel,
+  RCAPanel,
+  ActionsPanel,
+  AuditLogPanel,
+  OverviewPanel,
+  IncidentClosureRequestDialog,
   IncidentClosureApprovalCard,
-  InvestigationWorkflowStatusCard,
+  CurrentOwnerCard,
+  UnifiedTimelineTracker,
   HSSEExpertScreeningCard,
   ReporterCorrectionBanner,
   RejectionConfirmationCard,
@@ -84,8 +86,6 @@ import {
 import { CloseObservationOnSpotDialog } from "@/components/investigation/CloseObservationOnSpotDialog";
 import { ActionDisputeReviewCard, ConsultantReviewCard, SiteClientActionApprovalCard } from "@/components/investigation/contractor-workflow";
 import { HSSEEnforcementBanner } from "@/components/investigation/HSSEEnforcementBanner";
-import { ObservationWorkflowTracker } from "@/components/investigation/ObservationWorkflowTracker";
-import { UnifiedWorkflowTracker } from "@/components/investigation/UnifiedWorkflowTracker";
 import { ReopenIncidentDialog } from "@/components/investigation/ReopenIncidentDialog";
 import { InjuryPanel } from "@/components/investigation/InjuryPanel";
 import { ClinicUserAssignmentCard } from "@/components/investigation/ClinicUserAssignmentCard";
@@ -98,11 +98,15 @@ import { useIsAssignedClinicUser } from "@/hooks/use-injury-assignment";
 import { useIsAssignedTechEvaluator } from "@/hooks/use-property-damage-assignment";
 import { useIsAssignedEnvironmentalExpert } from "@/hooks/use-environmental-assignment";
 import { IncidentStatusBadge } from "@/components/incidents/IncidentStatusBadge";
+import { ResponsibleUserBadge } from "@/components/incidents/workflow/ResponsibleUserBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { getStatusBorderColor, getStatusCategory } from "@/lib/incident-status-colors";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { SeverityLevelV2 } from "@/lib/hsse-severity-levels";
+import { InvestigationListView } from "@/components/investigation/InvestigationListView";
+import { calculateInvestigationSLA } from "@/lib/investigation-sla";
+import { LockedTabTrigger } from "@/components/investigation/navigation/LockedTabTrigger";
 
 export default function InvestigationWorkspace() {
   const { t, i18n } = useTranslation();
@@ -111,7 +115,16 @@ export default function InvestigationWorkspace() {
   const [searchParams] = useSearchParams();
   const urlIncidentId = searchParams.get('incident');
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(urlIncidentId);
+
+  // Sync state with URL parameter changes
+  useEffect(() => {
+    if (urlIncidentId !== selectedIncidentId) {
+      setSelectedIncidentId(urlIncidentId);
+    }
+  }, [urlIncidentId, selectedIncidentId]);
   const [activeTab, setActiveTab] = useState("overview");
+  const [unlockedTabs, setUnlockedTabs] = useState(['overview']);
+  const [completedTabs, setCompletedTabs] = useState<string[]>([]);
   const [showClosureDialog, setShowClosureDialog] = useState(false);
   const [showReopenDialog, setShowReopenDialog] = useState(false);
   const [showCloseOnSpotDialog, setShowCloseOnSpotDialog] = useState(false);
@@ -120,7 +133,7 @@ export default function InvestigationWorkspace() {
   const { profile, user } = useAuth();
   const { hasRole } = useUserRoles();
   const queryClient = useQueryClient();
-  
+
   // Fetch corrective actions count for the selected incident
   const { data: correctiveActions } = useCorrectiveActions(selectedIncidentId);
   const actionsCount = correctiveActions?.length || 0;
@@ -137,7 +150,7 @@ export default function InvestigationWorkspace() {
     queryKey: ['workflow-actors', selectedIncidentId],
     queryFn: async () => {
       if (!selectedIncidentId) return null;
-      
+
       // Fetch incident with basic fields - use separate queries for profiles
       const { data: incidentData } = await supabase
         .from('incidents')
@@ -157,7 +170,7 @@ export default function InvestigationWorkspace() {
         `)
         .eq('id', selectedIncidentId)
         .single();
-      
+
       if (!incidentData) return null;
 
       // Collect all profile IDs to fetch
@@ -171,12 +184,16 @@ export default function InvestigationWorkspace() {
       ].filter(Boolean) as string[];
 
       // Fetch all profiles in one query
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, full_name')
-        .in('id', profileIds);
+      let profiles: any[] = [];
+      if (profileIds.length > 0) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', profileIds);
+        if (data) profiles = data;
+      }
 
-      const profileMap = new Map(profiles?.map(p => [p.id, p.full_name]) || []);
+      const profileMap = new Map(profiles.map(p => [p.id, p.full_name]));
 
       // Also get investigator info from investigation table
       const { data: invData } = await supabase
@@ -194,7 +211,7 @@ export default function InvestigationWorkspace() {
           .single();
         investigatorName = invProfile?.full_name || null;
       }
-      
+
       return {
         submitted_by: {
           full_name: profileMap.get(incidentData.reporter_id || '') || null,
@@ -231,7 +248,7 @@ export default function InvestigationWorkspace() {
 
   // Get investigator name from workflow actors
   const investigatorInfo = workflowActors?.investigator;
-  
+
   // Investigation edit access control
   const editAccess = useInvestigationEditAccess(investigation, selectedIncident);
 
@@ -257,7 +274,7 @@ export default function InvestigationWorkspace() {
     // Refetch incident and investigation data
     refetchIncident();
     refetchInvestigation();
-    
+
     // Invalidate ALL permission-related query caches to force fresh RPC calls
     // This resolves stale cache issues for role-based access checks (e.g., Consultant Review card)
     queryClient.invalidateQueries({ queryKey: ['can-review-consultant'] });
@@ -267,7 +284,7 @@ export default function InvestigationWorkspace() {
     queryClient.invalidateQueries({ queryKey: ['pending-approvals'] });
     queryClient.invalidateQueries({ queryKey: ['workflow-actors'] });
     queryClient.invalidateQueries({ queryKey: ['investigation-edit-access'] });
-    
+
     console.log('[Refresh] Invalidated all permission caches for incident:', selectedIncidentId);
   };
 
@@ -300,10 +317,10 @@ export default function InvestigationWorkspace() {
   const investigationAllowed = status && [
     'investigation_pending',
     'under_investigation',
-    'investigation_in_progress', 
-    'pending_closure', 
-    'pending_final_closure', 
-    'investigation_closed', 
+    'investigation_in_progress',
+    'pending_closure',
+    'pending_final_closure',
+    'investigation_closed',
     'closed',
     'monitoring_30_day',
     'monitoring_60_day',
@@ -319,14 +336,7 @@ export default function InvestigationWorkspace() {
     'pending_consultant_verification',
   ].includes(status);
 
-  // Filter incidents that need investigation (not closed status)
-  const investigableIncidents = incidents?.data?.filter(
-    (inc) => inc.status !== 'closed'
-  );
 
-  // Choose displayed incidents based on view mode
-  const displayedIncidents = viewMode === 'my-pending' ? pendingApprovals : investigableIncidents;
-  const isLoadingIncidents = viewMode === 'my-pending' ? loadingPending : loadingIncidents;
 
   // Render workflow cards based on current status
   const renderWorkflowCards = () => {
@@ -338,24 +348,24 @@ export default function InvestigationWorkspace() {
     switch (currentStatus) {
       case 'submitted':
         return (
-          <HSSEExpertScreeningCard 
-            incident={incidentData} 
-            onComplete={handleRefresh} 
+          <HSSEExpertScreeningCard
+            incident={incidentData}
+            onComplete={handleRefresh}
           />
         );
 
       case 'returned_to_reporter':
         return (
-          <ReporterCorrectionBanner 
-            incident={incidentData} 
-            onEdit={() => {/* TODO: Navigate to edit form */}}
-            onComplete={handleRefresh} 
+          <ReporterCorrectionBanner
+            incident={incidentData}
+            onEdit={() => {/* TODO: Navigate to edit form */ }}
+            onComplete={handleRefresh}
           />
         );
 
       case 'expert_rejected':
         return (
-          <RejectionConfirmationCard 
+          <RejectionConfirmationCard
             incident={incidentData}
             onComplete={handleRefresh}
           />
@@ -363,45 +373,45 @@ export default function InvestigationWorkspace() {
 
       case 'pending_manager_approval':
         return (
-          <ManagerApprovalCard 
-            incident={incidentData} 
-            onComplete={handleRefresh} 
+          <ManagerApprovalCard
+            incident={incidentData}
+            onComplete={handleRefresh}
           />
         );
 
       case 'pending_dept_rep_approval':
         // Observations go through DeptRepApprovalCard (full access with actions)
         return (
-          <DeptRepApprovalCard 
-            incident={incidentData} 
-            onComplete={handleRefresh} 
+          <DeptRepApprovalCard
+            incident={incidentData}
+            onComplete={handleRefresh}
           />
         );
 
       case 'pending_dept_rep_incident_review':
         // Incidents go through DeptRepIncidentReviewCard (read-only, approve/reject only)
         return (
-          <DeptRepIncidentReviewCard 
-            incident={incidentData} 
-            onComplete={handleRefresh} 
+          <DeptRepIncidentReviewCard
+            incident={incidentData}
+            onComplete={handleRefresh}
           />
         );
 
       case 'manager_rejected':
       case 'hsse_manager_escalation':
         return (
-          <HSSEManagerEscalationCard 
-            incident={incidentData} 
-            onComplete={handleRefresh} 
+          <HSSEManagerEscalationCard
+            incident={incidentData}
+            onComplete={handleRefresh}
           />
         );
 
       case 'pending_hsse_escalation_review':
         // HSSE Expert reviews escalation request from Dept Rep
         return (
-          <HSSEEscalationReviewCard 
-            incident={incidentData} 
-            onComplete={handleRefresh} 
+          <HSSEEscalationReviewCard
+            incident={incidentData}
+            onComplete={handleRefresh}
           />
         );
 
@@ -409,29 +419,29 @@ export default function InvestigationWorkspace() {
         // Check severity for team investigation requirement
         const severityLevel = incidentData.severity_v2 || (incidentData as any).severity;
         const severityNumber = severityLevel ? parseInt(severityLevel.replace('level_', '')) : 1;
-        
+
         // For L4-5, use TeamInvestigationAssignmentStep; for L3, it handles the toggle internally
         if (severityNumber >= 3) {
           return (
-            <TeamInvestigationAssignmentStep 
-              incident={incidentData} 
-              onComplete={handleRefresh} 
+            <TeamInvestigationAssignmentStep
+              incident={incidentData}
+              onComplete={handleRefresh}
             />
           );
         }
-        
+
         return (
-          <InvestigatorAssignmentStep 
-            incident={incidentData} 
-            onComplete={handleRefresh} 
+          <InvestigatorAssignmentStep
+            incident={incidentData}
+            onComplete={handleRefresh}
           />
         );
 
       case 'pending_department_manager_approval':
         return (
-          <DeptManagerIncidentApprovalCard 
-            incident={incidentData} 
-            onComplete={handleRefresh} 
+          <DeptManagerIncidentApprovalCard
+            incident={incidentData}
+            onComplete={handleRefresh}
           />
         );
 
@@ -466,28 +476,28 @@ export default function InvestigationWorkspace() {
 
       case 'pending_hsse_validation':
         return (
-          <HSSEValidationCard 
-            incident={incidentData} 
-            onComplete={handleRefresh} 
+          <HSSEValidationCard
+            incident={incidentData}
+            onComplete={handleRefresh}
           />
         );
 
       // --- NEW INCIDENT WORKFLOW STATUSES ---
-      
+
       case 'pending_legal_review':
         return (
-          <LegalReviewCard 
-            incident={incidentData} 
-            onComplete={handleRefresh} 
+          <LegalReviewCard
+            incident={incidentData}
+            onComplete={handleRefresh}
           />
         );
 
       case 'dispute_resolution':
         return (
-          <DisputeResolutionCard 
+          <DisputeResolutionCard
             incident={incidentData}
             investigation={investigation || undefined}
-            onComplete={handleRefresh} 
+            onComplete={handleRefresh}
           />
         );
 
@@ -495,39 +505,39 @@ export default function InvestigationWorkspace() {
       case 'monitoring_60_day':
       case 'monitoring_90_day':
         return (
-          <MonitoringCheckCard 
-            incident={incidentData} 
-            onComplete={handleRefresh} 
+          <MonitoringCheckCard
+            incident={incidentData}
+            onComplete={handleRefresh}
           />
         );
 
       case 'pending_contractor_dispute_review':
         return (
-          <ContractorDisputeCard 
+          <ContractorDisputeCard
             incident={incidentData}
             contractorId={(incidentData as any).related_contractor_company_id}
-            onComplete={handleRefresh} 
+            onComplete={handleRefresh}
           />
         );
 
       case 'pending_final_closure':
       case 'pending_hsse_incident_validation':
         return (
-          <HSSEIncidentValidationCard 
-            incident={incidentData} 
-            onComplete={handleRefresh} 
+          <HSSEIncidentValidationCard
+            incident={incidentData}
+            onComplete={handleRefresh}
           />
         );
 
       // --- CONTRACTOR OBSERVATION WORKFLOW STATUSES ---
-      
+
       // Legacy status (expert_screening) and new status (pending_consultant_screening)
       case 'expert_screening':
       case 'pending_consultant_screening':
       case 'pending_consultant_review':
       case 'pending_consultant_actions':
         return (
-          <ConsultantReviewCard 
+          <ConsultantReviewCard
             incidentId={incidentData.id}
             status={currentStatus}
             assigneeId={incidentData.approval_manager_id}
@@ -551,23 +561,23 @@ export default function InvestigationWorkspace() {
 
       case 'pending_dept_rep_review':
         return (
-          <DeptRepApprovalCard 
-            incident={incidentData} 
-            onComplete={handleRefresh} 
+          <DeptRepApprovalCard
+            incident={incidentData}
+            onComplete={handleRefresh}
           />
         );
 
       case 'pending_hsse_expert_review':
         return (
-          <HSSEValidationCard 
-            incident={incidentData} 
-            onComplete={handleRefresh} 
+          <HSSEValidationCard
+            incident={incidentData}
+            onComplete={handleRefresh}
           />
         );
 
       case 'pending_action_dispute_review':
         return (
-          <ActionDisputeReviewCard 
+          <ActionDisputeReviewCard
             incidentId={incidentData.id}
             status={currentStatus}
             disputeReason={(incidentData as any).action_dispute_reason}
@@ -578,7 +588,7 @@ export default function InvestigationWorkspace() {
 
       case 'hsse_enforced':
         return (
-          <HSSEEnforcementBanner 
+          <HSSEEnforcementBanner
             enforcedAt={(incidentData as any).hsse_enforced_at}
             enforcedBy={(incidentData as any).hsse_enforced_by_profile}
             enforcementNotes={(incidentData as any).enforcement_notes}
@@ -590,101 +600,79 @@ export default function InvestigationWorkspace() {
     }
   };
 
-  // Locked tab trigger wrapper
-  const LockedTabTrigger = ({ value, icon: Icon, label }: { value: string; icon: React.ElementType; label: string }) => {
-    if (investigationAllowed) {
-      return (
-        <TabsTrigger value={value} className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-          <Icon className="h-4 w-4" />
-          <span className="hidden sm:inline">{label}</span>
-        </TabsTrigger>
-      );
-    }
+  const isTabLocked = (tabKey: string) => !unlockedTabs.includes(tabKey);
+  const isTabCompleted = (tabKey: string) => completedTabs.includes(tabKey);
 
+  const startInvestigation = () => {
+    // Determine condition for environmental tab
+    const showEnvironmental = selectedIncident?.event_type === 'environmental' ||
+      selectedIncident?.event_type === 'environment' ||
+      ['oil_chemical_spill_land', 'spill_to_water', 'air_emission', 'soil_contamination',
+        'waste_mismanagement', 'wildlife_impact', 'non_compliant_discharge'].includes(selectedIncident?.subtype || '');
+
+    const newUnlocked = ['overview', 'evidence', 'witnesses', 'rca', 'actions'];
+    if (selectedIncident?.has_injury) newUnlocked.push('injuries');
+    if (selectedIncident?.has_damage) newUnlocked.push('property-damage');
+    if (showEnvironmental) newUnlocked.push('environmental-impact');
+    if (canAccessGovernance) newUnlocked.push('governance');
+
+    setUnlockedTabs(newUnlocked);
+    setActiveTab('evidence'); // auto-switch to evidence
+  };
+
+  // If no incident is selected, render the ListView
+  if (!selectedIncidentId) {
     return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="flex items-center gap-2 px-3 py-1.5 text-muted-foreground opacity-50 cursor-not-allowed">
-              <Lock className="h-3 w-3" />
-              <Icon className="h-4 w-4" />
-              <span className="hidden sm:inline">{label}</span>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{t('investigation.workflow.tabsLockedMessage', 'Complete the approval workflow to unlock investigation tabs')}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <div className="container max-w-7xl py-8 overflow-x-hidden" dir={direction}>
+        <InvestigationListView />
+      </div>
     );
-  };
+  }
 
-  // Get current owner based on incident status
-  const getCurrentOwner = () => {
-    if (!selectedIncident) return null;
-    const status = selectedIncident.status as string;
-    
-    // Status-to-owner mapping
-    if (status === 'submitted' || status === 'pending_review') {
-      return { role: t('incidents.workflowOwners.hsse_expert', 'HSSE Expert'), name: null };
-    }
-    // Contractor Consultant screening statuses (expert_screening is legacy)
-    if (status === 'expert_screening' || status === 'pending_consultant_screening' || 
-        status === 'pending_consultant_review' || status === 'pending_consultant_actions') {
-      return { role: t('incidents.workflowOwners.consultant', 'Contractor Consultant'), name: null };
-    }
-    if (status === 'pending_manager_approval' || status === 'hsse_manager_escalation') {
-      return { role: t('incidents.workflowOwners.department_manager', 'Department Manager'), name: null };
-    }
-    if (status === 'pending_dept_rep_approval') {
-      return { role: t('incidents.workflowOwners.department_rep', 'Department Representative'), name: null };
-    }
-    if (status === 'investigation_in_progress' || status === 'investigation_pending') {
-      return { 
-        role: t('incidents.workflowOwners.investigator', 'Investigator'), 
-        name: investigatorInfo?.full_name || null 
-      };
-    }
-    if (status === 'pending_closure' || status === 'pending_final_closure' || status === 'observation_actions_pending') {
-      return { role: t('incidents.workflowOwners.hsse_manager', 'HSSE Manager'), name: null };
-    }
-    if (status === 'closed' || status === 'no_investigation_required' || status === 'investigation_closed' || status === 'hsse_enforced') {
-      return null; // No owner when closed/enforced
-    }
-    // New contractor workflow statuses
-    if (status === 'pending_consultant_screening' || status === 'pending_action_dispute_review') {
-      return { role: t('incidents.workflowOwners.consultant', 'Contractor Consultant'), name: null };
-    }
-    if (status === 'pending_dept_rep_review') {
-      return { role: t('incidents.workflowOwners.department_rep', 'Department Representative'), name: null };
-    }
-    if (status === 'pending_hsse_expert_review') {
-      return { role: t('incidents.workflowOwners.hsse_expert', 'HSSE Expert'), name: null };
-    }
-    return { role: t('incidents.workflowOwners.awaiting_assignment', 'Awaiting Assignment'), name: null };
-  };
-
-  const currentOwner = getCurrentOwner();
+  // Calculate SLA for the detail view header
+  let slaInfo = null;
+  if (incidentData) {
+    slaInfo = calculateInvestigationSLA(incidentData.created_at || new Date().toISOString(), incidentData.severity_v2 || (incidentData as any).severity);
+  }
 
   return (
     <div className="container max-w-7xl py-8 space-y-8 overflow-x-hidden" dir={direction}>
       {/* Modern Executive Header */}
       <div className="space-y-6">
-        {/* Navigation Row */}
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => navigate('/incidents')}
+        {/* Navigation Row & SLA Header */}
+        <div className="flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSelectedIncidentId(null);
+              // reset URL
+              navigate('/incidents/investigate');
+            }}
             className="gap-2 text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
             {t('incidents.backToList', 'Back to Event List')}
           </Button>
+
+          {slaInfo && (
+            <div className={cn(
+              "flex items-center gap-2 text-sm font-semibold rounded-full px-4 py-1.5 border shadow-sm",
+              slaInfo.status === 'red' ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-900" :
+                slaInfo.status === 'yellow' ? "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/30 dark:text-yellow-400 dark:border-yellow-900" :
+                  "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900"
+            )}>
+              {slaInfo.status === 'red' ? <AlertCircle className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
+              {slaInfo.isOverdue
+                ? t('investigation.sla.overdueBy', { count: Math.abs(slaInfo.daysRemaining), defaultValue: `${Math.abs(slaInfo.daysRemaining)}d OVERDUE` })
+                : t('investigation.sla.daysRemaining', { count: slaInfo.daysRemaining, defaultValue: `${slaInfo.daysRemaining}d ${slaInfo.hoursRemaining}h REMAINING` })
+              }
+            </div>
+          )}
         </div>
 
         {/* Header Content */}
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
           <div className="space-y-3">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20">
@@ -692,10 +680,10 @@ export default function InvestigationWorkspace() {
               </div>
               <div>
                 <h1 className="text-3xl font-bold tracking-tight">
-                  {t('investigation.title', 'Investigation Workspace')}
+                  {incidentData?.reference_id || t('investigation.title', 'Investigation')}
                 </h1>
-                <p className="text-muted-foreground mt-1">
-                  {t('investigation.description', 'Investigate incidents, collect evidence, and track corrective actions')}
+                <p className="text-muted-foreground mt-1 text-lg">
+                  {incidentData?.title}
                 </p>
               </div>
             </div>
@@ -715,9 +703,9 @@ export default function InvestigationWorkspace() {
               </Button>
             )}
             {selectedIncidentId && (
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleRefresh}
                 className="gap-2"
               >
@@ -729,145 +717,20 @@ export default function InvestigationWorkspace() {
         </div>
       </div>
 
-      {/* Incident Selection Section */}
-      <Card className="border-0 shadow-md bg-gradient-to-br from-card to-muted/20">
-        <CardHeader className="pb-4">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div className="space-y-1">
-              <CardTitle className="text-xl flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-muted">
-                  <FileText className="h-5 w-5 text-muted-foreground" />
-                </div>
-                {t('investigation.selectIncident', 'Select Incident to Investigate')}
-              </CardTitle>
-              <CardDescription className="text-sm">
-                {viewMode === 'my-pending' 
-                  ? t('investigation.showingPendingApprovals', 'Showing incidents pending your action')
-                  : t('investigation.showingAllIncidents', 'Showing all open incidents')}
-              </CardDescription>
-            </div>
-            <ToggleGroup 
-              type="single" 
-              value={viewMode} 
-              onValueChange={(v) => v && setViewMode(v as 'my-pending' | 'all')}
-              className="justify-start bg-background/80 backdrop-blur-sm p-1.5 rounded-xl border shadow-sm"
-            >
-              <ToggleGroupItem 
-                value="my-pending" 
-                className="gap-2 px-4 py-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-lg transition-all"
-              >
-                <ClipboardCheck className="h-4 w-4" />
-                <span className="hidden sm:inline font-medium">{t('investigation.myPendingApprovals', 'My Pending')}</span>
-                <span className="sm:hidden font-medium">{t('investigation.myPending', 'My Pending')}</span>
-                {pendingApprovals && pendingApprovals.length > 0 && (
-                  <Badge variant="destructive" className="ms-1 h-5 min-w-5 px-1.5 text-xs font-bold">
-                    {pendingApprovals.length}
-                  </Badge>
-                )}
-              </ToggleGroupItem>
-              <ToggleGroupItem 
-                value="all" 
-                className="gap-2 px-4 py-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-lg transition-all"
-              >
-                <List className="h-4 w-4" />
-                <span className="hidden sm:inline font-medium">{t('investigation.allIncidents', 'All Incidents')}</span>
-                <span className="sm:hidden font-medium">{t('investigation.all', 'All')}</span>
-              </ToggleGroupItem>
-            </ToggleGroup>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          {isLoadingIncidents ? (
-            <div className="flex items-center gap-3 text-muted-foreground py-6">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              <span className="font-medium">{t('common.loading', 'Loading...')}</span>
-            </div>
-          ) : (
-            <Select
-              value={selectedIncidentId || ''}
-              onValueChange={(value) => setSelectedIncidentId(value)}
-            >
-              <SelectTrigger className="w-full lg:w-[600px] h-14 text-base bg-background border-2 hover:border-primary/50 transition-colors">
-                <SelectValue placeholder={t('investigation.selectIncidentPlaceholder', 'Choose an incident to investigate...')} />
-              </SelectTrigger>
-              <SelectContent dir={direction} className="max-h-[400px]">
-                {displayedIncidents?.length === 0 ? (
-                  <div className="p-6 text-center">
-                    <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
-                      <Search className="h-6 w-6 text-muted-foreground" />
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {viewMode === 'my-pending' 
-                        ? t('investigation.noPendingApprovals', 'No incidents pending your approval')
-                        : t('investigation.noIncidents', 'No incidents available for investigation')}
-                    </p>
-                  </div>
-                ) : (
-                  displayedIncidents?.map((incident) => (
-                    <SelectItem 
-                      key={incident.id} 
-                      value={incident.id}
-                      className={cn(
-                        "py-4 cursor-pointer border-s-4 ps-4 my-1 rounded-e-lg",
-                        getStatusBorderColor(incident.status)
-                      )}
-                    >
-                      <div className="flex items-center gap-4 w-full">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3">
-                            <span className="font-mono text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                              {incident.reference_id}
-                            </span>
-                            <span className="truncate font-medium">
-                              {incident.title}
-                            </span>
-                          </div>
-                        </div>
-                        <IncidentStatusBadge status={incident.status || ''} className="text-xs shrink-0" />
-                      </div>
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-          )}
-        </CardContent>
-      </Card>
+      {/* Filter Card is now in InvestigationListView */}
 
       {/* Current Owner & Status Bar - Only when incident selected */}
-      {selectedIncidentId && currentOwner && (
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Card className="flex-1 border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
-            <CardContent className="py-4">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-primary/10">
-                  <UserCheck className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    {t('incidents.currentOwner', 'Current Owner')}
-                  </p>
-                  <p className="text-lg font-semibold mt-0.5">
-                    {currentOwner.name ? `${currentOwner.name}` : currentOwner.role}
-                  </p>
-                  {currentOwner.name && (
-                    <p className="text-sm text-muted-foreground">{currentOwner.role}</p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      {selectedIncidentId && selectedIncident && (
+        <CurrentOwnerCard incident={selectedIncident as any} />
       )}
 
       {/* Investigation Content */}
       {selectedIncidentId && incidentData ? (
         <>
-          {/* Workflow Status Card - Modern vertical stepper */}
-          <InvestigationWorkflowStatusCard 
-            incident={incidentData} 
-            workflowActors={workflowActors || undefined}
-          />
+          {/* Unified Horizontal Timeline Tracker */}
+          <div className="my-4">
+            <UnifiedTimelineTracker incident={incidentData} />
+          </div>
 
           {/* Escalation Alert Banner - Shows when observation triggered escalation */}
           <EscalationAlertBanner incident={incidentData} />
@@ -880,13 +743,7 @@ export default function InvestigationWorkspace() {
             <IncidentClosurePrerequisitesCard incidentId={selectedIncidentId} />
           )}
 
-          {/* Unified Observation Workflow Tracker - Single consistent timeline for all observations */}
-          {incidentData?.event_type === 'observation' && (
-            <UnifiedWorkflowTracker 
-              incident={incidentData}
-              variant="horizontal"
-            />
-          )}
+          {/* Removed legacy observation workflow tracker */}
 
           {/* Warning if investigation not yet allowed */}
           {!investigationAllowed && (
@@ -914,7 +771,7 @@ export default function InvestigationWorkspace() {
             <Alert className="border-info/30 bg-info/5">
               <Eye className="h-4 w-4 text-info" />
               <AlertDescription className="text-foreground">
-                {editAccess.isOversightRole 
+                {editAccess.isOversightRole
                   ? t('investigation.readOnly.oversightBanner', 'You have read-only access to monitor this investigation. Only the assigned investigator can make changes.')
                   : t('investigation.readOnly.notAssigned', 'You are not the assigned investigator. Investigation data is read-only.')}
               </AlertDescription>
@@ -928,9 +785,9 @@ export default function InvestigationWorkspace() {
               <AlertDescription className="flex items-center justify-between text-foreground">
                 <span>{t('investigation.readOnly.closedBanner', 'This incident is closed and all data is locked.')}</span>
                 {editAccess.canReopen && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => setShowReopenDialog(true)}
                     className="ms-4 border-success/30 hover:bg-success/10"
                   >
@@ -947,86 +804,98 @@ export default function InvestigationWorkspace() {
             <Tabs value={activeTab} onValueChange={setActiveTab} dir={direction} className="w-full">
               <div className="bg-muted/30 border-b px-4 pt-4">
                 <TabsList className="flex flex-wrap h-auto gap-2 w-full bg-transparent p-0">
-                  <TabsTrigger 
-                    value="overview" 
+                  <TabsTrigger
+                    value="overview"
                     className="flex items-center gap-2 px-4 py-2.5 rounded-t-lg border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
                   >
                     <LayoutDashboard className="h-4 w-4" />
                     <span className="hidden sm:inline font-medium">{t('investigation.tabs.overview', 'Overview')}</span>
                   </TabsTrigger>
-                  
-                  <LockedTabTrigger 
-                    value="evidence" 
-                    icon={FileSearch} 
-                    label={t('investigation.tabs.evidence', 'Evidence')} 
+
+                  <LockedTabTrigger
+                    value="evidence"
+                    icon={FileSearch}
+                    label={t('investigation.tabs.evidence', 'Evidence')}
+                    isLocked={!investigationAllowed || isTabLocked('evidence')}
+                    isCompleted={isTabCompleted('evidence')}
                   />
-                  <LockedTabTrigger 
-                    value="witnesses" 
-                    icon={Users} 
-                    label={t('investigation.tabs.witnesses', 'Witnesses')} 
+                  <LockedTabTrigger
+                    value="witnesses"
+                    icon={Users}
+                    label={t('investigation.tabs.witnesses', 'Witnesses')}
+                    isLocked={!investigationAllowed || isTabLocked('witnesses')}
+                    isCompleted={isTabCompleted('witnesses')}
                   />
-                  <LockedTabTrigger 
-                    value="rca" 
-                    icon={Search} 
-                    label={t('investigation.tabs.rca', 'RCA')} 
+                  <LockedTabTrigger
+                    value="rca"
+                    icon={Search}
+                    label={t('investigation.tabs.rca', 'RCA')}
+                    isLocked={!investigationAllowed || isTabLocked('rca')}
+                    isCompleted={isTabCompleted('rca')}
                   />
-                  <LockedTabTrigger 
-                    value="actions" 
-                    icon={ListChecks} 
-                    label={t('investigation.tabs.actions', 'Actions')} 
+                  <LockedTabTrigger
+                    value="actions"
+                    icon={ListChecks}
+                    label={t('investigation.tabs.actions', 'Actions')}
+                    isLocked={!investigationAllowed || isTabLocked('actions')}
+                    isCompleted={isTabCompleted('actions')}
                   />
-                  {/* Injuries Tab - Only shows when incident has injury */}
-                  {selectedIncident?.has_injury && (
-                    <LockedTabTrigger 
-                      value="injuries" 
-                      icon={HeartPulse} 
-                      label={t('investigation.tabs.injuries', 'Injuries')} 
-                    />
-                  )}
-                  {/* Property Damage Tab - Only shows when incident has damage */}
-                  {selectedIncident?.has_damage && (
-                    <LockedTabTrigger 
-                      value="property-damage" 
-                      icon={Wrench} 
-                      label={t('investigation.tabs.propertyDamage', 'Property Damage')} 
-                    />
-                  )}
-                  {/* Environmental Impact Tab - Only shows for environmental incidents */}
-                  {(selectedIncident?.event_type === 'environmental' || 
-                    selectedIncident?.event_type === 'environment' ||
-                    ['oil_chemical_spill_land', 'spill_to_water', 'air_emission', 'soil_contamination', 
-                     'waste_mismanagement', 'wildlife_impact', 'non_compliant_discharge'].includes(selectedIncident?.subtype || '')) && (
-                    <LockedTabTrigger 
-                      value="environmental-impact" 
-                      icon={Leaf} 
-                      label={t('investigation.tabs.environmentalImpact', 'Environmental Impact')} 
-                    />
-                  )}
-                  {/* Governance Tab - Restricted Access */}
-                  {canAccessGovernance && (
-                    <LockedTabTrigger
-                      value="governance"
-                      icon={Scale}
-                      label={t('investigation.tabs.governance', 'Governance')}
-                    />
-                  )}
+                  <LockedTabTrigger
+                    value="injuries"
+                    icon={HeartPulse}
+                    label={t('investigation.tabs.injuries', 'Injuries')}
+                    hidden={!selectedIncident?.has_injury}
+                    isLocked={!investigationAllowed || isTabLocked('injuries')}
+                    isCompleted={isTabCompleted('injuries')}
+                  />
+                  <LockedTabTrigger
+                    value="property-damage"
+                    icon={Wrench}
+                    label={t('investigation.tabs.propertyDamage', 'Property Damage')}
+                    hidden={!selectedIncident?.has_damage}
+                    isLocked={!investigationAllowed || isTabLocked('property-damage')}
+                    isCompleted={isTabCompleted('property-damage')}
+                  />
+                  <LockedTabTrigger
+                    value="environmental-impact"
+                    icon={Leaf}
+                    label={t('investigation.tabs.environmentalImpact', 'Environmental Impact')}
+                    hidden={!(selectedIncident?.event_type === 'environmental' ||
+                      selectedIncident?.event_type === 'environment' ||
+                      ['oil_chemical_spill_land', 'spill_to_water', 'air_emission', 'soil_contamination',
+                        'waste_mismanagement', 'wildlife_impact', 'non_compliant_discharge'].includes(selectedIncident?.subtype || ''))}
+                    isLocked={!investigationAllowed || isTabLocked('environmental-impact')}
+                    isCompleted={isTabCompleted('environmental-impact')}
+                  />
+                  <LockedTabTrigger
+                    value="governance"
+                    icon={Scale}
+                    label={t('investigation.tabs.governance', 'Governance')}
+                    hidden={!canAccessGovernance}
+                    isLocked={!investigationAllowed || isTabLocked('governance')}
+                    isCompleted={isTabCompleted('governance')}
+                  />
                 </TabsList>
               </div>
 
               <div className="p-6">
                 <TabsContent value="overview" className="mt-0">
-                  <OverviewPanel 
-                    incident={selectedIncident} 
+                  <OverviewPanel
+                    incident={selectedIncident}
                     investigation={investigation ?? null}
                     onRefresh={handleRefresh}
                     canApprove={canApprove}
+                    onStartInvestigation={startInvestigation}
+                    isStarted={unlockedTabs.length > 1}
+                    unlockedTabs={unlockedTabs}
+                    completedTabs={completedTabs}
                   />
                 </TabsContent>
 
                 <TabsContent value="evidence" className="mt-0">
                   {investigationAllowed ? (
-                    <EvidenceManager 
-                      incidentId={selectedIncidentId} 
+                    <EvidenceManager
+                      incidentId={selectedIncidentId}
                       incidentStatus={selectedIncident?.status}
                       canEdit={editAccess.canEdit}
                     />
@@ -1035,9 +904,9 @@ export default function InvestigationWorkspace() {
 
                 <TabsContent value="witnesses" className="mt-0">
                   {investigationAllowed ? (
-                    <WitnessPanel 
-                      incidentId={selectedIncidentId} 
-                      incident={selectedIncident} 
+                    <WitnessPanel
+                      incidentId={selectedIncidentId}
+                      incident={selectedIncident}
                       incidentStatus={selectedIncident?.status}
                       canEdit={editAccess.canEdit}
                     />
@@ -1046,8 +915,8 @@ export default function InvestigationWorkspace() {
 
                 <TabsContent value="rca" className="mt-0">
                   {investigationAllowed ? (
-                    <RCAPanel 
-                      incidentId={selectedIncidentId} 
+                    <RCAPanel
+                      incidentId={selectedIncidentId}
                       incidentStatus={selectedIncident?.status}
                       incidentTitle={selectedIncident?.title}
                       incidentDescription={selectedIncident?.description}
@@ -1063,20 +932,20 @@ export default function InvestigationWorkspace() {
                     <>
                       {/* Cause Coverage Indicator */}
                       <CauseCoverageIndicator incidentId={selectedIncidentId} />
-                      
+
                       {/* Actions List */}
-                      <ActionsPanel 
-                        incidentId={selectedIncidentId} 
+                      <ActionsPanel
+                        incidentId={selectedIncidentId}
                         incidentStatus={selectedIncident?.status}
                         canEdit={editAccess.canEdit}
                         openDialogTrigger={showActionDialog}
                         onDialogTriggered={() => setShowActionDialog(false)}
                       />
-                      
+
                       {/* Submit Investigation Card - Only for investigator when in progress */}
                       {editAccess.canEdit && incidentData?.status === 'investigation_in_progress' && (
-                        <SubmitInvestigationCard 
-                          incidentId={selectedIncidentId} 
+                        <SubmitInvestigationCard
+                          incidentId={selectedIncidentId}
                           onSubmitted={handleRefresh}
                         />
                       )}
@@ -1141,7 +1010,7 @@ export default function InvestigationWorkspace() {
                   {investigationAllowed && (selectedIncident?.event_type === 'environmental' ||
                     selectedIncident?.event_type === 'environment' ||
                     ['oil_chemical_spill_land', 'spill_to_water', 'air_emission', 'soil_contamination',
-                     'waste_mismanagement', 'wildlife_impact', 'non_compliant_discharge'].includes(selectedIncident?.subtype || '')) ? (
+                      'waste_mismanagement', 'wildlife_impact', 'non_compliant_discharge'].includes(selectedIncident?.subtype || '')) ? (
                     <>
                       {/* Environmental Expert Assignment Card */}
                       {incidentData && (
@@ -1217,7 +1086,7 @@ export default function InvestigationWorkspace() {
                       {t('investigation.closure.allActionsVerified', 'All corrective actions have been verified.')}
                     </p>
                   </div>
-                  <Button 
+                  <Button
                     onClick={() => setShowClosureDialog(true)}
                     className="bg-green-600 hover:bg-green-700 text-white"
                   >

@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { 
-  FileText, 
-  MoreHorizontal, 
-  Pencil, 
-  Trash2, 
-  PlayCircle, 
+import {
+  FileText,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  PlayCircle,
   Lock,
   ArrowUpDown,
   Clock
@@ -31,6 +31,7 @@ import { IncidentStatusBadge } from '@/components/incidents/IncidentStatusBadge'
 import { formatDistanceToNow, format, isPast, addDays } from 'date-fns';
 import { getSeverityBadgeVariant } from '@/lib/hsse-severity-levels';
 import { getStatusBackgroundColor } from '@/lib/incident-status-colors';
+import { ResponsibleUserBadge } from '@/components/incidents/workflow/ResponsibleUserBadge';
 import { cn } from '@/lib/utils';
 
 interface Incident {
@@ -38,15 +39,18 @@ interface Incident {
   title: string;
   reference_id: string;
   event_type: string;
-  status: string | null;
-  severity_v2: string | null;
+  status: 'submitted' | 'pending_review' | 'investigation_pending' | 'investigation_in_progress' | 'closed' | string | null;
+  severity_v2: 'level_1' | 'level_2' | 'level_3' | 'level_4' | 'level_5' | string | null;
   incident_type?: string;
   subtype?: string;
   occurred_at: string | null;
   created_at: string | null;
-  branch?: { name: string } | null;
-  site?: { name: string } | null;
+  branch?: { id?: string; name: string } | null;
+  site?: { id?: string; name: string } | null;
   location?: string | null;
+  approval_manager?: { id: string; full_name: string | null; job_title: string | null } | null;
+  investigations?: { investigator?: { id: string; full_name: string | null; job_title: string | null } | null }[] | null;
+  related_contractor_company?: { id: string; company_name: string } | null;
 }
 
 interface IncidentTableViewProps {
@@ -121,6 +125,9 @@ export function IncidentTableView({
             <TableHead className="w-[160px]">
               {t('incidents.status.label', 'Status')}
             </TableHead>
+            <TableHead className="w-[180px]">
+              {t('workflow.responsibleUser', 'Responsible')}
+            </TableHead>
             <TableHead className="w-[150px]">
               {t('incidents.branch', 'Location')}
             </TableHead>
@@ -136,12 +143,12 @@ export function IncidentTableView({
         </TableHeader>
         <TableBody>
           {incidents.map((incident) => {
-            const isOverdue = incident.occurred_at && 
+            const isOverdue = incident.occurred_at &&
               !['closed', 'no_investigation_required'].includes(incident.status || '') &&
               isPast(addDays(new Date(incident.occurred_at), 7));
 
             return (
-              <TableRow 
+              <TableRow
                 key={incident.id}
                 className={cn(
                   "hover:bg-muted/50 transition-colors",
@@ -149,7 +156,7 @@ export function IncidentTableView({
                 )}
               >
                 <TableCell>
-                  <Link 
+                  <Link
                     to={`/incidents/${incident.id}`}
                     className="font-mono text-sm text-primary hover:underline flex items-center gap-1"
                   >
@@ -159,7 +166,7 @@ export function IncidentTableView({
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">
-                    <Link 
+                    <Link
                       to={`/incidents/${incident.id}`}
                       className="font-medium hover:text-primary transition-colors line-clamp-1"
                     >
@@ -191,13 +198,16 @@ export function IncidentTableView({
                   )}
                 </TableCell>
                 <TableCell>
+                  <ResponsibleUserBadge incident={incident as any} className="scale-90 origin-left" />
+                </TableCell>
+                <TableCell>
                   <span className="text-sm text-muted-foreground truncate block max-w-[140px]">
                     {incident.branch?.name || incident.site?.name || '—'}
                   </span>
                 </TableCell>
                 <TableCell>
                   <span className="text-sm text-muted-foreground">
-                    {incident.occurred_at 
+                    {incident.occurred_at
                       ? formatDistanceToNow(new Date(incident.occurred_at), { addSuffix: true })
                       : '—'}
                   </span>
@@ -226,7 +236,7 @@ export function IncidentTableView({
                         {canDeleteIncident(incident.status) && onDelete && (
                           <>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               onClick={() => onDelete(incident.id, incident.status)}
                               className="text-destructive focus:text-destructive"
                             >

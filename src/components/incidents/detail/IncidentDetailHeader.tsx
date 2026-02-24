@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  FileText, 
-  MapPin, 
-  Printer, 
-  History, 
-  Scale, 
+import {
+  ArrowLeft,
+  FileText,
+  MapPin,
+  Printer,
+  History,
+  Scale,
   MoreHorizontal,
   Trash2,
   Search,
@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { IncidentStatusBadge } from '@/components/incidents/IncidentStatusBadge';
+import { ResponsibleUserBadge } from '@/components/incidents/workflow/ResponsibleUserBadge';
 import { AdminEditObservationDialog } from '@/components/admin/AdminEditObservationDialog';
 import { getSeverityBadgeVariant } from '@/lib/hsse-severity-levels';
 import { cn } from '@/lib/utils';
@@ -43,6 +44,9 @@ interface IncidentDetailHeaderProps {
     location?: string | null;
     occurred_at: string | null;
     related_contractor_company_id?: string | null;
+    approval_manager?: { id: string; full_name: string | null; job_title: string | null } | null;
+    investigations?: { investigator?: { id: string; full_name: string | null; job_title: string | null } | null }[] | null;
+    related_contractor_company?: { id: string; company_name: string } | null;
   };
   backPath: string;
   isAdmin: boolean;
@@ -83,7 +87,7 @@ export function IncidentDetailHeader({
   ].filter(Boolean).join(' › ');
 
   return (
-    <div 
+    <div
       className={cn(
         "rounded-xl border p-4 sm:p-6 bg-gradient-to-br",
         getSeverityGradient(incident.severity_v2)
@@ -114,21 +118,21 @@ export function IncidentDetailHeader({
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem 
+            <DropdownMenuItem
               onClick={() => onPrint()}
               disabled={isPrinting}
             >
               <Printer className="h-4 w-4 me-2" />
               {t('incidents.printReport')}
             </DropdownMenuItem>
-            <DropdownMenuItem 
+            <DropdownMenuItem
               onClick={() => onPrint({ fullLegalMode: true })}
               disabled={isPrinting}
             >
               <Scale className="h-4 w-4 me-2" />
               {t('incidents.exportFullLegalReport', 'Export Full Legal Report')}
             </DropdownMenuItem>
-            <DropdownMenuItem 
+            <DropdownMenuItem
               onClick={() => onPrint({ includeFullAuditLog: true })}
               disabled={isPrinting}
             >
@@ -138,13 +142,13 @@ export function IncidentDetailHeader({
             {isAdmin && incident.status !== 'closed' && (
               <>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => setShowEditDialog(true)}
                 >
                   <Edit className="h-4 w-4 me-2" />
                   {t('admin.editObservation.menuItem', 'Edit Location & Assignment')}
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={onDelete}
                   className="text-destructive focus:text-destructive"
                 >
@@ -160,8 +164,8 @@ export function IncidentDetailHeader({
       {/* Severity & Status Badges */}
       <div className="flex flex-wrap items-center gap-2 mb-3">
         {incident.severity_v2 && (
-          <Badge 
-            variant={getSeverityBadgeVariant(incident.severity_v2)} 
+          <Badge
+            variant={getSeverityBadgeVariant(incident.severity_v2)}
             className="text-sm px-3 py-1"
           >
             {t(`severity.${incident.severity_v2}.label`)}
@@ -178,6 +182,7 @@ export function IncidentDetailHeader({
         <Badge variant="secondary" className="text-sm">
           {t(`incidents.eventCategories.${incident.event_type}`)}
         </Badge>
+        <ResponsibleUserBadge incident={incident as any} showTitle={false} />
       </div>
 
       {/* Title */}

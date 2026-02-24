@@ -1,13 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { 
-  FileText, 
-  MapPin, 
-  Calendar, 
-  MoreHorizontal, 
-  Pencil, 
-  Trash2, 
-  PlayCircle, 
+import {
+  FileText,
+  MapPin,
+  Calendar,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  PlayCircle,
   Lock,
   Building,
   Clock,
@@ -27,6 +27,7 @@ import { IncidentStatusBadge } from '@/components/incidents/IncidentStatusBadge'
 import { formatDistanceToNow, isPast, addDays } from 'date-fns';
 import { getSeverityBadgeVariant } from '@/lib/hsse-severity-levels';
 import { getStatusBorderColor } from '@/lib/incident-status-colors';
+import { ResponsibleUserBadge } from '@/components/incidents/workflow/ResponsibleUserBadge';
 import { cn } from '@/lib/utils';
 
 interface IncidentCardEnhancedProps {
@@ -41,9 +42,12 @@ interface IncidentCardEnhancedProps {
     subtype?: string;
     occurred_at: string | null;
     created_at: string | null;
-    branch?: { name: string } | null;
-    site?: { name: string } | null;
+    branch?: { id?: string; name: string } | null;
+    site?: { id?: string; name: string } | null;
     location?: string | null;
+    approval_manager?: { id: string; full_name: string | null; job_title: string | null } | null;
+    investigations?: { investigator?: { id: string; full_name: string | null; job_title: string | null } | null }[] | null;
+    related_contractor_company?: { id: string; company_name: string } | null;
   };
   hasHSSEAccess: boolean;
   canDelete: boolean;
@@ -73,12 +77,12 @@ export function IncidentCardEnhanced({
   const { t } = useTranslation();
 
   // Calculate if overdue (example: more than 7 days old and still open)
-  const isOverdue = incident.occurred_at && 
+  const isOverdue = incident.occurred_at &&
     !['closed', 'no_investigation_required'].includes(incident.status || '') &&
     isPast(addDays(new Date(incident.occurred_at), 7));
 
   return (
-    <Card 
+    <Card
       className={cn(
         "group relative overflow-hidden transition-all hover:shadow-lg border-s-4",
         getStatusBorderColor(incident.status),
@@ -103,9 +107,9 @@ export function IncidentCardEnhanced({
           {hasHSSEAccess && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <MoreHorizontal className="h-4 w-4" />
@@ -127,7 +131,7 @@ export function IncidentCardEnhanced({
                 {canDelete && onDelete && (
                   <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => onDelete(incident.id, incident.status)}
                       className="text-destructive focus:text-destructive"
                     >
@@ -145,9 +149,16 @@ export function IncidentCardEnhanced({
           )}
         </div>
 
+        {/* Responsible User */}
+        {(incident.status !== 'closed' && incident.status !== 'submitted') && (
+          <div className="-mt-1 mb-2">
+            <ResponsibleUserBadge incident={incident as any} showTitle={false} />
+          </div>
+        )}
+
         {/* Title & Reference */}
         <div>
-          <Link 
+          <Link
             to={`/incidents/${incident.id}`}
             className="block group/title"
           >

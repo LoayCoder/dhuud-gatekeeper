@@ -4,11 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  CheckCircle2, 
-  AlertCircle, 
-  Send, 
-  Loader2, 
+import {
+  CheckCircle2,
+  AlertCircle,
+  Send,
+  Loader2,
   ClipboardCheck,
   Link2,
   Mail
@@ -29,7 +29,7 @@ export function SubmitInvestigationCard({ incidentId, onSubmitted }: SubmitInves
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [showReadinessDialog, setShowReadinessDialog] = useState(false);
-  
+
   const completeness = useInvestigationCompleteness(incidentId);
   const submitMutation = useSubmitInvestigation();
   const { data: readiness, refetch: checkReadiness } = useInvestigationReadiness(incidentId);
@@ -87,6 +87,10 @@ export function SubmitInvestigationCard({ incidentId, onSubmitted }: SubmitInves
               {t('investigation.submit.checklist', 'Investigation Checklist')}
             </p>
             <div className="grid gap-1.5">
+              <CheckItem
+                checked={completeness.hasEvidence}
+                label={t('investigation.submit.evidence', 'Evidence Uploaded (min. 1)')}
+              />
               <CheckItem
                 checked={completeness.hasFiveWhys}
                 label={t('investigation.submit.fiveWhys', '5-Whys Analysis (min. 3)')}
@@ -175,7 +179,7 @@ export function SubmitInvestigationCard({ incidentId, onSubmitted }: SubmitInves
               )}
               {t('investigation.submit.button', 'Submit Investigation for Review')}
             </Button>
-            
+
             <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1 justify-center">
               <Mail className="h-3 w-3" />
               {t('investigation.submit.note', 'All assigned action owners will be notified via email')}

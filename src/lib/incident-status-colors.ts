@@ -199,6 +199,67 @@ export function formatStatusLabel(status: string | null | undefined): string {
 }
 
 /**
+ * Convert a status code to an active "Action Verb" phrase.
+ * This directly replaces static "Pending X" labels in the unified UI.
+ */
+const ACTION_VERBS: Record<string, string> = {
+  submitted: "Reporting initial details",
+  pending_review: "Awaiting your review",
+  expert_screening: "Reviewing incident details",
+  pending_expert_screening: "Reviewing incident details",
+  pending_hsse_expert_review: "Reviewing incident details",
+  pending_consultant_screening: "Awaiting your review",
+  pending_consultant_review: "Awaiting your review",
+  pending_dept_rep_review: "Awaiting your review",
+  pending_dept_rep_incident_review: "Awaiting your review",
+
+  pending_manager_approval: "Pending approval",
+  pending_dept_rep_approval: "Pending approval",
+  pending_department_manager_approval: "Pending approval",
+  pending_site_client_approval: "Pending Site Client approval",
+
+  investigation_pending: "Assigning investigator",
+  pending_investigator_assignment: "Assigning investigator",
+  investigation_in_progress: "Conducting investigation",
+  under_investigation: "Conducting investigation",
+
+  observation_actions_pending: "Implementing corrective actions",
+  pending_contractor_implementation: "Contractor implementing actions",
+  pending_consultant_actions: "Consultant taking action",
+
+  pending_closure: "Verifying closure",
+  pending_final_closure: "Verifying final closure",
+  pending_hsse_validation: "Verifying closure",
+
+  hsse_manager_escalation: "Reviewing escalation",
+  pending_hsse_escalation_review: "Reviewing escalation",
+
+  dispute_resolution: "Resolving dispute",
+  pending_contractor_dispute_review: "Reviewing dispute",
+
+  closed: "Closed",
+  no_investigation_required: "Closed (No Investigation)",
+  investigation_closed: "Closed",
+  closed_rejected_approved_by_hsse: "Closed",
+  hsse_enforced: "Enforced",
+};
+
+export function getActionVerb(status: string | null | undefined): string {
+  if (!status) return "Waiting for update";
+
+  if (ACTION_VERBS[status]) {
+    return ACTION_VERBS[status];
+  }
+
+  // Fallback if not explicitly mapped
+  if (status.includes('pending') || status.includes('approval')) {
+    return "Awaiting your review";
+  }
+
+  return formatStatusLabel(status); // Fallback to Title Case
+}
+
+/**
  * Get the category for a given status
  */
 export function getStatusCategory(status: string | null | undefined): StatusCategory {

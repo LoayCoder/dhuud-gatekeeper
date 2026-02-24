@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useInvestigation, useCorrectiveActions } from './use-investigation';
+import { useEvidenceItems } from './use-evidence-items';
 
 interface CauseCoverage {
   rootCauses: Array<{ id: string; text: string; hasAction: boolean }>;
@@ -19,15 +20,17 @@ interface InvestigationCompleteness {
   hasUnderlyingCause: boolean;
   hasRootCauses: boolean;
   hasActions: boolean;
+  hasEvidence: boolean;
 }
 
 export function useInvestigationCompleteness(incidentId: string | null): InvestigationCompleteness {
   const { data: investigation } = useInvestigation(incidentId);
   const { data: actions } = useCorrectiveActions(incidentId);
+  const { data: evidence } = useEvidenceItems(incidentId);
 
   return useMemo(() => {
     const missingItems: string[] = [];
-    
+
     // Parse investigation data
     const fiveWhys = investigation?.five_whys || [];
     const rootCauses = investigation?.root_causes || [];
@@ -39,13 +42,15 @@ export function useInvestigationCompleteness(incidentId: string | null): Investi
     const hasFiveWhys = fiveWhys.length >= 3 && fiveWhys.every(w => w.why && w.answer);
     const hasImmediateCause = !!immediateCause?.trim();
     const hasUnderlyingCause = !!underlyingCause?.trim();
-    const hasRootCauses = rootCauses.length > 0 && rootCauses.some(rc => rc.text?.trim());
+    const hasRootCauses = rootCauses.length > 0 && rootCauses.some(rc => rc.text?.trim() && rc.text.length >= 50 && rc.category);
     const hasActions = (actions?.length || 0) > 0;
+    const hasEvidence = (evidence?.length || 0) > 0;
 
+    if (!hasEvidence) missingItems.push('At least one Evidence item uploaded');
     if (!hasFiveWhys) missingItems.push('5-Whys analysis (minimum 3)');
     if (!hasImmediateCause) missingItems.push('Immediate Cause');
     if (!hasUnderlyingCause) missingItems.push('Underlying Cause');
-    if (!hasRootCauses) missingItems.push('At least one Root Cause');
+    if (!hasRootCauses) missingItems.push('At least one Root Cause (with assigned Category and min. 50 characters)');
 
     // Check cause coverage - each root cause and contributing factor should have at least one action
     const rootCauseCoverage = rootCauses.filter(rc => rc.id && rc.text?.trim()).map(rc => ({
@@ -63,7 +68,7 @@ export function useInvestigationCompleteness(incidentId: string | null): Investi
     // Check if all causes are covered
     const uncoveredRootCauses = rootCauseCoverage.filter(rc => !rc.hasAction);
     const uncoveredFactors = contributingFactorCoverage.filter(cf => !cf.hasAction);
-    
+
     if (uncoveredRootCauses.length > 0) {
       missingItems.push(`Actions for ${uncoveredRootCauses.length} root cause(s)`);
     }
@@ -72,8 +77,8 @@ export function useInvestigationCompleteness(incidentId: string | null): Investi
     }
 
     const totalCauses = rootCauseCoverage.length + contributingFactorCoverage.length;
-    const coveredCauses = rootCauseCoverage.filter(rc => rc.hasAction).length + 
-                          contributingFactorCoverage.filter(cf => cf.hasAction).length;
+    const coveredCauses = rootCauseCoverage.filter(rc => rc.hasAction).length +
+      contributingFactorCoverage.filter(cf => cf.hasAction).length;
     const allCausesCovered = totalCauses > 0 && coveredCauses === totalCauses;
 
     const causeCoverage: CauseCoverage = {
@@ -85,7 +90,7 @@ export function useInvestigationCompleteness(incidentId: string | null): Investi
     };
 
     const hasRCAData = hasFiveWhys && hasImmediateCause && hasUnderlyingCause && hasRootCauses;
-    const isComplete = hasRCAData && hasActions && allCausesCovered;
+    const isComplete = hasRCAData && hasActions && hasEvidence && allCausesCovered;
 
     return {
       isComplete,
@@ -97,6 +102,7 @@ export function useInvestigationCompleteness(incidentId: string | null): Investi
       hasUnderlyingCause,
       hasRootCauses,
       hasActions,
+      hasEvidence,
     };
-  }, [investigation, actions]);
+  }, [investigation, actions, evidence]);
 }

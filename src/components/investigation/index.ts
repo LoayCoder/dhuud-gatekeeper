@@ -33,6 +33,8 @@ export { RejectionConfirmationCard } from './RejectionConfirmationCard';
 export { InvestigatorAssignmentStep } from './InvestigatorAssignmentStep';
 export { WorkflowProgressBanner } from './WorkflowProgressBanner';
 export { InvestigationWorkflowStatusCard } from './InvestigationWorkflowStatusCard';
+export { CurrentOwnerCard } from './CurrentOwnerCard';
+export { UnifiedTimelineTracker } from './UnifiedTimelineTracker';
 export { WorkflowStepNode } from './WorkflowStepNode';
 export { ObservationWorkflowTracker } from './ObservationWorkflowTracker';
 export { UnifiedWorkflowTracker } from './UnifiedWorkflowTracker';

@@ -75,18 +75,18 @@ interface RCAPanelProps {
   canEdit?: boolean;
 }
 
-// Debounce delay for auto-save (2 seconds)
-const AUTO_SAVE_DELAY = 2000;
+// Auto-save delay for drafts (30 seconds)
+const AUTO_SAVE_DELAY = 30000;
 
-export function RCAPanel({ 
-  incidentId, 
-  incidentTitle, 
-  incidentDescription, 
-  incidentStatus, 
+export function RCAPanel({
+  incidentId,
+  incidentTitle,
+  incidentDescription,
+  incidentStatus,
   incidentSeverity,
   incidentEventType,
   incidentEventSubtype,
-  canEdit: canEditProp 
+  canEdit: canEditProp
 }: RCAPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
@@ -105,15 +105,15 @@ export function RCAPanel({
 
   // Pass incidentId to enable automatic context enrichment
   const { rewriteText, generateImmediateCause, generateUnderlyingCause, isLoading: isAILoading } = useRCAAI({ incidentId });
-  
+
   const { statements: witnessStatements } = useWitnessStatements(incidentId);
   const { data: evidenceItems } = useEvidenceItems(incidentId);
-  
+
   const witnessData = witnessStatements?.map(w => ({
     name: w.name || 'Unknown',
     statement: w.statement || '',
   })) || [];
-  
+
   const evidenceDescriptions = evidenceItems
     ?.filter(e => e.description)
     .map(e => `${e.evidence_type}: ${e.description}`) || [];
@@ -161,8 +161,8 @@ export function RCAPanel({
       // Only reset if data changed significantly to avoid cursor jumps, or if first load
       const currentValues = form.getValues();
       if (JSON.stringify(formData) !== JSON.stringify(currentValues) && !autoSaveTimeoutRef.current) {
-         form.reset(formData);
-         lastSavedDataRef.current = JSON.stringify(formData);
+        form.reset(formData);
+        lastSavedDataRef.current = JSON.stringify(formData);
       }
     }
   }, [investigation, form]);
@@ -174,12 +174,12 @@ export function RCAPanel({
   // Auto-save handler
   const performAutoSave = useCallback(async (data: RCAFormValues) => {
     if (!investigation?.id && !incidentId) return;
-    
+
     const currentDataStr = JSON.stringify(data);
     if (currentDataStr === lastSavedDataRef.current) return;
 
     setAutoSaveStatus('saving');
-    
+
     try {
       // Use the unified update hook which handles both tables
       if (investigation?.id) {
@@ -202,7 +202,7 @@ export function RCAPanel({
           updates: updates,
         });
       }
-      
+
       lastSavedDataRef.current = currentDataStr;
       setAutoSaveStatus('saved');
       setTimeout(() => setAutoSaveStatus('idle'), 2000);
@@ -214,29 +214,43 @@ export function RCAPanel({
 
   // Watch form values for auto-save
   const formValues = form.watch();
-  
+
   useEffect(() => {
     if (isReadOnly) return;
-    
+
     if (autoSaveTimeoutRef.current) {
       clearTimeout(autoSaveTimeoutRef.current);
     }
-    
+
     // Skip auto-save on initial load
     if (lastSavedDataRef.current === '') {
-       // do nothing
+      // do nothing
     } else {
       autoSaveTimeoutRef.current = setTimeout(() => {
         performAutoSave(formValues);
       }, AUTO_SAVE_DELAY);
     }
-    
+
     return () => {
       if (autoSaveTimeoutRef.current) {
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
   }, [formValues, performAutoSave, isReadOnly]);
+
+  // Handle beforeunload to warn user of unsaved changes
+  const isDirty = Object.keys(form.formState.dirtyFields).length > 0 && autoSaveStatus !== 'saved';
+  useEffect(() => {
+    if (!isDirty || isReadOnly) return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = ''; // Required for generic browser warning
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty, isReadOnly]);
 
   const onSubmit = async (data: RCAFormValues) => {
     if (!investigation) {
@@ -267,12 +281,12 @@ export function RCAPanel({
     if (!currentValue?.trim()) return;
 
     setRewritingField(fieldName);
-    const context = fieldName === 'immediate_cause' 
-      ? 'Immediate cause of an HSSE incident' 
+    const context = fieldName === 'immediate_cause'
+      ? 'Immediate cause of an HSSE incident'
       : 'Underlying cause of an HSSE incident';
-    
+
     const result = await rewriteText(currentValue, context);
-    
+
     if (result) {
       form.setValue(fieldName, result);
     }

@@ -165,10 +165,10 @@ All colors MUST be HSL.
     --background: 220 13% 13%;
     --foreground: 210 40% 98%;
 
-    --card: 220 13% 16%;
+    --card: 220 15% 15%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 220 13% 16%;
+    --popover: 220 15% 15%;
     --popover-foreground: 210 40% 98%;
 
     /* ========================================
@@ -215,8 +215,8 @@ All colors MUST be HSL.
     --brand-background: 220 13% 13%;
 
     /* Borders & Inputs */
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    --border: 217 25% 24%;
+    --input: 217 25% 24%;
     --ring: var(--primary);
 
     /* Sidebar */
