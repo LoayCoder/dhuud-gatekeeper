@@ -1,76 +1,68 @@
 
 
-# Fix Duplicate Validation Logic: Branch-Scoped Uniqueness (Updated)
+# Show Auto-Detected Branch Name and Location in Quick Observation
 
 ## Problem
-Currently, all organizational entities enforce **tenant-wide** name uniqueness. This blocks creating entities like a Site called "Main Campus" under Branch B if one already exists under Branch A.
+When GPS auto-detects the nearest site, the Quick Observation card only shows the **site name** and distance. It does not display:
+1. The **Branch Name** the detected site belongs to
+2. The **GPS coordinates/location** that were captured
 
-## Updated Rule
-- **Sites, Buildings, Floors, Zones, Departments, Sections**: Uniqueness is scoped to the **same branch** -- duplicates across different branches are allowed.
-- **Divisions**: Remain **tenant-wide unique** -- no duplicate Division names allowed, even across branches.
-- **Branches**: Remain **tenant-wide unique** (unchanged).
+Users need to see this information at a glance and have the ability to change the branch/site selection.
 
 ## What Changes
 
-### 1. Database Migration
+### 1. Enhanced GPS Detection Display (QuickObservationCard.tsx, lines ~1025-1031)
 
-Drop and recreate unique indexes for branch-scoped entities only. Divisions index stays as-is.
+When GPS detects a site, update the display to show:
+- **Site Name** (already shown)
+- **Branch Name** (new) -- pulled from `gpsDetectedSite.site.branch_name`
+- **GPS Coordinates** (new) -- from the form's `latitude`/`longitude` values
+- A small "Change" button to allow manual override
 
 ```text
-| Entity          | Constraint                                              |
-|-----------------|---------------------------------------------------------|
-| Sites           | (tenant_id, branch_id, LOWER(name))          -- NEW    |
-| Departments     | (tenant_id, COALESCE(branch_id, nil), LOWER(name)) NEW |
-| Sections        | (tenant_id, COALESCE(branch_id, nil), LOWER(name)) NEW |
-| Divisions       | (tenant_id, LOWER(name))                -- UNCHANGED   |
-| Branches        | (tenant_id, LOWER(name))                -- UNCHANGED   |
+Current display:
+  [pin] Main Campus
+  [badge] Within 45m
+
+New display:
+  [pin] Main Campus
+  [building] Branch: RGC Branch
+  [badge] Within 45m | GPS: 24.7136, 46.6753
+  [button] Change Site
 ```
 
-Migration SQL:
+### 2. Add "Change Site" Toggle
 
-```sql
--- Drop old tenant-wide indexes (Sites, Departments, Sections only)
-DROP INDEX IF EXISTS idx_sites_unique_tenant_name;
-DROP INDEX IF EXISTS idx_departments_unique_tenant_name;
-DROP INDEX IF EXISTS idx_sections_unique_tenant_name;
+When GPS auto-detects a site, the manual site dropdown is currently hidden (only shown when no site is detected). Add a toggle/button so users can:
+- See the auto-detected branch + site + location
+- Click "Change" to reveal the site dropdown and override the selection
+- When they change the site, the branch name updates accordingly
 
--- Recreate as branch-scoped
-CREATE UNIQUE INDEX idx_sites_unique_branch_name
-  ON public.sites (tenant_id, branch_id, LOWER(name))
-  WHERE deleted_at IS NULL;
+### 3. Show Branch Name for Manually Selected Sites Too
 
-CREATE UNIQUE INDEX idx_departments_unique_branch_name
-  ON public.departments (tenant_id, COALESCE(branch_id, '00000000-0000-0000-0000-000000000000'::uuid), LOWER(name))
-  WHERE deleted_at IS NULL;
+When a user manually selects a site from the dropdown, show the branch name of the selected site above the dropdown (using `selectedSite?.branch_name`).
 
-CREATE UNIQUE INDEX idx_sections_unique_branch_name
-  ON public.sections (tenant_id, COALESCE(branch_id, '00000000-0000-0000-0000-000000000000'::uuid), LOWER(name))
-  WHERE deleted_at IS NULL;
+### 4. Fix Existing Bug: `site.branch?.name` Reference
 
--- Divisions index is NOT changed -- stays tenant-wide
-```
+The dropdown items at line 1099 reference `site.branch?.name`, but `useTenantSites` returns `branch_name` as a flat property. Fix this to use `site.branch_name` consistently.
 
-### 2. Frontend: Update Duplicate Checks in OrgStructure.tsx
+## Technical Details
 
-Update in-memory duplicate checks for **Sites, Departments, and Sections only** to compare within the same branch:
+### Files Modified
 
-- **Sites**: Filter by `branch_id === parentId`
-- **Departments**: Filter by `branch_id === selectedBranch` (or both null for hybrid)
-- **Sections**: Filter by `branch_id === selectedBranch` (or both null for hybrid)
-- **Divisions**: No change -- keep tenant-wide duplicate check
+1. **`src/components/incidents/QuickObservationCard.tsx`**
+   - Lines ~1025-1031: Expand the GPS-detected display block to include branch name and coordinates
+   - Lines ~1053-1074: Add a "Change Site" button that toggles showing the manual site dropdown even when GPS detected a site
+   - Lines ~1097-1104: Fix `site.branch?.name` to `site.branch_name`
+   - Add a new state variable `showManualSiteOverride` to control dropdown visibility after GPS detection
+   - Show branch name for the `selectedSite` when manually chosen
 
-### 3. Translation Messages
+2. **`src/locales/en/translation.json`**
+   - Add keys: `quickObservation.detectedBranch`, `quickObservation.gpsCoordinates`, `quickObservation.changeSite`
 
-Update error messages for Sites, Departments, and Sections to say "already exists **in this branch**."
+3. **`src/locales/ar/translation.json`**
+   - Add Arabic translations for the same keys
 
-Divisions message stays as "already exists" (tenant-wide).
-
-Updates in both `en/translation.json` and `ar/translation.json`.
-
-## Files Modified
-
-1. **New migration file** -- Drop old indexes for Sites/Departments/Sections, create branch-scoped replacements
-2. **`src/pages/admin/OrgStructure.tsx`** -- Update 3 duplicate check blocks (Sites, Departments, Sections)
-3. **`src/locales/en/translation.json`** -- Update duplicate error messages for Sites/Departments/Sections
-4. **`src/locales/ar/translation.json`** -- Update Arabic duplicate error messages for Sites/Departments/Sections
+### No Database Changes Required
+This is a UI-only enhancement using data already available from `useTenantSites`.
 
