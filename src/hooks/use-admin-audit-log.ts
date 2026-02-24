@@ -114,7 +114,7 @@ export function detectUserChanges(
     'full_name', 'user_type', 'has_login', 'is_active', 
     'assigned_branch_id', 'assigned_division_id', 
     'assigned_department_id', 'assigned_section_id',
-    'job_title', 'employee_id'
+    'job_title', 'employee_id', 'has_full_branch_access'
   ];
 
   for (const field of fieldsToTrack) {
