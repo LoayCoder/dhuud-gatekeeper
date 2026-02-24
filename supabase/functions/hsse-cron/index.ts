@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error(`[hsse-cron] Job ${job} failed:`, error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: (error as Error).message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
@@ -105,7 +105,7 @@ async function handleSlaCheck(supabase: any, supabaseUrl: string, serviceRoleKey
         console.warn(`[sla_check] Notification failed for ${incident.id}: ${notifyRes.status}`);
       }
     } catch (e) {
-      console.warn(`[sla_check] Notification error for ${incident.id}:`, e.message);
+      console.warn(`[sla_check] Notification error for ${incident.id}:`, (e as Error).message);
     }
 
     processed++;
@@ -182,7 +182,7 @@ async function handleMonitoringTermination(supabase: any, supabaseUrl: string, s
         console.warn(`[monitoring_termination] Notification failed for ${incident.id}: ${notifyRes.status}`);
       }
     } catch (e) {
-      console.warn(`[monitoring_termination] Notification error for ${incident.id}:`, e.message);
+      console.warn(`[monitoring_termination] Notification error for ${incident.id}:`, (e as Error).message);
     }
 
     processed++;
