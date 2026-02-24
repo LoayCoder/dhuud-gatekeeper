@@ -303,7 +303,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
     
     // Filter by selected branches if not full access
     if (!hasFullAccess) {
-      depts = depts.filter((d) => selectedBranchIds.includes(d.branch_id));
+      depts = depts.filter((d) => !d.branch_id || selectedBranchIds.includes(d.branch_id));
     }
     
     // Deduplicate by name
