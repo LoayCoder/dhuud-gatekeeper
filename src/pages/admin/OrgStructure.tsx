@@ -334,7 +334,7 @@ export default function OrgStructure() {
         tenant_id: profile.tenant_id
       };
 
-      // ===== DUPLICATE DETECTION (tenant-wide) =====
+      // ===== DUPLICATE DETECTION =====
       
       // Branch duplicate check (tenant-wide)
       if (table === 'branches') {
@@ -368,10 +368,12 @@ export default function OrgStructure() {
         }
       }
 
-      // Department duplicate check (tenant-wide)
+      // Department duplicate check (branch-scoped)
       if (table === 'departments') {
+        const targetBranch = selectedBranchForDepartment === 'all' ? null : selectedBranchForDepartment;
         const existingDept = departments.find(d => 
-          d.name.toLowerCase() === newItemName.trim().toLowerCase()
+          d.name.toLowerCase() === newItemName.trim().toLowerCase() &&
+          (d.branch_id ?? null) === targetBranch
         );
         if (existingDept) {
           toast({ 
@@ -384,10 +386,12 @@ export default function OrgStructure() {
         }
       }
 
-      // Section duplicate check (tenant-wide)
+      // Section duplicate check (branch-scoped)
       if (table === 'sections') {
+        const targetBranch = selectedBranchForSection === 'all' ? null : selectedBranchForSection;
         const existingSection = sections.find(s => 
-          s.name.toLowerCase() === newItemName.trim().toLowerCase()
+          s.name.toLowerCase() === newItemName.trim().toLowerCase() &&
+          (s.branch_id ?? null) === targetBranch
         );
         if (existingSection) {
           toast({ 
@@ -400,10 +404,11 @@ export default function OrgStructure() {
         }
       }
 
-      // Site duplicate check (tenant-wide)
+      // Site duplicate check (branch-scoped)
       if (table === 'sites') {
         const existingSite = sites.find(s => 
-          s.name.toLowerCase() === newItemName.trim().toLowerCase()
+          s.name.toLowerCase() === newItemName.trim().toLowerCase() &&
+          s.branch_id === parentId
         );
         if (existingSite) {
           toast({ 
