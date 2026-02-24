@@ -359,3 +359,6 @@ verify_jwt = true
 
 [functions.notify-public-gate-pass]
 verify_jwt = false
+
+[functions.send-contractor-notification]
+verify_jwt = false
