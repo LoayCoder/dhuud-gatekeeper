@@ -46,7 +46,7 @@ import {
   IncidentDamageCard,
   IncidentInfoSidebar,
 } from '@/components/incidents/detail';
-import { IncidentTabs } from '@/components/incidents/detail/IncidentTabs';
+import { IncidentDetailsLayout } from '@/components/incidents/detail/IncidentDetailsLayout';
 
 export default function IncidentDetail() {
   const { id } = useParams<{ id: string }>();
@@ -260,11 +260,13 @@ export default function IncidentDetail() {
           event_type: incident.event_type,
           status: incident.status,
           severity_v2: incident.severity_v2,
+          severity: (incident as any).severity,
           potential_severity_v2: (incident as any).potential_severity_v2,
           branch: incident.branch,
           site: incident.site,
           location: incident.location,
           occurred_at: incident.occurred_at,
+          created_at: incident.created_at,
           branch_id: incident.branch_id,
           site_id: incident.site_id,
           related_contractor_company_id: incident.related_contractor_company_id,
@@ -337,8 +339,8 @@ export default function IncidentDetail() {
         </>
       )}
 
-      {/* Main Content Tabs */}
-      <IncidentTabs incident={incident} isPrinting={isPrinting} />
+      {/* Main Content Layout */}
+      <IncidentDetailsLayout incident={incident} currentOwner={currentOwner} isPrinting={isPrinting} />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
