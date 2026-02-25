@@ -14069,6 +14069,11 @@
       "awaitingClosure": "بانتظار الموافقة على الإغلاق",
       "closureApproved": "مغلق"
     },
+    "currentOwner": {
+      "takeAction": "اتخاذ إجراء",
+      "sendReminder": "إرسال تذكير",
+      "escalate": "تصعيد"
+    },
     "assignInvestigator": {
       "title": "تعيين محقق",
       "approved": "تمت الموافقة على التحقيق",
