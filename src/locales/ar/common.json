@@ -105,7 +105,8 @@
     "copyToClipboard": "نسخ إلى الحافظة",
     "current": "الحالي",
     "higher": "أعلى",
-    "lower": "أقل"
+    "lower": "أقل",
+    "toggleTheme": "تبديل المظهر"
   },
   "validation": {
     "required": "هذا الحقل مطلوب",

@@ -2909,7 +2909,10 @@
     "subtype": "Subtype",
     "eventCategories": {
       "observation": "Observation",
-      "incident": "Incident"
+      "incident": "Incident",
+      "near_miss": "Near Miss",
+      "hazard": "Hazard",
+      "positive_observation": "Positive Observation"
     },
     "observationTypes": {
       "unsafeAct": "Unsafe Act",
@@ -3117,6 +3120,16 @@
     "riskRatingDescription": "Assess the potential risk level of this observation",
     "observationSimplified": "Observations have a simplified workflow - no investigation required",
     "status": {
+      "draft": "Draft",
+      "open": "Open",
+      "in_progress": "In Progress",
+      "action_required": "Action Required",
+      "pending_approval": "Pending Approval",
+      "resolved": "Resolved",
+      "investigating": "Investigating",
+      "under_investigation": "Under Investigation",
+      "under_review": "Under Review",
+      "cancelled": "Cancelled",
       "submitted": "Submitted",
       "pending_review": "Pending Review",
       "investigation_pending": "Investigation Pending",
@@ -11532,5 +11545,11 @@
         "parseError": "Failed to parse AI suggestion"
       }
     }
+  },
+  "navigation": {
+    "aiSettings": "AI Settings"
+  },
+  "common": {
+    "toggleTheme": "Toggle Theme"
   }
 }

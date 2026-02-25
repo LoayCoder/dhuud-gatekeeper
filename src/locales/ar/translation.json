@@ -4795,7 +4795,10 @@
     "subtype": "النوع الفرعي",
     "eventCategories": {
       "observation": "ملاحظة",
-      "incident": "حادث"
+      "incident": "حادث",
+      "near_miss": "حادث وشيك",
+      "hazard": "خطر",
+      "positive_observation": "ملاحظة إيجابية"
     },
     "observationTypes": {
       "unsafeAct": "تصرف غير آمن",
@@ -5003,6 +5006,16 @@
     "riskRatingDescription": "تقييم مستوى الخطر المحتمل لهذه الملاحظة",
     "observationSimplified": "الملاحظات لها سير عمل مبسط - لا يتطلب التحقيق",
     "status": {
+      "draft": "مسودة",
+      "open": "مفتوح",
+      "in_progress": "قيد التنفيذ",
+      "action_required": "إجراء مطلوب",
+      "pending_approval": "بانتظار الموافقة",
+      "resolved": "تم الحل",
+      "investigating": "جاري التحقيق",
+      "under_investigation": "قيد التحقيق",
+      "under_review": "قيد المراجعة",
+      "cancelled": "ملغى",
       "submitted": "مقدم",
       "pending_review": "قيد المراجعة",
       "investigation_pending": "بانتظار التحقيق",
@@ -14212,5 +14225,8 @@
         "parseError": "فشل في تحليل اقتراح الذكاء الاصطناعي"
       }
     }
+  },
+  "navigation": {
+    "aiSettings": "إعدادات الذكاء الاصطناعي"
   }
 }

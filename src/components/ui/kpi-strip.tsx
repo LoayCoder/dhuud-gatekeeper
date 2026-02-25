@@ -48,11 +48,9 @@ export function KPIStrip({ items, className, compact = false }: KPIStripProps) {
     <div
       className={cn(
         'grid gap-3',
-        items.length <= 3
-          ? 'grid-cols-1 sm:grid-cols-3'
-          : items.length <= 4
-            ? 'grid-cols-2 sm:grid-cols-4'
-            : 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-5',
+        items.length <= 4
+          ? 'grid-cols-2 sm:grid-cols-4'
+          : 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-4',
         className
       )}
     >
@@ -109,8 +107,8 @@ function KPICard({ item, compact = false }: KPICardProps) {
       {/* Value */}
       <div className="flex items-baseline gap-2">
         <span className={cn(
-          'font-semibold text-foreground',
-          compact ? 'text-xl' : 'text-2xl'
+          'font-semibold text-foreground tracking-tight',
+          compact ? 'text-2xl' : 'text-3xl lg:text-4xl'
         )}>
           {value}
         </span>

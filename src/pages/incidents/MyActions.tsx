@@ -438,6 +438,8 @@ export default function MyActions() {
   // Toggle filter - clicking same filter clears it
   const handleFilterClick = (filter: string) => {
     setActiveFilter(activeFilter === filter ? null : filter);
+    // Switch to actions tab when a filter is clicked
+    setActiveTab('actions');
   };
 
   // Build KPI items for the unified strip
@@ -552,31 +554,31 @@ export default function MyActions() {
               <ClipboardList className="h-4 w-4 me-2 flex-shrink-0" />
               <span className="hidden sm:inline">{t('investigation.correctiveActions', 'Corrective Actions')}</span>
               <span className="sm:hidden">{t('investigation.actions', 'Actions')}</span>
-              <span className="ms-1">({allActions?.length || 0})</span>
+              <Badge variant="secondary" className="ms-1.5">{allActions?.length || 0}</Badge>
             </TabsTrigger>
             <TabsTrigger value="investigations" className="whitespace-nowrap">
               <SearchIcon className="h-4 w-4 me-2 flex-shrink-0" />
               <span className="hidden sm:inline">{t('investigation.assignedInvestigations', 'Assigned Investigations')}</span>
               <span className="sm:hidden">{t('investigation.investigations', 'Investigations')}</span>
-              <span className="ms-1">({myInvestigations?.length || 0})</span>
+              <Badge variant="secondary" className="ms-1.5">{myInvestigations?.length || 0}</Badge>
             </TabsTrigger>
             <TabsTrigger value="inspections" className="whitespace-nowrap">
               <Calendar className="h-4 w-4 me-2 flex-shrink-0" />
               <span className="hidden sm:inline">{t('inspections.scheduledInspections', 'Scheduled Inspections')}</span>
               <span className="sm:hidden">{t('inspections.inspections', 'Inspections')}</span>
-              <span className="ms-1">({myInspections?.length || 0})</span>
+              <Badge variant="secondary" className="ms-1.5">{myInspections?.length || 0}</Badge>
             </TabsTrigger>
             <TabsTrigger value="witness" className="whitespace-nowrap">
               <MessageSquare className="h-4 w-4 me-2 flex-shrink-0" />
               <span className="hidden sm:inline">{t('investigation.witnesses.title', 'Witness Statements')}</span>
               <span className="sm:hidden">{t('investigation.witness', 'Witness')}</span>
-              <span className="ms-1">({witnessStatements?.length || 0})</span>
+              <Badge variant="secondary" className="ms-1.5">{witnessStatements?.length || 0}</Badge>
             </TabsTrigger>
             <TabsTrigger value="reported" className="whitespace-nowrap">
               <FileText className="h-4 w-4 me-2 flex-shrink-0" />
               <span className="hidden sm:inline">{t('investigation.myReportedIncidents', 'My Reported Incidents')}</span>
               <span className="sm:hidden">{t('investigation.reported', 'Reported')}</span>
-              <span className="ms-1">({myReportedIncidents?.length || 0})</span>
+              <Badge variant="secondary" className="ms-1.5">{myReportedIncidents?.length || 0}</Badge>
             </TabsTrigger>
             {canAccessApprovals && (
               <TabsTrigger value="approvals" className="gap-2 whitespace-nowrap">
@@ -584,7 +586,7 @@ export default function MyActions() {
                 <span className="hidden sm:inline">{t('investigation.approvals.pendingApprovals', 'Pending Approvals')}</span>
                 <span className="sm:hidden">{t('investigation.approvals.approvals', 'Approvals')}</span>
                 {totalPendingApprovals > 0 && (
-                  <Badge variant="secondary" className="ms-1">
+                  <Badge variant="secondary" className="ms-1.5">
                     {totalPendingApprovals}
                   </Badge>
                 )}
@@ -1132,16 +1134,16 @@ export default function MyActions() {
                       {/* Status Badge - Full width on mobile */}
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge variant="secondary" className="whitespace-nowrap">
-                          {String(t(`incidents.status.${incident.status}`, incident.status))}
+                          {t(`incidents.status.${incident.status}`, incident.status)}
                         </Badge>
                         {incident.event_type && (
                           <Badge variant="outline" className="whitespace-nowrap">
-                            {String(t(`incidents.eventCategories.${incident.event_type}`, incident.event_type))}
+                            {t(`incidents.eventCategories.${incident.event_type}`, incident.event_type)}
                           </Badge>
                         )}
                         {incident.severity && (
                           <Badge variant={incident.severity === 'critical' || incident.severity === 'high' ? 'destructive' : 'secondary'} className="whitespace-nowrap">
-                            {String(t(`investigation.severity.${incident.severity}`, incident.severity))}
+                            {t(`investigation.severity.${incident.severity}`, incident.severity)}
                           </Badge>
                         )}
                       </div>
@@ -1211,7 +1213,15 @@ export default function MyActions() {
 
         {canAccessApprovals && (
           <TabsContent value="approvals" className="mt-4 space-y-6">
-            {(approvalsLoading || severityLoading || incidentApprovalsLoading || closuresLoading) ? (
+            {(
+              (canVerifyActions && approvalsLoading) ||
+              (canApproveSeverity && (severityLoading || potentialSeverityLoading)) ||
+              (incidentApprovalsLoading) ||
+              (canApproveClosures && closuresLoading) ||
+              (extensionsLoading) ||
+              (canApproveWorkers && workersLoading) ||
+              (canApproveGatePasses && gatePassesLoading)
+            ) ? (
               <div className="space-y-4">
                 {[1, 2].map((i) => (
                   <Card key={i}>
@@ -1249,12 +1259,12 @@ export default function MyActions() {
                                 )}
                                 {incident.event_type && (
                                   <Badge variant="outline" className="whitespace-nowrap">
-                                    {String(t(`incidents.eventCategories.${incident.event_type}`, incident.event_type))}
+                                    {t(`incidents.eventCategories.${incident.event_type}`, incident.event_type)}
                                   </Badge>
                                 )}
                                 {(incident as any).incident_type && (
                                   <Badge variant="outline" className="whitespace-nowrap">
-                                    {String(t(`incidents.incidentTypes.${(incident as any).incident_type}`, (incident as any).incident_type))}
+                                    {t(`incidents.incidentTypes.${(incident as any).incident_type}`, (incident as any).incident_type)}
                                   </Badge>
                                 )}
                               </div>
