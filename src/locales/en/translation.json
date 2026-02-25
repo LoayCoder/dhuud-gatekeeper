@@ -11393,6 +11393,11 @@
       "awaitingClosure": "Awaiting closure approval",
       "closureApproved": "Closed"
     },
+    "currentOwner": {
+      "takeAction": "Take Action",
+      "sendReminder": "Send Reminder",
+      "escalate": "Escalate"
+    },
     "assignInvestigator": {
       "title": "Assign Investigator",
       "approved": "Investigation Approved",

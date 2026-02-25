@@ -102,19 +102,28 @@ export function CurrentOwnerCard({ incident }: { incident: IncidentWithDetails }
                 {/* Action Context Panel */}
                 <div className="flex items-center gap-3 shrink-0">
                     {isCurrentUserOwner ? (
-                        <Button size="lg" className="shadow-lg px-8">
-                            Take Action
-                            <ArrowRight className="h-4 w-4 ml-2" />
+                        <Button
+                            size="lg"
+                            className="shadow-lg px-8"
+                            onClick={() => {
+                                const workflowCard = document.querySelector('[data-workflow-card]');
+                                if (workflowCard) {
+                                    workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }
+                            }}
+                        >
+                            {t('workflow.currentOwner.takeAction', 'Take Action')}
+                            <ArrowRight className="h-4 w-4 ms-2 rtl:rotate-180" />
                         </Button>
                     ) : (
                         <>
                             <Button variant="outline" className="bg-background shadow-sm border-muted-foreground/30">
-                                <Bell className="h-4 w-4 mr-2 text-muted-foreground" />
-                                Send Reminder
+                                <Bell className="h-4 w-4 me-2 text-muted-foreground" />
+                                {t('workflow.currentOwner.sendReminder', 'Send Reminder')}
                             </Button>
                             <Button variant="outline" className="bg-background shadow-sm border-destructive/30 text-destructive hover:bg-destructive/10">
-                                <ArrowUpRight className="h-4 w-4 mr-2" />
-                                Escalate
+                                <ArrowUpRight className="h-4 w-4 me-2" />
+                                {t('workflow.currentOwner.escalate', 'Escalate')}
                             </Button>
                         </>
                     )}

@@ -377,6 +377,7 @@ export default function InvestigationWorkspace() {
           />
         );
 
+      case 'pending_dept_rep_review':
       case 'pending_dept_rep_approval':
         // Observations go through DeptRepApprovalCard (full access with actions)
         return (
@@ -734,7 +735,9 @@ export default function InvestigationWorkspace() {
           <EscalationAlertBanner incident={incidentData} />
 
           {/* Workflow-Specific Cards */}
-          {renderWorkflowCards()}
+          <div data-workflow-card>
+            {renderWorkflowCards()}
+          </div>
 
           {/* Closure Prerequisites Card - Show during final closure stages */}
           {status && ['pending_final_closure', 'pending_hsse_incident_validation'].includes(status) && (
