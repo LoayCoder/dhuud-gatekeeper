@@ -27125,6 +27125,7 @@ export type Database = {
         | "osha_reportable"
         | "pending_escalation_approval"
         | "dept_rep_rejected"
+        | "pending_dept_rep_review"
       maintenance_frequency:
         | "daily"
         | "weekly"
@@ -27490,6 +27491,7 @@ export const Constants = {
         "osha_reportable",
         "pending_escalation_approval",
         "dept_rep_rejected",
+        "pending_dept_rep_review",
       ],
       maintenance_frequency: [
         "daily",
