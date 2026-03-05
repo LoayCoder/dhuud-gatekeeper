@@ -163,7 +163,7 @@ export function useAtRiskAssets(limit = 10) {
 
       if (error) throw error;
 
-      return (data || []).map((item: unknown) => ({
+      return (data || []).map((item: any) => ({
         id: item.id,
         assetId: item.asset_id,
         assetName: item.hsse_assets?.name || 'Unknown Asset',

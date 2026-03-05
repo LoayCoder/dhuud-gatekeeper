@@ -84,7 +84,7 @@ export function useAssetCostTransactions(assetId: string | undefined) {
           fiscal_year: fiscalYear,
           fiscal_quarter: fiscalQuarter,
         created_by: user?.id,
-      } as unknown)
+      } as any)
       .select()
       .single();
 
