@@ -46,11 +46,16 @@ export async function handleHSSEManagerEscalation(input: any, userId: string, te
   return data;
 }
 
-export async function startInvestigation(input: any, userId: string, tenantId: string) {
+export async function startInvestigation(incidentIdOrInput: any, investigatorIdOrUserId?: string, assignmentNotesOrTenantId?: string, userId?: string, tenantId?: string) {
+  // Support both (input, userId, tenantId) and (incidentId, investigatorId, assignmentNotes, userId, tenantId)
+  const incidentId = typeof incidentIdOrInput === 'object' ? incidentIdOrInput.incidentId : incidentIdOrInput;
+  const investigatorId = typeof incidentIdOrInput === 'object' ? incidentIdOrInput.investigatorId : investigatorIdOrUserId;
+  const actualUserId = typeof incidentIdOrInput === 'object' ? investigatorIdOrUserId : userId;
+  
   const { data, error } = await (supabase as any).rpc('start_investigation', {
-    p_incident_id: input.incidentId,
-    p_user_id: userId,
-    p_investigator_id: input.investigatorId || userId,
+    p_incident_id: incidentId,
+    p_user_id: actualUserId,
+    p_investigator_id: investigatorId || actualUserId,
   });
   if (error) throw error;
   return data;
