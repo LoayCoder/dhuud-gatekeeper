@@ -16,11 +16,12 @@ import { supabase } from '@/integrations/supabase/client';
 export function UserFormDialog(props: UserFormDialogProps) {
   const state = useUserFormState(props);
   const {
-    t, direction, form, open, onOpenChange, user,
+    t, direction, form, onOpenChange, user,
     activeTab, setActiveTab, getTabStatus, showTypeSpecificTab,
     onSubmit, isLoading, quota, showTeamAssignment, setShowTeamAssignment,
     currentManagerId, setCurrentManagerId
-  } = state;
+  } = state as any;
+  const open = props.open;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

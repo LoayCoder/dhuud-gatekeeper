@@ -1,8 +1,5 @@
-export * from './components/GateQRScanner/hooks/helpers';
-export * from './components/GateQRScanner/hooks/useGateQRScanner';
-export * from './components/GateQRScanner/GateQRScanner';
+// Components
 export * from './components/GateQRScanner';
-export * from './components/GateQRScanner/types';
 export * from './components/ActiveSessionsTab';
 export * from './components/ActiveVisitorsList';
 export * from './components/ActiveWorkersList';
@@ -97,6 +94,8 @@ export * from './components/WorkerScanHistory';
 export * from './components/WorkerVerificationPanel';
 export * from './components/ZonePolygonEditor';
 export * from './components/ZoneSelector';
+
+// Hooks
 export * from './hooks/use-gate-entries';
 export * from './hooks/use-gate-guard-stats';
 export * from './hooks/use-security-audit-log';
@@ -108,12 +107,13 @@ export * from './hooks/use-security-patrols';
 export * from './hooks/use-security-push-notifications';
 export * from './hooks/use-security-realtime';
 export * from './hooks/use-security-report-export';
-export * from './hooks/use-security-reports';
 export * from './hooks/use-security-score';
 export * from './hooks/use-security-shifts';
 export * from './hooks/use-security-stats';
 export * from './hooks/use-security-team';
 export * from './hooks/use-security-teams';
 export * from './hooks/use-security-zones';
-export * from './services/gateQRService';
 export * from './hooks/use-selected-zone';
+
+// Services
+export * from './services/gateQRService';

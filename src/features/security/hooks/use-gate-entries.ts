@@ -18,7 +18,7 @@ export interface GateEntryFilters {
 export interface CreateGateEntryParams {
   person_name: string;
   entry_type: string;
-  entry_time: string;
+  entry_time?: string;
   purpose?: string;
   destination_name?: string;
   host_mobile?: string;

@@ -136,7 +136,7 @@ export function useGuardReportData(guardId: string, startDate: string, endDate: 
                 employee_id: profile?.employee_id || null,
                 job_title: profile?.job_title || 'Security Officer',
                 avatar_url: profile?.avatar_url || null,
-                department_name: (profile?.department as unknown)?.name || null,
+                department_name: (profile?.department as any)?.name || null,
                 supervisor_name: null,
                 assigned_zone: null,
                 performance: {
