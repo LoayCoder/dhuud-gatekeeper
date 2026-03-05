@@ -41,7 +41,7 @@ export default function TrainingCenter() {
   }, {} as Record<string, RoleTrainingGuide[]>);
 
   if (selectedGuide) {
-    const IconComponent = iconMap[selectedGuide.icon] || User;
+    const IconComponent = (iconMap[selectedGuide.icon] || User) as any;
     
     return (
       <div className="container mx-auto px-4 py-4 sm:px-6 sm:py-6">

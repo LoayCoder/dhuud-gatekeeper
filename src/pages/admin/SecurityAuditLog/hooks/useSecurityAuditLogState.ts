@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { logger } from '@/lib/logger';
 import { useCursorPagination, CursorPosition, buildCursorCondition } from '@/hooks/use-cursor-pagination';
-import { ActivityLog, LoginHistoryRecord, SECURITY_EVENTS, USER_MANAGEMENT_EVENTS } from '../types.tsx';
+import { type ActivityLog, type LoginHistoryRecord, SECURITY_EVENTS, USER_MANAGEMENT_EVENTS } from '../types.tsx';
 
 export function useSecurityAuditLogState() {
   const { t, i18n } = useTranslation();
