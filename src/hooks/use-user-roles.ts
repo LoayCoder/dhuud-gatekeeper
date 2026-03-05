@@ -1,10 +1,3 @@
-// Stub for use-user-roles
+// Re-export from features
+export { useUserRoles } from '@/features/users';
 export type RoleCategory = string;
-
-export function useUserRoles() {
-  return {
-    roles: [] as any[],
-    hasRole: (role: string) => false,
-    isLoading: false,
-  };
-}
