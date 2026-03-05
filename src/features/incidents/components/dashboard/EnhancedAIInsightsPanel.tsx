@@ -246,7 +246,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                               <div className="p-3 bg-muted/50 rounded-lg cursor-help">
                                 <div className="flex items-center justify-between mb-2">
                                   <span className="font-medium text-sm">{branch.branch_name}</span>
-                                  <Badge variant={getRiskLevelColor(branch.risk_level) as unknown} className="capitalize">
+                                  <Badge variant={getRiskLevelColor(branch.risk_level) as any} className="capitalize">
                                     {branch.score}/100
                                   </Badge>
                                 </div>
@@ -281,7 +281,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                         <div key={idx} className="p-3 bg-muted/50 rounded-lg">
                           <div className="flex items-center justify-between mb-2">
                             <span className="font-medium text-sm">{dept.department_name}</span>
-                            <Badge variant={getRiskLevelColor(dept.risk_level) as unknown} className="capitalize">
+                            <Badge variant={getRiskLevelColor(dept.risk_level) as any} className="capitalize">
                               {dept.score}/100
                             </Badge>
                           </div>
@@ -369,7 +369,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                       {insights.anomalies.map((anomaly, idx) => (
                         <div key={idx} className="p-3 bg-muted/50 rounded-lg">
                           <div className="flex items-center gap-2 mb-2">
-                            <Badge variant={getSeverityColor(anomaly.severity) as unknown}>{anomaly.severity}</Badge>
+                            <Badge variant={getSeverityColor(anomaly.severity) as any}>{anomaly.severity}</Badge>
                             <span className="text-xs text-muted-foreground">{anomaly.date_range}</span>
                           </div>
                           <p className="text-sm">{anomaly.description}</p>
@@ -395,7 +395,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                       {insights.recommendations.map((rec, idx) => (
                         <div key={idx} className="p-3 bg-muted/50 rounded-lg">
                           <div className="flex items-center gap-2 mb-2">
-                            <Badge variant={getPriorityColor(rec.priority) as unknown}>{rec.priority}</Badge>
+                            <Badge variant={getPriorityColor(rec.priority) as any}>{rec.priority}</Badge>
                             <span className="text-sm font-medium">{rec.area}</span>
                           </div>
                           <p className="text-sm mb-1">{rec.action}</p>
