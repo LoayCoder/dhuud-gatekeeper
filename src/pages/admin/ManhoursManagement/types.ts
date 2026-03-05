@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 
-interface ManhourFormData {
+export interface ManhourFormData {
   period_date: string;
   period_type: 'daily' | 'weekly' | 'monthly';
   employee_hours: number;
@@ -16,7 +16,7 @@ interface ManhourFormData {
   notes: string;
 }
 
-interface ImportRow {
+export interface ImportRow {
   period_date: string;
   period_type: string;
   employee_hours: number;
@@ -32,7 +32,7 @@ interface ImportRow {
   errors: string[];
 }
 
-const getDefaultWorkingDays = (periodType: 'daily' | 'weekly' | 'monthly') => {
+export const getDefaultWorkingDays = (periodType: 'daily' | 'weekly' | 'monthly') => {
   switch (periodType) {
     case 'daily': return 1;
     case 'weekly': return 5;
@@ -42,7 +42,7 @@ const getDefaultWorkingDays = (periodType: 'daily' | 'weekly' | 'monthly') => {
 };
 
 // Work schedule presets
-interface WorkSchedulePreset {
+export interface WorkSchedulePreset {
   id: string;
   label: string;
   hoursPerDay: number;
@@ -50,7 +50,7 @@ interface WorkSchedulePreset {
   description: string;
 }
 
-const workSchedulePresets: WorkSchedulePreset[] = [
+export const workSchedulePresets: WorkSchedulePreset[] = [
   { id: 'standard_5day', label: 'Standard 5-Day Week', hoursPerDay: 8, workingDays: 22, description: '8h × 22 days' },
   { id: 'standard_6day', label: 'Standard 6-Day Week', hoursPerDay: 8, workingDays: 26, description: '8h × 26 days' },
   { id: 'shift_12h', label: '12-Hour Shift', hoursPerDay: 12, workingDays: 15, description: '12h × 15 days' },
@@ -59,7 +59,7 @@ const workSchedulePresets: WorkSchedulePreset[] = [
   { id: 'custom', label: 'Custom', hoursPerDay: 8, workingDays: 22, description: 'Custom schedule' },
 ];
 
-const defaultFormData: ManhourFormData = {
+export const defaultFormData: ManhourFormData = {
   period_date: format(new Date(), 'yyyy-MM-dd'),
   period_type: 'monthly',
   employee_hours: 0,

@@ -248,10 +248,10 @@ export default function PlatformSettings() {
                     <div key={category} className="flex justify-between p-2 bg-muted/50 rounded">
                       <span className="font-medium capitalize">{category.replace(/([A-Z])/g, ' $1').trim()}</span>
                       <span className="text-muted-foreground">
-                        {typeof data === 'object' && data !== null
+                        {String(typeof data === 'object' && data !== null
                           ? Object.values(data as Record<string, unknown>).reduce((a: number, b: unknown) => a + (typeof b === 'number' ? b : 0), 0)
-                          : String(data)
-                        }
+                          : data
+                        )}
                       </span>
                     </div>
                   ))}

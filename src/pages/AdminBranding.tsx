@@ -92,7 +92,7 @@ export default function AdminBranding() {
       setSecondaryColorDark(tenantData.secondary_color_dark || '');
 
       // Background
-      setBgTheme(tenantData.background_theme as unknown || 'color');
+      setBgTheme((tenantData.background_theme as any) || 'color');
       setBgColor(tenantData.background_color || '');
       setBgPreview(tenantData.background_image_url);
 
@@ -127,7 +127,7 @@ export default function AdminBranding() {
       return;
     }
     const file = e.target.files[0];
-    const url = await uploadAsset(file, type, tenant.id);
+    const url = await uploadAsset(file, type, tenant.id as string);
     if (url) {
       switch (type) {
         case 'logo-light':
@@ -199,7 +199,7 @@ export default function AdminBranding() {
       const { error: saveError } = await supabase
         .from('tenants')
         .update(updates)
-        .eq('id', tenant.id);
+        .eq('id', tenant.id as string);
 
       if (saveError) throw saveError;
       await refreshTenantData();
@@ -250,7 +250,7 @@ export default function AdminBranding() {
         </Button>
         <div className="text-start">
           <h1 className="text-3xl font-bold">{t('adminBranding.title')}</h1>
-          <p className="text-muted-foreground">{t('adminBranding.subtitle')} {tenant?.name}</p>
+          <p className="text-muted-foreground">{t('adminBranding.subtitle')} {String(tenant?.name || '')}</p>
         </div>
       </div>
 
@@ -466,7 +466,7 @@ export default function AdminBranding() {
             logoDarkUrl={logoDarkPreview}
             sidebarIconLightUrl={sidebarIconLightPreview}
             sidebarIconDarkUrl={sidebarIconDarkPreview}
-            tenantName={tenant?.name || ''}
+            tenantName={String(tenant?.name || '')}
             previewMode={previewMode}
             onPreviewModeChange={setPreviewMode}
           />

@@ -36,7 +36,7 @@ export interface ActivityLog {
   ip_address?: string | null;
 }
 
-interface LoginHistoryRecord {
+export interface LoginHistoryRecord {
   id: string;
   user_id: string;
   email: string;

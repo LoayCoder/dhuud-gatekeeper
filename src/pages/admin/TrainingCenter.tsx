@@ -41,7 +41,7 @@ export default function TrainingCenter() {
   }, {} as Record<string, RoleTrainingGuide[]>);
 
   if (selectedGuide) {
-    const IconComponent = iconMap[selectedGuide.icon] || User;
+    const IconComponent = (iconMap[selectedGuide.icon] || User) as any;
     
     return (
       <div className="container mx-auto px-4 py-4 sm:px-6 sm:py-6">
@@ -245,7 +245,7 @@ export default function TrainingCenter() {
             </h2>
             <div className="space-y-3 sm:grid sm:gap-4 sm:space-y-0 sm:grid-cols-2 lg:grid-cols-3">
               {guides.map((guide) => {
-                const IconComponent = iconMap[guide.icon] || User;
+                const IconComponent = (iconMap[guide.icon] || User) as any;
                 return (
                   <Card 
                     key={guide.roleCode} 

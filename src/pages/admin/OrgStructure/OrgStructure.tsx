@@ -34,7 +34,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserRoles } from '@/features/users';
 import { useBranchFilter } from "@/hooks/use-branch-filter";
 
-import { Branch, Division, Department, Section, Coordinate, Site, Building, FloorZone, TableType } from './types';
+import type { Branch, Division, Department, Section, Coordinate, Site, Building, FloorZone, TableType } from './types';
 
 import { BranchesTab } from './OrgStructureTabs';
 import { SitesTab } from './OrgStructureTabs';
@@ -103,10 +103,10 @@ return (<div className="container py-8 space-y-8" dir={direction}>
 
       {/* Site Detail Dialog */}
       <SiteDetailDialog
-        open={siteDialogOpen}
-        onOpenChange={setSiteDialogOpen}
-        site={selectedSite}
-        onSave={fetchData}
+        open={(viewProps as any).siteDialogOpen}
+        onOpenChange={(viewProps as any).setSiteDialogOpen}
+        site={(viewProps as any).selectedSite}
+        onSave={(viewProps as any).fetchData}
       />
     </div>);
 }
