@@ -192,17 +192,8 @@ export function useVerifyAction() {
 }
 
 // Session hooks
-export interface InspectionSession {
-  id: string;
-  status: string;
-  [key: string]: any;
-}
-
-export interface SessionAsset {
-  id: string;
-  asset_id: string;
-  [key: string]: any;
-}
+// InspectionSession and SessionAsset types are exported from use-inspection-sessions/types.ts
+// Do not re-export them here to avoid conflicts.
 
 export function useCreateSession() {
   const qc = useQueryClient();

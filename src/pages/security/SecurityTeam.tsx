@@ -22,9 +22,7 @@ export default function SecurityTeam() {
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [showAddGuard, setShowAddGuard] = useState(false);
 
-  const { data: teamMembers, isLoading } = useSecurityTeam({
-    isActive: statusFilter === 'all' ? undefined : statusFilter === 'active',
-  });
+  const { data: teamMembers, isLoading } = useSecurityTeam();
 
   // Apply filters
   const filteredMembers = teamMembers?.filter(m => {
