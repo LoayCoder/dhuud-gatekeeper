@@ -181,7 +181,7 @@ export function MaterialPassVerificationPanel() {
     } catch (error: unknown) {
       setResult({
         is_valid: false,
-        errors: [error.message || 'Failed to verify gate pass'],
+        errors: [(error as Error).message || 'Failed to verify gate pass'],
         warnings: [],
       });
     } finally {

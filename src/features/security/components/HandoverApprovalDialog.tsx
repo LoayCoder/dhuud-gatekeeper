@@ -138,7 +138,7 @@ export function HandoverApprovalDialog({ handover, open, onOpenChange }: Handove
   const damagedEquipment = equipment.filter(e => e.status !== 'ok');
 
   const getHandoverTypeBadge = () => {
-    const type = (handover as unknown).handover_type;
+    const type = (handover as any).handover_type;
     if (type === 'vacation') {
       return (
         <Badge className="bg-blue-500 gap-1">
