@@ -354,7 +354,7 @@ export function SiteDetailDialog({
                     >
                       <div className="flex items-center gap-2">
                         <span className="text-sm">
-                          {(assignment as unknown).departments?.name ?? 'Unknown'}
+                          {(assignment as any).departments?.name ?? 'Unknown'}
                         </span>
                         {assignment.is_primary && (
                           <Badge variant="secondary" className="text-xs">
@@ -456,7 +456,7 @@ export function SiteDetailDialog({
                   ) : (
                     <div className="space-y-2">
                       {assignedSections.map((assignment) => {
-                        const sectionData = (assignment as unknown).sections;
+                        const sectionData = (assignment as any).sections;
                         const deptName = allDepartments?.find(
                           (d) => d.id === sectionData?.department_id
                         )?.name;

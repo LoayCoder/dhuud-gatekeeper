@@ -272,9 +272,9 @@ export function NotificationMatrixManagement() {
       condition_type: firstRule.condition_type,
       user_id: isUserSpecific ? firstRule.user_id : null,
       isUserSpecific,
-      whatsapp_template_id: (firstRule as unknown).whatsapp_template_id || null,
-      email_template_id: (firstRule as unknown).email_template_id || null,
-      push_template_id: (firstRule as unknown).push_template_id || null,
+      whatsapp_template_id: (firstRule as any).whatsapp_template_id || null,
+      email_template_id: (firstRule as any).email_template_id || null,
+      push_template_id: (firstRule as any).push_template_id || null,
       event_type: activeEventType,
     });
     
@@ -484,9 +484,9 @@ export function NotificationMatrixManagement() {
             users={users || []}
             getRoleLabel={getRoleLabel}
             getSeverityLabel={getSeverityLabel}
-            emailTemplates={emailTemplates}
-            whatsappTemplates={whatsappTemplates}
-            pushTemplates={pushTemplates}
+            emailTemplates={emailTemplates as any}
+            whatsappTemplates={whatsappTemplates as any}
+            pushTemplates={pushTemplates as any}
           />
 
           <DialogFooter className="gap-2 sm:gap-0">
@@ -519,9 +519,9 @@ export function NotificationMatrixManagement() {
             users={users || []}
             getRoleLabel={getRoleLabel}
             getSeverityLabel={getSeverityLabel}
-            emailTemplates={emailTemplates}
-            whatsappTemplates={whatsappTemplates}
-            pushTemplates={pushTemplates}
+            emailTemplates={emailTemplates as any}
+            whatsappTemplates={whatsappTemplates as any}
+            pushTemplates={pushTemplates as any}
           />
 
           <DialogFooter className="gap-2 sm:gap-0">

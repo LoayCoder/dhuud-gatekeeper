@@ -21,10 +21,10 @@ import {
   useToggleEventSubtype,
   type EventSubtypeWithStatus,
 } from '@/hooks/use-active-event-subtypes';
-import AddCategoryDialog from './AddCategoryDialog';
-import AddSubtypeDialog from './AddSubtypeDialog';
-import EditCategoryDialog from './EditCategoryDialog';
-import EditSubtypeDialog from './EditSubtypeDialog';
+import { AddCategoryDialog } from './AddCategoryDialog';
+import { AddSubtypeDialog } from './AddSubtypeDialog';
+import { EditCategoryDialog } from './EditCategoryDialog';
+import { EditSubtypeDialog } from './EditSubtypeDialog';
 
 interface CategoryRowProps {
   category: EventCategoryWithStatus;
