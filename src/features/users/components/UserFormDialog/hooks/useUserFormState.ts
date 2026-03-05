@@ -10,7 +10,8 @@ import { useUserRoles } from '@/features/users';
 import { UserFormValues, userFormSchema, UserFormDialogProps } from '../types';
 
 export function useUserFormState(props: UserFormDialogProps) {
-  const { open, onOpenChange, user, onSave } = props;
+  const { open, onOpenChange, user: userProp, onSave } = props;
+  const user = userProp as any;
   const { t, i18n } = useTranslation();
   const { profile, isAdmin } = useAuth();
   const { quota, checkCanAddUser } = useLicensedUserQuota();
