@@ -48,7 +48,7 @@ export function InspectionItemCard({
   
   const handleNotesBlur = () => {
     if (localNotes !== response?.notes) {
-      onResponseChange({ result: response?.result || undefined, response_value: localValue, notes: localNotes });
+      onResponseChange({ result: (response?.result as any) || undefined, response_value: localValue, notes: localNotes });
     }
   };
   
@@ -70,7 +70,7 @@ export function InspectionItemCard({
           result = 'pass';
         }
       }
-      onResponseChange({ result: result || undefined, response_value: localValue, notes: localNotes });
+      onResponseChange({ result: (result as any) || undefined, response_value: localValue, notes: localNotes });
     }
   };
   

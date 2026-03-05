@@ -121,8 +121,8 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
       toast({ title: t('common.success'), description: t('inspectionSessions.sessionCreated') });
       onOpenChange(false);
       navigate(`/inspections/sessions/${session.id}`);
-    } catch (error: unknown) {
-      toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+    } catch (error: any) {
+      toast({ title: t('common.error'), description: error?.message || 'Error', variant: 'destructive' });
     }
   };
   

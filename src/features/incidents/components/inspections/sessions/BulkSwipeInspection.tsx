@@ -88,8 +88,8 @@ export function BulkSwipeInspection({
       } else if (result === 'na') {
         toast.info(t('inspections.markedNA'), { duration: 1000 });
       }
-    } catch (error: unknown) {
-      toast.error(error.message);
+    } catch (error: any) {
+      toast.error(error?.message || 'Error');
     }
   }, [currentItem, sessionId, isLocked, saveResponse, t]);
   
@@ -110,8 +110,8 @@ export function BulkSwipeInspection({
       setFailComment('');
       
       // Don't auto-advance, let user add photos or more notes if needed
-    } catch (error: unknown) {
-      toast.error(error.message);
+    } catch (error: any) {
+      toast.error(error?.message || 'Error');
     }
   }, [pendingFailItem, sessionId, failComment, saveResponse, t]);
   
