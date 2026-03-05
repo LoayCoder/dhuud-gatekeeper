@@ -10,6 +10,9 @@ export interface GateEntryFilters {
   entryType?: string;
   searchQuery?: string;
   zoneId?: string;
+  onlyActive?: boolean;
+  search?: string;
+  siteId?: string;
 }
 
 export interface CreateGateEntryParams {
@@ -21,6 +24,8 @@ export interface CreateGateEntryParams {
   host_mobile?: string;
   mobile_number?: string;
   notify_host?: boolean;
+  car_plate?: string;
+  [key: string]: any;
 }
 
 export function useGateEntries(filters?: GateEntryFilters) {
