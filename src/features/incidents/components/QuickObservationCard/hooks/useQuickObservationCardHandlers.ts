@@ -186,7 +186,7 @@ export function useQuickObservationCardHandlers(state: any) {
         
         // Navigate back after delay
         setTimeout(() => {
-          onCancel();
+          navigate(-1);
         }, 3000);
       } else {
         setHasSubmitted(false);

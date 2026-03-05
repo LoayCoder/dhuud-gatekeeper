@@ -75,7 +75,7 @@ export function KPIDashboardExport({
     setIsExporting(true);
     try {
       // Log export action
-      await logExport(entityType as unknown, 'excel', 1, { dateRange, filters });
+      await logExport(entityType as any, 'excel', 1, { dateRange, filters });
 
       const workbook = new ExcelJS.Workbook();
       workbook.creator = tenantName || 'HSSE Platform';
