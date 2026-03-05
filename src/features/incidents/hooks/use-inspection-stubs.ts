@@ -393,10 +393,7 @@ export function useUpdateInspectionActionStatus() {
   return useMutation({ mutationFn: async (data: any) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['my-inspection-actions'] }) });
 }
 
-export function useUploadActionEvidence() {
-  const qc = useQueryClient();
-  return useMutation({ mutationFn: async (data: any) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['action-evidence'] }) });
-}
+// useUploadActionEvidence already exported from use-action-evidence.ts
 
 // My Actions workflow stubs
 export function useMyAssignedInvestigations() {

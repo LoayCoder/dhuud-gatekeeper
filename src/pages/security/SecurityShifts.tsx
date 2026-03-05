@@ -36,7 +36,7 @@ export default function SecurityShifts() {
     setEditingShift(null);
   };
 
-  const handleEdit = (shift: Record<string, unknown>) => {
+  const handleEdit = (shift: any) => {
     setEditingShift(shift.id);
     setFormData({ shift_name: shift.shift_name || '', shift_code: shift.shift_code || '', start_time: shift.start_time, end_time: shift.end_time, is_overnight: shift.is_overnight || false, break_duration_minutes: shift.break_duration_minutes || 60, is_active: shift.is_active ?? true });
     setDialogOpen(true);

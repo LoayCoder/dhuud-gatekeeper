@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, Search, Filter, Shield, Phone, MapPin, Briefcase, Plus, Network, Crown, Eye, UsersRound } from 'lucide-react';
-import { useSecurityTeam } from '@/features/security';
+import { useSecurityTeam } from '@/features/security/hooks';
 import { GuardRegistrationForm } from '@/features/security';
 import { TeamHierarchyView } from '@/features/security';
 import { TeamsTab } from '@/features/security';
