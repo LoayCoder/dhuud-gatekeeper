@@ -103,7 +103,7 @@ export function useAssetSubtypes(typeId: string | null) {
   });
 }
 
-export { getNextAssetSequence, generateAssetCode, generateSequentialCodes } from '@/features/assets';
+export { getNextAssetSequence, generateAssetCode, generateSequentialCodes } from '@/features/assets/services/assetMutationService';
 
 export function useCreateAsset() {
   const { t } = useTranslation();
