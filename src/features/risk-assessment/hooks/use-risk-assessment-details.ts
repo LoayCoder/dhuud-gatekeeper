@@ -38,8 +38,10 @@ export function useRiskAssessmentDetails(assessmentId: string | undefined) {
     queryFn: async () => {
       if (!tenantId || !assessmentId) return [];
 
-      const { getRiskAssessmentDetails } = await import("@/services/risk-assessment/riskAssessmentService");
-      return getRiskAssessmentDetails(assessmentId, tenantId) as Promise<RiskAssessmentDetail[]>;
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data, error } = await supabase.from('risk_assessment_details').select('*').eq('risk_assessment_id', assessmentId).eq('tenant_id', tenantId).is('deleted_at', null).order('sort_order');
+      if (error) throw error;
+      return (data || []) as RiskAssessmentDetail[];
     },
     enabled: !!tenantId && !!assessmentId,
   });
