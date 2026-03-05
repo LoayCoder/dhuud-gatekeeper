@@ -33,7 +33,6 @@ export * from '@/hooks/use-digest-preferences';
 export * from '@/hooks/useNotificationTemplates';
 export * from '@/hooks/useWebpageNotificationSettings';
 
-// HSSE Notifications
-export * from '@/features/incidents';
-export * from '@/features/incidents';
+// HSSE Notifications - skip re-export of incidents to avoid conflicts
+// export * from '@/features/incidents';
 export * from '@/hooks/use-escalation-alerts';

@@ -230,12 +230,12 @@ export function useAssetRegisterState() {
         setCreationStatus('success');
       } else {
         console.log(`[Submit] Single asset creation: ${finalAssetCode}`);
-        const result = await createAsset.mutateAsync(assetData);
+        const result = await createAsset.mutateAsync(assetData) as any;
         setCreatedAssetIds([result.id]);
         setCreatedAssetCodes([result.asset_code]);
         setCreationStatus('success');
       }
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('[Submit] Error:', error);
       setCreationError(error?.message || t('assets.unknownError', 'An unknown error occurred'));
       setCreationStatus('error');

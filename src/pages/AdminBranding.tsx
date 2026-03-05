@@ -26,7 +26,7 @@ export default function AdminBranding() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [tenant, setTenant] = useState<Record<string, unknown> | null>(null);
+  const [tenant, setTenant] = useState<Record<string, any> | null>(null);
 
   // Light mode colors
   const [brandColorLight, setBrandColorLight] = useState('');
