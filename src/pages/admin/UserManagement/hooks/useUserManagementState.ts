@@ -3,8 +3,12 @@ import { useState, useMemo, useEffect } from "react";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/contexts/AuthContext";
 import { useLicensedUserQuota } from "@/hooks/use-licensed-user-quota";
-import { useAdminAuditLog } from "@/hooks/use-admin-audit-log";
-import { useUserRoles } from "@/hooks/use-user-roles";
+import { useAdminAuditLog } from "@/features/admin/hooks/use-admin-audit-log";
+import { useUserRoles } from "@/features/users";
+import type { UserWithRoles } from "@/hooks/use-users-paginated";
+
+interface HierarchyItem { id: string; name: string; }
+type BulkActionType = 'activate' | 'deactivate' | 'delete' | null;
 
 export function useUserManagementState() {
   const { t, i18n } = useTranslation();

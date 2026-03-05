@@ -81,6 +81,7 @@ export default function UserManagement() {
   const statusActions = useUserManagementStatusActions(state, data);
   const coreActions = { ...saveActions, ...statusActions };
   const extraActions = useUserManagementExtraActions(state, data);
+  const actions = { ...coreActions, ...extraActions };
   const allProps = { ...state, ...data, ...actions } as any;
   const {
     users = [], selectedUsers = new Set<string>(), setSelectedUsers = () => {},
