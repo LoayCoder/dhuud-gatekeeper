@@ -318,7 +318,7 @@ export function useUserOverviewStats() {
             });
 
             // Add Inspections
-            inspections.forEach(i => {
+            inspections.forEach((i: any) => {
                 tasksList.push({
                     id: i.id,
                     type: 'inspection',
