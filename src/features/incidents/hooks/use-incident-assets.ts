@@ -218,7 +218,7 @@ export function useDebounce<T>(value: T, delay: number): T {
 // Search assets for linking
 export function useSearchAssetsForLinking(search: string, excludeAssetIds: string[] = []) {
   const { profile } = useAuth();
-  const tenantId = (profile as unknown)?.tenant_id;
+  const tenantId = (profile as any)?.tenant_id;
 
   return useQuery({
     queryKey: ['search-assets-for-linking', search, excludeAssetIds],

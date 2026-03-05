@@ -191,6 +191,7 @@ export * from './hooks/use-incident-type-distribution';
 export * from './hooks/use-incident-years';
 export * from './hooks/use-incidents';
 export * from './services/incidentMutationService';
+export * from './services/workflowService';
 export * from './services/incidentQueryService';
 export * from './hooks/use-action-center-stats';
 export * from './hooks/use-action-sla-config';
