@@ -46,7 +46,7 @@ export default function ProjectClearance() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   
-  const { data: projects } = usePTWProjects({});
+  const { data: projects } = usePTWProjects();
   const project = projects?.find(p => p.id === projectId);
   
   const { data: clearances, isLoading } = usePTWProjectClearances(projectId);

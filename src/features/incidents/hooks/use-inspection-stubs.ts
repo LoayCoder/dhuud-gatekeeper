@@ -313,3 +313,109 @@ export function useAssetPhotos(assetId: string) {
 export function useAssetDocuments(assetId: string) {
   return useQuery({ queryKey: ['asset-documents', assetId], queryFn: async () => [] as any[], enabled: !!assetId });
 }
+
+// ---- Analytics & Dashboard stubs ----
+
+export type AnalyticsPeriod = 'week' | 'month' | 'quarter';
+export interface AnalyticsFilters {
+  period: AnalyticsPeriod;
+  siteId?: string;
+}
+
+export function useInspectionAnalytics(filters?: AnalyticsFilters) {
+  return useQuery({
+    queryKey: ['inspection-analytics', filters],
+    queryFn: async () => ({
+      sessions: { total: 0, completed: 0, in_progress: 0 },
+      completion_rate: 0,
+      findings: { total: 0 },
+      sla_compliance: { total_with_due: 0, on_time: 0, overdue: 0 },
+    }),
+  });
+}
+
+export function useSessionTrend(filters?: AnalyticsFilters) {
+  return useQuery({ queryKey: ['session-trend', filters], queryFn: async () => [] as any[] });
+}
+
+export function useFindingsTrend(filters?: AnalyticsFilters) {
+  return useQuery({ queryKey: ['findings-trend', filters], queryFn: async () => [] as any[] });
+}
+
+export function useTopFailingItems(filters?: AnalyticsFilters) {
+  return useQuery({ queryKey: ['top-failing-items', filters], queryFn: async () => [] as any[] });
+}
+
+export function useInspectionSessionStats() {
+  return useQuery({
+    queryKey: ['inspection-session-stats'],
+    queryFn: async () => ({ total_sessions: 0, in_progress: 0, avg_compliance: 0 }),
+  });
+}
+
+export function useComplianceTrend() {
+  return useQuery({ queryKey: ['compliance-trend'], queryFn: async () => [] as any[] });
+}
+
+export function useFindingsDistribution() {
+  return useQuery({
+    queryKey: ['findings-distribution'],
+    queryFn: async () => ({ total_open: 0, by_classification: [] as any[] }),
+  });
+}
+
+export function useOverdueInspectionsCount() {
+  return useQuery({ queryKey: ['overdue-inspections-count'], queryFn: async () => 0 });
+}
+
+export function useRecentFindings(limit = 5) {
+  return useQuery({ queryKey: ['recent-findings', limit], queryFn: async () => [] as any[] });
+}
+
+// Schedule hooks
+export function useInspectionSchedules() {
+  return useQuery({ queryKey: ['inspection-schedules'], queryFn: async () => [] as InspectionSchedule[] });
+}
+
+export function useDeleteInspectionSchedule() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: async (id: string) => id, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-schedules'] }) });
+}
+
+export function useToggleScheduleActive() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: async (data: { id: string; isActive: boolean }) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-schedules'] }) });
+}
+
+// Action status hooks
+export function useUpdateInspectionActionStatus() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: async (data: any) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['my-inspection-actions'] }) });
+}
+
+// useUploadActionEvidence already exported from use-action-evidence.ts
+
+// My Actions workflow stubs
+export function useMyAssignedInvestigations() {
+  return useQuery({ queryKey: ['my-assigned-investigations'], queryFn: async () => [] as any[] });
+}
+
+export function useMyScheduledInspections() {
+  return useQuery({ queryKey: ['my-scheduled-inspections'], queryFn: async () => [] as any[] });
+}
+
+// KPI type
+export interface KPIItem {
+  key: string;
+  label: string;
+  value: number | string;
+  icon: any;
+  status: string;
+  onClick?: () => void;
+}
+
+// Inspection session hooks for pages that import from features/incidents
+export function useCreateActionFromFinding() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: async (data: any) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-actions'] }) });
+}

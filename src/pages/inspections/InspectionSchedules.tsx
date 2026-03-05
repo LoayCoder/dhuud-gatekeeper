@@ -45,7 +45,7 @@ import {
   useDeleteInspectionSchedule,
   useToggleScheduleActive,
   useOverdueSchedulesCount,
-  InspectionSchedule,
+  type InspectionSchedule,
 } from '@/features/incidents';
 import { cn } from '@/lib/utils';
 import i18n from '@/i18n';

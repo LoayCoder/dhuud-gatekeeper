@@ -85,7 +85,7 @@ export default function SecurityZones() {
     setEditingZone(null);
   };
 
-  const handleEdit = (zone: Record<string, unknown>) => {
+  const handleEdit = (zone: any) => {
     setEditingZone(zone.id);
     setFormData({
       zone_name: zone.zone_name || '',

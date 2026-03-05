@@ -102,8 +102,8 @@ function AuditSessionWorkspaceContent() {
       await startSession.mutateAsync(sessionId);
       toast.success(t('audits.sessionStarted'));
       setShowStartConfirmDialog(false);
-    } catch (error: unknown) {
-      toast.error(error.message);
+    } catch (error: any) {
+      toast.error(error?.message || 'Error');
     }
   };
 
@@ -117,8 +117,8 @@ function AuditSessionWorkspaceContent() {
       await completeSession.mutateAsync(sessionId);
       toast.success(t('audits.sessionCompleted'));
       setShowCompletionDialog(false);
-    } catch (error: unknown) {
-      toast.error(error.message);
+    } catch (error: any) {
+      toast.error(error?.message || 'Error');
     }
   };
 
@@ -128,8 +128,8 @@ function AuditSessionWorkspaceContent() {
       await closeSession.mutateAsync({ sessionId });
       toast.success(t('audits.sessionClosed'));
       setShowCompletionDialog(false);
-    } catch (error: unknown) {
-      toast.error(error.message);
+    } catch (error: any) {
+      toast.error(error?.message || 'Error');
     }
   };
 
@@ -139,8 +139,8 @@ function AuditSessionWorkspaceContent() {
       await deleteSession.mutateAsync(sessionId);
       toast.success(t('audits.sessionDeleted'));
       navigate('/inspections/sessions');
-    } catch (error: unknown) {
-      toast.error(error.message);
+    } catch (error: any) {
+      toast.error(error?.message || 'Error');
     }
   };
 
@@ -149,8 +149,8 @@ function AuditSessionWorkspaceContent() {
     try {
       await reopenSession.mutateAsync({ sessionId });
       toast.success(t('audits.sessionReopened'));
-    } catch (error: unknown) {
-      toast.error(error.message);
+    } catch (error: any) {
+      toast.error(error?.message || 'Error');
     }
   };
   
@@ -217,7 +217,7 @@ function AuditSessionWorkspaceContent() {
           {session.status !== 'draft' && (
             <SessionExportDropdown
               session={session}
-              responses={responses as unknown}
+              responses={responses as any}
               findings={findings.map(f => ({
                 reference_id: f.reference_id,
                 classification: f.classification,
