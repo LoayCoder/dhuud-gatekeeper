@@ -109,7 +109,7 @@ export function PasswordChangeSection() {
     } catch (error: unknown) {
       toast({
         title: t('securitySettings.updateFailed'),
-        description: error.message || t('securitySettings.updateFailed'),
+        description: (error as Error).message || t('securitySettings.updateFailed'),
         variant: "destructive",
       });
     } finally {

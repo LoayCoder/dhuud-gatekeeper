@@ -70,7 +70,7 @@ export function AdminEditObservationDialog({
     if (open) {
       setSelectedBranchId(incident.branch_id || incident.branch?.id || null);
       setSelectedSiteId(incident.site_id || incident.site?.id || null);
-      setSelectedContractorId((incident as unknown).related_contractor_company_id || null);
+      setSelectedContractorId((incident as Record<string, unknown>).related_contractor_company_id as string || null);
       setShouldReroute(false);
       setAdminNotes('');
     }
