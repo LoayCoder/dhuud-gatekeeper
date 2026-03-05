@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { InductionVideoList } from '@/features/contractors';
 import { InductionVideoFormDialog } from '@/features/contractors';
 import { InductionComplianceWidget } from '@/features/contractors';
-import { useInductionVideos, InductionVideo } from "@/hooks/contractor-management";
+import { useInductionVideos } from "@/hooks/contractor-management";
+type InductionVideo = any;
 
 export default function InductionVideos() {
   const { t } = useTranslation();

@@ -70,16 +70,16 @@ export default function InvestigationWorkspace() {
   const [showActionDialog, setShowActionDialog] = useState(false);
   const { profile, user } = useAuth();
   const { hasRole } = useUserRoles();
-  const queryClient = useQueryClient();
+  const queryClient2 = useQueryClient();
 
   const {
     actionsCount, incidents, loadingIncidents, pendingApprovals, loadingPending,
     selectedIncident, refetchIncident, investigation, refetchInvestigation,
-    closureEligibility, approveClosureMutation, rejectClosureMutation, canApprove,
+    closureEligibility, approveClosureMutation, rejectClosureMutation, canApprove: canApproveFromData,
     workflowActors, investigatorInfo, editAccess, isInvestigator, canAccessGovernance,
     isAssignedClinicUser, isAssignedTechEvaluator, isAssignedEnvironmentalExpert,
-    canReviewSpecialistData, incidentData, status, investigationAllowed, handleRefresh,
-    queryClient
+    canReviewSpecialistData, incidentData: incidentDataFromHook, status: statusFromHook, investigationAllowed: investigationAllowedFromHook, handleRefresh,
+    queryClient: qcFromHook
   } = useInvestigationWorkspaceData(selectedIncidentId);
 
 

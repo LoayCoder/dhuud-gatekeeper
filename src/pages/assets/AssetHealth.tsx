@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ModuleGate } from '@/components';
 import { AssetHealthScoreCard } from '@/features/assets';
 import { PredictiveMaintenanceCard } from '@/features/assets';
-import { useAsset } from '@/features/assets';
+import { useAsset } from '@/features/assets/hooks/use-assets';
 import { useAssetHealthScore, useCalculateHealthScore } from '@/features/assets';
 import { useAssetMaintenanceHistory } from '@/features/assets';
 import { cn } from '@/lib/utils';
@@ -76,7 +76,7 @@ function AssetHealthContent() {
     );
   }
 
-  const assetData = asset as unknown;
+  const assetData = asset as any;
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
