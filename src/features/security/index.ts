@@ -95,7 +95,7 @@ export * from './components/WorkerVerificationPanel';
 export * from './components/ZonePolygonEditor';
 export * from './components/ZoneSelector';
 
-// Hooks
+// Hooks (skip duplicates from reports)
 export * from './hooks/use-gate-entries';
 export * from './hooks/use-gate-guard-stats';
 export * from './hooks/use-security-audit-log';
@@ -110,10 +110,5 @@ export * from './hooks/use-security-report-export';
 export * from './hooks/use-security-score';
 export * from './hooks/use-security-shifts';
 export * from './hooks/use-security-stats';
-export * from './hooks/use-security-team';
 export * from './hooks/use-security-teams';
 export * from './hooks/use-security-zones';
-export * from './hooks/use-selected-zone';
-
-// Services
-export * from './services/gateQRService';

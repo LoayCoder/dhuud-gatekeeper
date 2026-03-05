@@ -16,7 +16,7 @@ import { isContractorType } from '@/lib/license-utils';
 import { RoleSelectorEnhanced } from '@/components/roles/RoleSelectorEnhanced';
 import { TeamAssignmentDialog } from '@/components/hierarchy/TeamAssignmentDialog';
 
-export function RolesTab({ state }: { state: unknown }) {
+export function RolesTab({ state }: { state: any }) {
   const { t, isAdmin, selectedRoleIds, setSelectedRoleIds, user, setShowTeamAssignment, currentManagerId, roles } = state;
   return (
     <>
