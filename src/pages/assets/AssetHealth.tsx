@@ -76,7 +76,7 @@ function AssetHealthContent() {
     );
   }
 
-  const assetData = asset as unknown;
+  const assetData = asset as any;
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">

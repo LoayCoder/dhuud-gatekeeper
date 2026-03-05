@@ -235,7 +235,7 @@ export function useAssetRegisterState() {
         setCreatedAssetCodes([result.asset_code]);
         setCreationStatus('success');
       }
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('[Submit] Error:', error);
       setCreationError(error?.message || t('assets.unknownError', 'An unknown error occurred'));
       setCreationStatus('error');
