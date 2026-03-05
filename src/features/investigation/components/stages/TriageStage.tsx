@@ -1,4 +1,4 @@
-
+﻿
 import { useInvestigationContext } from "@/features/investigation/context/InvestigationContext";
 import {
     HSSEExpertScreeningCard,
@@ -13,9 +13,9 @@ import {
     LegalReviewCard,
     DisputeResolutionCard,
     MonitoringCheckCard
-} from "@/components/investigation";
-import { NoInvestigationApprovalCard } from "@/components/investigation/NoInvestigationApprovalCard";
-import { IncidentWithDetails } from "@/hooks/use-incidents";
+} from '@/features/investigation';
+import { NoInvestigationApprovalCard } from '@/features/investigation';
+import { IncidentWithDetails } from '@/features/incidents';
 
 export function TriageStage() {
     const { incident, refresh } = useInvestigationContext();
@@ -37,7 +37,7 @@ export function TriageStage() {
         case 'returned_to_reporter':
             return (
                 <ReporterCorrectionBanner
-                    incident={incident as unknown as any}
+                    incident={incident as unknown as unknown}
                     onEdit={() => {/* TODO: Navigate to edit form */ }}
                     onComplete={refresh}
                 />
@@ -46,7 +46,7 @@ export function TriageStage() {
         case 'expert_rejected':
             return (
                 <RejectionConfirmationCard
-                    incident={incident as unknown as any}
+                    incident={incident as unknown as unknown}
                     onComplete={refresh}
                 />
             );
@@ -62,7 +62,7 @@ export function TriageStage() {
         case 'pending_dept_rep_approval':
             return (
                 <DeptRepApprovalCard
-                    incident={incident as unknown as any}
+                    incident={incident as unknown as unknown}
                     onComplete={refresh}
                 />
             );
@@ -70,7 +70,7 @@ export function TriageStage() {
         case 'pending_dept_rep_incident_review':
             return (
                 <DeptRepIncidentReviewCard
-                    incident={incident as unknown as any}
+                    incident={incident as unknown as unknown}
                     onComplete={refresh}
                 />
             );
@@ -79,7 +79,7 @@ export function TriageStage() {
         case 'hsse_manager_escalation':
             return (
                 <HSSEManagerEscalationCard
-                    incident={incident as unknown as any}
+                    incident={incident as unknown as unknown}
                     onComplete={refresh}
                 />
             );
@@ -87,7 +87,7 @@ export function TriageStage() {
         case 'pending_hsse_escalation_review':
             return (
                 <HSSEEscalationReviewCard
-                    incident={incident as unknown as any}
+                    incident={incident as unknown as unknown}
                     onComplete={refresh}
                 />
             );
@@ -104,7 +104,7 @@ export function TriageStage() {
         case 'pending_legal_review':
             return (
                 <LegalReviewCard
-                    incident={incident as unknown as any}
+                    incident={incident as unknown as unknown}
                     onComplete={refresh}
                 />
             );
@@ -117,3 +117,5 @@ export function TriageStage() {
             );
     }
 }
+
+

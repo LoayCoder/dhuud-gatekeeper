@@ -33,7 +33,7 @@ export default function ResetPassword() {
       .regex(/[A-Z]/, t('passwordStrength.uppercase'))
       .regex(/[a-z]/, t('passwordStrength.lowercase'))
       .regex(/[0-9]/, t('passwordStrength.number'))
-      .regex(/[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/`~';]/, t('passwordStrength.special')),
+      .regex(/[!@#$%^&*(),.?":{}|<>_\-+=[\]\\/`~';]/, t('passwordStrength.special')),
     confirmPassword: z.string(),
   }).refine((data) => data.password === data.confirmPassword, {
     message: t('auth.passwordsDoNotMatch'),
@@ -107,9 +107,9 @@ export default function ResetPassword() {
       <div className="w-full max-w-md space-y-8">
         {/* Header */}
         <div className="text-center">
-          <img 
-            src={displayLogo} 
-            alt={DHUUD_TENANT_NAME} 
+          <img
+            src={displayLogo}
+            alt={DHUUD_TENANT_NAME}
             className="mx-auto mb-4 h-16 object-contain"
           />
           <h1 className="text-3xl font-bold">{t('resetPassword.title')}</h1>

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+﻿import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Package, Filter, Grid, List, AlertTriangle, Calendar, Upload, Download, Edit } from 'lucide-react';
@@ -11,15 +11,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { ModuleGate } from '@/components';
-import { AssetImportDialog } from '@/components/assets';
+import { AssetImportDialog } from '@/features/assets';
 import {
   BulkActionsToolbar,
   BulkStatusChangeDialog,
   BulkLocationChangeDialog,
   BulkDeleteDialog,
-} from '@/components/assets/bulk';
-import { useAssets, useAssetCategories, type AssetFilters, type AssetWithRelations } from '@/hooks/use-assets';
-import { useUserRoles } from '@/hooks/use-user-roles';
+} from '@/features/assets';
+import { useAssets, useAssetCategories, type AssetFilters, type AssetWithRelations } from '@/features/assets';
+import { useUserRoles } from '@/features/users';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, isPast, isFuture, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -680,3 +680,5 @@ export default function AssetList() {
     </ModuleGate>
   );
 }
+
+

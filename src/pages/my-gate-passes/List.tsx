@@ -23,15 +23,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Search, Filter, FileKey, Plus, History, Clock, CheckCircle2, XCircle, AlertCircle, RefreshCw } from "lucide-react";
-import { useMyGatePasses } from "@/hooks/contractor-management/use-my-gate-passes";
-import { MaterialGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
-import { GatePassDetailDialog } from "@/components/contractors/GatePassDetailDialog";
-import { GatePassFormDialog } from "@/components/contractors/GatePassFormDialog";
-import { GatePassResubmitDialog } from "@/components/contractors/GatePassResubmitDialog";
-import { useContractorProjects } from "@/hooks/contractor-management/use-contractor-projects";
-import { GatePassTypeBadge } from "@/components/contractors/GatePassTypeBadge";
+import { useMyGatePasses } from "@/features/contractors/hooks/use-my-gate-passes";
+import { MaterialGatePass } from "@/features/contractors/hooks/use-material-gate-passes";
+import { GatePassDetailDialog } from '@/features/contractors';
+import { GatePassFormDialog } from '@/features/contractors';
+import { GatePassResubmitDialog } from '@/features/contractors';
+import { useContractorProjects } from "@/features/contractors/hooks/use-contractor-projects";
+import { GatePassTypeBadge } from '@/features/contractors';
 import { useCachedProfile } from "@/hooks/use-cached-profile";
-import { useUserRoles } from "@/hooks/use-user-roles";
+import { useUserRoles } from '@/features/users';
 import { format } from "date-fns";
 
 function MyGatePassListContent() {
@@ -298,3 +298,5 @@ export default function MyGatePassList() {
     </MenuBasedAdminRoute>
   );
 }
+
+

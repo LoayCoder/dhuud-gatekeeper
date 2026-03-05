@@ -1,8 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+﻿import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { useUserRoles } from "@/hooks/use-user-roles";
+import { useUserRoles } from '@/features/users';
 
 export type DisputeCategory = 'investigation_scope' | 'findings_accuracy' | 'timeline' | 'other';
 export type MediationDecision = 'override_rejection' | 'maintain_rejection' | 'partial_rework';
@@ -224,3 +224,4 @@ export function useMediationDecision() {
     },
   });
 }
+

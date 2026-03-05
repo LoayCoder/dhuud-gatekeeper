@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useHSEMessages } from '@/hooks/use-hse-messages';
 import { Card, CardContent } from '@/components/ui/card';
-import { 
-  Carousel, 
-  CarouselContent, 
+import {
+  Carousel,
+  CarouselContent,
   CarouselItem,
   CarouselPrevious,
   CarouselNext,
+  type CarouselApi
 } from '@/components/ui/carousel';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Shield, AlertTriangle, CheckCircle, Info, Lightbulb } from 'lucide-react';
@@ -51,7 +52,7 @@ const colorSchemeMap = {
 export function HSEMessageCarousel() {
   const { t, i18n } = useTranslation();
   const { data: messages, isLoading } = useHSEMessages();
-  const [api, setApi] = useState<any>();
+  const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const isArabic = i18n.language === 'ar';
 
@@ -104,8 +105,8 @@ export function HSEMessageCarousel() {
 
   return (
     <div className="relative">
-      <Carousel 
-        setApi={setApi} 
+      <Carousel
+        setApi={setApi}
         opts={{ loop: true, direction: isArabic ? 'rtl' : 'ltr' }}
         className="w-full"
       >
@@ -139,7 +140,7 @@ export function HSEMessageCarousel() {
             );
           })}
         </CarouselContent>
-        
+
         {messages.length > 1 && (
           <>
             <CarouselPrevious className="hidden md:flex -start-3 h-8 w-8" />
@@ -157,8 +158,8 @@ export function HSEMessageCarousel() {
               onClick={() => api?.scrollTo(idx)}
               className={cn(
                 'h-1.5 rounded-full transition-all duration-300',
-                idx === current 
-                  ? 'w-6 bg-primary' 
+                idx === current
+                  ? 'w-6 bg-primary'
                   : 'w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50'
               )}
               aria-label={`Go to slide ${idx + 1}`}

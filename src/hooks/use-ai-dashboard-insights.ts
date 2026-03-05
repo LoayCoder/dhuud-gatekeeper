@@ -23,7 +23,7 @@ export function useAIDashboardInsights() {
       if (!stats) return [];
 
       const { data, error } = await supabase.functions.invoke('dashboard-ai-insights', {
-        body: { 
+        body: {
           stats,
           language: i18n.language,
         },
@@ -43,7 +43,7 @@ export function useAIDashboardInsights() {
   });
 }
 
-function getFallbackInsights(stats: any, language: string): AIInsight[] {
+function getFallbackInsights(stats: { my_incidents: number; my_observations: number; percentile: number; trend_observations: number; completed_actions: number }, language: string): AIInsight[] {
   const isArabic = language === 'ar';
   const insights: AIInsight[] = [];
 
@@ -52,8 +52,8 @@ function getFallbackInsights(stats: any, language: string): AIInsight[] {
     insights.push({
       id: 'observation-focused',
       title: isArabic ? 'مراقب ممتاز!' : 'Great Observer!',
-      description: isArabic 
-        ? 'ملاحظاتك تساعد في منع الحوادث قبل وقوعها. استمر!' 
+      description: isArabic
+        ? 'ملاحظاتك تساعد في منع الحوادث قبل وقوعها. استمر!'
         : 'Your observations help prevent incidents before they happen. Keep it up!',
       type: 'achievement',
       icon: 'Eye',

@@ -13,7 +13,7 @@ import {
 import { ContractorPortalRoute } from "@/components/access-control/ContractorPortalRoute";
 import ContractorPortalLayout from "@/components/contractor-portal/ContractorPortalLayout";
 import { ContractorAuditLogTable } from "@/components/contractor-portal/ContractorAuditLogTable";
-import { useContractorPortalAuditLogs, type AuditLogFilters } from "@/hooks/contractor-management/use-contractor-portal-audit-logs";
+import { useContractorPortalAuditLogs, type AuditLogFilters } from "@/features/contractors/hooks/use-contractor-portal-audit-logs";
 
 const actionOptions = [
   { value: "all", labelKey: "contractorPortal.activityLog.allActions" },

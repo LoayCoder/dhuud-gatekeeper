@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+﻿import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Package, Edit, Trash2, MapPin, Calendar, AlertTriangle, FileText, Wrench, History, ShieldAlert, ImageIcon, ArrowRightLeft, ClipboardCheck, QrCode, Barcode, Activity, DollarSign, ExternalLink, Shield, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,12 +9,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ModuleGate } from '@/components';
-import { AssetQRCode, AssetBarcodeLabel, MaintenanceScheduleList, AssetIncidentHistory, AssetPhotoUpload, AssetDocumentUpload, TransferHistoryTab, AssetTransferDialog, LabelSettingsDialog, LabelSettings, loadLabelSettings, AssetReportExportButton } from '@/components/assets';
+import { AssetQRCode, AssetBarcodeLabel, MaintenanceScheduleList, AssetIncidentHistory, AssetPhotoUpload, AssetDocumentUpload, TransferHistoryTab, AssetTransferDialog, LabelSettingsDialog, LabelSettings, loadLabelSettings, AssetReportExportButton } from '@/features/assets';
 import { Tabs as LabelTabs, TabsContent as LabelTabsContent, TabsList as LabelTabsList, TabsTrigger as LabelTabsTrigger } from '@/components/ui/tabs';
-import { InspectionHistoryTab } from '@/components/inspections';
-import { WarrantyClaimsTab, WarrantyExpiryBadge } from '@/components/assets/warranty';
-import { useAsset, useAssetPhotos, useAssetDocuments, useAssetAuditLogs, useDeleteAsset } from '@/hooks/use-assets';
-import { useUserRoles } from '@/hooks/use-user-roles';
+import { InspectionHistoryTab } from '@/features/incidents';
+import { WarrantyClaimsTab, WarrantyExpiryBadge } from '@/features/assets';
+import { useAsset, useAssetPhotos, useAssetDocuments, useAssetAuditLogs, useDeleteAsset } from '@/features/assets';
+import { useUserRoles } from '@/features/users';
 import { format, isPast, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -677,3 +677,6 @@ export default function AssetDetail() {
     </ModuleGate>
   );
 }
+
+
+

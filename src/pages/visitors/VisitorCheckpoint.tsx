@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { QrCode, Search, CheckCircle2, LogOut, AlertTriangle, User, Building, Calendar, ShieldAlert, MapPin } from 'lucide-react';
 import { useVisitorByQRToken } from '@/hooks/use-visitors';
 import { useVisitRequests, useCheckInVisitor, useCheckOutVisitor } from '@/hooks/use-visit-requests';
-import { useCheckBlacklist } from '@/hooks/use-security-blacklist';
+import { useCheckBlacklist } from '@/features/security';
 import { format } from 'date-fns';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { toast } from 'sonner';
@@ -275,3 +275,4 @@ export default function VisitorCheckpoint() {
     </div>
   );
 }
+

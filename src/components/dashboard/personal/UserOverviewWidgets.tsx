@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+﻿import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
     CheckSquare, AlertTriangle, Calendar, Clock,
@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { UserOverviewSection } from './UserOverviewSection';
 import { StatCard } from './StatCard';
-import { UserOverviewStats } from '@/hooks/use-user-overview-stats';
+import { UserOverviewStats } from '@/features/users';
 
 interface WidgetProps {
     stats: UserOverviewStats;
@@ -169,3 +169,4 @@ export function MyApprovalsSection({ stats }: WidgetProps) {
         </UserOverviewSection>
     );
 }
+

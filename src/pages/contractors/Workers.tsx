@@ -14,18 +14,18 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { WorkerListTable } from "@/components/contractors/WorkerListTable";
-import { WorkerFormDialog } from "@/components/contractors/WorkerFormDialog";
-import { WorkerApprovalQueue } from "@/components/contractors/WorkerApprovalQueue";
-import { WorkerSecurityApprovalQueue } from "@/components/contractors/WorkerSecurityApprovalQueue";
-import { WorkerBulkImportDialog } from "@/components/contractors/WorkerBulkImportDialog";
-import { WorkerBulkActionsToolbar } from "@/components/contractors/WorkerBulkActionsToolbar";
-import { BulkRejectDialog } from "@/components/contractors/BulkRejectDialog";
-import { AddWorkerToBlacklistDialog } from "@/components/contractors/AddWorkerToBlacklistDialog";
-import { WorkerBulkMessageDialog } from "@/components/contractors/WorkerBulkMessageDialog";
-import { WorkerBulkInductionDialog } from "@/components/contractors/WorkerBulkInductionDialog";
-import { DeleteWorkerDialog } from "@/components/contractors/DeleteWorkerDialog";
-import { ChangeWorkerStatusDialog } from "@/components/contractors/ChangeWorkerStatusDialog";
+import { WorkerListTable } from '@/features/contractors';
+import { WorkerFormDialog } from '@/features/contractors';
+import { WorkerApprovalQueue } from '@/features/contractors';
+import { WorkerSecurityApprovalQueue } from '@/features/contractors';
+import { WorkerBulkImportDialog } from '@/features/contractors';
+import { WorkerBulkActionsToolbar } from '@/features/contractors';
+import { BulkRejectDialog } from '@/features/contractors';
+import { AddWorkerToBlacklistDialog } from '@/features/contractors';
+import { WorkerBulkMessageDialog } from '@/features/contractors';
+import { WorkerBulkInductionDialog } from '@/features/contractors';
+import { DeleteWorkerDialog } from '@/features/contractors';
+import { ChangeWorkerStatusDialog } from '@/features/contractors';
 import {
   useContractorWorkers,
   usePendingWorkerApprovals,
@@ -35,9 +35,9 @@ import {
   useDeleteContractorWorker,
   useUpdateWorkerStatus,
   ContractorWorker,
-} from "@/hooks/contractor-management/use-contractor-workers";
-import { useContractorCompanies } from "@/hooks/contractor-management/use-contractor-companies";
-import { useSecurityBlacklist, useAddToBlacklist } from "@/hooks/use-security-blacklist";
+} from "@/features/contractors/hooks/use-contractor-workers";
+import { useContractorCompanies } from "@/features/contractors/hooks/use-contractor-companies";
+import { useSecurityBlacklist, useAddToBlacklist } from '@/features/security';
 import { ShieldCheck } from "lucide-react";
 
 export default function Workers() {
@@ -380,3 +380,5 @@ export default function Workers() {
     </div>
   );
 }
+
+

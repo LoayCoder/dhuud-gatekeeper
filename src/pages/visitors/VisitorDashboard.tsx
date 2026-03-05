@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18next';
+﻿import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +11,7 @@ import {
   useApproveVisitRequest,
   useRejectVisitRequest,
 } from '@/hooks/use-visit-requests';
-import { useGateEntries, useRecordExit } from '@/hooks/use-gate-entries';
+import { useGateEntries, useRecordExit } from '@/features/security';
 import { format, startOfDay, formatDistanceToNow } from 'date-fns';
 import { VisitApprovalDialog } from '@/components/visitors/VisitApprovalDialog';
 import { useState } from 'react';
@@ -164,7 +164,7 @@ export default function VisitorDashboard() {
                         </div>
                         <div className="text-sm text-muted-foreground mt-1">
                           <span>{request.visitor?.company_name}</span>
-                          {request.site && <span> • {request.site.name}</span>}
+                          {request.site && <span> â€¢ {request.site.name}</span>}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           {format(new Date(request.valid_from), 'PPp')} - {format(new Date(request.valid_until), 'PPp')}
@@ -257,7 +257,7 @@ export default function VisitorDashboard() {
                             ({formatDistanceToNow(new Date(entry.entry_time), { addSuffix: false })})
                           </span>
                           {entry.destination_name && (
-                            <span>→ {entry.destination_name}</span>
+                            <span>â†’ {entry.destination_name}</span>
                           )}
                         </div>
                       </div>
@@ -300,3 +300,4 @@ export default function VisitorDashboard() {
     </div>
   );
 }
+

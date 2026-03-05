@@ -1,10 +1,10 @@
-import { useTranslation } from 'react-i18next';
+﻿import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useAtRiskAssets } from '@/hooks/use-asset-health-dashboard';
+import { useAtRiskAssets } from '@/features/assets';
 import { AlertTriangle, ArrowUpRight, TrendingDown, TrendingUp, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -94,7 +94,7 @@ export function AtRiskAssetsWidget() {
                     <span>{asset.assetCode}</span>
                     {asset.daysUntilFailure !== null && (
                       <>
-                        <span>•</span>
+                        <span>â€¢</span>
                         <span className={cn(
                           asset.daysUntilFailure < 30 ? 'text-destructive' : ''
                         )}>
@@ -133,3 +133,4 @@ export function AtRiskAssetsWidget() {
     </Card>
   );
 }
+

@@ -3,10 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Building2, Users, FileCheck, CheckCircle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
-import { useContractorCompanies } from "@/hooks/contractor-management/use-contractor-companies";
-import { useContractorWorkers } from "@/hooks/contractor-management/use-contractor-workers";
-import { useMaterialGatePasses } from "@/hooks/contractor-management/use-material-gate-passes";
-import { useContractorAnalyticsTrend } from "@/hooks/contractor-management/use-contractor-analytics-trend";
+import { useContractorCompanies } from "@/features/contractors/hooks/use-contractor-companies";
+import { useContractorWorkers } from "@/features/contractors/hooks/use-contractor-workers";
+import { useMaterialGatePasses } from "@/features/contractors/hooks/use-material-gate-passes";
+import { useContractorAnalyticsTrend } from "@/features/contractors/hooks/use-contractor-analytics-trend";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "hsl(var(--accent))", "hsl(var(--muted))"];

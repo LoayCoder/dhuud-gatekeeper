@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Printer, Download, Grid, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AssetQRCode } from '@/components/assets/AssetQRCode';
+import { AssetQRCode } from '@/features/assets';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { ModuleGate, HSSERoute } from '@/components';
@@ -204,3 +204,4 @@ export default function BulkPrintLabels() {
     </ModuleGate>
   );
 }
+

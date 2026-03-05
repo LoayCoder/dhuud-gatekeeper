@@ -16,7 +16,7 @@ interface BranchAwareQueryOptions<T> {
   /** Select columns (Supabase select syntax) */
   selectColumns: string;
   /** Additional filters to apply */
-  additionalFilters?: (query: any) => any;
+  additionalFilters?: (query: unknown) => unknown;
   /** Column to order by (default: 'created_at') */
   orderBy?: string;
   /** Order ascending (default: false) */
@@ -39,48 +39,58 @@ export function useBranchAwareQuery<T>(
 ) {
   const { profile } = useAuth();
   const { getBranchFilter, isLoading: branchLoading, isAllBranchesMode } = useBranch();
-  
+
   const tenantId = profile?.tenant_id;
   const branchFilter = getBranchFilter();
 
   return useQuery<T[], Error>({
     queryKey: [
-      ...queryKey, 
-      tenantId, 
+      ...queryKey,
+      tenantId,
       isAllBranchesMode ? 'all' : branchFilter?.join(',') || 'none'
     ],
     queryFn: async () => {
       if (!tenantId) return [];
-      
-      // Use dynamic table access
+
+      type SupabaseQuery = {
+        order: (col: string, opts: { ascending: boolean }) => SupabaseQuery;
+        limit: (l: number) => SupabaseQuery;
+        in: (col: string, vals: string[]) => SupabaseQuery;
+        eq: (col: string, val: string | number | null) => SupabaseQuery;
+        is: (col: string, val: null) => SupabaseQuery;
+        select: (cols: string) => SupabaseQuery;
+        then: (onfulfilled: (res: { data: T[]; error: Error | null }) => unknown) => Promise<unknown>;
+      };
+
+      // @ts-expect-error Dynamic type instantiation
       let query = supabase
-        .from(options.tableName as any)
-        .select(options.selectColumns)
+        .from(options.tableName as never)
+        .select(options.selectColumns as '*')
         .eq('tenant_id', tenantId)
-        .is('deleted_at', null);
-      
+        .is('deleted_at', null) as unknown as SupabaseQuery;
+
       // Apply branch filter (respects all-branches mode)
       if (!isAllBranchesMode && branchFilter && branchFilter.length > 0) {
-        query = applyBranchFilter(query as any, branchFilter, options.branchColumn || 'branch_id');
+        query = applyBranchFilter(query, branchFilter, options.branchColumn || 'branch_id');
       }
-      
+
       // Apply additional filters
       if (options.additionalFilters) {
-        query = options.additionalFilters(query);
+        query = options.additionalFilters(query) as SupabaseQuery;
       }
-      
+
       // Apply ordering
       query = query.order(
-        options.orderBy || 'created_at', 
+        options.orderBy || 'created_at',
         { ascending: options.ascending ?? false }
       );
-      
+
       // Apply limit
       query = query.limit(options.limit || 100);
-      
+
       const { data, error } = await query;
       if (error) throw error;
-      return data as T[];
+      return data;
     },
     enabled: !!tenantId && !branchLoading,
     ...options.queryOptions,
@@ -94,7 +104,7 @@ export function useBranchAwareQuery<T>(
 export function useBranchFilterParams() {
   const { profile } = useAuth();
   const { getBranchFilter, isLoading, isAllBranchesMode, activeBranch } = useBranch();
-  
+
   const tenantId = profile?.tenant_id;
   const branchFilter = getBranchFilter();
 
@@ -105,7 +115,7 @@ export function useBranchFilterParams() {
     activeBranchId: activeBranch?.id || null,
     isLoading,
     isReady: !!tenantId && !isLoading,
-    
+
     /**
      * Apply branch filter to a query
      */
@@ -118,7 +128,7 @@ export function useBranchFilterParams() {
       }
       return applyBranchFilter(query, branchFilter, columnName);
     },
-    
+
     /**
      * Get query key segment for cache management
      */

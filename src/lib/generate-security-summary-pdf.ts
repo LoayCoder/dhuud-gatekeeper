@@ -1,8 +1,8 @@
-/**
+﻿/**
  * Generate PDF summary report for security team performance
  */
 import { format } from 'date-fns';
-import { TeamSummaryData } from '@/hooks/use-security-reports';
+import { TeamSummaryData } from '@/features/security';
 import { 
   generateBrandedPDFFromElement, 
   createPDFRenderContainer, 
@@ -61,33 +61,33 @@ const LABELS_EN = {
 };
 
 const LABELS_AR = {
-  title: 'تقرير أداء فريق الأمن',
-  period: 'فترة التقرير',
-  generatedOn: 'تم إنشاؤه في',
-  executiveSummary: 'الملخص التنفيذي',
-  activeGuards: 'الحراس النشطون',
-  avgScore: 'متوسط درجة الأداء',
-  totalPatrols: 'إجمالي الدوريات',
-  incidents: 'الحوادث المبلغ عنها',
-  performanceDistribution: 'توزيع الأداء',
-  excellent: 'ممتاز (90%+)',
-  good: 'جيد (80-89%)',
-  average: 'متوسط (70-79%)',
-  needsImprovement: 'يحتاج تحسين (<70%)',
-  guards: 'حارس',
-  topPerformers: 'أفضل المؤدين',
+  title: 'ØªÙ‚Ø±ÙŠØ± Ø£Ø¯Ø§Ø¡ ÙØ±ÙŠÙ‚ Ø§Ù„Ø£Ù…Ù†',
+  period: 'ÙØªØ±Ø© Ø§Ù„ØªÙ‚Ø±ÙŠØ±',
+  generatedOn: 'ØªÙ… Ø¥Ù†Ø´Ø§Ø¤Ù‡ ÙÙŠ',
+  executiveSummary: 'Ø§Ù„Ù…Ù„Ø®Øµ Ø§Ù„ØªÙ†ÙÙŠØ°ÙŠ',
+  activeGuards: 'Ø§Ù„Ø­Ø±Ø§Ø³ Ø§Ù„Ù†Ø´Ø·ÙˆÙ†',
+  avgScore: 'Ù…ØªÙˆØ³Ø· Ø¯Ø±Ø¬Ø© Ø§Ù„Ø£Ø¯Ø§Ø¡',
+  totalPatrols: 'Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø¯ÙˆØ±ÙŠØ§Øª',
+  incidents: 'Ø§Ù„Ø­ÙˆØ§Ø¯Ø« Ø§Ù„Ù…Ø¨Ù„Øº Ø¹Ù†Ù‡Ø§',
+  performanceDistribution: 'ØªÙˆØ²ÙŠØ¹ Ø§Ù„Ø£Ø¯Ø§Ø¡',
+  excellent: 'Ù…Ù…ØªØ§Ø² (90%+)',
+  good: 'Ø¬ÙŠØ¯ (80-89%)',
+  average: 'Ù…ØªÙˆØ³Ø· (70-79%)',
+  needsImprovement: 'ÙŠØ­ØªØ§Ø¬ ØªØ­Ø³ÙŠÙ† (<70%)',
+  guards: 'Ø­Ø§Ø±Ø³',
+  topPerformers: 'Ø£ÙØ¶Ù„ Ø§Ù„Ù…Ø¤Ø¯ÙŠÙ†',
   rank: '#',
-  guardName: 'اسم الحارس',
-  score: 'الدرجة',
-  patrols: 'الدوريات',
-  guardsNeedingAttention: 'الحراس الذين يحتاجون اهتمام',
-  attendanceOverview: 'نظرة عامة على الحضور',
-  totalRecords: 'إجمالي السجلات',
-  onTimeRate: 'معدل الحضور في الوقت',
-  lateArrivals: 'حالات التأخير',
-  avgHours: 'متوسط ساعات العمل',
-  geofenceViolations: 'انتهاكات النطاق الجغرافي',
-  confidential: 'سري - للاستخدام الإداري فقط',
+  guardName: 'Ø§Ø³Ù… Ø§Ù„Ø­Ø§Ø±Ø³',
+  score: 'Ø§Ù„Ø¯Ø±Ø¬Ø©',
+  patrols: 'Ø§Ù„Ø¯ÙˆØ±ÙŠØ§Øª',
+  guardsNeedingAttention: 'Ø§Ù„Ø­Ø±Ø§Ø³ Ø§Ù„Ø°ÙŠÙ† ÙŠØ­ØªØ§Ø¬ÙˆÙ† Ø§Ù‡ØªÙ…Ø§Ù…',
+  attendanceOverview: 'Ù†Ø¸Ø±Ø© Ø¹Ø§Ù…Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø­Ø¶ÙˆØ±',
+  totalRecords: 'Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø³Ø¬Ù„Ø§Øª',
+  onTimeRate: 'Ù…Ø¹Ø¯Ù„ Ø§Ù„Ø­Ø¶ÙˆØ± ÙÙŠ Ø§Ù„ÙˆÙ‚Øª',
+  lateArrivals: 'Ø­Ø§Ù„Ø§Øª Ø§Ù„ØªØ£Ø®ÙŠØ±',
+  avgHours: 'Ù…ØªÙˆØ³Ø· Ø³Ø§Ø¹Ø§Øª Ø§Ù„Ø¹Ù…Ù„',
+  geofenceViolations: 'Ø§Ù†ØªÙ‡Ø§ÙƒØ§Øª Ø§Ù„Ù†Ø·Ø§Ù‚ Ø§Ù„Ø¬ØºØ±Ø§ÙÙŠ',
+  confidential: 'Ø³Ø±ÙŠ - Ù„Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø§Ù„Ø¥Ø¯Ø§Ø±ÙŠ ÙÙ‚Ø·',
 };
 
 function getScoreColor(score: number): string {
@@ -300,3 +300,4 @@ function renderDistributionBar(label: string, count: number, total: number, colo
     </div>
   `;
 }
+

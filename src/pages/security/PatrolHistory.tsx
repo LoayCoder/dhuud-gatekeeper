@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import {
   Download,
   Eye
 } from "lucide-react";
-import { useSecurityPatrols } from "@/hooks/use-security-patrols";
+import { useSecurityPatrols } from '@/features/security';
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import {
@@ -31,7 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { PatrolDetailDialog } from "@/components/security/PatrolDetailDialog";
+import { PatrolDetailDialog } from '@/features/security';
 
 export default function PatrolHistory() {
   const { t } = useTranslation();
@@ -217,3 +217,4 @@ export default function PatrolHistory() {
     </div>
   );
 }
+

@@ -101,7 +101,7 @@ export async function logAssetScan(event: AssetScanEvent): Promise<void> {
       await queueOfflineScan({
         ...event,
         is_offline_scan: true,
-      } as any);
+      } as unknown);
     } catch {
       // Silent fail - scan logging is non-critical
     }
@@ -111,7 +111,7 @@ export async function logAssetScan(event: AssetScanEvent): Promise<void> {
 /**
  * Queue a scan log for offline sync
  */
-async function queueOfflineScan(scanData: any): Promise<void> {
+async function queueOfflineScan(scanData: Record<string, unknown>): Promise<void> {
   const key = `scan_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   await offlineDataCache.set(CACHE_STORES.SCAN_LOGS, key, {
     ...scanData,
@@ -125,19 +125,19 @@ async function queueOfflineScan(scanData: any): Promise<void> {
  */
 export async function syncPendingScans(): Promise<number> {
   try {
-    const pending = await offlineDataCache.getAll<any>(CACHE_STORES.SCAN_LOGS);
-    
+    const pending = await offlineDataCache.getAll<Record<string, unknown>>(CACHE_STORES.SCAN_LOGS);
+
     if (pending.length === 0) return 0;
 
     let synced = 0;
     for (const entry of pending) {
       try {
         const { error } = await supabase
-          .from('asset_scan_logs')
+          .from('asset_scan_logs' as never)
           .insert({
             ...entry.data,
             synced_at: new Date().toISOString(),
-          });
+          } as never);
 
         if (!error) {
           await offlineDataCache.delete(CACHE_STORES.SCAN_LOGS, entry.key);

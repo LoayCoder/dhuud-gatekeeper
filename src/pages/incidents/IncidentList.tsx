@@ -25,12 +25,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Lock } from 'lucide-react';
-import { useIncidents, useDeleteIncident, useUpdateIncidentStatus } from '@/hooks/use-incidents';
+import { useIncidents, useDeleteIncident, useUpdateIncidentStatus } from '@/features/incidents';
 import { useDeletionPassword } from '@/hooks/use-deletion-password';
-import { useUserRoles } from '@/hooks/use-user-roles';
+import { useUserRoles } from '@/features/users';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAITags } from '@/hooks/use-ai-tags';
-import { useHSSEEventsExport } from '@/hooks/use-hsse-events-export';
+import { useHSSEEventsExport } from '@/features/incidents';
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -40,7 +40,7 @@ import {
   IncidentCardEnhanced,
   IncidentTableView,
   type IncidentFilters,
-} from '@/components/incidents/listing';
+} from '@/features/incidents';
 import { isWithinInterval, parseISO, isPast, addDays } from 'date-fns';
 
 export default function IncidentList() {
@@ -346,8 +346,8 @@ export default function IncidentList() {
             <IncidentTableView
               incidents={incidents.map(i => ({
                 ...i,
-                incident_type: (i as any).incident_type,
-              })) as any}
+                incident_type: (i as unknown).incident_type,
+              })) as unknown}
               hasHSSEAccess={hasHSSEAccess}
               isAdmin={isAdmin}
               isHSSEManager={isHSSEManager}
@@ -361,8 +361,8 @@ export default function IncidentList() {
                   key={incident.id}
                   incident={{
                     ...incident,
-                    incident_type: (incident as any).incident_type,
-                  } as any}
+                    incident_type: (incident as unknown).incident_type,
+                  } as unknown}
                   hasHSSEAccess={hasHSSEAccess}
                   canDelete={canDeleteIncident(incident.status)}
                   onStartInvestigation={handleStartInvestigation}
@@ -504,3 +504,6 @@ export default function IncidentList() {
     </div>
   );
 }
+
+
+

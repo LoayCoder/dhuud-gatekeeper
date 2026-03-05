@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ID Card Settings Admin Page
  * Configure ID card designs for each card type with live preview
  */
@@ -16,7 +16,7 @@ import {
   IDCardLivePreview,
   DuplicateSettingsDialog,
   type DuplicateOptions,
-} from "@/components/id-cards/settings";
+} from '@/features/admin';
 import { useIDCardSettings, useDuplicateIDCardSettings } from "@/hooks/use-id-card-settings";
 import { useCachedProfile } from "@/hooks/use-cached-profile";
 import { CARD_TYPE_LABELS, type IDCardType, type TenantIDCardSettings } from "@/types/id-card.types";
@@ -117,10 +117,10 @@ export default function IDCardSettings() {
   const tenantData = {
     id: tenantId || '',
     name: 'Company Name',
-    nameAr: 'اسم الشركة',
+    nameAr: 'Ø§Ø³Ù… Ø§Ù„Ø´Ø±ÙƒØ©',
     logoUrl: '',
     hsseDepartmentName: 'HSSE Department',
-    hsseDepartmentNameAr: 'إدارة الصحة والسلامة',
+    hsseDepartmentNameAr: 'Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„ØµØ­Ø© ÙˆØ§Ù„Ø³Ù„Ø§Ù…Ø©',
   };
 
   const handleSave = useCallback((values: Partial<TenantIDCardSettings>) => {
@@ -275,3 +275,4 @@ export default function IDCardSettings() {
     </div>
   );
 }
+

@@ -1,7 +1,7 @@
-import { ReactNode } from 'react';
+﻿import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useModuleAccess, ModuleCode } from '@/hooks/use-module-access';
-import { useUserRoles } from '@/hooks/use-user-roles';
+import { useUserRoles } from '@/features/users';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -106,3 +106,4 @@ export function ModuleGate({
 
   return null;
 }
+

@@ -1,0 +1,44 @@
+import { DateRange } from "react-day-picker";
+
+export interface DashboardSectionsProps {
+  t: Record<string, unknown>;
+  dashboardLoading: boolean;
+  dashboardData: Record<string, unknown>;
+  laggingData: Record<string, unknown>;
+  leadingData: Record<string, unknown>;
+  responseData: Record<string, unknown>;
+  peopleData: Record<string, unknown>;
+  daysSince: number | null;
+  periodComparison: Record<string, unknown>;
+  getSparklineData: (key: unknown) => Record<string, unknown>[];
+  trendData: Record<string, unknown>;
+  trendLoading: boolean;
+  getPeriodLabel: (period: string) => string;
+  laggingLoading: boolean;
+  leadingLoading: boolean;
+  responseLoading: boolean;
+  peopleLoading: boolean;
+  startDate: Date;
+  startDateStr: string;
+  endDate: Date;
+  endDateStr: string;
+  branchId: string;
+  locationLoading: boolean;
+  locationData: Record<string, unknown>;
+  reportersLoading: boolean;
+  reporters: Record<string, unknown>;
+  heatmapLoading: boolean;
+  heatmapData: Record<string, unknown>;
+  incidentTypeData: Record<string, unknown>;
+  incidentTypeLoading: boolean;
+  progressionData: Record<string, unknown>;
+  progressionLoading: boolean;
+  progressionUpdatedAt: number;
+  progressionFetching: boolean;
+  rcaData: Record<string, unknown>;
+  rcaLoading: boolean;
+  reporterBranchFilter: string;
+  setReporterBranchFilter: (val: string) => void;
+  locationBranchFilter: string;
+  setLocationBranchFilter: (val: string) => void;
+}

@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useDocumentBranding } from "@/hooks/use-document-branding";
-import { DocumentA4Preview } from "@/components/documents/DocumentA4Preview";
+import { DocumentA4Preview } from '@/features/admin';
 import { DocumentBrandingSettings, LogoPosition, DEFAULT_DOCUMENT_SETTINGS } from "@/types/document-branding";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -319,3 +319,4 @@ export default function DocumentSettings() {
     </div>
   );
 }
+

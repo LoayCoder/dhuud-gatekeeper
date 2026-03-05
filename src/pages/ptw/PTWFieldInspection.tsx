@@ -15,11 +15,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { usePTWPermit } from '@/hooks/ptw/use-ptw-permits';
-import { usePTWRealtime } from '@/hooks/ptw/use-ptw-realtime';
-import { PTWMobileChecklist, type ChecklistItem, type ChecklistResponse } from '@/components/ptw/mobile/PTWMobileChecklist';
+import { usePTWPermit } from '@/features/ptw/hooks/use-ptw-permits';
+import { usePTWRealtime } from '@/features/ptw/hooks/use-ptw-realtime';
+import { PTWMobileChecklist, type ChecklistItem, type ChecklistResponse } from '@/features/ptw';
 import { SignaturePad, type SignaturePadRef } from '@/components/ui/signature-pad';
-import { PTWRealtimeIndicator } from '@/components/ptw/PTWRealtimeIndicator';
+import { PTWRealtimeIndicator } from '@/features/ptw';
 import { PageLoader } from '@/components/ui/page-loader';
 import { cn } from '@/lib/utils';
 import { QRCodeSVG } from 'qrcode.react';
@@ -334,3 +334,4 @@ export default function PTWFieldInspection() {
     </div>
   );
 }
+

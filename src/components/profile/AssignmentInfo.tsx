@@ -1,8 +1,8 @@
-import { useTranslation } from "react-i18next";
+﻿import { useTranslation } from "react-i18next";
 import { Building2, MapPin, Star, Globe } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ProfileData } from "./types";
-import { useUserDepartmentSites } from "@/hooks/use-user-department-sites";
+import { useUserDepartmentSites } from '@/features/users';
 
 interface AssignmentInfoProps {
   profile: ProfileData | null;
@@ -129,3 +129,4 @@ export function AssignmentInfo({ profile }: AssignmentInfoProps) {
     </div>
   );
 }
+

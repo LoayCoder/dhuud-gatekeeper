@@ -1,30 +1,13 @@
 // App component - force rebuild v3
 import { Suspense } from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ThemeProvider as NextThemesProvider } from "next-themes";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import { AuthProvider } from "./contexts/AuthContext";
-import { BranchProvider } from "./contexts/BranchContext";
-import { SessionTimeoutProvider } from "./contexts/SessionTimeoutContext";
-import { SessionTimeoutWarning, SessionManagementProvider } from "./components/session";
-import { ErrorBoundary } from "./components/shared";
+import { AppProviders } from "@/providers/AppProviders";
+import { AuthenticatedProviders } from "@/providers/AuthenticatedProviders";
 import { PageLoadErrorBoundary } from "./components/shared/PageLoadErrorBoundary";
-import { SessionFallbackUI } from "./components/session";
 import { ProtectedRoute } from "./components/auth";
 import MainLayout from "./components/layout/MainLayout";
 import { PlaceholderPage } from "./components/shared";
 import { PageLoader } from "./components/ui/page-loader";
-import { NetworkStatusIndicator, OnlineRetryHandler, ServiceWorkerUpdateNotifier } from "./components/pwa";
-import { NotificationPermissionPrompt } from "./components/notifications";
-import { OneSignalProvider } from "./contexts/OneSignalContext";
-import { useSwNotificationListener } from "./hooks/use-sw-notification-listener";
-import { useOneSignalNotificationSetup } from "./hooks/use-onesignal-notification-setup";
-import { useOneSignalClickHandler } from "./hooks/use-onesignal-click-handler";
-import { usePrefetchOnIdle } from "./hooks/use-prefetch";
 import { SplashWrapper } from "./components/layout";
 import { lazyWithRetry } from "./lib/lazy-with-retry";
 
@@ -42,116 +25,75 @@ const Support = lazyWithRetry(() => import("./pages/Support"));
 const SubscriptionManagement = lazyWithRetry(() => import("./pages/admin/SubscriptionManagement"));
 const UsageBilling = lazyWithRetry(() => import("./pages/settings/UsageBilling"));
 
-const queryClient = new QueryClient();
-
-// Component to initialize service worker notification listener and prefetching
-function AppInitializer() {
-  useSwNotificationListener();
-  usePrefetchOnIdle();
-  return null;
-}
-
-// Component to bind OneSignal user identity, tags, and deep-link click handling.
-// Must be rendered inside BrowserRouter + AuthProvider + OneSignalProvider.
-function OneSignalSetup() {
-  useOneSignalNotificationSetup();
-  useOneSignalClickHandler();
-  return null;
-}
-
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <NextThemesProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-      <ThemeProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <NetworkStatusIndicator />
-          <OnlineRetryHandler />
-          <ServiceWorkerUpdateNotifier />
-          <AppInitializer />
-          <OneSignalProvider>
-            <NotificationPermissionPrompt />
-            <BrowserRouter>
-              <AuthProvider>
-                <BranchProvider>
-                  <SessionTimeoutProvider>
-                    <OneSignalSetup />
-                    <ErrorBoundary fallback={<SessionFallbackUI />}>
-                      <SessionManagementProvider />
-                      <SessionTimeoutWarning />
-                      <PageLoadErrorBoundary>
-                        <Suspense fallback={<PageLoader />}>
-                          <Routes>
-                            {/* Public Routes (login, signup, legal, tokens) */}
-                            {publicRoutes.map((route, index) => (
-                              <Route key={`public-${index}`} path={route.path} element={route.element} />
-                            ))}
+  <AppProviders>
+    <BrowserRouter>
+      <AuthenticatedProviders>
+        <PageLoadErrorBoundary>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              {/* Public Routes (login, signup, legal, tokens) */}
+              {publicRoutes.map((route, index) => (
+                <Route key={`public-${index}`} path={route.path} element={route.element} />
+              ))}
 
-                            {/* Public Gate Pass Routes (no auth required) */}
-                            {publicGatePassRoutes.map((route, index) => (
-                              <Route key={`public-gp-${index}`} path={route.path} element={route.element} />
-                            ))}
+              {/* Public Gate Pass Routes (no auth required) */}
+              {publicGatePassRoutes.map((route, index) => (
+                <Route key={`public-gp-${index}`} path={route.path} element={route.element} />
+              ))}
 
-                            {/* Home Screen - Simple landing without sidebar */}
-                            <Route
-                              path="/"
-                              element={
-                                <ProtectedRoute>
-                                  <SplashWrapper>
-                                    <Home />
-                                  </SplashWrapper>
-                                </ProtectedRoute>
-                              }
-                            />
+              {/* Home Screen - Simple landing without sidebar */}
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <SplashWrapper>
+                      <Home />
+                    </SplashWrapper>
+                  </ProtectedRoute>
+                }
+              />
 
-                            {/* Protected Routes with MainLayout (sidebar) */}
-                            <Route
-                              element={
-                                <ProtectedRoute>
-                                  <MainLayout />
-                                </ProtectedRoute>
-                              }
-                            >
-                              {/* Core routes */}
-                              <Route path="/dashboard" element={<Dashboard />} />
-                              <Route path="/profile" element={<Profile />} />
-                              <Route path="/audits" element={<PlaceholderPage titleKey="pages.audits.title" descriptionKey="pages.audits.description" />} />
+              {/* Protected Routes with MainLayout (sidebar) */}
+              <Route
+                element={
+                  <ProtectedRoute>
+                    <MainLayout />
+                  </ProtectedRoute>
+                }
+              >
+                {/* Core routes */}
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/audits" element={<PlaceholderPage titleKey="pages.audits.title" descriptionKey="pages.audits.description" />} />
 
-                              {/* Domain routes from route modules */}
-                              {protectedLayoutRoutes.map((route, index) => (
-                                <Route
-                                  key={`protected-${index}`}
-                                  path={route.path}
-                                  element={route.element}
-                                >
-                                  {route.children?.map((child, childIndex) => (
-                                    <Route key={`child-${childIndex}`} path={child.path} element={child.element} />
-                                  ))}
-                                </Route>
-                              ))}
+                {/* Domain routes from route modules */}
+                {protectedLayoutRoutes.map((route, index) => (
+                  <Route
+                    key={`protected-${index}`}
+                    path={route.path}
+                    element={route.element}
+                  >
+                    {route.children?.map((child, childIndex) => (
+                      <Route key={`child-${childIndex}`} path={child.path} element={child.element} />
+                    ))}
+                  </Route>
+                ))}
 
-                              {/* User Settings Routes */}
-                              <Route path="/support" element={<Support />} />
-                              <Route path="/settings/subscription" element={<SubscriptionManagement />} />
-                              <Route path="/settings/usage-billing" element={<UsageBilling />} />
-                            </Route>
+                {/* User Settings Routes */}
+                <Route path="/support" element={<Support />} />
+                <Route path="/settings/subscription" element={<SubscriptionManagement />} />
+                <Route path="/settings/usage-billing" element={<UsageBilling />} />
+              </Route>
 
-                            {/* Catch-all */}
-                            <Route path="*" element={<NotFound />} />
-                          </Routes>
-                        </Suspense>
-                      </PageLoadErrorBoundary>
-                    </ErrorBoundary>
-                  </SessionTimeoutProvider>
-                </BranchProvider>
-              </AuthProvider>
-            </BrowserRouter>
-          </OneSignalProvider>
-        </TooltipProvider>
-      </ThemeProvider>
-    </NextThemesProvider>
-  </QueryClientProvider>
+              {/* Catch-all */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </PageLoadErrorBoundary>
+      </AuthenticatedProviders>
+    </BrowserRouter>
+  </AppProviders>
 );
 
 export default App;

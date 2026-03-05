@@ -120,8 +120,8 @@ export function useOfflineScanQueue() {
       };
 
       const { error } = await supabase
-        .from('offline_scan_queue' as any)
-        .insert(insertData as any);
+        .from('offline_scan_queue' as unknown)
+        .insert(insertData as unknown);
 
       if (error) throw error;
 

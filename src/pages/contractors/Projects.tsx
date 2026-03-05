@@ -12,10 +12,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { ProjectListTable } from "@/components/contractors/ProjectListTable";
-import { ProjectFormDialog } from "@/components/contractors/ProjectFormDialog";
-import { useContractorProjects, ContractorProject } from "@/hooks/contractor-management/use-contractor-projects";
-import { useContractorCompanies } from "@/hooks/contractor-management/use-contractor-companies";
+import { ProjectListTable } from '@/features/contractors';
+import { ProjectFormDialog } from '@/features/contractors';
+import { useContractorProjects, ContractorProject } from "@/features/contractors/hooks/use-contractor-projects";
+import { useContractorCompanies } from "@/features/contractors/hooks/use-contractor-companies";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -152,3 +152,4 @@ export default function Projects() {
     </div>
   );
 }
+

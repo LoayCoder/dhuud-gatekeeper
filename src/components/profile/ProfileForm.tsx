@@ -156,7 +156,7 @@ export function ProfileForm({
         description: t('profile.profileUpdateSuccess')
       });
       onUpdate();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: t('auth.error'),
         description: error.message || t('profile.profileUpdateError'),

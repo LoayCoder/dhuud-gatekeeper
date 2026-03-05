@@ -1,4 +1,4 @@
-import { useTranslation } from "react-i18next";
+﻿import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +15,7 @@ import { ProfileData } from "@/components/profile/types";
 import { RTLWrapper } from "@/components";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCachedProfile } from "@/hooks/use-cached-profile";
-import { useUserRoles } from "@/hooks/use-user-roles";
+import { useUserRoles } from '@/features/users';
 
 export default function Profile() {
   const { t } = useTranslation();
@@ -167,3 +167,4 @@ export default function Profile() {
     </RTLWrapper>
   );
 }
+

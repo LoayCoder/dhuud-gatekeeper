@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18next';
+﻿import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { 
   FileText, 
@@ -11,7 +11,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useModuleAccess } from '@/hooks/use-module-access';
-import { useUserRoles } from '@/hooks/use-user-roles';
+import { useUserRoles } from '@/features/users';
 
 export function QuickActionsCard() {
   const { t } = useTranslation();
@@ -77,3 +77,4 @@ export function QuickActionsCard() {
     </Card>
   );
 }
+

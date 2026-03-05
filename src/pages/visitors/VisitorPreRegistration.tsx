@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,9 +18,9 @@ import { useCreateVisitRequest } from '@/hooks/use-visit-requests';
 import { useTenantBranches, useTenantSites, useTenantDepartments } from '@/hooks/use-org-hierarchy';
 import { useProfilesList } from '@/hooks/use-profiles-list';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCheckBlacklist } from '@/hooks/use-security-blacklist';
+import { useCheckBlacklist } from '@/features/security';
 import { VisitorIdScanner } from '@/components/visitors/VisitorIdScanner';
-import { VisitorPhotoCapture } from '@/components/security/VisitorPhotoCapture';
+import { VisitorPhotoCapture } from '@/features/security';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useVisitorWorkflowSettings } from '@/hooks/use-visitor-workflow-settings';
 import { supabase } from '@/integrations/supabase/client';
@@ -795,3 +795,4 @@ export default function VisitorPreRegistration() {
     </div>
   );
 }
+

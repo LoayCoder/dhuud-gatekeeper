@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Plus, Pencil, Trash2, Settings2, ArrowUpDown } from "lucide-react";
-import { useApprovalConfigs, useCreateApprovalConfig, useUpdateApprovalConfig, useApprovalLevels, useSaveApprovalLevels } from "@/hooks/use-asset-approval-workflows";
+import { useApprovalConfigs, useCreateApprovalConfig, useUpdateApprovalConfig, useApprovalLevels, useSaveApprovalLevels } from '@/features/assets';
 import { toast } from "@/hooks/use-toast";
 
 const WORKFLOW_TYPES: { value: "purchase" | "transfer" | "disposal"; label: string }[] = [
@@ -466,7 +466,7 @@ export default function ApprovalWorkflowConfigPage() {
                           <TableCell>{t(`assetApproval.roles.${level.required_role}`, level.required_role)}</TableCell>
                           <TableCell>
                             {level.min_amount !== null || level.max_amount !== null
-                              ? `${level.min_amount?.toLocaleString() || 0} - ${level.max_amount?.toLocaleString() || "∞"}`
+                              ? `${level.min_amount?.toLocaleString() || 0} - ${level.max_amount?.toLocaleString() || "âˆž"}`
                               : t("assetApproval.anyAmount", "Any amount")}
                           </TableCell>
                           <TableCell>{level.timeout_hours}h</TableCell>
@@ -498,3 +498,4 @@ export default function ApprovalWorkflowConfigPage() {
     </div>
   );
 }
+

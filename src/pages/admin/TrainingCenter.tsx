@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const iconMap: Record<string, any> = {
+const iconMap: Record<string, unknown> = {
   User, UserCheck, Briefcase, Shield, ShieldCheck, Search, ShieldAlert, 
   FileText, Settings, FileContract: FileText
 };

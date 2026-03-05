@@ -7,12 +7,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Shield, 
-  AlertTriangle, 
-  Users, 
-  Monitor, 
-  Lock, 
+import {
+  Shield,
+  AlertTriangle,
+  Users,
+  Monitor,
+  Lock,
   Unlock,
   Activity,
   Globe,
@@ -22,13 +22,13 @@ import {
   Clock,
   XCircle
 } from 'lucide-react';
-import { 
-  useSecurityDashboardStats, 
-  useActiveSessions, 
+import {
+  useSecurityDashboardStats,
+  useActiveSessions,
   useSecurityScanResults,
   useInvalidateUserSession,
   useLoginHistory
-} from '@/hooks/use-security-dashboard';
+} from '@/features/security';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 
@@ -40,7 +40,7 @@ function SeverityBadge({ severity }: { severity: string }) {
     low: 'secondary',
     info: 'outline',
   };
-  
+
   return (
     <Badge variant={variants[severity] || 'default'} className="capitalize">
       {severity}
@@ -48,15 +48,15 @@ function SeverityBadge({ severity }: { severity: string }) {
   );
 }
 
-function StatCard({ 
-  title, 
-  value, 
-  icon: Icon, 
+function StatCard({
+  title,
+  value,
+  icon: Icon,
   description,
   variant = 'default'
-}: { 
-  title: string; 
-  value: string | number; 
+}: {
+  title: string;
+  value: string | number;
   icon: React.ElementType;
   description?: string;
   variant?: 'default' | 'success' | 'warning' | 'danger';
@@ -67,7 +67,7 @@ function StatCard({
     warning: 'text-yellow-500',
     danger: 'text-destructive',
   };
-  
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -94,9 +94,9 @@ export default function SecurityDashboard() {
 
   const handleInvalidateSession = async (sessionId: string) => {
     try {
-      await invalidateSession.mutateAsync({ 
-        sessionId, 
-        reason: 'admin_terminated' 
+      await invalidateSession.mutateAsync({
+        sessionId,
+        reason: 'admin_terminated'
       });
       toast({
         title: 'Session Terminated',
@@ -111,12 +111,12 @@ export default function SecurityDashboard() {
     }
   };
 
-  const mfaAdoptionRate = stats 
-    ? Math.round((stats.mfa_enabled_users / Math.max(stats.total_users, 1)) * 100) 
+  const mfaAdoptionRate = stats
+    ? Math.round((stats.mfa_enabled_users / Math.max(stats.total_users, 1)) * 100)
     : 0;
 
-  const totalFindings = stats?.scan_findings 
-    ? Object.values(stats.scan_findings).reduce((a, b) => (a || 0) + (b || 0), 0) 
+  const totalFindings = stats?.scan_findings
+    ? Object.values(stats.scan_findings).reduce((a, b) => (a || 0) + (b || 0), 0)
     : 0;
 
   return (
@@ -286,7 +286,7 @@ export default function SecurityDashboard() {
                           <TableCell>
                             <div className="flex items-center gap-1">
                               <Globe className="h-3 w-3" />
-                              {session.ip_country || 'Unknown'} 
+                              {session.ip_country || 'Unknown'}
                               {session.ip_city && `, ${session.ip_city}`}
                             </div>
                             <span className="text-xs text-muted-foreground">
@@ -441,11 +441,11 @@ export default function SecurityDashboard() {
                             {login.device_type || '-'} / {login.browser || '-'}
                           </TableCell>
                           <TableCell>
-                            <Badge 
+                            <Badge
                               variant={
-                                (login.risk_score || 0) > 70 ? 'destructive' : 
-                                (login.risk_score || 0) > 40 ? 'default' : 
-                                'secondary'
+                                (login.risk_score || 0) > 70 ? 'destructive' :
+                                  (login.risk_score || 0) > 40 ? 'default' :
+                                    'secondary'
                               }
                             >
                               {login.risk_score || 0}%

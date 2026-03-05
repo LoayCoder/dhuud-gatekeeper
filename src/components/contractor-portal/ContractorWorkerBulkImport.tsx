@@ -97,7 +97,7 @@ export default function ContractorWorkerBulkImport({
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
         const workbook = XLSX.read(data, { type: "array" });
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-        const jsonData = XLSX.utils.sheet_to_json<Record<string, any>>(firstSheet, { defval: "" });
+        const jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(firstSheet, { defval: "" });
 
         if (jsonData.length === 0) {
           setParseError(t("contractorPortal.bulkImport.emptyFile", "The file is empty or has no valid data rows."));
@@ -110,7 +110,7 @@ export default function ContractorWorkerBulkImport({
           for (const [key, value] of Object.entries(row)) {
             const normalizedKey = normalizeColumnName(key);
             if (normalizedKey) {
-              (mapped as any)[normalizedKey] = String(value).trim();
+              (mapped as unknown)[normalizedKey] = String(value).trim();
             }
           }
           const validation = validateWorker(mapped);

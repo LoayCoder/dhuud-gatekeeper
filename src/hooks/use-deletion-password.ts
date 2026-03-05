@@ -126,7 +126,7 @@ export function useDeletionPassword() {
         title: t('incidents.deleteSuccess'),
       });
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to delete closed incident:', error);
       
       let errorMessage = t('common.error');

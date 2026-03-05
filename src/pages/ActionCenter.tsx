@@ -1,8 +1,8 @@
-import { useTranslation } from 'react-i18next';
+﻿import { useTranslation } from 'react-i18next';
 import { useModuleAccess } from '@/hooks/use-module-access';
-import { useUserRoles } from '@/hooks/use-user-roles';
+import { useUserRoles } from '@/features/users';
 import { useAuth } from '@/contexts/AuthContext';
-import { useActionCenterStats } from '@/hooks/use-action-center-stats';
+import { useActionCenterStats } from '@/features/incidents';
 import { EnterprisePage } from '@/components/layout/EnterprisePage';
 import { SectionHeader } from '@/components/ui/section-header';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -62,7 +62,7 @@ export default function ActionCenter() {
   return (
     <EnterprisePage
       title={t('actionCenter.title', 'Action Center')}
-      description={t('actionCenter.description', 'Unified operational hub — execute tasks across all modules from one place')}
+      description={t('actionCenter.description', 'Unified operational hub â€” execute tasks across all modules from one place')}
       titleIcon={Zap}
     >
       {/* Cross-Module KPI Summary */}
@@ -72,7 +72,7 @@ export default function ActionCenter() {
           description={t('actionCenter.overviewDesc', 'Cross-module summary of items requiring attention')}
         />
         <ActionCenterStatsBar stats={stats} isLoading={isLoading} />
-        {/* Notification delivery status — admin only */}
+        {/* Notification delivery status â€” admin only */}
         {isAdmin && <NotificationPipelineStatus />}
       </section>
 
@@ -187,3 +187,4 @@ function ModuleCardSkeleton() {
     </div>
   );
 }
+

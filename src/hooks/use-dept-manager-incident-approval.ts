@@ -185,7 +185,7 @@ export function useNoInvestigationApproval() {
       
       const { error } = await supabase
         .from('incidents')
-        .update(updateData as any)
+        .update(updateData as unknown)
         .eq('id', incidentId);
       
       if (error) throw error;

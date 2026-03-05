@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,8 +21,8 @@ import {
 } from "lucide-react";
 import { usePTWPermits, useActivePermitsForMap } from "@/hooks/ptw";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PermitConsoleMap } from "@/components/ptw/PermitConsoleMap";
-import { PermitListView } from "@/components/ptw/PermitListView";
+import { PermitConsoleMap } from '@/features/ptw';
+import { PermitListView } from '@/features/ptw';
 
 const permitTypeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   hot_work: Flame,
@@ -131,3 +131,4 @@ export default function PermitConsole() {
     </div>
   );
 }
+

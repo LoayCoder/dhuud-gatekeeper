@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatDistanceToNow } from "date-fns";
 import { Bell, RefreshCw, Info, AlertTriangle, Check, Trash2, CheckCheck } from "lucide-react";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { useNotificationHistory } from "@/hooks/use-notification-history";
+import { useNotificationHistory } from '@/features/notifications';
 import { NotificationHistoryItem } from "@/lib/notification-history";
 import { cn } from "@/lib/utils";
 
@@ -205,3 +205,4 @@ export function NotificationHistory() {
     </div>
   );
 }
+

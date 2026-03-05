@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-interface ManhourRecord {
+export interface ManhourRecord {
   id: string;
   tenant_id: string;
   period_date: string;
@@ -26,7 +26,7 @@ interface ManhourRecord {
   departments?: { name: string } | null;
 }
 
-interface CreateManhourInput {
+export interface CreateManhourInput {
   period_date: string;
   period_type: 'daily' | 'weekly' | 'monthly';
   employee_hours: number;
@@ -46,45 +46,8 @@ export function useManhours(startDate?: string, endDate?: string) {
   return useQuery({
     queryKey: ['manhours', startDate, endDate],
     queryFn: async () => {
-      let query = supabase
-        .from('manhours')
-        .select(`
-          id,
-          tenant_id,
-          period_date,
-          period_type,
-          employee_hours,
-          contractor_hours,
-          employee_count,
-          contractor_count,
-          hours_per_day,
-          working_days,
-          calculation_mode,
-          branch_id,
-          site_id,
-          department_id,
-          notes,
-          recorded_by,
-          created_at,
-          updated_at,
-          branches(name),
-          sites(name),
-          departments(name)
-        `)
-        .is('deleted_at', null)
-        .order('period_date', { ascending: false });
-
-      if (startDate) {
-        query = query.gte('period_date', startDate);
-      }
-      if (endDate) {
-        query = query.lte('period_date', endDate);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      return data as ManhourRecord[];
+      const { getManhours } = await import('@/features/admin');
+      return getManhours(startDate, endDate) as Promise<ManhourRecord[]>;
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -106,18 +69,8 @@ export function useCreateManhour() {
 
       if (!profile) throw new Error('Profile not found');
 
-      const { data, error } = await supabase
-        .from('manhours')
-        .insert({
-          ...input,
-          tenant_id: profile.tenant_id,
-          recorded_by: user.id,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const { createManhour } = await import('@/features/admin');
+      return createManhour(input, user.id, profile.tenant_id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['manhours'] });
@@ -135,15 +88,8 @@ export function useUpdateManhour() {
 
   return useMutation({
     mutationFn: async ({ id, ...input }: { id: string } & Partial<CreateManhourInput>) => {
-      const { data, error } = await supabase
-        .from('manhours')
-        .update(input)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const { updateManhour } = await import('@/features/admin');
+      return updateManhour(id, input);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['manhours'] });
@@ -161,12 +107,8 @@ export function useDeleteManhour() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('manhours')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', id);
-
-      if (error) throw error;
+      const { deleteManhour } = await import('@/features/admin');
+      return deleteManhour(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['manhours'] });
@@ -183,16 +125,8 @@ export function useManhoursSummary(startDate: string, endDate: string, branchId?
   return useQuery({
     queryKey: ['manhours-summary', startDate, endDate, branchId, siteId],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_manhours_summary', {
-        p_start_date: startDate,
-        p_end_date: endDate,
-        p_branch_id: branchId || null,
-        p_site_id: siteId || null,
-        p_department_id: null,
-      });
-
-      if (error) throw error;
-      return data?.[0] || { total_employee_hours: 0, total_contractor_hours: 0, total_hours: 0, record_count: 0 };
+      const { getManhoursSummary } = await import('@/features/admin');
+      return getManhoursSummary(startDate, endDate, branchId, siteId);
     },
     enabled: !!startDate && !!endDate,
     staleTime: 5 * 60 * 1000,

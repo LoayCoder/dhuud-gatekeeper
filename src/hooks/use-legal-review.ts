@@ -1,8 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+﻿import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { useUserRoles } from "@/hooks/use-user-roles";
+import { useUserRoles } from '@/features/users';
 
 export type LegalDecision = 'approved' | 'requires_changes' | 'blocked';
 
@@ -198,3 +198,4 @@ export function useLegalReview() {
     },
   });
 }
+

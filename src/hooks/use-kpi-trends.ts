@@ -56,7 +56,7 @@ export function useKPIPeriodComparison(
     queryFn: async () => {
       const now = new Date();
       let currentStart: Date;
-      let currentEnd: Date = now;
+      const currentEnd: Date = now;
       let previousStart: Date;
       let previousEnd: Date;
 

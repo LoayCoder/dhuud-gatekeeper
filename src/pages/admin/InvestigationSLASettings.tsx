@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useInvestigationSLAConfig, InvestigationSLAConfig } from '@/hooks/use-investigation-sla-config';
+import { useInvestigationSLAConfig, InvestigationSLAConfig } from '@/features/investigation';
 import { Clock, Edit2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -127,7 +127,7 @@ export default function InvestigationSLASettings() {
                     +{config.escalation_days_after}d
                   </TableCell>
                   <TableCell className="text-center text-muted-foreground">
-                    {config.second_escalation_days_after ? `+${config.second_escalation_days_after}d` : '—'}
+                    {config.second_escalation_days_after ? `+${config.second_escalation_days_after}d` : 'â€”'}
                   </TableCell>
                   <TableCell className="text-end">
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(config)}>
@@ -146,7 +146,7 @@ export default function InvestigationSLASettings() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {t('sla.editConfig', 'Edit SLA Configuration')} — {editingConfig?.severity_level}
+              {t('sla.editConfig', 'Edit SLA Configuration')} â€” {editingConfig?.severity_level}
             </DialogTitle>
             <DialogDescription>
               {t('sla.editConfigDesc', 'Update the SLA thresholds for this severity level')}
@@ -210,3 +210,4 @@ export default function InvestigationSLASettings() {
     </div>
   );
 }
+

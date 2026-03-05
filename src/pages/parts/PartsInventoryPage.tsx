@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Package, AlertTriangle, ShoppingCart, History, Plus, Search, Filter } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,11 +10,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMaintenanceParts } from '@/hooks/use-maintenance-parts';
 import { useLowStockParts, usePurchaseOrders } from '@/hooks/use-parts-inventory';
-import { LowStockAlertBanner } from '@/components/parts/LowStockAlertBanner';
-import { StockAdjustmentDialog } from '@/components/parts/StockAdjustmentDialog';
-import { PurchaseOrderDialog } from '@/components/parts/PurchaseOrderDialog';
-import { StockHistoryDialog } from '@/components/parts/StockHistoryDialog';
-import { PartStockLevelCard } from '@/components/parts/PartStockLevelCard';
+import { LowStockAlertBanner } from '@/features/assets';
+import { StockAdjustmentDialog } from '@/features/assets';
+import { PurchaseOrderDialog } from '@/features/assets';
+import { StockHistoryDialog } from '@/features/assets';
+import { PartStockLevelCard } from '@/features/assets';
 
 export default function PartsInventoryPage() {
   const { t } = useTranslation();
@@ -401,3 +401,4 @@ export default function PartsInventoryPage() {
     </div>
   );
 }
+

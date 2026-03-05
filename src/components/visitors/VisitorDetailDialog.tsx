@@ -11,7 +11,7 @@ import { User, Building, Mail, CreditCard, Calendar, QrCode, Phone } from 'lucid
 import { useVisitor } from '@/hooks/use-visitors';
 import { format } from 'date-fns';
 import { QRCodeSVG } from 'qrcode.react';
-import { IDCardActionButton } from '@/components/id-cards';
+import { IDCardActionButton } from '@/features/admin';
 
 interface VisitorDetailDialogProps {
   visitorId: string | null;
@@ -26,7 +26,7 @@ export function VisitorDetailDialog({ visitorId, open, onOpenChange }: VisitorDe
   if (!visitor) return null;
 
   // Determine if VIP (you can add vip flag to visitors table if needed)
-  const isVIP = (visitor as any).is_vip || false;
+  const isVIP = (visitor as unknown).is_vip || false;
   const cardType = isVIP ? 'visitor_vip' : 'visitor';
 
   return (
@@ -54,10 +54,10 @@ export function VisitorDetailDialog({ visitorId, open, onOpenChange }: VisitorDe
                 personData={{
                   id: visitor.id,
                   fullName: visitor.full_name,
-                  fullNameAr: (visitor as any).full_name_ar || undefined,
+                  fullNameAr: (visitor as unknown).full_name_ar || undefined,
                   company: visitor.company_name || undefined,
-                  destination: (visitor as any).destination || undefined,
-                  hostName: (visitor as any).host_name || undefined,
+                  destination: (visitor as unknown).destination || undefined,
+                  hostName: (visitor as unknown).host_name || undefined,
                   entryDate: visitor.last_visit_at || new Date().toISOString(),
                   qrToken: visitor.qr_code_token,
                   qrUrl: `https://www.dhuud.com/visitor/${visitor.qr_code_token}`,
@@ -67,7 +67,7 @@ export function VisitorDetailDialog({ visitorId, open, onOpenChange }: VisitorDe
                   id: visitor.tenant_id,
                   name: '', // Will be fetched by the component
                 }}
-                recipientPhone={(visitor as any).phone || (visitor as any).mobile_number}
+                recipientPhone={(visitor as unknown).phone || (visitor as unknown).mobile_number}
                 showLabel={true}
               />
             </div>
@@ -128,3 +128,4 @@ export function VisitorDetailDialog({ visitorId, open, onOpenChange }: VisitorDe
     </Dialog>
   );
 }
+

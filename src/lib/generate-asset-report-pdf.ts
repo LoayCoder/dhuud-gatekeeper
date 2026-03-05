@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+﻿import { format } from 'date-fns';
 import { 
   generateBrandedPDFFromElement, 
   preloadImageWithDimensions,
@@ -6,7 +6,7 @@ import {
   removePDFRenderContainer,
   type PDFBrandingOptions 
 } from './pdf-utils';
-import type { AssetWithRelations } from '@/hooks/use-assets';
+import type { AssetWithRelations } from '@/features/assets';
 
 export interface AssetReportOptions {
   asset: AssetWithRelations;
@@ -322,3 +322,4 @@ export async function generateAssetReportPDF(options: AssetReportOptions): Promi
     removePDFRenderContainer(container);
   }
 }
+

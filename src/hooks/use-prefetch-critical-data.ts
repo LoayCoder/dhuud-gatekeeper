@@ -32,7 +32,7 @@ export function usePrefetchCriticalData() {
   const [prefetchProgress, setPrefetchProgress] = useState({ current: 0, total: 0 });
 
   // Check network quality via Navigator API
-  const connection = typeof navigator !== 'undefined' ? (navigator as any).connection : null;
+  const connection = typeof navigator !== 'undefined' ? (navigator as unknown).connection : null;
   const isSlowNetwork = connection?.effectiveType === '2g' || connection?.effectiveType === 'slow-2g';
 
   // Auto-prefetch when coming online
@@ -108,7 +108,7 @@ export function usePrefetchCriticalData() {
   const prefetchQuery = useCallback(async (query: typeof CRITICAL_QUERIES[0]) => {
     try {
       const { data, error } = await supabase
-        .from(query.table as any)
+        .from(query.table as unknown)
         .select(query.select)
         .limit(1000);
       

@@ -1,10 +1,10 @@
-import { useTranslation } from "react-i18next";
+﻿import { useTranslation } from "react-i18next";
 import { Phone, Mail, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useManagerTeam } from "@/hooks/use-manager-team";
-import { useUserRoles } from "@/hooks/use-user-roles";
+import { useUserRoles } from '@/features/users';
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -126,3 +126,4 @@ export function TeamInfo() {
     </div>
   );
 }
+

@@ -11,10 +11,10 @@ import { useMyRosterAssignment, useGuardCheckIn, useGuardCheckOut } from '@/hook
 import { useTrackMyLocation, useAlertSupervisorGpsOff } from '@/hooks/use-live-tracking';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { GuardShiftCard } from '@/components/security/GuardShiftCard';
-import { GuardStatusIndicators, BatteryWarning } from '@/components/security/GuardStatusIndicators';
-import { GuardZoneMap } from '@/components/security/GuardZoneMap';
-import { MyShiftCalendar } from '@/components/security/MyShiftCalendar';
+import { GuardShiftCard } from '@/features/security';
+import { GuardStatusIndicators, BatteryWarning } from '@/features/security';
+import { GuardZoneMap } from '@/features/security';
+import { MyShiftCalendar } from '@/features/security';
 import { useTrackingIntervalMs } from '@/hooks/use-tracking-settings';
 import { checkBoundaryProximity, type BoundaryProximityLevel } from '@/lib/zone-detection';
 import { cn } from '@/lib/utils';
@@ -77,7 +77,7 @@ export default function GuardLocation() {
   // Battery monitoring
   useEffect(() => {
     if ('getBattery' in navigator) {
-      (navigator as any).getBattery().then((b: any) => {
+      ((navigator as unknown) as { getBattery: () => Promise<{ level: number, addEventListener: (type: string, listener: EventListener) => void }> }).getBattery().then((b) => {
         setBatteryLevel(Math.round(b.level * 100));
         b.addEventListener('levelchange', () => setBatteryLevel(Math.round(b.level * 100)));
       });
@@ -90,11 +90,13 @@ export default function GuardLocation() {
       try {
         const audio = new Audio('/sounds/warning.mp3');
         audio.volume = 0.5;
-        audio.play().catch(() => {});
+        audio.play().catch(() => { });
         if ('vibrate' in navigator) {
           navigator.vibrate([200, 100, 200]);
         }
-      } catch {}
+      } catch {
+        // Exception explicitly ignored
+      }
     }
   }, []);
 
@@ -134,7 +136,7 @@ export default function GuardLocation() {
         const result = checkBoundaryProximity(currentPosition.latitude, currentPosition.longitude, polygon);
         setBoundaryStatus(result.level);
         setDistanceToEdge(Math.abs(result.distanceToEdge));
-        
+
         // Play warning sound if status changed to danger/outside
         if (result.level !== lastWarningRef.current && (result.level === 'danger' || result.level === 'outside')) {
           playWarningSound(result.level);

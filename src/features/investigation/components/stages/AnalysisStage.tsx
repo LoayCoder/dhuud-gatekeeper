@@ -1,15 +1,15 @@
-
+﻿
 import { useState } from "react";
 import { useInvestigationContext } from "@/features/investigation/context/InvestigationContext";
-import { RCAPanel } from "@/components/investigation/RCAPanel";
-import { ActionsPanel } from "@/components/investigation/ActionsPanel";
+import { RCAPanel } from '@/features/investigation';
+import { ActionsPanel } from '@/features/investigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BrainCircuit, CheckSquare, Info } from "lucide-react";
-import { IncidentWithDetails } from "@/hooks/use-incidents";
+import { IncidentWithDetails } from '@/features/incidents';
 import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 
-import { SubmitInvestigationCard } from "@/components/investigation/SubmitInvestigationCard";
+import { SubmitInvestigationCard } from '@/features/investigation';
 import { Send } from "lucide-react";
 
 export function AnalysisStage() {
@@ -56,7 +56,7 @@ export function AnalysisStage() {
                             incidentTitle={incident.title}
                             incidentDescription={incident.description}
                             incidentStatus={incident.status}
-                            incidentSeverity={incident.severity_v2 || (incident as any).severity}
+                            incidentSeverity={incident.severity_v2 || (incident as unknown).severity}
                             incidentEventType={incident.event_type}
                             incidentEventSubtype={incident.subtype}
                             canEdit={canEdit}
@@ -83,3 +83,5 @@ export function AnalysisStage() {
         </div>
     );
 }
+
+

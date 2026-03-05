@@ -1,15 +1,15 @@
-
+﻿
 import { useState } from "react";
 import { useInvestigationContext } from "@/features/investigation/context/InvestigationContext";
-import { EvidenceManager } from "@/components/investigation/evidence/EvidenceManager";
-import { WitnessPanel } from "@/components/investigation/WitnessPanel";
-import { IncidentInfoCard } from "@/components/investigation/IncidentInfoCard";
+import { EvidenceManager } from '@/features/investigation';
+import { WitnessPanel } from '@/features/investigation';
+import { IncidentInfoCard } from '@/features/investigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, Users, Info, Lock } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { IncidentWithDetails } from "@/hooks/use-incidents";
+import { IncidentWithDetails } from '@/features/incidents';
 import { useTranslation } from "react-i18next";
-import { useUpdateInvestigation } from "@/hooks/use-investigation";
+import { useUpdateInvestigation } from '@/features/investigation';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -108,3 +108,5 @@ function StageTransitionButton({ incidentId }: { incidentId: string }) {
         </Button>
     );
 }
+
+

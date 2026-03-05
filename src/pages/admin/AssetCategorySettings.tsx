@@ -1,8 +1,8 @@
-import { useTranslation } from 'react-i18next';
+﻿import { useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import AssetCategoryManagement from '@/components/admin/AssetCategoryManagement';
+import { AssetCategoryManagement } from '@/features/admin';
 
 export default function AssetCategorySettings() {
   const { t, i18n } = useTranslation();
@@ -31,3 +31,4 @@ export default function AssetCategorySettings() {
     </div>
   );
 }
+

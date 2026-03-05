@@ -157,7 +157,7 @@ function drawWatermark(
   pdf.saveGraphicsState();
   
   // Set transparency using GState
-  const gState = new (pdf as any).GState({ opacity: opacity / 100 });
+  const gState = new (pdf as unknown).GState({ opacity: opacity / 100 });
   pdf.setGState(gState);
   
   // Diagonal text across the page

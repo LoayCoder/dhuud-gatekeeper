@@ -36,8 +36,10 @@ export function NotificationPipelineStatus() {
 
       // Server-side aggregation via RPC — returns a single JSON summary
       // instead of fetching all rows and counting client-side
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase.rpc as any)('get_notification_summary', {
+      const { data, error } = await (supabase.rpc as unknown as (
+        fn: string,
+        args: { p_tenant_id: string }
+      ) => Promise<{ data: unknown; error: unknown }>)('get_notification_summary', {
         p_tenant_id: tenantId,
       });
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check, ChevronDown, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { Role, RoleCategory, useUserRoles } from '@/hooks/use-user-roles';
+import { Role, RoleCategory, useUserRoles } from '@/features/users';
 import { RoleBadge, RoleCategoryBadge } from './RoleBadge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/AuthContext';
@@ -214,3 +214,4 @@ export function RoleSelector({ selectedRoleIds, onChange, disabled, userId }: Ro
     </div>
   );
 }
+

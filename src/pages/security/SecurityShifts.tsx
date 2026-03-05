@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Clock, Pencil, Trash2, Sun, Moon, Sunset } from 'lucide-react';
-import { useSecurityShifts, useCreateSecurityShift, useUpdateSecurityShift, useDeleteSecurityShift } from '@/hooks/use-security-shifts';
+import { useSecurityShifts, useCreateSecurityShift, useUpdateSecurityShift, useDeleteSecurityShift } from '@/features/security';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 export default function SecurityShifts() {
@@ -36,7 +36,7 @@ export default function SecurityShifts() {
     setEditingShift(null);
   };
 
-  const handleEdit = (shift: any) => {
+  const handleEdit = (shift: Record<string, unknown>) => {
     setEditingShift(shift.id);
     setFormData({ shift_name: shift.shift_name || '', shift_code: shift.shift_code || '', start_time: shift.start_time, end_time: shift.end_time, is_overnight: shift.is_overnight || false, break_duration_minutes: shift.break_duration_minutes || 60, is_active: shift.is_active ?? true });
     setDialogOpen(true);
@@ -126,3 +126,4 @@ export default function SecurityShifts() {
     </div>
   );
 }
+

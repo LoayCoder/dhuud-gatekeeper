@@ -13,18 +13,18 @@ import { MapPin, AlertTriangle, Users, Clock, RefreshCw, CheckCircle, Radio, Eye
 import { useGuardLocations } from '@/hooks/use-live-tracking';
 import { useRealtimeGeofenceAlerts } from '@/hooks/use-realtime-geofence-alerts';
 import { useShiftRoster } from '@/hooks/use-shift-roster';
-import { useSecurityZones } from '@/hooks/use-security-zones';
+import { useSecurityZones } from '@/features/security';
 import { useTrackingInterval, useUpdateTrackingInterval } from '@/hooks/use-tracking-settings';
 import { initializeAudio, testAlertSound } from '@/lib/alert-sounds';
-import { CommandCenterMap } from '@/components/security/CommandCenterMap';
+import { CommandCenterMap } from '@/features/security';
 import { generateShiftReportPDF } from '@/lib/shift-report-pdf';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { SecurityScoreCard } from '@/components/security/SecurityScoreCard';
-import { EmergencyAlertBanner } from '@/components/security/EmergencyAlertBanner';
+import { SecurityScoreCard } from '@/features/security';
+import { EmergencyAlertBanner } from '@/features/security';
 import { Link } from 'react-router-dom';
-import { GuardDetailPanel } from '@/components/security/GuardDetailPanel';
+import { GuardDetailPanel } from '@/features/security';
 export default function CommandCenter() {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -39,18 +39,18 @@ export default function CommandCenter() {
   const { data: guardLocations, isLoading: locationsLoading, refetch: refetchLocations } = useGuardLocations();
   const { data: todayRoster } = useShiftRoster({ date: format(new Date(), 'yyyy-MM-dd') });
   const { data: zones } = useSecurityZones({ isActive: true });
-  
+
   // Real-time alerts (WebSocket - no polling)
-  const { 
-    pendingAlerts: alerts, 
-    acknowledgedAlerts, 
-    isConnected, 
+  const {
+    pendingAlerts: alerts,
+    acknowledgedAlerts,
+    isConnected,
     newAlertCount,
     clearNewAlertCount,
     acknowledgeAlert,
     resolveAlert,
   } = useRealtimeGeofenceAlerts();
-  
+
   // Tracking settings
   const { data: trackingSettings, isLoading: settingsLoading } = useTrackingInterval();
   const updateInterval = useUpdateTrackingInterval();
@@ -138,7 +138,17 @@ export default function CommandCenter() {
   const completedCount = todayRoster?.filter(r => r.status === 'completed').length || 0;
 
   // Transform data for map
-  const mapGuardLocations = guardLocations?.map((loc: any) => ({
+  const mapGuardLocations = guardLocations?.map((loc: {
+    id: string;
+    guard_id?: string;
+    guard_name?: string;
+    latitude?: number;
+    longitude?: number;
+    recorded_at?: string;
+    accuracy?: number;
+    battery_level?: number;
+    is_within_zone?: boolean;
+  }) => ({
     id: loc.id,
     guard_id: loc.guard_id || '',
     guard_name: loc.guard_name || 'Unknown',
@@ -155,7 +165,7 @@ export default function CommandCenter() {
     let coords: number[][] = [];
     if (zone.polygon_coords) {
       try {
-        coords = Array.isArray(zone.polygon_coords) 
+        coords = Array.isArray(zone.polygon_coords)
           ? zone.polygon_coords as number[][]
           : JSON.parse(zone.polygon_coords as unknown as string);
       } catch {
@@ -406,7 +416,7 @@ export default function CommandCenter() {
               <div className="flex items-center gap-2">
                 <div className={cn("h-2 w-2 rounded-full", isConnected ? "bg-green-500" : "bg-muted")} />
                 <p className="text-xs text-muted-foreground">
-                  {isConnected 
+                  {isConnected
                     ? t('security.commandCenter.realtimeActive', 'Real-time updates active')
                     : t('security.commandCenter.realtimeInactive', 'Connecting...')}
                 </p>
@@ -472,3 +482,4 @@ export default function CommandCenter() {
     </div>
   );
 }
+

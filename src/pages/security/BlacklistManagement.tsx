@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,14 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Trash2, ShieldAlert, Users, HardHat, Building2 } from 'lucide-react';
-import { useSecurityBlacklist, useAddToBlacklist, useRemoveFromBlacklist } from '@/hooks/use-security-blacklist';
+import { useSecurityBlacklist, useAddToBlacklist, useRemoveFromBlacklist } from '@/features/security';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { cn } from '@/lib/utils';
-import { BlacklistPhotoUpload, BlacklistPhotoAvatar } from '@/components/security/BlacklistPhotoUpload';
+import { BlacklistPhotoUpload, BlacklistPhotoAvatar } from '@/features/security';
 
 const addSchema = z.object({
   full_name: z.string().min(2, 'Name is required'),
@@ -87,9 +87,9 @@ export default function BlacklistManagement() {
 
   const entityTypeBadge = (type?: string | null) => {
     const config = {
-      visitor: { label: isRTL ? 'زائر' : 'Visitor', icon: Users, color: 'bg-blue-500/10 text-blue-600' },
-      worker: { label: isRTL ? 'عامل' : 'Worker', icon: HardHat, color: 'bg-amber-500/10 text-amber-600' },
-      contractor: { label: isRTL ? 'مقاول' : 'Contractor', icon: Building2, color: 'bg-purple-500/10 text-purple-600' },
+      visitor: { label: isRTL ? 'Ø²Ø§Ø¦Ø±' : 'Visitor', icon: Users, color: 'bg-blue-500/10 text-blue-600' },
+      worker: { label: isRTL ? 'Ø¹Ø§Ù…Ù„' : 'Worker', icon: HardHat, color: 'bg-amber-500/10 text-amber-600' },
+      contractor: { label: isRTL ? 'Ù…Ù‚Ø§ÙˆÙ„' : 'Contractor', icon: Building2, color: 'bg-purple-500/10 text-purple-600' },
     };
     const c = config[(type as keyof typeof config) || 'visitor'] || config.visitor;
     return (
@@ -106,10 +106,10 @@ export default function BlacklistManagement() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <ShieldAlert className="h-6 w-6 text-destructive" />
-            {isRTL ? 'إدارة القائمة السوداء' : 'Blacklist Management'}
+            {isRTL ? 'Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø³ÙˆØ¯Ø§Ø¡' : 'Blacklist Management'}
           </h1>
           <p className="text-muted-foreground">
-            {isRTL ? 'إدارة الزوار والعمال والمقاولين المحظورين' : 'Manage blocked visitors, workers, and contractors'}
+            {isRTL ? 'Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø²ÙˆØ§Ø± ÙˆØ§Ù„Ø¹Ù…Ø§Ù„ ÙˆØ§Ù„Ù…Ù‚Ø§ÙˆÙ„ÙŠÙ† Ø§Ù„Ù…Ø­Ø¸ÙˆØ±ÙŠÙ†' : 'Manage blocked visitors, workers, and contractors'}
           </p>
         </div>
         <Dialog open={addDialogOpen} onOpenChange={handleDialogClose}>
@@ -128,7 +128,7 @@ export default function BlacklistManagement() {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 {/* Photo Upload */}
                 <div className="space-y-2">
-                  <FormLabel>{isRTL ? 'الصورة' : 'Photo'}</FormLabel>
+                  <FormLabel>{isRTL ? 'Ø§Ù„ØµÙˆØ±Ø©' : 'Photo'}</FormLabel>
                   <BlacklistPhotoUpload
                     photoPath={photoPath}
                     onPhotoChange={setPhotoPath}
@@ -141,7 +141,7 @@ export default function BlacklistManagement() {
                   name="entity_type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{isRTL ? 'نوع الكيان' : 'Entity Type'} *</FormLabel>
+                      <FormLabel>{isRTL ? 'Ù†ÙˆØ¹ Ø§Ù„ÙƒÙŠØ§Ù†' : 'Entity Type'} *</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -149,9 +149,9 @@ export default function BlacklistManagement() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="visitor">{isRTL ? 'زائر' : 'Visitor'}</SelectItem>
-                          <SelectItem value="worker">{isRTL ? 'عامل' : 'Worker'}</SelectItem>
-                          <SelectItem value="contractor">{isRTL ? 'مقاول' : 'Contractor'}</SelectItem>
+                          <SelectItem value="visitor">{isRTL ? 'Ø²Ø§Ø¦Ø±' : 'Visitor'}</SelectItem>
+                          <SelectItem value="worker">{isRTL ? 'Ø¹Ø§Ù…Ù„' : 'Worker'}</SelectItem>
+                          <SelectItem value="contractor">{isRTL ? 'Ù…Ù‚Ø§ÙˆÙ„' : 'Contractor'}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -216,19 +216,19 @@ export default function BlacklistManagement() {
         <TabsList>
           <TabsTrigger value="all" className="gap-2">
             <ShieldAlert className="h-4 w-4" />
-            {isRTL ? 'الكل' : 'All'}
+            {isRTL ? 'Ø§Ù„ÙƒÙ„' : 'All'}
           </TabsTrigger>
           <TabsTrigger value="visitor" className="gap-2">
             <Users className="h-4 w-4" />
-            {isRTL ? 'زوار' : 'Visitors'}
+            {isRTL ? 'Ø²ÙˆØ§Ø±' : 'Visitors'}
           </TabsTrigger>
           <TabsTrigger value="worker" className="gap-2">
             <HardHat className="h-4 w-4" />
-            {isRTL ? 'عمال' : 'Workers'}
+            {isRTL ? 'Ø¹Ù…Ø§Ù„' : 'Workers'}
           </TabsTrigger>
           <TabsTrigger value="contractor" className="gap-2">
             <Building2 className="h-4 w-4" />
-            {isRTL ? 'مقاولون' : 'Contractors'}
+            {isRTL ? 'Ù…Ù‚Ø§ÙˆÙ„ÙˆÙ†' : 'Contractors'}
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -264,8 +264,8 @@ export default function BlacklistManagement() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-16">{isRTL ? 'الصورة' : 'Photo'}</TableHead>
-                    <TableHead>{isRTL ? 'النوع' : 'Type'}</TableHead>
+                    <TableHead className="w-16">{isRTL ? 'Ø§Ù„ØµÙˆØ±Ø©' : 'Photo'}</TableHead>
+                    <TableHead>{isRTL ? 'Ø§Ù„Ù†ÙˆØ¹' : 'Type'}</TableHead>
                     <TableHead>{t('visitors.fields.name')}</TableHead>
                     <TableHead>{t('visitors.fields.nationalId')}</TableHead>
                     <TableHead>{t('visitors.blacklist.reasonLabel')}</TableHead>
@@ -327,3 +327,4 @@ export default function BlacklistManagement() {
     </div>
   );
 }
+

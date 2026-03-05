@@ -1,5 +1,5 @@
-import { useTranslation } from 'react-i18next';
-import { AppUpdateBroadcastPanel } from '@/components/admin/AppUpdateBroadcastPanel';
+﻿import { useTranslation } from 'react-i18next';
+import { AppUpdateBroadcastPanel } from '@/features/admin';
 
 export default function AppUpdates() {
   const { t } = useTranslation();
@@ -19,3 +19,4 @@ export default function AppUpdates() {
     </div>
   );
 }
+

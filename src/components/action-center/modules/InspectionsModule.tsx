@@ -8,7 +8,7 @@ import {
   Eye,
 } from 'lucide-react';
 import { ActionModuleCard } from '../ActionModuleCard';
-import type { ActionCenterStats } from '@/hooks/use-action-center-stats';
+import type { ActionCenterStats } from '@/features/incidents';
 
 interface InspectionsModuleProps {
   stats: ActionCenterStats['inspections'];

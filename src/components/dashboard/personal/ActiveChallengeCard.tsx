@@ -30,7 +30,18 @@ export function ActiveChallengeCard() {
   }
 
   const activeChallenge = challenges?.[0];
-  
+
+  // Trigger celebration when challenge is completed
+  useEffect(() => {
+    if (
+      activeChallenge?.is_completed &&
+      !celebratedChallenges.current.has(activeChallenge.challenge_id)
+    ) {
+      celebratedChallenges.current.add(activeChallenge.challenge_id);
+      celebrateChallenge({ intensity: 'high' });
+    }
+  }, [activeChallenge?.is_completed, activeChallenge?.challenge_id, celebrateChallenge]);
+
   if (!activeChallenge) {
     return null;
   }
@@ -41,17 +52,6 @@ export function ActiveChallengeCard() {
   const progressPercent = activeChallenge.is_joined
     ? Math.min(100, (activeChallenge.user_progress / activeChallenge.target_count) * 100)
     : 0;
-
-  // Trigger celebration when challenge is completed
-  useEffect(() => {
-    if (
-      activeChallenge.is_completed && 
-      !celebratedChallenges.current.has(activeChallenge.challenge_id)
-    ) {
-      celebratedChallenges.current.add(activeChallenge.challenge_id);
-      celebrateChallenge({ intensity: 'high' });
-    }
-  }, [activeChallenge.is_completed, activeChallenge.challenge_id, celebrateChallenge]);
 
   const getTimeRemaining = () => {
     if (daysRemaining > 0) {

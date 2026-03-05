@@ -5,10 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MenuBasedAdminRoute } from "@/components/auth/MenuBasedAdminRoute";
 import { Clock, AlertCircle, User, Truck, Calendar } from "lucide-react";
-import { useDeptPendingApprovals } from "@/hooks/contractor-management/use-dept-gate-passes";
-import { MaterialGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
-import { GatePassDetailDialog } from "@/components/contractors/GatePassDetailDialog";
-import { GatePassTypeBadge } from "@/components/contractors/GatePassTypeBadge";
+import { useDeptPendingApprovals } from "@/features/contractors/hooks/use-dept-gate-passes";
+import { MaterialGatePass } from "@/features/contractors/hooks/use-material-gate-passes";
+import { GatePassDetailDialog } from '@/features/contractors';
+import { GatePassTypeBadge } from '@/features/contractors';
 import { format } from "date-fns";
 
 function DeptPendingApprovalsContent() {
@@ -170,3 +170,4 @@ export default function DeptPendingApprovals() {
     </MenuBasedAdminRoute>
   );
 }
+

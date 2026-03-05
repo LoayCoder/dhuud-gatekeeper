@@ -36,42 +36,42 @@ import {
   useBulkUpdateTemplateStatus,
   useBulkDeleteTemplates,
   InspectionTemplate,
-} from '@/hooks/use-inspections';
-import { InspectionTemplateForm, TemplateItemBuilder } from '@/components/inspections';
-import { TemplateBulkActionsToolbar } from '@/components/admin/TemplateBulkActionsToolbar';
+} from '@/features/incidents';
+import { InspectionTemplateForm, TemplateItemBuilder } from '@/features/incidents';
+import { TemplateBulkActionsToolbar } from '@/features/admin';
 import { cn } from '@/lib/utils';
 import i18n from '@/i18n';
 
 export default function InspectionTemplates() {
   const { t } = useTranslation();
   const direction = i18n.dir();
-  
+
   const { data: templates, isLoading } = useInspectionTemplates();
   const createTemplate = useCreateTemplate();
   const updateTemplate = useUpdateTemplate();
   const deleteTemplate = useDeleteTemplate();
   const bulkUpdateStatus = useBulkUpdateTemplateStatus();
   const bulkDelete = useBulkDeleteTemplates();
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<InspectionTemplate | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  
+
   // Multi-select state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
-  
+
   const filteredTemplates = templates?.filter((t) =>
     t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     t.code.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
   // Selection helpers
   const allSelected = (filteredTemplates?.length ?? 0) > 0 && selectedIds.size === filteredTemplates?.length;
   const someSelected = selectedIds.size > 0 && selectedIds.size < (filteredTemplates?.length || 0);
-  
+
   const toggleSelectAll = () => {
     if (allSelected) {
       setSelectedIds(new Set());
@@ -79,69 +79,69 @@ export default function InspectionTemplates() {
       setSelectedIds(new Set(filteredTemplates?.map((t) => t.id)));
     }
   };
-  
+
   const toggleSelect = (id: string) => {
     const newSet = new Set(selectedIds);
     if (newSet.has(id)) newSet.delete(id);
     else newSet.add(id);
     setSelectedIds(newSet);
   };
-  
+
   const clearSelection = () => setSelectedIds(new Set());
-  
-  const handleCreate = async (data: any) => {
+
+  const handleCreate = async (data: Record<string, unknown>) => {
     await createTemplate.mutateAsync(data);
     setFormOpen(false);
   };
-  
-  const handleUpdate = async (data: any) => {
+
+  const handleUpdate = async (data: Record<string, unknown>) => {
     if (editingTemplate) {
       await updateTemplate.mutateAsync({ id: editingTemplate.id, ...data });
       setEditingTemplate(null);
     }
   };
-  
+
   const handleDelete = async () => {
     if (deletingId) {
       await deleteTemplate.mutateAsync(deletingId);
       setDeletingId(null);
     }
   };
-  
+
   // Bulk action handlers
   const handleBulkActivate = async () => {
     await bulkUpdateStatus.mutateAsync({ ids: Array.from(selectedIds), is_active: true });
     clearSelection();
   };
-  
+
   const handleBulkDeactivate = async () => {
     await bulkUpdateStatus.mutateAsync({ ids: Array.from(selectedIds), is_active: false });
     clearSelection();
   };
-  
+
   const handleBulkDelete = async () => {
     await bulkDelete.mutateAsync(Array.from(selectedIds));
     clearSelection();
     setBulkDeleteDialogOpen(false);
   };
-  
-  const getTemplateName = (template: InspectionTemplate) => 
+
+  const getTemplateName = (template: InspectionTemplate) =>
     direction === 'rtl' && template.name_ar ? template.name_ar : template.name;
-  
+
   const getCategoryName = (template: InspectionTemplate) => {
     if (!template.category?.name) return null;
     return direction === 'rtl' && template.category.name_ar
       ? template.category.name_ar
       : template.category.name;
   };
-  
+
   const getTypeName = (template: InspectionTemplate) => {
     if (!template.type?.name) return null;
     return direction === 'rtl' && template.type.name_ar
       ? template.type.name_ar
       : template.type.name;
   };
-  
+
   return (
     <div className="container mx-auto py-4 sm:py-6 px-4 sm:px-6 space-y-4 sm:space-y-6 pb-24 sm:pb-6" dir={direction}>
       {/* Responsive Header */}
@@ -155,7 +155,7 @@ export default function InspectionTemplates() {
           {t('inspections.createTemplate')}
         </Button>
       </div>
-      
+
       {/* Bulk Actions Toolbar - Desktop (sticky top) */}
       {selectedIds.size > 0 && (
         <div className="hidden sm:block sticky top-0 z-10">
@@ -168,7 +168,7 @@ export default function InspectionTemplates() {
           />
         </div>
       )}
-      
+
       <Card>
         <CardHeader className="pb-4">
           <div className="flex items-center gap-3">
@@ -215,11 +215,11 @@ export default function InspectionTemplates() {
                   open={expandedId === template.id}
                   onOpenChange={(open) => setExpandedId(open ? template.id : null)}
                 >
-                  <div 
+                  <div
                     className={cn(
                       "border-2 rounded-xl transition-all",
-                      selectedIds.has(template.id) 
-                        ? "border-primary bg-primary/5" 
+                      selectedIds.has(template.id)
+                        ? "border-primary bg-primary/5"
                         : "border-border"
                     )}
                   >
@@ -256,8 +256,8 @@ export default function InspectionTemplates() {
                                 <Edit className="h-4 w-4 me-2" />
                                 {t('common.edit')}
                               </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => setDeletingId(template.id)} 
+                              <DropdownMenuItem
+                                onClick={() => setDeletingId(template.id)}
                                 className="text-destructive focus:text-destructive"
                               >
                                 <Trash2 className="h-4 w-4 me-2" />
@@ -287,7 +287,7 @@ export default function InspectionTemplates() {
                         </CollapsibleTrigger>
                       </div>
                     </div>
-                    
+
                     {/* Desktop Row Layout */}
                     <div className="hidden sm:flex items-center justify-between p-4">
                       <div className="flex items-center gap-4">
@@ -343,7 +343,7 @@ export default function InspectionTemplates() {
                         </Button>
                       </div>
                     </div>
-                    
+
                     <CollapsibleContent>
                       <div className="border-t p-4">
                         <TemplateItemBuilder templateId={template.id} />
@@ -356,7 +356,7 @@ export default function InspectionTemplates() {
           )}
         </CardContent>
       </Card>
-      
+
       {/* Fixed Bottom Toolbar for Mobile (PWA Pattern) */}
       {selectedIds.size > 0 && (
         <div className="sm:hidden fixed bottom-0 start-0 end-0 p-4 bg-background border-t z-50 safe-area-pb">
@@ -369,7 +369,7 @@ export default function InspectionTemplates() {
           />
         </div>
       )}
-      
+
       {/* Create/Edit Form */}
       <InspectionTemplateForm
         open={formOpen || !!editingTemplate}
@@ -383,7 +383,7 @@ export default function InspectionTemplates() {
         onSubmit={editingTemplate ? handleUpdate : handleCreate}
         isLoading={createTemplate.isPending || updateTemplate.isPending}
       />
-      
+
       {/* Delete Confirmation */}
       <AlertDialog open={!!deletingId} onOpenChange={(open) => !open && setDeletingId(null)}>
         <AlertDialogContent dir={direction}>
@@ -404,7 +404,7 @@ export default function InspectionTemplates() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      
+
       {/* Bulk Delete Confirmation */}
       <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
         <AlertDialogContent dir={direction}>
@@ -429,3 +429,5 @@ export default function InspectionTemplates() {
     </div>
   );
 }
+
+

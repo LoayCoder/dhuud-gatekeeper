@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Building2, Loader2 } from "lucide-react";
-import { useClientSiteRepData } from "@/hooks/contractor-management/use-client-site-rep-data";
+import { useClientSiteRepData } from "@/features/contractors/hooks/use-client-site-rep-data";
 import { AssignedCompaniesCard } from "@/components/client-site-rep/AssignedCompaniesCard";
 import { WorkersSummaryCard } from "@/components/client-site-rep/WorkersSummaryCard";
 import { ProjectsSummaryCard } from "@/components/client-site-rep/ProjectsSummaryCard";

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Bell, Send, Eye, Trash2, CloudSun, Gavel, ShieldAlert, BookOpen, GraduationCap, Users, Building2, MapPin, CheckCircle2, Clock, AlertTriangle, Mail, BarChart3, HardHat, UserCheck, MessageCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +16,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AdminRoute } from '@/components';
-import { useHSSENotificationsAdmin, useNotificationStats, CreateNotificationData, HSSENotification } from '@/hooks/use-hsse-notifications';
+import { useHSSENotificationsAdmin, useNotificationStats, CreateNotificationData, HSSENotification } from '@/features/incidents';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ar, enUS } from 'date-fns/locale';
@@ -623,3 +623,4 @@ export default function HSSENotifications() {
     </AdminRoute>
   );
 }
+

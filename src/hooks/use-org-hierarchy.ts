@@ -50,48 +50,8 @@ export function useTenantSites() {
     queryFn: async () => {
       if (!profile?.tenant_id) return [];
 
-      const { data, error } = await supabase
-        .from('sites')
-        .select(`
-          id,
-          name,
-          branch_id,
-          address,
-          latitude,
-          longitude,
-          boundary_polygon,
-          geofence_radius_meters,
-          branches!sites_branch_id_fkey (name)
-        `)
-        .eq('tenant_id', profile.tenant_id)
-        .eq('is_active', true)
-        .is('deleted_at', null)
-        .order('name');
-
-      if (error) throw error;
-
-      return data.map((site) => {
-        // Parse boundary_polygon from JSON if it exists
-        let boundaryPolygon: Coordinate[] | null = null;
-        if (site.boundary_polygon && Array.isArray(site.boundary_polygon)) {
-          boundaryPolygon = (site.boundary_polygon as unknown as Array<{ lat: number; lng: number }>).map(p => ({
-            lat: p.lat,
-            lng: p.lng,
-          }));
-        }
-        
-        return {
-          id: site.id,
-          name: site.name,
-          branch_id: site.branch_id,
-          branch_name: site.branches?.name ?? null,
-          address: site.address,
-          latitude: site.latitude,
-          longitude: site.longitude,
-          boundary_polygon: boundaryPolygon,
-          geofence_radius_meters: site.geofence_radius_meters,
-        };
-      }) as Site[];
+      const { getTenantSites } = await import('@/features/admin');
+      return getTenantSites(profile.tenant_id);
     },
     enabled: !!profile?.tenant_id,
   });
@@ -105,17 +65,8 @@ export function useTenantBranches() {
     queryFn: async () => {
       if (!profile?.tenant_id) return [];
 
-      const { data, error } = await supabase
-        .from('branches')
-        .select('id, name, location, latitude, longitude')
-        .eq('tenant_id', profile.tenant_id)
-        .is('deleted_at', null)
-        .order('name');
-
-      if (error) throw error;
-      return (data as Branch[]).filter(
-        (b, i, arr) => arr.findIndex(x => x.id === b.id) === i
-      );
+      const { getTenantBranches } = await import('@/features/admin');
+      return getTenantBranches(profile.tenant_id);
     },
     enabled: !!profile?.tenant_id,
   });
@@ -129,28 +80,8 @@ export function useTenantDepartments() {
     queryFn: async () => {
       if (!profile?.tenant_id) return [];
 
-      const { data, error } = await supabase
-        .from('departments')
-        .select(`
-          id,
-          name,
-          division_id,
-          branch_id,
-          divisions!departments_division_id_fkey (name)
-        `)
-        .eq('tenant_id', profile.tenant_id)
-        .is('deleted_at', null)
-        .order('name');
-
-      if (error) throw error;
-
-      return data.map((dept) => ({
-        id: dept.id,
-        name: dept.name,
-        division_id: dept.division_id,
-        division_name: dept.divisions?.name ?? null,
-        branch_id: dept.branch_id ?? null,
-      })) as Department[];
+      const { getTenantDepartments } = await import('@/features/admin');
+      return getTenantDepartments(profile.tenant_id);
     },
     enabled: !!profile?.tenant_id,
   });
@@ -164,26 +95,8 @@ export function useTenantSections() {
     queryFn: async () => {
       if (!profile?.tenant_id) return [];
 
-      const { data, error } = await supabase
-        .from('sections')
-        .select(`
-          id,
-          name,
-          department_id,
-          departments!sections_department_id_fkey (name)
-        `)
-        .eq('tenant_id', profile.tenant_id)
-        .is('deleted_at', null)
-        .order('name');
-
-      if (error) throw error;
-
-      return data.map((sec) => ({
-        id: sec.id,
-        name: sec.name,
-        department_id: sec.department_id,
-        department_name: sec.departments?.name ?? null,
-      })) as Section[];
+      const { getTenantSections } = await import('@/features/admin');
+      return getTenantSections(profile.tenant_id);
     },
     enabled: !!profile?.tenant_id,
   });

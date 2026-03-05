@@ -328,7 +328,7 @@ function getDistributedDecisionExits(
   for (let i = 1; i < angles.length; i++) {
     const prev = angles[i - 1];
     const curr = angles[i];
-    let diff = curr.angle - prev.angle;
+    const diff = curr.angle - prev.angle;
     
     if (diff < MIN_SEPARATION) {
       // Spread them apart

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { 
-  BarChart3, TrendingUp, Clock, AlertTriangle, CheckCircle2, 
-  Users, Building2, PieChart, Download, RefreshCw 
+import {
+  BarChart3, TrendingUp, Clock, AlertTriangle, CheckCircle2,
+  Users, Building2, PieChart, Download, RefreshCw
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,14 +11,14 @@ import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AdminRoute } from '@/components';
-import { 
-  useHSSEComplianceMetrics, 
+import {
+  useHSSEComplianceMetrics,
   useHSSEAcknowledgmentRates,
   useHSSEResponseTimeDistribution,
   useHSSECategoryDistribution,
-} from '@/hooks/use-hsse-analytics';
+} from '@/features/incidents';
 import { cn } from '@/lib/utils';
-import { 
+import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart as RechartsPieChart, Pie, Cell, Legend,
   LineChart, Line, AreaChart, Area
@@ -35,12 +35,12 @@ const CATEGORY_COLORS = [
   '#3b82f6', '#8b5cf6', '#ef4444', '#22c55e', '#f97316', '#6b7280'
 ];
 
-function MetricCard({ 
-  title, 
-  value, 
-  subtitle, 
-  icon: Icon, 
-  trend, 
+function MetricCard({
+  title,
+  value,
+  subtitle,
+  icon: Icon,
+  trend,
   trendDirection,
   variant = 'default',
   isLoading,
@@ -113,7 +113,18 @@ function MetricCard({
   );
 }
 
-function ComplianceByBranchTable({ data, isLoading }: { data: any[]; isLoading: boolean }) {
+function ComplianceByBranchTable({ data, isLoading }: {
+  data: {
+    branch_id: string;
+    branch_name: string;
+    total_notifications: number;
+    total_actual_acks: number;
+    total_expected_acks: number;
+    acknowledgment_rate: number;
+    avg_response_hours: number | null
+  }[];
+  isLoading: boolean
+}) {
   const { t } = useTranslation();
 
   if (isLoading) {
@@ -146,12 +157,12 @@ function ComplianceByBranchTable({ data, isLoading }: { data: any[]; isLoading: 
       </TableHeader>
       <TableBody>
         {data.map((branch) => {
-          const rateColor = branch.acknowledgment_rate >= 90 
-            ? 'text-green-600' 
-            : branch.acknowledgment_rate >= 70 
-              ? 'text-yellow-600' 
+          const rateColor = branch.acknowledgment_rate >= 90
+            ? 'text-green-600'
+            : branch.acknowledgment_rate >= 70
+              ? 'text-yellow-600'
               : 'text-red-600';
-          
+
           return (
             <TableRow key={branch.branch_id}>
               <TableCell className="font-medium">{branch.branch_name}</TableCell>
@@ -161,9 +172,9 @@ function ComplianceByBranchTable({ data, isLoading }: { data: any[]; isLoading: 
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  <Progress 
-                    value={branch.acknowledgment_rate} 
-                    className="h-2 w-20" 
+                  <Progress
+                    value={branch.acknowledgment_rate}
+                    className="h-2 w-20"
                   />
                   <span className={cn("text-sm font-medium", rateColor)}>
                     {branch.acknowledgment_rate}%
@@ -184,7 +195,7 @@ function ComplianceByBranchTable({ data, isLoading }: { data: any[]; isLoading: 
 export default function HSSENotificationAnalytics() {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
-  
+
   const { data: metrics, isLoading: metricsLoading, refetch: refetchMetrics } = useHSSEComplianceMetrics();
   const { data: branchRates, isLoading: branchLoading } = useHSSEAcknowledgmentRates();
   const { data: responseTime, isLoading: responseLoading } = useHSSEResponseTimeDistribution();
@@ -192,10 +203,10 @@ export default function HSSENotificationAnalytics() {
 
   const handleExport = async () => {
     if (!metrics || !branchRates) return;
-    
+
     const ExcelJS = await import('exceljs');
     const workbook = new ExcelJS.Workbook();
-    
+
     // Summary sheet
     const summarySheet = workbook.addWorksheet(t('hsseNotifications.analytics.summary', 'Summary'));
     summarySheet.addRow([t('hsseNotifications.analytics.metric', 'Metric'), t('hsseNotifications.analytics.value', 'Value')]);
@@ -203,7 +214,7 @@ export default function HSSENotificationAnalytics() {
     summarySheet.addRow([t('hsseNotifications.analytics.overallAckRate'), `${metrics.overall_ack_rate}%`]);
     summarySheet.addRow([t('hsseNotifications.analytics.avgResponseTime'), `${metrics.avg_response_time_hours}h`]);
     summarySheet.addRow([t('hsseNotifications.analytics.overdue'), metrics.overdue_count]);
-    
+
     // Branch compliance sheet
     const branchSheet = workbook.addWorksheet(t('hsseNotifications.analytics.complianceByBranch'));
     branchSheet.addRow([
@@ -222,7 +233,7 @@ export default function HSSENotificationAnalytics() {
         branch.avg_response_hours ? `${branch.avg_response_hours}h` : '-',
       ]);
     });
-    
+
     // Download file
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -235,7 +246,7 @@ export default function HSSENotificationAnalytics() {
   };
 
   // Prepare chart data
-  const weeklyTrendData = metrics?.weekly_trend?.map((week: any) => ({
+  const weeklyTrendData = metrics?.weekly_trend?.map((week: { week_start: string; total_sent: number; ack_rate: number }) => ({
     week: new Date(week.week_start).toLocaleDateString(i18n.language, { month: 'short', day: 'numeric' }),
     sent: week.total_sent,
     rate: week.ack_rate,
@@ -293,8 +304,8 @@ export default function HSSENotificationAnalytics() {
             value={`${metrics?.overall_ack_rate ?? 0}%`}
             icon={CheckCircle2}
             variant={
-              (metrics?.overall_ack_rate ?? 0) >= 90 ? 'success' : 
-              (metrics?.overall_ack_rate ?? 0) >= 70 ? 'warning' : 'danger'
+              (metrics?.overall_ack_rate ?? 0) >= 90 ? 'success' :
+                (metrics?.overall_ack_rate ?? 0) >= 70 ? 'warning' : 'danger'
             }
             isLoading={metricsLoading}
           />
@@ -339,20 +350,20 @@ export default function HSSENotificationAnalytics() {
                     <YAxis yAxisId="right" orientation="right" />
                     <Tooltip />
                     <Legend />
-                    <Area 
+                    <Area
                       yAxisId="left"
-                      type="monotone" 
-                      dataKey="sent" 
-                      stroke="#3b82f6" 
-                      fill="#3b82f6" 
+                      type="monotone"
+                      dataKey="sent"
+                      stroke="#3b82f6"
+                      fill="#3b82f6"
                       fillOpacity={0.3}
                       name={t('hsseNotifications.analytics.sent')}
                     />
-                    <Line 
+                    <Line
                       yAxisId="right"
-                      type="monotone" 
-                      dataKey="rate" 
-                      stroke="#22c55e" 
+                      type="monotone"
+                      dataKey="rate"
+                      stroke="#22c55e"
                       strokeWidth={2}
                       name={t('hsseNotifications.analytics.ackRate')}
                     />
@@ -457,9 +468,9 @@ export default function HSSENotificationAnalytics() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ComplianceByBranchTable 
-                data={branchRates || []} 
-                isLoading={branchLoading} 
+              <ComplianceByBranchTable
+                data={branchRates || []}
+                isLoading={branchLoading}
               />
             </CardContent>
           </Card>
@@ -468,3 +479,4 @@ export default function HSSENotificationAnalytics() {
     </AdminRoute>
   );
 }
+

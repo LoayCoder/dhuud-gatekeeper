@@ -1,10 +1,10 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EnterprisePage } from '@/components/layout/EnterprisePage';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BadgeDefinitionsTab } from '@/components/admin/badges/BadgeDefinitionsTab';
-import { ChallengesTab } from '@/components/admin/badges/ChallengesTab';
-import { BadgeStatisticsTab } from '@/components/admin/badges/BadgeStatisticsTab';
+import { BadgeDefinitionsTab } from '@/features/admin';
+import { ChallengesTab } from '@/features/admin';
+import { BadgeStatisticsTab } from '@/features/admin';
 
 export default function BadgeManagement() {
   const { t } = useTranslation();
@@ -42,3 +42,4 @@ export default function BadgeManagement() {
     </EnterprisePage>
   );
 }
+

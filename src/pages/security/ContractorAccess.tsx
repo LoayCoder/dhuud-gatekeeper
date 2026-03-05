@@ -5,12 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Shield, 
-  QrCode, 
-  Search, 
-  Users, 
-  FileCheck, 
+import {
+  Shield,
+  QrCode,
+  Search,
+  Users,
+  FileCheck,
   Clock,
   CheckCircle2,
   XCircle,
@@ -19,14 +19,14 @@ import {
   History,
   UserCheck
 } from "lucide-react";
-import { WorkerApprovalQueue } from "@/components/contractors/WorkerApprovalQueue";
-import { GatePassApprovalQueue } from "@/components/contractors/GatePassApprovalQueue";
-import { TodayGatePasses } from "@/components/contractors/TodayGatePasses";
-import { WorkerAccessLogTable } from "@/components/security/WorkerAccessLogTable";
-import { ContractorQRScanner } from "@/components/security/ContractorQRScanner";
-import { usePendingWorkerApprovals } from "@/hooks/contractor-management/use-contractor-workers";
-import { useMaterialGatePasses } from "@/hooks/contractor-management/use-material-gate-passes";
-import { useWorkerAccessLogs, useLogWorkerEntry, useRecordWorkerExit, useWorkersOnSiteCount } from "@/hooks/contractor-management/use-worker-access-logs";
+import { WorkerApprovalQueue } from '@/features/contractors';
+import { GatePassApprovalQueue } from '@/features/contractors';
+import { TodayGatePasses } from '@/features/contractors';
+import { WorkerAccessLogTable } from '@/features/security';
+import { ContractorQRScanner } from '@/features/security';
+import { usePendingWorkerApprovals } from "@/features/contractors/hooks/use-contractor-workers";
+import { useMaterialGatePasses } from "@/features/contractors/hooks/use-material-gate-passes";
+import { useWorkerAccessLogs, useLogWorkerEntry, useRecordWorkerExit, useWorkersOnSiteCount } from "@/features/contractors/hooks/use-worker-access-logs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -40,7 +40,14 @@ export default function ContractorAccess() {
   const [dateFilter, setDateFilter] = useState<string>("today");
   const [verificationResult, setVerificationResult] = useState<{
     status: 'granted' | 'denied' | 'warning' | null;
-    worker?: any;
+    worker?: {
+      id: string;
+      full_name: string;
+      national_id?: string;
+      company_name: string;
+      nationality?: string;
+      project_name?: string;
+    } | null;
     message?: string;
     warnings?: string[];
     errors?: string[];
@@ -77,7 +84,7 @@ export default function ContractorAccess() {
   });
 
   // Filter passes
-  const pendingGatePasses = allGatePasses.filter(gp => 
+  const pendingGatePasses = allGatePasses.filter(gp =>
     gp.status === 'pending_pm_approval' || gp.status === 'pending_safety_approval'
   );
   const todayApprovedPasses = allGatePasses.filter(gp => {
@@ -107,8 +114,8 @@ export default function ContractorAccess() {
 
       // Call the validate-worker-qr edge function with search mode
       const { data, error } = await supabase.functions.invoke('validate-worker-qr', {
-        body: { 
-          search_term: searchQuery, 
+        body: {
+          search_term: searchQuery,
           search_mode: true,
           tenant_id: profile?.tenant_id
         }
@@ -142,7 +149,7 @@ export default function ContractorAccess() {
 
   const handleScanResult = async (qrData: string) => {
     setScannerOpen(false);
-    
+
     // Check if it's a worker QR code (format: WORKER:{token})
     let qrToken = qrData;
     if (qrData.startsWith('WORKER:')) {
@@ -162,7 +169,7 @@ export default function ContractorAccess() {
 
       // Call with QR token
       const { data, error } = await supabase.functions.invoke('validate-worker-qr', {
-        body: { 
+        body: {
           qr_token: qrToken,
           tenant_id: profile?.tenant_id
         }
@@ -196,7 +203,7 @@ export default function ContractorAccess() {
 
   const handleLogEntry = async () => {
     if (!verificationResult.worker) return;
-    
+
     logEntry.mutate({
       workerId: verificationResult.worker.id,
       validationStatus: verificationResult.status === 'granted' ? 'valid' : 'warning',
@@ -210,7 +217,7 @@ export default function ContractorAccess() {
 
   const handleRecordExit = async () => {
     if (!verificationResult.worker) return;
-    
+
     recordExit.mutate({
       workerId: verificationResult.worker.id,
     }, {
@@ -241,7 +248,7 @@ export default function ContractorAccess() {
             </p>
           </div>
         </div>
-        
+
         {/* Quick Stats */}
         <div className="flex gap-2">
           <Badge variant="outline" className="px-3 py-1.5 text-sm bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
@@ -336,11 +343,10 @@ export default function ContractorAccess() {
 
               {/* Verification Result */}
               {verificationResult.status && (
-                <Card className={`border-2 ${
-                  verificationResult.status === 'granted' ? 'border-green-500 bg-green-50 dark:bg-green-950/20' :
-                  verificationResult.status === 'warning' ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20' :
-                  'border-destructive bg-destructive/10'
-                }`}>
+                <Card className={`border-2 ${verificationResult.status === 'granted' ? 'border-green-500 bg-green-50 dark:bg-green-950/20' :
+                    verificationResult.status === 'warning' ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20' :
+                      'border-destructive bg-destructive/10'
+                  }`}>
                   <CardContent className="pt-4">
                     <div className="flex items-start gap-4">
                       {verificationResult.status === 'granted' && (
@@ -352,14 +358,14 @@ export default function ContractorAccess() {
                       {verificationResult.status === 'denied' && (
                         <XCircle className="h-12 w-12 text-destructive flex-shrink-0" />
                       )}
-                      
+
                       <div className="flex-1 space-y-2">
                         <h3 className="text-lg font-semibold">
                           {verificationResult.status === 'granted' && t('security.contractorAccess.accessGranted', 'Access Granted')}
                           {verificationResult.status === 'warning' && t('security.contractorAccess.accessWithWarning', 'Access Granted with Warnings')}
                           {verificationResult.status === 'denied' && t('security.contractorAccess.accessDenied', 'Access Denied')}
                         </h3>
-                        
+
                         {verificationResult.worker && (
                           <div className="grid grid-cols-2 gap-2 text-sm">
                             <div>
@@ -419,8 +425,8 @@ export default function ContractorAccess() {
 
                         {verificationResult.worker && verificationResult.status !== 'denied' && (
                           <div className="flex gap-2 pt-2">
-                            <Button 
-                              onClick={handleLogEntry} 
+                            <Button
+                              onClick={handleLogEntry}
                               className="bg-green-600 hover:bg-green-700"
                               disabled={logEntry.isPending}
                             >
@@ -431,8 +437,8 @@ export default function ContractorAccess() {
                               )}
                               {t('security.contractorAccess.logEntry', 'Log Entry')}
                             </Button>
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               onClick={handleRecordExit}
                               disabled={recordExit.isPending}
                             >
@@ -553,3 +559,5 @@ export default function ContractorAccess() {
     </div>
   );
 }
+
+

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format, differenceInDays } from 'date-fns';
 import { 
@@ -39,14 +39,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { 
   ScheduleFormDialog, 
   ScheduleCalendar 
-} from '@/components/inspections/schedules';
+} from '@/features/incidents';
 import {
   useInspectionSchedules,
   useDeleteInspectionSchedule,
   useToggleScheduleActive,
   useOverdueSchedulesCount,
   InspectionSchedule,
-} from '@/hooks/use-inspection-schedules';
+} from '@/features/incidents';
 import { cn } from '@/lib/utils';
 import i18n from '@/i18n';
 
@@ -359,3 +359,4 @@ export default function InspectionSchedules() {
     </div>
   );
 }
+

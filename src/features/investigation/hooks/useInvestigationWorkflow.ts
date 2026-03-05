@@ -1,5 +1,5 @@
-
-import { useUserRoles } from "@/hooks/use-user-roles";
+﻿
+import { useUserRoles } from '@/features/users';
 import { useAuth } from "@/contexts/AuthContext";
 import {
     Incident,
@@ -124,3 +124,4 @@ export function useInvestigationWorkflow(
         userPermissions
     };
 }
+

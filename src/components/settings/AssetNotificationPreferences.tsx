@@ -5,22 +5,22 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Bell, Mail, MessageSquare } from "lucide-react";
-import { useAssetNotificationPreferences, useSaveAssetNotificationPreferences } from "@/hooks/use-asset-notification-preferences";
+import { useAssetNotificationPreferences, useSaveAssetNotificationPreferences } from '@/features/assets';
 import { useState, useEffect } from "react";
 
 export function AssetNotificationPreferences() {
   const { t } = useTranslation();
   const { data: preferences, isLoading } = useAssetNotificationPreferences();
   const savePreferences = useSaveAssetNotificationPreferences();
-  
+
   const [formData, setFormData] = useState(preferences);
-  
+
   useEffect(() => {
     if (preferences) {
       setFormData(preferences);
     }
   }, [preferences]);
-  
+
   if (isLoading || !formData) {
     return (
       <Card>
@@ -30,24 +30,24 @@ export function AssetNotificationPreferences() {
       </Card>
     );
   }
-  
+
   const handleSave = () => {
     savePreferences.mutate(formData);
   };
-  
+
   const updateField = (field: string, value: boolean | number) => {
-    setFormData((prev: any) => ({ ...prev, [field]: value }));
+    setFormData((prev: Record<string, unknown>) => ({ ...prev, [field]: value }));
   };
-  
-  const NotificationRow = ({ 
-    title, 
-    emailField, 
-    whatsappField, 
-    daysField 
-  }: { 
-    title: string; 
-    emailField: string; 
-    whatsappField: string; 
+
+  const NotificationRow = ({
+    title,
+    emailField,
+    whatsappField,
+    daysField
+  }: {
+    title: string;
+    emailField: string;
+    whatsappField: string;
     daysField?: string;
   }) => (
     <div className="flex flex-col gap-3 rounded-lg border p-4">
@@ -55,7 +55,7 @@ export function AssetNotificationPreferences() {
       <div className="flex flex-wrap items-center gap-6">
         <div className="flex items-center gap-2">
           <Switch
-            checked={(formData as any)[emailField]}
+            checked={(formData as unknown)[emailField]}
             onCheckedChange={(v) => updateField(emailField, v)}
           />
           <Mail className="h-4 w-4 text-muted-foreground" />
@@ -63,7 +63,7 @@ export function AssetNotificationPreferences() {
         </div>
         <div className="flex items-center gap-2">
           <Switch
-            checked={(formData as any)[whatsappField]}
+            checked={(formData as unknown)[whatsappField]}
             onCheckedChange={(v) => updateField(whatsappField, v)}
           />
           <MessageSquare className="h-4 w-4 text-muted-foreground" />
@@ -75,7 +75,7 @@ export function AssetNotificationPreferences() {
               type="number"
               min={1}
               max={90}
-              value={(formData as any)[daysField]}
+              value={(formData as unknown)[daysField]}
               onChange={(e) => updateField(daysField, parseInt(e.target.value) || 7)}
               className="w-20"
             />
@@ -85,7 +85,7 @@ export function AssetNotificationPreferences() {
       </div>
     </div>
   );
-  
+
   return (
     <Card>
       <CardHeader>
@@ -126,7 +126,7 @@ export function AssetNotificationPreferences() {
           whatsappField="insurance_expiry_whatsapp"
           daysField="insurance_expiry_days_before"
         />
-        
+
         <div className="flex justify-end pt-4">
           <Button onClick={handleSave} disabled={savePreferences.isPending}>
             {savePreferences.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
@@ -137,3 +137,4 @@ export function AssetNotificationPreferences() {
     </Card>
   );
 }
+

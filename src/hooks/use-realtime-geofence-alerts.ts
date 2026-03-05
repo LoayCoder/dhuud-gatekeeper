@@ -41,15 +41,16 @@ interface RealtimeGeofenceAlertsReturn {
   resolveAlert: ReturnType<typeof useMutation>;
 }
 
-function enrichAlert(rawAlert: any): GeofenceAlert {
+function enrichAlert(rawAlert: unknown): GeofenceAlert {
+  const payload = rawAlert as GeofenceAlert & { guard_lat: number; guard_lng: number; guard?: { full_name: string | null } };
   return {
-    ...rawAlert,
-    status: rawAlert.resolved_at ? 'resolved' 
-          : rawAlert.acknowledged_at ? 'acknowledged' 
-          : 'pending',
-    latitude: rawAlert.guard_lat,
-    longitude: rawAlert.guard_lng,
-    guard_name: rawAlert.guard?.full_name || rawAlert.guard_name || 'Unknown Guard',
+    ...payload,
+    status: payload.resolved_at ? 'resolved'
+      : payload.acknowledged_at ? 'acknowledged'
+        : 'pending',
+    latitude: payload.guard_lat,
+    longitude: payload.guard_lng,
+    guard_name: payload.guard?.full_name || payload.guard_name || 'Unknown Guard',
   };
 }
 
@@ -72,7 +73,7 @@ export function useRealtimeGeofenceAlerts(
   const { toast } = useToast();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  
+
   const [alerts, setAlerts] = useState<GeofenceAlert[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [newAlertCount, setNewAlertCount] = useState(0);
@@ -92,7 +93,7 @@ export function useRealtimeGeofenceAlerts(
         .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .limit(100);
-      
+
       if (error) throw error;
       return (data || []).map(enrichAlert);
     },
@@ -124,7 +125,7 @@ export function useRealtimeGeofenceAlerts(
         { event: 'INSERT', schema: 'public', table: 'geofence_alerts' },
         async (payload) => {
           logger.debug('[Realtime Alerts] New alert:', payload);
-          
+
           // Fetch full alert with guard info
           const { data } = await supabase
             .from('geofence_alerts')
@@ -139,7 +140,7 @@ export function useRealtimeGeofenceAlerts(
 
           if (data) {
             const newAlert = enrichAlert(data);
-            
+
             // INSTANT update - add new alert to state
             setAlerts(prev => [newAlert, ...prev.filter(a => a.id !== newAlert.id)]);
             setNewAlertCount(prev => prev + 1);
@@ -161,9 +162,9 @@ export function useRealtimeGeofenceAlerts(
         { event: 'UPDATE', schema: 'public', table: 'geofence_alerts' },
         (payload) => {
           logger.debug('[Realtime Alerts] Alert updated:', payload);
-          
+
           // INSTANT update - modify alert in state
-          setAlerts(prev => prev.map(alert => 
+          setAlerts(prev => prev.map(alert =>
             alert.id === payload.new.id ? enrichAlert({ ...alert, ...payload.new }) : alert
           ));
         }
@@ -186,14 +187,14 @@ export function useRealtimeGeofenceAlerts(
 
       const { data, error } = await supabase
         .from('geofence_alerts')
-        .update({ 
-          acknowledged_at: new Date().toISOString(), 
-          acknowledged_by: user.id 
+        .update({
+          acknowledged_at: new Date().toISOString(),
+          acknowledged_by: user.id
         })
         .eq('id', alertId)
         .select()
         .single();
-      
+
       if (error) throw error;
       return data;
     },
@@ -211,10 +212,10 @@ export function useRealtimeGeofenceAlerts(
     onError: (error, alertId) => {
       // Rollback on error - refetch to get correct state
       queryClient.invalidateQueries({ queryKey: ['geofence-alerts-realtime-initial'] });
-      toast({ 
-        title: t('common.error', 'Error'), 
-        description: error.message, 
-        variant: 'destructive' 
+      toast({
+        title: t('common.error', 'Error'),
+        description: error.message,
+        variant: 'destructive'
       });
     },
   });
@@ -227,15 +228,15 @@ export function useRealtimeGeofenceAlerts(
 
       const { data, error } = await supabase
         .from('geofence_alerts')
-        .update({ 
-          resolved_at: new Date().toISOString(), 
+        .update({
+          resolved_at: new Date().toISOString(),
           resolved_by: user.id,
           resolution_notes: notes
         })
         .eq('id', alertId)
         .select()
         .single();
-      
+
       if (error) throw error;
       return data;
     },
@@ -243,12 +244,12 @@ export function useRealtimeGeofenceAlerts(
       // INSTANT: Optimistic update
       setAlerts(prev => prev.map(alert =>
         alert.id === alertId
-          ? { 
-              ...alert, 
-              resolved_at: new Date().toISOString(), 
-              resolution_notes: notes,
-              status: 'resolved' as const 
-            }
+          ? {
+            ...alert,
+            resolved_at: new Date().toISOString(),
+            resolution_notes: notes,
+            status: 'resolved' as const
+          }
           : alert
       ));
     },
@@ -258,22 +259,22 @@ export function useRealtimeGeofenceAlerts(
     onError: (error) => {
       // Rollback on error - refetch to get correct state
       queryClient.invalidateQueries({ queryKey: ['geofence-alerts-realtime-initial'] });
-      toast({ 
-        title: t('common.error', 'Error'), 
-        description: error.message, 
-        variant: 'destructive' 
+      toast({
+        title: t('common.error', 'Error'),
+        description: error.message,
+        variant: 'destructive'
       });
     },
   });
 
   // Filter alerts by status
-  const pendingAlerts = useMemo(() => 
+  const pendingAlerts = useMemo(() =>
     alerts.filter(a => a.status === 'pending'), [alerts]);
-  
-  const acknowledgedAlerts = useMemo(() => 
+
+  const acknowledgedAlerts = useMemo(() =>
     alerts.filter(a => a.status === 'acknowledged'), [alerts]);
-  
-  const resolvedAlerts = useMemo(() => 
+
+  const resolvedAlerts = useMemo(() =>
     alerts.filter(a => a.status === 'resolved'), [alerts]);
 
   return {

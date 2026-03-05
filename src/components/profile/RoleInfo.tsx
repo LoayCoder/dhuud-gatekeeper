@@ -1,7 +1,7 @@
-import { useTranslation } from "react-i18next";
+﻿import { useTranslation } from "react-i18next";
 import { Shield } from "lucide-react";
 import { RoleBadge } from "@/components/roles/RoleBadge";
-import { UserRoleAssignment, RoleCategory } from "@/hooks/use-user-roles";
+import { UserRoleAssignment, RoleCategory } from '@/features/users';
 
 interface RoleInfoProps {
   roles: UserRoleAssignment[];
@@ -66,3 +66,4 @@ export function RoleInfo({ roles }: RoleInfoProps) {
     </div>
   );
 }
+

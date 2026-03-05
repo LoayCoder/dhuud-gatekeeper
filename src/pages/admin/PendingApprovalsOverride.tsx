@@ -38,7 +38,7 @@ import {
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAllPendingApprovals, useApprovalCounts, type UnifiedPendingApproval, type ApprovalCategory } from '@/hooks/use-all-pending-approvals';
-import { useAdminOverrideApproval } from '@/hooks/use-admin-override-approval';
+import { useAdminOverrideApproval } from '@/features/admin';
 import { PageLoader } from '@/components/ui/page-loader';
 import { formatStatusLabel } from '@/lib/incident-status-colors';
 
@@ -207,7 +207,7 @@ export default function PendingApprovalsOverride() {
 
       {/* Tabs & Table */}
       <Card>
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as unknown)}>
           <CardHeader className="pb-0">
             <TabsList className="w-full justify-start flex-wrap h-auto gap-1">
               <TabsTrigger value="all" className="gap-1">
@@ -380,3 +380,4 @@ export default function PendingApprovalsOverride() {
     </div>
   );
 }
+

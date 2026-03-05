@@ -235,7 +235,7 @@ async function fetchEvidenceItems(incidentId: string, includeUploader: boolean =
     ...data.map(e => e.reviewed_by).filter(Boolean)
   ])] as string[];
 
-  let profileMap = new Map<string, string>();
+  const profileMap = new Map<string, string>();
   if (includeUploader && uploaderIds.length > 0) {
     const { data: profiles } = await supabase
       .from('profiles')
@@ -271,7 +271,7 @@ async function fetchActionEvidence(actionIds: string[]): Promise<Map<string, Act
   if (!data) return new Map();
 
   const uploaderIds = [...new Set(data.map(e => e.uploaded_by).filter(Boolean))] as string[];
-  let profileMap = new Map<string, string>();
+  const profileMap = new Map<string, string>();
   if (uploaderIds.length > 0) {
     const { data: profiles } = await supabase
       .from('profiles')
@@ -300,8 +300,7 @@ async function fetchActionEvidence(actionIds: string[]): Promise<Map<string, Act
 }
 
 async function fetchContractorViolation(incidentId: string): Promise<ContractorViolationData | null> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db = supabase as any;
+  const db = supabase;
   const { data: incident } = await db
     .from('incidents')
     .select(`
@@ -478,7 +477,7 @@ async function fetchWorkflowDecisions(incidentId: string): Promise<WorkflowDecis
     incident.hsse_validated_by
   ].filter(Boolean) as string[];
 
-  let profileMap = new Map<string, string>();
+  const profileMap = new Map<string, string>();
   if (userIds.length > 0) {
     const { data: profiles } = await supabase
       .from('profiles')

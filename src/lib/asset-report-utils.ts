@@ -3,8 +3,26 @@ import { format } from 'date-fns';
 
 type ReportType = "register" | "valuation" | "warranty" | "location" | "health" | "maintenance";
 
+export interface AssetData {
+  asset_code?: string;
+  name?: string;
+  name_ar?: string;
+  category?: { name?: string; name_ar?: string };
+  status?: string;
+  purchase_price?: number;
+  current_book_value?: number;
+  warranty_expiry?: string | number | Date;
+  site?: { name?: string; name_ar?: string };
+  branch?: { name?: string; name_ar?: string };
+  health?: { score?: number | string; risk_level?: string };
+  maintenance?: { cost?: number }[];
+  serial_number?: string;
+  purchase_date?: string | Date;
+  [key: string]: unknown;
+}
+
 export async function generateAssetReportPDF(
-  data: any[],
+  data: AssetData[],
   reportType: ReportType,
   title: string,
   isRTL: boolean
@@ -19,28 +37,28 @@ export async function generateAssetReportPDF(
   const primaryColor = [37, 99, 235]; // Blue
   const headerBg = [243, 244, 246]; // Light gray
   const borderColor = [209, 213, 219];
-  
+
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 15;
   const contentWidth = pageWidth - (margin * 2);
-  
+
   let yPos = margin;
 
   // Header
   doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
   doc.rect(0, 0, pageWidth, 25, 'F');
-  
+
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
   doc.text(title, margin, 16);
-  
+
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   const dateText = `${isRTL ? 'تاريخ التقرير:' : 'Report Date:'} ${format(new Date(), 'yyyy-MM-dd HH:mm')}`;
   doc.text(dateText, pageWidth - margin - 60, 16);
-  
+
   yPos = 35;
 
   // Summary section
@@ -63,28 +81,28 @@ export async function generateAssetReportPDF(
   // Table header
   doc.setFillColor(headerBg[0], headerBg[1], headerBg[2]);
   doc.rect(margin, yPos, contentWidth, rowHeight, 'F');
-  
+
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(0, 0, 0);
-  
+
   columns.forEach((col, index) => {
     const x = margin + (index * colWidth) + 2;
     doc.text(col.label, x, yPos + 5.5, { maxWidth: colWidth - 4 });
   });
-  
+
   yPos += rowHeight;
 
   // Table rows
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
-  
+
   for (let i = 0; i < data.length; i++) {
     // Check for page break
     if (yPos > pageHeight - 20) {
       doc.addPage();
       yPos = margin;
-      
+
       // Repeat header on new page
       doc.setFillColor(headerBg[0], headerBg[1], headerBg[2]);
       doc.rect(margin, yPos, contentWidth, rowHeight, 'F');
@@ -111,13 +129,13 @@ export async function generateAssetReportPDF(
 
     const asset = data[i];
     const rowData = getRowDataForPDF(asset, reportType, isRTL);
-    
+
     columns.forEach((col, index) => {
       const x = margin + (index * colWidth) + 2;
       const value = String(rowData[col.key] || '-');
       doc.text(value, x, yPos + 5.5, { maxWidth: colWidth - 4 });
     });
-    
+
     yPos += rowHeight;
   }
 
@@ -188,7 +206,7 @@ function getColumnsForPDF(type: ReportType, rtl: boolean): { key: string; label:
   }
 }
 
-function getRowDataForPDF(asset: any, type: ReportType, rtl: boolean): Record<string, string> {
+function getRowDataForPDF(asset: AssetData, type: ReportType, rtl: boolean): Record<string, string> {
   const base: Record<string, string> = {
     asset_code: asset.asset_code || '-',
     name: rtl ? asset.name_ar || asset.name : asset.name || '-',
@@ -203,14 +221,15 @@ function getRowDataForPDF(asset: any, type: ReportType, rtl: boolean): Record<st
         purchase_price: asset.purchase_price ? `${asset.purchase_price.toLocaleString()}` : '-',
         current_book_value: asset.current_book_value ? `${asset.current_book_value.toLocaleString()}` : '-'
       };
-    case 'warranty':
+    case 'warranty': {
       const warrantyExpiry = asset.warranty_expiry ? new Date(asset.warranty_expiry) : null;
       const isExpired = warrantyExpiry && warrantyExpiry < new Date();
       return {
         ...base,
-        warranty_expiry: asset.warranty_expiry || '-',
-        warranty_status: warrantyExpiry ? (isExpired ? (rtl ? 'منتهي' : 'Expired') : (rtl ? 'ساري' : 'Active')) : '-'
+        warranty_expiry: (asset.warranty_expiry as string) || '-',
+        warranty_status: warrantyExpiry ? (isExpired ? (rtl ? 'انتهى' : 'Expired') : (rtl ? 'ساري' : 'Active')) : '-'
       };
+    }
     case 'location':
       return {
         ...base,
@@ -223,18 +242,19 @@ function getRowDataForPDF(asset: any, type: ReportType, rtl: boolean): Record<st
         health_score: asset.health?.score?.toString() || '-',
         risk_level: asset.health?.risk_level || '-'
       };
-    case 'maintenance':
+    case 'maintenance': {
       const maintenanceHistory = asset.maintenance || [];
       return {
         ...base,
         maintenance_count: maintenanceHistory.length.toString(),
-        total_cost: maintenanceHistory.reduce((sum: number, m: any) => sum + (m.cost || 0), 0).toLocaleString()
+        total_cost: maintenanceHistory.reduce((sum: number, m: { cost?: number }) => sum + (m.cost || 0), 0).toLocaleString()
       };
+    }
     default:
       return {
         ...base,
-        serial_number: asset.serial_number || '-',
-        purchase_date: asset.purchase_date || '-'
+        serial_number: (asset.serial_number as string) || '-',
+        purchase_date: (asset.purchase_date as string) || '-'
       };
   }
 }

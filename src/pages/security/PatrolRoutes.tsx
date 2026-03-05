@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import {
   Route,
   Clock
 } from "lucide-react";
-import { usePatrolRoutes, useCreatePatrolRoute } from "@/hooks/use-security-patrols";
+import { usePatrolRoutes, useCreatePatrolRoute } from '@/features/security';
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -243,3 +243,4 @@ export default function PatrolRoutes() {
     </div>
   );
 }
+

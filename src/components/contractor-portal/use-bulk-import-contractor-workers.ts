@@ -32,12 +32,12 @@ export function useBulkImportContractorWorkers() {
 
       // Insert in batches of 50 to avoid hitting limits
       const batchSize = 50;
-      const results: any[] = [];
+      const results: { id: string; full_name: string; national_id: string }[] = [];
       const errors: { national_id: string; error: string }[] = [];
 
       for (let i = 0; i < workersToInsert.length; i += batchSize) {
         const batch = workersToInsert.slice(i, i + batchSize);
-        
+
         const { data, error } = await supabase
           .from("contractor_workers")
           .insert(batch)
@@ -52,12 +52,12 @@ export function useBulkImportContractorWorkers() {
                 .from("contractor_workers")
                 .insert(worker)
                 .select("id, full_name, national_id");
-              
+
               if (singleError) {
                 errors.push({
                   national_id: worker.national_id,
-                  error: singleError.message.includes("duplicate") 
-                    ? "Duplicate National ID" 
+                  error: singleError.message.includes("duplicate")
+                    ? "Duplicate National ID"
                     : singleError.message,
                 });
               } else if (singleData) {
@@ -77,7 +77,7 @@ export function useBulkImportContractorWorkers() {
     onSuccess: ({ inserted, errors }) => {
       queryClient.invalidateQueries({ queryKey: ["contractor-portal-workers"] });
       queryClient.invalidateQueries({ queryKey: ["contractor-portal-stats"] });
-      
+
       if (errors.length > 0) {
         toast.warning(
           `Imported ${inserted.length} workers. ${errors.length} failed (duplicates or errors).`

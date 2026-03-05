@@ -4,16 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EnterprisePage } from "@/components/layout/EnterprisePage";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useContractorDashboardStats } from "@/hooks/contractor-management/use-contractor-dashboard-stats";
-import { InductionComplianceWidget } from "@/components/contractors/InductionComplianceWidget";
-import { SafetyOfficerCoverageCard } from "@/components/contractors/dashboard/SafetyOfficerCoverageCard";
-import { HSSEEventsSummaryCard } from "@/components/contractors/dashboard/HSSEEventsSummaryCard";
-import { BlacklistSummaryCard } from "@/components/contractors/dashboard/BlacklistSummaryCard";
-import { PTWStatusCard } from "@/components/contractors/dashboard/PTWStatusCard";
-import { RiskAssessmentCard } from "@/components/contractors/dashboard/RiskAssessmentCard";
-import { OnsiteWorkersCard } from "@/components/contractors/dashboard/OnsiteWorkersCard";
-import { ProjectStatusCard } from "@/components/contractors/dashboard/ProjectStatusCard";
-import { CompanyStatusChart } from "@/components/contractors/CompanyStatusChart";
+import { useContractorDashboardStats } from "@/features/contractors/hooks/use-contractor-dashboard-stats";
+import { InductionComplianceWidget } from '@/features/contractors';
+import { SafetyOfficerCoverageCard } from '@/features/contractors';
+import { HSSEEventsSummaryCard } from '@/features/contractors';
+import { BlacklistSummaryCard } from '@/features/contractors';
+import { PTWStatusCard } from '@/features/contractors';
+import { RiskAssessmentCard } from '@/features/contractors';
+import { OnsiteWorkersCard } from '@/features/contractors';
+import { ProjectStatusCard } from '@/features/contractors';
+import { CompanyStatusChart } from '@/features/contractors';
 
 export default function ContractorDashboard() {
   const { t } = useTranslation();
@@ -201,3 +201,4 @@ export default function ContractorDashboard() {
     </EnterprisePage>
   );
 }
+

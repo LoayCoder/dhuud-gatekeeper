@@ -57,9 +57,17 @@ export function useLocationHeatmap(startDate?: Date, endDate?: Date, branchId?: 
   return useQuery({
     queryKey: ['location-heatmap', profile?.tenant_id, startDate?.toISOString(), endDate?.toISOString(), branchId, siteId],
     queryFn: async (): Promise<LocationHeatmapData> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let query = (supabase as any)
-        .from('incidents')
+      interface HeatmapIncident {
+        branch_id?: string;
+        site_id?: string;
+        severity_v2?: string;
+        event_type?: string;
+        occurred_at?: string;
+        branches?: { name?: string };
+        sites?: { name?: string };
+      }
+
+      let query = supabase.from('incidents' as never)
         .select('id, branch_id, site_id, severity_v2, event_type, occurred_at, branches!incidents_branch_id_fkey!inner(id, name), sites(id, name)')
         .is('deleted_at', null);
 
@@ -84,7 +92,7 @@ export function useLocationHeatmap(startDate?: Date, endDate?: Date, branchId?: 
       const siteMap = new Map<string, SiteBubbleData>();
       const temporalMap = new Map<string, number>(); // "day-hour" -> count
 
-      (incidents || []).forEach((inc: any) => {
+      (incidents as HeatmapIncident[] || []).forEach((inc) => {
         const branchId = inc.branch_id;
         const branchName = inc.branches?.name || 'Unknown';
         const siteId = inc.site_id;

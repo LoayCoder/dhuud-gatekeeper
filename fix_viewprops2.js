@@ -1,0 +1,29 @@
+const fs = require('fs');
+const path = require('path');
+
+const files = [
+    'src/pages/incidents/MyActions/tabs/ActionsTab.tsx',
+    'src/pages/incidents/MyActions/tabs/ApprovalsTab.tsx',
+    'src/pages/incidents/MyActions/tabs/ContractorApprovalsList.tsx',
+    'src/pages/incidents/MyActions/tabs/IncidentApprovalsList.tsx',
+    'src/pages/incidents/MyActions/tabs/InspectionsTab.tsx',
+    'src/pages/incidents/MyActions/tabs/InvestigationsTab.tsx',
+    'src/pages/incidents/MyActions/tabs/ReportedTab.tsx',
+    'src/pages/incidents/MyActions/tabs/WitnessTab.tsx',
+    'src/pages/incidents/MyActions/MyActionsLayout.tsx'
+];
+
+files.forEach(file => {
+    if (fs.existsSync(file)) {
+        let content = fs.readFileSync(file, 'utf8');
+        content = content.replace( // regex replacement
+            /\{\s*viewProps\s*\}:\s*\{\s*viewProps:\s*any\s*\/\*\s*eslint-disable-line @typescript-eslint\/no-explicit-any\s*\*\/\s*\}/g,
+            "{ viewProps }: { viewProps: Record<string, unknown> }"
+        );
+        /// wait wait string might be "{ viewProps: any /* eslint... */ }" without the first one. Let's make it simpler
+        content = content.replace('viewProps: any /* eslint-disable-line @typescript-eslint/no-explicit-any */', 'viewProps: Record<string, unknown>');
+        content = content.replace('{ viewProps }: { viewProps: any }', '{ viewProps }: { viewProps: Record<string, unknown> }');
+
+        fs.writeFileSync(file, content, 'utf8');
+    }
+});

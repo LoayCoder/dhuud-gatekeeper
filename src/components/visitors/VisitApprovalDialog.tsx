@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Dialog,
@@ -26,7 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, CheckCircle2, ShieldAlert, User, Building, Calendar, Phone, Mail, CreditCard, Ban } from 'lucide-react';
 import { useVisitRequests, useApproveVisitRequest, useRejectVisitRequest } from '@/hooks/use-visit-requests';
-import { useCheckBlacklist, useAddToBlacklist } from '@/hooks/use-security-blacklist';
+import { useCheckBlacklist, useAddToBlacklist } from '@/features/security';
 import { format } from 'date-fns';
 
 interface VisitApprovalDialogProps {
@@ -314,3 +314,4 @@ export function VisitApprovalDialog({ requestId, open, onOpenChange }: VisitAppr
     </>
   );
 }
+

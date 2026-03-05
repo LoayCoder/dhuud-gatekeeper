@@ -3,9 +3,9 @@ import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  MapPin, 
-  CheckCircle2, 
+import {
+  MapPin,
+  CheckCircle2,
   AlertCircle,
   Navigation,
   AlertTriangle,
@@ -14,13 +14,13 @@ import {
   Signal
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { 
-  usePatrolRoutes, 
+import {
+  usePatrolRoutes,
   usePatrolRoute,
-  useStartPatrol, 
-  useLogCheckpoint, 
-  useCompletePatrol 
-} from "@/hooks/use-security-patrols";
+  useStartPatrol,
+  useLogCheckpoint,
+  useCompletePatrol
+} from '@/features/security';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -35,9 +35,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { CheckpointPhotoCapture } from "@/components/security/CheckpointPhotoCapture";
-import { CheckpointIncidentDialog } from "@/components/security/CheckpointIncidentDialog";
-import { OfflinePatrolIndicator } from "@/components/security/OfflinePatrolIndicator";
+import { CheckpointPhotoCapture } from '@/features/security';
+import { CheckpointIncidentDialog } from '@/features/security';
+import { OfflinePatrolIndicator } from '@/features/security';
 import { useOfflinePatrolQueue } from "@/hooks/use-offline-patrol-queue";
 
 export default function ExecutePatrol() {
@@ -69,7 +69,7 @@ export default function ExecutePatrol() {
   const checkpoints = selectedRoute?.checkpoints || [];
   const currentCheckpoint = checkpoints[currentCheckpointIndex];
   const progress = checkpoints.length > 0
-    ? (completedCheckpoints.size / checkpoints.length) * 100 
+    ? (completedCheckpoints.size / checkpoints.length) * 100
     : 0;
 
   // Get GPS validation radius from checkpoint or use default
@@ -83,7 +83,7 @@ export default function ExecutePatrol() {
   // Check battery level
   useEffect(() => {
     if ('getBattery' in navigator) {
-      (navigator as any).getBattery().then((battery: any) => {
+      (navigator as unknown as { getBattery: () => Promise<{ level: number; addEventListener: (event: string, cb: () => void) => void }> }).getBattery().then((battery) => {
         setBatteryLevel(Math.round(battery.level * 100));
         battery.addEventListener('levelchange', () => {
           setBatteryLevel(Math.round(battery.level * 100));
@@ -344,8 +344,8 @@ export default function ExecutePatrol() {
               </div>
             )}
 
-            <Button 
-              onClick={handleStartPatrol} 
+            <Button
+              onClick={handleStartPatrol}
               disabled={!selectedRouteId || startPatrol.isPending}
               className="w-full"
               size="lg"
@@ -421,13 +421,12 @@ export default function ExecutePatrol() {
           <CardContent className="space-y-4">
             {/* Distance to Checkpoint */}
             {distanceToCheckpoint !== null && (
-              <div className={`flex items-center justify-between p-3 rounded-lg ${
-                distanceToCheckpoint <= gpsRadius ? 'bg-green-500/10 text-green-700 dark:text-green-400' : 'bg-destructive/10 text-destructive'
-              }`}>
+              <div className={`flex items-center justify-between p-3 rounded-lg ${distanceToCheckpoint <= gpsRadius ? 'bg-green-500/10 text-green-700 dark:text-green-400' : 'bg-destructive/10 text-destructive'
+                }`}>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-5 w-5" />
                   <span className="text-sm font-medium">
-                    {distanceToCheckpoint <= gpsRadius 
+                    {distanceToCheckpoint <= gpsRadius
                       ? t('security.patrols.execution.inRange', 'In range')
                       : t('security.patrols.execution.outOfRange', 'Out of range')}
                   </span>
@@ -443,14 +442,14 @@ export default function ExecutePatrol() {
               <div className="flex items-center gap-2">
                 <MapPin className="h-5 w-5" />
                 <span className="text-sm">
-                  {userLocation 
+                  {userLocation
                     ? t('security.patrols.execution.locationCaptured', 'Location captured')
                     : t('security.patrols.execution.noLocation', 'No location')}
                 </span>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={refreshLocation}
                 disabled={isLocating}
               >
@@ -499,8 +498,8 @@ export default function ExecutePatrol() {
 
             {/* Action Buttons - Large for mobile */}
             <div className="grid gap-3">
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 className="h-14 text-lg"
                 onClick={handleLogCheckpoint}
                 disabled={logCheckpoint.isPending || completedCheckpoints.has(currentCheckpoint.id)}
@@ -516,7 +515,7 @@ export default function ExecutePatrol() {
               </Button>
 
               {!completedCheckpoints.has(currentCheckpoint.id) && (
-                <Button 
+                <Button
                   variant="outline"
                   size="lg"
                   className="h-12 gap-2"
@@ -539,19 +538,17 @@ export default function ExecutePatrol() {
         <CardContent>
           <div className="space-y-2">
             {checkpoints.map((cp, index) => (
-              <div 
+              <div
                 key={cp.id}
-                className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
-                  index === currentCheckpointIndex ? 'border-primary bg-primary/5' : ''
-                }`}
+                className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${index === currentCheckpointIndex ? 'border-primary bg-primary/5' : ''
+                  }`}
                 onClick={() => setCurrentCheckpointIndex(index)}
               >
                 <div className="flex items-center gap-3">
-                  <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
-                    completedCheckpoints.has(cp.id) 
-                      ? 'bg-green-500 text-white' 
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${completedCheckpoints.has(cp.id)
+                      ? 'bg-green-500 text-white'
                       : 'bg-muted'
-                  }`}>
+                    }`}>
                     {completedCheckpoints.has(cp.id) ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
                   </div>
                   <div>
@@ -573,8 +570,8 @@ export default function ExecutePatrol() {
       {/* Complete Patrol Button - Fixed at bottom */}
       {completedCheckpoints.size === checkpoints.length && checkpoints.length > 0 && (
         <div className="fixed bottom-0 inset-x-0 p-4 bg-background border-t">
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             className="w-full h-14 text-lg"
             onClick={handleCompletePatrol}
             disabled={completePatrol.isPending}
@@ -605,3 +602,4 @@ export default function ExecutePatrol() {
     </div>
   );
 }
+

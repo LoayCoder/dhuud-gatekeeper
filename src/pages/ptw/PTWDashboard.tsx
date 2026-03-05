@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { usePTWPermits } from "@/hooks/ptw";
-import { usePTWDashboardStats } from "@/hooks/ptw/use-ptw-dashboard-stats";
+import { usePTWDashboardStats } from "@/features/ptw/hooks/use-ptw-dashboard-stats";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   PermitStatusChart,
@@ -25,8 +25,8 @@ import {
   PermitTrendChart,
   ExpiringPermitsWidget,
   PTWStatsRow,
-} from "@/components/ptw/dashboard";
-import { IntegrationAuditWidget } from "@/components/ptw/dashboard/IntegrationAuditWidget";
+} from '@/features/ptw';
+import { IntegrationAuditWidget } from '@/features/ptw';
 import { EnterprisePage } from "@/components/layout/EnterprisePage";
 
 const permitTypeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -193,3 +193,4 @@ export default function PTWDashboard() {
     </EnterprisePage>
   );
 }
+

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,9 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { UserCheck, Users, History, Search, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
-import { useUserMenuAccess, UserWithMenuOverrides } from '@/hooks/use-user-menu-access';
-import { UserSearchCombobox } from '@/components/admin/UserSearchCombobox';
-import { UserMenuAccessPanel } from '@/components/admin/UserMenuAccessPanel';
+import { useUserMenuAccess, UserWithMenuOverrides } from '@/features/users';
+import { UserSearchCombobox } from '@/features/admin';
+import { UserMenuAccessPanel } from '@/features/admin';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -301,3 +301,5 @@ export default function UserMenuAccessConfig() {
     </div>
   );
 }
+
+

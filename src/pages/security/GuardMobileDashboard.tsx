@@ -20,12 +20,12 @@ import {
   Bell,
   ArrowLeftRight
 } from 'lucide-react';
-import { EmergencyPanicButton } from '@/components/security/EmergencyPanicButton';
-import { GuardQuickActions } from '@/components/security/GuardQuickActions';
-import { QuickIncidentReport } from '@/components/security/QuickIncidentReport';
-import { OfflinePatrolIndicator } from '@/components/security/OfflinePatrolIndicator';
-import { ShiftSwapRequestForm } from '@/components/security/ShiftSwapRequestForm';
-import { ShiftSwapRequestsList } from '@/components/security/ShiftSwapRequestsList';
+import { EmergencyPanicButton } from '@/features/security';
+import { GuardQuickActions } from '@/features/security';
+import { QuickIncidentReport } from '@/features/security';
+import { OfflinePatrolIndicator } from '@/features/security';
+import { ShiftSwapRequestForm } from '@/features/security';
+import { ShiftSwapRequestsList } from '@/features/security';
 import { useOfflinePatrolQueue } from '@/hooks/use-offline-patrol-queue';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
@@ -71,10 +71,10 @@ export default function GuardMobileDashboard() {
       if (data) {
         setCurrentShift({
           roster_id: data.id,
-          zone_name: (data.security_zones as any)?.zone_name || 'Unknown',
-          shift_name: (data.security_shifts as any)?.name || 'Unknown',
-          start_time: (data.security_shifts as any)?.start_time || '',
-          end_time: (data.security_shifts as any)?.end_time || '',
+          zone_name: (data.security_zones as unknown)?.zone_name || 'Unknown',
+          shift_name: (data.security_shifts as unknown)?.name || 'Unknown',
+          start_time: (data.security_shifts as unknown)?.start_time || '',
+          end_time: (data.security_shifts as unknown)?.end_time || '',
         });
       }
     };
@@ -87,7 +87,7 @@ export default function GuardMobileDashboard() {
     const getBattery = async () => {
       if ('getBattery' in navigator) {
         try {
-          const battery = await (navigator as any).getBattery();
+          const battery = await (navigator as unknown).getBattery();
           setBattery(Math.round(battery.level * 100));
           battery.addEventListener('levelchange', () => {
             setBattery(Math.round(battery.level * 100));
@@ -336,3 +336,4 @@ export default function GuardMobileDashboard() {
     </div>
   );
 }
+

@@ -1,9 +1,9 @@
-import { useTranslation } from 'react-i18next';
+﻿import { useTranslation } from 'react-i18next';
 import { Phone, MessageCircle, ChevronRight } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useHSSEContact } from '@/hooks/use-hsse-contact';
+import { useHSSEContact } from '@/features/incidents';
 import { useCachedProfile } from '@/hooks/use-cached-profile';
 import { cn } from '@/lib/utils';
 import {
@@ -172,3 +172,4 @@ export function HSSEContactCompact({ className }: HSSEContactCompactProps) {
     </div>
   );
 }
+

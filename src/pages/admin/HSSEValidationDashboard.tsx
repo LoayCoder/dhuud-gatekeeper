@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -31,8 +31,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useHSSEValidationDashboard } from '@/hooks/use-hsse-validation-dashboard';
-import { useHSSEValidation } from '@/hooks/use-hsse-validation';
+import { useHSSEValidationDashboard } from '@/features/incidents';
+import { useHSSEValidation } from '@/features/incidents';
 import { useSites } from '@/hooks/use-sites';
 import { getSeverityBadgeVariant } from '@/lib/hsse-severity-levels';
 import { toast } from 'sonner';
@@ -245,7 +245,7 @@ export default function HSSEValidationDashboard() {
                           {t(`incidents.status.${item.status}`, item.status)}
                         </Badge>
                       </TableCell>
-                      <TableCell>{item.site_name || '—'}</TableCell>
+                      <TableCell>{item.site_name || 'â€”'}</TableCell>
                       <TableCell>
                         <Badge variant={item.days_pending > 5 ? 'destructive' : 'outline'}>
                           {Math.floor(item.days_pending)} {t('common.days', 'days')}
@@ -286,3 +286,4 @@ export default function HSSEValidationDashboard() {
     </div>
   );
 }
+

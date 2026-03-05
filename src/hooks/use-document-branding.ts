@@ -66,7 +66,7 @@ export function useDocumentBranding() {
 
       const { data, error } = await supabase
         .from("tenant_document_settings")
-        .upsert(dbData as any, { onConflict: "tenant_id" })
+        .upsert(dbData as unknown, { onConflict: "tenant_id" })
         .select()
         .single();
 

@@ -91,7 +91,7 @@ export function useRCAAnalytics(startDate?: Date, endDate?: Date, branchId?: str
     queryKey: ['rca-analytics', profile?.tenant_id, startDate?.toISOString(), endDate?.toISOString(), branchId, siteId],
     queryFn: async (): Promise<RCAAnalyticsData> => {
       // Fetch investigations with RCA data
-      let investigationsQuery = supabase
+      const investigationsQuery = supabase
         .from('investigations')
         .select(`
           id,
@@ -108,8 +108,7 @@ export function useRCAAnalytics(startDate?: Date, endDate?: Date, branchId?: str
       const { data: investigations, error: invError } = await investigationsQuery;
       if (invError) throw invError;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let eventsQuery = (supabase as any)
+      let eventsQuery = supabase
         .from('incidents')
         .select('id, reference_id, title, severity_v2, occurred_at, status, event_type, location, branches:branch_id(name)')
         .is('deleted_at', null)

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { 
@@ -24,10 +24,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { EmergencyAlertsList } from '@/components/security/EmergencyAlertsList';
-import { EmergencyPanicButton } from '@/components/security/EmergencyPanicButton';
-import { EmergencySLAConfig } from '@/components/security/EmergencySLAConfig';
-import { ProtocolTemplatesManager } from '@/components/security/ProtocolTemplatesManager';
+import { EmergencyAlertsList } from '@/features/security';
+import { EmergencyPanicButton } from '@/features/security';
+import { EmergencySLAConfig } from '@/features/security';
+import { ProtocolTemplatesManager } from '@/features/security';
 import { 
   useEmergencyAlerts, 
   useRealtimeEmergencyAlerts 
@@ -88,7 +88,7 @@ export default function EmergencyAlerts() {
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => setShowProtocolTemplates(true)}>
             <FileText className="h-4 w-4 me-2" />
-            {isRTL ? 'البروتوكولات' : 'Protocols'}
+            {isRTL ? 'Ø§Ù„Ø¨Ø±ÙˆØªÙˆÙƒÙˆÙ„Ø§Øª' : 'Protocols'}
           </Button>
           <Button variant="outline" size="sm" onClick={() => refetch()}>
             <RefreshCw className="h-4 w-4 me-2" />
@@ -337,3 +337,4 @@ export default function EmergencyAlerts() {
     </div>
   );
 }
+

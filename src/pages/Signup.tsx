@@ -43,7 +43,7 @@ export default function Signup() {
       .regex(/[A-Z]/, t('passwordStrength.uppercase'))
       .regex(/[a-z]/, t('passwordStrength.lowercase'))
       .regex(/[0-9]/, t('passwordStrength.number'))
-      .regex(/[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/`~';]/, t('passwordStrength.special')),
+      .regex(/[!@#$%^&*(),.?":{}|<>_\-+=[\]\\/`~';]/, t('passwordStrength.special')),
     confirmPassword: z.string(),
   }).refine((data) => data.password === data.confirmPassword, {
     message: t('auth.passwordsDoNotMatch'),
@@ -133,10 +133,10 @@ export default function Signup() {
         assigned_section_id?: string;
         role_ids?: string[];
       }
-      
-      const inviteData = inviteResult as unknown as { 
-        email: string; 
-        tenant_id: string; 
+
+      const inviteData = inviteResult as unknown as {
+        email: string;
+        tenant_id: string;
         role: string;
         metadata?: InviteMetadata;
       };
@@ -189,7 +189,7 @@ export default function Signup() {
           console.error('Profile creation failed:', profileError);
           throw new Error('Failed to create user profile. Please try again.');
         }
-        
+
         // 4. Assign roles if present in metadata
         if (metadata.role_ids && metadata.role_ids.length > 0) {
           const roleAssignments = metadata.role_ids.map((roleId: string) => ({
@@ -197,7 +197,7 @@ export default function Signup() {
             role_id: roleId,
             tenant_id: inviteData.tenant_id,
           }));
-          
+
           await supabase.from('user_role_assignments').insert(roleAssignments);
         }
 
@@ -206,7 +206,7 @@ export default function Signup() {
           .from('invitations')
           .update({ used: true })
           .eq('code', invitationCode);
-          
+
         // 6. Clear local storage
         clearInvitationData();
 
@@ -258,9 +258,9 @@ export default function Signup() {
         <div className="w-full max-w-md space-y-8">
           {/* Logo and Header */}
           <div className="text-center">
-            <img 
-              src={displayLogo} 
-              alt={displayName} 
+            <img
+              src={displayLogo}
+              alt={displayName}
               className="mx-auto mb-4 h-16 object-contain"
               onError={(e) => {
                 e.currentTarget.src = fallbackLogo;

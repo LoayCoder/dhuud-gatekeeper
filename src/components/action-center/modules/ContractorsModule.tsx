@@ -10,7 +10,7 @@ import {
   FileKey,
 } from 'lucide-react';
 import { ActionModuleCard } from '../ActionModuleCard';
-import type { ActionCenterStats } from '@/hooks/use-action-center-stats';
+import type { ActionCenterStats } from '@/features/incidents';
 
 interface ContractorsModuleProps {
   stats: ActionCenterStats['contractors'];

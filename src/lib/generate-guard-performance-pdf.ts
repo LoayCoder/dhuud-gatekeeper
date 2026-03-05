@@ -1,8 +1,8 @@
-/**
+﻿/**
  * Generate individual guard performance PDF report
  */
 import { format } from 'date-fns';
-import { GuardReportData } from '@/hooks/use-security-reports';
+import { GuardReportData } from '@/features/security';
 import { 
   generateBrandedPDFFromElement, 
   createPDFRenderContainer, 
@@ -82,48 +82,48 @@ const LABELS_EN = {
 };
 
 const LABELS_AR = {
-  title: 'تقرير أداء الحارس',
-  period: 'فترة التقرير',
-  generatedOn: 'تم إنشاؤه في',
-  guardProfile: 'ملف الحارس',
-  employeeId: 'رقم الموظف',
-  role: 'الوظيفة',
-  department: 'القسم',
-  supervisor: 'المشرف',
-  overallPerformance: 'درجة الأداء الإجمالية',
-  rating: 'التقييم',
-  teamRank: 'الترتيب في الفريق',
-  metricsBreakdown: 'تفصيل المقاييس',
-  patrolCompletion: 'إتمام الدوريات',
-  checkpointAccuracy: 'دقة نقاط التفتيش',
-  punctuality: 'الالتزام بالمواعيد',
-  incidentResponse: 'الاستجابة للحوادث',
-  geofenceCompliance: 'الالتزام بالنطاق الجغرافي',
-  attendanceHistory: 'سجل الحضور',
-  date: 'التاريخ',
-  shift: 'الوردية',
-  checkIn: 'الدخول',
-  checkOut: 'الخروج',
-  hours: 'الساعات',
-  status: 'الحالة',
-  shiftAssignments: 'تعيينات الورديات',
-  acknowledged: 'تم التأكيد',
-  trainingStatus: 'حالة التدريب',
-  training: 'التدريب',
-  expiry: 'انتهاء الصلاحية',
-  incidentsSummary: 'ملخص الحوادث',
-  totalIncidents: 'إجمالي الحوادث المبلغ عنها',
-  resolutionRate: 'معدل الحل',
-  excellent: 'ممتاز',
-  good: 'جيد',
-  average: 'متوسط',
-  needsImprovement: 'يحتاج تحسين',
-  yes: 'نعم',
-  no: 'لا',
-  expired: 'منتهي',
-  valid: 'صالح',
-  confidential: 'سري - للاستخدام الإداري فقط',
-  of: 'من',
+  title: 'ØªÙ‚Ø±ÙŠØ± Ø£Ø¯Ø§Ø¡ Ø§Ù„Ø­Ø§Ø±Ø³',
+  period: 'ÙØªØ±Ø© Ø§Ù„ØªÙ‚Ø±ÙŠØ±',
+  generatedOn: 'ØªÙ… Ø¥Ù†Ø´Ø§Ø¤Ù‡ ÙÙŠ',
+  guardProfile: 'Ù…Ù„Ù Ø§Ù„Ø­Ø§Ø±Ø³',
+  employeeId: 'Ø±Ù‚Ù… Ø§Ù„Ù…ÙˆØ¸Ù',
+  role: 'Ø§Ù„ÙˆØ¸ÙŠÙØ©',
+  department: 'Ø§Ù„Ù‚Ø³Ù…',
+  supervisor: 'Ø§Ù„Ù…Ø´Ø±Ù',
+  overallPerformance: 'Ø¯Ø±Ø¬Ø© Ø§Ù„Ø£Ø¯Ø§Ø¡ Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠØ©',
+  rating: 'Ø§Ù„ØªÙ‚ÙŠÙŠÙ…',
+  teamRank: 'Ø§Ù„ØªØ±ØªÙŠØ¨ ÙÙŠ Ø§Ù„ÙØ±ÙŠÙ‚',
+  metricsBreakdown: 'ØªÙØµÙŠÙ„ Ø§Ù„Ù…Ù‚Ø§ÙŠÙŠØ³',
+  patrolCompletion: 'Ø¥ØªÙ…Ø§Ù… Ø§Ù„Ø¯ÙˆØ±ÙŠØ§Øª',
+  checkpointAccuracy: 'Ø¯Ù‚Ø© Ù†Ù‚Ø§Ø· Ø§Ù„ØªÙØªÙŠØ´',
+  punctuality: 'Ø§Ù„Ø§Ù„ØªØ²Ø§Ù… Ø¨Ø§Ù„Ù…ÙˆØ§Ø¹ÙŠØ¯',
+  incidentResponse: 'Ø§Ù„Ø§Ø³ØªØ¬Ø§Ø¨Ø© Ù„Ù„Ø­ÙˆØ§Ø¯Ø«',
+  geofenceCompliance: 'Ø§Ù„Ø§Ù„ØªØ²Ø§Ù… Ø¨Ø§Ù„Ù†Ø·Ø§Ù‚ Ø§Ù„Ø¬ØºØ±Ø§ÙÙŠ',
+  attendanceHistory: 'Ø³Ø¬Ù„ Ø§Ù„Ø­Ø¶ÙˆØ±',
+  date: 'Ø§Ù„ØªØ§Ø±ÙŠØ®',
+  shift: 'Ø§Ù„ÙˆØ±Ø¯ÙŠØ©',
+  checkIn: 'Ø§Ù„Ø¯Ø®ÙˆÙ„',
+  checkOut: 'Ø§Ù„Ø®Ø±ÙˆØ¬',
+  hours: 'Ø§Ù„Ø³Ø§Ø¹Ø§Øª',
+  status: 'Ø§Ù„Ø­Ø§Ù„Ø©',
+  shiftAssignments: 'ØªØ¹ÙŠÙŠÙ†Ø§Øª Ø§Ù„ÙˆØ±Ø¯ÙŠØ§Øª',
+  acknowledged: 'ØªÙ… Ø§Ù„ØªØ£ÙƒÙŠØ¯',
+  trainingStatus: 'Ø­Ø§Ù„Ø© Ø§Ù„ØªØ¯Ø±ÙŠØ¨',
+  training: 'Ø§Ù„ØªØ¯Ø±ÙŠØ¨',
+  expiry: 'Ø§Ù†ØªÙ‡Ø§Ø¡ Ø§Ù„ØµÙ„Ø§Ø­ÙŠØ©',
+  incidentsSummary: 'Ù…Ù„Ø®Øµ Ø§Ù„Ø­ÙˆØ§Ø¯Ø«',
+  totalIncidents: 'Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø­ÙˆØ§Ø¯Ø« Ø§Ù„Ù…Ø¨Ù„Øº Ø¹Ù†Ù‡Ø§',
+  resolutionRate: 'Ù…Ø¹Ø¯Ù„ Ø§Ù„Ø­Ù„',
+  excellent: 'Ù…Ù…ØªØ§Ø²',
+  good: 'Ø¬ÙŠØ¯',
+  average: 'Ù…ØªÙˆØ³Ø·',
+  needsImprovement: 'ÙŠØ­ØªØ§Ø¬ ØªØ­Ø³ÙŠÙ†',
+  yes: 'Ù†Ø¹Ù…',
+  no: 'Ù„Ø§',
+  expired: 'Ù…Ù†ØªÙ‡ÙŠ',
+  valid: 'ØµØ§Ù„Ø­',
+  confidential: 'Ø³Ø±ÙŠ - Ù„Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø§Ù„Ø¥Ø¯Ø§Ø±ÙŠ ÙÙ‚Ø·',
+  of: 'Ù…Ù†',
 };
 
 function getScoreColor(score: number): string {
@@ -392,3 +392,4 @@ function renderMetricBar(label: string, value: number): string {
     </div>
   `;
 }
+

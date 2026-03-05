@@ -26,7 +26,7 @@ export default function AdminBranding() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [tenant, setTenant] = useState<any>(null);
+  const [tenant, setTenant] = useState<Record<string, unknown> | null>(null);
 
   // Light mode colors
   const [brandColorLight, setBrandColorLight] = useState('');
@@ -92,7 +92,7 @@ export default function AdminBranding() {
       setSecondaryColorDark(tenantData.secondary_color_dark || '');
 
       // Background
-      setBgTheme(tenantData.background_theme as any || 'color');
+      setBgTheme(tenantData.background_theme as unknown || 'color');
       setBgColor(tenantData.background_color || '');
       setBgPreview(tenantData.background_image_url);
 

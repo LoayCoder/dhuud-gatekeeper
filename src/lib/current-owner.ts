@@ -1,4 +1,4 @@
-import type { IncidentWithDetails } from "@/hooks/use-incidents";
+import type { IncidentWithDetails } from '@/features/incidents';
 import { getActionVerb } from "./incident-status-colors";
 import { getRoleCategory, type RoleCategory } from "./role-colors";
 
@@ -66,13 +66,14 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
 
         // Investigation Stage (Assigned Investigator)
         case "investigation_in_progress":
-        case "under_investigation":
+        case "under_investigation": {
             const investigator = incident.investigations?.[0]?.investigator;
             return buildOwner(
                 investigator?.full_name || null,
                 "Investigator",
                 !investigator?.full_name
             );
+        }
 
         // Contractor Consultant Validation
         case "pending_consultant_screening":

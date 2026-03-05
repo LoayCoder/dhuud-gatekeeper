@@ -2,7 +2,7 @@ import { HardHat, UserCheck, Phone, Mail } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "react-i18next";
-import type { ClientSiteRepPersonnel } from "@/hooks/contractor-management/use-client-site-rep-data";
+import type { ClientSiteRepPersonnel } from "@/features/contractors/hooks/use-client-site-rep-data";
 
 interface PersonnelCardProps {
   personnel: ClientSiteRepPersonnel;

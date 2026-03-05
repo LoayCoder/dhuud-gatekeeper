@@ -61,7 +61,7 @@ async function registerPeriodicSync(registration: ServiceWorkerRegistration) {
     // Check permission status - wrap in try-catch as this can fail in some contexts
     let permissionGranted = false;
     try {
-      // @ts-ignore - periodicSync permission is not in TypeScript types
+      // @ts-expect-error - periodicSync permission is not in TypeScript types
       const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
       permissionGranted = status.state === 'granted';
       
@@ -77,7 +77,7 @@ async function registerPeriodicSync(registration: ServiceWorkerRegistration) {
     
     // Ensure registration is active before attempting to register sync
     if (registration.active) {
-      // @ts-ignore
+      // @ts-expect-error - required by external dependency
       await registration.periodicSync.register('server-updates-sync', {
         minInterval: 4 * 60 * 60 * 1000, // 4 hours in milliseconds
       });
@@ -98,9 +98,9 @@ export async function unregisterPeriodicSync() {
   
   try {
     const registration = await navigator.serviceWorker.ready;
-    // @ts-ignore
+    // @ts-expect-error - required by external dependency
     if ('periodicSync' in registration) {
-      // @ts-ignore
+      // @ts-expect-error - required by external dependency
       await registration.periodicSync.unregister('server-updates-sync');
       logger.info('Periodic sync unregistered');
     }

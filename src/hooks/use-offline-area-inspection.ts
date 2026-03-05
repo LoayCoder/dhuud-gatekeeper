@@ -189,7 +189,7 @@ export function useOfflineAreaSession(sessionId: string | undefined) {
         // Try cache first
         const [cachedSession, cachedItems, cachedResponses] = await Promise.all([
           offlineDataCache.get<OfflineAreaSession>(CACHE_STORES.AREA_SESSIONS, `session_${sessionId}`),
-          null as any, // Will fetch after we know template_id
+          null as unknown, // Will fetch after we know template_id
           offlineDataCache.get<OfflineAreaResponse[]>(CACHE_STORES.AREA_RESPONSES, `responses_${sessionId}`),
         ]);
 

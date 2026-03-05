@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+﻿import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check, ChevronDown, Shield, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { Role, RoleCategory, useUserRoles } from '@/hooks/use-user-roles';
+import { Role, RoleCategory, useUserRoles } from '@/features/users';
 import { RoleBadge, RoleCategoryBadge } from './RoleBadge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,14 +35,14 @@ const categoryOrder: RoleCategory[] = [
 ];
 
 const categoryIcons: Record<RoleCategory, string> = {
-  general: '👤',
-  hsse: '🛡️',
-  environmental: '🌿',
-  ptw: '📋',
-  security: '🔐',
-  audit: '📊',
-  food_safety: '🍽️',
-  contractor: '🏗️',
+  general: 'ðŸ‘¤',
+  hsse: 'ðŸ›¡ï¸',
+  environmental: 'ðŸŒ¿',
+  ptw: 'ðŸ“‹',
+  security: 'ðŸ”',
+  audit: 'ðŸ“Š',
+  food_safety: 'ðŸ½ï¸',
+  contractor: 'ðŸ—ï¸',
 };
 
 export function RoleSelectorEnhanced({ selectedRoleIds, onChange, disabled, userId }: RoleSelectorEnhancedProps) {
@@ -353,3 +353,4 @@ export function RoleSelectorEnhanced({ selectedRoleIds, onChange, disabled, user
     </div>
   );
 }
+

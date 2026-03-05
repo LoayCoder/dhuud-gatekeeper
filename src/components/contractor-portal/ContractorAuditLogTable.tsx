@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { ContractorPortalAuditLog } from "@/hooks/contractor-management/use-contractor-portal-audit-logs";
+import type { ContractorPortalAuditLog } from "@/features/contractors/hooks/use-contractor-portal-audit-logs";
 
 interface ContractorAuditLogTableProps {
   logs: ContractorPortalAuditLog[];

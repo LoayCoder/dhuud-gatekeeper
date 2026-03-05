@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useInspectionSession, useDeleteSession } from '@/hooks/use-inspection-sessions';
+import { useInspectionSession, useDeleteSession } from '@/features/incidents';
 import {
   useAuditTemplate,
   useAuditTemplateItems,
@@ -39,7 +39,7 @@ import {
   SessionCompletionDialog,
   SessionExportDropdown,
   SessionActionsPanel,
-} from '@/components/inspections/sessions';
+} from '@/features/incidents';
 import { useReopenAreaSession } from '@/hooks/use-session-lifecycle';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAreaFindingsCount, useAreaFindings } from '@/hooks/use-area-findings';
@@ -102,7 +102,7 @@ function AuditSessionWorkspaceContent() {
       await startSession.mutateAsync(sessionId);
       toast.success(t('audits.sessionStarted'));
       setShowStartConfirmDialog(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(error.message);
     }
   };
@@ -117,7 +117,7 @@ function AuditSessionWorkspaceContent() {
       await completeSession.mutateAsync(sessionId);
       toast.success(t('audits.sessionCompleted'));
       setShowCompletionDialog(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(error.message);
     }
   };
@@ -128,7 +128,7 @@ function AuditSessionWorkspaceContent() {
       await closeSession.mutateAsync({ sessionId });
       toast.success(t('audits.sessionClosed'));
       setShowCompletionDialog(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(error.message);
     }
   };
@@ -139,7 +139,7 @@ function AuditSessionWorkspaceContent() {
       await deleteSession.mutateAsync(sessionId);
       toast.success(t('audits.sessionDeleted'));
       navigate('/inspections/sessions');
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(error.message);
     }
   };
@@ -149,7 +149,7 @@ function AuditSessionWorkspaceContent() {
     try {
       await reopenSession.mutateAsync({ sessionId });
       toast.success(t('audits.sessionReopened'));
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(error.message);
     }
   };
@@ -217,7 +217,7 @@ function AuditSessionWorkspaceContent() {
           {session.status !== 'draft' && (
             <SessionExportDropdown
               session={session}
-              responses={responses as any}
+              responses={responses as unknown}
               findings={findings.map(f => ({
                 reference_id: f.reference_id,
                 classification: f.classification,
@@ -430,3 +430,4 @@ export default function AuditSessionWorkspace() {
     </ModuleGate>
   );
 }
+

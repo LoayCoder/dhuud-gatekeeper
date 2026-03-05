@@ -176,7 +176,7 @@ export default function PlanManagement() {
             return {
               plan_id: planId,
               module_id: moduleId,
-              module: mod?.code as any,
+              module: mod?.code as unknown,
               included_in_base: true,
             };
           });

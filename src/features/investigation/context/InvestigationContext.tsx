@@ -1,9 +1,9 @@
-
+﻿
 import { createContext, useContext, ReactNode, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { useIncident } from "@/hooks/use-incidents";
-import { useInvestigation } from "@/hooks/use-investigation";
+import { useIncident } from '@/features/incidents';
+import { useInvestigation } from '@/features/investigation';
 import { useInvestigationWorkflow } from "../hooks/useInvestigationWorkflow";
 import {
     Incident,
@@ -77,3 +77,5 @@ export const useInvestigationContext = () => {
     }
     return context;
 };
+
+

@@ -34,6 +34,16 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 
+interface SeedResults {
+  success?: boolean;
+  results?: Record<string, unknown>;
+}
+
+interface CleanResults {
+  total_deleted?: number;
+  results?: Record<string, unknown>;
+}
+
 const DEFAULT_SETTINGS: SplashSettings = {
   enabled: true,
   duration_ms: 3000,
@@ -46,15 +56,15 @@ const DEFAULT_SETTINGS: SplashSettings = {
 export default function PlatformSettings() {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [settings, setSettings] = useState<SplashSettings>(DEFAULT_SETTINGS);
   const [isSeeding, setIsSeeding] = useState(false);
   const [isCleaning, setIsCleaning] = useState(false);
-  const [seedResults, setSeedResults] = useState<any>(null);
-  const [cleanResults, setCleanResults] = useState<any>(null);
+  const [seedResults, setSeedResults] = useState<SeedResults | null>(null);
+  const [cleanResults, setCleanResults] = useState<CleanResults | null>(null);
   const [seedProgress, setSeedProgress] = useState(0);
   const [showSeedModal, setShowSeedModal] = useState(false);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -72,7 +82,7 @@ export default function PlatformSettings() {
         .single();
 
       if (error) throw error;
-      
+
       if (data?.value) {
         setSettings(data.value as unknown as SplashSettings);
       }
@@ -96,7 +106,7 @@ export default function PlatformSettings() {
 
       // Clear cache so changes take effect immediately
       clearSplashCache();
-      
+
       toast.success(t('platformSettings.saved', 'Settings saved successfully'));
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -120,7 +130,7 @@ export default function PlatformSettings() {
     setSeedResults(null);
     setSeedProgress(0);
     setShowSeedModal(true);
-    
+
     // Simulate progress since we can't get real progress from edge function
     progressIntervalRef.current = setInterval(() => {
       setSeedProgress(prev => {
@@ -128,19 +138,19 @@ export default function PlatformSettings() {
         return prev + Math.random() * 8;
       });
     }, 1500);
-    
+
     try {
       const { data, error } = await supabase.functions.invoke('seed-comprehensive-test-data');
-      
+
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
       }
       setSeedProgress(100);
-      
+
       if (error) throw error;
-      
+
       setSeedResults(data);
-      
+
       if (data?.success) {
         toast.success(t('platformSettings.seedSuccess', 'Test data seeded successfully'), {
           duration: 5000,
@@ -168,9 +178,9 @@ export default function PlatformSettings() {
     setCleanResults(null);
     try {
       const { data, error } = await supabase.functions.invoke('cleanup-test-data');
-      
+
       if (error) throw error;
-      
+
       setCleanResults(data);
       toast.success(t('platformSettings.cleanupSuccess', 'Test data cleaned up successfully'));
     } catch (error) {
@@ -208,19 +218,19 @@ export default function PlatformSettings() {
               ) : (
                 <XCircle className="h-5 w-5 text-destructive" />
               )}
-              {isSeeding 
+              {isSeeding
                 ? t('platformSettings.seedingInProgress', 'Seeding in Progress...')
                 : t('platformSettings.seedComplete', 'Seeding Complete')
               }
             </DialogTitle>
             <DialogDescription>
-              {isSeeding 
+              {isSeeding
                 ? t('platformSettings.seedingDescription', 'Creating test data across all modules. This may take up to 2 minutes.')
                 : t('platformSettings.seedCompleteDescription', 'Test data has been created successfully.')
               }
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             {isSeeding && (
               <div className="space-y-2">
@@ -230,17 +240,17 @@ export default function PlatformSettings() {
                 </p>
               </div>
             )}
-            
+
             {seedResults && (
               <div className="space-y-3 max-h-[300px] overflow-y-auto">
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  {seedResults.results && Object.entries(seedResults.results).map(([category, data]: [string, any]) => (
+                  {seedResults.results && Object.entries(seedResults.results).map(([category, data]: [string, unknown]) => (
                     <div key={category} className="flex justify-between p-2 bg-muted/50 rounded">
                       <span className="font-medium capitalize">{category.replace(/([A-Z])/g, ' $1').trim()}</span>
                       <span className="text-muted-foreground">
-                        {typeof data === 'object' 
-                          ? Object.values(data).reduce((a: number, b: any) => a + (typeof b === 'number' ? b : 0), 0)
-                          : data
+                        {typeof data === 'object' && data !== null
+                          ? Object.values(data as Record<string, unknown>).reduce((a: number, b: unknown) => a + (typeof b === 'number' ? b : 0), 0)
+                          : String(data)
                         }
                       </span>
                     </div>
@@ -249,7 +259,7 @@ export default function PlatformSettings() {
               </div>
             )}
           </div>
-          
+
           {!isSeeding && (
             <div className="flex justify-end">
               <Button onClick={() => setShowSeedModal(false)}>
@@ -434,8 +444,8 @@ export default function PlatformSettings() {
                 {t('platformSettings.seedTestDataDescription', 'Populate the database with realistic test data for all modules (prefixed with TEST-)')}
               </p>
             </div>
-            <Button 
-              onClick={handleSeedTestData} 
+            <Button
+              onClick={handleSeedTestData}
               disabled={isSeeding}
               variant="outline"
             >
@@ -473,7 +483,7 @@ export default function PlatformSettings() {
             </div>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button 
+                <Button
                   variant="destructive"
                   disabled={isCleaning}
                 >

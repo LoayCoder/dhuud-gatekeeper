@@ -13,19 +13,19 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { CompanyListTable } from "@/components/contractors/CompanyListTable";
-import { CompanyFormDialog } from "@/components/contractors/CompanyFormDialog";
-import { CompanyDetailDialog } from "@/components/contractors/CompanyDetailDialog";
-import { ContractorCompanyKPICards } from "@/components/contractors/ContractorCompanyKPICards";
-import { WorkersByCompanyChart } from "@/components/contractors/WorkersByCompanyChart";
-import { StatusByBranchChart } from "@/components/contractors/StatusByBranchChart";
-import { CompanyApprovalQueue } from "@/components/contractors/CompanyApprovalQueue";
+import { CompanyListTable } from '@/features/contractors';
+import { CompanyFormDialog } from '@/features/contractors';
+import { CompanyDetailDialog } from '@/features/contractors';
+import { ContractorCompanyKPICards } from '@/features/contractors';
+import { WorkersByCompanyChart } from '@/features/contractors';
+import { StatusByBranchChart } from '@/features/contractors';
+import { CompanyApprovalQueue } from '@/features/contractors';
 import { 
   useContractorCompanies, 
   usePendingCompanyApprovals,
   ContractorCompany 
-} from "@/hooks/contractor-management/use-contractor-companies";
-import { useContractorCompanyStats } from "@/hooks/contractor-management/use-contractor-company-stats";
+} from "@/features/contractors/hooks/use-contractor-companies";
+import { useContractorCompanyStats } from "@/features/contractors/hooks/use-contractor-company-stats";
 
 export default function Companies() {
   const { t } = useTranslation();
@@ -261,3 +261,4 @@ export default function Companies() {
     </div>
   );
 }
+

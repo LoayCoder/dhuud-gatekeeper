@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { useContractorRepresentative } from "@/hooks/contractor-management/use-contractor-portal";
+import { useContractorRepresentative } from "@/features/contractors/hooks/use-contractor-portal";
 import { PageLoader } from "@/components/ui/page-loader";
 import { ShieldAlert, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";

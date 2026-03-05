@@ -42,7 +42,7 @@ export function useCursorPagination<T extends { id: string; created_at: string }
 
   const fetchData = useCallback(async (cursor?: CursorPosition) => {
     if (!enabled) return;
-    
+
     setIsLoading(true);
     setError(null);
 
@@ -50,7 +50,7 @@ export function useCursorPagination<T extends { id: string; created_at: string }
       const { data: result, count } = await queryFn(cursor);
 
       let items = result || [];
-      
+
       // Check if there's a next page (we fetch pageSize + 1)
       const hasMore = items.length > pageSize;
       if (hasMore) {
@@ -74,7 +74,7 @@ export function useCursorPagination<T extends { id: string; created_at: string }
     if (enabled) {
       fetchData();
     }
-  }, [enabled]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [enabled, fetchData]);
 
   const goToFirstPage = useCallback(async () => {
     setCursors([]);
@@ -134,7 +134,7 @@ export function buildCursorCondition(
   ascending: boolean = false
 ): string | null {
   if (!cursor) return null;
-  
+
   if (ascending) {
     return `${orderBy}.gt.${cursor.created_at},and(${orderBy}.eq.${cursor.created_at},id.gt.${cursor.id})`;
   }

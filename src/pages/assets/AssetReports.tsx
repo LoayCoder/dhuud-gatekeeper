@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { 
-  FileText, 
-  Download, 
-  FileSpreadsheet, 
+import {
+  FileText,
+  Download,
+  FileSpreadsheet,
   Building2,
   DollarSign,
   Shield,
@@ -48,7 +48,7 @@ export default function AssetReports() {
   const isRTL = i18n.language === 'ar';
   const { toast } = useToast();
   const { user } = useAuth();
-  
+
   const [selectedReport, setSelectedReport] = useState<ReportType>("register");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -94,11 +94,11 @@ export default function AssetReports() {
       toast({ title: isRTL ? "يرجى تسجيل الدخول" : "Please log in", variant: "destructive" });
       return;
     }
-    
+
     setIsGenerating(true);
     try {
       const data = await fetchReportData();
-      
+
       if (!data || data.length === 0) {
         toast({ title: isRTL ? "لا توجد بيانات" : "No Data", variant: "destructive" });
         return;
@@ -117,14 +117,14 @@ export default function AssetReports() {
           { id: 'category', label: isRTL ? 'الفئة' : 'Category' },
           { id: 'status', label: isRTL ? 'الحالة' : 'Status' }
         ];
-        
-        const flatData = data.map((asset: any) => ({
+
+        const flatData = data.map((asset: { asset_code: string; name: string; category?: { name?: string; name_ar?: string }; status: string }) => ({
           asset_code: asset.asset_code,
           name: asset.name,
           category: isRTL ? asset.category?.name_ar || asset.category?.name : asset.category?.name,
           status: asset.status
         }));
-        
+
         // Use secure export with permission validation and audit logging
         const result = await performSecureExport(
           user.id,
@@ -160,7 +160,7 @@ export default function AssetReports() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {reportConfigs.map((config) => (
-          <Card 
+          <Card
             key={config.type}
             className={`cursor-pointer transition-all hover:shadow-md ${selectedReport === config.type ? 'ring-2 ring-primary' : ''}`}
             onClick={() => setSelectedReport(config.type)}

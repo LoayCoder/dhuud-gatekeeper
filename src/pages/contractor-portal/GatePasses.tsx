@@ -7,11 +7,11 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import ContractorPortalLayout from "@/components/contractor-portal/ContractorPortalLayout";
-import { GatePassFormDialog } from "@/components/contractors/GatePassFormDialog";
+import { GatePassFormDialog } from '@/features/contractors';
 import { useContractorPortalData, useContractorGatePasses } from "@/hooks/contractor-management";
 import { format } from "date-fns";
 import { ContractorPortalRoute } from "@/components/access-control";
-import { ContractorProject } from "@/hooks/contractor-management/use-contractor-projects";
+import { ContractorProject } from "@/features/contractors/hooks/use-contractor-projects";
 
 function ContractorPortalGatePassesContent() {
   const { t } = useTranslation();
@@ -141,3 +141,4 @@ export default function ContractorPortalGatePasses() {
     </ContractorPortalRoute>
   );
 }
+

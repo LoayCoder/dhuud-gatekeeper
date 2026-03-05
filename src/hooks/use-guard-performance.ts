@@ -156,8 +156,8 @@ export function useGuardPerformanceSummary(period: 'week' | 'month' | 'all' = 'm
       for (const m of metrics || []) {
         const existing = guardMap.get(m.guard_id) || {
           guard_id: m.guard_id,
-          guard_name: (m.guard as any)?.full_name || 'Unknown',
-          avatar_url: (m.guard as any)?.avatar_url || null,
+          guard_name: (m.guard as unknown)?.full_name || 'Unknown',
+          avatar_url: (m.guard as unknown)?.avatar_url || null,
           totalPatrolsCompleted: 0,
           totalPatrolsAssigned: 0,
           totalCheckpointsVerified: 0,
@@ -262,12 +262,12 @@ export function useGuardLeaderboard() {
 
       // Aggregate and get top performers
       const guardScores = new Map<string, { name: string; avatar: string | null; scores: number[] }>();
-      
+
       for (const m of data || []) {
         const key = m.guard_id;
         const existing = guardScores.get(key) || {
-          name: (m.guard as any)?.full_name || 'Unknown',
-          avatar: (m.guard as any)?.avatar_url || null,
+          name: (m.guard as unknown)?.full_name || 'Unknown',
+          avatar: (m.guard as unknown)?.avatar_url || null,
           scores: [],
         };
         if (m.overall_score) existing.scores.push(Number(m.overall_score));
@@ -320,7 +320,7 @@ export function useSecurityTeamStats() {
         .gte('metric_date', weekAgo)
         .is('deleted_at', null);
 
-      const sumMetrics = (data: any[] | null) => ({
+      const sumMetrics = (data: { patrols_completed?: number; checkpoints_verified?: number; incidents_reported?: number; geofence_violations?: number }[] | null) => ({
         patrols: data?.reduce((sum, m) => sum + (m.patrols_completed || 0), 0) || 0,
         checkpoints: data?.reduce((sum, m) => sum + (m.checkpoints_verified || 0), 0) || 0,
         incidents: data?.reduce((sum, m) => sum + (m.incidents_reported || 0), 0) || 0,

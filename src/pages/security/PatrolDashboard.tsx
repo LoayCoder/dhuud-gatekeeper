@@ -1,4 +1,4 @@
-import { useTranslation } from "react-i18next";
+﻿import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ import {
   Users
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useSecurityPatrols, usePatrolRoutes } from "@/hooks/use-security-patrols";
+import { useSecurityPatrols, usePatrolRoutes } from '@/features/security';
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -220,3 +220,4 @@ export default function PatrolDashboard() {
     </div>
   );
 }
+

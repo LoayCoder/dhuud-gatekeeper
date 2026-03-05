@@ -41,9 +41,9 @@ import {
   ToggleLeft,
   ToggleRight 
 } from 'lucide-react';
-import { TemplateEditor } from '@/components/admin/TemplateEditor';
-import { TemplateTestConsole } from '@/components/admin/TemplateTestConsole';
-import { TemplateBulkActionsToolbar } from '@/components/admin/TemplateBulkActionsToolbar';
+import { TemplateEditor } from '@/features/admin';
+import { TemplateTestConsole } from '@/features/admin';
+import { TemplateBulkActionsToolbar } from '@/features/admin';
 import {
   useNotificationTemplates,
   useCreateTemplate,
@@ -278,7 +278,7 @@ export default function NotificationTemplates() {
                         <TableHead className="w-12">
                           <Checkbox
                             checked={allSelected}
-                            // @ts-ignore - indeterminate is valid
+                            // @ts-expect-error - indeterminate is valid
                             indeterminate={someSelected}
                             onCheckedChange={toggleSelectAll}
                             aria-label={t('Select all')}

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { format, subMonths } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -31,7 +31,7 @@ import {
   StorytellingCard,
   MonthComparisonTable,
   SystemicIssuesPanel,
-} from "@/components/executive";
+} from '@/features/admin';
 import {
   PieChart,
   Pie,
@@ -594,3 +594,4 @@ export default function ExecutiveReport() {
     </div>
   );
 }
+

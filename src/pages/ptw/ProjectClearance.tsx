@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,8 +28,8 @@ import {
 import { usePTWProjects, usePTWProjectClearances } from "@/hooks/ptw";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { ClearanceCheckCard } from "@/components/ptw/ClearanceCheckCard";
-import { ClearanceBulkActions } from "@/components/ptw/ClearanceBulkActions";
+import { ClearanceCheckCard } from '@/features/ptw';
+import { ClearanceBulkActions } from '@/features/ptw';
 
 const categoryIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   documentation: FileText,
@@ -342,3 +342,4 @@ export default function ProjectClearance() {
     </div>
   );
 }
+

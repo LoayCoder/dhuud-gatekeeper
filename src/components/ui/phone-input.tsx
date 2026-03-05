@@ -32,7 +32,7 @@ export function DhuudPhoneInput({
         <div className={cn("flex", className)} dir="ltr">
             <PhoneInput
                 international
-                defaultCountry={defaultCountry as any}
+                defaultCountry={defaultCountry as unknown}
                 value={value}
                 onChange={(v) => onChange(v as string)}
                 placeholder={placeholder}

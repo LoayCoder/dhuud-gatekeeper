@@ -19,11 +19,11 @@ import {
   useFindingsDistribution,
   useOverdueInspectionsCount,
   useRecentFindings,
-} from '@/hooks/use-inspection-dashboard';
-import { ComplianceTrendChart } from '@/components/inspections/stats/ComplianceTrendChart';
-import { FindingsDistributionChart } from '@/components/inspections/stats/FindingsDistributionChart';
-import { UpcomingSchedulesCard } from '@/components/inspections/schedules/UpcomingSchedulesCard';
-import { MyInspectionsWidget } from '@/components/inspections/MyInspectionsWidget';
+} from '@/features/incidents';
+import { ComplianceTrendChart } from '@/features/incidents';
+import { FindingsDistributionChart } from '@/features/incidents';
+import { UpcomingSchedulesCard } from '@/features/incidents';
+import { MyInspectionsWidget } from '@/features/incidents';
 import { EnterprisePage } from '@/components/layout/EnterprisePage';
 import { SectionHeader } from '@/components/ui/section-header';
 import { KPIStrip, type KPIItem } from '@/components/ui/kpi-strip';
@@ -180,13 +180,13 @@ function InspectionDashboardContent() {
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <StatusBadge 
-                        status={getClassificationStatus(finding.classification) as any}
+                        status={getClassificationStatus(finding.classification) as unknown}
                         size="sm"
                       >
                         {t(`inspectionDashboard.classifications.${finding.classification}`)}
                       </StatusBadge>
                       <Button variant="ghost" size="sm" asChild>
-                        <Link to={`/inspections/sessions/area/${(finding.session as any)?.id || ''}`}>
+                        <Link to={`/inspections/sessions/area/${(finding.session as unknown)?.id || ''}`}>
                           {t('common.view')}
                         </Link>
                       </Button>
@@ -209,3 +209,4 @@ export default function InspectionDashboard() {
     </ModuleGate>
   );
 }
+

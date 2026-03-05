@@ -7,11 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ModuleGate } from '@/components';
-import { AssetHealthScoreCard } from '@/components/assets/AssetHealthScoreCard';
-import { PredictiveMaintenanceCard } from '@/components/assets/PredictiveMaintenanceCard';
-import { useAsset } from '@/hooks/use-assets';
-import { useAssetHealthScore, useCalculateHealthScore } from '@/hooks/use-asset-health-scores';
-import { useAssetMaintenanceHistory } from '@/hooks/use-asset-maintenance-history';
+import { AssetHealthScoreCard } from '@/features/assets';
+import { PredictiveMaintenanceCard } from '@/features/assets';
+import { useAsset } from '@/features/assets';
+import { useAssetHealthScore, useCalculateHealthScore } from '@/features/assets';
+import { useAssetMaintenanceHistory } from '@/features/assets';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
@@ -76,7 +76,7 @@ function AssetHealthContent() {
     );
   }
 
-  const assetData = asset as any;
+  const assetData = asset as unknown;
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
@@ -175,7 +175,7 @@ function AssetHealthContent() {
                 </div>
               ) : history && history.length > 0 ? (
                 <div className="space-y-4">
-                  {history.map((record: any) => (
+                  {history.map((record: { id: string; maintenance_type: string; was_unplanned?: boolean; notes?: string; performed_date: string; cost?: number; currency?: string; condition_after?: string }) => (
                     <div key={record.id} className="p-4 border rounded-lg">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
@@ -253,3 +253,4 @@ export default function AssetHealth() {
     </ModuleGate>
   );
 }
+

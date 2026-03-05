@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import {
@@ -44,7 +44,7 @@ import {
   useApproveAttendance,
   GuardAttendanceLog,
 } from '@/hooks/use-guard-attendance';
-import { GuardCheckInWidget } from '@/components/security/GuardCheckInWidget';
+import { GuardCheckInWidget } from '@/features/security';
 
 export default function GuardAttendance() {
   const { t } = useTranslation();
@@ -399,3 +399,4 @@ export default function GuardAttendance() {
     </div>
   );
 }
+

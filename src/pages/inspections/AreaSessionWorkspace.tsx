@@ -22,7 +22,7 @@ import {
   useInspectionSession,
   useDeleteSession,
   useStartSession,
-} from '@/hooks/use-inspection-sessions';
+} from '@/features/incidents';
 import {
   useAreaChecklistProgress,
   useAreaInspectionResponses,
@@ -30,7 +30,7 @@ import {
 } from '@/hooks/use-area-inspections';
 import { useAreaFindingsCount } from '@/hooks/use-area-findings';
 import { useCanCloseSession, useCompleteAreaSession, useCloseAreaSession } from '@/hooks/use-session-lifecycle';
-import { useTemplateItems } from '@/hooks/use-inspections';
+import { useTemplateItems } from '@/features/incidents';
 import {
   SessionStatusBadge,
   EditSessionDialog,
@@ -42,7 +42,7 @@ import {
   SessionExportDropdown,
   SessionActionsPanel,
   BulkSwipeInspection,
-} from '@/components/inspections/sessions';
+} from '@/features/incidents';
 import { useReopenAreaSession } from '@/hooks/use-session-lifecycle';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -85,7 +85,7 @@ function AreaSessionWorkspaceContent() {
     try {
       await startSession.mutateAsync(sessionId);
       toast.success(t('inspectionSessions.sessionStarted'));
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(error.message);
     }
   };
@@ -96,7 +96,7 @@ function AreaSessionWorkspaceContent() {
       await completeSession.mutateAsync({ sessionId });
       toast.success(t('inspectionSessions.sessionCompleted'));
       setShowCompletionDialog(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(error.message);
     }
   };
@@ -107,7 +107,7 @@ function AreaSessionWorkspaceContent() {
       await closeSession.mutateAsync({ sessionId });
       toast.success(t('inspectionSessions.sessionClosed'));
       setShowCompletionDialog(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(error.message);
     }
   };
@@ -118,7 +118,7 @@ function AreaSessionWorkspaceContent() {
       await deleteSession.mutateAsync(sessionId);
       toast.success(t('inspectionSessions.sessionDeleted'));
       navigate('/inspections/sessions');
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(error.message);
     }
   };
@@ -128,7 +128,7 @@ function AreaSessionWorkspaceContent() {
     try {
       await reopenSession.mutateAsync({ sessionId });
       toast.success(t('inspectionSessions.sessionReopened'));
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(error.message);
     }
   };
@@ -400,3 +400,4 @@ export default function AreaSessionWorkspace() {
     </ModuleGate>
   );
 }
+

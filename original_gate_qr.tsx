@@ -1,0 +1,1157 @@
+﻿import { useState, useCallback, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { CheckCircle2, XCircle, AlertTriangle, User, HardHat, Loader2, QrCode, ShieldCheck, Clock, WifiOff, LogIn, LogOut, RotateCcw, Package } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { gateOfflineCache } from '@/lib/gate-offline-cache';
+import { CameraScanner } from '@/components/ui/camera-scanner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
+import { useHostArrivalNotification } from '@/hooks/use-host-arrival-notification';
+import { useConfirmGatePassEntry, useConfirmGatePassExit } from '@/hooks/contractor-management/use-gate-pass-verification';
+import { WorkerPhotoGallery } from './WorkerPhotoGallery';
+import { GateActionConfirmDialog, GateActionType } from './GateActionConfirmDialog';
+import { format, differenceInMinutes } from 'date-fns';
+import { logger } from '@/lib/logger';
+
+interface GateQRScannerProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onScanResult: (result: QRScanResult) => void;
+  expectedType?: 'worker' | 'visitor';
+}
+
+export interface QRScanResult {
+  type: 'visitor' | 'worker' | 'gatepass' | 'unknown';
+  id?: string;
+  status: 'valid' | 'invalid' | 'expired' | 'revoked' | 'not_found' | 'used';
+  data?: {
+    name?: string;
+    company?: string;
+    projectName?: string;
+    inductionStatus?: string;
+    expiresAt?: string;
+    warnings?: string[];
+    isOnSite?: boolean;
+    entryTime?: string;
+    entryId?: string;
+    qrUsedAt?: string;
+    nationalId?: string;
+    photoUrl?: string;
+    materialDescription?: string;
+    quantity?: string;
+    vehiclePlate?: string;
+    driverName?: string;
+    driverMobile?: string;
+  };
+  rawCode: string;
+  isOfflineCached?: boolean;
+  cachedAt?: number;
+}
+
+// Audio feedback utility for scan results
+const playAudioFeedback = (type: 'success' | 'warning' | 'error') => {
+  try {
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContext) return;
+    
+    const audioContext = new AudioContext();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    // Configure frequency based on type
+    oscillator.frequency.value = type === 'success' ? 880 : type === 'warning' ? 440 : 220;
+    oscillator.type = type === 'success' ? 'sine' : 'square';
+    
+    // Short beep with fade out
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.2);
+  } catch (e) {
+    // Audio not supported, fail silently
+    logger.debug('[GateQR] Audio feedback not available');
+  }
+};
+
+const AUTO_RESET_DELAY_MS = 8000; // 8 seconds auto-reset
+
+export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }: GateQRScannerProps) {
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  const { profile, user } = useAuth();
+  const queryClient = useQueryClient();
+  const hostArrivalNotification = useHostArrivalNotification();
+  const confirmGatePassEntry = useConfirmGatePassEntry();
+  const confirmGatePassExit = useConfirmGatePassExit();
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isLogging, setIsLogging] = useState(false);
+  const [scanResult, setScanResult] = useState<QRScanResult | null>(null);
+  const [isScannerActive, setIsScannerActive] = useState(true);
+  const [autoResetCountdown, setAutoResetCountdown] = useState<number | null>(null);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<GateActionType>('entry');
+  const scannerKeyRef = useRef(0);
+  const autoResetTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Clear timers on unmount
+  useEffect(() => {
+    return () => {
+      if (autoResetTimerRef.current) clearTimeout(autoResetTimerRef.current);
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    };
+  }, []);
+
+  // Auto-reset timer: prepare for next scan after 8 seconds of inactivity
+  useEffect(() => {
+    if (scanResult && !isLogging && !isVerifying) {
+      // Start countdown
+      setAutoResetCountdown(AUTO_RESET_DELAY_MS / 1000);
+      
+      countdownIntervalRef.current = setInterval(() => {
+        setAutoResetCountdown(prev => prev !== null && prev > 0 ? prev - 1 : null);
+      }, 1000);
+      
+      autoResetTimerRef.current = setTimeout(() => {
+        setScanResult(null);
+        setIsScannerActive(true);
+        scannerKeyRef.current += 1;
+        setAutoResetCountdown(null);
+      }, AUTO_RESET_DELAY_MS);
+      
+      return () => {
+        if (autoResetTimerRef.current) clearTimeout(autoResetTimerRef.current);
+        if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+        setAutoResetCountdown(null);
+      };
+    }
+  }, [scanResult, isLogging, isVerifying]);
+
+  useEffect(() => {
+    if (open) {
+      setScanResult(null);
+      setIsVerifying(false);
+      setIsScannerActive(true);
+      setAutoResetCountdown(null);
+      scannerKeyRef.current += 1;
+    }
+  }, [open]);
+
+  const verifyQRCode = async (code: string): Promise<QRScanResult> => {
+    const isOnline = navigator.onLine;
+    
+    let tenantId: string | undefined;
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', userData.user?.id || '')
+        .single();
+      tenantId = profile?.tenant_id;
+    } catch (error) {
+      console.warn('[GateQR] Could not get tenant_id');
+    }
+
+    // Handle VISITOR: prefix
+    if (code.startsWith('VISITOR:')) {
+      const visitorToken = code.replace('VISITOR:', '');
+      
+      if (isOnline) {
+        try {
+          // Fetch visitor with visit request for expiration check
+          const { data: visitor } = await supabase
+            .from('visitors')
+            .select('id, full_name, company_name, national_id, qr_code_token, qr_used_at, is_active')
+            .eq('qr_code_token', visitorToken)
+            .eq('is_active', true)
+            .maybeSingle();
+
+          if (visitor) {
+            // CRITICAL: Check if visitor is on the blacklist (only non-deleted entries, correct entity type)
+            if (visitor.national_id && tenantId) {
+              const { data: blacklistEntry } = await supabase
+                .from('security_blacklist')
+                .select('id, reason, entity_type')
+                .eq('tenant_id', tenantId)
+                .eq('national_id', visitor.national_id)
+                .is('deleted_at', null) // AUDIT: Only check active blacklist entries
+                .or('entity_type.eq.visitor,entity_type.is.null') // Include legacy null entries + visitor type
+                .maybeSingle();
+
+              if (blacklistEntry) {
+                return {
+                  type: 'visitor',
+                  id: visitor.id,
+                  status: 'revoked',
+                  rawCode: code,
+                  data: {
+                    name: visitor.full_name,
+                    company: visitor.company_name || undefined,
+                    warnings: [
+                      t('visitors.checkpoint.blockedByBlacklist', 'Entry blocked - visitor is blacklisted'),
+                      blacklistEntry.reason ? `${t('visitors.blacklist.reason', 'Reason')}: ${blacklistEntry.reason}` : '',
+                    ].filter(Boolean),
+                  },
+                };
+              }
+            }
+
+            // SECURITY: Check visit request expiration
+            const { data: visitRequest } = await supabase
+              .from('visit_requests')
+              .select('id, status, valid_until')
+              .eq('visitor_id', visitor.id)
+              .eq('status', 'approved')
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (visitRequest?.valid_until) {
+              const now = new Date();
+              const validUntil = new Date(visitRequest.valid_until);
+              if (validUntil < now) {
+                return {
+                  type: 'visitor',
+                  id: visitor.id,
+                  status: 'expired',
+                  rawCode: code,
+                  data: {
+                    name: visitor.full_name,
+                    company: visitor.company_name || undefined,
+                    expiresAt: visitRequest.valid_until,
+                    warnings: [t('security.qrScanner.visitExpired', 'Visit has expired')],
+                  },
+                };
+              }
+            }
+
+            await gateOfflineCache.cacheVisitorVerification(visitorToken, {
+              id: visitor.id,
+              full_name: visitor.full_name,
+              company_name: visitor.company_name,
+              qr_used_at: visitor.qr_used_at,
+            });
+
+            if (visitor.qr_used_at) {
+              return {
+                type: 'visitor',
+                id: visitor.id,
+                status: 'used',
+                rawCode: code,
+                data: {
+                  name: visitor.full_name,
+                  company: visitor.company_name || undefined,
+                  qrUsedAt: visitor.qr_used_at,
+                  warnings: [t('security.qrScanner.qrAlreadyUsed', 'QR code already used')],
+                },
+              };
+            }
+            
+            return {
+              type: 'visitor',
+              id: visitor.id,
+              status: 'valid',
+              rawCode: code,
+              data: {
+                name: visitor.full_name,
+                company: visitor.company_name || undefined,
+              },
+            };
+          }
+
+          const { data: gateEntry } = await supabase
+            .from('gate_entry_logs')
+            .select('id, person_name, purpose, destination_name, qr_code_token')
+            .eq('qr_code_token', visitorToken)
+            .is('deleted_at', null)
+            .maybeSingle();
+
+          if (gateEntry) {
+            return {
+              type: 'visitor',
+              id: gateEntry.id,
+              status: 'valid',
+              rawCode: code,
+              data: { name: gateEntry.person_name || undefined },
+            };
+          }
+
+          return {
+            type: 'visitor',
+            status: 'not_found',
+            rawCode: code,
+            data: { warnings: [t('security.qrScanner.visitorNotFound', 'Visitor not found')] },
+          };
+        } catch (error) {
+          console.error('[GateQR] Online verification failed:', error);
+        }
+      }
+      
+      const cachedVisitor = await gateOfflineCache.getVisitorVerification(visitorToken) as { 
+        id: string; full_name: string; company_name?: string; qr_used_at?: string; _cachedAt?: number;
+      } | null;
+      
+      if (cachedVisitor) {
+        return {
+          type: 'visitor',
+          id: cachedVisitor.id,
+          status: cachedVisitor.qr_used_at ? 'used' : 'valid',
+          rawCode: code,
+          isOfflineCached: true,
+          cachedAt: cachedVisitor._cachedAt,
+          data: {
+            name: cachedVisitor.full_name,
+            company: cachedVisitor.company_name || undefined,
+            warnings: cachedVisitor.qr_used_at 
+              ? [t('security.qrScanner.qrAlreadyUsed', 'QR already used')]
+              : [t('security.qrScanner.offlineCachedData', 'Cached data (offline)')],
+          },
+        };
+      }
+      
+      return {
+        type: 'visitor',
+        status: 'not_found',
+        rawCode: code,
+        data: { warnings: [isOnline ? t('security.qrScanner.visitorNotFound', 'Visitor not found') : t('security.qrScanner.offlineNoCache', 'Offline - not cached')] },
+      };
+    }
+
+    // Handle WORKER: prefix
+    if (code.startsWith('WORKER:')) {
+      const parts = code.split(':');
+      if (parts.length >= 2) {
+        const qrToken = parts[1];
+        
+        if (isOnline) {
+          try {
+            const { data, error } = await supabase.functions.invoke('validate-worker-qr', {
+              body: { qr_token: qrToken, tenant_id: tenantId },
+            });
+
+            if (error || !data?.is_valid) {
+              const errorMessages = data?.errors || [];
+              const hasExpired = errorMessages.some((e: string) => e.toLowerCase().includes('expired'));
+              const hasRevoked = errorMessages.some((e: string) => e.toLowerCase().includes('revoked'));
+              
+              return {
+                type: 'worker',
+                id: data?.worker?.id,
+                status: hasExpired ? 'expired' : hasRevoked ? 'revoked' : 'invalid',
+                rawCode: code,
+                data: { 
+                  warnings: errorMessages.length > 0 ? errorMessages : [error?.message || 'Invalid QR'],
+                  name: data?.worker?.full_name,
+                  nationalId: data?.worker?.national_id,
+                },
+              };
+            }
+
+            await gateOfflineCache.cacheWorkerVerification(qrToken, {
+              worker: data.worker,
+              induction: data.induction,
+              warnings: data.warnings,
+              is_valid: true,
+            });
+
+            // CRITICAL: Check if worker is already on-site BEFORE returning valid result
+            const { data: activeEntry } = await supabase
+              .from('gate_entry_logs')
+              .select('id, entry_time')
+              .eq('tenant_id', tenantId || '')
+              .eq('entry_type', 'worker')
+              .or(`person_name.ilike.%${data.worker?.full_name}%,worker_id.eq.${data.worker?.id}`)
+              .is('exit_time', null)
+              .is('deleted_at', null)
+              .order('entry_time', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            // Get worker photo URL if available
+            let photoUrl: string | undefined;
+            if (data.worker?.photo_path) {
+              const { data: signedUrl } = await supabase.storage
+                .from('worker-photos')
+                .createSignedUrl(data.worker.photo_path, 3600);
+              photoUrl = signedUrl?.signedUrl;
+            }
+
+            return {
+              type: 'worker',
+              id: data.worker?.id,
+              status: 'valid',
+              rawCode: code,
+              data: {
+                name: data.worker?.full_name,
+                company: data.worker?.company_name,
+                projectName: data.worker?.project_name,
+                inductionStatus: data.induction?.status || 'not_started',
+                expiresAt: data.induction?.expires_at,
+                warnings: data.warnings,
+                nationalId: data.worker?.national_id,
+                photoUrl,
+                // Include on-site status in scan result
+                isOnSite: !!activeEntry,
+                entryTime: activeEntry?.entry_time,
+                entryId: activeEntry?.id,
+              },
+            };
+          } catch (error) {
+            console.error('[GateQR] Worker verification failed:', error);
+          }
+        }
+        
+        const cachedWorker = await gateOfflineCache.getWorkerVerification(qrToken) as {
+          worker?: { id: string; full_name: string; company_name?: string; project_name?: string };
+          induction?: { status: string; expires_at?: string };
+          warnings?: string[];
+          is_valid?: boolean;
+          _cachedAt?: number;
+        } | null;
+        
+        if (cachedWorker && cachedWorker.is_valid) {
+          return {
+            type: 'worker',
+            id: cachedWorker.worker?.id,
+            status: 'valid',
+            rawCode: code,
+            isOfflineCached: true,
+            cachedAt: cachedWorker._cachedAt,
+            data: {
+              name: cachedWorker.worker?.full_name,
+              company: cachedWorker.worker?.company_name,
+              projectName: cachedWorker.worker?.project_name,
+              inductionStatus: cachedWorker.induction?.status || 'not_started',
+              expiresAt: cachedWorker.induction?.expires_at,
+              warnings: [...(cachedWorker.warnings || []), t('security.qrScanner.offlineCachedData', 'Cached (offline)')],
+            },
+          };
+        }
+        
+        return {
+          type: 'worker',
+          status: 'not_found',
+          rawCode: code,
+          data: { warnings: [isOnline ? t('security.qrScanner.workerNotFound', 'Worker not found') : t('security.qrScanner.offlineNoCache', 'Offline - not cached')] },
+        };
+      }
+    }
+
+    // Handle Material Gate Pass (GP-, MGP:, GATEPASS:)
+    if (code.startsWith('GP-') || code.startsWith('MGP:') || code.startsWith('GATEPASS:')) {
+      let token = code;
+      if (code.startsWith('MGP:')) token = code.replace('MGP:', '');
+      else if (code.startsWith('GATEPASS:')) token = code.replace('GATEPASS:', '');
+
+      if (isOnline) {
+        try {
+          const { data, error } = await supabase.functions.invoke('validate-material-qr', {
+            body: { qr_token: token, tenant_id: tenantId },
+          });
+
+          if (error) throw error;
+
+          if (!data.is_valid) {
+             return {
+              type: 'gatepass',
+              status: 'invalid',
+              rawCode: code,
+              data: {
+                warnings: data.errors || ['Invalid gate pass'],
+              }
+             };
+          }
+
+          return {
+            type: 'gatepass',
+            id: data.pass?.id,
+            status: data.pass?.exit_time ? 'used' : 'valid',
+            rawCode: code,
+            data: {
+              name: data.pass?.reference_number,
+              company: data.pass?.company_name,
+              projectName: data.pass?.project_name,
+              materialDescription: data.pass?.material_description,
+              quantity: data.pass?.quantity,
+              vehiclePlate: data.pass?.vehicle_plate,
+              driverName: data.pass?.driver_name,
+              driverMobile: data.pass?.driver_mobile,
+              entryTime: data.pass?.entry_time,
+              entryId: data.pass?.entry_time ? 'true' : undefined, // Flag to indicate entry exists
+              isOnSite: !!data.pass?.entry_time && !data.pass?.exit_time,
+              warnings: data.warnings,
+            }
+          };
+        } catch (error) {
+           console.error('[GateQR] Material pass verification failed:', error);
+           return {
+             type: 'gatepass',
+             status: 'invalid',
+             rawCode: code,
+             data: { warnings: ['Verification failed'] }
+           };
+        }
+      } else {
+         // Offline fallback if needed, currently just return unknown/not supported
+         return {
+           type: 'gatepass',
+           status: 'not_found',
+           rawCode: code,
+           data: { warnings: [t('security.qrScanner.offlineNoCache', 'Offline - not cached')] }
+         };
+      }
+    }
+
+    // Handle legacy VIS- format
+    if (code.startsWith('VIS-')) {
+      const visitorId = code.replace('VIS-', '');
+      
+      const { data: visitor } = await supabase
+        .from('gate_entry_logs')
+        .select('id, person_name, purpose, destination_name')
+        .or(`id.eq.${visitorId},person_name.ilike.%${visitorId}%`)
+        .limit(1)
+        .maybeSingle();
+
+      if (visitor) {
+        return {
+          type: 'visitor',
+          id: visitor.id,
+          status: 'valid',
+          rawCode: code,
+          data: { name: visitor.person_name || undefined },
+        };
+      }
+
+      return {
+        type: 'visitor',
+        status: 'not_found',
+        rawCode: code,
+        data: { warnings: [t('security.qrScanner.visitorNotFound', 'Visitor not found')] },
+      };
+    }
+
+    return {
+      type: 'unknown',
+      status: 'not_found',
+      rawCode: code,
+      data: { warnings: [t('security.qrScanner.unknownFormat', 'Unknown QR format')] },
+    };
+  };
+
+  const handleScan = useCallback(async (decodedText: string) => {
+    if (isVerifying) return;
+    
+    // Clear any existing auto-reset timer
+    if (autoResetTimerRef.current) clearTimeout(autoResetTimerRef.current);
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    setAutoResetCountdown(null);
+    
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+
+    setIsVerifying(true);
+    setIsScannerActive(false);
+
+    try {
+      const parsedResult = await verifyQRCode(decodedText);
+      setScanResult(parsedResult);
+      
+      // Play audio feedback based on result status
+      if (parsedResult.status === 'valid') {
+        playAudioFeedback('success');
+      } else if (parsedResult.status === 'expired' || parsedResult.status === 'used') {
+        playAudioFeedback('warning');
+      } else {
+        playAudioFeedback('error');
+      }
+    } catch (error) {
+      console.error('QR verification error:', error);
+      playAudioFeedback('error');
+      setScanResult({
+        type: 'unknown',
+        status: 'invalid',
+        rawCode: decodedText,
+      });
+    } finally {
+      setIsVerifying(false);
+    }
+  }, [isVerifying]);
+
+  const handleClose = useCallback(() => {
+    setScanResult(null);
+    setIsVerifying(false);
+    setIsScannerActive(true);
+    onOpenChange(false);
+  }, [onOpenChange]);
+
+  const handleScanNext = useCallback(() => {
+    // Clear auto-reset timer when manually triggering next scan
+    if (autoResetTimerRef.current) clearTimeout(autoResetTimerRef.current);
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    setAutoResetCountdown(null);
+    
+    setScanResult(null);
+    setIsVerifying(false);
+    setIsScannerActive(true);
+    scannerKeyRef.current += 1;
+  }, []);
+
+  const handleUseAndClose = useCallback(() => {
+    if (scanResult) {
+      onScanResult(scanResult);
+      handleClose();
+    }
+  }, [scanResult, onScanResult, handleClose]);
+
+  // Log entry to database and immediately start scanning for next QR code
+  const handleLogAndScanNext = useCallback(async () => {
+    if (!scanResult || !profile?.tenant_id) return;
+    
+    // Only log entry for valid status
+    if (scanResult.status === 'valid') {
+      setIsLogging(true);
+      try {
+        // Handle Material Gate Pass Entry
+        if (scanResult.type === 'gatepass' && scanResult.id) {
+          await confirmGatePassEntry.mutateAsync(scanResult.id);
+
+          toast({
+            title: t('security.gate.entryRecorded', 'Entry recorded successfully'),
+          });
+
+          queryClient.invalidateQueries({ queryKey: ['gate-entries'] });
+          setIsLogging(false);
+
+          // Pass result to parent
+          onScanResult(scanResult);
+
+          // Start scanning for next QR code
+          setScanResult(null);
+          setIsVerifying(false);
+          setIsScannerActive(true);
+          scannerKeyRef.current += 1;
+          return;
+        }
+
+        const entryType = scanResult.type === 'worker' ? 'worker' : 'visitor';
+        const entryTime = new Date().toISOString();
+        
+        // Generate unique visit reference
+        const visitReference = `VIS-${Date.now().toString(36).toUpperCase()}`;
+        
+        // Check for existing active entry to prevent duplicates
+        const { data: existingEntry } = await supabase
+          .from('gate_entry_logs')
+          .select('id, entry_time')
+          .eq('tenant_id', profile.tenant_id)
+          .eq('entry_type', entryType)
+          .ilike('person_name', `%${scanResult.data?.name || ''}%`)
+          .is('exit_time', null)
+          .is('deleted_at', null)
+          .order('entry_time', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (existingEntry) {
+          toast({ 
+            title: t('security.gate.alreadyOnSite', 'Already On Site'),
+            description: t('security.gate.alreadyOnSiteDesc', 'This person is already on-site'),
+            variant: 'default'
+          });
+        } else {
+          // Fetch visitor info and approved visit request for proper integration
+          let hostPhone: string | null = null;
+          let visitRequestId: string | null = null;
+          let siteId: string | null = null;
+          
+          if (scanResult.type === 'visitor' && scanResult.id) {
+            // First check visitor record for host_phone
+            const { data: visitor } = await supabase
+              .from('visitors')
+              .select('host_phone, host_id')
+              .eq('id', scanResult.id)
+              .single();
+            
+            hostPhone = visitor?.host_phone || null;
+            
+            // If no host_phone, try to get from host_id profile
+            if (!hostPhone && visitor?.host_id) {
+              const { data: hostProfile } = await supabase
+                .from('profiles')
+                .select('phone_number')
+                .eq('id', visitor.host_id)
+                .single();
+              hostPhone = hostProfile?.phone_number || null;
+            }
+            
+            // Find the approved visit_request for this visitor
+            const { data: visitRequest } = await supabase
+              .from('visit_requests')
+              .select('id, host_id, site_id, profiles:host_id(phone_number)')
+              .eq('visitor_id', scanResult.id)
+              .eq('status', 'approved')
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            
+            if (visitRequest) {
+              visitRequestId = visitRequest.id;
+              siteId = visitRequest.site_id;
+              
+              if (!hostPhone && visitRequest.profiles) {
+                const hostData = visitRequest.profiles as { phone_number?: string };
+                hostPhone = hostData?.phone_number || null;
+              }
+            }
+          }
+          
+          // Create gate entry log with visit_request_id
+          const { data: newEntry, error } = await supabase
+            .from('gate_entry_logs')
+            .insert({
+              tenant_id: profile.tenant_id,
+              person_name: scanResult.data?.name || 'Unknown',
+              entry_type: entryType,
+              entry_time: entryTime,
+              guard_id: user?.id,
+              visitor_id: scanResult.type === 'visitor' ? scanResult.id : null,
+              visit_request_id: visitRequestId,
+              visit_reference: visitReference,
+              host_mobile: hostPhone,
+              site_id: siteId,
+            })
+            .select('id')
+            .single();
+
+          if (error) throw error;
+
+          // CRITICAL: Update visit_request status to checked_in
+          if (visitRequestId) {
+            const { error: vrUpdateError } = await supabase
+              .from('visit_requests')
+              .update({ 
+                status: 'checked_in',
+                entry_logged_at: entryTime,
+              })
+              .eq('id', visitRequestId);
+            
+            if (vrUpdateError) {
+              console.error('[GateQR] Failed to update visit_request status:', vrUpdateError);
+            }
+          }
+
+          // Mark visitor QR as used and update last_visit_at
+          if (scanResult.type === 'visitor' && scanResult.id) {
+            await supabase
+              .from('visitors')
+              .update({ 
+                qr_used_at: entryTime,
+                last_visit_at: entryTime,
+              })
+              .eq('id', scanResult.id);
+          }
+
+          toast({ 
+            title: t('security.gate.entryRecorded', 'Entry recorded successfully'),
+          });
+
+          // Send host arrival notification (async, non-blocking)
+          if (hostPhone && newEntry?.id && scanResult.type === 'visitor') {
+            logger.debug('[GateQR] Sending host arrival notification to:', hostPhone);
+            hostArrivalNotification.mutate({
+              entryId: newEntry.id,
+              visitorName: scanResult.data?.name || 'Visitor',
+              hostPhone,
+              visitReference,
+              entryTime,
+              tenantId: profile.tenant_id,
+            });
+            
+            // Update host_notified_at on visit_request
+            if (visitRequestId) {
+              await supabase
+                .from('visit_requests')
+                .update({ host_notified_at: entryTime })
+                .eq('id', visitRequestId);
+            }
+          } else if (scanResult.type === 'visitor' && !hostPhone) {
+            logger.debug('[GateQR] No host phone available, skipping notification');
+          }
+
+          // Invalidate queries to refresh active visitors lists
+          queryClient.invalidateQueries({ queryKey: ['gate-entries'] });
+          queryClient.invalidateQueries({ queryKey: ['visit-requests'] });
+        }
+      } catch (error) {
+        console.error('Failed to log entry:', error);
+        toast({ 
+          title: t('security.gate.entryFailed', 'Failed to record entry'),
+          variant: 'destructive'
+        });
+      } finally {
+        setIsLogging(false);
+      }
+    }
+
+    // Pass result to parent
+    onScanResult(scanResult);
+    
+    // Start scanning for next QR code
+    setScanResult(null);
+    setIsVerifying(false);
+    setIsScannerActive(true);
+    scannerKeyRef.current += 1;
+  }, [scanResult, onScanResult, profile?.tenant_id, user?.id, queryClient, toast, t, hostArrivalNotification]);
+
+  const getStatusConfig = (status: QRScanResult['status'], isOnSite?: boolean) => {
+    // If worker/visitor is already on-site, show amber warning style FIRST
+    if (isOnSite) {
+      return { 
+        icon: AlertTriangle, 
+        color: 'text-amber-600', 
+        bg: 'bg-amber-50 dark:bg-amber-950/30', 
+        border: 'border-amber-500', 
+        label: t('security.qrScanner.alreadyOnSite', 'ALREADY ON SITE') 
+      };
+    }
+    
+    switch (status) {
+      case 'valid':
+        return { icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-950/30', border: 'border-green-600', label: t('security.qrScanner.valid', 'VALID') };
+      case 'expired':
+        return { icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/30', border: 'border-amber-600', label: t('security.qrScanner.expired', 'EXPIRED') };
+      case 'revoked':
+        return { icon: XCircle, color: 'text-destructive', bg: 'bg-destructive/10', border: 'border-destructive', label: t('security.qrScanner.revoked', 'REVOKED') };
+      case 'used':
+        return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/30', border: 'border-amber-600', label: t('security.qrScanner.used', 'USED') };
+      default:
+        return { icon: XCircle, color: 'text-destructive', bg: 'bg-destructive/10', border: 'border-destructive', label: t('security.qrScanner.invalid', 'INVALID') };
+    }
+  };
+
+  // Handle confirmation dialog for gate actions
+  const handleActionRequest = useCallback((action: GateActionType) => {
+    setConfirmAction(action);
+    setConfirmDialogOpen(true);
+  }, []);
+
+  // Handle record exit for on-site workers
+  const handleRecordExit = useCallback(async () => {
+    // Handle Material Gate Pass Exit
+    if (scanResult?.type === 'gatepass' && scanResult.id) {
+      setIsLogging(true);
+      try {
+        await confirmGatePassExit.mutateAsync(scanResult.id);
+        toast({ title: t('security.gate.exitRecorded', 'Exit recorded successfully') });
+        queryClient.invalidateQueries({ queryKey: ['gate-entries'] });
+
+        // Update scan result to reflect exit
+        setScanResult(prev => prev ? {
+          ...prev,
+          data: { ...prev.data, isOnSite: false, entryId: undefined, entryTime: undefined }
+        } : null);
+      } catch (error) {
+        console.error('Failed to record exit:', error);
+        toast({
+          title: t('security.gate.exitFailed', 'Failed to record exit'),
+          variant: 'destructive'
+        });
+      } finally {
+        setIsLogging(false);
+        setConfirmDialogOpen(false);
+      }
+      return;
+    }
+
+    if (!scanResult?.data?.entryId || !profile?.tenant_id) {
+      setConfirmDialogOpen(false);
+      return;
+    }
+    
+    setIsLogging(true);
+    try {
+      const exitTime = new Date().toISOString();
+      
+      const { error } = await supabase
+        .from('gate_entry_logs')
+        .update({ exit_time: exitTime })
+        .eq('id', scanResult.data.entryId);
+      
+      if (error) throw error;
+
+      // Audit log for exit
+      await supabase.from('contractor_module_audit_logs').insert({
+        tenant_id: profile.tenant_id,
+        entity_type: 'gate_entry_log',
+        entity_id: scanResult.data.entryId,
+        actor_id: user?.id,
+        action: 'worker_exit_recorded',
+        new_value: {
+          worker_id: scanResult.id,
+          worker_name: scanResult.data?.name,
+          exit_time: exitTime,
+          guard_id: user?.id,
+        },
+      });
+
+      toast({ title: t('security.gate.exitRecorded', 'Exit recorded successfully') });
+      queryClient.invalidateQueries({ queryKey: ['gate-entries'] });
+      
+      // Update scan result to reflect exit
+      setScanResult(prev => prev ? {
+        ...prev,
+        data: { ...prev.data, isOnSite: false, entryId: undefined, entryTime: undefined }
+      } : null);
+    } catch (error) {
+      console.error('Failed to record exit:', error);
+      toast({ 
+        title: t('security.gate.exitFailed', 'Failed to record exit'),
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLogging(false);
+      setConfirmDialogOpen(false);
+    }
+  }, [scanResult, profile?.tenant_id, user?.id, queryClient, toast, t, confirmGatePassExit]);
+
+  // Handle confirmed entry action
+  const handleConfirmedEntry = useCallback(async () => {
+    if (!scanResult || !profile?.tenant_id) {
+      setConfirmDialogOpen(false);
+      return;
+    }
+    
+    // Close dialog and proceed with existing log entry logic
+    setConfirmDialogOpen(false);
+    await handleLogAndScanNext();
+  }, [scanResult, profile?.tenant_id, handleLogAndScanNext]);
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden rounded-lg border-2 border-border bg-background max-h-[90vh] overflow-y-auto">
+        {/* Header - Military/Formal Style */}
+        <DialogHeader className="p-4 pb-3 border-b-2 border-border bg-muted/50">
+          <DialogTitle className="flex items-center gap-3">
+            <div className="p-2 rounded bg-primary/10 border border-primary/30">
+              <QrCode className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-base font-semibold uppercase tracking-wide">
+                {t('security.qrScanner.scanQRCode', 'Scan QR Code')}
+              </span>
+              <span className="text-xs text-muted-foreground font-normal">
+                {scanResult 
+                  ? t('security.qrScanner.scanComplete', 'Scan Complete') 
+                  : t('security.qrScanner.workersAndVisitors', 'Workers & Visitors')}
+              </span>
+            </div>
+          </DialogTitle>
+        </DialogHeader>
+
+        {/* Scanner Area */}
+        <div className="p-3">
+          {isScannerActive && !isVerifying && (
+            <CameraScanner
+              key={scannerKeyRef.current}
+              containerId="gate-qr-scanner"
+              isOpen={open && isScannerActive}
+              onScan={handleScan}
+              qrboxSize={{ width: 220, height: 220 }}
+              aspectRatio={1.0}
+              showCameraSwitch={true}
+              showTorchToggle={true}
+            />
+          )}
+
+          {/* Verifying State */}
+          {isVerifying && (
+            <div className="flex flex-col items-center justify-center gap-4 p-6 min-h-[240px] bg-muted/50 rounded-lg border-2 border-border">
+              <div className="p-4 rounded bg-primary/10 border border-primary/30">
+                <Loader2 className="h-10 w-10 text-primary animate-spin" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-semibold uppercase tracking-wide">{t('security.qrScanner.verifying', 'Verifying')}</p>
+                <p className="text-xs text-muted-foreground">{t('security.qrScanner.pleaseWait', 'Please wait')}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Result Display */}
+        {scanResult && !isVerifying && (
+          <div className="px-3 pb-3 space-y-3">
+            {/* Status Card - Now uses on-site status check */}
+            <div className={cn("p-3 rounded-lg border-2", getStatusConfig(scanResult.status, scanResult.data?.isOnSite).bg, getStatusConfig(scanResult.status, scanResult.data?.isOnSite).border)}>
+              <div className="flex items-start gap-3">
+                {/* Status Icon */}
+                <div className={cn("p-2 rounded", getStatusConfig(scanResult.status, scanResult.data?.isOnSite).bg)}>
+                  {(() => {
+                    const Icon = getStatusConfig(scanResult.status, scanResult.data?.isOnSite).icon;
+                    return <Icon className={cn("h-6 w-6", getStatusConfig(scanResult.status, scanResult.data?.isOnSite).color)} />;
+                  })()}
+                </div>
+                
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <Badge variant="outline" className={cn("text-xs font-bold uppercase tracking-wide", getStatusConfig(scanResult.status, scanResult.data?.isOnSite).color, getStatusConfig(scanResult.status, scanResult.data?.isOnSite).border)}>
+                      {scanResult.type === 'worker' && <HardHat className="h-3 w-3 me-1" />}
+                      {scanResult.type === 'visitor' && <User className="h-3 w-3 me-1" />}
+                      {scanResult.type === 'gatepass' && <Package className="h-3 w-3 me-1" />}
+                      {getStatusConfig(scanResult.status, scanResult.data?.isOnSite).label}
+                    </Badge>
+                    
+                    {scanResult.isOfflineCached && (
+                      <Badge variant="outline" className="text-xs text-amber-600 border-amber-600">
+                        <WifiOff className="h-3 w-3 me-1" />
+                        CACHED
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  {scanResult.data?.name && (
+                    <p className="text-base font-bold truncate">{scanResult.data.name}</p>
+                  )}
+                  
+                  {scanResult.data?.company && (
+                    <p className="text-sm text-muted-foreground truncate">{scanResult.data.company}</p>
+                  )}
+                  
+                  {scanResult.data?.projectName && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                      <ShieldCheck className="h-3 w-3" />
+                      <span className="truncate">{scanResult.data.projectName}</span>
+                    </p>
+                  )}
+
+                  {scanResult.type === 'gatepass' && scanResult.data?.materialDescription && (
+                     <div className="mt-2 p-2 bg-muted/50 rounded text-sm border border-border/50">
+                        <p className="font-semibold line-clamp-2">{scanResult.data.materialDescription}</p>
+                        {scanResult.data.quantity && <p className="text-xs text-muted-foreground mt-0.5">{scanResult.data.quantity}</p>}
+
+                        {(scanResult.data.vehiclePlate || scanResult.data.driverName) && (
+                          <div className="mt-1.5 pt-1.5 border-t border-border/50 flex gap-3 text-xs">
+                             {scanResult.data.vehiclePlate && <span className="font-mono bg-background px-1 rounded border">{scanResult.data.vehiclePlate}</span>}
+                             {scanResult.data.driverName && <span className="text-muted-foreground">{scanResult.data.driverName}</span>}
+                          </div>
+                        )}
+                     </div>
+                  )}
+                </div>
+              </div>
+
+              {/* On-Site Details Panel */}
+              {scanResult.data?.isOnSite && scanResult.data?.entryTime && (
+                <div className="mt-3 p-2 rounded bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700">
+                  <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
+                    <Clock className="h-4 w-4 flex-shrink-0" />
+                    <div className="text-xs">
+                      <p className="font-semibold">
+                        {t('security.qrScanner.enteredAt', 'Entered at {{time}}', { 
+                          time: format(new Date(scanResult.data.entryTime), 'HH:mm') 
+                        })}
+                      </p>
+                      <p className="text-amber-700 dark:text-amber-300">
+                        {t('security.qrScanner.onSiteDuration', 'On site for {{duration}} minutes', { 
+                          duration: differenceInMinutes(new Date(), new Date(scanResult.data.entryTime)) 
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Warnings */}
+              {scanResult.data?.warnings && scanResult.data.warnings.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  {scanResult.data.warnings.map((warning, idx) => (
+                    <div key={idx} className="flex items-start gap-2 p-2 rounded bg-destructive/10 border border-destructive/20 text-xs">
+                      <AlertTriangle className="h-3.5 w-3.5 text-destructive flex-shrink-0 mt-0.5" />
+                      <span className="text-destructive">{warning}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Worker Photo Gallery for identity verification */}
+            {scanResult.type === 'worker' && scanResult.id && (
+              <WorkerPhotoGallery 
+                workerId={scanResult.id}
+                workerName={scanResult.data?.name || ''}
+                primaryPhotoUrl={scanResult.data?.photoUrl}
+                nationalId={scanResult.data?.nationalId}
+                tenantId={profile?.tenant_id}
+              />
+            )}
+
+            {/* Auto-reset countdown indicator */}
+            {autoResetCountdown !== null && autoResetCountdown > 0 && (
+              <div className="text-xs text-center text-muted-foreground">
+                {t('scanner.autoResetIn', 'Auto-reset in {{seconds}}s', { seconds: autoResetCountdown })}
+              </div>
+            )}
+
+            {/* Action Buttons - Different for on-site vs new entry */}
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" className="gap-2 h-10" onClick={handleScanNext}>
+                <RotateCcw className="h-4 w-4" />
+                {t('scanner.scanNext', 'Scan Next')}
+              </Button>
+              
+              {/* Show Record Exit for on-site workers, Log Entry for new entries */}
+              {scanResult.data?.isOnSite ? (
+                <Button 
+                  className="gap-2 h-10 bg-amber-600 hover:bg-amber-700 text-white" 
+                  onClick={() => handleActionRequest('exit')}
+                  disabled={isLogging}
+                >
+                  {isLogging ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+                  {t('scanner.recordExit', 'Record Exit')}
+                </Button>
+              ) : scanResult.status === 'valid' ? (
+                <Button 
+                  className="gap-2 h-10 bg-green-600 hover:bg-green-700 text-white" 
+                  onClick={() => handleActionRequest('entry')}
+                  disabled={isLogging}
+                >
+                  {isLogging ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+                  {t('scanner.logEntry', 'Log Entry')}
+                </Button>
+              ) : (
+                <Button variant="secondary" className="gap-2 h-10" onClick={handleScanNext}>
+                  <CheckCircle2 className="h-4 w-4" />
+                  {t('scanner.acknowledge', 'Acknowledge')}
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Confirmation Dialog */}
+        <GateActionConfirmDialog
+          open={confirmDialogOpen}
+          onOpenChange={setConfirmDialogOpen}
+          action={confirmAction}
+          personName={scanResult?.data?.name || 'Unknown'}
+          personType={scanResult?.type === 'worker' ? 'worker' : scanResult?.type === 'gatepass' ? 'gatepass' : 'visitor'}
+          entryTime={scanResult?.data?.entryTime ? format(new Date(scanResult.data.entryTime), 'HH:mm') : undefined}
+          isLoading={isLogging}
+          onConfirm={confirmAction === 'exit' ? handleRecordExit : handleConfirmedEntry}
+        />
+
+      </DialogContent>
+    </Dialog>
+  );
+}

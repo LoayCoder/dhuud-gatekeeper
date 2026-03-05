@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSLADashboard } from '@/hooks/use-sla-dashboard';
-import { useActionSLAConfig } from '@/hooks/use-action-sla-config';
+import { useActionSLAConfig } from '@/features/incidents';
 import { useAuth } from '@/contexts/AuthContext';
 import { SLAPageLayout } from '@/components/sla/SLAPageLayout';
 import { SLAStatusCards } from '@/components/sla/SLAStatusCards';
@@ -386,7 +386,7 @@ export default function SLADashboard() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={getPriorityVariant(action.priority) as any}>
+                          <Badge variant={getPriorityVariant(action.priority) as unknown}>
                             {action.priority || 'medium'}
                           </Badge>
                         </TableCell>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,8 +19,8 @@ import {
 } from "lucide-react";
 import { usePTWProjects } from "@/hooks/ptw";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ProjectFormDialog } from "@/components/ptw/ProjectFormDialog";
-import { ProjectClearanceDialog } from "@/components/ptw/ProjectClearanceDialog";
+import { ProjectFormDialog } from '@/features/ptw';
+import { ProjectClearanceDialog } from '@/features/ptw';
 import { format } from "date-fns";
 
 const statusColors: Record<string, string> = {
@@ -328,3 +328,4 @@ function ProjectCard({ project, onClick }: ProjectCardProps) {
     </div>
   );
 }
+

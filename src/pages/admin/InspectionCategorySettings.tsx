@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Layers, Search, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,9 +30,9 @@ import {
   useUpdateInspectionCategory, 
   useDeleteInspectionCategory,
   type InspectionTemplateCategory
-} from '@/hooks/use-inspection-categories';
-import AddInspectionCategoryDialog from '@/components/admin/AddInspectionCategoryDialog';
-import EditInspectionCategoryDialog from '@/components/admin/EditInspectionCategoryDialog';
+} from '@/features/incidents';
+import { AddInspectionCategoryDialog } from '@/features/admin';
+import { EditInspectionCategoryDialog } from '@/features/admin';
 
 
 const InspectionCategorySettings = () => {
@@ -244,3 +244,4 @@ const InspectionCategorySettings = () => {
 };
 
 export default InspectionCategorySettings;
+

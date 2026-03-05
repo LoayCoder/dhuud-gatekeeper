@@ -1,4 +1,4 @@
-import { useTranslation } from "react-i18next";
+﻿import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { 
   Package, 
@@ -26,15 +26,15 @@ import {
   useOverdueInspections,
   useOverdueMaintenance,
   useRecentAssetActivity,
-} from "@/hooks/use-asset-dashboard";
+} from '@/features/assets';
 import {
   useExpiringWarranties,
   useLowStockCount,
   useDepreciationTotals,
   useAssetTrendData,
-} from "@/hooks/use-asset-dashboard-extended";
-import { PendingTransfersCard, AssetLocationMap, OfflinePhotoSyncIndicator, AssetHealthDashboardWidget, ScanFAB } from "@/components/assets";
-import { RecentInspectionsCard, InspectionStatsCard } from "@/components/inspections";
+} from '@/features/assets';
+import { PendingTransfersCard, AssetLocationMap, OfflinePhotoSyncIndicator, AssetHealthDashboardWidget, ScanFAB } from '@/features/assets';
+import { RecentInspectionsCard, InspectionStatsCard } from '@/features/incidents';
 import { format, formatDistanceToNow } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 
@@ -515,3 +515,5 @@ export default function AssetDashboard() {
     </div>
   );
 }
+
+

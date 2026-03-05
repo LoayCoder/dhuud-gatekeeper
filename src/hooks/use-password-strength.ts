@@ -39,7 +39,7 @@ export function usePasswordStrength(password: string): PasswordStrengthResult {
       {
         key: 'special',
         label: 'passwordStrength.special',
-        met: /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/`~';]/.test(password),
+        met: /[!@#$%^&*(),.?":{}|<>_\-+=[\]\\/`~';]/.test(password),
       },
     ];
 
@@ -48,11 +48,11 @@ export function usePasswordStrength(password: string): PasswordStrengthResult {
 
     // Calculate score based on requirements met and password length bonus
     let score = (metCount / requirements.length) * 80;
-    
+
     // Bonus for extra length
     if (password.length >= 16) score += 10;
     if (password.length >= 20) score += 10;
-    
+
     score = Math.min(100, Math.round(score));
 
     // Determine level

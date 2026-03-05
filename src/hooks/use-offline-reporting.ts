@@ -150,10 +150,10 @@ export function useOfflineReporting() {
           .select('id, name, branch_id, latitude, longitude')
           .eq('tenant_id', profile.tenant_id)
           .is('deleted_at', null)
-          .eq('is_active', true)) as any,
+          .eq('is_active', true)) as unknown,
 
         // Branches
-        (supabase as any)
+        (supabase as unknown)
           .from('branches')
           .select('id, name')
           .eq('tenant_id', profile.tenant_id)
@@ -161,7 +161,7 @@ export function useOfflineReporting() {
           .eq('is_active', true),
 
         // Departments
-        (supabase as any)
+        (supabase as unknown)
           .from('departments')
           .select('id, name, branch_id')
           .eq('tenant_id', profile.tenant_id)
@@ -174,7 +174,7 @@ export function useOfflineReporting() {
           .select('id, name, site_id')
           .eq('tenant_id', profile.tenant_id)
           .is('deleted_at', null)
-          .eq('is_active', true)) as any,
+          .eq('is_active', true)) as unknown,
 
         // Contractor companies (active only)
         (supabase
@@ -182,10 +182,10 @@ export function useOfflineReporting() {
           .select('id, company_name, company_name_ar, status')
           .eq('tenant_id', profile.tenant_id)
           .is('deleted_at', null)
-          .eq('status', 'active')) as any,
+          .eq('status', 'active')) as unknown,
 
         // Event types (categories)
-        (supabase as any)
+        (supabase as unknown)
           .from('hsse_event_types')
           .select('id, name, name_ar, code, category')
           .eq('tenant_id', profile.tenant_id)
@@ -194,7 +194,7 @@ export function useOfflineReporting() {
           .is('parent_type_id', null),
 
         // Event subtypes
-        (supabase as any)
+        (supabase as unknown)
           .from('hsse_event_types')
           .select('id, name, name_ar, code, parent_type_id')
           .eq('tenant_id', profile.tenant_id)

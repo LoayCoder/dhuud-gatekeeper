@@ -1,16 +1,16 @@
-import { useTranslation } from 'react-i18next';
+﻿import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, QrCode, Barcode, Loader2, AlertCircle, CheckCircle2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AssetQRScanner } from '@/components/assets/AssetQRScanner';
-import { AssetBarcodeScanner } from '@/components/assets/AssetBarcodeScanner';
-import { AssetScanResult } from '@/components/assets/AssetScanResult';
+import { AssetQRScanner } from '@/features/assets';
+import { AssetBarcodeScanner } from '@/features/assets';
+import { AssetScanResult } from '@/features/assets';
 import { ModuleGate } from '@/components';
 import { useState, useEffect } from 'react';
-import { useAssetByCode } from '@/hooks/use-asset-by-code';
+import { useAssetByCode } from '@/features/assets';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Dialog,
@@ -276,3 +276,4 @@ export default function AssetScanner() {
     </ModuleGate>
   );
 }
+

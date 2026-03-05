@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ import { Search, MoreHorizontal, UserPlus, QrCode, ShieldAlert, Eye, RefreshCw, 
 import { Link } from 'react-router-dom';
 import { useVisitors, useUpdateVisitor, useResetVisitorQR } from '@/hooks/use-visitors';
 import { useResendVisitorInvitation } from '@/hooks/use-visit-requests';
-import { useAddToBlacklist, useBlacklistNationalIds } from '@/hooks/use-security-blacklist';
+import { useAddToBlacklist, useBlacklistNationalIds } from '@/features/security';
 import { format } from 'date-fns';
 import { VisitorDetailDialog } from '@/components/visitors/VisitorDetailDialog';
 import { cn } from '@/lib/utils';
@@ -264,3 +264,4 @@ export default function VisitorList() {
     </div>
   );
 }
+

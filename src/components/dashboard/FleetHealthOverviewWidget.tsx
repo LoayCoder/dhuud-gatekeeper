@@ -1,7 +1,7 @@
-import { useTranslation } from 'react-i18next';
+﻿import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useFleetHealthStats } from '@/hooks/use-asset-health-dashboard';
+import { useFleetHealthStats } from '@/features/assets';
 import { Activity, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -142,3 +142,4 @@ export function FleetHealthOverviewWidget() {
     </Card>
   );
 }
+

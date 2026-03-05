@@ -124,10 +124,10 @@ export async function syncAreaFindings(sessionId: string, tenantId: string): Pro
       try {
         // Find the matching synced response
         const offlineResponse = responsesCache.data?.find(r => r.id === finding.response_id);
-        
+
         // Get the real response ID from the database
         let realResponseId = finding.response_id;
-        
+
         if (offlineResponse && offlineResponse._offline) {
           // Look up the real response by template_item_id
           const { data: dbResponse } = await supabase
@@ -206,7 +206,7 @@ export async function syncAreaFindings(sessionId: string, tenantId: string): Pro
 export async function syncAreaSession(sessionId: string, tenantId: string): Promise<SyncResult> {
   // Sync responses first (findings depend on response IDs)
   const responseResult = await syncAreaResponses(sessionId, tenantId);
-  
+
   // Then sync findings
   const findingResult = await syncAreaFindings(sessionId, tenantId);
 
@@ -227,7 +227,7 @@ export async function syncAllAreaInspections(tenantId: string): Promise<SyncResu
 
   try {
     // Get all cached sessions
-    const sessions = await offlineDataCache.getAll<any>(CACHE_STORES.AREA_SESSIONS);
+    const sessions = await offlineDataCache.getAll<{ id: string }>(CACHE_STORES.AREA_SESSIONS);
 
     for (const session of sessions) {
       if (session.data?.id) {
@@ -255,8 +255,8 @@ export async function registerAreaInspectionSync(): Promise<boolean> {
 
   try {
     const registration = await navigator.serviceWorker.ready;
-    await (registration as ServiceWorkerRegistration & { 
-      sync: { register: (tag: string) => Promise<void> } 
+    await (registration as ServiceWorkerRegistration & {
+      sync: { register: (tag: string) => Promise<void> }
     }).sync.register(SYNC_TAG);
     return true;
   } catch (error) {

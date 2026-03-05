@@ -19,7 +19,7 @@ export function findDuplicateKeys(jsonString: string): DuplicateKeyError[] {
   
   // Track keys at each nesting level
   const keyStackMap: Map<string, number>[] = [new Map()];
-  let currentPath: string[] = [];
+  const currentPath: string[] = [];
   let depth = 0;
   
   // Simple state machine to parse JSON structure

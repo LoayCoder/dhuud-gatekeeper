@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Clock, AlertTriangle, ArrowUp, Siren, Save, Info } from 'lucide-react';
-import type { ActionSLAConfig } from '@/hooks/use-action-sla-config';
+import type { ActionSLAConfig } from '@/features/incidents';
 
 const slaConfigSchema = z.object({
   warning_days_before: z.number()

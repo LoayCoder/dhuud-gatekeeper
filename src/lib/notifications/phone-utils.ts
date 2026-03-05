@@ -21,12 +21,12 @@ const COUNTRY_LOCAL_LENGTHS: Record<string, number[]> = {
   '973': [8],       // Bahrain
   '968': [8],       // Oman
   '965': [8],       // Kuwait
-  '44':  [10],      // UK
-  '1':   [10],      // US/Canada
-  '91':  [10],      // India
-  '92':  [10],      // Pakistan
-  '63':  [10],      // Philippines
-  '20':  [10],      // Egypt
+  '44': [10],      // UK
+  '1': [10],      // US/Canada
+  '91': [10],      // India
+  '92': [10],      // Pakistan
+  '63': [10],      // Philippines
+  '20': [10],      // Egypt
   '962': [9],       // Jordan
 };
 
@@ -65,7 +65,7 @@ export function normalizePhoneE164(
   let cleaned = phone.replace(/^whatsapp:/, '');
 
   // Remove spaces, dashes, parentheses, dots
-  cleaned = cleaned.replace(/[\s\-\(\)\.]/g, '');
+  cleaned = cleaned.replace(/[\s().-]/g, '');
 
   // Handle 00 international prefix
   if (cleaned.startsWith('00')) {
@@ -122,7 +122,7 @@ export function getPhoneValidationError(
   const normalized = normalizePhoneE164(phone, options);
   if (normalized) return null;
 
-  const cleaned = phone.replace(/[\s\-\(\)\.]/g, '');
+  const cleaned = phone.replace(/[\s().-]/g, '');
   const digitsOnly = cleaned.replace(/\D/g, '');
   if (digitsOnly.length < 7) return 'Phone number too short (minimum 7 digits)';
   if (digitsOnly.length > 15) return 'Phone number too long (maximum 15 digits)';

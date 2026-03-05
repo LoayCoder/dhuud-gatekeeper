@@ -1,8 +1,8 @@
-/**
+﻿/**
  * Generate Excel file for attendance records export
  */
 import { format } from 'date-fns';
-import { AttendanceRecord } from '@/hooks/use-security-reports';
+import { AttendanceRecord } from '@/features/security';
 import { exportToExcel, ExportColumn } from './export-utils';
 
 export interface AttendanceExcelOptions {
@@ -26,17 +26,17 @@ const LABELS_EN = {
 };
 
 const LABELS_AR = {
-  guardName: 'اسم الحارس',
-  employeeId: 'رقم الموظف',
-  date: 'التاريخ',
-  zone: 'المنطقة',
-  checkIn: 'وقت الدخول',
-  checkOut: 'وقت الخروج',
-  hoursWorked: 'ساعات العمل',
-  lateMinutes: 'التأخير (دقيقة)',
-  overtimeMinutes: 'العمل الإضافي (دقيقة)',
-  gpsValidated: 'تحقق GPS',
-  status: 'الحالة',
+  guardName: 'Ø§Ø³Ù… Ø§Ù„Ø­Ø§Ø±Ø³',
+  employeeId: 'Ø±Ù‚Ù… Ø§Ù„Ù…ÙˆØ¸Ù',
+  date: 'Ø§Ù„ØªØ§Ø±ÙŠØ®',
+  zone: 'Ø§Ù„Ù…Ù†Ø·Ù‚Ø©',
+  checkIn: 'ÙˆÙ‚Øª Ø§Ù„Ø¯Ø®ÙˆÙ„',
+  checkOut: 'ÙˆÙ‚Øª Ø§Ù„Ø®Ø±ÙˆØ¬',
+  hoursWorked: 'Ø³Ø§Ø¹Ø§Øª Ø§Ù„Ø¹Ù…Ù„',
+  lateMinutes: 'Ø§Ù„ØªØ£Ø®ÙŠØ± (Ø¯Ù‚ÙŠÙ‚Ø©)',
+  overtimeMinutes: 'Ø§Ù„Ø¹Ù…Ù„ Ø§Ù„Ø¥Ø¶Ø§ÙÙŠ (Ø¯Ù‚ÙŠÙ‚Ø©)',
+  gpsValidated: 'ØªØ­Ù‚Ù‚ GPS',
+  status: 'Ø§Ù„Ø­Ø§Ù„Ø©',
 };
 
 const STATUS_EN: Record<string, string> = {
@@ -49,12 +49,12 @@ const STATUS_EN: Record<string, string> = {
 };
 
 const STATUS_AR: Record<string, string> = {
-  checked_in: 'تم تسجيل الدخول',
-  checked_out: 'تم تسجيل الخروج',
-  approved: 'موافق عليه',
-  rejected: 'مرفوض',
-  no_show: 'لم يحضر',
-  pending: 'قيد الانتظار',
+  checked_in: 'ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„',
+  checked_out: 'ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±ÙˆØ¬',
+  approved: 'Ù…ÙˆØ§ÙÙ‚ Ø¹Ù„ÙŠÙ‡',
+  rejected: 'Ù…Ø±ÙÙˆØ¶',
+  no_show: 'Ù„Ù… ÙŠØ­Ø¶Ø±',
+  pending: 'Ù‚ÙŠØ¯ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±',
 };
 
 export function generateAttendanceExcel(options: AttendanceExcelOptions): void {
@@ -111,7 +111,7 @@ export function generateAttendanceExcel(options: AttendanceExcelOptions): void {
     { 
       key: 'gps_validated', 
       label: labels.gpsValidated,
-      formatter: (v) => v ? '✓' : '✗'
+      formatter: (v) => v ? 'âœ“' : 'âœ—'
     },
     { 
       key: 'status', 
@@ -124,3 +124,4 @@ export function generateAttendanceExcel(options: AttendanceExcelOptions): void {
   
   exportToExcel(records, filename || defaultFilename, columns);
 }
+

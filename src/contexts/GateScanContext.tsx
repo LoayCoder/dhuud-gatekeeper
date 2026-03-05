@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { QRScanResult } from '@/components/security/GateQRScanner';
+﻿import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { QRScanResult } from '@/features/security';
 
 interface GateScanContextType {
   pendingScanResult: QRScanResult | null;
@@ -34,3 +34,4 @@ export function useGateScan() {
   }
   return context;
 }
+

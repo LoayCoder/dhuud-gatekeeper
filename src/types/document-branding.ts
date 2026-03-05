@@ -5,7 +5,7 @@ export type LogoPosition = 'left' | 'center' | 'right';
 export interface DocumentBrandingSettings {
   id: string;
   tenantId: string;
-  
+
   // Header Configuration
   headerLogoPosition: LogoPosition;
   headerTextPrimary: string;
@@ -13,19 +13,19 @@ export interface DocumentBrandingSettings {
   headerBgColor: string;
   headerTextColor: string;
   showLogo: boolean;
-  
+
   // Footer Configuration
   footerText: string;
   showPageNumbers: boolean;
   showDatePrinted: boolean;
   footerBgColor: string;
   footerTextColor: string;
-  
+
   // Watermark
   watermarkText: string | null;
   watermarkEnabled: boolean;
   watermarkOpacity: number;
-  
+
   // Timestamps
   createdAt: string;
   updatedAt: string;
@@ -73,8 +73,29 @@ export const DEFAULT_DOCUMENT_SETTINGS: Omit<DocumentBrandingSettings, 'id' | 't
   watermarkOpacity: 15,
 };
 
+export interface DbBrandingRow {
+  id: string;
+  tenant_id: string;
+  header_logo_position?: LogoPosition;
+  header_text_primary?: string;
+  header_text_secondary?: string | null;
+  header_bg_color?: string;
+  header_text_color?: string;
+  show_logo?: boolean;
+  footer_text?: string;
+  show_page_numbers?: boolean;
+  show_date_printed?: boolean;
+  footer_bg_color?: string;
+  footer_text_color?: string;
+  watermark_text?: string | null;
+  watermark_enabled?: boolean;
+  watermark_opacity?: number;
+  created_at: string;
+  updated_at: string;
+}
+
 // Map database snake_case to camelCase
-export function mapDbToDocumentSettings(dbRow: any): DocumentBrandingSettings {
+export function mapDbToDocumentSettings(dbRow: DbBrandingRow): DocumentBrandingSettings {
   return {
     id: dbRow.id,
     tenantId: dbRow.tenant_id,
@@ -98,9 +119,9 @@ export function mapDbToDocumentSettings(dbRow: any): DocumentBrandingSettings {
 }
 
 // Map camelCase to database snake_case for upsert
-export function mapSettingsToDb(settings: Partial<DocumentBrandingSettings>): Record<string, any> {
-  const result: Record<string, any> = {};
-  
+export function mapSettingsToDb(settings: Partial<DocumentBrandingSettings>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+
   if (settings.headerLogoPosition !== undefined) result.header_logo_position = settings.headerLogoPosition;
   if (settings.headerTextPrimary !== undefined) result.header_text_primary = settings.headerTextPrimary;
   if (settings.headerTextSecondary !== undefined) result.header_text_secondary = settings.headerTextSecondary;
@@ -115,6 +136,6 @@ export function mapSettingsToDb(settings: Partial<DocumentBrandingSettings>): Re
   if (settings.watermarkText !== undefined) result.watermark_text = settings.watermarkText;
   if (settings.watermarkEnabled !== undefined) result.watermark_enabled = settings.watermarkEnabled;
   if (settings.watermarkOpacity !== undefined) result.watermark_opacity = settings.watermarkOpacity;
-  
+
   return result;
 }

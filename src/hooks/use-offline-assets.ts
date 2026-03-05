@@ -24,7 +24,7 @@ export function useOfflineAssets(): UseOfflineAssetsReturn {
   const { profile } = useAuth();
   const { isOnline } = useNetworkStatus();
   const queryClient = useQueryClient();
-  
+
   const [cachedAssets, setCachedAssets] = useState<AssetWithRelations[]>([]);
   const [isCaching, setIsCaching] = useState(false);
   const [lastCachedAt, setLastCachedAt] = useState<Date | null>(null);
@@ -38,7 +38,7 @@ export function useOfflineAssets(): UseOfflineAssetsReturn {
           CACHE_STORES.ASSETS,
           ASSETS_CACHE_KEY
         );
-        
+
         if (result.data) {
           setCachedAssets(result.data);
           setCacheCount(result.data.length);
@@ -54,13 +54,13 @@ export function useOfflineAssets(): UseOfflineAssetsReturn {
   // Cache assets for offline use
   const cacheAssets = useCallback(async () => {
     if (!profile?.tenant_id) return;
-    
+
     setIsCaching(true);
-    
+
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const db = supabase as any;
-      const query = db
+
+      // @ts-expect-error Type instantiation is excessively deep
+      const query = supabase
         .from('hsse_assets')
         .select(`
           id,
@@ -116,7 +116,7 @@ export function useOfflineAssets(): UseOfflineAssetsReturn {
       setCachedAssets(assets);
       setCacheCount(assets.length);
       setLastCachedAt(new Date());
-      
+
       queryClient.setQueryData(['assets', 'offline'], assets);
     } catch (error) {
       logger.error('Failed to cache assets:', error);
@@ -132,7 +132,7 @@ export function useOfflineAssets(): UseOfflineAssetsReturn {
         CACHE_STORES.ASSETS,
         `${ASSET_DETAIL_PREFIX}${assetId}`
       );
-      
+
       return result.data || null;
     } catch (error) {
       logger.error('Failed to get cached asset:', error);
@@ -160,7 +160,7 @@ export function useOfflineAssets(): UseOfflineAssetsReturn {
           CACHE_STORES.ASSETS,
           ASSETS_CACHE_KEY
         );
-        
+
         if (result.isStale || result.isMiss) {
           await cacheAssets();
         }

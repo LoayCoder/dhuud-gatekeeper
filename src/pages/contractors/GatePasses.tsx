@@ -14,18 +14,18 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { GatePassListTable } from "@/components/contractors/GatePassListTable";
-import { GatePassFormDialog } from "@/components/contractors/GatePassFormDialog";
-import { GatePassApprovalQueue } from "@/components/contractors/GatePassApprovalQueue";
-import { TodayGatePasses } from "@/components/contractors/TodayGatePasses";
+import { GatePassListTable } from '@/features/contractors';
+import { GatePassFormDialog } from '@/features/contractors';
+import { GatePassApprovalQueue } from '@/features/contractors';
+import { TodayGatePasses } from '@/features/contractors';
 import {
   useMaterialGatePasses,
   usePendingGatePassApprovals,
   useTodayApprovedPasses,
   MaterialGatePass,
-} from "@/hooks/contractor-management/use-material-gate-passes";
-import { useContractorProjects } from "@/hooks/contractor-management/use-contractor-projects";
-import { useCanCreateGatePass } from "@/hooks/contractor-management/use-can-create-gate-pass";
+} from "@/features/contractors/hooks/use-material-gate-passes";
+import { useContractorProjects } from "@/features/contractors/hooks/use-contractor-projects";
+import { useCanCreateGatePass } from "@/features/contractors/hooks/use-can-create-gate-pass";
 
 export default function GatePasses() {
   const { t } = useTranslation();
@@ -186,3 +186,4 @@ const [searchParams, setSearchParams] = useSearchParams();
     </div>
   );
 }
+

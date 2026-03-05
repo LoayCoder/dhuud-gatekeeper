@@ -27,7 +27,7 @@ export function usePurchaseRequestPDF(requestId: string | undefined) {
     queryFn: async () => {
       if (!requestId) return null;
       
-      const { data, error } = await (supabase as any)
+      const { data, error } = await (supabase as unknown)
         .from('asset_purchase_requests')
         .select(`
           *,
@@ -50,7 +50,7 @@ export function usePurchaseRequestPDF(requestId: string | undefined) {
     queryFn: async () => {
       if (!requestId) return [];
       
-      const { data, error } = await (supabase as any)
+      const { data, error } = await (supabase as unknown)
         .from('asset_purchase_approvals')
         .select(`
           id, approval_level, decision, notes, decided_at,
@@ -80,7 +80,7 @@ export function usePurchaseRequestPDF(requestId: string | undefined) {
 
       // Dynamically import the template
       const { renderPurchaseRequestPDFTemplate } = await import(
-        '@/components/assets/PurchaseRequestPDFTemplate'
+        '@/features/assets'
       );
 
       // Create temporary container

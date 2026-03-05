@@ -13,10 +13,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ModuleGate } from '@/components';
-import { AssetCostTransactionList } from '@/components/assets/AssetCostTransactionList';
-import { AssetTCOAnalysisCard } from '@/components/assets/AssetTCOAnalysisCard';
-import { useAsset } from '@/hooks/use-assets';
-import { useAssetCostTransactions, type TransactionType, type CreateTransactionInput } from '@/hooks/use-asset-cost-transactions';
+import { AssetCostTransactionList } from '@/features/assets';
+import { AssetTCOAnalysisCard } from '@/features/assets';
+import { useAsset } from '@/features/assets';
+import { useAssetCostTransactions, type TransactionType, type CreateTransactionInput } from '@/features/assets';
 import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -103,7 +103,7 @@ function AssetFinancialsContent() {
     );
   }
 
-  const assetData = asset as any;
+  const assetData = asset as unknown;
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
@@ -287,3 +287,4 @@ export default function AssetFinancials() {
     </ModuleGate>
   );
 }
+

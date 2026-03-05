@@ -166,7 +166,7 @@ function getTimelineCurrentStep(status: string): number {
   return 1;
 }
 
-function RefreshButton({ refetch, isRTL }: { refetch: () => Promise<any>; isRTL: boolean }) {
+function RefreshButton({ refetch, isRTL }: { refetch: () => Promise<unknown>; isRTL: boolean }) {
   const [refreshing, setRefreshing] = useState(false);
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -427,7 +427,15 @@ export default function PublicStatusPage() {
                   {isRTL ? "المواد" : "Items"} <Badge variant="secondary" className="text-xs h-5 px-1.5">{gatePass.items?.length || 0}</Badge>
                 </h4>
                 <div className="space-y-3">
-                  {gatePass.items?.map((item: any) => (
+                  {gatePass.items?.map((item: {
+                    id: string;
+                    item_name: string;
+                    quantity: number;
+                    unit: string;
+                    description?: string;
+                    sr_number?: string;
+                    photo_storage_path?: string;
+                  }) => (
                     <Card key={item.id} className="overflow-hidden border shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex">
                         {/* Image Section */}

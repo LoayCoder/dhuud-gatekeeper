@@ -1,12 +1,12 @@
-import { useTranslation } from 'react-i18next';
+﻿import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Clock, FileCheck, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { usePendingClosureRequests } from '@/hooks/use-incident-closure';
-import { useUserRoles } from '@/hooks/use-user-roles';
+import { usePendingClosureRequests } from '@/features/incidents';
+import { useUserRoles } from '@/features/users';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -143,3 +143,5 @@ export function PendingClosureRequestsWidget() {
     </Card>
   );
 }
+
+

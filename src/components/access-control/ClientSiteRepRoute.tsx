@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { useClientSiteRepCompanies } from "@/hooks/contractor-management/use-client-site-rep-data";
+import { useClientSiteRepCompanies } from "@/features/contractors/hooks/use-client-site-rep-data";
 import { PageLoader } from "@/components/ui/page-loader";
 import { ShieldAlert, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";

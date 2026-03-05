@@ -3,9 +3,46 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTrackingIntervalMs } from '@/hooks/use-tracking-settings';
 
+export interface GuardLocation {
+  id: string;
+  guard_id: string;
+  latitude: number;
+  longitude: number;
+  recorded_at: string;
+  accuracy: number | null;
+  battery_level: number | null;
+  is_within_zone: boolean;
+  distance_from_zone: number | null;
+  guard: { full_name: string | null } | null;
+  guard_name?: string;
+  [key: string]: unknown;
+}
+
+export interface GeofenceAlert {
+  id: string;
+  guard_id: string;
+  alert_type: string;
+  severity: string;
+  guard_lat: number;
+  guard_lng: number;
+  alert_message: string;
+  created_at: string;
+  acknowledged_at: string | null;
+  acknowledged_by: string | null;
+  resolved_at: string | null;
+  resolved_by: string | null;
+  resolution_notes: string | null;
+  guard: { full_name: string | null } | null;
+  status?: string;
+  latitude?: number;
+  longitude?: number;
+  guard_name?: string;
+  [key: string]: unknown;
+}
+
 export function useGuardLocations() {
   const trackingIntervalMs = useTrackingIntervalMs();
-  
+
   return useQuery({
     queryKey: ['guard-locations', trackingIntervalMs],
     queryFn: async () => {
@@ -19,10 +56,10 @@ export function useGuardLocations() {
         .order('recorded_at', { ascending: false })
         .limit(100);
       if (error) throw error;
-      
+
       // Get latest position per guard (deduplicate)
-      const latestByGuard = new Map<string, any>();
-      (data || []).forEach((loc: any) => {
+      const latestByGuard = new Map<string, GuardLocation>();
+      (data || []).forEach((loc: GuardLocation) => {
         if (!latestByGuard.has(loc.guard_id)) {
           latestByGuard.set(loc.guard_id, {
             ...loc,
@@ -30,7 +67,7 @@ export function useGuardLocations() {
           });
         }
       });
-      
+
       return Array.from(latestByGuard.values());
     },
     refetchInterval: trackingIntervalMs, // Dynamic: uses configured tracking interval
@@ -41,10 +78,10 @@ export function useGeofenceAlerts(statusFilter?: 'pending' | 'acknowledged' | 'r
   const trackingIntervalMs = useTrackingIntervalMs();
   // Use half the tracking interval for alerts (more responsive), minimum 5 seconds
   const alertRefreshInterval = Math.max(5000, Math.floor(trackingIntervalMs / 2));
-  
+
   return useQuery({
     queryKey: ['geofence-alerts', statusFilter, alertRefreshInterval],
-    queryFn: async (): Promise<any[]> => {
+    queryFn: async (): Promise<GeofenceAlert[]> => {
       const { data, error } = await supabase
         .from('geofence_alerts')
         .select(`
@@ -56,22 +93,22 @@ export function useGeofenceAlerts(statusFilter?: 'pending' | 'acknowledged' | 'r
         .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .limit(50);
-      
+
       if (error) throw error;
-      
+
       // Derive status from timestamps (no alert_status column exists)
-      const enriched = (data || []).map((alert: any) => ({
+      const enriched = (data || []).map((alert: GeofenceAlert) => ({
         ...alert,
-        status: alert.resolved_at ? 'resolved' 
-              : alert.acknowledged_at ? 'acknowledged' 
-              : 'pending',
+        status: alert.resolved_at ? 'resolved'
+          : alert.acknowledged_at ? 'acknowledged'
+            : 'pending',
         latitude: alert.guard_lat,
         longitude: alert.guard_lng,
         guard_name: alert.guard?.full_name || 'Unknown Guard'
       }));
-      
+
       if (statusFilter) {
-        return enriched.filter((a: any) => a.status === statusFilter);
+        return enriched.filter((a: GeofenceAlert) => a.status === statusFilter);
       }
       return enriched;
     },
@@ -91,9 +128,9 @@ export function useAcknowledgeAlert() {
       // Only update acknowledged_at and acknowledged_by (no alert_status column exists)
       const { data, error } = await supabase
         .from('geofence_alerts')
-        .update({ 
-          acknowledged_at: new Date().toISOString(), 
-          acknowledged_by: user.id 
+        .update({
+          acknowledged_at: new Date().toISOString(),
+          acknowledged_by: user.id
         })
         .eq('id', alertId)
         .select()
@@ -123,10 +160,10 @@ export function useResolveAlert() {
       // Only update resolved_at, resolved_by, and notes (no alert_status column exists)
       const { data, error } = await supabase
         .from('geofence_alerts')
-        .update({ 
-          resolved_at: new Date().toISOString(), 
-          resolved_by: user.id, 
-          resolution_notes: notes 
+        .update({
+          resolved_at: new Date().toISOString(),
+          resolved_by: user.id,
+          resolution_notes: notes
         })
         .eq('id', alertId)
         .select()

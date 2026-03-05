@@ -1,6 +1,6 @@
-import { Suspense } from "react";
+﻿import { Suspense } from "react";
 import { MenuBasedAdminRoute } from "@/components/auth/MenuBasedAdminRoute";
-import { GatePassCreateWizard } from "@/components/contractors/gate-pass-create";
+import { GatePassCreateWizard } from '@/features/contractors';
 import { Loader2 } from "lucide-react";
 
 function MyGatePassCreateContent() {
@@ -22,3 +22,4 @@ export default function MyGatePassCreate() {
     </MenuBasedAdminRoute>
   );
 }
+

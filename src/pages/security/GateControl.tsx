@@ -1,10 +1,10 @@
-import { useTranslation } from 'react-i18next';
-import { GateEntryForm } from '@/components/security/GateEntryForm';
-import { GateLogTable } from '@/components/security/GateLogTable';
+﻿import { useTranslation } from 'react-i18next';
+import { GateEntryForm } from '@/features/security';
+import { GateLogTable } from '@/features/security';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ShieldCheck, ClipboardList, BarChart3 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useGateEntries } from '@/hooks/use-gate-entries';
+import { useGateEntries } from '@/features/security';
 
 export default function GateControl() {
   const { t } = useTranslation();
@@ -103,3 +103,4 @@ export default function GateControl() {
   </div>
   );
 }
+

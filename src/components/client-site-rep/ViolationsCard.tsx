@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
-import type { ClientSiteRepViolation } from "@/hooks/contractor-management/use-client-site-rep-data";
+import type { ClientSiteRepViolation } from "@/features/contractors/hooks/use-client-site-rep-data";
 
 interface ViolationsCardProps {
   violations: ClientSiteRepViolation[];

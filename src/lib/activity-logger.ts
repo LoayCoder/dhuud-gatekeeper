@@ -132,7 +132,7 @@ export async function logCrossModuleActivity({
     
     // Get tenant_id from user's profile (or from metadata for system events)
     let tenantId = metadata.tenant_id as string | undefined;
-    let userId = user?.id;
+    const userId = user?.id;
 
     if (user && !tenantId) {
       const { data: profile } = await supabase

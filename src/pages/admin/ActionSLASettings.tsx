@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Clock, Info } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useActionSLAConfig, type ActionSLAConfig } from '@/hooks/use-action-sla-config';
+import { useActionSLAConfig, type ActionSLAConfig } from '@/features/incidents';
 import { SLAPageLayout } from '@/components/sla/SLAPageLayout';
 import { SLAPriorityCard } from '@/components/sla/SLAPriorityCard';
 import { SLAConfigEditDialog } from '@/components/sla/SLAConfigEditDialog';

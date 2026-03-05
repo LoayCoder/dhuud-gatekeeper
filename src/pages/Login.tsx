@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
+import type { User, Session, AuthError } from '@supabase/supabase-js';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTheme as useNextTheme } from 'next-themes';
 import { usePasswordBreachCheck } from '@/hooks/use-password-breach-check';
@@ -266,14 +267,14 @@ export default function Login() {
       passwordRef.current = password;
 
       // Create a timeout for the initial sign in
-      const signInTimeoutPromise = new Promise<{ data: { user: any; session: any }; error: any }>((_, reject) => {
+      const signInTimeoutPromise = new Promise<{ data: { user: User | null; session: Session | null }; error: AuthError | null }>((_, reject) => {
         setTimeout(() => reject(new Error('Sign in request timed out')), 10000);
       });
 
       const signInPromise = supabase.auth.signInWithPassword({
         email,
         password,
-      }) as Promise<{ data: { user: any; session: any }; error: any }>;
+      });
 
       const { data: { user: signInUser, session }, error } = await Promise.race([
         signInPromise,
@@ -321,7 +322,12 @@ export default function Login() {
         if (!accessValidation) accessValidation = { allowed: true };
       } else {
         // Success
-        const { results } = raceResult as { timeout: false, results: any[] };
+        type AuthChecksTuple = [
+          { allowed?: boolean; reason?: string; user_id?: string; tenant_id?: string } | null,
+          { data: { user: User | null }, error: AuthError | null },
+          { data: unknown, error: AuthError | null }
+        ];
+        const { results } = raceResult as { timeout: false, results: AuthChecksTuple };
         const [, { data: { user: fetchedUser } }, { data: fetchedAal }] = results;
         if (fetchedUser) authUser = fetchedUser;
         aal = fetchedAal;

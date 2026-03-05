@@ -45,9 +45,7 @@ export function useDrilldownEvents(filters: DrillDownFilter, enabled: boolean) {
     queryFn: async () => {
       // HANDLE CORRECTIVE ACTIONS
       if (filters.eventType === 'corrective_action') {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const db = supabase as any;
-        let query = db
+        let query = supabase
           .from("corrective_actions")
           .select(`
             id, reference_id, title, status, priority, due_date, created_at, updated_at,
@@ -67,7 +65,7 @@ export function useDrilldownEvents(filters: DrillDownFilter, enabled: boolean) {
         const { data, error } = await query;
         if (error) throw error;
 
-        return (data || []).map((item: any) => ({
+        return (data || []).map((item: { id: string; reference_id: string; title: string; priority: string; status: string; created_at: string; updated_at?: string; assignee?: { full_name?: string } }) => ({
           id: item.id,
           reference_id: item.reference_id,
           title: item.title,
@@ -89,9 +87,7 @@ export function useDrilldownEvents(filters: DrillDownFilter, enabled: boolean) {
 
       // HANDLE INCIDENTS (Existing logic)
       // Use type assertion to avoid deep type instantiation
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const db = supabase as any;
-      let query = db
+      let query = supabase
         .from("incidents")
         .select(SELECT_INCIDENT_FIELDS)
         .is("deleted_at", null)
@@ -134,9 +130,7 @@ async function fetchIncidentsByRootCause(category: string): Promise<DrilldownEve
     return [];
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db = supabase as any;
-  const { data, error } = await db
+  const { data, error } = await supabase
     .from("incidents")
     .select(SELECT_INCIDENT_FIELDS)
     .in("id", matchingIncidentIds)

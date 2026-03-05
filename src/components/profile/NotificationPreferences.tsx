@@ -65,16 +65,16 @@ export function NotificationPreferences() {
       navigator.serviceWorker.ready.then(async (registration) => {
         try {
           if (periodicSyncEnabled) {
-            // @ts-ignore - periodicSync is not in TypeScript types yet
+            // @ts-expect-error - periodicSync is not in TypeScript types yet
             const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
             if (status.state === 'granted') {
-              // @ts-ignore
+              // @ts-expect-error - external lib mismatch
               await registration.periodicSync.register('server-updates-sync', {
                 minInterval: 4 * 60 * 60 * 1000, // 4 hours
               });
             }
           } else {
-            // @ts-ignore
+            // @ts-expect-error - external lib mismatch
             await registration.periodicSync.unregister('server-updates-sync');
           }
         } catch (error) {

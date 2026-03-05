@@ -116,7 +116,7 @@ export function TeamAssignmentDialog({
 
       onAssigned?.();
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: t('common.error'),
         description: error.message,

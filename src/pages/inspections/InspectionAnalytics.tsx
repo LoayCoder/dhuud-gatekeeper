@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   BarChart3, 
@@ -21,11 +21,11 @@ import {
   useTopFailingItems,
   AnalyticsPeriod,
   AnalyticsFilters,
-} from '@/hooks/use-inspection-analytics';
-import { CompletionRateChart } from '@/components/analytics/CompletionRateChart';
-import { SLAComplianceChart } from '@/components/analytics/SLAComplianceChart';
-import { FindingsTrendChart } from '@/components/analytics/FindingsTrendChart';
-import { TopIssuesChart } from '@/components/analytics/TopIssuesChart';
+} from '@/features/incidents';
+import { CompletionRateChart } from '@/features/admin';
+import { SLAComplianceChart } from '@/features/admin';
+import { FindingsTrendChart } from '@/features/admin';
+import { TopIssuesChart } from '@/features/admin';
 
 export default function InspectionAnalytics() {
   const { t, i18n } = useTranslation();
@@ -222,3 +222,4 @@ export default function InspectionAnalytics() {
     </div>
   );
 }
+

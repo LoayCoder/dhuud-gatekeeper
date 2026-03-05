@@ -8,9 +8,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useTranslation } from 'react-i18next';
-import { useContractors, useUnbanContractor, Contractor } from '@/hooks/use-contractors';
-import { ContractorFormDialog } from '@/components/security/ContractorFormDialog';
-import { BanContractorDialog } from '@/components/security/BanContractorDialog';
+import { useContractors, useUnbanContractor, Contractor } from '@/features/contractors';
+import { ContractorFormDialog } from '@/features/security';
+import { BanContractorDialog } from '@/features/security';
 import { Plus, Search, MoreVertical, Pencil, Ban, UserCheck, QrCode, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { format, isPast, addDays, isWithinInterval } from 'date-fns';
 import { QRCodeSVG } from 'qrcode.react';
@@ -97,7 +97,7 @@ export default function Contractors() {
                   className="ps-9"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as unknown)}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
@@ -224,3 +224,5 @@ export default function Contractors() {
     </>
   );
 }
+
+

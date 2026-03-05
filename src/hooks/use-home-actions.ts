@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useUserRoles } from '@/hooks/use-user-roles';
+import { useUserRoles } from '@/features/users';
 import { useModuleAccess } from '@/hooks/use-module-access';
 import { ALL_HOME_CARDS, type RoleCardCategory, type HomeActionCard } from '@/config/home-actions';
 
@@ -32,7 +32,7 @@ export function useHomeActions() {
       if (!hasMatchingCategory) return false;
       
       // Check module access if required
-      if (card.requiredModule && !hasModule(card.requiredModule as any)) {
+      if (card.requiredModule && !hasModule(card.requiredModule as unknown)) {
         return false;
       }
       
@@ -56,3 +56,4 @@ export function useHomeActions() {
     categoryCount: userCategories.size,
   };
 }
+

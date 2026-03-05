@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Shield, AlertTriangle, Clock, CheckCircle, XCircle, Search } from 'lucide-react';
@@ -15,7 +15,7 @@ import {
   useAssetsWithExpiringWarranty,
   useAssetsWithExpiredWarranty,
 } from '@/hooks/use-warranty-claims';
-import { WarrantyExpiryBadge } from '@/components/assets/warranty';
+import { WarrantyExpiryBadge } from '@/features/assets';
 import { cn } from '@/lib/utils';
 
 function AssetWarrantiesContent() {
@@ -75,7 +75,7 @@ function AssetWarrantiesContent() {
                   <span>{asset.asset_code}</span>
                   {asset.warranty_provider && (
                     <>
-                      <span>•</span>
+                      <span>â€¢</span>
                       <span>{asset.warranty_provider}</span>
                     </>
                   )}
@@ -270,3 +270,4 @@ export default function AssetWarranties() {
     </ModuleGate>
   );
 }
+

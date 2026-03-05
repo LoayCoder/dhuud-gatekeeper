@@ -63,10 +63,13 @@ export function useSLADashboard() {
 
       if (error) throw error;
 
-      return (data || []).map((action: any) => ({
-        ...action,
-        assignee_name: action.profiles?.full_name || null,
-      }));
+      return (data || []).map((rawAction: unknown) => {
+        const action = rawAction as SLAAction & { profiles?: { full_name?: string | null } };
+        return {
+          ...action,
+          assignee_name: action.profiles?.full_name || null,
+        };
+      });
     },
     enabled: !!profile?.tenant_id,
     refetchInterval: 60000, // Refetch every minute
@@ -124,7 +127,7 @@ export function useSLADashboard() {
     } else if (action.due_date) {
       const dueDate = new Date(action.due_date).getTime();
       const daysUntilDue = (dueDate - now) / (1000 * 60 * 60 * 24);
-      
+
       if (daysUntilDue < 0) {
         stats.overdue++;
       } else if (daysUntilDue <= 3) {

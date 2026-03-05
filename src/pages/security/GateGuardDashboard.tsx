@@ -9,32 +9,32 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useGateGuardStats, useGateAlerts } from '@/hooks/use-gate-guard-stats';
+import { useGateGuardStats, useGateAlerts } from '@/features/security';
 import { usePendingSecurityRequests } from '@/hooks/use-visit-requests';
-import { useUserRoles } from '@/hooks/use-user-roles';
-import { GateAlertCards } from '@/components/security/GateAlertCards';
-import { VisitorVerificationPanel } from '@/components/security/VisitorVerificationPanel';
-import { VisitorApprovalQueue } from '@/components/security/VisitorApprovalQueue';
-import { GateActivityCharts } from '@/components/security/GateActivityCharts';
-import { ActiveVisitorsList } from '@/components/security/ActiveVisitorsList';
-import { ActiveWorkersList } from '@/components/security/ActiveWorkersList';
-import { WorkerVerificationPanel } from '@/components/security/WorkerVerificationPanel';
-import { TodayGatePassesWrapper } from '@/components/security/TodayGatePassesWrapper';
-import { GateLogTable } from '@/components/security/GateLogTable';
-import { GatePassListTable } from '@/components/contractors/GatePassListTable';
-import { GatePassApprovalQueue } from '@/components/contractors/GatePassApprovalQueue';
-import { MaterialPassVerificationPanel } from '@/components/security/MaterialPassVerificationPanel';
-import { ZoneSelector } from '@/components/security/ZoneSelector';
-import { MyGatePassesTab } from '@/components/contractors/MyGatePassesTab';
-import { GatePassApprovalHistoryTab } from '@/components/contractors/GatePassApprovalHistoryTab';
-import { useMaterialGatePasses, usePendingGatePassApprovals } from '@/hooks/contractor-management/use-material-gate-passes';
-import { useIsGatePassApprover } from '@/hooks/contractor-management/use-my-gate-passes';
-import { useContractorProjects } from '@/hooks/contractor-management/use-contractor-projects';
-import { GateOfflineStatusBar } from '@/components/security/GateOfflineStatusBar';
-import { EmergencyAlertBanner } from '@/components/security/EmergencyAlertBanner';
-import { EmergencyPanicButton } from '@/components/security/EmergencyPanicButton';
-import { GuardDutyHeader } from '@/components/security/GuardDutyHeader';
-import { GateScanFAB } from '@/components/security/GateScanFAB';
+import { useUserRoles } from '@/features/users';
+import { GateAlertCards } from '@/features/security';
+import { VisitorVerificationPanel } from '@/features/security';
+import { VisitorApprovalQueue } from '@/features/security';
+import { GateActivityCharts } from '@/features/security';
+import { ActiveVisitorsList } from '@/features/security';
+import { ActiveWorkersList } from '@/features/security';
+import { WorkerVerificationPanel } from '@/features/security';
+import { TodayGatePassesWrapper } from '@/features/security';
+import { GateLogTable } from '@/features/security';
+import { GatePassListTable } from '@/features/contractors';
+import { GatePassApprovalQueue } from '@/features/contractors';
+import { MaterialPassVerificationPanel } from '@/features/security';
+import { ZoneSelector } from '@/features/security';
+import { MyGatePassesTab } from '@/features/contractors';
+import { GatePassApprovalHistoryTab } from '@/features/contractors';
+import { useMaterialGatePasses, usePendingGatePassApprovals } from '@/features/contractors/hooks/use-material-gate-passes';
+import { useIsGatePassApprover } from '@/features/contractors/hooks/use-my-gate-passes';
+import { useContractorProjects } from '@/features/contractors/hooks/use-contractor-projects';
+import { GateOfflineStatusBar } from '@/features/security';
+import { EmergencyAlertBanner } from '@/features/security';
+import { EmergencyPanicButton } from '@/features/security';
+import { GuardDutyHeader } from '@/features/security';
+import { GateScanFAB } from '@/features/security';
 import { cn } from '@/lib/utils';
 import { GateScanProvider } from '@/contexts/GateScanContext';
 
@@ -508,3 +508,6 @@ const GateGuardDashboard = () => {
 };
 
 export default GateGuardDashboard;
+
+
+

@@ -1,6 +1,6 @@
-import { useTranslation } from 'react-i18next';
+﻿import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
-import { useUserRoles } from '@/hooks/use-user-roles';
+import { useUserRoles } from '@/features/users';
 import { DigestPreferences } from './DigestPreferences';
 import { DeletionPasswordSettings } from './DeletionPasswordSettings';
 import { Separator } from '@/components/ui/separator';
@@ -34,3 +34,4 @@ export function HSSEManagerSettings({ className }: HSSEManagerSettingsProps) {
     </div>
   );
 }
+

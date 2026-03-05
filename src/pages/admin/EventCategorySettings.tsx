@@ -1,12 +1,12 @@
-import { useTranslation } from 'react-i18next';
+﻿import { useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import EventCategoryManagement from '@/components/admin/EventCategoryManagement';
-import NotificationMatrixManagement from '@/components/admin/NotificationMatrixManagement';
-import { HSSETestDocumentButton } from '@/components/incidents/HSSETestDocumentButton';
+import { EventCategoryManagement } from '@/features/admin';
+import { NotificationMatrixManagement } from '@/features/admin';
+import { HSSETestDocumentButton } from '@/features/incidents';
 
 export default function EventCategorySettings() {
   const { t, i18n } = useTranslation();
@@ -79,3 +79,5 @@ export default function EventCategorySettings() {
     </div>
   );
 }
+
+

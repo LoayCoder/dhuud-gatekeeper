@@ -1,6 +1,6 @@
-import { useSearchParams } from "react-router-dom";
+﻿import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { RiskAssessmentWizard } from "@/components/risk-assessment";
+import { RiskAssessmentWizard } from '@/features/risk-assessment';
 
 export default function RiskAssessmentCreate() {
   const { t } = useTranslation();
@@ -18,3 +18,4 @@ export default function RiskAssessmentCreate() {
     </div>
   );
 }
+

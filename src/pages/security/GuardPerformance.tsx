@@ -17,11 +17,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { GuardPerformanceCard } from '@/components/security/GuardPerformanceCard';
-import { GuardTrainingList } from '@/components/security/GuardTrainingList';
-import { TrainingExpiryAlerts } from '@/components/security/TrainingExpiryAlerts';
-import { GuardSiteAssignments } from '@/components/security/GuardSiteAssignments';
-import { SecurityReportExportDialog } from '@/components/security/SecurityReportExportDialog';
+import { GuardPerformanceCard } from '@/features/security';
+import { GuardTrainingList } from '@/features/security';
+import { TrainingExpiryAlerts } from '@/features/security';
+import { GuardSiteAssignments } from '@/features/security';
+import { SecurityReportExportDialog } from '@/features/security';
 import { useSecurityTeamStats, useGuardPerformanceSummary } from '@/hooks/use-guard-performance';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
@@ -57,7 +57,7 @@ export default function GuardPerformance() {
             <Download className="h-4 w-4 me-2" />
             {t('security.exportReport', 'Export Report')}
           </Button>
-          <Select value={period} onValueChange={(v) => setPeriod(v as any)}>
+          <Select value={period} onValueChange={(v) => setPeriod(v as unknown)}>
             <SelectTrigger className="w-40">
               <Calendar className="h-4 w-4 me-2" />
               <SelectValue />
@@ -278,3 +278,4 @@ export default function GuardPerformance() {
     </div>
   );
 }
+

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { useClientSiteRepExportData } from "@/hooks/contractor-management/use-client-site-rep-export-data";
+import { useClientSiteRepExportData } from "@/features/contractors/hooks/use-client-site-rep-export-data";
 import { secureExportToCSV, validateExportPermission } from "@/lib/secure-export";
 import { ExportColumn, exportToExcel } from "@/lib/export-utils";
 import { logExport } from "@/lib/audit-logger";
@@ -142,14 +142,14 @@ export function ClientSiteRepExport({ companyIds }: ClientSiteRepExportProps) {
       }
 
       // Log export action
-      await logExport(entityType as any, exportFormat, data.length, { companyIds, type });
+      await logExport(entityType as unknown, exportFormat, data.length, { companyIds, type });
 
       // Perform export
       if (exportFormat === "csv") {
         const result = await secureExportToCSV(
           user.id,
           menuCode,
-          entityType as any,
+          entityType as unknown,
           data,
           columns,
           `${filename}.csv`,

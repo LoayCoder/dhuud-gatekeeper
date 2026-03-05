@@ -1,6 +1,6 @@
-import { useTranslation } from 'react-i18next';
-import { ProfileUsageCard } from '@/components/billing/ProfileUsageCard';
-import { LicensedUserQuotaCard } from '@/components/billing/LicensedUserQuotaCard';
+﻿import { useTranslation } from 'react-i18next';
+import { ProfileUsageCard } from '@/features/admin';
+import { LicensedUserQuotaCard } from '@/features/admin';
 import { useProfileUsage } from '@/hooks/use-profile-usage';
 import { useLicensedUserQuota } from '@/hooks/use-licensed-user-quota';
 import { useProfileBilling } from '@/hooks/use-profile-billing';
@@ -253,3 +253,4 @@ export default function UsageBilling() {
     </div>
   );
 }
+

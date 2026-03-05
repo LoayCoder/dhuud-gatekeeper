@@ -1,14 +1,14 @@
-
+﻿
 import { useInvestigationContext } from "@/features/investigation/context/InvestigationContext";
-import { ApprovalWorkflowBanner } from "@/components/investigation/ApprovalWorkflowBanner";
-import { IncidentClosureRequestDialog } from "@/components/investigation/IncidentClosureRequestDialog";
+import { ApprovalWorkflowBanner } from '@/features/investigation';
+import { IncidentClosureRequestDialog } from '@/features/investigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Lock, FileCheck } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
-import { IncidentWithDetails } from "@/hooks/use-incidents";
-import { Investigation } from "@/hooks/use-investigation";
+import { IncidentWithDetails } from '@/features/incidents';
+import { Investigation } from '@/features/investigation';
 
 export function ReviewStage() {
     const { incident, investigation, refresh } = useInvestigationContext();
@@ -92,3 +92,5 @@ export function ClosureStage() {
         </div>
     );
 }
+
+

@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+﻿import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,8 +27,8 @@ import { usePTWPermit, useUpdatePermitStatus } from "@/hooks/ptw";
 import { Skeleton } from "@/components/ui/skeleton";
 import { QRCodeSVG } from "qrcode.react";
 import { format } from "date-fns";
-import { PermitAuditTimeline } from "@/components/ptw/PermitAuditTimeline";
-import { PermitPDFExportButton } from "@/components/ptw/PermitPDFExportButton";
+import { PermitAuditTimeline } from '@/features/ptw';
+import { PermitPDFExportButton } from '@/features/ptw';
 
 const permitTypeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   hot_work: Flame,
@@ -95,7 +95,7 @@ export default function PermitView() {
               </Badge>
             </div>
             <p className="text-muted-foreground">
-              {permit.permit_type?.name} • {permit.project?.name}
+              {permit.permit_type?.name} â€¢ {permit.project?.name}
             </p>
           </div>
         </div>
@@ -332,3 +332,4 @@ export default function PermitView() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,13 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, CheckCircle2, AlertTriangle } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useIncidents, useIncident } from "@/hooks/use-incidents";
-import { useInvestigation, useCorrectiveActions } from "@/hooks/use-investigation";
-import { useIncidentClosureEligibility, useIncidentClosureApproval } from "@/hooks/use-incident-closure";
-import { useCanApproveInvestigation } from "@/hooks/use-hsse-workflow";
+import { useIncidents, useIncident } from '@/features/incidents';
+import { useInvestigation, useCorrectiveActions } from '@/features/investigation';
+import { useIncidentClosureEligibility, useIncidentClosureApproval } from '@/features/incidents';
+import { useCanApproveInvestigation } from '@/features/incidents';
 import { usePendingIncidentApprovals } from "@/hooks/use-pending-approvals";
-import { useInvestigationEditAccess } from "@/hooks/use-investigation-edit-access";
-import { useUserRoles } from "@/hooks/use-user-roles";
+import { useInvestigationEditAccess } from '@/features/investigation';
+import { useUserRoles } from '@/features/users';
 import { useIsAssignedClinicUser } from "@/hooks/use-injury-assignment";
 import { useIsAssignedTechEvaluator } from "@/hooks/use-property-damage-assignment";
 import { useIsAssignedEnvironmentalExpert } from "@/hooks/use-environmental-assignment";
@@ -55,22 +55,22 @@ import {
     DeptManagerIncidentApprovalCard,
     ClinicReviewCard,
     TeamInvestigationAssignmentStep
-} from "@/components/investigation";
+} from '@/features/investigation';
 
-import { CloseObservationOnSpotDialog } from "@/components/investigation/CloseObservationOnSpotDialog";
-import { ActionDisputeReviewCard, ConsultantReviewCard, SiteClientActionApprovalCard } from "@/components/investigation/contractor-workflow";
-import { HSSEEnforcementBanner } from "@/components/investigation/HSSEEnforcementBanner";
-import { ObservationWorkflowTracker } from "@/components/investigation/ObservationWorkflowTracker";
-import { UnifiedWorkflowTracker } from "@/components/investigation/UnifiedWorkflowTracker";
-import { ReopenIncidentDialog } from "@/components/investigation/ReopenIncidentDialog";
-import { InjuryPanel } from "@/components/investigation/InjuryPanel";
-import { ClinicUserAssignmentCard } from "@/components/investigation/ClinicUserAssignmentCard";
-import { PropertyDamagePanel } from "@/components/investigation/property-damage";
-import { TechEvaluatorAssignmentCard } from "@/components/investigation/TechEvaluatorAssignmentCard";
-import { EnvironmentalImpactPanel } from "@/components/investigation/environmental-impact";
-import { EnvironmentalExpertAssignmentCard } from "@/components/investigation/EnvironmentalExpertAssignmentCard";
-import { SpecialistDataReviewCard } from "@/components/investigation/SpecialistDataReviewCard";
-import { IncidentStatusBadge } from "@/components/incidents/IncidentStatusBadge";
+import { CloseObservationOnSpotDialog } from '@/features/investigation';
+import { ActionDisputeReviewCard, ConsultantReviewCard, SiteClientActionApprovalCard } from '@/features/investigation';
+import { HSSEEnforcementBanner } from '@/features/investigation';
+import { ObservationWorkflowTracker } from '@/features/investigation';
+import { UnifiedWorkflowTracker } from '@/features/investigation';
+import { ReopenIncidentDialog } from '@/features/investigation';
+import { InjuryPanel } from '@/features/investigation';
+import { ClinicUserAssignmentCard } from '@/features/investigation';
+import { PropertyDamagePanel } from '@/features/investigation';
+import { TechEvaluatorAssignmentCard } from '@/features/investigation';
+import { EnvironmentalImpactPanel } from '@/features/investigation';
+import { EnvironmentalExpertAssignmentCard } from '@/features/investigation';
+import { SpecialistDataReviewCard } from '@/features/investigation';
+import { IncidentStatusBadge } from '@/features/incidents';
 
 export default function InvestigationWorkspaceDebug() {
     const { t, i18n } = useTranslation();
@@ -324,3 +324,7 @@ export default function InvestigationWorkspaceDebug() {
         </div>
     );
 }
+
+
+
+

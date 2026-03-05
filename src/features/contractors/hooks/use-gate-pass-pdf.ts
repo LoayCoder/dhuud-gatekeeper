@@ -1,0 +1,154 @@
+import { useState, useCallback } from 'react';
+import { useGatePassDetails } from './use-gate-pass-details';
+import { useGatePassMedia } from './use-gate-pass-media';
+import { generateBrandedPDFFromElement } from '@/lib/pdf-utils';
+import { useTranslation } from 'react-i18next';
+import { useDocumentBranding } from '@/hooks/use-document-branding';
+
+export type GatePassPDFLanguage = 'en' | 'ar';
+
+interface GeneratePDFOptions {
+  primaryLanguage?: GatePassPDFLanguage;
+  showQR?: boolean;
+  includeItems?: boolean;
+}
+
+/**
+ * Hook for generating Gate Pass PDF with bilingual layout, tenant branding, and clear QR code
+ */
+export function useGatePassPDF(passId: string | undefined) {
+  const { t } = useTranslation();
+  const { data: passDetails, isLoading: isLoadingDetails } = useGatePassDetails(passId);
+  const isPublic = passDetails?.is_public_request || false;
+  const { items, isLoading: isLoadingMedia } = useGatePassMedia(passId || null, isPublic);
+  const { getHeaderConfig, getFooterConfig, getWatermarkConfig, logoUrl, tenantName } = useDocumentBranding();
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const generatePDF = useCallback(async (options: GeneratePDFOptions = {}) => {
+    const itemsData = items || [];
+    if (!passDetails) {
+      throw new Error('Gate pass not found');
+    }
+
+    setIsGenerating(true);
+
+    try {
+      // Create a temporary container for rendering
+      const container = document.createElement('div');
+      container.id = 'pdf-render-container';
+      container.style.cssText = `
+        position: absolute;
+        left: -9999px;
+        top: 0;
+        width: 210mm;
+        background: white;
+        font-family: 'IBM Plex Sans Arabic', 'Segoe UI', sans-serif;
+      `;
+      document.body.appendChild(container);
+
+      // Import and render the PDF template
+      const { renderGatePassPDFTemplate } = await import('@/features/contractors');
+      
+      // Map passDetails to expected format
+      const passData = {
+        id: passDetails.id,
+        reference_number: passDetails.reference_number,
+        status: passDetails.status,
+        material_description: passDetails.material_description,
+        quantity: passDetails.quantity,
+        pass_type: passDetails.pass_type,
+        pass_date: passDetails.pass_date,
+        start_date: passDetails.start_date || passDetails.pass_date,
+        end_date: passDetails.end_date || passDetails.pass_date,
+        time_window_start: passDetails.time_window_start,
+        time_window_end: passDetails.time_window_end,
+        vehicle_plate: passDetails.vehicle_plate,
+        driver_name: passDetails.driver_name,
+        driver_mobile: passDetails.driver_mobile,
+        entry_time: passDetails.entry_time,
+        exit_time: passDetails.exit_time,
+        is_internal_request: passDetails.is_internal_request,
+        qr_code_token: passDetails.qr_code_token,
+        // Renewal tracking
+        renewal_count: passDetails.renewal_count || 0,
+        renewed_at: passDetails.renewed_at,
+        renewal_expires_at: passDetails.renewal_expires_at,
+        project: passDetails.project,
+        company: passDetails.project?.company,
+        requester: passDetails.requester as { full_name: string } | null,
+        pm_approver: passDetails.pm_approver as { full_name: string } | null,
+        safety_approver: passDetails.safety_approver as { full_name: string } | null,
+        pm_approved_at: passDetails.pm_approved_at,
+        safety_approved_at: passDetails.safety_approved_at,
+      };
+
+      const templateHtml = renderGatePassPDFTemplate(passData, {
+        primaryLanguage: options.primaryLanguage || 'en',
+        showQR: options.showQR !== false,
+        includeItems: options.includeItems !== false,
+        items: itemsData.map(item => ({
+          ...item,
+          quantity: item.quantity ? Number(item.quantity) : null,
+        })),
+      });
+      
+      container.innerHTML = templateHtml;
+
+      // Wait for QR code image to load
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // Get document branding settings
+      const headerConfig = getHeaderConfig();
+      const footerConfig = getFooterConfig();
+      const watermarkConfig = getWatermarkConfig();
+
+      // Generate PDF with tenant branding
+      const isRTL = options.primaryLanguage === 'ar';
+      await generateBrandedPDFFromElement(container, {
+        filename: `gate-pass-${passDetails.reference_number}.pdf`,
+        margin: 10,
+        quality: 2,
+        isRTL,
+        header: {
+          primaryText: passDetails.reference_number,
+          secondaryText: passDetails.project?.project_name || tenantName || undefined,
+          logoBase64: headerConfig.showLogo ? logoUrl : undefined,
+          logoPosition: headerConfig.logoPosition,
+          bgColor: headerConfig.backgroundColor,
+          textColor: headerConfig.textColor,
+        },
+        footer: {
+          text: footerConfig.text || t('contractors.gatePassPdf.confidential', 'CONFIDENTIAL - For authorized use only'),
+          showPageNumbers: footerConfig.showPageNumbers,
+          showDatePrinted: footerConfig.showDatePrinted,
+          bgColor: footerConfig.backgroundColor,
+          textColor: footerConfig.textColor,
+        },
+        watermark: passDetails.status !== 'approved' && passDetails.status !== 'used' ? {
+          enabled: true,
+          text: passDetails.status === 'rejected' ? 'REJECTED' :
+                passDetails.status === 'expired' ? 'EXPIRED' :
+                passDetails.status === 'pending_resubmission' ? 'RESUBMIT REQUIRED' : 'PENDING',
+          opacity: watermarkConfig.opacity || 10,
+        } : (watermarkConfig.enabled && watermarkConfig.text ? {
+          enabled: true,
+          text: watermarkConfig.text,
+          opacity: watermarkConfig.opacity || 15,
+        } : undefined),
+      });
+
+      // Clean up
+      document.body.removeChild(container);
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [passDetails, items, t, getHeaderConfig, getFooterConfig, getWatermarkConfig, logoUrl, tenantName, isPublic]);
+
+  return {
+    passDetails,
+    items,
+    isLoading: isLoadingDetails || isLoadingMedia,
+    isGenerating,
+    generatePDF,
+  };
+}

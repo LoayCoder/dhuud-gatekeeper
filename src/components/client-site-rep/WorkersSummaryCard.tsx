@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useTranslation } from "react-i18next";
-import type { ClientSiteRepWorkerSummary, ClientSiteRepWorkerDetail } from "@/hooks/contractor-management/use-client-site-rep-data";
+import type { ClientSiteRepWorkerSummary, ClientSiteRepWorkerDetail } from "@/features/contractors/hooks/use-client-site-rep-data";
 
 interface WorkersSummaryCardProps {
   summary: ClientSiteRepWorkerSummary;

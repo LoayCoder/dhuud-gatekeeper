@@ -4,7 +4,7 @@ import type { LucideIcon } from "lucide-react";
 /**
  * Protection levels for routes
  */
-export type RouteProtection = 
+export type RouteProtection =
   | "public"           // No auth required (login, signup, legal pages)
   | "protected"        // Requires authenticated user
   | "admin"            // Requires admin role
@@ -18,51 +18,51 @@ export type RouteProtection =
 export interface RouteDefinition {
   /** Route path (e.g., "/dashboard", "/incidents/:id") */
   path: string;
-  
+
   /** Unique menu code for access control and database sync */
   menuCode: string;
-  
+
   /** Display titles for sidebar */
   title: {
     en: string;
     ar: string;
   };
-  
+
   /** Lucide icon component for sidebar */
   icon: LucideIcon;
-  
+
   /** Lazy-loaded component (null for statically imported routes) */
-  component: LazyExoticComponent<ComponentType<any>> | ComponentType<any> | null;
-  
+  component: LazyExoticComponent<ComponentType<Record<string, unknown>>> | ComponentType<Record<string, unknown>> | null;
+
   /** Protection level */
   protection: RouteProtection;
-  
+
   /** For menu-based protection, the menu code to check */
   menuBasedCode?: string;
-  
+
   /** Parent menu group code for sidebar hierarchy */
   parentCode?: string;
-  
+
   /** Sort order within parent group (lower = higher) */
   sortOrder?: number;
-  
+
   /**
    * If true, this route won't appear in sidebar
    * Use for dynamic routes like /incidents/:id or system routes
    */
   hidden?: boolean;
-  
+
   /**
    * REQUIRED if hidden is true - documents why this route is hidden
    */
   hiddenReason?: string;
-  
+
   /** 
    * If true, this route uses MainLayout (sidebar)
    * Default: true for protected routes
    */
   usesLayout?: boolean;
-  
+
   /**
    * Translation key for the title (auto-generated from menuCode)
    */

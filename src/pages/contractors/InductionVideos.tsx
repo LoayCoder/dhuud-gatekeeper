@@ -1,10 +1,10 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { InductionVideoList } from "@/components/contractors/InductionVideoList";
-import { InductionVideoFormDialog } from "@/components/contractors/InductionVideoFormDialog";
-import { InductionComplianceWidget } from "@/components/contractors/InductionComplianceWidget";
+import { InductionVideoList } from '@/features/contractors';
+import { InductionVideoFormDialog } from '@/features/contractors';
+import { InductionComplianceWidget } from '@/features/contractors';
 import { useInductionVideos, InductionVideo } from "@/hooks/contractor-management";
 
 export default function InductionVideos() {
@@ -56,3 +56,4 @@ export default function InductionVideos() {
     </div>
   );
 }
+

@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, Eye, ClipboardList, Plus, FileBox } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useCanCreateGatePass } from '@/hooks/contractor-management/use-can-create-gate-pass';
+import { useCanCreateGatePass } from '@/features/contractors/hooks/use-can-create-gate-pass';
 
 interface QuickActionProps {
   icon: React.ComponentType<{ className?: string }>;

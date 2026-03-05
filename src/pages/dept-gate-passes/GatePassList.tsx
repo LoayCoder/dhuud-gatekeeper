@@ -21,10 +21,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Search, Filter, FileKey } from "lucide-react";
-import { useDeptGatePasses } from "@/hooks/contractor-management/use-dept-gate-passes";
-import { MaterialGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
-import { GatePassDetailDialog } from "@/components/contractors/GatePassDetailDialog";
-import { GatePassTypeBadge } from "@/components/contractors/GatePassTypeBadge";
+import { useDeptGatePasses } from "@/features/contractors/hooks/use-dept-gate-passes";
+import { MaterialGatePass } from "@/features/contractors/hooks/use-material-gate-passes";
+import { GatePassDetailDialog } from '@/features/contractors';
+import { GatePassTypeBadge } from '@/features/contractors';
 import { format } from "date-fns";
 
 function DeptGatePassListContent() {
@@ -194,3 +194,4 @@ export default function DeptGatePassList() {
     </MenuBasedAdminRoute>
   );
 }
+

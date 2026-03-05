@@ -1,10 +1,10 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { PurchaseRequestsTable } from "@/components/assets/PurchaseRequestsTable";
-import { AssetPurchaseRequestDialog } from "@/components/assets/AssetPurchaseRequestDialog";
+import { PurchaseRequestsTable } from '@/features/assets';
+import { AssetPurchaseRequestDialog } from '@/features/assets';
 
 export default function PurchaseRequestsPage() {
   const { t } = useTranslation();
@@ -40,3 +40,4 @@ export default function PurchaseRequestsPage() {
     </div>
   );
 }
+

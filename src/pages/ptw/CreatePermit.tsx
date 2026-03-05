@@ -5,15 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ArrowRight, ArrowLeft, Check } from "lucide-react";
-import { PermitBasicsStep } from "@/components/ptw/wizard/PermitBasicsStep";
-import { PermitWorkersStep } from "@/components/ptw/wizard/PermitWorkersStep";
-import { PermitOperationalStep } from "@/components/ptw/wizard/PermitOperationalStep";
-import { PermitSafetyStep } from "@/components/ptw/wizard/PermitSafetyStep";
-import { PermitReviewStep } from "@/components/ptw/wizard/PermitReviewStep";
+import { PermitBasicsStep } from '@/features/ptw';
+import { PermitWorkersStep } from '@/features/ptw';
+import { PermitOperationalStep } from '@/features/ptw';
+import { PermitSafetyStep } from '@/features/ptw';
+import { PermitReviewStep } from '@/features/ptw';
 import { useCreatePTWPermit } from "@/hooks/ptw";
-import { useSIMOPSCheck } from "@/hooks/ptw/use-simops-check";
-import { useMobilizationCheck } from "@/hooks/ptw/use-mobilization-check";
-import { SIMOPSConflictWarning } from "@/components/ptw/SIMOPSConflictWarning";
+import { useSIMOPSCheck } from "@/features/ptw/hooks/use-simops-check";
+import { useMobilizationCheck } from "@/features/ptw/hooks/use-mobilization-check";
+import { SIMOPSConflictWarning } from '@/features/ptw';
 
 export interface PermitFormData {
   // Step 1: Basics
@@ -280,3 +280,4 @@ export default function CreatePermit() {
     </div>
   );
 }
+

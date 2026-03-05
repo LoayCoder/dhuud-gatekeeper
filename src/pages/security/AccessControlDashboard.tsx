@@ -19,16 +19,16 @@ import { cn } from '@/lib/utils';
 
 import { useUnifiedAccessStats, useUnifiedAccessLogs, useRecordUnifiedExit, type EntityType } from '@/hooks/use-unified-access';
 import { usePendingSecurityRequests } from '@/hooks/use-visit-requests';
-import { usePendingWorkerApprovals, usePendingSecurityApprovals } from '@/hooks/contractor-management/use-contractor-workers';
-import { usePendingGatePassApprovals } from '@/hooks/contractor-management/use-material-gate-passes';
+import { usePendingWorkerApprovals, usePendingSecurityApprovals } from '@/features/contractors/hooks/use-contractor-workers';
+import { usePendingGatePassApprovals } from '@/features/contractors/hooks/use-material-gate-passes';
 
-import { UniversalQRScanner, type ScanResult } from '@/components/security/UniversalQRScanner';
-import { UnifiedAccessLogTable } from '@/components/security/UnifiedAccessLogTable';
-import { VisitorApprovalQueue } from '@/components/security/VisitorApprovalQueue';
-import { WorkerApprovalQueue } from '@/components/contractors/WorkerApprovalQueue';
-import { WorkerSecurityApprovalQueue } from '@/components/contractors/WorkerSecurityApprovalQueue';
-import { GatePassApprovalQueue } from '@/components/contractors/GatePassApprovalQueue';
-import { GatePassApprovalHistoryTab } from '@/components/contractors/GatePassApprovalHistoryTab';
+import { UniversalQRScanner, type ScanResult } from '@/features/security';
+import { UnifiedAccessLogTable } from '@/features/security';
+import { VisitorApprovalQueue } from '@/features/security';
+import { WorkerApprovalQueue } from '@/features/contractors';
+import { WorkerSecurityApprovalQueue } from '@/features/contractors';
+import { GatePassApprovalQueue } from '@/features/contractors';
+import { GatePassApprovalHistoryTab } from '@/features/contractors';
 
 export default function AccessControlDashboard() {
   const { t } = useTranslation(['security', 'translation']);
@@ -568,3 +568,5 @@ export default function AccessControlDashboard() {
     </div>
   );
 }
+
+

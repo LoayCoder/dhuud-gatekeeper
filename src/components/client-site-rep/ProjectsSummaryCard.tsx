@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
-import type { ClientSiteRepProjectSummary, ClientSiteRepProjectDetail } from "@/hooks/contractor-management/use-client-site-rep-data";
+import type { ClientSiteRepProjectSummary, ClientSiteRepProjectDetail } from "@/features/contractors/hooks/use-client-site-rep-data";
 
 interface ProjectsSummaryCardProps {
   summary: ClientSiteRepProjectSummary;
@@ -36,6 +36,16 @@ export function ProjectsSummaryCard({ summary, allProjects = [] }: ProjectsSumma
     setActiveFilter(null);
     setVisibleCount(ITEMS_PER_PAGE);
   };
+
+  // Filter projects based on active filter
+  const filteredProjects = useMemo(() => {
+    if (!activeFilter) return allProjects;
+    // Handle on_hold which also includes suspended
+    if (activeFilter === "on_hold") {
+      return allProjects.filter(p => p.status === "on_hold" || p.status === "suspended");
+    }
+    return allProjects.filter(p => p.status === activeFilter);
+  }, [allProjects, activeFilter]);
 
   // Show empty state if no projects
   if (summary.total === 0) {
@@ -99,15 +109,7 @@ export function ProjectsSummaryCard({ summary, allProjects = [] }: ProjectsSumma
     }
   };
 
-  // Filter projects based on active filter
-  const filteredProjects = useMemo(() => {
-    if (!activeFilter) return allProjects;
-    // Handle on_hold which also includes suspended
-    if (activeFilter === "on_hold") {
-      return allProjects.filter(p => p.status === "on_hold" || p.status === "suspended");
-    }
-    return allProjects.filter(p => p.status === activeFilter);
-  }, [allProjects, activeFilter]);
+  // Moved to top to respect rules of hooks
 
   const visibleProjects = filteredProjects.slice(0, visibleCount);
   const hasMore = filteredProjects.length > visibleCount;
@@ -131,15 +133,14 @@ export function ProjectsSummaryCard({ summary, allProjects = [] }: ProjectsSumma
             </CardTitle>
           </CardHeader>
         </CollapsibleTrigger>
-        
+
         <CardContent>
           <div className="grid grid-cols-2 gap-3">
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-muted/50 transition-all ${
-                  activeFilter === stat.status ? "ring-2 ring-primary ring-offset-2 bg-muted/50" : ""
-                }`}
+                className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-muted/50 transition-all ${activeFilter === stat.status ? "ring-2 ring-primary ring-offset-2 bg-muted/50" : ""
+                  }`}
                 onClick={(e) => handleStatusClick(e, stat.status)}
                 role="button"
                 tabIndex={0}
@@ -159,11 +160,11 @@ export function ProjectsSummaryCard({ summary, allProjects = [] }: ProjectsSumma
           <div className="border-t px-4 pb-4 pt-3 space-y-2">
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-medium text-muted-foreground">
-                {activeFilter 
-                  ? t("clientSiteRep.showingFilteredProjects", "Showing {{status}} projects ({{count}})", { 
-                      status: activeFilter.replace(/_/g, " "), 
-                      count: filteredProjects.length 
-                    })
+                {activeFilter
+                  ? t("clientSiteRep.showingFilteredProjects", "Showing {{status}} projects ({{count}})", {
+                    status: activeFilter.replace(/_/g, " "),
+                    count: filteredProjects.length
+                  })
                   : t("clientSiteRep.allProjects", "All Projects ({{count}})", { count: allProjects.length })
                 }
               </p>
@@ -174,7 +175,7 @@ export function ProjectsSummaryCard({ summary, allProjects = [] }: ProjectsSumma
                 </Button>
               )}
             </div>
-            
+
             {visibleProjects.length > 0 ? (
               visibleProjects.map((project) => (
                 <div
@@ -202,7 +203,7 @@ export function ProjectsSummaryCard({ summary, allProjects = [] }: ProjectsSumma
               ))
             ) : (
               <p className="text-sm text-muted-foreground text-center py-4">
-                {activeFilter 
+                {activeFilter
                   ? t("clientSiteRep.noProjectsMatchFilter", "No projects match this filter")
                   : t("clientSiteRep.noProjectsFound", "No projects found")
                 }
@@ -210,8 +211,8 @@ export function ProjectsSummaryCard({ summary, allProjects = [] }: ProjectsSumma
             )}
 
             {hasMore && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full mt-3"
                 onClick={() => setVisibleCount(prev => prev + ITEMS_PER_PAGE)}
               >

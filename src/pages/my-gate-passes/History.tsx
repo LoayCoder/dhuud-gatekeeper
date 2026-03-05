@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ArrowLeft, History, CheckCircle2, XCircle, Clock } from "lucide-react";
-import { useGatePassApprovalHistory, useIsGatePassApprover } from "@/hooks/contractor-management/use-my-gate-passes";
+import { useGatePassApprovalHistory, useIsGatePassApprover } from "@/features/contractors/hooks/use-my-gate-passes";
 import { format } from "date-fns";
 
 function MyGatePassHistoryContent() {

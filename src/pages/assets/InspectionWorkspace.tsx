@@ -31,8 +31,8 @@ import {
   useSaveInspectionResponse,
   useCompleteInspection,
   useCancelInspection,
-} from '@/hooks/use-inspections';
-import { InspectionItemCard } from '@/components/inspections';
+} from '@/features/incidents';
+import { InspectionItemCard } from '@/features/incidents';
 import i18n from '@/i18n';
 
 export default function InspectionWorkspace() {
@@ -40,30 +40,30 @@ export default function InspectionWorkspace() {
   const { t } = useTranslation();
   const direction = i18n.dir();
   const navigate = useNavigate();
-  
+
   const { data: inspection, isLoading: inspectionLoading } = useInspection(inspectionId);
   const { data: responses } = useInspectionResponses(inspectionId);
   const { data: templateItems } = useTemplateItems(inspection?.template_id);
-  
+
   const saveResponse = useSaveInspectionResponse();
   const completeInspection = useCompleteInspection();
   const cancelInspection = useCancelInspection();
-  
+
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
   const [overallResult, setOverallResult] = useState<'pass' | 'fail' | 'partial'>('pass');
   const [summaryNotes, setSummaryNotes] = useState('');
-  
+
   const isCompleted = inspection?.status === 'completed';
   const isCancelled = inspection?.status === 'cancelled';
   const isReadOnly = isCompleted || isCancelled;
-  
+
   // Calculate progress
   const progress = useMemo(() => {
     if (!templateItems?.length) return 0;
     const answered = responses?.filter(r => r.result !== null).length || 0;
     return Math.round((answered / templateItems.length) * 100);
   }, [templateItems, responses]);
-  
+
   // Check if all required items are answered
   const canComplete = useMemo(() => {
     if (!templateItems) return false;
@@ -73,7 +73,7 @@ export default function InspectionWorkspace() {
       return response?.result !== null && response?.result !== undefined;
     });
   }, [templateItems, responses]);
-  
+
   // Calculate suggested result
   const suggestedResult = useMemo(() => {
     if (!responses?.length) return 'pass';
@@ -89,39 +89,39 @@ export default function InspectionWorkspace() {
     }
     return 'pass';
   }, [responses, templateItems]);
-  
+
   const handleResponseChange = (templateItemId: string) => (data: {
     response_value?: string;
     result?: 'pass' | 'fail' | 'na';
     notes?: string;
   }) => {
     if (isReadOnly || !inspectionId) return;
-    
+
     saveResponse.mutate({
       inspection_id: inspectionId,
       template_item_id: templateItemId,
       ...data,
     });
   };
-  
+
   const handleComplete = async () => {
     if (!inspectionId) return;
-    
+
     await completeInspection.mutateAsync({
       id: inspectionId,
       overall_result: overallResult,
       summary_notes: summaryNotes || undefined,
     });
-    
+
     setCompleteDialogOpen(false);
   };
-  
+
   const handleCancel = async () => {
     if (!inspectionId) return;
     await cancelInspection.mutateAsync(inspectionId);
     navigate(`/assets/${inspection?.asset_id}`);
   };
-  
+
   if (inspectionLoading) {
     return (
       <div className="container mx-auto py-6 space-y-6" dir={direction}>
@@ -131,7 +131,7 @@ export default function InspectionWorkspace() {
       </div>
     );
   }
-  
+
   if (!inspection) {
     return (
       <div className="container mx-auto py-6" dir={direction}>
@@ -139,7 +139,7 @@ export default function InspectionWorkspace() {
       </div>
     );
   }
-  
+
   return (
     <div className="container mx-auto py-6 space-y-6" dir={direction}>
       {/* Header */}
@@ -156,7 +156,7 @@ export default function InspectionWorkspace() {
               {isCompleted && (
                 <Badge className={
                   inspection.overall_result === 'pass' ? 'bg-green-600' :
-                  inspection.overall_result === 'fail' ? 'bg-red-600' : 'bg-yellow-600'
+                    inspection.overall_result === 'fail' ? 'bg-red-600' : 'bg-yellow-600'
                 }>
                   {t(`inspections.results.${inspection.overall_result}`)}
                 </Badge>
@@ -164,11 +164,11 @@ export default function InspectionWorkspace() {
               {isCancelled && <Badge variant="outline">{t('inspections.cancelled')}</Badge>}
             </div>
             <p className="text-muted-foreground">
-              {(inspection.asset as any)?.name} • {(inspection.template as any)?.name}
+              {(inspection.asset as unknown)?.name} • {(inspection.template as unknown)?.name}
             </p>
           </div>
         </div>
-        
+
         {!isReadOnly && (
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={handleCancel} disabled={cancelInspection.isPending}>
@@ -187,7 +187,7 @@ export default function InspectionWorkspace() {
           </div>
         )}
       </div>
-      
+
       {/* Progress */}
       {!isReadOnly && (
         <Card>
@@ -203,7 +203,7 @@ export default function InspectionWorkspace() {
           </CardContent>
         </Card>
       )}
-      
+
       {/* Summary Notes (if completed) */}
       {isCompleted && inspection.summary_notes && (
         <Card>
@@ -215,7 +215,7 @@ export default function InspectionWorkspace() {
           </CardContent>
         </Card>
       )}
-      
+
       {/* Checklist Items */}
       <div className="space-y-4">
         {templateItems?.map((item, index) => {
@@ -237,7 +237,7 @@ export default function InspectionWorkspace() {
           );
         })}
       </div>
-      
+
       {/* Complete Dialog */}
       <Dialog open={completeDialogOpen} onOpenChange={setCompleteDialogOpen}>
         <DialogContent dir={direction}>
@@ -247,11 +247,11 @@ export default function InspectionWorkspace() {
               {t('inspections.confirmCompleteDescription')}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>{t('inspections.overallResult')}</Label>
-              <Select value={overallResult} onValueChange={(v: any) => setOverallResult(v)} dir={direction}>
+              <Select value={overallResult} onValueChange={(v: 'pass' | 'fail' | 'partial') => setOverallResult(v)} dir={direction}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -277,7 +277,7 @@ export default function InspectionWorkspace() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label>{t('inspections.summaryNotes')}</Label>
               <Textarea
@@ -288,7 +288,7 @@ export default function InspectionWorkspace() {
               />
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setCompleteDialogOpen(false)}>
               {t('common.cancel')}
@@ -302,3 +302,4 @@ export default function InspectionWorkspace() {
     </div>
   );
 }
+

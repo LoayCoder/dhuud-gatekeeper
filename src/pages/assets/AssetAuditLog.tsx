@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
@@ -43,8 +43,8 @@ import {
   useAuditLogActors,
   AssetAuditLogEntry,
   AuditLogFilters,
-} from "@/hooks/use-asset-audit-log-viewer";
-import { AuditLogChangeDialog } from "@/components/assets/AuditLogChangeDialog";
+} from '@/features/assets';
+import { AuditLogChangeDialog } from '@/features/assets';
 
 const PAGE_SIZE = 20;
 
@@ -346,3 +346,4 @@ export default function AssetAuditLog() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,10 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, Search, Filter, Shield, Phone, MapPin, Briefcase, Plus, Network, Crown, Eye, UsersRound } from 'lucide-react';
-import { useSecurityTeam } from '@/hooks/use-security-team';
-import { GuardRegistrationForm } from '@/components/security/GuardRegistrationForm';
-import { TeamHierarchyView } from '@/components/security/TeamHierarchyView';
-import { TeamsTab } from '@/components/security/TeamsTab';
+import { useSecurityTeam } from '@/features/security';
+import { GuardRegistrationForm } from '@/features/security';
+import { TeamHierarchyView } from '@/features/security';
+import { TeamsTab } from '@/features/security';
 
 export default function SecurityTeam() {
   const { t } = useTranslation();
@@ -267,3 +267,4 @@ export default function SecurityTeam() {
     </div>
   );
 }
+

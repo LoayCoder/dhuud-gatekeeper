@@ -1,6 +1,6 @@
-import { Badge } from '@/components/ui/badge';
+﻿import { Badge } from '@/components/ui/badge';
 import { useTranslation } from 'react-i18next';
-import { RoleCategory } from '@/hooks/use-user-roles';
+import { RoleCategory } from '@/features/users';
 
 interface RoleBadgeProps {
   code: string;
@@ -50,3 +50,4 @@ export function RoleCategoryBadge({ category }: { category: RoleCategory }) {
     </Badge>
   );
 }
+

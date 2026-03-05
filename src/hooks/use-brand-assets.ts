@@ -3,8 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { compressImage } from '@/lib/upload-utils';
 
-export type AssetType = 
-  | 'logo-light' | 'logo-dark' 
+export type AssetType =
+  | 'logo-light' | 'logo-dark'
   | 'sidebar-icon-light' | 'sidebar-icon-dark'
   | 'icon-light' | 'icon-dark'
   | 'background' | 'favicon'
@@ -55,7 +55,7 @@ const validateFile = async (file: File, type: AssetType): Promise<ValidationResu
       const img = new Image();
       img.onload = () => {
         URL.revokeObjectURL(img.src);
-        
+
         // App icons (any variant)
         if (type === 'icon' || type === 'icon-light' || type === 'icon-dark') {
           if (img.width !== 512 || img.height !== 512) {
@@ -63,7 +63,7 @@ const validateFile = async (file: File, type: AssetType): Promise<ValidationResu
             return;
           }
         }
-        
+
         // Logos (any variant)
         if (type === 'logo' || type === 'logo-light' || type === 'logo-dark') {
           if (img.width < 200 || img.height < 50) {
@@ -92,7 +92,7 @@ const validateFile = async (file: File, type: AssetType): Promise<ValidationResu
             return;
           }
         }
-        
+
         resolve({ valid: true });
       };
       img.onerror = () => {
@@ -158,8 +158,7 @@ export function useBrandAssets() {
       return publicUrl;
     } catch (error: unknown) {
       console.error('Upload error:', error);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const err = error as any;
+      const err = error as { message?: string };
       toast({
         title: 'Upload Failed',
         description: err.message || 'Failed to upload asset.',

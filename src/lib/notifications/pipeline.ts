@@ -53,6 +53,15 @@ import { resolveTemplate, renderTemplateForChannel } from './template-registry';
 import { isDuplicateEvent, markEventProcessed, generateEventId } from './idempotency';
 import { normalizePhoneE164, type PhoneNormalizationOptions } from './phone-utils';
 
+interface DynamicDb {
+  from: (table: string) => {
+    select: (query: string) => {
+      in: (column: string, values: string[]) => Promise<{ data: Record<string, unknown>[] | null }>
+    };
+    upsert: (data: unknown[], options?: { onConflict?: string; ignoreDuplicates?: boolean }) => Promise<{ error: Error | null }>;
+  };
+}
+
 const log = logger.scope('NotificationPipeline');
 
 // ============================================================================
@@ -506,8 +515,8 @@ async function filterByPreferences(
   if (channel === 'push') {
     try {
       const userIds = recipients.map(r => r.userId);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: prefs } = await (supabase as any)
+      const db = supabase as unknown as DynamicDb;
+      const { data: prefs } = await db
         .from('push_notification_preferences')
         .select(`user_id, ${preferenceCategory}`)
         .in('user_id', userIds);
@@ -530,8 +539,8 @@ async function filterByPreferences(
   if (channel === 'email') {
     try {
       const userIds = recipients.map(r => r.userId);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: prefs } = await (supabase as any)
+      const db = supabase as unknown as DynamicDb;
+      const { data: prefs } = await db
         .from('email_notification_preferences')
         .select(`user_id, ${preferenceCategory}`)
         .in('user_id', userIds);
@@ -591,8 +600,8 @@ async function writeAuditLog(
       }));
 
     if (logEntries.length > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any).from('notification_logs').upsert(
+      const db = supabase as unknown as DynamicDb;
+      const { error } = await db.from('notification_logs').upsert(
         logEntries,
         { onConflict: 'idempotency_key', ignoreDuplicates: true }
       );

@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+﻿import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { QRCodeSVG } from "qrcode.react";
@@ -24,7 +24,7 @@ import {
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
-import { VisitorEmergencyButton } from "@/components/security/VisitorEmergencyButton";
+import { VisitorEmergencyButton } from '@/features/security';
 
 interface PageContent {
   title?: string;
@@ -124,10 +124,10 @@ export default function VisitorBadgePage() {
       link.href = canvas.toDataURL('image/png');
       link.click();
       
-      toast.success(content?.save_badge || (isRTL ? 'تم حفظ البطاقة' : 'Badge saved to gallery'));
+      toast.success(content?.save_badge || (isRTL ? 'ØªÙ… Ø­ÙØ¸ Ø§Ù„Ø¨Ø·Ø§Ù‚Ø©' : 'Badge saved to gallery'));
     } catch (err) {
       console.error('Download error:', err);
-      toast.error(isRTL ? 'فشل في حفظ البطاقة' : 'Failed to save badge');
+      toast.error(isRTL ? 'ÙØ´Ù„ ÙÙŠ Ø­ÙØ¸ Ø§Ù„Ø¨Ø·Ø§Ù‚Ø©' : 'Failed to save badge');
     } finally {
       setIsDownloading(false);
     }
@@ -154,22 +154,22 @@ export default function VisitorBadgePage() {
       
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: content?.title || (isRTL ? 'بطاقة الزائر' : 'Visitor Badge'),
+          title: content?.title || (isRTL ? 'Ø¨Ø·Ø§Ù‚Ø© Ø§Ù„Ø²Ø§Ø¦Ø±' : 'Visitor Badge'),
           text: isRTL 
-            ? `بطاقة زيارة لـ ${badgeData.visitor_name}` 
+            ? `Ø¨Ø·Ø§Ù‚Ø© Ø²ÙŠØ§Ø±Ø© Ù„Ù€ ${badgeData.visitor_name}` 
             : `Visitor badge for ${badgeData.visitor_name}`,
           files: [file],
         });
-        toast.success(content?.share || (isRTL ? 'تمت المشاركة بنجاح' : 'Shared successfully'));
+        toast.success(content?.share || (isRTL ? 'ØªÙ…Øª Ø§Ù„Ù…Ø´Ø§Ø±ÙƒØ© Ø¨Ù†Ø¬Ø§Ø­' : 'Shared successfully'));
       } else {
         // Fallback: copy link to clipboard
         await navigator.clipboard.writeText(window.location.href);
-        toast.success(isRTL ? 'تم نسخ الرابط' : 'Link copied to clipboard');
+        toast.success(isRTL ? 'ØªÙ… Ù†Ø³Ø® Ø§Ù„Ø±Ø§Ø¨Ø·' : 'Link copied to clipboard');
       }
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
         console.error('Share error:', err);
-        toast.error(isRTL ? 'فشل في المشاركة' : 'Failed to share');
+        toast.error(isRTL ? 'ÙØ´Ù„ ÙÙŠ Ø§Ù„Ù…Ø´Ø§Ø±ÙƒØ©' : 'Failed to share');
       }
     } finally {
       setIsSharing(false);
@@ -200,11 +200,11 @@ export default function VisitorBadgePage() {
           <CardContent className="pt-6 text-center">
             <AlertTriangle className="h-16 w-16 text-destructive mx-auto mb-4" />
             <h2 className="text-xl font-bold text-destructive mb-2">
-              {isRTL ? 'بطاقة غير صالحة' : 'Invalid Badge'}
+              {isRTL ? 'Ø¨Ø·Ø§Ù‚Ø© ØºÙŠØ± ØµØ§Ù„Ø­Ø©' : 'Invalid Badge'}
             </h2>
             <p className="text-muted-foreground">
               {isRTL 
-                ? 'لم يتم العثور على بطاقة الزائر أو انتهت صلاحيتها'
+                ? 'Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø¨Ø·Ø§Ù‚Ø© Ø§Ù„Ø²Ø§Ø¦Ø± Ø£Ùˆ Ø§Ù†ØªÙ‡Øª ØµÙ„Ø§Ø­ÙŠØªÙ‡Ø§'
                 : 'Visitor badge not found or has expired'}
             </p>
           </CardContent>
@@ -245,10 +245,10 @@ export default function VisitorBadgePage() {
                 <User className="h-8 w-8 mx-auto mb-2" />
               )}
               <h1 className="text-xl font-bold">
-                {isRTL ? 'بطاقة الزائر' : 'Visitor Badge'}
+                {isRTL ? 'Ø¨Ø·Ø§Ù‚Ø© Ø§Ù„Ø²Ø§Ø¦Ø±' : 'Visitor Badge'}
               </h1>
               <p className="text-primary-foreground/80 text-sm">
-                {branding?.name || (isRTL ? 'المنشأة' : 'Facility')}
+                {branding?.name || (isRTL ? 'Ø§Ù„Ù…Ù†Ø´Ø£Ø©' : 'Facility')}
               </p>
               {branding?.hsse_department_name && (
                 <p className="text-primary-foreground/70 text-xs mt-1">
@@ -264,18 +264,18 @@ export default function VisitorBadgePage() {
                   isExpired ? (
                     <Badge variant="secondary" className="text-sm px-4 py-1 bg-amber-500 text-white hover:bg-amber-600">
                       <AlertTriangle className="h-4 w-4 me-1" />
-                      {isRTL ? 'منتهي الصلاحية' : 'Expired'}
+                      {isRTL ? 'Ù…Ù†ØªÙ‡ÙŠ Ø§Ù„ØµÙ„Ø§Ø­ÙŠØ©' : 'Expired'}
                     </Badge>
                   ) : (
                     <Badge variant="destructive" className="text-sm px-4 py-1">
                       <XCircle className="h-4 w-4 me-1" />
-                      {isRTL ? 'غير نشط' : 'Inactive'}
+                      {isRTL ? 'ØºÙŠØ± Ù†Ø´Ø·' : 'Inactive'}
                     </Badge>
                   )
                 ) : (
                   <Badge variant="default" className="text-sm px-4 py-1 bg-green-500 hover:bg-green-600">
                     <CheckCircle2 className="h-4 w-4 me-1" />
-                    {isRTL ? 'نشط' : 'Active'}
+                    {isRTL ? 'Ù†Ø´Ø·' : 'Active'}
                   </Badge>
                 )}
               </div>
@@ -297,7 +297,7 @@ export default function VisitorBadgePage() {
                   <User className="h-5 w-5 text-primary shrink-0" />
                   <div>
                     <p className="text-xs text-muted-foreground">
-                      {isRTL ? 'اسم الزائر' : 'Visitor Name'}
+                      {isRTL ? 'Ø§Ø³Ù… Ø§Ù„Ø²Ø§Ø¦Ø±' : 'Visitor Name'}
                     </p>
                     <p className="font-medium">{badgeData.visitor_name}</p>
                   </div>
@@ -308,7 +308,7 @@ export default function VisitorBadgePage() {
                     <Building2 className="h-5 w-5 text-primary shrink-0" />
                     <div>
                       <p className="text-xs text-muted-foreground">
-                        {isRTL ? 'الشركة' : 'Company'}
+                        {isRTL ? 'Ø§Ù„Ø´Ø±ÙƒØ©' : 'Company'}
                       </p>
                       <p className="font-medium">{badgeData.company_name}</p>
                     </div>
@@ -320,7 +320,7 @@ export default function VisitorBadgePage() {
                     <User className="h-5 w-5 text-primary shrink-0" />
                     <div>
                       <p className="text-xs text-muted-foreground">
-                        {isRTL ? 'المضيف' : 'Host'}
+                        {isRTL ? 'Ø§Ù„Ù…Ø¶ÙŠÙ' : 'Host'}
                       </p>
                       <p className="font-medium">{badgeData.host_name}</p>
                     </div>
@@ -332,7 +332,7 @@ export default function VisitorBadgePage() {
                     <MapPin className="h-5 w-5 text-primary shrink-0" />
                     <div>
                       <p className="text-xs text-muted-foreground">
-                        {isRTL ? 'الوجهة' : 'Destination'}
+                        {isRTL ? 'Ø§Ù„ÙˆØ¬Ù‡Ø©' : 'Destination'}
                       </p>
                       <p className="font-medium">{badgeData.destination}</p>
                     </div>
@@ -343,7 +343,7 @@ export default function VisitorBadgePage() {
                   <Clock className="h-5 w-5 text-primary shrink-0" />
                   <div>
                     <p className="text-xs text-muted-foreground">
-                      {isRTL ? 'صالحة حتى' : 'Valid Until'}
+                      {isRTL ? 'ØµØ§Ù„Ø­Ø© Ø­ØªÙ‰' : 'Valid Until'}
                     </p>
                     <p className={`font-medium ${isExpired ? 'text-destructive' : ''}`}>
                       {format(new Date(badgeData.valid_until), 'PPp')}
@@ -361,7 +361,7 @@ export default function VisitorBadgePage() {
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2 text-amber-700 dark:text-amber-400">
                 <Shield className="h-5 w-5" />
-                {isRTL ? 'تعليمات السلامة' : 'Safety Instructions'}
+                {isRTL ? 'ØªØ¹Ù„ÙŠÙ…Ø§Øª Ø§Ù„Ø³Ù„Ø§Ù…Ø©' : 'Safety Instructions'}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -383,7 +383,7 @@ export default function VisitorBadgePage() {
                 <Phone className="h-5 w-5 text-destructive shrink-0" />
                 <div className="flex-1">
                   <p className="text-xs text-destructive/70">
-                    {isRTL ? 'اتصال طوارئ' : 'Emergency Contact'}
+                    {isRTL ? 'Ø§ØªØµØ§Ù„ Ø·ÙˆØ§Ø±Ø¦' : 'Emergency Contact'}
                   </p>
                   <p className="font-bold text-destructive">
                     {branding.emergency_contact_number}
@@ -420,8 +420,8 @@ export default function VisitorBadgePage() {
             >
               <Download className="h-4 w-4 me-2" />
               {isDownloading 
-                ? (isRTL ? 'جاري الحفظ...' : 'Saving...') 
-                : (isRTL ? 'حفظ البطاقة' : 'Save Badge')}
+                ? (isRTL ? 'Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø­ÙØ¸...' : 'Saving...') 
+                : (isRTL ? 'Ø­ÙØ¸ Ø§Ù„Ø¨Ø·Ø§Ù‚Ø©' : 'Save Badge')}
             </Button>
           )}
           
@@ -433,8 +433,8 @@ export default function VisitorBadgePage() {
             >
               <Share2 className="h-4 w-4 me-2" />
               {isSharing 
-                ? (isRTL ? 'جاري المشاركة...' : 'Sharing...') 
-                : (isRTL ? 'مشاركة' : 'Share')}
+                ? (isRTL ? 'Ø¬Ø§Ø±ÙŠ Ø§Ù„Ù…Ø´Ø§Ø±ÙƒØ©...' : 'Sharing...') 
+                : (isRTL ? 'Ù…Ø´Ø§Ø±ÙƒØ©' : 'Share')}
             </Button>
           )}
         </div>
@@ -442,10 +442,11 @@ export default function VisitorBadgePage() {
         {/* Footer */}
         <p className="text-center text-xs text-muted-foreground pt-2">
           {isRTL 
-            ? 'يرجى إظهار رمز QR هذا عند البوابة للدخول'
+            ? 'ÙŠØ±Ø¬Ù‰ Ø¥Ø¸Ù‡Ø§Ø± Ø±Ù…Ø² QR Ù‡Ø°Ø§ Ø¹Ù†Ø¯ Ø§Ù„Ø¨ÙˆØ§Ø¨Ø© Ù„Ù„Ø¯Ø®ÙˆÙ„'
             : 'Please present this QR code at the gate for entry'}
         </p>
       </div>
     </div>
   );
 }
+

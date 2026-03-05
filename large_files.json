@@ -1,0 +1,762 @@
+[
+  {
+    "f": "src\\integrations\\supabase\\types.ts",
+    "lines": 27623
+  },
+  {
+    "f": "src\\lib\\generate-incident-report-pdf.ts",
+    "lines": 2016
+  },
+  {
+    "f": "src\\pages\\admin\\OrgStructure.tsx",
+    "lines": 1963
+  },
+  {
+    "f": "src\\pages\\incidents\\IncidentReport.tsx",
+    "lines": 1937
+  },
+  {
+    "f": "src\\pages\\incidents\\MyActions.tsx",
+    "lines": 1920
+  },
+  {
+    "f": "src\\config\\route-registry.ts",
+    "lines": 1866
+  },
+  {
+    "f": "src\\components\\layout\\AppSidebar.tsx",
+    "lines": 1475
+  },
+  {
+    "f": "src\\pages\\admin\\UserManagement.tsx",
+    "lines": 1353
+  },
+  {
+    "f": "src\\components\\incidents\\QuickObservationCard.tsx",
+    "lines": 1308
+  },
+  {
+    "f": "src\\pages\\admin\\SecurityAuditLog.tsx",
+    "lines": 1225
+  },
+  {
+    "f": "src\\components\\security\\GateQRScanner.tsx",
+    "lines": 1158
+  },
+  {
+    "f": "src\\pages\\incidents\\InvestigationWorkspace.tsx",
+    "lines": 1105
+  },
+  {
+    "f": "src\\components\\investigation\\environmental-impact\\EnvironmentalContaminationForm.tsx",
+    "lines": 1085
+  },
+  {
+    "f": "src\\pages\\admin\\ManhoursManagement.tsx",
+    "lines": 1080
+  },
+  {
+    "f": "src\\pages\\assets\\AssetRegister.tsx",
+    "lines": 1077
+  },
+  {
+    "f": "src\\components\\users\\UserFormDialog.tsx",
+    "lines": 1065
+  },
+  {
+    "f": "src\\components\\admin\\NotificationMatrixManagement.tsx",
+    "lines": 1046
+  },
+  {
+    "f": "src\\lib\\notifications\\template-registry.ts",
+    "lines": 1002
+  },
+  {
+    "f": "src\\components\\investigation\\ActionsPanel.tsx",
+    "lines": 983
+  },
+  {
+    "f": "src\\lib\\hsse-test-document.ts",
+    "lines": 981
+  },
+  {
+    "f": "src\\components\\admin\\TemplateEditor.tsx",
+    "lines": 950
+  },
+  {
+    "f": "src\\components\\contractors\\GatePassDetailDialog.tsx",
+    "lines": 884
+  },
+  {
+    "f": "src\\components\\id-cards\\IDCardTemplate.tsx",
+    "lines": 873
+  },
+  {
+    "f": "src\\hooks\\contractor-management\\use-material-gate-passes.ts",
+    "lines": 873
+  },
+  {
+    "f": "src\\hooks\\use-hsse-workflow.ts",
+    "lines": 872
+  },
+  {
+    "f": "src\\components\\risk-assessment\\RiskAssessmentWizard.tsx",
+    "lines": 870
+  },
+  {
+    "f": "src\\pages\\contractors\\GatePassSettings.tsx",
+    "lines": 858
+  },
+  {
+    "f": "src\\hooks\\use-inspections.ts",
+    "lines": 820
+  },
+  {
+    "f": "src\\hooks\\use-inspection-sessions.ts",
+    "lines": 815
+  },
+  {
+    "f": "src\\pages\\incidents\\HSSEEventDashboard.tsx",
+    "lines": 812
+  },
+  {
+    "f": "src\\hooks\\use-bulk-import-asset-hierarchy.ts",
+    "lines": 807
+  },
+  {
+    "f": "src\\pages\\visitors\\VisitorPreRegistration.tsx",
+    "lines": 798
+  },
+  {
+    "f": "src\\hooks\\use-incidents.ts",
+    "lines": 796
+  },
+  {
+    "f": "src\\components\\inspections\\InspectionTemplateForm.tsx",
+    "lines": 795
+  },
+  {
+    "f": "src\\pages\\public-gate-pass\\PublicRequestPage.tsx",
+    "lines": 777
+  },
+  {
+    "f": "src\\components\\inspections\\schedules\\ScheduleFormDialog.tsx",
+    "lines": 764
+  },
+  {
+    "f": "src\\components\\investigation\\SeverityAdjustmentCard.tsx",
+    "lines": 760
+  },
+  {
+    "f": "src\\lib\\asset-import-utils.ts",
+    "lines": 759
+  },
+  {
+    "f": "src\\components\\security\\WorkerVerificationPanel.tsx",
+    "lines": 738
+  },
+  {
+    "f": "src\\lib\\render-workflow-svg.ts",
+    "lines": 734
+  },
+  {
+    "f": "src\\hooks\\contractor-management\\use-contractor-workers.ts",
+    "lines": 729
+  },
+  {
+    "f": "src\\hooks\\use-investigation.ts",
+    "lines": 718
+  },
+  {
+    "f": "src\\lib\\workflow-definitions.ts",
+    "lines": 716
+  },
+  {
+    "f": "src\\pages\\Login.tsx",
+    "lines": 715
+  },
+  {
+    "f": "src\\pages\\admin\\PlanManagement.tsx",
+    "lines": 699
+  },
+  {
+    "f": "src\\pages\\assets\\AssetList.tsx",
+    "lines": 683
+  },
+  {
+    "f": "src\\pages\\assets\\AssetDetail.tsx",
+    "lines": 680
+  },
+  {
+    "f": "src\\components\\investigation\\RCAPanel.tsx",
+    "lines": 679
+  },
+  {
+    "f": "src\\components\\ui\\sidebar.tsx",
+    "lines": 671
+  },
+  {
+    "f": "src\\pages\\assets\\AssetReportBuilder.tsx",
+    "lines": 670
+  },
+  {
+    "f": "src\\components\\assets\\AssetLocationMap.tsx",
+    "lines": 666
+  },
+  {
+    "f": "src\\hooks\\use-assets.ts",
+    "lines": 666
+  },
+  {
+    "f": "src\\components\\contractors\\GatePassFormDialog.tsx",
+    "lines": 664
+  },
+  {
+    "f": "src\\hooks\\use-security-reports.ts",
+    "lines": 664
+  },
+  {
+    "f": "src\\lib\\notifications\\pipeline.ts",
+    "lines": 663
+  },
+  {
+    "f": "src\\components\\contractors\\gate-pass-create\\GatePassCreateWizard.tsx",
+    "lines": 661
+  },
+  {
+    "f": "src\\components\\incidents\\EnvironmentalDetailsSection.tsx",
+    "lines": 660
+  },
+  {
+    "f": "src\\hooks\\use-visit-requests.ts",
+    "lines": 647
+  },
+  {
+    "f": "src\\hooks\\use-pending-approvals.ts",
+    "lines": 640
+  },
+  {
+    "f": "src\\components\\admin\\AssetHierarchyBulkImport.tsx",
+    "lines": 637
+  },
+  {
+    "f": "src\\components\\id-cards\\settings\\IDCardSettingsForm.tsx",
+    "lines": 632
+  },
+  {
+    "f": "src\\components\\users\\BulkInvitationImportDialog.tsx",
+    "lines": 630
+  },
+  {
+    "f": "src\\pages\\admin\\HSSENotifications.tsx",
+    "lines": 626
+  },
+  {
+    "f": "src\\components\\investigation\\injury\\InjuryEntryForm.tsx",
+    "lines": 623
+  },
+  {
+    "f": "src\\components\\investigation\\property-damage\\PropertyDamageEntryForm.tsx",
+    "lines": 622
+  },
+  {
+    "f": "src\\lib\\asset-hierarchy-import-utils.ts",
+    "lines": 618
+  },
+  {
+    "f": "src\\pages\\admin\\PageContentEditor.tsx",
+    "lines": 616
+  },
+  {
+    "f": "src\\components\\contractors\\CompanyFormDialog.tsx",
+    "lines": 614
+  },
+  {
+    "f": "src\\components\\security\\GateEntryForm.tsx",
+    "lines": 612
+  },
+  {
+    "f": "src\\hooks\\use-area-inspections.ts",
+    "lines": 608
+  },
+  {
+    "f": "src\\pages\\security\\ExecutePatrol.tsx",
+    "lines": 608
+  },
+  {
+    "f": "src\\hooks\\use-shift-roster.ts",
+    "lines": 601
+  },
+  {
+    "f": "src\\pages\\admin\\ExecutiveReport.tsx",
+    "lines": 597
+  },
+  {
+    "f": "src\\pages\\security\\CCTVManagement.tsx",
+    "lines": 592
+  },
+  {
+    "f": "src\\components\\incidents\\IncidentAttachmentsSection.tsx",
+    "lines": 589
+  },
+  {
+    "f": "src\\hooks\\contractor-management\\use-client-site-rep-data.ts",
+    "lines": 589
+  },
+  {
+    "f": "src\\components\\contractors\\GatePassPDFTemplate.tsx",
+    "lines": 584
+  },
+  {
+    "f": "src\\components\\my-actions\\WorkflowTaskCard.tsx",
+    "lines": 573
+  },
+  {
+    "f": "src\\components\\users\\InvitationManagementPanel.tsx",
+    "lines": 573
+  },
+  {
+    "f": "src\\pages\\security\\AccessControlDashboard.tsx",
+    "lines": 571
+  },
+  {
+    "f": "src\\components\\risk-assessment\\HazardForm.tsx",
+    "lines": 568
+  },
+  {
+    "f": "src\\lib\\import-utils.ts",
+    "lines": 564
+  },
+  {
+    "f": "src\\pages\\MFASetup.tsx",
+    "lines": 560
+  },
+  {
+    "f": "src\\pages\\public-gate-pass\\PublicStatusPage.tsx",
+    "lines": 559
+  },
+  {
+    "f": "src\\components\\admin\\AssetCategoryManagement.tsx",
+    "lines": 557
+  },
+  {
+    "f": "src\\pages\\admin\\DatabaseHealthDashboard.tsx",
+    "lines": 556
+  },
+  {
+    "f": "src\\pages\\security\\ContractorAccess.tsx",
+    "lines": 556
+  },
+  {
+    "f": "src\\pages\\admin\\MenuAccessConfig.tsx",
+    "lines": 554
+  },
+  {
+    "f": "src\\components\\assets\\PurchaseRequestPDFTemplate.tsx",
+    "lines": 552
+  },
+  {
+    "f": "src\\components\\investigation\\ConfidentialityManagementPanel.tsx",
+    "lines": 552
+  },
+  {
+    "f": "src\\components\\investigation\\WorkflowProgressBanner.tsx",
+    "lines": 552
+  },
+  {
+    "f": "src\\hooks\\contractor-management\\use-gate-pass-guard-actions.ts",
+    "lines": 551
+  },
+  {
+    "f": "src\\components\\contractors\\CompanyDetailDialog.tsx",
+    "lines": 545
+  },
+  {
+    "f": "src\\hooks\\contractor-management\\use-contractor-companies.ts",
+    "lines": 544
+  },
+  {
+    "f": "src\\components\\security\\VisitorVerificationPanel.tsx",
+    "lines": 537
+  },
+  {
+    "f": "src\\hooks\\use-audit-sessions.ts",
+    "lines": 535
+  },
+  {
+    "f": "src\\components\\security\\ProtocolTemplatesManager.tsx",
+    "lines": 525
+  },
+  {
+    "f": "src\\hooks\\use-asset-category-management.ts",
+    "lines": 525
+  },
+  {
+    "f": "src\\pages\\admin\\PlatformSettings.tsx",
+    "lines": 522
+  },
+  {
+    "f": "src\\pages\\assets\\AssetDashboard.tsx",
+    "lines": 518
+  },
+  {
+    "f": "src\\components\\support\\AdminTicketDetail.tsx",
+    "lines": 516
+  },
+  {
+    "f": "src\\components\\admin\\SiteDetailDialog.tsx",
+    "lines": 511
+  },
+  {
+    "f": "src\\components\\ptw\\wizard\\PermitOperationalStep.tsx",
+    "lines": 511
+  },
+  {
+    "f": "src\\pages\\security\\GateGuardDashboard.tsx",
+    "lines": 511
+  },
+  {
+    "f": "src\\pages\\admin\\SecurityDashboard.tsx",
+    "lines": 510
+  },
+  {
+    "f": "src\\pages\\admin\\UsageAnalytics.tsx",
+    "lines": 508
+  },
+  {
+    "f": "src\\pages\\admin\\SubscriptionManagement.tsx",
+    "lines": 507
+  },
+  {
+    "f": "src\\pages\\incidents\\IncidentList.tsx",
+    "lines": 507
+  },
+  {
+    "f": "src\\pages\\legal\\PrivacyPolicy.tsx",
+    "lines": 507
+  },
+  {
+    "f": "src\\components\\security\\MaterialPassVerificationPanel.tsx",
+    "lines": 502
+  },
+  {
+    "f": "src\\hooks\\use-incident-closure.ts",
+    "lines": 502
+  },
+  {
+    "f": "src\\pages\\assets\\ApprovalWorkflowConfigPage.tsx",
+    "lines": 501
+  },
+  {
+    "f": "src\\components\\contractors\\WorkerDetailDialog.tsx",
+    "lines": 500
+  },
+  {
+    "f": "src\\contexts\\ThemeContext.tsx",
+    "lines": 499
+  },
+  {
+    "f": "src\\components\\ptw\\ProjectFormDialog.tsx",
+    "lines": 497
+  },
+  {
+    "f": "src\\components\\assets\\AssetImportDialog.tsx",
+    "lines": 496
+  },
+  {
+    "f": "src\\components\\security\\CommandCenterMap.tsx",
+    "lines": 495
+  },
+  {
+    "f": "src\\lib\\pdf-utils.ts",
+    "lines": 490
+  },
+  {
+    "f": "src\\components\\users\\UserImportDialog.tsx",
+    "lines": 489
+  },
+  {
+    "f": "src\\components\\ptw\\PermitPDFTemplate.tsx",
+    "lines": 487
+  },
+  {
+    "f": "src\\components\\security\\GuardDetailPanel.tsx",
+    "lines": 486
+  },
+  {
+    "f": "src\\components\\investigation\\ObservationWorkflowTracker.tsx",
+    "lines": 483
+  },
+  {
+    "f": "src\\hooks\\use-shift-handovers.ts",
+    "lines": 482
+  },
+  {
+    "f": "src\\pages\\WorkerInduction.tsx",
+    "lines": 482
+  },
+  {
+    "f": "src\\hooks\\use-push-subscription.ts",
+    "lines": 479
+  },
+  {
+    "f": "src\\pages\\AdminBranding.tsx",
+    "lines": 478
+  },
+  {
+    "f": "src\\components\\shared\\LocationBoundaryPicker.tsx",
+    "lines": 477
+  },
+  {
+    "f": "src\\hooks\\use-session-management.ts",
+    "lines": 477
+  },
+  {
+    "f": "src\\components\\incidents\\listing\\IncidentFilterPanel.tsx",
+    "lines": 476
+  },
+  {
+    "f": "src\\components\\investigation\\InvestigationWorkflowStatusCard.tsx",
+    "lines": 476
+  },
+  {
+    "f": "src\\components\\investigation\\WitnessVoiceRecording.tsx",
+    "lines": 475
+  },
+  {
+    "f": "src\\pages\\security\\CommandCenter.tsx",
+    "lines": 475
+  },
+  {
+    "f": "src\\pages\\admin\\HSSENotificationAnalytics.tsx",
+    "lines": 471
+  },
+  {
+    "f": "src\\hooks\\use-unified-access.ts",
+    "lines": 468
+  },
+  {
+    "f": "src\\components\\incidents\\dashboard\\DashboardExportDropdown.tsx",
+    "lines": 467
+  },
+  {
+    "f": "src\\contexts\\AuthContext.tsx",
+    "lines": 461
+  },
+  {
+    "f": "src\\hooks\\use-asset-approval-workflows.ts",
+    "lines": 459
+  },
+  {
+    "f": "src\\components\\contractors\\GatePassApprovalCard.tsx",
+    "lines": 458
+  },
+  {
+    "f": "src\\components\\investigation\\environmental-impact\\EnvironmentalContaminationCard.tsx",
+    "lines": 458
+  },
+  {
+    "f": "src\\hooks\\use-security-report-export.ts",
+    "lines": 455
+  },
+  {
+    "f": "src\\hooks\\use-action-center-stats.ts",
+    "lines": 453
+  },
+  {
+    "f": "src\\hooks\\use-hsse-notifications.ts",
+    "lines": 452
+  },
+  {
+    "f": "src\\pages\\VisitorBadgePage.tsx",
+    "lines": 452
+  },
+  {
+    "f": "src\\components\\admin\\TemplateTestConsole.tsx",
+    "lines": 450
+  },
+  {
+    "f": "src\\components\\assets\\AssetTransferDialog.tsx",
+    "lines": 447
+  },
+  {
+    "f": "src\\components\\users\\UserDiagnosticPanel.tsx",
+    "lines": 447
+  },
+  {
+    "f": "src\\components\\incidents\\GPSLocationConfirmCard.tsx",
+    "lines": 446
+  },
+  {
+    "f": "src\\pages\\security\\ShiftRoster.tsx",
+    "lines": 445
+  },
+  {
+    "f": "src\\pages\\inspections\\SessionWorkspace.tsx",
+    "lines": 444
+  },
+  {
+    "f": "src\\hooks\\use-parts-inventory.ts",
+    "lines": 440
+  },
+  {
+    "f": "src\\pages\\admin\\NotificationTemplates.tsx",
+    "lines": 440
+  },
+  {
+    "f": "src\\components\\inspections\\sessions\\CreateActionFromFindingDialog.tsx",
+    "lines": 439
+  },
+  {
+    "f": "src\\lib\\generate-area-session-pdf.ts",
+    "lines": 433
+  },
+  {
+    "f": "src\\lib\\generate-witness-statement-doc.ts",
+    "lines": 433
+  },
+  {
+    "f": "src\\pages\\inspections\\AuditSessionWorkspace.tsx",
+    "lines": 433
+  },
+  {
+    "f": "src\\pages\\WorkerAccessPass.tsx",
+    "lines": 433
+  },
+  {
+    "f": "src\\pages\\admin\\InspectionTemplates.tsx",
+    "lines": 432
+  },
+  {
+    "f": "src\\components\\security\\ActiveSessionsTab.tsx",
+    "lines": 431
+  },
+  {
+    "f": "src\\components\\investigation\\WitnessDetailDialog.tsx",
+    "lines": 430
+  },
+  {
+    "f": "src\\components\\tenants\\InvitationManagement.tsx",
+    "lines": 430
+  },
+  {
+    "f": "src\\components\\admin\\AssetTypePartDialog.tsx",
+    "lines": 429
+  },
+  {
+    "f": "src\\components\\tenants\\TenantFormDialog.tsx",
+    "lines": 428
+  },
+  {
+    "f": "src\\components\\security\\EmergencyAlertDetailDialog.tsx",
+    "lines": 426
+  },
+  {
+    "f": "src\\hooks\\ptw\\use-ptw-analytics.ts",
+    "lines": 425
+  },
+  {
+    "f": "src\\components\\actions\\ActionProgressDialog.tsx",
+    "lines": 423
+  },
+  {
+    "f": "src\\components\\inspections\\sessions\\AreaChecklistItem.tsx",
+    "lines": 423
+  },
+  {
+    "f": "src\\components\\investigation\\contractor-workflow\\ConsultantReviewCard.tsx",
+    "lines": 423
+  },
+  {
+    "f": "src\\hooks\\use-webauthn.ts",
+    "lines": 423
+  },
+  {
+    "f": "src\\hooks\\use-offline-area-inspection.ts",
+    "lines": 420
+  },
+  {
+    "f": "src\\pages\\legal\\ServiceLevelAgreement.tsx",
+    "lines": 420
+  },
+  {
+    "f": "src\\components\\risk-assessment\\PrintableRiskAssessmentSummary.tsx",
+    "lines": 419
+  },
+  {
+    "f": "src\\components\\subscription\\RequestReviewDialog.tsx",
+    "lines": 419
+  },
+  {
+    "f": "src\\pages\\admin\\SLADashboard.tsx",
+    "lines": 418
+  },
+  {
+    "f": "src\\components\\incidents\\dashboard\\EnhancedAIInsightsPanel.tsx",
+    "lines": 416
+  },
+  {
+    "f": "src\\components\\profile\\NotificationPreferences.tsx",
+    "lines": 415
+  },
+  {
+    "f": "src\\components\\assets\\AssetHealthDashboardWidget.tsx",
+    "lines": 414
+  },
+  {
+    "f": "src\\hooks\\contractor-management\\use-dept-gate-passes.ts",
+    "lines": 414
+  },
+  {
+    "f": "src\\components\\investigation\\WitnessPanel.tsx",
+    "lines": 413
+  },
+  {
+    "f": "src\\hooks\\use-witness-statements.ts",
+    "lines": 413
+  },
+  {
+    "f": "src\\components\\investigation\\HSSEEscalationReviewCard.tsx",
+    "lines": 412
+  },
+  {
+    "f": "src\\components\\investigation\\DeptRepApprovalCard.tsx",
+    "lines": 410
+  },
+  {
+    "f": "src\\pages\\admin\\SupportDashboard.tsx",
+    "lines": 409
+  },
+  {
+    "f": "src\\components\\admin\\WhatsAppSettings.tsx",
+    "lines": 408
+  },
+  {
+    "f": "src\\components\\inspections\\TemplateItemBuilder.tsx",
+    "lines": 406
+  },
+  {
+    "f": "src\\lib\\incident-status-colors.ts",
+    "lines": 405
+  },
+  {
+    "f": "src\\pages\\admin\\ViolationSettings.tsx",
+    "lines": 405
+  },
+  {
+    "f": "src\\pages\\parts\\PartsInventoryPage.tsx",
+    "lines": 404
+  },
+  {
+    "f": "src\\pages\\inspections\\AreaSessionWorkspace.tsx",
+    "lines": 403
+  },
+  {
+    "f": "src\\components\\investigation\\TeamInvestigationAssignmentStep.tsx",
+    "lines": 402
+  },
+  {
+    "f": "src\\pages\\security\\GuardAttendance.tsx",
+    "lines": 402
+  }
+]

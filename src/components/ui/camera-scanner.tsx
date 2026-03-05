@@ -106,7 +106,7 @@ export function CameraScanner({
         setHasTorch(false);
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Scanner error:', err);
       
       if (err.name === 'NotAllowedError' || err.toString().includes('NotAllowedError')) {

@@ -1,8 +1,8 @@
-import { useTranslation } from 'react-i18next';
+﻿import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { EnterprisePage } from '@/components/layout/EnterprisePage';
 import { DashboardHeader } from '@/components/dashboard/personal';
-import { useUserOverviewStats } from '@/hooks/use-user-overview-stats';
+import { useUserOverviewStats } from '@/features/users';
 import {
   MyTasksSection,
   MyIncidentsSection,
@@ -68,3 +68,4 @@ export default function Dashboard() {
     </EnterprisePage>
   );
 }
+

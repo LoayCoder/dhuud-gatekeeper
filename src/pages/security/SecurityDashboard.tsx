@@ -3,11 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  Shield, 
-  Users, 
-  AlertTriangle, 
-  Route, 
+import {
+  Shield,
+  Users,
+  AlertTriangle,
+  Route,
   MapPin,
   UserCheck,
   Clock,
@@ -21,14 +21,14 @@ import {
   Calendar
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useSecurityStats } from '@/hooks/use-security-stats';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import { useSecurityStats } from '@/features/security';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   LineChart,
   Line,
@@ -37,16 +37,16 @@ import {
   Cell
 } from 'recharts';
 import { format } from 'date-fns';
-import { EmergencyPanicButton } from '@/components/security/EmergencyPanicButton';
+import { EmergencyPanicButton } from '@/features/security';
 import { useActiveEmergencyAlerts, useRealtimeEmergencyAlerts } from '@/hooks/use-emergency-alerts';
-import { GeofenceBreachesChart } from '@/components/security/GeofenceBreachesChart';
-import { TopGuardsWidget } from '@/components/security/TopGuardsWidget';
-import { LiveGuardMapWidget } from '@/components/security/LiveGuardMapWidget';
-import { PatrolTrendsWidget } from '@/components/security/PatrolTrendsWidget';
-import { SecurityRealtimeIndicator } from '@/components/security/SecurityRealtimeIndicator';
+import { GeofenceBreachesChart } from '@/features/security';
+import { TopGuardsWidget } from '@/features/security';
+import { LiveGuardMapWidget } from '@/features/security';
+import { PatrolTrendsWidget } from '@/features/security';
+import { SecurityRealtimeIndicator } from '@/features/security';
 import { EnterprisePage } from '@/components/layout/EnterprisePage';
 import { KPIStrip, type KPIItem } from '@/components/ui/kpi-strip';
-import { useSecurityRealtime } from '@/hooks/use-security-realtime';
+import { useSecurityRealtime } from '@/features/security';
 import { useGuardLocations, useGeofenceAlerts } from '@/hooks/use-live-tracking';
 
 export default function SecurityDashboard() {
@@ -60,7 +60,7 @@ export default function SecurityDashboard() {
   useRealtimeEmergencyAlerts();
 
   // Calculate additional real-time KPIs
-  const guardsOnZone = guardLocations.filter((g: any) => g.is_within_zone !== false).length;
+  const guardsOnZone = guardLocations.filter((g: { is_within_zone?: boolean }) => g.is_within_zone !== false).length;
   const avgPatrolProgress = stats?.patrolCompletionRate ?? 0;
 
   const CHART_COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
@@ -107,45 +107,45 @@ export default function SecurityDashboard() {
   ];
 
   const quickActions = [
-    { 
-      label: t('security.dashboard.registerVisitor', 'Register Visitor'), 
-      icon: UserCheck, 
+    {
+      label: t('security.dashboard.registerVisitor', 'Register Visitor'),
+      icon: UserCheck,
       path: '/visitors/register',
       variant: 'default' as const
     },
-    { 
-      label: t('security.emergencyAlerts', 'Emergency Alerts'), 
-      icon: AlertTriangle, 
+    {
+      label: t('security.emergencyAlerts', 'Emergency Alerts'),
+      icon: AlertTriangle,
       path: '/security/emergency-alerts',
       variant: 'destructive' as const
     },
-    { 
-      label: t('security.dashboard.startPatrol', 'Start Patrol'), 
-      icon: Route, 
+    {
+      label: t('security.dashboard.startPatrol', 'Start Patrol'),
+      icon: Route,
       path: '/security/patrols',
       variant: 'secondary' as const
     },
-    { 
-      label: t('security.shiftHandover', 'Shift Handover'), 
-      icon: FileText, 
+    {
+      label: t('security.shiftHandover', 'Shift Handover'),
+      icon: FileText,
       path: '/security/handover',
       variant: 'outline' as const
     },
-    { 
-      label: t('security.guardPerformance', 'Guard Performance'), 
-      icon: Target, 
+    {
+      label: t('security.guardPerformance', 'Guard Performance'),
+      icon: Target,
       path: '/security/performance',
       variant: 'outline' as const
     },
-    { 
-      label: t('security.dashboard.commandCenter', 'Command Center'), 
-      icon: MapPin, 
+    {
+      label: t('security.dashboard.commandCenter', 'Command Center'),
+      icon: MapPin,
       path: '/security/command-center',
       variant: 'outline' as const
     },
-    { 
-      label: t('security.reportSchedules', 'Report Schedules'), 
-      icon: Calendar, 
+    {
+      label: t('security.reportSchedules', 'Report Schedules'),
+      icon: Calendar,
       path: '/security/report-schedules',
       variant: 'outline' as const
     },
@@ -157,9 +157,9 @@ export default function SecurityDashboard() {
       description={t('security.dashboard.subtitle', 'Overview of security operations and real-time status')}
       summarySection={
         <div className="flex items-center justify-end">
-          <SecurityRealtimeIndicator 
-            isConnected={isConnected} 
-            lastEventTime={lastEventTime} 
+          <SecurityRealtimeIndicator
+            isConnected={isConnected}
+            lastEventTime={lastEventTime}
             newEventCount={newEventCount}
           />
         </div>
@@ -223,12 +223,12 @@ export default function SecurityDashboard() {
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis dataKey="date" className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
                   <YAxis className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))', 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
                       borderRadius: 'var(--radius)'
-                    }} 
+                    }}
                   />
                   <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
@@ -271,8 +271,8 @@ export default function SecurityDashboard() {
       </div>
 
       {/* Geofence Breaches Chart */}
-      <GeofenceBreachesChart 
-        data={stats?.breachTrend ?? []} 
+      <GeofenceBreachesChart
+        data={stats?.breachTrend ?? []}
         isLoading={isLoading}
       />
 
@@ -330,14 +330,13 @@ export default function SecurityDashboard() {
               <div className="space-y-3">
                 {(stats?.recentActivity ?? []).slice(0, 5).map((activity, index) => (
                   <div key={index} className="flex items-center gap-3 rounded-lg border p-3">
-                    <div className={`rounded-full p-2 ${
-                      activity.type === 'alert' ? 'bg-destructive/10 text-destructive' :
-                      activity.type === 'patrol' ? 'bg-primary/10 text-primary' :
-                      'bg-muted text-muted-foreground'
-                    }`}>
+                    <div className={`rounded-full p-2 ${activity.type === 'alert' ? 'bg-destructive/10 text-destructive' :
+                        activity.type === 'patrol' ? 'bg-primary/10 text-primary' :
+                          'bg-muted text-muted-foreground'
+                      }`}>
                       {activity.type === 'alert' ? <AlertTriangle className="h-4 w-4" /> :
-                       activity.type === 'patrol' ? <Route className="h-4 w-4" /> :
-                       <Activity className="h-4 w-4" />}
+                        activity.type === 'patrol' ? <Route className="h-4 w-4" /> :
+                          <Activity className="h-4 w-4" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{activity.description}</p>
@@ -373,3 +372,4 @@ export default function SecurityDashboard() {
     </EnterprisePage>
   );
 }
+

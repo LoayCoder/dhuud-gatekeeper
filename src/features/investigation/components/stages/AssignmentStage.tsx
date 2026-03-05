@@ -1,9 +1,9 @@
-
+﻿
 import { useInvestigationContext } from "@/features/investigation/context/InvestigationContext";
 import { useTranslation } from "react-i18next";
-import { TeamInvestigationAssignmentStep } from "@/components/investigation/TeamInvestigationAssignmentStep";
-import { InvestigatorAssignmentStep } from "@/components/investigation/InvestigatorAssignmentStep";
-import { IncidentWithDetails } from "@/hooks/use-incidents";
+import { TeamInvestigationAssignmentStep } from '@/features/investigation';
+import { InvestigatorAssignmentStep } from '@/features/investigation';
+import { IncidentWithDetails } from '@/features/incidents';
 
 export function AssignmentStage() {
     const { incident, refresh, userPermissions } = useInvestigationContext();
@@ -13,7 +13,7 @@ export function AssignmentStage() {
     if (!incident) return null;
 
     // Logic from InvestigationWorkspace.tsx
-    const severityLevel = incident.severity_v2 || (incident as any).severity;
+    const severityLevel = incident.severity_v2 || (incident as unknown).severity;
     const severityNumber = severityLevel ? parseInt(severityLevel.replace('level_', '')) : 1;
     const isTeamRecommended = severityNumber >= 3;
 
@@ -44,3 +44,5 @@ export function AssignmentStage() {
         />
     );
 }
+
+

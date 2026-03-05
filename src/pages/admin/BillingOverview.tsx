@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { TenantBillingTable } from '@/components/billing/TenantBillingTable';
+import { TenantBillingTable } from '@/features/admin';
 import { useAllTenantsUsage } from '@/hooks/use-profile-usage';
 import { useAllTenantsBilling, useGenerateBillingRecord } from '@/hooks/use-profile-billing';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,12 +14,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { 
-  Receipt, 
-  Download, 
-  RefreshCw, 
-  TrendingUp, 
-  Users, 
+import {
+  Receipt,
+  Download,
+  RefreshCw,
+  TrendingUp,
+  Users,
   DollarSign,
   Building2
 } from 'lucide-react';
@@ -32,7 +32,15 @@ export default function BillingOverview() {
   const { tenantsUsage, isLoading: usageLoading, refetch: refetchUsage } = useAllTenantsUsage();
   const { allBilling, isLoading: billingLoading, refetch: refetchBilling } = useAllTenantsBilling();
   const generateBilling = useGenerateBillingRecord();
-  const [selectedTenant, setSelectedTenant] = useState<any>(null);
+  interface TenantBillingInfo {
+    id: string;
+    name: string;
+    currentBilling?: { total_profiles?: number; profile_charges?: number; status?: string };
+    lastBilling?: { total_profiles?: number; profile_charges?: number };
+    plans?: { name?: string; display_name?: string };
+    [key: string]: unknown;
+  }
+  const [selectedTenant, setSelectedTenant] = useState<TenantBillingInfo | null>(null);
 
   // Calculate summary stats
   const totalProfiles = tenantsUsage?.reduce((acc, t) => acc + (t.usage?.total_profiles || 0), 0) || 0;
@@ -156,8 +164,8 @@ export default function BillingOverview() {
                 <CardTitle>{t('adminBilling.billingRecords')}</CardTitle>
                 <CardDescription>{t('adminBilling.billingRecordsDesc')}</CardDescription>
               </div>
-              <Button 
-                onClick={handleGenerateAllBilling} 
+              <Button
+                onClick={handleGenerateAllBilling}
                 disabled={generateBilling.isPending}
               >
                 <Receipt className="h-4 w-4 me-2" />
@@ -193,8 +201,8 @@ export default function BillingOverview() {
               ) : (
                 <div className="space-y-4">
                   {tenantsUsage?.map((tenant) => (
-                    <div 
-                      key={tenant.id} 
+                    <div
+                      key={tenant.id}
                       className="flex items-center justify-between p-4 border rounded-lg"
                     >
                       <div className="text-start">

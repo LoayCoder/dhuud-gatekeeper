@@ -6,7 +6,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { useState } from "react";
-import type { ClientSiteRepCompany, ClientSiteRepPersonnel } from "@/hooks/contractor-management/use-client-site-rep-data";
+import type { ClientSiteRepCompany, ClientSiteRepPersonnel } from "@/features/contractors/hooks/use-client-site-rep-data";
 
 interface AssignedCompaniesCardProps {
   companies: ClientSiteRepCompany[];

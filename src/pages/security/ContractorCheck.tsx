@@ -1,12 +1,12 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
-import { useValidateContractor, useLogContractorAccess, useContractorAccessLogs } from '@/hooks/use-contractors';
-import { ContractorQRScanner } from '@/components/security/ContractorQRScanner';
-import { ValidationResultCard } from '@/components/security/ValidationResultCard';
-import { ContractorAccessLogTable } from '@/components/security/ContractorAccessLogTable';
+import { useValidateContractor, useLogContractorAccess, useContractorAccessLogs } from '@/features/contractors';
+import { ContractorQRScanner } from '@/features/security';
+import { ValidationResultCard } from '@/features/security';
+import { ContractorAccessLogTable } from '@/features/security';
 import { QrCode, Search, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -137,3 +137,5 @@ export default function ContractorCheck() {
     </>
   );
 }
+
+

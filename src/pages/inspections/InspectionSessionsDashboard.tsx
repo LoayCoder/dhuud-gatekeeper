@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 // Inspection Sessions Dashboard - Type imports fixed for Vite bundling
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -11,8 +11,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { ModuleGate } from '@/components';
-import { useInspectionSessions, useDeleteSession, type InspectionSession } from '@/hooks/use-inspection-sessions';
-import { CreateSessionDialog, CreateAreaSessionDialog, EditSessionDialog, SessionStatusBadge } from '@/components/inspections/sessions';
+import { useInspectionSessions, useDeleteSession, type InspectionSession } from '@/features/incidents';
+import { CreateSessionDialog, CreateAreaSessionDialog, EditSessionDialog, SessionStatusBadge } from '@/features/incidents';
 import { toast } from 'sonner';
 
 function InspectionSessionsDashboardContent() {
@@ -265,3 +265,4 @@ export default function InspectionSessionsDashboard() {
     </ModuleGate>
   );
 }
+

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import {
@@ -58,7 +58,7 @@ import {
   CCTVCamera,
   CCTVEvent,
 } from '@/hooks/use-cctv-cameras';
-import { CCTVEventsList } from '@/components/security/CCTVEventsList';
+import { CCTVEventsList } from '@/features/security';
 
 export default function CCTVManagement() {
   const { t } = useTranslation();
@@ -589,3 +589,4 @@ function CameraDialog({
     </Dialog>
   );
 }
+

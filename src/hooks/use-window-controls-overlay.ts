@@ -32,8 +32,7 @@ export function useWindowControlsOverlay(): WindowControlsOverlayState {
 
   useEffect(() => {
     // Check if running as installed PWA
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const nav = window.navigator as any;
+    const nav = window.navigator as Navigator & { standalone?: boolean };
     const isStandalone = 
       window.matchMedia('(display-mode: standalone)').matches ||
       window.matchMedia('(display-mode: window-controls-overlay)').matches ||
@@ -62,9 +61,8 @@ export function useWindowControlsOverlay(): WindowControlsOverlayState {
     }
 
     // Listen for geometry changes
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const handleGeometryChange = (event: any) => {
-      setIsVisible(event.visible);
+    const handleGeometryChange = (event: Event & { visible?: boolean; titlebarAreaRect?: DOMRect }) => {
+      if (event.visible !== undefined) setIsVisible(event.visible);
       if (event.titlebarAreaRect) {
         setTitlebarAreaRect(event.titlebarAreaRect);
       }

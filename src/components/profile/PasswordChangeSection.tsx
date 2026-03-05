@@ -106,7 +106,7 @@ export function PasswordChangeSection() {
       setPassword("");
       setConfirmPassword("");
       setIsOpen(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: t('securitySettings.updateFailed'),
         description: error.message || t('securitySettings.updateFailed'),

@@ -1,0 +1,242 @@
+﻿src\components\action-center\NotificationPipelineStatus.tsx:39:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\components\client-site-rep\ProjectsSummaryCard.tsx:103:const filteredProjects = useMemo(() => { // eslint-disable-line react-hooks/rules-of-hooks
+src\components\contractor-portal\use-bulk-import-contractor-workers.ts:35:const results: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[] = [];
+src\components\dashboard\personal\ActiveChallengeCard.tsx:46:useEffect(() => { // eslint-disable-line react-hooks/rules-of-hooks
+src\components\dashboard\personal\HSEMessageCarousel.tsx:54:const [api, setApi] = useState<any>(); // eslint-disable-line @typescript-eslint/no-explicit-any
+src\components\dashboard\personal\RecentActivityFeed.tsx:52:.then((res: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => res)
+src\components\layout\AppSidebar\AppSidebarNav.tsx:4:filteredMenuItems: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[];
+src\components\layout\AppSidebar\hooks\useAppSidebar.ts:35:const filterItemsRecursively = (items: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[]): any /* eslint-disable-line @typescript-eslint/no-explicit-any */[] => {
+src\components\layout\sidebar\AppSidebarContent.tsx:22:filteredMenuItems: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[];
+src\components\settings\AssetNotificationPreferences.tsx:39:setFormData((prev: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => ({ ...prev, [field]: value }));
+src\components\ui\command.tsx:24:interface CommandDialogProps extends DialogProps {} // eslint-disable-line @typescript-eslint/no-empty-object-type
+src\components\ui\textarea.tsx:5:export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {} // eslint-disable-line @typescript-eslint/no-empty-object-type
+src\config\route-registry-types.ts:35:component: LazyExoticComponent<ComponentType<any>> | ComponentType<any> | null; // eslint-disable-line @typescript-eslint/no-explicit-any
+src\features\admin\components\NotificationMatrixManagement\components\RuleFormFields.tsx:19:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\admin\components\NotificationMatrixManagement\components\RuleFormFields.tsx:23:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\admin\components\NotificationMatrixManagement\components\RuleFormFields.tsx:25:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\admin\components\NotificationMatrixManagement\components\RuleFormFields.tsx:27:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\contractors\hooks\use-contractor-company-details.ts:136:.eq("tenant_id", profile?.tenant_id!) // eslint-disable-line @typescript-eslint/no-non-null-asserted-optional-chain
+src\features\contractors\hooks\use-contractor-company-details.ts:154:.eq("tenant_id", profile?.tenant_id!) // eslint-disable-line @typescript-eslint/no-non-null-asserted-optional-chain
+src\features\contractors\hooks\use-contractor-company-details.ts:179:.eq("tenant_id", profile?.tenant_id!) // eslint-disable-line @typescript-eslint/no-non-null-asserted-optional-chain
+src\features\contractors\hooks\use-contractor-company-details.ts:197:.eq("tenant_id", profile?.tenant_id!) // eslint-disable-line @typescript-eslint/no-non-null-asserted-optional-chain
+src\features\contractors\hooks\use-contractor-dashboard-stats.ts:115:const addBranchFilter = (baseQuery: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, column: string) => {
+src\features\contractors\hooks\use-contractor-workers\use-contractor-worker-queries.ts:45:(i: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => i.status === 'acknowledged'
+src\features\incidents\components\detail\IncidentEvidenceTab.tsx:15:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\components\detail\IncidentInvestigationTab.tsx:26:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\components\detail\IncidentInvestigationTab.tsx:44:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\components\QuickObservationCard\hooks\useQuickObservationCardState.ts:42:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\components\QuickObservationCard\hooks\useQuickObservationCardState.ts:44:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\components\QuickObservationCard\hooks\useQuickObservationCardState.ts:46:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\hooks\use-hsse-risk-analytics.ts:97:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\hooks\use-hsse-validation\use-validation-queries.ts:42:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\hooks\use-hsse-validation\use-validation-queries.ts:61:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\hooks\use-inspection-actions\use-action-mutations.ts:132:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\hooks\use-inspection-actions\use-action-mutations.ts:169:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\hooks\use-inspection-actions\use-action-mutations.ts:227:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\hooks\use-inspection-actions\use-action-mutations.ts:28:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\hooks\use-inspection-actions\use-action-mutations.ts:50:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\hooks\use-inspection-actions\use-action-queries.ts:14:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\hooks\use-inspection-actions\use-action-queries.ts:42:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\hooks\use-inspection-analytics.ts:182:filtered = filtered.filter((f: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => f.session?.site_id === filters.siteId);
+src\features\incidents\hooks\use-inspection-analytics.ts:187:filtered.forEach((finding: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+src\features\incidents\hooks\use-inspection-analytics.ts:239:const counts: Record<string, { count: number; item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }> = {};
+src\features\incidents\hooks\use-inspection-analytics.ts:240:(data || []).forEach((response: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+src\features\incidents\hooks\use-inspection-schedules\use-schedule-mutations.ts:104:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\hooks\use-inspection-schedules\use-schedule-mutations.ts:18:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\hooks\use-inspection-schedules\use-schedule-mutations.ts:50:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\hooks\use-inspection-schedules\use-schedule-mutations.ts:79:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\hooks\use-inspection-schedules\use-schedule-queries.ts:12:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\hooks\use-inspection-schedules\use-schedule-queries.ts:52:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\incidents\hooks\use-inspection-sessions\use-session-lifecycle-mutations.ts:169:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\investigation\components\AssetLinkSelector.tsx:26:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\investigation\components\environmental-impact\EnvironmentalContaminationForm\components\SectionA.tsx:18:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\investigation\components\environmental-impact\EnvironmentalContaminationForm\components\SectionB.tsx:18:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\investigation\components\environmental-impact\EnvironmentalContaminationForm\components\SectionC.tsx:18:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\investigation\components\environmental-impact\EnvironmentalContaminationForm\components\SectionD.tsx:18:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\investigation\components\environmental-impact\EnvironmentalContaminationForm\components\SectionE.tsx:18:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\investigation\components\environmental-impact\EnvironmentalContaminationForm\components\SectionF.tsx:18:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\security\components\TeamEditDialog.tsx:105:}, [team]); // eslint-disable-line react-hooks/exhaustive-deps
+src\features\security\hooks\use-security-patrols\use-patrol-queries.ts:20:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\security\hooks\use-security-patrols\use-patrol-queries.ts:37:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\security\hooks\use-security-report-export\security-report-guard-export.ts:100:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\security\hooks\use-security-report-export\security-report-guard-export.ts:120:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\security\hooks\use-security-report-export\security-report-guard-export.ts:165:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\security\hooks\use-security-report-export\security-report-team-export.ts:42:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\security\hooks\use-security-report-export\security-report-team-export.ts:47:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\features\users\components\InvitationManagementPanel.tsx:56:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\hooks\common\use-branch-aware-query.ts:19:additionalFilters?: (query: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => any;
+src\hooks\use-ai-dashboard-insights.ts:46:function getFallbackInsights(stats: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, language: string): AIInsight[] {
+src\hooks\use-area-inspections\use-area-inspection-mutations.ts:121:const cached = await offlineDataCache.get<any[]>( // eslint-disable-line @typescript-eslint/no-explicit-any
+src\hooks\use-area-inspections\use-area-inspection-mutations.ts:128:(r: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => r.template_item_id === input.template_item_id
+src\hooks\use-area-inspections\use-area-inspection-mutations.ts:168:const cachedFindings = await offlineDataCache.get<any[]>( // eslint-disable-line @typescript-eslint/no-explicit-any
+src\hooks\use-audit-sessions\use-audit-session-queries.ts:63:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\hooks\use-brand-assets.ts:161:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\hooks\use-cursor-pagination.ts:77:}, [enabled]); // eslint-disable-line react-hooks/exhaustive-deps
+src\hooks\use-data-reconciliation.ts:10:sourceValue: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\hooks\use-data-reconciliation.ts:11:targetValue: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\hooks\use-data-reconciliation.ts:23:dashboardData?: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\hooks\use-data-reconciliation.ts:25:executiveData?: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\hooks\use-drilldown-events.ts:137:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\hooks\use-drilldown-events.ts:48:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\hooks\use-drilldown-events.ts:70:return (data || []).map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => ({
+src\hooks\use-drilldown-events.ts:92:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\hooks\use-evidence-items\use-evidence-mutations.ts:160:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\hooks\use-evidence-items\use-evidence-mutations.ts:186:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\hooks\use-evidence-items\use-evidence-queries.ts:74:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\hooks\use-guard-performance.ts:323:const sumMetrics = (data: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[] | null) => ({
+src\hooks\use-live-tracking.ts:24:const latestByGuard = new Map<string, any>(); // eslint-disable-line @typescript-eslint/no-explicit-any
+src\hooks\use-live-tracking.ts:25:(data || []).forEach((loc: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+src\hooks\use-live-tracking.ts:47:queryFn: async (): Promise<any[]> => { // eslint-disable-line @typescript-eslint/no-explicit-any
+src\hooks\use-live-tracking.ts:63:const enriched = (data || []).map((alert: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => ({
+src\hooks\use-live-tracking.ts:74:return enriched.filter((a: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => a.status === statusFilter);
+src\hooks\use-location-heatmap.ts:60:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\hooks\use-location-heatmap.ts:87:(incidents || []).forEach((inc: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+src\hooks\use-offline-assets.ts:61:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\hooks\use-password-strength.ts:42:met: /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/`~';]/.test(password), // eslint-disable-line no-useless-escape
+src\hooks\use-rca-analytics.ts:111:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\hooks\use-realtime-geofence-alerts.ts:44:function enrichAlert(rawAlert: any /* eslint-disable-line @typescript-eslint/no-explicit-any */): GeofenceAlert {
+src\hooks\use-sla-dashboard.ts:66:return (data || []).map((action: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => ({
+src\hooks\use-window-controls-overlay.ts:35:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\hooks\use-window-controls-overlay.ts:65:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\hooks\use-witness-statements\use-statement-queries.ts:21:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\hooks\use-witness-statements\use-statement-queries.ts:79:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\lib\area-inspection-sync.ts:230:const sessions = await offlineDataCache.getAll<any>(CACHE_STORES.AREA_SESSIONS); // eslint-disable-line @typescript-eslint/no-explicit-any
+src\lib\asset-report-utils.ts:191:function getRowDataForPDF(asset: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, type: ReportType, rtl: boolean): Record<string, string> {
+src\lib\asset-report-utils.ts:207:const warrantyExpiry = asset.warranty_expiry ? new Date(asset.warranty_expiry) : null; // eslint-disable-line no-case-declarations
+src\lib\asset-report-utils.ts:208:const isExpired = warrantyExpiry && warrantyExpiry < new Date(); // eslint-disable-line no-case-declarations
+src\lib\asset-report-utils.ts:227:const maintenanceHistory = asset.maintenance || []; // eslint-disable-line no-case-declarations
+src\lib\asset-report-utils.ts:231:total_cost: maintenanceHistory.reduce((sum: number, m: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => sum + (m.cost || 0), 0).toLocaleString()
+src\lib\asset-report-utils.ts:7:data: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[],
+src\lib\asset-scan-logger.ts:114:async function queueOfflineScan(scanData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */): Promise<void> {
+src\lib\asset-scan-logger.ts:128:const pending = await offlineDataCache.getAll<any>(CACHE_STORES.SCAN_LOGS); // eslint-disable-line @typescript-eslint/no-explicit-any
+src\lib\current-owner.ts:70:const investigator = incident.investigations?.[0]?.investigator; // eslint-disable-line no-case-declarations
+src\lib\generate-incident-report-pdf.ts:303:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\lib\notifications\phone-utils.ts:125:const cleaned = phone.replace(/[\s\-\(\)\.]/g, ''); // eslint-disable-line no-useless-escape
+src\lib\notifications\phone-utils.ts:68:cleaned = cleaned.replace(/[\s\-\(\)\.]/g, ''); // eslint-disable-line no-useless-escape
+src\lib\notifications\pipeline.ts:509:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\lib\notifications\pipeline.ts:533:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\lib\notifications\pipeline.ts:594:// eslint-disable-next-line @typescript-eslint/no-explicit-any
+src\pages\admin\BillingOverview.tsx:35:const [selectedTenant, setSelectedTenant] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+src\pages\admin\HSSENotificationAnalytics.tsx:116:function ComplianceByBranchTable({ data, isLoading }: { data: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[]; isLoading: boolean }) {
+src\pages\admin\HSSENotificationAnalytics.tsx:238:const weeklyTrendData = metrics?.weekly_trend?.map((week: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => ({
+src\pages\admin\InspectionTemplates.tsx:92:const handleCreate = async (data: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+src\pages\admin\InspectionTemplates.tsx:97:const handleUpdate = async (data: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+src\pages\admin\ManhoursManagement\components\ImportDialog.tsx:9:export function ImportDialog({ state }: { state: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\admin\ManhoursManagement\components\ManhoursDialog.tsx:13:export function ManhoursDialog({ state }: { state: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\admin\ManhoursManagement\components\RecordsTab.tsx:9:export function RecordsTab({ state }: { state: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\admin\ManhoursManagement\components\SummaryCards.tsx:5:export function SummaryCards({ state }: { state: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\admin\OrgStructure\hooks\useOrgStructureData.ts:7:const applyBranchFilter = useCallback((query: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, column = 'branch_id') => {
+src\pages\admin\OrgStructure\hooks\useOrgStructureHandlers.tsx:221:const renderSimpleRow = (item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, table: TableType) => (<TableRow><TableCell>{item.name}</TableCell></TableRow>);
+src\pages\admin\OrgStructure\hooks\useOrgStructureHandlers.tsx:222:const renderRowWithParent = (item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, parentName: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, table: TableType) => (<TableRow><TableCell>{item.name}</TableCell></TableRow>);
+src\pages\admin\OrgStructure\tabs\BranchesTab.tsx:12:export function BranchesTab(props: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+src\pages\admin\OrgStructure\tabs\BuildingsTab.tsx:12:export function BuildingsTab(props: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+src\pages\admin\OrgStructure\tabs\DepartmentsTab.tsx:12:export function DepartmentsTab(props: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+src\pages\admin\OrgStructure\tabs\DivisionsTab.tsx:12:export function DivisionsTab(props: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+src\pages\admin\OrgStructure\tabs\EventsTab.tsx:12:export function EventsTab(props: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+src\pages\admin\OrgStructure\tabs\FloorsZonesTab.tsx:12:export function FloorsZonesTab(props: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+src\pages\admin\OrgStructure\tabs\SectionsTab.tsx:12:export function SectionsTab(props: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+src\pages\admin\OrgStructure\tabs\SitesTab.tsx:12:export function SitesTab(props: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+src\pages\admin\PlatformSettings.tsx:237:{seedResults.results && Object.entries(seedResults.results).map(([category, data]: [string, any]) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
+src\pages\admin\PlatformSettings.tsx:242:? Object.values(data).reduce((a: number, b: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => a + (typeof b === 'number' ? b : 0), 0)
+src\pages\admin\PlatformSettings.tsx:56:const [seedResults, setSeedResults] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+src\pages\admin\PlatformSettings.tsx:57:const [cleanResults, setCleanResults] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+src\pages\admin\SecurityAuditLog\components\SecurityEventsTabContent.tsx:12:export function SecurityEventsTabContent({ state }: { state: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\admin\SecurityAuditLog\components\SensitiveDataAccessTabContent.tsx:12:export function SensitiveDataAccessTabContent({ state }: { state: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\admin\SecurityAuditLog\components\SuspiciousActivityTabContent.tsx:12:export function SuspiciousActivityTabContent({ state }: { state: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\admin\SecurityAuditLog\components\UserManagementTabContent.tsx:12:export function UserManagementTabContent({ state }: { state: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\admin\SecurityDashboard.tsx:189:?? {t('Low MFA adoption. Consider enforcing MFA for better security.', 'Low MFA adoption. Consider enforcing MFA for better security.')} // eslint-disable-line no-irregular-whitespace
+src\pages\admin\SubscriptionManagement.tsx:133:mutationFn: async (request: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+src\pages\admin\SubscriptionManagement.tsx:32:const [requestToCancel, setRequestToCancel] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+src\pages\admin\UserManagement\hooks\useUserManagementData.ts:1:/* eslint-disable @typescript-eslint/no-explicit-any */
+src\pages\admin\UserManagement\hooks\useUserManagementData.ts:39:// eslint-disable-next-line react-hooks/exhaustive-deps
+src\pages\admin\UserManagement\hooks\useUserManagementData.ts:45:// eslint-disable-next-line react-hooks/exhaustive-deps
+src\pages\admin\UserManagement\hooks\useUserManagementData.ts:60:// eslint-disable-next-line react-hooks/exhaustive-deps
+src\pages\admin\UserManagement\hooks\useUserManagementExtraActions.ts:1:/* eslint-disable @typescript-eslint/no-explicit-any */
+src\pages\admin\UserManagement\hooks\useUserManagementSaveActions.ts:1:/* eslint-disable @typescript-eslint/no-explicit-any */
+src\pages\admin\UserManagement\hooks\useUserManagementStatusActions.ts:1:/* eslint-disable @typescript-eslint/no-explicit-any */
+src\pages\admin\UserManagement\UserManagementFilters.tsx:1:/* eslint-disable @typescript-eslint/no-explicit-any */
+src\pages\admin\UserManagement\UserManagementModals.tsx:1:/* eslint-disable @typescript-eslint/no-explicit-any */
+src\pages\admin\UserManagement\UserManagementTable.tsx:1:/* eslint-disable @typescript-eslint/no-explicit-any */
+src\pages\AdminBranding.tsx:29:const [tenant, setTenant] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+src\pages\assets\AssetHealth.tsx:178:{history.map((record: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
+src\pages\assets\AssetRegister\components\ClassificationTab.tsx:14:export function ClassificationTab({ state }: { state: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\assets\AssetRegister\components\LifecycleTab.tsx:14:export function LifecycleTab({ state }: { state: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\assets\AssetRegister\components\LocationTab.tsx:14:export function LocationTab({ state }: { state: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\assets\AssetRegister\components\StatusTab.tsx:14:export function StatusTab({ state }: { state: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\assets\AssetReports.tsx:121:const flatData = data.map((asset: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => ({
+src\pages\assets\InspectionWorkspace.tsx:254:<Select value={overallResult} onValueChange={(v: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => setOverallResult(v)} dir={direction}>
+src\pages\contractors\GatePassSettings\components\ApproversSettingsCard.tsx:13:export function ApproversSettingsCard({ state }: { state: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\contractors\GatePassSettings\components\PassTypeSettingsCard.tsx:12:export function PassTypeSettingsCard({ state }: { state: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\incidents\HSSEEventDashboard\HSSEEventDashboard.tsx:216:const incidents: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[] = [];
+src\pages\incidents\HSSEEventDashboard\HSSEEventDashboard.tsx:230:const actions: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[] = [];
+src\pages\incidents\HSSEEventDashboard\types.ts:10:peopleData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\HSSEEventDashboard\types.ts:12:periodComparison: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\HSSEEventDashboard\types.ts:13:getSparklineData: (key: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => any[];
+src\pages\incidents\HSSEEventDashboard\types.ts:14:trendData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\HSSEEventDashboard\types.ts:27:locationData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\HSSEEventDashboard\types.ts:29:reporters: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\HSSEEventDashboard\types.ts:31:heatmapData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\HSSEEventDashboard\types.ts:32:incidentTypeData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\HSSEEventDashboard\types.ts:34:progressionData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\HSSEEventDashboard\types.ts:38:rcaData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\HSSEEventDashboard\types.ts:4:t: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\HSSEEventDashboard\types.ts:6:dashboardData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\HSSEEventDashboard\types.ts:7:laggingData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\HSSEEventDashboard\types.ts:8:leadingData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\HSSEEventDashboard\types.ts:9:responseData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\IncidentReport\EventTypeSelector.tsx:6:export const EventTypeSelector = ({ setReportMode, t, direction }: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
+src\pages\incidents\IncidentReport\IncidentReportForm.tsx:40:export function IncidentReportForm({ viewProps }: { viewProps: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\incidents\IncidentReport\Step1Capture.tsx:26:export function Step1Capture({ viewProps }: { viewProps: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\incidents\IncidentReport\Step2Location.tsx:26:export function Step2Location({ viewProps }: { viewProps: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\incidents\IncidentReport\Step3Details.tsx:27:export function Step3Details({ viewProps }: { viewProps: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\incidents\IncidentReport\Step3IncidentDetails.tsx:11:export function Step3IncidentDetails({ viewProps }: { viewProps: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\incidents\IncidentReport\StepIndicator.tsx:6:export const StepIndicator = ({ currentStep, goToStep, t }: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
+src\pages\incidents\InvestigationWorkspace\components\InvestigationTabsContent.tsx:102:<button onClick={() => { const y = document.getElementById('evidence')?.getBoundingClientRect().top+ window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('evidence'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'evidence' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}> // eslint-disable-line @typescript-eslint/no-non-null-asserted-optional-chain
+src\pages\incidents\InvestigationWorkspace\components\InvestigationTabsContent.tsx:107:<button onClick={() => { const y = document.getElementById('witnesses')?.getBoundingClientRect().top+ window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('witnesses'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'witnesses' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}> // eslint-disable-line @typescript-eslint/no-non-null-asserted-optional-chain
+src\pages\incidents\InvestigationWorkspace\components\InvestigationTabsContent.tsx:112:<button onClick={() => { const y = document.getElementById('rca')?.getBoundingClientRect().top+ window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('rca'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'rca' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}> // eslint-disable-line @typescript-eslint/no-non-null-asserted-optional-chain
+src\pages\incidents\InvestigationWorkspace\components\InvestigationTabsContent.tsx:117:<button onClick={() => { const y = document.getElementById('actions')?.getBoundingClientRect().top+ window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('actions'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'actions' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}> // eslint-disable-line @typescript-eslint/no-non-null-asserted-optional-chain
+src\pages\incidents\InvestigationWorkspace\components\InvestigationTabsContent.tsx:122:<button onClick={() => { const y = document.getElementById('injuries')?.getBoundingClientRect().top+ window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('injuries'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'injuries' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}> // eslint-disable-line @typescript-eslint/no-non-null-asserted-optional-chain
+src\pages\incidents\InvestigationWorkspace\components\InvestigationTabsContent.tsx:127:<button onClick={() => { const y = document.getElementById('property-damage')?.getBoundingClientRect().top+ window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('property-damage'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'property-damage' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}> // eslint-disable-line @typescript-eslint/no-non-null-asserted-optional-chain
+src\pages\incidents\InvestigationWorkspace\components\InvestigationTabsContent.tsx:132:<button onClick={() => { const y = document.getElementById('governance')?.getBoundingClientRect().top+ window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('governance'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'governance' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}> // eslint-disable-line @typescript-eslint/no-non-null-asserted-optional-chain
+src\pages\incidents\InvestigationWorkspace\components\InvestigationTabsContent.tsx:38:selectedIncident: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\InvestigationWorkspace\components\InvestigationTabsContent.tsx:39:investigation: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\InvestigationWorkspace\components\InvestigationTabsContent.tsx:46:editAccess: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\InvestigationWorkspace\components\InvestigationTabsContent.tsx:49:incidentData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\InvestigationWorkspace\components\InvestigationTabsContent.tsx:91:const y = document.getElementById('overview')?.getBoundingClientRect().top+ window.scrollY - 100; // eslint-disable-line @typescript-eslint/no-non-null-asserted-optional-chain
+src\pages\incidents\InvestigationWorkspace\components\InvestigationWorkflowCards.tsx:120:const severityLevel = incidentData.severity_v2 || (incidentData as unknown).severity; // eslint-disable-line no-case-declarations
+src\pages\incidents\InvestigationWorkspace\components\InvestigationWorkflowCards.tsx:121:const severityNumber = severityLevel ? parseInt(severityLevel.replace('level_', '')) : 1; // eslint-disable-line no-case-declarations
+src\pages\incidents\InvestigationWorkspace\components\InvestigationWorkflowCards.tsx:262:case 'pending_dept_rep_review': // eslint-disable-line no-duplicate-case
+src\pages\incidents\InvestigationWorkspace\components\InvestigationWorkflowCards.tsx:28:incidentData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\InvestigationWorkspace\components\InvestigationWorkflowCards.tsx:29:investigation: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\InvestigationWorkspace\components\InvestigationWorkspaceBanners.tsx:9:editAccess: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\InvestigationWorkspace\components\InvestigationWorkspaceHeader.tsx:10:slaInfo: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\InvestigationWorkspace\components\InvestigationWorkspaceHeader.tsx:8:selectedIncident: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\InvestigationWorkspace\components\InvestigationWorkspaceHeader.tsx:9:incidentData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\incidents\InvestigationWorkspace\hooks\useInvestigationWorkspaceData.ts:67:let profiles: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[] = [];
+src\pages\incidents\MyActions\hooks\useMyActions.ts:66:const handleActionDialogConfirm = (data: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+src\pages\incidents\MyActions\hooks\useMyActionsFilters.ts:21:const pendingWitness = witnessStatements?.filter((w: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => w.status === 'pending' || w.status === 'returned' || w.status === null) || [];
+src\pages\incidents\MyActions\hooks\useMyActionsFilters.ts:7:allActions: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[];
+src\pages\incidents\MyActions\MyActionsLayout.tsx:53:export function MyActionsLayout({ viewProps }: { viewProps: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\incidents\MyActions\tabs\ActionsTab.tsx:21:export function ActionsTab({ viewProps }: { viewProps: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\incidents\MyActions\tabs\ApprovalsTab.tsx:22:export function ApprovalsTab({ viewProps }: { viewProps: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\incidents\MyActions\tabs\ContractorApprovalsList.tsx:10:export function ContractorApprovalsList({ viewProps }: { viewProps: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\incidents\MyActions\tabs\IncidentApprovalsList.tsx:14:export function IncidentApprovalsList({ viewProps }: { viewProps: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\incidents\MyActions\tabs\InspectionsTab.tsx:20:export function InspectionsTab({ viewProps }: { viewProps: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\incidents\MyActions\tabs\InvestigationsTab.tsx:20:export function InvestigationsTab({ viewProps }: { viewProps: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\incidents\MyActions\tabs\ReportedTab.tsx:20:export function ReportedTab({ viewProps }: { viewProps: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\incidents\MyActions\tabs\WitnessTab.tsx:20:export function WitnessTab({ viewProps }: { viewProps: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+src\pages\Login.tsx:269:const signInTimeoutPromise = new Promise<{ data: { user: any /* eslint-disable-line @typescript-eslint/no-explicit-any */; session: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }; error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }>((_, reject) => {
+src\pages\Login.tsx:276:}) as Promise<{ data: { user: any /* eslint-disable-line @typescript-eslint/no-explicit-any */; session: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }; error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }>;
+src\pages\Login.tsx:324:const { results } = raceResult as { timeout: false, results: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[] };
+src\pages\public-gate-pass\PublicStatusPage.tsx:430:{gatePass.items?.map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
+src\pages\ResetPassword.tsx:36:.regex(/[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/`~';]/, t('passwordStrength.special')), // eslint-disable-line no-useless-escape
+src\pages\security\CommandCenter.tsx:141:const mapGuardLocations = guardLocations?.map((loc: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => ({
+src\pages\security\ContractorAccess.tsx:43:worker?: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+src\pages\security\ExecutePatrol.tsx:86:(navigator as unknown).getBattery().then((battery: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+src\pages\security\GuardLocation.tsx:80:(navigator as unknown).getBattery().then((b: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+src\pages\security\GuardLocation.tsx:97:} catch {} // eslint-disable-line no-empty
+src\pages\security\SecurityDashboard.tsx:63:const guardsOnZone = guardLocations.filter((g: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => g.is_within_zone !== false).length;
+src\pages\security\SecurityShifts.tsx:39:const handleEdit = (shift: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+src\pages\security\SecurityZones.tsx:88:const handleEdit = (zone: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+src\pages\Signup.tsx:46:.regex(/[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/`~';]/, t('passwordStrength.special')), // eslint-disable-line no-useless-escape
+src\types\document-branding.ts:77:export function mapDbToDocumentSettings(dbRow: any /* eslint-disable-line @typescript-eslint/no-explicit-any */): DocumentBrandingSettings {

@@ -7,8 +7,8 @@ export interface ReconciliationIssue {
   source: string;
   target: string;
   field: string;
-  sourceValue: any;
-  targetValue: any;
+  sourceValue: unknown;
+  targetValue: unknown;
   description: string;
 }
 
@@ -19,10 +19,20 @@ export interface DataQualityScore {
   timeliness: number;
 }
 
+interface DashboardDataProp {
+  kpiIndicators?: Record<string, number>;
+  lastUpdated?: string;
+  incidents?: unknown[];
+  actions?: unknown[];
+  observations?: unknown[];
+  inspections?: unknown[];
+  [key: string]: unknown;
+}
+
 interface UseDataReconciliationParams {
-  dashboardData?: any;
+  dashboardData?: DashboardDataProp;
   kpiValues?: Record<string, number>;
-  executiveData?: any;
+  executiveData?: unknown;
 }
 
 export function useDataReconciliation({
@@ -73,9 +83,11 @@ export function useDataReconciliation({
     }
 
     // Check for missing required data
-    const requiredFields = ['incidents', 'actions', 'observations'];
+    const requiredFields = ['incidents', 'actions', 'observations'] as const;
     requiredFields.forEach(field => {
-      if (!dashboardData?.[field] || dashboardData[field].length === 0) {
+      const fieldData = dashboardData?.[field] as unknown[] | undefined;
+      const length = Array.isArray(fieldData) ? fieldData.length : 0;
+      if (!fieldData || length === 0) {
         detectedIssues.push({
           id: `missing_${field}`,
           type: 'missing',
@@ -83,7 +95,7 @@ export function useDataReconciliation({
           source: 'Dashboard',
           target: 'Required Data',
           field,
-          sourceValue: dashboardData?.[field]?.length ?? 0,
+          sourceValue: length,
           targetValue: 'Expected > 0',
           description: `No ${field} data available for analysis`,
         });
@@ -100,12 +112,12 @@ export function useDataReconciliation({
 
     // Completeness: Check required fields
     let completeFields = 0;
-    let totalFields = 5;
-    if (dashboardData.incidents?.length > 0) completeFields++;
-    if (dashboardData.actions?.length > 0) completeFields++;
-    if (dashboardData.observations?.length > 0) completeFields++;
+    const totalFields = 5;
+    if (Array.isArray(dashboardData.incidents) && dashboardData.incidents.length > 0) completeFields++;
+    if (Array.isArray(dashboardData.actions) && dashboardData.actions.length > 0) completeFields++;
+    if (Array.isArray(dashboardData.observations) && dashboardData.observations.length > 0) completeFields++;
     if (dashboardData.kpiIndicators) completeFields++;
-    if (dashboardData.inspections?.length > 0) completeFields++;
+    if (Array.isArray(dashboardData.inspections) && dashboardData.inspections.length > 0) completeFields++;
     const completeness = (completeFields / totalFields) * 100;
 
     // Consistency: Based on issues found

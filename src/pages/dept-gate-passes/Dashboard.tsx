@@ -14,10 +14,10 @@ import {
   AlertCircle
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useDeptGatePassStats, useDeptGatePasses } from "@/hooks/contractor-management/use-dept-gate-passes";
-import { MaterialGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
-import { GatePassDetailDialog } from "@/components/contractors/GatePassDetailDialog";
-import { GatePassTypeBadge } from "@/components/contractors/GatePassTypeBadge";
+import { useDeptGatePassStats, useDeptGatePasses } from "@/features/contractors/hooks/use-dept-gate-passes";
+import { MaterialGatePass } from "@/features/contractors/hooks/use-material-gate-passes";
+import { GatePassDetailDialog } from '@/features/contractors';
+import { GatePassTypeBadge } from '@/features/contractors';
 import { format } from "date-fns";
 
 function DeptGatePassDashboardContent() {
@@ -238,3 +238,4 @@ export default function DeptGatePassDashboard() {
     </MenuBasedAdminRoute>
   );
 }
+

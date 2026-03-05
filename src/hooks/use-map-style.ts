@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { MAP_STYLES, MapStyleKey } from '@/components/maps/MapStyleSwitcher';
+﻿import { useState, useEffect } from 'react';
+import { MAP_STYLES, MapStyleKey } from '@/features/assets';
 
 export function useMapStyle(storageKey = 'map-style') {
   const [style, setStyle] = useState<MapStyleKey>(() => {
@@ -28,3 +28,4 @@ export function useMapStyle(storageKey = 'map-style') {
     tileLayerConfig: MAP_STYLES[style],
   };
 }
+
