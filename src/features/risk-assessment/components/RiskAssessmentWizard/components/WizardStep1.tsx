@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ActivityDetailsSection } from "../../ActivityDetailsSection";
 
-export function WizardStep1({ state }: { state: unknown }) {
+export function WizardStep1({ state }: { state: any }) {
   const { t } = state;
   const {
     isProjectLinked, setIsProjectLinked, setSelectedProjectId, setSelectedContractorId,
@@ -67,7 +67,7 @@ export function WizardStep1({ state }: { state: unknown }) {
                   <SelectValue placeholder={t("risk.project.selectPlaceholder", "Choose a project...")} />
                 </SelectTrigger>
                 <SelectContent>
-                  {projects?.map((project: unknown) => (
+                  {projects?.map((project: any) => (
                     <SelectItem key={project.id} value={project.id}>
                       <div className="flex items-center gap-2">
                         <span>{project.project_name}</span>

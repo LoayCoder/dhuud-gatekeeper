@@ -1,5 +1,5 @@
 // Stub: contractor-management hooks
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -20,4 +20,12 @@ export function useCreateContractorWorker() {
       toast.error(err.message);
     },
   });
+}
+
+export function useContractorCompanies(tenantId?: string) {
+  return useQuery({ queryKey: ['contractor-companies', tenantId], queryFn: async () => [] as any[], enabled: !!tenantId });
+}
+
+export function useContractorProjects(tenantId?: string) {
+  return useQuery({ queryKey: ['contractor-projects', tenantId], queryFn: async () => [] as any[], enabled: !!tenantId });
 }

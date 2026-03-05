@@ -92,7 +92,7 @@ export const updateInvestigation = async (
 
     const { error: rcaError } = await supabase
         .from('incident_rca')
-        .upsert(rcaUpdates, { onConflict: 'incident_id' });
+        .upsert(rcaUpdates as any, { onConflict: 'incident_id' });
 
     if (rcaError) throw rcaError;
 

@@ -4,9 +4,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { logger } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
-import type { Notification } from '@/features/notifications';
-
-export { type Notification };
+import type { Notification } from '@/features/notifications/services/notificationService';
 
 export function useNotifications(limit = 20) {
   const { user } = useAuth();
@@ -18,7 +16,7 @@ export function useNotifications(limit = 20) {
     queryFn: async () => {
       if (!user?.id) return [];
 
-      const { getNotifications } = await import('@/services/notifications/notificationService');
+      const { getNotifications } = await import('@/features/notifications/services/notificationService');
 
       try {
         const data = await getNotifications(user.id, limit);
@@ -47,7 +45,7 @@ export function useUnreadNotificationCount() {
       if (!user?.id) return 0;
 
       try {
-        const { getUnreadNotificationCount } = await import('@/services/notifications/notificationService');
+        const { getUnreadNotificationCount } = await import('@/features/notifications/services/notificationService');
         return await getUnreadNotificationCount(user.id);
       } catch (error) {
         logger.error('Error fetching unread count:', error);
@@ -66,7 +64,7 @@ export function useMarkNotificationRead() {
   return useMutation({
     mutationFn: async (notificationId: string) => {
       if (!user?.id) throw new Error("Not authenticated");
-      const { markNotificationRead } = await import('@/services/notifications/notificationService');
+      const { markNotificationRead } = await import('@/features/notifications/services/notificationService');
       return markNotificationRead(notificationId, user.id);
     },
     onSuccess: () => {
@@ -83,7 +81,7 @@ export function useMarkAllNotificationsRead() {
   return useMutation({
     mutationFn: async () => {
       if (!user?.id) throw new Error("Not authenticated");
-      const { markAllNotificationsRead } = await import('@/services/notifications/notificationService');
+      const { markAllNotificationsRead } = await import('@/features/notifications/services/notificationService');
       return markAllNotificationsRead(user.id);
     },
     onSuccess: () => {
@@ -135,7 +133,7 @@ export function useCreateNotification() {
 
   return useMutation({
     mutationFn: async (notification: Omit<Notification, 'id' | 'created_at' | 'is_read' | 'read_at'>) => {
-      const { createNotification } = await import('@/services/notifications/notificationService');
+      const { createNotification } = await import('@/features/notifications/services/notificationService');
       return createNotification(notification);
     },
     onSuccess: () => {

@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
-export type EscalationDecision = 'reject' | 'accept_observation' | 'upgrade_incident';
+export type EscalationDecision = 'reject' | 'accept_observation' | 'upgrade_incident' | 'approve_rejection' | 'reject_rejection';
 
 export interface EscalationReviewInput {
   incidentId: string;
@@ -172,7 +172,7 @@ export function useHSSEEscalationReview() {
       queryClient.invalidateQueries({ queryKey: ['incident'] });
       queryClient.invalidateQueries({ queryKey: ['investigation'] });
       
-      const messages: Record<EscalationDecision, { title: string; description: string }> = {
+      const messages: Record<string, { title: string; description: string }> = {
         reject: {
           title: "Escalation Rejected",
           description: "Observation returned to Department Representative",
@@ -186,6 +186,14 @@ export function useHSSEEscalationReview() {
           description: result.newIncidentId 
             ? "New incident created with investigation assigned"
             : "Observation has been upgraded to incident",
+        },
+        approve_rejection: {
+          title: "Rejection Approved",
+          description: "The rejection has been approved",
+        },
+        reject_rejection: {
+          title: "Rejection Rejected",
+          description: "The rejection has been sent back for review",
         },
       };
       

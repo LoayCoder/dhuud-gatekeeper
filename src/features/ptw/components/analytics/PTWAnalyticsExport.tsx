@@ -115,7 +115,7 @@ export function PTWAnalyticsExport({
     const result = await secureExportToCSV(
       user!.id,
       menuCode,
-      entityType as unknown,
+      entityType as any,
       permits as unknown as Record<string, unknown>[],
       columns,
       `ptw_permits_${getDateRangeString()}.csv`,
@@ -169,7 +169,7 @@ export function PTWAnalyticsExport({
     ];
 
     // Log export action
-    await logExport(entityType as unknown, 'excel', permits.length, { dateRange });
+    await logExport(entityType as any, 'excel', permits.length, { dateRange });
 
     exportToExcel(permits as unknown as Record<string, unknown>[], `ptw_permits_${getDateRangeString()}.xlsx`, columns);
     toast.success(t("common.exportSuccess", "Export completed"));
@@ -181,7 +181,7 @@ export function PTWAnalyticsExport({
     setIsExporting(true);
     try {
       // Log export action
-      await logExport(entityType as unknown, 'pdf', permits.length, { dateRange });
+      await logExport(entityType as any, 'pdf', permits.length, { dateRange });
 
       // Create a temporary container for PDF rendering
       const container = createPDFRenderContainer();

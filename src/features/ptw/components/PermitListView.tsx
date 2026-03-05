@@ -71,9 +71,9 @@ export function PermitListView({ permits, isLoading }: PermitListViewProps) {
   const [typeFilter, setTypeFilter] = useState<string>("all");
 
   // Filter permits
-  const filteredPermits = permits.filter((permit) => {
+  const filteredPermits = permits.filter((permit: any) => {
     const matchesSearch = 
-      permit.reference_id.toLowerCase().includes(search.toLowerCase()) ||
+      permit.reference_id?.toLowerCase().includes(search.toLowerCase()) ||
       permit.job_description?.toLowerCase().includes(search.toLowerCase()) ||
       permit.project?.name?.toLowerCase().includes(search.toLowerCase());
     
@@ -84,7 +84,7 @@ export function PermitListView({ permits, isLoading }: PermitListViewProps) {
   });
 
   // Get unique types from permits
-  const permitTypes = [...new Set(permits.map(p => p.permit_type?.code).filter(Boolean))];
+  const permitTypes = [...new Set(permits.map((p: any) => p.permit_type?.code).filter(Boolean))];
 
   if (isLoading) {
     return (
@@ -173,7 +173,7 @@ export function PermitListView({ permits, isLoading }: PermitListViewProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPermits.map((permit) => {
+              {filteredPermits.map((permit: any) => {
                 const IconComponent = permitTypeIcons[permit.permit_type?.code || ""] || FileWarning;
                 return (
                   <TableRow key={permit.id}>
@@ -206,11 +206,11 @@ export function PermitListView({ permits, isLoading }: PermitListViewProps) {
                     </TableCell>
                     <TableCell>
                       <Badge variant={statusVariants[permit.status] || "outline"}>
-                        {t(`ptw.status.${permit.status}`, permit.status)}
+                        {String(t(`ptw.status.${permit.status}`, permit.status))}
                       </Badge>
                     </TableCell>
                     <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
-                      {format(new Date(permit.planned_start_time), "MMM d, HH:mm")}
+                      {permit.planned_start_time ? format(new Date(permit.planned_start_time), "MMM d, HH:mm") : "-"}
                     </TableCell>
                     <TableCell>
                       <Button asChild variant="ghost" size="sm">

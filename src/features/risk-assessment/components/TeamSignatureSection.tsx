@@ -5,7 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SignaturePad, SignaturePadRef } from "@/components/ui/signature-pad";
-import type { RiskAssessmentTeamMember } from "@/hooks/risk-assessment";
+export interface RiskAssessmentTeamMember {
+  id: string;
+  user_id?: string;
+  role?: string;
+  signed_at?: string;
+  signature_data?: string;
+  user?: { full_name?: string };
+  [key: string]: unknown;
+}
 
 interface TeamSignatureSectionProps {
   teamMembers: RiskAssessmentTeamMember[];

@@ -30,7 +30,7 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
   const { t } = useTranslation();
   const { data: sites } = useSites();
   const { data: contractors } = useContractorCompanies();
-  const { data: contractorProjects } = useContractorProjects({ status: "active" });
+  const { data: contractorProjects } = useContractorProjects();
   const createProject = useCreatePTWProject();
 
   const [formData, setFormData] = useState({

@@ -48,7 +48,7 @@ export function PermitBasicsStep({ data, onChange }: PermitBasicsStepProps) {
   const isRTL = i18n.language === "ar" || i18n.language === "ur";
   
   const { data: permitTypes, isLoading: typesLoading } = usePTWTypes();
-  const { data: projects, isLoading: projectsLoading } = usePTWProjects({ status: "active" });
+  const { data: projects, isLoading: projectsLoading } = usePTWProjects();
   const { data: sites, isLoading: sitesLoading } = useSites();
   
   // Mobilization status check for selected project
