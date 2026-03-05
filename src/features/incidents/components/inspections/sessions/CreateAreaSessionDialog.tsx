@@ -159,7 +159,7 @@ export function CreateAreaSessionDialog({ open, onOpenChange }: CreateAreaSessio
       onOpenChange(false);
       navigate(`/inspections/sessions/${session.id}`);
     } catch (error: unknown) {
-      toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+      toast({ title: t('common.error'), description: (error as Error).message, variant: 'destructive' });
     }
   };
   

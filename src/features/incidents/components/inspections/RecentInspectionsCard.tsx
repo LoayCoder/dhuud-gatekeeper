@@ -72,7 +72,7 @@ export function RecentInspectionsCard() {
                   {getResultIcon(inspection.overall_result)}
                   <div>
                     <p className="text-sm font-medium">
-                      {(inspection.asset as unknown)?.name}
+                      {(inspection.asset as any)?.name}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {inspection.reference_id}
