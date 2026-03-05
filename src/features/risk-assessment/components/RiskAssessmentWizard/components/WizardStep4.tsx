@@ -6,7 +6,7 @@ import { CompactRiskMatrix } from "../../CompactRiskMatrix";
 import { RiskReductionSummary } from "../../RiskReductionSummary";
 import { HazardForm } from "../../HazardForm";
 
-export function WizardStep4({ state }: { state: unknown }) {
+export function WizardStep4({ state }: { state: any }) {
   const { t } = state;
   const {
     hazards, updateHazard, removeHazard

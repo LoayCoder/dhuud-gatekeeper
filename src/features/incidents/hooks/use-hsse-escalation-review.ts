@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
-export type EscalationDecision = 'reject' | 'accept_observation' | 'upgrade_incident';
+export type EscalationDecision = 'reject' | 'accept_observation' | 'upgrade_incident' | 'approve_rejection' | 'reject_rejection';
 
 export interface EscalationReviewInput {
   incidentId: string;

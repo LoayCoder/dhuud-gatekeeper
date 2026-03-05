@@ -20,8 +20,7 @@ export * from './components/environmental-impact/EnvironmentalContaminationForm/
 export * from './components/environmental-impact/EnvironmentalContaminationForm/components/SectionE';
 export * from './components/environmental-impact/EnvironmentalContaminationForm/components/SectionF';
 export * from './components/environmental-impact/EnvironmentalContaminationForm/hooks/useEnvironmentalContaminationForm';
-export * from './components/environmental-impact/EnvironmentalContaminationForm/EnvironmentalContaminationForm';
-export * from './components/environmental-impact/EnvironmentalContaminationForm';
+export { EnvironmentalContaminationForm } from './components/environmental-impact/EnvironmentalContaminationForm/EnvironmentalContaminationForm';
 export * from './components/environmental-impact/EnvironmentalContaminationForm/types';
 export * from './components/environmental-impact/EnvironmentalContaminationCard';
 export * from './components/environmental-impact/EnvironmentalImpactPanel';
@@ -89,7 +88,7 @@ export * from './components/IncidentClosurePrerequisitesCard';
 export * from './components/IncidentClosureRequestDialog';
 export * from './components/IncidentClosureSignatureDialog';
 export * from './components/IncidentInfoCard';
-export * from './components';
+// Removed: export * from './components' — individual exports above prevent ambiguity
 export * from './components/InjuryPanel';
 export * from './components/InvestigationListView';
 export * from './components/InvestigationReadinessDialog';

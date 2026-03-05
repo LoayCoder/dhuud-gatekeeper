@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { NotificationChannel } from '@/components/notifications/ChannelIcon';
-import type { DeliveryStatus } from '@/components/notifications/DeliveryStatusBadge';
+export type NotificationChannel = 'email' | 'sms' | 'whatsapp' | 'push' | 'in_app';
+export type DeliveryStatus = 'pending' | 'sent' | 'delivered' | 'failed' | 'bounced' | 'complained' | 'read';
 
 export type NotificationSource = 'manual' | 'incident' | 'hsse' | 'all';
 

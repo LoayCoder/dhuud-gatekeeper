@@ -60,6 +60,7 @@ export interface RootCauseEntry {
     id: string;
     text: string;
     category?: string;
+    added_at?: string;
 }
 
 // Extends the base InvestigationRecord with parsed JSON fields
