@@ -86,6 +86,7 @@ export * from './hooks/use-asset-transfers';
 export * from './hooks/use-asset-trash';
 export * from './hooks/use-asset-type-parts';
 export * from './hooks/use-asset-uploads';
-export * from './hooks/use-assets';
-export { getNextAssetSequence, generateAssetCode, generateSequentialCodes, type AssetInsert, type AssetUpdate } from './services/assetMutationService';
-// assetQueryService re-exports handled by use-assets
+// use-assets re-exports some from services, so skip wildcard re-exports to avoid ambiguity
+export { useAssets, useCreateAsset, useUpdateAsset, useSoftDeleteAsset, useAssetCategories, useAssetTypes, useAssetSubtypes, useBulkCreateAssets } from './hooks/use-assets';
+export { AssetFilters, AssetWithRelations, getAssetCategories, getAssetTypes, getAssetSubtypes, getAssets, getAssetById } from './services/assetQueryService';
+export { getNextAssetSequence, generateAssetCode, generateSequentialCodes, createAsset, updateAsset, softDeleteAsset, createBulkAssets } from './services/assetMutationService';
