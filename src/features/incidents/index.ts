@@ -198,3 +198,4 @@ export * from './hooks/use-inspection-categories';
 export * from './hooks/use-observation-ai-validator';
 export * from './hooks/use-action-evidence';
 export * from './hooks/use-action-extensions';
+export * from './hooks/use-observation-trends';
