@@ -16,7 +16,7 @@ export async function getRiskAssessment(id: string, _tenantId?: string) {
   return data;
 }
 
-export async function createRiskAssessment(assessment: any, _tenantId?: string) {
+export async function createRiskAssessment(assessment: any, _tenantId?: string, _userId?: string) {
   const { data, error } = await (supabase as any).from('risk_assessments').insert(assessment).select().single();
   if (error) throw error;
   return data;
@@ -45,13 +45,13 @@ export async function rejectRiskAssessment(id: string, userId: string, notes?: s
   return updateRiskAssessment(id, { status: 'rejected', rejected_by: userId, rejected_at: new Date().toISOString(), rejection_notes: notes });
 }
 
-export async function getRiskAssessmentDetails(assessmentId: string) {
+export async function getRiskAssessmentDetails(assessmentId: string, _tenantId?: string) {
   const { data, error } = await (supabase as any).from('risk_assessment_hazards').select('*').eq('assessment_id', assessmentId).is('deleted_at', null);
   if (error) throw error;
   return data || [];
 }
 
-export async function createRiskDetail(detail: any) {
+export async function createRiskDetail(detail: any, _tenantId?: string) {
   const { data, error } = await (supabase as any).from('risk_assessment_hazards').insert(detail).select().single();
   if (error) throw error;
   return data;
@@ -68,7 +68,8 @@ export async function deleteRiskDetail(id: string) {
   if (error) throw error;
 }
 
-export async function bulkCreateRiskDetails(details: any[]) {
+export async function bulkCreateRiskDetails(assessmentId: string, hazards: any[], _tenantId?: string) {
+  const details = hazards.map(h => ({ ...h, risk_assessment_id: assessmentId }));
   const { data, error } = await (supabase as any).from('risk_assessment_hazards').insert(details).select();
   if (error) throw error;
   return data || [];

@@ -287,13 +287,13 @@ export function useSecuritySupervisors() {
     });
 }
 
-export function useSecurityShifts() {
+export function useReportSecurityShifts() {
     return useQuery({
-        queryKey: ['security-shifts'],
+        queryKey: ['security-shifts-report'],
         queryFn: async () => {
             const { data, error } = await supabase
                 .from('security_shifts')
-                .select('id, name, start_time, end_time')
+                .select('id, shift_name, start_time, end_time')
                 .is('deleted_at', null)
                 .order('start_time');
 
@@ -303,9 +303,9 @@ export function useSecurityShifts() {
     });
 }
 
-export function useSecurityZones() {
+export function useReportSecurityZones() {
     return useQuery({
-        queryKey: ['security-zones'],
+        queryKey: ['security-zones-report'],
         queryFn: async () => {
             const { data, error } = await supabase
                 .from('security_zones')
