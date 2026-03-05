@@ -24,7 +24,7 @@ export function useNotifications(limit = 20) {
     queryFn: async () => {
       if (!user?.id) return [];
 
-      const { getNotifications } = await import('@/services/notifications/notificationService');
+      const { getNotifications } = await import('@/features/notifications/services/notificationService');
 
       try {
         const data = await getNotifications(user.id, limit);

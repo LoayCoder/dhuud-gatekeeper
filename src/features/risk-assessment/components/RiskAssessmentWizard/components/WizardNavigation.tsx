@@ -2,7 +2,7 @@ import React from "react";
 import { ChevronLeft, ChevronRight, Save, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function WizardNavigation({ state }: { state: unknown }) {
+export function WizardNavigation({ state }: { state: any }) {
   const { t, isRTL } = state;
   const {
     currentStep, setCurrentStep,
