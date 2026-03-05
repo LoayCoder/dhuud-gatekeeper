@@ -67,7 +67,7 @@ export function WizardStep1({ state }: { state: any }) {
                   <SelectValue placeholder={t("risk.project.selectPlaceholder", "Choose a project...")} />
                 </SelectTrigger>
                 <SelectContent>
-                  {projects?.map((project: unknown) => (
+                  {projects?.map((project: any) => (
                     <SelectItem key={project.id} value={project.id}>
                       <div className="flex items-center gap-2">
                         <span>{project.project_name}</span>

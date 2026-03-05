@@ -206,7 +206,7 @@ export function PermitListView({ permits, isLoading }: PermitListViewProps) {
                     </TableCell>
                     <TableCell>
                       <Badge variant={statusVariants[permit.status] || "outline"}>
-                        {t(`ptw.status.${permit.status}`, permit.status)}
+                        {String(t(`ptw.status.${permit.status}`, permit.status))}
                       </Badge>
                     </TableCell>
                     <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
