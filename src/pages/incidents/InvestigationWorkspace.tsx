@@ -86,26 +86,15 @@ export default function InvestigationWorkspace() {
 
   // Type assertion for incident fields not in generated types yet
   const incidentData = selectedIncident as any;
-    'investigation_pending',
-    'under_investigation',
-    'investigation_in_progress',
-    'pending_closure',
-    'pending_final_closure',
-    'investigation_closed',
-    'closed',
-    'monitoring_30_day',
-    'monitoring_60_day',
-    'monitoring_90_day',
-    'pending_hsse_incident_validation',
-    // Contractor consultant workflow statuses
-    'expert_screening',
-    'pending_consultant_screening',
-    'pending_consultant_review',
-    'pending_consultant_actions',
-    'pending_site_client_approval',
-    'pending_contractor_implementation',
-    'pending_consultant_verification',
-  ].includes(status);
+  const investigationAllowedStatuses = [
+    'investigation_pending', 'under_investigation', 'investigation_in_progress',
+    'pending_closure', 'pending_final_closure', 'investigation_closed', 'closed',
+    'monitoring_30_day', 'monitoring_60_day', 'monitoring_90_day',
+    'pending_hsse_incident_validation', 'expert_screening', 'pending_consultant_screening',
+    'pending_consultant_review', 'pending_consultant_actions', 'pending_site_client_approval',
+    'pending_contractor_implementation', 'pending_consultant_verification',
+  ];
+  const investigationAllowed2 = status && investigationAllowedStatuses.includes(status);
 
 
 
