@@ -53,17 +53,13 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Stethoscope } from "lucide-react";
 import { EmailSyncBanner } from "@/features/users";
 import { LicensedUserQuotaCard } from "@/components/billing/LicensedUserQuotaCard";
-import { useLicensedUserQuota } from "@/hooks/use-licensed-user-quota";
-import { getUserTypeLabel, getContractorType } from "@/lib/license-utils";
-import { useAdminAuditLog, detectUserChanges } from "@/hooks/use-admin-audit-log";
+import { useAdminAuditLog, detectUserChanges } from "@/features/admin/hooks/use-admin-audit-log";
 import { ManagerTeamViewer } from "@/components/hierarchy/ManagerTeamViewer";
-import { useUserRoles, RoleCategory } from "@/hooks/use-user-roles";
+import { useUserRoles } from "@/features/users";
+import type { RoleCategory } from "@/features/users";
 import { RoleBadge } from "@/components/roles/RoleBadge";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useUsersPaginated, UserWithRoles, UseUsersPaginatedFilters } from "@/hooks/use-users-paginated";
-import { ExportColumn } from "@/lib/export-utils";
-import { performSecureExport, type ReportColumn } from "@/lib/secure-export";
-import { UserStatsCards } from "@/features/users";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
@@ -85,12 +81,21 @@ export default function UserManagement() {
   const statusActions = useUserManagementStatusActions(state, data);
   const coreActions = { ...saveActions, ...statusActions };
   const extraActions = useUserManagementExtraActions(state, data);
-  const actions = { ...coreActions, ...extraActions };
+  const allProps = { ...state, ...data, ...actions } as any;
+  const {
+    users = [], selectedUsers = new Set<string>(), setSelectedUsers = () => {},
+    userTypeFilter = 'all', statusFilter = 'all', branchFilter = 'all',
+    divisionFilter = 'all', roleFilter = 'all',
+    totalCount = 0, loading = false, direction = 'ltr', t = (k: string) => k,
+    exporting = false, handleExport = () => {}, handleAddUser = () => {},
+    setIsImportDialogOpen = () => {}, refetchUsers = () => {},
+    handleBulkActionClick = () => {}, quota = null, breakdown = null, quotaLoading = false,
+    activeFilterCount: _afc, clearAllFilters = () => {},
+  } = allProps;
 
-  const allSelected = users.length > 0 && users.every(u => selectedUsers.has(u.id));
-  const someSelected = users.some(u => selectedUsers.has(u.id)) && !allSelected;
+  const allSelected = users.length > 0 && users.every((u: any) => selectedUsers.has?.(u.id));
+  const someSelected = users.some((u: any) => selectedUsers.has?.(u.id)) && !allSelected;
 
-  // Count active filters
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (userTypeFilter !== 'all') count++;
@@ -102,12 +107,8 @@ export default function UserManagement() {
   }, [userTypeFilter, statusFilter, branchFilter, divisionFilter, roleFilter]);
 
   const userStats = useMemo(() => {
-    const activeUsers = users.filter(u => u.is_active).length;
-    return {
-      total: totalCount,
-      active: activeUsers,
-      inactive: totalCount - activeUsers,
-    };
+    const activeUsers = users.filter((u: any) => u.is_active).length;
+    return { total: totalCount, active: activeUsers, inactive: totalCount - activeUsers };
   }, [users, totalCount]);
 
   return (
@@ -118,38 +119,6 @@ export default function UserManagement() {
           <p className="text-muted-foreground">{t('userManagement.description')}</p>
         </div>
         <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2" disabled={exporting}>
-                {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                {t('userManagement.export')}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleExport('csv')}>
-                {t('userManagement.exportCSV')}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('xlsx')}>
-                {t('userManagement.exportExcel')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <Stethoscope className="h-4 w-4" />
-                {t('userManagement.diagnostics', 'Diagnostics')}
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-full sm:max-w-xl">
-              <SheetHeader>
-                <SheetTitle>{t('userManagement.accountDiagnostics', 'Account Diagnostics')}</SheetTitle>
-              </SheetHeader>
-              <div className="mt-4">
-                <UserDiagnosticPanel />
-              </div>
-            </SheetContent>
-          </Sheet>
           <Button variant="outline" onClick={() => setIsImportDialogOpen(true)} className="gap-2">
             <Upload className="h-4 w-4" />
             {t('userManagement.importUsers')}
@@ -161,24 +130,14 @@ export default function UserManagement() {
         </div>
       </div>
 
-      {/* User Stats Cards */}
-      <UserStatsCards
-        totalUsers={userStats.total}
-        activeUsers={userStats.active}
-        inactiveUsers={userStats.inactive}
-        isLoading={loading}
-      />
-
-      <LicensedUserQuotaCard quota={quota} breakdown={breakdown} isLoading={quotaLoading} showUpgradeCta={true} />
+      <LicensedUserQuotaCard quota={quota} isLoading={quotaLoading} />
 
       <EmailSyncBanner onSyncComplete={refetchUsers} />
 
-
-      <UserManagementFilters {...state} {...data} {...actions} activeFilterCount={activeFilterCount} clearAllFilters={actions.clearAllFilters} />
+      <UserManagementFilters {...allProps} activeFilterCount={activeFilterCount} clearAllFilters={clearAllFilters} />
 
       <InvitationManagementPanel />
 
-      {/* Bulk Actions Toolbar */}
       {selectedUsers.size > 0 && (
         <Card className="border-primary/50 bg-primary/5">
           <CardContent className="py-3">
@@ -192,25 +151,13 @@ export default function UserManagement() {
                 </Button>
               </div>
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleBulkActionClick('activate')}
-                >
+                <Button variant="outline" size="sm" onClick={() => handleBulkActionClick('activate')}>
                   {t('userManagement.bulkActivate')}
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleBulkActionClick('deactivate')}
-                >
+                <Button variant="outline" size="sm" onClick={() => handleBulkActionClick('deactivate')}>
                   {t('userManagement.bulkDeactivate')}
                 </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleBulkActionClick('delete')}
-                >
+                <Button variant="destructive" size="sm" onClick={() => handleBulkActionClick('delete')}>
                   {t('userManagement.bulkDelete')}
                 </Button>
               </div>
@@ -219,9 +166,9 @@ export default function UserManagement() {
         </Card>
       )}
 
-      <UserManagementTable {...state} {...data} {...actions} allSelected={allSelected} someSelected={someSelected} />
+      <UserManagementTable {...allProps} allSelected={allSelected} someSelected={someSelected} />
 
-      <UserManagementModals {...state} {...data} {...actions} />
+      <UserManagementModals {...allProps} />
     </div>
   );
 }

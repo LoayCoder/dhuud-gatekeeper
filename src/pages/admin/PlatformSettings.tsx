@@ -249,8 +249,8 @@ export default function PlatformSettings() {
                       <span className="font-medium capitalize">{category.replace(/([A-Z])/g, ' $1').trim()}</span>
                       <span className="text-muted-foreground">
                         {typeof data === 'object' && data !== null
-                          ? Object.values(data as Record<string, unknown>).reduce((a: number, b: unknown) => a + (typeof b === 'number' ? b : 0), 0)
-                          : String(data)
+                          ? String(Object.values(data as Record<string, unknown>).reduce((a: number, b: unknown) => a + (typeof b === 'number' ? b : 0), 0))
+                          : String(data as any)
                         }
                       </span>
                     </div>
