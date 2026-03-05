@@ -256,7 +256,7 @@ export function GuardSiteAssignments() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Building2 className="h-4 w-4" />
-                  {guard?.full_name || 'Unknown Guard'}
+                  {(guard as any)?.full_name || 'Unknown Guard'}
                 </CardTitle>
               </CardHeader>
               <CardContent>
