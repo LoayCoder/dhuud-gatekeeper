@@ -1,6 +1,6 @@
 ﻿
-import { RuleFormState as ImportedRuleFormState } from './types';
-import { getInitialFormState as importedGetInitialFormState } from './utils';
+import { RuleFormState } from './types';
+import { getInitialFormState } from './utils';
 import { RuleFormFields } from './components/RuleFormFields';
 import { RulesTable } from './components/RulesTable';
 import { useState, useMemo } from 'react';
@@ -272,9 +272,9 @@ export function NotificationMatrixManagement() {
       condition_type: firstRule.condition_type,
       user_id: isUserSpecific ? firstRule.user_id : null,
       isUserSpecific,
-      whatsapp_template_id: (firstRule as any).whatsapp_template_id || null,
-      email_template_id: (firstRule as any).email_template_id || null,
-      push_template_id: (firstRule as any).push_template_id || null,
+      whatsapp_template_id: (firstRule as unknown).whatsapp_template_id || null,
+      email_template_id: (firstRule as unknown).email_template_id || null,
+      push_template_id: (firstRule as unknown).push_template_id || null,
       event_type: activeEventType,
     });
     
@@ -484,9 +484,9 @@ export function NotificationMatrixManagement() {
             users={users || []}
             getRoleLabel={getRoleLabel}
             getSeverityLabel={getSeverityLabel}
-            emailTemplates={emailTemplates as any}
-            whatsappTemplates={whatsappTemplates as any}
-            pushTemplates={pushTemplates as any}
+            emailTemplates={emailTemplates}
+            whatsappTemplates={whatsappTemplates}
+            pushTemplates={pushTemplates}
           />
 
           <DialogFooter className="gap-2 sm:gap-0">
@@ -519,9 +519,9 @@ export function NotificationMatrixManagement() {
             users={users || []}
             getRoleLabel={getRoleLabel}
             getSeverityLabel={getSeverityLabel}
-            emailTemplates={emailTemplates as any}
-            whatsappTemplates={whatsappTemplates as any}
-            pushTemplates={pushTemplates as any}
+            emailTemplates={emailTemplates}
+            whatsappTemplates={whatsappTemplates}
+            pushTemplates={pushTemplates}
           />
 
           <DialogFooter className="gap-2 sm:gap-0">

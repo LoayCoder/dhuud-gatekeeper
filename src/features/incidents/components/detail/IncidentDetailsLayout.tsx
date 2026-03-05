@@ -8,7 +8,7 @@ import { IncidentActionsTab } from './IncidentActionsTab';
 import { AuditLogPanel } from '@/features/investigation';
 
 interface IncidentDetailsLayoutProps {
-    incident: any;
+    incident: unknown;
     currentOwner?: { role: string; name: string | null } | null;
     isPrinting?: boolean;
 }

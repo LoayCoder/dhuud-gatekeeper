@@ -97,7 +97,7 @@ export function useAreaInspectionResponses(sessionId: string | undefined) {
             return (data || []).map(item => ({
                 ...item,
                 photo_paths: Array.isArray(item.photo_paths) ? item.photo_paths : [],
-            })) as unknown as AreaInspectionResponse[];
+            })) as AreaInspectionResponse[];
         },
         enabled: !!sessionId,
     });

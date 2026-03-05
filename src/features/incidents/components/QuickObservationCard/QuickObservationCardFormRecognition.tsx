@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { RECOGNITION_TYPES } from './types';
 
-export function QuickObservationCardFormRecognition({ state, form }: any) {
+export function QuickObservationCardFormRecognition({ state, form }: unknown) {
   const { t, i18n } = useTranslation();
   const { isPositiveObservation, selectedSubtype, isAgainstContractor, locationFilteredContractorCompanies, recognitionType, tenantUsers, departments, contractorWorkers } = state;
   return (

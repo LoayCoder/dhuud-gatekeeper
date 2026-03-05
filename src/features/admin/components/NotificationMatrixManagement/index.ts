@@ -1,1 +1,1 @@
-export { NotificationMatrixManagement } from './NotificationMatrixManagement';
+export { default } from './NotificationMatrixManagement';

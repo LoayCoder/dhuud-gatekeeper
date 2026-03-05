@@ -116,8 +116,8 @@ export async function createAsset(asset: Omit<AssetInsert, 'tenant_id' | 'create
             if (existing) {
                 if (attempt < MAX_CREATE_RETRIES) continue;
                 const err = new Error(`DuplicateCodeError: ${currentAsset.asset_code}`);
-                (err as any).code = '23505';
-                (err as any).assetCode = currentAsset.asset_code;
+                (err as Record<string, unknown>).code = '23505';
+                (err as Record<string, unknown>).assetCode = currentAsset.asset_code;
                 throw err;
             }
 
@@ -135,8 +135,8 @@ export async function createAsset(asset: Omit<AssetInsert, 'tenant_id' | 'create
                 if (error.code === '23505' && attempt < MAX_CREATE_RETRIES) continue;
                 if (error.code === '23505') {
                     const err = new Error(`DuplicateCodeError: ${currentAsset.asset_code}`);
-                    (err as any).code = '23505';
-                    (err as any).assetCode = currentAsset.asset_code;
+                    (err as Record<string, unknown>).code = '23505';
+                    (err as Record<string, unknown>).assetCode = currentAsset.asset_code;
                     throw err;
                 }
                 throw error;
@@ -207,7 +207,7 @@ export async function createBulkAssets(baseAsset: Omit<AssetInsert, 'tenant_id' 
     if (error) {
         if (error.code === '23505') {
             const err = new Error('ConstraintError');
-            (err as any).code = '23505';
+            (err as Record<string, unknown>).code = '23505';
             throw err;
         }
         throw error;

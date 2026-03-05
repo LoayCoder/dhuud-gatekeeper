@@ -138,7 +138,7 @@ export function CreateAuditSessionDialog({ open, onOpenChange }: CreateAuditSess
       onOpenChange(false);
       navigate(`/inspections/audit/${session.id}`);
     } catch (error: unknown) {
-      toast({ title: t('common.error'), description: (error as Error).message, variant: 'destructive' });
+      toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
     }
   };
   

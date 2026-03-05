@@ -55,7 +55,7 @@ export function GateLogTable() {
           )}
         </div>
         <Badge className={`${ENTRY_TYPE_COLORS[entry.entry_type] || ''} text-[10px] flex-shrink-0`} variant="secondary">
-          {String(t(`security.entryTypes.${entry.entry_type}`, entry.entry_type))}
+          {t(`security.entryTypes.${entry.entry_type}`, entry.entry_type)}
         </Badge>
       </div>
 
@@ -235,7 +235,7 @@ export function GateLogTable() {
                         </TableCell>
                         <TableCell>
                           <Badge className={ENTRY_TYPE_COLORS[entry.entry_type] || ''} variant="secondary">
-                            {String(t(`security.entryTypes.${entry.entry_type}`, entry.entry_type))}
+                            {t(`security.entryTypes.${entry.entry_type}`, entry.entry_type)}
                           </Badge>
                         </TableCell>
                         <TableCell>

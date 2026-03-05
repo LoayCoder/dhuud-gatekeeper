@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useInspectionTemplates } from '@/features/incidents';
-import { useCreateSession, useStartSession } from '@/features/incidents/hooks/use-inspection-sessions';
+import { useCreateSession, useStartSession } from '@/features/incidents';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
@@ -122,7 +122,7 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
       onOpenChange(false);
       navigate(`/inspections/sessions/${session.id}`);
     } catch (error: unknown) {
-      toast({ title: t('common.error'), description: (error as Error).message, variant: 'destructive' });
+      toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
     }
   };
   

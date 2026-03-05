@@ -172,7 +172,7 @@ export function GuardSiteAssignments() {
                 <Label>{t('security.siteAssignment.type', 'Assignment Type')}</Label>
                 <Select 
                   value={formData.assignment_type} 
-                  onValueChange={(v) => setFormData({ ...formData, assignment_type: v as 'permanent' | 'temporary' | 'floating' })}
+                  onValueChange={(v) => setFormData({ ...formData, assignment_type: v as unknown })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -256,7 +256,7 @@ export function GuardSiteAssignments() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Building2 className="h-4 w-4" />
-                  {(guard as any)?.full_name || 'Unknown Guard'}
+                  {guard?.full_name || 'Unknown Guard'}
                 </CardTitle>
               </CardHeader>
               <CardContent>

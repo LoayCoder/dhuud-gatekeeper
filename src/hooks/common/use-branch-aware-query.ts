@@ -62,7 +62,7 @@ export function useBranchAwareQuery<T>(
         then: (onfulfilled: (res: { data: T[]; error: Error | null }) => unknown) => Promise<unknown>;
       };
 
-      // Dynamic type instantiation workaround
+      // @ts-expect-error Dynamic type instantiation
       let query = supabase
         .from(options.tableName as never)
         .select(options.selectColumns as '*')

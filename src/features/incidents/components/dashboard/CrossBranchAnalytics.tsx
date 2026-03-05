@@ -135,7 +135,7 @@ export function CrossBranchAnalytics({
                 </SelectItem>
                 {branches?.map((branch) => (
                   <SelectItem key={branch.id} value={branch.id}>
-                    {isRTL ? (branch as any).name_ar || branch.name : branch.name}
+                    {isRTL ? (branch as unknown).name_ar || branch.name : branch.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -163,7 +163,7 @@ export function CrossBranchAnalytics({
                 </SelectItem>
                 {branches?.map((branch) => (
                   <SelectItem key={branch.id} value={branch.id}>
-                    {isRTL ? (branch as any).name_ar || branch.name : branch.name}
+                    {isRTL ? (branch as unknown).name_ar || branch.name : branch.name}
                   </SelectItem>
                 ))}
               </SelectContent>

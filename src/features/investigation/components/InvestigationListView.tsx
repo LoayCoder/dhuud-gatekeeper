@@ -143,7 +143,7 @@ export function InvestigationListView() {
                 <div className="grid grid-cols-1 gap-4">
                     {displayedIncidents.map((incident) => {
                         // Use severity_v2 if available, fallback to severity
-                        const severity = (incident as any).severity_v2 || incident.severity;
+                        const severity = (incident as unknown).severity_v2 || incident.severity;
                         const priorityColor = getPriorityColor(severity);
                         const priorityLabel = getPriorityLabel(severity);
                         const sla = calculateInvestigationSLA(incident.created_at || new Date().toISOString(), severity);

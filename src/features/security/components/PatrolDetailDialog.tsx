@@ -34,8 +34,7 @@ interface PatrolDetailDialogProps {
 
 export function PatrolDetailDialog({ patrolId, open, onOpenChange }: PatrolDetailDialogProps) {
   const { t } = useTranslation();
-  const { data: patrolData, isLoading } = useSecurityPatrol(patrolId);
-  const patrol = patrolData as any;
+  const { data: patrol, isLoading } = useSecurityPatrol(patrolId);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
   const getPhotoUrl = (path: string) => {
@@ -98,7 +97,7 @@ export function PatrolDetailDialog({ patrolId, open, onOpenChange }: PatrolDetai
                       <User className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">{t('security.patrols.history.guard', 'Guard')}</p>
-                        <p className="font-medium">{patrol.guard?.full_name || 'Unknown'}</p>
+                        <p className="font-medium">{(patrol.guard as unknown as { full_name: string } | null)?.full_name || 'Unknown'}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -129,7 +128,7 @@ export function PatrolDetailDialog({ patrolId, open, onOpenChange }: PatrolDetai
                 <TabsContent value="checkpoints" className="mt-4">
                   <div className="space-y-3">
                     {patrol.logs && patrol.logs.length > 0 ? (
-                      patrol.logs.map((log: any) => (
+                      patrol.logs.map((log: unknown) => (
                         <Card key={log.id} className="border-s-4 border-s-primary">
                           <CardContent className="pt-4">
                             <div className="flex items-start justify-between">
@@ -196,9 +195,9 @@ export function PatrolDetailDialog({ patrolId, open, onOpenChange }: PatrolDetai
 
                 <TabsContent value="evidence" className="mt-4">
                   <div className="space-y-4">
-                    {patrol.logs?.some((log: any) => log.photo_paths?.length > 0) ? (
+                    {patrol.logs?.some((log: unknown) => log.photo_paths?.length > 0) ? (
                       <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
-                        {patrol.logs.flatMap((log: any) =>
+                        {patrol.logs.flatMap((log: unknown) =>
                           (log.photo_paths || []).map((photo: string, idx: number) => (
                             <button
                               key={`${log.id}-${idx}`}

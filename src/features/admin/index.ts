@@ -37,7 +37,7 @@ export * from './components/id-cards/settings';
 export * from './components/id-cards/settings/TestPrintButton';
 export * from './components/id-cards/IDCardActionButton';
 export * from './components/id-cards/IDCardPreviewDialog';
-// export * from './components/id-cards'; // already exported above individually
+export * from './components/id-cards';
 export * from './components/NotificationMatrixManagement/components/ChannelIcon';
 export * from './components/NotificationMatrixManagement/components/RuleFormFields';
 export * from './components/NotificationMatrixManagement/components/RulesTable';

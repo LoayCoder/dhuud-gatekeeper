@@ -41,14 +41,14 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
 
   const [notes, setNotes] = useState("");
   const [screeningSeverity, setScreeningSeverity] = useState<SeverityLevelV2 | undefined>(
-    (incident as any).severity_v2 as SeverityLevelV2 | undefined
+    incident.severity_v2 as SeverityLevelV2 | undefined
   );
   const [showReturnDialog, setShowReturnDialog] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [showNoInvestigationDialog, setShowNoInvestigationDialog] = useState(false);
 
   const { data: canScreen } = useCanPerformExpertScreening();
-  const { data: departmentManager, isLoading: loadingManager } = useIncidentDepartmentManager((incident as any).id);
+  const { data: departmentManager, isLoading: loadingManager } = useIncidentDepartmentManager(incident.id);
   const expertScreening = useExpertScreening();
 
   if (!canScreen) {
@@ -57,10 +57,10 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
 
   const handleRecommendInvestigation = () => {
     expertScreening.mutate({
-      incidentId: (incident as any).id,
+      incidentId: incident.id,
       recommendation: 'investigate',
       notes,
-      newSeverity: screeningSeverity !== (incident as any).severity_v2 ? screeningSeverity : undefined,
+      newSeverity: screeningSeverity !== incident.severity_v2 ? screeningSeverity : undefined,
     }, {
       onSuccess: onComplete,
     });
@@ -68,7 +68,7 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
 
   const handleReturn = (reason: string, instructions: string) => {
     expertScreening.mutate({
-      incidentId: (incident as any).id,
+      incidentId: incident.id,
       recommendation: 'return',
       notes,
       returnReason: reason,
@@ -83,7 +83,7 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
 
   const handleReject = (reason: string) => {
     expertScreening.mutate({
-      incidentId: (incident as any).id,
+      incidentId: incident.id,
       recommendation: 'reject',
       notes,
       rejectionReason: reason,
@@ -97,7 +97,7 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
 
   const handleNoInvestigation = (justification: string) => {
     expertScreening.mutate({
-      incidentId: (incident as any).id,
+      incidentId: incident.id,
       recommendation: 'no_investigation',
       notes,
       noInvestigationJustification: justification,
@@ -112,7 +112,7 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
   // Handler for assigning actions (observation workflow)
   const handleAssignActions = () => {
     expertScreening.mutate({
-      incidentId: (incident as any).id,
+      incidentId: incident.id,
       recommendation: 'assign_actions',
       notes,
     }, {
@@ -121,7 +121,7 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
   };
 
   // Check if this is an observation
-  const isObservation = (incident as any).event_type === 'observation';
+  const isObservation = incident.event_type === 'observation';
 
   return (
     <>
@@ -195,9 +195,9 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
                   </SelectContent>
                 </Select>
 
-                {screeningSeverity !== (incident as any).severity_v2 && (
+                {screeningSeverity !== incident.severity_v2 && (
                   <div className="text-xs text-amber-600 flex items-center gap-1 bg-amber-50 p-2 rounded">
-                    <span>Changed from <strong>{(incident as any).severity_v2 ? t(`severity.${(incident as any).severity_v2}.label`) : 'N/A'}</strong>. This will require Department Manager approval.</span>
+                    <span>Changed from <strong>{incident.severity_v2 ? t(`severity.${incident.severity_v2}.label`) : 'N/A'}</strong>. This will require Department Manager approval.</span>
                   </div>
                 )}
               </div>

@@ -13,11 +13,7 @@ import { format, differenceInDays, differenceInMinutes, isPast, isFuture, addDay
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNetworkStatus } from '@/hooks/use-network-status';
-import { ZoneSelector, QRScanResult } from './GateQRScanner';
-const GateQRScanner = ({ open, onOpenChange, onScanResult, expectedType }: any) => {
-  // Placeholder - QR scanner component
-  return null;
-};
+import { GateQRScanner, QRScanResult } from './GateQRScanner';
 import { useGateScan } from '@/contexts/GateScanContext';
 
 interface WorkerVerificationResult {

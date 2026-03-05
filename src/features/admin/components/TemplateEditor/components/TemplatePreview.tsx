@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { SYSTEM_VARIABLES } from '../constants';
 
-export function TemplatePreview({ state }: { state: any }) {
+export function TemplatePreview({ state }: { state: unknown }) {
   const {
     showWhatsAppFields, showEmailFields, getPreviewMessage, getPreviewSubject,
     formData, previewData, setPreviewData

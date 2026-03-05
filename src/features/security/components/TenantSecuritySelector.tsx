@@ -47,7 +47,7 @@ export function TenantSecuritySelector({ selectedTenantId, onTenantChange }: Ten
           .select("roles!inner(code)")
           .eq("user_id", user.id);
 
-        const hasAdminRole = roleAssignment?.some((r: any) => r.roles?.code === "admin");
+        const hasAdminRole = roleAssignment?.some((r: unknown) => r.roles?.code === "admin");
         setIsAdmin(!!hasAdminRole);
 
         if (hasAdminRole) {

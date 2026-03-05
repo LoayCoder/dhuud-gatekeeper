@@ -169,7 +169,7 @@ export function ShiftHandoverForm({ onSuccess }: ShiftHandoverFormProps) {
               className="flex items-center justify-between gap-2 p-2 rounded-lg bg-muted"
             >
               <div className="flex items-center gap-2 flex-1">
-                <Badge variant={getPriorityColor(issue.priority) as any}>
+                <Badge variant={getPriorityColor(issue.priority) as unknown}>
                   {issue.priority}
                 </Badge>
                 <span className="text-sm">{issue.description}</span>
@@ -194,7 +194,7 @@ export function ShiftHandoverForm({ onSuccess }: ShiftHandoverFormProps) {
             />
             <Select
               value={newIssuePriority}
-              onValueChange={(v) => setNewIssuePriority(v as any)}
+              onValueChange={(v) => setNewIssuePriority(v as unknown)}
             >
               <SelectTrigger className="w-28">
                 <SelectValue />

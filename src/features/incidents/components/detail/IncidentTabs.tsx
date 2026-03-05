@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 import { Incident } from "@/types/incident.types";
 
 interface IncidentTabsProps {
-    incident: any;
+    incident: unknown;
     isPrinting?: boolean;
 }
 

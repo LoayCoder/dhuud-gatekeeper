@@ -213,8 +213,8 @@ export function FindingsPanel({ sessionId, isLocked }: FindingsPanelProps) {
                           )}
                           {/* SLA Countdown Timer */}
                           <FindingSLACountdownTimer
-                            dueDate={(finding as any).due_date}
-                            escalationLevel={(finding as any).escalation_level ?? 0}
+                            dueDate={(finding as unknown).due_date}
+                            escalationLevel={(finding as unknown).escalation_level ?? 0}
                             status={finding.status}
                             classification={finding.classification}
                           />

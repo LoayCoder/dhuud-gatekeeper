@@ -41,7 +41,7 @@ import {
   type ImportMode,
 } from '@/lib/asset-hierarchy-import-utils';
 import { useBulkImportAssetHierarchy, type ImportProgress } from '@/hooks/use-bulk-import-asset-hierarchy';
-import { AssetHierarchyValidationEditor } from './AssetHierarchyValidationEditor';
+import AssetHierarchyValidationEditor from './AssetHierarchyValidationEditor';
 import { AssetImportHistoryTable } from './AssetImportHistoryTable';
 
 // Import step type

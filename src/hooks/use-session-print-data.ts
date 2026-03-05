@@ -195,7 +195,7 @@ async function fetchSessionActions(sessionId: string) {
     status: a.status,
     priority: a.priority,
     due_date: a.due_date,
-    assigned_user: a.assigned_to ? { full_name: (a.assigned_to as any).full_name } : null
+    assigned_user: a.assigned_to ? { full_name: (a.assigned_to as unknown).full_name } : null
   }));
 }
 

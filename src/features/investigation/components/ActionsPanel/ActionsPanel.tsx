@@ -10,10 +10,9 @@ import { ActionList } from "./components/ActionList";
 export function ActionsPanel(props: ActionsPanelProps) {
   const state = useActionsPanelState(props);
   const {
-    t, direction, isLocked, isLoading,
+    t, direction, isLocked, isLoading, incidentStatus,
     deleteConfirmId, setDeleteConfirmId, handleDeleteAction, deleteAction
   } = state;
-  const incidentStatus = (state as any).incidentStatus;
 
   if (isLoading) {
     return (

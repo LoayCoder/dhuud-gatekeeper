@@ -1,5 +1,5 @@
 // Layout components barrel file
-export { default as AppSidebar } from './AppSidebar';
+export { AppSidebar } from './AppSidebar';
 export { default as MainLayout } from './MainLayout';
 export { NavLink } from './NavLink';
 export { RTLWrapper } from './RTLWrapper';

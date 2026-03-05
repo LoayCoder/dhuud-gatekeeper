@@ -90,7 +90,7 @@ export default function InspectionTemplates() {
   const clearSelection = () => setSelectedIds(new Set());
 
   const handleCreate = async (data: Record<string, unknown>) => {
-    await createTemplate.mutateAsync(data as any);
+    await createTemplate.mutateAsync(data);
     setFormOpen(false);
   };
 

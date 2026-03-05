@@ -4,7 +4,6 @@ import { AppSidebarFooter } from '../sidebar/AppSidebarFooter';
 import { AppSidebarNav } from './AppSidebarNav';
 import { AppSidebarModals } from './AppSidebarModals';
 import { useAppSidebar } from './hooks/useAppSidebar';
-import type { MenuItem } from '@/config/route-registry-types';
 
 export default function AppSidebar() {
     const { filteredMenuItems } = useAppSidebar();
@@ -12,7 +11,7 @@ export default function AppSidebar() {
     return (
         <Sidebar collapsible="icon" side="left">
             <AppSidebarHeader />
-            <AppSidebarNav filteredMenuItems={filteredMenuItems as MenuItem[]} />
+            <AppSidebarNav filteredMenuItems={filteredMenuItems} />
             <AppSidebarFooter />
             <SidebarRail />
             <AppSidebarModals />

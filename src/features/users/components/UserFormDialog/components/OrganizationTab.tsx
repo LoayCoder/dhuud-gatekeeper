@@ -16,7 +16,7 @@ import { isContractorType } from '@/lib/license-utils';
 import { RoleSelectorEnhanced } from '@/components/roles/RoleSelectorEnhanced';
 import { TeamAssignmentDialog } from '@/components/hierarchy/TeamAssignmentDialog';
 
-export function OrganizationTab({ state }: { state: any }) {
+export function OrganizationTab({ state }: { state: unknown }) {
   const { t, form, hasFullBranchAccess, selectedBranchIds, setSelectedBranchIds, hierarchy, direction, filteredDivisions, filteredDepartments, filteredSections, filteredSites } = state;
   return (
     <>

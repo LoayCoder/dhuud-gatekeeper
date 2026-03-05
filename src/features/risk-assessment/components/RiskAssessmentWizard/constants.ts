@@ -14,7 +14,7 @@ export const STEPS = [
   { id: 5, key: "signatures", icon: PenTool },
 ];
 
-export const TEAM_ROLES = {
+const TEAM_ROLES = {
   team_leader: { label: "Team Leader", label_ar: "قائد الفريق" },
   member: { label: "Team Member", label_ar: "عضو الفريق" },
 };

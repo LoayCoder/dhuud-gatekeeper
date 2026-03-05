@@ -207,7 +207,7 @@ export default function PendingApprovalsOverride() {
 
       {/* Tabs & Table */}
       <Card>
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as unknown)}>
           <CardHeader className="pb-0">
             <TabsList className="w-full justify-start flex-wrap h-auto gap-1">
               <TabsTrigger value="all" className="gap-1">

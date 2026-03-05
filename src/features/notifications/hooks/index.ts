@@ -34,5 +34,6 @@ export * from '@/hooks/useNotificationTemplates';
 export * from '@/hooks/useWebpageNotificationSettings';
 
 // HSSE Notifications
-export * from '@/features/incidents/hooks/use-hsse-notifications';
+export * from '@/features/incidents';
+export * from '@/features/incidents';
 export * from '@/hooks/use-escalation-alerts';

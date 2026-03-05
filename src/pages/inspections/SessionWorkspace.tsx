@@ -121,7 +121,7 @@ function SessionWorkspaceContent() {
       setScannedAssetId(null);
       setShowScanner(false);
     } catch (error: unknown) {
-      toast.error((error as Error).message);
+      toast.error(error.message);
       setScannedAssetId(null);
     }
   };
@@ -135,7 +135,7 @@ function SessionWorkspaceContent() {
       setShowAddAssetDialog(false);
       setPendingAssetToAdd(null);
     } catch (error: unknown) {
-      toast.error((error as Error).message);
+      toast.error(error.message);
     }
   };
   
@@ -150,7 +150,7 @@ function SessionWorkspaceContent() {
         toast.info(t('inspectionSessions.noNewAssetsFound'));
       }
     } catch (error: unknown) {
-      toast.error((error as Error).message);
+      toast.error(error.message);
     }
   };
   
@@ -170,7 +170,7 @@ function SessionWorkspaceContent() {
       await completeSession.mutateAsync(sessionId);
       toast.success(t('inspectionSessions.sessionCompleted'));
     } catch (error: unknown) {
-      toast.error((error as Error).message);
+      toast.error(error.message);
     }
   };
 
@@ -181,7 +181,7 @@ function SessionWorkspaceContent() {
       toast.success(t('inspectionSessions.sessionDeleted'));
       navigate('/inspections/sessions');
     } catch (error: unknown) {
-      toast.error((error as Error).message);
+      toast.error(error.message);
     }
   };
   

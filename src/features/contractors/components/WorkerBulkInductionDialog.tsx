@@ -131,7 +131,7 @@ export function WorkerBulkInductionDialog({
       toast({
         variant: "destructive",
         title: t("contractors.workers.inductionFailed", "Failed to send inductions"),
-        description: (error as any).message,
+        description: error.message,
       });
     } finally {
       setIsSending(false);

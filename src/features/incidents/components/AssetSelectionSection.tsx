@@ -168,7 +168,7 @@ export function AssetSelectionSection({ selectedAssetId, onAssetSelect }: AssetS
                       <Skeleton className="h-10 w-full" />
                     </div>
                   ) : searchResults && searchResults.length > 0 ? (
-                    searchResults.map((asset: any) => (
+                    searchResults.map((asset: unknown) => (
                       <button
                         key={asset.id}
                         type="button"

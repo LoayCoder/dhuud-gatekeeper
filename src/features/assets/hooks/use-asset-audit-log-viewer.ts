@@ -88,7 +88,7 @@ export function useAssetAuditLogViewer(filters: AuditLogFilters = {}, page: numb
       if (error) throw error;
 
       // Transform data
-      const transformedData: AssetAuditLogEntry[] = (data || []).map((log: any) => ({
+      const transformedData: AssetAuditLogEntry[] = (data || []).map((log: unknown) => ({
         id: log.id,
         action: log.action,
         asset_id: log.asset_id,
@@ -191,7 +191,7 @@ export function useAuditLogActors() {
 
       // Get unique actors
       const actorMap = new Map<string, string>();
-      (data || []).forEach((log: any) => {
+      (data || []).forEach((log: unknown) => {
         if (log.actor_id && log.profiles?.full_name) {
           actorMap.set(log.actor_id, log.profiles.full_name);
         }

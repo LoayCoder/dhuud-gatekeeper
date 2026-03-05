@@ -240,7 +240,7 @@ export function TeamTaskAssignmentPanel({
             </div>
           ) : (
             <div className="space-y-2">
-              {tasks?.map((task: any) => (
+              {tasks?.map((task: unknown) => (
                 <div 
                   key={task.id} 
                   className={cn(

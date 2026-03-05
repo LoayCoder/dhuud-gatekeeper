@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '../supabaseClient';
 import type { Json } from '@/integrations/supabase/types';
 import type { Investigation, CorrectiveAction } from '@/features/investigation';
 
@@ -90,7 +90,7 @@ export const updateInvestigation = async (
     if (updates.immediate_cause !== undefined) rcaUpdates.immediate_causes = [updates.immediate_cause];
     if (updates.underlying_cause !== undefined) rcaUpdates.underlying_causes = [updates.underlying_cause];
 
-    const { error: rcaError } = await (supabase as any)
+    const { error: rcaError } = await supabase
         .from('incident_rca')
         .upsert(rcaUpdates, { onConflict: 'incident_id' });
 

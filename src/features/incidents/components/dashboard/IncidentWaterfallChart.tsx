@@ -97,14 +97,14 @@ export function IncidentWaterfallChart({ data, isLoading, dataUpdatedAt, isFetch
     },
   };
 
-  const getBarColor = (item: any) => {
+  const getBarColor = (item: unknown) => {
     if (item.type === 'start') return 'hsl(var(--chart-1))';
     if (item.type === 'total') return 'hsl(var(--primary))';
     if (item.net >= 0) return 'hsl(var(--chart-3))';
     return 'hsl(var(--destructive))';
   };
 
-  const handleBarClick = (entry: any) => {
+  const handleBarClick = (entry: unknown) => {
     if (entry?.stageKey) {
       drillDown({ status: entry.stageKey }, `Status: ${entry.stage}`);
     }

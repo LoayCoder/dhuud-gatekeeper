@@ -22,7 +22,7 @@ export function usePWAInstall() {
 
   const isIOS = typeof navigator !== 'undefined' && 
     /iPad|iPhone|iPod/.test(navigator.userAgent) && 
-    !(window as any).MSStream;
+    !(window as unknown).MSStream;
 
   const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
 
@@ -32,7 +32,7 @@ export function usePWAInstall() {
     } else {
       const isStandalone = 
         window.matchMedia('(display-mode: standalone)').matches ||
-        (window.navigator as any).standalone === true;
+        (window.navigator as unknown).standalone === true;
       
       if (isStandalone) {
         setIsInstalled(true);

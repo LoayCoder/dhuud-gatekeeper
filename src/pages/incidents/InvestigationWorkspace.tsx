@@ -70,16 +70,16 @@ export default function InvestigationWorkspace() {
   const [showActionDialog, setShowActionDialog] = useState(false);
   const { profile, user } = useAuth();
   const { hasRole } = useUserRoles();
-  const queryClient2 = useQueryClient();
+  const queryClient = useQueryClient();
 
   const {
     actionsCount, incidents, loadingIncidents, pendingApprovals, loadingPending,
     selectedIncident, refetchIncident, investigation, refetchInvestigation,
-    closureEligibility, approveClosureMutation, rejectClosureMutation, canApprove: canApproveFromData,
+    closureEligibility, approveClosureMutation, rejectClosureMutation, canApprove,
     workflowActors, investigatorInfo, editAccess, isInvestigator, canAccessGovernance,
     isAssignedClinicUser, isAssignedTechEvaluator, isAssignedEnvironmentalExpert,
-    canReviewSpecialistData, incidentData: incidentDataFromHook, status: statusFromHook, investigationAllowed: investigationAllowedFromHook, handleRefresh,
-    queryClient: qcFromHook
+    canReviewSpecialistData, incidentData, status, investigationAllowed, handleRefresh,
+    queryClient
   } = useInvestigationWorkspaceData(selectedIncidentId);
 
 
@@ -136,10 +136,10 @@ export default function InvestigationWorkspace() {
   // Render workflow cards based on current status
   const renderWorkflowCards = () => (
     <InvestigationWorkflowCards
-      incidentData={incidentData as any}
-      investigation={investigation as any}
+      incidentData={incidentData}
+      investigation={investigation}
       actionsCount={actionsCount}
-      handleCreateAction={() => setShowActionDialog(true)}
+      handleCreateAction={handleCreateAction}
       handleRefresh={handleRefresh}
     />
   );
@@ -176,7 +176,7 @@ export default function InvestigationWorkspace() {
   // Calculate SLA for the detail view header
   let slaInfo = null;
   if (incidentData) {
-    slaInfo = calculateInvestigationSLA(incidentData.created_at || new Date().toISOString(), incidentData.severity_v2 || (incidentData as any).severity);
+    slaInfo = calculateInvestigationSLA(incidentData.created_at || new Date().toISOString(), incidentData.severity_v2 || (incidentData as unknown).severity);
   }
 
   return (
@@ -184,8 +184,8 @@ export default function InvestigationWorkspace() {
       {/* Modern Executive Header */}
       <InvestigationWorkspaceHeader
         selectedIncidentId={selectedIncidentId}
-        selectedIncident={selectedIncident as any}
-        incidentData={incidentData as any}
+        selectedIncident={selectedIncident}
+        incidentData={incidentData}
         slaInfo={slaInfo}
         onBack={() => {
           setSelectedIncidentId(null);
@@ -199,7 +199,7 @@ export default function InvestigationWorkspace() {
 
       {/* Current Owner & Status Bar - Only when incident selected */}
       {selectedIncidentId && selectedIncident && (
-        <CurrentOwnerCard incident={selectedIncident as any} />
+        <CurrentOwnerCard incident={selectedIncident as unknown} />
       )}
 
       {/* Investigation Content */}
@@ -237,8 +237,8 @@ export default function InvestigationWorkspace() {
             setActiveTab={setActiveTab}
             isTabLocked={isTabLocked}
             selectedIncidentId={selectedIncidentId!}
-            selectedIncident={selectedIncident as any}
-            investigation={investigation as any}
+            selectedIncident={selectedIncident}
+            investigation={investigation}
             handleRefresh={handleRefresh}
             canApprove={canApprove}
             startInvestigation={startInvestigation}
@@ -248,7 +248,7 @@ export default function InvestigationWorkspace() {
             editAccess={editAccess}
             showActionDialog={showActionDialog}
             setShowActionDialog={setShowActionDialog}
-            incidentData={incidentData as any}
+            incidentData={incidentData}
             isAssignedClinicUser={isAssignedClinicUser}
             canReviewSpecialistData={canReviewSpecialistData}
             isAssignedTechEvaluator={isAssignedTechEvaluator}

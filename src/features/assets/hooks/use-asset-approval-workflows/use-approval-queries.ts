@@ -11,7 +11,7 @@ export function useApprovalConfigs(workflowType?: string) {
         queryFn: async () => {
             if (!profile?.tenant_id) throw new Error("No tenant");
 
-            let query = (supabase as any)
+            let query = (supabase as unknown)
                 .from("asset_approval_configs")
                 .select("*")
                 .eq("tenant_id", profile.tenant_id)
@@ -36,7 +36,7 @@ export function useApprovalLevels(configId?: string) {
         queryFn: async () => {
             if (!configId) return [];
 
-            const { data, error } = await (supabase as any)
+            const { data, error } = await (supabase as unknown)
                 .from("asset_approval_levels")
                 .select("*")
                 .eq("config_id", configId)
@@ -58,7 +58,7 @@ export function usePurchaseRequests(status?: string) {
         queryFn: async () => {
             if (!profile?.tenant_id) throw new Error("No tenant");
 
-            let query = (supabase as any)
+            let query = (supabase as unknown)
                 .from("asset_purchase_requests")
                 .select(`
           *,

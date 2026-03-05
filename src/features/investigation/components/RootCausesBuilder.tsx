@@ -69,6 +69,7 @@ export function RootCausesBuilder({
       {
         id: generateId(),
         text: '',
+        added_at: new Date().toISOString(),
       },
     ]);
   };

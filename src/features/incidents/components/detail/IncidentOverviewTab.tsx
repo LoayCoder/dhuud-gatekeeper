@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "react-i18next";
-import { Incident } from "@/types/incident.types"; // kept for reference
+import { Incident } from "@/types/incident.types";
 import {
     MapPin,
     Calendar,
@@ -20,7 +20,7 @@ import { IncidentDamageCard } from "./IncidentDamageCard";
 import { IncidentInfoSidebar } from "./IncidentInfoSidebar";
 
 interface IncidentOverviewTabProps {
-    incident: any;
+    incident: unknown;
 }
 
 export function IncidentOverviewTab({ incident }: IncidentOverviewTabProps) {
@@ -130,7 +130,7 @@ export function IncidentOverviewTab({ incident }: IncidentOverviewTabProps) {
                     <IncidentInjuryCard
                         hasInjury={incident.has_injury || false}
                         injuryDetails={incident.injury_details as unknown}
-                        injuryClassification={(incident as any).injury_classification}
+                        injuryClassification={(incident as unknown).injury_classification}
                     />
                     <IncidentDamageCard
                         hasDamage={incident.has_damage || false}
@@ -145,7 +145,7 @@ export function IncidentOverviewTab({ incident }: IncidentOverviewTabProps) {
                 {/* Risk Panel */}
                 <IncidentRiskPanel
                     actualSeverity={incident.severity_v2}
-                    potentialSeverity={(incident as any).potential_severity_v2}
+                    potentialSeverity={(incident as unknown).potential_severity_v2}
                     eventType={incident.event_type}
                 />
 
@@ -175,7 +175,7 @@ export function IncidentOverviewTab({ incident }: IncidentOverviewTabProps) {
                                     </p>
                                     <p className="text-sm font-medium">
                                         {(() => {
-                                            const cat = (incident as any).incident_type ||
+                                            const cat = (incident as unknown).incident_type ||
                                                 (incident.subtype ? getHsseEventTypeForSubtype(incident.subtype) : null);
                                             return cat ? safeTranslate(`incidents.hsseEventTypes.${snakeToCamel(cat)}`, cat) : '-';
                                         })()}
@@ -187,7 +187,7 @@ export function IncidentOverviewTab({ incident }: IncidentOverviewTabProps) {
                                             {t('incidents.subCategory', 'Sub Category')}
                                         </p>
                                         <p className="text-sm font-medium">
-                                            {getSubtypeTranslation(t, incident.event_type, incident.subtype, (incident as any).incident_type)}
+                                            {getSubtypeTranslation(t, incident.event_type, incident.subtype, (incident as unknown).incident_type)}
                                         </p>
                                     </div>
                                 )}

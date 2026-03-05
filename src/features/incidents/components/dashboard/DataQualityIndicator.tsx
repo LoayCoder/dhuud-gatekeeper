@@ -7,9 +7,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { cn } from "@/lib/utils";
 
 interface DataQualityIndicatorProps {
-  incidents: any[];
-  observations: any[];
-  actions: any[];
+  incidents: unknown[];
+  observations: unknown[];
+  actions: unknown[];
 }
 
 interface QualityMetric {

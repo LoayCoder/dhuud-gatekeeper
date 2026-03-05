@@ -71,7 +71,7 @@ export function usePendingApprovals(minDaysStuck = 0) {
       }
 
       const now = new Date();
-      const incidents: PendingApprovalIncident[] = ((data || []) as any[]).map((incident: any) => {
+      const incidents: PendingApprovalIncident[] = ((data || []) as unknown[]).map((incident) => {
         const updatedAt = new Date(incident.updated_at);
         const daysStuck = Math.floor((now.getTime() - updatedAt.getTime()) / (1000 * 60 * 60 * 24));
         

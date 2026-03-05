@@ -43,7 +43,7 @@ export function useSecurityGuards() {
 
       if (!tmError && teamMembers) {
         for (const tm of teamMembers) {
-          const guard = tm.guard as any;
+          const guard = tm.guard as unknown;
           if (guard?.id) {
             guardMap.set(guard.id, {
               guard_id: guard.id,
@@ -51,7 +51,7 @@ export function useSecurityGuards() {
               avatar_url: guard.avatar_url,
               employee_id: guard.employee_id,
               job_title: guard.job_title,
-              team_name: (tm.team as any)?.name || null,
+              team_name: (tm.team as unknown)?.name || null,
             });
           }
         }

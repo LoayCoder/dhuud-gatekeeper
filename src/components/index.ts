@@ -11,7 +11,7 @@ export { RTLWrapper } from './layout/RTLWrapper';
 export { NavLink } from './layout/NavLink';
 export { SplashScreen } from './layout/SplashScreen';
 export { SplashWrapper } from './layout/SplashWrapper';
-export { default as AppSidebar } from './layout/AppSidebar';
+export { AppSidebar } from './layout/AppSidebar';
 export { SessionTimeoutWarning } from './session/SessionTimeoutWarning';
 export { SessionManagementProvider } from './session/SessionManagementProvider';
 export { SessionErrorBoundary } from './session/SessionErrorBoundary';

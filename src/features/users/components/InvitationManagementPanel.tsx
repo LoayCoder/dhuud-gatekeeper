@@ -90,7 +90,7 @@ export function InvitationManagementPanel() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setInvitations((data || []) as any);
+      setInvitations(data || []);
     } catch (error) {
       console.error('Failed to fetch invitations:', error);
       toast({

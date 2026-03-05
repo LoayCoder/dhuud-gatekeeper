@@ -1,4 +1,17 @@
 import React from 'react';
+import { ChevronLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Form } from '@/components/ui/form';
+import { StepIndicator } from './StepIndicator';
+import { EventTypeSelector } from './EventTypeSelector';
+import { Step1Capture } from './Step1Capture';
+import { Step2Location } from './Step2Location';
+import { Step3Details } from './Step3Details';
+import { QuickObservationCard } from '@/features/incidents';
+import { ClosedOnSpotConfirmDialog } from '@/features/incidents';
+import { SubmissionSuccessDialog } from '@/features/incidents';
+
+import React from 'react';
 import { cn } from '@/lib/utils';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -9,8 +22,6 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Info, Navigation, Camera, ChevronRight, ChevronLeft, Check, Trophy, Eye, Siren, Building2 } from 'lucide-react';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { QuickObservationCard } from '@/features/incidents';
 import { MediaUploadSection } from '@/features/incidents';
 import { ClosedOnSpotSection, ClosedOnSpotConfirmDialog } from '@/features/incidents';
@@ -21,26 +32,19 @@ import { AITagsSelector } from '@/components/ai/AITagsSelector';
 import { GPSLocationConfirmCard } from '@/features/incidents';
 import { ActiveEventBanner } from '@/features/incidents';
 import { NotificationPreview } from '@/features/incidents';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { HSSE_SEVERITY_LEVELS, calculateMinimumSeverity, isSeverityBelowMinimum } from '@/lib/hsse-severity-levels';
 import { HSSE_EVENT_TYPES, getSubtypesForEventType } from '@/lib/hsse-event-types';
-import { StepIndicator } from './StepIndicator';
-import { EventTypeSelector } from './EventTypeSelector';
-import { Step1Capture } from './Step1Capture';
-import { Step2Location } from './Step2Location';
-import { Step3Details } from './Step3Details';
 import { WIZARD_STEPS, RISK_RATING_LEVELS } from './helpers';
-import { toast } from 'sonner';
 
 import { useIncidentReport } from './hooks/useIncidentReport';
 
 export function IncidentReportForm({ viewProps }: { viewProps: ReturnType<typeof useIncidentReport> }) {
   const { t, i18n, direction, reportMode, setReportMode, currentStep, setCurrentStep, isGettingLocation, coordinates, selectedAsset, setSelectedAsset, availableIncidentTags, selectedTags, setSelectedTags, isApplyingAISuggestions, pendingAISubtype, autoDetectedBranch, autoDetectedSite, gpsDetectedSite, gpsDetectedBranch, noSiteNearby, gpsLocationConfirmed, gpsAccuracy, locationAddress, uploadedPhotos, setUploadedPhotos, uploadedVideo, setUploadedVideo, isUploading, activeEventId, setActiveEventId, showConfirmation, setShowConfirmation, closedOnSpot, setClosedOnSpot, closedOnSpotPhotos, setClosedOnSpotPhotos, showClosedOnSpotConfirm, setShowClosedOnSpotConfirm, pendingSubmitData, isConfirmSubmitting, hasSubmitted, submittedIncident, form, hasInjury, hasDamage, eventType, incidentType, isAgainstContractor, selectedBranchId, selectedSiteId, isAutoTriggerEnabled, setAutoTriggerEnabled, isPendingAutoTrigger, aiValidator, isObservation, filteredSites, filteredDepartments, departmentsLoading, departmentsUsingFallback, dynamicSubtypes, subtypeOptions, getReferencePreview, goToNextStep, goToPreviousStep, goToStep, handleGetLocation, handleGpsConfirm, handleGpsChangeLocation, handleAnalyzeDescription, handleConfirmTranslation, handleConfirmAnalysis, handleObservationSubmit, handleClosedOnSpotConfirm, contractorCompanies, branches, sites, branchesLoading, sitesLoading, dynamicCategories, isFetchingAddress, handleAssetSelect, onSubmit, navigate, profile } = viewProps;
-  const createIncident = viewProps as any;
-  const setIsConfirmSubmitting = viewProps as any;
 
   // Step Indicator Component
   if (reportMode === null) {
-    return <EventTypeSelector setReportMode={setReportMode as any} t={t} direction={direction} />;
+    return <EventTypeSelector setReportMode={setReportMode} t={t} direction={direction} />;
   }
 
   // If observation mode selected, show the quick card

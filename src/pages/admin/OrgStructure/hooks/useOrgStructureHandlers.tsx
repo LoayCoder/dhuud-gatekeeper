@@ -68,7 +68,7 @@ export function useOrgStructureHandlers(
       cancelEditing();
       data.fetchData();
     } catch (error: unknown) {
-      toast({ title: t('common.error'), description: (error as any).message || t('common.error'), variant: "destructive" });
+      toast({ title: t('common.error'), description: error.message || t('common.error'), variant: "destructive" });
     } finally {
       state.setSaving(false);
     }
@@ -151,7 +151,7 @@ export function useOrgStructureHandlers(
       state.setNewItemName("");
       data.fetchData();
     } catch (error: unknown) {
-      toast({ title: t('common.error'), description: (error as any).message || t('common.error'), variant: "destructive" });
+      toast({ title: t('common.error'), description: error.message || t('common.error'), variant: "destructive" });
     } finally {
       state.setCreating(false);
     }
@@ -172,7 +172,7 @@ export function useOrgStructureHandlers(
       toast({ title: t('orgStructure.deleted'), description: t('orgStructure.itemRemoved') });
       data.fetchData();
     } catch (error: unknown) {
-      toast({ title: t('common.error'), description: (error as any).message || t('common.error'), variant: "destructive" });
+      toast({ title: t('common.error'), description: error.message || t('common.error'), variant: "destructive" });
     }
   };
 

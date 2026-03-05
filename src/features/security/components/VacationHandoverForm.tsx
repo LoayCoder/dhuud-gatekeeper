@@ -80,8 +80,8 @@ export function VacationHandoverForm({ onSuccess }: VacationHandoverFormProps) {
 
       if (!profile?.tenant_id) throw new Error('No tenant found');
 
-      const { data, error } = await (supabase
-        .from('shift_handovers') as any)
+      const { data, error } = await supabase
+        .from('shift_handovers')
         .insert({
           tenant_id: profile.tenant_id,
           outgoing_guard_id: profile.id,
@@ -269,7 +269,7 @@ export function VacationHandoverForm({ onSuccess }: VacationHandoverFormProps) {
           {issues.map((issue) => (
             <div key={issue.id} className="flex items-center justify-between gap-2 p-2 rounded-lg bg-muted">
               <div className="flex items-center gap-2 flex-1">
-                <Badge variant={getPriorityColor(issue.priority) as any}>{issue.priority}</Badge>
+                <Badge variant={getPriorityColor(issue.priority) as unknown}>{issue.priority}</Badge>
                 <span className="text-sm">{issue.description}</span>
               </div>
               <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveIssue(issue.id)}>
@@ -279,7 +279,7 @@ export function VacationHandoverForm({ onSuccess }: VacationHandoverFormProps) {
           ))}
           <div className="flex gap-2">
             <Input value={newIssue} onChange={(e) => setNewIssue(e.target.value)} placeholder={t('security.addIssue', 'Add an issue...')} className="flex-1" />
-            <Select value={newIssuePriority} onValueChange={(v) => setNewIssuePriority(v as any)}>
+            <Select value={newIssuePriority} onValueChange={(v) => setNewIssuePriority(v as unknown)}>
               <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="high">{t('common.high', 'High')}</SelectItem>

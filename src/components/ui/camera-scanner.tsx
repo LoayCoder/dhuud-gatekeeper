@@ -108,16 +108,16 @@ export function CameraScanner({
 
     } catch (err: unknown) {
       console.error('Scanner error:', err);
-      const e = err as Error & { name?: string };
-      if (e.name === 'NotAllowedError' || String(err).includes('NotAllowedError')) {
+      
+      if (err.name === 'NotAllowedError' || err.toString().includes('NotAllowedError')) {
         setStatus('permission_denied');
         setError(t('scanner.cameraPermissionDenied', 'Camera access denied'));
       } else {
         setStatus('error');
-        setError(e.message || t('scanner.scannerError', 'Failed to start scanner'));
+        setError(err.message || t('scanner.scannerError', 'Failed to start scanner'));
       }
       
-      onError?.(e.message);
+      onError?.(err.message);
     } finally {
       isStartingRef.current = false;
     }

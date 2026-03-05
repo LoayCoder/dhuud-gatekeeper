@@ -142,14 +142,14 @@ export function ClientSiteRepExport({ companyIds }: ClientSiteRepExportProps) {
       }
 
       // Log export action
-      await logExport(entityType as any, exportFormat, data.length, { companyIds, type });
+      await logExport(entityType as unknown, exportFormat, data.length, { companyIds, type });
 
       // Perform export
       if (exportFormat === "csv") {
         const result = await secureExportToCSV(
           user.id,
           menuCode,
-          entityType as any,
+          entityType as unknown,
           data,
           columns,
           `${filename}.csv`,

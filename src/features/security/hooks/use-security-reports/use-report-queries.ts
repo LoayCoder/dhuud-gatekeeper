@@ -47,7 +47,7 @@ export function useAttendanceExport(filters: AttendanceExportFilters) {
             const { data, error } = await query;
             if (error) throw error;
 
-            const records: AttendanceRecord[] = (data || []).map((r: any) => {
+            const records: AttendanceRecord[] = (data || []).map((r: unknown) => {
                 const checkIn = r.check_in_at ? new Date(r.check_in_at) : null;
                 const checkOut = r.check_out_at ? new Date(r.check_out_at) : null;
                 const hoursWorked = checkIn && checkOut
@@ -122,8 +122,8 @@ export function useSecurityTeamSummary(startDate: string, endDate: string) {
             for (const m of metrics || []) {
                 const existing = guardMap.get(m.guard_id) || {
                     guard_id: m.guard_id,
-                    guard_name: (m.guard as any)?.full_name || 'Unknown',
-                    avatar_url: (m.guard as any)?.avatar_url || null,
+                    guard_name: (m.guard as unknown)?.full_name || 'Unknown',
+                    avatar_url: (m.guard as unknown)?.avatar_url || null,
                     patrols: 0,
                     scores: [],
                 };

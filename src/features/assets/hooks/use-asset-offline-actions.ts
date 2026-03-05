@@ -176,7 +176,7 @@ export function useAssetOfflineActions() {
           asset_id: action.asset_id,
           asset_code: action.asset_code,
           action_type: action.action_type,
-          action_data: action.action_data as any,
+          action_data: action.action_data as unknown,
           gps_lat: action.gps_lat,
           gps_lng: action.gps_lng,
           gps_accuracy: action.gps_accuracy,
@@ -184,7 +184,7 @@ export function useAssetOfflineActions() {
           sync_status: 'synced',
           synced_at: new Date().toISOString(),
           created_by: user.id,
-        } as any);
+        } as unknown);
 
       if (error) throw error;
 

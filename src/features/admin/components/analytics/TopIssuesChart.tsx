@@ -88,7 +88,7 @@ export function TopIssuesChart({ data, isArabic = false }: TopIssuesChartProps) 
               value,
               t('analytics.failures', 'Failures'),
             ]}
-            labelFormatter={(label: string, payload: any) => {
+            labelFormatter={(label: string, payload: unknown) => {
               if (payload && payload.length > 0) {
                 return payload[0].payload.name;
               }

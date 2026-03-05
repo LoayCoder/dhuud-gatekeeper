@@ -176,11 +176,11 @@ export function AssetLocationMap({
 
   // Setup global navigation handlers for popup buttons
   useEffect(() => {
-    (window as any).navigateToAsset = (id: string) => navigate(`/assets/${id}`);
-    (window as any).navigateToEditAsset = (id: string) => navigate(`/assets/register?edit=${id}`);
+    (window as unknown).navigateToAsset = (id: string) => navigate(`/assets/${id}`);
+    (window as unknown).navigateToEditAsset = (id: string) => navigate(`/assets/register?edit=${id}`);
     return () => {
-      delete (window as any).navigateToAsset;
-      delete (window as any).navigateToEditAsset;
+      delete (window as unknown).navigateToAsset;
+      delete (window as unknown).navigateToEditAsset;
     };
   }, [navigate]);
 

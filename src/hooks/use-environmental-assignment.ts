@@ -96,7 +96,7 @@ export function useEnvironmentalAssignment(incidentId: string | null) {
       if (error) throw error;
 
       // Log to audit trail
-      const profileId = (profile as any)?.id;
+      const profileId = (profile as unknown)?.id;
       await supabase.from('incident_audit_logs').insert({
         incident_id: incidentId,
         tenant_id: profile?.tenant_id,
@@ -111,8 +111,8 @@ export function useEnvironmentalAssignment(incidentId: string | null) {
       queryClient.invalidateQueries({ queryKey: ['environmental-assignment', incidentId] });
       toast.success(t('investigation.environmental.expertAssigned', 'Environmental expert assigned successfully'));
     },
-    onError: (error: any) => {
-      toast.error(error?.message || t('common.error', 'Failed to assign expert'));
+    onError: (error: unknown) => {
+      toast.error(error.message || t('common.error', 'Failed to assign expert'));
     },
   });
 
@@ -129,7 +129,7 @@ export function useEnvironmentalAssignment(incidentId: string | null) {
       if (error) throw error;
 
       // Log to audit trail
-      const profileId = (profile as any)?.id;
+      const profileId = (profile as unknown)?.id;
       await supabase.from('incident_audit_logs').insert({
         incident_id: incidentId,
         tenant_id: profile?.tenant_id,
@@ -142,8 +142,8 @@ export function useEnvironmentalAssignment(incidentId: string | null) {
       queryClient.invalidateQueries({ queryKey: ['environmental-assignment', incidentId] });
       toast.success(t('investigation.environmental.expertUnassigned', 'Environmental expert unassigned'));
     },
-    onError: (error: any) => {
-      toast.error(error?.message || t('common.error', 'Failed to unassign expert'));
+    onError: (error: unknown) => {
+      toast.error(error.message || t('common.error', 'Failed to unassign expert'));
     },
   });
 

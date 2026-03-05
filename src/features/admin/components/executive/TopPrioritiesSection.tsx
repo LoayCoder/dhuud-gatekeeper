@@ -97,7 +97,7 @@ export function TopPrioritiesSection({ priorities, isLoading }: TopPrioritiesSec
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h4 className="font-semibold">{priority.title}</h4>
-                    <Badge variant={config.badge as any} className="text-xs">
+                    <Badge variant={config.badge as unknown} className="text-xs">
                       {t(`executiveReport.ai.severity.${priority.severity}`)}
                     </Badge>
                   </div>

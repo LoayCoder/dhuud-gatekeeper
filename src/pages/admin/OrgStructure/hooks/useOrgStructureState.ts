@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRoles } from '@/features/users';
 import { useBranchFilter } from "@/hooks/use-branch-filter";
-import type { Branch, Division, Department, Section, Site, Building, FloorZone } from './types';
+import { Branch, Division, Department, Section, Site, Building, FloorZone } from './types';
 
 export function useOrgStructureState() {
   const { t, i18n } = useTranslation();

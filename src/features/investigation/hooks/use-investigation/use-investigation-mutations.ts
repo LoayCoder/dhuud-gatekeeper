@@ -106,13 +106,13 @@ export function useUpdateInvestigation() {
                 updated_at: new Date().toISOString(),
             };
 
-            if (updates.five_whys !== undefined) (rcaUpdates as any).five_whys = updates.five_whys;
-            if (updates.root_causes !== undefined) (rcaUpdates as any).root_causes = updates.root_causes;
-            if (updates.contributing_factors_list !== undefined) (rcaUpdates as any).contributing_factors = updates.contributing_factors_list;
-            if (updates.immediate_cause !== undefined) (rcaUpdates as any).immediate_causes = [updates.immediate_cause];
-            if (updates.underlying_cause !== undefined) (rcaUpdates as any).underlying_causes = [updates.underlying_cause];
+            if (updates.five_whys !== undefined) rcaUpdates.five_whys = updates.five_whys;
+            if (updates.root_causes !== undefined) rcaUpdates.root_causes = updates.root_causes;
+            if (updates.contributing_factors_list !== undefined) rcaUpdates.contributing_factors = updates.contributing_factors_list;
+            if (updates.immediate_cause !== undefined) rcaUpdates.immediate_causes = [updates.immediate_cause];
+            if (updates.underlying_cause !== undefined) rcaUpdates.underlying_causes = [updates.underlying_cause];
 
-            const { error: rcaError } = await (supabase as any)
+            const { error: rcaError } = await supabase
                 .from('incident_rca')
                 .upsert(rcaUpdates, { onConflict: 'incident_id' });
 

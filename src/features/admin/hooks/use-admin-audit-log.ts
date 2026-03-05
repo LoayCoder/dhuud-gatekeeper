@@ -35,10 +35,10 @@ export function useAdminAuditLog() {
 
     try {
       // Use type assertion to allow new event types not yet in generated types
-      const { error } = await (supabase as any).from('user_activity_logs').insert({
+      const { error } = await supabase.from('user_activity_logs').insert({
         user_id: user.id,
-        event_type: eventType,
-        metadata: metadata,
+        event_type: eventType as unknown,
+        metadata: metadata as unknown,
       });
 
       if (error) {

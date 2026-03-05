@@ -23,8 +23,7 @@ import {
   Clock,
   History
 } from "lucide-react";
-import { usePTWPermits as usePTWPermit } from "@/hooks/ptw";
-const useUpdatePermitStatus = () => ({ mutateAsync: async (d: any) => d } as any);
+import { usePTWPermit, useUpdatePermitStatus } from "@/hooks/ptw";
 import { Skeleton } from "@/components/ui/skeleton";
 import { QRCodeSVG } from "qrcode.react";
 import { format } from "date-fns";

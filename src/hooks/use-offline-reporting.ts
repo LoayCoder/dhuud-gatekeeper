@@ -153,7 +153,7 @@ export function useOfflineReporting() {
           .eq('is_active', true)) as unknown,
 
         // Branches
-        (supabase as any)
+        (supabase as unknown)
           .from('branches')
           .select('id, name')
           .eq('tenant_id', profile.tenant_id)
@@ -161,7 +161,7 @@ export function useOfflineReporting() {
           .eq('is_active', true),
 
         // Departments
-        (supabase as any)
+        (supabase as unknown)
           .from('departments')
           .select('id, name, branch_id')
           .eq('tenant_id', profile.tenant_id)
@@ -185,7 +185,7 @@ export function useOfflineReporting() {
           .eq('status', 'active')) as unknown,
 
         // Event types (categories)
-        (supabase as any)
+        (supabase as unknown)
           .from('hsse_event_types')
           .select('id, name, name_ar, code, category')
           .eq('tenant_id', profile.tenant_id)
@@ -194,7 +194,7 @@ export function useOfflineReporting() {
           .is('parent_type_id', null),
 
         // Event subtypes
-        (supabase as any)
+        (supabase as unknown)
           .from('hsse_event_types')
           .select('id, name, name_ar, code, parent_type_id')
           .eq('tenant_id', profile.tenant_id)
@@ -203,19 +203,23 @@ export function useOfflineReporting() {
           .not('parent_type_id', 'is', null),
       ]);
 
-      const results = [sitesResult, branchesResult, departmentsResult, buildingsResult, contractorCompaniesResult, eventTypesResult, eventSubtypesResult] as any[];
-      for (const r of results) {
-        if (r?.error) throw r.error;
-      }
+      // Check for errors
+      if (sitesResult.error) throw sitesResult.error;
+      if (branchesResult.error) throw branchesResult.error;
+      if (departmentsResult.error) throw departmentsResult.error;
+      if (buildingsResult.error) throw buildingsResult.error;
+      if (contractorCompaniesResult.error) throw contractorCompaniesResult.error;
+      if (eventTypesResult.error) throw eventTypesResult.error;
+      if (eventSubtypesResult.error) throw eventSubtypesResult.error;
 
       const cacheData: OfflineReportingCache = {
-        sites: (sitesResult as any)?.data || [],
-        branches: (branchesResult as any)?.data || [],
-        departments: (departmentsResult as any)?.data || [],
-        buildings: (buildingsResult as any)?.data || [],
-        contractorCompanies: (contractorCompaniesResult as any)?.data || [],
-        eventTypes: (eventTypesResult as any)?.data || [],
-        eventSubtypes: (eventSubtypesResult as any)?.data || [],
+        sites: sitesResult.data || [],
+        branches: branchesResult.data || [],
+        departments: departmentsResult.data || [],
+        buildings: buildingsResult.data || [],
+        contractorCompanies: contractorCompaniesResult.data || [],
+        eventTypes: eventTypesResult.data || [],
+        eventSubtypes: eventSubtypesResult.data || [],
         cachedAt: Date.now(),
       };
 

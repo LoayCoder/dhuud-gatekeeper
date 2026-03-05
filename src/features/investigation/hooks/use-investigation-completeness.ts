@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useInvestigation, useCorrectiveActions } from './use-investigation';
-import { useEvidenceItems } from '@/hooks/use-evidence-items';
+import { useEvidenceItems } from './use-evidence-items';
 
 interface CauseCoverage {
   rootCauses: Array<{ id: string; text: string; hasAction: boolean }>;

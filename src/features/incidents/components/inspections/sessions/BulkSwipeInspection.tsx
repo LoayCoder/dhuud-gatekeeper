@@ -89,7 +89,7 @@ export function BulkSwipeInspection({
         toast.info(t('inspections.markedNA'), { duration: 1000 });
       }
     } catch (error: unknown) {
-      toast.error((error as Error).message);
+      toast.error(error.message);
     }
   }, [currentItem, sessionId, isLocked, saveResponse, t]);
   
@@ -111,7 +111,7 @@ export function BulkSwipeInspection({
       
       // Don't auto-advance, let user add photos or more notes if needed
     } catch (error: unknown) {
-      toast.error((error as Error).message);
+      toast.error(error.message);
     }
   }, [pendingFailItem, sessionId, failComment, saveResponse, t]);
   

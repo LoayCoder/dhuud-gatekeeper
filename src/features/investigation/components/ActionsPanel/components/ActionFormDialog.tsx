@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Loader2, Link2, Sparkles, Building2, User } from "lucide-react";
 
-export function ActionFormDialog({ state }: { state: any }) {
+export function ActionFormDialog({ state }: { state: unknown }) {
   const { t } = useTranslation();
   const {
     direction, isLocked, dialogOpen, setDialogOpen,
@@ -105,9 +105,9 @@ export function ActionFormDialog({ state }: { state: any }) {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent dir={direction}>
-                            {causesForSelection.filter((cause: any) => cause.id).map((cause: any, idx: number) => (
+                            {causesForSelection.filter((cause: unknown) => cause.id).map((cause: unknown, idx: number) => (
                               <SelectItem key={cause.id} value={cause.id}>
-                                {idx + 1}: {cause.text?.length > 50 ? cause.text.substring(0, 50) + '...' : cause.text}
+                                {idx + 1}: {cause.text.length > 50 ? cause.text.substring(0, 50) + '...' : cause.text}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -318,7 +318,7 @@ export function ActionFormDialog({ state }: { state: any }) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent dir={direction}>
-                        {departments?.map((dept: any) => (
+                        {departments?.map((dept: unknown) => (
                           <SelectItem key={dept.id} value={dept.id}>
                             {dept.name}
                           </SelectItem>
@@ -349,7 +349,7 @@ export function ActionFormDialog({ state }: { state: any }) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent dir={direction}>
-                        {usersForAssignment?.map((user: any) => (
+                        {usersForAssignment?.map((user: unknown) => (
                           <SelectItem key={user.id} value={user.id}>
                             {user.full_name || user.employee_id || 'Unknown'}
                           </SelectItem>

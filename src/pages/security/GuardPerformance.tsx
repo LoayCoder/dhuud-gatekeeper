@@ -57,7 +57,7 @@ export default function GuardPerformance() {
             <Download className="h-4 w-4 me-2" />
             {t('security.exportReport', 'Export Report')}
           </Button>
-          <Select value={period} onValueChange={(v) => setPeriod(v as any)}>
+          <Select value={period} onValueChange={(v) => setPeriod(v as unknown)}>
             <SelectTrigger className="w-40">
               <Calendar className="h-4 w-4 me-2" />
               <SelectValue />

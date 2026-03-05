@@ -15,7 +15,7 @@ export {
     useGuardReportData,
     useSecurityGuardsList,
     useSecuritySupervisors,
-    useReportSecurityShifts,
-    useReportSecurityZones,
+    useSecurityShifts,
+    useSecurityZones,
     useGuardsBySupervisor,
 } from './use-guard-queries';

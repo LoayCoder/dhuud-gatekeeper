@@ -13,7 +13,7 @@ import { useSecurityZones } from '@/features/security';
 import { useNavigate } from 'react-router-dom';
 
 // Fix Leaflet default icon issue
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete (L.Icon.Default.prototype as unknown)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
@@ -51,8 +51,8 @@ export function LiveGuardMapWidget({ className, compact = false }: LiveGuardMapW
   const statusCounts = useMemo(() => {
     const counts: Record<GuardStatus, number> = { active: 0, warning: 0, alert: 0, offline: 0 };
 
-    guardLocations.forEach((loc: any) => {
-      const hasAlert = alerts.some((a: any) => a.guard_id === loc.guard_id);
+    guardLocations.forEach((loc: unknown) => {
+      const hasAlert = alerts.some((a: unknown) => a.guard_id === loc.guard_id);
       const isStale = new Date().getTime() - new Date(loc.recorded_at).getTime() > 10 * 60 * 1000;
 
       if (isStale) counts.offline++;
@@ -101,7 +101,7 @@ export function LiveGuardMapWidget({ className, compact = false }: LiveGuardMapW
 
     zonesLayer.current.clearLayers();
 
-    zones.forEach((zone: any) => {
+    zones.forEach((zone: unknown) => {
       if (!zone.polygon_coords || zone.polygon_coords.length < 3) return;
 
       const polygon = L.polygon(
@@ -140,10 +140,10 @@ export function LiveGuardMapWidget({ className, compact = false }: LiveGuardMapW
 
     markersLayer.current.clearLayers();
 
-    guardLocations.forEach((loc: any) => {
+    guardLocations.forEach((loc: unknown) => {
       if (!loc.latitude || !loc.longitude) return;
 
-      const hasAlert = alerts.some((a: any) => a.guard_id === loc.guard_id);
+      const hasAlert = alerts.some((a: unknown) => a.guard_id === loc.guard_id);
       const isStale = new Date().getTime() - new Date(loc.recorded_at).getTime() > 10 * 60 * 1000;
 
       let status: GuardStatus = 'active';

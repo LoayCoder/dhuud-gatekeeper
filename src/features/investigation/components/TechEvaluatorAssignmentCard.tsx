@@ -43,9 +43,9 @@ export function TechEvaluatorAssignmentCard({ incident, onComplete }: TechEvalua
   const canAssign = hasRole('hsse_manager') || hasRole('hsse_expert');
 
   // Check if incident has property damage
-  const hasDamage = (incident as any).has_damage ||
-    (incident as any).ai_detected_damage ||
-    (incident as any).damage_cost > 0;
+  const hasDamage = (incident as unknown).has_damage ||
+    (incident as unknown).ai_detected_damage ||
+    (incident as unknown).damage_cost > 0;
 
   // Don't show if no property damage or user can't assign
   if (!hasDamage || !canAssign) {

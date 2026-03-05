@@ -63,9 +63,9 @@ export function usePTWRealtime(options: PTWRealtimeOptions = {}) {
 
           // Show toast for status changes
           if (payload.eventType === 'UPDATE' && payload.new && payload.old) {
-            const newStatus = (payload.new as any).status;
-            const oldStatus = (payload.old as any).status;
-            const reference = (payload.new as any).reference_id;
+            const newStatus = (payload.new as unknown).status;
+            const oldStatus = (payload.old as unknown).status;
+            const reference = (payload.new as unknown).reference_id;
             
             if (newStatus !== oldStatus && reference) {
               toast({

@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TeamMemberSelector, SelectedMemberCard } from "../../TeamMemberSelector";
 import { TEAM_ROLES } from "../constants";
 
-export function WizardStep2({ state }: { state: any }) {
+export function WizardStep2({ state }: { state: unknown }) {
   const { t, isRTL } = state;
   const {
     teamLeader, setTeamLeader,
@@ -51,7 +51,7 @@ export function WizardStep2({ state }: { state: any }) {
           ) : (
             <TeamMemberSelector
               onSelect={(user) => setTeamLeader(user)}
-              excludeIds={teamMembers.map((m: any) => m.user_id)}
+              excludeIds={teamMembers.map((m: unknown) => m.user_id)}
               placeholder={t("risk.team.searchLeaderPlaceholder", "Search for Team Leader by name or ID...")}
             />
           )}
@@ -71,7 +71,7 @@ export function WizardStep2({ state }: { state: any }) {
           {/* Selected Members */}
           {teamMembers.length > 0 && (
             <div className="space-y-2">
-              {teamMembers.map((member: any) => (
+              {teamMembers.map((member: unknown) => (
                 <SelectedMemberCard
                   key={member.user_id}
                   user={member}
@@ -87,7 +87,7 @@ export function WizardStep2({ state }: { state: any }) {
             onSelect={addTeamMember}
             excludeIds={[
               ...(teamLeader ? [teamLeader.user_id] : []),
-              ...teamMembers.map((m: any) => m.user_id),
+              ...teamMembers.map((m: unknown) => m.user_id),
             ]}
             placeholder={t("risk.team.searchMemberPlaceholder", "Add team member by name or ID...")}
           />

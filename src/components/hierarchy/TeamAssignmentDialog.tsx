@@ -119,7 +119,7 @@ export function TeamAssignmentDialog({
     } catch (error: unknown) {
       toast({
         title: t('common.error'),
-        description: (error as Error).message,
+        description: error.message,
         variant: 'destructive',
       });
     } finally {

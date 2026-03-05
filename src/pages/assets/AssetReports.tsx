@@ -108,7 +108,7 @@ export default function AssetReports() {
       const reportTitle = isRTL ? reportConfig.titleAr : reportConfig.title;
 
       if (exportFormat === "pdf") {
-        await generateAssetReportPDF(data as any, selectedReport, reportTitle, isRTL);
+        await generateAssetReportPDF(data, selectedReport, reportTitle, isRTL);
         toast({ title: isRTL ? "تم التصدير بنجاح" : "Export Successful" });
       } else {
         const columns: ReportColumn[] = [

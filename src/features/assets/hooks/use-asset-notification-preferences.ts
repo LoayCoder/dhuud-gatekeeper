@@ -36,7 +36,7 @@ export function useAssetNotificationPreferences() {
     queryFn: async () => {
       if (!user?.id || !profile?.tenant_id) return null;
       
-      const { data, error } = await (supabase as any)
+      const { data, error } = await (supabase as unknown)
         .from("asset_notification_preferences")
         .select("*")
         .eq("user_id", user.id)
@@ -84,7 +84,7 @@ export function useSaveAssetNotificationPreferences() {
       }
       
       // Check if preferences exist
-      const { data: existing } = await (supabase as any)
+      const { data: existing } = await (supabase as unknown)
         .from("asset_notification_preferences")
         .select("id")
         .eq("user_id", user.id)
@@ -93,7 +93,7 @@ export function useSaveAssetNotificationPreferences() {
       
       if (existing?.id) {
         // Update existing
-        const { data, error } = await (supabase as any)
+        const { data, error } = await (supabase as unknown)
           .from("asset_notification_preferences")
           .update(preferences)
           .eq("id", existing.id)
@@ -104,7 +104,7 @@ export function useSaveAssetNotificationPreferences() {
         return data;
       } else {
         // Insert new
-        const { data, error } = await (supabase as any)
+        const { data, error } = await (supabase as unknown)
           .from("asset_notification_preferences")
           .insert({
             ...preferences,

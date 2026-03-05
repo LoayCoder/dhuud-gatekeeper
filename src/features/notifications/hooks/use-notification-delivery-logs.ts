@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-type NotificationChannel = 'push' | 'email' | 'sms' | 'in_app';
-type DeliveryStatus = 'pending' | 'sent' | 'delivered' | 'failed' | 'bounced';
+import type { NotificationChannel } from '@/components/notifications/ChannelIcon';
+import type { DeliveryStatus } from '@/components/notifications/DeliveryStatusBadge';
 
 export type NotificationSource = 'manual' | 'incident' | 'hsse' | 'all';
 
@@ -237,11 +237,10 @@ export function useNotificationDeliveryLogs(options: UseNotificationDeliveryLogs
       results.forEach((log) => {
         channelCounts[log.channel] = (channelCounts[log.channel] || 0) + 1;
         
-        const s = log.status as string;
-        if (s === 'sent') sent++;
-        else if (s === 'delivered' || s === 'read') delivered++;
-        else if (s === 'failed' || s === 'bounced' || s === 'complained') failed++;
-        else if (s === 'pending') pending++;
+        if (log.status === 'sent') sent++;
+        else if (log.status === 'delivered' || log.status === 'read') delivered++;
+        else if (log.status === 'failed' || log.status === 'bounced' || log.status === 'complained') failed++;
+        else if (log.status === 'pending') pending++;
       });
 
       const total = results.length;

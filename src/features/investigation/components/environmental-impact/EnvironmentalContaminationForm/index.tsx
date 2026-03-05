@@ -1,1 +1,1 @@
-export { EnvironmentalContaminationForm } from './EnvironmentalContaminationForm';
+export { default } from './EnvironmentalContaminationForm';

@@ -20,7 +20,8 @@ export * from './components/environmental-impact/EnvironmentalContaminationForm/
 export * from './components/environmental-impact/EnvironmentalContaminationForm/components/SectionE';
 export * from './components/environmental-impact/EnvironmentalContaminationForm/components/SectionF';
 export * from './components/environmental-impact/EnvironmentalContaminationForm/hooks/useEnvironmentalContaminationForm';
-export { EnvironmentalContaminationForm } from './components/environmental-impact/EnvironmentalContaminationForm/EnvironmentalContaminationForm';
+export * from './components/environmental-impact/EnvironmentalContaminationForm/EnvironmentalContaminationForm';
+export * from './components/environmental-impact/EnvironmentalContaminationForm';
 export * from './components/environmental-impact/EnvironmentalContaminationForm/types';
 export * from './components/environmental-impact/EnvironmentalContaminationCard';
 export * from './components/environmental-impact/EnvironmentalImpactPanel';
@@ -142,8 +143,6 @@ export * from './hooks/use-investigation-readiness';
 export * from './hooks/use-investigation-sla-config';
 export * from './hooks/use-investigation-team';
 export * from './hooks/use-investigation';
-export type { RootCauseEntry } from './types';
-export type { ContributingFactorEntry } from './components/ContributingFactorsBuilder';
 export * from './hooks/useInvestigationWorkflow';
 export * from './services/investigationQueryService';
 export * from './services/investigationMutationService';

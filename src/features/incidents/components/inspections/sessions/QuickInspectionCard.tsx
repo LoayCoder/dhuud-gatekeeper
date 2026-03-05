@@ -5,7 +5,7 @@ import { CheckCircle, XCircle, Ban, MapPin, Clock, Loader2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { type SessionAsset, useRecordAssetInspection, useCreateFinding } from '@/features/incidents/hooks/use-inspection-sessions';
+import { type SessionAsset, useRecordAssetInspection, useCreateFinding } from '@/features/incidents';
 import { FailureReasonDialog } from './FailureReasonDialog';
 import { AssetPartInspectionCard } from '@/features/incidents';
 
@@ -191,8 +191,8 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
         <div className="mt-4">
           <AssetPartInspectionCard
             inspectionId={sessionAsset.id}
-            assetTypeId={(asset.type as any).id || ''}
-            assetSubtypeId={(asset as any).subtype_id || null}
+            assetTypeId={(asset.type as unknown).id || ''}
+            assetSubtypeId={(asset as unknown).subtype_id || null}
             assetTypeName={asset.type?.name || ''}
             assetTypeNameAr={asset.type?.name_ar}
             readOnly={isAlreadyInspected}

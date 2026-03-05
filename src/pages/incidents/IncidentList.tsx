@@ -344,10 +344,10 @@ export default function IncidentList() {
         <div className="space-y-4">
           {viewMode === 'table' ? (
             <IncidentTableView
-              incidents={incidents.map((i: any) => ({
+              incidents={incidents.map(i => ({
                 ...i,
-                incident_type: i.incident_type,
-              })) as any}
+                incident_type: (i as unknown).incident_type,
+              })) as unknown}
               hasHSSEAccess={hasHSSEAccess}
               isAdmin={isAdmin}
               isHSSEManager={isHSSEManager}
@@ -356,13 +356,13 @@ export default function IncidentList() {
             />
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {incidents.map((incident: any) => (
+              {incidents.map((incident) => (
                 <IncidentCardEnhanced
                   key={incident.id}
                   incident={{
                     ...incident,
-                    incident_type: incident.incident_type,
-                  } as any}
+                    incident_type: (incident as unknown).incident_type,
+                  } as unknown}
                   hasHSSEAccess={hasHSSEAccess}
                   canDelete={canDeleteIncident(incident.status)}
                   onStartInvestigation={handleStartInvestigation}

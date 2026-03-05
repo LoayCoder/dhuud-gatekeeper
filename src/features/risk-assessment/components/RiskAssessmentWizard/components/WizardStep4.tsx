@@ -6,7 +6,7 @@ import { CompactRiskMatrix } from "../../CompactRiskMatrix";
 import { RiskReductionSummary } from "../../RiskReductionSummary";
 import { HazardForm } from "../../HazardForm";
 
-export function WizardStep4({ state }: { state: any }) {
+export function WizardStep4({ state }: { state: unknown }) {
   const { t } = state;
   const {
     hazards, updateHazard, removeHazard
@@ -29,7 +29,7 @@ export function WizardStep4({ state }: { state: any }) {
           </Alert>
 
           <CompactRiskMatrix
-            hazards={hazards.map((h: any, i: number) => ({
+            hazards={hazards.map((h: unknown, i: number) => ({
               id: String(i),
               likelihood: h.likelihood,
               severity: h.severity,
@@ -43,7 +43,7 @@ export function WizardStep4({ state }: { state: any }) {
           />
 
           <RiskReductionSummary
-            hazards={hazards.map((h: any, i: number) => ({
+            hazards={hazards.map((h: unknown, i: number) => ({
               id: String(i),
               likelihood: h.likelihood,
               severity: h.severity,
@@ -56,7 +56,7 @@ export function WizardStep4({ state }: { state: any }) {
       </Card>
 
       <div className="space-y-4">
-        {hazards.map((hazard: any, index: number) => (
+        {hazards.map((hazard: unknown, index: number) => (
           <HazardForm
             key={index}
             hazard={hazard}

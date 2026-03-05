@@ -108,7 +108,7 @@ export function useRCAAnalytics(startDate?: Date, endDate?: Date, branchId?: str
       const { data: investigations, error: invError } = await investigationsQuery;
       if (invError) throw invError;
 
-      let eventsQuery = (supabase as any)
+      let eventsQuery = supabase
         .from('incidents')
         .select('id, reference_id, title, severity_v2, occurred_at, status, event_type, location, branches:branch_id(name)')
         .is('deleted_at', null)
@@ -217,7 +217,7 @@ export function useRCAAnalytics(startDate?: Date, endDate?: Date, branchId?: str
         status: event.status || 'submitted',
         event_type: event.event_type,
         location: event.location || undefined,
-        branch_name: (event.branches as any)?.name || undefined
+        branch_name: (event.branches as { name: string } | null)?.name || undefined
       }));
 
       // Format cause flow data

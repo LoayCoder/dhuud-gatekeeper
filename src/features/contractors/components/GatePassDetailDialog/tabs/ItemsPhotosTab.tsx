@@ -10,7 +10,7 @@ import {
 } from "@/features/contractors/hooks/use-gate-pass-details";
 
 // Items & Photos Tab Component
-export function ItemsPhotosTab({
+function ItemsPhotosTab({
   items,
   photos,
   materialDescription,

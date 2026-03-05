@@ -28,7 +28,7 @@ import { EditAssetTypeDialog } from './EditAssetTypeDialog';
 import { AddAssetSubtypeDialog } from './AddAssetSubtypeDialog';
 import { EditAssetSubtypeDialog } from './EditAssetSubtypeDialog';
 import { AssetTypePartsSection } from './AssetTypePartsSection';
-import { AssetHierarchyBulkImport } from './AssetHierarchyBulkImport';
+import AssetHierarchyBulkImport from './AssetHierarchyBulkImport';
 
 type DeleteTarget = {
   type: 'category' | 'type' | 'subtype';

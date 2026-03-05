@@ -9,7 +9,7 @@ import {
   useUploadInspectionPhoto, 
   useDeleteInspectionPhoto,
   getPhotoUrl 
-} from '@/features/incidents/hooks/use-inspection-uploads';
+} from '@/features/incidents';
 import { getCurrentGPS } from '@/hooks/use-gps-capture';
 import { WatermarkOptions } from '@/lib/upload-utils';
 

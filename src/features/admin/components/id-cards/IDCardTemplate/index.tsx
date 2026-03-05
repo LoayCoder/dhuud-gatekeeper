@@ -1,2 +1,2 @@
-export { IDCardTemplate } from './IDCardTemplate';
+export { default } from './IDCardTemplate';
 export * from './types';

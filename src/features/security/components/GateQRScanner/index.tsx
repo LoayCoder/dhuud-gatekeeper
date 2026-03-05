@@ -1,2 +1,2 @@
-export { ZoneSelector } from './GateQRScanner';
+export { default } from './GateQRScanner';
 export * from './types';

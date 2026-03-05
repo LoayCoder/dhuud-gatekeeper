@@ -156,8 +156,8 @@ export function useGuardPerformanceSummary(period: 'week' | 'month' | 'all' = 'm
       for (const m of metrics || []) {
         const existing = guardMap.get(m.guard_id) || {
           guard_id: m.guard_id,
-          guard_name: (m.guard as any)?.full_name || 'Unknown',
-          avatar_url: (m.guard as any)?.avatar_url || null,
+          guard_name: (m.guard as unknown)?.full_name || 'Unknown',
+          avatar_url: (m.guard as unknown)?.avatar_url || null,
           totalPatrolsCompleted: 0,
           totalPatrolsAssigned: 0,
           totalCheckpointsVerified: 0,
@@ -266,8 +266,8 @@ export function useGuardLeaderboard() {
       for (const m of data || []) {
         const key = m.guard_id;
         const existing = guardScores.get(key) || {
-          name: (m.guard as any)?.full_name || 'Unknown',
-          avatar: (m.guard as any)?.avatar_url || null,
+          name: (m.guard as unknown)?.full_name || 'Unknown',
+          avatar: (m.guard as unknown)?.avatar_url || null,
           scores: [],
         };
         if (m.overall_score) existing.scores.push(Number(m.overall_score));

@@ -10,7 +10,7 @@ import { ChevronDown, Link2, Building2, User, Pencil, Trash2 } from "lucide-reac
 // The ActionEvidenceSection is in the parent directory of ActionsPanel
 import { ActionEvidenceSection } from "../../ActionEvidenceSection";
 
-export function ActionList({ state, incidentId }: { state: any, incidentId: string }) {
+export function ActionList({ state, incidentId }: { state: unknown, incidentId: string }) {
   const { t } = useTranslation();
   const {
     actions, isLocked, expandedActions, toggleActionExpand,
@@ -31,7 +31,7 @@ export function ActionList({ state, incidentId }: { state: any, incidentId: stri
 
   return (
     <div className="space-y-3">
-      {actions?.map((action: any) => {
+      {actions?.map((action: unknown) => {
         const actionData = action as unknown as { 
           reference_id: string | null;
           linked_root_cause_id: string | null;
@@ -148,7 +148,7 @@ export function ActionList({ state, incidentId }: { state: any, incidentId: stri
                           : ''
                       }
                     >
-                      {String(t(`investigation.actions.statuses.${action.status || 'assigned'}`, action.status || 'assigned'))}
+                      {t(`investigation.actions.statuses.${action.status || 'assigned'}`, action.status || 'assigned')}
                     </Badge>
                   </div>
                 </div>

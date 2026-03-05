@@ -67,17 +67,22 @@ export function ActiveSessionsTab({ tenantId }: ActiveSessionsTabProps) {
       let sessionsData: unknown[] = [];
       
       if (tenantId) {
-        const result = await (supabase as any)
+        const result = await (supabase
           .from("user_sessions")
-          .select("id, user_id, session_token, ip_address, ip_country, ip_city, user_agent, created_at, last_activity_at, expires_at, is_valid")
+          .select("id, user_id, session_token, ip_address, ip_country, ip_city, user_agent, created_at, last_activity_at, expires_at, is_valid") as unknown)
+          .eq("is_valid", true)
+          .eq("tenant_id", tenantId)
+          .gt("expires_at", new Date().toISOString())
+          .order("last_activity_at", { ascending: false });
+        if (result.error) throw result.error;
+        sessionsData = result.data || [];
+      } else {
+        const result = await (supabase
+          .from("user_sessions")
+          .select("id, user_id, session_token, ip_address, ip_country, ip_city, user_agent, created_at, last_activity_at, expires_at, is_valid") as unknown)
           .eq("is_valid", true)
           .gt("expires_at", new Date().toISOString())
           .order("last_activity_at", { ascending: false });
-        
-      if (tenantId) {
-        // Filter by tenant if available - handled by RLS
-      }
-        
         if (result.error) throw result.error;
         sessionsData = result.data || [];
       }
@@ -85,7 +90,7 @@ export function ActiveSessionsTab({ tenantId }: ActiveSessionsTabProps) {
       if (sessionsData.length === 0) return [];
 
       // Enrich with user names
-      const userIds = [...new Set(sessionsData.map((s: any) => s.user_id))];
+      const userIds = [...new Set(sessionsData.map((s: unknown) => s.user_id))];
       const { data: profiles } = await supabase
         .from("profiles")
         .select("id, full_name, email")
@@ -93,7 +98,7 @@ export function ActiveSessionsTab({ tenantId }: ActiveSessionsTabProps) {
 
       const profileMap = new Map(profiles?.map(p => [p.id, { name: p.full_name, email: p.email }]) || []);
 
-      return sessionsData.map((s: any) => ({
+      return sessionsData.map((s: unknown) => ({
         id: s.id,
         user_id: s.user_id,
         session_token: s.session_token,
@@ -147,19 +152,31 @@ export function ActiveSessionsTab({ tenantId }: ActiveSessionsTabProps) {
   // Terminate all sessions mutation
   const terminateAllMutation = useMutation({
     mutationFn: async () => {
-      await (supabase as any)
-        .from("user_sessions")
-        .update({ 
-          is_valid: false, 
-          invalidation_reason: "admin_terminated_all",
-          invalidated_at: new Date().toISOString()
-        })
-        .eq("is_valid", true);
+      if (tenantId) {
+        await (supabase
+          .from("user_sessions")
+          .update({ 
+            is_valid: false, 
+            invalidation_reason: "admin_terminated_all",
+            invalidated_at: new Date().toISOString()
+          }) as unknown)
+          .eq("is_valid", true)
+          .eq("tenant_id", tenantId);
+      } else {
+        await (supabase
+          .from("user_sessions")
+          .update({ 
+            is_valid: false, 
+            invalidation_reason: "admin_terminated_all",
+            invalidated_at: new Date().toISOString()
+          }) as unknown)
+          .eq("is_valid", true);
+      }
 
       // Log the action
       if (tenantId) {
         const { data: { user } } = await supabase.auth.getUser();
-        await (supabase as any).from("system_emergency_actions").insert({
+        await supabase.from("system_emergency_actions").insert({
           tenant_id: tenantId,
           action_type: "terminate_all_sessions",
           performed_by: user?.id,

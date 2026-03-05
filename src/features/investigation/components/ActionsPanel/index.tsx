@@ -1,2 +1,2 @@
-export { ActionsPanel } from './ActionsPanel';
+export { default } from './ActionsPanel';
 export * from './types';

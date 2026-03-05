@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, CheckCircle, MessageSquareWarning, Upload, FileImage, X } from 'lucide-react';
-import { useContractorAcknowledgeViolation } from '@/features/contractors/hooks/use-violation-workflow';
+import { useContractorAcknowledgeViolation } from '@/hooks/contractor-observation';
 
 interface ContractorAcknowledgementCardProps {
   violationId: string;

@@ -14,7 +14,7 @@ export function useCreateApprovalConfig() {
         mutationFn: async (config: Omit<ApprovalConfig, "id" | "tenant_id" | "created_at" | "updated_at">) => {
             if (!profile?.tenant_id) throw new Error("No tenant");
 
-            const { data, error } = await (supabase as any)
+            const { data, error } = await (supabase as unknown)
                 .from("asset_approval_configs")
                 .insert({
                     ...config,
@@ -50,7 +50,7 @@ export function useUpdateApprovalConfig() {
 
     return useMutation({
         mutationFn: async ({ id, ...updates }: Partial<ApprovalConfig> & { id: string }) => {
-            const { data, error } = await (supabase as any)
+            const { data, error } = await (supabase as unknown)
                 .from("asset_approval_configs")
                 .update(updates)
                 .eq("id", id)
@@ -86,13 +86,13 @@ export function useSaveApprovalLevels() {
         mutationFn: async ({ configId, levels }: { configId: string; levels: Omit<ApprovalLevel, "id" | "config_id" | "tenant_id">[] }) => {
             if (!profile?.tenant_id) throw new Error("No tenant");
 
-            await (supabase as any)
+            await (supabase as unknown)
                 .from("asset_approval_levels")
                 .update({ deleted_at: new Date().toISOString() })
                 .eq("config_id", configId);
 
             if (levels.length > 0) {
-                const { error } = await (supabase as any)
+                const { error } = await (supabase as unknown)
                     .from("asset_approval_levels")
                     .insert(
                         levels.map((level, index) => ({
@@ -132,7 +132,7 @@ export function useCreatePurchaseRequest() {
         mutationFn: async (request: Omit<PurchaseRequest, "id" | "tenant_id" | "request_number" | "requested_by" | "requested_at" | "created_at" | "status" | "current_approval_level">) => {
             if (!profile?.tenant_id || !user?.id) throw new Error("Not authenticated");
 
-            const { data, error } = await (supabase as any)
+            const { data, error } = await (supabase as unknown)
                 .from("asset_purchase_requests")
                 .insert({
                     ...request,
@@ -173,7 +173,7 @@ export function useDecidePurchaseRequest() {
         mutationFn: async ({ requestId, decision, notes }: { requestId: string; decision: "approved" | "rejected" | "returned"; notes?: string }) => {
             if (!profile?.tenant_id || !user?.id) throw new Error("Not authenticated");
 
-            const { data: request, error: fetchError } = await (supabase as any)
+            const { data: request, error: fetchError } = await (supabase as unknown)
                 .from("asset_purchase_requests")
                 .select("current_approval_level")
                 .eq("id", requestId)
@@ -181,7 +181,7 @@ export function useDecidePurchaseRequest() {
 
             if (fetchError) throw fetchError;
 
-            const { error: approvalError } = await (supabase as any)
+            const { error: approvalError } = await (supabase as unknown)
                 .from("asset_purchase_approvals")
                 .insert({
                     request_id: requestId,
@@ -208,7 +208,7 @@ export function useDecidePurchaseRequest() {
                 updates.current_approval_level = Math.max(1, request.current_approval_level - 1);
             }
 
-            const { error: updateError } = await (supabase as any)
+            const { error: updateError } = await (supabase as unknown)
                 .from("asset_purchase_requests")
                 .update(updates)
                 .eq("id", requestId);
@@ -239,7 +239,7 @@ export function useUpdatePurchaseRequest() {
 
     return useMutation({
         mutationFn: async ({ id, ...updates }: Partial<PurchaseRequest> & { id: string }) => {
-            const { data, error } = await (supabase as any)
+            const { data, error } = await (supabase as unknown)
                 .from("asset_purchase_requests")
                 .update(updates)
                 .eq("id", id)
@@ -273,7 +273,7 @@ export function useDeletePurchaseRequest() {
 
     return useMutation({
         mutationFn: async (id: string) => {
-            const { error } = await (supabase as any)
+            const { error } = await (supabase as unknown)
                 .from("asset_purchase_requests")
                 .update({ deleted_at: new Date().toISOString() })
                 .eq("id", id);

@@ -83,7 +83,7 @@ export function RootCauseParetoChart({ data, isLoading, dataUpdatedAt, isFetchin
     },
   };
 
-  const handleBarClick = (entry: any) => {
+  const handleBarClick = (entry: unknown) => {
     if (entry?.category) {
       drillDown({ rootCauseCategory: entry.category }, `Root Cause: ${entry.category}`);
     }

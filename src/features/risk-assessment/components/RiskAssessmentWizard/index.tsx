@@ -1,2 +1,2 @@
-export { RiskAssessmentWizard } from './RiskAssessmentWizard';
+export { default } from './RiskAssessmentWizard';
 export * from './types';

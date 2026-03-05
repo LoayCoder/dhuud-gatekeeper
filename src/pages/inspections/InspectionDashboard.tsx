@@ -13,13 +13,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ModuleGate } from '@/components';
-import { useInspectionSessions as useInspectionSessionStats } from '@/features/incidents';
-
-// Stub hooks for missing exports
-function useComplianceTrend() { return { data: [] as any[], isLoading: false }; }
-function useFindingsDistribution() { return { data: [] as any[], isLoading: false }; }
-function useOverdueInspectionsCount() { return { data: 0, isLoading: false }; }
-function useRecentFindings() { return { data: [] as any[], isLoading: false }; }
+import {
+  useInspectionSessionStats,
+  useComplianceTrend,
+  useFindingsDistribution,
+  useOverdueInspectionsCount,
+  useRecentFindings,
+} from '@/features/incidents';
 import { ComplianceTrendChart } from '@/features/incidents';
 import { FindingsDistributionChart } from '@/features/incidents';
 import { UpcomingSchedulesCard } from '@/features/incidents';
@@ -180,13 +180,13 @@ function InspectionDashboardContent() {
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <StatusBadge 
-                        status={getClassificationStatus(finding.classification) as any}
+                        status={getClassificationStatus(finding.classification) as unknown}
                         size="sm"
                       >
                         {t(`inspectionDashboard.classifications.${finding.classification}`)}
                       </StatusBadge>
                       <Button variant="ghost" size="sm" asChild>
-                        <Link to={`/inspections/sessions/area/${(finding as any).session?.id || ''}`}>
+                        <Link to={`/inspections/sessions/area/${(finding.session as unknown)?.id || ''}`}>
                           {t('common.view')}
                         </Link>
                       </Button>

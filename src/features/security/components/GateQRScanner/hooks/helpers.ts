@@ -1,9 +1,9 @@
 import { CheckCircle2, XCircle, AlertTriangle, Clock } from 'lucide-react';
-import { QRScanResult } from '../types';
+import { QRScanResult } from './types';
 import { logger } from '@/lib/logger';
 
 // Audio feedback utility for scan results
-export const playAudioFeedback = (type: 'success' | 'warning' | 'error') => {
+const playAudioFeedback = (type: 'success' | 'warning' | 'error') => {
   try {
     const AudioContext = window.AudioContext || (window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AudioContext) return;
@@ -12,9 +12,11 @@ export const playAudioFeedback = (type: 'success' | 'warning' | 'error') => {
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
     
+    // Configure frequency based on type
     oscillator.frequency.value = type === 'success' ? 880 : type === 'warning' ? 440 : 220;
     oscillator.type = type === 'success' ? 'sine' : 'square';
     
+    // Short beep with fade out
     gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
     
@@ -23,11 +25,12 @@ export const playAudioFeedback = (type: 'success' | 'warning' | 'error') => {
     oscillator.start();
     oscillator.stop(audioContext.currentTime + 0.2);
   } catch (e) {
+    // Audio not supported, fail silently
     logger.debug('[GateQR] Audio feedback not available');
   }
 };
 
-export const AUTO_RESET_DELAY_MS = 8000; // 8 seconds auto-reset
+const AUTO_RESET_DELAY_MS = 8000; // 8 seconds auto-reset
 
 
 export const getStatusConfig = (status: QRScanResult['status'], isOnSite?: boolean, t?: (key: string, defaultText: string) => string) => {

@@ -386,7 +386,7 @@ export default function SLADashboard() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={getPriorityVariant(action.priority) as any}>
+                          <Badge variant={getPriorityVariant(action.priority) as unknown}>
                             {action.priority || 'medium'}
                           </Badge>
                         </TableCell>

@@ -87,9 +87,8 @@ export default function UserManagement() {
   const extraActions = useUserManagementExtraActions(state, data);
   const actions = { ...coreActions, ...extraActions };
 
-  const { users = [], selectedUsers, totalCount, loading, direction, t, exporting, handleExport, setIsImportDialogOpen, handleAddUser, quota, breakdown, quotaLoading, refetchUsers, setSelectedUsers, handleBulkActionClick, userTypeFilter, statusFilter, branchFilter, divisionFilter, roleFilter } = { ...state, ...data, ...actions } as any;
-  const allSelected = users.length > 0 && users.every((u: any) => selectedUsers?.has(u.id));
-  const someSelected = users.some((u: any) => selectedUsers?.has(u.id)) && !allSelected;
+  const allSelected = users.length > 0 && users.every(u => selectedUsers.has(u.id));
+  const someSelected = users.some(u => selectedUsers.has(u.id)) && !allSelected;
 
   // Count active filters
   const activeFilterCount = useMemo(() => {

@@ -9,7 +9,7 @@ import { AIAnalysisPanel } from '@/features/incidents';
 import { AITagsSelector } from '@/components/ai/AITagsSelector';
 import { OBSERVATION_TYPES } from './types';
 
-export function QuickObservationCardFormDetails({ state, form }: any) {
+export function QuickObservationCardFormDetails({ state, form }: unknown) {
   const { t } = useTranslation();
   const { isOnline, aiValidator, handleAnalyzeDescription, handleConfirmTranslation, handleConfirmAnalysis, availableObservationTags, selectedTags, setSelectedTags } = state;
   return (

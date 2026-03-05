@@ -86,13 +86,13 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
         location_description: project.location_description || "",
         notes: project.notes || "",
         project_manager_id: project.project_manager_id || "",
-        branch_id: (project as any).branch_id || "",
+        branch_id: (project as unknown).branch_id || "",
         site_id: project.site_id || "",
-        department_id: (project as any).department_id || "",
-        latitude: (project as any).latitude ?? null,
-        longitude: (project as any).longitude ?? null,
-        boundary_polygon: (project as any).boundary_polygon ?? null,
-        geofence_radius_meters: (project as any).geofence_radius_meters ?? 100,
+        department_id: (project as unknown).department_id || "",
+        latitude: (project as unknown).latitude ?? null,
+        longitude: (project as unknown).longitude ?? null,
+        boundary_polygon: (project as unknown).boundary_polygon ?? null,
+        geofence_radius_meters: (project as unknown).geofence_radius_meters ?? 100,
       });
     } else {
       setFormData({ 

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SignaturePad, SignaturePadRef } from "@/components/ui/signature-pad";
-import type { RiskAssessmentTeamMember } from "@/features/risk-assessment/hooks/use-risk-assessment-team";
+import type { RiskAssessmentTeamMember } from "@/hooks/risk-assessment";
 
 interface TeamSignatureSectionProps {
   teamMembers: RiskAssessmentTeamMember[];

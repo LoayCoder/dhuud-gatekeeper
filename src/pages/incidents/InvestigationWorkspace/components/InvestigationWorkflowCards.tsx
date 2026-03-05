@@ -23,10 +23,11 @@ import {
 } from '@/features/investigation';
 import { ActionDisputeReviewCard, ConsultantReviewCard, SiteClientActionApprovalCard } from '@/features/investigation';
 import { HSSEEnforcementBanner } from '@/features/investigation';
+import type { IncidentWithDetails } from '@/features/incidents';
 
 interface InvestigationWorkflowCardsProps {
-  incidentData: any;
-  investigation: any;
+  incidentData: IncidentWithDetails & Record<string, unknown>;
+  investigation: Record<string, unknown>;
   actionsCount: number;
   handleCreateAction: () => void;
   handleRefresh: () => void;

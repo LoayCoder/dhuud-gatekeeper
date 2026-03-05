@@ -18,9 +18,7 @@ import {
   BulkLocationChangeDialog,
   BulkDeleteDialog,
 } from '@/features/assets';
-import { useAssets, useAssetCategories } from '@/features/assets/hooks/use-assets';
-import type { AssetFilters } from '@/features/assets/hooks/use-assets';
-import type { AssetWithRelations } from '@/features/assets/services/assetQueryService';
+import { useAssets, useAssetCategories, type AssetFilters, type AssetWithRelations } from '@/features/assets';
 import { useUserRoles } from '@/features/users';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, isPast, isFuture, addDays } from 'date-fns';

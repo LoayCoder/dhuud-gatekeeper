@@ -25,7 +25,7 @@ import { HSSE_EVENT_TYPES, getSubtypesForEventType } from '@/lib/hsse-event-type
 import { WIZARD_STEPS, RISK_RATING_LEVELS } from './helpers';
 import { useIncidentReport } from './hooks/useIncidentReport';
 export function Step1Capture({ viewProps }: { viewProps: ReturnType<typeof useIncidentReport> }) {
-  const { t, direction, form, branches, sites, profile, activeEventId, setActiveEventId, uploadedPhotos, setUploadedPhotos, uploadedVideo, setUploadedVideo, isAutoTriggerEnabled, setAutoTriggerEnabled, isPendingAutoTrigger, handleAnalyzeDescription, aiValidator, handleConfirmTranslation, handleConfirmAnalysis, availableIncidentTags, selectedTags, setSelectedTags, eventType, incidentType, isApplyingAISuggestions, getReferencePreview, dynamicCategories, subtypeOptions, currentStep } = viewProps as any;
+  const { t, direction, form, branches, sites, profile, activeEventId, setActiveEventId, uploadedPhotos, setUploadedPhotos, uploadedVideo, setUploadedVideo, isAutoTriggerEnabled, setAutoTriggerEnabled, isPendingAutoTrigger, handleAnalyzeDescription, aiValidator, handleConfirmTranslation, handleConfirmAnalysis, availableIncidentTags, selectedTags, setSelectedTags, eventType, incidentType, isApplyingAISuggestions, getReferencePreview, dynamicCategories, subtypeOptions } = viewProps;
   return (<>
     {currentStep === 1 && (
       <div className="space-y-6 animate-in fade-in duration-300">

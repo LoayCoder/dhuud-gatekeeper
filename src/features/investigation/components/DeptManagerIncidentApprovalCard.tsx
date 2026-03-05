@@ -84,7 +84,7 @@ export function DeptManagerIncidentApprovalCard({ incident, onComplete }: DeptMa
   };
 
   const getSeverityBadge = () => {
-    const severity = incident.severity_v2 || (incident as any).severity;
+    const severity = incident.severity_v2 || (incident as unknown).severity;
     if (!severity) return null;
     
     const colorMap: Record<string, string> = {
@@ -102,7 +102,7 @@ export function DeptManagerIncidentApprovalCard({ incident, onComplete }: DeptMa
     );
   };
 
-  const severityLevel = incident.severity_v2 || (incident as any).severity;
+  const severityLevel = incident.severity_v2 || (incident as unknown).severity;
   const isHighSeverity = severityLevel && ['level_4', 'level_5'].includes(severityLevel);
 
   return (

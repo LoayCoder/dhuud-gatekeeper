@@ -301,7 +301,7 @@ async function fetchActionEvidence(actionIds: string[]): Promise<Map<string, Act
 
 async function fetchContractorViolation(incidentId: string): Promise<ContractorViolationData | null> {
   const db = supabase;
-  const { data: rawIncident } = await db
+  const { data: incident } = await db
     .from('incidents')
     .select(`
       violation_type_id,
@@ -310,11 +310,10 @@ async function fetchContractorViolation(incidentId: string): Promise<ContractorV
       violation_contractor_acknowledged_at,
       violation_contractor_acknowledged_by,
       related_contractor_company:related_contractor_company_id(name)
-    ` as any)
+    `)
     .eq('id', incidentId)
     .single();
 
-  const incident = rawIncident as any;
   if (!incident || !incident.related_contractor_company) return null;
 
   let acknowledgedByName = null;

@@ -50,8 +50,8 @@ export function useAvatarUpload() {
       const url = `${publicUrl}?t=${Date.now()}`;
 
       return { url, error: null };
-    } catch (error: any) {
-      return { url: null, error: error?.message || "Error uploading avatar" };
+    } catch (error: unknown) {
+      return { url: null, error: error.message || "Error uploading avatar" };
     } finally {
       setUploading(false);
     }

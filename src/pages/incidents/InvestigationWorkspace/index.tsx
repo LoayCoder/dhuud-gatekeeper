@@ -1,1 +1,1 @@
-export { default } from '../InvestigationWorkspace';
+export { default } from './InvestigationWorkspace';

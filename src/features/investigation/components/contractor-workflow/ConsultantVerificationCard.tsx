@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Search, CheckCircle, XCircle, AlertTriangle, ExternalLink } from 'lucide-react';
-import { useConsultantVerifyAction } from '@/features/contractors/hooks/use-contractor-observation-workflow';
+import { useConsultantVerifyAction } from '@/hooks/contractor-observation';
 
 interface CompletedAction {
   id: string;

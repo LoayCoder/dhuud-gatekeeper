@@ -101,7 +101,7 @@ export function applyBranchFilter<T extends { in: (column: string, values: strin
   
   if (branchIds.length === 1) {
     // Single branch - use eq for efficiency
-    return (query as any).eq(columnName, branchIds[0]);
+    return (query as unknown).eq(columnName, branchIds[0]);
   }
   
   // Multiple branches - use in

@@ -44,7 +44,7 @@ export function SecurityOverviewTab({ tenantId }: SecurityOverviewTabProps) {
       if (tenantId) {
         const result = await (supabase
           .from("user_sessions")
-          .select("id", { count: "exact", head: true }) as any)
+          .select("id", { count: "exact", head: true }) as unknown)
           .eq("is_valid", true)
           .eq("tenant_id", tenantId)
           .gt("expires_at", new Date().toISOString());
@@ -52,7 +52,7 @@ export function SecurityOverviewTab({ tenantId }: SecurityOverviewTabProps) {
       } else {
         const result = await (supabase
           .from("user_sessions")
-          .select("id", { count: "exact", head: true }) as any)
+          .select("id", { count: "exact", head: true }) as unknown)
           .eq("is_valid", true)
           .gt("expires_at", new Date().toISOString());
         activeSessions = result.count || 0;

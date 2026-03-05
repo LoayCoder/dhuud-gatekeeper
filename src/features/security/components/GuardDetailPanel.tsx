@@ -87,7 +87,7 @@ function useGuardDetails(guardId: string | null) {
     queryKey: ['guard-profile', guardId],
     queryFn: async (): Promise<GuardProfile | null> => {
       if (!guardId) return null;
-      const client = supabase as any;
+      const client = supabase as unknown;
       const { data, error } = await client
         .from('profiles')
         .select('id, full_name, avatar_url, employee_id')
@@ -105,7 +105,7 @@ function useGuardDetails(guardId: string | null) {
     queryFn: async (): Promise<ShiftInfo | null> => {
       if (!guardId) return null;
       const today = format(new Date(), 'yyyy-MM-dd');
-      const client = supabase as any;
+      const client = supabase as unknown;
       const { data, error } = await client
         .from('shift_roster')
         .select(`
@@ -137,7 +137,7 @@ function useGuardDetails(guardId: string | null) {
     queryKey: ['guard-patrols', guardId],
     queryFn: async (): Promise<PatrolLog[]> => {
       if (!guardId) return [];
-      const client = supabase as any;
+      const client = supabase as unknown;
       const { data, error } = await client
         .from('patrol_checkpoint_logs')
         .select(`
@@ -150,7 +150,7 @@ function useGuardDetails(guardId: string | null) {
         .limit(10);
       
       if (error) throw error;
-      return (data || []).map((log: any) => ({
+      return (data || []).map((log: unknown) => ({
         ...log,
         checkpoint_name: log.checkpoint?.name || 'Unknown',
       }));

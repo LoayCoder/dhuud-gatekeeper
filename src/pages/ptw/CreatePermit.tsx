@@ -10,7 +10,7 @@ import { PermitWorkersStep } from '@/features/ptw';
 import { PermitOperationalStep } from '@/features/ptw';
 import { PermitSafetyStep } from '@/features/ptw';
 import { PermitReviewStep } from '@/features/ptw';
-import { useCreatePTWProject as useCreatePTWPermit } from "@/hooks/ptw";
+import { useCreatePTWPermit } from "@/hooks/ptw";
 import { useSIMOPSCheck } from "@/features/ptw/hooks/use-simops-check";
 import { useMobilizationCheck } from "@/features/ptw/hooks/use-mobilization-check";
 import { SIMOPSConflictWarning } from '@/features/ptw';

@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '../supabaseClient';
 
 export interface CreateManhourInput {
     period_date: string;

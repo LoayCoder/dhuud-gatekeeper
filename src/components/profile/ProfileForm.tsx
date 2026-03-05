@@ -159,7 +159,7 @@ export function ProfileForm({
     } catch (error: unknown) {
       toast({
         title: t('auth.error'),
-        description: (error as Error).message || t('profile.profileUpdateError'),
+        description: error.message || t('profile.profileUpdateError'),
         variant: "destructive"
       });
     } finally {

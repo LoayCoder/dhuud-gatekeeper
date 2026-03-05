@@ -182,7 +182,7 @@ export function useDeleteEvidence() {
                 } as Json,
             });
 
-            const { data: deleteResult, error: deleteError } = await supabase.rpc('soft_delete_incident_evidence' as any, { p_evidence_id: id } as any);
+            const { data: deleteResult, error: deleteError } = await supabase.rpc('soft_delete_incident_evidence' as never, { p_evidence_id: id });
 
             if (deleteError) {
                 throw new Error(deleteError.message || 'Failed to delete evidence');

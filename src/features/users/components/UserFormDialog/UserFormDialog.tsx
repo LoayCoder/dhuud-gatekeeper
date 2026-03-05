@@ -14,14 +14,13 @@ import { TeamAssignmentDialog } from '@/components/hierarchy/TeamAssignmentDialo
 import { supabase } from '@/integrations/supabase/client';
 
 export function UserFormDialog(props: UserFormDialogProps) {
-  const state = useUserFormState(props) as any;
+  const state = useUserFormState(props);
   const {
-    t, direction, form, onOpenChange, user,
+    t, direction, form, open, onOpenChange, user,
     activeTab, setActiveTab, getTabStatus, showTypeSpecificTab,
     onSubmit, isLoading, quota, showTeamAssignment, setShowTeamAssignment,
     currentManagerId, setCurrentManagerId
   } = state;
-  const open = props.open;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -93,15 +92,15 @@ export function UserFormDialog(props: UserFormDialogProps) {
           <TeamAssignmentDialog
             open={showTeamAssignment}
             onOpenChange={setShowTeamAssignment}
-            userId={(user as any).id}
-            userName={(user as any).full_name}
+            userId={user.id}
+            userName={user.full_name}
             currentManagerId={currentManagerId}
             onAssigned={() => {
               // Refetch manager assignment
               supabase
                 .from('manager_team')
                 .select('manager_id')
-                .eq('user_id', (user as any).id)
+                .eq('user_id', user.id)
                 .maybeSingle()
                 .then(({ data }) => setCurrentManagerId(data?.manager_id || null));
             }}

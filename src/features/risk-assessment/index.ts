@@ -1,4 +1,4 @@
-export * from './components/RiskAssessmentWizard/components/WizardNavigation';
+﻿export * from './components/RiskAssessmentWizard/components/WizardNavigation';
 export * from './components/RiskAssessmentWizard/components/WizardStep1';
 export * from './components/RiskAssessmentWizard/components/WizardStep2';
 export * from './components/RiskAssessmentWizard/components/WizardStep3';
@@ -6,7 +6,8 @@ export * from './components/RiskAssessmentWizard/components/WizardStep4';
 export * from './components/RiskAssessmentWizard/components/WizardStep5';
 export * from './components/RiskAssessmentWizard/hooks/useRiskAssessmentForm';
 export * from './components/RiskAssessmentWizard/constants';
-export { RiskAssessmentWizard } from './components/RiskAssessmentWizard/RiskAssessmentWizard';
+export * from './components/RiskAssessmentWizard';
+export * from './components/RiskAssessmentWizard/RiskAssessmentWizard';
 export * from './components/RiskAssessmentWizard/types';
 export * from './components/ActivityDetailsSection';
 export * from './components/CompactRiskMatrix';

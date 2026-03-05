@@ -9,7 +9,7 @@ import { IncidentDamageCard } from "./IncidentDamageCard";
 import { IncidentAttachmentsSection } from '@/features/incidents';
 
 interface IncidentSummarySectionProps {
-    incident: any;
+    incident: unknown;
 }
 
 export function IncidentSummarySection({ incident }: IncidentSummarySectionProps) {
@@ -20,7 +20,7 @@ export function IncidentSummarySection({ incident }: IncidentSummarySectionProps
     };
 
     // Parse media attachments
-    const mediaAttachments = (incident as any).media_attachments as Array<{ url: string; type: string; name: string }> | null;
+    const mediaAttachments = (incident as unknown).media_attachments as Array<{ url: string; type: string; name: string }> | null;
 
     return (
         <div className="space-y-6">
@@ -62,7 +62,7 @@ export function IncidentSummarySection({ incident }: IncidentSummarySectionProps
                                                 <span className="text-muted-foreground">{t('incidents.category', 'Category')}:</span>
                                                 <span className="font-medium">
                                                     {(() => {
-                                                        const cat = (incident as any).incident_type ||
+                                                        const cat = (incident as unknown).incident_type ||
                                                             (incident.subtype ? getHsseEventTypeForSubtype(incident.subtype) : null);
                                                         return cat ? safeTranslate(`incidents.hsseEventTypes.${snakeToCamel(cat)}`, cat) : '-';
                                                     })()}
@@ -72,7 +72,7 @@ export function IncidentSummarySection({ incident }: IncidentSummarySectionProps
                                                 <div className="flex flex-col sm:flex-row sm:justify-between text-sm">
                                                     <span className="text-muted-foreground">{t('incidents.subCategory', 'Sub Category')}:</span>
                                                     <span className="font-medium text-wrap text-right sm:max-w-[200px]">
-                                                        {getSubtypeTranslation(t, incident.event_type, incident.subtype, (incident as any).incident_type)}
+                                                        {getSubtypeTranslation(t, incident.event_type, incident.subtype, (incident as unknown).incident_type)}
                                                     </span>
                                                 </div>
                                             )}
@@ -130,7 +130,7 @@ export function IncidentSummarySection({ incident }: IncidentSummarySectionProps
                 <IncidentInjuryCard
                     hasInjury={incident.has_injury || false}
                     injuryDetails={incident.injury_details as unknown}
-                    injuryClassification={(incident as any).injury_classification}
+                    injuryClassification={(incident as unknown).injury_classification}
                 />
                 <IncidentDamageCard
                     hasDamage={incident.has_damage || false}
@@ -151,13 +151,13 @@ export function IncidentSummarySection({ incident }: IncidentSummarySectionProps
                         mediaAttachments={mediaAttachments}
                         incidentMetadata={{
                             referenceId: incident.reference_id,
-                            occurredAt: (incident as any).occurred_at,
-                            location: (incident as any).location || undefined,
-                            branchName: (incident as any).branch?.name,
-                            siteName: (incident as any).site?.name,
-                            contractorName: (incident as any).related_contractor_company?.company_name,
-                            latitude: (incident as any).latitude,
-                            longitude: (incident as any).longitude,
+                            occurredAt: (incident as unknown).occurred_at,
+                            location: (incident as unknown).location || undefined,
+                            branchName: (incident as unknown).branch?.name,
+                            siteName: (incident as unknown).site?.name,
+                            contractorName: (incident as unknown).related_contractor_company?.company_name,
+                            latitude: (incident as unknown).latitude,
+                            longitude: (incident as unknown).longitude,
                         }}
                         fallbackTimestamp={incident.created_at}
                     />

@@ -21,7 +21,7 @@ interface ZoneSelectorProps {
 export function ZoneSelector({ siteId, onZoneChange, className, showDetectButton = true }: ZoneSelectorProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const { data: zones = [], isLoading } = useSecurityZones({ siteId, isActive: true } as any);
+  const { data: zones = [], isLoading } = useSecurityZones({ siteId, isActive: true });
   const [selectedZone, setSelectedZone] = useState<string | null>(null);
   const { currentZone, nearestZone, isLocating, error, detectZone } = useCurrentZone();
 

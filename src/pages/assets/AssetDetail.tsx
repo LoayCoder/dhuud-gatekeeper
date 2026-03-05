@@ -13,7 +13,7 @@ import { AssetQRCode, AssetBarcodeLabel, MaintenanceScheduleList, AssetIncidentH
 import { Tabs as LabelTabs, TabsContent as LabelTabsContent, TabsList as LabelTabsList, TabsTrigger as LabelTabsTrigger } from '@/components/ui/tabs';
 import { InspectionHistoryTab } from '@/features/incidents';
 import { WarrantyClaimsTab, WarrantyExpiryBadge } from '@/features/assets';
-import { useAsset, useAssetPhotos, useAssetDocuments, useAssetAuditLogs, useDeleteAsset } from '@/features/assets/hooks/use-assets';
+import { useAsset, useAssetPhotos, useAssetDocuments, useAssetAuditLogs, useDeleteAsset } from '@/features/assets';
 import { useUserRoles } from '@/features/users';
 import { format, isPast, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';

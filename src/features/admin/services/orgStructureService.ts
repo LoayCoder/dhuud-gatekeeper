@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '../supabaseClient';
 import type { Site, Branch, Department, Section, Coordinate } from '@/hooks/use-org-hierarchy';
 
 export const getTenantSites = async (tenantId: string) => {

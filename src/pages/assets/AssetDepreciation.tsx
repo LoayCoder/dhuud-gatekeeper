@@ -24,7 +24,7 @@ import {
   GenerateScheduleDialog,
   DepreciationSummaryCard 
 } from '@/features/assets';
-import { useAsset } from '@/features/assets/hooks/use-assets';
+import { useAsset } from '@/features/assets';
 import { useDepreciationSchedules } from '@/hooks/use-depreciation-schedules';
 import { cn } from '@/lib/utils';
 
@@ -75,7 +75,7 @@ function AssetDepreciationContent() {
     );
   }
 
-  const assetData = asset as any;
+  const assetData = asset as unknown;
   const purchasePrice = assetData.purchase_price || assetData.purchase_cost;
   const salvageValue = assetData.salvage_value;
   const usefulLifeYears = assetData.expected_lifespan_years;

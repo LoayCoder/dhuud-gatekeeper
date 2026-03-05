@@ -10,8 +10,7 @@ import { useUserRoles } from '@/features/users';
 import { UserFormValues, userFormSchema, UserFormDialogProps } from '../types';
 
 export function useUserFormState(props: UserFormDialogProps) {
-  const { open, onOpenChange, user: userProp, onSave } = props;
-  const user = userProp as any;
+  const { open, onOpenChange, user, onSave } = props;
   const { t, i18n } = useTranslation();
   const { profile, isAdmin } = useAuth();
   const { quota, checkCanAddUser } = useLicensedUserQuota();
@@ -25,10 +24,10 @@ export function useUserFormState(props: UserFormDialogProps) {
   const direction = i18n.dir();
   
   const [hierarchy, setHierarchy] = useState<{
-    branches: any[];
-    divisions: any[];
-    departments: any[];
-    sections: any[];
+    branches: unknown[];
+    divisions: unknown[];
+    departments: unknown[];
+    sections: unknown[];
     sites: unknown[];
   }>({
     branches: [],
@@ -246,7 +245,7 @@ export function useUserFormState(props: UserFormDialogProps) {
   // Filter sites by selected branches (multi-branch support)
   const filteredSites = useMemo(() => {
     if (selectedBranchIds.length === 0) return hierarchy.sites;
-    return hierarchy.sites.filter((s) => selectedBranchIds.includes((s as any).branch_id));
+    return hierarchy.sites.filter((s) => selectedBranchIds.includes(s.branch_id));
   }, [hierarchy.sites, selectedBranchIds]);
 
   useEffect(() => {

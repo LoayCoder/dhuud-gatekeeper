@@ -136,7 +136,7 @@ export function useGuardReportData(guardId: string, startDate: string, endDate: 
                 employee_id: profile?.employee_id || null,
                 job_title: profile?.job_title || 'Security Officer',
                 avatar_url: profile?.avatar_url || null,
-                department_name: (profile?.department as any)?.name || null,
+                department_name: (profile?.department as unknown)?.name || null,
                 supervisor_name: null,
                 assigned_zone: null,
                 performance: {
@@ -150,7 +150,7 @@ export function useGuardReportData(guardId: string, startDate: string, endDate: 
                     rank: rank || 1,
                     totalGuards: guardAvgScores.length || 1,
                 },
-                attendance: (attendance || []).map((a: any) => {
+                attendance: (attendance || []).map((a: unknown) => {
                     const checkIn = a.check_in_at ? new Date(a.check_in_at) : null;
                     const checkOut = a.check_out_at ? new Date(a.check_out_at) : null;
                     const hoursWorked = checkIn && checkOut
@@ -172,14 +172,14 @@ export function useGuardReportData(guardId: string, startDate: string, endDate: 
                         status: a.status || 'unknown',
                     };
                 }),
-                shifts: (shifts || []).map((s: any) => ({
+                shifts: (shifts || []).map((s: unknown) => ({
                     date: s.start_date || s.date,
                     shift_name: s.shift?.name || 'Unknown Shift',
                     start_time: s.shift?.start_time || '',
                     end_time: s.shift?.end_time || '',
                     acknowledged: !!s.acknowledged_at,
                 })),
-                training: (training || []).map((t: any) => ({
+                training: (training || []).map((t: unknown) => ({
                     name: t.training?.name || 'Unknown',
                     status: t.status || 'pending',
                     expiry_date: t.expiry_date,
@@ -225,7 +225,7 @@ export function useSecurityGuardsList() {
 
             if (teamMembers) {
                 for (const tm of teamMembers) {
-                    const guard = tm.guard as any;
+                    const guard = tm.guard as unknown;
                     if (guard?.id) {
                         guardMap.set(guard.id, {
                             id: guard.id,
@@ -278,7 +278,7 @@ export function useSecuritySupervisors() {
             const supervisorMap = new Map<string, { id: string; full_name: string; avatar_url: string | null }>();
             for (const r of data || []) {
                 if (r.supervisor && !supervisorMap.has(r.supervisor_id)) {
-                    supervisorMap.set(r.supervisor_id, r.supervisor as any);
+                    supervisorMap.set(r.supervisor_id, r.supervisor as unknown);
                 }
             }
 
@@ -287,13 +287,13 @@ export function useSecuritySupervisors() {
     });
 }
 
-export function useReportSecurityShifts() {
+export function useSecurityShifts() {
     return useQuery({
-        queryKey: ['security-shifts-report'],
+        queryKey: ['security-shifts'],
         queryFn: async () => {
             const { data, error } = await supabase
                 .from('security_shifts')
-                .select('id, shift_name, start_time, end_time')
+                .select('id, name, start_time, end_time')
                 .is('deleted_at', null)
                 .order('start_time');
 
@@ -303,9 +303,9 @@ export function useReportSecurityShifts() {
     });
 }
 
-export function useReportSecurityZones() {
+export function useSecurityZones() {
     return useQuery({
-        queryKey: ['security-zones-report'],
+        queryKey: ['security-zones'],
         queryFn: async () => {
             const { data, error } = await supabase
                 .from('security_zones')

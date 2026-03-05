@@ -118,7 +118,7 @@ export function UserDiagnosticPanel() {
       }
     } catch (error: unknown) {
       console.error("Scan error:", error);
-      toast.error((error as any).message || "Scan failed");
+      toast.error(error.message || "Scan failed");
     } finally {
       setIsScanning(false);
     }
@@ -145,7 +145,7 @@ export function UserDiagnosticPanel() {
       setSingleResult(data);
     } catch (error: unknown) {
       console.error("Search error:", error);
-      toast.error((error as any).message || "Search failed");
+      toast.error(error.message || "Search failed");
     } finally {
       setIsSearching(false);
     }
@@ -175,7 +175,7 @@ export function UserDiagnosticPanel() {
       }
     } catch (error: unknown) {
       console.error("Fix error:", error);
-      toast.error((error as any).message || "Fix failed");
+      toast.error(error.message || "Fix failed");
     } finally {
       setIsFixing(null);
     }

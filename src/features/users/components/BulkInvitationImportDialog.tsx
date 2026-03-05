@@ -400,7 +400,7 @@ export function BulkInvitationImportDialog({
                   <span className="text-sm font-medium">
                     {t('bulkImport.defaultChannel', 'Default Delivery Channel')}:
                   </span>
-                  <Select value={defaultChannel} onValueChange={(v) => setDefaultChannel(v as any)}>
+                  <Select value={defaultChannel} onValueChange={(v) => setDefaultChannel(v as unknown)}>
                     <SelectTrigger className="w-40">
                       <SelectValue />
                     </SelectTrigger>

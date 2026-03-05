@@ -90,7 +90,7 @@ export function ClearanceDocumentUpload({ checkId, projectId, onClose }: Clearan
       }, 1500);
 
     } catch (error: unknown) {
-      setUploadError((error as Error).message || t("ptw.clearance.uploadFailed", "Failed to upload document"));
+      setUploadError(error.message || t("ptw.clearance.uploadFailed", "Failed to upload document"));
       setUploadProgress(0);
     } finally {
       setIsUploading(false);

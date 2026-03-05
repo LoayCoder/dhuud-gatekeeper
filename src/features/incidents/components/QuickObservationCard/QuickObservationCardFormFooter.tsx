@@ -6,7 +6,7 @@ import { CheckCircle2, Camera, ImagePlus, X, AlertTriangle, Loader2, WifiOff, Se
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
-export function QuickObservationCardFormFooter({ state, form }: any) {
+export function QuickObservationCardFormFooter({ state, form }: unknown) {
   const { t } = useTranslation();
   const { allowCloseOnSpot, closedOnSpot, closedOnSpotPhotos, removePhoto, handlePhotoCapture, photos, createIncident, isUploading, isOnline, aiValidator } = state;
   return (

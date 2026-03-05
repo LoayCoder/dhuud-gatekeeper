@@ -70,7 +70,7 @@ export function PurchaseRequestsTable() {
       const { supabase } = await import('@/integrations/supabase/client');
       
       // Fetch request data
-      const { data: request, error } = await (supabase as any)
+      const { data: request, error } = await (supabase as unknown)
         .from('asset_purchase_requests')
         .select(`
           *,
@@ -84,7 +84,7 @@ export function PurchaseRequestsTable() {
       if (error) throw error;
 
       // Fetch approvals
-      const { data: approvals } = await (supabase as any)
+      const { data: approvals } = await (supabase as unknown)
         .from('asset_purchase_approvals')
         .select(`
           id, approval_level, decision, notes, decided_at,
@@ -208,7 +208,7 @@ export function PurchaseRequestsTable() {
                   {(request.estimated_cost * request.quantity).toLocaleString()} {request.currency}
                 </TableCell>
                 <TableCell>
-                  {(request as any).requester?.full_name || "-"}
+                  {(request as unknown).requester?.full_name || "-"}
                 </TableCell>
                 <TableCell>
                   {format(new Date(request.requested_at), "dd/MM/yyyy")}

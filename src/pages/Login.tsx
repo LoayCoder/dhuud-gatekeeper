@@ -327,7 +327,7 @@ export default function Login() {
           { data: { user: User | null }, error: AuthError | null },
           { data: unknown, error: AuthError | null }
         ];
-        const { results } = raceResult as unknown as { timeout: false, results: AuthChecksTuple };
+        const { results } = raceResult as { timeout: false, results: AuthChecksTuple };
         const [, { data: { user: fetchedUser } }, { data: fetchedAal }] = results;
         if (fetchedUser) authUser = fetchedUser;
         aal = fetchedAal;

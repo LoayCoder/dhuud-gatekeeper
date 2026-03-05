@@ -49,7 +49,7 @@ export function MyInvestigationTasksCard() {
   const completeTask = useCompleteTeamTask();
   
   // Filter out completed tasks
-  const pendingTasks = myTasks?.filter((task: any) => task.status !== 'completed') || [];
+  const pendingTasks = myTasks?.filter((task: unknown) => task.status !== 'completed') || [];
   
   if (pendingTasks.length === 0 && !isLoading) {
     return null;
@@ -116,7 +116,7 @@ export function MyInvestigationTasksCard() {
             </div>
           ) : (
             <div className="space-y-3">
-              {pendingTasks.map((task: any) => (
+              {pendingTasks.map((task: unknown) => (
                 <div 
                   key={task.id} 
                   className={cn(

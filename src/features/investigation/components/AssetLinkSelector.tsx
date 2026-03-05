@@ -31,7 +31,7 @@ export function AssetLinkSelector({ incidentId, linkedAssetIds, onLinked }: Asse
   const { data: searchResults = [], isLoading } = useSearchAssetsForLinking(debouncedSearch, linkedAssetIds);
   const linkMutation = useLinkAssetToIncident();
 
-  const handleSelectAsset = (asset: any) => {
+  const handleSelectAsset = (asset: unknown) => {
     setSelectedAsset(asset);
     setSearch('');
   };
@@ -99,7 +99,7 @@ export function AssetLinkSelector({ incidentId, linkedAssetIds, onLinked }: Asse
                   {t('assetManagement.noAssetsFound')}
                 </p>
               ) : (
-              searchResults.map((asset: any) => (
+                searchResults.map((asset: unknown) => (
                   <Card
                     key={asset.id}
                     className="cursor-pointer hover:bg-accent transition-colors"

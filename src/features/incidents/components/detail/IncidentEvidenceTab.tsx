@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Incident } from '@/types/incident.types';
 
 interface IncidentEvidenceTabProps {
-    incident: any;
+    incident: Incident;
 }
 
 export function IncidentEvidenceTab({ incident }: IncidentEvidenceTabProps) {

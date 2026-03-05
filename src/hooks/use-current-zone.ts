@@ -23,14 +23,14 @@ export function useCurrentZone(): UseCurrentZoneResult {
 
   const currentZone = useMemo(() => {
     if (!location || !zones.length) return null;
-    return findCurrentZone(location.lat, location.lng, zones as any);
+    return findCurrentZone(location.lat, location.lng, zones as unknown);
   }, [location, zones]);
 
   const nearestZone = useMemo(() => {
     if (!location || !zones.length) return null;
     // Find nearest zone within 500m if not inside any zone
     if (!currentZone) {
-      return findNearestZone(location.lat, location.lng, zones as any, 500);
+      return findNearestZone(location.lat, location.lng, zones as unknown, 500);
     }
     return null;
   }, [location, zones, currentZone]);

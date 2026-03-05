@@ -1,7 +1,7 @@
 import { ReactElement } from 'react';
 import { Camera, ImagePlus, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-export function QuickObservationCardFormPhotos({ photos, removePhoto, handlePhotoCapture }: any) {
+export function QuickObservationCardFormPhotos({ photos, removePhoto, handlePhotoCapture }: unknown) {
   const { t } = useTranslation();
   return (
     <div className="space-y-2">

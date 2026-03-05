@@ -21,7 +21,7 @@ import {
 } from "@/features/contractors/hooks/use-gate-pass-details";
 
 // Details Tab Component
-export function DetailsTab({
+function DetailsTab({
   pass,
   passDetails,
   items,
@@ -192,8 +192,8 @@ export function DetailsTab({
               <div>
                 <span className="text-muted-foreground">{t("contractors.gatePassDetail.plateNumber", "Plate")}:</span>
                 <span className="ms-2 font-medium font-mono">
-                  {data.is_public_request && (data as any).vehicle_plate_letters && (data as any).vehicle_plate_numbers
-                    ? `${(data as any).vehicle_plate_letters} ${(data as any).vehicle_plate_numbers}`
+                  {data.is_public_request && (data as unknown).vehicle_plate_letters && (data as unknown).vehicle_plate_numbers
+                    ? `${(data as unknown).vehicle_plate_letters} ${(data as unknown).vehicle_plate_numbers}`
                     : data.vehicle_plate || "-"}
                 </span>
               </div>
@@ -238,8 +238,8 @@ export function DetailsTab({
                   ? (data.public_requester_name || t("common.publicUser", "Public User"))
                   : ((passDetails?.requester as GatePassApproverProfile)?.full_name || data.requester?.full_name || "-")}
               </span>
-              {!data.is_public_request && (passDetails?.requester as any)?.email && (
-                <span className="text-xs text-muted-foreground">{(passDetails?.requester as any).email}</span>
+              {!data.is_public_request && (passDetails?.requester as unknown)?.email && (
+                <span className="text-xs text-muted-foreground">{(passDetails?.requester as unknown).email}</span>
               )}
             </div>
           </div>

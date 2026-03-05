@@ -5,7 +5,7 @@ import { QuickObservationCardFormRecognition } from './QuickObservationCardFormR
 import { QuickObservationCardFormLocation } from './QuickObservationCardFormLocation';
 import { QuickObservationCardFormFooter } from './QuickObservationCardFormFooter';
 
-export function QuickObservationCardForm({ state, form, onSubmit }: any) {
+export function QuickObservationCardForm({ state, form, onSubmit }: unknown) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">

@@ -19,8 +19,7 @@ import {
   Wrench,
   FileWarning
 } from "lucide-react";
-import { usePTWPermits } from "@/hooks/ptw";
-const useActivePermitsForMap = () => ({ data: [] as any[], isLoading: false });
+import { usePTWPermits, useActivePermitsForMap } from "@/hooks/ptw";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PermitConsoleMap } from '@/features/ptw';
 import { PermitListView } from '@/features/ptw';

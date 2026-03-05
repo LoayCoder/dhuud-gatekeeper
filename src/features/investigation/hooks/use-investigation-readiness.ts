@@ -15,7 +15,7 @@ export function useInvestigationReadiness(incidentId: string | null) {
       if (!incidentId) throw new Error('Incident ID is required');
 
       // Call the RPC function - types may not include it yet
-      const { data, error } = await (supabase as any).rpc('check_investigation_readiness', { p_incident_id: incidentId });
+      const { data, error } = await (supabase.rpc as unknown)('check_investigation_readiness', { p_incident_id: incidentId });
 
       if (error) throw error;
       return data as unknown as InvestigationReadiness;
