@@ -47,7 +47,7 @@ export function WizardStep5({ state }: { state: any }) {
         managementApprovalRequired={overallRating === "high" || overallRating === "critical" || calculateOverallRisk() === "high" || calculateOverallRisk() === "critical"}
         overallRiskRating={overallRating || calculateOverallRisk()}
         hazardCount={hazards.length}
-        highRiskCount={hazards.filter((h: unknown) => h.residual_likelihood * h.residual_severity > 9).length}
+        highRiskCount={hazards.filter((h: any) => h.residual_likelihood * h.residual_severity > 9).length}
       />
 
       <Card>
@@ -97,7 +97,7 @@ export function WizardStep5({ state }: { state: any }) {
             </div>
             <div className="text-center p-3 bg-muted rounded-lg">
               <div className="text-2xl font-bold">
-                {hazards.reduce((sum: number, h: unknown) => sum + h.additional_controls.length, 0)}
+                {hazards.reduce((sum: number, h: any) => sum + h.additional_controls.length, 0)}
               </div>
               <div className="text-xs text-muted-foreground">{t("risk.summary.controls", "Controls")}</div>
             </div>

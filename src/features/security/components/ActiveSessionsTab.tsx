@@ -85,7 +85,7 @@ export function ActiveSessionsTab({ tenantId }: ActiveSessionsTabProps) {
       if (sessionsData.length === 0) return [];
 
       // Enrich with user names
-      const userIds = [...new Set(sessionsData.map((s: unknown) => s.user_id))];
+      const userIds = [...new Set(sessionsData.map((s: any) => s.user_id))];
       const { data: profiles } = await supabase
         .from("profiles")
         .select("id, full_name, email")
@@ -93,7 +93,7 @@ export function ActiveSessionsTab({ tenantId }: ActiveSessionsTabProps) {
 
       const profileMap = new Map(profiles?.map(p => [p.id, { name: p.full_name, email: p.email }]) || []);
 
-      return sessionsData.map((s: unknown) => ({
+      return sessionsData.map((s: any) => ({
         id: s.id,
         user_id: s.user_id,
         session_token: s.session_token,
