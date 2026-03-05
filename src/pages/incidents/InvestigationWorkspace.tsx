@@ -70,17 +70,18 @@ export default function InvestigationWorkspace() {
   const [showActionDialog, setShowActionDialog] = useState(false);
   const { profile, user } = useAuth();
   const { hasRole } = useUserRoles();
-  const queryClient = useQueryClient();
-
+  const workspaceData = useInvestigationWorkspaceData(selectedIncidentId);
   const {
     actionsCount, incidents, loadingIncidents, pendingApprovals, loadingPending,
     selectedIncident, refetchIncident, investigation, refetchInvestigation,
-    closureEligibility, approveClosureMutation, rejectClosureMutation, canApprove,
+    closureEligibility, approveClosureMutation, rejectClosureMutation,
     workflowActors, investigatorInfo, editAccess, isInvestigator, canAccessGovernance,
     isAssignedClinicUser, isAssignedTechEvaluator, isAssignedEnvironmentalExpert,
-    canReviewSpecialistData, incidentData, status, investigationAllowed, handleRefresh,
-    queryClient
-  } = useInvestigationWorkspaceData(selectedIncidentId);
+    canReviewSpecialistData, handleRefresh,
+  } = workspaceData as any;
+  const canApprove = (workspaceData as any).canApprove;
+  const status = (workspaceData as any).status;
+  const investigationAllowed = (workspaceData as any).investigationAllowed;
 
 
   // Type assertion for incident fields not in generated types yet

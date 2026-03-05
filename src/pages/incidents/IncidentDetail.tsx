@@ -135,7 +135,7 @@ export default function IncidentDetail() {
       return { role: t('incidents.workflowOwners.clinic_team', 'Clinic Team'), name: null };
     }
     if (status === 'investigation_in_progress' || status === 'investigation_pending') {
-      const investigatorName = (investigation?.investigator as unknown)?.full_name;
+      const investigatorName = (investigation?.investigator as any)?.full_name;
       return {
         role: t('incidents.workflowOwners.investigator', 'Investigator'),
         name: investigatorName || null
@@ -260,8 +260,8 @@ export default function IncidentDetail() {
           event_type: incident.event_type,
           status: incident.status,
           severity_v2: incident.severity_v2,
-          severity: (incident as unknown).severity,
-          potential_severity_v2: (incident as unknown).potential_severity_v2,
+          severity: (incident as any).severity,
+          potential_severity_v2: (incident as any).potential_severity_v2,
           branch: incident.branch,
           site: incident.site,
           location: incident.location,
@@ -279,7 +279,7 @@ export default function IncidentDetail() {
       />
 
       {/* C10: OSHA Reportable Banner */}
-      {(incident as unknown).osha_reportable && (
+      {(incident as any).osha_reportable && (
         <Alert variant="destructive" className="border-destructive bg-destructive/10">
           <AlertTriangle className="h-5 w-5" />
           <div className="ms-2">
@@ -294,29 +294,29 @@ export default function IncidentDetail() {
       )}
 
       {/* Escalation Alert Banner */}
-      {(incident as unknown).requires_escalation && (
+      {(incident as any).requires_escalation && (
         <EscalationAlertBanner
           incident={{
             id: incident.id,
-            requires_escalation: (incident as unknown).requires_escalation,
-            escalation_reason: (incident as unknown).escalation_reason,
-            escalation_level: (incident as unknown).escalation_level,
-            escalation_triggered_at: (incident as unknown).escalation_triggered_at,
+            requires_escalation: (incident as any).requires_escalation,
+            escalation_reason: (incident as any).escalation_reason,
+            escalation_level: (incident as any).escalation_level,
+            escalation_triggered_at: (incident as any).escalation_triggered_at,
             related_contractor_company_id: incident.related_contractor_company_id,
-            contractor_company: (incident as unknown).contractor_company ? {
-              id: (incident as unknown).contractor_company.id,
-              company_name: (incident as unknown).contractor_company.company_name,
+            contractor_company: (incident as any).contractor_company ? {
+              id: (incident as any).contractor_company.id,
+              company_name: (incident as any).contractor_company.company_name,
             } : null,
           }}
         />
       )}
 
       {/* HSSE Enforcement Banner */}
-      {(incident as unknown).hsse_enforced_at && (
+      {(incident as any).hsse_enforced_at && (
         <HSSEEnforcementBanner
-          enforcedAt={(incident as unknown).hsse_enforced_at}
-          enforcedBy={(incident as unknown).hsse_enforced_by_profile}
-          enforcementNotes={(incident as unknown).enforcement_notes}
+          enforcedAt={(incident as any).hsse_enforced_at}
+          enforcedBy={(incident as any).hsse_enforced_by_profile}
+          enforcementNotes={(incident as any).enforcement_notes}
         />
       )}
 
@@ -330,7 +330,7 @@ export default function IncidentDetail() {
         </>
       )}
 
-      {incident.related_contractor_company_id && !(incident as unknown).consultant_assigned_id && (
+      {incident.related_contractor_company_id && !(incident as any).consultant_assigned_id && (
         <>
           <DeptManagerViolationApprovalCard incident={incident} onComplete={() => window.location.reload()} />
           <ContractControllerApprovalCard incident={incident} onComplete={() => window.location.reload()} />
