@@ -13,7 +13,13 @@ export function useContractorCompleteAction() {
 export function useControllerResolveDispute() {
   return useMutation({ mutationFn: async (params: any) => params });
 }
+export function useControllerReviewDispute() {
+  return useMutation({ mutationFn: async (params: any) => params });
+}
 export function useSiteClientApproveAction() {
+  return useMutation({ mutationFn: async (params: any) => params });
+}
+export function useSiteClientApproveActions() {
   return useMutation({ mutationFn: async (params: any) => params });
 }
 export function useSiteClientApproveViolation() {
