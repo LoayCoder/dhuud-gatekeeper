@@ -79,7 +79,7 @@ export function PatrolDetailDialog({ patrolId, open, onOpenChange }: PatrolDetai
             <Skeleton className="h-24 w-full" />
             <Skeleton className="h-48 w-full" />
           </div>
-        ) : patrol ? (
+        ) : patrol ? (() => { const p = patrol as any; return (
           <ScrollArea className="flex-1">
             <div className="space-y-4 p-1">
               {/* Summary Card */}
