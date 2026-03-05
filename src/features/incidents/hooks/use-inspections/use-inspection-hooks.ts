@@ -221,7 +221,7 @@ export function useCompleteInspection() {
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['inspection', data.id] });
             queryClient.invalidateQueries({ queryKey: ['asset-inspections'] });
-            queryClient.invalidateQueries({ queryKey: ['asset', (data as unknown).asset?.id] });
+            queryClient.invalidateQueries({ queryKey: ['asset', (data as any)?.asset?.id] });
             queryClient.invalidateQueries({ queryKey: ['overdue-inspections'] });
             toast.success(t('inspections.inspectionCompleted'));
         },

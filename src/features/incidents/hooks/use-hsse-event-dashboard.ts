@@ -267,7 +267,7 @@ export function useHSSEEventDashboard(startDate?: Date, endDate?: Date, branchId
 
       // 3. Fetch Corrective Actions (Parallel Fetch)
       // Filter by incident_ids that matched branch/site to keep actions consistent
-      const matchedIncidentIds = incidents.map((i: unknown) => i.id);
+      const matchedIncidentIds = (incidents as any[]).map((i: any) => i.id);
       let actionsQuery = supabase
         .from('corrective_actions')
         .select('id, status, due_date, priority, created_at, completed_date, incident_id')
