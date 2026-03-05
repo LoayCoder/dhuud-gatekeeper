@@ -384,7 +384,7 @@ export default function PartsInventoryPage() {
       <StockAdjustmentDialog
         open={showAdjustmentDialog}
         onOpenChange={setShowAdjustmentDialog}
-        partId={selectedPartId}
+        partId={selectedPartId as any}
       />
 
       <PurchaseOrderDialog
