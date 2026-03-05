@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 // import { useIncidentAIValidator, IncidentContext } from './use-incident-ai-validator';
 type IncidentContext = any;
-const useIncidentAIValidator = () => ({ validateIncident: async (_ctx: any) => ({ isValid: true, suggestions: [] }), isValidating: false });
+const useIncidentAIValidator = () => ({ validateIncident: async (_ctx: any) => ({ isValid: true, suggestions: [] }), isValidating: false, isAnalyzing: false, analysisResult: null as any, analyzeIncident: (..._args: any[]) => {}, validationState: 'idle' as string });
 
 interface UseAIAutoTriggerOptions {
   /** Minimum character count before triggering AI analysis */

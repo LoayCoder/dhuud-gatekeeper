@@ -58,7 +58,7 @@ export function useCreateEnvironmentalContamination() {
 
       const { data: result, error } = await supabase
         .from('environmental_contamination_entries')
-        .insert(insertData as unknown)
+        .insert(insertData as any)
         .select()
         .single();
       

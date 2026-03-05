@@ -144,5 +144,5 @@ export async function fetchDocumentSettings(tenantId: string): Promise<DocumentB
   }
 
   if (!data) return null;
-  return mapDbToDocumentSettings(data);
+  return mapDbToDocumentSettings(data as any);
 }
