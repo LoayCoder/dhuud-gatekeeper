@@ -24,7 +24,7 @@ const userTypeCards = [
 ];
 
 
-export function BasicTab({ state }: { state: unknown }) {
+export function DetailsTab({ state }: { state: any }) {
   const { t, form, userType, hasLogin, emailHasChanged, user, direction } = state;
   return (
     <>
@@ -39,7 +39,7 @@ export function BasicTab({ state }: { state: unknown }) {
                         <button
                           key={value}
                           type="button"
-                          onClick={() => form.setValue('user_type', value as UserFormValues['user_type'])}
+                          onClick={() => form.setValue('user_type', value as any)}
                           className={cn(
                             "flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all text-center",
                             userType === value 

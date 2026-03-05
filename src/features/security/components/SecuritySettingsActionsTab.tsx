@@ -54,7 +54,7 @@ export function SecuritySettingsActionsTab({ tenantId }: SecuritySettingsActions
       // Get active sessions count
       const sessionResult = await (supabase
         .from("user_sessions")
-        .select("id", { count: "exact", head: true }) as unknown)
+        .select("id", { count: "exact", head: true }) as any)
         .eq("tenant_id", tenantId)
         .eq("is_valid", true);
       const sessionCount = sessionResult.count || 0;
@@ -260,7 +260,7 @@ export function SecuritySettingsActionsTab({ tenantId }: SecuritySettingsActions
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {tenantData.recentActions.map((action: unknown) => (
+              {tenantData.recentActions.map((action: any) => (
                 <div key={action.id} className="flex items-center justify-between p-3 rounded-lg border">
                   <div>
                     <div className="flex items-center gap-2">

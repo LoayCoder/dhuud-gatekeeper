@@ -10,7 +10,8 @@ import { useUserRoles } from '@/features/users';
 import { UserFormValues, userFormSchema, UserFormDialogProps } from '../types';
 
 export function useUserFormState(props: UserFormDialogProps) {
-  const { open, onOpenChange, user, onSave } = props;
+  const { open, onOpenChange, user: userProp, onSave } = props;
+  const user = userProp as any;
   const { t, i18n } = useTranslation();
   const { profile, isAdmin } = useAuth();
   const { quota, checkCanAddUser } = useLicensedUserQuota();
@@ -24,10 +25,10 @@ export function useUserFormState(props: UserFormDialogProps) {
   const direction = i18n.dir();
   
   const [hierarchy, setHierarchy] = useState<{
-    branches: unknown[];
-    divisions: unknown[];
-    departments: unknown[];
-    sections: unknown[];
+    branches: any[];
+    divisions: any[];
+    departments: any[];
+    sections: any[];
     sites: unknown[];
   }>({
     branches: [],

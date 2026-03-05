@@ -25,7 +25,7 @@ export function BulkRosterEditDialog({ open, onOpenChange, selectedIds, onSucces
     supervisor_id: '',
   });
 
-  const { data: zones } = useSecurityZones({ isActive: true });
+  const { data: zones } = useSecurityZones({ isActive: true } as any);
   const { data: shifts } = useSecurityShifts();
   const { data: supervisors } = useSupervisors();
   const bulkUpdate = useBulkUpdateRosterAssignments();
@@ -76,8 +76,8 @@ export function BulkRosterEditDialog({ open, onOpenChange, selectedIds, onSucces
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">{t('security.roster.noChange', 'No change')}</SelectItem>
-                {zones?.map(z => (
-                  <SelectItem key={z.id} value={z.id}>{z.zone_code} - {z.zone_name}</SelectItem>
+                {zones?.map((z: any) => (
+                  <SelectItem key={z.id} value={z.id}>{z.zone_code || ''} - {z.zone_name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -92,7 +92,7 @@ export function BulkRosterEditDialog({ open, onOpenChange, selectedIds, onSucces
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">{t('security.roster.noChange', 'No change')}</SelectItem>
-                {shifts?.filter(s => s.is_active).map(s => (
+                {shifts?.filter((s: any) => s.is_active).map((s: any) => (
                   <SelectItem key={s.id} value={s.id}>{s.shift_name} ({s.start_time} - {s.end_time})</SelectItem>
                 ))}
               </SelectContent>

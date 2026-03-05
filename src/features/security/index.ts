@@ -1,7 +1,7 @@
-export * from './components/GateQRScanner/hooks/helpers';
-export * from './components/GateQRScanner/hooks/useGateQRScanner';
-export * from './components/GateQRScanner/GateQRScanner';
-export * from './components/GateQRScanner';
+export { playAudioFeedback, AUTO_RESET_DELAY_MS } from './components/GateQRScanner/hooks/helpers';
+export { useGateQRScanner } from './components/GateQRScanner/hooks/useGateQRScanner';
+export { ZoneSelector, useSelectedZone } from './components/GateQRScanner/GateQRScanner';
+export type { QRScanResult } from './components/GateQRScanner/types';
 export * from './components/GateQRScanner/types';
 export * from './components/ActiveSessionsTab';
 export * from './components/ActiveVisitorsList';
@@ -96,7 +96,7 @@ export * from './components/WorkerPhotoGallery';
 export * from './components/WorkerScanHistory';
 export * from './components/WorkerVerificationPanel';
 export * from './components/ZonePolygonEditor';
-export * from './components/ZoneSelector';
+// ZoneSelector already exported above
 export * from './hooks/use-gate-entries';
 export * from './hooks/use-gate-guard-stats';
 export * from './hooks/use-security-audit-log';
@@ -112,8 +112,10 @@ export * from './hooks/use-security-reports';
 export * from './hooks/use-security-score';
 export * from './hooks/use-security-shifts';
 export * from './hooks/use-security-stats';
-export * from './hooks/use-security-team';
-export * from './hooks/use-security-teams';
+export { useSecurityTeam } from './hooks/use-security-team';
+export type { SecurityTeamMember } from './hooks/use-security-team';
+export { useSecurityTeams, useCreateSecurityTeam, useUpdateSecurityTeam, useDeleteSecurityTeam, useAddTeamMember, useRemoveTeamMember } from './hooks/use-security-teams';
+export type { SecurityTeam } from './hooks/use-security-teams';
 export * from './hooks/use-security-zones';
 export * from './services/gateQRService';
-export * from './hooks/use-selected-zone';
+// useSelectedZone already exported above
