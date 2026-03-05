@@ -32,7 +32,7 @@ export function useCreateAssetCategory() {
                     tenant_id: profile.tenant_id,
                     ...(hsse_category !== undefined && { hsse_category }),
                     ...(hsse_type !== undefined && { hsse_type }),
-                } as unknown)
+                } as any)
                 .select()
                 .single();
 
@@ -64,7 +64,7 @@ export function useUpdateAssetCategory() {
                     updated_at: new Date().toISOString(),
                     ...(hsse_category !== undefined && { hsse_category }),
                     ...(hsse_type !== undefined && { hsse_type }),
-                } as unknown)
+                } as any)
                 .eq('id', id)
                 .select()
                 .single();
