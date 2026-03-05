@@ -101,7 +101,7 @@ export async function logAssetScan(event: AssetScanEvent): Promise<void> {
       await queueOfflineScan({
         ...event,
         is_offline_scan: true,
-      } as unknown);
+      } as any);
     } catch {
       // Silent fail - scan logging is non-critical
     }

@@ -30,7 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useRiskAssessments } from "@/hooks/risk-assessment";
+import { useRiskAssessments } from "@/features/risk-assessment/hooks/use-risk-assessments";
 import { format } from "date-fns";
 
 const STATUS_CONFIG = {
@@ -225,7 +225,7 @@ export default function RiskAssessments() {
                           <Badge
                             className={RISK_COLORS[assessment.overall_risk_rating as keyof typeof RISK_COLORS]}
                           >
-                            {t(`risk.level.${assessment.overall_risk_rating}`, assessment.overall_risk_rating)}
+                            {String(t(`risk.level.${assessment.overall_risk_rating}`, assessment.overall_risk_rating))}
                           </Badge>
                         )}
                       </TableCell>
