@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { type SeverityLevelV2 } from '@/lib/hsse-severity-levels';
+import { HSSE_SEVERITY_LEVELS, type SeverityLevelV2 } from '@/lib/hsse-severity-levels';
 
 export const OBSERVATION_TYPES = [
   { value: 'unsafe_act', labelKey: 'incidents.observationTypes.unsafeAct', isPositive: false },
