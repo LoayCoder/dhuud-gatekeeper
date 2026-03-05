@@ -1,9 +1,9 @@
 import { CheckCircle2, XCircle, AlertTriangle, Clock } from 'lucide-react';
-import { QRScanResult } from './types';
+import { QRScanResult } from '../types';
 import { logger } from '@/lib/logger';
 
 // Audio feedback utility for scan results
-const playAudioFeedback = (type: 'success' | 'warning' | 'error') => {
+export const playAudioFeedback = (type: 'success' | 'warning' | 'error') => {
   try {
     const AudioContext = window.AudioContext || (window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AudioContext) return;
@@ -30,7 +30,7 @@ const playAudioFeedback = (type: 'success' | 'warning' | 'error') => {
   }
 };
 
-const AUTO_RESET_DELAY_MS = 8000; // 8 seconds auto-reset
+export const AUTO_RESET_DELAY_MS = 8000; // 8 seconds auto-reset
 
 
 export const getStatusConfig = (status: QRScanResult['status'], isOnSite?: boolean, t?: (key: string, defaultText: string) => string) => {

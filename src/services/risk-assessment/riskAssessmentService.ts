@@ -44,10 +44,14 @@ export async function signTeamMember(memberId: string, signatureData: string) {
   if (error) throw error;
 }
 
-export async function addTeamMember(data: any) {
+export async function addTeamMember(data: any, _tenantId?: string) {
   const { data: result, error } = await supabase.from('risk_assessment_team').insert(data).select().single();
   if (error) throw error;
   return result;
+}
+
+export async function signAssessment(memberId: string, signatureData: string) {
+  return signTeamMember(memberId, signatureData);
 }
 
 export async function removeTeamMember(memberId: string) {
@@ -55,10 +59,16 @@ export async function removeTeamMember(memberId: string) {
   if (error) throw error;
 }
 
-export async function getRiskAssessments(tenantId: string) {
+export async function getRiskAssessments(tenantId: string, _filters?: any) {
   const { data, error } = await supabase.from('risk_assessments').select('*').eq('tenant_id', tenantId).is('deleted_at', null).order('created_at', { ascending: false });
   if (error) throw error;
   return data || [];
+}
+
+export async function createRiskAssessment(data: any, tenantId: string, userId: string) {
+  const { data: result, error } = await supabase.from('risk_assessments').insert({ ...data, tenant_id: tenantId, created_by: userId }).select().single();
+  if (error) throw error;
+  return result;
 }
 
 export async function getRiskAssessment(id: string, tenantId: string) {
@@ -82,7 +92,7 @@ export async function submitRiskAssessment(id: string) {
   return updateRiskAssessment(id, { status: 'under_review' });
 }
 
-export async function approveRiskAssessment(id: string, userId: string) {
+export async function approveRiskAssessment(id: string, userId: string, _validUntil?: string) {
   return updateRiskAssessment(id, { status: 'approved', approved_by: userId, approved_at: new Date().toISOString() });
 }
 

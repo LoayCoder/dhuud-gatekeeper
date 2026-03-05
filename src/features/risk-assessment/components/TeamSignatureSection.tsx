@@ -75,7 +75,7 @@ export function TeamSignatureSection({
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">{role}</span>
+                    <span className="font-medium">{String(role)}</span>
                     {member.is_required && (
                       <Badge variant="outline" className="text-xs">
                         {t("risk.team.required", "Required")}
