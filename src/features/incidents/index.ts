@@ -195,3 +195,6 @@ export * from './services/incidentQueryService';
 export * from './hooks/use-action-center-stats';
 export * from './hooks/use-action-sla-config';
 export * from './hooks/use-inspection-categories';
+export * from './hooks/use-observation-ai-validator';
+export * from './hooks/use-action-evidence';
+export * from './hooks/use-action-extensions';

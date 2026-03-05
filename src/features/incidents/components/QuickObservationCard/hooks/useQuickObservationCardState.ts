@@ -39,9 +39,9 @@ export function useQuickObservationCardState() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [submittedObservation, setSubmittedObservation] = useState<{ id: string; referenceId: string } | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  const [offlineSites, setOfflineSites] = useState<{ id: string; name?: string; branch_id?: string | null;[key: string]: unknown }[]>([]);
-  const [offlineDepartments, setOfflineDepartments] = useState<{ id: string; name?: string;[key: string]: unknown }[]>([]);
-  const [offlineContractorCompanies, setOfflineContractorCompanies] = useState<{ id: string; company_name?: string; assigned_branch_id?: string | null;[key: string]: unknown }[]>([]);
+  const [offlineSites, setOfflineSites] = useState<any[]>([]);
+  const [offlineDepartments, setOfflineDepartments] = useState<any[]>([]);
+  const [offlineContractorCompanies, setOfflineContractorCompanies] = useState<any[]>([]);
 
   const aiValidator = useObservationAIValidator();
 
@@ -114,7 +114,7 @@ export function useQuickObservationCardState() {
 
   const locationFilteredContractorCompanies = useMemo(() => {
     if (!observationBranchId) return contractorCompanies;
-    return contractorCompanies.filter(company => company.assigned_branch_id === observationBranchId || !company.assigned_branch_id);
+    return contractorCompanies.filter(company => (company as any).assigned_branch_id === observationBranchId || !(company as any).assigned_branch_id);
   }, [contractorCompanies, observationBranchId]);
 
   useEffect(() => {
