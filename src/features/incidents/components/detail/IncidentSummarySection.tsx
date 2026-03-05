@@ -9,7 +9,7 @@ import { IncidentDamageCard } from "./IncidentDamageCard";
 import { IncidentAttachmentsSection } from '@/features/incidents';
 
 interface IncidentSummarySectionProps {
-    incident: unknown;
+    incident: any;
 }
 
 export function IncidentSummarySection({ incident }: IncidentSummarySectionProps) {

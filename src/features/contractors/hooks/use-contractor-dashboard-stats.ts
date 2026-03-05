@@ -155,12 +155,12 @@ export function useContractorDashboardStats() {
       );
 
       const onsiteResult = await addBranchFilter(
-        supabase.from("gate_entry_logs").select("id").eq("tenant_id", tenantId).is("exit_time", null),
+        (supabase as any).from("gate_entry_logs").select("id").eq("tenant_id", tenantId).is("exit_time", null),
         "branch_id"
       );
 
       const blacklistResult = await addBranchFilter(
-        supabase.from("security_blacklist").select("id, listed_at").eq("tenant_id", tenantId).is("deleted_at", null),
+        (supabase as any).from("security_blacklist").select("id, listed_at").eq("tenant_id", tenantId).is("deleted_at", null),
         "branch_id"
       );
 

@@ -29,9 +29,6 @@ export * from '@/hooks/use-investigator-violation';
 
 // Corrective Actions
 export * from '@/hooks/use-overdue-actions';
-export * from '@/features/incidents';
-export * from '@/features/incidents';
-export * from '@/features/incidents';
 
 // Root Cause Analysis
 export * from '@/hooks/use-rca-ai';
@@ -41,9 +38,6 @@ export * from '@/hooks/use-effectiveness-monitoring';
 // AI & Validation
 export * from './use-incident-ai';
 export * from './use-incident-ai-validator';
-export * from '@/features/incidents';
-export * from '@/features/incidents';
-export * from '@/features/incidents';
 
 // Evidence & Witnesses
 export * from '@/hooks/use-evidence-items';
