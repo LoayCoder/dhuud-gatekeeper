@@ -114,6 +114,8 @@ export * from './hooks/use-security-shifts';
 export * from './hooks/use-security-stats';
 export { useSecurityTeam } from './hooks/use-security-team';
 export type { SecurityTeamMember } from './hooks/use-security-team';
+export { useSecurityTeams, useCreateSecurityTeam, useUpdateSecurityTeam, useDeleteSecurityTeam, useAddTeamMember, useRemoveTeamMember } from './hooks/use-security-teams';
+export type { SecurityTeam } from './hooks/use-security-teams';
 export * from './hooks/use-security-zones';
 export * from './services/gateQRService';
 // useSelectedZone already exported above
