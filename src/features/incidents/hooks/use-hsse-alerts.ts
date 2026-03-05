@@ -13,9 +13,9 @@ export interface HSSEAlert {
 }
 
 interface UseHSSEAlertsParams {
-  incidents: unknown[];
-  actions: unknown[];
-  inspections?: unknown[];
+  incidents: any[];
+  actions: any[];
+  inspections?: any[];
 }
 
 export function useHSSEAlerts({ incidents, actions, inspections = [] }: UseHSSEAlertsParams) {

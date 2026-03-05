@@ -255,7 +255,7 @@ export function useTopFailingItems(filters: AnalyticsFilters, limit = 10) {
 
       // Count failures per template item
       const counts: Record<string, { count: number; item: TemplateItemData | null | undefined }> = {};
-      (data || []).forEach((response: ResponseData) => {
+      ((data as any[]) || []).forEach((response: ResponseData) => {
         const itemId = response.template_item_id;
         if (!counts[itemId]) {
           counts[itemId] = { count: 0, item: response.template_item };

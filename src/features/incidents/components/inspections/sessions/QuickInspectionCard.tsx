@@ -191,8 +191,8 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
         <div className="mt-4">
           <AssetPartInspectionCard
             inspectionId={sessionAsset.id}
-            assetTypeId={(asset.type as unknown).id || ''}
-            assetSubtypeId={(asset as unknown).subtype_id || null}
+            assetTypeId={(asset.type as any)?.id || ''}
+            assetSubtypeId={(asset as any).subtype_id || null}
             assetTypeName={asset.type?.name || ''}
             assetTypeNameAr={asset.type?.name_ar}
             readOnly={isAlreadyInspected}

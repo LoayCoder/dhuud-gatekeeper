@@ -10,7 +10,7 @@ import { ChevronDown, Link2, Building2, User, Pencil, Trash2 } from "lucide-reac
 // The ActionEvidenceSection is in the parent directory of ActionsPanel
 import { ActionEvidenceSection } from "../../ActionEvidenceSection";
 
-export function ActionList({ state, incidentId }: { state: unknown, incidentId: string }) {
+export function ActionList({ state, incidentId }: { state: any, incidentId: string }) {
   const { t } = useTranslation();
   const {
     actions, isLocked, expandedActions, toggleActionExpand,

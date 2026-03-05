@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Loader2, Link2, Sparkles, Building2, User } from "lucide-react";
 
-export function ActionFormDialog({ state }: { state: unknown }) {
+export function ActionFormDialog({ state }: { state: any }) {
   const { t } = useTranslation();
   const {
     direction, isLocked, dialogOpen, setDialogOpen,

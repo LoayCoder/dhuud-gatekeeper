@@ -158,7 +158,7 @@ export function CreateAreaSessionDialog({ open, onOpenChange }: CreateAreaSessio
       toast({ title: t('common.success'), description: t('inspectionSessions.sessionCreated') });
       onOpenChange(false);
       navigate(`/inspections/sessions/${session.id}`);
-    } catch (error: unknown) {
+    } catch (error: any) {
       toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
     }
   };

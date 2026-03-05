@@ -80,8 +80,8 @@ export function AreaChecklistItem({
           gps_lng: gpsCoords?.lng,
           gps_accuracy: gpsCoords?.accuracy,
         });
-      } catch (error: unknown) {
-        toast.error(error.message);
+      } catch (error: any) {
+        toast.error(error?.message || 'Error');
       } finally {
         setIsSaving(false);
       }

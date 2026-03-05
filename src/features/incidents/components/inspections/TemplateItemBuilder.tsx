@@ -153,7 +153,7 @@ export function TemplateItemBuilder({ templateId }: TemplateItemBuilderProps) {
   
   const handleDelete = async () => {
     if (deletingItemId) {
-      await deleteItem.mutateAsync({ id: deletingItemId, template_id: templateId });
+      await deleteItem.mutateAsync(deletingItemId as any);
       setDeleteDialogOpen(false);
       setDeletingItemId(null);
     }

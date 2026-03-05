@@ -31,7 +31,7 @@ export function AssetLinkSelector({ incidentId, linkedAssetIds, onLinked }: Asse
   const { data: searchResults = [], isLoading } = useSearchAssetsForLinking(debouncedSearch, linkedAssetIds);
   const linkMutation = useLinkAssetToIncident();
 
-  const handleSelectAsset = (asset: unknown) => {
+  const handleSelectAsset = (asset: any) => {
     setSelectedAsset(asset);
     setSearch('');
   };
