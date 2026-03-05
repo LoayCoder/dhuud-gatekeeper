@@ -180,7 +180,7 @@ export function useIncidentReportSubmit(
   }, [state.description, state.triggerAnalysis, state.setIsApplyingAISuggestions]);
 
   const handleConfirmTranslation = useCallback(() => {
-    state.aiValidator.confirmTranslation();
+    (state.aiValidator as any).confirmTranslation?.();
   }, [state.aiValidator]);
 
   const handleConfirmAnalysis = useCallback(() => {
@@ -204,7 +204,7 @@ export function useIncidentReportSubmit(
       state.form.setValue('immediate_actions', result.immediateActions.map((a, i) => `${i + 1}. ${a}`).join('\n'));
     }
     if (result.suggestedTags && result.suggestedTags.length > 0) state.setSelectedTags(result.suggestedTags);
-    state.aiValidator.confirmAnalysis();
+    (state.aiValidator as any).confirmAnalysis?.();
     toast.success(state.t('incidents.ai.analysisComplete'));
     setTimeout(() => state.setIsApplyingAISuggestions(false), 100);
   }, [state, state.t]);
