@@ -1,1 +1,1 @@
-export { default } from './UserFormDialog';
+export { UserFormDialog } from './UserFormDialog';

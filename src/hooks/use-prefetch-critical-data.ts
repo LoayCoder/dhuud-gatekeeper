@@ -32,7 +32,7 @@ export function usePrefetchCriticalData() {
   const [prefetchProgress, setPrefetchProgress] = useState({ current: 0, total: 0 });
 
   // Check network quality via Navigator API
-  const connection = typeof navigator !== 'undefined' ? (navigator as unknown).connection : null;
+  const connection = typeof navigator !== 'undefined' ? (navigator as any).connection : null;
   const isSlowNetwork = connection?.effectiveType === '2g' || connection?.effectiveType === 'slow-2g';
 
   // Auto-prefetch when coming online

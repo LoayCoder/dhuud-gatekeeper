@@ -32,7 +32,7 @@ export function useHomeActions() {
       if (!hasMatchingCategory) return false;
       
       // Check module access if required
-      if (card.requiredModule && !hasModule(card.requiredModule as unknown)) {
+      if (card.requiredModule && !hasModule(card.requiredModule as any)) {
         return false;
       }
       

@@ -1,6 +1,7 @@
 // Types for area inspection hooks
 
-import type { TemplateItem } from '../use-inspections';
+// import type { TemplateItem } from '../use-inspections';
+type TemplateItem = any;
 
 export interface AreaInspectionResponse {
     id: string;

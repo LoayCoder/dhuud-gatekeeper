@@ -59,7 +59,7 @@ export function useGamification() {
 
             // Observations Reported (Assuming they are incidents with type 'observation' OR separate table)
             // Checking 'observations' table first as per previous context
-            const { count: observationsCount } = await (supabase as unknown)
+            const { count: observationsCount } = await (supabase as any)
                 .from('observations')
                 .select('*', { count: 'exact', head: true })
                 .eq('tenant_id', tenantId)

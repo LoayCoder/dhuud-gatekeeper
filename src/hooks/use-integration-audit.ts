@@ -50,7 +50,7 @@ export function useIntegrationAuditLogs(limit: number = 10) {
           user_id,
           metadata
         `)
-        .in('event_type', CROSS_MODULE_EVENTS as unknown)
+        .in('event_type', CROSS_MODULE_EVENTS as any)
         .order('created_at', { ascending: false })
         .limit(limit);
 

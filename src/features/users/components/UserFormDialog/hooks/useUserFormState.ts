@@ -24,11 +24,11 @@ export function useUserFormState(props: UserFormDialogProps) {
   const direction = i18n.dir();
   
   const [hierarchy, setHierarchy] = useState<{
-    branches: unknown[];
-    divisions: unknown[];
-    departments: unknown[];
-    sections: unknown[];
-    sites: unknown[];
+    branches: any[];
+    divisions: any[];
+    departments: any[];
+    sections: any[];
+    sites: any[];
   }>({
     branches: [],
     divisions: [],
@@ -101,46 +101,47 @@ export function useUserFormState(props: UserFormDialogProps) {
   // Reset form and load user roles when user changes
   useEffect(() => {
     async function loadUserData() {
-      if (user) {
+      const u = user as any;
+      if (u) {
         form.reset({
-          full_name: user.full_name || '',
-          email: user.email || '',
-          phone_number: user.phone_number || '',
-          user_type: user.user_type || 'employee',
-          has_login: user.has_login ?? true,
-          is_active: user.is_active ?? true,
-          employee_id: user.employee_id || '',
-          job_title: user.job_title || '',
-          contractor_company_name: user.contractor_company_name || '',
-          contract_start: user.contract_start || '',
-          contract_end: user.contract_end || '',
-          membership_id: user.membership_id || '',
-          membership_start: user.membership_start || '',
-          membership_end: user.membership_end || '',
-          has_full_branch_access: user.has_full_branch_access ?? false,
-          assigned_branch_id: user.assigned_branch_id || null,
-          assigned_division_id: user.assigned_division_id || null,
-          assigned_department_id: user.assigned_department_id || null,
-          assigned_section_id: user.assigned_section_id || null,
-          assigned_site_id: user.assigned_site_id || null,
+          full_name: u.full_name || '',
+          email: u.email || '',
+          phone_number: u.phone_number || '',
+          user_type: u.user_type || 'employee',
+          has_login: u.has_login ?? true,
+          is_active: u.is_active ?? true,
+          employee_id: u.employee_id || '',
+          job_title: u.job_title || '',
+          contractor_company_name: u.contractor_company_name || '',
+          contract_start: u.contract_start || '',
+          contract_end: u.contract_end || '',
+          membership_id: u.membership_id || '',
+          membership_start: u.membership_start || '',
+          membership_end: u.membership_end || '',
+          has_full_branch_access: u.has_full_branch_access ?? false,
+          assigned_branch_id: u.assigned_branch_id || null,
+          assigned_division_id: u.assigned_division_id || null,
+          assigned_department_id: u.assigned_department_id || null,
+          assigned_section_id: u.assigned_section_id || null,
+          assigned_site_id: u.assigned_site_id || null,
         });
 
-        setOriginalEmail(user.email || null);
-        const userRoles = await fetchUserRoles(user.id);
+        setOriginalEmail(u.email || null);
+        const userRoles = await fetchUserRoles(u.id);
         setSelectedRoleIds(userRoles.map(r => r.role_id));
 
         // Load user branch assignments
         const { data: branchAssignments } = await supabase
           .from('user_branch_assignments')
           .select('branch_id, is_primary')
-          .eq('user_id', user.id)
+          .eq('user_id', u.id)
           .is('deleted_at', null);
         
         if (branchAssignments && branchAssignments.length > 0) {
           setSelectedBranchIds(branchAssignments.map(a => a.branch_id));
-        } else if (user.assigned_branch_id) {
+        } else if (u.assigned_branch_id) {
           // Fallback to legacy single branch
-          setSelectedBranchIds([user.assigned_branch_id]);
+          setSelectedBranchIds([u.assigned_branch_id]);
         } else {
           setSelectedBranchIds([]);
         }
@@ -148,7 +149,7 @@ export function useUserFormState(props: UserFormDialogProps) {
         const { data: teamAssignment } = await supabase
           .from('manager_team')
           .select('manager_id')
-          .eq('user_id', user.id)
+          .eq('user_id', u.id)
           .maybeSingle();
         setCurrentManagerId(teamAssignment?.manager_id || null);
       } else {

@@ -50,7 +50,7 @@ export function useDocumentBranding() {
         } as DocumentBrandingSettings;
       }
 
-      return mapDbToDocumentSettings(data);
+      return mapDbToDocumentSettings(data as any);
     },
     enabled: !!tenantId,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
@@ -66,12 +66,12 @@ export function useDocumentBranding() {
 
       const { data, error } = await supabase
         .from("tenant_document_settings")
-        .upsert(dbData as unknown, { onConflict: "tenant_id" })
+        .upsert(dbData as any, { onConflict: "tenant_id" })
         .select()
         .single();
 
       if (error) throw error;
-      return mapDbToDocumentSettings(data);
+      return mapDbToDocumentSettings(data as any);
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["document-branding", tenantId], data);
@@ -144,5 +144,5 @@ export async function fetchDocumentSettings(tenantId: string): Promise<DocumentB
   }
 
   if (!data) return null;
-  return mapDbToDocumentSettings(data);
+  return mapDbToDocumentSettings(data as any);
 }

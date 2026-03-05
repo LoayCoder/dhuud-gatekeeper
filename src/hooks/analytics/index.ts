@@ -11,9 +11,10 @@ export * from '../use-dashboard-drilldown';
 export * from '../use-personal-dashboard';
 
 // HSSE Analytics
-export * from '../use-hsse-analytics';
-export * from '../use-hsse-risk-analytics';
-export * from '../use-hsse-escalation-review';
+// HSSE Analytics (these hooks may be in features)
+// export * from '../use-hsse-analytics';
+// export * from '../use-hsse-risk-analytics';
+// export * from '../use-hsse-escalation-review';
 
 // Executive
 export * from '../use-executive-summary';
