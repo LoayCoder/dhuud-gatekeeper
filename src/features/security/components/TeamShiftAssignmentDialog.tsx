@@ -31,7 +31,7 @@ export function TeamShiftAssignmentDialog({ open, onOpenChange }: TeamShiftAssig
   });
 
   const { data: teams } = useSecurityTeams();
-  const { data: zones } = useSecurityZones({ isActive: true });
+  const { data: zones } = useSecurityZones();
   const { data: shifts } = useSecurityShifts();
   const assignTeam = useAssignTeamToShift();
 
