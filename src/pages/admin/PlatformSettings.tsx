@@ -250,8 +250,8 @@ export default function PlatformSettings() {
                       <span className="text-muted-foreground">
                         {String(typeof data === 'object' && data !== null
                           ? Object.values(data as Record<string, unknown>).reduce((a: number, b: unknown) => a + (typeof b === 'number' ? b : 0), 0)
-                          : String(data)
-                        }
+                          : data
+                        )}
                       </span>
                     </div>
                   ))}
