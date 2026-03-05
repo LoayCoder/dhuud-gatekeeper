@@ -11,7 +11,7 @@ import ContractorPortalLayout from "@/components/contractor-portal/ContractorPor
 import ContractorWorkerForm from "@/components/contractor-portal/ContractorWorkerForm";
 import ContractorWorkerEditForm from "@/components/contractor-portal/ContractorWorkerEditForm";
 import ContractorWorkerBulkImport from "@/components/contractor-portal/ContractorWorkerBulkImport";
-import { useContractorPortalData } from "@/hooks/contractor-management";
+import { useContractorPortalData } from "@/hooks/contractor-management/index";
 import { ContractorPortalRoute } from "@/components/access-control";
 
 interface PortalWorker {

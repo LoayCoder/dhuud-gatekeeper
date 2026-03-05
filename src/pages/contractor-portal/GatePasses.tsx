@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import ContractorPortalLayout from "@/components/contractor-portal/ContractorPortalLayout";
 import { GatePassFormDialog } from '@/features/contractors';
-import { useContractorPortalData, useContractorGatePasses } from "@/hooks/contractor-management";
+import { useContractorPortalData, useContractorGatePasses } from "@/hooks/contractor-management/index";
 import { format } from "date-fns";
 import { ContractorPortalRoute } from "@/components/access-control";
 import { ContractorProject } from "@/features/contractors/hooks/use-contractor-projects";
