@@ -246,7 +246,7 @@ export function useUserFormState(props: UserFormDialogProps) {
   // Filter sites by selected branches (multi-branch support)
   const filteredSites = useMemo(() => {
     if (selectedBranchIds.length === 0) return hierarchy.sites;
-    return hierarchy.sites.filter((s) => selectedBranchIds.includes(s.branch_id));
+    return hierarchy.sites.filter((s) => selectedBranchIds.includes((s as any).branch_id));
   }, [hierarchy.sites, selectedBranchIds]);
 
   useEffect(() => {

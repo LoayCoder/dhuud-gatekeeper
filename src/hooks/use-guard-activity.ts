@@ -46,7 +46,7 @@ export function useGuardActivity(guardId: string | null, limit: number = 50) {
         .limit(10);
 
       if (shifts) {
-        for (const shift of shifts as unknown[]) {
+        for (const shift of shifts as any[]) {
           const shiftData = shift.shift as { shift_name?: string } | null;
           if (shift.check_in_time) {
             activities.push({
@@ -88,7 +88,7 @@ export function useGuardActivity(guardId: string | null, limit: number = 50) {
 
       if (locations) {
         // Sample every 5th location to avoid flooding the timeline
-        const sampledLocations = (locations as unknown[]).filter((_, i) => i % 5 === 0);
+        const sampledLocations = (locations as any[]).filter((_, i) => i % 5 === 0);
         for (const loc of sampledLocations) {
           activities.push({
             id: `loc-${loc.id}`,

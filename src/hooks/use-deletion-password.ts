@@ -126,13 +126,13 @@ export function useDeletionPassword() {
         title: t('incidents.deleteSuccess'),
       });
       return true;
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Failed to delete closed incident:', error);
       
       let errorMessage = t('common.error');
-      if (error.message?.includes('Invalid deletion password')) {
+      if (error?.message?.includes('Invalid deletion password')) {
         errorMessage = t('profile.deletionPassword.invalidPassword');
-      } else if (error.message?.includes('Deletion password not configured')) {
+      } else if (error?.message?.includes('Deletion password not configured')) {
         errorMessage = t('profile.deletionPassword.notConfiguredError');
       }
       

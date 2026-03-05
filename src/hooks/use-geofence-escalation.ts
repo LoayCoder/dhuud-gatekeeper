@@ -25,8 +25,8 @@ export function useGeofenceEscalationRules() {
   return useQuery({
     queryKey: ['geofence-escalation-rules'],
     queryFn: async () => {
-      const { data, error } = await (supabase
-        .from('geofence_escalation_rules' as unknown)
+      const { data, error } = await ((supabase as any)
+        .from('geofence_escalation_rules')
         .select(`*, zone:security_zones(zone_name)`)
         .is('deleted_at', null)
         .order('escalation_level', { ascending: true }));
@@ -57,8 +57,8 @@ export function useCreateEscalationRule() {
     }) => {
       if (!profile?.tenant_id) throw new Error('No tenant');
 
-      const { data, error } = await (supabase
-        .from('geofence_escalation_rules' as unknown)
+      const { data, error } = await ((supabase as any)
+        .from('geofence_escalation_rules')
         .insert({
           tenant_id: profile.tenant_id,
           rule_name: params.rule_name,
@@ -102,8 +102,8 @@ export function useUpdateEscalationRule() {
       id,
       ...updates
     }: Partial<GeofenceEscalationRule> & { id: string }) => {
-      const { data, error } = await (supabase
-        .from('geofence_escalation_rules' as unknown)
+      const { data, error } = await ((supabase as any)
+        .from('geofence_escalation_rules')
         .update(updates)
         .eq('id', id)
         .select()
@@ -132,8 +132,8 @@ export function useDeleteEscalationRule() {
 
   return useMutation({
     mutationFn: async (ruleId: string) => {
-      const { error } = await (supabase
-        .from('geofence_escalation_rules' as unknown)
+      const { error } = await ((supabase as any)
+        .from('geofence_escalation_rules')
         .update({ deleted_at: new Date().toISOString() })
         .eq('id', ruleId));
 

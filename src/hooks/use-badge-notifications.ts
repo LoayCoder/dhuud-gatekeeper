@@ -53,7 +53,7 @@ export function useBadgeNotifications() {
         },
         async (payload) => {
           // Fetch the badge details
-          const { data: badgeData } = await (supabase as unknown)
+          const { data: badgeData } = await (supabase as any)
             .from('badge_definitions')
             .select('*')
             .eq('id', payload.new.badge_id)
