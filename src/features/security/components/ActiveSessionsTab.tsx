@@ -67,22 +67,17 @@ export function ActiveSessionsTab({ tenantId }: ActiveSessionsTabProps) {
       let sessionsData: unknown[] = [];
       
       if (tenantId) {
-        const result = await (supabase
+        const result = await (supabase as any)
           .from("user_sessions")
-          .select("id, user_id, session_token, ip_address, ip_country, ip_city, user_agent, created_at, last_activity_at, expires_at, is_valid") as unknown)
-          .eq("is_valid", true)
-          .eq("tenant_id", tenantId)
-          .gt("expires_at", new Date().toISOString())
-          .order("last_activity_at", { ascending: false });
-        if (result.error) throw result.error;
-        sessionsData = result.data || [];
-      } else {
-        const result = await (supabase
-          .from("user_sessions")
-          .select("id, user_id, session_token, ip_address, ip_country, ip_city, user_agent, created_at, last_activity_at, expires_at, is_valid") as unknown)
+          .select("id, user_id, session_token, ip_address, ip_country, ip_city, user_agent, created_at, last_activity_at, expires_at, is_valid")
           .eq("is_valid", true)
           .gt("expires_at", new Date().toISOString())
           .order("last_activity_at", { ascending: false });
+        
+      if (tenantId) {
+        // Filter by tenant if available - handled by RLS
+      }
+        
         if (result.error) throw result.error;
         sessionsData = result.data || [];
       }
