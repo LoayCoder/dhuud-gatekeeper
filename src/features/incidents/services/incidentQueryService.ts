@@ -180,7 +180,7 @@ export const getMyReportedIncidents = async ({
 }) => {
     if (!userId || !tenantId) return [];
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
         .from('incidents')
         .select('id, reference_id, title, status, severity, event_type, created_at, occurred_at, site:sites(id, name), branch:branches!incidents_branch_id_fkey(id, name)')
         .eq('reporter_id', userId)

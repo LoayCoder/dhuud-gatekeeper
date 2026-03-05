@@ -136,7 +136,7 @@ export function InspectionPhotoUpload({
     if (!responseId) return;
     
     try {
-      await deleteMutation.mutateAsync({ photoId, responseId });
+      await deleteMutation.mutateAsync(photoId as any);
       toast.success(t('inspections.photos.deleteSuccess'));
     } catch (error) {
       console.error('Delete error:', error);

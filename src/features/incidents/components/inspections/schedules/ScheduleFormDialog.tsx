@@ -162,7 +162,7 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
   // Update preview dates when frequency changes
   useEffect(() => {
     if (startDate && frequencyType && frequencyValue) {
-      const dates = calculatePreviewDates(frequencyType, frequencyValue, startDate, 5);
+      const dates = calculatePreviewDates(frequencyType, frequencyValue, startDate, 5) as Date[];
       setPreviewDates(dates);
     }
   }, [frequencyType, frequencyValue, startDate]);
@@ -173,7 +173,7 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
       form.reset({
         name: schedule.name,
         name_ar: schedule.name_ar || '',
-        schedule_type: schedule.schedule_type,
+        schedule_type: schedule.schedule_type as any,
         template_id: schedule.template_id,
         frequency_type: schedule.frequency_type,
         frequency_value: schedule.frequency_value,

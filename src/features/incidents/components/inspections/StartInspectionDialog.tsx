@@ -54,8 +54,7 @@ export function StartInspectionDialog({
   const [inspectionDate, setInspectionDate] = useState<Date>(new Date());
   
   const { data: templates, isLoading: templatesLoading } = useTemplatesForAsset(
-    asset.category_id,
-    asset.type_id
+    asset.category_id
   );
   
   const startInspection = useStartInspection();
