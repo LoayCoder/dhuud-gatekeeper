@@ -11,7 +11,7 @@ export function useApprovalConfigs(workflowType?: string) {
         queryFn: async () => {
             if (!profile?.tenant_id) throw new Error("No tenant");
 
-            let query = (supabase as unknown)
+            let query = (supabase as any)
                 .from("asset_approval_configs")
                 .select("*")
                 .eq("tenant_id", profile.tenant_id)

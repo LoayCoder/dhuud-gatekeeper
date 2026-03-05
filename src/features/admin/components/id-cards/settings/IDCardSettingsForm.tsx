@@ -166,7 +166,7 @@ export function IDCardSettingsForm({
   const handlePresetChange = (preset: TemplatePreset) => {
     const presetConfig = PRESET_CONFIGS[preset];
     Object.entries(presetConfig).forEach(([key, value]) => {
-      form.setValue(key as keyof FormValues, value as unknown);
+      form.setValue(key as keyof FormValues, value as any);
     });
   };
 

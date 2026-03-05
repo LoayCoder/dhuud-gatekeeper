@@ -14,7 +14,7 @@ export function useCreateApprovalConfig() {
         mutationFn: async (config: Omit<ApprovalConfig, "id" | "tenant_id" | "created_at" | "updated_at">) => {
             if (!profile?.tenant_id) throw new Error("No tenant");
 
-            const { data, error } = await (supabase as unknown)
+            const { data, error } = await (supabase as any)
                 .from("asset_approval_configs")
                 .insert({
                     ...config,

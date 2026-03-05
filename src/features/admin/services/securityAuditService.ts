@@ -63,7 +63,7 @@ export const logSecurityAudit = async (tenantId: string, userId: string | undefi
         actor_id: userId,
         actor_name: userName,
         user_agent: navigator.userAgent,
-        metadata: log.metadata || {},
+        metadata: (log.metadata || {}) as any,
     };
 
     const { error } = await supabase
