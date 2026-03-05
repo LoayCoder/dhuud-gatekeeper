@@ -172,7 +172,7 @@ export function GuardSiteAssignments() {
                 <Label>{t('security.siteAssignment.type', 'Assignment Type')}</Label>
                 <Select 
                   value={formData.assignment_type} 
-                  onValueChange={(v) => setFormData({ ...formData, assignment_type: v as unknown })}
+                  onValueChange={(v) => setFormData({ ...formData, assignment_type: v as any })}
                 >
                   <SelectTrigger>
                     <SelectValue />

@@ -54,7 +54,7 @@ export function SecuritySettingsActionsTab({ tenantId }: SecuritySettingsActions
       // Get active sessions count
       const sessionResult = await (supabase
         .from("user_sessions")
-        .select("id", { count: "exact", head: true }) as unknown)
+        .select("id", { count: "exact", head: true }) as any)
         .eq("tenant_id", tenantId)
         .eq("is_valid", true);
       const sessionCount = sessionResult.count || 0;
