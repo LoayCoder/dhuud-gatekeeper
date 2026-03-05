@@ -178,24 +178,24 @@ export function CompanyApprovalQueue() {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Site Representative Info */}
-              {(company as unknown).contractor_site_rep_name && (
+              {(company as any).contractor_site_rep_name && (
                 <div className="p-3 rounded-lg bg-muted/50">
                   <p className="text-sm font-medium mb-2 flex items-center gap-2">
                     <User className="h-4 w-4" />
                     {t("contractors.siteRepresentative", "Site Representative")}
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
-                    <span>{(company as unknown).contractor_site_rep_name}</span>
-                    {(company as unknown).contractor_site_rep_email && (
+                    <span>{(company as any).contractor_site_rep_name}</span>
+                    {(company as any).contractor_site_rep_email && (
                       <span className="flex items-center gap-1">
                         <Mail className="h-3 w-3" />
-                        {(company as unknown).contractor_site_rep_email}
+                        {(company as any).contractor_site_rep_email}
                       </span>
                     )}
-                    {(company as unknown).contractor_site_rep_phone && (
+                    {(company as any).contractor_site_rep_phone && (
                       <span className="flex items-center gap-1">
                         <Phone className="h-3 w-3" />
-                        {(company as unknown).contractor_site_rep_phone}
+                        {(company as any).contractor_site_rep_phone}
                       </span>
                     )}
                   </div>
@@ -203,23 +203,23 @@ export function CompanyApprovalQueue() {
               )}
 
               {/* Contract Period */}
-              {((company as unknown).contract_start_date || (company as unknown).contract_end_date) && (
+              {((company as any).contract_start_date || (company as any).contract_end_date) && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   <span>
                     {t("contractors.contractPeriod", "Contract Period")}:{" "}
-                    {(company as unknown).contract_start_date && format(new Date((company as unknown).contract_start_date), "PP")}
-                    {(company as unknown).contract_start_date && (company as unknown).contract_end_date && " - "}
-                    {(company as unknown).contract_end_date && format(new Date((company as unknown).contract_end_date), "PP")}
+                    {(company as any).contract_start_date && format(new Date((company as any).contract_start_date), "PP")}
+                    {(company as any).contract_start_date && (company as any).contract_end_date && " - "}
+                    {(company as any).contract_end_date && format(new Date((company as any).contract_end_date), "PP")}
                   </span>
                 </div>
               )}
 
               {/* Scope of Work */}
-              {(company as unknown).scope_of_work && (
+              {(company as any).scope_of_work && (
                 <div className="text-sm">
                   <span className="font-medium">{t("contractors.scopeOfWork", "Scope of Work")}:</span>{" "}
-                  <span className="text-muted-foreground">{(company as unknown).scope_of_work}</span>
+                  <span className="text-muted-foreground">{(company as any).scope_of_work}</span>
                 </div>
               )}
 
