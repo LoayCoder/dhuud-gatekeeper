@@ -145,7 +145,7 @@ export function calculateMinimumSeverity(
   eventType: string | null | undefined
 ): { minLevel: SeverityLevelV2; reason: string | null } {
   // Rule 1: Fatality or permanent disability → Level 5
-  if (injuryClassification && SEVERITY_VALIDATION_TRIGGERS.fatalityRequired.includes(injuryClassification as unknown)) {
+  if (injuryClassification && SEVERITY_VALIDATION_TRIGGERS.fatalityRequired.includes(injuryClassification as any)) {
     return {
       minLevel: 'level_5',
       reason: 'validation.fatalityRequired',
@@ -153,7 +153,7 @@ export function calculateMinimumSeverity(
   }
 
   // Rule 2: LTI/LWDC → minimum Level 4
-  if (injuryClassification && SEVERITY_VALIDATION_TRIGGERS.ltiMinimum.includes(injuryClassification as unknown)) {
+  if (injuryClassification && SEVERITY_VALIDATION_TRIGGERS.ltiMinimum.includes(injuryClassification as any)) {
     return {
       minLevel: 'level_4',
       reason: 'validation.ltiMinimum',
@@ -161,7 +161,7 @@ export function calculateMinimumSeverity(
   }
 
   // Rule 3: ERP activated → minimum Level 4
-  if (erpActivated || (eventType && ERP_EVENT_TYPES.includes(eventType as unknown))) {
+  if (erpActivated || (eventType && ERP_EVENT_TYPES.includes(eventType as any))) {
     return {
       minLevel: 'level_4',
       reason: 'validation.erpMinimum',

@@ -98,10 +98,10 @@ export async function logAssetScan(event: AssetScanEvent): Promise<void> {
     console.error('Error in logAssetScan:', err);
     // Try to queue offline if any error
     try {
-      await queueOfflineScan({
-        ...event,
-        is_offline_scan: true,
-      } as unknown);
+    await queueOfflineScan({
+      ...event,
+      is_offline_scan: true,
+    } as any);
     } catch {
       // Silent fail - scan logging is non-critical
     }

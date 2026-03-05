@@ -98,7 +98,7 @@ export async function unregisterPeriodicSync() {
   
   try {
     const registration = await navigator.serviceWorker.ready;
-    // @ts-expect-error - required by external dependency
+    // @ts-ignore - periodicSync API
     if ('periodicSync' in registration) {
       // @ts-expect-error - required by external dependency
       await registration.periodicSync.unregister('server-updates-sync');

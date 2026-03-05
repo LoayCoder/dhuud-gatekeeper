@@ -300,8 +300,7 @@ async function fetchActionEvidence(actionIds: string[]): Promise<Map<string, Act
 }
 
 async function fetchContractorViolation(incidentId: string): Promise<ContractorViolationData | null> {
-  const db = supabase;
-  const { data: incident } = await db
+  const { data: incident } = await (supabase as any)
     .from('incidents')
     .select(`
       violation_type_id,
@@ -327,7 +326,7 @@ async function fetchContractorViolation(incidentId: string): Promise<ContractorV
   }
 
   return {
-    contractor_company_name: incident.related_contractor_company?.name,
+    contractor_company_name: (incident.related_contractor_company as any)?.name,
     violation_category: incident.violation_type_id,
     penalty_applied: incident.violation_penalty_type,
     penalty_amount: incident.violation_fine_amount,

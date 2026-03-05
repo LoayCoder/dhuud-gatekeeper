@@ -2,7 +2,7 @@
  * Generate PDF summary report for security team performance
  */
 import { format } from 'date-fns';
-import { TeamSummaryData } from '@/features/security';
+import type { TeamSummaryData } from '@/features/security/hooks/use-security-reports/types';
 import { 
   generateBrandedPDFFromElement, 
   createPDFRenderContainer, 

@@ -103,10 +103,10 @@ return (<div className="container py-8 space-y-8" dir={direction}>
 
       {/* Site Detail Dialog */}
       <SiteDetailDialog
-        open={siteDialogOpen}
-        onOpenChange={setSiteDialogOpen}
-        site={selectedSite}
-        onSave={fetchData}
+        open={(viewProps as any).siteDialogOpen ?? false}
+        onOpenChange={(viewProps as any).setSiteDialogOpen ?? (() => {})}
+        site={(viewProps as any).selectedSite ?? null}
+        onSave={(viewProps as any).fetchData ?? (() => {})}
       />
     </div>);
 }
