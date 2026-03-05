@@ -257,7 +257,7 @@ export function useAllPendingApprovals(minDaysPending = 0) {
             created_at: approval.created_at,
             updated_at: approval.updated_at || approval.created_at,
             days_pending: daysPending,
-            priority: approval.priority as unknown,
+            priority: approval.priority as any,
           });
         });
       }

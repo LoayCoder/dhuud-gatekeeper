@@ -21,7 +21,7 @@ async function fetchTrackingSettings(): Promise<TrackingIntervalSettings> {
 
   // Use type assertion to bypass deep type inference
   // platform_settings may not have tenant_id/deleted_at columns
-  const client = supabase as unknown;
+  const client = supabase as any;
   const { data } = await client
     .from('platform_settings')
     .select('value')
@@ -77,7 +77,7 @@ export function useUpdateTrackingInterval() {
         throw new Error('Interval must be between 1 and 30 minutes');
       }
 
-      const client = supabase as unknown;
+      const client = supabase as any;
       
       const settingValue = JSON.stringify({
         default: 5,

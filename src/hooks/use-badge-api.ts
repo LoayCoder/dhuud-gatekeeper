@@ -24,9 +24,9 @@ export function useBadgeAPI(): BadgeAPI {
     
     try {
       if (count > 0) {
-        await (navigator as unknown).setAppBadge(count);
+        await (navigator as any).setAppBadge(count);
       } else {
-        await (navigator as unknown).clearAppBadge();
+        await (navigator as any).clearAppBadge();
       }
     } catch (error) {
       // Badge API might fail in some contexts (not installed PWA, permissions)
@@ -38,7 +38,7 @@ export function useBadgeAPI(): BadgeAPI {
     if (!isSupported) return;
     
     try {
-      await (navigator as unknown).clearAppBadge();
+      await (navigator as any).clearAppBadge();
     } catch (error) {
       console.debug('[Badge API] Failed to clear badge:', error);
     }

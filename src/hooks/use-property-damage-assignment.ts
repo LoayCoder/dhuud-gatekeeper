@@ -89,7 +89,7 @@ export function usePropertyDamageAssignment(incidentId: string | null) {
       if (error) throw error;
 
       // Log to audit trail
-      const profileId = (profile as unknown)?.id;
+      const profileId = (profile as any)?.id;
       await supabase.from('incident_audit_logs').insert({
         incident_id: incidentId,
         tenant_id: profile?.tenant_id,
@@ -104,8 +104,8 @@ export function usePropertyDamageAssignment(incidentId: string | null) {
       queryClient.invalidateQueries({ queryKey: ['tech-evaluator-assignment', incidentId] });
       toast.success(t('investigation.property.evaluatorAssigned', 'Tech evaluator assigned successfully'));
     },
-    onError: (error: unknown) => {
-      toast.error(error.message || t('common.error', 'Failed to assign evaluator'));
+    onError: (error: any) => {
+      toast.error(error?.message || t('common.error', 'Failed to assign evaluator'));
     },
   });
 
@@ -122,7 +122,7 @@ export function usePropertyDamageAssignment(incidentId: string | null) {
       if (error) throw error;
 
       // Log to audit trail
-      const profileId = (profile as unknown)?.id;
+      const profileId = (profile as any)?.id;
       await supabase.from('incident_audit_logs').insert({
         incident_id: incidentId,
         tenant_id: profile?.tenant_id,
@@ -135,8 +135,8 @@ export function usePropertyDamageAssignment(incidentId: string | null) {
       queryClient.invalidateQueries({ queryKey: ['tech-evaluator-assignment', incidentId] });
       toast.success(t('investigation.property.evaluatorUnassigned', 'Tech evaluator unassigned'));
     },
-    onError: (error: unknown) => {
-      toast.error(error.message || t('common.error', 'Failed to unassign evaluator'));
+    onError: (error: any) => {
+      toast.error(error?.message || t('common.error', 'Failed to unassign evaluator'));
     },
   });
 
