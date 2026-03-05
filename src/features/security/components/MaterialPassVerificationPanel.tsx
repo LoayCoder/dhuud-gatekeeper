@@ -175,7 +175,7 @@ export function MaterialPassVerificationPanel() {
         if (data.pass.entry_time && data.pass.exit_time) {
           toast.info(t('security.materialPass.passCompleted', 'Pass already completed'));
         } else {
-          await autoRecordAction(data.pass, 'manual_entry');
+          await autoRecordAction(data.pass as MaterialPassResult['pass'], 'manual_entry');
         }
       }
     } catch (error: unknown) {

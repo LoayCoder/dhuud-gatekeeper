@@ -157,7 +157,7 @@ export function useSecurityEmergencyActions() {
       // Count sessions to terminate
       const countResult = await (supabase
         .from("user_sessions")
-        .select("id", { count: "exact", head: true }) as unknown)
+        .select("id", { count: "exact", head: true }) as any)
         .eq("tenant_id", tenantId)
         .eq("is_valid", true);
       
@@ -170,7 +170,7 @@ export function useSecurityEmergencyActions() {
           is_valid: false,
           invalidation_reason: "system_shutdown",
           invalidated_at: new Date().toISOString(),
-        }) as unknown)
+        }) as any)
         .eq("tenant_id", tenantId)
         .eq("is_valid", true);
 

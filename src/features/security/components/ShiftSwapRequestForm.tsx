@@ -113,7 +113,7 @@ export function ShiftSwapRequestForm({ originalRosterId, onSuccess, onCancel }: 
     }
   }, [form.watch('target_guard_id')]);
 
-  const formatRosterOption = (roster: unknown) => {
+  const formatRosterOption = (roster: any) => {
     const date = format(new Date(roster.roster_date), 'EEE, MMM d');
     const zone = roster.security_zones?.zone_name || 'Unknown zone';
     const shift = roster.security_shifts?.name || 'Unknown shift';
