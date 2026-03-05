@@ -127,7 +127,7 @@ export default function AdminBranding() {
       return;
     }
     const file = e.target.files[0];
-    const url = await uploadAsset(file, type, tenant.id);
+    const url = await uploadAsset(file, type as string, tenant.id);
     if (url) {
       switch (type) {
         case 'logo-light':
@@ -250,7 +250,7 @@ export default function AdminBranding() {
         </Button>
         <div className="text-start">
           <h1 className="text-3xl font-bold">{t('adminBranding.title')}</h1>
-          <p className="text-muted-foreground">{t('adminBranding.subtitle')} {tenant?.name}</p>
+          <p className="text-muted-foreground">{String(t('adminBranding.subtitle'))} {tenant?.name}</p>
         </div>
       </div>
 
@@ -466,7 +466,7 @@ export default function AdminBranding() {
             logoDarkUrl={logoDarkPreview}
             sidebarIconLightUrl={sidebarIconLightPreview}
             sidebarIconDarkUrl={sidebarIconDarkPreview}
-            tenantName={tenant?.name || ''}
+            tenantName={tenant?.name as string || ''}
             previewMode={previewMode}
             onPreviewModeChange={setPreviewMode}
           />
