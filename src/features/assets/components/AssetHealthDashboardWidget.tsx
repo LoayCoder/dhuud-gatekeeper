@@ -206,7 +206,7 @@ export function AssetHealthDashboardWidget() {
               <span className="text-sm text-muted-foreground">
                 {t("assets.health.fleetHealth", "Fleet Health")}
               </span>
-              {!statsLoading && <TrendIndicator trend={overallTrend as unknown} count={0} />}
+              {!statsLoading && <TrendIndicator trend={overallTrend as any} count={0} />}
             </div>
             <span className="text-xs text-muted-foreground">
               {fleetStats?.totalAssets || 0} {t("assets.health.assetsMonitored", "assets monitored")}
