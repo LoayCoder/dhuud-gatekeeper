@@ -92,7 +92,7 @@ export default function AdminBranding() {
       setSecondaryColorDark(tenantData.secondary_color_dark || '');
 
       // Background
-      setBgTheme(tenantData.background_theme as unknown || 'color');
+      setBgTheme((tenantData.background_theme as any) || 'color');
       setBgColor(tenantData.background_color || '');
       setBgPreview(tenantData.background_image_url);
 

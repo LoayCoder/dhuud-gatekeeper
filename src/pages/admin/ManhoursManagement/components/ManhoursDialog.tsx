@@ -10,8 +10,8 @@ import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { workSchedulePresets } from '../types';
 
-export function ManhoursDialog({ state }: { state: Record<string, unknown> | { t: unknown; isDialogOpen: unknown; setIsDialogOpen: unknown; editingId: unknown; formData: unknown; setFormData: unknown; handleSubmit: unknown; handlePeriodTypeChange: unknown; handleCalculationModeChange: unknown; handleManpowerChange: unknown; branches: unknown; sites: unknown; departments: unknown; formatNumber: unknown; createMutation: unknown; updateMutation: unknown } }) {
-  const { t, isDialogOpen, setIsDialogOpen, editingId, formData, setFormData, handleSubmit, handlePeriodTypeChange, handleCalculationModeChange, handleManpowerChange, branches, sites, departments, formatNumber, createMutation, updateMutation } = state;
+export function ManhoursDialog({ state }: { state: any }) {
+  const { t, isDialogOpen, setIsDialogOpen, editingId, formData, setFormData, handleSubmit, handlePeriodTypeChange, handleCalculationModeChange, handleManpowerChange, branches, sites, departments, formatNumber, createMutation, updateMutation } = state as any;
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogContent className="sm:max-w-[500px]">

@@ -50,7 +50,7 @@ interface WorkSchedulePreset {
   description: string;
 }
 
-const workSchedulePresets: WorkSchedulePreset[] = [
+export const workSchedulePresets: WorkSchedulePreset[] = [
   { id: 'standard_5day', label: 'Standard 5-Day Week', hoursPerDay: 8, workingDays: 22, description: '8h × 22 days' },
   { id: 'standard_6day', label: 'Standard 6-Day Week', hoursPerDay: 8, workingDays: 26, description: '8h × 26 days' },
   { id: 'shift_12h', label: '12-Hour Shift', hoursPerDay: 12, workingDays: 15, description: '12h × 15 days' },
