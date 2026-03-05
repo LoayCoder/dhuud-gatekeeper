@@ -10,7 +10,7 @@ import { useConfirmGatePassEntry, useConfirmGatePassExit } from '@/features/cont
 import { logger } from '@/lib/logger';
 import { QRScanResult, GateQRScannerProps } from '../types';
 import { playAudioFeedback, AUTO_RESET_DELAY_MS } from './helpers';
-import type { GateActionType } from '../GateActionConfirmDialog';
+export type GateActionType = 'entry' | 'exit' | 'verify';
 
 export function useGateQRScanner({ open, onOpenChange, onScanResult, expectedType }: GateQRScannerProps) {
   const { t } = useTranslation();
