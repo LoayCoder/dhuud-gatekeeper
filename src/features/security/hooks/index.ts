@@ -36,7 +36,11 @@ export function useSecurityStats() { return { data: null, isLoading: false }; }
 export function useSecurityScore() { return { data: null, isLoading: false }; }
 export function useSecurityTeams() { return { data: [] as any[], isLoading: false }; }
 export function useAssignTeamToShift() { return { mutateAsync: async (_d: any) => {}, isPending: false }; }
-export function useSecurityTeam(_id?: string) { return { data: null, isLoading: false }; }
+export function useSecurityTeam() { return { data: [] as any[], isLoading: false }; }
+export function useUpdateSecurityTeam() { return { mutateAsync: async (_d: any) => {}, isPending: false }; }
+export function useAddTeamMember() { return { mutateAsync: async (_d: any) => {}, isPending: false }; }
+export function useRemoveTeamMember() { return { mutateAsync: async (_d: any) => {}, isPending: false }; }
+export function useCreateSecurityTeam() { return { mutateAsync: async (_d: any) => {}, isPending: false }; }
 export function useGuardSiteAssignments(_filters?: any) { return { data: [] as any[], isLoading: false }; }
 export function useCreateGuardSiteAssignment() { return { mutateAsync: async (_d: any) => {}, isPending: false }; }
 export function useSecurityPatrols(_filters?: any) { return { data: [] as any[], isLoading: false }; }
