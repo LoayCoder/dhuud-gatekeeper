@@ -9,6 +9,7 @@ export interface InductionVideo {
 
 export function useContractorPortalData() {
   return { data: null, isLoading: false, company: null, projects: [] as any[], workers: [] as any[] };
+}
 
 export function useContractorGatePasses(companyId?: string) {
   return useQuery({
