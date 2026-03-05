@@ -99,7 +99,7 @@ export function AssetLinkSelector({ incidentId, linkedAssetIds, onLinked }: Asse
                   {t('assetManagement.noAssetsFound')}
                 </p>
               ) : (
-                searchResults.map((asset: unknown) => (
+                searchResults.map((asset: any) => (
                   <Card
                     key={asset.id}
                     className="cursor-pointer hover:bg-accent transition-colors"

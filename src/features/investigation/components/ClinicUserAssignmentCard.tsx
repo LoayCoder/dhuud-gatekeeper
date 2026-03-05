@@ -43,9 +43,9 @@ export function ClinicUserAssignmentCard({ incident, onComplete }: ClinicUserAss
   const canAssign = hasRole('hsse_manager') || hasRole('hsse_expert');
 
   // Check if incident has injury
-  const hasInjury = (incident as unknown).has_injury ||
-    (incident as unknown).ai_detected_injury ||
-    (incident as unknown).injury_count > 0;
+  const hasInjury = (incident as any).has_injury ||
+    (incident as any).ai_detected_injury ||
+    (incident as any).injury_count > 0;
 
   // Don't show if no injury or user can't assign
   if (!hasInjury || !canAssign) {

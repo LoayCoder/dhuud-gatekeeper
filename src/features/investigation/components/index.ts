@@ -5,7 +5,7 @@ export { ActionsPanel } from './ActionsPanel';
 export { ActionEvidenceSection } from './ActionEvidenceSection';
 export { FiveWhysBuilder } from './FiveWhysBuilder';
 export { RootCausesBuilder } from './RootCausesBuilder';
-export type { RootCauseEntry } from '@/features/investigation';
+export type { RootCauseEntry } from '../types';
 export { ContributingFactorsBuilder, type ContributingFactorEntry } from './ContributingFactorsBuilder';
 export { AISummaryPanel } from './AISummaryPanel';
 export { AuditLogPanel } from './AuditLogPanel';

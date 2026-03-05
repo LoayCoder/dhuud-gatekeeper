@@ -56,7 +56,7 @@ export function AnalysisStage() {
                             incidentTitle={incident.title}
                             incidentDescription={incident.description}
                             incidentStatus={incident.status}
-                            incidentSeverity={incident.severity_v2 || (incident as unknown).severity}
+                            incidentSeverity={incident.severity_v2 || (incident as any).severity}
                             incidentEventType={incident.event_type}
                             incidentEventSubtype={incident.subtype}
                             canEdit={canEdit}

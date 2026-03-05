@@ -176,7 +176,7 @@ export function OverviewPanel({
       {incident.related_contractor_company_id && (
         <ContractorPersonnelCard
           companyId={incident.related_contractor_company_id}
-          companyName={(incident as unknown).related_contractor_company?.company_name}
+          companyName={(incident as any).related_contractor_company?.company_name}
           onEditContractor={isAdmin && !isLocked ? handleEditContractor : undefined}
         />
       )}

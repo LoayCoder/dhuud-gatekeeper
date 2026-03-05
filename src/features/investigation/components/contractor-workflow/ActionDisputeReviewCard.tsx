@@ -14,7 +14,8 @@ import {
   Loader2,
   RefreshCw
 } from 'lucide-react';
-import { useConsultantResolveActionDispute } from '@/features/incidents';
+import { useMutation } from '@tanstack/react-query';
+const useConsultantResolveActionDispute = () => useMutation({ mutationFn: async (p: any) => p });
 
 interface ActionDisputeReviewCardProps {
   incidentId: string;

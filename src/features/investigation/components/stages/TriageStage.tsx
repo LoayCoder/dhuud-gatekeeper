@@ -37,7 +37,7 @@ export function TriageStage() {
         case 'returned_to_reporter':
             return (
                 <ReporterCorrectionBanner
-                    incident={incident as unknown as unknown}
+                    incident={incident as any}
                     onEdit={() => {/* TODO: Navigate to edit form */ }}
                     onComplete={refresh}
                 />
@@ -46,7 +46,7 @@ export function TriageStage() {
         case 'expert_rejected':
             return (
                 <RejectionConfirmationCard
-                    incident={incident as unknown as unknown}
+                    incident={incident as any}
                     onComplete={refresh}
                 />
             );
@@ -62,7 +62,7 @@ export function TriageStage() {
         case 'pending_dept_rep_approval':
             return (
                 <DeptRepApprovalCard
-                    incident={incident as unknown as unknown}
+                    incident={incident as any}
                     onComplete={refresh}
                 />
             );
@@ -70,7 +70,7 @@ export function TriageStage() {
         case 'pending_dept_rep_incident_review':
             return (
                 <DeptRepIncidentReviewCard
-                    incident={incident as unknown as unknown}
+                    incident={incident as any}
                     onComplete={refresh}
                 />
             );
@@ -79,7 +79,7 @@ export function TriageStage() {
         case 'hsse_manager_escalation':
             return (
                 <HSSEManagerEscalationCard
-                    incident={incident as unknown as unknown}
+                    incident={incident as any}
                     onComplete={refresh}
                 />
             );
@@ -87,7 +87,7 @@ export function TriageStage() {
         case 'pending_hsse_escalation_review':
             return (
                 <HSSEEscalationReviewCard
-                    incident={incident as unknown as unknown}
+                    incident={incident as any}
                     onComplete={refresh}
                 />
             );
@@ -104,7 +104,7 @@ export function TriageStage() {
         case 'pending_legal_review':
             return (
                 <LegalReviewCard
-                    incident={incident as unknown as unknown}
+                    incident={incident as any}
                     onComplete={refresh}
                 />
             );

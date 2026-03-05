@@ -31,7 +31,7 @@ export function ActionList({ state, incidentId }: { state: any, incidentId: stri
 
   return (
     <div className="space-y-3">
-      {actions?.map((action: unknown) => {
+      {actions?.map((action: any) => {
         const actionData = action as unknown as { 
           reference_id: string | null;
           linked_root_cause_id: string | null;
@@ -148,7 +148,7 @@ export function ActionList({ state, incidentId }: { state: any, incidentId: stri
                           : ''
                       }
                     >
-                      {t(`investigation.actions.statuses.${action.status || 'assigned'}`, action.status || 'assigned')}
+                      {String(t(`investigation.actions.statuses.${action.status || 'assigned'}`, action.status || 'assigned'))}
                     </Badge>
                   </div>
                 </div>
