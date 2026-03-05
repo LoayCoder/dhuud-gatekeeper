@@ -36,7 +36,7 @@ export function AssetNotificationPreferences() {
   };
 
   const updateField = (field: string, value: boolean | number) => {
-    setFormData((prev: Record<string, unknown>) => ({ ...prev, [field]: value }));
+    setFormData((prev: any) => ({ ...prev, [field]: value }));
   };
 
   const NotificationRow = ({

@@ -11,7 +11,7 @@ export default function AppSidebar() {
     return (
         <Sidebar collapsible="icon" side="left">
             <AppSidebarHeader />
-            <AppSidebarNav filteredMenuItems={filteredMenuItems} />
+            <AppSidebarNav filteredMenuItems={filteredMenuItems as any} />
             <AppSidebarFooter />
             <SidebarRail />
             <AppSidebarModals />

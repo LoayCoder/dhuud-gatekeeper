@@ -1,6 +1,6 @@
 ﻿
-import { RuleFormState } from './types';
-import { getInitialFormState } from './utils';
+import { RuleFormState as RuleFormStateType } from './types';
+import { getInitialFormState as getInitialFormStateUtil } from './utils';
 import { RuleFormFields } from './components/RuleFormFields';
 import { RulesTable } from './components/RulesTable';
 import { useState, useMemo } from 'react';
