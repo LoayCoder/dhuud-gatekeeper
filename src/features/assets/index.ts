@@ -17,7 +17,7 @@ export * from './components/maps/MapStyleSwitcher';
 export * from './components/parts/LowStockAlertBanner';
 export * from './components/parts/PartStockLevelCard';
 export * from './components/parts/PurchaseOrderDialog';
-export * from './components/parts/StockAdjustmentDialog';
+export { StockAdjustmentDialog as PartsStockAdjustmentDialog } from './components/parts/StockAdjustmentDialog';
 export * from './components/parts/StockHistoryDialog';
 export * from './components/warranty';
 export * from './components/warranty/WarrantyClaimDetailDialog';
