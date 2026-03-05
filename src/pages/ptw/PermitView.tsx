@@ -23,7 +23,7 @@ import {
   Clock,
   History
 } from "lucide-react";
-import { usePTWPermit, useUpdatePermitStatus } from "@/hooks/ptw";
+import { usePTWPermit, useUpdatePermitStatus } from "@/hooks/ptw/index";
 import { Skeleton } from "@/components/ui/skeleton";
 import { QRCodeSVG } from "qrcode.react";
 import { format } from "date-fns";

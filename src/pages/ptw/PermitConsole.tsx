@@ -19,7 +19,7 @@ import {
   Wrench,
   FileWarning
 } from "lucide-react";
-import { usePTWPermits, useActivePermitsForMap } from "@/hooks/ptw";
+import { usePTWPermits, useActivePermitsForMap } from "@/hooks/ptw/index";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PermitConsoleMap } from '@/features/ptw';
 import { PermitListView } from '@/features/ptw';

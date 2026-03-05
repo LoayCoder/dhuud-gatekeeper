@@ -260,18 +260,7 @@ export default function ProjectMobilization() {
 }
 
 interface ProjectCardProps {
-  project: {
-    id: string;
-    reference_id: string;
-    name: string;
-    status?: string;
-    mobilization_percentage?: number;
-    start_date?: string;
-    end_date?: string;
-    contractor_company?: { company_name: string } | null;
-    site?: { name: string } | null;
-    [key: string]: any;
-  };
+  project: any;
   onClick: () => void;
 }
 

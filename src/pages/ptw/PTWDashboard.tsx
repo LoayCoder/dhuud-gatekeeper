@@ -16,7 +16,7 @@ import {
   Wrench
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { usePTWPermits } from "@/hooks/ptw";
+import { usePTWPermits } from "@/hooks/ptw/index";
 import { usePTWDashboardStats } from "@/features/ptw/hooks/use-ptw-dashboard-stats";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
