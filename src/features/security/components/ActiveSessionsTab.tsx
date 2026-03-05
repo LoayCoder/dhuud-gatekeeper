@@ -147,20 +147,19 @@ export function ActiveSessionsTab({ tenantId }: ActiveSessionsTabProps) {
   // Terminate all sessions mutation
   const terminateAllMutation = useMutation({
     mutationFn: async () => {
-      if (tenantId) {
-        await (supabase as any)
-          .from("user_sessions")
-          .update({ 
-            is_valid: false, 
-            invalidation_reason: "admin_terminated_all",
-            invalidated_at: new Date().toISOString()
-          })
-          .eq("is_valid", true);
+      await (supabase as any)
+        .from("user_sessions")
+        .update({ 
+          is_valid: false, 
+          invalidation_reason: "admin_terminated_all",
+          invalidated_at: new Date().toISOString()
+        })
+        .eq("is_valid", true);
 
       // Log the action
       if (tenantId) {
         const { data: { user } } = await supabase.auth.getUser();
-        await supabase.from("system_emergency_actions").insert({
+        await (supabase as any).from("system_emergency_actions").insert({
           tenant_id: tenantId,
           action_type: "terminate_all_sessions",
           performed_by: user?.id,
