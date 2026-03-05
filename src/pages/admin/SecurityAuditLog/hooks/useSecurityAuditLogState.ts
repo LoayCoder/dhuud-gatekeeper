@@ -43,6 +43,6 @@ export function useSecurityAuditLogState() {
     sensitiveDataLogs: stubPagination.data, isSensitiveLoading: stubPagination.isLoading, sensitiveHasNext: stubPagination.hasNext, sensitiveHasPrev: stubPagination.hasPrev,
     sensitiveNextPage: stubPagination.nextPage, sensitivePrevPage: stubPagination.prevPage, sensitiveFirstPage: stubPagination.firstPage, sensitiveTotal: stubPagination.total, sensitivePage: stubPagination.page,
     filteredSensitiveLogs: [] as any[], filteredUserMgmtLogs: [] as any[], filteredSecurityLogs: [] as any[], filteredLoginHistory: [] as LoginHistoryRecord[],
-    accessTypes: [] as string[], formatChanges: (changes: any) => '', suspiciousStats: { total: 0, high: 0, medium: 0 }, PAGE_SIZE, textAlign: direction === 'rtl' ? 'right' as const : 'left' as const
+    accessTypes: [] as string[], formatChanges: (changes: any) => '', suspiciousStats: { total: 0, high: 0, medium: 0, suspicious: 0, failed: 0, newDevices: 0, vpnProxy: 0 }, PAGE_SIZE, textAlign: direction === 'rtl' ? 'right' as const : 'left' as const
   };
 }
