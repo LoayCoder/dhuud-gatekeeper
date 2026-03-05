@@ -43,7 +43,7 @@ export function useHandoverReport(handoverId: string | null) {
 
     setIsGenerating(true);
     try {
-      const blob = await generateHandoverReportPDF(handover as unknown);
+      const blob = await generateHandoverReportPDF(handover as any);
       const filename = `handover-${format(new Date(handover.shift_date), 'yyyy-MM-dd')}-${handover.id.substring(0, 8)}.pdf`;
       downloadHandoverPDF(blob, filename);
       toast({ title: 'PDF downloaded successfully' });

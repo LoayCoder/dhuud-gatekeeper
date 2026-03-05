@@ -149,7 +149,7 @@ export function useGuardActivity(guardId: string | null, limit: number = 50) {
         .limit(10);
 
       if (alerts) {
-        for (const alert of alerts as unknown[]) {
+        for (const alert of alerts as any[]) {
           const alertSeverity = alert.severity === 'critical' ? 'critical' : 
                                alert.severity === 'high' ? 'warning' : 'info';
           activities.push({
