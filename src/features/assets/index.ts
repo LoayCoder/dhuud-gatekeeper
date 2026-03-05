@@ -64,7 +64,7 @@ export * from './components/PurchaseRequestPDFExportButton';
 export * from './components/PurchaseRequestPDFTemplate';
 export * from './components/PurchaseRequestsTable';
 export * from './components/ScanFAB';
-export * from './components/StockAdjustmentDialog';
+// StockAdjustmentDialog already exported above
 export * from './components/TransferApprovalDialog';
 export * from './components/TransferHistoryTab';
 export * from './hooks/use-asset-approval-workflows';
@@ -87,5 +87,5 @@ export * from './hooks/use-asset-trash';
 export * from './hooks/use-asset-type-parts';
 export * from './hooks/use-asset-uploads';
 export * from './hooks/use-assets';
-export * from './services/assetQueryService';
-export * from './services/assetMutationService';
+export { getNextAssetSequence, generateAssetCode, generateSequentialCodes, type AssetInsert, type AssetUpdate } from './services/assetMutationService';
+// assetQueryService re-exports handled by use-assets
