@@ -21,7 +21,7 @@ import {
 } from "@/features/contractors/hooks/use-gate-pass-details";
 
 // Details Tab Component
-function DetailsTab({
+export function DetailsTab({
   pass,
   passDetails,
   items,
@@ -29,12 +29,12 @@ function DetailsTab({
   getStatusBadge,
   t,
 }: {
-  pass: MaterialGatePass;
-  passDetails: ReturnType<typeof useGatePassDetails>["data"];
-  items: GatePassItem[];
+  pass: any;
+  passDetails: any;
+  items: any[];
   isLoading: boolean;
   getStatusBadge: (status: string) => JSX.Element;
-  t: ReturnType<typeof useTranslation>["t"];
+  t: any;
 }) {
   if (isLoading) {
     return (
