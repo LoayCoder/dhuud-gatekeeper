@@ -34,8 +34,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Users, Loader2 } from 'lucide-react';
-import { useSecurityTeam } from '@/features/security';
-import { useCreateSecurityTeam } from '@/features/security';
+import { useSecurityTeam, useCreateSecurityTeam } from '@/features/security/hooks';
 
 const formSchema = z.object({
   name: z.string()

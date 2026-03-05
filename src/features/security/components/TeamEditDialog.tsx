@@ -33,7 +33,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Users, Loader2, UserMinus } from 'lucide-react';
-import { useSecurityTeam } from '@/features/security';
+import { useSecurityTeam } from '@/features/security/hooks';
 import {
   SecurityTeam,
   useUpdateSecurityTeam,

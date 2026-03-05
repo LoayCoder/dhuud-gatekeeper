@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { TabsContent } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { isContractorType } from '@/lib/license-utils';
+import { UserFormValues } from '../types';
 import { RoleSelectorEnhanced } from '@/components/roles/RoleSelectorEnhanced';
 import { TeamAssignmentDialog } from '@/components/hierarchy/TeamAssignmentDialog';
 const userTypeCards = [

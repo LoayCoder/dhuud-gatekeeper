@@ -93,7 +93,7 @@ export * from './components/WorkerPhotoGallery';
 export * from './components/WorkerScanHistory';
 export * from './components/WorkerVerificationPanel';
 export * from './components/ZonePolygonEditor';
-export * from './components/ZoneSelector';
+export { ZoneSelector as SecurityZoneSelector } from './components/ZoneSelector';
 
 // Hooks (skip duplicates from reports)
 export * from './hooks/use-gate-entries';
