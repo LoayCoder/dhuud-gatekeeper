@@ -42,7 +42,7 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
       if (!incidentId) return [];
 
       // Use any to handle dynamic table access until types are fully generated
-      const { data, error } = await (supabase.from(tableName as unknown) as unknown)
+      const { data, error } = await (supabase as any).from(tableName)
         .select('id, review_status, submitted_at, submitted_by, reviewed_at, reviewed_by, review_notes')
         .eq('incident_id', incidentId)
         .is('deleted_at', null);
@@ -79,10 +79,10 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
   // Submit all records for review
   const submitForReview = useMutation({
     mutationFn: async () => {
-      const profileId = (profile as unknown)?.id;
+      const profileId = (profile as any)?.id;
       if (!incidentId || !profileId) throw new Error('Missing required data');
 
-      const { error } = await (supabase.from(tableName as unknown) as unknown)
+      const { error } = await (supabase as any).from(tableName)
         .update({
           review_status: 'submitted',
           submitted_at: new Date().toISOString(),
@@ -107,18 +107,18 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
       queryClient.invalidateQueries({ queryKey: ['specialist-review', incidentId, dataType] });
       toast.success(t('investigation.review.submitted', 'Data submitted for review'));
     },
-    onError: (error: unknown) => {
-      toast.error(error.message || t('common.error', 'Failed to submit for review'));
+    onError: (error: any) => {
+      toast.error(error?.message || t('common.error', 'Failed to submit for review'));
     },
   });
 
   // Approve all records (for reviewers)
   const approveReview = useMutation({
     mutationFn: async (notes?: string) => {
-      const profileId = (profile as unknown)?.id;
+      const profileId = (profile as any)?.id;
       if (!incidentId || !profileId) throw new Error('Missing required data');
 
-      const { error } = await (supabase.from(tableName as unknown) as unknown)
+      const { error } = await (supabase as any).from(tableName)
         .update({
           review_status: 'approved',
           reviewed_at: new Date().toISOString(),
@@ -144,19 +144,19 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
       queryClient.invalidateQueries({ queryKey: ['specialist-review', incidentId, dataType] });
       toast.success(t('investigation.review.approved', 'Data approved'));
     },
-    onError: (error: unknown) => {
-      toast.error(error.message || t('common.error', 'Failed to approve'));
+    onError: (error: any) => {
+      toast.error(error?.message || t('common.error', 'Failed to approve'));
     },
   });
 
   // Return records for corrections (for reviewers)
   const returnForCorrections = useMutation({
     mutationFn: async (notes: string) => {
-      const profileId = (profile as unknown)?.id;
+      const profileId = (profile as any)?.id;
       if (!incidentId || !profileId) throw new Error('Missing required data');
       if (!notes?.trim()) throw new Error('Notes are required when returning for corrections');
 
-      const { error } = await (supabase.from(tableName as unknown) as unknown)
+      const { error } = await (supabase as any).from(tableName)
         .update({
           review_status: 'returned',
           reviewed_at: new Date().toISOString(),
@@ -182,18 +182,18 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
       queryClient.invalidateQueries({ queryKey: ['specialist-review', incidentId, dataType] });
       toast.success(t('investigation.review.returned', 'Data returned for corrections'));
     },
-    onError: (error: unknown) => {
-      toast.error(error.message || t('common.error', 'Failed to return for corrections'));
+    onError: (error: any) => {
+      toast.error(error?.message || t('common.error', 'Failed to return for corrections'));
     },
   });
 
   // Reset to draft (after corrections made)
   const resetToDraft = useMutation({
     mutationFn: async () => {
-      const profileId = (profile as unknown)?.id;
+      const profileId = (profile as any)?.id;
       if (!incidentId || !profileId) throw new Error('Missing required data');
 
-      const { error } = await (supabase.from(tableName as unknown) as unknown)
+      const { error } = await (supabase as any).from(tableName)
         .update({
           review_status: 'draft',
           review_notes: null,

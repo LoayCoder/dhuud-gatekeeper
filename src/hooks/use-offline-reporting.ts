@@ -203,23 +203,19 @@ export function useOfflineReporting() {
           .not('parent_type_id', 'is', null),
       ]);
 
-      // Check for errors
-      if (sitesResult.error) throw sitesResult.error;
-      if (branchesResult.error) throw branchesResult.error;
-      if (departmentsResult.error) throw departmentsResult.error;
-      if (buildingsResult.error) throw buildingsResult.error;
-      if (contractorCompaniesResult.error) throw contractorCompaniesResult.error;
-      if (eventTypesResult.error) throw eventTypesResult.error;
-      if (eventSubtypesResult.error) throw eventSubtypesResult.error;
+      const results = [sitesResult, branchesResult, departmentsResult, buildingsResult, contractorCompaniesResult, eventTypesResult, eventSubtypesResult] as any[];
+      for (const r of results) {
+        if (r?.error) throw r.error;
+      }
 
       const cacheData: OfflineReportingCache = {
-        sites: sitesResult.data || [],
-        branches: branchesResult.data || [],
-        departments: departmentsResult.data || [],
-        buildings: buildingsResult.data || [],
-        contractorCompanies: contractorCompaniesResult.data || [],
-        eventTypes: eventTypesResult.data || [],
-        eventSubtypes: eventSubtypesResult.data || [],
+        sites: (sitesResult as any)?.data || [],
+        branches: (branchesResult as any)?.data || [],
+        departments: (departmentsResult as any)?.data || [],
+        buildings: (buildingsResult as any)?.data || [],
+        contractorCompanies: (contractorCompaniesResult as any)?.data || [],
+        eventTypes: (eventTypesResult as any)?.data || [],
+        eventSubtypes: (eventSubtypesResult as any)?.data || [],
         cachedAt: Date.now(),
       };
 
