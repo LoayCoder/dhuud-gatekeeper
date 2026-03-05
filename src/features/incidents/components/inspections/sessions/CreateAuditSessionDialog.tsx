@@ -137,7 +137,7 @@ export function CreateAuditSessionDialog({ open, onOpenChange }: CreateAuditSess
       toast({ title: t('common.success'), description: t('audits.sessionCreated') });
       onOpenChange(false);
       navigate(`/inspections/audit/${session.id}`);
-    } catch (error: unknown) {
+    } catch (error: any) {
       toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
     }
   };
