@@ -118,7 +118,7 @@ export function useCreateAsset() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
-      toast.success(t('assets.createSuccess', { code: data.asset_code }));
+      toast.success(t('assets.createSuccess', { code: (data as any).asset_code }));
     },
     onError: (error: Error) => {
       console.error('Create asset error:', error);

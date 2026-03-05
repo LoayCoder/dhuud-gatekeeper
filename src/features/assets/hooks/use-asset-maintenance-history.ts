@@ -71,7 +71,7 @@ export function useAssetMaintenanceHistory(assetId: string | undefined) {
         .order('performed_date', { ascending: false });
 
       if (error) throw error;
-      return data as unknown[];
+      return data as any[];
     },
     enabled: !!assetId,
   });
