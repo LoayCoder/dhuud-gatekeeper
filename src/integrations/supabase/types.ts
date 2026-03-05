@@ -25103,7 +25103,7 @@ export type Database = {
       auto_block_ip: {
         Args: {
           _block_type: string
-          _duration?: unknown
+          _duration?: string
           _failed_attempts: number
           _ip_address: string
           _reason: string
