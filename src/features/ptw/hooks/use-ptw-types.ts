@@ -26,8 +26,14 @@ export function usePTWTypes() {
     queryKey: ["ptw-types", tenantId],
     queryFn: async () => {
       if (!tenantId) return [];
-      const { getPTWTypes } = await import("@/features/ptw/services/ptwPermitService");
-      return getPTWTypes(tenantId) as Promise<PTWType[]>;
+      const { data, error } = await (await import('@/integrations/supabase/client')).supabase
+        .from('ptw_types')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .eq('is_active', true)
+        .order('sort_order');
+      if (error) throw error;
+      return data as PTWType[];
     },
     enabled: !!tenantId,
   });

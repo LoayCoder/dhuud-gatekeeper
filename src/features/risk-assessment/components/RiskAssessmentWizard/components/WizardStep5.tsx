@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { WorkerConsultationSection } from "../../WorkerConsultationSection";
 import { RiskAcceptabilitySection } from "../../RiskAcceptabilitySection";
 
-export function WizardStep5({ state }: { state: unknown }) {
+export function WizardStep5({ state }: { state: any }) {
   const { t } = state;
   const {
     workerConsultationDate, setWorkerConsultationDate,

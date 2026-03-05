@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TeamMemberSelector, SelectedMemberCard } from "../../TeamMemberSelector";
 import { TEAM_ROLES } from "../constants";
 
-export function WizardStep2({ state }: { state: unknown }) {
+export function WizardStep2({ state }: { state: any }) {
   const { t, isRTL } = state;
   const {
     teamLeader, setTeamLeader,
