@@ -41,7 +41,7 @@ import {
     useGatePassItems,
     useGatePassPhotos,
 } from "@/features/contractors/hooks/use-gate-pass-details";
-import { useSecurityZones } from '@/features/security';
+import { useSecurityZones } from '@/features/security/hooks/use-security-zones';
 import { GatePassPhoto as GatePassPhotoView } from "@/components/ui/gate-pass-photo";
 
 interface GatePassApprovalCardProps {

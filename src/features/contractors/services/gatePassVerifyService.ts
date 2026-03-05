@@ -1,14 +1,14 @@
 import { supabase } from '../supabaseClient';
 
-function formatPassData(pass: {
-    id?: string; reference_number?: string; pass_type?: string;
-    material_description?: string; quantity?: number | null;
-    vehicle_plate?: string; driver_name?: string; driver_mobile?: string;
-    pass_date?: string; start_date?: string; end_date?: string;
-    time_window_start?: string; time_window_end?: string;
-    status?: string; entry_time?: string; exit_time?: string;
-    project?: { project_name?: string; company?: { company_name?: string } } | null;
-}) {
+function formatPassData(pass: any) {
+    return {
+        id: pass.id,
+        reference_number: pass.reference_number,
+        pass_type: pass.pass_type,
+        material_description: pass.material_description,
+        quantity: pass.quantity,
+        vehicle_plate: pass.vehicle_plate,
+        driver_name: pass.driver_name,
     return {
         id: pass.id,
         reference_number: pass.reference_number,
