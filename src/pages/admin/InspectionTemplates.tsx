@@ -35,8 +35,8 @@ import {
   useDeleteTemplate,
   useBulkUpdateTemplateStatus,
   useBulkDeleteTemplates,
-  InspectionTemplate,
-} from '@/features/incidents';
+  type InspectionTemplate,
+} from '@/features/incidents/hooks/use-inspection-stubs';
 import { InspectionTemplateForm, TemplateItemBuilder } from '@/features/incidents';
 import { TemplateBulkActionsToolbar } from '@/features/admin';
 import { cn } from '@/lib/utils';

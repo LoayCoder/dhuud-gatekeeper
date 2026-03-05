@@ -3,7 +3,7 @@ import { FolderKanban, Calendar, MapPin, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import ContractorPortalLayout from "@/components/contractor-portal/ContractorPortalLayout";
-import { useContractorPortalData } from "@/hooks/contractor-management";
+import { useContractorPortalData } from "@/hooks/contractor-management/index";
 import { format } from "date-fns";
 import { ContractorPortalRoute } from "@/components/access-control";
 

@@ -25,7 +25,7 @@ import { HSSE_EVENT_TYPES, getSubtypesForEventType } from '@/lib/hsse-event-type
 import { WIZARD_STEPS, RISK_RATING_LEVELS } from './helpers';
 import { useIncidentReport } from './hooks/useIncidentReport';
 export function Step2Location({ viewProps }: { viewProps: ReturnType<typeof useIncidentReport> }) {
-  const { t, direction, form, coordinates, gpsDetectedSite, noSiteNearby, gpsAccuracy, handleGpsConfirm, handleGpsChangeLocation, gpsLocationConfirmed, locationAddress, isFetchingAddress, handleGetLocation, isGettingLocation, branchesLoading, branches, gpsDetectedBranch, autoDetectedBranch, sitesLoading, selectedBranchId, filteredSites, autoDetectedSite, departmentsLoading, selectedSiteId, filteredDepartments, departmentsUsingFallback, selectedAsset, handleAssetSelect } = viewProps;
+  const { t, direction, form, coordinates, gpsDetectedSite, noSiteNearby, gpsAccuracy, handleGpsConfirm, handleGpsChangeLocation, gpsLocationConfirmed, locationAddress, isFetchingAddress, handleGetLocation, isGettingLocation, branchesLoading, branches, gpsDetectedBranch, autoDetectedBranch, sitesLoading, selectedBranchId, filteredSites, autoDetectedSite, departmentsLoading, selectedSiteId, filteredDepartments, departmentsUsingFallback, selectedAsset, handleAssetSelect, currentStep, setAutoDetectedBranch, setGpsDetectedBranch, setGpsDetectedSite, setGpsLocationConfirmed, setAutoDetectedSite } = viewProps as any;
   return (<>
     {currentStep === 2 && (
       <div className="space-y-6 animate-in fade-in duration-300">

@@ -70,66 +70,31 @@ export default function InvestigationWorkspace() {
   const [showActionDialog, setShowActionDialog] = useState(false);
   const { profile, user } = useAuth();
   const { hasRole } = useUserRoles();
-  const queryClient = useQueryClient();
-
+  const workspaceData = useInvestigationWorkspaceData(selectedIncidentId);
   const {
     actionsCount, incidents, loadingIncidents, pendingApprovals, loadingPending,
     selectedIncident, refetchIncident, investigation, refetchInvestigation,
-    closureEligibility, approveClosureMutation, rejectClosureMutation, canApprove,
+    closureEligibility, approveClosureMutation, rejectClosureMutation,
     workflowActors, investigatorInfo, editAccess, isInvestigator, canAccessGovernance,
     isAssignedClinicUser, isAssignedTechEvaluator, isAssignedEnvironmentalExpert,
-    canReviewSpecialistData, incidentData, status, investigationAllowed, handleRefresh,
-    queryClient
-  } = useInvestigationWorkspaceData(selectedIncidentId);
+    canReviewSpecialistData, handleRefresh,
+  } = workspaceData as any;
+  const canApprove = (workspaceData as any).canApprove;
+  const status = (workspaceData as any).status;
+  const investigationAllowed = (workspaceData as any).investigationAllowed;
 
 
   // Type assertion for incident fields not in generated types yet
-  const incidentData = selectedIncident as typeof selectedIncident & {
-    closure_requested_by?: string | null;
-    closure_requested_at?: string | null;
-    closure_request_notes?: string | null;
-    closure_approved_by?: string | null;
-    closure_approved_at?: string | null;
-    closure_rejection_notes?: string | null;
-    expert_screened_by?: string | null;
-    expert_screened_at?: string | null;
-    expert_rejected_by?: string | null;
-    expert_rejected_at?: string | null;
-    manager_decision?: string | null;
-    manager_decision_at?: string | null;
-    hsse_manager_decision?: string | null;
-    investigator_id?: string | null;
-    consultant_screening_notes?: string | null;
-    severity_v2?: string | null;
-  } | undefined;
-
-  // Check if user can approve closure using RPC function (enforces role-based and conflict-of-interest checks)
-  const { data: canApprove = false } = useCanApproveInvestigation(selectedIncidentId);
-
-  // Determine if investigation tabs should be enabled
-  // Cast to string to handle new enum values not yet in types
-  const status = incidentData?.status as string | undefined;
-  const investigationAllowed = status && [
-    'investigation_pending',
-    'under_investigation',
-    'investigation_in_progress',
-    'pending_closure',
-    'pending_final_closure',
-    'investigation_closed',
-    'closed',
-    'monitoring_30_day',
-    'monitoring_60_day',
-    'monitoring_90_day',
-    'pending_hsse_incident_validation',
-    // Contractor consultant workflow statuses
-    'expert_screening',
-    'pending_consultant_screening',
-    'pending_consultant_review',
-    'pending_consultant_actions',
-    'pending_site_client_approval',
-    'pending_contractor_implementation',
-    'pending_consultant_verification',
-  ].includes(status);
+  const incidentData = selectedIncident as any;
+  const investigationAllowedStatuses = [
+    'investigation_pending', 'under_investigation', 'investigation_in_progress',
+    'pending_closure', 'pending_final_closure', 'investigation_closed', 'closed',
+    'monitoring_30_day', 'monitoring_60_day', 'monitoring_90_day',
+    'pending_hsse_incident_validation', 'expert_screening', 'pending_consultant_screening',
+    'pending_consultant_review', 'pending_consultant_actions', 'pending_site_client_approval',
+    'pending_contractor_implementation', 'pending_consultant_verification',
+  ];
+  const investigationAllowed2 = status && investigationAllowedStatuses.includes(status);
 
 
 
