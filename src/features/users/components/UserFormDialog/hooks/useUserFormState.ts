@@ -24,10 +24,10 @@ export function useUserFormState(props: UserFormDialogProps) {
   const direction = i18n.dir();
   
   const [hierarchy, setHierarchy] = useState<{
-    branches: unknown[];
-    divisions: unknown[];
-    departments: unknown[];
-    sections: unknown[];
+    branches: any[];
+    divisions: any[];
+    departments: any[];
+    sections: any[];
     sites: unknown[];
   }>({
     branches: [],
