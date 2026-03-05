@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { getUserTypeLabel } from "@/lib/license-utils";
 import type { RoleCategory } from '@/features/users';
 
-export function UserManagementTable(props: import('./types').BaseUserManagementProps & { allSelected: boolean; someSelected: boolean }) {
+export function UserManagementTable(props: any) {
   const { t } = useTranslation();
   const { loading, users, allSelected, handleSelectAll, someSelected, selectedUsers, handleSelectUser, getUserInitials, handleEditUser, handleToggleUserStatus, handleDeleteUser, getUserTypeBadgeVariant, handleSyncUserEmail, syncingUserId, handleResetPasswordClick, resetPasswordUserId, page, totalPages, totalCount, hasNextPage, hasPreviousPage, goToNextPage, goToPreviousPage, goToPage } = props;
 

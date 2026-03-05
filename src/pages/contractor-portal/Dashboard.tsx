@@ -3,7 +3,7 @@ import { Users, FolderKanban, Truck, CheckCircle, AlertTriangle, Clock } from "l
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import ContractorPortalLayout from "@/components/contractor-portal/ContractorPortalLayout";
-import { useContractorPortalData, useContractorGatePasses } from "@/hooks/contractor-management";
+import { useContractorPortalData, useContractorGatePasses } from "@/hooks/contractor-management/index";
 import { ContractorPortalRoute } from "@/components/access-control";
 
 function ContractorPortalDashboardContent() {
