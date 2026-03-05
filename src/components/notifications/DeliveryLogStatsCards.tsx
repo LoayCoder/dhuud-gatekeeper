@@ -1,3 +1,3 @@
-export function DeliveryLogStatsCards({ logs }: { logs: any[] }) {
+export function DeliveryLogStatsCards({ stats, loading, ...rest }: any) {
   return null; // Stub
 }
