@@ -27,6 +27,7 @@ import { WIZARD_STEPS, RISK_RATING_LEVELS } from './helpers';
 import { useIncidentReport } from './hooks/useIncidentReport';
 export function Step3Details({ viewProps }: { viewProps: ReturnType<typeof useIncidentReport> }) {
   const { t, direction, form, isObservation, closedOnSpot, setClosedOnSpot, closedOnSpotPhotos, setClosedOnSpotPhotos, eventType, hasInjury, contractorCompanies, isAgainstContractor, isConfirmSubmitting, handleObservationSubmit, hasSubmitted, onSubmit } = viewProps;
+  const { currentStep, i18n, hasDamage, uploadedPhotos, navigate, goToPreviousStep, goToNextStep, setShowConfirmation, createIncident, isUploading } = viewProps as any;
   return (<>
     {currentStep === 3 && (
       <div className="space-y-6 animate-in fade-in duration-300">
