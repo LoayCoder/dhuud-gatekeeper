@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "react-i18next";
-import { Incident } from "@/types/incident.types";
+import { Incident } from "@/types/incident.types"; // kept for reference
 import {
     MapPin,
     Calendar,
