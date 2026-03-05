@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Languages, Loader2 } from 'lucide-react';
 import { CHANNEL_OPTIONS, CATEGORIES } from '../constants';
 
-export function TemplateFormFields({ state }: { state: unknown }) {
+export function TemplateFormFields({ state }: { state: any }) {
   const {
     formData, setFormData, showWhatsAppFields, showEmailFields,
     handleTranslate, canTranslate, isTranslating, emailSubjectRef,
