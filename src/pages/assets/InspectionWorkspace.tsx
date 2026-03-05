@@ -164,7 +164,7 @@ export default function InspectionWorkspace() {
               {isCancelled && <Badge variant="outline">{t('inspections.cancelled')}</Badge>}
             </div>
             <p className="text-muted-foreground">
-              {(inspection.asset as unknown)?.name} • {(inspection.template as unknown)?.name}
+              {(inspection.asset as any)?.name} • {(inspection.template as any)?.name}
             </p>
           </div>
         </div>

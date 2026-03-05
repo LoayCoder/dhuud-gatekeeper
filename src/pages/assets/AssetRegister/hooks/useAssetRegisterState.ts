@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAsset, useAssetCategories, useAssetTypes, useAssetSubtypes, useCreateAsset, useUpdateAsset, useCreateBulkAssets, generateAssetCode, generateSequentialCodes, getNextAssetSequence } from '@/features/assets';
+import { useAsset, useAssetCategories, useAssetTypes, useAssetSubtypes, useCreateAsset, useUpdateAsset, useCreateBulkAssets, generateAssetCode, generateSequentialCodes, getNextAssetSequence } from '@/features/assets/hooks/use-assets';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -237,7 +237,7 @@ export function useAssetRegisterState() {
       }
     } catch (error: unknown) {
       console.error('[Submit] Error:', error);
-      setCreationError(error?.message || t('assets.unknownError', 'An unknown error occurred'));
+      setCreationError((error as any)?.message || t('assets.unknownError', 'An unknown error occurred'));
       setCreationStatus('error');
     }
   };

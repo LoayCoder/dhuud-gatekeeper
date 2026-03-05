@@ -6,6 +6,10 @@ import { useLicensedUserQuota } from "@/hooks/use-licensed-user-quota";
 import { useAdminAuditLog } from "@/hooks/use-admin-audit-log";
 import { useUserRoles } from "@/hooks/use-user-roles";
 
+type HierarchyItem = { id: string; name: string; name_ar?: string; [key: string]: any };
+type UserWithRoles = { id: string; [key: string]: any };
+type BulkActionType = 'activate' | 'deactivate' | 'delete' | 'role' | null;
+
 export function useUserManagementState() {
   const { t, i18n } = useTranslation();
   const { profile, user } = useAuth();
