@@ -85,8 +85,8 @@ function AreaSessionWorkspaceContent() {
     try {
       await startSession.mutateAsync(sessionId);
       toast.success(t('inspectionSessions.sessionStarted'));
-    } catch (error: unknown) {
-      toast.error(error.message);
+    } catch (error: any) {
+      toast.error(error?.message || 'Error');
     }
   };
 
@@ -96,8 +96,8 @@ function AreaSessionWorkspaceContent() {
       await completeSession.mutateAsync({ sessionId });
       toast.success(t('inspectionSessions.sessionCompleted'));
       setShowCompletionDialog(false);
-    } catch (error: unknown) {
-      toast.error(error.message);
+    } catch (error: any) {
+      toast.error(error?.message || 'Error');
     }
   };
 
@@ -107,8 +107,8 @@ function AreaSessionWorkspaceContent() {
       await closeSession.mutateAsync({ sessionId });
       toast.success(t('inspectionSessions.sessionClosed'));
       setShowCompletionDialog(false);
-    } catch (error: unknown) {
-      toast.error(error.message);
+    } catch (error: any) {
+      toast.error(error?.message || 'Error');
     }
   };
 
@@ -118,8 +118,8 @@ function AreaSessionWorkspaceContent() {
       await deleteSession.mutateAsync(sessionId);
       toast.success(t('inspectionSessions.sessionDeleted'));
       navigate('/inspections/sessions');
-    } catch (error: unknown) {
-      toast.error(error.message);
+    } catch (error: any) {
+      toast.error(error?.message || 'Error');
     }
   };
 
@@ -128,8 +128,8 @@ function AreaSessionWorkspaceContent() {
     try {
       await reopenSession.mutateAsync({ sessionId });
       toast.success(t('inspectionSessions.sessionReopened'));
-    } catch (error: unknown) {
-      toast.error(error.message);
+    } catch (error: any) {
+      toast.error(error?.message || 'Error');
     }
   };
   
@@ -209,8 +209,8 @@ function AreaSessionWorkspaceContent() {
               session={session}
               responses={responses}
               findings={[]}
-              templateItems={templateItems}
-              isAreaSession={true}
+            templateItems={templateItems as any}
+            isAreaSession={true}
             />
           )}
           {session.status !== 'closed' && (

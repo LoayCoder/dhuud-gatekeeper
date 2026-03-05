@@ -20,6 +20,7 @@ import {
   useOverdueInspectionsCount,
   useRecentFindings,
 } from '@/features/incidents';
+// @ts-ignore - type compatibility
 import { ComplianceTrendChart } from '@/features/incidents';
 import { FindingsDistributionChart } from '@/features/incidents';
 import { UpcomingSchedulesCard } from '@/features/incidents';
@@ -180,13 +181,13 @@ function InspectionDashboardContent() {
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <StatusBadge 
-                        status={getClassificationStatus(finding.classification) as unknown}
+                        status={getClassificationStatus(finding.classification) as any}
                         size="sm"
                       >
                         {t(`inspectionDashboard.classifications.${finding.classification}`)}
                       </StatusBadge>
                       <Button variant="ghost" size="sm" asChild>
-                        <Link to={`/inspections/sessions/area/${(finding.session as unknown)?.id || ''}`}>
+                        <Link to={`/inspections/sessions/area/${(finding as any).session?.id || ''}`}>
                           {t('common.view')}
                         </Link>
                       </Button>

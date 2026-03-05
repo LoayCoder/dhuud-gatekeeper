@@ -19,8 +19,8 @@ import {
   useSessionTrend,
   useFindingsTrend,
   useTopFailingItems,
-  AnalyticsPeriod,
-  AnalyticsFilters,
+  type AnalyticsPeriod,
+  type AnalyticsFilters,
 } from '@/features/incidents';
 import { CompletionRateChart } from '@/features/admin';
 import { SLAComplianceChart } from '@/features/admin';

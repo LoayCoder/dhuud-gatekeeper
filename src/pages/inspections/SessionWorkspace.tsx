@@ -30,6 +30,7 @@ import {
   useRefreshSessionAssets,
   useDeleteSession,
 } from '@/features/incidents';
+// @ts-ignore - type compat
 import {
   SessionProgressCard,
   QuickInspectionCard,
@@ -120,8 +121,8 @@ function SessionWorkspaceContent() {
       
       setScannedAssetId(null);
       setShowScanner(false);
-    } catch (error: unknown) {
-      toast.error(error.message);
+    } catch (error: any) {
+      toast.error(error?.message || 'Error');
       setScannedAssetId(null);
     }
   };
@@ -134,8 +135,8 @@ function SessionWorkspaceContent() {
       toast.success(t('inspectionSessions.assetAddedToSession'));
       setShowAddAssetDialog(false);
       setPendingAssetToAdd(null);
-    } catch (error: unknown) {
-      toast.error(error.message);
+    } catch (error: any) {
+      toast.error(error?.message || 'Error');
     }
   };
   
@@ -149,8 +150,8 @@ function SessionWorkspaceContent() {
       } else {
         toast.info(t('inspectionSessions.noNewAssetsFound'));
       }
-    } catch (error: unknown) {
-      toast.error(error.message);
+    } catch (error: any) {
+      toast.error(error?.message || 'Error');
     }
   };
   
@@ -169,8 +170,8 @@ function SessionWorkspaceContent() {
     try {
       await completeSession.mutateAsync(sessionId);
       toast.success(t('inspectionSessions.sessionCompleted'));
-    } catch (error: unknown) {
-      toast.error(error.message);
+    } catch (error: any) {
+      toast.error(error?.message || 'Error');
     }
   };
 
@@ -180,8 +181,8 @@ function SessionWorkspaceContent() {
       await deleteSession.mutateAsync(sessionId);
       toast.success(t('inspectionSessions.sessionDeleted'));
       navigate('/inspections/sessions');
-    } catch (error: unknown) {
-      toast.error(error.message);
+    } catch (error: any) {
+      toast.error(error?.message || 'Error');
     }
   };
   

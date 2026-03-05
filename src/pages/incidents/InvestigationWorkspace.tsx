@@ -104,7 +104,7 @@ export default function InvestigationWorkspace() {
       incidentData={incidentData}
       investigation={investigation}
       actionsCount={actionsCount}
-      handleCreateAction={handleCreateAction}
+      handleCreateAction={() => setShowActionDialog(true)}
       handleRefresh={handleRefresh}
     />
   );
@@ -141,7 +141,7 @@ export default function InvestigationWorkspace() {
   // Calculate SLA for the detail view header
   let slaInfo = null;
   if (incidentData) {
-    slaInfo = calculateInvestigationSLA(incidentData.created_at || new Date().toISOString(), incidentData.severity_v2 || (incidentData as unknown).severity);
+    slaInfo = calculateInvestigationSLA(incidentData.created_at || new Date().toISOString(), incidentData.severity_v2 || (incidentData as any).severity);
   }
 
   return (
@@ -164,7 +164,7 @@ export default function InvestigationWorkspace() {
 
       {/* Current Owner & Status Bar - Only when incident selected */}
       {selectedIncidentId && selectedIncident && (
-        <CurrentOwnerCard incident={selectedIncident as unknown} />
+        <CurrentOwnerCard incident={selectedIncident as any} />
       )}
 
       {/* Investigation Content */}
