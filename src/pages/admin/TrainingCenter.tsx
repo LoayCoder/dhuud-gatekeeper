@@ -245,7 +245,7 @@ export default function TrainingCenter() {
             </h2>
             <div className="space-y-3 sm:grid sm:gap-4 sm:space-y-0 sm:grid-cols-2 lg:grid-cols-3">
               {guides.map((guide) => {
-                const IconComponent = iconMap[guide.icon] || User;
+                const IconComponent = (iconMap[guide.icon] || User) as any;
                 return (
                   <Card 
                     key={guide.roleCode} 

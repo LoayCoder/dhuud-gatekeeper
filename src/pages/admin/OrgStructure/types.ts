@@ -5,9 +5,9 @@ export interface Branch {
   latitude: number | null;
   longitude: number | null;
 }
-export interface Division { id: string; name: string; branch_id?: string | null; branches?: { name: string } | null; }
-export interface Department { id: string; name: string; division_id: string; branch_id?: string | null; divisions?: { name: string } | null; branches?: { name: string } | null; }
-export interface Section { id: string; name: string; department_id: string; branch_id?: string | null; departments?: { name: string } | null; branches?: { name: string } | null; }
+export interface Division { id: string; name: string; branch_id?: string | null; branches?: { name: string } | null; [key: string]: unknown; }
+export interface Department { id: string; name: string; division_id: string; branch_id?: string | null; divisions?: { name: string } | null; branches?: { name: string } | null; [key: string]: unknown; }
+export interface Section { id: string; name: string; department_id: string; branch_id?: string | null; departments?: { name: string } | null; branches?: { name: string } | null; [key: string]: unknown; }
 export interface Coordinate {
   lat: number;
   lng: number;
