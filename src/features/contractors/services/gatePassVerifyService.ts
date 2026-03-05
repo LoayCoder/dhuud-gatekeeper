@@ -14,7 +14,7 @@ function formatPassData(pass: {
         reference_number: pass.reference_number,
         pass_type: pass.pass_type,
         material_description: pass.material_description,
-        quantity: pass.quantity,
+        quantity: typeof pass.quantity === 'string' ? Number(pass.quantity) : pass.quantity,
         vehicle_plate: pass.vehicle_plate,
         driver_name: pass.driver_name,
         driver_mobile: pass.driver_mobile,
