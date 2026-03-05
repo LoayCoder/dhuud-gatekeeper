@@ -108,7 +108,7 @@ export function useRCAAnalytics(startDate?: Date, endDate?: Date, branchId?: str
       const { data: investigations, error: invError } = await investigationsQuery;
       if (invError) throw invError;
 
-      let eventsQuery = supabase
+      let eventsQuery = (supabase as any)
         .from('incidents')
         .select('id, reference_id, title, severity_v2, occurred_at, status, event_type, location, branches:branch_id(name)')
         .is('deleted_at', null)

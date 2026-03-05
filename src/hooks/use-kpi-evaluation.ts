@@ -80,7 +80,7 @@ export function useKPIEvaluation() {
       setResult(data);
       toast.success(t('kpiAdmin.evaluationComplete', 'KPI evaluation complete'));
     },
-    onError: (error: unknown) => {
+    onError: (error: any) => {
       console.error("KPI Evaluation error:", error);
       if (error?.message?.includes('429') || error?.status === 429) {
         toast.error(t('common.rateLimitExceeded', 'Rate limit exceeded. Please try again later.'));
