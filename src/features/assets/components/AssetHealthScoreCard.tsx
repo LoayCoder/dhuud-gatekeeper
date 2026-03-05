@@ -120,7 +120,7 @@ export function AssetHealthScoreCard({ assetId }: AssetHealthScoreCardProps) {
             <Progress 
               value={healthScore.score} 
               className="h-3"
-              // @ts-expect-error - custom styling
+              // custom styling
               indicatorClassName={getProgressColor(healthScore.score)}
             />
           </div>

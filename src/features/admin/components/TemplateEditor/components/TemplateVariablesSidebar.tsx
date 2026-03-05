@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { SYSTEM_VARIABLES } from '../constants';
 
-export function TemplateVariablesSidebar({ state }: { state: unknown }) {
+export function TemplateVariablesSidebar({ state }: { state: any }) {
   const {
     showAllVariables, setShowAllVariables, formData, filteredVariables,
     handleDragStart, handleVariableClick, removeVariable,
@@ -43,7 +43,7 @@ export function TemplateVariablesSidebar({ state }: { state: unknown }) {
           </div>
           <ScrollArea className="h-[200px] border rounded-md p-2">
             <div className="flex flex-col gap-1.5">
-              {filteredVariables.map((variable: unknown) => (
+              {filteredVariables.map((variable: any) => (
                 <button
                   key={variable.key}
                   type="button"

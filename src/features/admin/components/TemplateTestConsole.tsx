@@ -194,7 +194,7 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
     } catch (error: unknown) {
       setTestResult({
         success: false,
-        error: error.message || 'Failed to send message',
+        error: (error as Error).message || 'Failed to send message',
         channel: testChannel,
       });
     } finally {

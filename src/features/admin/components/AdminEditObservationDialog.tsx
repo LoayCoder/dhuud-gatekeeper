@@ -70,7 +70,7 @@ export function AdminEditObservationDialog({
     if (open) {
       setSelectedBranchId(incident.branch_id || incident.branch?.id || null);
       setSelectedSiteId(incident.site_id || incident.site?.id || null);
-      setSelectedContractorId((incident as unknown).related_contractor_company_id || null);
+      setSelectedContractorId((incident as any).related_contractor_company_id || null);
       setShouldReroute(false);
       setAdminNotes('');
     }
@@ -116,7 +116,7 @@ export function AdminEditObservationDialog({
   const hasChanges =
     selectedBranchId !== (incident.branch_id || incident.branch?.id) ||
     selectedSiteId !== (incident.site_id || incident.site?.id) ||
-    selectedContractorId !== (incident as unknown).related_contractor_company_id;
+    selectedContractorId !== (incident as any).related_contractor_company_id;
 
   const handleBranchChange = (branchId: string) => {
     setSelectedBranchId(branchId);
@@ -315,7 +315,7 @@ export function AdminEditObservationDialog({
                     <span>{selectedContractorName}</span>
                   </div>
                 )}
-                {!selectedContractorId && (incident as unknown).related_contractor_company_id && (
+                {!selectedContractorId && (incident as any).related_contractor_company_id && (
                   <div className="flex items-center gap-2">
                     <Badge variant="destructive">{t('common.contractor', 'Contractor')}</Badge>
                     <span className="text-muted-foreground">{t('common.removed', 'Removed')}</span>
