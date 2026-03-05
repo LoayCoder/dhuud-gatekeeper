@@ -41,7 +41,7 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
 
   const [notes, setNotes] = useState("");
   const [screeningSeverity, setScreeningSeverity] = useState<SeverityLevelV2 | undefined>(
-    incident.severity_v2 as SeverityLevelV2 | undefined
+    (incident as any).severity_v2 as SeverityLevelV2 | undefined
   );
   const [showReturnDialog, setShowReturnDialog] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);

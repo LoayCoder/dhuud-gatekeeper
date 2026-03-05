@@ -42,10 +42,10 @@ export function ContractControllerApprovalCard({ incident, onComplete }: Contrac
   }
   
   const violationDetails = {
-    penaltyType: (incident as unknown).violation_penalty_type,
-    fineAmount: (incident as unknown).violation_fine_amount,
-    occurrence: (incident as unknown).violation_occurrence,
-    actionDescription: (incident as unknown).violation_action_description,
+    penaltyType: (incident as any).violation_penalty_type,
+    fineAmount: (incident as any).violation_fine_amount,
+    occurrence: (incident as any).violation_occurrence,
+    actionDescription: (incident as any).violation_action_description,
   };
   
   const handleApprove = () => {

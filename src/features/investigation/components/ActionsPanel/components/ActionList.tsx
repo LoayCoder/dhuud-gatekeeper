@@ -148,7 +148,7 @@ export function ActionList({ state, incidentId }: { state: any, incidentId: stri
                           : ''
                       }
                     >
-                      {t(`investigation.actions.statuses.${action.status || 'assigned'}`, action.status || 'assigned')}
+                      {String(t(`investigation.actions.statuses.${action.status || 'assigned'}`, action.status || 'assigned'))}
                     </Badge>
                   </div>
                 </div>

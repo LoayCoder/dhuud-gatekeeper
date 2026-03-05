@@ -18,7 +18,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useCanReviewHSSERejection, useHSSERejectionReview } from "@/features/incidents";
+import { useCanReviewHSSEEscalation as useCanReviewHSSERejection, useHSSEEscalationReview as useHSSERejectionReview } from "@/features/incidents";
 import type { IncidentWithDetails } from '@/features/incidents';
 import { format } from "date-fns";
 

@@ -75,7 +75,7 @@ export function IncidentInfoCard({ incident, isLocked, onEditLocation }: Inciden
           {/* Category Badges Row */}
           {(() => {
             // Derive category from incident_type OR from subtype using HSSE mapping
-            const derivedCategory = (incident as unknown).incident_type || 
+            const derivedCategory = (incident as any).incident_type || 
               (incident.subtype ? getHsseEventTypeForSubtype(incident.subtype) : null);
             
             return (
@@ -95,7 +95,7 @@ export function IncidentInfoCard({ incident, isLocked, onEditLocation }: Inciden
                       t,
                       incident.event_type,
                       incident.subtype,
-                      (incident as unknown).incident_type
+                    (incident as any).incident_type
                     )}
                   </Badge>
                 )}
@@ -112,7 +112,7 @@ export function IncidentInfoCard({ incident, isLocked, onEditLocation }: Inciden
             />
             {incident.event_type === 'incident' && (() => {
               // Derive category from incident_type OR from subtype using HSSE mapping
-              const derivedCategory = (incident as unknown).incident_type || 
+              const derivedCategory = (incident as any).incident_type || 
                 (incident.subtype ? getHsseEventTypeForSubtype(incident.subtype) : null);
               
               return (
@@ -133,7 +133,7 @@ export function IncidentInfoCard({ incident, isLocked, onEditLocation }: Inciden
                   t,
                   incident.event_type,
                   incident.subtype,
-                  (incident as unknown).incident_type
+                  (incident as any).incident_type
                 )}
               />
             )}

@@ -32,7 +32,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useDeptRepApproval, useCanApproveDeptRep } from '@/features/incidents';
 import { useDeptRepAcknowledgeObservation, useCanReviewAsDeptRep } from "@/hooks/use-dept-rep-workflow";
-import { useCorrectiveActionsCount, useDeptRepRejectObservation } from "@/features/incidents";
+import { useCorrectiveActionsCount, useDeptRepRejectObservation } from "@/hooks/use-dept-rep-workflow";
 import { useSubmitContractorViolation } from '@/features/contractors';
 import { ActionsPanel } from "./ActionsPanel";
 import { ContractorViolationSection } from "./ContractorViolationSection";
@@ -61,7 +61,7 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [selectedViolationTypeId, setSelectedViolationTypeId] = useState<string | null>(
-    (incident as unknown).violation_type_id || null
+    (incident as any).violation_type_id || null
   );
   
   // Use the new can_approve_dept_rep_observation RPC function for observations
