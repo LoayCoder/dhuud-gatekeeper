@@ -200,4 +200,21 @@ export * from './hooks/use-action-evidence';
 export * from './hooks/use-action-extensions';
 export * from './hooks/use-observation-trends';
 export * from './hooks/use-inspection-stubs';
-export * from './hooks/use-inspection-sessions';
+// Re-export only hooks from use-inspection-sessions that aren't in stubs
+export {
+  useInspectionSessions,
+  useInspectionSession,
+  useSessionAssets,
+  useUninspectedAssets,
+  useSessionAssetByAssetId,
+  useSessionProgress,
+  useSessionFindings,
+  useCompleteSession,
+  useCloseSession,
+  useDeleteSession,
+  useUpdateFinding,
+  useAddAssetToSession,
+  useRefreshSessionAssets,
+} from './hooks/use-inspection-sessions';
+// Re-export types with explicit names to avoid collision
+export type { InspectionFinding, CreateSessionInput, RecordInspectionInput } from './hooks/use-inspection-sessions';

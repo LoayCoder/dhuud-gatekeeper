@@ -127,7 +127,7 @@ export default function ProjectClearance() {
           variant={project?.status === "active" ? "default" : "secondary"}
           className="text-sm"
         >
-          {project?.status && t(`ptw.status.${project.status}`, project.status.replace(/_/g, " "))}
+          {project?.status && t(`ptw.status.${project.status}`, String(project.status).replace(/_/g, " "))}
         </Badge>
       </div>
 
@@ -142,7 +142,7 @@ export default function ProjectClearance() {
               <div>
                 <p className="text-xs text-muted-foreground">{t("ptw.clearance.contractor", "Contractor")}</p>
                 <p className="font-medium text-sm">
-                  {project?.contractor_company?.company_name || t("common.na", "N/A")}
+                  {(project as any)?.contractor_company?.company_name || t("common.na", "N/A")}
                 </p>
               </div>
             </div>
@@ -154,7 +154,7 @@ export default function ProjectClearance() {
               <div>
                 <p className="text-xs text-muted-foreground">{t("ptw.clearance.site", "Site")}</p>
                 <p className="font-medium text-sm">
-                  {project?.site?.name || t("common.na", "N/A")}
+                  {(project as any)?.site?.name || t("common.na", "N/A")}
                 </p>
               </div>
             </div>
@@ -166,7 +166,7 @@ export default function ProjectClearance() {
               <div>
                 <p className="text-xs text-muted-foreground">{t("ptw.clearance.projectManager", "Project Manager")}</p>
                 <p className="font-medium text-sm">
-                  {project?.project_manager?.full_name || t("common.na", "N/A")}
+                  {(project as any)?.project_manager?.full_name || t("common.na", "N/A")}
                 </p>
               </div>
             </div>
@@ -178,8 +178,8 @@ export default function ProjectClearance() {
               <div>
                 <p className="text-xs text-muted-foreground">{t("ptw.clearance.duration", "Duration")}</p>
                 <p className="font-medium text-sm">
-                  {project?.start_date && project?.end_date 
-                    ? `${format(new Date(project.start_date), "MMM d")} - ${format(new Date(project.end_date), "MMM d, yyyy")}`
+                  {(project as any)?.start_date && (project as any)?.end_date 
+                    ? `${format(new Date(String((project as any).start_date)), "MMM d")} - ${format(new Date(String((project as any).end_date)), "MMM d, yyyy")}`
                     : t("common.na", "N/A")
                   }
                 </p>
