@@ -160,7 +160,7 @@ export function useContractorDashboardStats() {
       );
 
       const blacklistResult = await addBranchFilter(
-        supabase.from("security_blacklist").select("id, listed_at").eq("tenant_id", tenantId).is("deleted_at", null),
+        (supabase as any).from("security_blacklist").select("id, listed_at").eq("tenant_id", tenantId).is("deleted_at", null),
         "branch_id"
       );
 

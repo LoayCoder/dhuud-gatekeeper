@@ -29,7 +29,7 @@ export function useRenewGatePass() {
       try {
         return await renewGatePass(gatePassId, user.id);
       } catch (error: unknown) {
-        throw new Error(error.message || t("contractors.gatePasses.renewalFailed", "Failed to renew gate pass"));
+        throw new Error((error as any).message || t("contractors.gatePasses.renewalFailed", "Failed to renew gate pass"));
       }
     },
     onSuccess: (result) => {
@@ -88,7 +88,7 @@ export function useResubmitGatePass() {
       try {
         return await resubmitGatePass(gatePassId, user.id, startDate, endDate, timeWindowStart, timeWindowEnd);
       } catch (error: unknown) {
-        throw new Error(error.message || t("contractors.gatePasses.resubmitFailed", "Failed to resubmit gate pass"));
+        throw new Error((error as any).message || t("contractors.gatePasses.resubmitFailed", "Failed to resubmit gate pass"));
       }
     },
     onSuccess: () => {

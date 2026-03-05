@@ -198,7 +198,7 @@ export function useCheckWorkerIsSiteRep() {
 
         return {
             isSiteRep: !!data,
-            companyName: (data?.company as unknown)?.company_name,
+            companyName: (data?.company as any)?.company_name,
             companyId: data?.company_id,
         };
     };
