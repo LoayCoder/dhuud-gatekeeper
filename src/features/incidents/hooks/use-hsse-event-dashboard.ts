@@ -161,7 +161,7 @@ export function useHSSEEventDashboard(startDate?: Date, endDate?: Date, branchId
 
       const currentMonth = format(new Date(), 'yyyy-MM');
 
-      (incidents as unknown[] || []).forEach(inc => {
+      (incidents as any[] || []).forEach((inc: any) => {
         // --- Event Type Counts ---
         if (inc.event_type === 'incident') {
           summary.total_incidents++;

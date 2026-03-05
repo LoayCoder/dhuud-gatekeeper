@@ -135,8 +135,8 @@ export function useLinkAssetToIncident() {
       linkType: AssetLinkType;
       notes?: string;
     }) => {
-      const tenantId = (profile as unknown)?.tenant_id;
-      const userId = (profile as unknown)?.id;
+      const tenantId = (profile as any)?.tenant_id;
+      const userId = (profile as any)?.id;
       if (!tenantId) throw new Error('No tenant');
 
       const { data, error } = await supabase

@@ -68,7 +68,7 @@ export function useIncidentProgression(startDate?: Date, endDate?: Date, branchI
       let closedCount = 0;
       let totalOpen = 0;
 
-      (incidents || []).forEach((inc: unknown) => {
+      (incidents || []).forEach((inc: any) => {
         const status = inc.status || 'submitted';
 
         if (status === 'closed') {
