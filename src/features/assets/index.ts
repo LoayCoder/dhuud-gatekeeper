@@ -17,7 +17,7 @@ export * from './components/maps/MapStyleSwitcher';
 export * from './components/parts/LowStockAlertBanner';
 export * from './components/parts/PartStockLevelCard';
 export * from './components/parts/PurchaseOrderDialog';
-export * from './components/parts/StockAdjustmentDialog';
+export { StockAdjustmentDialog as PartsStockAdjustmentDialog } from './components/parts/StockAdjustmentDialog';
 export * from './components/parts/StockHistoryDialog';
 export * from './components/warranty';
 export * from './components/warranty/WarrantyClaimDetailDialog';
@@ -86,6 +86,6 @@ export * from './hooks/use-asset-transfers';
 export * from './hooks/use-asset-trash';
 export * from './hooks/use-asset-type-parts';
 export * from './hooks/use-asset-uploads';
-export * from './hooks/use-assets';
+// use-assets exports handled via hooks barrel
 export * from './services/assetQueryService';
 export * from './services/assetMutationService';

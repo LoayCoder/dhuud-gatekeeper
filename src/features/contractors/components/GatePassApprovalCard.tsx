@@ -65,7 +65,7 @@ export function GatePassApprovalCard({
     const { t, i18n } = useTranslation(['security', 'contractorPortal', 'translation']);
     const dateLocale = i18n.language === "ar" ? ar : enUS;
     const approvePass = useApproveGatePass();
-    const { data: zones } = useSecurityZones({ isActive: true });
+    const { data: zones } = useSecurityZones();
 
     const [isExpanded, setIsExpanded] = useState(false);
     const [approvalNote, setApprovalNote] = useState("");

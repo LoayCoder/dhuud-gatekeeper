@@ -43,7 +43,7 @@ export function TemplateVariablesSidebar({ state }: { state: any }) {
           </div>
           <ScrollArea className="h-[200px] border rounded-md p-2">
             <div className="flex flex-col gap-1.5">
-              {filteredVariables.map((variable: unknown) => (
+              {filteredVariables.map((variable: any) => (
                 <button
                   key={variable.key}
                   type="button"

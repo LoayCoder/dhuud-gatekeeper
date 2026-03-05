@@ -71,7 +71,7 @@ export function useAssetMaintenanceHistory(assetId: string | undefined) {
         .order('performed_date', { ascending: false });
 
       if (error) throw error;
-      return data as unknown[];
+      return data as any[];
     },
     enabled: !!assetId,
   });
@@ -99,8 +99,8 @@ export function useCreateMaintenanceHistory() {
           actual_duration_hours: input.actual_duration_hours,
           cost: input.cost,
           currency: input.currency || 'SAR',
-          parts_used: (input.parts_used || []) as unknown,
-          findings: (input.findings || {}) as unknown,
+          parts_used: (input.parts_used || []) as any,
+          findings: (input.findings || {}) as any,
           notes: input.notes,
           condition_before: input.condition_before,
           condition_after: input.condition_after,
@@ -109,7 +109,7 @@ export function useCreateMaintenanceHistory() {
           next_recommended_action: input.next_recommended_action,
           was_unplanned: input.was_unplanned || false,
           downtime_hours: input.downtime_hours,
-        } as unknown)
+        } as any)
         .select()
         .single();
 

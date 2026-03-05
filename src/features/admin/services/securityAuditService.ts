@@ -57,14 +57,14 @@ export const getSecurityAuditLogs = async (tenantId: string, filters?: SecurityA
 };
 
 export const logSecurityAudit = async (tenantId: string, userId: string | undefined, userName: string | undefined, log: AuditLogInput) => {
-    const insertData: Database['public']['Tables']['security_audit_logs']['Insert'] = {
+    const insertData = {
         ...log,
         tenant_id: tenantId,
         actor_id: userId,
         actor_name: userName,
         user_agent: navigator.userAgent,
-        metadata: log.metadata || {},
-    };
+        metadata: (log.metadata || {}) as any,
+    } as any;
 
     const { error } = await supabase
         .from('security_audit_logs')

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { MaterialGatePass, GatePassFilters } from "@/hooks/use-material-gate-passes";
+import { MaterialGatePass, GatePassFilters } from "@/features/contractors/hooks/use-material-gate-passes";
 import { GATE_PASS_SELECT } from "./constants";
 
 /**
