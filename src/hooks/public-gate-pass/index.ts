@@ -1,13 +1,27 @@
 /**
- * Public gate pass hooks stub
+ * Public gate pass hooks - barrel re-exports + stubs
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+// Re-export from features
+export { useTenantBySlug, usePublicGatePassEnabled } from '@/features/contractors/hooks/use-tenant-by-slug';
+export { usePublicBranches, usePublicBranch } from '@/features/contractors/hooks/use-public-branches';
 
 export function usePublicGatePassRequest() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: async (data: any) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['public-gate-pass'] }) });
 }
 
-export function usePublicGatePassStatus(referenceId?: string) {
-  return useQuery({ queryKey: ['public-gate-pass-status', referenceId], queryFn: async () => ({} as any), enabled: !!referenceId });
+export function useSubmitPublicGatePass() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: async (data: any) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['public-gate-pass'] }) });
+}
+
+export function usePublicGatePassStatus(tenantSlug?: string, token?: string) {
+  return useQuery({ queryKey: ['public-gate-pass-status', tenantSlug, token], queryFn: async () => ({} as any), enabled: !!tenantSlug && !!token });
+}
+
+export function usePublicGatePassRealtime(tenantSlug?: string, token?: string, onUpdate?: () => void) {
+  // Stub: realtime subscription placeholder
+  return { isConnected: false };
 }

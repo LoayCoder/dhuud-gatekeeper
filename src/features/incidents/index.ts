@@ -200,3 +200,4 @@ export * from './hooks/use-action-evidence';
 export * from './hooks/use-action-extensions';
 export * from './hooks/use-observation-trends';
 export * from './hooks/use-inspection-stubs';
+export * from './hooks/use-inspection-sessions';

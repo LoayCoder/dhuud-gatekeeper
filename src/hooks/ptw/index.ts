@@ -40,3 +40,8 @@ export function useUpdatePermit() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: async (data: any) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['ptw-permits'] }) });
 }
+export { usePTWPermits as usePTWPermitsAlias };
+export { usePTWPermit as usePTWPermitAlias };
+export { useCreatePTWPermit as useCreatePTWPermitAlias };
+export { useUpdatePermitStatus as useUpdatePermitStatusAlias };
+export { useActivePermitsForMap as useActivePermitsForMapAlias };
