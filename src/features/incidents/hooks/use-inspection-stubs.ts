@@ -263,3 +263,53 @@ export async function canPerformExpertScreening(userId: string) { return false; 
 export async function canApproveInvestigation(userId: string, incidentId: string) { return false; }
 export async function getIncidentDepartmentManager(incidentId: string) { return null; }
 export async function canApproveDeptRep(userId: string, incidentId: string) { return false; }
+
+// Template CRUD stubs
+export function useCreateTemplate() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: async (data: any) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-templates'] }) });
+}
+export function useUpdateTemplate() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: async (data: any) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-templates'] }) });
+}
+export function useDeleteTemplate() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: async (id: string) => id, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-templates'] }) });
+}
+export function useBulkUpdateTemplateStatus() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: async (data: any) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-templates'] }) });
+}
+export function useBulkDeleteTemplates() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: async (ids: string[]) => ids, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-templates'] }) });
+}
+
+// Inspection workspace stubs
+export function useInspection(id: string) {
+  return useQuery({ queryKey: ['inspection', id], queryFn: async () => ({} as any), enabled: !!id });
+}
+export function useInspectionResponses(sessionId: string) {
+  return useQuery({ queryKey: ['inspection-responses', sessionId], queryFn: async () => [] as any[], enabled: !!sessionId });
+}
+export function useSaveInspectionResponse() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: async (data: any) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-responses'] }) });
+}
+export function useCompleteInspection() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: async (id: string) => id, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection'] }) });
+}
+export function useCancelInspection() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: async (id: string) => id, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection'] }) });
+}
+
+// Asset photo/document stubs  
+export function useAssetPhotos(assetId: string) {
+  return useQuery({ queryKey: ['asset-photos', assetId], queryFn: async () => [] as any[], enabled: !!assetId });
+}
+export function useAssetDocuments(assetId: string) {
+  return useQuery({ queryKey: ['asset-documents', assetId], queryFn: async () => [] as any[], enabled: !!assetId });
+}
