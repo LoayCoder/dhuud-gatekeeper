@@ -87,6 +87,7 @@ export * from './hooks/use-asset-trash';
 export * from './hooks/use-asset-type-parts';
 export * from './hooks/use-asset-uploads';
 export { useAssets, useAsset, useCreateAsset, useUpdateAsset, useDeleteAsset, useAssetCategories, useAssetTypes, useAssetSubtypes, useCreateBulkAssets, useAssetAuditLogs } from './hooks/use-assets';
+export { useAssetPhotos, useAssetDocuments } from '@/features/incidents/hooks/use-inspection-stubs';
 export type { AssetFilters, AssetWithRelations } from './services/assetQueryService';
 export { getAssetCategories, getAssetTypes, getAssetSubtypes, getAssets, getAssetById } from './services/assetQueryService';
 export { getNextAssetSequence, generateAssetCode, generateSequentialCodes, createAsset, updateAsset, softDeleteAsset, createBulkAssets } from './services/assetMutationService';
