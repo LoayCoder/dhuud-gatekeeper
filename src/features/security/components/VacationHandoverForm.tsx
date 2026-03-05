@@ -88,15 +88,15 @@ export function VacationHandoverForm({ onSuccess }: VacationHandoverFormProps) {
           zone_id: params.zone_id || null,
           handover_type: params.handover_type,
           requires_approval: true,
-          outstanding_issues: params.outstanding_issues as unknown,
-          equipment_checklist: params.equipment_checklist as unknown,
+          outstanding_issues: params.outstanding_issues as any,
+          equipment_checklist: params.equipment_checklist as any,
           key_observations: params.key_observations || null,
           next_shift_priorities: params.next_shift_priorities || null,
           notes: params.notes || null,
           outgoing_signature: params.outgoing_signature || null,
           signature_timestamp: params.outgoing_signature ? new Date().toISOString() : null,
           status: 'pending',
-        })
+        } as any)
         .select()
         .single();
 
