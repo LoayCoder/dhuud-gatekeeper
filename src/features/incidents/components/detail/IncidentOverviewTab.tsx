@@ -20,7 +20,7 @@ import { IncidentDamageCard } from "./IncidentDamageCard";
 import { IncidentInfoSidebar } from "./IncidentInfoSidebar";
 
 interface IncidentOverviewTabProps {
-    incident: unknown;
+    incident: any;
 }
 
 export function IncidentOverviewTab({ incident }: IncidentOverviewTabProps) {
