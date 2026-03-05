@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { logger } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
+
 export interface Notification {
   id: string;
   title: string;
@@ -24,19 +25,19 @@ export function useNotifications(limit = 20) {
     queryFn: async () => {
       if (!user?.id) return [];
 
-      const { getNotifications } = await import('@/services/notifications/notificationService');
+      const { getNotifications } = await import('@/features/notifications/services/notificationService');
 
       try {
         const data = await getNotifications(user.id, limit);
-
-        return (data || []).map(n => ({
+        return (data || []).map((n: any) => ({
           ...n,
+          read: n.is_read ?? false,
           displayTitle: isArabic && n.title_ar ? n.title_ar : n.title,
           displayBody: isArabic && n.body_ar ? n.body_ar : n.body,
         })) as (Notification & { displayTitle: string; displayBody?: string })[];
       } catch (error) {
         logger.error('Error fetching notifications:', error);
-        throw error;
+        return [];
       }
     },
     enabled: !!user?.id,
@@ -53,7 +54,7 @@ export function useUnreadNotificationCount() {
       if (!user?.id) return 0;
 
       try {
-        const { getUnreadNotificationCount } = await import('@/services/notifications/notificationService');
+        const { getUnreadNotificationCount } = await import('@/features/notifications/services/notificationService');
         return await getUnreadNotificationCount(user.id);
       } catch (error) {
         logger.error('Error fetching unread count:', error);
@@ -72,7 +73,7 @@ export function useMarkNotificationRead() {
   return useMutation({
     mutationFn: async (notificationId: string) => {
       if (!user?.id) throw new Error("Not authenticated");
-      const { markNotificationRead } = await import('@/services/notifications/notificationService');
+      const { markNotificationRead } = await import('@/features/notifications/services/notificationService');
       return markNotificationRead(notificationId, user.id);
     },
     onSuccess: () => {
@@ -89,7 +90,7 @@ export function useMarkAllNotificationsRead() {
   return useMutation({
     mutationFn: async () => {
       if (!user?.id) throw new Error("Not authenticated");
-      const { markAllNotificationsRead } = await import('@/services/notifications/notificationService');
+      const { markAllNotificationsRead } = await import('@/features/notifications/services/notificationService');
       return markAllNotificationsRead(user.id);
     },
     onSuccess: () => {
@@ -140,9 +141,9 @@ export function useCreateNotification() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (notification: Omit<Notification, 'id' | 'created_at' | 'is_read' | 'read_at'>) => {
-      const { createNotification } = await import('@/services/notifications/notificationService');
-      return createNotification(notification);
+    mutationFn: async (notification: Omit<Notification, 'id' | 'created_at' | 'read'>) => {
+      const { createNotification } = await import('@/features/notifications/services/notificationService');
+      return createNotification(notification as any);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
@@ -150,4 +151,3 @@ export function useCreateNotification() {
     },
   });
 }
-

@@ -237,10 +237,11 @@ export function useNotificationDeliveryLogs(options: UseNotificationDeliveryLogs
       results.forEach((log) => {
         channelCounts[log.channel] = (channelCounts[log.channel] || 0) + 1;
         
-        if (log.status === 'sent') sent++;
-        else if (log.status === 'delivered' || log.status === 'read') delivered++;
-        else if (log.status === 'failed' || log.status === 'bounced' || log.status === 'complained') failed++;
-        else if (log.status === 'pending') pending++;
+        const s = log.status as string;
+        if (s === 'sent') sent++;
+        else if (s === 'delivered' || s === 'read') delivered++;
+        else if (s === 'failed' || s === 'bounced' || s === 'complained') failed++;
+        else if (s === 'pending') pending++;
       });
 
       const total = results.length;

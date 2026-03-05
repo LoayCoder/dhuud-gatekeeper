@@ -6,7 +6,7 @@ import { CompactRiskMatrix } from "../../CompactRiskMatrix";
 import { HazardForm } from "../../HazardForm";
 import { createEmptyHazard } from "../hooks/useRiskAssessmentForm";
 
-export function WizardStep3({ state }: { state: unknown }) {
+export function WizardStep3({ state }: { state: any }) {
   const { t } = state;
   const {
     hazards, setHazards, updateHazard, removeHazard
@@ -23,7 +23,7 @@ export function WizardStep3({ state }: { state: unknown }) {
         </CardHeader>
       <CardContent>
           <CompactRiskMatrix
-            hazards={hazards.map((h: unknown, i: number) => ({
+            hazards={hazards.map((h: any, i: number) => ({
               id: String(i),
               likelihood: h.likelihood,
               severity: h.severity,
@@ -36,7 +36,7 @@ export function WizardStep3({ state }: { state: unknown }) {
       </Card>
 
       <div className="space-y-4">
-        {hazards.map((hazard: unknown, index: number) => (
+        {hazards.map((hazard: any, index: number) => (
           <HazardForm
             key={index}
             hazard={hazard}
@@ -49,7 +49,7 @@ export function WizardStep3({ state }: { state: unknown }) {
 
         <Button
           variant="outline"
-          onClick={() => setHazards((prev: unknown) => [...prev, createEmptyHazard()])}
+          onClick={() => setHazards((prev: any[]) => [...prev, createEmptyHazard()])}
           className="w-full"
         >
           {t("risk.hazard.add", "+ Add Hazard")}
