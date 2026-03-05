@@ -43,8 +43,8 @@ export function EnvironmentalExpertAssignmentCard({ incident, onComplete }: Envi
   const canAssign = hasRole('hsse_manager') || hasRole('hsse_expert');
 
   // Check if incident has environmental impact (from AI detection or manual selection)
-  const hasEnvironmentalImpact = (incident as unknown).has_environmental_impact ||
-    (incident as unknown).ai_detected_environmental;
+  const hasEnvironmentalImpact = (incident as any).has_environmental_impact ||
+    (incident as any).ai_detected_environmental;
 
   // Don't show if no environmental impact or user can't assign
   if (!hasEnvironmentalImpact || !canAssign) {

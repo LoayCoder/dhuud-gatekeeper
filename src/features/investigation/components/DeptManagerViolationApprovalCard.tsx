@@ -41,9 +41,9 @@ export function DeptManagerViolationApprovalCard({ incident, onComplete }: DeptM
   }
   
   const violationDetails = {
-    penaltyType: (incident as unknown).violation_penalty_type,
-    fineAmount: (incident as unknown).violation_fine_amount,
-    occurrence: (incident as unknown).violation_occurrence,
+    penaltyType: (incident as any).violation_penalty_type,
+    fineAmount: (incident as any).violation_fine_amount,
+    occurrence: (incident as any).violation_occurrence,
   };
   
   const handleApprove = () => {

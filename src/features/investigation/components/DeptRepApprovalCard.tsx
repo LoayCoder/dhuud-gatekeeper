@@ -61,7 +61,7 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [selectedViolationTypeId, setSelectedViolationTypeId] = useState<string | null>(
-    (incident as unknown).violation_type_id || null
+    (incident as any).violation_type_id || null
   );
   
   // Use the new can_approve_dept_rep_observation RPC function for observations
