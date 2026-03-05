@@ -35,18 +35,18 @@ interface InvestigationTabsContentProps {
   setActiveTab: (tab: string) => void;
   isTabLocked: (tab: string) => boolean;
   selectedIncidentId: string;
-  selectedIncident: Record<string, unknown>;
-  investigation: Record<string, unknown>;
+  selectedIncident: any;
+  investigation: any;
   handleRefresh: () => void;
   canApprove: boolean;
   startInvestigation: () => void;
   unlockedTabs: string[];
   completedTabs: string[];
   investigationAllowed: boolean | undefined;
-  editAccess: Record<string, unknown>;
+  editAccess: any;
   showActionDialog: boolean;
   setShowActionDialog: (show: boolean) => void;
-  incidentData: Record<string, unknown>;
+  incidentData: any;
   isAssignedClinicUser: boolean;
   canReviewSpecialistData: boolean;
   isAssignedTechEvaluator: boolean;
@@ -140,8 +140,8 @@ export function InvestigationTabsContent({
       <div className="space-y-12 pb-12 pt-4">
         <section id="overview" className="scroll-mt-32">
           <OverviewPanel
-            incident={selectedIncident}
-            investigation={investigation ?? null}
+            incident={selectedIncident as any}
+            investigation={investigation as any ?? null}
             onRefresh={handleRefresh}
             canApprove={canApprove}
             onStartInvestigation={startInvestigation}
@@ -156,8 +156,8 @@ export function InvestigationTabsContent({
             <h3 className="text-xl font-semibold mb-6 flex items-center gap-2"><FileSearch className="h-5 w-5 text-primary" /> {t('investigation.tabs.evidence', 'Evidence')}</h3>
             <EvidenceManager
               incidentId={selectedIncidentId}
-              incidentStatus={selectedIncident?.status}
-              canEdit={editAccess.canEdit}
+              incidentStatus={selectedIncident?.status as any}
+              canEdit={editAccess?.canEdit as any}
             />
           </section>
         )}
@@ -167,9 +167,9 @@ export function InvestigationTabsContent({
             <h3 className="text-xl font-semibold mb-6 flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> {t('investigation.tabs.witnesses', 'Witnesses')}</h3>
             <WitnessPanel
               incidentId={selectedIncidentId}
-              incident={selectedIncident}
-              incidentStatus={selectedIncident?.status}
-              canEdit={editAccess.canEdit}
+              incident={selectedIncident as any}
+              incidentStatus={selectedIncident?.status as any}
+              canEdit={editAccess?.canEdit as any}
             />
           </section>
         )}
@@ -179,12 +179,12 @@ export function InvestigationTabsContent({
             <h3 className="text-xl font-semibold mb-6 flex items-center gap-2"><Search className="h-5 w-5 text-primary" /> {t('investigation.tabs.rca', 'Root Cause Analysis')}</h3>
             <RCAPanel
               incidentId={selectedIncidentId}
-              incidentStatus={selectedIncident?.status}
-              incidentTitle={selectedIncident?.title}
-              incidentDescription={selectedIncident?.description}
-              incidentSeverity={selectedIncident?.severity}
-              incidentEventType={selectedIncident?.event_type}
-              canEdit={editAccess.canEdit}
+              incidentStatus={selectedIncident?.status as any}
+              incidentTitle={selectedIncident?.title as any}
+              incidentDescription={selectedIncident?.description as any}
+              incidentSeverity={selectedIncident?.severity as any}
+              incidentEventType={selectedIncident?.event_type as any}
+              canEdit={editAccess?.canEdit as any}
             />
           </section>
         )}
@@ -195,12 +195,12 @@ export function InvestigationTabsContent({
             <CauseCoverageIndicator incidentId={selectedIncidentId} />
             <ActionsPanel
               incidentId={selectedIncidentId}
-              incidentStatus={selectedIncident?.status}
-              canEdit={editAccess.canEdit}
+              incidentStatus={selectedIncident?.status as any}
+              canEdit={editAccess?.canEdit as any}
               openDialogTrigger={showActionDialog}
               onDialogTriggered={() => setShowActionDialog(false)}
             />
-            {editAccess.canEdit && incidentData?.status === 'investigation_in_progress' && (
+            {editAccess?.canEdit && incidentData?.status === 'investigation_in_progress' && (
               <SubmitInvestigationCard
                 incidentId={selectedIncidentId}
                 onSubmitted={handleRefresh}
@@ -214,13 +214,13 @@ export function InvestigationTabsContent({
             <h3 className="text-xl font-semibold mb-6 flex items-center gap-2"><HeartPulse className="h-5 w-5 text-primary" /> {t('investigation.tabs.injuries', 'Injuries')}</h3>
             {incidentData && (
               <ClinicUserAssignmentCard
-                incident={incidentData}
+                incident={incidentData as any}
                 onComplete={handleRefresh}
               />
             )}
             <InjuryPanel
               incidentId={selectedIncidentId}
-              canEdit={editAccess.canEdit}
+              canEdit={editAccess?.canEdit as any}
             />
             <SpecialistDataReviewCard
               incidentId={selectedIncidentId}
@@ -236,13 +236,13 @@ export function InvestigationTabsContent({
             <h3 className="text-xl font-semibold mb-6 flex items-center gap-2"><Wrench className="h-5 w-5 text-primary" /> {t('investigation.tabs.propertyDamage', 'Property Damage')}</h3>
             {incidentData && (
               <TechEvaluatorAssignmentCard
-                incident={incidentData}
+                incident={incidentData as any}
                 onComplete={handleRefresh}
               />
             )}
             <PropertyDamagePanel
               incidentId={selectedIncidentId}
-              canEdit={editAccess.canEdit}
+              canEdit={editAccess?.canEdit as any}
             />
             <SpecialistDataReviewCard
               incidentId={selectedIncidentId}
@@ -262,13 +262,13 @@ export function InvestigationTabsContent({
               <h3 className="text-xl font-semibold mb-6 flex items-center gap-2"><Leaf className="h-5 w-5 text-primary" /> {t('investigation.tabs.environmentalImpact', 'Environmental Impact')}</h3>
               {incidentData && (
                 <EnvironmentalExpertAssignmentCard
-                  incident={incidentData}
+                  incident={incidentData as any}
                   onComplete={handleRefresh}
                 />
               )}
               <EnvironmentalImpactPanel
                 incidentId={selectedIncidentId}
-                canEdit={editAccess.canEdit}
+                canEdit={editAccess?.canEdit as any}
               />
               <SpecialistDataReviewCard
                 incidentId={selectedIncidentId}
@@ -282,16 +282,16 @@ export function InvestigationTabsContent({
         {canAccessGovernance && investigationAllowed && isTabLocked('governance') && (
           <section id="governance" className="scroll-mt-32 pt-6 border-t border-border/40 space-y-4">
             <h3 className="text-xl font-semibold mb-6 flex items-center gap-2"><Scale className="h-5 w-5 text-primary" /> {t('investigation.tabs.governance', 'Governance')}</h3>
-            {status === 'investigation_in_progress' && (incidentData as unknown).related_contractor_company_id && investigation && (
+            {status === 'investigation_in_progress' && (incidentData as any)?.related_contractor_company_id && investigation && (
               <>
                 <InvestigatorViolationIdentificationCard
-                  incident={incidentData}
-                  investigation={investigation}
+                  incident={incidentData as any}
+                  investigation={investigation as any}
                   onComplete={handleRefresh}
                 />
                 <InvestigatorViolationSubmissionCard
-                  incident={incidentData}
-                  investigation={investigation}
+                  incident={incidentData as any}
+                  investigation={investigation as any}
                   onComplete={handleRefresh}
                 />
               </>

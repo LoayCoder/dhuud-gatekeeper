@@ -86,7 +86,7 @@ function AreaSessionWorkspaceContent() {
       await startSession.mutateAsync(sessionId);
       toast.success(t('inspectionSessions.sessionStarted'));
     } catch (error: unknown) {
-      toast.error(error.message);
+      toast.error((error as Error).message);
     }
   };
 
@@ -97,7 +97,7 @@ function AreaSessionWorkspaceContent() {
       toast.success(t('inspectionSessions.sessionCompleted'));
       setShowCompletionDialog(false);
     } catch (error: unknown) {
-      toast.error(error.message);
+      toast.error((error as Error).message);
     }
   };
 
@@ -108,7 +108,7 @@ function AreaSessionWorkspaceContent() {
       toast.success(t('inspectionSessions.sessionClosed'));
       setShowCompletionDialog(false);
     } catch (error: unknown) {
-      toast.error(error.message);
+      toast.error((error as Error).message);
     }
   };
 
@@ -119,7 +119,7 @@ function AreaSessionWorkspaceContent() {
       toast.success(t('inspectionSessions.sessionDeleted'));
       navigate('/inspections/sessions');
     } catch (error: unknown) {
-      toast.error(error.message);
+      toast.error((error as Error).message);
     }
   };
 
@@ -129,7 +129,7 @@ function AreaSessionWorkspaceContent() {
       await reopenSession.mutateAsync({ sessionId });
       toast.success(t('inspectionSessions.sessionReopened'));
     } catch (error: unknown) {
-      toast.error(error.message);
+      toast.error((error as Error).message);
     }
   };
   

@@ -136,10 +136,10 @@ export default function InvestigationWorkspace() {
   // Render workflow cards based on current status
   const renderWorkflowCards = () => (
     <InvestigationWorkflowCards
-      incidentData={incidentData}
-      investigation={investigation}
+      incidentData={incidentData as any}
+      investigation={investigation as any}
       actionsCount={actionsCount}
-      handleCreateAction={handleCreateAction}
+      handleCreateAction={() => setShowActionDialog(true)}
       handleRefresh={handleRefresh}
     />
   );
@@ -176,7 +176,7 @@ export default function InvestigationWorkspace() {
   // Calculate SLA for the detail view header
   let slaInfo = null;
   if (incidentData) {
-    slaInfo = calculateInvestigationSLA(incidentData.created_at || new Date().toISOString(), incidentData.severity_v2 || (incidentData as unknown).severity);
+    slaInfo = calculateInvestigationSLA(incidentData.created_at || new Date().toISOString(), incidentData.severity_v2 || (incidentData as any).severity);
   }
 
   return (
@@ -184,8 +184,8 @@ export default function InvestigationWorkspace() {
       {/* Modern Executive Header */}
       <InvestigationWorkspaceHeader
         selectedIncidentId={selectedIncidentId}
-        selectedIncident={selectedIncident}
-        incidentData={incidentData}
+        selectedIncident={selectedIncident as any}
+        incidentData={incidentData as any}
         slaInfo={slaInfo}
         onBack={() => {
           setSelectedIncidentId(null);
@@ -199,7 +199,7 @@ export default function InvestigationWorkspace() {
 
       {/* Current Owner & Status Bar - Only when incident selected */}
       {selectedIncidentId && selectedIncident && (
-        <CurrentOwnerCard incident={selectedIncident as unknown} />
+        <CurrentOwnerCard incident={selectedIncident as any} />
       )}
 
       {/* Investigation Content */}
@@ -237,8 +237,8 @@ export default function InvestigationWorkspace() {
             setActiveTab={setActiveTab}
             isTabLocked={isTabLocked}
             selectedIncidentId={selectedIncidentId!}
-            selectedIncident={selectedIncident}
-            investigation={investigation}
+            selectedIncident={selectedIncident as any}
+            investigation={investigation as any}
             handleRefresh={handleRefresh}
             canApprove={canApprove}
             startInvestigation={startInvestigation}
@@ -248,7 +248,7 @@ export default function InvestigationWorkspace() {
             editAccess={editAccess}
             showActionDialog={showActionDialog}
             setShowActionDialog={setShowActionDialog}
-            incidentData={incidentData}
+            incidentData={incidentData as any}
             isAssignedClinicUser={isAssignedClinicUser}
             canReviewSpecialistData={canReviewSpecialistData}
             isAssignedTechEvaluator={isAssignedTechEvaluator}

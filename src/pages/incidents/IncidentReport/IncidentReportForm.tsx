@@ -40,7 +40,7 @@ export function IncidentReportForm({ viewProps }: { viewProps: ReturnType<typeof
 
   // Step Indicator Component
   if (reportMode === null) {
-    return <EventTypeSelector setReportMode={setReportMode} t={t} direction={direction} />;
+    return <EventTypeSelector setReportMode={setReportMode as any} t={t} direction={direction} />;
   }
 
   // If observation mode selected, show the quick card

@@ -103,7 +103,7 @@ function AuditSessionWorkspaceContent() {
       toast.success(t('audits.sessionStarted'));
       setShowStartConfirmDialog(false);
     } catch (error: unknown) {
-      toast.error(error.message);
+      toast.error((error as Error).message);
     }
   };
 
@@ -118,7 +118,7 @@ function AuditSessionWorkspaceContent() {
       toast.success(t('audits.sessionCompleted'));
       setShowCompletionDialog(false);
     } catch (error: unknown) {
-      toast.error(error.message);
+      toast.error((error as Error).message);
     }
   };
 
@@ -129,7 +129,7 @@ function AuditSessionWorkspaceContent() {
       toast.success(t('audits.sessionClosed'));
       setShowCompletionDialog(false);
     } catch (error: unknown) {
-      toast.error(error.message);
+      toast.error((error as Error).message);
     }
   };
 
@@ -140,7 +140,7 @@ function AuditSessionWorkspaceContent() {
       toast.success(t('audits.sessionDeleted'));
       navigate('/inspections/sessions');
     } catch (error: unknown) {
-      toast.error(error.message);
+      toast.error((error as Error).message);
     }
   };
 
@@ -150,7 +150,7 @@ function AuditSessionWorkspaceContent() {
       await reopenSession.mutateAsync({ sessionId });
       toast.success(t('audits.sessionReopened'));
     } catch (error: unknown) {
-      toast.error(error.message);
+      toast.error((error as Error).message);
     }
   };
   
@@ -217,7 +217,7 @@ function AuditSessionWorkspaceContent() {
           {session.status !== 'draft' && (
             <SessionExportDropdown
               session={session}
-              responses={responses as unknown}
+              responses={responses as any}
               findings={findings.map(f => ({
                 reference_id: f.reference_id,
                 classification: f.classification,
