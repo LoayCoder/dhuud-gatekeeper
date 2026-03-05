@@ -109,7 +109,7 @@ export function useExecutiveAIInsights() {
     onSuccess: (data) => {
       setInsights(data);
     },
-    onError: (error: unknown) => {
+    onError: (error: any) => {
       console.error("Executive AI Insights error:", error);
       if (error?.message?.includes('429') || error?.status === 429) {
         toast.error("Rate limit exceeded. Please try again later.");
