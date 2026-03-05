@@ -88,9 +88,9 @@ export function InspectionHistoryTab({ assetId }: InspectionHistoryTabProps) {
                     {getResultBadge(inspection.overall_result, inspection.status)}
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {direction === 'rtl' && (inspection.template as unknown)?.name_ar
-                      ? (inspection.template as unknown).name_ar
-                      : (inspection.template as unknown)?.name}
+                    {direction === 'rtl' && (inspection.template as any)?.name_ar
+                      ? (inspection.template as any).name_ar
+                      : (inspection.template as any)?.name}
                   </p>
                 </div>
               </div>
@@ -101,7 +101,7 @@ export function InspectionHistoryTab({ assetId }: InspectionHistoryTabProps) {
                     {format(new Date(inspection.inspection_date), 'PP')}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {(inspection.inspector as unknown)?.full_name}
+                    {(inspection.inspector as any)?.full_name}
                   </p>
                 </div>
                 

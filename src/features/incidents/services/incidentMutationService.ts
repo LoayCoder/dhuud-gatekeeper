@@ -1,4 +1,4 @@
-import { supabase } from '../supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 import type { IncidentFormData } from '@/features/incidents';
 

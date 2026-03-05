@@ -341,12 +341,12 @@ export function useReopenIncident() {
                 .eq('id', incidentId)
                 .single();
 
-            const currentReopenCount = (incident as unknown)?.reopen_count || 0;
+            const currentReopenCount = (incident as any)?.reopen_count || 0;
             if (currentReopenCount >= 3) {
                 throw new Error('Maximum reopens (3) exceeded for this incident. Please submit a new report instead.');
             }
 
-            const { data, error } = await (supabase.rpc as unknown)('reopen_closed_incident', {
+            const { data, error } = await (supabase as any).rpc('reopen_closed_incident', {
                 p_incident_id: incidentId,
                 p_reason: reason,
             });

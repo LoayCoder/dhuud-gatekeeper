@@ -81,7 +81,7 @@ export function AreaChecklistItem({
           gps_accuracy: gpsCoords?.accuracy,
         });
       } catch (error: unknown) {
-        toast.error(error.message);
+        toast.error((error as Error).message);
       } finally {
         setIsSaving(false);
       }

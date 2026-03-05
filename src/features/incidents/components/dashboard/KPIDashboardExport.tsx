@@ -206,7 +206,7 @@ export function KPIDashboardExport({
     setIsExporting(true);
     try {
       // Log export action
-      await logExport(entityType as unknown, 'pdf', 1, { dateRange, filters });
+      await logExport(entityType as any, 'pdf', 1, { dateRange, filters });
 
       const doc = new jsPDF('landscape', 'mm', 'a4');
       const pageWidth = doc.internal.pageSize.getWidth();
