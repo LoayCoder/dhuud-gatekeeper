@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTemplateTranslation } from '@/features/admin/hooks/use-template-translation';
 import { NotificationTemplate, CreateTemplateInput } from '@/hooks/useNotificationTemplates';
 import { SYSTEM_VARIABLES, CATEGORY_VARIABLES } from '../constants';

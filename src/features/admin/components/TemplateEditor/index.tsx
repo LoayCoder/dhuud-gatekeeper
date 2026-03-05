@@ -1,1 +1,1 @@
-export { default } from './TemplateEditor';
+export { TemplateEditor } from './TemplateEditor';

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { SYSTEM_VARIABLES } from '../constants';
 
-export function TemplateVariablesSidebar({ state }: { state: unknown }) {
+export function TemplateVariablesSidebar({ state }: { state: any }) {
   const {
     showAllVariables, setShowAllVariables, formData, filteredVariables,
     handleDragStart, handleVariableClick, removeVariable,
