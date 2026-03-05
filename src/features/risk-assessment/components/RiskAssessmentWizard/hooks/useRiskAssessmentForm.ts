@@ -5,8 +5,8 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useContractorProjects } from "@/features/contractors/hooks/use-contractor-projects";
 import { supabase } from "@/integrations/supabase/client";
-import { type HazardFormData } from "../HazardForm";
-import { type SelectedUser } from "../TeamMemberSelector";
+import { type HazardFormData } from '../../HazardForm';
+import { type SelectedUser } from '../../TeamMemberSelector';
 import { STEPS, TEAM_ROLES } from "../constants";
 
 export const createEmptyHazard = (): HazardFormData => ({
