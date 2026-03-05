@@ -26,7 +26,7 @@ export function VisitorDetailDialog({ visitorId, open, onOpenChange }: VisitorDe
   if (!visitor) return null;
 
   // Determine if VIP (you can add vip flag to visitors table if needed)
-  const isVIP = (visitor as unknown).is_vip || false;
+  const isVIP = (visitor as Record<string, unknown>).is_vip || false;
   const cardType = isVIP ? 'visitor_vip' : 'visitor';
 
   return (
@@ -54,10 +54,10 @@ export function VisitorDetailDialog({ visitorId, open, onOpenChange }: VisitorDe
                 personData={{
                   id: visitor.id,
                   fullName: visitor.full_name,
-                  fullNameAr: (visitor as unknown).full_name_ar || undefined,
+                  fullNameAr: (visitor as Record<string, unknown>).full_name_ar as string || undefined,
                   company: visitor.company_name || undefined,
-                  destination: (visitor as unknown).destination || undefined,
-                  hostName: (visitor as unknown).host_name || undefined,
+                  destination: (visitor as Record<string, unknown>).destination as string || undefined,
+                  hostName: (visitor as Record<string, unknown>).host_name as string || undefined,
                   entryDate: visitor.last_visit_at || new Date().toISOString(),
                   qrToken: visitor.qr_code_token,
                   qrUrl: `https://www.dhuud.com/visitor/${visitor.qr_code_token}`,
@@ -67,7 +67,7 @@ export function VisitorDetailDialog({ visitorId, open, onOpenChange }: VisitorDe
                   id: visitor.tenant_id,
                   name: '', // Will be fetched by the component
                 }}
-                recipientPhone={(visitor as unknown).phone || (visitor as unknown).mobile_number}
+                recipientPhone={(visitor as Record<string, unknown>).phone as string || (visitor as Record<string, unknown>).mobile_number as string}
                 showLabel={true}
               />
             </div>

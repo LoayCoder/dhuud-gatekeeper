@@ -20,7 +20,7 @@ export * from '@/hooks/use-department-users';
 export * from '@/hooks/use-sites';
 export * from '@/hooks/use-site-sections';
 export * from '@/hooks/use-site-departments';
-export * from '@/hooks/use-user-department-sites';
+// export * from '@/hooks/use-user-department-sites'; // TODO: module not found
 
 // Tenant
 export * from '@/hooks/use-tenant-profiles';

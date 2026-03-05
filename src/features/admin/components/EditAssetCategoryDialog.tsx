@@ -66,8 +66,8 @@ export function EditAssetCategoryDialog({ open, onOpenChange, category }: EditAs
       icon: category.icon || '',
       color: category.color || '',
       sort_order: category.sort_order || 0,
-      hsse_category: (category as unknown).hsse_category || '',
-      hsse_type: (category as unknown).hsse_type || '',
+      hsse_category: (category as Record<string, unknown>).hsse_category as string || '',
+      hsse_type: (category as Record<string, unknown>).hsse_type as string || '',
     },
   });
 
@@ -79,8 +79,8 @@ export function EditAssetCategoryDialog({ open, onOpenChange, category }: EditAs
         icon: category.icon || '',
         color: category.color || '',
         sort_order: category.sort_order || 0,
-        hsse_category: (category as unknown).hsse_category || '',
-        hsse_type: (category as unknown).hsse_type || '',
+        hsse_category: (category as Record<string, unknown>).hsse_category as string || '',
+        hsse_type: (category as Record<string, unknown>).hsse_type as string || '',
       });
     }
   }, [open, category, form]);
