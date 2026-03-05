@@ -85,32 +85,7 @@ export default function InvestigationWorkspace() {
 
 
   // Type assertion for incident fields not in generated types yet
-  const incidentData = selectedIncident as typeof selectedIncident & {
-    closure_requested_by?: string | null;
-    closure_requested_at?: string | null;
-    closure_request_notes?: string | null;
-    closure_approved_by?: string | null;
-    closure_approved_at?: string | null;
-    closure_rejection_notes?: string | null;
-    expert_screened_by?: string | null;
-    expert_screened_at?: string | null;
-    expert_rejected_by?: string | null;
-    expert_rejected_at?: string | null;
-    manager_decision?: string | null;
-    manager_decision_at?: string | null;
-    hsse_manager_decision?: string | null;
-    investigator_id?: string | null;
-    consultant_screening_notes?: string | null;
-    severity_v2?: string | null;
-  } | undefined;
-
-  // Check if user can approve closure using RPC function (enforces role-based and conflict-of-interest checks)
-  const { data: canApprove = false } = useCanApproveInvestigation(selectedIncidentId);
-
-  // Determine if investigation tabs should be enabled
-  // Cast to string to handle new enum values not yet in types
-  const status = incidentData?.status as string | undefined;
-  const investigationAllowed = status && [
+  const incidentData = selectedIncident as any;
     'investigation_pending',
     'under_investigation',
     'investigation_in_progress',
