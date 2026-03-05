@@ -86,6 +86,6 @@ export * from './hooks/use-asset-transfers';
 export * from './hooks/use-asset-trash';
 export * from './hooks/use-asset-type-parts';
 export * from './hooks/use-asset-uploads';
-export * from './hooks/use-assets';
+// use-assets exports handled via hooks barrel
 export * from './services/assetQueryService';
 export * from './services/assetMutationService';
