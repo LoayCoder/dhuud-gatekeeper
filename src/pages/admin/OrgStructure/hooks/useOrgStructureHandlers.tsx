@@ -144,7 +144,7 @@ export function useOrgStructureHandlers(
         payload.department_id = state.parentId;
       }
 
-      const { error } = await supabase.from(table).insert([payload] as never);
+      const { error } = await (supabase as any).from(table).insert([payload] as never);
       if (error) throw error;
 
       toast({ title: t('orgStructure.success'), description: t('orgStructure.itemCreated') });

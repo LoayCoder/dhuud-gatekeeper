@@ -61,8 +61,8 @@ export default function SecurityAuditLog() {
             <TabsTrigger value="suspicious-activity" className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4" />
               {t('securityAudit.suspiciousActivity', 'Suspicious Activity')}
-              {suspiciousStats.suspicious > 0 && (
-                <Badge variant="destructive" className="ms-1">{suspiciousStats.suspicious}</Badge>
+              {(suspiciousStats as any).suspicious > 0 && (
+                <Badge variant="destructive" className="ms-1">{(suspiciousStats as any).suspicious}</Badge>
               )}
             </TabsTrigger>
             <TabsTrigger value="active-sessions" className="flex items-center gap-2">
@@ -98,10 +98,10 @@ export default function SecurityAuditLog() {
           <ActiveSessionsTab tenantId={selectedTenantId} />
         </TabsContent>
 
-        <SuspiciousActivityTabContent state={state} />
-        <SecurityEventsTabContent state={state} />
-        <UserManagementTabContent state={state} />
-        <SensitiveDataAccessTabContent state={state} />
+        <SuspiciousActivityTabContent state={state as any} />
+        <SecurityEventsTabContent state={state as any} />
+        <UserManagementTabContent state={state as any} />
+        <SensitiveDataAccessTabContent state={state as any} />
 
         {/* Settings & Actions Tab */}
         <TabsContent value="settings-actions">

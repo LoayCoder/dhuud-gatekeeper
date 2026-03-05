@@ -90,7 +90,7 @@ export function useSecurityAuditLogState() {
   const filteredLoginHistory = loginHistory;
   const accessTypes: string[] = [];
   const formatChanges = (old_val: any, new_val: any) => '';
-  const suspiciousStats = { total: 0, high: 0, medium: 0, low: 0 };
+  const suspiciousStats = { total: 0, suspicious: 0, failed: 0, newDevices: 0, vpnProxy: 0, high: 0, medium: 0, low: 0 };
 
   return {
     t, i18n, direction, searchQuery, setSearchQuery, accessTypeFilter, setAccessTypeFilter,
