@@ -2,7 +2,8 @@ import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { DASHBOARD_CACHE_CONFIG } from "./use-incident-progression";
+// import { DASHBOARD_CACHE_CONFIG } from "./use-incident-progression";
+const DASHBOARD_CACHE_CONFIG = { staleTime: 5 * 60 * 1000, cacheTime: 10 * 60 * 1000 };
 
 /**
  * Prefetches all dashboard queries in parallel on initial mount

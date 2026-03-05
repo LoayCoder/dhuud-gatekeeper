@@ -26,7 +26,7 @@ export function useGeofenceEscalationRules() {
     queryKey: ['geofence-escalation-rules'],
     queryFn: async () => {
       const { data, error } = await (supabase
-        .from('geofence_escalation_rules' as unknown)
+        .from('geofence_escalation_rules' as any)
         .select(`*, zone:security_zones(zone_name)`)
         .is('deleted_at', null)
         .order('escalation_level', { ascending: true }));
