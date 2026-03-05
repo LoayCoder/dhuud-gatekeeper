@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { ResponsibleUserBadge } from '@/features/incidents';
 
 interface IncidentReporterInfoProps {
-    incident: unknown;
+    incident: any;
     currentOwner?: { role: string; name: string | null } | null;
 }
 

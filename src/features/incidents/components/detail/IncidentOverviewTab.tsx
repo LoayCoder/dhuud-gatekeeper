@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "react-i18next";
-import { Incident } from "@/types/incident.types";
+import { Incident } from "@/types/incident.types"; // kept for reference
 import {
     MapPin,
     Calendar,
@@ -20,7 +20,7 @@ import { IncidentDamageCard } from "./IncidentDamageCard";
 import { IncidentInfoSidebar } from "./IncidentInfoSidebar";
 
 interface IncidentOverviewTabProps {
-    incident: unknown;
+    incident: any;
 }
 
 export function IncidentOverviewTab({ incident }: IncidentOverviewTabProps) {

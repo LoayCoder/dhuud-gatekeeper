@@ -9,7 +9,7 @@ import { type SeverityLevelV2 } from '@/lib/hsse-severity-levels';
 import { IncidentFormData, ClosedOnSpotPayload } from '@/features/incidents';
 import { OfflineReportFormData, OfflineReportGPSData } from '@/hooks/use-offline-report-queue';
 
-export function useQuickObservationCardHandlers(state: unknown) {
+export function useQuickObservationCardHandlers(state: any) {
   const navigate = useNavigate();
   const {
     t, form, sites, setGpsError, setIsGettingLocation, setGpsDetectedSite,
@@ -186,7 +186,7 @@ export function useQuickObservationCardHandlers(state: unknown) {
         
         // Navigate back after delay
         setTimeout(() => {
-          onCancel();
+          navigate(-1);
         }, 3000);
       } else {
         setHasSubmitted(false);

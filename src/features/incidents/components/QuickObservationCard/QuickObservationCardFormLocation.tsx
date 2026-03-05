@@ -8,7 +8,7 @@ import { MapPin, Building2, AlertTriangle, Loader2, RefreshCw, Info } from 'luci
 import { useTranslation } from 'react-i18next';
 import { SEVERITY_OPTIONS } from './types';
 
-export function QuickObservationCardFormLocation({ state, form }: unknown) {
+export function QuickObservationCardFormLocation({ state, form }: any) {
   const { t } = useTranslation();
   const { sites, isGettingLocation, gpsDetectedSite, gpsError, handleGetLocation, isCrossBranchReport, selectedSite } = state;
   return (
