@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, ClipboardCheck, AlertCircle } from 'lucide-react';
-import { useSiteClientApproveActions } from '@/hooks/contractor-observation';
+import { useSiteClientApproveActions } from '@/features/contractors/hooks/use-contractor-observation-workflow';
 
 interface SiteClientActionApprovalCardProps {
   incidentId: string;

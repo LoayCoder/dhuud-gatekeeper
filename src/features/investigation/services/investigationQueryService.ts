@@ -1,4 +1,4 @@
-import { supabase } from '../supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
 import type { Investigation, CorrectiveAction, IncidentAuditLog, FiveWhyEntry, RootCauseEntry, ContributingFactorEntry } from '@/features/investigation';
 
 export const getInvestigation = async (incidentId: string) => {

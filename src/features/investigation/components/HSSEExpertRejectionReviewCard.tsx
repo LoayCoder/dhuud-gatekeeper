@@ -18,7 +18,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useCanReviewHSSERejection, useHSSERejectionReview } from "@/features/incidents";
+import { useCanReviewHSSEEscalation as useCanReviewHSSERejection, useHSSEEscalationReview as useHSSERejectionReview } from "@/features/incidents/hooks/use-hsse-escalation-review";
 import type { IncidentWithDetails } from '@/features/incidents';
 import { format } from "date-fns";
 
@@ -62,7 +62,7 @@ export function HSSEExpertRejectionReviewCard({ incident, onComplete }: HSSEExpe
   const handleApproveRejection = () => {
     rejectionReview.mutate({
       incidentId: incident.id,
-      decision: 'approve_rejection',
+      decision: 'approve_rejection' as any,
       notes,
     }, {
       onSuccess: onComplete,
@@ -72,7 +72,7 @@ export function HSSEExpertRejectionReviewCard({ incident, onComplete }: HSSEExpe
   const handleRejectRejection = () => {
     rejectionReview.mutate({
       incidentId: incident.id,
-      decision: 'reject_rejection',
+      decision: 'reject_rejection' as any,
       notes,
     }, {
       onSuccess: onComplete,

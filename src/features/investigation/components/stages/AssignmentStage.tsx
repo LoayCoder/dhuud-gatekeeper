@@ -13,7 +13,7 @@ export function AssignmentStage() {
     if (!incident) return null;
 
     // Logic from InvestigationWorkspace.tsx
-    const severityLevel = incident.severity_v2 || (incident as unknown).severity;
+    const severityLevel = incident.severity_v2 || (incident as any).severity;
     const severityNumber = severityLevel ? parseInt(severityLevel.replace('level_', '')) : 1;
     const isTeamRecommended = severityNumber >= 3;
 

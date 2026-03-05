@@ -20,8 +20,7 @@ export * from './components/environmental-impact/EnvironmentalContaminationForm/
 export * from './components/environmental-impact/EnvironmentalContaminationForm/components/SectionE';
 export * from './components/environmental-impact/EnvironmentalContaminationForm/components/SectionF';
 export * from './components/environmental-impact/EnvironmentalContaminationForm/hooks/useEnvironmentalContaminationForm';
-export * from './components/environmental-impact/EnvironmentalContaminationForm/EnvironmentalContaminationForm';
-export * from './components/environmental-impact/EnvironmentalContaminationForm';
+export { default as EnvironmentalContaminationForm } from './components/environmental-impact/EnvironmentalContaminationForm/EnvironmentalContaminationForm';
 export * from './components/environmental-impact/EnvironmentalContaminationForm/types';
 export * from './components/environmental-impact/EnvironmentalContaminationCard';
 export * from './components/environmental-impact/EnvironmentalImpactPanel';

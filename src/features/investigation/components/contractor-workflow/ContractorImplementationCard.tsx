@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Wrench, Upload, CheckCircle, FileImage, X } from 'lucide-react';
-import { useContractorCompleteAction } from '@/hooks/contractor-observation';
+import { useContractorCompleteAction } from '@/features/contractors/hooks/use-contractor-observation-workflow';
 
 interface CorrectiveAction {
   id: string;

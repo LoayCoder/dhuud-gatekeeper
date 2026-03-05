@@ -4,9 +4,15 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { logger } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
-import type { Notification } from '@/features/notifications';
-
-export { type Notification };
+export interface Notification {
+  id: string;
+  title: string;
+  body?: string;
+  type?: string;
+  read: boolean;
+  created_at: string;
+  [key: string]: any;
+}
 
 export function useNotifications(limit = 20) {
   const { user } = useAuth();
