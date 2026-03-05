@@ -100,7 +100,7 @@ export function useUpdateInvestigation() {
 
             if (error) throw error;
 
-            const rcaUpdates: unknown = {
+            const rcaUpdates: any = {
                 incident_id: incidentId,
                 tenant_id: profile.tenant_id,
                 updated_at: new Date().toISOString(),
@@ -114,7 +114,7 @@ export function useUpdateInvestigation() {
 
             const { error: rcaError } = await supabase
                 .from('incident_rca')
-                .upsert(rcaUpdates, { onConflict: 'incident_id' });
+                .upsert(rcaUpdates as any, { onConflict: 'incident_id' });
 
             if (rcaError) throw rcaError;
 

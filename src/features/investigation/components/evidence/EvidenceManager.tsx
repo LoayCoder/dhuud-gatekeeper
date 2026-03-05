@@ -250,7 +250,7 @@ export function EvidenceManager({ incidentId, incidentStatus, canEdit: canEditPr
                 {/* CCTV Data Summary */}
                 {evidence.evidence_type === 'cctv' && evidence.cctv_data && (
                   <div className="text-sm space-y-1">
-                    {(evidence.cctv_data as unknown[]).map((cam: unknown, idx: number) => (
+                    {(evidence.cctv_data as any[]).map((cam: any, idx: number) => (
                       <div key={idx} className="flex items-center gap-2 text-muted-foreground">
                         <Camera className="h-3 w-3" />
                         <span>{cam.camera_id} - {cam.location}</span>
