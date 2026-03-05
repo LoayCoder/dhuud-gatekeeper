@@ -57,7 +57,7 @@ export function NoInvestigationApprovalCard({ incident, onComplete }: NoInvestig
     });
   };
 
-  const justification = (incident as unknown).no_investigation_justification;
+  const justification = (incident as any).no_investigation_justification;
 
   return (
     <Card className="border-amber-500/50 bg-amber-500/5" dir={direction}>

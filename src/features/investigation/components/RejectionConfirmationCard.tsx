@@ -36,7 +36,7 @@ export function RejectionConfirmationCard({ incident, onComplete }: RejectionCon
   }
   
   const extendedIncident = incident as ExtendedIncident;
-  const resubmissionCount = (incident as unknown).expert_resubmission_count || 0;
+  const resubmissionCount = (incident as any).expert_resubmission_count || 0;
   const maxResubmissions = 3;
   const resubmissionsExhausted = resubmissionCount >= maxResubmissions;
   

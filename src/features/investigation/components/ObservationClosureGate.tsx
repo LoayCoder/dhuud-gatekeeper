@@ -31,7 +31,7 @@ export function ObservationClosureGate({ incident, onComplete }: ObservationClos
   const { data: canClose, isLoading: checkingPermission } = useCanPerformFinalClosure();
   const finalClosure = useManagerFinalClosure();
   
-  const severity = (incident as unknown).severity_v2 as SeverityLevelV2;
+  const severity = (incident as any).severity_v2 as SeverityLevelV2;
   const severityConfig = getSeverityConfig(severity);
   const incidentStatus = incident.status as string;
   
