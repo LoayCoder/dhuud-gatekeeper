@@ -64,12 +64,12 @@ export function ActiveSessionsTab({ tenantId }: ActiveSessionsTabProps) {
     queryKey: ["active-sessions", tenantId],
     queryFn: async (): Promise<Session[]> => {
       // Use separate queries to avoid deep type instantiation
-      let sessionsData: unknown[] = [];
+      let sessionsData: any[] = [];
       
       if (tenantId) {
         const result = await (supabase
           .from("user_sessions")
-          .select("id, user_id, session_token, ip_address, ip_country, ip_city, user_agent, created_at, last_activity_at, expires_at, is_valid") as unknown)
+          .select("id, user_id, session_token, ip_address, ip_country, ip_city, user_agent, created_at, last_activity_at, expires_at, is_valid") as any)
           .eq("is_valid", true)
           .eq("tenant_id", tenantId)
           .gt("expires_at", new Date().toISOString())
@@ -79,7 +79,7 @@ export function ActiveSessionsTab({ tenantId }: ActiveSessionsTabProps) {
       } else {
         const result = await (supabase
           .from("user_sessions")
-          .select("id, user_id, session_token, ip_address, ip_country, ip_city, user_agent, created_at, last_activity_at, expires_at, is_valid") as unknown)
+          .select("id, user_id, session_token, ip_address, ip_country, ip_city, user_agent, created_at, last_activity_at, expires_at, is_valid") as any)
           .eq("is_valid", true)
           .gt("expires_at", new Date().toISOString())
           .order("last_activity_at", { ascending: false });
@@ -90,7 +90,7 @@ export function ActiveSessionsTab({ tenantId }: ActiveSessionsTabProps) {
       if (sessionsData.length === 0) return [];
 
       // Enrich with user names
-      const userIds = [...new Set(sessionsData.map((s: unknown) => s.user_id))];
+      const userIds = [...new Set(sessionsData.map((s: any) => s.user_id))];
       const { data: profiles } = await supabase
         .from("profiles")
         .select("id, full_name, email")
@@ -98,7 +98,7 @@ export function ActiveSessionsTab({ tenantId }: ActiveSessionsTabProps) {
 
       const profileMap = new Map(profiles?.map(p => [p.id, { name: p.full_name, email: p.email }]) || []);
 
-      return sessionsData.map((s: unknown) => ({
+      return sessionsData.map((s: any) => ({
         id: s.id,
         user_id: s.user_id,
         session_token: s.session_token,
@@ -159,7 +159,7 @@ export function ActiveSessionsTab({ tenantId }: ActiveSessionsTabProps) {
             is_valid: false, 
             invalidation_reason: "admin_terminated_all",
             invalidated_at: new Date().toISOString()
-          }) as unknown)
+          }) as any)
           .eq("is_valid", true)
           .eq("tenant_id", tenantId);
       } else {
@@ -169,7 +169,7 @@ export function ActiveSessionsTab({ tenantId }: ActiveSessionsTabProps) {
             is_valid: false, 
             invalidation_reason: "admin_terminated_all",
             invalidated_at: new Date().toISOString()
-          }) as unknown)
+          }) as any)
           .eq("is_valid", true);
       }
 

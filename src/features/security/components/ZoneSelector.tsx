@@ -21,7 +21,7 @@ interface ZoneSelectorProps {
 export function ZoneSelector({ siteId, onZoneChange, className, showDetectButton = true }: ZoneSelectorProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const { data: zones = [], isLoading } = useSecurityZones({ siteId, isActive: true });
+  const { data: zones = [], isLoading } = useSecurityZones();
   const [selectedZone, setSelectedZone] = useState<string | null>(null);
   const { currentZone, nearestZone, isLocating, error, detectZone } = useCurrentZone();
 
@@ -129,13 +129,13 @@ export function ZoneSelector({ siteId, onZoneChange, className, showDetectButton
             <SelectItem key={zone.id} value={zone.id}>
               <div className="flex items-center gap-2 max-w-[200px]">
                 <span className="truncate flex-1">{zone.zone_name}</span>
-                {getRiskBadge(zone.risk_level)}
+                {getRiskBadge((zone as any).risk_level)}
               </div>
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
-      {selectedZoneData && getRiskBadge(selectedZoneData.risk_level)}
+      {selectedZoneData && getRiskBadge((selectedZoneData as any).risk_level)}
 
       {showDetectButton && (
         <Button
