@@ -217,4 +217,4 @@ export {
   useRefreshSessionAssets,
 } from './hooks/use-inspection-sessions';
 // Re-export types with explicit names to avoid collision
-export type { InspectionFinding, CreateSessionInput, RecordInspectionInput } from './hooks/use-inspection-sessions';
+export type { InspectionSession, SessionAsset, InspectionFinding, CreateSessionInput, RecordInspectionInput } from './hooks/use-inspection-sessions';
