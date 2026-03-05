@@ -1,9 +1,10 @@
 /**
- * Stub exports for inspection hooks and types that are referenced
- * but whose original source files were removed during migration.
+ * Stub exports for inspection hooks, types, and workflow functions
+ * that are referenced but whose original source files were removed during migration.
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 // ---- Types ----
 
