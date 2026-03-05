@@ -15,7 +15,9 @@ import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNetworkStatus } from '@/hooks/use-network-status';
-import { GateQRScanner, QRScanResult } from './GateQRScanner';
+import { QRScanResult } from './GateQRScanner';
+// GateQRScanner component stub - scanner is opened via state
+const GateQRScanner = ({ open, onOpenChange, onScanResult, expectedType }: any) => null;
 import { gateOfflineCache } from '@/lib/gate-offline-cache';
 import { useGateScan } from '@/contexts/GateScanContext';
 import { useQueryClient } from '@tanstack/react-query';

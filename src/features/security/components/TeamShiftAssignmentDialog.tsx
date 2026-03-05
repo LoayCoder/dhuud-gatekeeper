@@ -30,9 +30,9 @@ export function TeamShiftAssignmentDialog({ open, onOpenChange }: TeamShiftAssig
     excluded_days: [] as number[],
   });
 
-  const { data: teams } = useSecurityTeams();
-  const { data: zones } = useSecurityZones();
-  const { data: shifts } = useSecurityShifts();
+  const { data: teams } = useSecurityTeams() as { data: any[] | undefined };
+  const { data: zones } = useSecurityZones() as { data: any[] | undefined };
+  const { data: shifts } = useSecurityShifts() as { data: any[] | undefined };
   const assignTeam = useAssignTeamToShift();
 
   const selectedTeam = teams?.find(t => t.id === formData.team_id);

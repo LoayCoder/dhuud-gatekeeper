@@ -4,9 +4,29 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
-import type { GateEntryFilters, CreateGateEntryParams } from '@/features/security';
+export interface GateEntryFilters {
+  dateFrom?: string;
+  dateTo?: string;
+  entryType?: string;
+  searchQuery?: string;
+  zoneId?: string;
+  onlyActive?: boolean;
+  search?: string;
+  siteId?: string;
+}
 
-export { type GateEntryFilters };
+export interface CreateGateEntryParams {
+  person_name: string;
+  entry_type: string;
+  entry_time?: string;
+  purpose?: string;
+  destination_name?: string;
+  host_mobile?: string;
+  mobile_number?: string;
+  notify_host?: boolean;
+  car_plate?: string;
+  [key: string]: any;
+}
 
 export function useGateEntries(filters?: GateEntryFilters) {
   const { profile } = useAuth();

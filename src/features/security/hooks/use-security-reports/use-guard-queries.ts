@@ -136,7 +136,7 @@ export function useGuardReportData(guardId: string, startDate: string, endDate: 
                 employee_id: profile?.employee_id || null,
                 job_title: profile?.job_title || 'Security Officer',
                 avatar_url: profile?.avatar_url || null,
-                department_name: (profile?.department as unknown)?.name || null,
+                department_name: (profile?.department as any)?.name || null,
                 supervisor_name: null,
                 assigned_zone: null,
                 performance: {
@@ -150,7 +150,7 @@ export function useGuardReportData(guardId: string, startDate: string, endDate: 
                     rank: rank || 1,
                     totalGuards: guardAvgScores.length || 1,
                 },
-                attendance: (attendance || []).map((a: unknown) => {
+                attendance: (attendance || []).map((a: any) => {
                     const checkIn = a.check_in_at ? new Date(a.check_in_at) : null;
                     const checkOut = a.check_out_at ? new Date(a.check_out_at) : null;
                     const hoursWorked = checkIn && checkOut
@@ -162,7 +162,7 @@ export function useGuardReportData(guardId: string, startDate: string, endDate: 
                         guard_name: profile?.full_name || 'Unknown',
                         employee_id: profile?.employee_id || null,
                         date: checkIn ? format(checkIn, 'yyyy-MM-dd') : '',
-                        zone_name: a.zone?.name || null,
+                        zone_name: a.zone?.zone_name || null,
                         check_in: checkIn ? format(checkIn, 'HH:mm') : null,
                         check_out: checkOut ? format(checkOut, 'HH:mm') : null,
                         hours_worked: hoursWorked ? Math.round(hoursWorked * 10) / 10 : null,
@@ -172,18 +172,18 @@ export function useGuardReportData(guardId: string, startDate: string, endDate: 
                         status: a.status || 'unknown',
                     };
                 }),
-                shifts: (shifts || []).map((s: unknown) => ({
+                shifts: (shifts || []).map((s: any) => ({
                     date: s.start_date || s.date,
                     shift_name: s.shift?.name || 'Unknown Shift',
                     start_time: s.shift?.start_time || '',
                     end_time: s.shift?.end_time || '',
                     acknowledged: !!s.acknowledged_at,
                 })),
-                training: (training || []).map((t: unknown) => ({
-                    name: t.training?.name || 'Unknown',
-                    status: t.status || 'pending',
-                    expiry_date: t.expiry_date,
-                    is_expired: t.expiry_date ? new Date(t.expiry_date) < new Date() : false,
+                training: (training || []).map((tr: any) => ({
+                    name: tr.training?.name || 'Unknown',
+                    status: tr.status || 'pending',
+                    expiry_date: tr.expiry_date,
+                    is_expired: tr.expiry_date ? new Date(tr.expiry_date) < new Date() : false,
                 })),
                 incidentCount: totalIncidentsReported,
                 incidentResolutionRate: Math.round(incidentResponseRate),
@@ -225,7 +225,7 @@ export function useSecurityGuardsList() {
 
             if (teamMembers) {
                 for (const tm of teamMembers) {
-                    const guard = tm.guard as unknown;
+                    const guard = tm.guard as any;
                     if (guard?.id) {
                         guardMap.set(guard.id, {
                             id: guard.id,
@@ -278,7 +278,7 @@ export function useSecuritySupervisors() {
             const supervisorMap = new Map<string, { id: string; full_name: string; avatar_url: string | null }>();
             for (const r of data || []) {
                 if (r.supervisor && !supervisorMap.has(r.supervisor_id)) {
-                    supervisorMap.set(r.supervisor_id, r.supervisor as unknown);
+                    supervisorMap.set(r.supervisor_id, r.supervisor as any);
                 }
             }
 
