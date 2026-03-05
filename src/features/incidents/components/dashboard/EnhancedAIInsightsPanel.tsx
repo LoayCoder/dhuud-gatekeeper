@@ -177,7 +177,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                         <div key={idx} className={`p-3 rounded-lg border ${getRiskLevelBgColor(hazard.risk_level)}`}>
                           <div className="flex items-start justify-between mb-2">
                             <span className="font-medium text-sm">{hazard.category}</span>
-                            <Badge variant={getRiskLevelColor(hazard.risk_level) as unknown} className="capitalize">
+                            <Badge variant={getRiskLevelColor(hazard.risk_level) as any} className="capitalize">
                               {hazard.risk_level}
                             </Badge>
                           </div>
@@ -207,7 +207,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                       {insights.predictive_risks.map((risk, idx) => (
                         <div key={idx} className="p-3 bg-muted/50 rounded-lg">
                           <div className="flex items-center gap-2 mb-2">
-                            <Badge variant={getPriorityColor(risk.probability) as unknown} className="capitalize">
+                            <Badge variant={getPriorityColor(risk.probability) as any} className="capitalize">
                               {risk.probability} {t('hsseDashboard.probability')}
                             </Badge>
                             <span className="text-xs text-muted-foreground flex items-center gap-1">
