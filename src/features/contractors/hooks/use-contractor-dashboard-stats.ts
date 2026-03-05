@@ -124,33 +124,33 @@ export function useContractorDashboardStats() {
 
       // Execute all queries with type safety
       const companiesResult = await addBranchFilter(
-        supabase.from("contractor_companies").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null),
+        (supabase as any).from("contractor_companies").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null),
         "assigned_branch_id"
       );
 
-      const workersResult = await supabase.from("contractor_workers").select("id, approval_status").eq("tenant_id", tenantId).is("deleted_at", null);
+      const workersResult = await (supabase as any).from("contractor_workers").select("id, approval_status").eq("tenant_id", tenantId).is("deleted_at", null);
 
       const projectsResult = await addBranchFilter(
-        supabase.from("contractor_projects").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null),
+        (supabase as any).from("contractor_projects").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null),
         "branch_id"
       );
 
       const gatePassesResult = await addBranchFilter(
-        supabase.from("material_gate_passes").select("id, status, pass_date").eq("tenant_id", tenantId).is("deleted_at", null),
+        (supabase as any).from("material_gate_passes").select("id, status, pass_date").eq("tenant_id", tenantId).is("deleted_at", null),
         "branch_id"
       );
 
-      const safetyOfficersResult = await supabase.from("contractor_safety_officers").select("id").eq("tenant_id", tenantId).is("deleted_at", null);
+      const safetyOfficersResult = await (supabase as any).from("contractor_safety_officers").select("id").eq("tenant_id", tenantId).is("deleted_at", null);
 
       const incidentsResult = await addBranchFilter(
-        supabase.from("incidents").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null),
+        (supabase as any).from("incidents").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null),
         "branch_id"
       );
 
-      const permitsResult = await supabase.from("ptw_permits").select("id, status, planned_end_time").eq("tenant_id", tenantId).is("deleted_at", null);
+      const permitsResult = await (supabase as any).from("ptw_permits").select("id, status, planned_end_time").eq("tenant_id", tenantId).is("deleted_at", null);
 
       const riskAssessmentsResult = await addBranchFilter(
-        supabase.from("risk_assessments").select("id, status, overall_risk_rating, valid_until").eq("tenant_id", tenantId).is("deleted_at", null),
+        (supabase as any).from("risk_assessments").select("id, status, overall_risk_rating, valid_until").eq("tenant_id", tenantId).is("deleted_at", null),
         "branch_id"
       );
 

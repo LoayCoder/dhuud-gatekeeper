@@ -57,7 +57,7 @@ export const getSecurityAuditLogs = async (tenantId: string, filters?: SecurityA
 };
 
 export const logSecurityAudit = async (tenantId: string, userId: string | undefined, userName: string | undefined, log: AuditLogInput) => {
-    const insertData: Database['public']['Tables']['security_audit_logs']['Insert'] = {
+    const insertData: any = {
         ...log,
         tenant_id: tenantId,
         actor_id: userId,

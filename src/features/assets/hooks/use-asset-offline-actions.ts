@@ -184,7 +184,7 @@ export function useAssetOfflineActions() {
           sync_status: 'synced',
           synced_at: new Date().toISOString(),
           created_by: user.id,
-        } as unknown);
+        } as any);
 
       if (error) throw error;
 

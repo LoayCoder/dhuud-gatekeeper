@@ -103,7 +103,7 @@ export function useAssetSubtypes(typeId: string | null) {
   });
 }
 
-export { getNextAssetSequence, generateAssetCode, generateSequentialCodes } from '@/features/assets';
+export { getNextAssetSequence, generateAssetCode, generateSequentialCodes } from '@/features/assets/services/assetMutationService';
 
 export function useCreateAsset() {
   const { t } = useTranslation();
@@ -118,7 +118,7 @@ export function useCreateAsset() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
-      toast.success(t('assets.createSuccess', { code: data.asset_code }));
+      toast.success(t('assets.createSuccess', { code: (data as any).asset_code }));
     },
     onError: (error: Error) => {
       console.error('Create asset error:', error);
@@ -254,7 +254,7 @@ export function useCreateBulkAssets() {
     },
     onError: (error: Error) => {
       console.error('Bulk create assets error:', error);
-      if ((error as unknown).code === '23505') {
+      if ((error as any).code === '23505') {
         toast.error(t('assets.bulkConstraintError', {
           defaultValue: 'One or more asset codes conflict with existing records. Please refresh the page and try again.'
         }));

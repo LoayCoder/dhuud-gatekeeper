@@ -12,7 +12,7 @@ export function useCreateContractorCompany() {
         mutationFn: async (data: Partial<ContractorCompany> & Record<string, unknown>) => {
             if (!profile?.tenant_id) throw new Error("No tenant");
 
-            const { data: result, error } = await supabase
+            const { data: result, error } = await (supabase as any)
                 .from("contractor_companies")
                 .insert({
                     company_name: data.company_name!,
@@ -58,7 +58,7 @@ export function useUpdateContractorCompany() {
 
     return useMutation({
         mutationFn: async ({ id, data }: { id: string; data: Partial<ContractorCompany> & Record<string, unknown> }) => {
-            const { data: result, error } = await supabase
+            const { data: result, error } = await (supabase as any)
                 .from("contractor_companies")
                 .update({
                     company_name: data.company_name,

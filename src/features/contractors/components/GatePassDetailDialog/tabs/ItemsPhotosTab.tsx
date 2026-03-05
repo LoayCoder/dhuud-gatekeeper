@@ -10,7 +10,7 @@ import {
 } from "@/features/contractors/hooks/use-gate-pass-details";
 
 // Items & Photos Tab Component
-function ItemsPhotosTab({
+export function ItemsPhotosTab({
   items,
   photos,
   materialDescription,
@@ -18,12 +18,12 @@ function ItemsPhotosTab({
   isLoadingPhotos,
   t,
 }: {
-  items: ReturnType<typeof useGatePassItems>["data"];
-  photos: ReturnType<typeof useGatePassPhotos>["data"];
+  items: any;
+  photos: any;
   materialDescription?: string | null;
   isLoadingItems: boolean;
   isLoadingPhotos: boolean;
-  t: ReturnType<typeof useTranslation>["t"];
+  t: any;
 }) {
   const generalPhotos = photos?.filter((p) => !p.item_id) || [];
 
