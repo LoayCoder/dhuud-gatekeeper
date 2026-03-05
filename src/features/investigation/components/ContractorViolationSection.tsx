@@ -33,7 +33,7 @@ export function ContractorViolationSection({
   const isArabic = i18n.language === 'ar';
   
   const [selectedViolationTypeId, setSelectedViolationTypeId] = useState<string | null>(
-    (incident as unknown).violation_type_id || null
+    (incident as any).violation_type_id || null
   );
   
   const { data: violationTypes = [], isLoading: loadingTypes } = useViolationTypes();
@@ -58,22 +58,22 @@ export function ContractorViolationSection({
   
   // Get stored violation data from incident
   const storedViolation = {
-    typeId: (incident as unknown).violation_type_id,
-    occurrence: (incident as unknown).violation_occurrence,
-    penaltyType: (incident as unknown).violation_penalty_type,
-    fineAmount: (incident as unknown).violation_fine_amount,
-    actionDescription: (incident as unknown).violation_action_description,
-    finalStatus: (incident as unknown).violation_final_status,
+    typeId: (incident as any).violation_type_id,
+    occurrence: (incident as any).violation_occurrence,
+    penaltyType: (incident as any).violation_penalty_type,
+    fineAmount: (incident as any).violation_fine_amount,
+    actionDescription: (incident as any).violation_action_description,
+    finalStatus: (incident as any).violation_final_status,
     // Approval trail
-    deptManagerDecision: (incident as unknown).violation_dept_manager_decision,
-    deptManagerApprovedAt: (incident as unknown).violation_dept_manager_approved_at,
-    contractControllerDecision: (incident as unknown).violation_contract_controller_decision,
-    contractControllerApprovedAt: (incident as unknown).violation_contract_controller_approved_at,
-    contractorRepDecision: (incident as unknown).violation_contractor_rep_decision,
-    contractorRepAcknowledgedAt: (incident as unknown).violation_contractor_rep_acknowledged_at,
-    hsseDecision: (incident as unknown).violation_hsse_decision,
-    hsseDecidedAt: (incident as unknown).violation_hsse_decided_at,
-    finalizedAt: (incident as unknown).violation_finalized_at,
+    deptManagerDecision: (incident as any).violation_dept_manager_decision,
+    deptManagerApprovedAt: (incident as any).violation_dept_manager_approved_at,
+    contractControllerDecision: (incident as any).violation_contract_controller_decision,
+    contractControllerApprovedAt: (incident as any).violation_contract_controller_approved_at,
+    contractorRepDecision: (incident as any).violation_contractor_rep_decision,
+    contractorRepAcknowledgedAt: (incident as any).violation_contractor_rep_acknowledged_at,
+    hsseDecision: (incident as any).violation_hsse_decision,
+    hsseDecidedAt: (incident as any).violation_hsse_decided_at,
+    finalizedAt: (incident as any).violation_finalized_at,
   };
   
   const hasExistingViolation = !!storedViolation.typeId;

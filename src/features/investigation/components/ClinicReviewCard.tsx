@@ -55,7 +55,7 @@ export function ClinicReviewCard({ incident, onComplete }: ClinicReviewCardProps
   };
 
   const getSeverityBadge = () => {
-    const severity = incident.severity_v2 || (incident as unknown).severity;
+    const severity = incident.severity_v2 || (incident as any).severity;
     if (!severity) return null;
     
     const colorMap: Record<string, string> = {
@@ -150,14 +150,14 @@ export function ClinicReviewCard({ incident, onComplete }: ClinicReviewCardProps
           </div>
           
           {/* Existing Injury Info - if available */}
-          {(incident as unknown).injury_info && (
+          {(incident as any).injury_info && (
             <div className="rounded-lg border border-muted p-4 space-y-2">
               <div className="flex items-center gap-2 text-sm font-medium">
                 <FileText className="h-4 w-4" />
                 {t('workflow.clinic.reporterInjuryInfo', 'Reporter\'s Injury Description')}
               </div>
               <p className="text-sm text-muted-foreground">
-                {(incident as unknown).injury_info || t('workflow.clinic.noInjuryInfo', 'No injury details provided by reporter')}
+                {(incident as any).injury_info || t('workflow.clinic.noInjuryInfo', 'No injury details provided by reporter')}
               </p>
             </div>
           )}
