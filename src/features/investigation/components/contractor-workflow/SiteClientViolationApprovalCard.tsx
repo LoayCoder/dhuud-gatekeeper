@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, CheckCircle, XCircle, Shield } from 'lucide-react';
-import { useSiteClientApproveViolation } from '@/hooks/contractor-observation';
+import { useSiteClientApproveViolation } from '@/features/contractors/hooks/use-contractor-observation-workflow';
 
 interface SiteClientViolationApprovalCardProps {
   violationId: string;

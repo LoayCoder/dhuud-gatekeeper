@@ -1,2 +1,3 @@
-export { default } from './EnvironmentalContaminationForm';
-export { default as EnvironmentalContaminationForm } from './EnvironmentalContaminationForm';
+import EnvironmentalContaminationForm from './EnvironmentalContaminationForm';
+export default EnvironmentalContaminationForm;
+export { EnvironmentalContaminationForm };
