@@ -43,9 +43,9 @@ export function InvestigatorViolationIdentificationCard({
   const isAssignedInvestigator = useIsAssignedInvestigator(investigation?.investigator_id);
   
   // Only show for incidents with contractor and in investigation_in_progress
-  const hasContractor = !!(incident as unknown).related_contractor_company_id;
+  const hasContractor = !!(incident as any).related_contractor_company_id;
   const isInProgress = incident.status === 'investigation_in_progress';
-  const alreadyIdentified = (investigation as unknown)?.violation_identified === true;
+  const alreadyIdentified = (investigation as any)?.violation_identified === true;
   
   if (!hasContractor || !isInProgress || !isAssignedInvestigator || alreadyIdentified) {
     return null;

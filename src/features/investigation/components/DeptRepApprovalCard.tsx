@@ -32,7 +32,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useDeptRepApproval, useCanApproveDeptRep } from '@/features/incidents';
 import { useDeptRepAcknowledgeObservation, useCanReviewAsDeptRep } from "@/hooks/use-dept-rep-workflow";
-import { useCorrectiveActionsCount, useDeptRepRejectObservation } from "@/hooks/use-dept-rep-workflow";
+import { useCorrectiveActionsCount, useDeptRepRejectObservation } from "@/features/incidents/hooks/use-observation-rejection";
 import { useSubmitContractorViolation } from '@/features/contractors';
 import { ActionsPanel } from "./ActionsPanel";
 import { ContractorViolationSection } from "./ContractorViolationSection";
