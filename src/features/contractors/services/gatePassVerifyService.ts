@@ -2,7 +2,7 @@ import { supabase } from '../supabaseClient';
 
 function formatPassData(pass: {
     id?: string; reference_number?: string; pass_type?: string;
-    material_description?: string; quantity?: number | null;
+    material_description?: string; quantity?: number | string | null;
     vehicle_plate?: string; driver_name?: string; driver_mobile?: string;
     pass_date?: string; start_date?: string; end_date?: string;
     time_window_start?: string; time_window_end?: string;
