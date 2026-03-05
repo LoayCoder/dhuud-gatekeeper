@@ -52,7 +52,7 @@ export function BranchProvider({ children }: { children: React.ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Check if user has full branch access (super admin or has_full_branch_access flag)
-  const hasFullBranchAccess = (profile as Record<string, unknown>)?.is_super_admin === true || (profile as Record<string, unknown>)?.has_full_branch_access === true;
+  const hasFullBranchAccess = (profile as any)?.is_super_admin === true || (profile as any)?.has_full_branch_access === true;
   
   // User is multi-branch if they have access to more than one branch
   const isMultiBranchUser = hasFullBranchAccess || accessibleBranches.length > 1;
@@ -140,7 +140,7 @@ export function BranchProvider({ children }: { children: React.ReactNode }) {
             }));
           branches = formattedAssignments.map(a => a.branch);
         } else {
-          const assignedBranchId = (profile as Record<string, unknown>)?.assigned_branch_id as string | undefined;
+          const assignedBranchId = (profile as any)?.assigned_branch_id;
           if (assignedBranchId) {
             // Fallback to single branch from profile
             const { data: singleBranch } = await supabase
