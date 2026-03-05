@@ -108,7 +108,7 @@ export function usePrefetchCriticalData() {
   const prefetchQuery = useCallback(async (query: typeof CRITICAL_QUERIES[0]) => {
     try {
       const { data, error } = await supabase
-        .from(query.table as unknown)
+        .from(query.table as any)
         .select(query.select)
         .limit(1000);
       

@@ -153,7 +153,7 @@ export function useOfflineReporting() {
           .eq('is_active', true)) as unknown,
 
         // Branches
-        (supabase as unknown)
+        (supabase as any)
           .from('branches')
           .select('id, name')
           .eq('tenant_id', profile.tenant_id)
@@ -161,7 +161,7 @@ export function useOfflineReporting() {
           .eq('is_active', true),
 
         // Departments
-        (supabase as unknown)
+        (supabase as any)
           .from('departments')
           .select('id, name, branch_id')
           .eq('tenant_id', profile.tenant_id)
@@ -185,7 +185,7 @@ export function useOfflineReporting() {
           .eq('status', 'active')) as unknown,
 
         // Event types (categories)
-        (supabase as unknown)
+        (supabase as any)
           .from('hsse_event_types')
           .select('id, name, name_ar, code, category')
           .eq('tenant_id', profile.tenant_id)
@@ -194,7 +194,7 @@ export function useOfflineReporting() {
           .is('parent_type_id', null),
 
         // Event subtypes
-        (supabase as unknown)
+        (supabase as any)
           .from('hsse_event_types')
           .select('id, name, name_ar, code, parent_type_id')
           .eq('tenant_id', profile.tenant_id)

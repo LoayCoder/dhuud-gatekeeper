@@ -2,7 +2,7 @@
  * Generate individual guard performance PDF report
  */
 import { format } from 'date-fns';
-import { GuardReportData } from '@/features/security';
+import type { GuardReportData } from '@/features/security/hooks/use-security-reports/types';
 import { 
   generateBrandedPDFFromElement, 
   createPDFRenderContainer, 

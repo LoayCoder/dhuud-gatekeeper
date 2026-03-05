@@ -118,7 +118,7 @@ export function useIntegrationAuditStats() {
       const { data: recentEvents, error } = await supabase
         .from('user_activity_logs')
         .select('id, event_type, metadata, created_at')
-        .in('event_type', CROSS_MODULE_EVENTS as unknown)
+        .in('event_type', CROSS_MODULE_EVENTS as any)
         .gte('created_at', last24h.toISOString());
 
       if (error) {
@@ -129,7 +129,7 @@ export function useIntegrationAuditStats() {
       const { data: previousEvents } = await supabase
         .from('user_activity_logs')
         .select('id')
-        .in('event_type', CROSS_MODULE_EVENTS as unknown)
+        .in('event_type', CROSS_MODULE_EVENTS as any)
         .gte('created_at', last48h.toISOString())
         .lt('created_at', last24h.toISOString());
 

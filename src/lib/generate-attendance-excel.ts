@@ -2,7 +2,7 @@
  * Generate Excel file for attendance records export
  */
 import { format } from 'date-fns';
-import { AttendanceRecord } from '@/features/security';
+import type { AttendanceRecord } from '@/features/security/hooks/use-security-reports/types';
 import { exportToExcel, ExportColumn } from './export-utils';
 
 export interface AttendanceExcelOptions {
