@@ -89,7 +89,7 @@ export function WorkerBulkMessageDialog({
       toast({
         variant: "destructive",
         title: t("contractors.workers.messageFailed", "Failed to send some messages"),
-        description: error.message,
+        description: (error as any).message,
       });
     } finally {
       setIsSending(false);
