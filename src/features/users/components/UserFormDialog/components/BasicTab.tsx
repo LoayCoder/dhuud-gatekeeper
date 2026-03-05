@@ -24,7 +24,7 @@ const userTypeCards = [
 ];
 
 
-export function BasicTab({ state }: { state: unknown }) {
+export function BasicTab({ state }: { state: any }) {
   const { t, form, userType, hasLogin, emailHasChanged, user, direction } = state;
   return (
     <>

@@ -225,7 +225,7 @@ export function useSecurityGuardsList() {
 
             if (teamMembers) {
                 for (const tm of teamMembers) {
-                    const guard = tm.guard as unknown;
+                    const guard = tm.guard as any;
                     if (guard?.id) {
                         guardMap.set(guard.id, {
                             id: guard.id,
@@ -278,7 +278,7 @@ export function useSecuritySupervisors() {
             const supervisorMap = new Map<string, { id: string; full_name: string; avatar_url: string | null }>();
             for (const r of data || []) {
                 if (r.supervisor && !supervisorMap.has(r.supervisor_id)) {
-                    supervisorMap.set(r.supervisor_id, r.supervisor as unknown);
+                    supervisorMap.set(r.supervisor_id, r.supervisor as any);
                 }
             }
 

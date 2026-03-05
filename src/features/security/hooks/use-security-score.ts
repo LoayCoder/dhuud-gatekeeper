@@ -42,7 +42,7 @@ export function useSecurityScore() {
       const shouldFilterBranch = !isAllBranchesMode && branchIds && branchIds.length > 0;
 
       // Helper function to build branch filter
-      const addBranchFilter = (baseQuery: unknown, column: string) => {
+      const addBranchFilter = (baseQuery: any, column: string) => {
         if (!shouldFilterBranch || !branchIds) return baseQuery;
         return branchIds.length === 1 
           ? baseQuery.eq(column, branchIds[0]) 

@@ -32,7 +32,7 @@ export function usePushSubscription() {
     }
   }, []);
 
-  return { isSubscribed, isLoading, subscribe, unsubscribe };
+  return { isSubscribed, isLoading, isSupported: true, subscribe, unsubscribe };
 }
 
 export function usePushNotificationStatus() {
