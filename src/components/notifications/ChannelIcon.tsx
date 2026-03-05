@@ -1,3 +1,3 @@
-export const ChannelIcon = ({ channel }: { channel: string }) => {
+export const ChannelIcon = ({ channel, size }: { channel: string; size?: string }) => {
   return null;
 };

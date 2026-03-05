@@ -62,7 +62,7 @@ export function useOrgStructureHandlers(
           updatePayload.longitude = null;
         }
       }
-      const { error } = await supabase.from(table).update(updatePayload).eq('id', id);
+      const { error } = await (supabase as any).from(table).update(updatePayload).eq('id', id);
       if (error) throw error;
       toast({ title: t('orgStructure.success'), description: t('orgStructure.itemUpdated') });
       cancelEditing();
@@ -167,7 +167,7 @@ export function useOrgStructureHandlers(
   const handleDelete = async (table: string, id: string) => {
     if (!confirm(t('orgStructure.confirmDelete'))) return;
     try {
-      const { error } = await supabase.from(table as TableType).update({ deleted_at: new Date().toISOString() }).eq('id', id);
+      const { error } = await (supabase as any).from(table as string).update({ deleted_at: new Date().toISOString() }).eq('id', id);
       if (error) throw error;
       toast({ title: t('orgStructure.deleted'), description: t('orgStructure.itemRemoved') });
       data.fetchData();

@@ -1,3 +1,3 @@
-export const DeliveryLogStatsCards = ({ stats }: { stats?: any }) => {
+export const DeliveryLogStatsCards = ({ stats, loading }: { stats?: any; loading?: boolean }) => {
   return null;
 };

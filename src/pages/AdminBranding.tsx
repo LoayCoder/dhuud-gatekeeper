@@ -127,7 +127,7 @@ export default function AdminBranding() {
       return;
     }
     const file = e.target.files[0];
-    const url = await uploadAsset(file, type as string, tenant.id);
+    const url = await uploadAsset(file, type as any, tenant.id);
     if (url) {
       switch (type) {
         case 'logo-light':
