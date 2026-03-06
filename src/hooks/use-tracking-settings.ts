@@ -15,24 +15,27 @@ const DEFAULT_SETTINGS: TrackingIntervalSettings = {
   max: 30,
 };
 
+/** Loose client for platform_settings which may not be in generated types */
+interface LooseQueryResult { data: unknown[] | null; error: { message: string } | null; }
+type LooseFrom = { select: (...a: unknown[]) => LooseFrom; eq: (...a: unknown[]) => LooseFrom; update: (...a: unknown[]) => LooseFrom; limit: (...a: unknown[]) => Promise<LooseQueryResult>; then: PromiseLike<LooseQueryResult>['then'] };
+interface LooseClient { from: (t: string) => LooseFrom; }
+const looseClient = supabase as unknown as LooseClient;
+
 async function fetchTrackingSettings(): Promise<TrackingIntervalSettings> {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData?.user) return DEFAULT_SETTINGS;
 
-  // Use type assertion to bypass deep type inference
-  // platform_settings may not have tenant_id/deleted_at columns
-  const client = supabase as any;
-  const { data } = await client
+  const { data } = await looseClient
     .from('platform_settings')
     .select('value')
     .eq('setting_key', 'guard_tracking_interval_minutes')
     .limit(1);
 
-  const row = data?.[0];
+  const row = (data as { value?: unknown }[] | null)?.[0];
   if (row?.value) {
     try {
       const parsed = typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
-      return { ...DEFAULT_SETTINGS, ...parsed };
+      return { ...DEFAULT_SETTINGS, ...(parsed as Partial<TrackingIntervalSettings>) };
     } catch {
       return DEFAULT_SETTINGS;
     }
@@ -77,8 +80,6 @@ export function useUpdateTrackingInterval() {
         throw new Error('Interval must be between 1 and 30 minutes');
       }
 
-      const client = supabase as any;
-      
       const settingValue = JSON.stringify({
         default: 5,
         min: 1,
@@ -87,10 +88,10 @@ export function useUpdateTrackingInterval() {
       });
 
       // Update the existing record (created by migration)
-      const { error } = await client
+      const { error } = await (looseClient
         .from('platform_settings')
         .update({ value: settingValue })
-        .eq('setting_key', 'guard_tracking_interval_minutes');
+        .eq('setting_key', 'guard_tracking_interval_minutes')) as unknown as { error: { message: string } | null };
       
       if (error) throw error;
 

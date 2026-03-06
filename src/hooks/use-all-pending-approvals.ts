@@ -46,6 +46,12 @@ const GATE_PASS_APPROVAL_STATUSES = [
 // Worker approval statuses
 const WORKER_APPROVAL_STATUSES = ['pending'] as const;
 
+/** Map raw priority string to typed priority */
+function toPriority(val: string | null | undefined): 'low' | 'medium' | 'high' | 'critical' | undefined {
+  if (val === 'low' || val === 'medium' || val === 'high' || val === 'critical') return val;
+  return undefined;
+}
+
 /**
  * Unified hook to fetch ALL pending approvals across the system
  * with tenant isolation
@@ -88,7 +94,7 @@ export function useAllPendingApprovals(minDaysPending = 0) {
             .select('id, name')
             .in('id', deptIds);
           if (depts) {
-            deptMap = depts.reduce((acc, d) => ({ ...acc, [d.id]: d.name || '' }), {});
+            deptMap = depts.reduce((acc, d) => ({ ...acc, [d.id]: d.name || '' }), {} as Record<string, string>);
           }
         }
 
@@ -130,7 +136,7 @@ export function useAllPendingApprovals(minDaysPending = 0) {
             .select('id, company_name')
             .in('id', companyIds);
           if (companies) {
-            companyMap = companies.reduce((acc, c) => ({ ...acc, [c.id]: c.company_name || '' }), {});
+            companyMap = companies.reduce((acc, c) => ({ ...acc, [c.id]: c.company_name || '' }), {} as Record<string, string>);
           }
         }
 
@@ -172,7 +178,7 @@ export function useAllPendingApprovals(minDaysPending = 0) {
             .select('id, company_name')
             .in('id', companyIds);
           if (companies) {
-            companyMap = companies.reduce((acc, c) => ({ ...acc, [c.id]: c.company_name || '' }), {});
+            companyMap = companies.reduce((acc, c) => ({ ...acc, [c.id]: c.company_name || '' }), {} as Record<string, string>);
           }
         }
 
@@ -223,11 +229,7 @@ export function useAllPendingApprovals(minDaysPending = 0) {
         });
       }
 
-      // 5. Fetch visitor approvals (active visitors that might need approval)
-      // Note: Visitors typically don't have pending approval status in this schema
-      // but we check for any that might be in a pending state
-
-      // 6. Fetch asset purchase approvals
+      // 5. Fetch asset purchase approvals
       const { data: assetApprovals } = await supabase
         .from('pending_approvals')
         .select('id, reference_id, reference_number, title, status, approval_type, created_at, updated_at, priority')
@@ -257,7 +259,7 @@ export function useAllPendingApprovals(minDaysPending = 0) {
             created_at: approval.created_at,
             updated_at: approval.updated_at || approval.created_at,
             days_pending: daysPending,
-            priority: approval.priority as any,
+            priority: toPriority(approval.priority),
           });
         });
       }

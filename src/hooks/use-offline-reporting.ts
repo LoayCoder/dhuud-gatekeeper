@@ -77,6 +77,12 @@ const CACHE_KEY = 'reporting_reference_data';
 const CACHE_MAX_AGE = 4 * 60 * 60 * 1000; // 4 hours
 const STALE_TIME = 30 * 60 * 1000; // 30 minutes
 
+/** Loose query result shape for parallel fetches cast to `unknown` */
+interface LooseResult {
+  data: unknown[] | null;
+  error: { message: string } | null;
+}
+
 export function useOfflineReporting() {
   const { profile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -134,7 +140,7 @@ export function useOfflineReporting() {
     try {
       logger.debug('[OfflineReporting] Prefetching all reference data...');
 
-      // Fetch all reference data in parallel using type assertions for flexibility
+      // Fetch all reference data in parallel — cast each to unknown then LooseResult
       const [
         sitesResult,
         branchesResult,
@@ -143,17 +149,17 @@ export function useOfflineReporting() {
         contractorCompaniesResult,
         eventTypesResult,
         eventSubtypesResult,
-      ] = await Promise.all([
+      ] = (await Promise.all([
         // Sites with GPS coordinates
-        (supabase
+        supabase
           .from('sites')
           .select('id, name, branch_id, latitude, longitude')
           .eq('tenant_id', profile.tenant_id)
           .is('deleted_at', null)
-          .eq('is_active', true)) as unknown,
+          .eq('is_active', true),
 
         // Branches
-        (supabase as any)
+        supabase
           .from('branches')
           .select('id, name')
           .eq('tenant_id', profile.tenant_id)
@@ -161,7 +167,7 @@ export function useOfflineReporting() {
           .eq('is_active', true),
 
         // Departments
-        (supabase as any)
+        supabase
           .from('departments')
           .select('id, name, branch_id')
           .eq('tenant_id', profile.tenant_id)
@@ -169,23 +175,23 @@ export function useOfflineReporting() {
           .eq('is_active', true),
 
         // Buildings
-        (supabase
+        supabase
           .from('buildings')
           .select('id, name, site_id')
           .eq('tenant_id', profile.tenant_id)
           .is('deleted_at', null)
-          .eq('is_active', true)) as unknown,
+          .eq('is_active', true),
 
         // Contractor companies (active only)
-        (supabase
+        supabase
           .from('contractor_companies')
           .select('id, company_name, company_name_ar, status')
           .eq('tenant_id', profile.tenant_id)
           .is('deleted_at', null)
-          .eq('status', 'active')) as unknown,
+          .eq('status', 'active'),
 
         // Event types (categories)
-        (supabase as any)
+        supabase
           .from('hsse_event_types')
           .select('id, name, name_ar, code, category')
           .eq('tenant_id', profile.tenant_id)
@@ -194,32 +200,32 @@ export function useOfflineReporting() {
           .is('parent_type_id', null),
 
         // Event subtypes
-        (supabase as any)
+        supabase
           .from('hsse_event_types')
           .select('id, name, name_ar, code, parent_type_id')
           .eq('tenant_id', profile.tenant_id)
           .is('deleted_at', null)
           .eq('is_active', true)
           .not('parent_type_id', 'is', null),
-      ]);
+      ])) as unknown as LooseResult[];
 
       // Check for errors
-      if ((sitesResult as any).error) throw (sitesResult as any).error;
-      if ((branchesResult as any).error) throw (branchesResult as any).error;
-      if ((departmentsResult as any).error) throw (departmentsResult as any).error;
-      if ((buildingsResult as any).error) throw (buildingsResult as any).error;
-      if ((contractorCompaniesResult as any).error) throw (contractorCompaniesResult as any).error;
-      if ((eventTypesResult as any).error) throw (eventTypesResult as any).error;
-      if ((eventSubtypesResult as any).error) throw (eventSubtypesResult as any).error;
+      if (sitesResult.error) throw sitesResult.error;
+      if (branchesResult.error) throw branchesResult.error;
+      if (departmentsResult.error) throw departmentsResult.error;
+      if (buildingsResult.error) throw buildingsResult.error;
+      if (contractorCompaniesResult.error) throw contractorCompaniesResult.error;
+      if (eventTypesResult.error) throw eventTypesResult.error;
+      if (eventSubtypesResult.error) throw eventSubtypesResult.error;
 
       const cacheData: OfflineReportingCache = {
-        sites: (sitesResult as any).data || [],
-        branches: (branchesResult as any).data || [],
-        departments: (departmentsResult as any).data || [],
-        buildings: (buildingsResult as any).data || [],
-        contractorCompanies: (contractorCompaniesResult as any).data || [],
-        eventTypes: (eventTypesResult as any).data || [],
-        eventSubtypes: (eventSubtypesResult as any).data || [],
+        sites: (sitesResult.data || []) as CachedSite[],
+        branches: (branchesResult.data || []) as CachedBranch[],
+        departments: (departmentsResult.data || []) as CachedDepartment[],
+        buildings: (buildingsResult.data || []) as CachedBuilding[],
+        contractorCompanies: (contractorCompaniesResult.data || []) as CachedContractorCompany[],
+        eventTypes: (eventTypesResult.data || []) as CachedEventType[],
+        eventSubtypes: (eventSubtypesResult.data || []) as CachedEventSubtype[],
         cachedAt: Date.now(),
       };
 

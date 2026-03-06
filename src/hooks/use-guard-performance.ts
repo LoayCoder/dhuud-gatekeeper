@@ -39,6 +39,14 @@ export interface GuardPerformanceSummary {
   trend: 'up' | 'down' | 'stable';
 }
 
+/** Helper to safely read guard join fields */
+function guardFullName(guard: unknown): string {
+  return (guard as { full_name?: string } | null)?.full_name || 'Unknown';
+}
+function guardAvatarUrl(guard: unknown): string | null {
+  return (guard as { avatar_url?: string | null } | null)?.avatar_url || null;
+}
+
 export function useGuardPerformanceMetrics(guardId?: string, dateRange?: { start: string; end: string }) {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
@@ -156,8 +164,8 @@ export function useGuardPerformanceSummary(period: 'week' | 'month' | 'all' = 'm
       for (const m of metrics || []) {
         const existing = guardMap.get(m.guard_id) || {
           guard_id: m.guard_id,
-          guard_name: (m.guard as any)?.full_name || 'Unknown',
-          avatar_url: (m.guard as any)?.avatar_url || null,
+          guard_name: guardFullName(m.guard),
+          avatar_url: guardAvatarUrl(m.guard),
           totalPatrolsCompleted: 0,
           totalPatrolsAssigned: 0,
           totalCheckpointsVerified: 0,
@@ -266,8 +274,8 @@ export function useGuardLeaderboard() {
       for (const m of data || []) {
         const key = m.guard_id;
         const existing = guardScores.get(key) || {
-          name: (m.guard as any)?.full_name || 'Unknown',
-          avatar: (m.guard as any)?.avatar_url || null,
+          name: guardFullName(m.guard),
+          avatar: guardAvatarUrl(m.guard),
           scores: [],
         };
         if (m.overall_score) existing.scores.push(Number(m.overall_score));
