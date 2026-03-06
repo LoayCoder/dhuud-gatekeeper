@@ -25,6 +25,7 @@ const userTypeCards = [
 
 
 import type { UserFormState } from '../UserFormDialog';
+import type { UserFormValues } from '../types';
 
 export function BasicTab({ state }: { state: UserFormState }) {
   const { t, form, userType, hasLogin, emailHasChanged, user, direction } = state;
