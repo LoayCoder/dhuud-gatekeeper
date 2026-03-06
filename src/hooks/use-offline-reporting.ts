@@ -77,11 +77,20 @@ const CACHE_KEY = 'reporting_reference_data';
 const CACHE_MAX_AGE = 4 * 60 * 60 * 1000; // 4 hours
 const STALE_TIME = 30 * 60 * 1000; // 30 minutes
 
-/** Loose query result shape for parallel fetches cast to `unknown` */
+/** Loose client for tables that cause deep type instantiation */
 interface LooseResult {
   data: unknown[] | null;
   error: { message: string } | null;
 }
+interface LooseFrom {
+  select: (...args: unknown[]) => LooseFrom;
+  eq: (...args: unknown[]) => LooseFrom;
+  is: (...args: unknown[]) => LooseFrom;
+  not: (...args: unknown[]) => LooseFrom;
+  then: PromiseLike<LooseResult>['then'];
+}
+interface LooseClient { from: (t: string) => LooseFrom; }
+const looseClient = supabase as unknown as LooseClient;
 
 export function useOfflineReporting() {
   const { profile } = useAuth();
@@ -140,7 +149,7 @@ export function useOfflineReporting() {
     try {
       logger.debug('[OfflineReporting] Prefetching all reference data...');
 
-      // Fetch all reference data in parallel — cast each to unknown then LooseResult
+      // Fetch all reference data in parallel via loose client
       const [
         sitesResult,
         branchesResult,
@@ -149,9 +158,9 @@ export function useOfflineReporting() {
         contractorCompaniesResult,
         eventTypesResult,
         eventSubtypesResult,
-      ] = (await Promise.all([
+      ] = await Promise.all([
         // Sites with GPS coordinates
-        supabase
+        looseClient
           .from('sites')
           .select('id, name, branch_id, latitude, longitude')
           .eq('tenant_id', profile.tenant_id)
@@ -159,7 +168,7 @@ export function useOfflineReporting() {
           .eq('is_active', true),
 
         // Branches
-        supabase
+        looseClient
           .from('branches')
           .select('id, name')
           .eq('tenant_id', profile.tenant_id)
@@ -167,7 +176,7 @@ export function useOfflineReporting() {
           .eq('is_active', true),
 
         // Departments
-        supabase
+        looseClient
           .from('departments')
           .select('id, name, branch_id')
           .eq('tenant_id', profile.tenant_id)
@@ -175,7 +184,7 @@ export function useOfflineReporting() {
           .eq('is_active', true),
 
         // Buildings
-        supabase
+        looseClient
           .from('buildings')
           .select('id, name, site_id')
           .eq('tenant_id', profile.tenant_id)
@@ -183,7 +192,7 @@ export function useOfflineReporting() {
           .eq('is_active', true),
 
         // Contractor companies (active only)
-        supabase
+        looseClient
           .from('contractor_companies')
           .select('id, company_name, company_name_ar, status')
           .eq('tenant_id', profile.tenant_id)
@@ -191,7 +200,7 @@ export function useOfflineReporting() {
           .eq('status', 'active'),
 
         // Event types (categories)
-        supabase
+        looseClient
           .from('hsse_event_types')
           .select('id, name, name_ar, code, category')
           .eq('tenant_id', profile.tenant_id)
@@ -200,14 +209,14 @@ export function useOfflineReporting() {
           .is('parent_type_id', null),
 
         // Event subtypes
-        supabase
+        looseClient
           .from('hsse_event_types')
           .select('id, name, name_ar, code, parent_type_id')
           .eq('tenant_id', profile.tenant_id)
           .is('deleted_at', null)
           .eq('is_active', true)
           .not('parent_type_id', 'is', null),
-      ])) as unknown as LooseResult[];
+      ]);
 
       // Check for errors
       if (sitesResult.error) throw sitesResult.error;
