@@ -61,7 +61,7 @@ export function TeamInvestigationAssignmentStep({ incident, onComplete }: TeamIn
   const assignTeam = useAssignInvestigationTeam();
   
   // Determine severity level requirements
-  const severityLevel = incident.severity_v2 || (incident as any).severity;
+  const severityLevel = incident.severity_v2 || (incident as unknown as { severity?: string }).severity;
   const severityNumber = severityLevel ? parseInt(severityLevel.replace('level_', '')) : 1;
   
   const isTeamMandatory = severityNumber >= 4;

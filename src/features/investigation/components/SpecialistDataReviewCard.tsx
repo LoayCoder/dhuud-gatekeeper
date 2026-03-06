@@ -118,7 +118,7 @@ export function SpecialistDataReviewCard({
   };
 
   const handleSubmit = () => {
-    (submitForReview as any)();
+    (submitForReview as (variables?: undefined) => void)(undefined);
   };
 
   const handleApprove = () => {
