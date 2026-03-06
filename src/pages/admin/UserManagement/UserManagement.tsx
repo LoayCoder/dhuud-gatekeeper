@@ -82,7 +82,7 @@ export default function UserManagement() {
   const coreActions = { ...saveActions, ...statusActions };
   const extraActions = useUserManagementExtraActions(state, data);
   const actions = { ...coreActions, ...extraActions };
-  const allProps = { ...state, ...data, ...actions } as any;
+  const allProps = { ...state, ...data, ...actions } as Record<string, unknown>;
   const {
     users = [], selectedUsers = new Set<string>(), setSelectedUsers = () => {},
     userTypeFilter = 'all', statusFilter = 'all', branchFilter = 'all',
@@ -92,10 +92,10 @@ export default function UserManagement() {
     setIsImportDialogOpen = () => {}, refetchUsers = () => {},
     handleBulkActionClick = () => {}, quota = null, breakdown = null, quotaLoading = false,
     activeFilterCount: _afc, clearAllFilters = () => {},
-  } = allProps;
+  } = allProps as Record<string, unknown>;
 
-  const allSelected = users.length > 0 && users.every((u: any) => selectedUsers.has?.(u.id));
-  const someSelected = users.some((u: any) => selectedUsers.has?.(u.id)) && !allSelected;
+  const allSelected = (users as Array<{id: string}>).length > 0 && (users as Array<{id: string}>).every((u) => (selectedUsers as Set<string>).has?.(u.id));
+  const someSelected = (users as Array<{id: string}>).some((u) => (selectedUsers as Set<string>).has?.(u.id)) && !allSelected;
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -108,7 +108,7 @@ export default function UserManagement() {
   }, [userTypeFilter, statusFilter, branchFilter, divisionFilter, roleFilter]);
 
   const userStats = useMemo(() => {
-    const activeUsers = users.filter((u: any) => u.is_active).length;
+    const activeUsers = (users as Array<{is_active: boolean}>).filter((u) => u.is_active).length;
     return { total: totalCount, active: activeUsers, inactive: totalCount - activeUsers };
   }, [users, totalCount]);
 
