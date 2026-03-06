@@ -52,9 +52,9 @@ export function useDocumentBranding() {
       if (!tenantId) throw new Error("No tenant ID");
       const dbData = mapSettingsToDb(newSettings);
       dbData.tenant_id = tenantId;
-      const { data, error } = await supabase
-        .from("tenant_document_settings")
-        .upsert(dbData as Parameters<typeof supabase.from<'tenant_document_settings'>['upsert']>[0], { onConflict: "tenant_id" })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic upsert shape from mapSettingsToDb
+      const { data, error } = await (supabase.from("tenant_document_settings") as any)
+        .upsert(dbData, { onConflict: "tenant_id" })
         .select()
         .single();
       if (error) throw error;

@@ -4,14 +4,15 @@ interface IncidentContext {
   [key: string]: unknown;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- stub interface consumed by incident report components expecting full AI analysis shape
 interface AIValidatorReturn {
   validateIncident: (ctx: IncidentContext) => Promise<{ isValid: boolean; suggestions: unknown[] }>;
   isValidating: boolean;
   isAnalyzing: boolean;
-  analysisResult: Record<string, unknown> | null;
+  analysisResult: any;
   analyzeIncident: (...args: unknown[]) => void;
   validationState: string;
-  [key: string]: unknown;
+  [key: string]: any;
 }
 
 // Stub until real hook is available
