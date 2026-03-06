@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,6 +20,7 @@ import { ArrowLeft, Send, Loader2, User, Building2, Clock, AlertTriangle } from 
 import { format, formatDistanceToNow } from 'date-fns';
 import { AgentAssignmentSelect } from '@/components/support/AgentAssignmentSelect';
 import { SLAIndicator } from '@/components/support/SLAIndicator';
+import { adminTicketReplySchema, AdminTicketReplyFormValues } from './AdminTicketDetailSchema';
 
 type TicketStatus = 'open' | 'in_progress' | 'waiting_customer' | 'resolved' | 'closed';
 type TicketPriority = 'low' | 'medium' | 'high' | 'urgent';
@@ -78,9 +81,17 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
   const direction = i18n.dir();
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
-  const [newMessage, setNewMessage] = useState('');
-  const [isInternal, setIsInternal] = useState(false);
   const [localTicket, setLocalTicket] = useState(ticket);
+
+  const form = useForm<AdminTicketReplyFormValues>({
+    resolver: zodResolver(adminTicketReplySchema),
+    defaultValues: {
+      newMessage: '',
+      isInternal: false,
+    },
+  });
+
+  const watchedIsInternal = form.watch('isInternal');
 
   const { data: messages = [], isLoading } = useQuery({
     queryKey: ['admin-ticket-messages', ticket.id],
@@ -100,14 +111,12 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
   const { data: customerData } = useQuery({
     queryKey: ['ticket-customer-secure', ticket.created_by],
     queryFn: async () => {
-      // ✅ Use secure Edge Function instead of client-side admin call
       const { data, error } = await supabase.functions.invoke('get-user-secure-details', {
         body: { user_id: ticket.created_by }
       });
 
       if (error) {
         console.error('Failed to fetch user details securely:', error);
-        // Fallback to profile (public data only) if function fails (e.g., dev environment)
         const { data: profileData } = await supabase
           .from('profiles')
           .select('full_name')
@@ -122,7 +131,6 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
 
   const sendEmailNotification = async (type: string, extraData: Record<string, unknown> = {}) => {
     try {
-      // Get tenant email
       const { data: tenantData } = await supabase
         .from('tenants')
         .select('contact_email, name')
@@ -132,7 +140,6 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
       const customerEmail = tenantData?.contact_email || customerData?.email;
       if (!customerEmail) return;
 
-      // Get current session for auth header
       const { data: { session } } = await supabase.auth.getSession();
 
       await supabase.functions.invoke('send-support-email', {
@@ -165,7 +172,6 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
       });
       if (error) throw error;
 
-      // Update ticket status and first_response_at if replying to customer
       if (!isInternal && ticket.status === 'open') {
         const updates: Record<string, unknown> = { status: 'in_progress' };
         if (!ticket.first_response_at) {
@@ -177,15 +183,13 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
           .eq('id', ticket.id);
       }
 
-      // Send email notification for non-internal messages
       if (!isInternal) {
         await sendEmailNotification('new_reply', { reply_message: message });
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-ticket-messages', ticket.id] });
-      setNewMessage('');
-      setIsInternal(false);
+      form.reset({ newMessage: '', isInternal: false });
       toast.success(t('support.messageSent'));
     },
     onError: (error) => {
@@ -208,7 +212,6 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
       setLocalTicket(prev => ({ ...prev, ...updates }));
       toast.success(t('support.ticketUpdated'));
 
-      // Send notifications
       if (updates.status && updates.status !== ticket.status) {
         await sendEmailNotification('status_changed', {
           old_status: ticket.status,
@@ -216,7 +219,6 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
         });
       }
       if (updates.assigned_to && updates.assigned_to !== ticket.assigned_to) {
-        // Get agent name
         const { data: agentProfile } = await supabase
           .from('profiles')
           .select('full_name')
@@ -234,9 +236,8 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
     },
   });
 
-  const handleSend = () => {
-    if (!newMessage.trim()) return;
-    sendMutation.mutate({ message: newMessage, isInternal });
+  const handleSend = (values: AdminTicketReplyFormValues) => {
+    sendMutation.mutate({ message: values.newMessage, isInternal: values.isInternal });
   };
 
   const handleAssignmentChange = (agentId: string | null) => {
@@ -349,35 +350,34 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
               </CardHeader>
               <CardContent className="space-y-4">
                 <Textarea
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder={isInternal ? t('adminSupport.internalNotePlaceholder') : t('adminSupport.replyPlaceholder')}
+                  {...form.register('newMessage')}
+                  placeholder={watchedIsInternal ? t('adminSupport.internalNotePlaceholder') : t('adminSupport.replyPlaceholder')}
                   rows={4}
-                  className={isInternal ? 'border-yellow-500/50' : ''}
+                  className={watchedIsInternal ? 'border-yellow-500/50' : ''}
                 />
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Checkbox 
                       id="internal" 
-                      checked={isInternal}
-                      onCheckedChange={(checked) => setIsInternal(checked as boolean)}
+                      checked={watchedIsInternal}
+                      onCheckedChange={(checked) => form.setValue('isInternal', checked as boolean)}
                     />
                     <Label htmlFor="internal" className="text-sm text-muted-foreground">
                       {t('adminSupport.markInternal')}
                     </Label>
                   </div>
                   <Button 
-                    onClick={handleSend} 
-                    disabled={sendMutation.isPending || !newMessage.trim()}
+                    onClick={form.handleSubmit(handleSend)} 
+                    disabled={sendMutation.isPending || !form.watch('newMessage')?.trim()}
                     className="gap-2"
-                    variant={isInternal ? 'outline' : 'default'}
+                    variant={watchedIsInternal ? 'outline' : 'default'}
                   >
                     {sendMutation.isPending ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <Send className="h-4 w-4" />
                     )}
-                    {isInternal ? t('adminSupport.addNote') : t('support.send')}
+                    {watchedIsInternal ? t('adminSupport.addNote') : t('support.send')}
                   </Button>
                 </div>
               </CardContent>
