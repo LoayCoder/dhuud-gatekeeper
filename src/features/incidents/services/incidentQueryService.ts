@@ -1,5 +1,5 @@
 import { supabase } from '../supabaseClient';
-import type { LooseSupabaseClient } from '@/types/supabase-helpers';
+import type { LooseSupabaseClient } from '@/features/security/types/securityTypes';
 import type { Database } from '@/integrations/supabase/types';
 import type { UseIncidentsOptions } from '@/features/incidents';
 
