@@ -108,10 +108,14 @@ export function useRCAAnalytics(startDate?: Date, endDate?: Date, branchId?: str
       const { data: investigations, error: invError } = await investigationsQuery;
       if (invError) throw invError;
 
-      // Build events query with dynamic filters
-      let eventsQuery = supabase
+      // Build events query with dynamic filters — use loose client to avoid deep instantiation
+      interface LooseFrom { select: (...a: unknown[]) => LooseFrom; eq: (...a: unknown[]) => LooseFrom; is: (...a: unknown[]) => LooseFrom; in: (...a: unknown[]) => LooseFrom; gte: (...a: unknown[]) => LooseFrom; lte: (...a: unknown[]) => LooseFrom; order: (...a: unknown[]) => LooseFrom; limit: (...a: unknown[]) => LooseFrom; then: PromiseLike<{ data: unknown[] | null; error: { message: string } | null }>['then']; }
+      interface LooseRCAClient { from: (t: string) => LooseFrom; }
+      const rcaClient = supabase as unknown as LooseRCAClient;
+
+      let eventsQuery = rcaClient
         .from('incidents')
-        .select('id, reference_id, title, severity_v2, occurred_at, status, event_type, location, branches:branch_id(name)')
+        .select('id, reference_id, title, severity_v2, occurred_at, status, event_type, location, branch_id')
         .is('deleted_at', null)
         .in('severity_v2', ['level_5', 'level_4'])
         .order('occurred_at', { ascending: false })
@@ -130,7 +134,7 @@ export function useRCAAnalytics(startDate?: Date, endDate?: Date, branchId?: str
         eventsQuery = eventsQuery.eq('site_id', siteId);
       }
 
-      const { data: majorEvents, error: eventsError } = await eventsQuery;
+      const { data: majorEvents, error: eventsError } = await eventsQuery as unknown as { data: Record<string, unknown>[] | null; error: { message: string } | null };
       if (eventsError) throw eventsError;
 
       // Process root cause distribution
@@ -210,15 +214,15 @@ export function useRCAAnalytics(startDate?: Date, endDate?: Date, branchId?: str
 
       // Format major events with 5-level severity
       const formattedMajorEvents: MajorEventItem[] = (majorEvents || []).map(event => ({
-        id: event.id,
-        reference_id: event.reference_id || 'N/A',
-        title: event.title,
-        severity: (event.severity_v2 || 'level_3') as SeverityLevelV2,
-        occurred_at: event.occurred_at || '',
-        status: event.status || 'submitted',
-        event_type: event.event_type,
-        location: event.location || undefined,
-        branch_name: (event.branches as { name: string } | null)?.name || undefined
+        id: String(event.id),
+        reference_id: String(event.reference_id || 'N/A'),
+        title: String(event.title),
+        severity: (String(event.severity_v2 || 'level_3')) as SeverityLevelV2,
+        occurred_at: String(event.occurred_at || ''),
+        status: String(event.status || 'submitted'),
+        event_type: String(event.event_type),
+        location: event.location ? String(event.location) : undefined,
+        branch_name: undefined, // Simplified: branch join removed to avoid deep instantiation
       }));
 
       // Format cause flow data

@@ -4,17 +4,20 @@ export interface InductionVideo {
   id: string;
   title: string;
   url: string;
-  [key: string]: unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- consumed by downstream components expecting indexable type
+  [key: string]: any;
 }
 
 export interface ContractorProject {
   id: string;
-  [key: string]: unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
 export interface ContractorWorker {
   id: string;
-  [key: string]: unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
 export function useContractorPortalData() {

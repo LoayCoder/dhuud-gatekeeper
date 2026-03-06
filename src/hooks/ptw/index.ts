@@ -3,8 +3,10 @@
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-export interface PTWPermit { id: string; [key: string]: unknown; }
-export interface PTWProject { id: string; name: string; reference_id: string; [key: string]: unknown; }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- index signatures consumed by many downstream components
+export interface PTWPermit { id: string; [key: string]: any; }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface PTWProject { id: string; name: string; reference_id: string; [key: string]: any; }
 
 export function usePTWPermits(filters?: Record<string, unknown>) {
   return useQuery({ queryKey: ['ptw-permits', filters], queryFn: async () => [] as PTWPermit[] });

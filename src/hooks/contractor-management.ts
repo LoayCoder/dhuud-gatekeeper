@@ -7,9 +7,9 @@ export function useCreateContractorWorker() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: Record<string, unknown>) => {
-      const { error } = await supabase
+      const { error } = await (supabase
         .from('contractor_workers')
-        .insert(data as Parameters<typeof supabase.from<'contractor_workers'>>[0] extends never ? Record<string, unknown> : Record<string, unknown>);
+        .insert(data as unknown as Parameters<typeof supabase.from<'contractor_workers'>['insert']>[0]));
       if (error) throw error;
     },
     onSuccess: () => {
