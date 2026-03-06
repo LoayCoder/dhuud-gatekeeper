@@ -96,6 +96,37 @@ const COVERAGE_THRESHOLDS = {
   // Above 50 is critical
 };
 
+// --- Loose query types for tables not in generated types ---
+interface LooseQueryResult<T> {
+  data: T[] | null;
+  error: unknown;
+}
+
+interface LooseQueryBuilder<T> {
+  select: (query: string) => LooseQueryBuilder<T>;
+  eq: (column: string, value: string) => LooseQueryBuilder<T>;
+  is: (column: string, value: null) => LooseQueryBuilder<T>;
+  in: (column: string, values: string[]) => LooseQueryBuilder<T>;
+  then: (onfulfilled: (value: LooseQueryResult<T>) => void) => Promise<LooseQueryResult<T>>;
+  [Symbol.toStringTag]: string;
+}
+
+interface LooseSupabaseClient {
+  from: (table: string) => LooseQueryBuilder<Record<string, unknown>>;
+}
+
+const looseClient = supabase as unknown as LooseSupabaseClient;
+
+// Row shapes for dashboard stats queries
+interface StatusRow { id: string; status: string }
+interface ApprovalStatusRow { id: string; approval_status: string }
+interface IdRow { id: string }
+interface PassRow { id: string; status: string; pass_date: string }
+interface PermitRow { id: string; status: string; planned_end_time: string | null }
+interface RiskRow { id: string; status: string; overall_risk_rating: string | null; valid_until: string | null }
+interface BlacklistRow { id: string; listed_at: string | null }
+interface IncidentRow { id: string; status: string | null }
+
 export function useContractorDashboardStats() {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
@@ -122,50 +153,50 @@ export function useContractorDashboardStats() {
           : baseQuery.in(column, branchIds);
       };
 
-      // Execute all queries with type safety
+      // Execute all queries
       const companiesResult = await addBranchFilter(
-        (supabase as any).from("contractor_companies").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null),
+        looseClient.from("contractor_companies").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null),
         "assigned_branch_id"
-      );
+      ) as unknown as LooseQueryResult<StatusRow>;
 
-      const workersResult = await (supabase as any).from("contractor_workers").select("id, approval_status").eq("tenant_id", tenantId).is("deleted_at", null);
+      const workersResult = await looseClient.from("contractor_workers").select("id, approval_status").eq("tenant_id", tenantId).is("deleted_at", null) as unknown as LooseQueryResult<ApprovalStatusRow>;
 
       const projectsResult = await addBranchFilter(
-        (supabase as any).from("contractor_projects").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null),
+        looseClient.from("contractor_projects").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null),
         "branch_id"
-      );
+      ) as unknown as LooseQueryResult<StatusRow>;
 
       const gatePassesResult = await addBranchFilter(
-        (supabase as any).from("material_gate_passes").select("id, status, pass_date").eq("tenant_id", tenantId).is("deleted_at", null),
+        looseClient.from("material_gate_passes").select("id, status, pass_date").eq("tenant_id", tenantId).is("deleted_at", null),
         "branch_id"
-      );
+      ) as unknown as LooseQueryResult<PassRow>;
 
-      const safetyOfficersResult = await (supabase as any).from("contractor_safety_officers").select("id").eq("tenant_id", tenantId).is("deleted_at", null);
+      const safetyOfficersResult = await looseClient.from("contractor_safety_officers").select("id").eq("tenant_id", tenantId).is("deleted_at", null) as unknown as LooseQueryResult<IdRow>;
 
       const incidentsResult = await addBranchFilter(
-        (supabase as any).from("incidents").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null),
+        looseClient.from("incidents").select("id, status").eq("tenant_id", tenantId).is("deleted_at", null),
         "branch_id"
-      );
+      ) as unknown as LooseQueryResult<IncidentRow>;
 
-      const permitsResult = await (supabase as any).from("ptw_permits").select("id, status, planned_end_time").eq("tenant_id", tenantId).is("deleted_at", null);
+      const permitsResult = await looseClient.from("ptw_permits").select("id, status, planned_end_time").eq("tenant_id", tenantId).is("deleted_at", null) as unknown as LooseQueryResult<PermitRow>;
 
       const riskAssessmentsResult = await addBranchFilter(
-        (supabase as any).from("risk_assessments").select("id, status, overall_risk_rating, valid_until").eq("tenant_id", tenantId).is("deleted_at", null),
+        looseClient.from("risk_assessments").select("id, status, overall_risk_rating, valid_until").eq("tenant_id", tenantId).is("deleted_at", null),
         "branch_id"
-      );
+      ) as unknown as LooseQueryResult<RiskRow>;
 
       const onsiteResult = await addBranchFilter(
-        (supabase as any).from("gate_entry_logs").select("id").eq("tenant_id", tenantId).is("exit_time", null),
+        looseClient.from("gate_entry_logs").select("id").eq("tenant_id", tenantId).is("exit_time", null),
         "branch_id"
-      );
+      ) as unknown as LooseQueryResult<IdRow>;
 
       const blacklistResult = await addBranchFilter(
-        (supabase as any).from("security_blacklist").select("id, listed_at").eq("tenant_id", tenantId).is("deleted_at", null),
+        looseClient.from("security_blacklist").select("id, listed_at").eq("tenant_id", tenantId).is("deleted_at", null),
         "branch_id"
-      );
+      ) as unknown as LooseQueryResult<BlacklistRow>;
 
       // Process companies
-      const companies = companiesResult.data || [];
+      const companies = (companiesResult.data ?? []) as StatusRow[];
       const companiesStats = {
         total: companies.length,
         active: companies.filter((c) => c.status === "active").length,
@@ -175,7 +206,7 @@ export function useContractorDashboardStats() {
       };
 
       // Process workers
-      const workers = workersResult.data || [];
+      const workers = (workersResult.data ?? []) as ApprovalStatusRow[];
       const workersStats = {
         total: workers.length,
         approved: workers.filter((w) => w.approval_status === "approved").length,
@@ -185,7 +216,7 @@ export function useContractorDashboardStats() {
       };
 
       // Process projects
-      const projects = projectsResult.data || [];
+      const projects = (projectsResult.data ?? []) as StatusRow[];
       const projectsStats = {
         total: projects.length,
         active: projects.filter((p) => p.status === "active").length,
@@ -195,7 +226,7 @@ export function useContractorDashboardStats() {
       };
 
       // Process gate passes
-      const gatePasses = gatePassesResult.data || [];
+      const gatePasses = (gatePassesResult.data ?? []) as PassRow[];
       const now = new Date();
       const gatePassesStats = {
         total: gatePasses.length,
@@ -210,7 +241,7 @@ export function useContractorDashboardStats() {
       };
 
       // Process safety officers
-      const safetyOfficers = safetyOfficersResult.data || [];
+      const safetyOfficers = (safetyOfficersResult.data ?? []) as IdRow[];
       const officerCount = safetyOfficers.length;
       const workerCount = workersStats.approved;
 
@@ -253,7 +284,7 @@ export function useContractorDashboardStats() {
       };
 
       // Process incidents (HSSE Events)
-      const incidents = incidentsResult.data || [];
+      const incidents = (incidentsResult.data ?? []) as IncidentRow[];
       const openStatuses = ["submitted", "pending_review", "pending_dept_rep_approval"];
       const investigatingStatuses = ["investigation_in_progress", "under_investigation"];
       const closedStatuses = ["closed", "resolved", "no_action_required"];
@@ -266,7 +297,7 @@ export function useContractorDashboardStats() {
       };
 
       // Process PTW permits - use planned_end_time
-      const permits = permitsResult.data || [];
+      const permits = (permitsResult.data ?? []) as PermitRow[];
       const permitsStats = {
         total: permits.length,
         active: permits.filter((p) => p.status === "active" || p.status === "approved").length,
@@ -279,7 +310,7 @@ export function useContractorDashboardStats() {
       };
 
       // Process risk assessments - use overall_risk_rating, valid_until
-      const riskAssessments = riskAssessmentsResult.data || [];
+      const riskAssessments = (riskAssessmentsResult.data ?? []) as RiskRow[];
       const riskAssessmentsStats = {
         total: riskAssessments.length,
         approved: riskAssessments.filter((r) => r.status === "approved" || r.status === "active").length,
@@ -298,7 +329,7 @@ export function useContractorDashboardStats() {
       };
 
       // Process blacklist - use listed_at
-      const blacklist = blacklistResult.data || [];
+      const blacklist = (blacklistResult.data ?? []) as BlacklistRow[];
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
