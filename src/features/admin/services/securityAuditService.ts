@@ -68,7 +68,7 @@ export const logSecurityAudit = async (tenantId: string, userId: string | undefi
 
     const { error } = await supabase
         .from('security_audit_logs')
-        .insert(insertData);
+        .insert(insertData as Database['public']['Tables']['security_audit_logs']['Insert']);
 
     if (error) throw error;
 };
