@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import type { AttendanceExportFilters, AttendanceRecord, TeamSummaryData } from './types';
+import type { GuardPerformanceMetricJoined, AttendanceLogRow } from '@/features/security/types';
 
 export function useAttendanceExport(filters: AttendanceExportFilters) {
     return useQuery({
@@ -47,7 +48,9 @@ export function useAttendanceExport(filters: AttendanceExportFilters) {
             const { data, error } = await query;
             if (error) throw error;
 
-            const records: AttendanceRecord[] = (data || []).map((r: any) => {
+            const rows = (data || []) as unknown as AttendanceLogRow[];
+
+            const records: AttendanceRecord[] = rows.map((r) => {
                 const checkIn = r.check_in_at ? new Date(r.check_in_at) : null;
                 const checkOut = r.check_out_at ? new Date(r.check_out_at) : null;
                 const hoursWorked = checkIn && checkOut
@@ -65,8 +68,8 @@ export function useAttendanceExport(filters: AttendanceExportFilters) {
                     check_out: checkOut ? format(checkOut, 'HH:mm') : null,
                     hours_worked: hoursWorked ? Math.round(hoursWorked * 10) / 10 : null,
                     late_minutes: r.late_minutes || 0,
-                    overtime_minutes: r.overtime_minutes || 0,
-                    gps_validated: r.gps_validated || false,
+                    overtime_minutes: 0,
+                    gps_validated: false,
                     status: r.status || 'unknown',
                 };
             });
@@ -81,7 +84,7 @@ export function useSecurityTeamSummary(startDate: string, endDate: string) {
     return useQuery({
         queryKey: ['security-team-summary', startDate, endDate],
         queryFn: async () => {
-            const { data: metrics } = await supabase
+            const { data: rawMetrics } = await supabase
                 .from('guard_performance_metrics')
                 .select(`
           guard_id,
@@ -99,6 +102,8 @@ export function useSecurityTeamSummary(startDate: string, endDate: string) {
                 .is('deleted_at', null)
                 .gte('metric_date', startDate)
                 .lte('metric_date', endDate);
+
+            const metrics = (rawMetrics || []) as unknown as GuardPerformanceMetricJoined[];
 
             const { data: attendance } = await supabase
                 .from('guard_attendance_logs')
@@ -119,11 +124,11 @@ export function useSecurityTeamSummary(startDate: string, endDate: string) {
             let totalIncidents = 0;
             let totalViolations = 0;
 
-            for (const m of metrics || []) {
+            for (const m of metrics) {
                 const existing = guardMap.get(m.guard_id) || {
                     guard_id: m.guard_id,
-                    guard_name: (m.guard as any)?.full_name || 'Unknown',
-                    avatar_url: (m.guard as any)?.avatar_url || null,
+                    guard_name: m.guard?.full_name || 'Unknown',
+                    avatar_url: m.guard?.avatar_url || null,
                     patrols: 0,
                     scores: [],
                 };

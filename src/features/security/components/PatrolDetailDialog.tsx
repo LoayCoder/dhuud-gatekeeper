@@ -25,6 +25,7 @@ import { format } from "date-fns";
 import { useSecurityPatrol } from '@/features/security';
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
+import type { PatrolSession, PatrolLog } from '@/features/security/types';
 
 interface PatrolDetailDialogProps {
   patrolId: string;
@@ -34,7 +35,8 @@ interface PatrolDetailDialogProps {
 
 export function PatrolDetailDialog({ patrolId, open, onOpenChange }: PatrolDetailDialogProps) {
   const { t } = useTranslation();
-  const { data: patrol, isLoading } = useSecurityPatrol(patrolId);
+  const { data: rawPatrol, isLoading } = useSecurityPatrol(patrolId);
+  const patrol = rawPatrol as PatrolSession | null;
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
   const getPhotoUrl = (path: string) => {
@@ -79,7 +81,7 @@ export function PatrolDetailDialog({ patrolId, open, onOpenChange }: PatrolDetai
             <Skeleton className="h-24 w-full" />
             <Skeleton className="h-48 w-full" />
           </div>
-        ) : (patrol as any) ? (
+        ) : patrol ? (
           <ScrollArea className="flex-1">
             <div className="space-y-4 p-1">
               {/* Summary Card */}
@@ -90,26 +92,26 @@ export function PatrolDetailDialog({ patrolId, open, onOpenChange }: PatrolDetai
                       <Route className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">{t('security.patrols.history.route', 'Route')}</p>
-                        <p className="font-medium">{(patrol as any).route?.name || 'Unknown'}</p>
+                        <p className="font-medium">{patrol.route?.name || 'Unknown'}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">{t('security.patrols.history.guard', 'Guard')}</p>
-                        <p className="font-medium">{((patrol as any).guard as any)?.full_name || 'Unknown'}</p>
+                        <p className="font-medium">{patrol.guard?.full_name || 'Unknown'}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">{t('security.patrols.history.duration', 'Duration')}</p>
-                        <p className="font-medium">{calculateDuration((patrol as any).actual_start, (patrol as any).actual_end)}</p>
+                        <p className="font-medium">{calculateDuration(patrol.actual_start, patrol.actual_end)}</p>
                       </div>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">{t('security.patrols.history.status', 'Status')}</p>
-                      <div className="mt-1">{getStatusBadge((patrol as any).status)}</div>
+                      <div className="mt-1">{getStatusBadge(patrol.status)}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -127,8 +129,8 @@ export function PatrolDetailDialog({ patrolId, open, onOpenChange }: PatrolDetai
 
                 <TabsContent value="checkpoints" className="mt-4">
                   <div className="space-y-3">
-                    {(patrol as any).logs && (patrol as any).logs.length > 0 ? (
-                      (patrol as any).logs.map((log: any) => (
+                    {patrol.logs && patrol.logs.length > 0 ? (
+                      patrol.logs.map((log: PatrolLog) => (
                         <Card key={log.id} className="border-s-4 border-s-primary">
                           <CardContent className="pt-4">
                             <div className="flex items-start justify-between">
@@ -195,9 +197,9 @@ export function PatrolDetailDialog({ patrolId, open, onOpenChange }: PatrolDetai
 
                 <TabsContent value="evidence" className="mt-4">
                   <div className="space-y-4">
-                    {(patrol as any).logs?.some((log: any) => log.photo_paths?.length > 0) ? (
+                    {patrol.logs?.some((log: PatrolLog) => log.photo_paths && log.photo_paths.length > 0) ? (
                       <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
-                        {(patrol as any).logs.flatMap((log: any) =>
+                        {patrol.logs.flatMap((log: PatrolLog) =>
                           (log.photo_paths || []).map((photo: string, idx: number) => (
                             <button
                               key={`${log.id}-${idx}`}
