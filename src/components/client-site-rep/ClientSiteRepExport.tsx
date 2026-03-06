@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useClientSiteRepExportData } from "@/features/contractors/hooks/use-client-site-rep-export-data";
 import { secureExportToCSV, validateExportPermission } from "@/lib/secure-export";
 import { ExportColumn, exportToExcel } from "@/lib/export-utils";
+import type { EntityType } from "@/lib/audit-logger";
 import { logExport } from "@/lib/audit-logger";
 import { format } from "date-fns";
 
@@ -94,7 +95,7 @@ export function ClientSiteRepExport({ companyIds }: ClientSiteRepExportProps) {
 
     // Determine menu code and entity type based on export type
     const menuCode = "client_site_rep";
-    const entityType = type === "workers" ? "contractor" : type === "incidents" ? "incident" : "contractor";
+    const entityType: EntityType = type === "workers" ? "contractor" : type === "incidents" ? "incident" : "contractor";
 
     // Validate export permission
     const permission = await validateExportPermission(user.id, menuCode);
@@ -142,14 +143,14 @@ export function ClientSiteRepExport({ companyIds }: ClientSiteRepExportProps) {
       }
 
       // Log export action
-      await logExport(entityType as any, exportFormat, data.length, { companyIds, type });
+      await logExport(entityType, exportFormat, data.length, { companyIds, type });
 
       // Perform export
       if (exportFormat === "csv") {
         const result = await secureExportToCSV(
           user.id,
           menuCode,
-          entityType as any,
+          entityType,
           data,
           columns,
           `${filename}.csv`,
