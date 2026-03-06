@@ -147,7 +147,7 @@ export default function UserManagement() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <span className="text-sm font-medium">
-                  {t('userManagement.selectedCount', { count: selectedUsers.size })}
+                  {String(t('userManagement.selectedCount', { count: selectedUsers.size } as Record<string, unknown>))}
                 </span>
                 <Button variant="ghost" size="sm" onClick={() => setSelectedUsers(new Set())}>
                   {t('userManagement.clearSelection')}
