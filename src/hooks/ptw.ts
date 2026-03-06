@@ -26,8 +26,19 @@ export interface PTWProject {
   [key: string]: unknown;
 }
 
+export interface PTWTypeRecord {
+  id: string;
+  name: string;
+  name_ar?: string;
+  code: string;
+  requires_gas_test?: boolean;
+  requires_isolation?: boolean;
+  requires_rescue_plan?: boolean;
+  [key: string]: unknown;
+}
+
 export function usePTWTypes() {
-  return useQuery({ queryKey: ['ptw-types'], queryFn: async () => [] as Record<string, unknown>[] });
+  return useQuery({ queryKey: ['ptw-types'], queryFn: async () => [] as PTWTypeRecord[] });
 }
 export function usePermits(filters?: Record<string, unknown>) {
   return useQuery({ queryKey: ['permits', filters], queryFn: async () => [] as PTWPermit[] });

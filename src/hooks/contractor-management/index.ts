@@ -24,10 +24,20 @@ export function useContractorPortalData() {
   return { data: null, isLoading: false, company: null, projects: [] as ContractorProject[], workers: [] as ContractorWorker[] };
 }
 
+export interface GatePass {
+  id: string;
+  reference_number: string;
+  pass_date: string;
+  pass_type: string;
+  vehicle_plate: string | null;
+  status: string;
+  [key: string]: unknown;
+}
+
 export function useContractorGatePasses(companyId?: string) {
   return useQuery({
     queryKey: ['contractor-gate-passes', companyId],
-    queryFn: async () => [] as Record<string, unknown>[],
+    queryFn: async () => [] as GatePass[],
     enabled: !!companyId,
   });
 }
