@@ -30,22 +30,35 @@ export * from '@/hooks/use-emergency-protocols';
 export * from '@/hooks/use-emergency-protocol-templates';
 export * from '@/hooks/use-anpr-recognition';
 
+// Shared stub member type for team hooks
+interface StubTeamMember {
+  id: string;
+  full_name: string | null;
+  employee_id: string | null;
+  role: string;
+  is_active: boolean;
+  avatar_url: string | null;
+  job_title: string | null;
+  phone_number: string | null;
+  sites: string | null;
+}
+
 // Stub exports for missing hooks
 export function useSecurityDashboard() { return { data: null, isLoading: false }; }
 export function useSecurityStats() { return { data: null, isLoading: false }; }
 export function useSecurityScore() { return { data: null, isLoading: false }; }
-export function useSecurityTeams() { return { data: [] as unknown[], isLoading: false }; }
+export function useSecurityTeams() { return { data: [] as StubTeamMember[], isLoading: false }; }
 export function useAssignTeamToShift() { return { mutateAsync: async (_d: Record<string, unknown>) => {}, isPending: false }; }
-export function useSecurityTeam() { return { data: [] as unknown[], isLoading: false }; }
+export function useSecurityTeam() { return { data: [] as StubTeamMember[], isLoading: false }; }
 export function useUpdateSecurityTeam() { return { mutateAsync: async (_d: Record<string, unknown>) => {}, isPending: false }; }
 export function useAddTeamMember() { return { mutateAsync: async (_d: Record<string, unknown>) => {}, isPending: false }; }
 export function useRemoveTeamMember() { return { mutateAsync: async (_d: Record<string, unknown>) => {}, isPending: false }; }
 export function useCreateSecurityTeam() { return { mutateAsync: async (_d: Record<string, unknown>) => {}, isPending: false }; }
-export function useGuardSiteAssignments(_filters?: Record<string, unknown>) { return { data: [] as unknown[], isLoading: false }; }
+export function useGuardSiteAssignments(_filters?: Record<string, unknown>) { return { data: [] as StubTeamMember[], isLoading: false }; }
 export function useCreateGuardSiteAssignment() { return { mutateAsync: async (_d: Record<string, unknown>) => {}, isPending: false }; }
-export function useSecurityPatrols(_filters?: Record<string, unknown>) { return { data: [] as unknown[], isLoading: false }; }
-export function useSecurityPatrol(_id?: string) { return { data: null as unknown, isLoading: false }; }
-export function useSecurityEmergencyActions() { return { data: [] as unknown[], isLoading: false }; }
-export function useSecurityBlacklist() { return { data: [] as unknown[], isLoading: false }; }
-export function useSecurityAuditLog() { return { data: [] as unknown[], isLoading: false }; }
-export function useSecurityPushNotifications() { return { data: [] as unknown[], isLoading: false }; }
+export function useSecurityPatrols(_filters?: Record<string, unknown>) { return { data: [] as Record<string, unknown>[], isLoading: false }; }
+export function useSecurityPatrol(_id?: string) { return { data: null as Record<string, unknown> | null, isLoading: false }; }
+export function useSecurityEmergencyActions() { return { data: [] as Record<string, unknown>[], isLoading: false }; }
+export function useSecurityBlacklist() { return { data: [] as Record<string, unknown>[], isLoading: false }; }
+export function useSecurityAuditLog() { return { data: [] as Record<string, unknown>[], isLoading: false }; }
+export function useSecurityPushNotifications() { return { data: [] as Record<string, unknown>[], isLoading: false }; }
