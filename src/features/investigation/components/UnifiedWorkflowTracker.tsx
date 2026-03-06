@@ -78,7 +78,8 @@ export function UnifiedWorkflowTracker({
   
   const status = incident.status as string;
   const isContractor = !!incident.related_contractor_company_id;
-  const severity = (incident as any).severity_v2 || (incident as any).severity_level;
+  const vi = incident as unknown as import('../types/investigationTypes').ViolationIncidentFields;
+  const severity = incident.severity_v2 || vi.severity_level;
   
   // Contractor observations: no Expert Review step (HSSE is only via manual escalation)
   // Non-contractor observations: Expert Review may still be shown for L3+

@@ -145,7 +145,8 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
   };
 
   // Get escalation notes from dept rep if available
-  const deptRepNotes = (incident as any).dept_rep_notes;
+  const vi = incident as unknown as import('../types/investigationTypes').ViolationIncidentFields;
+  const deptRepNotes = vi.dept_rep_notes;
 
   return (
     <>
@@ -172,8 +173,8 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span className="font-mono">{incident.reference_id}</span>
               <Badge variant="secondary">{incident.event_type}</Badge>
-              {(incident as any).severity_level && (
-                <Badge variant="outline">L{(incident as any).severity_level}</Badge>
+              {vi.severity_level && (
+                <Badge variant="outline">L{vi.severity_level}</Badge>
               )}
             </div>
             <h4 className="font-medium">{incident.title}</h4>

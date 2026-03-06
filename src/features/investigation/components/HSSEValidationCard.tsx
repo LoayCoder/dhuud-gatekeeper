@@ -56,7 +56,7 @@ export function HSSEValidationCard({ incident, onComplete }: HSSEValidationCardP
   const validation = useHSSEValidation();
   const enforcement = useHSSEEnforceDecision();
   
-  const severity = (incident as any).severity_v2 as SeverityLevelV2;
+  const severity = (incident.severity_v2 || (incident as unknown as import('../types/investigationTypes').ViolationIncidentFields).severity) as SeverityLevelV2;
   const severityConfig = getSeverityConfig(severity);
   const incidentStatus = incident.status as string;
   
