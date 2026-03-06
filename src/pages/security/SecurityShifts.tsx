@@ -37,9 +37,9 @@ export default function SecurityShifts() {
 
   const onSubmit = async (values: SecurityShiftFormValues) => {
     if (editingShift) {
-      await updateShift.mutateAsync({ id: editingShift, ...values });
+      await updateShift.mutateAsync({ id: editingShift, ...values } as any);
     } else {
-      await createShift.mutateAsync(values);
+      await createShift.mutateAsync(values as any);
     }
     setDialogOpen(false);
     form.reset(defaultValues);
