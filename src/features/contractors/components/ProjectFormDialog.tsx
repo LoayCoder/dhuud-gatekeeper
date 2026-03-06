@@ -7,6 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect, useMemo } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { projectFormSchema, ProjectFormValues } from "./projectFormSchema";
 import { ContractorProject, useCreateContractorProject, useUpdateContractorProject } from "@/features/contractors/hooks/use-contractor-projects";
 import { useContractorCompanies } from "@/features/contractors/hooks/use-contractor-companies";
 import { useProjectManagers } from "@/features/contractors/hooks/use-project-managers";
@@ -25,6 +28,16 @@ interface ProjectFormDialogProps {
   project: ContractorProject | null;
 }
 
+type ExtendedProject = ContractorProject & {
+  branch_id?: string;
+  site_id?: string;
+  department_id?: string;
+  latitude?: number;
+  longitude?: number;
+  boundary_polygon?: Coordinate[];
+  geofence_radius_meters?: number;
+};
+
 export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDialogProps) {
   const { t } = useTranslation();
   const createProject = useCreateContractorProject();
@@ -36,34 +49,45 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
   const { data: departments = [] } = useTenantDepartments();
   const isEditing = !!project;
 
-  const [formData, setFormData] = useState({
-    company_id: "", project_code: "", project_name: "", project_name_ar: "",
-    start_date: "", end_date: "", location_description: "", notes: "", project_manager_id: "",
-    branch_id: "",
-    site_id: "",
-    department_id: "",
-    latitude: null as number | null,
-    longitude: null as number | null,
-    boundary_polygon: null as Coordinate[] | null,
-    geofence_radius_meters: 100,
+  const extProject = project as ExtendedProject | null;
+
+  const form = useForm<ProjectFormValues>({
+    resolver: zodResolver(projectFormSchema),
+    defaultValues: {
+      company_id: extProject?.company_id ?? "",
+      project_code: extProject?.project_code ?? "",
+      project_name: extProject?.project_name ?? "",
+      project_name_ar: extProject?.project_name_ar ?? "",
+      start_date: extProject?.start_date ?? "",
+      end_date: extProject?.end_date ?? "",
+      location_description: extProject?.location_description ?? "",
+      notes: extProject?.notes ?? "",
+      project_manager_id: extProject?.project_manager_id ?? "",
+      branch_id: extProject?.branch_id ?? "",
+      site_id: extProject?.site_id ?? "",
+      department_id: extProject?.department_id ?? "",
+      latitude: extProject?.latitude ?? null,
+      longitude: extProject?.longitude ?? null,
+      boundary_polygon: extProject?.boundary_polygon ?? null,
+      geofence_radius_meters: extProject?.geofence_radius_meters ?? 100,
+    },
   });
 
-  const [showMap, setShowMap] = useState(false);
-  const [activeTab, setActiveTab] = useState("details");
+  const watchedBranchId = form.watch("branch_id");
 
   // Cascading filters: Sites filtered by selected branch
   const filteredSites = useMemo(() => {
-    if (!formData.branch_id) return [];
-    return sites.filter(s => s.branch_id === formData.branch_id);
-  }, [sites, formData.branch_id]);
+    if (!watchedBranchId) return [];
+    return sites.filter(s => s.branch_id === watchedBranchId);
+  }, [sites, watchedBranchId]);
 
   // Cascading filters: Departments filtered by selected branch (including hybrid departments with branch_id = null)
   const filteredDepartments = useMemo(() => {
-    if (!formData.branch_id) return [];
-    return departments.filter(d => 
-      d.branch_id === null || d.branch_id === formData.branch_id
+    if (!watchedBranchId) return [];
+    return departments.filter(d =>
+      d.branch_id === null || d.branch_id === watchedBranchId
     );
-  }, [departments, formData.branch_id]);
+  }, [departments, watchedBranchId]);
 
   useEffect(() => {
     if (open) {
@@ -75,85 +99,64 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
   }, [open]);
 
   useEffect(() => {
-    if (project) {
-      setFormData({
-        company_id: project.company_id,
-        project_code: project.project_code,
-        project_name: project.project_name,
-        project_name_ar: project.project_name_ar || "",
-        start_date: project.start_date,
-        end_date: project.end_date,
-        location_description: project.location_description || "",
-        notes: project.notes || "",
-        project_manager_id: project.project_manager_id || "",
-        branch_id: (project as any).branch_id || "",
-        site_id: project.site_id || "",
-        department_id: (project as any).department_id || "",
-        latitude: (project as any).latitude ?? null,
-        longitude: (project as any).longitude ?? null,
-        boundary_polygon: (project as any).boundary_polygon ?? null,
-        geofence_radius_meters: (project as any).geofence_radius_meters ?? 100,
+    if (extProject) {
+      form.reset({
+        company_id: extProject.company_id,
+        project_code: extProject.project_code,
+        project_name: extProject.project_name,
+        project_name_ar: extProject.project_name_ar || "",
+        start_date: extProject.start_date,
+        end_date: extProject.end_date,
+        location_description: extProject.location_description || "",
+        notes: extProject.notes || "",
+        project_manager_id: extProject.project_manager_id || "",
+        branch_id: extProject.branch_id || "",
+        site_id: extProject.site_id || "",
+        department_id: extProject.department_id || "",
+        latitude: extProject.latitude ?? null,
+        longitude: extProject.longitude ?? null,
+        boundary_polygon: extProject.boundary_polygon ?? null,
+        geofence_radius_meters: extProject.geofence_radius_meters ?? 100,
       });
     } else {
-      setFormData({ 
-        company_id: "", project_code: "", project_name: "", project_name_ar: "", 
+      form.reset({
+        company_id: "", project_code: "", project_name: "", project_name_ar: "",
         start_date: "", end_date: "", location_description: "", notes: "", project_manager_id: "",
         branch_id: "", site_id: "", department_id: "",
-        latitude: null, longitude: null, boundary_polygon: null, geofence_radius_meters: 100 
+        latitude: null, longitude: null, boundary_polygon: null, geofence_radius_meters: 100
       });
     }
     setActiveTab("details");
-  }, [project, open]);
+  }, [extProject, open, form]);
 
-  // Reset site and department when branch changes
-  const handleBranchChange = (branchId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      branch_id: branchId,
-      site_id: "", // Reset site when branch changes
-      department_id: "", // Reset department when branch changes
-    }));
+  const handleBranchChange = (value: string) => {
+    form.setValue("branch_id", value);
+    form.setValue("site_id", "");
+    form.setValue("department_id", "");
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = form.handleSubmit(async (data) => {
     const submitData = {
-      company_id: formData.company_id,
-      project_code: formData.project_code,
-      project_name: formData.project_name,
-      project_name_ar: formData.project_name_ar || null,
-      start_date: formData.start_date,
-      end_date: formData.end_date,
-      location_description: formData.location_description || null,
-      notes: formData.notes || null,
-      project_manager_id: formData.project_manager_id || null,
-      branch_id: formData.branch_id || null,
-      site_id: formData.site_id || null,
-      department_id: formData.department_id || null,
-      latitude: formData.latitude,
-      longitude: formData.longitude,
-      boundary_polygon: formData.boundary_polygon,
-      geofence_radius_meters: formData.geofence_radius_meters,
+      ...data,
+      project_name_ar: data.project_name_ar || null,
+      location_description: data.location_description || null,
+      notes: data.notes || null,
+      project_manager_id: data.project_manager_id || null,
+      branch_id: data.branch_id || null,
+      site_id: data.site_id || null,
+      department_id: data.department_id || null,
     };
-    if (isEditing) {
-      await updateProject.mutateAsync({ id: project.id, data: submitData });
-    } else {
-      await createProject.mutateAsync(submitData);
+    try {
+      if (isEditing) {
+        await updateProject.mutateAsync({ id: project.id, data: submitData });
+      } else {
+        await createProject.mutateAsync(submitData);
+      }
+      onOpenChange(false);
+    } catch (error) {
+      console.error("[ProjectFormDialog] Submit failed:", error);
     }
-    onOpenChange(false);
-  };
-
-  const handleLocationChange = (lat: number, lng: number) => {
-    setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
-  };
-
-  const handlePolygonChange = (polygon: Coordinate[] | null) => {
-    setFormData(prev => ({ ...prev, boundary_polygon: polygon }));
-  };
-
-  const handleRadiusChange = (radius: number) => {
-    setFormData(prev => ({ ...prev, geofence_radius_meters: radius }));
-  };
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -161,7 +164,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
         <DialogHeader>
           <DialogTitle>{isEditing ? t("contractors.projects.editProject", "Edit Project") : t("contractors.projects.addProject", "Add Project")}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={onSubmit} className="space-y-4">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="details">{t("contractors.projects.details", "Details")}</TabsTrigger>
@@ -171,98 +174,165 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
             <TabsContent value="details" className="space-y-4 mt-4">
               <div className="space-y-2">
                 <Label>{t("contractors.projects.company", "Company")} *</Label>
-                <Select value={formData.company_id} onValueChange={(v) => setFormData({ ...formData, company_id: v })} disabled={isEditing}>
-                  <SelectTrigger><SelectValue placeholder={t("contractors.projects.selectCompany", "Select company")} /></SelectTrigger>
-                  <SelectContent>
-                    {companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="company_id"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <>
+                      <Select value={field.value} onValueChange={field.onChange} disabled={isEditing}>
+                        <SelectTrigger><SelectValue placeholder={t("contractors.projects.selectCompany", "Select company")} /></SelectTrigger>
+                        <SelectContent>
+                          {companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      {fieldState.error && <span className="text-destructive text-sm">{fieldState.error.message}</span>}
+                    </>
+                  )}
+                />
               </div>
               <div className="space-y-2">
                 <Label>{t("contractors.projects.projectManager", "Project Manager")} *</Label>
-                <Select value={formData.project_manager_id} onValueChange={(v) => setFormData({ ...formData, project_manager_id: v })}>
-                  <SelectTrigger><SelectValue placeholder={t("contractors.projects.selectProjectManager", "Select project manager")} /></SelectTrigger>
-                  <SelectContent>
-                    {managers.map((m) => <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="project_manager_id"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger><SelectValue placeholder={t("contractors.projects.selectProjectManager", "Select project manager")} /></SelectTrigger>
+                        <SelectContent>
+                          {managers.map((m) => <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      {fieldState.error && <span className="text-destructive text-sm">{fieldState.error.message}</span>}
+                    </>
+                  )}
+                />
               </div>
-              
+
               {/* Branch, Site, Department Row */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>{t("common.branch", "Branch")} *</Label>
-                  <Select value={formData.branch_id} onValueChange={handleBranchChange}>
-                    <SelectTrigger><SelectValue placeholder={t("common.selectBranch", "Select branch")} /></SelectTrigger>
-                    <SelectContent>
-                      {branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="branch_id"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={handleBranchChange}>
+                        <SelectTrigger><SelectValue placeholder={t("common.selectBranch", "Select branch")} /></SelectTrigger>
+                        <SelectContent>
+                          {branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>{t("common.site", "Site")}</Label>
-                  <Select 
-                    value={formData.site_id} 
-                    onValueChange={(v) => setFormData({ ...formData, site_id: v })}
-                    disabled={!formData.branch_id}
-                  >
-                    <SelectTrigger><SelectValue placeholder={t("common.selectSite", "Select site")} /></SelectTrigger>
-                    <SelectContent>
-                      {filteredSites.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="site_id"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        disabled={!watchedBranchId}
+                      >
+                        <SelectTrigger><SelectValue placeholder={t("common.selectSite", "Select site")} /></SelectTrigger>
+                        <SelectContent>
+                          {filteredSites.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label>{t("common.department", "Department")}</Label>
-                <Select 
-                  value={formData.department_id} 
-                  onValueChange={(v) => setFormData({ ...formData, department_id: v })}
-                  disabled={!formData.branch_id}
-                >
-                  <SelectTrigger><SelectValue placeholder={t("common.selectDepartment", "Select department")} /></SelectTrigger>
-                  <SelectContent>
-                    {filteredDepartments.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="department_id"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled={!watchedBranchId}
+                    >
+                      <SelectTrigger><SelectValue placeholder={t("common.selectDepartment", "Select department")} /></SelectTrigger>
+                      <SelectContent>
+                        {filteredDepartments.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>{t("contractors.projects.code", "Project Code")} *</Label>
-                  <Input value={formData.project_code} onChange={(e) => setFormData({ ...formData, project_code: e.target.value })} required />
+                  <Input {...form.register("project_code")} />
+                  {form.formState.errors.project_code && <span className="text-destructive text-sm">{form.formState.errors.project_code.message}</span>}
                 </div>
                 <div className="space-y-2">
                   <Label>{t("contractors.projects.name", "Project Name")} *</Label>
-                  <Input value={formData.project_name} onChange={(e) => setFormData({ ...formData, project_name: e.target.value })} required />
+                  <Input {...form.register("project_name")} />
+                  {form.formState.errors.project_name && <span className="text-destructive text-sm">{form.formState.errors.project_name.message}</span>}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>{t("contractors.projects.startDate", "Start Date")} *</Label>
-                  <Input type="date" value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} required />
+                  <Input type="date" {...form.register("start_date")} />
+                  {form.formState.errors.start_date && <span className="text-destructive text-sm">{form.formState.errors.start_date.message}</span>}
                 </div>
                 <div className="space-y-2">
                   <Label>{t("contractors.projects.endDate", "End Date")} *</Label>
-                  <Input type="date" value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} required />
+                  <Input type="date" {...form.register("end_date")} />
+                  {form.formState.errors.end_date && <span className="text-destructive text-sm">{form.formState.errors.end_date.message}</span>}
                 </div>
               </div>
               <div className="space-y-2">
                 <Label>{t("contractors.projects.notes", "Notes")}</Label>
-                <Textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} />
+                <Textarea {...form.register("notes")} />
               </div>
             </TabsContent>
 
             <TabsContent value="location" className="space-y-4 mt-4">
               {showMap ? (
-                <LocationBoundaryPicker
-                  latitude={formData.latitude}
-                  longitude={formData.longitude}
-                  boundaryPolygon={formData.boundary_polygon}
-                  geofenceRadius={formData.geofence_radius_meters}
-                  onLocationChange={handleLocationChange}
-                  onPolygonChange={handlePolygonChange}
-                  onRadiusChange={handleRadiusChange}
-                  title={t("contractors.projects.projectLocation", "Project Location")}
+                <Controller
+                  name="latitude"
+                  control={form.control}
+                  render={({ field: latField }) => (
+                    <Controller
+                      name="longitude"
+                      control={form.control}
+                      render={({ field: lngField }) => (
+                        <Controller
+                          name="boundary_polygon"
+                          control={form.control}
+                          render={({ field: polyField }) => (
+                            <Controller
+                              name="geofence_radius_meters"
+                              control={form.control}
+                              render={({ field: radiusField }) => (
+                                <LocationBoundaryPicker
+                                  latitude={latField.value}
+                                  longitude={lngField.value}
+                                  boundaryPolygon={polyField.value}
+                                  geofenceRadius={radiusField.value}
+                                  onLocationChange={(lat, lng) => {
+                                    latField.onChange(lat);
+                                    lngField.onChange(lng);
+                                  }}
+                                  onPolygonChange={polyField.onChange}
+                                  onRadiusChange={radiusField.onChange}
+                                  title={t("contractors.projects.projectLocation", "Project Location")}
+                                />
+                              )}
+                            />
+                          )}
+                        />
+                      )}
+                    />
+                  )}
                 />
               ) : (
                 <div className="h-[400px] rounded-lg border bg-muted/30 flex items-center justify-center">
@@ -271,9 +341,8 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
               )}
               <div className="space-y-2">
                 <Label>{t("contractors.projects.locationDescription", "Location Description")}</Label>
-                <Textarea 
-                  value={formData.location_description} 
-                  onChange={(e) => setFormData({ ...formData, location_description: e.target.value })} 
+                <Textarea
+                  {...form.register("location_description")}
                   placeholder={t("contractors.projects.locationDescriptionPlaceholder", "Additional location details...")}
                   rows={2}
                 />
@@ -283,7 +352,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
 
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
-            <Button type="submit" disabled={createProject.isPending || updateProject.isPending || !formData.project_manager_id}>
+            <Button type="submit" disabled={createProject.isPending || updateProject.isPending}>
               {(createProject.isPending || updateProject.isPending) && <Loader2 className="h-4 w-4 animate-spin me-2" />}
               {isEditing ? t("common.save", "Save") : t("common.create", "Create")}
             </Button>
