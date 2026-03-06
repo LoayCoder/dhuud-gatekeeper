@@ -19,8 +19,15 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ClearanceDocumentUpload } from "./ClearanceDocumentUpload";
 
+/** Extended clearance check with optional joined fields from the database */
+interface ClearanceCheckWithDetails extends PTWClearanceCheck {
+  approver?: { full_name?: string } | null;
+  approved_at?: string | null;
+  project_id?: string | null;
+}
+
 interface ClearanceCheckCardProps {
-  check: PTWClearanceCheck;
+  check: ClearanceCheckWithDetails;
   isSelected: boolean;
   onToggleSelect: () => void;
   isRTL: boolean;
@@ -119,13 +126,13 @@ export function ClearanceCheckCard({ check, isSelected, onToggleSelect, isRTL }:
             </div>
 
             {/* Approver Info */}
-            {check.status !== "pending" && (check as any).approver && (
+            {check.status !== "pending" && check.approver && (
               <p className="text-sm text-muted-foreground mt-2">
                 {check.status === "approved" 
                   ? t("ptw.clearance.approvedBy", "Approved by")
                   : t("ptw.clearance.rejectedBy", "Rejected by")
-                }: {(check as any).approver.full_name}
-                {(check as any).approved_at && ` • ${format(new Date((check as any).approved_at), "MMM d, yyyy 'at' h:mm a")}`}
+                }: {check.approver.full_name}
+                {check.approved_at && ` • ${format(new Date(check.approved_at), "MMM d, yyyy 'at' h:mm a")}`}
               </p>
             )}
 
@@ -190,7 +197,7 @@ export function ClearanceCheckCard({ check, isSelected, onToggleSelect, isRTL }:
             {showUpload && (
               <ClearanceDocumentUpload 
                 checkId={check.id}
-                projectId={(check as any).project_id || ''}
+                projectId={check.project_id || ''}
                 onClose={() => setShowUpload(false)}
               />
             )}
