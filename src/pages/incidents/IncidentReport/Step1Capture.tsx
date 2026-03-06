@@ -161,9 +161,9 @@ export function Step1Capture({ viewProps }: { viewProps: ReturnType<typeof useIn
 
             {/* AI Analysis Panel */}
             <AIIncidentAnalysisPanel
-              validationState={aiValidator.validationState}
+              validationState={aiValidator.validationState as never}
               analysisResult={aiValidator.analysisResult}
-              processingTime={aiValidator.processingTime}
+              processingTime={(aiValidator as Record<string, unknown>).processingTime as number | undefined}
               onConfirmTranslation={handleConfirmTranslation}
               onConfirmAnalysis={handleConfirmAnalysis}
               availableTags={availableIncidentTags}
