@@ -26,11 +26,11 @@ interface RawActivityRow {
   reference_id: string | null;
 }
 
+interface LooseFrom { select: (q: string) => { eq: (c: string, v: string) => { is: (c: string, v: null) => { order: (c: string, o: { ascending: boolean }) => { limit: (n: number) => Promise<{ data: RawActivityRow[] | null }> } } } } }; }
+type ActivityResult = { data: RawActivityRow[] | null };
+interface LooseClient { from: (t: string) => LooseFrom; }
+
 async function fetchMyActivity(userId: string): Promise<ActivityItem[]> {
-  // Use LooseClient to avoid deep type instantiation on joined queries
-  interface LooseFrom { select: (q: string) => { eq: (c: string, v: string) => { is: (c: string, v: null) => { order: (c: string, o: { ascending: boolean }) => { limit: (n: number) => Promise<{ data: RawActivityRow[] | null }> } } } } }; }
-  type ActivityResult = { data: RawActivityRow[] | null };
-  interface LooseClient { from: (t: string) => LooseFrom; }
   const client = supabase as unknown as LooseClient;
 
   const incidentsPromise = client.from('incidents')
