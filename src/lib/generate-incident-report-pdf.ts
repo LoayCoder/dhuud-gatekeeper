@@ -300,7 +300,16 @@ async function fetchActionEvidence(actionIds: string[]): Promise<Map<string, Act
 }
 
 async function fetchContractorViolation(incidentId: string): Promise<ContractorViolationData | null> {
-  const { data: incident } = await (supabase as any)
+  interface ViolationRow {
+    violation_type_id: string | null;
+    violation_penalty_type: string | null;
+    violation_fine_amount: number | null;
+    violation_contractor_acknowledged_at: string | null;
+    violation_contractor_acknowledged_by: string | null;
+    related_contractor_company: { name: string } | null;
+  }
+
+  const { data: incident } = await (supabase as unknown as { from: (t: string) => { select: (q: string) => { eq: (c: string, v: string) => { single: () => Promise<{ data: ViolationRow | null }> } } } })
     .from('incidents')
     .select(`
       violation_type_id,
@@ -326,7 +335,7 @@ async function fetchContractorViolation(incidentId: string): Promise<ContractorV
   }
 
   return {
-    contractor_company_name: (incident.related_contractor_company as any)?.name,
+    contractor_company_name: incident.related_contractor_company?.name,
     violation_category: incident.violation_type_id,
     penalty_applied: incident.violation_penalty_type,
     penalty_amount: incident.violation_fine_amount,

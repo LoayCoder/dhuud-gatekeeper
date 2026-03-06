@@ -55,7 +55,7 @@ export async function signAssessment(memberId: string, signatureData: string) {
 }
 
 export async function removeTeamMember(memberId: string) {
-  const { error } = await supabase.from('risk_assessment_team').update({ updated_at: new Date().toISOString() } as any).eq('id', memberId);
+  const { error } = await supabase.from('risk_assessment_team').update({ updated_at: new Date().toISOString() } as never).eq('id', memberId);
   if (error) throw error;
 }
 
