@@ -362,7 +362,7 @@ export default function IncidentList() {
                   incident={{
                     ...incident,
                     incident_type: (incident as Record<string, unknown>).incident_type as string,
-                  } as Parameters<typeof IncidentCardEnhanced>[0]['incident']}
+                  } as unknown as Parameters<typeof IncidentCardEnhanced>[0]['incident']}
                   hasHSSEAccess={hasHSSEAccess}
                   canDelete={canDeleteIncident(incident.status)}
                   onStartInvestigation={handleStartInvestigation}
