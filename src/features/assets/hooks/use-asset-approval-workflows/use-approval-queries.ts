@@ -65,7 +65,6 @@ export function usePurchaseRequests(status?: string) {
         queryFn: async () => {
             if (!profile?.tenant_id) throw new Error("No tenant");
 
-            // @ts-expect-error Deep type instantiation on joined select
             let query = supabase
                 .from("asset_purchase_requests")
                 .select(`

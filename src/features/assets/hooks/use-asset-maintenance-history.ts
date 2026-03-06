@@ -64,7 +64,6 @@ export function useAssetMaintenanceHistory(assetId: string | undefined) {
     queryFn: async () => {
       if (!assetId) return [];
       
-      // @ts-expect-error Deep type instantiation on joined select
       const { data, error } = await supabase
         .from('asset_maintenance_history')
         .select(`

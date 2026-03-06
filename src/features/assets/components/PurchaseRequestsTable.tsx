@@ -21,16 +21,25 @@ const STATUS_COLORS: Record<string, "default" | "secondary" | "destructive" | "o
   cancelled: "outline",
 };
 
-/** Typed joined purchase request for PDF export */
+/** Typed joined purchase request for PDF export - matches PurchaseRequestData in PurchaseRequestPDFTemplate */
 interface PurchaseRequestPDFData {
   id: string;
   request_number: string;
   title: string;
+  description?: string | null;
+  quantity: number;
+  estimated_cost: number;
+  currency: string;
+  budget_code?: string | null;
+  justification?: string | null;
+  vendor_name?: string | null;
   status: string;
+  current_approval_level: number;
+  requested_at: string;
   tenant_id: string;
-  requester?: { full_name: string | null; employee_id: string | null } | null;
-  category?: { name: string; name_ar: string | null } | null;
-  type?: { name: string; name_ar: string | null } | null;
+  requester?: { full_name: string; employee_id?: string | null } | null;
+  category?: { name: string; name_ar?: string | null } | null;
+  type?: { name: string; name_ar?: string | null } | null;
   [key: string]: unknown;
 }
 
@@ -92,7 +101,6 @@ export function PurchaseRequestsTable() {
       const { supabase } = await import('@/integrations/supabase/client');
       
       // Fetch request data with joined relations
-      // @ts-expect-error Deep type instantiation on joined select
       const { data: request, error } = await supabase
         .from('asset_purchase_requests')
         .select(`
@@ -108,7 +116,6 @@ export function PurchaseRequestsTable() {
       const typedRequest = request as unknown as PurchaseRequestPDFData;
 
       // Fetch approvals with joined approver
-      // @ts-expect-error Deep type instantiation on joined select
       const { data: approvals } = await supabase
         .from('asset_purchase_approvals')
         .select(`
