@@ -41,6 +41,8 @@ interface IncidentData {
     subtype?: string | null;
     special_event?: { name: string } | null;
     related_contractor_company?: { company_name: string } | null;
+    created_at?: string;
+    updated_at?: string;
     [key: string]: unknown;
 }
 

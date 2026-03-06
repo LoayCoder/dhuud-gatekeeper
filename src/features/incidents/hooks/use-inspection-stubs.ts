@@ -93,89 +93,8 @@ export interface InspectionAction {
   [key: string]: unknown;
 }
 
-// Mutation input types
-interface StartInspectionInput {
-  templateId: string;
-  assetId?: string;
-  siteId?: string;
-}
-
-interface CreateSessionInput {
-  template_id: string;
-  site_id?: string;
-  branch_id?: string;
-}
-
-interface UpdateSessionInput {
-  id: string;
-  status?: string;
-  score?: number;
-}
-
-interface RecordAssetInspectionInput {
-  session_asset_id: string;
-  quick_result: string;
-  failure_reason?: string;
-  notes?: string;
-  gps_lat?: number;
-  gps_lng?: number;
-  photo_paths?: string[];
-}
-
-interface CreateFindingInput {
-  session_id: string;
-  session_asset_id?: string;
-  asset_id?: string;
-  classification: string;
-  risk_level: string;
-  description: string;
-}
-
-interface UploadPhotoInput {
-  responseId: string;
-  sessionId: string;
-  file: File;
-}
-
-interface TemplateItemInput {
-  template_id: string;
-  item_code: string;
-  description: string;
-  response_type: string;
-  is_critical?: boolean;
-  sort_order?: number;
-}
-
-interface ScheduleInput {
-  name: string;
-  template_id: string;
-  schedule_type: string;
-  frequency: string;
-}
-
-interface BulkStatusInput {
-  ids: string[];
-  is_active: boolean;
-}
-
-interface ActionStatusInput {
-  id: string;
-  status: string;
-}
-
-interface ActionFromFindingInput {
-  finding_id: string;
-  title: string;
-  description: string;
-  priority: string;
-  assigned_to: string;
-  due_date: string;
-}
-
-interface VerifyActionInput {
-  actionId: string;
-  notes?: string;
-}
+// Flexible record for stub mutations — consumers pass various shapes
+type StubInput = Record<string, unknown>;
 
 // ---- Hooks ----
 
@@ -225,7 +144,7 @@ export function useOverdueSchedulesCount() {
 export function useStartInspection() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: StartInspectionInput) => data,
+    mutationFn: async (data: StubInput) => ({ id: '', ...data }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['inspections'] }),
   });
 }
@@ -256,7 +175,7 @@ export function useTemplateItems(templateId: string) {
 export function useCreateTemplateItem() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: TemplateItemInput) => data,
+    mutationFn: async (data: StubInput) => data,
     onSuccess: () => qc.invalidateQueries({ queryKey: ['template-items'] }),
   });
 }
@@ -264,7 +183,7 @@ export function useCreateTemplateItem() {
 export function useUpdateTemplateItem() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: Partial<TemplateItemInput> & { id: string }) => data,
+    mutationFn: async (data: StubInput) => data,
     onSuccess: () => qc.invalidateQueries({ queryKey: ['template-items'] }),
   });
 }
@@ -280,7 +199,7 @@ export function useDeleteTemplateItem() {
 export function useCreateInspectionSchedule() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: ScheduleInput) => data,
+    mutationFn: async (data: StubInput) => data,
     onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-schedules'] }),
   });
 }
@@ -288,7 +207,7 @@ export function useCreateInspectionSchedule() {
 export function useUpdateInspectionSchedule() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: Partial<ScheduleInput> & { id: string }) => data,
+    mutationFn: async (data: StubInput) => data,
     onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-schedules'] }),
   });
 }
@@ -300,28 +219,25 @@ export function calculatePreviewDates(..._args: unknown[]): Date[] {
 export function useVerifyAction() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: VerifyActionInput) => data,
+    mutationFn: async (data: StubInput) => data,
     onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-actions'] }),
   });
 }
 
 // Session hooks
-// InspectionSession and SessionAsset types are exported from use-inspection-sessions/types.ts
-// Do not re-export them here to avoid conflicts.
-
 export function useCreateSession() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: async (data: CreateSessionInput) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['sessions'] }) });
+  return useMutation({ mutationFn: async (data: StubInput) => ({ id: '', ...data }), onSuccess: () => qc.invalidateQueries({ queryKey: ['sessions'] }) });
 }
 
 export function useStartSession() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: async (data: CreateSessionInput) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['sessions'] }) });
+  return useMutation({ mutationFn: async (data: StubInput) => ({ id: '', ...data }), onSuccess: () => qc.invalidateQueries({ queryKey: ['sessions'] }) });
 }
 
 export function useUpdateSession() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: async (data: UpdateSessionInput) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['sessions'] }) });
+  return useMutation({ mutationFn: async (data: StubInput) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['sessions'] }) });
 }
 
 export function useSessionActions(sessionId: string) {
@@ -330,12 +246,12 @@ export function useSessionActions(sessionId: string) {
 
 export function useRecordAssetInspection() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: async (data: RecordAssetInspectionInput) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['sessions'] }) });
+  return useMutation({ mutationFn: async (data: StubInput) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['sessions'] }) });
 }
 
 export function useCreateFinding() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: async (data: CreateFindingInput) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['findings'] }) });
+  return useMutation({ mutationFn: async (data: StubInput) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['findings'] }) });
 }
 
 // Photo hooks
@@ -345,12 +261,12 @@ export function useInspectionPhotos(responseId: string) {
 
 export function useUploadInspectionPhoto() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: async (data: UploadPhotoInput) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-photos'] }) });
+  return useMutation({ mutationFn: async (data: StubInput) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-photos'] }) });
 }
 
 export function useDeleteInspectionPhoto() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: async (data: { photoId: string; responseId: string }) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-photos'] }) });
+  return useMutation({ mutationFn: async (data: StubInput) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-photos'] }) });
 }
 
 export function getPhotoUrl(path: string): string {
@@ -372,11 +288,11 @@ export async function canApproveDeptRep(userId: string, incidentId: string) { re
 // Template CRUD stubs
 export function useCreateTemplate() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: async (data: Partial<InspectionTemplate>) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-templates'] }) });
+  return useMutation({ mutationFn: async (data: StubInput) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-templates'] }) });
 }
 export function useUpdateTemplate() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: async (data: Partial<InspectionTemplate> & { id: string }) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-templates'] }) });
+  return useMutation({ mutationFn: async (data: StubInput) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-templates'] }) });
 }
 export function useDeleteTemplate() {
   const qc = useQueryClient();
@@ -384,7 +300,7 @@ export function useDeleteTemplate() {
 }
 export function useBulkUpdateTemplateStatus() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: async (data: BulkStatusInput) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-templates'] }) });
+  return useMutation({ mutationFn: async (data: StubInput) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-templates'] }) });
 }
 export function useBulkDeleteTemplates() {
   const qc = useQueryClient();
@@ -400,7 +316,7 @@ export function useInspectionResponses(sessionId: string) {
 }
 export function useSaveInspectionResponse() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: async (data: { inspection_id: string; template_item_id: string; response_value?: string; result?: string; notes?: string }) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-responses'] }) });
+  return useMutation({ mutationFn: async (data: StubInput) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-responses'] }) });
 }
 export function useCompleteInspection() {
   const qc = useQueryClient();
@@ -413,10 +329,10 @@ export function useCancelInspection() {
 
 // Asset photo/document stubs  
 export function useAssetPhotos(assetId: string) {
-  return useQuery({ queryKey: ['asset-photos', assetId], queryFn: async () => [] as Array<{ id: string; storage_path: string }>, enabled: !!assetId });
+  return useQuery({ queryKey: ['asset-photos', assetId], queryFn: async () => [] as Array<{ id: string; storage_path: string; file_name: string; is_primary: boolean; caption: string | null; created_at: string }>, enabled: !!assetId });
 }
 export function useAssetDocuments(assetId: string) {
-  return useQuery({ queryKey: ['asset-documents', assetId], queryFn: async () => [] as Array<{ id: string; file_name: string }>, enabled: !!assetId });
+  return useQuery({ queryKey: ['asset-documents', assetId], queryFn: async () => [] as Array<{ id: string; file_name: string; storage_path: string; document_type: string; title: string; expiry_date: string | null; created_at: string }>, enabled: !!assetId });
 }
 
 // ---- Analytics & Dashboard stubs ----
@@ -437,10 +353,7 @@ interface SessionTrendItem {
 interface FindingsTrendItem {
   date: string;
   total: number;
-  critical?: number;
-  major?: number;
-  minor?: number;
-  observation?: number;
+  [key: string]: unknown;
 }
 
 interface FailingItem {
@@ -476,20 +389,6 @@ interface RecentFinding {
   description: string | null;
   created_at: string | null;
   session: { reference_id: string } | null;
-}
-
-interface AssignedInvestigation {
-  id: string;
-  incident_id: string;
-  status: string;
-  created_at: string;
-}
-
-interface ScheduledInspection {
-  id: string;
-  template_id: string;
-  scheduled_date: string;
-  status: string;
 }
 
 export function useInspectionAnalytics(filters?: AnalyticsFilters) {
@@ -560,18 +459,16 @@ export function useToggleScheduleActive() {
 // Action status hooks
 export function useUpdateInspectionActionStatus() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: async (data: ActionStatusInput) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['my-inspection-actions'] }) });
+  return useMutation({ mutationFn: async (data: StubInput) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['my-inspection-actions'] }) });
 }
-
-// useUploadActionEvidence already exported from use-action-evidence.ts
 
 // My Actions workflow stubs
 export function useMyAssignedInvestigations() {
-  return useQuery({ queryKey: ['my-assigned-investigations'], queryFn: async () => [] as AssignedInvestigation[] });
+  return useQuery({ queryKey: ['my-assigned-investigations'], queryFn: async () => [] as Array<Record<string, unknown>> });
 }
 
 export function useMyScheduledInspections() {
-  return useQuery({ queryKey: ['my-scheduled-inspections'], queryFn: async () => [] as ScheduledInspection[] });
+  return useQuery({ queryKey: ['my-scheduled-inspections'], queryFn: async () => [] as Array<Record<string, unknown>> });
 }
 
 // KPI type
@@ -587,5 +484,5 @@ export interface KPIItem {
 // Inspection session hooks for pages that import from features/incidents
 export function useCreateActionFromFinding() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: async (data: ActionFromFindingInput) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-actions'] }) });
+  return useMutation({ mutationFn: async (data: StubInput) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['inspection-actions'] }) });
 }
