@@ -110,7 +110,7 @@ export default function UserManagement() {
   }, [userTypeFilter, statusFilter, branchFilter, divisionFilter, roleFilter]);
 
   const userStats = useMemo(() => {
-    const activeUsers = users.filter((u: any) => u.is_active).length;
+    const activeUsers = (users as UserWithRoles[]).filter((u) => u.is_active).length;
     return { total: totalCount, active: activeUsers, inactive: totalCount - activeUsers };
   }, [users, totalCount]);
 
@@ -147,7 +147,7 @@ export default function UserManagement() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <span className="text-sm font-medium">
-                  {String(t('userManagement.selectedCount', { count: selectedUsers.size } as Record<string, unknown>))}
+                  {`${selectedUsers.size} selected`}
                 </span>
                 <Button variant="ghost" size="sm" onClick={() => setSelectedUsers(new Set())}>
                   {t('userManagement.clearSelection')}
