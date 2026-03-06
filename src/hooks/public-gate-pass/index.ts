@@ -17,8 +17,32 @@ export function useSubmitPublicGatePass() {
   return useMutation({ mutationFn: async (data: Record<string, unknown>) => data, onSuccess: () => qc.invalidateQueries({ queryKey: ['public-gate-pass'] }) });
 }
 
+export interface PublicGatePassStatusData {
+  id: string;
+  reference_number: string;
+  status: string;
+  brand_color?: string;
+  rejection_reason?: string;
+  requester_name?: string;
+  requester_phone?: string;
+  requester_company?: string;
+  vehicle_plate_letters?: string;
+  vehicle_plate_numbers?: string;
+  driver_name?: string;
+  start_date?: string;
+  end_date?: string;
+  pass_type?: string;
+  latitude?: number;
+  longitude?: number;
+  logo_url?: string;
+  name?: string;
+  address?: string;
+  items?: Array<Record<string, unknown>>;
+  [key: string]: unknown;
+}
+
 export function usePublicGatePassStatus(tenantSlug?: string, token?: string) {
-  return useQuery({ queryKey: ['public-gate-pass-status', tenantSlug, token], queryFn: async () => ({} as Record<string, unknown>), enabled: !!tenantSlug && !!token });
+  return useQuery({ queryKey: ['public-gate-pass-status', tenantSlug, token], queryFn: async () => ({} as PublicGatePassStatusData), enabled: !!tenantSlug && !!token });
 }
 
 export function usePublicGatePassRealtime(tenantSlug?: string, token?: string, onUpdate?: () => void) {

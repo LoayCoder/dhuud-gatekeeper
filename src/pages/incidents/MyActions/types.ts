@@ -11,5 +11,8 @@ export interface ActionForDialog {
 }
 
 export interface MyActionsViewProps {
+  t?: (key: string, fallback?: string) => string;
+  isLoading?: boolean;
+  allActions?: ActionForDialog[];
   [key: string]: unknown;
 }
