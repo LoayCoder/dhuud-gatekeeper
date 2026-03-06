@@ -1,4 +1,4 @@
-﻿import { supabase } from '../supabaseClient';
+import { supabase } from '../supabaseClient';
 import type { SecurityAuditLog, AuditLogInput } from '@/features/security';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -57,13 +57,13 @@ export const getSecurityAuditLogs = async (tenantId: string, filters?: SecurityA
 };
 
 export const logSecurityAudit = async (tenantId: string, userId: string | undefined, userName: string | undefined, log: AuditLogInput) => {
-    const insertData: any = {
+    const insertData: Record<string, unknown> = {
         ...log,
         tenant_id: tenantId,
         actor_id: userId,
         actor_name: userName,
         user_agent: navigator.userAgent,
-        metadata: (log.metadata || {}) as any,
+        metadata: (log.metadata || {}) as Record<string, unknown>,
     };
 
     const { error } = await supabase
