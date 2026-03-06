@@ -185,13 +185,19 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
     
     // Prefer contractor_safety_officers table
     if (existingOfficers.length > 0) {
-      setSafetyOfficers(existingOfficers.map(o => ({
+      const officersWithExtras = existingOfficers as Array<typeof existingOfficers[number] & {
+        national_id?: string | null;
+        mobile_number?: string | null;
+        nationality?: string | null;
+        photo_path?: string | null;
+      }>;
+      setSafetyOfficers(officersWithExtras.map(o => ({
         id: o.id,
         full_name: o.name,
-        national_id: (o as any).national_id || "",
-        mobile_number: (o as any).mobile_number || o.phone || "",
-        nationality: (o as any).nationality || "",
-        photo_path: (o as any).photo_path || null,
+        national_id: o.national_id || "",
+        mobile_number: o.mobile_number || o.phone || "",
+        nationality: o.nationality || "",
+        photo_path: o.photo_path || null,
         phone: o.phone || "",
         email: o.email || "",
         is_primary: o.is_primary,

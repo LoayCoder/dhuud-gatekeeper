@@ -163,7 +163,9 @@ export function GatePassDetailDialog({
 
             <TabsContent value="timeline" className="mt-0">
               <TimelineTab
-                {...{ passDetails, isLoading: isLoadingDetails, dateLocale, isRTL, t } as any}
+                gatePassId={pass.id}
+                events={[]}
+                isLoading={isLoadingDetails}
               />
             </TabsContent>
           </ScrollArea>

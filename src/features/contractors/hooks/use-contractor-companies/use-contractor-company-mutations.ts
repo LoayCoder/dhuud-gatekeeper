@@ -12,7 +12,7 @@ export function useCreateContractorCompany() {
         mutationFn: async (data: Partial<ContractorCompany> & Record<string, unknown>) => {
             if (!profile?.tenant_id) throw new Error("No tenant");
 
-            const { data: result, error } = await (supabase as any)
+            const { data: result, error } = await supabase
                 .from("contractor_companies")
                 .insert({
                     company_name: data.company_name!,
@@ -27,15 +27,15 @@ export function useCreateContractorCompany() {
                     status: "pending_approval",
                     approval_requested_at: new Date().toISOString(),
                     created_by: user?.id,
-                    scope_of_work: data.scope_of_work,
-                    contract_start_date: data.contract_start_date,
-                    contract_end_date: data.contract_end_date,
-                    total_workers: data.total_workers || 0,
-                    safety_officers_count: data.safety_officers_count || 0,
-                    client_site_rep_id: data.client_site_rep_id,
-                    assigned_branch_id: data.assigned_branch_id,
-                    assigned_department_id: data.assigned_department_id,
-                    assigned_section_id: data.assigned_section_id,
+                    scope_of_work: data.scope_of_work as string | undefined,
+                    contract_start_date: data.contract_start_date as string | undefined,
+                    contract_end_date: data.contract_end_date as string | undefined,
+                    total_workers: (data.total_workers as number) || 0,
+                    safety_officers_count: (data.safety_officers_count as number) || 0,
+                    client_site_rep_id: data.client_site_rep_id as string | undefined,
+                    assigned_branch_id: data.assigned_branch_id as string | undefined,
+                    assigned_department_id: data.assigned_department_id as string | undefined,
+                    assigned_section_id: data.assigned_section_id as string | undefined,
                 })
                 .select()
                 .single();
@@ -58,7 +58,7 @@ export function useUpdateContractorCompany() {
 
     return useMutation({
         mutationFn: async ({ id, data }: { id: string; data: Partial<ContractorCompany> & Record<string, unknown> }) => {
-            const { data: result, error } = await (supabase as any)
+            const { data: result, error } = await supabase
                 .from("contractor_companies")
                 .update({
                     company_name: data.company_name,
@@ -69,15 +69,15 @@ export function useUpdateContractorCompany() {
                     phone: data.phone,
                     address: data.address,
                     city: data.city,
-                    scope_of_work: data.scope_of_work,
-                    contract_start_date: data.contract_start_date,
-                    contract_end_date: data.contract_end_date,
-                    total_workers: data.total_workers,
-                    safety_officers_count: data.safety_officers_count,
-                    client_site_rep_id: data.client_site_rep_id,
-                    assigned_branch_id: data.assigned_branch_id,
-                    assigned_department_id: data.assigned_department_id,
-                    assigned_section_id: data.assigned_section_id,
+                    scope_of_work: data.scope_of_work as string | undefined,
+                    contract_start_date: data.contract_start_date as string | undefined,
+                    contract_end_date: data.contract_end_date as string | undefined,
+                    total_workers: data.total_workers as number | undefined,
+                    safety_officers_count: data.safety_officers_count as number | undefined,
+                    client_site_rep_id: data.client_site_rep_id as string | undefined,
+                    assigned_branch_id: data.assigned_branch_id as string | undefined,
+                    assigned_department_id: data.assigned_department_id as string | undefined,
+                    assigned_section_id: data.assigned_section_id as string | undefined,
                 })
                 .eq("id", id)
                 .select()
