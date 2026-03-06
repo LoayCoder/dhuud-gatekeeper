@@ -209,7 +209,7 @@ function AreaSessionWorkspaceContent() {
               session={session}
               responses={responses}
               findings={[]}
-            templateItems={templateItems as any}
+            templateItems={templateItems as unknown as Parameters<typeof SessionExportDropdown>[0]['templateItems']}
             isAreaSession={true}
             />
           )}
