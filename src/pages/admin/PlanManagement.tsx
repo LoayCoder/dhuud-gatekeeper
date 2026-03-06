@@ -183,7 +183,7 @@ export default function PlanManagement() {
           
           const { error: moduleError } = await supabase
             .from('plan_modules')
-            .insert(moduleInserts as unknown as Parameters<typeof supabase.from<'plan_modules'>>[0][]);
+            .insert(moduleInserts as Database['public']['Tables']['plan_modules']['Insert'][]);
           if (moduleError) throw moduleError;
         }
       }

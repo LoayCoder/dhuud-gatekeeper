@@ -98,10 +98,10 @@ export default function SecurityAuditLog() {
           <ActiveSessionsTab tenantId={selectedTenantId} />
         </TabsContent>
 
-        <SuspiciousActivityTabContent state={state as Parameters<typeof SuspiciousActivityTabContent>[0]['state']} />
-        <SecurityEventsTabContent state={state as Parameters<typeof SecurityEventsTabContent>[0]['state']} />
-        <UserManagementTabContent state={state as Parameters<typeof UserManagementTabContent>[0]['state']} />
-        <SensitiveDataAccessTabContent state={state as Parameters<typeof SensitiveDataAccessTabContent>[0]['state']} />
+        <SuspiciousActivityTabContent state={state as unknown as Parameters<typeof SuspiciousActivityTabContent>[0]['state']} />
+        <SecurityEventsTabContent state={state as unknown as Parameters<typeof SecurityEventsTabContent>[0]['state']} />
+        <UserManagementTabContent state={state as unknown as Parameters<typeof UserManagementTabContent>[0]['state']} />
+        <SensitiveDataAccessTabContent state={state as unknown as Parameters<typeof SensitiveDataAccessTabContent>[0]['state']} />
 
         {/* Settings & Actions Tab */}
         <TabsContent value="settings-actions">
