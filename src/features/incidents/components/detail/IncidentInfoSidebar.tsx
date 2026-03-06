@@ -14,14 +14,14 @@ import { format } from 'date-fns';
 
 interface IncidentInfoSidebarProps {
   incident: {
-    reporter?: { full_name: string; } | null;
+    reporter?: { full_name?: string } | null;
     department_info?: { name: string } | null;
     branch?: { name: string } | null;
     site?: { name: string } | null;
-    occurred_at: string | null;
-    created_at: string | null;
-    updated_at: string | null;
-    event_type: string;
+    occurred_at?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+    event_type?: string | null;
     incident_type?: string;
     subtype?: string;
     related_contractor_company?: { company_name: string } | null;
