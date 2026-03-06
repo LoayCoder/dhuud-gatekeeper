@@ -93,7 +93,7 @@ export default function UserManagement() {
     exporting = false, handleExport = () => {}, handleAddUser = () => {},
     setIsImportDialogOpen = () => {}, refetchUsers = () => {},
     handleBulkActionClick = () => {}, quota = null, breakdown = null, quotaLoading = false,
-    activeFilterCount: _afc, clearAllFilters = () => {},
+    clearAllFilters = () => {},
   } = allProps;
 
   const allSelected = (users as UserWithRoles[]).length > 0 && (users as UserWithRoles[]).every((u) => selectedUsers.has?.(u.id));
