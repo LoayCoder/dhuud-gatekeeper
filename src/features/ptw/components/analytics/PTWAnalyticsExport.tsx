@@ -36,7 +36,7 @@ export function PTWAnalyticsExport({
   const [isExporting, setIsExporting] = useState(false);
 
   const menuCode = "ptw_analytics";
-  const entityType = "permit";
+  const entityType = "permit" as const;
 
   const getDateRangeString = () => {
     if (dateRange?.start && dateRange?.end) {
