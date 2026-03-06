@@ -168,7 +168,7 @@ export function PermitSafetyStep({ data, onChange, typeId }: PermitSafetyStepPro
                     onCheckedChange={(checked) => toggleRequirement(req.id, !!checked)}
                   />
                   <Label htmlFor={req.id} className="flex items-center gap-2 cursor-pointer">
-                    {t(`ptw.safety.req.${req.id}`, req.label)}
+                    {String(t(`ptw.safety.req.${req.id}`, req.label))}
                     {req.isCritical && (
                       <Badge variant="destructive" className="text-xs">
                         {t("ptw.safety.critical", "Critical")}
