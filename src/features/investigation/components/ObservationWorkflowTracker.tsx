@@ -105,6 +105,7 @@ export function ObservationWorkflowTracker({
     // Step 2: Consultant Screening
     // Use timestamp-based completion check - only marked complete if actually screened
     const consultantScreenedAt = vi.consultant_screened_at;
+    const consultantCompleted = consultantScreenedAt != null;
     
     // Include legacy 'expert_screening' status for contractor consultant screening
     const isConsultantScreeningActive = status === 'pending_consultant_screening' || status === 'expert_screening';
@@ -163,6 +164,7 @@ export function ObservationWorkflowTracker({
     const siteClientStatuses = ['pending_site_client_approval', 'pending_site_client_action_approval'];
     // Use timestamp-based check for site client approval
     const siteClientApprovedAt = vi.site_client_approved_at;
+    const siteClientCompleted = siteClientApprovedAt != null;
     
     steps.push({
       key: 'site_client_approval',
@@ -178,6 +180,7 @@ export function ObservationWorkflowTracker({
     const implementationStatuses = ['contractor_action_implementation', 'pending_contractor_action'];
     // Use timestamp-based check for contractor implementation
     const contractorImplementedAt = vi.contractor_actions_completed_at || vi.contractor_implemented_at;
+    const implementationCompleted = contractorImplementedAt != null;
     
     steps.push({
       key: 'contractor_implementation',
