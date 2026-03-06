@@ -16,6 +16,23 @@ export interface GuardActivity {
   severity?: 'info' | 'warning' | 'critical' | 'success';
 }
 
+interface ShiftRosterRow {
+  id: string;
+  check_in_time: string | null;
+  check_out_time: string | null;
+  shift: { shift_name?: string } | null;
+}
+
+interface GeofenceAlertRow {
+  id: string;
+  created_at: string;
+  alert_type: string;
+  severity: string;
+  alert_message: string | null;
+  acknowledged_at: string | null;
+  resolved_at: string | null;
+}
+
 export function useGuardActivity(guardId: string | null, limit: number = 50) {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
@@ -46,8 +63,8 @@ export function useGuardActivity(guardId: string | null, limit: number = 50) {
         .limit(10);
 
       if (shifts) {
-        for (const shift of shifts as any[]) {
-          const shiftData = shift.shift as { shift_name?: string } | null;
+        for (const shift of shifts as unknown as ShiftRosterRow[]) {
+          const shiftData = shift.shift;
           if (shift.check_in_time) {
             activities.push({
               id: `checkin-${shift.id}`,
@@ -88,7 +105,7 @@ export function useGuardActivity(guardId: string | null, limit: number = 50) {
 
       if (locations) {
         // Sample every 5th location to avoid flooding the timeline
-        const sampledLocations = (locations as any[]).filter((_, i) => i % 5 === 0);
+        const sampledLocations = locations.filter((_: unknown, i: number) => i % 5 === 0);
         for (const loc of sampledLocations) {
           activities.push({
             id: `loc-${loc.id}`,
@@ -149,8 +166,8 @@ export function useGuardActivity(guardId: string | null, limit: number = 50) {
         .limit(10);
 
       if (alerts) {
-        for (const alert of alerts as any[]) {
-          const alertSeverity = alert.severity === 'critical' ? 'critical' : 
+        for (const alert of alerts as unknown as GeofenceAlertRow[]) {
+          const alertSeverity: 'info' | 'warning' | 'critical' = alert.severity === 'critical' ? 'critical' : 
                                alert.severity === 'high' ? 'warning' : 'info';
           activities.push({
             id: `alert-${alert.id}`,
@@ -159,7 +176,7 @@ export function useGuardActivity(guardId: string | null, limit: number = 50) {
             title: getAlertTitle(alert.alert_type),
             titleAr: getAlertTitleAr(alert.alert_type),
             description: alert.alert_message || '',
-            severity: alertSeverity as 'info' | 'warning' | 'critical',
+            severity: alertSeverity,
             metadata: { 
               acknowledged: !!alert.acknowledged_at, 
               resolved: !!alert.resolved_at,

@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 
+// Extend Navigator for Badge API (experimental)
+interface NavigatorWithBadge extends Navigator {
+  setAppBadge?: (count: number) => Promise<void>;
+  clearAppBadge?: () => Promise<void>;
+}
+
 interface BadgeAPI {
   isSupported: boolean;
   setBadge: (count: number) => Promise<void>;
@@ -14,41 +20,35 @@ export function useBadgeAPI(): BadgeAPI {
   const [isSupported, setIsSupported] = useState(false);
 
   useEffect(() => {
-    // Check if Badge API is supported
     const supported = 'setAppBadge' in navigator && 'clearAppBadge' in navigator;
     setIsSupported(supported);
   }, []);
 
   const setBadge = useCallback(async (count: number) => {
     if (!isSupported) return;
-    
+    const nav = navigator as NavigatorWithBadge;
     try {
       if (count > 0) {
-        await (navigator as any).setAppBadge(count);
+        await nav.setAppBadge?.(count);
       } else {
-        await (navigator as any).clearAppBadge();
+        await nav.clearAppBadge?.();
       }
     } catch (error) {
-      // Badge API might fail in some contexts (not installed PWA, permissions)
       console.debug('[Badge API] Failed to set badge:', error);
     }
   }, [isSupported]);
 
   const clearBadge = useCallback(async () => {
     if (!isSupported) return;
-    
+    const nav = navigator as NavigatorWithBadge;
     try {
-      await (navigator as any).clearAppBadge();
+      await nav.clearAppBadge?.();
     } catch (error) {
       console.debug('[Badge API] Failed to clear badge:', error);
     }
   }, [isSupported]);
 
-  return {
-    isSupported,
-    setBadge,
-    clearBadge,
-  };
+  return { isSupported, setBadge, clearBadge };
 }
 
 /**
@@ -59,17 +59,12 @@ export function useNotificationBadge(unreadCount: number) {
 
   useEffect(() => {
     if (!isSupported) return;
-
     if (unreadCount > 0) {
       setBadge(unreadCount);
     } else {
       clearBadge();
     }
-
-    // Clean up on unmount
-    return () => {
-      clearBadge();
-    };
+    return () => { clearBadge(); };
   }, [unreadCount, isSupported, setBadge, clearBadge]);
 
   return { isSupported };

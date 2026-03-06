@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useSecurityZones } from '@/features/security';
-import { findCurrentZone, findNearestZone, type CurrentZoneResult } from '@/lib/zone-detection';
+import { findCurrentZone, findNearestZone, type CurrentZoneResult, type ZoneWithPolygon } from '@/lib/zone-detection';
 
 interface UseCurrentZoneResult {
   currentZone: CurrentZoneResult | null;
@@ -11,9 +11,6 @@ interface UseCurrentZoneResult {
   detectZone: () => void;
 }
 
-/**
- * Hook to detect user's current security zone based on GPS location
- */
 export function useCurrentZone(): UseCurrentZoneResult {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isLocating, setIsLocating] = useState(false);
@@ -23,14 +20,13 @@ export function useCurrentZone(): UseCurrentZoneResult {
 
   const currentZone = useMemo(() => {
     if (!location || !zones.length) return null;
-    return findCurrentZone(location.lat, location.lng, zones as any);
+    return findCurrentZone(location.lat, location.lng, zones as unknown as ZoneWithPolygon[]);
   }, [location, zones]);
 
   const nearestZone = useMemo(() => {
     if (!location || !zones.length) return null;
-    // Find nearest zone within 500m if not inside any zone
     if (!currentZone) {
-      return findNearestZone(location.lat, location.lng, zones as any, 500);
+      return findNearestZone(location.lat, location.lng, zones as unknown as ZoneWithPolygon[], 500);
     }
     return null;
   }, [location, zones, currentZone]);
@@ -40,37 +36,20 @@ export function useCurrentZone(): UseCurrentZoneResult {
       setError('Geolocation is not supported by this browser');
       return;
     }
-
     setIsLocating(true);
     setError(null);
-
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setLocation({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
+        setLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
         setIsLocating(false);
       },
       (err) => {
         setError(err.message);
         setIsLocating(false);
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   }, []);
 
-  return {
-    currentZone,
-    nearestZone,
-    isLocating,
-    error,
-    location,
-    detectZone,
-  };
+  return { currentZone, nearestZone, isLocating, error, location, detectZone };
 }
-
