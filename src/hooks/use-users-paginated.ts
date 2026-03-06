@@ -39,7 +39,7 @@ export function useUsersPaginated(options?: { filters?: UseUsersPaginatedFilters
     queryFn: async () => {
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
-      const { data, error, count } = await (supabase as any)
+      const { data, error, count } = await supabase
         .from('profiles')
         .select('id, full_name, email, user_type, is_active, has_login, employee_id, job_title, assigned_branch_id', { count: 'exact' })
         .is('deleted_at', null)

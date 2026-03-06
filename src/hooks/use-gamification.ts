@@ -59,8 +59,8 @@ export function useGamification() {
 
             // Observations Reported (Assuming they are incidents with type 'observation' OR separate table)
             // Checking 'observations' table first as per previous context
-            const { count: observationsCount } = await (supabase as any)
-                .from('observations')
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- observations table may not be in generated types
+            const { count: observationsCount } = await (supabase.from('observations') as any)
                 .select('*', { count: 'exact', head: true })
                 .eq('tenant_id', tenantId)
                 .eq('created_by', user.id);

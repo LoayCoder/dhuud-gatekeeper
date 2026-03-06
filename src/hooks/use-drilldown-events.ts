@@ -95,8 +95,8 @@ export function useDrilldownEvents(filters: DrillDownFilter, enabled: boolean) {
         .limit(50);
 
       if (filters.eventType) query = query.eq("event_type", filters.eventType);
-      if (filters.severity) query = query.eq("severity", filters.severity as any);
-      if (filters.status) query = query.eq("status", filters.status as any);
+      if (filters.severity) query = query.eq("severity", filters.severity);
+      if (filters.status) query = query.eq("status", filters.status);
       if (filters.branchId) query = query.eq("branch_id", filters.branchId);
       if (filters.siteId) query = query.eq("site_id", filters.siteId);
       if (filters.departmentId) query = query.eq("department_id", filters.departmentId);
