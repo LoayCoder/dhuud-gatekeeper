@@ -49,11 +49,18 @@ interface InspectionSessionRow {
 
 /**
  * Helper: returns a loosely-typed Supabase query builder for tables/columns
- * that may not yet be in the generated types (e.g. observations, or status
- * enum values added after last codegen).
+ * that may not yet be in the generated types.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const untypedFrom = (table: string) => (supabase as unknown as Record<string, (...args: unknown[]) => unknown>).from(table) as ReturnType<typeof supabase.from>;
+function untypedFrom(table: string) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (supabase.from as (t: string) => Record<string, (...args: unknown[]) => unknown>)(table);
+}
+
+/** Typed wrapper around untypedFrom for incident queries */
+async function queryIncidents(builder: Record<string, unknown>) {
+    return builder as unknown as { data: IncidentRow[] | null };
+}
+
 
 // ── Exported interfaces ─────────────────────────────────────
 export interface UserOverviewStats {
