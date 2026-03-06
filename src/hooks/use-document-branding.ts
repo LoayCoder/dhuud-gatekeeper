@@ -13,10 +13,7 @@ import {
 } from "@/types/document-branding";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import type { Database } from "@/integrations/supabase/types";
-
-type DocSettingsRow = Database['public']['Tables']['tenant_document_settings']['Row'];
-type DocSettingsInsert = Database['public']['Tables']['tenant_document_settings']['Insert'];
+import type { DbBrandingRow } from "@/types/document-branding";
 
 export function useDocumentBranding() {
   const { t } = useTranslation();
@@ -44,7 +41,7 @@ export function useDocumentBranding() {
           updatedAt: new Date().toISOString(),
         } as DocumentBrandingSettings;
       }
-      return mapDbToDocumentSettings(data as unknown as Record<string, unknown>);
+      return mapDbToDocumentSettings(data as unknown as DbBrandingRow);
     },
     enabled: !!tenantId,
     staleTime: 5 * 60 * 1000,
@@ -57,11 +54,11 @@ export function useDocumentBranding() {
       dbData.tenant_id = tenantId;
       const { data, error } = await supabase
         .from("tenant_document_settings")
-        .upsert(dbData as DocSettingsInsert, { onConflict: "tenant_id" })
+        .upsert(dbData as unknown as Record<string, never>, { onConflict: "tenant_id" })
         .select()
         .single();
       if (error) throw error;
-      return mapDbToDocumentSettings(data as unknown as Record<string, unknown>);
+      return mapDbToDocumentSettings(data as unknown as DbBrandingRow);
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["document-branding", tenantId], data);
@@ -114,5 +111,5 @@ export async function fetchDocumentSettings(tenantId: string): Promise<DocumentB
     .maybeSingle();
   if (error) { console.error("Failed to fetch document settings:", error); return null; }
   if (!data) return null;
-  return mapDbToDocumentSettings(data as unknown as Record<string, unknown>);
+  return mapDbToDocumentSettings(data as unknown as DbBrandingRow);
 }

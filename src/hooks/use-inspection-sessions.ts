@@ -113,7 +113,7 @@ export function useSessionProgress(sessionId: string | undefined) {
         .eq('session_id', sessionId)
         .is('deleted_at', null);
       if (error) throw error;
-      const responses = (data || []) as ResponseRecord[];
+      const responses = (data || []) as unknown as ResponseRecord[];
       const total = responses.length;
       const completed = responses.filter((r) => r.result != null).length;
       return { total, completed, percentage: total > 0 ? Math.round((completed / total) * 100) : 0 };

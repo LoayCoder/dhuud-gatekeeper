@@ -8,9 +8,10 @@ interface AIValidatorReturn {
   validateIncident: (ctx: IncidentContext) => Promise<{ isValid: boolean; suggestions: unknown[] }>;
   isValidating: boolean;
   isAnalyzing: boolean;
-  analysisResult: unknown;
+  analysisResult: Record<string, unknown> | null;
   analyzeIncident: (...args: unknown[]) => void;
   validationState: string;
+  [key: string]: unknown;
 }
 
 // Stub until real hook is available

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 // Extend Navigator for Badge API (experimental)
-interface NavigatorWithBadge extends Navigator {
+interface NavigatorWithBadge {
   setAppBadge?: (count: number) => Promise<void>;
   clearAppBadge?: () => Promise<void>;
 }
