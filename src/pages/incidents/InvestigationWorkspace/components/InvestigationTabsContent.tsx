@@ -282,7 +282,7 @@ export function InvestigationTabsContent({
         {canAccessGovernance && investigationAllowed && isTabLocked('governance') && (
           <section id="governance" className="scroll-mt-32 pt-6 border-t border-border/40 space-y-4">
             <h3 className="text-xl font-semibold mb-6 flex items-center gap-2"><Scale className="h-5 w-5 text-primary" /> {t('investigation.tabs.governance', 'Governance')}</h3>
-            {status === 'investigation_in_progress' && (incidentData as any)?.related_contractor_company_id && investigation && (
+            {status === 'investigation_in_progress' && (incidentData as Record<string, unknown>)?.related_contractor_company_id && investigation && (
               <>
                 <InvestigatorViolationIdentificationCard
                   incident={incidentData}

@@ -230,7 +230,7 @@ export function useAssetRegisterState() {
         setCreationStatus('success');
       } else {
         console.log(`[Submit] Single asset creation: ${finalAssetCode}`);
-        const result = await createAsset.mutateAsync(assetData) as any;
+        const result = await createAsset.mutateAsync(assetData) as { id: string; asset_code: string };
         setCreatedAssetIds([result.id]);
         setCreatedAssetCodes([result.asset_code]);
         setCreationStatus('success');

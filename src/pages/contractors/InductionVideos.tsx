@@ -6,7 +6,7 @@ import { InductionVideoList } from '@/features/contractors';
 import { InductionVideoFormDialog } from '@/features/contractors';
 import { InductionComplianceWidget } from '@/features/contractors';
 import { useInductionVideos } from "@/hooks/contractor-management/index";
-type InductionVideo = any;
+type InductionVideo = NonNullable<ReturnType<typeof useInductionVideos>['data']>[number];
 
 export default function InductionVideos() {
   const { t } = useTranslation();
@@ -46,14 +46,14 @@ export default function InductionVideos() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <InductionVideoList videos={(videos || []) as any} isLoading={isLoading} onEdit={handleEdit} />
+          <InductionVideoList videos={(videos || []) as unknown as Parameters<typeof InductionVideoList>[0]['videos']} isLoading={isLoading} onEdit={handleEdit as Parameters<typeof InductionVideoList>[0]['onEdit']} />
         </div>
         <div>
           <InductionComplianceWidget />
         </div>
       </div>
 
-      <InductionVideoFormDialog open={isFormOpen} onOpenChange={handleClose} video={editingVideo} />
+      <InductionVideoFormDialog open={isFormOpen} onOpenChange={handleClose} video={editingVideo as unknown as Parameters<typeof InductionVideoFormDialog>[0]['video']} />
     </div>
   );
 }

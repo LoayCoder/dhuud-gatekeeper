@@ -176,13 +176,13 @@ export default function PublicRequestPage() {
 
   // Update item handler (bridges to useFieldArray)
   const handleItemUpdate = useCallback((index: number, field: keyof GatePassItemData, value: string | File | null) => {
-    form.setValue(`items.${index}.${field}` as any, value as any, { shouldValidate: false });
+    form.setValue(`items.${index}.${field}` as `items.${number}.${typeof field}`, value as never, { shouldValidate: false });
   }, [form]);
 
   // Add item handler
   const handleAddItem = useCallback(() => {
     if (fields.length < 10) {
-      append(createEmptyItem() as any);
+      append(createEmptyItem() as Parameters<typeof append>[0]);
     }
   }, [fields.length, append]);
 

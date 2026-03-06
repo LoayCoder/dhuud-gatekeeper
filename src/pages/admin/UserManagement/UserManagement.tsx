@@ -82,7 +82,8 @@ export default function UserManagement() {
   const coreActions = { ...saveActions, ...statusActions };
   const extraActions = useUserManagementExtraActions(state, data);
   const actions = { ...coreActions, ...extraActions };
-  const allProps = { ...state, ...data, ...actions } as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- mega-spread of multiple hook returns
+  const allProps = { ...state, ...data, ...actions } as any; // TODO: define AllUserManagementProps interface
   const {
     users = [], selectedUsers = new Set<string>(), setSelectedUsers = () => {},
     userTypeFilter = 'all', statusFilter = 'all', branchFilter = 'all',
