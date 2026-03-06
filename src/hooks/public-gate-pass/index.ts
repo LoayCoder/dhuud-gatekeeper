@@ -45,11 +45,20 @@ export interface PublicGatePassStatusData {
     address?: string;
     [key: string]: unknown;
   } | null;
+  branch: {
+    id: string;
+    name?: string;
+    address?: string;
+    latitude?: number;
+    longitude?: number;
+    [key: string]: unknown;
+  } | null;
+  error?: string;
   [key: string]: unknown;
 }
 
 export function usePublicGatePassStatus(tenantSlug?: string, token?: string) {
-  return useQuery({ queryKey: ['public-gate-pass-status', tenantSlug, token], queryFn: async () => ({ gate_pass: null, tenant: null } as PublicGatePassStatusData), enabled: !!tenantSlug && !!token });
+  return useQuery({ queryKey: ['public-gate-pass-status', tenantSlug, token], queryFn: async () => ({ gate_pass: null, tenant: null, branch: null } as PublicGatePassStatusData), enabled: !!tenantSlug && !!token });
 }
 
 export function usePublicGatePassRealtime(tenantSlug?: string, token?: string, onUpdate?: () => void) {
