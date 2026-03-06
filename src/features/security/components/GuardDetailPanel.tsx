@@ -141,26 +141,25 @@ function useGuardDetails(guardId: string | null) {
     queryKey: ['guard-patrols', guardId],
     queryFn: async (): Promise<PatrolLog[]> => {
       if (!guardId) return [];
-      const { data, error } = await supabase
+      const client = supabase as unknown as import('@/features/security/types').LooseSupabaseClient;
+      const { data, error } = await client
         .from('patrol_checkpoint_logs')
         .select(`
           id, scanned_at, notes,
           checkpoint:patrol_checkpoints(name)
         `)
         .eq('scanned_by', guardId)
-        .is('deleted_at', null)
-        .order('scanned_at', { ascending: false })
-        .limit(10);
+        .is('deleted_at', null);
       
       if (error) throw error;
-      return (data || []).map((log) => {
-        const checkpoint = log.checkpoint as unknown as { name?: string } | null;
+      return ((data as unknown as Array<Record<string, unknown>>) || []).map((log) => {
+        const checkpoint = log.checkpoint as { name?: string } | null;
         return {
-          id: log.id,
+          id: log.id as string,
           checkpoint_name: checkpoint?.name || 'Unknown',
-          scanned_at: log.scanned_at,
+          scanned_at: log.scanned_at as string,
           result: 'success',
-          notes: log.notes,
+          notes: log.notes as string | undefined,
         };
       });
     },
