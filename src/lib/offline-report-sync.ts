@@ -215,10 +215,9 @@ async function syncSingleReport(report: OfflineReport): Promise<{ id: string; re
     offline_synced_at: new Date().toISOString(),
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- offline sync builds dynamic insert payload
   const { data: incident, error: insertError } = await supabase
     .from('incidents')
-    .insert(incidentData as Record<string, unknown>)
+    .insert(incidentData as never)
     .select('id, reference_id')
     .single();
 

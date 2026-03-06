@@ -27,32 +27,36 @@ interface RawActivityRow {
 }
 
 async function fetchMyActivity(userId: string): Promise<ActivityItem[]> {
+  // Use LooseClient to avoid deep type instantiation on joined queries
+  interface LooseFrom { select: (q: string) => { eq: (c: string, v: string) => { is: (c: string, v: null) => { order: (c: string, o: { ascending: boolean }) => { limit: (n: number) => Promise<{ data: RawActivityRow[] | null }> } } } } }; }
+  interface LooseClient { from: (t: string) => LooseFrom; }
+  const client = supabase as unknown as LooseClient;
+
   const [incidentsRes, actionsRes, observationsRes] = await Promise.all([
-    supabase.from('incidents')
+    client.from('incidents')
       .select('id, title, status, created_at, reference_id')
       .eq('reported_by', userId)
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(3),
-    supabase.from('corrective_actions')
+    client.from('corrective_actions')
       .select('id, title, status, created_at, reference_id')
       .eq('assigned_to', userId)
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(3),
-    supabase.from('observations' as never)
+    client.from('observations')
       .select('id, title, status, created_at, reference_id')
       .eq('reported_by', userId)
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(3)
-      .then((res: { data: unknown[] | null }) => res)
-      .catch(() => ({ data: [] })),
+      .catch(() => ({ data: [] as RawActivityRow[] })),
   ]);
 
-  const incidents = (incidentsRes.data || []) as RawActivityRow[];
-  const actions = (actionsRes.data || []) as RawActivityRow[];
-  const observations = (observationsRes.data || []) as RawActivityRow[];
+  const incidents = (incidentsRes.data || []);
+  const actions = (actionsRes.data || []);
+  const observations = (observationsRes.data || []);
 
   const combined: ActivityItem[] = [
     ...incidents.map(i => ({

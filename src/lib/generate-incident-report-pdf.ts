@@ -309,7 +309,7 @@ async function fetchContractorViolation(incidentId: string): Promise<ContractorV
     related_contractor_company: { name: string } | null;
   }
 
-  const { data: incident } = await supabase
+  const { data: incident } = await (supabase as unknown as { from: (t: string) => { select: (q: string) => { eq: (c: string, v: string) => { single: () => Promise<{ data: ViolationRow | null }> } } } })
     .from('incidents')
     .select(`
       violation_type_id,
@@ -320,7 +320,7 @@ async function fetchContractorViolation(incidentId: string): Promise<ContractorV
       related_contractor_company:related_contractor_company_id(name)
     `)
     .eq('id', incidentId)
-    .single() as { data: ViolationRow | null };
+    .single();
 
   if (!incident || !incident.related_contractor_company) return null;
 
