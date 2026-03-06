@@ -19,8 +19,33 @@ import { IncidentInjuryCard } from "./IncidentInjuryCard";
 import { IncidentDamageCard } from "./IncidentDamageCard";
 import { IncidentInfoSidebar } from "./IncidentInfoSidebar";
 
+interface IncidentData {
+    reporter?: { full_name?: string } | null;
+    occurred_at?: string | null;
+    branch?: { name: string } | null;
+    site?: { name: string } | null;
+    location?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    description?: string | null;
+    immediate_actions?: string | null;
+    has_injury?: boolean;
+    injury_details?: unknown;
+    injury_classification?: string | null;
+    has_damage?: boolean;
+    damage_details?: unknown;
+    severity_v2?: string | null;
+    potential_severity_v2?: string | null;
+    event_type?: string | null;
+    incident_type?: string | null;
+    subtype?: string | null;
+    special_event?: { name: string } | null;
+    related_contractor_company?: { company_name: string } | null;
+    [key: string]: unknown;
+}
+
 interface IncidentOverviewTabProps {
-    incident: any;
+    incident: IncidentData;
 }
 
 export function IncidentOverviewTab({ incident }: IncidentOverviewTabProps) {
@@ -129,12 +154,12 @@ export function IncidentOverviewTab({ incident }: IncidentOverviewTabProps) {
                 <div className="grid gap-6 sm:grid-cols-2">
                     <IncidentInjuryCard
                         hasInjury={incident.has_injury || false}
-                        injuryDetails={incident.injury_details as unknown}
-                        injuryClassification={(incident as any).injury_classification}
+                        injuryDetails={incident.injury_details}
+                        injuryClassification={incident.injury_classification ?? undefined}
                     />
                     <IncidentDamageCard
                         hasDamage={incident.has_damage || false}
-                        damageDetails={incident.damage_details as unknown}
+                        damageDetails={incident.damage_details}
                     />
                 </div>
 
@@ -145,7 +170,7 @@ export function IncidentOverviewTab({ incident }: IncidentOverviewTabProps) {
                 {/* Risk Panel */}
                 <IncidentRiskPanel
                     actualSeverity={incident.severity_v2}
-                    potentialSeverity={(incident as any).potential_severity_v2}
+                    potentialSeverity={incident.potential_severity_v2 ?? undefined}
                     eventType={incident.event_type}
                 />
 
@@ -174,8 +199,8 @@ export function IncidentOverviewTab({ incident }: IncidentOverviewTabProps) {
                                         {t('incidents.category', 'Category')}
                                     </p>
                                     <p className="text-sm font-medium">
-                                        {(() => {
-                                            const cat = (incident as any).incident_type ||
+                        {(() => {
+                                            const cat = incident.incident_type ||
                                                 (incident.subtype ? getHsseEventTypeForSubtype(incident.subtype) : null);
                                             return cat ? safeTranslate(`incidents.hsseEventTypes.${snakeToCamel(cat)}`, cat) : '-';
                                         })()}
@@ -187,7 +212,7 @@ export function IncidentOverviewTab({ incident }: IncidentOverviewTabProps) {
                                             {t('incidents.subCategory', 'Sub Category')}
                                         </p>
                                         <p className="text-sm font-medium">
-                                            {getSubtypeTranslation(t, incident.event_type, incident.subtype, (incident as any).incident_type)}
+                                            {getSubtypeTranslation(t, incident.event_type as string, incident.subtype, incident.incident_type as string | undefined)}
                                         </p>
                                     </div>
                                 )}

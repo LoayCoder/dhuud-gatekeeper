@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { format, parseISO, startOfMonth, subMonths, isSameMonth } from "date-fns";
+import { format, parseISO, startOfMonth, subMonths } from "date-fns";
 
 export interface DashboardSummary {
   total_events: number;
@@ -11,16 +11,14 @@ export interface DashboardSummary {
   pending_closure: number;
   closed_this_month: number;
   avg_closure_days: number;
-  // Extended breakdowns
   incidents_open: number;
   incidents_closed: number;
-  incidents_overdue: number; // Placeholder (0 for now without due_date logic)
+  incidents_overdue: number;
   observations_open: number;
   observations_closed: number;
   total_investigations: number;
   investigations_open: number;
   investigations_closed: number;
-  // Near miss analysis
   near_miss_count?: number;
   near_miss_rate?: number;
 }
@@ -65,7 +63,6 @@ export interface ActionStats {
   overdue_actions: number;
   critical_actions: number;
   high_priority_actions: number;
-  // Extended breakdowns
   total_actions: number;
   actions_closed: number;
   actions_in_progress: number;
@@ -88,13 +85,27 @@ export interface HSSEEventDashboardData {
   actions: ActionStats;
 }
 
+/** Shape of incident rows fetched for dashboard aggregation */
+interface DashboardIncidentRow {
+  id: string;
+  event_type: string | null;
+  subtype: string | null;
+  status: string | null;
+  severity_v2: string | null;
+  created_at: string;
+  updated_at: string | null;
+  occurred_at: string | null;
+  incident_type: string | null;
+  branch_id: string | null;
+  site_id: string | null;
+}
+
 export function useHSSEEventDashboard(startDate?: Date, endDate?: Date, branchId?: string, siteId?: string) {
   const { profile } = useAuth();
 
   return useQuery({
     queryKey: ['hsse-event-dashboard', profile?.tenant_id, startDate?.toISOString(), endDate?.toISOString(), branchId, siteId],
     queryFn: async () => {
-      // 1. Fetch raw incidents based on date range and filters
       let query = supabase
         .from('incidents')
         .select(`
@@ -110,7 +121,6 @@ export function useHSSEEventDashboard(startDate?: Date, endDate?: Date, branchId
       if (endDate) {
         query = query.lte('created_at', endDate.toISOString());
       }
-
       if (branchId) {
         query = query.eq('branch_id', branchId);
       }
@@ -121,11 +131,10 @@ export function useHSSEEventDashboard(startDate?: Date, endDate?: Date, branchId
       const { data: incidents, error } = await query;
       if (error) throw error;
 
-      console.log('HSSE Dashboard Raw Incidents:', incidents); // Debug log
+      const rows = (incidents ?? []) as DashboardIncidentRow[];
 
-      // 2. Client-side Aggregation
       const summary: DashboardSummary = {
-        total_events: incidents.length,
+        total_events: rows.length,
         total_incidents: 0,
         total_observations: 0,
         open_investigations: 0,
@@ -158,11 +167,9 @@ export function useHSSEEventDashboard(startDate?: Date, endDate?: Date, branchId
       };
 
       const by_subtype: SubtypeDistribution = {};
-
       const currentMonth = format(new Date(), 'yyyy-MM');
 
-      (incidents as any[] || []).forEach((inc: any) => {
-        // --- Event Type Counts ---
+      rows.forEach((inc) => {
         if (inc.event_type === 'incident') {
           summary.total_incidents++;
           by_event_type.incident++;
@@ -179,8 +186,6 @@ export function useHSSEEventDashboard(startDate?: Date, endDate?: Date, branchId
           by_event_type.observation++;
         }
 
-        // --- Status Counts ---
-        // Map simplified statuses if needed, or use exact
         const status = inc.status as keyof StatusDistribution;
         if (by_status[status] !== undefined) {
           by_status[status]++;
@@ -192,11 +197,10 @@ export function useHSSEEventDashboard(startDate?: Date, endDate?: Date, branchId
           if (isOpen) summary.incidents_open++;
           else summary.incidents_closed++;
 
-          // Assume any non-closed incident implies an investigation workflow
           summary.total_investigations++;
           if (isOpen) {
             summary.investigations_open++;
-            summary.open_investigations++; // Maps to header card
+            summary.open_investigations++;
           } else {
             summary.investigations_closed++;
           }
@@ -207,30 +211,26 @@ export function useHSSEEventDashboard(startDate?: Date, endDate?: Date, branchId
 
         if (status === 'pending_closure') summary.pending_closure++;
 
-        // Closed this month logic (using updated_at as proxy for closure time)
         if (status === 'closed' && inc.updated_at) {
           if (format(parseISO(inc.updated_at), 'yyyy-MM') === currentMonth) {
             summary.closed_this_month++;
           }
         }
 
-        // --- Overdue Logic (SLA based on Severity) ---
         if (isOpen) {
           const ageInHours = (new Date().getTime() - new Date(inc.created_at).getTime()) / (1000 * 60 * 60);
-          let slaHours = 720; // Default 30 days
+          let slaHours = 720;
 
-          // Define SLA based on severity
-          if (inc.severity_v2 === 'level_5') slaHours = 24; // Critical: 24h
-          else if (inc.severity_v2 === 'level_4') slaHours = 72; // Major: 3 days
-          else if (inc.severity_v2 === 'level_3') slaHours = 168; // Moderate: 7 days
-          else if (inc.severity_v2 === 'level_2') slaHours = 336; // Minor: 14 days
+          if (inc.severity_v2 === 'level_5') slaHours = 24;
+          else if (inc.severity_v2 === 'level_4') slaHours = 72;
+          else if (inc.severity_v2 === 'level_3') slaHours = 168;
+          else if (inc.severity_v2 === 'level_2') slaHours = 336;
 
           if (ageInHours > slaHours) {
             summary.incidents_overdue++;
           }
         }
 
-        // --- Severity Counts ---
         const sev = inc.severity_v2 as keyof SeverityDistribution;
         if (sev && by_severity[sev] !== undefined) {
           by_severity[sev]++;
@@ -238,14 +238,12 @@ export function useHSSEEventDashboard(startDate?: Date, endDate?: Date, branchId
           by_severity.unassigned++;
         }
 
-        // --- Subtype Counts ---
         if (inc.subtype) {
           by_subtype[inc.subtype] = (by_subtype[inc.subtype] || 0) + 1;
         }
       });
 
-      // --- Monthly Trend ---
-      // Generate last 6 months buckets
+      // Monthly Trend
       const trendMap = new Map<string, MonthlyTrendItem>();
       for (let i = 5; i >= 0; i--) {
         const d = subMonths(startOfMonth(new Date()), i);
@@ -253,7 +251,7 @@ export function useHSSEEventDashboard(startDate?: Date, endDate?: Date, branchId
         trendMap.set(monthKey, { month: monthKey, total: 0, incidents: 0, observations: 0 });
       }
 
-      incidents.forEach(inc => {
+      rows.forEach(inc => {
         const monthKey = format(parseISO(inc.created_at), 'yyyy-MM');
         if (trendMap.has(monthKey)) {
           const item = trendMap.get(monthKey)!;
@@ -265,9 +263,8 @@ export function useHSSEEventDashboard(startDate?: Date, endDate?: Date, branchId
 
       const monthly_trend = Array.from(trendMap.values());
 
-      // 3. Fetch Corrective Actions (Parallel Fetch)
-      // Filter by incident_ids that matched branch/site to keep actions consistent
-      const matchedIncidentIds = (incidents as any[]).map((i: any) => i.id);
+      // Fetch Corrective Actions
+      const matchedIncidentIds = rows.map(i => i.id);
       let actionsQuery = supabase
         .from('corrective_actions')
         .select('id, status, due_date, priority, created_at, completed_date, incident_id')
@@ -277,12 +274,10 @@ export function useHSSEEventDashboard(startDate?: Date, endDate?: Date, branchId
       if (startDate) actionsQuery = actionsQuery.gte('created_at', startDate.toISOString());
       if (endDate) actionsQuery = actionsQuery.lte('created_at', endDate.toISOString());
 
-      // When branch/site filter is active, only include actions for matching incidents
       if (branchId || siteId) {
         if (matchedIncidentIds.length > 0) {
           actionsQuery = actionsQuery.in('incident_id', matchedIncidentIds);
         } else {
-          // No matching incidents — return empty actions
           const dashboardData: HSSEEventDashboardData = {
             summary, by_status, by_severity, by_event_type, by_subtype, monthly_trend,
             actions: { open_actions: 0, overdue_actions: 0, critical_actions: 0, high_priority_actions: 0, total_actions: 0, actions_closed: 0, actions_in_progress: 0, actions_pending_verification: 0 },
@@ -294,7 +289,6 @@ export function useHSSEEventDashboard(startDate?: Date, endDate?: Date, branchId
       const { data: actionsData, error: actionsError } = await actionsQuery;
       if (actionsError) throw actionsError;
 
-      // 4. Aggregate Actions
       const actions: ActionStats = {
         open_actions: 0, overdue_actions: 0, critical_actions: 0, high_priority_actions: 0,
         total_actions: actionsData.length,
@@ -314,7 +308,6 @@ export function useHSSEEventDashboard(startDate?: Date, endDate?: Date, branchId
           if (action.status === 'in_progress') actions.actions_in_progress++;
           if (action.status === 'pending_verification') actions.actions_pending_verification++;
 
-          // Check overdue
           if (action.due_date && new Date(action.due_date) < now) {
             actions.overdue_actions++;
           }
