@@ -47,7 +47,7 @@ export default function ProjectMobilization() {
   const { data: projects, isLoading } = usePTWProjects({
     search,
     status: selectedStatus,
-  } as any);
+  });
 
   const statusFilters = [
     { value: undefined, label: t("common.all", "All") },

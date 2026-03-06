@@ -69,12 +69,14 @@ export default function GuardMobileDashboard() {
         .maybeSingle();
 
       if (data) {
+        const zones = data.security_zones as Record<string, unknown> | null;
+        const shifts = data.security_shifts as Record<string, unknown> | null;
         setCurrentShift({
           roster_id: data.id,
-          zone_name: (data.security_zones as any)?.zone_name || 'Unknown',
-          shift_name: (data.security_shifts as any)?.name || 'Unknown',
-          start_time: (data.security_shifts as any)?.start_time || '',
-          end_time: (data.security_shifts as any)?.end_time || '',
+          zone_name: (zones?.zone_name as string) || 'Unknown',
+          shift_name: (shifts?.name as string) || 'Unknown',
+          start_time: (shifts?.start_time as string) || '',
+          end_time: (shifts?.end_time as string) || '',
         });
       }
     };
@@ -87,7 +89,7 @@ export default function GuardMobileDashboard() {
     const getBattery = async () => {
       if ('getBattery' in navigator) {
         try {
-          const battery = await (navigator as any).getBattery();
+          const battery = await (navigator as unknown as { getBattery: () => Promise<{ level: number; addEventListener: (e: string, cb: () => void) => void }> }).getBattery();
           setBattery(Math.round(battery.level * 100));
           battery.addEventListener('levelchange', () => {
             setBattery(Math.round(battery.level * 100));
