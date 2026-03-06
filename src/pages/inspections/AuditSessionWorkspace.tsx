@@ -217,7 +217,7 @@ function AuditSessionWorkspaceContent() {
           {session.status !== 'draft' && (
             <SessionExportDropdown
               session={session}
-              responses={responses as any}
+              responses={responses as unknown as Parameters<typeof SessionExportDropdown>[0]['responses']}
               findings={findings.map(f => ({
                 reference_id: f.reference_id,
                 classification: f.classification,

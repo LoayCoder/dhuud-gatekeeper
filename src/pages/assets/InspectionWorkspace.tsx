@@ -111,7 +111,7 @@ export default function InspectionWorkspace() {
       id: inspectionId,
       overall_result: overallResult,
       summary_notes: summaryNotes || undefined,
-    } as any);
+    } as Parameters<typeof completeInspection.mutateAsync>[0]);
 
     setCompleteDialogOpen(false);
   };

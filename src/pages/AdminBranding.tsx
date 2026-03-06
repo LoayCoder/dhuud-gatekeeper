@@ -26,7 +26,7 @@ export default function AdminBranding() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [tenant, setTenant] = useState<Record<string, any> | null>(null);
+  const [tenant, setTenant] = useState<Record<string, unknown> | null>(null);
 
   // Light mode colors
   const [brandColorLight, setBrandColorLight] = useState('');
@@ -92,7 +92,7 @@ export default function AdminBranding() {
       setSecondaryColorDark(tenantData.secondary_color_dark || '');
 
       // Background
-      setBgTheme((tenantData.background_theme as any) || 'color');
+      setBgTheme((tenantData.background_theme as 'color' | 'image') || 'color');
       setBgColor(tenantData.background_color || '');
       setBgPreview(tenantData.background_image_url);
 
@@ -127,7 +127,7 @@ export default function AdminBranding() {
       return;
     }
     const file = e.target.files[0];
-    const url = await uploadAsset(file, type as any, tenant.id);
+    const url = await uploadAsset(file, type, tenant.id as string);
     if (url) {
       switch (type) {
         case 'logo-light':

@@ -75,7 +75,7 @@ function AssetDepreciationContent() {
     );
   }
 
-  const assetData = asset as any;
+  const assetData = asset as Record<string, unknown>;
   const purchasePrice = assetData.purchase_price || assetData.purchase_cost;
   const salvageValue = assetData.salvage_value;
   const usefulLifeYears = assetData.expected_lifespan_years;
