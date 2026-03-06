@@ -173,7 +173,7 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
       form.reset({
         name: schedule.name,
         name_ar: schedule.name_ar || '',
-        schedule_type: schedule.schedule_type as any,
+        schedule_type: schedule.schedule_type,
         template_id: schedule.template_id,
         frequency_type: schedule.frequency_type,
         frequency_value: schedule.frequency_value,

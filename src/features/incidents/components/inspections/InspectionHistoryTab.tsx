@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useAssetInspections } from '@/features/incidents';
+import { useAssetInspections, type AssetInspectionResult } from '@/features/incidents';
 import i18n from '@/i18n';
 
 interface InspectionHistoryTabProps {
