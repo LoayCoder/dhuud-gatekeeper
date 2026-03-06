@@ -54,10 +54,10 @@ export function AssetPurchaseRequestDialog({ open, onOpenChange, request }: Asse
 
   const onSubmit = async (values: AssetPurchaseRequestFormValues) => {
     if (isEditMode && request) {
-      await updateRequest.mutateAsync({ id: request.id, ...values } as any);
+      await updateRequest.mutateAsync({ id: request.id, ...values });
     } else {
       const activeConfig = configs?.find(c => c.is_active);
-      await createRequest.mutateAsync({ ...values, approval_config_id: activeConfig?.id } as any);
+      await createRequest.mutateAsync({ ...values, approval_config_id: activeConfig?.id });
     }
     onOpenChange(false);
     form.reset(defaultValues);

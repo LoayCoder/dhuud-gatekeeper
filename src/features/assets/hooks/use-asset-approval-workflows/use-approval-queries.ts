@@ -1,7 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import type { ApprovalConfig, ApprovalLevel } from "./types";
+import type { ApprovalConfig, ApprovalLevel, PurchaseRequest } from "./types";
+
+/** Joined purchase request with requester/category/type relations */
+interface PurchaseRequestWithRelations extends PurchaseRequest {
+    requester?: { full_name: string | null } | null;
+    category?: { name: string; name_ar: string | null } | null;
+    type?: { name: string; name_ar: string | null } | null;
+}
 
 export function useApprovalConfigs(workflowType?: string) {
     const { profile } = useAuth();
@@ -11,7 +18,7 @@ export function useApprovalConfigs(workflowType?: string) {
         queryFn: async () => {
             if (!profile?.tenant_id) throw new Error("No tenant");
 
-            let query = (supabase as any)
+            let query = supabase
                 .from("asset_approval_configs")
                 .select("*")
                 .eq("tenant_id", profile.tenant_id)
@@ -36,7 +43,7 @@ export function useApprovalLevels(configId?: string) {
         queryFn: async () => {
             if (!configId) return [];
 
-            const { data, error } = await (supabase as any)
+            const { data, error } = await supabase
                 .from("asset_approval_levels")
                 .select("*")
                 .eq("config_id", configId)
@@ -58,7 +65,8 @@ export function usePurchaseRequests(status?: string) {
         queryFn: async () => {
             if (!profile?.tenant_id) throw new Error("No tenant");
 
-            let query = (supabase as any)
+            // @ts-expect-error Deep type instantiation on joined select
+            let query = supabase
                 .from("asset_purchase_requests")
                 .select(`
           *,
@@ -76,7 +84,7 @@ export function usePurchaseRequests(status?: string) {
 
             const { data, error } = await query;
             if (error) throw error;
-            return data;
+            return (data ?? []) as unknown as PurchaseRequestWithRelations[];
         },
         enabled: !!profile?.tenant_id,
     });

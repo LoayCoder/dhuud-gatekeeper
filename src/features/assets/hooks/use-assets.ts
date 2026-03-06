@@ -118,7 +118,8 @@ export function useCreateAsset() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
-      toast.success(t('assets.createSuccess', { code: (data as any).asset_code }));
+      const assetCode = (data as { asset_code?: string }).asset_code;
+      toast.success(t('assets.createSuccess', { code: assetCode }));
     },
     onError: (error: Error) => {
       console.error('Create asset error:', error);
@@ -254,7 +255,8 @@ export function useCreateBulkAssets() {
     },
     onError: (error: Error) => {
       console.error('Bulk create assets error:', error);
-      if ((error as any).code === '23505') {
+      const pgCode = (error as Error & { code?: string }).code;
+      if (pgCode === '23505') {
         toast.error(t('assets.bulkConstraintError', {
           defaultValue: 'One or more asset codes conflict with existing records. Please refresh the page and try again.'
         }));
