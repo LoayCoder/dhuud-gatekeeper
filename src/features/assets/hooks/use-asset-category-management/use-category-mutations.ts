@@ -34,7 +34,7 @@ export function useCreateAssetCategory() {
 
             const { data, error } = await supabase
                 .from('asset_categories')
-                .insert(insertPayload as Parameters<typeof supabase.from<'asset_categories'>>[0] extends never ? never : Record<string, unknown>)
+                .insert(insertPayload as Database['public']['Tables']['asset_categories']['Insert'])
                 .select()
                 .single();
 
@@ -68,7 +68,7 @@ export function useUpdateAssetCategory() {
 
             const { data, error } = await supabase
                 .from('asset_categories')
-                .update(updatePayload as Parameters<typeof supabase.from<'asset_categories'>>[0] extends never ? never : Record<string, unknown>)
+                .update(updatePayload as Database['public']['Tables']['asset_categories']['Update'])
                 .eq('id', id)
                 .select()
                 .single();
