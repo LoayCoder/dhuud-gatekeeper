@@ -2,20 +2,23 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { isPast, isToday, isThisWeek, parseISO } from 'date-fns';
+import type { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 
 // ── Joined relation interfaces ──────────────────────────────
 interface ProfileSummary {
     full_name: string | null;
 }
 
-interface IncidentWithReporter {
+interface IncidentRow {
     id: string;
     reference_id: string;
     title: string;
     status: string;
     severity: string;
     created_at: string;
-    stage: string | null;
+}
+
+interface IncidentWithReporter extends IncidentRow {
     reporter: ProfileSummary | null;
 }
 
@@ -29,11 +32,29 @@ interface ActionWithAssignee {
     assigned_user: ProfileSummary | null;
 }
 
+interface ObservationRow {
+    id: string;
+    reference_number: string | null;
+    description: string | null;
+    status: string;
+    created_at: string;
+    observation_type: string | null;
+}
+
 interface InspectionSessionRow {
     id: string;
     started_at: string | null;
     status: string | null;
     compliance_percentage: number | null;
+}
+
+/**
+ * Helper to get a loosely-typed query builder for tables whose schema
+ * may differ between runtime and the generated Supabase types (e.g.
+ * columns/statuses added after last type generation).
+ */
+function untypedFrom(table: string) {
+    return (supabase as unknown as { from(t: string): PostgrestFilterBuilder<Record<string, unknown>, Record<string, unknown>, unknown[]> }).from(table);
 }
 
 // ── Exported interfaces ─────────────────────────────────────
@@ -84,7 +105,6 @@ export interface IncidentSummary {
     status: string;
     severity: string;
     created_at: string;
-    stage?: string;
 }
 
 export interface ObservationSummary {
@@ -126,23 +146,23 @@ export function useUserOverviewStats() {
 
             // 1. Fetch My Incidents
             const fetchMyIncidents = async () => {
-                const { data: assignedData } = await supabase
-                    .from('incidents')
-                    .select('id, reference_id, title, status, severity, created_at, stage')
+                // Use untypedFrom because some status values (draft, cancelled, pending_more_info)
+                // may not be in the generated enum yet
+                const { data: assignedData } = await untypedFrom('incidents')
+                    .select('id, reference_id, title, status, severity, created_at')
                     .eq('tenant_id', tenantId)
                     .eq('lead_investigator_id', user.id)
                     .neq('status', 'closed')
                     .neq('status', 'cancelled');
 
-                const { data: reportedData } = await supabase
-                    .from('incidents')
-                    .select('id, reference_id, title, status, severity, created_at, stage')
+                const { data: reportedData } = await untypedFrom('incidents')
+                    .select('id, reference_id, title, status, severity, created_at')
                     .eq('tenant_id', tenantId)
                     .eq('reporter_id', user.id)
                     .in('status', ['draft', 'pending_more_info']);
 
-                const assigned = (assignedData ?? []) as IncidentSummary[];
-                const pendingReport = (reportedData ?? []) as IncidentSummary[];
+                const assigned = (assignedData ?? []) as unknown as IncidentSummary[];
+                const pendingReport = (reportedData ?? []) as unknown as IncidentSummary[];
 
                 return {
                     assigned,
@@ -174,16 +194,16 @@ export function useUserOverviewStats() {
             };
 
             // 3. Fetch My Observations
+            // Note: 'observations' table may not be in generated types yet; use untypedFrom
             const fetchMyObservations = async () => {
-                const { data: reported } = await supabase
-                    .from('observations')
+                const { data: reported } = await untypedFrom('observations')
                     .select('id, reference_number, description, status, created_at, observation_type')
                     .eq('tenant_id', tenantId)
                     .eq('created_by', user.id)
                     .order('created_at', { ascending: false })
                     .limit(20);
 
-                const allObs = (reported ?? []) as ObservationSummary[];
+                const allObs = (reported ?? []) as unknown as ObservationSummary[];
                 const pendingClosure = allObs.filter((o) => o.status === 'pending_closure');
                 const recentlyClosed = allObs.filter((o) => o.status === 'closed').slice(0, 5);
 
@@ -224,8 +244,7 @@ export function useUserOverviewStats() {
 
                 // HSSE Manager Escalation & Pending Final Closure
                 if (isHsseManager || isAdmin) {
-                    const { data: hsseIncidents } = await supabase
-                        .from('incidents')
+                    const { data: hsseIncidents } = await untypedFrom('incidents')
                         .select('id, reference_id, title, status, created_at, reporter:profiles!incidents_reporter_id_fkey(full_name)')
                         .eq('tenant_id', tenantId)
                         .in('status', ['hsse_manager_escalation', 'pending_final_closure', 'pending_investigation_plan_approval'])
@@ -247,8 +266,7 @@ export function useUserOverviewStats() {
 
                 // Pending Manager Approval
                 if (isManager || isAdmin) {
-                    const { data: managerIncidents } = await supabase
-                        .from('incidents')
+                    const { data: managerIncidents } = await untypedFrom('incidents')
                         .select('id, reference_id, title, status, created_at, reporter:profiles!incidents_reporter_id_fkey(full_name)')
                         .eq('tenant_id', tenantId)
                         .eq('status', 'pending_manager_approval')
