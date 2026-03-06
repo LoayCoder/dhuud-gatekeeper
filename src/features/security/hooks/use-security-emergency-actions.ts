@@ -155,22 +155,23 @@ export function useSecurityEmergencyActions() {
       if (!user) throw new Error("Not authenticated");
 
       // Count sessions to terminate
-      const countResult = await (supabase
+      const client = supabase as unknown as import('@/features/security/types').LooseSupabaseClient;
+      const countResult = await client
         .from("user_sessions")
-        .select("id", { count: "exact", head: true }) as any)
+        .select("id", { count: "exact", head: true })
         .eq("tenant_id", tenantId)
         .eq("is_valid", true);
       
-      const sessionCount = countResult.count || 0;
+      const sessionCount = (countResult as unknown as { count: number | null }).count || 0;
 
       // Terminate all sessions
-      await (supabase
+      await client
         .from("user_sessions")
         .update({
           is_valid: false,
           invalidation_reason: "system_shutdown",
           invalidated_at: new Date().toISOString(),
-        }) as any)
+        })
         .eq("tenant_id", tenantId)
         .eq("is_valid", true);
 
