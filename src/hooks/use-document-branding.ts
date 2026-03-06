@@ -54,7 +54,7 @@ export function useDocumentBranding() {
       dbData.tenant_id = tenantId;
       const { data, error } = await supabase
         .from("tenant_document_settings")
-        .upsert(dbData as unknown as Record<string, never>, { onConflict: "tenant_id" })
+        .upsert(dbData as Parameters<typeof supabase.from<'tenant_document_settings'>['upsert']>[0], { onConflict: "tenant_id" })
         .select()
         .single();
       if (error) throw error;
