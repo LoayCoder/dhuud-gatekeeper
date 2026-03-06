@@ -226,7 +226,7 @@ function AssetFinancialsContent() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">
-              {assetData.purchase_cost ? `${assetData.purchase_cost.toLocaleString()} SAR` : '-'}
+              {(asset as unknown as Record<string, unknown>).purchase_cost ? `${Number((asset as unknown as Record<string, unknown>).purchase_cost).toLocaleString()} SAR` : '-'}
             </p>
           </CardContent>
         </Card>
@@ -236,7 +236,7 @@ function AssetFinancialsContent() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-primary">
-              {assetData.current_book_value ? `${assetData.current_book_value.toLocaleString()} SAR` : '-'}
+              {(asset as unknown as Record<string, unknown>).current_book_value ? `${Number((asset as unknown as Record<string, unknown>).current_book_value).toLocaleString()} SAR` : '-'}
             </p>
           </CardContent>
         </Card>
