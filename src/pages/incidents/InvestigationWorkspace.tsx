@@ -97,8 +97,8 @@ export default function InvestigationWorkspace() {
   // Render workflow cards based on current status
   const renderWorkflowCards = () => (
     <InvestigationWorkflowCards
-      incidentData={incidentData}
-      investigation={investigation}
+      incidentData={incidentData as unknown as Parameters<typeof InvestigationWorkflowCards>[0]['incidentData']}
+      investigation={investigation as unknown as Parameters<typeof InvestigationWorkflowCards>[0]['investigation']}
       actionsCount={actionsCount}
       handleCreateAction={() => setShowActionDialog(true)}
       handleRefresh={handleRefresh}
