@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,17 +13,18 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { toast } from 'sonner';
 import { Plus, MessageSquare, Clock, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { TicketDetail } from '@/components/support/TicketDetail';
 import { usePaginatedQuery } from '@/hooks/use-paginated-query';
 import { PaginationControls } from '@/components/ui/pagination-controls';
+import { createSupportTicket } from '@/features/support/services/supportService';
+import { supportTicketSchema, type SupportTicketFormValues } from './SupportSchema';
 
 type TicketStatus = 'open' | 'in_progress' | 'waiting_customer' | 'resolved' | 'closed';
 type TicketPriority = 'low' | 'medium' | 'high' | 'urgent';
-type TicketCategory = 'billing' | 'technical' | 'feature_request' | 'general';
 
 interface Ticket {
   id: string;
@@ -30,7 +33,7 @@ interface Ticket {
   description: string;
   status: TicketStatus;
   priority: TicketPriority;
-  category: TicketCategory;
+  category: string;
   created_at: string;
   updated_at: string;
 }
@@ -60,17 +63,20 @@ const priorityColors: Record<TicketPriority, string> = {
 
 const PAGE_SIZE = 20;
 
+const defaultValues: SupportTicketFormValues = {
+  subject: '', description: '', category: 'general', priority: 'medium',
+};
+
 export default function Support() {
   const { t } = useTranslation();
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-  const [newTicket, setNewTicket] = useState({
-    subject: '',
-    description: '',
-    category: 'general' as TicketCategory,
-    priority: 'medium' as TicketPriority,
+
+  const form = useForm<SupportTicketFormValues>({
+    resolver: zodResolver(supportTicketSchema),
+    defaultValues,
   });
 
   const {
@@ -92,7 +98,6 @@ export default function Support() {
         .select('id, ticket_number, subject, description, status, priority, category, created_at, updated_at', { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(from, to);
-
       if (error) throw error;
       return { data: data as Ticket[], count: count || 0 };
     },
@@ -102,21 +107,20 @@ export default function Support() {
   const tickets = paginatedData?.data || [];
 
   const createMutation = useMutation({
-    mutationFn: async (ticket: typeof newTicket) => {
-      const { error } = await supabase.from('support_tickets').insert({
-        subject: ticket.subject,
-        description: ticket.description,
-        category: ticket.category,
-        priority: ticket.priority,
+    mutationFn: async (values: SupportTicketFormValues) => {
+      return createSupportTicket({
+        subject: values.subject,
+        description: values.description,
+        category: values.category,
+        priority: values.priority,
         tenant_id: profile?.tenant_id,
         created_by: user?.id,
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['support-tickets'] });
       setIsCreateOpen(false);
-      setNewTicket({ subject: '', description: '', category: 'general', priority: 'medium' });
+      form.reset(defaultValues);
       toast.success(t('support.ticketCreated'));
     },
     onError: (error) => {
@@ -125,19 +129,15 @@ export default function Support() {
     },
   });
 
-  const handleCreate = () => {
-    if (!newTicket.subject.trim() || !newTicket.description.trim()) {
-      toast.error(t('support.fillRequired'));
-      return;
-    }
-    createMutation.mutate(newTicket);
+  const onSubmit = (values: SupportTicketFormValues) => {
+    createMutation.mutate(values);
   };
 
   if (selectedTicket) {
     return (
-      <TicketDetail 
-        ticket={selectedTicket} 
-        onBack={() => setSelectedTicket(null)} 
+      <TicketDetail
+        ticket={selectedTicket}
+        onBack={() => setSelectedTicket(null)}
       />
     );
   }
@@ -162,72 +162,61 @@ export default function Support() {
                 <DialogTitle>{t('support.createTicket')}</DialogTitle>
                 <DialogDescription>{t('support.createDescription')}</DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="subject">{t('support.subject')}</Label>
-                  <Input
-                    id="subject"
-                    value={newTicket.subject}
-                    onChange={(e) => setNewTicket({ ...newTicket, subject: e.target.value })}
-                    placeholder={t('support.subjectPlaceholder')}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>{t('support.category')}</Label>
-                    <Select
-                      value={newTicket.category}
-                      onValueChange={(v) => setNewTicket({ ...newTicket, category: v as TicketCategory })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="general">{t('support.categories.general')}</SelectItem>
-                        <SelectItem value="technical">{t('support.categories.technical')}</SelectItem>
-                        <SelectItem value="billing">{t('support.categories.billing')}</SelectItem>
-                        <SelectItem value="feature_request">{t('support.categories.featureRequest')}</SelectItem>
-                      </SelectContent>
-                    </Select>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
+                  <FormField control={form.control} name="subject" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('support.subject')}</FormLabel>
+                      <FormControl><Input {...field} placeholder={t('support.subjectPlaceholder')} /></FormControl>
+                    </FormItem>
+                  )} />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="category" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('support.category')}</FormLabel>
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                          <SelectContent>
+                            <SelectItem value="general">{t('support.categories.general')}</SelectItem>
+                            <SelectItem value="technical">{t('support.categories.technical')}</SelectItem>
+                            <SelectItem value="billing">{t('support.categories.billing')}</SelectItem>
+                            <SelectItem value="feature_request">{t('support.categories.featureRequest')}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="priority" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('support.priority')}</FormLabel>
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                          <SelectContent>
+                            <SelectItem value="low">{t('support.priorities.low')}</SelectItem>
+                            <SelectItem value="medium">{t('support.priorities.medium')}</SelectItem>
+                            <SelectItem value="high">{t('support.priorities.high')}</SelectItem>
+                            <SelectItem value="urgent">{t('support.priorities.urgent')}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )} />
                   </div>
-                  <div className="space-y-2">
-                    <Label>{t('support.priority')}</Label>
-                    <Select
-                      value={newTicket.priority}
-                      onValueChange={(v) => setNewTicket({ ...newTicket, priority: v as TicketPriority })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">{t('support.priorities.low')}</SelectItem>
-                        <SelectItem value="medium">{t('support.priorities.medium')}</SelectItem>
-                        <SelectItem value="high">{t('support.priorities.high')}</SelectItem>
-                        <SelectItem value="urgent">{t('support.priorities.urgent')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">{t('support.description')}</Label>
-                  <Textarea
-                    id="description"
-                    value={newTicket.description}
-                    onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
-                    placeholder={t('support.descriptionPlaceholder')}
-                    rows={5}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                  {t('common.cancel')}
-                </Button>
-                <Button onClick={handleCreate} disabled={createMutation.isPending}>
-                  {createMutation.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-                  {t('support.submit')}
-                </Button>
-              </DialogFooter>
+                  <FormField control={form.control} name="description" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('support.description')}</FormLabel>
+                      <FormControl><Textarea {...field} placeholder={t('support.descriptionPlaceholder')} rows={5} /></FormControl>
+                    </FormItem>
+                  )} />
+                  <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
+                      {t('common.cancel')}
+                    </Button>
+                    <Button type="submit" disabled={createMutation.isPending}>
+                      {createMutation.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+                      {t('support.submit')}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
             </DialogContent>
           </Dialog>
         </div>
