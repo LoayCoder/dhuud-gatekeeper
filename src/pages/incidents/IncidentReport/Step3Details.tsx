@@ -26,8 +26,8 @@ import { HSSE_EVENT_TYPES, getSubtypesForEventType } from '@/lib/hsse-event-type
 import { WIZARD_STEPS, RISK_RATING_LEVELS } from './helpers';
 import { useIncidentReport } from './hooks/useIncidentReport';
 export function Step3Details({ viewProps }: { viewProps: ReturnType<typeof useIncidentReport> }) {
-  const { t, direction, form, isObservation, closedOnSpot, setClosedOnSpot, closedOnSpotPhotos, setClosedOnSpotPhotos, eventType, hasInjury, contractorCompanies, isAgainstContractor, isConfirmSubmitting, handleObservationSubmit, hasSubmitted, onSubmit, currentStep, navigate, goToPreviousStep, goToNextStep, setShowConfirmation, uploadedPhotos, isUploading, hasDamage, i18n } = viewProps as any;
-  const createIncident = (viewProps as any).createIncident || { isPending: false };
+  const { t, direction, form, isObservation, closedOnSpot, setClosedOnSpot, closedOnSpotPhotos, setClosedOnSpotPhotos, eventType, hasInjury, contractorCompanies, isAgainstContractor, isConfirmSubmitting, handleObservationSubmit, hasSubmitted, onSubmit, currentStep, navigate, goToPreviousStep, goToNextStep, setShowConfirmation, uploadedPhotos, isUploading, hasDamage, i18n } = viewProps;
+  const createIncident = (viewProps as Record<string, unknown>).createIncident as { isPending: boolean } || { isPending: false };
   return (<>
     {currentStep === 3 && (
       <div className="space-y-6 animate-in fade-in duration-300">
