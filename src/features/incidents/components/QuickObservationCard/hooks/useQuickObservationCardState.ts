@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNetworkStatus } from '@/hooks/use-network-status';
-import { useOfflineReporting } from '@/hooks/use-offline-reporting';
+import { useOfflineReporting, type CachedSite, type CachedDepartment, type CachedContractorCompany } from '@/hooks/use-offline-reporting';
 import { useOfflineReportQueue } from '@/hooks/use-offline-report-queue';
 import { useObservationAIValidator } from '@/features/incidents';
 import { useAITags } from '@/hooks/use-ai-tags';
@@ -39,9 +39,9 @@ export function useQuickObservationCardState() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [submittedObservation, setSubmittedObservation] = useState<{ id: string; referenceId: string } | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  const [offlineSites, setOfflineSites] = useState<Array<Record<string, unknown>>>([]);
-  const [offlineDepartments, setOfflineDepartments] = useState<Array<Record<string, unknown>>>([]);
-  const [offlineContractorCompanies, setOfflineContractorCompanies] = useState<Array<Record<string, unknown>>>([]);
+  const [offlineSites, setOfflineSites] = useState<CachedSite[]>([]);
+  const [offlineDepartments, setOfflineDepartments] = useState<CachedDepartment[]>([]);
+  const [offlineContractorCompanies, setOfflineContractorCompanies] = useState<CachedContractorCompany[]>([]);
 
   const aiValidator = useObservationAIValidator();
 
@@ -104,7 +104,7 @@ export function useQuickObservationCardState() {
 
   const selectedSite = useMemo(() => sites.find(s => s.id === selectedSiteId), [sites, selectedSiteId]);
 
-  const observationBranchId = selectedSite?.branch_id || null;
+  const observationBranchId: string | null = selectedSite?.branch_id || null;
 
   const { departments: siteDepartments = [], usingFallback: departmentsUsingFallback } = useDepartmentsBySite(selectedSiteId, observationBranchId || undefined);
 
@@ -115,8 +115,8 @@ export function useQuickObservationCardState() {
   const locationFilteredContractorCompanies = useMemo(() => {
     if (!observationBranchId) return contractorCompanies;
     return contractorCompanies.filter(company => {
-      const branchId = (company as unknown as { assigned_branch_id?: string | null }).assigned_branch_id;
-      return branchId === observationBranchId || !branchId;
+      const companyWithBranch = company as unknown as { assigned_branch_id?: string | null };
+      return companyWithBranch.assigned_branch_id === observationBranchId || !companyWithBranch.assigned_branch_id;
     });
   }, [contractorCompanies, observationBranchId]);
 
