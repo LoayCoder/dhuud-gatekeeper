@@ -112,7 +112,7 @@ export default function IncidentDetail() {
   // Get current owner based on incident status
   const getCurrentOwner = () => {
     if (!incident) return null;
-    const status = incident.status as string;
+  const status = incident.status as string;
 
     if (status === 'submitted' || status === 'pending_review') {
       return { role: t('incidents.workflowOwners.hsse_expert', 'HSSE Expert'), name: null };
@@ -135,7 +135,8 @@ export default function IncidentDetail() {
       return { role: t('incidents.workflowOwners.clinic_team', 'Clinic Team'), name: null };
     }
     if (status === 'investigation_in_progress' || status === 'investigation_pending') {
-      const investigatorName = (investigation?.investigator as any)?.full_name;
+      const inv = investigation?.investigator as { full_name?: string } | null;
+      const investigatorName = inv?.full_name;
       return {
         role: t('incidents.workflowOwners.investigator', 'Investigator'),
         name: investigatorName || null
@@ -211,6 +212,22 @@ export default function IncidentDetail() {
   };
 
   // Parse media attachments
+  // Extended incident fields interface for fields not in generated types
+  interface IncidentExt {
+    severity?: string;
+    potential_severity_v2?: string;
+    osha_reportable?: boolean;
+    requires_escalation?: boolean;
+    escalation_reason?: string;
+    escalation_level?: string;
+    escalation_triggered_at?: string;
+    contractor_company?: { id: string; company_name: string } | null;
+    hsse_enforced_at?: string;
+    hsse_enforced_by_profile?: Record<string, unknown>;
+    enforcement_notes?: string;
+    consultant_assigned_id?: string;
+  }
+  const ext = incident as unknown as IncidentExt;
   const mediaAttachments = incident?.media_attachments as Array<{ url: string; type: string; name: string }> | null;
 
   if (isLoading) {
@@ -260,8 +277,8 @@ export default function IncidentDetail() {
           event_type: incident.event_type,
           status: incident.status,
           severity_v2: incident.severity_v2,
-          severity: (incident as any).severity,
-          potential_severity_v2: (incident as any).potential_severity_v2,
+          severity: ext.severity,
+          potential_severity_v2: ext.potential_severity_v2,
           branch: incident.branch,
           site: incident.site,
           location: incident.location,
@@ -279,7 +296,7 @@ export default function IncidentDetail() {
       />
 
       {/* C10: OSHA Reportable Banner */}
-      {(incident as any).osha_reportable && (
+      {ext.osha_reportable && (
         <Alert variant="destructive" className="border-destructive bg-destructive/10">
           <AlertTriangle className="h-5 w-5" />
           <div className="ms-2">
@@ -294,29 +311,29 @@ export default function IncidentDetail() {
       )}
 
       {/* Escalation Alert Banner */}
-      {(incident as any).requires_escalation && (
+      {ext.requires_escalation && (
         <EscalationAlertBanner
           incident={{
             id: incident.id,
-            requires_escalation: (incident as any).requires_escalation,
-            escalation_reason: (incident as any).escalation_reason,
-            escalation_level: (incident as any).escalation_level,
-            escalation_triggered_at: (incident as any).escalation_triggered_at,
+            requires_escalation: ext.requires_escalation,
+            escalation_reason: ext.escalation_reason,
+            escalation_level: ext.escalation_level,
+            escalation_triggered_at: ext.escalation_triggered_at,
             related_contractor_company_id: incident.related_contractor_company_id,
-            contractor_company: (incident as any).contractor_company ? {
-              id: (incident as any).contractor_company.id,
-              company_name: (incident as any).contractor_company.company_name,
+            contractor_company: ext.contractor_company ? {
+              id: ext.contractor_company.id,
+              company_name: ext.contractor_company.company_name,
             } : null,
           }}
         />
       )}
 
       {/* HSSE Enforcement Banner */}
-      {(incident as any).hsse_enforced_at && (
+      {ext.hsse_enforced_at && (
         <HSSEEnforcementBanner
-          enforcedAt={(incident as any).hsse_enforced_at}
-          enforcedBy={(incident as any).hsse_enforced_by_profile}
-          enforcementNotes={(incident as any).enforcement_notes}
+          enforcedAt={ext.hsse_enforced_at}
+          enforcedBy={ext.hsse_enforced_by_profile}
+          enforcementNotes={ext.enforcement_notes}
         />
       )}
 
@@ -330,7 +347,7 @@ export default function IncidentDetail() {
         </>
       )}
 
-      {incident.related_contractor_company_id && !(incident as any).consultant_assigned_id && (
+      {incident.related_contractor_company_id && !ext.consultant_assigned_id && (
         <>
           <DeptManagerViolationApprovalCard incident={incident} onComplete={() => window.location.reload()} />
           <ContractControllerApprovalCard incident={incident} onComplete={() => window.location.reload()} />
