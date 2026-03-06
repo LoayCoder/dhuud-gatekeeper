@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { platformSettingsSchema, PlatformSettingsValues } from './PlatformSettingsSchema';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,7 +63,6 @@ export default function PlatformSettings() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  const [settings, setSettings] = useState<SplashSettings>(DEFAULT_SETTINGS);
   const [isSeeding, setIsSeeding] = useState(false);
   const [isCleaning, setIsCleaning] = useState(false);
   const [seedResults, setSeedResults] = useState<SeedResults | null>(null);
@@ -68,6 +70,13 @@ export default function PlatformSettings() {
   const [seedProgress, setSeedProgress] = useState(0);
   const [showSeedModal, setShowSeedModal] = useState(false);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const form = useForm<PlatformSettingsValues>({
+    resolver: zodResolver(platformSettingsSchema),
+    defaultValues: DEFAULT_SETTINGS,
+  });
+
+  const isEnabled = form.watch('enabled');
 
   useEffect(() => {
     fetchSettings();
@@ -84,7 +93,7 @@ export default function PlatformSettings() {
       if (error) throw error;
 
       if (data?.value) {
-        setSettings(data.value as unknown as SplashSettings);
+        form.reset(data.value as unknown as PlatformSettingsValues);
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
@@ -95,6 +104,7 @@ export default function PlatformSettings() {
   };
 
   const handleSave = async () => {
+    const settings = form.getValues();
     setIsSaving(true);
     try {
       const { error } = await supabase
@@ -117,6 +127,7 @@ export default function PlatformSettings() {
   };
 
   const handlePreview = () => {
+    const settings = form.getValues();
     // Temporarily update cache for preview
     localStorage.setItem('splash_screen_settings', JSON.stringify({
       settings,
@@ -319,9 +330,15 @@ export default function PlatformSettings() {
                 {t('platformSettings.enableSplashDescription', 'Show intro screen when app launches')}
               </p>
             </div>
-            <Switch
-              checked={settings.enabled}
-              onCheckedChange={(enabled) => setSettings({ ...settings, enabled })}
+            <Controller
+              name="enabled"
+              control={form.control}
+              render={({ field }) => (
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
             />
           </div>
 
@@ -332,17 +349,23 @@ export default function PlatformSettings() {
             <div className="flex items-center justify-between">
               <Label>{t('platformSettings.duration', 'Duration')}</Label>
               <span className="text-sm text-muted-foreground">
-                {(settings.duration_ms / 1000).toFixed(1)}s
+                {(form.watch('duration_ms') / 1000).toFixed(1)}s
               </span>
             </div>
-            <Slider
-              value={[settings.duration_ms]}
-              onValueChange={([value]) => setSettings({ ...settings, duration_ms: value })}
-              min={2000}
-              max={6000}
-              step={500}
-              disabled={!settings.enabled}
-              className={cn(!settings.enabled && "opacity-50")}
+            <Controller
+              name="duration_ms"
+              control={form.control}
+              render={({ field }) => (
+                <Slider
+                  value={[field.value]}
+                  onValueChange={([value]) => field.onChange(value)}
+                  min={2000}
+                  max={6000}
+                  step={500}
+                  disabled={!isEnabled}
+                  className={cn(!isEnabled && "opacity-50")}
+                />
+              )}
             />
             <p className="text-xs text-muted-foreground">
               {t('platformSettings.durationHint', 'How long the splash screen is shown (2-6 seconds)')}
@@ -361,24 +384,22 @@ export default function PlatformSettings() {
                 <Label htmlFor="message_ar">{t('platformSettings.mainMessage', 'Main Message')}</Label>
                 <Input
                   id="message_ar"
-                  value={settings.message_ar}
-                  onChange={(e) => setSettings({ ...settings, message_ar: e.target.value })}
+                  {...form.register('message_ar')}
                   placeholder="مرحباً بك..."
                   dir="rtl"
-                  disabled={!settings.enabled}
-                  className={cn(!settings.enabled && "opacity-50")}
+                  disabled={!isEnabled}
+                  className={cn(!isEnabled && "opacity-50")}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="subtitle_ar">{t('platformSettings.subtitle', 'Subtitle')}</Label>
                 <Input
                   id="subtitle_ar"
-                  value={settings.subtitle_ar}
-                  onChange={(e) => setSettings({ ...settings, subtitle_ar: e.target.value })}
+                  {...form.register('subtitle_ar')}
                   placeholder="نحو بيئة..."
                   dir="rtl"
-                  disabled={!settings.enabled}
-                  className={cn(!settings.enabled && "opacity-50")}
+                  disabled={!isEnabled}
+                  className={cn(!isEnabled && "opacity-50")}
                 />
               </div>
             </div>
@@ -396,24 +417,22 @@ export default function PlatformSettings() {
                 <Label htmlFor="message_en">{t('platformSettings.mainMessage', 'Main Message')}</Label>
                 <Input
                   id="message_en"
-                  value={settings.message_en}
-                  onChange={(e) => setSettings({ ...settings, message_en: e.target.value })}
+                  {...form.register('message_en')}
                   placeholder="Welcome to..."
                   dir="ltr"
-                  disabled={!settings.enabled}
-                  className={cn(!settings.enabled && "opacity-50")}
+                  disabled={!isEnabled}
+                  className={cn(!isEnabled && "opacity-50")}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="subtitle_en">{t('platformSettings.subtitle', 'Subtitle')}</Label>
                 <Input
                   id="subtitle_en"
-                  value={settings.subtitle_en}
-                  onChange={(e) => setSettings({ ...settings, subtitle_en: e.target.value })}
+                  {...form.register('subtitle_en')}
                   placeholder="Towards a..."
                   dir="ltr"
-                  disabled={!settings.enabled}
-                  className={cn(!settings.enabled && "opacity-50")}
+                  disabled={!isEnabled}
+                  className={cn(!isEnabled && "opacity-50")}
                 />
               </div>
             </div>

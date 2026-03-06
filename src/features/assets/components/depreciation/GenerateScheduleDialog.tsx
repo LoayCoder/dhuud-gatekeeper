@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { generateScheduleSchema, GenerateScheduleValues } from './GenerateScheduleSchema';
 import { Calculator, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -39,18 +42,18 @@ interface GenerateScheduleDialogProps {
 }
 
 const DEPRECIATION_METHODS: { value: DepreciationMethod; labelKey: string; descKey: string }[] = [
-  { 
-    value: 'straight_line', 
+  {
+    value: 'straight_line',
     labelKey: 'assets.depreciation.straightLine',
     descKey: 'assets.depreciation.straightLineDesc'
   },
-  { 
-    value: 'declining_balance', 
+  {
+    value: 'declining_balance',
     labelKey: 'assets.depreciation.decliningBalance',
     descKey: 'assets.depreciation.decliningBalanceDesc'
   },
-  { 
-    value: 'units_of_production', 
+  {
+    value: 'units_of_production',
     labelKey: 'assets.depreciation.unitsOfProduction',
     descKey: 'assets.depreciation.unitsOfProductionDesc'
   },
@@ -72,28 +75,36 @@ export function GenerateScheduleDialog({
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
-  const [formData, setFormData] = useState({
-    depreciation_method: defaultValues?.depreciationMethod || 'straight_line' as DepreciationMethod,
-    period_type: 'yearly' as PeriodType,
-    start_date: defaultValues?.startDate || format(new Date(), 'yyyy-MM-dd'),
-    purchase_price: defaultValues?.purchasePrice || 0,
-    salvage_value: defaultValues?.salvageValue || 0,
-    useful_life_years: defaultValues?.usefulLifeYears || 5,
-    declining_balance_rate: 2,
+  const form = useForm<GenerateScheduleValues>({
+    resolver: zodResolver(generateScheduleSchema),
+    defaultValues: {
+      depreciation_method: defaultValues?.depreciationMethod || 'straight_line',
+      period_type: 'yearly',
+      start_date: defaultValues?.startDate || format(new Date(), 'yyyy-MM-dd'),
+      purchase_price: defaultValues?.purchasePrice || 0,
+      salvage_value: defaultValues?.salvageValue || 0,
+      useful_life_years: defaultValues?.usefulLifeYears || 5,
+      declining_balance_rate: 2,
+    }
   });
 
-  const handleSubmit = () => {
+  const onSubmit = form.handleSubmit((data) => {
     onGenerate({
       asset_id: assetId,
-      ...formData,
+      ...data,
     });
     setOpen(false);
-  };
+  });
 
-  const depreciableAmount = formData.purchase_price - formData.salvage_value;
-  const annualDepreciation = depreciableAmount / (formData.useful_life_years || 1);
+  const purchasePrice = form.watch('purchase_price');
+  const salvageValue = form.watch('salvage_value');
+  const usefulLifeYears = form.watch('useful_life_years');
+  const depreciationMethod = form.watch('depreciation_method');
 
-  const selectedMethod = DEPRECIATION_METHODS.find(m => m.value === formData.depreciation_method);
+  const depreciableAmount = purchasePrice - salvageValue;
+  const annualDepreciation = depreciableAmount / (usefulLifeYears || 1);
+
+  const selectedMethod = DEPRECIATION_METHODS.find(m => m.value === depreciationMethod);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -120,21 +131,27 @@ export function GenerateScheduleDialog({
           {/* Depreciation Method */}
           <div className="space-y-2">
             <Label>{t('assets.depreciation.method', 'Depreciation Method')}</Label>
-            <Select
-              value={formData.depreciation_method}
-              onValueChange={(v) => setFormData(prev => ({ ...prev, depreciation_method: v as DepreciationMethod }))}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {DEPRECIATION_METHODS.map(method => (
-                  <SelectItem key={method.value} value={method.value}>
-                    {t(method.labelKey, method.value)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Controller
+              name="depreciation_method"
+              control={form.control}
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DEPRECIATION_METHODS.map(method => (
+                      <SelectItem key={method.value} value={method.value}>
+                        {t(method.labelKey, method.value)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
             {selectedMethod && (
               <p className="text-xs text-muted-foreground">
                 {t(selectedMethod.descKey, '')}
@@ -145,21 +162,27 @@ export function GenerateScheduleDialog({
           {/* Period Type */}
           <div className="space-y-2">
             <Label>{t('assets.depreciation.periodType', 'Period Type')}</Label>
-            <Select
-              value={formData.period_type}
-              onValueChange={(v) => setFormData(prev => ({ ...prev, period_type: v as PeriodType }))}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {PERIOD_TYPES.map(period => (
-                  <SelectItem key={period.value} value={period.value}>
-                    {t(period.labelKey, period.value)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Controller
+              name="period_type"
+              control={form.control}
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PERIOD_TYPES.map(period => (
+                      <SelectItem key={period.value} value={period.value}>
+                        {t(period.labelKey, period.value)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
 
           {/* Start Date */}
@@ -167,8 +190,7 @@ export function GenerateScheduleDialog({
             <Label>{t('assets.depreciation.startDate', 'Start Date')}</Label>
             <Input
               type="date"
-              value={formData.start_date}
-              onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
+              {...form.register('start_date')}
             />
           </div>
 
@@ -178,16 +200,16 @@ export function GenerateScheduleDialog({
               <Label>{t('assets.depreciation.purchasePrice', 'Purchase Price')}</Label>
               <Input
                 type="number"
-                value={formData.purchase_price || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, purchase_price: parseFloat(e.target.value) || 0 }))}
+                value={purchasePrice || ''}
+                onChange={(e) => form.setValue('purchase_price', parseFloat(e.target.value) || 0)}
               />
             </div>
             <div className="space-y-2">
               <Label>{t('assets.depreciation.salvageValue', 'Salvage Value')}</Label>
               <Input
                 type="number"
-                value={formData.salvage_value || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, salvage_value: parseFloat(e.target.value) || 0 }))}
+                value={salvageValue || ''}
+                onChange={(e) => form.setValue('salvage_value', parseFloat(e.target.value) || 0)}
               />
             </div>
           </div>
@@ -199,13 +221,13 @@ export function GenerateScheduleDialog({
               type="number"
               min={1}
               max={100}
-              value={formData.useful_life_years || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, useful_life_years: parseInt(e.target.value) || 1 }))}
+              value={usefulLifeYears || ''}
+              onChange={(e) => form.setValue('useful_life_years', parseInt(e.target.value) || 1)}
             />
           </div>
 
           {/* Declining Balance Rate (only for declining balance method) */}
-          {formData.depreciation_method === 'declining_balance' && (
+          {depreciationMethod === 'declining_balance' && (
             <div className="space-y-2">
               <Label>{t('assets.depreciation.decliningRate', 'Declining Balance Rate')}</Label>
               <Input
@@ -213,8 +235,7 @@ export function GenerateScheduleDialog({
                 step={0.1}
                 min={1}
                 max={10}
-                value={formData.declining_balance_rate}
-                onChange={(e) => setFormData(prev => ({ ...prev, declining_balance_rate: parseFloat(e.target.value) || 2 }))}
+                {...form.register('declining_balance_rate', { valueAsNumber: true })}
               />
               <p className="text-xs text-muted-foreground">
                 {t('assets.depreciation.decliningRateHint', 'Common values: 1.5 (150%), 2 (200% - Double Declining)')}
@@ -228,7 +249,7 @@ export function GenerateScheduleDialog({
             <AlertDescription className="space-y-1">
               <p><strong>{t('assets.depreciation.preview', 'Preview')}:</strong></p>
               <p>{t('assets.depreciation.depreciableAmount', 'Depreciable Amount')}: {depreciableAmount.toLocaleString()}</p>
-              {formData.depreciation_method === 'straight_line' && (
+              {depreciationMethod === 'straight_line' && (
                 <p>{t('assets.depreciation.annualDepreciation', 'Annual Depreciation')}: {annualDepreciation.toLocaleString()}</p>
               )}
             </AlertDescription>
@@ -239,7 +260,7 @@ export function GenerateScheduleDialog({
           <Button variant="outline" onClick={() => setOpen(false)}>
             {t('common.cancel', 'Cancel')}
           </Button>
-          <Button onClick={handleSubmit} disabled={isGenerating || !formData.purchase_price}>
+          <Button onClick={onSubmit} disabled={isGenerating || !purchasePrice}>
             {isGenerating ? t('common.generating', 'Generating...') : t('assets.depreciation.generate', 'Generate')}
           </Button>
         </DialogFooter>

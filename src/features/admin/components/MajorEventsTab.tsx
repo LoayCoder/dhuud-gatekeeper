@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Trophy, Plus, Pencil, Trash2, Calendar } from 'lucide-react';
 import { format, isAfter, isBefore, parseISO } from 'date-fns';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { specialEventSchema, SpecialEventFormValues } from './SpecialEventSchema';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -49,7 +52,7 @@ function getEventStatus(event: SpecialEvent): EventStatus {
   const now = new Date();
   const startAt = parseISO(event.start_at);
   const endAt = parseISO(event.end_at);
-  
+
   if (!event.is_active || isAfter(now, endAt)) {
     return 'archived';
   }
@@ -61,13 +64,13 @@ function getEventStatus(event: SpecialEvent): EventStatus {
 
 function StatusBadge({ status }: { status: EventStatus }) {
   const { t } = useTranslation();
-  
+
   const variants: Record<EventStatus, { variant: 'default' | 'secondary' | 'outline'; className: string }> = {
     active: { variant: 'default', className: 'bg-green-500 hover:bg-green-600' },
     upcoming: { variant: 'secondary', className: 'bg-yellow-500 hover:bg-yellow-600 text-primary-foreground' },
     archived: { variant: 'outline', className: '' },
   };
-  
+
   return (
     <Badge variant={variants[status].variant} className={variants[status].className}>
       {t(`specialEvents.status${status.charAt(0).toUpperCase() + status.slice(1)}`)}
@@ -78,112 +81,87 @@ function StatusBadge({ status }: { status: EventStatus }) {
 export function MajorEventsTab() {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
-  
+
   const { data: events = [], isLoading } = useSpecialEvents();
   const createEvent = useCreateSpecialEvent();
   const updateEvent = useUpdateSpecialEvent();
   const deleteEvent = useDeleteSpecialEvent();
-  
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<SpecialEvent | null>(null);
   const [eventToDelete, setEventToDelete] = useState<string | null>(null);
-  
-  // Form state
-  const [formData, setFormData] = useState<SpecialEventFormData>({
-    name: '',
-    description: '',
-    start_at: '',
-    end_at: '',
-    is_active: true,
+
+  const form = useForm<SpecialEventFormValues>({
+    resolver: zodResolver(specialEventSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      start_at: '',
+      end_at: '',
+      is_active: true,
+    }
   });
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  
+
   const resetForm = () => {
-    setFormData({
+    form.reset({
       name: '',
       description: '',
       start_at: '',
       end_at: '',
       is_active: true,
     });
-    setFormErrors({});
     setEditingEvent(null);
   };
-  
+
   const openCreateDialog = () => {
     resetForm();
     setDialogOpen(true);
   };
-  
+
   const openEditDialog = (event: SpecialEvent) => {
     setEditingEvent(event);
-    setFormData({
+    form.reset({
       name: event.name,
       description: event.description || '',
       start_at: event.start_at.slice(0, 16), // Format for datetime-local input
       end_at: event.end_at.slice(0, 16),
       is_active: event.is_active,
     });
-    setFormErrors({});
     setDialogOpen(true);
   };
-  
-  const validateForm = (): boolean => {
-    const errors: Record<string, string> = {};
-    
-    if (!formData.name.trim()) {
-      errors.name = t('specialEvents.validation.nameRequired');
-    }
-    if (!formData.start_at) {
-      errors.start_at = t('specialEvents.validation.startRequired');
-    }
-    if (!formData.end_at) {
-      errors.end_at = t('specialEvents.validation.endRequired');
-    }
-    if (formData.start_at && formData.end_at) {
-      if (new Date(formData.end_at) <= new Date(formData.start_at)) {
-        errors.end_at = t('specialEvents.validation.endAfterStart');
-      }
-    }
-    
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-  
-  const handleSubmit = async () => {
-    if (!validateForm()) return;
-    
+
+  const onSubmit = form.handleSubmit(async (data) => {
     const payload: SpecialEventFormData = {
-      name: formData.name.trim(),
-      description: formData.description?.trim() || undefined,
-      start_at: new Date(formData.start_at).toISOString(),
-      end_at: new Date(formData.end_at).toISOString(),
-      is_active: formData.is_active,
+      name: data.name.trim(),
+      description: data.description?.trim() || undefined,
+      start_at: new Date(data.start_at).toISOString(),
+      end_at: new Date(data.end_at).toISOString(),
+      is_active: data.is_active,
     };
-    
+
     if (editingEvent) {
       await updateEvent.mutateAsync({ id: editingEvent.id, data: payload });
     } else {
       await createEvent.mutateAsync(payload);
     }
-    
+
     setDialogOpen(false);
     resetForm();
-  };
-  
+  });
+
   const handleDelete = async () => {
     if (!eventToDelete) return;
     await deleteEvent.mutateAsync(eventToDelete);
     setDeleteDialogOpen(false);
     setEventToDelete(null);
   };
-  
+
   const confirmDelete = (id: string) => {
     setEventToDelete(id);
     setDeleteDialogOpen(true);
   };
-  
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -191,7 +169,7 @@ export function MajorEventsTab() {
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-4" dir={direction}>
       {/* Header */}
@@ -205,7 +183,7 @@ export function MajorEventsTab() {
           {t('specialEvents.addEvent')}
         </Button>
       </div>
-      
+
       {/* Events Table */}
       {events.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
@@ -275,105 +253,112 @@ export function MajorEventsTab() {
           </Table>
         </div>
       )}
-      
+
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent dir={direction}>
-          <DialogHeader>
-            <DialogTitle>
-              {editingEvent ? t('specialEvents.editEvent') : t('specialEvents.addEvent')}
-            </DialogTitle>
-            <DialogDescription>
-              {t('specialEvents.eventDescription')}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            {/* Event Name */}
-            <div className="space-y-2">
-              <Label htmlFor="event-name">{t('specialEvents.eventName')} *</Label>
-              <Input
-                id="event-name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder={t('specialEvents.eventNamePlaceholder')}
-              />
-              {formErrors.name && (
-                <p className="text-sm text-destructive">{formErrors.name}</p>
-              )}
-            </div>
-            
-            {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor="event-description">{t('specialEvents.description')}</Label>
-              <Textarea
-                id="event-description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder={t('specialEvents.descriptionPlaceholder')}
-                rows={3}
-              />
-            </div>
-            
-            {/* Date Range */}
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={onSubmit}>
+            <DialogHeader>
+              <DialogTitle>
+                {editingEvent ? t('specialEvents.editEvent') : t('specialEvents.addEvent')}
+              </DialogTitle>
+              <DialogDescription>
+                {t('specialEvents.eventDescription')}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              {/* Event Name */}
               <div className="space-y-2">
-                <Label htmlFor="start-date">{t('specialEvents.startDate')} *</Label>
+                <Label htmlFor="event-name">{t('specialEvents.eventName')} *</Label>
                 <Input
-                  id="start-date"
-                  type="datetime-local"
-                  value={formData.start_at}
-                  onChange={(e) => setFormData({ ...formData, start_at: e.target.value })}
+                  id="event-name"
+                  {...form.register('name')}
+                  placeholder={t('specialEvents.eventNamePlaceholder')}
                 />
-                {formErrors.start_at && (
-                  <p className="text-sm text-destructive">{formErrors.start_at}</p>
+                {form.formState.errors.name && (
+                  <p className="text-sm text-destructive">{form.formState.errors.name.message as string}</p>
                 )}
               </div>
+
+              {/* Description */}
               <div className="space-y-2">
-                <Label htmlFor="end-date">{t('specialEvents.endDate')} *</Label>
-                <Input
-                  id="end-date"
-                  type="datetime-local"
-                  value={formData.end_at}
-                  onChange={(e) => setFormData({ ...formData, end_at: e.target.value })}
+                <Label htmlFor="event-description">{t('specialEvents.description')}</Label>
+                <Textarea
+                  id="event-description"
+                  {...form.register('description')}
+                  placeholder={t('specialEvents.descriptionPlaceholder')}
+                  rows={3}
                 />
-                {formErrors.end_at && (
-                  <p className="text-sm text-destructive">{formErrors.end_at}</p>
+                {form.formState.errors.description && (
+                  <p className="text-sm text-destructive">{form.formState.errors.description.message as string}</p>
                 )}
               </div>
-            </div>
-            
-            {/* Active Toggle */}
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>{t('specialEvents.activeToggle')}</Label>
-                <p className="text-sm text-muted-foreground">
-                  {t('specialEvents.activeToggleDescription')}
-                </p>
+
+              {/* Date Range */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="start-date">{t('specialEvents.startDate')} *</Label>
+                  <Input
+                    id="start-date"
+                    type="datetime-local"
+                    {...form.register('start_at')}
+                  />
+                  {form.formState.errors.start_at && (
+                    <p className="text-sm text-destructive">{form.formState.errors.start_at.message as string}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="end-date">{t('specialEvents.endDate')} *</Label>
+                  <Input
+                    id="end-date"
+                    type="datetime-local"
+                    {...form.register('end_at')}
+                  />
+                  {form.formState.errors.end_at && (
+                    <p className="text-sm text-destructive">{form.formState.errors.end_at.message as string}</p>
+                  )}
+                </div>
               </div>
-              <Switch
-                checked={formData.is_active}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-              />
+
+              {/* Active Toggle */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>{t('specialEvents.activeToggle')}</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {t('specialEvents.activeToggleDescription')}
+                  </p>
+                </div>
+                <Controller
+                  name="is_active"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  )}
+                />
+              </div>
             </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              {t('common.cancel')}
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={createEvent.isPending || updateEvent.isPending}
-            >
-              {createEvent.isPending || updateEvent.isPending
-                ? t('common.saving')
-                : t('common.save')}
-            </Button>
-          </DialogFooter>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                {t('common.cancel')}
+              </Button>
+              <Button
+                type="submit"
+                disabled={createEvent.isPending || updateEvent.isPending}
+              >
+                {createEvent.isPending || updateEvent.isPending
+                  ? t('common.saving')
+                  : t('common.save')}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
-      
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent dir={direction}>

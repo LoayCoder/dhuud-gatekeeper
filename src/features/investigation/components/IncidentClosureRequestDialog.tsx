@@ -1,5 +1,8 @@
 ﻿import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { incidentClosureSchema, IncidentClosureValues } from './IncidentClosureRequestSchema';
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import {
   Dialog,
@@ -28,28 +31,37 @@ export function IncidentClosureRequestDialog({
   incidentId,
 }: IncidentClosureRequestDialogProps) {
   const { t } = useTranslation();
-  const [notes, setNotes] = useState('');
-  const [checklist, setChecklist] = useState({
-    evidence: false,
-    witnesses: false,
-    rca: false,
-    actions: false,
+
+  const form = useForm<IncidentClosureValues>({
+    resolver: zodResolver(incidentClosureSchema),
+    defaultValues: {
+      notes: '',
+      evidence: false,
+      witnesses: false,
+      rca: false,
+      actions: false,
+    }
   });
 
   const { data: closureCheck, isLoading: checkingClosure } = useCanCloseIncident(incidentId);
   const requestClosure = useRequestIncidentClosure();
 
-  const allChecked = Object.values(checklist).every(Boolean);
+  const evidence = form.watch('evidence');
+  const witnesses = form.watch('witnesses');
+  const rca = form.watch('rca');
+  const actions = form.watch('actions');
+
+  const allChecked = evidence && witnesses && rca && actions;
   const canSubmit = allChecked && closureCheck?.can_close;
 
-  const handleSubmit = async () => {
+  const onSubmit = async () => {
+    const data = form.getValues();
     await requestClosure.mutateAsync({
       incidentId,
-      notes: notes.trim() || undefined,
+      notes: data.notes?.trim() || undefined,
     });
     onOpenChange(false);
-    setNotes('');
-    setChecklist({ evidence: false, witnesses: false, rca: false, actions: false });
+    form.reset();
   };
 
   return (
@@ -68,54 +80,70 @@ export function IncidentClosureRequestDialog({
             <Label className="text-sm font-medium">
               {t('investigation.closureChecklist', 'Closure Checklist')}
             </Label>
-            
+
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="evidence"
-                  checked={checklist.evidence}
-                  onCheckedChange={(checked) => 
-                    setChecklist(prev => ({ ...prev, evidence: !!checked }))
-                  }
+                <Controller
+                  name="evidence"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Checkbox
+                      id="evidence"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(!!checked)}
+                    />
+                  )}
                 />
                 <label htmlFor="evidence" className="text-sm cursor-pointer">
                   {t('investigation.allEvidenceCollected', 'All evidence collected')}
                 </label>
               </div>
-              
+
               <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="witnesses"
-                  checked={checklist.witnesses}
-                  onCheckedChange={(checked) => 
-                    setChecklist(prev => ({ ...prev, witnesses: !!checked }))
-                  }
+                <Controller
+                  name="witnesses"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Checkbox
+                      id="witnesses"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(!!checked)}
+                    />
+                  )}
                 />
                 <label htmlFor="witnesses" className="text-sm cursor-pointer">
                   {t('investigation.allWitnessesInterviewed', 'All witness statements obtained')}
                 </label>
               </div>
-              
+
               <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="rca"
-                  checked={checklist.rca}
-                  onCheckedChange={(checked) => 
-                    setChecklist(prev => ({ ...prev, rca: !!checked }))
-                  }
+                <Controller
+                  name="rca"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Checkbox
+                      id="rca"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(!!checked)}
+                    />
+                  )}
                 />
                 <label htmlFor="rca" className="text-sm cursor-pointer">
                   {t('investigation.rcaComplete', 'Root cause analysis complete')}
                 </label>
               </div>
-              
+
               <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="actions"
-                  checked={checklist.actions}
-                  onCheckedChange={(checked) => 
-                    setChecklist(prev => ({ ...prev, actions: !!checked }))
-                  }
+                <Controller
+                  name="actions"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Checkbox
+                      id="actions"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(!!checked)}
+                    />
+                  )}
                 />
                 <label htmlFor="actions" className="text-sm cursor-pointer">
                   {t('investigation.actionsAssigned', 'All corrective actions assigned')}
@@ -158,8 +186,7 @@ export function IncidentClosureRequestDialog({
             </Label>
             <Textarea
               id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              {...form.register('notes')}
               placeholder={t('investigation.closureNotesPlaceholder', 'Add any notes for the approver...')}
               rows={3}
             />
@@ -171,7 +198,7 @@ export function IncidentClosureRequestDialog({
             {t('common.cancel', 'Cancel')}
           </Button>
           <Button
-            onClick={handleSubmit}
+            onClick={onSubmit}
             disabled={!canSubmit || requestClosure.isPending}
           >
             {requestClosure.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}

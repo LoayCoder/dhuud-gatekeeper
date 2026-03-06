@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { witnessDirectEntrySchema, WitnessDirectEntryValues } from './WitnessDirectEntrySchema';
 import { Sparkles, RefreshCw, FileText, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,8 +20,8 @@ export interface WitnessDirectEntryProps {
   onSuccess: () => void;
 }
 
-export function WitnessDirectEntry({ 
-  incidentId, 
+export function WitnessDirectEntry({
+  incidentId,
   incidentContext,
   existingStatementId,
   onSuccess
@@ -27,11 +30,16 @@ export function WitnessDirectEntry({
   const createStatement = useCreateWitnessStatement();
   const updateStatement = useUpdateWitnessStatement();
 
-  const [witnessName, setWitnessName] = useState("");
-  const [witnessContact, setWitnessContact] = useState("");
-  const [relationship, setRelationship] = useState("");
-  const [statementText, setStatementText] = useState("");
-  
+  const form = useForm<WitnessDirectEntryValues>({
+    resolver: zodResolver(witnessDirectEntrySchema),
+    defaultValues: {
+      witnessName: '',
+      witnessContact: '',
+      relationship: '',
+      statementText: '',
+    }
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisType, setAnalysisType] = useState<string | null>(null);
@@ -39,7 +47,8 @@ export function WitnessDirectEntry({
   const [missingDetails, setMissingDetails] = useState<string | null>(null);
 
   const handleAIAction = async (type: "rewrite" | "summarize" | "detect_missing") => {
-    if (!statementText.trim()) {
+    const currentStatement = form.getValues('statementText');
+    if (!currentStatement.trim()) {
       toast.error(t("investigation.witnesses.statementRequired", "Statement text is required"));
       return;
     }
@@ -48,10 +57,10 @@ export function WitnessDirectEntry({
     setAnalysisType(type);
 
     try {
-      const result = await analyzeStatement(statementText, type, incidentContext);
-      
+      const result = await analyzeStatement(currentStatement, type, incidentContext);
+
       if (type === "rewrite") {
-        setStatementText(result.result || statementText);
+        form.setValue('statementText', result.result || currentStatement);
         toast.success(t("investigation.witnesses.rewriteSuccess", "Statement rewritten"));
       } else if (type === "summarize") {
         setAnalysisResult(result.result || null);
@@ -70,11 +79,12 @@ export function WitnessDirectEntry({
   };
 
   const handleSubmit = async () => {
-    if (!witnessName.trim()) {
+    const data = form.getValues();
+    if (!data.witnessName.trim()) {
       toast.error(t("investigation.witnesses.nameRequired", "Witness name is required"));
       return;
     }
-    if (!statementText.trim()) {
+    if (!data.statementText.trim()) {
       toast.error(t("investigation.witnesses.statementRequired", "Statement text is required"));
       return;
     }
@@ -85,19 +95,18 @@ export function WitnessDirectEntry({
       if (existingStatementId) {
         await updateStatement.mutateAsync({
           id: existingStatementId,
-          name: witnessName,
-          contact: witnessContact || undefined,
-          relationship: relationship || undefined,
-          statement: statementText,
-          // assignment_status not in update interface - handled separately
+          name: data.witnessName,
+          contact: data.witnessContact || undefined,
+          relationship: data.relationship || undefined,
+          statement: data.statementText,
         });
       } else {
         await createStatement.mutateAsync({
           incident_id: incidentId,
-          name: witnessName,
-          contact: witnessContact || undefined,
-          relationship: relationship || undefined,
-          statement: statementText,
+          name: data.witnessName,
+          contact: data.witnessContact || undefined,
+          relationship: data.relationship || undefined,
+          statement: data.statementText,
           statement_method: "text",
         });
       }
@@ -116,8 +125,7 @@ export function WitnessDirectEntry({
           <Label htmlFor="witnessName">{t("investigation.witnesses.name", "Witness Name")} *</Label>
           <Input
             id="witnessName"
-            value={witnessName}
-            onChange={(e) => setWitnessName(e.target.value)}
+            {...form.register('witnessName')}
             placeholder={t("investigation.witnesses.namePlaceholder", "Enter witness name...")}
           />
         </div>
@@ -125,8 +133,7 @@ export function WitnessDirectEntry({
           <Label htmlFor="witnessContact">{t("investigation.witnesses.contact", "Contact Info")}</Label>
           <Input
             id="witnessContact"
-            value={witnessContact}
-            onChange={(e) => setWitnessContact(e.target.value)}
+            {...form.register('witnessContact')}
             placeholder={t("investigation.witnesses.contactPlaceholder", "Phone or email...")}
           />
         </div>
@@ -136,8 +143,7 @@ export function WitnessDirectEntry({
         <Label htmlFor="relationship">{t("investigation.witnesses.relationship", "Relationship")}</Label>
         <Input
           id="relationship"
-          value={relationship}
-          onChange={(e) => setRelationship(e.target.value)}
+          {...form.register('relationship')}
           placeholder={t("investigation.witnesses.relationshipPlaceholder", "e.g., Colleague, Supervisor...")}
         />
       </div>
@@ -151,7 +157,7 @@ export function WitnessDirectEntry({
               variant="outline"
               size="sm"
               onClick={() => handleAIAction("rewrite")}
-              disabled={isAnalyzing || !statementText.trim()}
+              disabled={isAnalyzing || !form.watch('statementText')?.trim()}
             >
               {isAnalyzing && analysisType === "rewrite" ? (
                 <Loader2 className="me-1 h-3 w-3 animate-spin" />
@@ -164,7 +170,7 @@ export function WitnessDirectEntry({
               variant="outline"
               size="sm"
               onClick={() => handleAIAction("summarize")}
-              disabled={isAnalyzing || !statementText.trim()}
+              disabled={isAnalyzing || !form.watch('statementText')?.trim()}
             >
               {isAnalyzing && analysisType === "summarize" ? (
                 <Loader2 className="me-1 h-3 w-3 animate-spin" />
@@ -177,7 +183,7 @@ export function WitnessDirectEntry({
               variant="outline"
               size="sm"
               onClick={() => handleAIAction("detect_missing")}
-              disabled={isAnalyzing || !statementText.trim()}
+              disabled={isAnalyzing || !form.watch('statementText')?.trim()}
             >
               {isAnalyzing && analysisType === "detect_missing" ? (
                 <Loader2 className="me-1 h-3 w-3 animate-spin" />
@@ -190,8 +196,7 @@ export function WitnessDirectEntry({
         </div>
         <Textarea
           id="statementText"
-          value={statementText}
-          onChange={(e) => setStatementText(e.target.value)}
+          {...form.register('statementText')}
           placeholder={t("investigation.witnesses.statementPlaceholder", "Record what the witness observed...")}
           rows={8}
           className="min-h-[200px]"
@@ -232,13 +237,13 @@ export function WitnessDirectEntry({
 
       {/* Actions */}
       <div className="flex justify-end gap-2">
-        <Button 
-          onClick={handleSubmit} 
-          disabled={isSubmitting || !witnessName.trim() || !statementText.trim()}
+        <Button
+          onClick={handleSubmit}
+          disabled={isSubmitting || !form.watch('witnessName')?.trim() || !form.watch('statementText')?.trim()}
         >
           {isSubmitting && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-          {existingStatementId 
-            ? t("investigation.witnesses.submitStatement", "Submit Statement") 
+          {existingStatementId
+            ? t("investigation.witnesses.submitStatement", "Submit Statement")
             : t("investigation.witnesses.saveStatement", "Save Statement")}
         </Button>
       </div>

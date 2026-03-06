@@ -2,6 +2,9 @@
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Pencil } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { editInspectionCategorySchema, EditInspectionCategoryValues } from './EditInspectionCategorySchema';
 import {
   Dialog,
   DialogContent,
@@ -24,50 +27,51 @@ interface EditInspectionCategoryDialogProps {
 export function EditInspectionCategoryDialog({ category }: EditInspectionCategoryDialogProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState(category.name);
-  const [description, setDescription] = useState(category.description || '');
-  const [icon, setIcon] = useState(category.icon || '');
-  const [color, setColor] = useState(category.color || '#3b82f6');
-  const [sortOrder, setSortOrder] = useState(category.sort_order);
+
+  const form = useForm<EditInspectionCategoryValues>({
+    resolver: zodResolver(editInspectionCategorySchema),
+    defaultValues: {
+      name: category.name,
+      description: category.description || '',
+      icon: category.icon || '',
+      color: category.color || '#3b82f6',
+      sortOrder: category.sort_order,
+    }
+  });
 
   const updateCategory = useUpdateInspectionCategory();
 
   // Reset form when dialog opens
   useEffect(() => {
     if (open) {
-      setName(category.name);
-      setDescription(category.description || '');
-      setIcon(category.icon || '');
-      setColor(category.color || '#3b82f6');
-      setSortOrder(category.sort_order);
+      form.reset({
+        name: category.name,
+        description: category.description || '',
+        icon: category.icon || '',
+        color: category.color || '#3b82f6',
+        sortOrder: category.sort_order,
+      });
     }
-  }, [open, category]);
+  }, [open, category, form]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!name.trim()) {
-      toast.error(t('common.requiredFields'));
-      return;
-    }
-
+  const onSubmit = form.handleSubmit(async (data) => {
     try {
       await updateCategory.mutateAsync({
         id: category.id,
-        name: name.trim(),
+        name: data.name.trim(),
         name_ar: category.name_ar || null, // Preserve existing value
-        description: description.trim() || null,
+        description: data.description.trim() || null,
         description_ar: category.description_ar || null, // Preserve existing value
-        icon: icon.trim() || null,
-        color: color || null,
-        sort_order: sortOrder,
+        icon: data.icon.trim() || null,
+        color: data.color || null,
+        sort_order: data.sortOrder,
       });
-      
+
       setOpen(false);
     } catch (error) {
       toast.error(t('common.error'));
     }
-  };
+  });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -77,14 +81,14 @@ export function EditInspectionCategoryDialog({ category }: EditInspectionCategor
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={onSubmit}>
           <DialogHeader>
             <DialogTitle>{t('settings.inspectionCategories.editCategory')}</DialogTitle>
             <DialogDescription>
               {t('settings.inspectionCategories.editCategoryDescription')}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
@@ -100,33 +104,44 @@ export function EditInspectionCategoryDialog({ category }: EditInspectionCategor
                 <Input
                   id="sortOrder"
                   type="number"
-                  value={sortOrder}
-                  onChange={(e) => setSortOrder(Number(e.target.value))}
+                  {...form.register('sortOrder', { valueAsNumber: true })}
                   min={1}
                 />
+                {form.formState.errors.sortOrder && (
+                  <p className="text-destructive text-sm">
+                    {form.formState.errors.sortOrder.message}
+                  </p>
+                )}
               </div>
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="name">{t('common.nameEn')} *</Label>
               <Input
                 id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                {...form.register('name')}
                 placeholder="Category Name (English)"
-                required
               />
+              {form.formState.errors.name && (
+                <p className="text-destructive text-sm">
+                  {form.formState.errors.name.message}
+                </p>
+              )}
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="description">{t('common.description')}</Label>
               <Textarea
                 id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                {...form.register('description')}
                 placeholder={t('common.descriptionPlaceholder', 'Description')}
                 rows={2}
               />
+              {form.formState.errors.description && (
+                <p className="text-destructive text-sm">
+                  {form.formState.errors.description.message}
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -134,13 +149,17 @@ export function EditInspectionCategoryDialog({ category }: EditInspectionCategor
                 <Label htmlFor="icon">{t('common.icon')}</Label>
                 <Input
                   id="icon"
-                  value={icon}
-                  onChange={(e) => setIcon(e.target.value)}
+                  {...form.register('icon')}
                   placeholder="e.g., Flame, Shield"
                 />
                 <p className="text-xs text-muted-foreground">
                   {t('settings.inspectionCategories.iconHelp')}
                 </p>
+                {form.formState.errors.icon && (
+                  <p className="text-destructive text-sm">
+                    {form.formState.errors.icon.message}
+                  </p>
+                )}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="color">{t('common.color')}</Label>
@@ -148,21 +167,24 @@ export function EditInspectionCategoryDialog({ category }: EditInspectionCategor
                   <Input
                     id="color"
                     type="color"
-                    value={color}
-                    onChange={(e) => setColor(e.target.value)}
+                    {...form.register('color')}
                     className="w-12 h-9 p-1 cursor-pointer"
                   />
                   <Input
-                    value={color}
-                    onChange={(e) => setColor(e.target.value)}
+                    {...form.register('color')}
                     placeholder="#3b82f6"
                     className="flex-1"
                   />
                 </div>
+                {form.formState.errors.color && (
+                  <p className="text-destructive text-sm">
+                    {form.formState.errors.color.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               {t('common.cancel')}

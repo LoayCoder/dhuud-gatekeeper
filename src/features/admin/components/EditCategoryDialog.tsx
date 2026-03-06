@@ -2,6 +2,9 @@
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Pencil, Trash2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { editCategorySchema, EditCategoryValues } from './EditCategorySchema';
 import {
   Dialog,
   DialogContent,
@@ -34,38 +37,44 @@ interface EditCategoryDialogProps {
 export function EditCategoryDialog({ category }: EditCategoryDialogProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [nameKey, setNameKey] = useState(category.name_key);
-  const [icon, setIcon] = useState(category.icon || '');
-  const [sortOrder, setSortOrder] = useState(category.sort_order);
+
+  const form = useForm<EditCategoryValues>({
+    resolver: zodResolver(editCategorySchema),
+    defaultValues: {
+      nameKey: category.name_key,
+      icon: category.icon || '',
+      sortOrder: category.sort_order,
+    }
+  });
 
   const updateCategory = useUpdateEventCategory();
   const deleteCategory = useDeleteEventCategory();
 
   useEffect(() => {
-    setNameKey(category.name_key);
-    setIcon(category.icon || '');
-    setSortOrder(category.sort_order);
-  }, [category]);
+    form.reset({
+      nameKey: category.name_key,
+      icon: category.icon || '',
+      sortOrder: category.sort_order,
+    });
+  }, [category, form]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const onSubmit = form.handleSubmit(async (data) => {
     try {
       await updateCategory.mutateAsync({
         categoryId: category.id,
         data: {
-          name_key: nameKey,
-          icon: icon || undefined,
-          sort_order: sortOrder,
+          name_key: data.nameKey,
+          icon: data.icon || undefined,
+          sort_order: data.sortOrder,
         },
       });
-      
+
       toast.success(t('settings.eventCategories.crud.categoryUpdated'));
       setOpen(false);
     } catch (error) {
       toast.error(t('common.error'));
     }
-  };
+  });
 
   const handleDelete = async () => {
     try {
@@ -85,14 +94,14 @@ export function EditCategoryDialog({ category }: EditCategoryDialogProps) {
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={onSubmit}>
           <DialogHeader>
             <DialogTitle>{t('settings.eventCategories.crud.editCategory')}</DialogTitle>
             <DialogDescription>
               {t('settings.eventCategories.crud.editCategoryDescription')}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="code">{t('settings.eventCategories.crud.code')}</Label>
@@ -103,39 +112,50 @@ export function EditCategoryDialog({ category }: EditCategoryDialogProps) {
                 className="bg-muted"
               />
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="nameKey">{t('settings.eventCategories.crud.nameKey')}</Label>
               <Input
                 id="nameKey"
-                value={nameKey}
-                onChange={(e) => setNameKey(e.target.value)}
-                required
+                {...form.register('nameKey')}
               />
+              {form.formState.errors.nameKey && (
+                <p className="text-destructive text-sm">
+                  {form.formState.errors.nameKey.message}
+                </p>
+              )}
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="icon">{t('settings.eventCategories.crud.icon')}</Label>
               <Input
                 id="icon"
-                value={icon}
-                onChange={(e) => setIcon(e.target.value)}
+                {...form.register('icon')}
                 placeholder="e.g., AlertTriangle"
               />
+              {form.formState.errors.icon && (
+                <p className="text-destructive text-sm">
+                  {form.formState.errors.icon.message}
+                </p>
+              )}
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="sortOrder">{t('settings.eventCategories.crud.sortOrder')}</Label>
               <Input
                 id="sortOrder"
                 type="number"
-                value={sortOrder}
-                onChange={(e) => setSortOrder(Number(e.target.value))}
+                {...form.register('sortOrder', { valueAsNumber: true })}
                 min={1}
               />
+              {form.formState.errors.sortOrder && (
+                <p className="text-destructive text-sm">
+                  {form.formState.errors.sortOrder.message}
+                </p>
+              )}
             </div>
           </div>
-          
+
           <DialogFooter className="flex justify-between">
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -159,7 +179,7 @@ export function EditCategoryDialog({ category }: EditCategoryDialogProps) {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            
+
             <div className="flex gap-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 {t('common.cancel')}

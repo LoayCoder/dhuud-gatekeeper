@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { witnessTaskAssignmentSchema, WitnessTaskAssignmentValues } from './WitnessTaskAssignmentSchema';
 import { UserPlus, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,11 +42,17 @@ export function WitnessTaskAssignment({ incidentId, onAssigned }: WitnessTaskAss
   const createStatement = useCreateWitnessStatement();
 
   const [open, setOpen] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState<string>("");
-  const [witnessName, setWitnessName] = useState("");
-  const [relationship, setRelationship] = useState("");
-  const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const form = useForm<WitnessTaskAssignmentValues>({
+    resolver: zodResolver(witnessTaskAssignmentSchema),
+    defaultValues: {
+      selectedUserId: '',
+      witnessName: '',
+      relationship: '',
+      notes: '',
+    }
+  });
 
   // Fetch users in the same tenant
   const { data: users, isLoading: isLoadingUsers } = useQuery({
@@ -66,19 +75,20 @@ export function WitnessTaskAssignment({ incidentId, onAssigned }: WitnessTaskAss
   });
 
   const handleUserSelect = (userId: string) => {
-    setSelectedUserId(userId);
+    form.setValue('selectedUserId', userId);
     const user = users?.find((u) => u.id === userId);
     if (user) {
-      setWitnessName(user.full_name || "");
+      form.setValue('witnessName', user.full_name || '');
     }
   };
 
   const handleSubmit = async () => {
-    if (!selectedUserId) {
+    const data = form.getValues();
+    if (!data.selectedUserId) {
       toast.error(t("investigation.witnesses.selectUser", "Please select a user"));
       return;
     }
-    if (!witnessName.trim()) {
+    if (!data.witnessName.trim()) {
       toast.error(t("investigation.witnesses.nameRequired", "Witness name is required"));
       return;
     }
@@ -88,30 +98,23 @@ export function WitnessTaskAssignment({ incidentId, onAssigned }: WitnessTaskAss
     try {
       await createStatement.mutateAsync({
         incident_id: incidentId,
-        name: witnessName,
-        relationship: relationship || undefined,
-        statement: notes || " ", // statement is required - use space as placeholder
+        name: data.witnessName,
+        relationship: data.relationship || undefined,
+        statement: data.notes || " ", // statement is required - use space as placeholder
         statement_method: "text",
-        assigned_witness_id: selectedUserId,
+        assigned_witness_id: data.selectedUserId,
         status: "pending",
       });
 
       toast.success(t("investigation.witnesses.taskAssigned", "Task assigned successfully"));
       setOpen(false);
-      resetForm();
+      form.reset();
       onAssigned?.();
     } catch (error) {
       console.error("Error assigning task:", error);
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const resetForm = () => {
-    setSelectedUserId("");
-    setWitnessName("");
-    setRelationship("");
-    setNotes("");
   };
 
   return (
@@ -134,7 +137,7 @@ export function WitnessTaskAssignment({ incidentId, onAssigned }: WitnessTaskAss
           {/* User Selection */}
           <div className="space-y-2">
             <Label>{t("investigation.witnesses.selectEmployee", "Select Employee")} *</Label>
-            <Select value={selectedUserId} onValueChange={handleUserSelect} dir={direction}>
+            <Select value={form.watch('selectedUserId')} onValueChange={handleUserSelect} dir={direction}>
               <SelectTrigger>
                 <SelectValue placeholder={t("investigation.witnesses.selectEmployeePlaceholder", "Choose employee...")} />
               </SelectTrigger>
@@ -164,8 +167,7 @@ export function WitnessTaskAssignment({ incidentId, onAssigned }: WitnessTaskAss
             <Label htmlFor="witnessName">{t("investigation.witnesses.name", "Witness Name")} *</Label>
             <Input
               id="witnessName"
-              value={witnessName}
-              onChange={(e) => setWitnessName(e.target.value)}
+              {...form.register('witnessName')}
               placeholder={t("investigation.witnesses.namePlaceholder", "Enter witness name...")}
             />
           </div>
@@ -175,8 +177,7 @@ export function WitnessTaskAssignment({ incidentId, onAssigned }: WitnessTaskAss
             <Label htmlFor="relationship">{t("investigation.witnesses.relationship", "Relationship")}</Label>
             <Input
               id="relationship"
-              value={relationship}
-              onChange={(e) => setRelationship(e.target.value)}
+              {...form.register('relationship')}
               placeholder={t("investigation.witnesses.relationshipPlaceholder", "e.g., Colleague, Supervisor...")}
             />
           </div>
@@ -186,8 +187,7 @@ export function WitnessTaskAssignment({ incidentId, onAssigned }: WitnessTaskAss
             <Label htmlFor="notes">{t("investigation.witnesses.instructionsForWitness", "Instructions for Witness")}</Label>
             <Textarea
               id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              {...form.register('notes')}
               placeholder={t("investigation.witnesses.instructionsPlaceholder", "Any specific instructions for the witness...")}
               rows={3}
             />
@@ -198,7 +198,7 @@ export function WitnessTaskAssignment({ incidentId, onAssigned }: WitnessTaskAss
           <Button variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>
             {t("common.cancel", "Cancel")}
           </Button>
-          <Button onClick={handleSubmit} disabled={isSubmitting || !selectedUserId}>
+          <Button onClick={handleSubmit} disabled={isSubmitting || !form.watch('selectedUserId')}>
             {isSubmitting ? (
               <Loader2 className="me-2 h-4 w-4 animate-spin" />
             ) : (

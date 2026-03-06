@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { violationSettingsSchema, ViolationSettingsValues } from './ViolationSettingsSchema';
 import { AlertTriangle, Plus, Pencil, Trash2 } from 'lucide-react';
 import { SLAPageLayout } from '@/components/sla/SLAPageLayout';
 import { Button } from '@/components/ui/button';
@@ -19,34 +22,37 @@ import { HSSE_SEVERITY_LEVELS, SeverityLevelV2 } from '@/lib/hsse-severity-level
 export default function ViolationSettings() {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.dir() === 'rtl';
-  
+
   const { data: violations, isLoading } = useViolationTypes();
   const createViolation = useCreateViolationType();
   const updateViolation = useUpdateViolationType();
   const deleteViolation = useDeleteViolationType();
-  
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingViolation, setEditingViolation] = useState<ViolationType | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  
-  const [formData, setFormData] = useState<CreateViolationTypeInput>({
-    name: '',
-    name_ar: '',
-    severity_level: 'level_1',
-    first_action_type: 'warning',
-    first_fine_amount: undefined,
-    first_action_description: '',
-    second_action_type: 'fine',
-    second_fine_amount: undefined,
-    second_action_description: '',
-    third_action_type: 'site_removal',
-    third_fine_amount: undefined,
-    third_action_description: '',
+
+  const form = useForm<ViolationSettingsValues>({
+    resolver: zodResolver(violationSettingsSchema),
+    defaultValues: {
+      name: '',
+      name_ar: '',
+      severity_level: 'level_1',
+      first_action_type: 'warning',
+      first_fine_amount: undefined,
+      first_action_description: '',
+      second_action_type: 'fine',
+      second_fine_amount: undefined,
+      second_action_description: '',
+      third_action_type: 'site_removal',
+      third_fine_amount: undefined,
+      third_action_description: '',
+    }
   });
-  
+
   const resetForm = () => {
-    setFormData({
+    form.reset({
       name: '',
       name_ar: '',
       severity_level: 'level_1',
@@ -62,11 +68,11 @@ export default function ViolationSettings() {
     });
     setEditingViolation(null);
   };
-  
+
   const handleOpenDialog = (violation?: ViolationType) => {
     if (violation) {
       setEditingViolation(violation);
-      setFormData({
+      form.reset({
         name: violation.name,
         name_ar: violation.name_ar || '',
         severity_level: violation.severity_level,
@@ -85,41 +91,46 @@ export default function ViolationSettings() {
     }
     setDialogOpen(true);
   };
-  
+
   const handleCloseDialog = () => {
     setDialogOpen(false);
     resetForm();
   };
-  
-  const handleSave = async () => {
-    if (!formData.name.trim()) return;
-    
+
+  const onSubmit = form.handleSubmit(async (data) => {
+    const payload: CreateViolationTypeInput = {
+      ...data,
+      severity_level: data.severity_level as any,
+      first_action_type: data.first_action_type as ActionType,
+      second_action_type: data.second_action_type as ActionType,
+      third_action_type: data.third_action_type as ActionType,
+    };
     if (editingViolation) {
       await updateViolation.mutateAsync({
         id: editingViolation.id,
-        ...formData,
+        ...payload,
       });
     } else {
-      await createViolation.mutateAsync(formData);
+      await createViolation.mutateAsync(payload);
     }
     handleCloseDialog();
-  };
-  
+  });
+
   const handleDelete = async () => {
     if (!deletingId) return;
     await deleteViolation.mutateAsync(deletingId);
     setDeleteDialogOpen(false);
     setDeletingId(null);
   };
-  
+
   const getSeverityConfig = (level: SeverityLevelV2) => {
     return HSSE_SEVERITY_LEVELS.find(s => s.value === level);
   };
-  
+
   const getSeverityLabel = (config: typeof HSSE_SEVERITY_LEVELS[0]) => {
     return t(config.labelKey);
   };
-  
+
   const getActionLabel = (type: ActionType, amount?: number | null) => {
     const label = t(ACTION_TYPES.find(a => a.value === type)?.labelKey || type);
     if (type === 'fine' && amount) {
@@ -127,37 +138,43 @@ export default function ViolationSettings() {
     }
     return label;
   };
-  
+
   const renderOccurrenceFields = (
     prefix: 'first' | 'second' | 'third',
     label: string
   ) => {
-    const actionKey = `${prefix}_action_type` as keyof CreateViolationTypeInput;
-    const fineKey = `${prefix}_fine_amount` as keyof CreateViolationTypeInput;
-    const descKey = `${prefix}_action_description` as keyof CreateViolationTypeInput;
-    const actionValue = formData[actionKey] as ActionType;
-    
+    const actionKey = `${prefix}_action_type` as keyof ViolationSettingsValues;
+    const fineKey = `${prefix}_fine_amount` as keyof ViolationSettingsValues;
+    const descKey = `${prefix}_action_description` as keyof ViolationSettingsValues;
+    const actionValue = form.watch(actionKey) as ActionType;
+
     return (
       <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
         <h4 className="font-medium text-sm">{label}</h4>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
             <Label>{t('violations.actionType', 'Action Type')}</Label>
-            <Select
-              value={actionValue}
-              onValueChange={(value) => setFormData({ ...formData, [actionKey]: value as ActionType })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {ACTION_TYPES.map((action) => (
-                  <SelectItem key={action.value} value={action.value}>
-                    {t(action.labelKey)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Controller
+              name={actionKey as any}
+              control={form.control}
+              render={({ field }) => (
+                <Select
+                  value={field.value as string}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ACTION_TYPES.map((action) => (
+                      <SelectItem key={action.value} value={action.value}>
+                        {t(action.labelKey)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
           {actionValue === 'fine' && (
             <div className="space-y-2">
@@ -165,8 +182,8 @@ export default function ViolationSettings() {
               <Input
                 type="number"
                 min={0}
-                value={formData[fineKey] || ''}
-                onChange={(e) => setFormData({ ...formData, [fineKey]: e.target.value ? Number(e.target.value) : undefined })}
+                value={form.watch(fineKey as any) || ''}
+                onChange={(e) => form.setValue(fineKey as any, e.target.value ? Number(e.target.value) : undefined)}
                 placeholder="0"
               />
             </div>
@@ -175,8 +192,8 @@ export default function ViolationSettings() {
         <div className="space-y-2">
           <Label>{t('violations.actionDescription', 'Description')}</Label>
           <Textarea
-            value={(formData[descKey] as string) || ''}
-            onChange={(e) => setFormData({ ...formData, [descKey]: e.target.value })}
+            value={(form.watch(descKey as any) as string) || ''}
+            onChange={(e) => form.setValue(descKey as any, e.target.value)}
             rows={2}
             placeholder={t('violations.descriptionPlaceholder', 'Optional description...')}
           />
@@ -295,7 +312,7 @@ export default function ViolationSettings() {
           )}
         </CardContent>
       </Card>
-      
+
       {/* Add/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -306,54 +323,61 @@ export default function ViolationSettings() {
                 : t('violations.addViolation', 'Add Violation')}
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             {/* Basic Info */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('violations.name', 'Violation Name')} *</Label>
                 <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  {...form.register('name')}
                   placeholder={t('violations.namePlaceholder', 'Enter violation name')}
                 />
+                {form.formState.errors.name && (
+                  <p className="text-sm text-destructive">{form.formState.errors.name.message as string}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>{t('violations.nameAr', 'Violation Name (Arabic)')}</Label>
                 <Input
                   dir="rtl"
-                  value={formData.name_ar}
-                  onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
+                  {...form.register('name_ar')}
                   placeholder="أدخل اسم المخالفة"
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label>{t('violations.severity', 'Severity Level')} *</Label>
-              <Select
-                value={formData.severity_level}
-                onValueChange={(value) => setFormData({ ...formData, severity_level: value as SeverityLevelV2 })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {HSSE_SEVERITY_LEVELS.map((level) => (
-                    <SelectItem key={level.value} value={level.value}>
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: level.color }}
-                        />
-                        {t(level.labelKey)}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Controller
+                name="severity_level"
+                control={form.control}
+                render={({ field }) => (
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {HSSE_SEVERITY_LEVELS.map((level) => (
+                        <SelectItem key={level.value} value={level.value}>
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: level.color }}
+                            />
+                            {t(level.labelKey)}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
-            
+
             {/* Progressive Discipline */}
             <div className="space-y-4">
               <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
@@ -364,21 +388,21 @@ export default function ViolationSettings() {
               {renderOccurrenceFields('third', t('violations.thirdOccurrence', '3rd Occurrence'))}
             </div>
           </div>
-          
+
           <DialogFooter>
-            <Button variant="outline" onClick={handleCloseDialog}>
+            <Button type="button" variant="outline" onClick={handleCloseDialog}>
               {t('common.cancel', 'Cancel')}
             </Button>
             <Button
-              onClick={handleSave}
-              disabled={!formData.name.trim() || createViolation.isPending || updateViolation.isPending}
+              onClick={onSubmit}
+              disabled={createViolation.isPending || updateViolation.isPending}
             >
               {editingViolation ? t('common.save', 'Save') : t('common.create', 'Create')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

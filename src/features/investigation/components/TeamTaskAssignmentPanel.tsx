@@ -1,5 +1,8 @@
 ﻿import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { teamTaskAssignmentSchema, TeamTaskAssignmentValues } from './TeamTaskAssignmentSchema';
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,10 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  ClipboardList, 
-  Plus, 
-  Loader2, 
+import {
+  ClipboardList,
+  Plus,
+  Loader2,
   CheckCircle2,
   Clock,
   User,
@@ -40,58 +43,61 @@ const TASK_TYPES = [
 /**
  * Panel for team leaders to assign tasks to investigation team members.
  */
-export function TeamTaskAssignmentPanel({ 
-  investigationId, 
-  teamMemberIds, 
-  isTeamLeader 
+export function TeamTaskAssignmentPanel({
+  investigationId,
+  teamMemberIds,
+  isTeamLeader
 }: TeamTaskAssignmentPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
-  
-  const [selectedMember, setSelectedMember] = useState<string>("");
-  const [taskType, setTaskType] = useState<string>("");
-  const [taskDescription, setTaskDescription] = useState<string>("");
-  const [targetArea, setTargetArea] = useState<string>("");
-  
+
+  const form = useForm<TeamTaskAssignmentValues>({
+    resolver: zodResolver(teamTaskAssignmentSchema),
+    defaultValues: {
+      selectedMember: '',
+      taskType: '',
+      taskDescription: '',
+      targetArea: '',
+    }
+  });
+
   const { data: tasks, isLoading: loadingTasks } = useInvestigationTeamTasks(investigationId);
   const assignTask = useAssignTeamTask();
-  
+
   // Fetch team member profiles
   const { data: teamMembers } = useQuery({
     queryKey: ['team-members', teamMemberIds],
     queryFn: async () => {
       if (!teamMemberIds?.length) return [];
-      
+
       const { data, error } = await supabase
         .from('profiles')
         .select('id, full_name, job_title')
         .in('id', teamMemberIds);
-      
+
       if (error) throw error;
       return data || [];
     },
     enabled: teamMemberIds?.length > 0,
   });
-  
+
   if (!isTeamLeader) {
     return null;
   }
-  
+
   const handleAssignTask = () => {
-    if (!selectedMember || !taskType || !taskDescription.trim()) return;
-    
+    const data = form.getValues();
+    if (!data.selectedMember || !data.taskType || !data.taskDescription.trim()) return;
+
     assignTask.mutate({
       investigationId,
-      assignedTo: selectedMember,
-      taskType: taskType as TaskType,
-      taskDescription: taskDescription.trim(),
-      targetArea: targetArea.trim() || undefined,
+      assignedTo: data.selectedMember,
+      taskType: data.taskType as TaskType,
+      taskDescription: data.taskDescription.trim(),
+      targetArea: data.targetArea.trim() || undefined,
     }, {
       onSuccess: () => {
-        setSelectedMember("");
-        setTaskType("");
-        setTaskDescription("");
-        setTargetArea("");
+        form.reset();
       },
     });
   };
@@ -136,64 +142,75 @@ export function TeamTaskAssignmentPanel({
             <Plus className="h-4 w-4" />
             {t('workflow.teamTasks.assignNew', 'Assign New Task')}
           </h4>
-          
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="task-member">
                 {t('workflow.teamTasks.assignTo', 'Assign To')} *
               </Label>
-              <Select value={selectedMember} onValueChange={setSelectedMember} dir={direction}>
-                <SelectTrigger id="task-member">
-                  <SelectValue placeholder={t('workflow.teamTasks.selectMember', 'Select team member...')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {teamMembers?.map((member) => (
-                    <SelectItem key={member.id} value={member.id}>
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        {member.full_name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Controller
+                name="selectedMember"
+                control={form.control}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange} dir={direction}>
+                    <SelectTrigger id="task-member">
+                      <SelectValue placeholder={t('workflow.teamTasks.selectMember', 'Select team member...')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {teamMembers?.map((member) => (
+                        <SelectItem key={member.id} value={member.id}>
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            {member.full_name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="task-type">
                 {t('workflow.teamTasks.taskType', 'Task Type')} *
               </Label>
-              <Select value={taskType} onValueChange={setTaskType} dir={direction}>
-                <SelectTrigger id="task-type">
-                  <SelectValue placeholder={t('workflow.teamTasks.selectType', 'Select task type...')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {TASK_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      <div className="flex items-center gap-2">
-                        <type.icon className="h-4 w-4" />
-                        {t(`workflow.teamTasks.types.${type.value}`, type.label)}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Controller
+                name="taskType"
+                control={form.control}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange} dir={direction}>
+                    <SelectTrigger id="task-type">
+                      <SelectValue placeholder={t('workflow.teamTasks.selectType', 'Select task type...')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TASK_TYPES.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          <div className="flex items-center gap-2">
+                            <type.icon className="h-4 w-4" />
+                            {t(`workflow.teamTasks.types.${type.value}`, type.label)}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="task-description">
               {t('workflow.teamTasks.taskDescription', 'Task Description')} *
             </Label>
             <Textarea
               id="task-description"
-              value={taskDescription}
-              onChange={(e) => setTaskDescription(e.target.value)}
+              {...form.register('taskDescription')}
               placeholder={t('workflow.teamTasks.descriptionPlaceholder', 'Describe the specific task and what information should be collected...')}
               rows={3}
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="target-area">
               {t('workflow.teamTasks.targetArea', 'Target Area')}
@@ -203,16 +220,15 @@ export function TeamTaskAssignmentPanel({
             </Label>
             <Textarea
               id="target-area"
-              value={targetArea}
-              onChange={(e) => setTargetArea(e.target.value)}
+              {...form.register('targetArea')}
               placeholder={t('workflow.teamTasks.targetAreaPlaceholder', 'e.g., Property damage in Zone A, Witness interviews for night shift...')}
               rows={2}
             />
           </div>
-          
+
           <Button
             onClick={handleAssignTask}
-            disabled={!selectedMember || !taskType || !taskDescription.trim() || assignTask.isPending}
+            disabled={!form.watch('selectedMember') || !form.watch('taskType') || !form.watch('taskDescription')?.trim() || assignTask.isPending}
           >
             {assignTask.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin me-2" />
@@ -222,13 +238,13 @@ export function TeamTaskAssignmentPanel({
             {t('workflow.teamTasks.assignTask', 'Assign Task')}
           </Button>
         </div>
-        
+
         {/* Existing Tasks */}
         <div className="space-y-3">
           <h4 className="font-medium">
             {t('workflow.teamTasks.existingTasks', 'Assigned Tasks')}
           </h4>
-          
+
           {loadingTasks ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -241,8 +257,8 @@ export function TeamTaskAssignmentPanel({
           ) : (
             <div className="space-y-2">
               {tasks?.map((task: any) => (
-                <div 
-                  key={task.id} 
+                <div
+                  key={task.id}
                   className={cn(
                     "p-3 rounded-lg border",
                     task.status === 'completed' ? 'bg-green-50/50 border-green-200' : 'bg-background'

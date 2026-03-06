@@ -1,5 +1,8 @@
 ﻿import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { geofenceEscalationSchema, GeofenceEscalationValues } from './GeofenceEscalationSchema';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,11 +13,11 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertTriangle, Plus, Trash2, Edit, Shield } from 'lucide-react';
-import { 
-  useGeofenceEscalationRules, 
-  useCreateEscalationRule, 
+import {
+  useGeofenceEscalationRules,
+  useCreateEscalationRule,
   useUpdateEscalationRule,
-  useDeleteEscalationRule 
+  useDeleteEscalationRule
 } from '@/hooks/use-geofence-escalation';
 import { useSecurityZones } from '@/features/security';
 
@@ -36,18 +39,23 @@ export function GeofenceEscalationSettings() {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    rule_name: '',
-    zone_id: '',
-    breach_count_threshold: 3,
-    time_window_minutes: 60,
-    escalation_level: 1,
-    notify_roles: ['security_supervisor'],
-    auto_escalate: true,
-    escalation_delay_minutes: 5,
+
+  const form = useForm<GeofenceEscalationValues>({
+    resolver: zodResolver(geofenceEscalationSchema),
+    defaultValues: {
+      rule_name: '',
+      zone_id: '',
+      breach_count_threshold: 3,
+      time_window_minutes: 60,
+      escalation_level: 1,
+      notify_roles: ['security_supervisor'],
+      auto_escalate: true,
+      escalation_delay_minutes: 5,
+    }
   });
 
   const handleSubmit = async () => {
+    const formData = form.getValues();
     if (editingRule) {
       await updateRule.mutateAsync({
         id: editingRule,
@@ -65,7 +73,7 @@ export function GeofenceEscalationSettings() {
   };
 
   const resetForm = () => {
-    setFormData({
+    form.reset({
       rule_name: '',
       zone_id: '',
       breach_count_threshold: 3,
@@ -79,7 +87,7 @@ export function GeofenceEscalationSettings() {
   };
 
   const handleEdit = (rule: typeof rules extends (infer T)[] ? T : never) => {
-    setFormData({
+    form.reset({
       rule_name: rule.rule_name,
       zone_id: rule.zone_id || '',
       breach_count_threshold: rule.breach_count_threshold,
@@ -126,7 +134,7 @@ export function GeofenceEscalationSettings() {
             <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>
-                  {editingRule 
+                  {editingRule
                     ? t('security.settings.editRule', 'Edit Escalation Rule')
                     : t('security.settings.addRule', 'Add Escalation Rule')
                   }
@@ -136,27 +144,32 @@ export function GeofenceEscalationSettings() {
                 <div>
                   <Label>{t('security.settings.ruleName', 'Rule Name')}</Label>
                   <Input
-                    value={formData.rule_name}
-                    onChange={(e) => setFormData({ ...formData, rule_name: e.target.value })}
+                    {...form.register('rule_name')}
                     placeholder={t('security.settings.ruleNamePlaceholder', 'e.g., Critical Zone Breach')}
                   />
                 </div>
 
                 <div>
                   <Label>{t('security.settings.zone', 'Zone (Optional)')}</Label>
-                  <Select value={formData.zone_id} onValueChange={(v) => setFormData({ ...formData, zone_id: v })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('security.settings.allZones', 'All Zones')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">{t('security.settings.allZones', 'All Zones')}</SelectItem>
-                      {zones?.map((zone) => (
-                        <SelectItem key={zone.id} value={zone.id}>
-                          {zone.zone_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="zone_id"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('security.settings.allZones', 'All Zones')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">{t('security.settings.allZones', 'All Zones')}</SelectItem>
+                          {zones?.map((zone) => (
+                            <SelectItem key={zone.id} value={zone.id}>
+                              {zone.zone_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -165,8 +178,8 @@ export function GeofenceEscalationSettings() {
                     <Input
                       type="number"
                       min={1}
-                      value={formData.breach_count_threshold}
-                      onChange={(e) => setFormData({ ...formData, breach_count_threshold: parseInt(e.target.value) || 1 })}
+                      value={form.watch('breach_count_threshold')}
+                      onChange={(e) => form.setValue('breach_count_threshold', parseInt(e.target.value) || 1)}
                     />
                   </div>
                   <div>
@@ -174,61 +187,74 @@ export function GeofenceEscalationSettings() {
                     <Input
                       type="number"
                       min={5}
-                      value={formData.time_window_minutes}
-                      onChange={(e) => setFormData({ ...formData, time_window_minutes: parseInt(e.target.value) || 60 })}
+                      value={form.watch('time_window_minutes')}
+                      onChange={(e) => form.setValue('time_window_minutes', parseInt(e.target.value) || 60)}
                     />
                   </div>
                 </div>
 
                 <div>
                   <Label>{t('security.settings.escalationLevel', 'Escalation Level')}</Label>
-                  <Select 
-                    value={formData.escalation_level.toString()} 
-                    onValueChange={(v) => setFormData({ ...formData, escalation_level: parseInt(v) })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">Level 1 - Supervisor</SelectItem>
-                      <SelectItem value="2">Level 2 - Manager</SelectItem>
-                      <SelectItem value="3">Level 3 - HSSE Manager</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="escalation_level"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value.toString()}
+                        onValueChange={(v) => field.onChange(parseInt(v))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">Level 1 - Supervisor</SelectItem>
+                          <SelectItem value="2">Level 2 - Manager</SelectItem>
+                          <SelectItem value="3">Level 3 - HSSE Manager</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </div>
 
                 <div>
                   <Label>{t('security.settings.notifyRoles', 'Notify Roles')}</Label>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {NOTIFY_ROLES.map((role) => (
-                      <Badge
-                        key={role.value}
-                        variant={formData.notify_roles.includes(role.value) ? 'default' : 'outline'}
-                        className="cursor-pointer"
-                        onClick={() => {
-                          setFormData({
-                            ...formData,
-                            notify_roles: formData.notify_roles.includes(role.value)
-                              ? formData.notify_roles.filter((r) => r !== role.value)
-                              : [...formData.notify_roles, role.value],
-                          });
-                        }}
-                      >
-                        {role.label}
-                      </Badge>
-                    ))}
+                    {NOTIFY_ROLES.map((role) => {
+                      const currentRoles = form.watch('notify_roles');
+                      return (
+                        <Badge
+                          key={role.value}
+                          variant={currentRoles.includes(role.value) ? 'default' : 'outline'}
+                          className="cursor-pointer"
+                          onClick={() => {
+                            const updated = currentRoles.includes(role.value)
+                              ? currentRoles.filter((r) => r !== role.value)
+                              : [...currentRoles, role.value];
+                            form.setValue('notify_roles', updated);
+                          }}
+                        >
+                          {role.label}
+                        </Badge>
+                      );
+                    })}
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <Label>{t('security.settings.autoEscalate', 'Auto Escalate')}</Label>
-                  <Switch
-                    checked={formData.auto_escalate}
-                    onCheckedChange={(checked) => setFormData({ ...formData, auto_escalate: checked })}
+                  <Controller
+                    name="auto_escalate"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    )}
                   />
                 </div>
 
-                <Button onClick={handleSubmit} className="w-full" disabled={!formData.rule_name}>
+                <Button onClick={handleSubmit} className="w-full" disabled={!form.watch('rule_name')}>
                   {editingRule ? t('common.save', 'Save') : t('common.create', 'Create')}
                 </Button>
               </div>
@@ -276,9 +302,9 @@ export function GeofenceEscalationSettings() {
                       <Button variant="ghost" size="icon" onClick={() => handleEdit(rule)}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => deleteRule.mutate(rule.id)}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />

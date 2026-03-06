@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { moduleManagementSchema, ModuleManagementValues } from './ModuleManagementSchema';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,15 +35,19 @@ export default function ModuleManagement() {
   const queryClient = useQueryClient();
   const [editModule, setEditModule] = useState<Module | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    code: '',
-    name: '',
-    description: '',
-    base_price_monthly: 0,
-    base_price_yearly: 0,
-    is_active: true,
-    sort_order: 0,
-    icon: 'Package',
+
+  const form = useForm<ModuleManagementValues>({
+    resolver: zodResolver(moduleManagementSchema),
+    defaultValues: {
+      code: '',
+      name: '',
+      description: '',
+      base_price_monthly: 0,
+      base_price_yearly: 0,
+      is_active: true,
+      sort_order: 0,
+      icon: 'Package',
+    }
   });
 
   const { data: modules = [], isLoading } = useQuery({
@@ -57,7 +64,7 @@ export default function ModuleManagement() {
   });
 
   const saveMutation = useMutation({
-    mutationFn: async (data: typeof formData & { id?: string }) => {
+    mutationFn: async (data: ModuleManagementValues & { id?: string }) => {
       if (data.id) {
         const { error } = await supabase
           .from('modules')
@@ -118,7 +125,7 @@ export default function ModuleManagement() {
   });
 
   const resetForm = () => {
-    setFormData({
+    form.reset({
       code: '',
       name: '',
       description: '',
@@ -133,7 +140,7 @@ export default function ModuleManagement() {
 
   const handleEdit = (module: Module) => {
     setEditModule(module);
-    setFormData({
+    form.reset({
       code: module.code,
       name: module.name,
       description: module.description || '',
@@ -151,9 +158,9 @@ export default function ModuleManagement() {
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = () => {
-    saveMutation.mutate(editModule ? { ...formData, id: editModule.id } : formData);
-  };
+  const onSubmit = form.handleSubmit((data) => {
+    saveMutation.mutate(editModule ? { ...data, id: editModule.id } : data);
+  });
 
   return (
     <div className="space-y-6">
@@ -251,92 +258,122 @@ export default function ModuleManagement() {
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editModule ? t('adminModules.editModule') : t('adminModules.addModule')}
-            </DialogTitle>
-            <DialogDescription>
-              {editModule ? t('adminModules.editModuleDesc') : t('adminModules.addModuleDesc')}
-            </DialogDescription>
-          </DialogHeader>
+          <form onSubmit={onSubmit}>
+            <DialogHeader>
+              <DialogTitle>
+                {editModule ? t('adminModules.editModule') : t('adminModules.addModule')}
+              </DialogTitle>
+              <DialogDescription>
+                {editModule ? t('adminModules.editModuleDesc') : t('adminModules.addModuleDesc')}
+              </DialogDescription>
+            </DialogHeader>
 
-          <div className="space-y-4 py-4">
-            {!editModule && (
+            <div className="space-y-4 py-4">
+              {!editModule && (
+                <div className="space-y-2">
+                  <Label>{t('adminModules.code')}</Label>
+                  <Controller
+                    name="code"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Input
+                        value={field.value}
+                        onChange={(e) => field.onChange(e.target.value.toLowerCase().replace(/\s/g, '_'))}
+                        placeholder="e.g. training_management"
+                      />
+                    )}
+                  />
+                  {form.formState.errors.code && (
+                    <p className="text-sm text-destructive">{form.formState.errors.code.message as string}</p>
+                  )}
+                </div>
+              )}
+
               <div className="space-y-2">
-                <Label>{t('adminModules.code')}</Label>
+                <Label>{t('adminModules.name')}</Label>
                 <Input
-                  value={formData.code}
-                  onChange={(e) => setFormData({ ...formData, code: e.target.value.toLowerCase().replace(/\s/g, '_') })}
-                  placeholder="e.g. training_management"
+                  {...form.register('name')}
+                  placeholder="e.g. Training Management"
+                />
+                {form.formState.errors.name && (
+                  <p className="text-sm text-destructive">{form.formState.errors.name.message as string}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('adminModules.descriptionLabel')}</Label>
+                <Textarea
+                  {...form.register('description')}
+                  placeholder="Brief description of this module..."
+                  rows={2}
                 />
               </div>
-            )}
 
-            <div className="space-y-2">
-              <Label>{t('adminModules.name')}</Label>
-              <Input
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g. Training Management"
-              />
-            </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1">
+                    <DollarSign className="h-3 w-3" />
+                    {t('adminModules.monthlyPrice')}
+                  </Label>
+                  <Controller
+                    name="base_price_monthly"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Input
+                        type="number"
+                        value={field.value / 100}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) * 100 || 0)}
+                        step="0.01"
+                        min="0"
+                      />
+                    )}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1">
+                    <DollarSign className="h-3 w-3" />
+                    {t('adminModules.yearlyPrice')}
+                  </Label>
+                  <Controller
+                    name="base_price_yearly"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Input
+                        type="number"
+                        value={field.value / 100}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) * 100 || 0)}
+                        step="0.01"
+                        min="0"
+                      />
+                    )}
+                  />
+                </div>
+              </div>
 
-            <div className="space-y-2">
-              <Label>{t('adminModules.descriptionLabel')}</Label>
-              <Textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Brief description of this module..."
-                rows={2}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1">
-                  <DollarSign className="h-3 w-3" />
-                  {t('adminModules.monthlyPrice')}
-                </Label>
-                <Input
-                  type="number"
-                  value={formData.base_price_monthly / 100}
-                  onChange={(e) => setFormData({ ...formData, base_price_monthly: parseFloat(e.target.value) * 100 || 0 })}
-                  step="0.01"
-                  min="0"
+              <div className="flex items-center justify-between">
+                <Label>{t('adminModules.activeStatus')}</Label>
+                <Controller
+                  name="is_active"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  )}
                 />
               </div>
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1">
-                  <DollarSign className="h-3 w-3" />
-                  {t('adminModules.yearlyPrice')}
-                </Label>
-                <Input
-                  type="number"
-                  value={formData.base_price_yearly / 100}
-                  onChange={(e) => setFormData({ ...formData, base_price_yearly: parseFloat(e.target.value) * 100 || 0 })}
-                  step="0.01"
-                  min="0"
-                />
-              </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <Label>{t('adminModules.activeStatus')}</Label>
-              <Switch
-                checked={formData.is_active}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-              />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              {t('common.cancel')}
-            </Button>
-            <Button onClick={handleSubmit} disabled={saveMutation.isPending}>
-              {saveMutation.isPending ? t('common.saving') : t('common.save')}
-            </Button>
-          </DialogFooter>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                {t('common.cancel')}
+              </Button>
+              <Button type="submit" disabled={saveMutation.isPending}>
+                {saveMutation.isPending ? t('common.saving') : t('common.save')}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

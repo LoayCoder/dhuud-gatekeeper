@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { stockAdjustmentSchema, StockAdjustmentValues } from './StockAdjustmentSchema';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,37 +19,41 @@ interface StockAdjustmentDialogProps {
 
 export function StockAdjustmentDialog({ open, onOpenChange, partId }: StockAdjustmentDialogProps) {
   const { t } = useTranslation();
-  const [transactionType, setTransactionType] = useState<'receipt' | 'issue' | 'adjustment' | 'return'>('receipt');
-  const [quantity, setQuantity] = useState('');
-  const [unitCost, setUnitCost] = useState('');
-  const [notes, setNotes] = useState('');
 
+  const form = useForm<StockAdjustmentValues>({
+    resolver: zodResolver(stockAdjustmentSchema),
+    defaultValues: {
+      transactionType: 'receipt',
+      quantity: '',
+      unitCost: '',
+      notes: '',
+    }
+  });
+
+  const transactionType = form.watch('transactionType');
   const createTransaction = useCreateStockTransaction();
 
-  const handleSubmit = () => {
-    if (!partId || !quantity) return;
+  const onSubmit = form.handleSubmit((data) => {
+    if (!partId) return;
 
     createTransaction.mutate(
       {
         part_id: partId,
-        transaction_type: transactionType,
-        quantity: parseInt(quantity, 10),
-        unit_cost: unitCost ? parseFloat(unitCost) : null,
-        notes: notes || null,
+        transaction_type: data.transactionType,
+        quantity: parseInt(data.quantity, 10),
+        unit_cost: data.unitCost ? parseFloat(data.unitCost) : null,
+        notes: data.notes || null,
         reference_type: null,
         reference_id: null,
       },
       {
         onSuccess: () => {
           onOpenChange(false);
-          setQuantity('');
-          setUnitCost('');
-          setNotes('');
-          setTransactionType('receipt');
+          form.reset();
         },
       }
     );
-  };
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -61,17 +68,23 @@ export function StockAdjustmentDialog({ open, onOpenChange, partId }: StockAdjus
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>{t('parts.stockAdjustment.type', 'Transaction Type')}</Label>
-            <Select value={transactionType} onValueChange={(v) => setTransactionType(v as typeof transactionType)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="receipt">{t('parts.stockAdjustment.types.receipt', 'Receipt')}</SelectItem>
-                <SelectItem value="issue">{t('parts.stockAdjustment.types.issue', 'Issue')}</SelectItem>
-                <SelectItem value="adjustment">{t('parts.stockAdjustment.types.adjustment', 'Adjustment')}</SelectItem>
-                <SelectItem value="return">{t('parts.stockAdjustment.types.return', 'Return')}</SelectItem>
-              </SelectContent>
-            </Select>
+            <Controller
+              name="transactionType"
+              control={form.control}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="receipt">{t('parts.stockAdjustment.types.receipt', 'Receipt')}</SelectItem>
+                    <SelectItem value="issue">{t('parts.stockAdjustment.types.issue', 'Issue')}</SelectItem>
+                    <SelectItem value="adjustment">{t('parts.stockAdjustment.types.adjustment', 'Adjustment')}</SelectItem>
+                    <SelectItem value="return">{t('parts.stockAdjustment.types.return', 'Return')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
 
           <div className="space-y-2">
@@ -79,8 +92,7 @@ export function StockAdjustmentDialog({ open, onOpenChange, partId }: StockAdjus
             <Input
               type="number"
               min="1"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
+              {...form.register('quantity')}
               placeholder={transactionType === 'adjustment' ? t('parts.stockAdjustment.newQuantity', 'New quantity') : '0'}
             />
             {transactionType === 'adjustment' && (
@@ -97,8 +109,7 @@ export function StockAdjustmentDialog({ open, onOpenChange, partId }: StockAdjus
                 type="number"
                 min="0"
                 step="0.01"
-                value={unitCost}
-                onChange={(e) => setUnitCost(e.target.value)}
+                {...form.register('unitCost')}
                 placeholder="0.00"
               />
             </div>
@@ -107,8 +118,7 @@ export function StockAdjustmentDialog({ open, onOpenChange, partId }: StockAdjus
           <div className="space-y-2">
             <Label>{t('parts.stockAdjustment.notes', 'Notes')}</Label>
             <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              {...form.register('notes')}
               placeholder={t('parts.stockAdjustment.notesPlaceholder', 'Optional notes...')}
             />
           </div>
@@ -118,7 +128,7 @@ export function StockAdjustmentDialog({ open, onOpenChange, partId }: StockAdjus
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t('common.cancel', 'Cancel')}
           </Button>
-          <Button onClick={handleSubmit} disabled={!quantity || createTransaction.isPending}>
+          <Button onClick={onSubmit} disabled={!form.watch('quantity') || createTransaction.isPending}>
             {createTransaction.isPending
               ? t('common.saving', 'Saving...')
               : t('common.save', 'Save')}

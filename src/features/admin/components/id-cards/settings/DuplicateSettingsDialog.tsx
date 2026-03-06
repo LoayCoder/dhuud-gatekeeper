@@ -3,6 +3,9 @@
  */
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { duplicateSettingsSchema, DuplicateSettingsValues } from "./DuplicateSettingsSchema";
 import {
   Dialog,
   DialogContent,
@@ -53,33 +56,34 @@ export function DuplicateSettingsDialog({
   const isRTL = i18n.language === 'ar';
   const lang = isRTL ? 'ar' : 'en';
 
-  const [sourceCardType, setSourceCardType] = useState<IDCardType | ''>('');
-  const [includeFields, setIncludeFields] = useState(true);
-  const [includeColors, setIncludeColors] = useState(true);
-  const [includeBackSettings, setIncludeBackSettings] = useState(true);
-  const [includeBranding, setIncludeBranding] = useState(true);
+  const form = useForm<DuplicateSettingsValues>({
+    resolver: zodResolver(duplicateSettingsSchema),
+    defaultValues: {
+      sourceCardType: '',
+      includeFields: true,
+      includeColors: true,
+      includeBackSettings: true,
+      includeBranding: true,
+    }
+  });
 
   const availableTypes = CARD_TYPES.filter(type => type !== currentCardType);
 
-  const handleDuplicate = async () => {
-    if (!sourceCardType) return;
+  const onSubmit = form.handleSubmit(async (data) => {
+    if (!data.sourceCardType) return;
 
     await onDuplicate({
-      sourceCardType,
-      includeFields,
-      includeColors,
-      includeBackSettings,
-      includeBranding,
+      sourceCardType: data.sourceCardType as IDCardType,
+      includeFields: data.includeFields,
+      includeColors: data.includeColors,
+      includeBackSettings: data.includeBackSettings,
+      includeBranding: data.includeBranding,
     });
 
     onOpenChange(false);
     // Reset state
-    setSourceCardType('');
-    setIncludeFields(true);
-    setIncludeColors(true);
-    setIncludeBackSettings(true);
-    setIncludeBranding(true);
-  };
+    form.reset();
+  });
 
   const currentLabel = CARD_TYPE_LABELS[currentCardType][lang];
 
@@ -104,21 +108,27 @@ export function DuplicateSettingsDialog({
           {/* Source card type selector */}
           <div className="space-y-2">
             <Label>{t("idCard.settings.copyFrom", "Copy from")}</Label>
-            <Select
-              value={sourceCardType}
-              onValueChange={(value) => setSourceCardType(value as IDCardType)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t("idCard.settings.selectCardType", "Select card type...")} />
-              </SelectTrigger>
-              <SelectContent>
-                {availableTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {CARD_TYPE_LABELS[type][lang]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Controller
+              name="sourceCardType"
+              control={form.control}
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("idCard.settings.selectCardType", "Select card type...")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {CARD_TYPE_LABELS[type][lang]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
 
           {/* Options checkboxes */}
@@ -129,10 +139,16 @@ export function DuplicateSettingsDialog({
 
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Checkbox
-                  id="include-fields"
-                  checked={includeFields}
-                  onCheckedChange={(checked) => setIncludeFields(!!checked)}
+                <Controller
+                  name="includeFields"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Checkbox
+                      id="include-fields"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  )}
                 />
                 <Label htmlFor="include-fields" className="text-sm cursor-pointer">
                   {t("idCard.settings.includeFields", "Field selection (front & back)")}
@@ -140,10 +156,16 @@ export function DuplicateSettingsDialog({
               </div>
 
               <div className="flex items-center gap-2">
-                <Checkbox
-                  id="include-colors"
-                  checked={includeColors}
-                  onCheckedChange={(checked) => setIncludeColors(!!checked)}
+                <Controller
+                  name="includeColors"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Checkbox
+                      id="include-colors"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  )}
                 />
                 <Label htmlFor="include-colors" className="text-sm cursor-pointer">
                   {t("idCard.settings.includeColors", "Colors (background, accent, text)")}
@@ -151,10 +173,16 @@ export function DuplicateSettingsDialog({
               </div>
 
               <div className="flex items-center gap-2">
-                <Checkbox
-                  id="include-back"
-                  checked={includeBackSettings}
-                  onCheckedChange={(checked) => setIncludeBackSettings(!!checked)}
+                <Controller
+                  name="includeBackSettings"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Checkbox
+                      id="include-back"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  )}
                 />
                 <Label htmlFor="include-back" className="text-sm cursor-pointer">
                   {t("idCard.settings.includeBack", "Back side settings")}
@@ -162,10 +190,16 @@ export function DuplicateSettingsDialog({
               </div>
 
               <div className="flex items-center gap-2">
-                <Checkbox
-                  id="include-branding"
-                  checked={includeBranding}
-                  onCheckedChange={(checked) => setIncludeBranding(!!checked)}
+                <Controller
+                  name="includeBranding"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Checkbox
+                      id="include-branding"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  )}
                 />
                 <Label htmlFor="include-branding" className="text-sm cursor-pointer">
                   {t("idCard.settings.includeBranding", "Branding (logo, tenant name)")}
@@ -180,8 +214,8 @@ export function DuplicateSettingsDialog({
             {t("common.cancel", "Cancel")}
           </Button>
           <Button
-            onClick={handleDuplicate}
-            disabled={!sourceCardType || isLoading}
+            onClick={onSubmit}
+            disabled={!form.watch('sourceCardType') || isLoading}
           >
             {isLoading ? (
               <>

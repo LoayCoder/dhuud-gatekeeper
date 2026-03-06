@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { purchaseOrderSchema, PurchaseOrderValues } from './PurchaseOrderSchema';
 import { Plus, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -28,11 +31,17 @@ export function PurchaseOrderDialog({ open, onOpenChange, preselectedPartId }: P
   const parts = partsData?.data || [];
   const createOrder = useCreatePurchaseOrder();
 
-  const [supplierName, setSupplierName] = useState('');
-  const [supplierContact, setSupplierContact] = useState('');
-  const [orderDate, setOrderDate] = useState(new Date().toISOString().split('T')[0]);
-  const [expectedDate, setExpectedDate] = useState('');
-  const [notes, setNotes] = useState('');
+  const form = useForm<PurchaseOrderValues>({
+    resolver: zodResolver(purchaseOrderSchema),
+    defaultValues: {
+      supplierName: '',
+      supplierContact: '',
+      orderDate: new Date().toISOString().split('T')[0],
+      expectedDate: '',
+      notes: '',
+    }
+  });
+
   const [lines, setLines] = useState<OrderLine[]>([]);
 
   // Add preselected part when dialog opens
@@ -76,18 +85,18 @@ export function PurchaseOrderDialog({ open, onOpenChange, preselectedPartId }: P
 
   const total = lines.reduce((sum, line) => sum + line.quantity_ordered * line.unit_cost, 0);
 
-  const handleSubmit = () => {
+  const onSubmit = form.handleSubmit((data) => {
     if (lines.length === 0 || lines.some((l) => !l.part_id || l.quantity_ordered <= 0)) {
       return;
     }
 
     createOrder.mutate(
       {
-        supplier_name: supplierName || undefined,
-        supplier_contact: supplierContact || undefined,
-        order_date: orderDate || undefined,
-        expected_delivery_date: expectedDate || undefined,
-        notes: notes || undefined,
+        supplier_name: data.supplierName || undefined,
+        supplier_contact: data.supplierContact || undefined,
+        order_date: data.orderDate || undefined,
+        expected_delivery_date: data.expectedDate || undefined,
+        notes: data.notes || undefined,
         lines: lines.map((l) => ({
           part_id: l.part_id,
           quantity_ordered: l.quantity_ordered,
@@ -101,14 +110,16 @@ export function PurchaseOrderDialog({ open, onOpenChange, preselectedPartId }: P
         },
       }
     );
-  };
+  });
 
   const resetForm = () => {
-    setSupplierName('');
-    setSupplierContact('');
-    setOrderDate(new Date().toISOString().split('T')[0]);
-    setExpectedDate('');
-    setNotes('');
+    form.reset({
+      supplierName: '',
+      supplierContact: '',
+      orderDate: new Date().toISOString().split('T')[0],
+      expectedDate: '',
+      notes: '',
+    });
     setLines([]);
   };
 
@@ -127,16 +138,14 @@ export function PurchaseOrderDialog({ open, onOpenChange, preselectedPartId }: P
             <div className="space-y-2">
               <Label>{t('parts.orders.supplierName', 'Supplier Name')}</Label>
               <Input
-                value={supplierName}
-                onChange={(e) => setSupplierName(e.target.value)}
+                {...form.register('supplierName')}
                 placeholder={t('parts.orders.supplierNamePlaceholder', 'Enter supplier name')}
               />
             </div>
             <div className="space-y-2">
               <Label>{t('parts.orders.supplierContact', 'Supplier Contact')}</Label>
               <Input
-                value={supplierContact}
-                onChange={(e) => setSupplierContact(e.target.value)}
+                {...form.register('supplierContact')}
                 placeholder={t('parts.orders.supplierContactPlaceholder', 'Phone or email')}
               />
             </div>
@@ -147,16 +156,14 @@ export function PurchaseOrderDialog({ open, onOpenChange, preselectedPartId }: P
               <Label>{t('parts.orders.orderDate', 'Order Date')}</Label>
               <Input
                 type="date"
-                value={orderDate}
-                onChange={(e) => setOrderDate(e.target.value)}
+                {...form.register('orderDate')}
               />
             </div>
             <div className="space-y-2">
               <Label>{t('parts.orders.expectedDate', 'Expected Delivery')}</Label>
               <Input
                 type="date"
-                value={expectedDate}
-                onChange={(e) => setExpectedDate(e.target.value)}
+                {...form.register('expectedDate')}
               />
             </div>
           </div>
@@ -243,8 +250,7 @@ export function PurchaseOrderDialog({ open, onOpenChange, preselectedPartId }: P
           <div className="space-y-2">
             <Label>{t('parts.orders.notes', 'Notes')}</Label>
             <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              {...form.register('notes')}
               placeholder={t('parts.orders.notesPlaceholder', 'Additional notes...')}
             />
           </div>
@@ -255,7 +261,7 @@ export function PurchaseOrderDialog({ open, onOpenChange, preselectedPartId }: P
             {t('common.cancel', 'Cancel')}
           </Button>
           <Button
-            onClick={handleSubmit}
+            onClick={onSubmit}
             disabled={lines.length === 0 || createOrder.isPending}
           >
             {createOrder.isPending

@@ -1,12 +1,15 @@
 ﻿import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { patrolRouteSchema, PatrolRouteValues } from './PatrolRouteSchema';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Plus, 
-  MapPin, 
-  Edit, 
+import {
+  Plus,
+  MapPin,
+  Edit,
   Trash2,
   Route,
   Clock
@@ -33,18 +36,22 @@ export default function PatrolRoutes() {
   const { toast } = useToast();
   const { profile } = useAuth();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [newRoute, setNewRoute] = useState({
-    name: '',
-    description: '',
-    estimated_duration_minutes: 30,
-    checkpoint_radius_meters: 20,
+
+  const form = useForm<PatrolRouteValues>({
+    resolver: zodResolver(patrolRouteSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      estimated_duration_minutes: 30,
+      checkpoint_radius_meters: 20,
+    }
   });
 
   const { data: routes, isLoading } = usePatrolRoutes();
   const createRoute = useCreatePatrolRoute();
 
-  const handleCreateRoute = async () => {
-    if (!newRoute.name.trim() || !profile?.tenant_id) {
+  const onSubmit = form.handleSubmit(async (data) => {
+    if (!profile?.tenant_id) {
       toast({
         title: t('common.error'),
         description: t('security.patrols.routeNameRequired', 'Route name is required'),
@@ -55,9 +62,9 @@ export default function PatrolRoutes() {
 
     try {
       await createRoute.mutateAsync({
-        name: newRoute.name,
-        description: newRoute.description || null,
-        estimated_duration_minutes: newRoute.estimated_duration_minutes,
+        name: data.name,
+        description: data.description || null,
+        estimated_duration_minutes: data.estimated_duration_minutes,
         is_active: true,
         branch_id: null,
         building_id: null,
@@ -67,7 +74,7 @@ export default function PatrolRoutes() {
         name_ar: null,
         site_id: null,
         route_map_path: null,
-        checkpoint_radius_meters: newRoute.checkpoint_radius_meters,
+        checkpoint_radius_meters: data.checkpoint_radius_meters,
         require_gps_validation: true,
         require_photo: false,
       });
@@ -78,7 +85,7 @@ export default function PatrolRoutes() {
       });
 
       setIsCreateOpen(false);
-      setNewRoute({ name: '', description: '', estimated_duration_minutes: 30, checkpoint_radius_meters: 20 });
+      form.reset();
     } catch (error) {
       toast({
         title: t('common.error'),
@@ -86,7 +93,7 @@ export default function PatrolRoutes() {
         variant: 'destructive',
       });
     }
-  };
+  });
 
   return (
     <div className="space-y-6">
@@ -109,65 +116,66 @@ export default function PatrolRoutes() {
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{t('security.patrols.routes.create', 'Create Route')}</DialogTitle>
-              <DialogDescription>
-                {t('security.patrols.routes.createDescription', 'Add a new patrol route with checkpoints')}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">{t('common.name', 'Name')}</Label>
-                <Input
-                  id="name"
-                  value={newRoute.name}
-                  onChange={(e) => setNewRoute({ ...newRoute, name: e.target.value })}
-                  placeholder={t('security.patrols.routes.namePlaceholder', 'e.g., North Perimeter Patrol')}
-                />
+            <form onSubmit={onSubmit}>
+              <DialogHeader>
+                <DialogTitle>{t('security.patrols.routes.create', 'Create Route')}</DialogTitle>
+                <DialogDescription>
+                  {t('security.patrols.routes.createDescription', 'Add a new patrol route with checkpoints')}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">{t('common.name', 'Name')}</Label>
+                  <Input
+                    id="name"
+                    {...form.register('name')}
+                    placeholder={t('security.patrols.routes.namePlaceholder', 'e.g., North Perimeter Patrol')}
+                  />
+                  {form.formState.errors.name && (
+                    <p className="text-sm text-destructive">{form.formState.errors.name.message as string}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">{t('common.description', 'Description')}</Label>
+                  <Textarea
+                    id="description"
+                    {...form.register('description')}
+                    placeholder={t('security.patrols.routes.descriptionPlaceholder', 'Describe the patrol route...')}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="duration">{t('security.patrols.routes.estimatedDuration', 'Estimated Duration (minutes)')}</Label>
+                  <Input
+                    id="duration"
+                    type="number"
+                    min={5}
+                    max={480}
+                    {...form.register('estimated_duration_minutes', { valueAsNumber: true })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="radius">{t('security.patrols.routes.checkpointRadius', 'GPS Radius (meters)')}</Label>
+                  <Input
+                    id="radius"
+                    type="number"
+                    min={5}
+                    max={100}
+                    {...form.register('checkpoint_radius_meters', { valueAsNumber: true })}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {t('security.patrols.routes.checkpointRadiusHint', 'Guard must be within this distance to log checkpoint')}
+                  </p>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">{t('common.description', 'Description')}</Label>
-                <Textarea
-                  id="description"
-                  value={newRoute.description}
-                  onChange={(e) => setNewRoute({ ...newRoute, description: e.target.value })}
-                  placeholder={t('security.patrols.routes.descriptionPlaceholder', 'Describe the patrol route...')}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="duration">{t('security.patrols.routes.estimatedDuration', 'Estimated Duration (minutes)')}</Label>
-                <Input
-                  id="duration"
-                  type="number"
-                  min={5}
-                  max={480}
-                  value={newRoute.estimated_duration_minutes}
-                  onChange={(e) => setNewRoute({ ...newRoute, estimated_duration_minutes: parseInt(e.target.value) || 30 })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="radius">{t('security.patrols.routes.checkpointRadius', 'GPS Radius (meters)')}</Label>
-                <Input
-                  id="radius"
-                  type="number"
-                  min={5}
-                  max={100}
-                  value={newRoute.checkpoint_radius_meters}
-                  onChange={(e) => setNewRoute({ ...newRoute, checkpoint_radius_meters: parseInt(e.target.value) || 20 })}
-                />
-                <p className="text-xs text-muted-foreground">
-                  {t('security.patrols.routes.checkpointRadiusHint', 'Guard must be within this distance to log checkpoint')}
-                </p>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                {t('common.cancel', 'Cancel')}
-              </Button>
-              <Button onClick={handleCreateRoute} disabled={createRoute.isPending}>
-                {createRoute.isPending ? t('common.creating', 'Creating...') : t('common.create', 'Create')}
-              </Button>
-            </DialogFooter>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
+                  {t('common.cancel', 'Cancel')}
+                </Button>
+                <Button type="submit" disabled={createRoute.isPending}>
+                  {createRoute.isPending ? t('common.creating', 'Creating...') : t('common.create', 'Create')}
+                </Button>
+              </DialogFooter>
+            </form>
           </DialogContent>
         </Dialog>
       </div>
@@ -190,8 +198,8 @@ export default function PatrolRoutes() {
                     <CardTitle className="text-lg">{route.name}</CardTitle>
                   </div>
                   <Badge variant={route.is_active ? "default" : "secondary"}>
-                    {route.is_active 
-                      ? t('common.active', 'Active') 
+                    {route.is_active
+                      ? t('common.active', 'Active')
                       : t('common.inactive', 'Inactive')}
                   </Badge>
                 </div>

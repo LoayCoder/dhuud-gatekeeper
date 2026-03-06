@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { siteDetailSchema, SiteDetailValues } from './SiteDetailSchema';
 import {
   Dialog,
   DialogContent,
@@ -59,19 +62,42 @@ export function SiteDetailDialog({
 }: SiteDetailDialogProps) {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.dir() === 'rtl';
-  
-  const [name, setName] = useState('');
+
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [boundaryPolygon, setBoundaryPolygon] = useState<Coordinate[] | null>(null);
-  const [geofenceRadius, setGeofenceRadius] = useState(100);
-  const [branchId, setBranchId] = useState<string | null>(null);
   const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
   const [saving, setSaving] = useState(false);
-  const [selectedDepartmentId, setSelectedDepartmentId] = useState('');
-  const [selectedSectionId, setSelectedSectionId] = useState('');
   const [showMap, setShowMap] = useState(false);
   const [mapKey, setMapKey] = useState(0); // Force fresh map mount
+
+  const form = useForm<SiteDetailValues>({
+    resolver: zodResolver(siteDetailSchema),
+    defaultValues: {
+      name: '',
+      branchId: null,
+      geofenceRadius: 100,
+      selectedDepartmentId: '',
+      selectedSectionId: '',
+    }
+  });
+
+  const branchId = form.watch('branchId');
+  const selectedDepartmentId = form.watch('selectedDepartmentId');
+  const selectedSectionId = form.watch('selectedSectionId');
+  const geofenceRadius = form.watch('geofenceRadius');
+
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'branchId') {
+        form.setValue('selectedDepartmentId', '');
+        form.setValue('selectedSectionId', '');
+      } else if (name === 'selectedDepartmentId') {
+        form.setValue('selectedSectionId', '');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   // Filter departments by the site's branch for proper hierarchy compliance
   const { data: branchDepartments = [], isLoading: loadingDepartments } = useDepartmentsByBranch(branchId || undefined);
@@ -118,23 +144,30 @@ export function SiteDetailDialog({
   // Reset form when site changes
   useEffect(() => {
     if (site) {
-      setName(site.name);
+      form.reset({
+        name: site.name,
+        branchId: site.branch_id,
+        geofenceRadius: site.geofence_radius_meters ?? 100,
+        selectedDepartmentId: '',
+        selectedSectionId: '',
+      });
       setLatitude(site.latitude);
       setLongitude(site.longitude);
       setBoundaryPolygon(site.boundary_polygon ?? null);
-      setGeofenceRadius(site.geofence_radius_meters ?? 100);
-      setBranchId(site.branch_id);
     } else {
-      setName('');
+      form.reset({
+        name: '',
+        branchId: null,
+        geofenceRadius: 100,
+        selectedDepartmentId: '',
+        selectedSectionId: '',
+      });
       setLatitude(null);
       setLongitude(null);
       setBoundaryPolygon(null);
-      setGeofenceRadius(100);
-      setBranchId(null);
     }
-    setSelectedDepartmentId('');
-    setSelectedSectionId('');
-  }, [site]);
+    form.clearErrors();
+  }, [site, form]);
 
   const handleLocationChange = (lat: number, lng: number) => {
     setLatitude(lat);
@@ -145,18 +178,18 @@ export function SiteDetailDialog({
     setBoundaryPolygon(polygon);
   };
 
-  const handleSave = async () => {
+  const onSubmit = form.handleSubmit(async (data) => {
     if (!site) return;
-    
+
     setSaving(true);
     try {
       const updatePayload: Record<string, unknown> = {
-        name,
+        name: data.name,
         latitude,
         longitude,
         boundary_polygon: boundaryPolygon,
-        geofence_radius_meters: geofenceRadius,
-        branch_id: branchId,
+        geofence_radius_meters: data.geofenceRadius,
+        branch_id: data.branchId,
       };
 
       const { error } = await supabase
@@ -175,26 +208,28 @@ export function SiteDetailDialog({
     } finally {
       setSaving(false);
     }
-  };
+  });
 
-  const handleAssignDepartment = () => {
+  const handleAssignDepartment = (e: React.MouseEvent) => {
+    e.preventDefault();
     if (!selectedDepartmentId || !site) return;
-    
+
     assignDepartment.mutate({
       siteId: site.id,
       departmentId: selectedDepartmentId,
     });
-    setSelectedDepartmentId('');
+    form.setValue('selectedDepartmentId', '');
   };
 
-  const handleAssignSection = () => {
+  const handleAssignSection = (e: React.MouseEvent) => {
+    e.preventDefault();
     if (!selectedSectionId || !site) return;
-    
+
     assignSection.mutate({
       siteId: site.id,
       sectionId: selectedSectionId,
     });
-    setSelectedSectionId('');
+    form.setValue('selectedSectionId', '');
   };
 
   // Filter out already assigned departments
@@ -222,31 +257,39 @@ export function SiteDetailDialog({
           <div className="space-y-2">
             <Label className="text-start">{t('orgStructure.siteName')}</Label>
             <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              {...form.register('name')}
               className="text-start"
               dir={isRTL ? 'rtl' : 'ltr'}
             />
+            {form.formState.errors.name && (
+              <p className="text-destructive text-sm">{form.formState.errors.name.message as string}</p>
+            )}
           </div>
 
           {/* Branch Selector */}
           <div className="space-y-2">
             <Label className="text-start">{t('orgStructure.branch')}</Label>
-            <Select
-              value={branchId || ''}
-              onValueChange={(val) => setBranchId(val || null)}
-            >
-              <SelectTrigger className="text-start" dir={isRTL ? 'rtl' : 'ltr'}>
-                <SelectValue placeholder={t('orgStructure.selectBranch')} />
-              </SelectTrigger>
-              <SelectContent dir={isRTL ? 'rtl' : 'ltr'}>
-                {branches.map((branch) => (
-                  <SelectItem key={branch.id} value={branch.id} className="text-start">
-                    {branch.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Controller
+              name="branchId"
+              control={form.control}
+              render={({ field }) => (
+                <Select
+                  value={field.value || ''}
+                  onValueChange={(val) => field.onChange(val || null)}
+                >
+                  <SelectTrigger className="text-start" dir={isRTL ? 'rtl' : 'ltr'}>
+                    <SelectValue placeholder={t('orgStructure.selectBranch')} />
+                  </SelectTrigger>
+                  <SelectContent dir={isRTL ? 'rtl' : 'ltr'}>
+                    {branches.map((branch) => (
+                      <SelectItem key={branch.id} value={branch.id} className="text-start">
+                        {branch.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
 
           {/* Geofence Radius Slider */}
@@ -258,13 +301,19 @@ export function SiteDetailDialog({
               </Label>
               <Badge variant="outline">{geofenceRadius}m</Badge>
             </div>
-            <Slider
-              value={[geofenceRadius]}
-              onValueChange={([val]) => setGeofenceRadius(val)}
-              min={10}
-              max={500}
-              step={10}
-              className="w-full"
+            <Controller
+              name="geofenceRadius"
+              control={form.control}
+              render={({ field }) => (
+                <Slider
+                  value={[field.value]}
+                  onValueChange={([val]) => field.onChange(val)}
+                  min={10}
+                  max={500}
+                  step={10}
+                  className="w-full"
+                />
+              )}
             />
             <p className="text-xs text-muted-foreground">
               {t('location.geofenceRadiusDescription', 'Alert trigger zone around the site boundary')}
@@ -300,27 +349,33 @@ export function SiteDetailDialog({
               {/* Assign New Department */}
               <div className="flex gap-2 items-end">
                 <div className="flex-1">
-                  <Select
-                    value={selectedDepartmentId}
-                    onValueChange={setSelectedDepartmentId}
-                    disabled={loadingDepartments || availableDepartments.length === 0}
-                  >
-                    <SelectTrigger className="text-start" dir={isRTL ? 'rtl' : 'ltr'}>
-                      <SelectValue placeholder={t('orgStructure.assignDepartment')} />
-                    </SelectTrigger>
-                    <SelectContent dir={isRTL ? 'rtl' : 'ltr'}>
-                      {availableDepartments.map((dept) => (
-                        <SelectItem key={dept.id} value={dept.id} className="text-start">
-                          {dept.name}
-                          {dept.division_name && (
-                            <span className="text-muted-foreground text-xs ms-2">
-                              ({dept.division_name})
-                            </span>
-                          )}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="selectedDepartmentId"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        disabled={loadingDepartments || availableDepartments.length === 0}
+                      >
+                        <SelectTrigger className="text-start" dir={isRTL ? 'rtl' : 'ltr'}>
+                          <SelectValue placeholder={t('orgStructure.assignDepartment')} />
+                        </SelectTrigger>
+                        <SelectContent dir={isRTL ? 'rtl' : 'ltr'}>
+                          {availableDepartments.map((dept) => (
+                            <SelectItem key={dept.id} value={dept.id} className="text-start">
+                              {dept.name}
+                              {dept.division_name && (
+                                <span className="text-muted-foreground text-xs ms-2">
+                                  ({dept.division_name})
+                                </span>
+                              )}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </div>
                 <Button
                   onClick={handleAssignDepartment}
@@ -408,27 +463,33 @@ export function SiteDetailDialog({
                 <>
                   <div className="flex gap-2 items-end">
                     <div className="flex-1">
-                      <Select
-                        value={selectedSectionId}
-                        onValueChange={setSelectedSectionId}
-                        disabled={loadingSections || availableSections.length === 0}
-                      >
-                        <SelectTrigger className="text-start" dir={isRTL ? 'rtl' : 'ltr'}>
-                          <SelectValue placeholder={t('orgStructure.assignSection')} />
-                        </SelectTrigger>
-                        <SelectContent dir={isRTL ? 'rtl' : 'ltr'}>
-                          {availableSections.map((sec) => (
-                            <SelectItem key={sec.id} value={sec.id} className="text-start">
-                              {sec.name}
-                              {sec.department_name && (
-                                <span className="text-muted-foreground text-xs ms-2">
-                                  ({sec.department_name})
-                                </span>
-                              )}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Controller
+                        name="selectedSectionId"
+                        control={form.control}
+                        render={({ field }) => (
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            disabled={loadingSections || availableSections.length === 0}
+                          >
+                            <SelectTrigger className="text-start" dir={isRTL ? 'rtl' : 'ltr'}>
+                              <SelectValue placeholder={t('orgStructure.assignSection')} />
+                            </SelectTrigger>
+                            <SelectContent dir={isRTL ? 'rtl' : 'ltr'}>
+                              {availableSections.map((sec) => (
+                                <SelectItem key={sec.id} value={sec.id} className="text-start">
+                                  {sec.name}
+                                  {sec.department_name && (
+                                    <span className="text-muted-foreground text-xs ms-2">
+                                      ({sec.department_name})
+                                    </span>
+                                  )}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
                     </div>
                     <Button
                       onClick={handleAssignSection}
@@ -498,7 +559,7 @@ export function SiteDetailDialog({
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               {t('common.cancel')}
             </Button>
-            <Button onClick={handleSave} disabled={saving || !name.trim()}>
+            <Button onClick={onSubmit} disabled={saving || !form.watch('name').trim()}>
               {saving && <Loader2 className="h-4 w-4 animate-spin me-2" />}
               {t('common.save')}
             </Button>

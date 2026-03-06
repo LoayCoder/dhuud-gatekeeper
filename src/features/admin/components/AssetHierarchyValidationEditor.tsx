@@ -3,8 +3,11 @@
  * Displays detailed validation errors/warnings for each row with inline editing capabilities
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { assetHierarchyValidationSchema, AssetHierarchyValidationValues } from './AssetHierarchyValidationEditorSchema';
 import {
   AlertCircle,
   AlertTriangle,
@@ -61,90 +64,129 @@ interface EditableRowProps {
 
 function EditableRow({ row, index, allRows, onSave, onCancel }: EditableRowProps) {
   const { t } = useTranslation();
-  const [editedRow, setEditedRow] = useState<ParsedHierarchyRow>({ ...row });
-  
+  const form = useForm<AssetHierarchyValidationValues>({
+    resolver: zodResolver(assetHierarchyValidationSchema),
+    defaultValues: {
+      level: row.level,
+      code: row.code || '',
+      nameEn: row.nameEn || '',
+      parentCode: row.parentCode || '',
+    }
+  });
+
+  const currentLevel = form.watch('level');
+
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'level') {
+        form.setValue('parentCode', '');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
   // Get available parent options based on level
   const parentOptions = useMemo(() => {
     const options: { code: string; name: string }[] = [];
-    
+
     // Only include rows before current row
     allRows.slice(0, index).forEach((r) => {
       if (
-        (editedRow.level === 'Type' && r.level === 'Category') ||
-        (editedRow.level === 'Subtype' && r.level === 'Type') ||
-        (editedRow.level === 'Part' && (r.level === 'Type' || r.level === 'Subtype'))
+        (currentLevel === 'Type' && r.level === 'Category') ||
+        (currentLevel === 'Subtype' && r.level === 'Type') ||
+        (currentLevel === 'Part' && (r.level === 'Type' || r.level === 'Subtype'))
       ) {
         options.push({ code: r.code, name: r.nameEn });
       }
     });
-    
+
     return options;
-  }, [allRows, index, editedRow.level]);
-  
-  const handleSave = () => {
-    onSave(index, editedRow);
-  };
-  
+  }, [allRows, index, currentLevel]);
+
+  const onSubmit = form.handleSubmit((data) => {
+    onSave(index, {
+      ...row,
+      level: data.level,
+      code: data.code,
+      nameEn: data.nameEn,
+      parentCode: data.parentCode || undefined,
+    });
+  });
+
   return (
     <TableRow className="bg-accent/50">
       <TableCell className="text-muted-foreground">{index + 1}</TableCell>
       <TableCell>
-        <Select
-          value={editedRow.level}
-          onValueChange={(value) => setEditedRow({ ...editedRow, level: value as HierarchyLevel })}
-        >
-          <SelectTrigger className="h-8 w-[120px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Category">{t('assetCategories.levels.category', 'Category')}</SelectItem>
-            <SelectItem value="Type">{t('assetCategories.levels.type', 'Type')}</SelectItem>
-            <SelectItem value="Subtype">{t('assetCategories.levels.subtype', 'Subtype')}</SelectItem>
-            <SelectItem value="Part">{t('assetCategories.levels.part', 'Part')}</SelectItem>
-          </SelectContent>
-        </Select>
+        <Controller
+          name="level"
+          control={form.control}
+          render={({ field }) => (
+            <Select
+              value={field.value}
+              onValueChange={field.onChange}
+            >
+              <SelectTrigger className="h-8 w-[120px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Category">{t('assetCategories.levels.category', 'Category')}</SelectItem>
+                <SelectItem value="Type">{t('assetCategories.levels.type', 'Type')}</SelectItem>
+                <SelectItem value="Subtype">{t('assetCategories.levels.subtype', 'Subtype')}</SelectItem>
+                <SelectItem value="Part">{t('assetCategories.levels.part', 'Part')}</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        />
+        {form.formState.errors.level && <div className="text-destructive text-xs mt-1">{form.formState.errors.level.message as string}</div>}
       </TableCell>
       <TableCell>
         <Input
-          value={editedRow.code}
-          onChange={(e) => setEditedRow({ ...editedRow, code: e.target.value })}
+          {...form.register('code')}
           className="h-8 w-[100px] font-mono text-xs"
           placeholder="Code"
         />
+        {form.formState.errors.code && <div className="text-destructive text-xs mt-1">{form.formState.errors.code.message as string}</div>}
       </TableCell>
       <TableCell>
         <Input
-          value={editedRow.nameEn}
-          onChange={(e) => setEditedRow({ ...editedRow, nameEn: e.target.value })}
+          {...form.register('nameEn')}
           className="h-8 w-[160px]"
           placeholder={t('assetCategories.bulkImport.name', 'Name')}
         />
+        {form.formState.errors.nameEn && <div className="text-destructive text-xs mt-1">{form.formState.errors.nameEn.message as string}</div>}
       </TableCell>
       <TableCell>
-        {editedRow.level !== 'Category' ? (
-          <Select
-            value={editedRow.parentCode}
-            onValueChange={(value) => setEditedRow({ ...editedRow, parentCode: value })}
-          >
-            <SelectTrigger className="h-8 w-[120px]">
-              <SelectValue placeholder={t('assetCategories.bulkImport.selectParent', 'Select parent')} />
-            </SelectTrigger>
-            <SelectContent>
-              {parentOptions.map((opt) => (
-                <SelectItem key={opt.code} value={opt.code}>
-                  <span className="font-mono text-xs">{opt.code}</span>
-                  <span className="ms-2 text-muted-foreground text-xs">({opt.name})</span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {currentLevel !== 'Category' ? (
+          <Controller
+            name="parentCode"
+            control={form.control}
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+              >
+                <SelectTrigger className="h-8 w-[120px]">
+                  <SelectValue placeholder={t('assetCategories.bulkImport.selectParent', 'Select parent')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {parentOptions.map((opt) => (
+                    <SelectItem key={opt.code} value={opt.code}>
+                      <span className="font-mono text-xs">{opt.code}</span>
+                      <span className="ms-2 text-muted-foreground text-xs">({opt.name})</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
         ) : (
           <span className="text-muted-foreground">-</span>
         )}
+        {form.formState.errors.parentCode && <div className="text-destructive text-xs mt-1">{form.formState.errors.parentCode.message as string}</div>}
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-1">
-          <Button size="sm" variant="ghost" onClick={handleSave} className="h-7 w-7 p-0">
+          <Button size="sm" variant="ghost" onClick={onSubmit} className="h-7 w-7 p-0">
             <Check className="h-4 w-4 text-green-500" />
           </Button>
           <Button size="sm" variant="ghost" onClick={onCancel} className="h-7 w-7 p-0">
@@ -165,7 +207,7 @@ export function AssetHierarchyValidationEditor({
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [showOnlyErrors, setShowOnlyErrors] = useState(false);
   const [expandedErrors, setExpandedErrors] = useState<Set<number>>(new Set());
-  
+
   const { validCount, invalidCount, warningCount } = useMemo(() => {
     return {
       validCount: rows.filter((r) => r.isValid).length,
@@ -173,14 +215,14 @@ export function AssetHierarchyValidationEditor({
       warningCount: 0, // Future: could add warning detection
     };
   }, [rows]);
-  
+
   const displayedRows = useMemo(() => {
     if (showOnlyErrors) {
       return rows.map((row, index) => ({ row, originalIndex: index })).filter(({ row }) => !row.isValid);
     }
     return rows.map((row, index) => ({ row, originalIndex: index }));
   }, [rows, showOnlyErrors]);
-  
+
   const handleRowSave = useCallback((index: number, updatedRow: ParsedHierarchyRow) => {
     const newRows = [...rows];
     newRows[index] = updatedRow;
@@ -189,7 +231,7 @@ export function AssetHierarchyValidationEditor({
     // Trigger re-validation
     onRevalidate();
   }, [rows, onRowsChange, onRevalidate]);
-  
+
   const toggleErrorExpanded = (index: number) => {
     const newExpanded = new Set(expandedErrors);
     if (newExpanded.has(index)) {
@@ -199,7 +241,7 @@ export function AssetHierarchyValidationEditor({
     }
     setExpandedErrors(newExpanded);
   };
-  
+
   return (
     <div className="space-y-4">
       {/* Summary header */}
@@ -222,19 +264,19 @@ export function AssetHierarchyValidationEditor({
             </Badge>
           )}
         </div>
-        
+
         <Button
           variant="outline"
           size="sm"
           onClick={() => setShowOnlyErrors(!showOnlyErrors)}
           className={cn(showOnlyErrors && 'bg-destructive/10 border-destructive/50')}
         >
-          {showOnlyErrors 
+          {showOnlyErrors
             ? t('assetCategories.validation.showAll', 'Show All')
             : t('assetCategories.validation.showOnlyErrors', 'Show Only Errors')}
         </Button>
       </div>
-      
+
       {/* Validation table */}
       <ScrollArea className="h-[300px] rounded-md border">
         <Table>
@@ -262,13 +304,13 @@ export function AssetHierarchyValidationEditor({
                   />
                 );
               }
-              
+
               const isExpanded = expandedErrors.has(originalIndex);
               const hasMultipleErrors = row.errors.length > 1;
-              
+
               return (
                 <Collapsible key={originalIndex} open={isExpanded} onOpenChange={() => toggleErrorExpanded(originalIndex)}>
-                  <TableRow 
+                  <TableRow
                     className={cn(
                       !row.isValid && 'bg-destructive/5',
                       'hover:bg-muted/50 transition-colors'
@@ -329,7 +371,7 @@ export function AssetHierarchyValidationEditor({
                               </ul>
                             </TooltipContent>
                           </Tooltip>
-                          
+
                           <Button
                             variant="ghost"
                             size="sm"
@@ -342,7 +384,7 @@ export function AssetHierarchyValidationEditor({
                       )}
                     </TableCell>
                   </TableRow>
-                  
+
                   {hasMultipleErrors && (
                     <CollapsibleContent asChild>
                       <TableRow className="bg-destructive/5 border-0">
@@ -367,10 +409,10 @@ export function AssetHierarchyValidationEditor({
           </TableBody>
         </Table>
       </ScrollArea>
-      
+
       {/* Help text */}
       <p className="text-xs text-muted-foreground">
-        {t('assetCategories.validation.helpText', 
+        {t('assetCategories.validation.helpText',
           'Click the pencil icon to edit rows with errors. Changes are validated automatically.'
         )}
       </p>

@@ -1,5 +1,8 @@
 ﻿import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { investigationSLASchema, InvestigationSLAValues } from './InvestigationSLASettingsSchema';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -16,16 +19,20 @@ export default function InvestigationSLASettings() {
   const { t } = useTranslation();
   const { slaConfigs, isLoading, updateSLAConfig } = useInvestigationSLAConfig();
   const [editingConfig, setEditingConfig] = useState<InvestigationSLAConfig | null>(null);
-  const [formData, setFormData] = useState({
-    target_days: 0,
-    warning_days_before: 0,
-    escalation_days_after: 0,
-    second_escalation_days_after: 0,
+
+  const form = useForm<InvestigationSLAValues>({
+    resolver: zodResolver(investigationSLASchema),
+    defaultValues: {
+      target_days: 0,
+      warning_days_before: 0,
+      escalation_days_after: 0,
+      second_escalation_days_after: 0,
+    }
   });
 
   const handleEdit = (config: InvestigationSLAConfig) => {
     setEditingConfig(config);
-    setFormData({
+    form.reset({
       target_days: config.target_days,
       warning_days_before: config.warning_days_before,
       escalation_days_after: config.escalation_days_after,
@@ -33,25 +40,18 @@ export default function InvestigationSLASettings() {
     });
   };
 
-  const handleSave = async () => {
+  const onSubmit = form.handleSubmit(async (data) => {
     if (!editingConfig) return;
-    
-    if (formData.warning_days_before >= formData.target_days) {
-      return;
-    }
-    if (formData.escalation_days_after <= 0) {
-      return;
-    }
 
     await updateSLAConfig.mutateAsync({
       severity_level: editingConfig.severity_level,
-      target_days: formData.target_days,
-      warning_days_before: formData.warning_days_before,
-      escalation_days_after: formData.escalation_days_after,
-      second_escalation_days_after: formData.second_escalation_days_after || null,
+      target_days: data.target_days,
+      warning_days_before: data.warning_days_before,
+      escalation_days_after: data.escalation_days_after,
+      second_escalation_days_after: data.second_escalation_days_after || null,
     });
     setEditingConfig(null);
-  };
+  });
 
   const getSeverityDot = (severity: string) => {
     const colors: Record<string, string> = {
@@ -144,67 +144,77 @@ export default function InvestigationSLASettings() {
       {/* Edit Dialog */}
       <Dialog open={!!editingConfig} onOpenChange={() => setEditingConfig(null)}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {t('sla.editConfig', 'Edit SLA Configuration')} â€” {editingConfig?.severity_level}
-            </DialogTitle>
-            <DialogDescription>
-              {t('sla.editConfigDesc', 'Update the SLA thresholds for this severity level')}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="target_days">{t('sla.targetDays', 'Target Days')}</Label>
-              <Input
-                id="target_days"
-                type="number"
-                min={1}
-                value={formData.target_days}
-                onChange={(e) => setFormData(prev => ({ ...prev, target_days: parseInt(e.target.value) || 0 }))}
-              />
+          <form onSubmit={onSubmit}>
+            <DialogHeader>
+              <DialogTitle>
+                {t('sla.editConfig', 'Edit SLA Configuration')} — {editingConfig?.severity_level}
+              </DialogTitle>
+              <DialogDescription>
+                {t('sla.editConfigDesc', 'Update the SLA thresholds for this severity level')}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="target_days">{t('sla.targetDays', 'Target Days')}</Label>
+                <Input
+                  id="target_days"
+                  type="number"
+                  min={1}
+                  {...form.register('target_days', { valueAsNumber: true })}
+                />
+                {form.formState.errors.target_days && (
+                  <p className="text-sm text-destructive">{form.formState.errors.target_days.message as string}</p>
+                )}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="warning_days">{t('sla.warningDaysBefore', 'Warning Days Before Target')}</Label>
+                <Input
+                  id="warning_days"
+                  type="number"
+                  min={1}
+                  {...form.register('warning_days_before', { valueAsNumber: true })}
+                />
+                {form.formState.errors.warning_days_before && (
+                  <p className="text-sm text-destructive">{form.formState.errors.warning_days_before.message as string}</p>
+                )}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="escalation_days">{t('sla.escalationDaysAfter', 'L1 Escalation Days After Target')}</Label>
+                <Input
+                  id="escalation_days"
+                  type="number"
+                  min={1}
+                  {...form.register('escalation_days_after', { valueAsNumber: true })}
+                />
+                {form.formState.errors.escalation_days_after && (
+                  <p className="text-sm text-destructive">{form.formState.errors.escalation_days_after.message as string}</p>
+                )}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="second_escalation">{t('sla.secondEscalationDays', 'L2 Escalation Days')}</Label>
+                <Input
+                  id="second_escalation"
+                  type="number"
+                  min={0}
+                  {...form.register('second_escalation_days_after', { valueAsNumber: true })}
+                />
+                {form.formState.errors.second_escalation_days_after && (
+                  <p className="text-sm text-destructive">{form.formState.errors.second_escalation_days_after.message as string}</p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  {t('sla.secondEscalationDesc', 'Leave as 0 to disable second escalation')}
+                </p>
+              </div>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="warning_days">{t('sla.warningDaysBefore', 'Warning Days Before Target')}</Label>
-              <Input
-                id="warning_days"
-                type="number"
-                min={1}
-                value={formData.warning_days_before}
-                onChange={(e) => setFormData(prev => ({ ...prev, warning_days_before: parseInt(e.target.value) || 0 }))}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="escalation_days">{t('sla.escalationDaysAfter', 'L1 Escalation Days After Target')}</Label>
-              <Input
-                id="escalation_days"
-                type="number"
-                min={1}
-                value={formData.escalation_days_after}
-                onChange={(e) => setFormData(prev => ({ ...prev, escalation_days_after: parseInt(e.target.value) || 0 }))}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="second_escalation">{t('sla.secondEscalationDays', 'L2 Escalation Days')}</Label>
-              <Input
-                id="second_escalation"
-                type="number"
-                min={0}
-                value={formData.second_escalation_days_after}
-                onChange={(e) => setFormData(prev => ({ ...prev, second_escalation_days_after: parseInt(e.target.value) || 0 }))}
-              />
-              <p className="text-xs text-muted-foreground">
-                {t('sla.secondEscalationDesc', 'Leave as 0 to disable second escalation')}
-              </p>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingConfig(null)}>
-              {t('common.cancel', 'Cancel')}
-            </Button>
-            <Button onClick={handleSave} disabled={updateSLAConfig.isPending}>
-              {t('common.save', 'Save')}
-            </Button>
-          </DialogFooter>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setEditingConfig(null)}>
+                {t('common.cancel', 'Cancel')}
+              </Button>
+              <Button type="submit" disabled={updateSLAConfig.isPending}>
+                {t('common.save', 'Save')}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
