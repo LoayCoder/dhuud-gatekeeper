@@ -194,16 +194,16 @@ export const getMyReportedIncidents = async ({
 }) => {
     if (!userId || !tenantId) return [];
 
-    const { data, error } = await (supabase as unknown as LooseSupabaseClient)
+    const { data, error } = await supabase
         .from('incidents')
-        .select('id, reference_id, title, status, severity, event_type, created_at, occurred_at, site:sites(id, name), branch:branches!incidents_branch_id_fkey(id, name)')
+        .select('id, reference_id, title, status, severity, event_type, created_at, occurred_at, site:sites!incidents_site_id_fkey(id, name), branch:branches!incidents_branch_id_fkey(id, name)')
         .eq('reporter_id', userId)
         .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data ?? []) as unknown as ReportedIncidentRow[];
 };
 
 export const getMyCorrectiveActions = async ({
