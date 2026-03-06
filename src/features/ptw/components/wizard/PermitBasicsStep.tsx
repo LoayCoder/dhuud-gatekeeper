@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { usePTWTypes, usePTWProjects } from "@/hooks/ptw";
+import { usePTWTypes, usePTWProjects, type PTWType } from "@/hooks/ptw";
 import { useSites } from "@/hooks/use-sites";
 import { useMobilizationCheck } from "@/features/ptw/hooks/use-mobilization-check";
 import { MobilizationStatusBanner } from '@/features/ptw';
