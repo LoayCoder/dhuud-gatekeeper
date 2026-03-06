@@ -39,9 +39,9 @@ export function useQuickObservationCardState() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [submittedObservation, setSubmittedObservation] = useState<{ id: string; referenceId: string } | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  const [offlineSites, setOfflineSites] = useState<any[]>([]);
-  const [offlineDepartments, setOfflineDepartments] = useState<any[]>([]);
-  const [offlineContractorCompanies, setOfflineContractorCompanies] = useState<any[]>([]);
+  const [offlineSites, setOfflineSites] = useState<Array<Record<string, unknown>>>([]);
+  const [offlineDepartments, setOfflineDepartments] = useState<Array<Record<string, unknown>>>([]);
+  const [offlineContractorCompanies, setOfflineContractorCompanies] = useState<Array<Record<string, unknown>>>([]);
 
   const aiValidator = useObservationAIValidator();
 
@@ -114,7 +114,10 @@ export function useQuickObservationCardState() {
 
   const locationFilteredContractorCompanies = useMemo(() => {
     if (!observationBranchId) return contractorCompanies;
-    return contractorCompanies.filter(company => (company as any).assigned_branch_id === observationBranchId || !(company as any).assigned_branch_id);
+    return contractorCompanies.filter(company => {
+      const branchId = (company as unknown as { assigned_branch_id?: string | null }).assigned_branch_id;
+      return branchId === observationBranchId || !branchId;
+    });
   }, [contractorCompanies, observationBranchId]);
 
   useEffect(() => {

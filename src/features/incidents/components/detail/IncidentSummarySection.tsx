@@ -8,8 +8,32 @@ import { IncidentInjuryCard } from "./IncidentInjuryCard";
 import { IncidentDamageCard } from "./IncidentDamageCard";
 import { IncidentAttachmentsSection } from '@/features/incidents';
 
+interface IncidentSummaryData {
+    id: string;
+    reference_id: string;
+    description?: string | null;
+    event_type: string;
+    subtype?: string | null;
+    incident_type?: string | null;
+    has_injury?: boolean | null;
+    injury_details?: unknown;
+    injury_classification?: string | null;
+    has_damage?: boolean | null;
+    damage_details?: unknown;
+    immediate_actions?: string | null;
+    media_attachments?: Array<{ url: string; type: string; name: string }> | null;
+    occurred_at?: string | null;
+    created_at: string;
+    location?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    branch?: { name: string } | null;
+    site?: { name: string } | null;
+    related_contractor_company?: { company_name: string } | null;
+}
+
 interface IncidentSummarySectionProps {
-    incident: any;
+    incident: IncidentSummaryData;
 }
 
 export function IncidentSummarySection({ incident }: IncidentSummarySectionProps) {
@@ -19,8 +43,7 @@ export function IncidentSummarySection({ incident }: IncidentSummarySectionProps
         return t(key, { defaultValue: defaultVal });
     };
 
-    // Parse media attachments
-    const mediaAttachments = (incident as any).media_attachments as Array<{ url: string; type: string; name: string }> | null;
+    const mediaAttachments = incident.media_attachments ?? null;
 
     return (
         <div className="space-y-6">
@@ -62,7 +85,7 @@ export function IncidentSummarySection({ incident }: IncidentSummarySectionProps
                                                 <span className="text-muted-foreground">{t('incidents.category', 'Category')}:</span>
                                                 <span className="font-medium">
                                                     {(() => {
-                                                        const cat = (incident as any).incident_type ||
+                                                        const cat = incident.incident_type ||
                                                             (incident.subtype ? getHsseEventTypeForSubtype(incident.subtype) : null);
                                                         return cat ? safeTranslate(`incidents.hsseEventTypes.${snakeToCamel(cat)}`, cat) : '-';
                                                     })()}
@@ -72,7 +95,7 @@ export function IncidentSummarySection({ incident }: IncidentSummarySectionProps
                                                 <div className="flex flex-col sm:flex-row sm:justify-between text-sm">
                                                     <span className="text-muted-foreground">{t('incidents.subCategory', 'Sub Category')}:</span>
                                                     <span className="font-medium text-wrap text-right sm:max-w-[200px]">
-                                                        {getSubtypeTranslation(t, incident.event_type, incident.subtype, (incident as any).incident_type)}
+                                                        {getSubtypeTranslation(t, incident.event_type, incident.subtype, incident.incident_type ?? undefined)}
                                                     </span>
                                                 </div>
                                             )}
@@ -130,7 +153,7 @@ export function IncidentSummarySection({ incident }: IncidentSummarySectionProps
                 <IncidentInjuryCard
                     hasInjury={incident.has_injury || false}
                     injuryDetails={incident.injury_details as unknown}
-                    injuryClassification={(incident as any).injury_classification}
+                    injuryClassification={incident.injury_classification ?? undefined}
                 />
                 <IncidentDamageCard
                     hasDamage={incident.has_damage || false}
@@ -151,13 +174,13 @@ export function IncidentSummarySection({ incident }: IncidentSummarySectionProps
                         mediaAttachments={mediaAttachments}
                         incidentMetadata={{
                             referenceId: incident.reference_id,
-                            occurredAt: (incident as any).occurred_at,
-                            location: (incident as any).location || undefined,
-                            branchName: (incident as any).branch?.name,
-                            siteName: (incident as any).site?.name,
-                            contractorName: (incident as any).related_contractor_company?.company_name,
-                            latitude: (incident as any).latitude,
-                            longitude: (incident as any).longitude,
+                            occurredAt: incident.occurred_at ?? undefined,
+                            location: incident.location ?? undefined,
+                            branchName: incident.branch?.name,
+                            siteName: incident.site?.name,
+                            contractorName: incident.related_contractor_company?.company_name,
+                            latitude: incident.latitude ?? undefined,
+                            longitude: incident.longitude ?? undefined,
                         }}
                         fallbackTimestamp={incident.created_at}
                     />
@@ -166,4 +189,3 @@ export function IncidentSummarySection({ incident }: IncidentSummarySectionProps
         </div>
     );
 }
-
