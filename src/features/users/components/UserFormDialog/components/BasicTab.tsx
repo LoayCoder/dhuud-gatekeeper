@@ -24,7 +24,10 @@ const userTypeCards = [
 ];
 
 
-export function BasicTab({ state }: { state: any }) {
+import type { UserFormState } from '../UserFormDialog';
+import type { UserFormValues } from '../types';
+
+export function BasicTab({ state }: { state: UserFormState }) {
   const { t, form, userType, hasLogin, emailHasChanged, user, direction } = state;
   return (
     <>
@@ -39,7 +42,7 @@ export function BasicTab({ state }: { state: any }) {
                         <button
                           key={value}
                           type="button"
-                          onClick={() => form.setValue('user_type', value as any)}
+                          onClick={() => form.setValue('user_type', value as UserFormValues['user_type'])}
                           className={cn(
                             "flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all text-center",
                             userType === value 
