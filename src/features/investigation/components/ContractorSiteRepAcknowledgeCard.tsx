@@ -42,11 +42,12 @@ export function ContractorSiteRepAcknowledgeCard({ incident, onComplete }: Contr
     return null;
   }
   
+  const vi = incident as unknown as import('../types/investigationTypes').ViolationIncidentFields;
   const violationDetails = {
-    penaltyType: (incident as any).violation_penalty_type,
-    fineAmount: (incident as any).violation_fine_amount,
-    occurrence: (incident as any).violation_occurrence,
-    actionDescription: (incident as any).violation_action_description,
+    penaltyType: vi.violation_penalty_type,
+    fineAmount: vi.violation_fine_amount,
+    occurrence: vi.violation_occurrence,
+    actionDescription: vi.violation_action_description,
   };
   
   const handleAcknowledge = () => {

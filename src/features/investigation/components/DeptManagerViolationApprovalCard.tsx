@@ -40,10 +40,11 @@ export function DeptManagerViolationApprovalCard({ incident, onComplete }: DeptM
     return null;
   }
   
+  const vi = incident as unknown as import('../types/investigationTypes').ViolationIncidentFields;
   const violationDetails = {
-    penaltyType: (incident as any).violation_penalty_type,
-    fineAmount: (incident as any).violation_fine_amount,
-    occurrence: (incident as any).violation_occurrence,
+    penaltyType: vi.violation_penalty_type,
+    fineAmount: vi.violation_fine_amount,
+    occurrence: vi.violation_occurrence,
   };
   
   const handleApprove = () => {

@@ -15,6 +15,7 @@ import { Building2, AlertTriangle, DollarSign, Shield, CheckCircle2 } from "luci
 import { useViolationTypes, ViolationType } from "@/hooks/use-violation-types";
 import { useViolationDetailsWithOccurrence } from '@/features/contractors';
 import type { IncidentWithDetails } from '@/features/incidents';
+import type { ViolationIncidentFields } from '../types/investigationTypes';
 import { format } from "date-fns";
 
 interface ContractorViolationSectionProps {
@@ -31,9 +32,10 @@ export function ContractorViolationSection({
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const isArabic = i18n.language === 'ar';
+  const vi = incident as unknown as ViolationIncidentFields;
   
   const [selectedViolationTypeId, setSelectedViolationTypeId] = useState<string | null>(
-    (incident as any).violation_type_id || null
+    vi.violation_type_id || null
   );
   
   const { data: violationTypes = [], isLoading: loadingTypes } = useViolationTypes();
@@ -58,22 +60,22 @@ export function ContractorViolationSection({
   
   // Get stored violation data from incident
   const storedViolation = {
-    typeId: (incident as any).violation_type_id,
-    occurrence: (incident as any).violation_occurrence,
-    penaltyType: (incident as any).violation_penalty_type,
-    fineAmount: (incident as any).violation_fine_amount,
-    actionDescription: (incident as any).violation_action_description,
-    finalStatus: (incident as any).violation_final_status,
+    typeId: vi.violation_type_id,
+    occurrence: vi.violation_occurrence,
+    penaltyType: vi.violation_penalty_type,
+    fineAmount: vi.violation_fine_amount,
+    actionDescription: vi.violation_action_description,
+    finalStatus: vi.violation_final_status,
     // Approval trail
-    deptManagerDecision: (incident as any).violation_dept_manager_decision,
-    deptManagerApprovedAt: (incident as any).violation_dept_manager_approved_at,
-    contractControllerDecision: (incident as any).violation_contract_controller_decision,
-    contractControllerApprovedAt: (incident as any).violation_contract_controller_approved_at,
-    contractorRepDecision: (incident as any).violation_contractor_rep_decision,
-    contractorRepAcknowledgedAt: (incident as any).violation_contractor_rep_acknowledged_at,
-    hsseDecision: (incident as any).violation_hsse_decision,
-    hsseDecidedAt: (incident as any).violation_hsse_decided_at,
-    finalizedAt: (incident as any).violation_finalized_at,
+    deptManagerDecision: vi.violation_dept_manager_decision,
+    deptManagerApprovedAt: vi.violation_dept_manager_approved_at,
+    contractControllerDecision: vi.violation_contract_controller_decision,
+    contractControllerApprovedAt: vi.violation_contract_controller_approved_at,
+    contractorRepDecision: vi.violation_contractor_rep_decision,
+    contractorRepAcknowledgedAt: vi.violation_contractor_rep_acknowledged_at,
+    hsseDecision: vi.violation_hsse_decision,
+    hsseDecidedAt: vi.violation_hsse_decided_at,
+    finalizedAt: vi.violation_finalized_at,
   };
   
   const hasExistingViolation = !!storedViolation.typeId;
@@ -252,7 +254,7 @@ export function ContractorViolationSection({
                     {t('workflow.violation.deptManager', 'Dept. Manager')}
                   </span>
                   <span>
-                    {storedViolation.deptManagerDecision === 'approved' ? 'âœ“' : 'âœ—'}{' '}
+                    {storedViolation.deptManagerDecision === 'approved' ? '✔' : '✗'}{' '}
                     {format(new Date(storedViolation.deptManagerApprovedAt), 'PP')}
                   </span>
                 </div>
@@ -263,7 +265,7 @@ export function ContractorViolationSection({
                     {t('workflow.violation.contractController', 'Contract Controller')}
                   </span>
                   <span>
-                    {storedViolation.contractControllerDecision === 'approved' ? 'âœ“' : 'âœ—'}{' '}
+                    {storedViolation.contractControllerDecision === 'approved' ? '✔' : '✗'}{' '}
                     {format(new Date(storedViolation.contractControllerApprovedAt), 'PP')}
                   </span>
                 </div>
@@ -274,7 +276,7 @@ export function ContractorViolationSection({
                     {t('workflow.violation.contractorRep', 'Contractor Rep')}
                   </span>
                   <span>
-                    {storedViolation.contractorRepDecision === 'acknowledged' ? 'âœ“' : 'âœ—'}{' '}
+                    {storedViolation.contractorRepDecision === 'acknowledged' ? '✔' : '✗'}{' '}
                     {format(new Date(storedViolation.contractorRepAcknowledgedAt), 'PP')}
                   </span>
                 </div>
@@ -296,5 +298,3 @@ export function ContractorViolationSection({
     </Card>
   );
 }
-
-

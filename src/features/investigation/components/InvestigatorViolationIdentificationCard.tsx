@@ -41,11 +41,12 @@ export function InvestigatorViolationIdentificationCard({
   const { data: violationTypes, isLoading: loadingTypes } = useViolationTypesForIncident();
   const identifyMutation = useIdentifyContractorViolation();
   const isAssignedInvestigator = useIsAssignedInvestigator(investigation?.investigator_id);
+  const vi = incident as unknown as import('../types/investigationTypes').ViolationIncidentFields;
   
   // Only show for incidents with contractor and in investigation_in_progress
-  const hasContractor = !!(incident as any).related_contractor_company_id;
+  const hasContractor = !!incident.related_contractor_company_id;
   const isInProgress = incident.status === 'investigation_in_progress';
-  const alreadyIdentified = (investigation as any)?.violation_identified === true;
+  const alreadyIdentified = vi.violation_identified === true;
   
   if (!hasContractor || !isInProgress || !isAssignedInvestigator || alreadyIdentified) {
     return null;
