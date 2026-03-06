@@ -1,7 +1,20 @@
 import { supabase } from '../supabaseClient';
-import type { LooseSupabaseClient } from '@/features/security/types/securityTypes';
 import type { Database } from '@/integrations/supabase/types';
 import type { UseIncidentsOptions } from '@/features/incidents';
+
+// Loose client to avoid deep type instantiation on complex joined selects
+interface ReportedIncidentRow {
+    id: string;
+    reference_id: string;
+    title: string;
+    status: string;
+    severity: string | null;
+    event_type: string;
+    created_at: string;
+    occurred_at: string | null;
+    site: { id: string; name: string } | null;
+    branch: { id: string; name: string } | null;
+}
 
 export const getIncidents = async ({
     tenantId,
