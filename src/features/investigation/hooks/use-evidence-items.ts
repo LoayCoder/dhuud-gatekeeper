@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 export function useEvidenceItems(incidentId: string | null) {
   return useQuery({
     queryKey: ['evidence-items', incidentId],
-    queryFn: async () => [] as any[],
+    queryFn: async () => [] as unknown[],
     enabled: !!incidentId,
   });
 }

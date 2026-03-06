@@ -8,11 +8,12 @@ import { ActionFormDialog } from "./components/ActionFormDialog";
 import { ActionList } from "./components/ActionList";
 
 export function ActionsPanel(props: ActionsPanelProps) {
-  const state = useActionsPanelState(props) as any;
+  const state = useActionsPanelState(props);
   const {
-    t, direction, isLocked, isLoading, incidentStatus,
+    t, direction, isLocked, isLoading,
     deleteConfirmId, setDeleteConfirmId, handleDeleteAction, deleteAction
   } = state;
+  const incidentStatus = props.incidentStatus;
 
   if (isLoading) {
     return (
