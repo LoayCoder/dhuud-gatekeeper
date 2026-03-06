@@ -219,7 +219,7 @@ export default function IncidentDetail() {
     osha_reportable?: boolean;
     requires_escalation?: boolean;
     escalation_reason?: string;
-    escalation_level?: string;
+    escalation_level?: number;
     escalation_triggered_at?: string;
     contractor_company?: { id: string; company_name: string } | null;
     hsse_enforced_at?: string;
