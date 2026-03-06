@@ -48,10 +48,10 @@ export function useGuardReportData(guardId: string, startDate: string, endDate: 
                 .order('check_in_at', { ascending: false })
                 .limit(20);
 
-            const { data: shifts } = await supabase
+            const shiftClient = supabase as unknown as import('@/features/security/types').LooseSupabaseClient;
+            const { data: shifts } = await shiftClient
                 .from('shift_roster')
                 .select(`
-          date,
           start_date,
           end_date,
           acknowledged_at,
@@ -59,10 +59,7 @@ export function useGuardReportData(guardId: string, startDate: string, endDate: 
         `)
                 .eq('guard_id', guardId)
                 .is('deleted_at', null)
-                .gte('start_date', startDate)
-                .lte('start_date', endDate)
-                .order('start_date', { ascending: false })
-                .limit(10);
+                .gte('start_date', startDate);
 
             const training: unknown[] = [];
 
@@ -173,14 +170,14 @@ export function useGuardReportData(guardId: string, startDate: string, endDate: 
                         status: a.status || 'unknown',
                     };
                 }),
-                shifts: (shifts || []).map((s) => {
-                    const shift = s.shift as unknown as { name?: string; start_time?: string; end_time?: string } | null;
+                shifts: ((shifts as unknown as Array<Record<string, unknown>>) || []).map((s) => {
+                    const shift = s.shift as { name?: string; start_time?: string; end_time?: string } | null;
                     return {
-                        date: s.start_date || s.date,
+                        date: (s.start_date as string) || '',
                         shift_name: shift?.name || 'Unknown Shift',
                         start_time: shift?.start_time || '',
                         end_time: shift?.end_time || '',
-                        acknowledged: !!s.acknowledged_at,
+                        acknowledged: !!(s.acknowledged_at),
                     };
                 }),
                 training: (training || []).map((tr) => {
