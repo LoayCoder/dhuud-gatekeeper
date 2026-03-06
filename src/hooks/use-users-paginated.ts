@@ -14,7 +14,7 @@ export interface UserWithRoles {
   assigned_branch_id?: string;
   assigned_department_id?: string;
   roles?: Array<{ role_id: string; role_code: string; role_name: string; category?: string }>;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface UseUsersPaginatedFilters {
@@ -27,7 +27,7 @@ export interface UseUsersPaginatedFilters {
   roleCode?: string | null;
   page?: number;
   pageSize?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export function useUsersPaginated(options?: { filters?: UseUsersPaginatedFilters; pageSize?: number }) {

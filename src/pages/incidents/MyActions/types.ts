@@ -11,5 +11,5 @@ export interface ActionForDialog {
 }
 
 export interface MyActionsViewProps {
-  [key: string]: any;
+  [key: string]: unknown;
 }
