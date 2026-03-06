@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Dialog,
   DialogContent,
@@ -22,6 +24,7 @@ import {
 import { Loader2, Upload, Image, FileText, Video, Camera, ClipboardList, Shield } from 'lucide-react';
 import { CCTVEntryForm } from './CCTVEntryForm';
 import type { CCTVCamera, CreateEvidenceParams } from '@/hooks/use-evidence-items';
+import { evidenceUploadSchema, EvidenceUploadFormValues } from './EvidenceUploadSchema';
 
 type EvidenceType = 'photo' | 'document' | 'cctv' | 'ptw' | 'checklist' | 'video_clip';
 
@@ -52,17 +55,28 @@ export function EvidenceUploadDialog({
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
 
-  const [evidenceType, setEvidenceType] = useState<EvidenceType>('photo');
+  // File and CCTV cameras kept as UI state (not standard form fields)
   const [file, setFile] = useState<File | null>(null);
-  const [description, setDescription] = useState('');
-  const [referenceId, setReferenceId] = useState('');
   const [cctvCameras, setCctvCameras] = useState<CCTVCamera[]>([]);
 
+  const form = useForm<EvidenceUploadFormValues>({
+    resolver: zodResolver(evidenceUploadSchema),
+    defaultValues: {
+      evidenceType: 'photo',
+      description: '',
+      referenceId: '',
+    },
+  });
+
+  const watchedEvidenceType = form.watch('evidenceType') as EvidenceType;
+
   const resetForm = () => {
-    setEvidenceType('photo');
+    form.reset({
+      evidenceType: 'photo',
+      description: '',
+      referenceId: '',
+    });
     setFile(null);
-    setDescription('');
-    setReferenceId('');
     setCctvCameras([]);
   };
 
@@ -84,24 +98,24 @@ export function EvidenceUploadDialog({
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (values: EvidenceUploadFormValues) => {
     const params: CreateEvidenceParams = {
       incident_id: incidentId,
-      evidence_type: evidenceType,
-      description: description || undefined,
+      evidence_type: values.evidenceType,
+      description: values.description || undefined,
     };
 
     // Add type-specific data
-    if (evidenceType === 'cctv') {
+    if (values.evidenceType === 'cctv') {
       if (cctvCameras.length === 0) return;
       params.cctv_data = cctvCameras;
-    } else if (evidenceType === 'ptw') {
-      if (!referenceId.trim()) return;
-      params.reference_id = referenceId;
+    } else if (values.evidenceType === 'ptw') {
+      if (!values.referenceId?.trim()) return;
+      params.reference_id = values.referenceId;
       params.reference_type = 'ptw';
-    } else if (evidenceType === 'checklist') {
-      if (!referenceId.trim()) return;
-      params.reference_id = referenceId;
+    } else if (values.evidenceType === 'checklist') {
+      if (!values.referenceId?.trim()) return;
+      params.reference_id = values.referenceId;
       params.reference_type = 'checklist';
     }
 
@@ -110,19 +124,19 @@ export function EvidenceUploadDialog({
   };
 
   const canSubmit = () => {
-    if (evidenceType === 'cctv') {
+    if (watchedEvidenceType === 'cctv') {
       return cctvCameras.length > 0 && cctvCameras.every(c => 
         c.camera_id && c.location && c.date && c.start_time && c.end_time
       );
     }
-    if (evidenceType === 'ptw' || evidenceType === 'checklist') {
-      return referenceId.trim().length > 0;
+    if (watchedEvidenceType === 'ptw' || watchedEvidenceType === 'checklist') {
+      return (form.getValues('referenceId') || '').trim().length > 0;
     }
     return file !== null;
   };
 
-  const needsFile = ['photo', 'document', 'video_clip'].includes(evidenceType);
-  const needsReference = ['ptw', 'checklist'].includes(evidenceType);
+  const needsFile = ['photo', 'document', 'video_clip'].includes(watchedEvidenceType);
+  const needsReference = ['ptw', 'checklist'].includes(watchedEvidenceType);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -141,7 +155,7 @@ export function EvidenceUploadDialog({
           {/* Evidence Type Selector */}
           <div className="space-y-2">
             <Label>{t('investigation.evidence.type', 'Evidence Type')} *</Label>
-            <Select value={evidenceType} onValueChange={(v) => setEvidenceType(v as EvidenceType)}>
+            <Select value={watchedEvidenceType} onValueChange={(v) => form.setValue('evidenceType', v as EvidenceType)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -197,8 +211,8 @@ export function EvidenceUploadDialog({
                 type="file"
                 onChange={handleFileChange}
                 accept={
-                  evidenceType === 'photo' ? 'image/*' :
-                  evidenceType === 'video_clip' ? 'video/*' :
+                  watchedEvidenceType === 'photo' ? 'image/*' :
+                  watchedEvidenceType === 'video_clip' ? 'video/*' :
                   '.pdf,.doc,.docx,.xls,.xlsx,.txt'
                 }
               />
@@ -211,7 +225,7 @@ export function EvidenceUploadDialog({
           )}
 
           {/* CCTV Camera Entry Form */}
-          {evidenceType === 'cctv' && (
+          {watchedEvidenceType === 'cctv' && (
             <CCTVEntryForm
               cameras={cctvCameras}
               onChange={setCctvCameras}
@@ -223,17 +237,16 @@ export function EvidenceUploadDialog({
           {needsReference && (
             <div className="space-y-2">
               <Label htmlFor="reference-id">
-                {evidenceType === 'ptw' 
+                {watchedEvidenceType === 'ptw' 
                   ? t('investigation.evidence.references.ptwId', 'PTW ID')
                   : t('investigation.evidence.references.checklistId', 'Inspection Checklist ID')
                 } *
               </Label>
               <Input
                 id="reference-id"
-                value={referenceId}
-                onChange={(e) => setReferenceId(e.target.value)}
+                {...form.register('referenceId')}
                 placeholder={
-                  evidenceType === 'ptw'
+                  watchedEvidenceType === 'ptw'
                     ? t('investigation.evidence.references.ptwPlaceholder', 'e.g., PTW-2024-0001')
                     : t('investigation.evidence.references.checklistPlaceholder', 'e.g., CHK-2024-0001')
                 }
@@ -264,8 +277,7 @@ export function EvidenceUploadDialog({
             </Label>
             <Textarea
               id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              {...form.register('description')}
               placeholder={t('investigation.evidence.descriptionPlaceholder', 'Add notes about this evidence...')}
               rows={3}
             />
@@ -281,7 +293,7 @@ export function EvidenceUploadDialog({
             {t('common.cancel', 'Cancel')}
           </Button>
           <Button
-            onClick={handleSubmit}
+            onClick={form.handleSubmit(handleSubmit)}
             disabled={!canSubmit() || isSubmitting}
           >
             {isSubmitting ? (

@@ -1,5 +1,7 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useDropzone } from "react-dropzone";
 import { Upload, FileText, Image, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCreateWitnessStatement, useCreateWitnessAttachment } from "@/hooks/use-witness-statements";
 import { toast } from "sonner";
 import { compressImage } from "@/lib/upload-utils";
+import { witnessDocumentUploadSchema, WitnessDocumentUploadFormValues } from "./WitnessDocumentUploadSchema";
 
 export interface WitnessDocumentUploadProps {
   incidentId: string;
@@ -32,12 +35,19 @@ export function WitnessDocumentUpload({ incidentId, onSuccess }: WitnessDocument
   const createStatement = useCreateWitnessStatement();
   const createAttachment = useCreateWitnessAttachment();
 
-  const [witnessName, setWitnessName] = useState("");
-  const [witnessContact, setWitnessContact] = useState("");
-  const [relationship, setRelationship] = useState("");
-  const [notes, setNotes] = useState("");
+  // Files kept as UI state (dropzone managed)
   const [files, setFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+
+  const form = useForm<WitnessDocumentUploadFormValues>({
+    resolver: zodResolver(witnessDocumentUploadSchema),
+    defaultValues: {
+      witnessName: '',
+      witnessContact: '',
+      relationship: '',
+      notes: '',
+    },
+  });
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setFiles((prev) => [...prev, ...acceptedFiles]);
@@ -64,11 +74,7 @@ export function WitnessDocumentUpload({ incidentId, onSuccess }: WitnessDocument
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  const handleSubmit = async () => {
-    if (!witnessName.trim()) {
-      toast.error(t("investigation.witnesses.nameRequired", "Witness name is required"));
-      return;
-    }
+  const handleSubmit = async (values: WitnessDocumentUploadFormValues) => {
     if (files.length === 0) {
       toast.error(t("investigation.witnesses.fileRequired", "At least one file is required"));
       return;
@@ -84,10 +90,10 @@ export function WitnessDocumentUpload({ incidentId, onSuccess }: WitnessDocument
       // 1. Create the witness statement
       const statement = await createStatement.mutateAsync({
         incident_id: incidentId,
-        name: witnessName,
-        contact: witnessContact || undefined,
-        relationship: relationship || undefined,
-        statement: notes || undefined,
+        name: values.witnessName,
+        contact: values.witnessContact || undefined,
+        relationship: values.relationship || undefined,
+        statement: values.notes || undefined,
         statement_method: "upload",
       });
 
@@ -136,8 +142,7 @@ export function WitnessDocumentUpload({ incidentId, onSuccess }: WitnessDocument
           <Label htmlFor="witnessName">{t("investigation.witnesses.name", "Witness Name")} *</Label>
           <Input
             id="witnessName"
-            value={witnessName}
-            onChange={(e) => setWitnessName(e.target.value)}
+            {...form.register('witnessName')}
             placeholder={t("investigation.witnesses.namePlaceholder", "Enter witness name...")}
           />
         </div>
@@ -145,8 +150,7 @@ export function WitnessDocumentUpload({ incidentId, onSuccess }: WitnessDocument
           <Label htmlFor="witnessContact">{t("investigation.witnesses.contact", "Contact Info")}</Label>
           <Input
             id="witnessContact"
-            value={witnessContact}
-            onChange={(e) => setWitnessContact(e.target.value)}
+            {...form.register('witnessContact')}
             placeholder={t("investigation.witnesses.contactPlaceholder", "Phone or email...")}
           />
         </div>
@@ -156,8 +160,7 @@ export function WitnessDocumentUpload({ incidentId, onSuccess }: WitnessDocument
         <Label htmlFor="relationship">{t("investigation.witnesses.relationship", "Relationship")}</Label>
         <Input
           id="relationship"
-          value={relationship}
-          onChange={(e) => setRelationship(e.target.value)}
+          {...form.register('relationship')}
           placeholder={t("investigation.witnesses.relationshipPlaceholder", "e.g., Colleague, Supervisor...")}
         />
       </div>
@@ -220,8 +223,7 @@ export function WitnessDocumentUpload({ incidentId, onSuccess }: WitnessDocument
         <Label htmlFor="notes">{t("investigation.witnesses.additionalNotes", "Additional Notes")}</Label>
         <Textarea
           id="notes"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
+          {...form.register('notes')}
           placeholder={t("investigation.witnesses.notesPlaceholder", "Any additional notes about this witness...")}
           rows={3}
         />
@@ -229,7 +231,7 @@ export function WitnessDocumentUpload({ incidentId, onSuccess }: WitnessDocument
 
       {/* Actions */}
       <div className="flex justify-end gap-2 pt-4">
-        <Button onClick={handleSubmit} disabled={isUploading || !witnessName.trim() || files.length === 0}>
+        <Button onClick={form.handleSubmit(handleSubmit)} disabled={isUploading || !form.watch('witnessName')?.trim() || files.length === 0}>
           {isUploading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
           {t("investigation.witnesses.uploadStatement", "Upload Statement")}
         </Button>

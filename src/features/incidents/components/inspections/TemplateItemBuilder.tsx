@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, GripVertical, Trash2, Edit, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,6 +42,7 @@ import {
   useDeleteTemplateItem,
 } from '@/features/incidents';
 import i18n from '@/i18n';
+import { templateItemSchema, TemplateItemFormValues } from './TemplateItemBuilderSchema';
 
 interface TemplateItemBuilderProps {
   templateId: string;
@@ -52,6 +55,19 @@ const RESPONSE_TYPES = [
   { value: 'numeric', label: 'inspections.responseTypes.numeric' },
   { value: 'text', label: 'inspections.responseTypes.text' },
 ];
+
+const DEFAULT_VALUES: TemplateItemFormValues = {
+  question: '',
+  question_ar: '',
+  response_type: 'pass_fail',
+  min_value: '',
+  max_value: '',
+  rating_scale: '5',
+  is_critical: false,
+  is_required: true,
+  instructions: '',
+  instructions_ar: '',
+};
 
 export function TemplateItemBuilder({ templateId }: TemplateItemBuilderProps) {
   const { t } = useTranslation();
@@ -66,34 +82,16 @@ export function TemplateItemBuilder({ templateId }: TemplateItemBuilderProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<TemplateItem | null>(null);
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
-  
-  // Form state for new/edit item
-  const [formData, setFormData] = useState({
-    question: '',
-    question_ar: '',
-    response_type: 'pass_fail',
-    min_value: '',
-    max_value: '',
-    rating_scale: '5',
-    is_critical: false,
-    is_required: true,
-    instructions: '',
-    instructions_ar: '',
+
+  const form = useForm<TemplateItemFormValues>({
+    resolver: zodResolver(templateItemSchema),
+    defaultValues: DEFAULT_VALUES,
   });
+
+  const watchedResponseType = form.watch('response_type');
   
   const resetForm = () => {
-    setFormData({
-      question: '',
-      question_ar: '',
-      response_type: 'pass_fail',
-      min_value: '',
-      max_value: '',
-      rating_scale: '5',
-      is_critical: false,
-      is_required: true,
-      instructions: '',
-      instructions_ar: '',
-    });
+    form.reset(DEFAULT_VALUES);
     setEditingItem(null);
   };
   
@@ -104,7 +102,7 @@ export function TemplateItemBuilder({ templateId }: TemplateItemBuilderProps) {
   
   const handleOpenEdit = (item: TemplateItem) => {
     setEditingItem(item);
-    setFormData({
+    form.reset({
       question: item.question,
       question_ar: item.question_ar || '',
       response_type: item.response_type,
@@ -119,18 +117,18 @@ export function TemplateItemBuilder({ templateId }: TemplateItemBuilderProps) {
     setEditDialogOpen(true);
   };
   
-  const handleSave = async () => {
+  const handleSave = async (values: TemplateItemFormValues) => {
     const data = {
-      question: formData.question,
-      question_ar: formData.question_ar || undefined,
-      response_type: formData.response_type,
-      min_value: formData.min_value ? parseFloat(formData.min_value) : undefined,
-      max_value: formData.max_value ? parseFloat(formData.max_value) : undefined,
-      rating_scale: parseInt(formData.rating_scale) || 5,
-      is_critical: formData.is_critical,
-      is_required: formData.is_required,
-      instructions: formData.instructions || undefined,
-      instructions_ar: formData.instructions_ar || undefined,
+      question: values.question,
+      question_ar: values.question_ar || undefined,
+      response_type: values.response_type,
+      min_value: values.min_value ? parseFloat(values.min_value) : undefined,
+      max_value: values.max_value ? parseFloat(values.max_value) : undefined,
+      rating_scale: parseInt(values.rating_scale || '5') || 5,
+      is_critical: values.is_critical,
+      is_required: values.is_required,
+      instructions: values.instructions || undefined,
+      instructions_ar: values.instructions_ar || undefined,
     };
     
     if (editingItem) {
@@ -251,16 +249,14 @@ export function TemplateItemBuilder({ templateId }: TemplateItemBuilderProps) {
               <div className="space-y-2">
                 <Label>{t('inspections.question')} (EN)</Label>
                 <Textarea
-                  value={formData.question}
-                  onChange={(e) => setFormData({ ...formData, question: e.target.value })}
+                  {...form.register('question')}
                   rows={2}
                 />
               </div>
               <div className="space-y-2">
                 <Label>{t('inspections.question')} (AR)</Label>
                 <Textarea
-                  value={formData.question_ar}
-                  onChange={(e) => setFormData({ ...formData, question_ar: e.target.value })}
+                  {...form.register('question_ar')}
                   rows={2}
                   dir="rtl"
                 />
@@ -270,8 +266,8 @@ export function TemplateItemBuilder({ templateId }: TemplateItemBuilderProps) {
             <div className="space-y-2">
               <Label>{t('inspections.responseType')}</Label>
               <Select
-                value={formData.response_type}
-                onValueChange={(val) => setFormData({ ...formData, response_type: val })}
+                value={watchedResponseType}
+                onValueChange={(val) => form.setValue('response_type', val)}
                 dir={direction}
               >
                 <SelectTrigger>
@@ -287,33 +283,31 @@ export function TemplateItemBuilder({ templateId }: TemplateItemBuilderProps) {
               </Select>
             </div>
             
-            {formData.response_type === 'numeric' && (
+            {watchedResponseType === 'numeric' && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>{t('inspections.minValue')}</Label>
                   <Input
                     type="number"
-                    value={formData.min_value}
-                    onChange={(e) => setFormData({ ...formData, min_value: e.target.value })}
+                    {...form.register('min_value')}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>{t('inspections.maxValue')}</Label>
                   <Input
                     type="number"
-                    value={formData.max_value}
-                    onChange={(e) => setFormData({ ...formData, max_value: e.target.value })}
+                    {...form.register('max_value')}
                   />
                 </div>
               </div>
             )}
             
-            {formData.response_type === 'rating' && (
+            {watchedResponseType === 'rating' && (
               <div className="space-y-2">
                 <Label>{t('inspections.ratingScale')}</Label>
                 <Select
-                  value={formData.rating_scale}
-                  onValueChange={(val) => setFormData({ ...formData, rating_scale: val })}
+                  value={form.watch('rating_scale')}
+                  onValueChange={(val) => form.setValue('rating_scale', val)}
                   dir={direction}
                 >
                   <SelectTrigger className="w-32">
@@ -332,8 +326,7 @@ export function TemplateItemBuilder({ templateId }: TemplateItemBuilderProps) {
               <div className="space-y-2">
                 <Label>{t('inspections.instructions')} (EN)</Label>
                 <Textarea
-                  value={formData.instructions}
-                  onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
+                  {...form.register('instructions')}
                   rows={2}
                   placeholder={t('inspections.instructionsPlaceholder')}
                 />
@@ -341,8 +334,7 @@ export function TemplateItemBuilder({ templateId }: TemplateItemBuilderProps) {
               <div className="space-y-2">
                 <Label>{t('inspections.instructions')} (AR)</Label>
                 <Textarea
-                  value={formData.instructions_ar}
-                  onChange={(e) => setFormData({ ...formData, instructions_ar: e.target.value })}
+                  {...form.register('instructions_ar')}
                   rows={2}
                   dir="rtl"
                 />
@@ -352,16 +344,16 @@ export function TemplateItemBuilder({ templateId }: TemplateItemBuilderProps) {
             <div className="flex items-center justify-between border rounded-lg p-3">
               <Label>{t('inspections.critical')}</Label>
               <Switch
-                checked={formData.is_critical}
-                onCheckedChange={(val) => setFormData({ ...formData, is_critical: val })}
+                checked={form.watch('is_critical')}
+                onCheckedChange={(val) => form.setValue('is_critical', val)}
               />
             </div>
             
             <div className="flex items-center justify-between border rounded-lg p-3">
               <Label>{t('common.required')}</Label>
               <Switch
-                checked={formData.is_required}
-                onCheckedChange={(val) => setFormData({ ...formData, is_required: val })}
+                checked={form.watch('is_required')}
+                onCheckedChange={(val) => form.setValue('is_required', val)}
               />
             </div>
           </div>
@@ -371,8 +363,8 @@ export function TemplateItemBuilder({ templateId }: TemplateItemBuilderProps) {
               {t('common.cancel')}
             </Button>
             <Button
-              onClick={handleSave}
-              disabled={!formData.question || createItem.isPending || updateItem.isPending}
+              onClick={form.handleSubmit(handleSave)}
+              disabled={!form.watch('question') || createItem.isPending || updateItem.isPending}
             >
               {t('common.save')}
             </Button>
