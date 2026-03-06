@@ -82,8 +82,9 @@ export default function UserManagement() {
   const coreActions = { ...saveActions, ...statusActions };
   const extraActions = useUserManagementExtraActions(state, data);
   const actions = { ...coreActions, ...extraActions };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- mega-spread; TODO: define AllUserManagementProps
-  const allProps = { ...state, ...data, ...actions } as Record<string, unknown>;
+
+  type AllProps = typeof state & typeof data & typeof actions;
+  const allProps: AllProps = { ...state, ...data, ...actions };
   const {
     users = [], selectedUsers = new Set<string>(), setSelectedUsers = () => {},
     userTypeFilter = 'all', statusFilter = 'all', branchFilter = 'all',
@@ -95,8 +96,8 @@ export default function UserManagement() {
     activeFilterCount: _afc, clearAllFilters = () => {},
   } = allProps;
 
-  const allSelected = users.length > 0 && users.every((u: any) => selectedUsers.has?.(u.id));
-  const someSelected = users.some((u: any) => selectedUsers.has?.(u.id)) && !allSelected;
+  const allSelected = (users as UserWithRoles[]).length > 0 && (users as UserWithRoles[]).every((u) => selectedUsers.has?.(u.id));
+  const someSelected = (users as UserWithRoles[]).some((u) => selectedUsers.has?.(u.id)) && !allSelected;
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
