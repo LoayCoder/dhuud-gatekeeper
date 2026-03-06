@@ -71,7 +71,7 @@ export function usePendingApprovals(minDaysStuck = 0) {
       }
 
       const now = new Date();
-      const incidents: PendingApprovalIncident[] = ((data || []) as any[]).map((incident: any) => {
+      const incidents: PendingApprovalIncident[] = (data || []).map((incident) => {
         const updatedAt = new Date(incident.updated_at);
         const daysStuck = Math.floor((now.getTime() - updatedAt.getTime()) / (1000 * 60 * 60 * 24));
         
@@ -123,7 +123,7 @@ export function useAdminOverrideApproval() {
 
       if (error) throw error;
       
-      const result = data as { success: boolean; error?: string; new_status?: string };
+      const result = data as unknown as { success: boolean; error?: string; new_status?: string };
       if (!result.success) {
         throw new Error(result.error || 'Override failed');
       }

@@ -159,19 +159,19 @@ export function IDCardSettingsForm({
   const watchedValues = form.watch();
   
   useEffect(() => {
-    onChange(watchedValues as Partial<TenantIDCardSettings>);
+    onChange(watchedValues as unknown as Partial<TenantIDCardSettings>);
   }, [JSON.stringify(watchedValues)]);
 
   // Apply preset when changed
   const handlePresetChange = (preset: TemplatePreset) => {
     const presetConfig = PRESET_CONFIGS[preset];
     Object.entries(presetConfig).forEach(([key, value]) => {
-      form.setValue(key as keyof FormValues, value as any);
+      form.setValue(key as keyof FormValues, value as FormValues[keyof FormValues]);
     });
   };
 
   const handleSubmit = (values: FormValues) => {
-    onSave(values as Partial<TenantIDCardSettings>);
+    onSave(values as unknown as Partial<TenantIDCardSettings>);
   };
 
   const availableFrontFields = FRONT_FIELDS_BY_TYPE[cardType];
