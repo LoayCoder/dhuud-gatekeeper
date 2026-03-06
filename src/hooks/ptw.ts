@@ -27,37 +27,37 @@ export interface PTWProject {
 }
 
 export function usePTWTypes() {
-  return useQuery({ queryKey: ['ptw-types'], queryFn: async () => [] as any[] });
+  return useQuery({ queryKey: ['ptw-types'], queryFn: async () => [] as Record<string, unknown>[] });
 }
-export function usePermits(filters?: any) {
-  return useQuery({ queryKey: ['permits', filters], queryFn: async () => [] as any[] });
+export function usePermits(filters?: Record<string, unknown>) {
+  return useQuery({ queryKey: ['permits', filters], queryFn: async () => [] as PTWPermit[] });
 }
 export function useCreatePermit() {
-  return useMutation({ mutationFn: async (params: any) => params });
+  return useMutation({ mutationFn: async (params: Record<string, unknown>) => params });
 }
 export function useUpdatePermit() {
-  return useMutation({ mutationFn: async (params: any) => params });
+  return useMutation({ mutationFn: async (params: Record<string, unknown>) => params });
 }
 export function useProjectClearances(projectId?: string) {
   return useQuery({ queryKey: ['clearances', projectId], queryFn: async () => [] as PTWClearanceCheck[], enabled: !!projectId });
 }
 export function useCreateClearance() {
-  return useMutation({ mutationFn: async (params: any) => params });
+  return useMutation({ mutationFn: async (params: Record<string, unknown>) => params });
 }
 export function useUpdateClearance() {
-  return useMutation({ mutationFn: async (params: any) => params });
+  return useMutation({ mutationFn: async (params: Record<string, unknown>) => params });
 }
 export function useBulkUpdateClearances() {
-  return useMutation({ mutationFn: async (params: any) => params });
+  return useMutation({ mutationFn: async (params: Record<string, unknown>) => params });
 }
 export function usePermitCategories() {
-  return useQuery({ queryKey: ['permit-categories'], queryFn: async () => [] as any[] });
+  return useQuery({ queryKey: ['permit-categories'], queryFn: async () => [] as Record<string, unknown>[] });
 }
 export function useHazardTypes() {
-  return useQuery({ queryKey: ['hazard-types'], queryFn: async () => [] as any[] });
+  return useQuery({ queryKey: ['hazard-types'], queryFn: async () => [] as Record<string, unknown>[] });
 }
 export function useSafetyRequirements() {
-  return useQuery({ queryKey: ['safety-requirements'], queryFn: async () => [] as any[] });
+  return useQuery({ queryKey: ['safety-requirements'], queryFn: async () => [] as Record<string, unknown>[] });
 }
 
 // Additional PTW hooks
@@ -68,7 +68,7 @@ export function useRejectClearanceCheck() {
   return useMutation({ mutationFn: async (params: { checkId: string; comments: string }) => params });
 }
 export function useCreatePTWProject() {
-  return useMutation({ mutationFn: async (params: any) => params });
+  return useMutation({ mutationFn: async (params: Record<string, unknown>) => params });
 }
 export function usePTWProjects(tenantId?: string) {
   return useQuery({ queryKey: ['ptw-projects', tenantId], queryFn: async () => [] as PTWProject[], enabled: !!tenantId });

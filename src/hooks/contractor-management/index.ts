@@ -4,17 +4,30 @@ export interface InductionVideo {
   id: string;
   title: string;
   url: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- consumed by downstream components expecting indexable type
+  [key: string]: any;
+}
+
+export interface ContractorProject {
+  id: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
+}
+
+export interface ContractorWorker {
+  id: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 
 export function useContractorPortalData() {
-  return { data: null, isLoading: false, company: null, projects: [] as any[], workers: [] as any[] };
+  return { data: null, isLoading: false, company: null, projects: [] as ContractorProject[], workers: [] as ContractorWorker[] };
 }
 
 export function useContractorGatePasses(companyId?: string) {
   return useQuery({
     queryKey: ['contractor-gate-passes', companyId],
-    queryFn: async () => [] as any[],
+    queryFn: async () => [] as Record<string, unknown>[],
     enabled: !!companyId,
   });
 }

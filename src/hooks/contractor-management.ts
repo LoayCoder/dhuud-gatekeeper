@@ -7,9 +7,9 @@ export function useCreateContractorWorker() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: Record<string, unknown>) => {
-      const { error } = await (supabase as any)
+      const { error } = await (supabase
         .from('contractor_workers')
-        .insert(data);
+        .insert(data as unknown as Parameters<typeof supabase.from<'contractor_workers'>['insert']>[0]));
       if (error) throw error;
     },
     onSuccess: () => {
@@ -23,9 +23,9 @@ export function useCreateContractorWorker() {
 }
 
 export function useContractorCompanies(tenantId?: string) {
-  return useQuery({ queryKey: ['contractor-companies', tenantId], queryFn: async () => [] as any[], enabled: !!tenantId });
+  return useQuery({ queryKey: ['contractor-companies', tenantId], queryFn: async () => [] as Record<string, unknown>[], enabled: !!tenantId });
 }
 
 export function useContractorProjects(tenantId?: string) {
-  return useQuery({ queryKey: ['contractor-projects', tenantId], queryFn: async () => [] as any[], enabled: !!tenantId });
+  return useQuery({ queryKey: ['contractor-projects', tenantId], queryFn: async () => [] as Record<string, unknown>[], enabled: !!tenantId });
 }
