@@ -4,21 +4,21 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import type { EnvironmentalContaminationEntry, EnvironmentalContaminationFormData } from '@/lib/environmental-contamination-constants';
+import type { Database } from '@/integrations/supabase/types';
 
-// Fetch all environmental contamination entries for an incident
+type ContaminationInsert = Database['public']['Tables']['environmental_contamination_entries']['Insert'];
+
 export function useEnvironmentalContaminationEntries(incidentId: string | null) {
   return useQuery({
     queryKey: ['environmental-contamination-entries', incidentId],
     queryFn: async () => {
       if (!incidentId) return [];
-      
       const { data, error } = await supabase
         .from('environmental_contamination_entries')
         .select('*')
         .eq('incident_id', incidentId)
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
-      
       if (error) throw error;
       return data as EnvironmentalContaminationEntry[];
     },
@@ -26,42 +26,32 @@ export function useEnvironmentalContaminationEntries(incidentId: string | null) 
   });
 }
 
-// Create a new environmental contamination entry
 export function useCreateEnvironmentalContamination() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { t } = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ 
-      incidentId, 
-      data 
-    }: { 
-      incidentId: string; 
-      data: Partial<EnvironmentalContaminationFormData>;
-    }) => {
-      // Get user's tenant_id
-      const { data: profile, error: profileError } = await supabase
+    mutationFn: async ({ incidentId, data }: { incidentId: string; data: Partial<EnvironmentalContaminationFormData> }) => {
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('tenant_id')
         .eq('id', user?.id)
         .single();
-      
       if (profileError) throw profileError;
 
-      const insertData = {
+      const insertData: ContaminationInsert = {
         ...data,
         incident_id: incidentId,
-        tenant_id: profile.tenant_id,
+        tenant_id: profileData.tenant_id,
         recorded_by: user?.id,
-      };
+      } as ContaminationInsert;
 
       const { data: result, error } = await supabase
         .from('environmental_contamination_entries')
-        .insert(insertData as any)
+        .insert(insertData)
         .select()
         .single();
-      
       if (error) throw error;
       return result;
     },
@@ -76,28 +66,18 @@ export function useCreateEnvironmentalContamination() {
   });
 }
 
-// Update an environmental contamination entry
 export function useUpdateEnvironmentalContamination() {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ 
-      id, 
-      incidentId,
-      data 
-    }: { 
-      id: string; 
-      incidentId: string;
-      data: Partial<EnvironmentalContaminationFormData>;
-    }) => {
+    mutationFn: async ({ id, incidentId, data }: { id: string; incidentId: string; data: Partial<EnvironmentalContaminationFormData> }) => {
       const { data: result, error } = await supabase
         .from('environmental_contamination_entries')
         .update(data)
         .eq('id', id)
         .select()
         .single();
-      
       if (error) throw error;
       return result;
     },
@@ -112,7 +92,6 @@ export function useUpdateEnvironmentalContamination() {
   });
 }
 
-// Soft delete an environmental contamination entry
 export function useDeleteEnvironmentalContamination() {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
@@ -123,7 +102,6 @@ export function useDeleteEnvironmentalContamination() {
         .from('environmental_contamination_entries')
         .update({ deleted_at: new Date().toISOString() })
         .eq('id', id);
-      
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
