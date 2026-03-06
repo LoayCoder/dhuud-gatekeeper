@@ -15,36 +15,8 @@ import { useSIMOPSCheck } from "@/features/ptw/hooks/use-simops-check";
 import { useMobilizationCheck } from "@/features/ptw/hooks/use-mobilization-check";
 import { SIMOPSConflictWarning } from '@/features/ptw';
 
-export interface PermitFormData {
-  // Step 1: Basics
-  project_id: string;
-  type_id: string;
-  site_id: string;
-  contractor_id?: string;
-  contractor_name?: string;
-  building_id?: string;
-  floor_zone_id?: string;
-  location_details: string;
-  gps_lat?: number;
-  gps_lng?: number;
-  planned_start_time: string;
-  planned_end_time: string;
-  job_description: string;
-  // Step 2: Workers
-  worker_ids?: string[];
-  permit_holder_id?: string;
-  // Step 3: Operational (dynamic based on permit type)
-  operational_data: Record<string, unknown>;
-  // Step 4: Safety
-  safety_responses: Array<{
-    requirement_id: string;
-    is_checked: boolean;
-    comments?: string;
-  }>;
-  emergency_contact_name: string;
-  emergency_contact_number: string;
-  risk_assessment_ref?: string;
-}
+export { type PermitFormData } from './permitSchema';
+import { permitFormSchema } from './permitSchema';
 
 const STEPS = [
   { id: 1, name: "basics", title: "Basics" },
@@ -105,28 +77,39 @@ export default function CreatePermit() {
   };
 
   const handleSubmit = async () => {
+    // Validate before submit
+    const result = permitFormSchema.safeParse(formData)
+    if (!result.success) {
+      console.error('[CreatePermit] Invalid form data:',
+        result.error.flatten())
+      return
+    }
+
     try {
       await createPermit.mutateAsync({
-        project_id: formData.project_id!,
-        type_id: formData.type_id!,
-        site_id: formData.site_id,
-        building_id: formData.building_id,
-        floor_zone_id: formData.floor_zone_id,
-        location_details: formData.location_details,
-        gps_lat: formData.gps_lat,
-        gps_lng: formData.gps_lng,
-        planned_start_time: formData.planned_start_time!,
-        planned_end_time: formData.planned_end_time!,
-        job_description: formData.job_description,
-        emergency_contact_name: formData.emergency_contact_name,
-        emergency_contact_number: formData.emergency_contact_number,
-        risk_assessment_ref: formData.risk_assessment_ref,
-        worker_ids: formData.worker_ids,
-        permit_holder_id: formData.permit_holder_id,
-      });
+        project_id: result.data.project_id,
+        type_id: result.data.type_id,
+        site_id: result.data.site_id,
+        building_id: result.data.building_id,
+        floor_zone_id: result.data.floor_zone_id,
+        location_details: result.data.location_details,
+        gps_lat: result.data.gps_lat,
+        gps_lng: result.data.gps_lng,
+        planned_start_time: result.data.planned_start_time,
+        planned_end_time: result.data.planned_end_time,
+        job_description: result.data.job_description,
+        emergency_contact_name: result.data.emergency_contact_name,
+        emergency_contact_number: result.data.emergency_contact_number,
+        risk_assessment_ref: result.data.risk_assessment_ref,
+        worker_ids: result.data.worker_ids,
+        permit_holder_id: result.data.permit_holder_id,
+        operational_data: result.data.operational_data,
+        safety_responses: result.data.safety_responses,
+      } as any);
       navigate("/ptw");
     } catch (error) {
-      // Error handled by mutation
+      console.error('[CreatePermit] Submit failed:', error)
+      // Error toast handled by mutation's onError callback
     }
   };
 
@@ -146,8 +129,8 @@ export default function CreatePermit() {
       case 2:
         // Require at least 1 worker and a permit holder
         return !!(
-          formData.worker_ids && 
-          formData.worker_ids.length > 0 && 
+          formData.worker_ids &&
+          formData.worker_ids.length > 0 &&
           formData.permit_holder_id
         );
       case 3:
@@ -182,18 +165,16 @@ export default function CreatePermit() {
               {STEPS.map((step) => (
                 <div
                   key={step.id}
-                  className={`flex flex-col items-center gap-1 ${
-                    step.id <= currentStep ? "text-primary" : "text-muted-foreground"
-                  }`}
+                  className={`flex flex-col items-center gap-1 ${step.id <= currentStep ? "text-primary" : "text-muted-foreground"
+                    }`}
                 >
                   <div
-                    className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                      step.id < currentStep
+                    className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium ${step.id < currentStep
                         ? "bg-primary text-primary-foreground"
                         : step.id === currentStep
-                        ? "border-2 border-primary text-primary"
-                        : "border-2 border-muted text-muted-foreground"
-                    }`}
+                          ? "border-2 border-primary text-primary"
+                          : "border-2 border-muted text-muted-foreground"
+                      }`}
                   >
                     {step.id < currentStep ? <Check className="h-4 w-4" /> : step.id}
                   </div>
@@ -222,7 +203,7 @@ export default function CreatePermit() {
           {conflicts.length > 0 && (currentStep === 1 || currentStep === 4) && (
             <SIMOPSConflictWarning conflicts={conflicts} />
           )}
-          
+
           {currentStep === 1 && (
             <PermitBasicsStep data={formData} onChange={updateFormData} />
           )}
@@ -230,15 +211,15 @@ export default function CreatePermit() {
             <PermitWorkersStep data={formData} onChange={updateFormData} />
           )}
           {currentStep === 3 && (
-            <PermitOperationalStep 
-              data={formData} 
+            <PermitOperationalStep
+              data={formData}
               onChange={updateFormData}
               typeId={formData.type_id}
             />
           )}
           {currentStep === 4 && (
-            <PermitSafetyStep 
-              data={formData} 
+            <PermitSafetyStep
+              data={formData}
               onChange={updateFormData}
               typeId={formData.type_id}
             />
@@ -259,19 +240,19 @@ export default function CreatePermit() {
           <ArrowLeft className="me-2 h-4 w-4 rtl:rotate-180" />
           {t("common.back", "Back")}
         </Button>
-        
+
         {currentStep < STEPS.length ? (
           <Button onClick={handleNext} disabled={!canProceed()}>
             {t("common.next", "Next")}
             <ArrowRight className="ms-2 h-4 w-4 rtl:rotate-180" />
           </Button>
         ) : (
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            onClick={handleSubmit}
             disabled={createPermit.isPending}
           >
-            {createPermit.isPending 
-              ? t("common.submitting", "Submitting...") 
+            {createPermit.isPending
+              ? t("common.submitting", "Submitting...")
               : t("ptw.create.submit", "Submit Permit Request")
             }
           </Button>
