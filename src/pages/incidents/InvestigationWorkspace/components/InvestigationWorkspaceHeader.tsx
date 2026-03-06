@@ -5,8 +5,8 @@ import { cn } from "@/lib/utils";
 
 interface InvestigationWorkspaceHeaderProps {
     selectedIncidentId: string | null;
-    selectedIncident: { event_type?: string; status?: string;[key: string]: unknown } | null;
-    incidentData: { reference_id?: string; title?: string;[key: string]: unknown } | null;
+    selectedIncident: { event_type?: string; status?: string } | null;
+    incidentData: { reference_id?: string; title?: string; severity_v2?: string; created_at?: string } | null;
     slaInfo: { status: string; isOverdue: boolean; daysRemaining: number; hoursRemaining: number } | null;
     onBack: () => void;
     onRefresh: () => void;
