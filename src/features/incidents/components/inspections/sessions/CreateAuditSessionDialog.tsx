@@ -147,8 +147,8 @@ export function CreateAuditSessionDialog({ open, onOpenChange }: CreateAuditSess
       toast({ title: t('common.success'), description: t('audits.sessionCreated') });
       onOpenChange(false);
       navigate(`/inspections/audit/${session.id}`);
-    } catch (error: any) {
-      toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+    } catch (error: unknown) {
+      toast({ title: t('common.error'), description: error instanceof Error ? error.message : 'Error', variant: 'destructive' });
     }
   };
   
