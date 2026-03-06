@@ -108,7 +108,8 @@ export function usePrefetchCriticalData() {
   const prefetchQuery = useCallback(async (query: typeof CRITICAL_QUERIES[0]) => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic table name from config
-      const { data, error } = await (supabase.from(query.table) as any)
+      const looseClient = supabase as unknown as { from: (t: string) => { select: (s: string) => { limit: (n: number) => Promise<{ data: unknown; error: { message: string } | null }> } } };
+      const { data, error } = await looseClient.from(query.table)
         .select(query.select)
         .limit(1000);
       
