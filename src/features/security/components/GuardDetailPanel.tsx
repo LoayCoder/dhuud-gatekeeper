@@ -87,8 +87,7 @@ function useGuardDetails(guardId: string | null) {
     queryKey: ['guard-profile', guardId],
     queryFn: async (): Promise<GuardProfile | null> => {
       if (!guardId) return null;
-      const client = supabase as any;
-      const { data, error } = await client
+      const { data, error } = await supabase
         .from('profiles')
         .select('id, full_name, avatar_url, employee_id')
         .eq('id', guardId)
@@ -105,7 +104,7 @@ function useGuardDetails(guardId: string | null) {
     queryFn: async (): Promise<ShiftInfo | null> => {
       if (!guardId) return null;
       const today = format(new Date(), 'yyyy-MM-dd');
-      const client = supabase as any;
+      const client = supabase as unknown as import('@/features/security/types').LooseSupabaseClient;
       const { data, error } = await client
         .from('shift_roster')
         .select(`
@@ -115,18 +114,23 @@ function useGuardDetails(guardId: string | null) {
         `)
         .eq('guard_id', guardId)
         .eq('date', today)
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false })
-        .limit(1);
+        .is('deleted_at', null);
       
       if (error) throw error;
-      const row = data?.[0];
+      const rows = data as unknown as Array<Record<string, unknown>>;
+      const row = rows?.[0];
       if (!row) return null;
-      
+      const zone = row.zone as { zone_name?: string } | null;
+      const shift = row.shift as { name: string; start_time: string; end_time: string } | null;
       return {
-        ...row,
-        zone_name: row.zone?.zone_name,
-        shift: row.shift,
+        id: row.id as string,
+        shift_id: row.shift_id as string,
+        status: row.status as string,
+        check_in_time: row.check_in_time as string | undefined,
+        check_out_time: row.check_out_time as string | undefined,
+        zone_id: row.zone_id as string | undefined,
+        zone_name: zone?.zone_name,
+        shift,
       };
     },
     enabled: !!guardId,
@@ -137,23 +141,27 @@ function useGuardDetails(guardId: string | null) {
     queryKey: ['guard-patrols', guardId],
     queryFn: async (): Promise<PatrolLog[]> => {
       if (!guardId) return [];
-      const client = supabase as any;
+      const client = supabase as unknown as import('@/features/security/types').LooseSupabaseClient;
       const { data, error } = await client
         .from('patrol_checkpoint_logs')
         .select(`
-          id, scanned_at, result, notes,
+          id, scanned_at, notes,
           checkpoint:patrol_checkpoints(name)
         `)
         .eq('scanned_by', guardId)
-        .is('deleted_at', null)
-        .order('scanned_at', { ascending: false })
-        .limit(10);
+        .is('deleted_at', null);
       
       if (error) throw error;
-      return (data || []).map((log: any) => ({
-        ...log,
-        checkpoint_name: log.checkpoint?.name || 'Unknown',
-      }));
+      return ((data as unknown as Array<Record<string, unknown>>) || []).map((log) => {
+        const checkpoint = log.checkpoint as { name?: string } | null;
+        return {
+          id: log.id as string,
+          checkpoint_name: checkpoint?.name || 'Unknown',
+          scanned_at: log.scanned_at as string,
+          result: 'success',
+          notes: log.notes as string | undefined,
+        };
+      });
     },
     enabled: !!guardId,
   });

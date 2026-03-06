@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { RealtimeChannel } from "@supabase/supabase-js";
+import type { GeofenceAlertPayload } from '@/features/security/types';
 
 interface SecurityRealtimeState {
   isConnected: boolean;
@@ -64,8 +65,8 @@ export function useSecurityRealtime(enabled: boolean = true) {
           queryClient.invalidateQueries({ queryKey: ['security-stats'] });
 
           // Show toast for new alerts
-          const alert = payload.new as any;
-          if (alert.severity === 'critical' || alert.severity === 'high') {
+          const alert = payload.new as GeofenceAlertPayload;
+          if (alert?.severity === 'critical' || alert?.severity === 'high') {
             toast.error(
               t('security.alert.newGeofenceAlert', 'Geofence Alert'),
               {

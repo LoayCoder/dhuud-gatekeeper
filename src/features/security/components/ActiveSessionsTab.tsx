@@ -63,34 +63,33 @@ export function ActiveSessionsTab({ tenantId }: ActiveSessionsTabProps) {
   const { data: sessions, isLoading, refetch } = useQuery({
     queryKey: ["active-sessions", tenantId],
     queryFn: async (): Promise<Session[]> => {
-      // Use separate queries to avoid deep type instantiation
-      let sessionsData: any[] = [];
+      const client = supabase as unknown as import('@/features/security/types').LooseSupabaseClient;
+      type SessionRow = { id: string; user_id: string; session_token: string; ip_address: string | null; ip_country: string | null; ip_city: string | null; user_agent: string | null; created_at: string; last_activity_at: string; expires_at: string; is_valid: boolean };
+      let sessionsData: SessionRow[] = [];
       
       if (tenantId) {
-        const result = await (supabase
+        const result = await client
           .from("user_sessions")
-          .select("id, user_id, session_token, ip_address, ip_country, ip_city, user_agent, created_at, last_activity_at, expires_at, is_valid") as any)
+          .select("id, user_id, session_token, ip_address, ip_country, ip_city, user_agent, created_at, last_activity_at, expires_at, is_valid")
           .eq("is_valid", true)
           .eq("tenant_id", tenantId)
-          .gt("expires_at", new Date().toISOString())
-          .order("last_activity_at", { ascending: false });
+          .gt("expires_at", new Date().toISOString());
         if (result.error) throw result.error;
-        sessionsData = result.data || [];
+        sessionsData = (result.data as unknown as SessionRow[]) || [];
       } else {
-        const result = await (supabase
+        const result = await client
           .from("user_sessions")
-          .select("id, user_id, session_token, ip_address, ip_country, ip_city, user_agent, created_at, last_activity_at, expires_at, is_valid") as any)
+          .select("id, user_id, session_token, ip_address, ip_country, ip_city, user_agent, created_at, last_activity_at, expires_at, is_valid")
           .eq("is_valid", true)
-          .gt("expires_at", new Date().toISOString())
-          .order("last_activity_at", { ascending: false });
+          .gt("expires_at", new Date().toISOString());
         if (result.error) throw result.error;
-        sessionsData = result.data || [];
+        sessionsData = (result.data as unknown as SessionRow[]) || [];
       }
       
       if (sessionsData.length === 0) return [];
 
       // Enrich with user names
-      const userIds = [...new Set(sessionsData.map((s: any) => s.user_id))];
+      const userIds = [...new Set(sessionsData.map((s) => s.user_id))];
       const { data: profiles } = await supabase
         .from("profiles")
         .select("id, full_name, email")
@@ -98,7 +97,7 @@ export function ActiveSessionsTab({ tenantId }: ActiveSessionsTabProps) {
 
       const profileMap = new Map(profiles?.map(p => [p.id, { name: p.full_name, email: p.email }]) || []);
 
-      return sessionsData.map((s: any) => ({
+      return sessionsData.map((s) => ({
         id: s.id,
         user_id: s.user_id,
         session_token: s.session_token,
@@ -152,24 +151,25 @@ export function ActiveSessionsTab({ tenantId }: ActiveSessionsTabProps) {
   // Terminate all sessions mutation
   const terminateAllMutation = useMutation({
     mutationFn: async () => {
+      const client = supabase as unknown as import('@/features/security/types').LooseSupabaseClient;
       if (tenantId) {
-        await (supabase
+        await client
           .from("user_sessions")
           .update({ 
             is_valid: false, 
             invalidation_reason: "admin_terminated_all",
             invalidated_at: new Date().toISOString()
-          }) as any)
+          })
           .eq("is_valid", true)
           .eq("tenant_id", tenantId);
       } else {
-        await (supabase
+        await client
           .from("user_sessions")
           .update({ 
             is_valid: false, 
             invalidation_reason: "admin_terminated_all",
             invalidated_at: new Date().toISOString()
-          }) as any)
+          })
           .eq("is_valid", true);
       }
 

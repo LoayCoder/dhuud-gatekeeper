@@ -41,21 +41,24 @@ export function SecurityOverviewTab({ tenantId }: SecurityOverviewTabProps) {
 
       // Get active sessions count
       let activeSessions = 0;
-      if (tenantId) {
-        const result = await (supabase
-          .from("user_sessions")
-          .select("id", { count: "exact", head: true }) as any)
-          .eq("is_valid", true)
-          .eq("tenant_id", tenantId)
-          .gt("expires_at", new Date().toISOString());
-        activeSessions = result.count || 0;
-      } else {
-        const result = await (supabase
-          .from("user_sessions")
-          .select("id", { count: "exact", head: true }) as any)
-          .eq("is_valid", true)
-          .gt("expires_at", new Date().toISOString());
-        activeSessions = result.count || 0;
+      {
+        const client = supabase as unknown as import('@/features/security/types').LooseSupabaseClient;
+        if (tenantId) {
+          const result = await client
+            .from("user_sessions")
+            .select("id", { count: "exact", head: true })
+            .eq("is_valid", true)
+            .eq("tenant_id", tenantId)
+            .gt("expires_at", new Date().toISOString());
+          activeSessions = (result as unknown as { count: number | null }).count || 0;
+        } else {
+          const result = await client
+            .from("user_sessions")
+            .select("id", { count: "exact", head: true })
+            .eq("is_valid", true)
+            .gt("expires_at", new Date().toISOString());
+          activeSessions = (result as unknown as { count: number | null }).count || 0;
+        }
       }
 
       // Get suspicious login count (last 24h)

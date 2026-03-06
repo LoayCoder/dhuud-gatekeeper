@@ -52,12 +52,13 @@ export function SecuritySettingsActionsTab({ tenantId }: SecuritySettingsActions
       if (error) throw error;
 
       // Get active sessions count
-      const sessionResult = await (supabase
+      const client = supabase as unknown as import('@/features/security/types').LooseSupabaseClient;
+      const sessionResult = await client
         .from("user_sessions")
-        .select("id", { count: "exact", head: true }) as any)
+        .select("id", { count: "exact", head: true })
         .eq("tenant_id", tenantId)
         .eq("is_valid", true);
-      const sessionCount = sessionResult.count || 0;
+      const sessionCount = (sessionResult as unknown as { count: number | null }).count || 0;
 
       // Get recent emergency actions
       const { data: recentActions } = await supabase
@@ -260,7 +261,7 @@ export function SecuritySettingsActionsTab({ tenantId }: SecuritySettingsActions
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {tenantData.recentActions.map((action: any) => (
+              {tenantData.recentActions.map((action: { id: string; action_type: string; affected_users_count: number; reason: string; created_at: string }) => (
                 <div key={action.id} className="flex items-center justify-between p-3 rounded-lg border">
                   <div>
                     <div className="flex items-center gap-2">

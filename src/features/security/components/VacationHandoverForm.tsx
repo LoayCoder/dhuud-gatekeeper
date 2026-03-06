@@ -122,11 +122,11 @@ export function VacationHandoverForm({ onSuccess }: VacationHandoverFormProps) {
         description: t('security.handover.awaitingApproval', 'Awaiting manager approval'),
       });
       onSuccess?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[VacationHandoverForm]', error);
       toast({
         title: t('security.handover.submitFailed', 'Submission Failed'),
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
     } finally {
@@ -134,7 +134,7 @@ export function VacationHandoverForm({ onSuccess }: VacationHandoverFormProps) {
     }
   };
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityColor = (priority: string): 'destructive' | 'secondary' | 'outline' => {
     switch (priority) {
       case 'high': return 'destructive';
       case 'medium': return 'secondary';
@@ -237,7 +237,7 @@ export function VacationHandoverForm({ onSuccess }: VacationHandoverFormProps) {
           {issues.map((issue) => (
             <div key={issue.id} className="flex items-center justify-between gap-2 p-2 rounded-lg bg-muted">
               <div className="flex items-center gap-2 flex-1">
-                <Badge variant={getPriorityColor(issue.priority) as any}>{issue.priority}</Badge>
+                <Badge variant={getPriorityColor(issue.priority)}>{issue.priority}</Badge>
                 <span className="text-sm">{issue.description}</span>
               </div>
               <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveIssue(issue.id)}>
@@ -247,7 +247,7 @@ export function VacationHandoverForm({ onSuccess }: VacationHandoverFormProps) {
           ))}
           <div className="flex gap-2">
             <Input value={newIssue} onChange={(e) => setNewIssue(e.target.value)} placeholder={t('security.addIssue', 'Add an issue...')} className="flex-1" />
-            <Select value={newIssuePriority} onValueChange={(v) => setNewIssuePriority(v as any)}>
+            <Select value={newIssuePriority} onValueChange={(v) => setNewIssuePriority(v as 'high' | 'medium' | 'low')}>
               <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="high">{t('common.high', 'High')}</SelectItem>
