@@ -8,6 +8,14 @@ export const securityShiftFormSchema = z.object({
   is_overnight: z.boolean(),
   break_duration_minutes: z.number().min(0),
   is_active: z.boolean(),
-});
+}) as z.ZodType<{
+  shift_name: string;
+  shift_code: string;
+  start_time: string;
+  end_time: string;
+  is_overnight: boolean;
+  break_duration_minutes: number;
+  is_active: boolean;
+}>;
 
 export type SecurityShiftFormValues = z.infer<typeof securityShiftFormSchema>;
