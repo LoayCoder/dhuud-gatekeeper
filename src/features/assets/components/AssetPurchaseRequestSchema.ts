@@ -12,5 +12,3 @@ export const assetPurchaseRequestSchema = z.object({
 });
 
 export type AssetPurchaseRequestFormValues = z.infer<typeof assetPurchaseRequestSchema>;
-
-export type AssetPurchaseRequestFormValues = z.infer<typeof assetPurchaseRequestSchema>;
