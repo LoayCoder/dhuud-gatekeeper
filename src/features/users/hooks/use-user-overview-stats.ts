@@ -159,14 +159,14 @@ export function useUserOverviewStats() {
             const fetchMyIncidents = async () => {
                 // Use untypedFrom because some status values (draft, cancelled, pending_more_info)
                 // may not be in the generated enum yet
-                const { data: assignedData } = await untypedFrom('incidents')
+                const { data: assignedData } = await looseClient.from('incidents')
                     .select('id, reference_id, title, status, severity, created_at')
                     .eq('tenant_id', tenantId)
                     .eq('lead_investigator_id', user.id)
                     .neq('status', 'closed')
                     .neq('status', 'cancelled');
 
-                const { data: reportedData } = await untypedFrom('incidents')
+                const { data: reportedData } = await looseClient.from('incidents')
                     .select('id, reference_id, title, status, severity, created_at')
                     .eq('tenant_id', tenantId)
                     .eq('reporter_id', user.id)
@@ -207,7 +207,7 @@ export function useUserOverviewStats() {
             // 3. Fetch My Observations
             // Note: 'observations' table may not be in generated types yet; use untypedFrom
             const fetchMyObservations = async () => {
-                const { data: reported } = await untypedFrom('observations')
+                const { data: reported } = await looseClient.from('observations')
                     .select('id, reference_number, description, status, created_at, observation_type')
                     .eq('tenant_id', tenantId)
                     .eq('created_by', user.id)
@@ -255,7 +255,7 @@ export function useUserOverviewStats() {
 
                 // HSSE Manager Escalation & Pending Final Closure
                 if (isHsseManager || isAdmin) {
-                    const { data: hsseIncidents } = await untypedFrom('incidents')
+                    const { data: hsseIncidents } = await looseClient.from('incidents')
                         .select('id, reference_id, title, status, created_at, reporter:profiles!incidents_reporter_id_fkey(full_name)')
                         .eq('tenant_id', tenantId)
                         .in('status', ['hsse_manager_escalation', 'pending_final_closure', 'pending_investigation_plan_approval'])
@@ -277,7 +277,7 @@ export function useUserOverviewStats() {
 
                 // Pending Manager Approval
                 if (isManager || isAdmin) {
-                    const { data: managerIncidents } = await untypedFrom('incidents')
+                    const { data: managerIncidents } = await looseClient.from('incidents')
                         .select('id, reference_id, title, status, created_at, reporter:profiles!incidents_reporter_id_fkey(full_name)')
                         .eq('tenant_id', tenantId)
                         .eq('status', 'pending_manager_approval')
