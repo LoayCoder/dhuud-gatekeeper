@@ -101,7 +101,7 @@ export function InspectionHistoryTab({ assetId }: InspectionHistoryTabProps) {
                     {format(new Date(inspection.inspection_date), 'PP')}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {(inspection.inspector as AssetInspectionResult['inspector'])?.full_name}
+                    {inspection.inspector?.full_name}
                   </p>
                 </div>
                 
