@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { isValidPhoneNumber } from "react-phone-number-input";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { DhuudPhoneInput } from "@/components/ui/phone-input";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -51,6 +53,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { PublicGatePassItem } from "@/types/public-gate-pass.types";
+import { publicRequestSchema, type PublicRequestFormValues } from "./publicRequestSchema";
 
 // Generate unique ID for items
 const generateItemId = () => crypto.randomUUID();
@@ -67,8 +70,6 @@ const createEmptyItem = (): GatePassItemData => ({
   photoPreviewUrl: null,
 });
 
-// Phone validation regex (supports international formats)
-
 
 export default function PublicRequestPage() {
   const { tenantSlug } = useParams<{ tenantSlug: string }>();
@@ -83,29 +84,49 @@ export default function PublicRequestPage() {
     { id: 3, label: isRTL ? "المواد" : "Items" },
     { id: 4, label: isRTL ? "مراجعة" : "Review" },
   ];
+
+  // UI-only state (not form fields)
   const [currentStep, setCurrentStep] = useState(1);
-
-  // Form state
-  const [requesterName, setRequesterName] = useState("");
-  const [requesterPhone, setRequesterPhone] = useState("");
-  const [requesterEmail, setRequesterEmail] = useState("");
-  const [requesterCompany, setRequesterCompany] = useState("");
-  const [branchId, setBranchId] = useState("");
-  const [passType, setPassType] = useState<"in" | "out" | "in_out">("in_out");
-  const [items, setItems] = useState<GatePassItemData[]>([createEmptyItem()]);
-  const [vehiclePlateLetters, setVehiclePlateLetters] = useState("");
-  const [vehiclePlateNumbers, setVehiclePlateNumbers] = useState("");
-  const [driverName, setDriverName] = useState("");
-  const [driverMobile, setDriverMobile] = useState("");
-  const [startDate, setStartDate] = useState<Date>(new Date());
-  const [endDate, setEndDate] = useState<Date>(new Date());
-  const [notifyWhatsapp, setNotifyWhatsapp] = useState(true);
-  const [notifyEmail, setNotifyEmail] = useState(true);
-  const [notifySms, setNotifySms] = useState(false);
-
-  // Validation state
-  const [showValidation, setShowValidation] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+
+  // React Hook Form setup
+  const form = useForm<PublicRequestFormValues>({
+    resolver: zodResolver(publicRequestSchema),
+    defaultValues: {
+      requesterName: '',
+      requesterPhone: '',
+      requesterEmail: '',
+      requesterCompany: '',
+      branchId: '',
+      passType: 'in_out',
+      vehiclePlateLetters: '',
+      vehiclePlateNumbers: '',
+      driverName: '',
+      driverMobile: '',
+      startDate: new Date(),
+      endDate: new Date(),
+      items: [createEmptyItem()],
+      notifyWhatsapp: true,
+      notifyEmail: true,
+      notifySms: false,
+    },
+    mode: 'onTouched',
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'items',
+  });
+
+  // Watch values needed for derived state and UI
+  const passType = form.watch('passType');
+  const startDate = form.watch('startDate');
+  const endDate = form.watch('endDate');
+  const items = form.watch('items');
+  const requesterName = form.watch('requesterName');
+  const requesterPhone = form.watch('requesterPhone');
+  const vehiclePlateLetters = form.watch('vehiclePlateLetters');
+  const vehiclePlateNumbers = form.watch('vehiclePlateNumbers');
 
   // Whether the current pass type uses a date range (in_out) or single date (in/out)
   const isDateRange = passType === "in_out";
@@ -113,22 +134,22 @@ export default function PublicRequestPage() {
 
   // When pass type changes to single-date mode, sync end date to start date
   const handlePassTypeChange = (newType: "in" | "out" | "in_out") => {
-    setPassType(newType);
+    form.setValue('passType', newType);
     if (newType !== "in_out") {
-      setEndDate(startDate);
+      form.setValue('endDate', startDate);
     }
   };
 
   // When start date changes in date range mode, auto-adjust end date if needed
   const handleStartDateChange = (d: Date) => {
-    setStartDate(d);
+    form.setValue('startDate', d);
     if (!isDateRange) {
-      setEndDate(d);
+      form.setValue('endDate', d);
     } else {
       if (isBefore(endDate, d)) {
-        setEndDate(d);
+        form.setValue('endDate', d);
       } else if (isBefore(addDays(d, 6), endDate)) {
-        setEndDate(addDays(d, 6));
+        form.setValue('endDate', addDays(d, 6));
       }
     }
   };
@@ -153,72 +174,63 @@ export default function PublicRequestPage() {
     };
   }, []);
 
-  // Update item handler
+  // Update item handler (bridges to useFieldArray)
   const handleItemUpdate = useCallback((index: number, field: keyof GatePassItemData, value: string | File | null) => {
-    setItems(prev => {
-      const updated = [...prev];
-      updated[index] = { ...updated[index], [field]: value };
-      return updated;
-    });
-  }, []);
+    form.setValue(`items.${index}.${field}` as any, value as any, { shouldValidate: false });
+  }, [form]);
 
   // Add item handler
   const handleAddItem = useCallback(() => {
-    if (items.length < 10) {
-      setItems(prev => [...prev, createEmptyItem()]);
+    if (fields.length < 10) {
+      append(createEmptyItem() as any);
     }
-  }, [items.length]);
+  }, [fields.length, append]);
 
   // Remove item handler
   const handleRemoveItem = useCallback((index: number) => {
-    setItems(prev => {
-      const item = prev[index];
-      if (item.photoPreviewUrl) {
-        URL.revokeObjectURL(item.photoPreviewUrl);
-      }
-      return prev.filter((_, i) => i !== index);
-    });
-  }, []);
-
-  // Validation Logic per Step
-  const validateStep = (step: number): boolean => {
-    setShowValidation(true);
-    let isValid = true;
-
-    if (step === 1) {
-      // Requester Info
-      if (!requesterName.trim() || requesterName.length < 2) isValid = false;
-      if (!requesterPhone || !isValidPhoneNumber(requesterPhone)) isValid = false;
-      // Branch is optional unless logic dictates otherwise, but let's say optional for public
-    } else if (step === 2) {
-      // Vehicle Info
-      // At least plate letters AND numbers if provided, OR just skip if optional? 
-      // Requirement: Vehicle Info usually required for Gate Pass. Let's make Plate mandatory.
-      // But maybe user is "Walking"? If so, maybe we need a "Walk-in" option?
-      // Assuming vehicle is mandatory for "Material Gate Pass" usually involving a truck.
-      // But let's be lenient or check requirements.
-      // "Step 2: Vehicle Info (Plate, Type, Driver)"
-      // Let's require Plate Numbers + Letters.
-      if (!vehiclePlateLetters || !vehiclePlateNumbers) isValid = false;
-      if (!driverName.trim()) isValid = false;
-      if (driverMobile && !isValidPhoneNumber(driverMobile)) isValid = false;
-      // Date validations
-      if (dateRangeError) isValid = false;
-    } else if (step === 3) {
-      // Items
-      if (items.length === 0) isValid = false;
-      for (const item of items) {
-        if (!item.item_name.trim()) isValid = false;
-        if (!item.photo) isValid = false;
-      }
+    const item = items[index];
+    if (item?.photoPreviewUrl) {
+      URL.revokeObjectURL(item.photoPreviewUrl);
     }
+    remove(index);
+  }, [items, remove]);
 
-    return isValid;
+  // Per-step validation via form.trigger
+  const validateCurrentStep = async (): Promise<boolean> => {
+    switch (currentStep) {
+      case 1:
+        return form.trigger([
+          'requesterName',
+          'requesterPhone',
+          'requesterEmail',
+          'requesterCompany',
+          'branchId',
+        ]);
+      case 2: {
+        const fieldsValid = await form.trigger([
+          'vehiclePlateLetters',
+          'vehiclePlateNumbers',
+          'driverName',
+          'driverMobile',
+          'startDate',
+          'endDate',
+          'passType',
+        ]);
+        if (dateRangeError) return false;
+        return fieldsValid;
+      }
+      case 3:
+        return form.trigger(['items']);
+      case 4:
+        return true;
+      default:
+        return false;
+    }
   };
 
-  const handleNext = () => {
-    if (validateStep(currentStep)) {
-      setShowValidation(false);
+  const handleNext = async () => {
+    const isValid = await validateCurrentStep();
+    if (isValid) {
       setCurrentStep(prev => Math.min(prev + 1, steps.length));
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
@@ -271,12 +283,7 @@ export default function PublicRequestPage() {
   };
 
   // Submit handler
-  const handleSubmit = async () => {
-    if (!validateStep(3)) {
-      toast.error(isRTL ? "يرجى التحقق من البنود" : "Please check the items");
-      return;
-    }
-
+  const handleFormSubmit = async (data: PublicRequestFormValues) => {
     if (!tenantSlug) return;
 
     try {
@@ -284,8 +291,8 @@ export default function PublicRequestPage() {
       const tempRef = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const uploadedItems: PublicGatePassItem[] = [];
 
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
+      for (let i = 0; i < data.items.length; i++) {
+        const item = data.items[i];
         let photoData = null;
         if (item.photo) {
           try {
@@ -314,22 +321,22 @@ export default function PublicRequestPage() {
 
       const result = await submitGatePass.mutateAsync({
         tenant_slug: tenantSlug,
-        branch_id: branchId || undefined,
-        requester_name: requesterName,
-        requester_phone: requesterPhone,
-        requester_email: requesterEmail || undefined,
-        requester_company: requesterCompany || undefined,
-        pass_type: passType,
+        branch_id: data.branchId || undefined,
+        requester_name: data.requesterName,
+        requester_phone: data.requesterPhone,
+        requester_email: data.requesterEmail || undefined,
+        requester_company: data.requesterCompany || undefined,
+        pass_type: data.passType,
         items: uploadedItems,
-        vehicle_plate_letters: vehiclePlateLetters || undefined,
-        vehicle_plate_numbers: vehiclePlateNumbers || undefined,
-        driver_name: driverName || undefined,
-        driver_mobile: driverMobile || undefined,
-        start_date: format(startDate, "yyyy-MM-dd"),
-        end_date: format(endDate, "yyyy-MM-dd"),
-        notify_whatsapp: notifyWhatsapp,
-        notify_email: notifyEmail,
-        notify_sms: notifySms,
+        vehicle_plate_letters: data.vehiclePlateLetters || undefined,
+        vehicle_plate_numbers: data.vehiclePlateNumbers || undefined,
+        driver_name: data.driverName || undefined,
+        driver_mobile: data.driverMobile || undefined,
+        start_date: format(data.startDate, "yyyy-MM-dd"),
+        end_date: format(data.endDate, "yyyy-MM-dd"),
+        notify_whatsapp: data.notifyWhatsapp,
+        notify_email: data.notifyEmail,
+        notify_sms: data.notifySms,
       });
 
       if (result.success && result.public_access_token) {
@@ -341,6 +348,13 @@ export default function PublicRequestPage() {
       toast.error(isRTL ? "فشل إرسال الطلب" : "Failed to submit request");
     }
   };
+
+  const onSubmit = () => {
+    form.handleSubmit(handleFormSubmit)();
+  };
+
+  // Determine if items have validation errors (for child component showValidation prop)
+  const hasItemErrors = !!form.formState.errors.items;
 
   // Apply tenant branding
   const brandColor = tenant?.brand_color || "221.2 83.2% 53.3%";
@@ -449,24 +463,39 @@ export default function PublicRequestPage() {
                   <div className="relative">
                     <User className="absolute start-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
-                      value={requesterName}
-                      onChange={e => setRequesterName(e.target.value)}
+                      {...form.register('requesterName')}
                       className="ps-10"
                       placeholder={isRTL ? "الاسم" : "Name"}
                     />
-                    {showValidation && !requesterName.trim() && <p className="text-xs text-destructive mt-1">{isRTL ? "مطلوب" : "Required"}</p>}
+                    {form.formState.errors.requesterName && (
+                      <p className="text-xs text-destructive mt-1">
+                        {isRTL ? "الاسم مطلوب (حرفين على الأقل)" : String(form.formState.errors.requesterName.message)}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label>{isRTL ? "رقم الجوال" : "Mobile Number"} *</Label>
                   <div className="relative">
-                    <DhuudPhoneInput
-                      value={requesterPhone}
-                      onChange={setRequesterPhone}
-                      placeholder="+966..."
-                      defaultCountry="SA"
+                    <Controller
+                      name="requesterPhone"
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <>
+                          <DhuudPhoneInput
+                            value={field.value}
+                            onChange={(val) => field.onChange(val || '')}
+                            placeholder="+966..."
+                            defaultCountry="SA"
+                          />
+                          {fieldState.error && (
+                            <p className="text-xs text-destructive mt-1">
+                              {isRTL ? "رقم غير صحيح" : String(fieldState.error.message)}
+                            </p>
+                          )}
+                        </>
+                      )}
                     />
-                    {showValidation && (!requesterPhone || !isValidPhoneNumber(requesterPhone)) && <p className="text-xs text-destructive mt-1">{isRTL ? "رقم غير صحيح" : "Invalid number"}</p>}
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -476,8 +505,7 @@ export default function PublicRequestPage() {
                     <Input
                       type="email"
                       dir="ltr"
-                      value={requesterEmail}
-                      onChange={e => setRequesterEmail(e.target.value)}
+                      {...form.register('requesterEmail')}
                       className="ps-10"
                       placeholder="email@example.com"
                     />
@@ -488,8 +516,7 @@ export default function PublicRequestPage() {
                   <div className="relative">
                     <Building2 className="absolute start-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
-                      value={requesterCompany}
-                      onChange={e => setRequesterCompany(e.target.value)}
+                      {...form.register('requesterCompany')}
                       className="ps-10"
                       placeholder={isRTL ? "اسم الشركة" : "Company Name"}
                     />
@@ -498,16 +525,22 @@ export default function PublicRequestPage() {
                 {branches && branches.length > 0 && (
                   <div className="space-y-2">
                     <Label>{isRTL ? "الفرع" : "Branch"}</Label>
-                    <Select value={branchId} onValueChange={setBranchId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={isRTL ? "اختر الفرع" : "Select Branch"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {branches.map(b => (
-                          <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Controller
+                      name="branchId"
+                      control={form.control}
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger>
+                            <SelectValue placeholder={isRTL ? "اختر الفرع" : "Select Branch"} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {branches.map(b => (
+                              <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                   </div>
                 )}
               </CardContent>
@@ -524,10 +557,10 @@ export default function PublicRequestPage() {
                 <PublicVehiclePlateInput
                   letters={vehiclePlateLetters}
                   numbers={vehiclePlateNumbers}
-                  onLettersChange={setVehiclePlateLetters}
-                  onNumbersChange={setVehiclePlateNumbers}
+                  onLettersChange={(val) => form.setValue('vehiclePlateLetters', val, { shouldValidate: true })}
+                  onNumbersChange={(val) => form.setValue('vehiclePlateNumbers', val, { shouldValidate: true })}
                 />
-                {showValidation && (!vehiclePlateLetters || !vehiclePlateNumbers) && (
+                {(form.formState.errors.vehiclePlateLetters || form.formState.errors.vehiclePlateNumbers) && (
                   <p className="text-xs text-destructive text-center -mt-2">{isRTL ? "بيانات اللوحة مطلوبة" : "Plate details required"}</p>
                 )}
 
@@ -542,18 +575,30 @@ export default function PublicRequestPage() {
                     <div className="space-y-1">
                       <Label className="text-xs">{isRTL ? "اسم السائق" : "Driver Name"} *</Label>
                       <Input
-                        value={driverName}
-                        onChange={e => setDriverName(e.target.value)}
+                        {...form.register('driverName')}
                       />
-                      {showValidation && !driverName.trim() && <p className="text-xs text-destructive">{isRTL ? "مطلوب" : "Required"}</p>}
+                      {form.formState.errors.driverName && (
+                        <p className="text-xs text-destructive">{isRTL ? "مطلوب" : String(form.formState.errors.driverName.message)}</p>
+                      )}
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs">{isRTL ? "جوال السائق" : "Driver Mobile"}</Label>
-                      <DhuudPhoneInput
-                        value={driverMobile}
-                        onChange={setDriverMobile}
-                        placeholder="+966.."
-                        defaultCountry="SA"
+                      <Controller
+                        name="driverMobile"
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                          <>
+                            <DhuudPhoneInput
+                              value={field.value || ''}
+                              onChange={(val) => field.onChange(val || '')}
+                              placeholder="+966.."
+                              defaultCountry="SA"
+                            />
+                            {fieldState.error && (
+                              <p className="text-xs text-destructive">{String(fieldState.error.message)}</p>
+                            )}
+                          </>
+                        )}
                       />
                     </div>
                   </div>
@@ -566,16 +611,22 @@ export default function PublicRequestPage() {
                     <CalendarIcon className="h-4 w-4" />
                     {isRTL ? "التوقيت" : "Schedule"}
                   </h4>
-                  <Select value={passType} onValueChange={(v) => handlePassTypeChange(v as typeof passType)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="in_out">{isRTL ? "دخول وخروج (عدة أيام)" : "Entry & Exit (Multi-day)"}</SelectItem>
-                      <SelectItem value="out">{isRTL ? "خروج فقط (يوم واحد)" : "Exit Only (One day)"}</SelectItem>
-                      <SelectItem value="in">{isRTL ? "دخول فقط (يوم واحد)" : "Entry Only (One day)"}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="passType"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={(v) => handlePassTypeChange(v as typeof passType)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="in_out">{isRTL ? "دخول وخروج (عدة أيام)" : "Entry & Exit (Multi-day)"}</SelectItem>
+                          <SelectItem value="out">{isRTL ? "خروج فقط (يوم واحد)" : "Exit Only (One day)"}</SelectItem>
+                          <SelectItem value="in">{isRTL ? "دخول فقط (يوم واحد)" : "Entry Only (One day)"}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
@@ -600,7 +651,7 @@ export default function PublicRequestPage() {
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="p-0" align="start">
-                          <Calendar mode="single" selected={endDate} onSelect={d => d && setEndDate(d)} disabled={d => isBefore(d, startDate) || isBefore(maxEndDate, d)} />
+                          <Calendar mode="single" selected={endDate} onSelect={d => d && form.setValue('endDate', d)} disabled={d => isBefore(d, startDate) || isBefore(maxEndDate, d)} />
                         </PopoverContent>
                       </Popover>
                     </div>
@@ -620,7 +671,7 @@ export default function PublicRequestPage() {
                   <CardTitle className="text-lg flex justify-between items-center">
                     <span>{isRTL ? "المواد المنقولة" : "Items to Move"}</span>
                     <span className="text-sm font-normal text-muted-foreground bg-muted px-2 py-1 rounded">
-                      {items.length}
+                      {fields.length}
                     </span>
                   </CardTitle>
                   <CardDescription>
@@ -628,19 +679,19 @@ export default function PublicRequestPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4 p-4 pt-0">
-                  {items.map((item, index) => (
+                  {fields.map((field, index) => (
                     <PublicGatePassItemForm
-                      key={item.id}
-                      item={item}
+                      key={field.id}
+                      item={items[index] || createEmptyItem()}
                       index={index}
                       onUpdate={handleItemUpdate}
                       onRemove={handleRemoveItem}
-                      canRemove={items.length > 1}
-                      showValidation={showValidation}
+                      canRemove={fields.length > 1}
+                      showValidation={hasItemErrors}
                     />
                   ))}
 
-                  {items.length < 10 && (
+                  {fields.length < 10 && (
                     <Button
                       type="button"
                       variant="outline"
@@ -717,18 +768,36 @@ export default function PublicRequestPage() {
                 <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground uppercase tracking-wider">{isRTL ? "تفضيلات الإشعارات" : "Notify me via"}</Label>
                   <div className="flex flex-wrap gap-4">
-                    <div className="flex items-center gap-2">
-                      <Checkbox id="n_wa" checked={notifyWhatsapp} onCheckedChange={v => setNotifyWhatsapp(!!v)} />
-                      <Label htmlFor="n_wa" className="text-sm">WhatsApp</Label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Checkbox id="n_email" checked={notifyEmail} onCheckedChange={v => setNotifyEmail(!!v)} />
-                      <Label htmlFor="n_email" className="text-sm">Email</Label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Checkbox id="n_sms" checked={notifySms} onCheckedChange={v => setNotifySms(!!v)} />
-                      <Label htmlFor="n_sms" className="text-sm">SMS</Label>
-                    </div>
+                    <Controller
+                      name="notifyWhatsapp"
+                      control={form.control}
+                      render={({ field }) => (
+                        <div className="flex items-center gap-2">
+                          <Checkbox id="n_wa" checked={field.value} onCheckedChange={field.onChange} />
+                          <Label htmlFor="n_wa" className="text-sm">WhatsApp</Label>
+                        </div>
+                      )}
+                    />
+                    <Controller
+                      name="notifyEmail"
+                      control={form.control}
+                      render={({ field }) => (
+                        <div className="flex items-center gap-2">
+                          <Checkbox id="n_email" checked={field.value} onCheckedChange={field.onChange} />
+                          <Label htmlFor="n_email" className="text-sm">Email</Label>
+                        </div>
+                      )}
+                    />
+                    <Controller
+                      name="notifySms"
+                      control={form.control}
+                      render={({ field }) => (
+                        <div className="flex items-center gap-2">
+                          <Checkbox id="n_sms" checked={field.value} onCheckedChange={field.onChange} />
+                          <Label htmlFor="n_sms" className="text-sm">SMS</Label>
+                        </div>
+                      )}
+                    />
                   </div>
                 </div>
 
@@ -762,7 +831,7 @@ export default function PublicRequestPage() {
                 {isRTL ? <ChevronLeft className="h-4 w-4 ms-1" /> : <ChevronRight className="h-4 w-4 ms-1" />}
               </Button>
             ) : (
-              <Button onClick={handleSubmit} className="flex-[2] bg-green-600 hover:bg-green-700" disabled={isUploading}>
+              <Button onClick={onSubmit} className="flex-[2] bg-green-600 hover:bg-green-700" disabled={isUploading}>
                 {isUploading ? <Loader2 className="h-4 w-4 animate-spin me-2" /> : <Check className="h-4 w-4 me-2" />}
                 {isRTL ? (isUploading ? "جاري الإرسال..." : "إرسال الطلب") : (isUploading ? "Submitting..." : "Submit Request")}
               </Button>
