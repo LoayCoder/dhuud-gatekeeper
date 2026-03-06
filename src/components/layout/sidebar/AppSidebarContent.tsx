@@ -116,7 +116,7 @@ export function AppSidebarContent({ filteredMenuItems }: AppSidebarContentProps)
                                             </CollapsibleTrigger>
                                             <CollapsibleContent>
                                               <SidebarMenuSub className="ms-1 border-s ps-1">
-                                                {(nestedItem.subItems as any[])?.map((deepItem: { title: string; url: string; icon?: React.ComponentType<{ className?: string }> }) => (
+                                                {(nestedItem.subItems as Array<{ title: string; url: string; icon?: React.ComponentType<{ className?: string }> }>)?.map((deepItem) => (
                                                   <SidebarMenuSubItem key={deepItem.title}>
                                                     <SidebarMenuSubButton
                                                       asChild

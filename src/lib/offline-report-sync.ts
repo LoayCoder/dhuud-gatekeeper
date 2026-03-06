@@ -215,9 +215,10 @@ async function syncSingleReport(report: OfflineReport): Promise<{ id: string; re
     offline_synced_at: new Date().toISOString(),
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- offline sync builds dynamic insert payload
   const { data: incident, error: insertError } = await supabase
     .from('incidents')
-    .insert(incidentData as any)
+    .insert(incidentData as Record<string, unknown>)
     .select('id, reference_id')
     .single();
 
@@ -228,14 +229,14 @@ async function syncSingleReport(report: OfflineReport): Promise<{ id: string; re
 
   // 3. Link asset if specified
   if (form_data.linked_asset_id && incident.id) {
-    const { error: linkError } = await (supabase as any)
-      .from('incident_assets')
+    const { error: linkError } = await supabase
+      .from('incident_assets' as never)
       .insert({
         incident_id: incident.id,
         asset_id: form_data.linked_asset_id,
         link_type: 'involved',
         tenant_id,
-      });
+      } as never);
 
     if (linkError) {
       console.error('[OfflineSync] Failed to link asset:', linkError);
@@ -251,9 +252,9 @@ async function syncSingleReport(report: OfflineReport): Promise<{ id: string; re
       tenant_id,
     }));
 
-    const { error: tagsError } = await (supabase as any)
-      .from('incident_tags')
-      .insert(tagInserts);
+    const { error: tagsError } = await supabase
+      .from('incident_tags' as never)
+      .insert(tagInserts as never);
 
     if (tagsError) {
       console.error('[OfflineSync] Failed to add tags:', tagsError);

@@ -11,8 +11,8 @@ export interface CreateSupportTicketPayload {
 
 export const createSupportTicket = async (payload: CreateSupportTicketPayload) => {
   const { data, error } = await supabase
-    .from('support_tickets')
-    .insert([payload as any])
+    .from('support_tickets' as never)
+    .insert([payload] as never)
     .select()
     .single();
   if (error) throw error;

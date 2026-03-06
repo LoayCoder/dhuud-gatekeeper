@@ -27,23 +27,20 @@ interface RawActivityRow {
 }
 
 async function fetchMyActivity(userId: string): Promise<ActivityItem[]> {
-  // Use type assertions to bypass deep type instantiation issues
-  const client = supabase as unknown;
-
   const [incidentsRes, actionsRes, observationsRes] = await Promise.all([
-    (client as any).from('incidents')
+    supabase.from('incidents')
       .select('id, title, status, created_at, reference_id')
       .eq('reported_by', userId)
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(3),
-    (client as any).from('corrective_actions')
+    supabase.from('corrective_actions')
       .select('id, title, status, created_at, reference_id')
       .eq('assigned_to', userId)
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(3),
-    (client as any).from('observations')
+    supabase.from('observations' as never)
       .select('id, title, status, created_at, reference_id')
       .eq('reported_by', userId)
       .is('deleted_at', null)

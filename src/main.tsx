@@ -11,8 +11,8 @@ import { initVersionManager } from "./lib/version-manager";
 
 // Log boot progress
 const logBoot = (msg: string) => {
-  if (typeof window !== 'undefined' && (window as any).__logBoot__) {
-    (window as any).__logBoot__(msg);
+  if (typeof window !== 'undefined' && '__logBoot__' in window) {
+    (window as unknown as Record<string, (m: string) => void>).__logBoot__(msg);
   } else {
     console.log('[Boot]', msg);
   }

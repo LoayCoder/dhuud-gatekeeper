@@ -109,7 +109,7 @@ export function CameraScanner({
     } catch (err: unknown) {
       console.error('Scanner error:', err);
       
-      if ((err as any).name === 'NotAllowedError' || String(err).includes('NotAllowedError')) {
+      if ((err instanceof Error && err.name === 'NotAllowedError') || String(err).includes('NotAllowedError')) {
         setStatus('permission_denied');
         setError(t('scanner.cameraPermissionDenied', 'Camera access denied'));
       } else {
