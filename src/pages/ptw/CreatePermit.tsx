@@ -15,8 +15,8 @@ import { useSIMOPSCheck } from "@/features/ptw/hooks/use-simops-check";
 import { useMobilizationCheck } from "@/features/ptw/hooks/use-mobilization-check";
 import { SIMOPSConflictWarning } from '@/features/ptw';
 
-export { type PermitFormData } from './permitSchema';
-import { permitFormSchema } from './permitSchema';
+import { permitFormSchema, type PermitFormData } from './permitSchema';
+export type { PermitFormData };
 
 const STEPS = [
   { id: 1, name: "basics", title: "Basics" },

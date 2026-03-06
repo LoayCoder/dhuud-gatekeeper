@@ -25,7 +25,7 @@ export const projectFormSchema = z.object({
     // Location fields
     latitude: z.number().nullable().default(null),
     longitude: z.number().nullable().default(null),
-    boundary_polygon: z.array(coordinateSchema).nullable().default(null),
+    boundary_polygon: z.array(coordinateSchema).nullable().default(null) as z.ZodType<{ lat: number; lng: number }[] | null>,
     geofence_radius_meters: z.number().default(100),
 })
 

@@ -11,7 +11,7 @@ import { ManhoursDialog } from './components/ManhoursDialog';
 import { ImportDialog } from './components/ImportDialog';
 import { TabsContent as BaseTabsContent } from '@/components/ui/tabs'; // Aliased
 
-import type { ManhoursDialogState } from './types';
+import type { ManhoursDialogState, Site as ManhoursSite, Department as ManhoursDepartment } from './types';
 
 export default function ManhoursManagement() {
   const state = useManhoursManagementState();
@@ -25,7 +25,7 @@ export default function ManhoursManagement() {
   } = state;
 
   const dialogState: ManhoursDialogState = {
-    t,
+    t: ((key: string, defaultValue?: string) => t(key, defaultValue ?? key)) as ManhoursDialogState['t'],
     isDialogOpen,
     setIsDialogOpen,
     editingId,
@@ -36,8 +36,8 @@ export default function ManhoursManagement() {
     handleCalculationModeChange,
     handleManpowerChange,
     branches,
-    sites,
-    departments,
+    sites: sites as ManhoursDialogState['sites'],
+    departments: departments as ManhoursDialogState['departments'],
     formatNumber,
     createMutation,
     updateMutation,

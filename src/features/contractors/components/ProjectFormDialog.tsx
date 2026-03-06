@@ -48,6 +48,8 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
   const { data: sites = [] } = useTenantSites();
   const { data: departments = [] } = useTenantDepartments();
   const isEditing = !!project;
+  const [showMap, setShowMap] = useState(false);
+  const [activeTab, setActiveTab] = useState("details");
 
   const extProject = project as ExtendedProject | null;
 
