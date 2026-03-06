@@ -27,8 +27,8 @@ export function usePurchaseRequestPDF(requestId: string | undefined) {
     queryFn: async () => {
       if (!requestId) return null;
       
-      const { data, error } = await (supabase as any)
-        .from('asset_purchase_requests')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table may not be in generated types yet
+      const { data, error } = await (supabase.from('asset_purchase_requests') as any)
         .select(`
           *,
           requester:profiles!asset_purchase_requests_requested_by_fkey(full_name, employee_id),
@@ -50,8 +50,8 @@ export function usePurchaseRequestPDF(requestId: string | undefined) {
     queryFn: async () => {
       if (!requestId) return [];
       
-      const { data, error } = await (supabase as any)
-        .from('asset_purchase_approvals')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table may not be in generated types yet
+      const { data, error } = await (supabase.from('asset_purchase_approvals') as any)
         .select(`
           id, approval_level, decision, notes, decided_at,
           approver:profiles!asset_purchase_approvals_approver_id_fkey(full_name, employee_id)

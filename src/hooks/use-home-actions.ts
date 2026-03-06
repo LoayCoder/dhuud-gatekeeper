@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useUserRoles } from '@/features/users';
 import { useModuleAccess } from '@/hooks/use-module-access';
 import { ALL_HOME_CARDS, type RoleCardCategory, type HomeActionCard } from '@/config/home-actions';
+import type { ModuleCode } from '@/hooks/use-module-access';
 
 export function useHomeActions() {
   const { userRoles, isLoading: rolesLoading, hasRoleInCategory } = useUserRoles();
@@ -32,7 +33,7 @@ export function useHomeActions() {
       if (!hasMatchingCategory) return false;
       
       // Check module access if required
-      if (card.requiredModule && !hasModule(card.requiredModule as any)) {
+      if (card.requiredModule && !hasModule(card.requiredModule as ModuleCode)) {
         return false;
       }
       

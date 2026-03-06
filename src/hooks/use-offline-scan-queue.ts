@@ -119,9 +119,9 @@ export function useOfflineScanQueue() {
         synced_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase
-        .from('offline_scan_queue' as any)
-        .insert(insertData as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table may not be in generated types yet
+      const { error } = await (supabase.from('offline_scan_queue') as any)
+        .insert(insertData);
 
       if (error) throw error;
 

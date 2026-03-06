@@ -89,7 +89,7 @@ export function useInjuryAssignment(incidentId: string | null) {
       if (error) throw error;
 
       // Log to audit trail
-      const profileId = (profile as any)?.id;
+      const profileId = profile?.id;
       await supabase.from('incident_audit_logs').insert({
         incident_id: incidentId,
         tenant_id: profile?.tenant_id,
@@ -104,7 +104,7 @@ export function useInjuryAssignment(incidentId: string | null) {
       queryClient.invalidateQueries({ queryKey: ['clinic-assignment', incidentId] });
       toast.success(t('investigation.injury.clinicUserAssigned', 'Clinic user assigned successfully'));
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || t('common.error', 'Failed to assign clinic user'));
     },
   });
@@ -122,7 +122,7 @@ export function useInjuryAssignment(incidentId: string | null) {
       if (error) throw error;
 
       // Log to audit trail
-      const profileId = (profile as any)?.id;
+      const profileId = profile?.id;
       await supabase.from('incident_audit_logs').insert({
         incident_id: incidentId,
         tenant_id: profile?.tenant_id,
@@ -135,7 +135,7 @@ export function useInjuryAssignment(incidentId: string | null) {
       queryClient.invalidateQueries({ queryKey: ['clinic-assignment', incidentId] });
       toast.success(t('investigation.injury.clinicUserUnassigned', 'Clinic user unassigned'));
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || t('common.error', 'Failed to unassign clinic user'));
     },
   });

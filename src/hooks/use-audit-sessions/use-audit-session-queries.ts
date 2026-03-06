@@ -59,8 +59,8 @@ export function useAuditTemplateItems(templateId: string | undefined) {
         queryFn: async () => {
             if (!templateId) return [] as AuditTemplateItem[];
 
-            // Use type assertion to break deep type instantiation chain
-            const query = supabase.from('inspection_template_items') as any;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- break deep type instantiation chain
+            const query: any = supabase.from('inspection_template_items');
             const { data, error } = await query
                 .select('id, template_id, question, question_ar, response_type, clause_reference, scoring_weight, nc_category, is_critical, is_required, instructions, instructions_ar, sort_order')
                 .eq('template_id', templateId)
@@ -103,8 +103,8 @@ export function useAuditResponses(sessionId: string | undefined) {
                 result: item.result === 'pass' ? 'conforming' : item.result === 'fail' ? 'non_conforming' : item.result === 'na' ? 'na' : null,
                 response_value: item.response_value,
                 notes: item.notes,
-                objective_evidence: (item as any).objective_evidence || null,
-                nc_category: (item as any).nc_category || null,
+                objective_evidence: (item as Record<string, unknown>).objective_evidence || null,
+                nc_category: (item as Record<string, unknown>).nc_category || null,
                 photo_paths: Array.isArray(item.photo_paths) ? item.photo_paths : [],
                 responded_at: item.responded_at,
             })) as AuditResponse[];

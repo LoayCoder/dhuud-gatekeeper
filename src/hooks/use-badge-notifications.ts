@@ -53,10 +53,10 @@ export function useBadgeNotifications() {
         },
         async (payload) => {
           // Fetch the badge details
-          const { data: badgeData } = await (supabase as any)
-            .from('badge_definitions')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table may not be in generated types
+          const { data: badgeData } = await (supabase.from('badge_definitions') as any)
             .select('*')
-            .eq('id', payload.new.badge_id)
+            .eq('id', (payload.new as Record<string, unknown>).badge_id)
             .single();
 
           if (badgeData) {
