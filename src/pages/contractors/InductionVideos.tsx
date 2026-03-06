@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { InductionVideoList } from '@/features/contractors';
 import { InductionVideoFormDialog } from '@/features/contractors';
 import { InductionComplianceWidget } from '@/features/contractors';
-import { useInductionVideos } from "@/hooks/contractor-management/index";
-type InductionVideo = NonNullable<ReturnType<typeof useInductionVideos>['data']>[number];
+import { useInductionVideos, type InductionVideo as FeatureInductionVideo } from "@/features/contractors/hooks/use-induction-videos";
+type InductionVideo = FeatureInductionVideo;
 
 export default function InductionVideos() {
   const { t } = useTranslation();

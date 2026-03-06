@@ -199,7 +199,7 @@ export default function AdminBranding() {
       const { error: saveError } = await supabase
         .from('tenants')
         .update(updates)
-        .eq('id', tenant.id);
+        .eq('id', String(tenant.id));
 
       if (saveError) throw saveError;
       await refreshTenantData();
@@ -250,7 +250,7 @@ export default function AdminBranding() {
         </Button>
         <div className="text-start">
           <h1 className="text-3xl font-bold">{t('adminBranding.title')}</h1>
-          <p className="text-muted-foreground">{String(t('adminBranding.subtitle'))} {tenant?.name}</p>
+          <p className="text-muted-foreground">{String(t('adminBranding.subtitle'))} {String(tenant?.name ?? '')}</p>
         </div>
       </div>
 
