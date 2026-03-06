@@ -25,6 +25,7 @@ import { supportTicketSchema, type SupportTicketFormValues } from './SupportSche
 
 type TicketStatus = 'open' | 'in_progress' | 'waiting_customer' | 'resolved' | 'closed';
 type TicketPriority = 'low' | 'medium' | 'high' | 'urgent';
+type TicketCategory = 'billing' | 'technical' | 'feature_request' | 'general';
 
 interface Ticket {
   id: string;
