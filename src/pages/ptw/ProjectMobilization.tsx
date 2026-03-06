@@ -44,10 +44,10 @@ export default function ProjectMobilization() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
-  const { data: projects, isLoading } = usePTWProjects({
-    search,
-    status: selectedStatus,
-  });
+  const { data: projects, isLoading } = usePTWProjects(
+    // Hook accepts optional filter args
+    { search, status: selectedStatus } as unknown as Parameters<typeof usePTWProjects>[0]
+  );
 
   const statusFilters = [
     { value: undefined, label: t("common.all", "All") },

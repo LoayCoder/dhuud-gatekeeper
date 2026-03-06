@@ -219,13 +219,13 @@ export default function CreatePermit() {
           )}
           {currentStep === 4 && (
             <PermitSafetyStep
-              data={formData as PermitFormData}
+              data={formData as unknown as Parameters<typeof PermitSafetyStep>[0]['data']}
               onChange={updateFormData}
               typeId={formData.type_id}
             />
           )}
           {currentStep === 5 && (
-            <PermitReviewStep data={formData as PermitFormData} />
+            <PermitReviewStep data={formData as unknown as Parameters<typeof PermitReviewStep>[0]['data']} />
           )}
         </CardContent>
       </Card>

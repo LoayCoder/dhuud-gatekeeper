@@ -69,8 +69,8 @@ export default function GuardMobileDashboard() {
         .maybeSingle();
 
       if (data) {
-        const zones = data.security_zones as Record<string, unknown> | null;
-        const shifts = data.security_shifts as Record<string, unknown> | null;
+        const zones = data.security_zones as unknown as Record<string, unknown> | null;
+        const shifts = data.security_shifts as unknown as Record<string, unknown> | null;
         setCurrentShift({
           roster_id: data.id,
           zone_name: (zones?.zone_name as string) || 'Unknown',
