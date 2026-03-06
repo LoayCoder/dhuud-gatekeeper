@@ -1,4 +1,12 @@
-﻿import { useState, useRef } from 'react';
+// ARCHITECTURE NOTE:
+// This form is intentionally kept as useState.
+// Reason: signature pad (canvas ref) + dynamic
+// issues[] array + equipment[] toggles make
+// react-hook-form migration add complexity
+// without meaningful benefit.
+// Decision date: 2026-03-06
+
+import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, Loader2, CheckCircle, AlertCircle, MinusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
