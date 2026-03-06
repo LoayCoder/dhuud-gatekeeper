@@ -1,21 +1,28 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Plus, Gavel, AlertTriangle, DollarSign, Trash2, Edit2 } from "lucide-react";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { Loader2, Plus, Gavel, DollarSign, Trash2, Edit2 } from "lucide-react";
 import { useContractViolations, useCreateContractViolation, useUpdateContractViolation, useDeleteContractViolation, type ContractViolation } from "@/hooks/use-contract-violations";
 import { useUserRoles } from '@/features/users';
+import { violationFormSchema, type ViolationFormValues } from './ViolationManagerSchema';
 
 interface ViolationManagerProps {
   incidentId: string;
   canEdit?: boolean;
 }
+
+const defaultValues: ViolationFormValues = {
+  violationType: '', description: '', fineAmount: '', currency: 'USD', status: 'draft',
+};
 
 export function ViolationManager({ incidentId, canEdit = true }: ViolationManagerProps) {
   const { t } = useTranslation();
@@ -28,12 +35,10 @@ export function ViolationManager({ incidentId, canEdit = true }: ViolationManage
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingViolation, setEditingViolation] = useState<ContractViolation | null>(null);
 
-  // Form State
-  const [violationType, setViolationType] = useState("");
-  const [description, setDescription] = useState("");
-  const [fineAmount, setFineAmount] = useState("");
-  const [currency, setCurrency] = useState("USD");
-  const [status, setStatus] = useState<ContractViolation['status']>("draft");
+  const form = useForm<ViolationFormValues>({
+    resolver: zodResolver(violationFormSchema),
+    defaultValues,
+  });
 
   const isHSSE = hasRole("hsse_manager") || hasRole("hsse_expert");
   const canManage = canEdit && isHSSE;
@@ -41,30 +46,28 @@ export function ViolationManager({ incidentId, canEdit = true }: ViolationManage
   const handleOpenDialog = (violation?: ContractViolation) => {
     if (violation) {
       setEditingViolation(violation);
-      setViolationType(violation.violation_type);
-      setDescription(violation.description || "");
-      setFineAmount(violation.fine_amount?.toString() || "");
-      setCurrency(violation.currency || "USD");
-      setStatus(violation.status);
+      form.reset({
+        violationType: violation.violation_type,
+        description: violation.description || "",
+        fineAmount: violation.fine_amount?.toString() || "",
+        currency: violation.currency || "USD",
+        status: violation.status as ViolationFormValues['status'],
+      });
     } else {
       setEditingViolation(null);
-      setViolationType("");
-      setDescription("");
-      setFineAmount("");
-      setCurrency("USD");
-      setStatus("draft");
+      form.reset(defaultValues);
     }
     setDialogOpen(true);
   };
 
-  const handleSubmit = async () => {
+  const onSubmit = async (values: ViolationFormValues) => {
     const payload = {
       incident_id: incidentId,
-      violation_type: violationType,
-      description,
-      fine_amount: fineAmount ? parseFloat(fineAmount) : null,
-      currency,
-      status,
+      violation_type: values.violationType,
+      description: values.description,
+      fine_amount: values.fineAmount ? parseFloat(values.fineAmount) : null,
+      currency: values.currency,
+      status: values.status,
     };
 
     if (editingViolation) {
@@ -132,7 +135,6 @@ export function ViolationManager({ incidentId, canEdit = true }: ViolationManage
                     </div>
                   )}
                 </div>
-
                 {canManage && (
                   <div className="flex items-center gap-2">
                     <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(violation)}>
@@ -149,52 +151,57 @@ export function ViolationManager({ incidentId, canEdit = true }: ViolationManage
         </div>
       )}
 
-      {/* Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingViolation ? t('common.edit', 'Edit') : t('common.add', 'Add')} {t('governance.violation.singular', 'Violation')}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>{t('governance.violation.type', 'Type')}</Label>
-              <Input value={violationType} onChange={e => setViolationType(e.target.value)} placeholder="e.g. Safety Breach" />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('governance.violation.fine', 'Fine Amount')}</Label>
-              <div className="flex gap-2">
-                <Input type="number" value={fineAmount} onChange={e => setFineAmount(e.target.value)} placeholder="0.00" />
-                <Input className="w-24" value={currency} onChange={e => setCurrency(e.target.value)} />
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField control={form.control} name="violationType" render={({ field }) => (
+                <FormItem><FormLabel>{t('governance.violation.type', 'Type')}</FormLabel>
+                  <FormControl><Input {...field} placeholder="e.g. Safety Breach" /></FormControl>
+                </FormItem>
+              )} />
+              <div className="space-y-2">
+                <FormLabel>{t('governance.violation.fine', 'Fine Amount')}</FormLabel>
+                <div className="flex gap-2">
+                  <FormField control={form.control} name="fineAmount" render={({ field }) => (
+                    <FormItem className="flex-1"><FormControl><Input type="number" {...field} placeholder="0.00" /></FormControl></FormItem>
+                  )} />
+                  <FormField control={form.control} name="currency" render={({ field }) => (
+                    <FormItem><FormControl><Input className="w-24" {...field} /></FormControl></FormItem>
+                  )} />
+                </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label>{t('governance.violation.status', 'Status')}</Label>
-              <Select value={status} onValueChange={(v: ContractViolation['status']) => setStatus(v)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="pending_approval">Pending Approval</SelectItem>
-                  <SelectItem value="finalized">Finalized</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>{t('governance.violation.description', 'Description')}</Label>
-              <Textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
-            <Button onClick={handleSubmit} disabled={createMutation.isPending || updateMutation.isPending}>
-              {createMutation.isPending || updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('common.save', 'Save')}
-            </Button>
-          </DialogFooter>
+              <FormField control={form.control} name="status" render={({ field }) => (
+                <FormItem><FormLabel>{t('governance.violation.status', 'Status')}</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="pending_approval">Pending Approval</SelectItem>
+                      <SelectItem value="finalized">Finalized</SelectItem>
+                      <SelectItem value="rejected">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="description" render={({ field }) => (
+                <FormItem><FormLabel>{t('governance.violation.description', 'Description')}</FormLabel>
+                  <FormControl><Textarea {...field} rows={3} /></FormControl>
+                </FormItem>
+              )} />
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
+                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+                  {createMutation.isPending || updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('common.save', 'Save')}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>
   );
 }
-
