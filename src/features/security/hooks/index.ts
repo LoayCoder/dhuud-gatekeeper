@@ -40,7 +40,7 @@ interface StubTeamMember {
   avatar_url: string | null;
   job_title: string | null;
   phone_number: string | null;
-  sites: string | null;
+  sites: { name: string } | null;
 }
 
 // Stub exports for missing hooks
