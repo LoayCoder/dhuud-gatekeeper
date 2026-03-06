@@ -21,6 +21,37 @@ const STATUS_COLORS: Record<string, "default" | "secondary" | "destructive" | "o
   cancelled: "outline",
 };
 
+/** Typed joined purchase request for PDF export - matches PurchaseRequestData in PurchaseRequestPDFTemplate */
+interface PurchaseRequestPDFData {
+  id: string;
+  request_number: string;
+  title: string;
+  description?: string | null;
+  quantity: number;
+  estimated_cost: number;
+  currency: string;
+  budget_code?: string | null;
+  justification?: string | null;
+  vendor_name?: string | null;
+  status: string;
+  current_approval_level: number;
+  requested_at: string;
+  tenant_id: string;
+  requester?: { full_name: string; employee_id?: string | null } | null;
+  category?: { name: string; name_ar?: string | null } | null;
+  type?: { name: string; name_ar?: string | null } | null;
+  [key: string]: unknown;
+}
+
+interface PurchaseApprovalPDFData {
+  id: string;
+  approval_level: number;
+  decision: string;
+  notes: string | null;
+  decided_at: string | null;
+  approver?: { full_name: string | null; employee_id: string | null } | null;
+}
+
 export function PurchaseRequestsTable() {
   const { t } = useTranslation();
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -69,8 +100,8 @@ export function PurchaseRequestsTable() {
       const { fetchDocumentSettings } = await import('@/hooks/use-document-branding');
       const { supabase } = await import('@/integrations/supabase/client');
       
-      // Fetch request data
-      const { data: request, error } = await (supabase as any)
+      // Fetch request data with joined relations
+      const { data: request, error } = await supabase
         .from('asset_purchase_requests')
         .select(`
           *,
@@ -82,9 +113,10 @@ export function PurchaseRequestsTable() {
         .single();
       
       if (error) throw error;
+      const typedRequest = request as unknown as PurchaseRequestPDFData;
 
-      // Fetch approvals
-      const { data: approvals } = await (supabase as any)
+      // Fetch approvals with joined approver
+      const { data: approvals } = await supabase
         .from('asset_purchase_approvals')
         .select(`
           id, approval_level, decision, notes, decided_at,
@@ -94,6 +126,7 @@ export function PurchaseRequestsTable() {
         .is('deleted_at', null)
         .order('approval_level', { ascending: true });
 
+      const typedApprovals = (approvals ?? []) as unknown as PurchaseApprovalPDFData[];
       const isRTL = language === 'ar';
 
       // Create container
@@ -109,19 +142,19 @@ export function PurchaseRequestsTable() {
       document.body.appendChild(container);
 
       // Render template
-      container.innerHTML = renderPurchaseRequestPDFTemplate(request, {
+      container.innerHTML = renderPurchaseRequestPDFTemplate(typedRequest, {
         primaryLanguage: language,
         showQR: true,
         includeApprovalHistory: true,
-        approvals: approvals || [],
+        approvals: typedApprovals,
       });
 
       // Fetch branding
-      const documentSettings = await fetchDocumentSettings(request.tenant_id);
+      const documentSettings = await fetchDocumentSettings(typedRequest.tenant_id);
 
       // Generate PDF
       await generateBrandedPDFFromElement(container, {
-        filename: `purchase-request-${request.request_number}.pdf`,
+        filename: `purchase-request-${typedRequest.request_number}.pdf`,
         margin: 10,
         quality: 2,
         header: {
@@ -137,8 +170,8 @@ export function PurchaseRequestsTable() {
           bgColor: documentSettings?.footerBgColor || '#f3f4f6',
           textColor: documentSettings?.footerTextColor || '#6b7280',
         },
-        watermark: documentSettings?.watermarkEnabled && request.status !== 'approved' ? {
-          text: documentSettings?.watermarkText || request.status.toUpperCase(),
+        watermark: documentSettings?.watermarkEnabled && typedRequest.status !== 'approved' ? {
+          text: documentSettings?.watermarkText || typedRequest.status.toUpperCase(),
           enabled: true,
           opacity: documentSettings?.watermarkOpacity ?? 15,
         } : undefined,
@@ -200,88 +233,95 @@ export function PurchaseRequestsTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {requests?.map((request) => (
-              <TableRow key={request.id}>
-                <TableCell className="font-mono text-sm">{request.request_number}</TableCell>
-                <TableCell className="font-medium">{request.title}</TableCell>
-                <TableCell>
-                  {(request.estimated_cost * request.quantity).toLocaleString()} {request.currency}
-                </TableCell>
-                <TableCell>
-                  {(request as any).requester?.full_name || "-"}
-                </TableCell>
-                <TableCell>
-                  {format(new Date(request.requested_at), "dd/MM/yyyy")}
-                </TableCell>
-                <TableCell>
-                  <Badge variant={STATUS_COLORS[request.status] || "secondary"}>
-                    {t(`purchaseRequest.status.${request.status}`) as string}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline">{request.current_approval_level}</Badge>
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">{t("common.actions", "Actions")}</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {request.status === "pending" && (
-                        <>
-                          <DropdownMenuItem onClick={() => handleApprove(request.id)}>
-                            <CheckCircle className="h-4 w-4 me-2" />
-                            {t("common.review", "Review")}
+            {requests?.map((request) => {
+              const requesterName = (request as Record<string, unknown> & typeof request).requester;
+              const requesterFullName = requesterName && typeof requesterName === 'object' && 'full_name' in requesterName
+                ? (requesterName as { full_name: string | null }).full_name
+                : null;
+
+              return (
+                <TableRow key={request.id}>
+                  <TableCell className="font-mono text-sm">{request.request_number}</TableCell>
+                  <TableCell className="font-medium">{request.title}</TableCell>
+                  <TableCell>
+                    {(request.estimated_cost * request.quantity).toLocaleString()} {request.currency}
+                  </TableCell>
+                  <TableCell>
+                    {requesterFullName || "-"}
+                  </TableCell>
+                  <TableCell>
+                    {format(new Date(request.requested_at), "dd/MM/yyyy")}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={STATUS_COLORS[request.status] || "secondary"}>
+                      {t(`purchaseRequest.status.${request.status}`) as string}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{request.current_approval_level}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">{t("common.actions", "Actions")}</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {request.status === "pending" && (
+                          <>
+                            <DropdownMenuItem onClick={() => handleApprove(request.id)}>
+                              <CheckCircle className="h-4 w-4 me-2" />
+                              {t("common.review", "Review")}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEdit(request)}>
+                              <Pencil className="h-4 w-4 me-2" />
+                              {t("common.edit", "Edit")}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteClick(request.id)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 me-2" />
+                              {t("common.delete", "Delete")}
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                        {request.status !== "pending" && (
+                          <DropdownMenuItem>
+                            <Eye className="h-4 w-4 me-2" />
+                            {t("common.view", "View")}
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEdit(request)}>
-                            <Pencil className="h-4 w-4 me-2" />
-                            {t("common.edit", "Edit")}
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => handleDeleteClick(request.id)}
-                            className="text-destructive focus:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4 me-2" />
-                            {t("common.delete", "Delete")}
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                      {request.status !== "pending" && (
-                        <DropdownMenuItem>
-                          <Eye className="h-4 w-4 me-2" />
-                          {t("common.view", "View")}
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuSub>
-                        <DropdownMenuSubTrigger disabled={isExporting && exportRequestId === request.id}>
-                          {isExporting && exportRequestId === request.id ? (
-                            <Loader2 className="h-4 w-4 me-2 animate-spin" />
-                          ) : (
-                            <FileDown className="h-4 w-4 me-2" />
-                          )}
-                          {t("common.exportPDF", "Export PDF")}
-                        </DropdownMenuSubTrigger>
-                        <DropdownMenuSubContent>
-                          <DropdownMenuItem onClick={() => handleExportPDF(request.id, 'en')}>
-                            <span className="me-2">ðŸ‡¬ðŸ‡§</span>
-                            English
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleExportPDF(request.id, 'ar')}>
-                            <span className="me-2">ðŸ‡¸ðŸ‡¦</span>
-                            Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©
-                          </DropdownMenuItem>
-                        </DropdownMenuSubContent>
-                      </DropdownMenuSub>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuSub>
+                          <DropdownMenuSubTrigger disabled={isExporting && exportRequestId === request.id}>
+                            {isExporting && exportRequestId === request.id ? (
+                              <Loader2 className="h-4 w-4 me-2 animate-spin" />
+                            ) : (
+                              <FileDown className="h-4 w-4 me-2" />
+                            )}
+                            {t("common.exportPDF", "Export PDF")}
+                          </DropdownMenuSubTrigger>
+                          <DropdownMenuSubContent>
+                            <DropdownMenuItem onClick={() => handleExportPDF(request.id, 'en')}>
+                              <span className="me-2">🇬🇧</span>
+                              English
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExportPDF(request.id, 'ar')}>
+                              <span className="me-2">🇸🇦</span>
+                              العربية
+                            </DropdownMenuItem>
+                          </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       )}
@@ -321,4 +361,3 @@ export function PurchaseRequestsTable() {
     </div>
   );
 }
-

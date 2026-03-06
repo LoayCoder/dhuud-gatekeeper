@@ -28,6 +28,42 @@ export interface AssetNotificationPreferences {
   insurance_expiry_days_before: number;
 }
 
+/** Loose client for tables not yet in generated types */
+interface LooseSupabaseResponse<T> {
+  data: T | null;
+  error: { message: string; code?: string } | null;
+}
+
+type LooseQueryBuilder = {
+  select: (query: string) => LooseQueryBuilder;
+  insert: (row: Record<string, unknown>) => LooseQueryBuilder;
+  update: (row: Record<string, unknown>) => LooseQueryBuilder;
+  eq: (col: string, val: unknown) => LooseQueryBuilder;
+  is: (col: string, val: unknown) => LooseQueryBuilder;
+  maybeSingle: () => Promise<LooseSupabaseResponse<Record<string, unknown>>>;
+  single: () => Promise<LooseSupabaseResponse<Record<string, unknown>>>;
+};
+
+const looseClient = supabase as unknown as {
+  from: (table: string) => LooseQueryBuilder;
+};
+
+const DEFAULT_PREFS: Omit<AssetNotificationPreferences, 'id' | 'user_id' | 'tenant_id'> = {
+  warranty_expiry_email: true,
+  warranty_expiry_whatsapp: false,
+  warranty_expiry_days_before: 30,
+  maintenance_due_email: true,
+  maintenance_due_whatsapp: false,
+  maintenance_due_days_before: 7,
+  low_stock_email: true,
+  low_stock_whatsapp: false,
+  depreciation_email: false,
+  depreciation_whatsapp: false,
+  insurance_expiry_email: true,
+  insurance_expiry_whatsapp: false,
+  insurance_expiry_days_before: 30,
+};
+
 export function useAssetNotificationPreferences() {
   const { user, profile } = useAuth();
   
@@ -36,37 +72,25 @@ export function useAssetNotificationPreferences() {
     queryFn: async () => {
       if (!user?.id || !profile?.tenant_id) return null;
       
-      const { data, error } = await (supabase as any)
+      const { data, error } = await looseClient
         .from("asset_notification_preferences")
         .select("*")
         .eq("user_id", user.id)
         .eq("tenant_id", profile.tenant_id)
         .maybeSingle();
       
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       
       // Return defaults if no preferences exist
       if (!data) {
         return {
           user_id: user.id,
           tenant_id: profile.tenant_id,
-          warranty_expiry_email: true,
-          warranty_expiry_whatsapp: false,
-          warranty_expiry_days_before: 30,
-          maintenance_due_email: true,
-          maintenance_due_whatsapp: false,
-          maintenance_due_days_before: 7,
-          low_stock_email: true,
-          low_stock_whatsapp: false,
-          depreciation_email: false,
-          depreciation_whatsapp: false,
-          insurance_expiry_email: true,
-          insurance_expiry_whatsapp: false,
-          insurance_expiry_days_before: 30,
+          ...DEFAULT_PREFS,
         } as AssetNotificationPreferences;
       }
       
-      return data as AssetNotificationPreferences;
+      return data as unknown as AssetNotificationPreferences;
     },
     enabled: !!user?.id && !!profile?.tenant_id,
   });
@@ -84,7 +108,7 @@ export function useSaveAssetNotificationPreferences() {
       }
       
       // Check if preferences exist
-      const { data: existing } = await (supabase as any)
+      const { data: existing } = await looseClient
         .from("asset_notification_preferences")
         .select("id")
         .eq("user_id", user.id)
@@ -93,29 +117,27 @@ export function useSaveAssetNotificationPreferences() {
       
       if (existing?.id) {
         // Update existing
-        const { data, error } = await (supabase as any)
+        const { data, error } = await looseClient
           .from("asset_notification_preferences")
-          .update(preferences)
-          .eq("id", existing.id)
-          .select()
+          .update(preferences as Record<string, unknown>)
+          .eq("id", existing.id as string)
           .single();
         
-        if (error) throw error;
-        return data;
+        if (error) throw new Error(error.message);
+        return data as unknown as AssetNotificationPreferences;
       } else {
         // Insert new
-        const { data, error } = await (supabase as any)
+        const { data, error } = await looseClient
           .from("asset_notification_preferences")
           .insert({
-            ...preferences,
+            ...(preferences as Record<string, unknown>),
             user_id: user.id,
             tenant_id: profile.tenant_id,
           })
-          .select()
           .single();
         
-        if (error) throw error;
-        return data;
+        if (error) throw new Error(error.message);
+        return data as unknown as AssetNotificationPreferences;
       }
     },
     onSuccess: () => {
