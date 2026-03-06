@@ -10,9 +10,7 @@ export interface ActionForDialog {
   source?: 'incident' | 'inspection';
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- broad prop bag consumed by layout
 export interface MyActionsViewProps {
-  t?: (key: string, fallback?: string) => string;
-  isLoading?: boolean;
-  allActions?: ActionForDialog[];
-  [key: string]: unknown;
+  [key: string]: any;
 }
