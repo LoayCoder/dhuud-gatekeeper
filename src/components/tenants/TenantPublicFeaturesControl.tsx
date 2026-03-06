@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { tenantPublicFeaturesSchema, TenantPublicFeaturesValues } from './TenantPublicFeaturesSchema';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -22,22 +25,34 @@ export function TenantPublicFeaturesControl({ tenant }: TenantPublicFeaturesCont
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Optimistic local state for toggle
+  // UI-only state (not form fields)
   const [isEnabled, setIsEnabled] = useState(tenant.allow_public_gate_pass_requests ?? false);
-  const [customDomain, setCustomDomain] = useState(tenant.public_gate_pass_domain ?? '');
-  const [instructionsEn, setInstructionsEn] = useState(tenant.public_gate_pass_instructions ?? '');
-  const [instructionsAr, setInstructionsAr] = useState(tenant.public_gate_pass_instructions_ar ?? '');
   const [copied, setCopied] = useState(false);
+
+  const form = useForm<TenantPublicFeaturesValues>({
+    resolver: zodResolver(tenantPublicFeaturesSchema),
+    defaultValues: {
+      customDomain: tenant.public_gate_pass_domain ?? '',
+      instructionsEn: tenant.public_gate_pass_instructions ?? '',
+      instructionsAr: tenant.public_gate_pass_instructions_ar ?? '',
+    },
+  });
 
   // Sync with parent when tenant prop changes
   useEffect(() => {
     setIsEnabled(tenant.allow_public_gate_pass_requests ?? false);
-    setCustomDomain(tenant.public_gate_pass_domain ?? '');
-    setInstructionsEn(tenant.public_gate_pass_instructions ?? '');
-    setInstructionsAr(tenant.public_gate_pass_instructions_ar ?? '');
-  }, [tenant.id, tenant.allow_public_gate_pass_requests, tenant.public_gate_pass_domain, tenant.public_gate_pass_instructions, tenant.public_gate_pass_instructions_ar]);
+    form.reset({
+      customDomain: tenant.public_gate_pass_domain ?? '',
+      instructionsEn: tenant.public_gate_pass_instructions ?? '',
+      instructionsAr: tenant.public_gate_pass_instructions_ar ?? '',
+    });
+  }, [tenant.id, tenant.allow_public_gate_pass_requests, tenant.public_gate_pass_domain, tenant.public_gate_pass_instructions, tenant.public_gate_pass_instructions_ar, form]);
 
   // Generate public URL with custom domain support
+  const customDomain = form.watch('customDomain');
+  const instructionsEn = form.watch('instructionsEn');
+  const instructionsAr = form.watch('instructionsAr');
+
   const getPublicUrl = () => {
     const baseUrl = customDomain?.trim() || window.location.origin;
     const cleanBase = baseUrl.replace(/\/$/, '');
@@ -70,7 +85,6 @@ export function TenantPublicFeaturesControl({ tenant }: TenantPublicFeaturesCont
       });
     },
     onError: (error, variables) => {
-      // Rollback optimistic update on error
       setIsEnabled(!variables);
       toast({
         title: t('common.error'),
@@ -82,9 +96,10 @@ export function TenantPublicFeaturesControl({ tenant }: TenantPublicFeaturesCont
 
   const domainMutation = useMutation({
     mutationFn: async () => {
+      const domain = form.getValues('customDomain');
       const { error } = await supabase
         .from('tenants')
-        .update({ public_gate_pass_domain: customDomain.trim() || null })
+        .update({ public_gate_pass_domain: domain?.trim() || null })
         .eq('id', tenant.id);
       if (error) throw error;
     },
@@ -105,11 +120,12 @@ export function TenantPublicFeaturesControl({ tenant }: TenantPublicFeaturesCont
 
   const instructionsMutation = useMutation({
     mutationFn: async () => {
+      const data = form.getValues();
       const { error } = await supabase
         .from('tenants')
         .update({
-          public_gate_pass_instructions: instructionsEn || null,
-          public_gate_pass_instructions_ar: instructionsAr || null,
+          public_gate_pass_instructions: data.instructionsEn || null,
+          public_gate_pass_instructions_ar: data.instructionsAr || null,
         })
         .eq('id', tenant.id);
       if (error) throw error;
@@ -131,7 +147,7 @@ export function TenantPublicFeaturesControl({ tenant }: TenantPublicFeaturesCont
   });
 
   const handleToggle = (checked: boolean) => {
-    setIsEnabled(checked); // Optimistic update
+    setIsEnabled(checked);
     toggleMutation.mutate(checked);
   };
 
@@ -183,8 +199,7 @@ export function TenantPublicFeaturesControl({ tenant }: TenantPublicFeaturesCont
             </Label>
             <div className="flex items-center gap-2">
               <Input
-                value={customDomain}
-                onChange={(e) => setCustomDomain(e.target.value)}
+                {...form.register('customDomain')}
                 placeholder={t('tenantManagement.publicFeatures.gatePass.customDomainPlaceholder')}
                 className="flex-1"
                 dir="ltr"
@@ -262,8 +277,7 @@ export function TenantPublicFeaturesControl({ tenant }: TenantPublicFeaturesCont
             </Label>
             <Textarea
               id="instructions-en"
-              value={instructionsEn}
-              onChange={(e) => setInstructionsEn(e.target.value)}
+              {...form.register('instructionsEn')}
               placeholder={t('tenantManagement.publicFeatures.gatePass.placeholderEn')}
               rows={3}
               dir="ltr"
@@ -277,8 +291,7 @@ export function TenantPublicFeaturesControl({ tenant }: TenantPublicFeaturesCont
             </Label>
             <Textarea
               id="instructions-ar"
-              value={instructionsAr}
-              onChange={(e) => setInstructionsAr(e.target.value)}
+              {...form.register('instructionsAr')}
               placeholder={t('tenantManagement.publicFeatures.gatePass.placeholderAr')}
               rows={3}
               dir="rtl"

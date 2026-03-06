@@ -15,8 +15,8 @@ import { useSIMOPSCheck } from "@/features/ptw/hooks/use-simops-check";
 import { useMobilizationCheck } from "@/features/ptw/hooks/use-mobilization-check";
 import { SIMOPSConflictWarning } from '@/features/ptw';
 
-export { type PermitFormData } from './permitSchema';
-import { permitFormSchema } from './permitSchema';
+import { permitFormSchema, type PermitFormData } from './permitSchema';
+export type { PermitFormData };
 
 const STEPS = [
   { id: 1, name: "basics", title: "Basics" },
@@ -219,13 +219,13 @@ export default function CreatePermit() {
           )}
           {currentStep === 4 && (
             <PermitSafetyStep
-              data={formData}
+              data={formData as any}
               onChange={updateFormData}
               typeId={formData.type_id}
             />
           )}
           {currentStep === 5 && (
-            <PermitReviewStep data={formData} />
+            <PermitReviewStep data={formData as any} />
           )}
         </CardContent>
       </Card>

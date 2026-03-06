@@ -1,5 +1,8 @@
-﻿import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { teamInvestigationAssignmentSchema, TeamInvestigationAssignmentValues } from "./TeamInvestigationAssignmentSchema";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,12 +44,17 @@ export function TeamInvestigationAssignmentStep({ incident, onComplete }: TeamIn
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   
-  const [selectedInvestigator, setSelectedInvestigator] = useState<string>("");
-  const [useTeamInvestigation, setUseTeamInvestigation] = useState(false);
-  const [teamLeaderId, setTeamLeaderId] = useState<string>("");
-  const [teamMemberIds, setTeamMemberIds] = useState<string[]>([]);
-  const [assignmentNotes, setAssignmentNotes] = useState<string>("");
-  
+  const form = useForm<TeamInvestigationAssignmentValues>({
+    resolver: zodResolver(teamInvestigationAssignmentSchema),
+    defaultValues: {
+      selectedInvestigator: '',
+      teamLeaderId: '',
+      teamMemberIds: [],
+      assignmentNotes: '',
+      useTeamInvestigation: false,
+    },
+  });
+
   const { data: canAssign } = useCanPerformExpertScreening();
   const { data: profile } = useCachedProfile();
   const startInvestigation = useStartInvestigation();
@@ -59,6 +67,12 @@ export function TeamInvestigationAssignmentStep({ incident, onComplete }: TeamIn
   const isTeamMandatory = severityNumber >= 4;
   const isTeamOptional = severityNumber === 3;
   const isSingleOnly = severityNumber <= 2;
+  
+  // Watch form fields
+  const useTeamInvestigation = form.watch('useTeamInvestigation');
+  const teamLeaderId = form.watch('teamLeaderId');
+  const teamMemberIds = form.watch('teamMemberIds') || [];
+  const selectedInvestigator = form.watch('selectedInvestigator');
   
   // Auto-enable team mode for L4-5
   const effectiveTeamMode = isTeamMandatory || useTeamInvestigation;
@@ -112,35 +126,43 @@ export function TeamInvestigationAssignmentStep({ incident, onComplete }: TeamIn
   }
   
   const toggleTeamMember = (userId: string) => {
-    setTeamMemberIds(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
-    );
+    const current = form.getValues('teamMemberIds') || [];
+    const updated = current.includes(userId)
+      ? current.filter(id => id !== userId)
+      : [...current, userId];
+    form.setValue('teamMemberIds', updated);
+  };
+  
+  const handleTeamLeaderChange = (value: string) => {
+    form.setValue('teamLeaderId', value);
+    // Remove leader from team members if present
+    const current = form.getValues('teamMemberIds') || [];
+    if (current.includes(value)) {
+      form.setValue('teamMemberIds', current.filter(id => id !== value));
+    }
   };
   
   const handleAssign = () => {
+    const data = form.getValues();
     if (effectiveTeamMode) {
-      // Team investigation
-      if (!teamLeaderId || teamMemberIds.length === 0) return;
+      if (!data.teamLeaderId || !data.teamMemberIds?.length) return;
       
       assignTeam.mutate({
         incidentId: incident.id,
         investigationType: 'team',
-        teamLeaderId,
-        teamMemberIds,
-        assignmentNotes: assignmentNotes.trim() || undefined,
+        teamLeaderId: data.teamLeaderId,
+        teamMemberIds: data.teamMemberIds!,
+        assignmentNotes: data.assignmentNotes?.trim() || undefined,
       }, {
         onSuccess: onComplete,
       });
     } else {
-      // Single investigator
-      if (!selectedInvestigator) return;
+      if (!data.selectedInvestigator) return;
       
       startInvestigation.mutate({
         incidentId: incident.id,
-        investigatorId: selectedInvestigator,
-        assignmentNotes: assignmentNotes.trim() || undefined,
+        investigatorId: data.selectedInvestigator,
+        assignmentNotes: data.assignmentNotes?.trim() || undefined,
       }, {
         onSuccess: onComplete,
       });
@@ -223,10 +245,16 @@ export function TeamInvestigationAssignmentStep({ incident, onComplete }: TeamIn
                 {t('workflow.assignTeam.useTeamDesc', 'Enable to assign a team leader and multiple investigators.')}
               </p>
             </div>
-            <Switch
-              id="team-toggle"
-              checked={useTeamInvestigation}
-              onCheckedChange={setUseTeamInvestigation}
+            <Controller
+              name="useTeamInvestigation"
+              control={form.control}
+              render={({ field }) => (
+                <Switch
+                  id="team-toggle"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
             />
           </div>
         )}
@@ -240,37 +268,43 @@ export function TeamInvestigationAssignmentStep({ incident, onComplete }: TeamIn
                 <Crown className="h-4 w-4 text-amber-500" />
                 {t('workflow.assignTeam.selectLeader', 'Team Leader')} *
               </Label>
-              <Select
-                value={teamLeaderId}
-                onValueChange={setTeamLeaderId}
-                dir={direction}
-              >
-                <SelectTrigger id="team-leader" className="w-full">
-                  <SelectValue placeholder={t('workflow.assignTeam.leaderPlaceholder', 'Choose team leader...')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {loadingInvestigators ? (
-                    <div className="flex items-center justify-center py-4">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    </div>
-                  ) : investigators?.length === 0 ? (
-                    <div className="py-4 text-center text-sm text-muted-foreground">
-                      {t('workflow.assignInvestigator.noInvestigators', 'No investigators available')}
-                    </div>
-                  ) : (
-                    investigators?.map((inv) => (
-                      <SelectItem key={inv.id} value={inv.id}>
-                        <div className="flex flex-col">
-                          <span>{inv.full_name}</span>
-                          {inv.job_title && (
-                            <span className="text-xs text-muted-foreground">{inv.job_title}</span>
-                          )}
+              <Controller
+                name="teamLeaderId"
+                control={form.control}
+                render={({ field }) => (
+                  <Select
+                    value={field.value}
+                    onValueChange={handleTeamLeaderChange}
+                    dir={direction}
+                  >
+                    <SelectTrigger id="team-leader" className="w-full">
+                      <SelectValue placeholder={t('workflow.assignTeam.leaderPlaceholder', 'Choose team leader...')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {loadingInvestigators ? (
+                        <div className="flex items-center justify-center py-4">
+                          <Loader2 className="h-4 w-4 animate-spin" />
                         </div>
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+                      ) : investigators?.length === 0 ? (
+                        <div className="py-4 text-center text-sm text-muted-foreground">
+                          {t('workflow.assignInvestigator.noInvestigators', 'No investigators available')}
+                        </div>
+                      ) : (
+                        investigators?.map((inv) => (
+                          <SelectItem key={inv.id} value={inv.id}>
+                            <div className="flex flex-col">
+                              <span>{inv.full_name}</span>
+                              {inv.job_title && (
+                                <span className="text-xs text-muted-foreground">{inv.job_title}</span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
 
             {/* Team Members Selection */}
@@ -330,37 +364,43 @@ export function TeamInvestigationAssignmentStep({ incident, onComplete }: TeamIn
             <Label htmlFor="investigator">
               {t('workflow.assignInvestigator.selectInvestigator', 'Select Investigator')}
             </Label>
-            <Select
-              value={selectedInvestigator}
-              onValueChange={setSelectedInvestigator}
-              dir={direction}
-            >
-              <SelectTrigger id="investigator" className="w-full">
-                <SelectValue placeholder={t('workflow.assignInvestigator.placeholder', 'Choose an investigator...')} />
-              </SelectTrigger>
-              <SelectContent>
-                {loadingInvestigators ? (
-                  <div className="flex items-center justify-center py-4">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  </div>
-                ) : investigators?.length === 0 ? (
-                  <div className="py-4 text-center text-sm text-muted-foreground">
-                    {t('workflow.assignInvestigator.noInvestigators', 'No investigators available')}
-                  </div>
-                ) : (
-                  investigators?.map((inv) => (
-                    <SelectItem key={inv.id} value={inv.id}>
-                      <div className="flex flex-col">
-                        <span>{inv.full_name}</span>
-                        {inv.job_title && (
-                          <span className="text-xs text-muted-foreground">{inv.job_title}</span>
-                        )}
+            <Controller
+              name="selectedInvestigator"
+              control={form.control}
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  dir={direction}
+                >
+                  <SelectTrigger id="investigator" className="w-full">
+                    <SelectValue placeholder={t('workflow.assignInvestigator.placeholder', 'Choose an investigator...')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {loadingInvestigators ? (
+                      <div className="flex items-center justify-center py-4">
+                        <Loader2 className="h-4 w-4 animate-spin" />
                       </div>
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
+                    ) : investigators?.length === 0 ? (
+                      <div className="py-4 text-center text-sm text-muted-foreground">
+                        {t('workflow.assignInvestigator.noInvestigators', 'No investigators available')}
+                      </div>
+                    ) : (
+                      investigators?.map((inv) => (
+                        <SelectItem key={inv.id} value={inv.id}>
+                          <div className="flex flex-col">
+                            <span>{inv.full_name}</span>
+                            {inv.job_title && (
+                              <span className="text-xs text-muted-foreground">{inv.job_title}</span>
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
         )}
         
@@ -374,8 +414,7 @@ export function TeamInvestigationAssignmentStep({ incident, onComplete }: TeamIn
           </Label>
           <Textarea
             id="assignment-notes"
-            value={assignmentNotes}
-            onChange={(e) => setAssignmentNotes(e.target.value)}
+            {...form.register('assignmentNotes')}
             placeholder={t('workflow.assignInvestigator.notesPlaceholder', 'Enter any specific instructions or notes for the investigator...')}
             rows={3}
           />
@@ -399,6 +438,3 @@ export function TeamInvestigationAssignmentStep({ incident, onComplete }: TeamIn
     </Card>
   );
 }
-
-
-
