@@ -12,7 +12,7 @@ export interface CreateSupportTicketPayload {
 export const createSupportTicket = async (payload: CreateSupportTicketPayload) => {
   const { data, error } = await supabase
     .from('support_tickets')
-    .insert(payload)
+    .insert([payload as any])
     .select()
     .single();
   if (error) throw error;
