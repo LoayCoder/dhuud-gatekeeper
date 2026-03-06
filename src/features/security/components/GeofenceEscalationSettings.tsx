@@ -56,17 +56,20 @@ export function GeofenceEscalationSettings() {
 
   const handleSubmit = async () => {
     const formData = form.getValues();
+    const payload = {
+      rule_name: formData.rule_name!,
+      breach_count_threshold: formData.breach_count_threshold!,
+      time_window_minutes: formData.time_window_minutes!,
+      escalation_level: formData.escalation_level!,
+      notify_roles: formData.notify_roles!,
+      auto_escalate: formData.auto_escalate,
+      escalation_delay_minutes: formData.escalation_delay_minutes,
+      zone_id: formData.zone_id || undefined,
+    };
     if (editingRule) {
-      await updateRule.mutateAsync({
-        id: editingRule,
-        ...formData,
-        zone_id: formData.zone_id || undefined,
-      });
+      await updateRule.mutateAsync({ id: editingRule, ...payload });
     } else {
-      await createRule.mutateAsync({
-        ...formData,
-        zone_id: formData.zone_id || undefined,
-      });
+      await createRule.mutateAsync(payload);
     }
     setIsDialogOpen(false);
     resetForm();

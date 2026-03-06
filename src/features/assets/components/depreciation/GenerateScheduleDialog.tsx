@@ -91,8 +91,14 @@ export function GenerateScheduleDialog({
   const onSubmit = form.handleSubmit((data) => {
     onGenerate({
       asset_id: assetId,
-      ...data,
-    });
+      depreciation_method: data.depreciation_method!,
+      period_type: data.period_type!,
+      start_date: data.start_date!,
+      purchase_price: data.purchase_price!,
+      salvage_value: data.salvage_value!,
+      useful_life_years: data.useful_life_years!,
+      declining_balance_rate: data.declining_balance_rate,
+    } as GenerateScheduleInput);
     setOpen(false);
   });
 
