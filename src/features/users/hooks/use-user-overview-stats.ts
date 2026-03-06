@@ -1,8 +1,42 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { addDays, isPast, isToday, isThisWeek, parseISO } from 'date-fns';
+import { isPast, isToday, isThisWeek, parseISO } from 'date-fns';
 
+// ── Joined relation interfaces ──────────────────────────────
+interface ProfileSummary {
+    full_name: string | null;
+}
+
+interface IncidentWithReporter {
+    id: string;
+    reference_id: string;
+    title: string;
+    status: string;
+    severity: string;
+    created_at: string;
+    stage: string | null;
+    reporter: ProfileSummary | null;
+}
+
+interface ActionWithAssignee {
+    id: string;
+    title: string;
+    status: string;
+    due_date: string | null;
+    completed_date: string | null;
+    reference_id: string | null;
+    assigned_user: ProfileSummary | null;
+}
+
+interface InspectionSessionRow {
+    id: string;
+    started_at: string | null;
+    status: string | null;
+    compliance_percentage: number | null;
+}
+
+// ── Exported interfaces ─────────────────────────────────────
 export interface UserOverviewStats {
     tasks: {
         total: number;
@@ -56,7 +90,7 @@ export interface IncidentSummary {
 export interface ObservationSummary {
     id: string;
     reference_number?: string;
-    description?: string; // Observations might not have title, using description
+    description?: string;
     status: string;
     created_at: string;
     observation_type?: string;
@@ -90,38 +124,30 @@ export function useUserOverviewStats() {
         queryFn: async (): Promise<UserOverviewStats> => {
             if (!tenantId || !user?.id) throw new Error('User not authenticated');
 
-            const now = new Date().toISOString();
-
-            // 1. Fetch My Incidents (Assigned to me as investigator or I am reporter)
-            // We need separate queries for different "My Incident" categories to be precise
+            // 1. Fetch My Incidents
             const fetchMyIncidents = async () => {
-                // Assigned Investigations (I am investigator)
-                const { data: assignedData } = await (supabase as any)
+                const { data: assignedData } = await supabase
                     .from('incidents')
                     .select('id, reference_id, title, status, severity, created_at, stage')
                     .eq('tenant_id', tenantId)
                     .eq('lead_investigator_id', user.id)
                     .neq('status', 'closed')
-                    .neq('status', 'cancelled'); // Assuming cancelled exists or just closed
+                    .neq('status', 'cancelled');
 
-                // Pending Reports (I reported, and it's draft or pending submission/info)
-                const { data: reportedData } = await (supabase as any)
+                const { data: reportedData } = await supabase
                     .from('incidents')
                     .select('id, reference_id, title, status, severity, created_at, stage')
                     .eq('tenant_id', tenantId)
                     .eq('reporter_id', user.id)
                     .in('status', ['draft', 'pending_more_info']);
 
-                // Awaiting My Action (This is complex, lets assume it means assigned tasks OR specific states)
-                // For now, let's map "Awaiting Action" to incidents where I am the assignee for the CURRENT stage
-                // This logic is complex in SQL, skipping strict stage-assignee logic for now and defaulting to:
-                // Incidents assigned to me that are not closed.
-                const awaitingData = assignedData || [];
+                const assigned = (assignedData ?? []) as IncidentSummary[];
+                const pendingReport = (reportedData ?? []) as IncidentSummary[];
 
                 return {
-                    assigned: (assignedData || []) as IncidentSummary[],
-                    pendingReport: (reportedData || []) as IncidentSummary[],
-                    awaitingAction: (awaitingData) as IncidentSummary[], // Placeholder logic
+                    assigned,
+                    pendingReport,
+                    awaitingAction: assigned, // Placeholder logic
                 };
             };
 
@@ -135,7 +161,7 @@ export function useUserOverviewStats() {
                     .neq('status', 'closed')
                     .neq('status', 'verified');
 
-                const allActions = (data || []) as ActionSummary[];
+                const allActions = (data ?? []) as ActionSummary[];
 
                 const overdue = allActions.filter(a => a.due_date && isPast(parseISO(a.due_date)) && !isToday(parseISO(a.due_date)));
                 const pendingVerification = allActions.filter(a => a.status === 'pending_verification');
@@ -149,30 +175,26 @@ export function useUserOverviewStats() {
 
             // 3. Fetch My Observations
             const fetchMyObservations = async () => {
-                // "Assigned" might mean I observed it, or I am assigned to fix it (if observations have assignees)
-                // Usually observations are "Reported By Me".
-                const { data: reported } = await (supabase as any)
-                    .from('observations') // Assuming table name
+                const { data: reported } = await supabase
+                    .from('observations')
                     .select('id, reference_number, description, status, created_at, observation_type')
                     .eq('tenant_id', tenantId)
                     .eq('created_by', user.id)
                     .order('created_at', { ascending: false })
                     .limit(20);
 
-                // Pending Closure
-                const pendingClosure = (reported || []).filter((o: any) => o.status === 'pending_closure');
-
-                // Recently Closed
-                const recentlyClosed = (reported || []).filter((o: any) => o.status === 'closed').slice(0, 5);
+                const allObs = (reported ?? []) as ObservationSummary[];
+                const pendingClosure = allObs.filter((o) => o.status === 'pending_closure');
+                const recentlyClosed = allObs.filter((o) => o.status === 'closed').slice(0, 5);
 
                 return {
-                    assigned: (reported || []) as ObservationSummary[], // Using reported as assigned for now
-                    pendingClosure: pendingClosure as ObservationSummary[],
-                    recentlyClosed: recentlyClosed as ObservationSummary[]
+                    assigned: allObs,
+                    pendingClosure,
+                    recentlyClosed
                 };
             };
 
-            // 4. Fetch My Inspections (To add to tasks)
+            // 4. Fetch My Inspections
             const fetchMyInspections = async () => {
                 const { data } = await supabase
                     .from('inspection_sessions')
@@ -182,41 +204,40 @@ export function useUserOverviewStats() {
                     .in('status', ['draft', 'in_progress'])
                     .order('started_at', { ascending: true });
 
-                return (data || []) as unknown[]; // Type loosely for now or define interface
+                return (data ?? []) as InspectionSessionRow[];
             };
 
             // 5. Fetch My Approvals
             const fetchMyApprovals = async () => {
                 const pendingItems: ApprovalItem[] = [];
 
-                // A. Fetch User Roles for filtering
                 const { data: rolesData } = await supabase
                     .from('user_roles')
                     .select('role')
                     .eq('user_id', user.id);
 
-                const userRoles = (rolesData || []).map(r => r.role) as string[];
+                const userRoles = (rolesData ?? []).map(r => r.role) as string[];
                 const isHsseManager = userRoles.includes('hsse_manager');
                 const isHsseExpert = userRoles.includes('hsse_expert');
                 const isAdmin = userRoles.includes('admin');
                 const isManager = userRoles.includes('manager');
 
-                // B. Incidents Pending Approval
-                // 1. HSSE Manager Escalation & Pending Final Closure (HSSE Manager/Admin)
+                // HSSE Manager Escalation & Pending Final Closure
                 if (isHsseManager || isAdmin) {
-                    const { data: hsseIncidents } = await (supabase as any)
+                    const { data: hsseIncidents } = await supabase
                         .from('incidents')
-                        .select('id, reference_id, title, status, created_at, reporter:profiles(full_name)')
+                        .select('id, reference_id, title, status, created_at, reporter:profiles!incidents_reporter_id_fkey(full_name)')
                         .eq('tenant_id', tenantId)
                         .in('status', ['hsse_manager_escalation', 'pending_final_closure', 'pending_investigation_plan_approval'])
                         .order('created_at', { ascending: true });
 
-                    (hsseIncidents || []).forEach((i: any) => {
+                    const typedHsseIncidents = (hsseIncidents ?? []) as unknown as IncidentWithReporter[];
+                    typedHsseIncidents.forEach((i) => {
                         pendingItems.push({
                             id: i.id,
                             type: 'incident',
                             title: i.title,
-                            requestedBy: (i.reporter as any)?.full_name,
+                            requestedBy: i.reporter?.full_name ?? undefined,
                             date: i.created_at,
                             status: i.status,
                             referenceId: i.reference_id
@@ -224,23 +245,22 @@ export function useUserOverviewStats() {
                     });
                 }
 
-                // 2. Pending Manager Approval (Manager/Admin)
-                // Ideally check if user matches the reporter's department manager. 
-                // Simplified: If user is "manager", show all "pending_manager_approval" (Refine if needed)
+                // Pending Manager Approval
                 if (isManager || isAdmin) {
-                    const { data: managerIncidents } = await (supabase as any)
+                    const { data: managerIncidents } = await supabase
                         .from('incidents')
-                        .select('id, reference_id, title, status, created_at, reporter:profiles(full_name)')
+                        .select('id, reference_id, title, status, created_at, reporter:profiles!incidents_reporter_id_fkey(full_name)')
                         .eq('tenant_id', tenantId)
                         .eq('status', 'pending_manager_approval')
                         .order('created_at', { ascending: true });
 
-                    (managerIncidents || []).forEach((i: any) => {
+                    const typedManagerIncidents = (managerIncidents ?? []) as unknown as IncidentWithReporter[];
+                    typedManagerIncidents.forEach((i) => {
                         pendingItems.push({
                             id: i.id,
                             type: 'incident',
                             title: i.title,
-                            requestedBy: (i.reporter as any)?.full_name,
+                            requestedBy: i.reporter?.full_name ?? undefined,
                             date: i.created_at,
                             status: i.status,
                             referenceId: i.reference_id
@@ -248,36 +268,35 @@ export function useUserOverviewStats() {
                     });
                 }
 
-
-                // C. Actions Pending Verification (HSSE/Env Expert/Manager/Admin)
+                // Actions Pending Verification
                 if (isHsseExpert || isHsseManager || isAdmin) {
                     const { data: pendingActions } = await supabase
                         .from('corrective_actions')
                         .select('id, title, status, due_date, completed_date, reference_id, assigned_user:profiles!corrective_actions_assigned_to_fkey(full_name)')
                         .eq('tenant_id', tenantId)
-                        .eq('status', 'completed') // Completed means pending verification
+                        .eq('status', 'completed')
                         .order('completed_date', { ascending: true });
 
-                    (pendingActions || []).forEach((a: any) => {
+                    const typedActions = (pendingActions ?? []) as unknown as ActionWithAssignee[];
+                    typedActions.forEach((a) => {
                         pendingItems.push({
                             id: a.id,
                             type: 'action',
                             title: a.title,
-                            requestedBy: (a.assigned_user as any)?.full_name,
-                            date: a.completed_date || a.due_date,
+                            requestedBy: a.assigned_user?.full_name ?? undefined,
+                            date: a.completed_date || a.due_date || '',
                             status: a.status,
-                            referenceId: a.reference_id
+                            referenceId: a.reference_id ?? undefined
                         });
                     });
                 }
 
                 return {
                     pending: pendingItems,
-                    recentlyApproved: [], // Placeholder
-                    recentlyRejected: []  // Placeholder
+                    recentlyApproved: [],
+                    recentlyRejected: []
                 };
             };
-
 
             // Execute fetches
             const [incidents, actions, observations, inspections, approvals] = await Promise.all([
@@ -289,10 +308,8 @@ export function useUserOverviewStats() {
             ]);
 
             // 6. Aggregate Tasks
-            // "My Tasks" = Actions + Assigned Investigations + Inspections
             const tasksList: TaskItem[] = [];
 
-            // Add Actions
             actions.assigned.forEach(a => {
                 tasksList.push({
                     id: a.id,
@@ -305,30 +322,28 @@ export function useUserOverviewStats() {
                 });
             });
 
-            // Add Incidents (Investigations)
             incidents.assigned.forEach(i => {
                 tasksList.push({
                     id: i.id,
                     type: 'incident',
                     title: i.title,
                     status: i.status,
-                    priority: i.severity, // Map severity to priority roughly
+                    priority: i.severity,
                     referenceId: i.reference_id
                 });
             });
 
-            // Add Inspections
-            inspections.forEach((i: any) => {
+            inspections.forEach((i) => {
                 tasksList.push({
                     id: i.id,
                     type: 'inspection',
-                    title: `Inspection #${i.id.substring(0, 8)}`, // Fallback title
-                    status: i.status,
+                    title: `Inspection #${i.id.substring(0, 8)}`,
+                    status: i.status ?? 'unknown',
                     priority: 'medium',
                     referenceId: i.id
                 });
             });
-            // Calculate Task Stats
+
             const totalTasks = tasksList.length;
             const overdueTasks = tasksList.filter(t => t.dueDate && isPast(parseISO(t.dueDate)) && !isToday(parseISO(t.dueDate))).length;
             const dueTodayTasks = tasksList.filter(t => t.dueDate && isToday(parseISO(t.dueDate))).length;
