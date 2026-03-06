@@ -1,6 +1,12 @@
-﻿import { useState, useRef } from 'react';
+// ARCHITECTURE NOTE:
+// Form state kept as useState (intentional).
+// Supabase extracted to handoverService.ts
+// Reason: signature pad + dynamic arrays.
+// Decision date: 2026-03-06
+
+import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQueryClient, useMutation, useQuery } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2, Loader2, CheckCircle, AlertCircle, MinusCircle, Briefcase, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +19,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { SignaturePad, SignaturePadRef } from '@/components/ui/signature-pad';
 import { useToast } from '@/hooks/use-toast';
 import { useSecurityZones } from '@/features/security';
-import { supabase } from '@/integrations/supabase/client';
+import { submitVacationHandover } from '../services/handoverService';
 import { cn } from '@/lib/utils';
 
 interface OutstandingIssue {
@@ -61,64 +67,7 @@ export function VacationHandoverForm({ onSuccess }: VacationHandoverFormProps) {
   const [priorities, setPriorities] = useState('');
   const [notes, setNotes] = useState('');
   const [signatureError, setSignatureError] = useState(false);
-
-  const createVacationHandover = useMutation({
-    mutationFn: async (params: {
-      handover_type: 'vacation' | 'resignation';
-      zone_id?: string;
-      outstanding_issues: OutstandingIssue[];
-      equipment_checklist: EquipmentItem[];
-      key_observations?: string;
-      next_shift_priorities?: string;
-      notes?: string;
-      outgoing_signature?: string;
-    }) => {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id, tenant_id')
-        .single();
-
-      if (!profile?.tenant_id) throw new Error('No tenant found');
-
-      const { data, error } = await supabase
-        .from('shift_handovers')
-        .insert({
-          tenant_id: profile.tenant_id,
-          outgoing_guard_id: profile.id,
-          zone_id: params.zone_id || null,
-          handover_type: params.handover_type,
-          requires_approval: true,
-          outstanding_issues: params.outstanding_issues as any,
-          equipment_checklist: params.equipment_checklist as any,
-          key_observations: params.key_observations || null,
-          next_shift_priorities: params.next_shift_priorities || null,
-          notes: params.notes || null,
-          outgoing_signature: params.outgoing_signature || null,
-          signature_timestamp: params.outgoing_signature ? new Date().toISOString() : null,
-          status: 'pending',
-        } as any)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['shift-handovers'] });
-      toast({
-        title: t('security.handover.submitted', 'Handover Submitted'),
-        description: t('security.handover.awaitingApproval', 'Awaiting manager approval'),
-      });
-      onSuccess?.();
-    },
-    onError: (error) => {
-      toast({
-        title: t('security.handover.submitFailed', 'Submission Failed'),
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleAddIssue = () => {
     if (!newIssue.trim()) return;
@@ -153,17 +102,36 @@ export function VacationHandoverForm({ onSuccess }: VacationHandoverFormProps) {
       return;
     }
     setSignatureError(false);
+    setIsSubmitting(true);
 
-    await createVacationHandover.mutateAsync({
-      handover_type: handoverType,
-      zone_id: selectedZone || undefined,
-      outstanding_issues: issues,
-      equipment_checklist: equipment,
-      key_observations: keyObservations || undefined,
-      next_shift_priorities: priorities || undefined,
-      notes: notes || undefined,
-      outgoing_signature: signature,
-    });
+    try {
+      await submitVacationHandover({
+        handover_type: handoverType,
+        zone_id: selectedZone || undefined,
+        outstanding_issues: issues,
+        equipment_checklist: equipment,
+        key_observations: keyObservations || undefined,
+        next_shift_priorities: priorities || undefined,
+        notes: notes || undefined,
+        outgoing_signature: signature,
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['shift-handovers'] });
+      toast({
+        title: t('security.handover.submitted', 'Handover Submitted'),
+        description: t('security.handover.awaitingApproval', 'Awaiting manager approval'),
+      });
+      onSuccess?.();
+    } catch (error: any) {
+      console.error('[VacationHandoverForm]', error);
+      toast({
+        title: t('security.handover.submitFailed', 'Submission Failed'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getPriorityColor = (priority: string) => {
@@ -359,8 +327,8 @@ export function VacationHandoverForm({ onSuccess }: VacationHandoverFormProps) {
         </CardContent>
       </Card>
 
-      <Button type="submit" className="w-full" disabled={createVacationHandover.isPending}>
-        {createVacationHandover.isPending ? (
+      <Button type="submit" className="w-full" disabled={isSubmitting}>
+        {isSubmitting ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin me-2" />
             {t('common.submitting', 'Submitting...')}
@@ -372,4 +340,3 @@ export function VacationHandoverForm({ onSuccess }: VacationHandoverFormProps) {
     </form>
   );
 }
-
