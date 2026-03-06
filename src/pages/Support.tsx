@@ -33,7 +33,7 @@ interface Ticket {
   description: string;
   status: TicketStatus;
   priority: TicketPriority;
-  category: string;
+  category: TicketCategory;
   created_at: string;
   updated_at: string;
 }

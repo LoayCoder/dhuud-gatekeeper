@@ -63,7 +63,7 @@ export function WorkerFormDialog({ open, onOpenChange, worker, companies }: Work
   const onSubmit = async (values: WorkerFormValues) => {
     try {
       if (isEditing && worker) {
-        await updateWorker.mutateAsync({ id: worker.id, ...values });
+        await updateWorker.mutateAsync({ id: worker.id, ...values } as any);
         setShowSuccessAlert(true);
         setTimeout(() => {
           onOpenChange(false);
