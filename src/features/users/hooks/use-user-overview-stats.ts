@@ -49,13 +49,24 @@ interface InspectionSessionRow {
 
 /**
  * Escape hatch for Supabase queries on tables/columns/enum values
- * not yet reflected in generated types. Returns a builder with
- * full chaining support but no compile-time column/status validation.
+ * not yet reflected in generated types. Uses a loosely-typed client
+ * to avoid "excessively deep type instantiation" errors.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function untypedFrom(table: string): any {
-    return supabase.from(table as 'profiles');
+interface LooseQueryBuilder {
+    select(columns: string, options?: Record<string, unknown>): LooseQueryBuilder;
+    eq(column: string, value: unknown): LooseQueryBuilder;
+    neq(column: string, value: unknown): LooseQueryBuilder;
+    in(column: string, values: unknown[]): LooseQueryBuilder;
+    order(column: string, options?: Record<string, unknown>): LooseQueryBuilder;
+    limit(count: number): LooseQueryBuilder;
+    then: Promise<{ data: unknown[] | null; error: unknown }>['then'];
 }
+
+interface LooseSupabaseClient {
+    from(table: string): LooseQueryBuilder;
+}
+
+const looseClient = supabase as unknown as LooseSupabaseClient;
 
 // ── Exported interfaces ─────────────────────────────────────
 export interface UserOverviewStats {
