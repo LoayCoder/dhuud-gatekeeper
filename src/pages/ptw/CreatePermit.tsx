@@ -219,13 +219,13 @@ export default function CreatePermit() {
           )}
           {currentStep === 4 && (
             <PermitSafetyStep
-              data={formData}
+              data={formData as any}
               onChange={updateFormData}
               typeId={formData.type_id}
             />
           )}
           {currentStep === 5 && (
-            <PermitReviewStep data={formData} />
+            <PermitReviewStep data={formData as any} />
           )}
         </CardContent>
       </Card>

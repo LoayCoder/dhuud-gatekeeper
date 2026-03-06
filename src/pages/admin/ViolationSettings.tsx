@@ -98,13 +98,20 @@ export default function ViolationSettings() {
   };
 
   const onSubmit = form.handleSubmit(async (data) => {
-    const payload: CreateViolationTypeInput = {
-      ...data,
+    const payload = {
+      name: data.name!,
+      name_ar: data.name_ar,
       severity_level: data.severity_level as any,
       first_action_type: data.first_action_type as ActionType,
+      first_fine_amount: data.first_fine_amount,
+      first_action_description: data.first_action_description,
       second_action_type: data.second_action_type as ActionType,
+      second_fine_amount: data.second_fine_amount,
+      second_action_description: data.second_action_description,
       third_action_type: data.third_action_type as ActionType,
-    };
+      third_fine_amount: data.third_fine_amount,
+      third_action_description: data.third_action_description,
+    } as CreateViolationTypeInput;
     if (editingViolation) {
       await updateViolation.mutateAsync({
         id: editingViolation.id,
