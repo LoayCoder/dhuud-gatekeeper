@@ -52,7 +52,7 @@ export function BranchProvider({ children }: { children: React.ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Check if user has full branch access (super admin or has_full_branch_access flag)
-  const profileRecord = profile as Record<string, unknown> | null;
+  const profileRecord = profile as unknown as Record<string, unknown> | null;
   const hasFullBranchAccess = profileRecord?.is_super_admin === true || profileRecord?.has_full_branch_access === true;
   
   // User is multi-branch if they have access to more than one branch
