@@ -16,7 +16,7 @@ export function useCanCloseIncident(incidentId: string | null) {
 
             if (error) throw error;
 
-            const result = data as any;
+            const result = data as unknown as { ready_for_closure: boolean; blocking_reasons?: string[] };
 
             return {
                 can_close: result.ready_for_closure,

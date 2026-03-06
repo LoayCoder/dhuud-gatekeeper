@@ -2,6 +2,20 @@ import { supabase } from '../supabaseClient';
 import type { Database } from '@/integrations/supabase/types';
 import type { UseIncidentsOptions } from '@/features/incidents';
 
+// Loose client to avoid deep type instantiation on complex joined selects
+interface ReportedIncidentRow {
+    id: string;
+    reference_id: string;
+    title: string;
+    status: string;
+    severity: string | null;
+    event_type: string;
+    created_at: string;
+    occurred_at: string | null;
+    site: { id: string; name: string } | null;
+    branch: { id: string; name: string } | null;
+}
+
 export const getIncidents = async ({
     tenantId,
     branchIds,
@@ -180,16 +194,16 @@ export const getMyReportedIncidents = async ({
 }) => {
     if (!userId || !tenantId) return [];
 
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
         .from('incidents')
-        .select('id, reference_id, title, status, severity, event_type, created_at, occurred_at, site:sites(id, name), branch:branches!incidents_branch_id_fkey(id, name)')
+        .select('id, reference_id, title, status, severity, event_type, created_at, occurred_at, site:sites!incidents_site_id_fkey(id, name), branch:branches!incidents_branch_id_fkey(id, name)')
         .eq('reporter_id', userId)
         .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data ?? []) as unknown as ReportedIncidentRow[];
 };
 
 export const getMyCorrectiveActions = async ({
