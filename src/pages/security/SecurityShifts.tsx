@@ -1,44 +1,59 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Plus, Clock, Pencil, Trash2, Sun, Moon, Sunset } from 'lucide-react';
 import { useSecurityShifts, useCreateSecurityShift, useUpdateSecurityShift, useDeleteSecurityShift } from '@/features/security';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { securityShiftFormSchema, type SecurityShiftFormValues } from './SecurityShiftsSchema';
+
+const defaultValues: SecurityShiftFormValues = {
+  shift_name: '', shift_code: '', start_time: '08:00', end_time: '16:00',
+  is_overnight: false, break_duration_minutes: 60, is_active: true,
+};
 
 export default function SecurityShifts() {
-  const { t, i18n } = useTranslation();
-  const isRTL = i18n.dir() === 'rtl';
+  const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingShift, setEditingShift] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ shift_name: '', shift_code: '', start_time: '08:00', end_time: '16:00', is_overnight: false, break_duration_minutes: 60, is_active: true });
+
+  const form = useForm<SecurityShiftFormValues>({
+    resolver: zodResolver(securityShiftFormSchema),
+    defaultValues,
+  });
 
   const { data: shifts, isLoading } = useSecurityShifts();
   const createShift = useCreateSecurityShift();
   const updateShift = useUpdateSecurityShift();
   const deleteShift = useDeleteSecurityShift();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (values: SecurityShiftFormValues) => {
     if (editingShift) {
-      await updateShift.mutateAsync({ id: editingShift, ...formData });
+      await updateShift.mutateAsync({ id: editingShift, ...values } as any);
     } else {
-      await createShift.mutateAsync(formData);
+      await createShift.mutateAsync(values as any);
     }
     setDialogOpen(false);
-    setFormData({ shift_name: '', shift_code: '', start_time: '08:00', end_time: '16:00', is_overnight: false, break_duration_minutes: 60, is_active: true });
+    form.reset(defaultValues);
     setEditingShift(null);
   };
 
   const handleEdit = (shift: any) => {
     setEditingShift(shift.id);
-    setFormData({ shift_name: shift.shift_name || '', shift_code: shift.shift_code || '', start_time: shift.start_time, end_time: shift.end_time, is_overnight: shift.is_overnight || false, break_duration_minutes: shift.break_duration_minutes || 60, is_active: shift.is_active ?? true });
+    form.reset({
+      shift_name: shift.shift_name || '', shift_code: shift.shift_code || '',
+      start_time: shift.start_time, end_time: shift.end_time,
+      is_overnight: shift.is_overnight || false, break_duration_minutes: shift.break_duration_minutes || 60,
+      is_active: shift.is_active ?? true,
+    });
     setDialogOpen(true);
   };
 
@@ -63,25 +78,48 @@ export default function SecurityShifts() {
           <h1 className="text-2xl font-bold">{t('security.shifts.title', 'Security Shifts')}</h1>
           <p className="text-muted-foreground">{t('security.shifts.description', 'Manage shift schedules')}</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setEditingShift(null); setFormData({ shift_name: '', shift_code: '', start_time: '08:00', end_time: '16:00', is_overnight: false, break_duration_minutes: 60, is_active: true }); } }}>
+        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setEditingShift(null); form.reset(defaultValues); } }}>
           <DialogTrigger asChild><Button><Plus className="h-4 w-4 me-2" />{t('security.shifts.addShift', 'Add Shift')}</Button></DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>{editingShift ? t('security.shifts.editShift', 'Edit Shift') : t('security.shifts.addShift', 'Add Shift')}</DialogTitle></DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>{t('security.shifts.shiftName', 'Name')}</Label><Input value={formData.shift_name} onChange={(e) => setFormData({ ...formData, shift_name: e.target.value })} required /></div>
-                <div className="space-y-2"><Label>{t('security.shifts.shiftCode', 'Code')}</Label><Input value={formData.shift_code} onChange={(e) => setFormData({ ...formData, shift_code: e.target.value })} required /></div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>{t('security.shifts.startTime', 'Start')}</Label><Input type="time" value={formData.start_time} onChange={(e) => setFormData({ ...formData, start_time: e.target.value })} required /></div>
-                <div className="space-y-2"><Label>{t('security.shifts.endTime', 'End')}</Label><Input type="time" value={formData.end_time} onChange={(e) => setFormData({ ...formData, end_time: e.target.value })} required /></div>
-              </div>
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2"><Switch checked={formData.is_overnight} onCheckedChange={(c) => setFormData({ ...formData, is_overnight: c })} /><Label>{t('security.shifts.isOvernight', 'Overnight')}</Label></div>
-                <div className="flex items-center gap-2"><Switch checked={formData.is_active} onCheckedChange={(c) => setFormData({ ...formData, is_active: c })} /><Label>{t('common.active', 'Active')}</Label></div>
-              </div>
-              <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>{t('common.cancel', 'Cancel')}</Button><Button type="submit" disabled={createShift.isPending || updateShift.isPending}>{editingShift ? t('common.save', 'Save') : t('common.create', 'Create')}</Button></div>
-            </form>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="shift_name" render={({ field }) => (
+                    <FormItem><FormLabel>{t('security.shifts.shiftName', 'Name')}</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+                  )} />
+                  <FormField control={form.control} name="shift_code" render={({ field }) => (
+                    <FormItem><FormLabel>{t('security.shifts.shiftCode', 'Code')}</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+                  )} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="start_time" render={({ field }) => (
+                    <FormItem><FormLabel>{t('security.shifts.startTime', 'Start')}</FormLabel><FormControl><Input type="time" {...field} /></FormControl></FormItem>
+                  )} />
+                  <FormField control={form.control} name="end_time" render={({ field }) => (
+                    <FormItem><FormLabel>{t('security.shifts.endTime', 'End')}</FormLabel><FormControl><Input type="time" {...field} /></FormControl></FormItem>
+                  )} />
+                </div>
+                <div className="flex items-center gap-6">
+                  <FormField control={form.control} name="is_overnight" render={({ field }) => (
+                    <FormItem className="flex items-center gap-2 space-y-0">
+                      <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                      <FormLabel>{t('security.shifts.isOvernight', 'Overnight')}</FormLabel>
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="is_active" render={({ field }) => (
+                    <FormItem className="flex items-center gap-2 space-y-0">
+                      <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                      <FormLabel>{t('common.active', 'Active')}</FormLabel>
+                    </FormItem>
+                  )} />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
+                  <Button type="submit" disabled={createShift.isPending || updateShift.isPending}>{editingShift ? t('common.save', 'Save') : t('common.create', 'Create')}</Button>
+                </div>
+              </form>
+            </Form>
           </DialogContent>
         </Dialog>
       </div>
@@ -126,4 +164,3 @@ export default function SecurityShifts() {
     </div>
   );
 }
-
