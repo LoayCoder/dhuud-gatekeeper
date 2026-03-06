@@ -682,7 +682,7 @@ export default function PublicRequestPage() {
                   {fields.map((field, index) => (
                     <PublicGatePassItemForm
                       key={field.id}
-                      item={items[index] || createEmptyItem()}
+                      item={(items[index] as GatePassItemData) || createEmptyItem()}
                       index={index}
                       onUpdate={handleItemUpdate}
                       onRemove={handleRemoveItem}
