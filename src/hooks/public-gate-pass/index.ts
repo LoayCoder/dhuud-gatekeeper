@@ -54,7 +54,6 @@ export interface PublicGatePassStatusData {
     [key: string]: unknown;
   } | null;
   error?: string;
-  [key: string]: unknown;
 }
 
 export function usePublicGatePassStatus(tenantSlug?: string, token?: string) {
