@@ -75,12 +75,14 @@ function AssetDepreciationContent() {
     );
   }
 
-  const assetData = asset as unknown as Record<string, unknown>;
-  const purchasePrice = assetData.purchase_price || assetData.purchase_cost;
-  const salvageValue = assetData.salvage_value;
-  const usefulLifeYears = assetData.expected_lifespan_years;
-  const depreciationMethod = assetData.depreciation_method || 'straight_line';
-  const startDate = assetData.installation_date || assetData.purchase_date;
+  const assetRec = asset as unknown as Record<string, unknown>;
+  const purchasePrice = Number(assetRec.purchase_price || assetRec.purchase_cost || 0);
+  const salvageValue = Number(assetRec.salvage_value ?? 0);
+  const usefulLifeYears = Number(assetRec.expected_lifespan_years || 0);
+  const depreciationMethod = String(assetRec.depreciation_method || 'straight_line') as import('@/hooks/use-depreciation-schedules').DepreciationMethod;
+  const startDate = String(assetRec.installation_date || assetRec.purchase_date || '');
+  const assetName = String(assetRec.name || '');
+  const assetCurrency = String(assetRec.currency || 'SAR');
 
   // Validate financial data completeness
   const hasPurchasePrice = purchasePrice !== null && purchasePrice !== undefined && purchasePrice > 0;
@@ -134,7 +136,7 @@ function AssetDepreciationContent() {
               {t('assets.depreciation.title', 'Depreciation Schedule')}
             </h1>
             <p className="text-muted-foreground">
-              {assetData.name} ({asset.asset_code})
+              {assetName} ({asset.asset_code})
             </p>
           </div>
         </div>
@@ -170,11 +172,11 @@ function AssetDepreciationContent() {
           <GenerateScheduleDialog
             assetId={id!}
             defaultValues={{
-              purchasePrice: validatedPurchasePrice,
-              salvageValue: validatedSalvageValue,
-              usefulLifeYears: validatedUsefulLife,
-              depreciationMethod,
-              startDate,
+              purchasePrice: validatedPurchasePrice as number,
+              salvageValue: validatedSalvageValue as number,
+              usefulLifeYears: validatedUsefulLife as number,
+              depreciationMethod: depreciationMethod,
+              startDate: startDate || undefined,
             }}
             onGenerate={generateSchedule}
             isGenerating={isGenerating}
@@ -185,9 +187,9 @@ function AssetDepreciationContent() {
       {/* Summary Cards */}
       <DepreciationSummaryCard
         schedules={schedules}
-        purchasePrice={validatedPurchasePrice}
-        salvageValue={validatedSalvageValue}
-        currency={assetData.currency || 'SAR'}
+        purchasePrice={validatedPurchasePrice as number}
+        salvageValue={validatedSalvageValue as number}
+        currency={assetCurrency}
         isLoading={schedulesLoading}
       />
 
@@ -207,7 +209,7 @@ function AssetDepreciationContent() {
         <TabsContent value="chart">
           <DepreciationChart
             schedules={schedules}
-            currency={assetData.currency || 'SAR'}
+            currency={assetCurrency}
             salvageValue={salvageValue}
           />
         </TabsContent>
@@ -224,7 +226,7 @@ function AssetDepreciationContent() {
               <DepreciationScheduleTable
                 schedules={schedules}
                 isLoading={schedulesLoading}
-                currency={assetData.currency || 'SAR'}
+                currency={assetCurrency}
                 onDelete={deleteSchedule}
                 isDeleting={isDeleting}
               />
