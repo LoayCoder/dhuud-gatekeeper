@@ -1,3 +1,4 @@
+import React from 'react';
 import { format } from 'date-fns';
 
 export interface ManhourFormData {
@@ -75,3 +76,27 @@ export const defaultFormData: ManhourFormData = {
   notes: '',
 };
 
+export type ManhoursFormData = ManhourFormData;
+
+export interface Branch { id: string; name: string }
+export interface Site { id: string; name: string; branch_id: string }
+export interface Department { id: string; name: string; branch_id: string | null }
+
+export interface ManhoursDialogState {
+  t: (key: string, defaultValue?: string) => string;
+  isDialogOpen: boolean;
+  setIsDialogOpen: (open: boolean) => void;
+  editingId: string | null;
+  formData: ManhoursFormData;
+  setFormData: React.Dispatch<React.SetStateAction<ManhoursFormData>>;
+  handleSubmit: (e: React.FormEvent) => void;
+  handlePeriodTypeChange: (value: 'daily' | 'weekly' | 'monthly') => void;
+  handleCalculationModeChange: (checked: boolean) => void;
+  handleManpowerChange: (field: any, value: number) => void;
+  branches: Branch[] | undefined;
+  sites: Site[] | undefined;
+  departments: Department[] | undefined;
+  formatNumber: (n: number | string) => string;
+  createMutation: { isPending: boolean };
+  updateMutation: { isPending: boolean };
+}

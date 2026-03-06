@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { 
-  AlertTriangle, 
-  Shield, 
-  Heart, 
+import {
+  AlertTriangle,
+  Shield,
+  Heart,
   HelpCircle,
   Camera,
   MapPin,
@@ -18,7 +18,7 @@ import {
 import { VoiceMemoRecorder } from './VoiceMemoRecorder';
 import { VisitorPhotoCapture } from './VisitorPhotoCapture';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { submitQuickIncident } from '../services/quickIncidentService';
 import { cn } from '@/lib/utils';
 
 type IncidentType = 'hazard' | 'security' | 'medical' | 'other';
@@ -84,74 +84,23 @@ export function QuickIncidentReport({ onSuccess, onCancel, className }: QuickInc
 
     setIsSubmitting(true);
     try {
-      // Get fresh session to avoid stale user ID
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !sessionData.session?.user?.id) {
-        throw new Error('Session expired. Please refresh the page and try again.');
-      }
-      const freshUserId = sessionData.session.user.id;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('tenant_id')
-        .eq('id', freshUserId)
-        .single();
-
-      if (!profile?.tenant_id) throw new Error('No tenant found');
-
-      // Upload photo if exists
-      let photoPath: string | null = null;
-      if (photoBlob) {
-        const fileName = `quick-incident/${Date.now()}.jpg`;
-        const { error: uploadError } = await supabase.storage
-          .from('incident-photos')
-          .upload(fileName, photoBlob);
-        
-        if (!uploadError) {
-          photoPath = fileName;
-        }
-      }
-
-      // Upload voice memo if exists
-      let voicePath: string | null = null;
-      if (voiceBlob) {
-        const fileName = `quick-incident/${Date.now()}.webm`;
-        const { error: uploadError } = await supabase.storage
-          .from('incident-audio')
-          .upload(fileName, voiceBlob);
-        
-        if (!uploadError) {
-          voicePath = fileName;
-        }
-      }
-
-      // Create incident record with fresh user ID
-      const { error: insertError } = await supabase
-        .from('incidents')
-        .insert([{
-          tenant_id: profile.tenant_id,
-          reporter_id: freshUserId,
-          title: `Quick Report: ${selectedType.charAt(0).toUpperCase() + selectedType.slice(1)} Incident`,
-          description: notes || `Quick incident report - ${selectedType}`,
-          event_type: 'incident',
-          incident_type: selectedType === 'hazard' ? 'near_miss' : 
-                        selectedType === 'medical' ? 'injury' : 
-                        selectedType === 'security' ? 'property_damage' : 'other',
-          severity: selectedType === 'medical' ? 'high' : 'medium',
-          status: 'submitted',
-        }]);
-
-      if (insertError) throw insertError;
+      await submitQuickIncident({
+        selectedType,
+        notes,
+        photoBlob,
+        voiceBlob,
+        location,
+      });
 
       setIsSuccess(true);
       toast.success(t('security.incident.submitted', 'Incident reported successfully'));
-      
+
       setTimeout(() => {
         onSuccess?.();
       }, 1500);
-      
+
     } catch (error) {
-      console.error('Error submitting incident:', error);
+      console.error('[QuickIncidentReport]', error);
       toast.error(t('security.incident.submitError', 'Failed to submit incident'));
     } finally {
       setIsSubmitting(false);
@@ -230,13 +179,13 @@ export function QuickIncidentReport({ onSuccess, onCancel, className }: QuickInc
                 </Badge>
               )}
             </div>
-            
+
             <div>
               <p className="text-sm font-medium mb-2">
                 {t('security.incident.voiceNote', 'Voice Note (Optional)')}
               </p>
-              <VoiceMemoRecorder 
-                compact 
+              <VoiceMemoRecorder
+                compact
                 onRecordingComplete={handleVoiceMemo}
               />
             </div>
@@ -283,8 +232,8 @@ export function QuickIncidentReport({ onSuccess, onCancel, className }: QuickInc
               <Button variant="outline" onClick={() => setStep(2)} className="flex-1">
                 {t('common.back', 'Back')}
               </Button>
-              <Button 
-                onClick={handleSubmit} 
+              <Button
+                onClick={handleSubmit}
                 disabled={isSubmitting}
                 className="flex-1 gap-2"
               >

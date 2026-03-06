@@ -11,12 +11,37 @@ import { ManhoursDialog } from './components/ManhoursDialog';
 import { ImportDialog } from './components/ImportDialog';
 import { TabsContent as BaseTabsContent } from '@/components/ui/tabs'; // Aliased
 
+import type { ManhoursDialogState } from './types';
+
 export default function ManhoursManagement() {
   const state = useManhoursManagementState();
   const {
     t, fileInputRef, downloadTemplate, handleFileUpload, handleOpenDialog,
-    deleteConfirmId, setDeleteConfirmId, handleDelete, deleteMutation
+    deleteConfirmId, setDeleteConfirmId, handleDelete, deleteMutation,
+    isDialogOpen, setIsDialogOpen, editingId, formData, setFormData,
+    handleSubmit, handlePeriodTypeChange, handleCalculationModeChange,
+    handleManpowerChange, branches, sites, departments, formatNumber,
+    createMutation, updateMutation
   } = state;
+
+  const dialogState: ManhoursDialogState = {
+    t,
+    isDialogOpen,
+    setIsDialogOpen,
+    editingId,
+    formData,
+    setFormData,
+    handleSubmit,
+    handlePeriodTypeChange,
+    handleCalculationModeChange,
+    handleManpowerChange,
+    branches,
+    sites,
+    departments,
+    formatNumber,
+    createMutation,
+    updateMutation,
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -78,8 +103,8 @@ export default function ManhoursManagement() {
         </BaseTabsContent>
       </Tabs>
 
-      <ManhoursDialog state={state} />
-      
+      <ManhoursDialog state={dialogState} />
+
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteConfirmId !== null} onOpenChange={() => setDeleteConfirmId(null)}>
         <DialogContent>
@@ -93,8 +118,8 @@ export default function ManhoursManagement() {
             <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>
               {t('common.cancel', 'Cancel')}
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={() => deleteConfirmId && handleDelete(deleteConfirmId)}
               disabled={deleteMutation.isPending}
             >

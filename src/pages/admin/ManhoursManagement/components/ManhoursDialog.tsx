@@ -9,9 +9,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { workSchedulePresets } from '../types';
+import { ManhoursDialogState } from '../types';
 
-export function ManhoursDialog({ state }: { state: any }) {
-  const { t, isDialogOpen, setIsDialogOpen, editingId, formData, setFormData, handleSubmit, handlePeriodTypeChange, handleCalculationModeChange, handleManpowerChange, branches, sites, departments, formatNumber, createMutation, updateMutation } = state as any;
+export function ManhoursDialog({ state }: { state: ManhoursDialogState }) {
+  const { t, isDialogOpen, setIsDialogOpen, editingId, formData, setFormData, handleSubmit, handlePeriodTypeChange, handleCalculationModeChange, handleManpowerChange, branches, sites, departments, formatNumber, createMutation, updateMutation } = state;
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogContent className="sm:max-w-[500px]">
