@@ -137,7 +137,7 @@ export default function InvestigationWorkspace() {
   // Calculate SLA for the detail view header
   let slaInfo = null;
   if (incidentData) {
-    slaInfo = calculateInvestigationSLA(incidentData.created_at || new Date().toISOString(), incidentData.severity_v2 || (incidentData as Record<string, unknown>).severity as string);
+    slaInfo = calculateInvestigationSLA(incidentData.created_at || new Date().toISOString(), incidentData.severity_v2 || String((incidentData as unknown as Record<string, unknown>).severity || ''));
   }
 
   return (
