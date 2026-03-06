@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { isPast, isToday, isThisWeek, parseISO } from 'date-fns';
-import type { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 
 // ── Joined relation interfaces ──────────────────────────────
 interface ProfileSummary {
@@ -49,13 +48,12 @@ interface InspectionSessionRow {
 }
 
 /**
- * Helper to get a loosely-typed query builder for tables whose schema
- * may differ between runtime and the generated Supabase types (e.g.
- * columns/statuses added after last type generation).
+ * Helper: returns a loosely-typed Supabase query builder for tables/columns
+ * that may not yet be in the generated types (e.g. observations, or status
+ * enum values added after last codegen).
  */
-function untypedFrom(table: string) {
-    return (supabase as unknown as { from(t: string): PostgrestFilterBuilder<Record<string, unknown>, Record<string, unknown>, unknown[]> }).from(table);
-}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const untypedFrom = (table: string) => (supabase as unknown as Record<string, (...args: unknown[]) => unknown>).from(table) as ReturnType<typeof supabase.from>;
 
 // ── Exported interfaces ─────────────────────────────────────
 export interface UserOverviewStats {
