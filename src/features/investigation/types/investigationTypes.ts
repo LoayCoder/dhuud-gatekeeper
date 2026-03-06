@@ -35,8 +35,7 @@ export interface ViolationIncidentFields extends IncidentWithDetails {
   violation_finalized_at: string | null;
   violation_identified: boolean | null;
 
-  // --- Severity fallback ---
-  severity: string | null;
+  // --- Severity fallback (severity already exists on base; severity_level is extra) ---
   severity_level: string | null;
 
   // --- Incident type (HSSE category) ---
