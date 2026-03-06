@@ -48,19 +48,14 @@ interface InspectionSessionRow {
 }
 
 /**
- * Helper: returns a loosely-typed Supabase query builder for tables/columns
- * that may not yet be in the generated types.
+ * Escape hatch for Supabase queries on tables/columns/enum values
+ * not yet reflected in generated types. Returns a builder with
+ * full chaining support but no compile-time column/status validation.
  */
-function untypedFrom(table: string) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (supabase.from as (t: string) => Record<string, (...args: unknown[]) => unknown>)(table);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function untypedFrom(table: string): any {
+    return supabase.from(table as 'profiles');
 }
-
-/** Typed wrapper around untypedFrom for incident queries */
-async function queryIncidents(builder: Record<string, unknown>) {
-    return builder as unknown as { data: IncidentRow[] | null };
-}
-
 
 // ── Exported interfaces ─────────────────────────────────────
 export interface UserOverviewStats {
