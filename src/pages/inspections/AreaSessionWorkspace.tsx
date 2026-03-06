@@ -85,8 +85,8 @@ function AreaSessionWorkspaceContent() {
     try {
       await startSession.mutateAsync(sessionId);
       toast.success(t('inspectionSessions.sessionStarted'));
-    } catch (error: any) {
-      toast.error(error?.message || 'Error');
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Error');
     }
   };
 
