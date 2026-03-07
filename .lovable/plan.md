@@ -1,63 +1,57 @@
 
-# Fix "Take Action" Button for Department Representative
+
+# Plan: Add Missing Translations for Urdu, Hindi, and Filipino
 
 ## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
+The English source file has ~9,876 lines while Urdu (~6,541), Hindi (~6,526), and Filipino (~6,518) each have ~3,300+ lines of missing keys. These missing keys cause fallback to English or auto-generated labels at runtime.
 
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+## Approach
+Create a Node.js script (similar to `scripts/i18n-audit-fix.cjs` used for Arabic) that:
 
-## What Changes
+1. **Parses** `en/translation.json` using the dedup parser (handles duplicate keys)
+2. **For each target language** (ur, hi, fil):
+   - Deep-walks all EN keys
+   - Identifies missing keys not present in the target file
+   - Translates using a built-in HSSE dictionary (~300+ terms per language)
+   - Preserves `{{variable}}` placeholders and HTML tags
+   - Does NOT overwrite existing translations
+   - Writes the merged result back
+3. **Processes one language at a time** (ur → hi → fil)
+4. **Generates a report** of keys added per language and any keys that need manual review
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+## File Changes
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+### 1. Create `scripts/i18n-translate-remaining.cjs`
+- Reuses the `parseJsonDedup` logic from the Arabic script
+- Contains translation dictionaries for:
+  - **Urdu** (formal, RTL) — HSSE terms like "Incident" → "واقعہ", "Risk Assessment" → "خطرے کی تشخیص"
+  - **Hindi** (formal) — "Incident" → "घटना", "Risk Assessment" → "जोखिम मूल्यांकन"
+  - **Filipino** (formal) — "Incident" → "Insidente", "Risk Assessment" → "Pagsusuri ng Panganib"
+- Word-by-word dictionary translation for simple values
+- Copies EN value as-is for complex/long strings (flagged for manual review)
+- Outputs summary: `X keys added, Y keys need manual review`
 
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+### 2. Update `src/i18n.ts`
+- Change ur, hi, fil imports to use `?raw` + `parseJsonDedup` (same pattern as en/ar) to handle any duplicate keys in those files too
 
-```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
-```
+### 3. Update `src/locales/ur/translation.json`
+- All missing keys from EN added with Urdu translations
 
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
+### 4. Update `src/locales/hi/translation.json`  
+- All missing keys from EN added with Hindi translations
 
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
+### 5. Update `src/locales/fil/translation.json`
+- All missing keys from EN added with Filipino translations
 
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
+## Technical Notes
+- The script uses dictionary-based translation for common UI/HSSE terms and copies English for domain-specific long sentences (flagged for human review)
+- Placeholder integrity (`{{variable}}`) is preserved by regex extraction and reinsertion
+- Existing translations are never overwritten — only missing keys are added
+- The `?raw` import pattern in i18n.ts ensures duplicate keys in any language file are safely deep-merged at runtime
 
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
-```
+## Execution Order
+1. Create the script
+2. Update i18n.ts imports for ur/hi/fil to use raw+dedup
+3. The script would need to be run locally: `node scripts/i18n-translate-remaining.cjs`
+4. Verify build passes
 
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
-
-### 3. Localize the Button Text
-
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
-
-## Files Modified
-
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
