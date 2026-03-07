@@ -13,15 +13,7 @@ export const defaultNS = 'translation';
 
 export const resources = {
   en: { translation: en },
-  ar: {
-    translation: ar,
-    auth: arAuth,
-    common: arCommon,
-    security: arSecurity,
-    incidents: arIncidents,
-    assets: arAssets,
-    contractors: arContractors,
-  },
+  ar: { translation: ar },
   ur: { translation: ur },
   hi: { translation: hi },
   fil: { translation: fil },
