@@ -1143,22 +1143,61 @@ function extractPlaceholders(str) {
 
 // Try to translate using dictionary
 function translateWithDict(enValue) {
-  // Exact match
+  if (!enValue || typeof enValue !== 'string') return null;
+  
+  // Exact match in main dictionary
   if (DICTIONARY[enValue]) return DICTIONARY[enValue];
   
-  // Try sentence-level match
-  for (const [pattern, translation] of Object.entries(SENTENCE_DICT)) {
-    if (enValue.toLowerCase().includes(pattern.toLowerCase())) {
-      // partial match found but can't reliably translate the whole string
+  // Exact match in sentence dictionary
+  if (SENTENCE_DICT[enValue]) return SENTENCE_DICT[enValue];
+  
+  // Try case-insensitive exact match
+  const lowerVal = enValue.toLowerCase();
+  for (const [key, val] of Object.entries(DICTIONARY)) {
+    if (key.toLowerCase() === lowerVal) return val;
+  }
+  for (const [key, val] of Object.entries(SENTENCE_DICT)) {
+    if (key.toLowerCase() === lowerVal) return val;
+  }
+
+  // Extract placeholders, translate the text part, then re-insert
+  const placeholders = [];
+  let cleanedValue = enValue.replace(/\{\{[^}]+\}\}/g, (match) => {
+    placeholders.push(match);
+    return `__PH${placeholders.length - 1}__`;
+  });
+  
+  // Try dictionary on cleaned value
+  if (DICTIONARY[cleanedValue]) {
+    let result = DICTIONARY[cleanedValue];
+    placeholders.forEach((ph, idx) => { result = result.replace(`__PH${idx}__`, ph); });
+    return result;
+  }
+
+  // For short strings (1-4 words), try word-by-word
+  const words = cleanedValue.split(/\s+/);
+  if (words.length <= 4 && words.length > 0) {
+    const translated = words.map(w => {
+      return DICTIONARY[w] || 
+             DICTIONARY[w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()] || 
+             DICTIONARY[w.toLowerCase()] ||
+             DICTIONARY[w.toUpperCase()] ||
+             null;
+    });
+    if (translated.every(t => t !== null)) {
+      let result = translated.join(' ');
+      placeholders.forEach((ph, idx) => { result = result.replace(`__PH${idx}__`, ph); });
+      return result;
     }
   }
   
-  // For short strings (1-3 words), try word-by-word
-  const words = enValue.split(/\s+/);
-  if (words.length <= 3) {
-    const translated = words.map(w => DICTIONARY[w] || DICTIONARY[w.charAt(0).toUpperCase() + w.slice(1)] || null);
-    if (translated.every(t => t !== null)) {
-      return translated.join(' ');
+  // Try sentence-level partial match (longest match first)
+  const sortedSentences = Object.entries(SENTENCE_DICT).sort((a, b) => b[0].length - a[0].length);
+  for (const [pattern, translation] of sortedSentences) {
+    if (cleanedValue.toLowerCase() === pattern.toLowerCase()) {
+      let result = translation;
+      placeholders.forEach((ph, idx) => { result = result.replace(`__PH${idx}__`, ph); });
+      return result;
     }
   }
   
