@@ -31,19 +31,19 @@ export function CurrentOwnerCard({ incident }: { incident: IncidentWithDetails }
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div className="space-y-2">
                             <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
-                                Waiting for Assignment
+                                {t('workflow.waitingForAssignment', 'Waiting for Assignment')}
                             </h3>
                             <p className="text-muted-foreground">
-                                <span className="font-semibold text-foreground">{owner.role}</span> will pick this up for: {owner.actionRequired}
+                                <span className="font-semibold text-foreground">{owner.role}</span> {t('workflow.willPickUpFor', 'will pick this up for:')} {owner.actionRequired}
                             </p>
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
                             <Button variant="outline" className="border-warning/50 text-warning hover:bg-warning/10 shadow-sm">
-                                <Bell className="h-4 w-4 mr-2" />
-                                Notify {owner.role}s
+                                <Bell className="h-4 w-4 me-2" />
+                                {t('workflow.notifyRole', 'Notify {{role}}s', { role: owner.role })}
                             </Button>
                             <Button variant="default" className="bg-warning text-warning-foreground hover:bg-warning/90 shadow-sm">
-                                Request Priority Assignment
+                                {t('workflow.requestPriorityAssignment', 'Request Priority Assignment')}
                             </Button>
                         </div>
                     </div>
