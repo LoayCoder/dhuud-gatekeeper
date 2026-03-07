@@ -3434,25 +3434,25 @@
     },
     "evidence": {
       "title": "إدارة الأدلة",
-      "subtitle": "Upload and manage investigation evidence",
+      "subtitle": "تحميل وإدارة أدلة التحقيق",
       "upload": {
-        "button": "Add Evidence",
-        "title": "Upload Evidence",
-        "description": "Add supporting materials for this investigation.",
-        "file": "File",
-        "optionalFile": "Attached Document (Optional)",
-        "submit": "Upload Evidence"
+        "button": "إضافة دليل",
+        "title": "تحميل دليل",
+        "description": "أضف مواد داعمة لهذا التحقيق.",
+        "file": "ملف",
+        "optionalFile": "مستند مرفق (اختياري)",
+        "submit": "تحميل الدليل"
       },
-      "uploaded": "Evidence uploaded successfully",
+      "uploaded": "تم تحميل الدليل بنجاح",
       "uploading": "جاري الرفع...",
-      "deleted": "Evidence deleted",
-      "noItems": "No evidence uploaded yet.",
-      "noItemsHint": "Click \"Add Evidence\" to upload photos, documents, CCTV data, and more.",
-      "reviewed": "Reviewed",
-      "reviewSaved": "Review saved successfully",
+      "deleted": "تم حذف الدليل",
+      "noItems": "لم يتم تحميل أدلة بعد.",
+      "noItemsHint": "انقر \"إضافة دليل\" لتحميل الصور والمستندات وبيانات الكاميرات والمزيد.",
+      "reviewed": "تمت المراجعة",
+      "reviewSaved": "تم حفظ المراجعة بنجاح",
       "type": "نوع الدليل",
       "description": "الوصف",
-      "descriptionPlaceholder": "Add notes about this evidence...",
+      "descriptionPlaceholder": "أضف ملاحظات حول هذا الدليل...",
       "types": {
         "photo": "صورة",
         "document": "مستند",
@@ -3471,13 +3471,13 @@
         "date": "التاريخ",
         "startTime": "وقت البدء",
         "endTime": "وقت الانتهاء",
-        "addCamera": "Add Camera"
+        "addCamera": "إضافة كاميرا"
       },
       "references": {
-        "ptwId": "PTW ID",
-        "checklistId": "Inspection Checklist ID",
-        "ptwPlaceholder": "e.g., PTW-2024-0001",
-        "checklistPlaceholder": "e.g., CHK-2024-0001"
+        "ptwId": "رقم تصريح العمل",
+        "checklistId": "رقم قائمة التفتيش",
+        "ptwPlaceholder": "مثال: PTW-2024-0001",
+        "checklistPlaceholder": "مثال: CHK-2024-0001"
       },
       "review": {
         "button": "مراجعة",
@@ -3505,11 +3505,11 @@
         "documentFile": "ملف مستند"
       },
       "delete": {
-        "title": "Delete Evidence",
-        "description": "Are you sure you want to delete this evidence? This action cannot be undone."
+        "title": "حذف الدليل",
+        "description": "هل أنت متأكد من حذف هذا الدليل؟ لا يمكن التراجع عن هذا الإجراء."
       },
       "security": {
-        "session": "Session"
+        "session": "الجلسة"
       },
       "lockedClosed": "تم إغلاق هذه الحادثة. لا يمكن تعديل الأدلة.",
       "gallery": "معرض الأدلة",
