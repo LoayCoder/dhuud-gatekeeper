@@ -1481,7 +1481,11 @@
     "unnamed": "بدون اسم",
     "viewAll": "عرض الكل",
     "expand": "توسيع",
-    "offline": "غير متصل"
+    "offline": "غير متصل",
+    "allMonths": "جميع الأشهر",
+    "allBranches": "جميع الفروع",
+    "year": "السنة",
+    "filters": "عوامل التصفية"
   },
   "assignment": {
     "title": "معلومات التعيين",
