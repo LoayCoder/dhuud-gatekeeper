@@ -47,7 +47,6 @@ export function AvatarCropDialog({
   const [processing, setProcessing] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const { t } = useTranslation();
-  const imgRef = useRef<HTMLImageElement>(null);
 
   const onImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     const { width, height } = e.currentTarget;
