@@ -6439,7 +6439,19 @@
     "exportPdf": "تصدير إلى PDF",
     "exportSuccess": "تم تصدير التقرير بنجاح",
     "exportError": "فشل تصدير التقرير",
-    "summary": "ملخص"
+    "summary": "ملخص",
+    "filters": "عوامل التصفية",
+    "recordableInjuries": "الإصابات المسجلة",
+    "lostTimeInjuries": "إصابات الوقت الضائع",
+    "restrictedDuty": "واجب مقيد",
+    "totalLostDays": "إجمالي الأيام الضائعة",
+    "manhours": "ساعات العمل",
+    "noRecordableInjuries": "لا إصابات مسجلة",
+    "observationCompletion": "إتمام الملاحظات",
+    "hazardRate": "تحديد المخاطر",
+    "nearMisses": "حوادث وشيكة",
+    "closed": "مغلقة",
+    "hazardsIdentified": "مخاطر محددة"
   },
   "kpiAdmin": {
     "title": "إدارة أهداف مؤشرات الأداء",
