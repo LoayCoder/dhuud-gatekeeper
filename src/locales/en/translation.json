@@ -3171,7 +3171,13 @@
     "scoreCriticalMsg": "Immediate action required",
     "overdueActions": "Overdue corrective actions require attention",
     "overdueIncidents": "Overdue incident investigations",
-    "topPriorities": "Top Priorities"
+    "topPriorities": "Top Priorities",
+    "statusGood": "Good",
+    "statusCaution": "Caution",
+    "statusCritical": "Critical",
+    "openInvestigations": "Multiple open investigations",
+    "highTrir": "TRIR above target threshold",
+    "highLtifr": "LTIFR above target threshold"
   },
   "investigation": {
     "title": "Investigation",
