@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import {
@@ -44,6 +45,8 @@ export function AvatarCropDialog({
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
   const [processing, setProcessing] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const { t } = useTranslation();
   const imgRef = useRef<HTMLImageElement>(null);
 
   const onImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -103,9 +106,9 @@ export function AvatarCropDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Crop Profile Picture</DialogTitle>
+          <DialogTitle>{t('profile.cropProfilePicture', 'Crop Profile Picture')}</DialogTitle>
           <DialogDescription>
-            Adjust the crop area to select your profile picture.
+            {t('profile.cropDescription', 'Adjust the crop area to select your profile picture.')}
           </DialogDescription>
         </DialogHeader>
 
@@ -121,7 +124,7 @@ export function AvatarCropDialog({
             <img
               ref={imgRef}
               src={imageSrc}
-              alt="Crop preview"
+              alt={t('profile.cropPreview', 'Crop preview')}
               onLoad={onImageLoad}
               className="max-h-[400px] max-w-full"
             />
@@ -130,16 +133,16 @@ export function AvatarCropDialog({
 
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={processing}>
-            Cancel
+            {t('common.cancel', 'Cancel')}
           </Button>
           <Button onClick={handleSave} disabled={processing || !completedCrop}>
             {processing ? (
               <>
                 <Loader2 className="me-2 h-4 w-4 animate-spin" />
-                Processing...
+                {t('common.processing', 'Processing...')}
               </>
             ) : (
-              "Save"
+              t('common.save', 'Save')
             )}
           </Button>
         </DialogFooter>
