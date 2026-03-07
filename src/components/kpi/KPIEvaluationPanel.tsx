@@ -46,6 +46,7 @@ const getStatusConfig = (t: (key: string, fallback: string) => string) => ({
 
 export function KPIEvaluationPanel({ evaluations, isLoading }: KPIEvaluationPanelProps) {
   const { t } = useTranslation();
+  const statusConfig = getStatusConfig(t);
   const [expandedKPIs, setExpandedKPIs] = useState<Set<string>>(new Set());
 
   const toggleExpanded = (kpiCode: string) => {

@@ -56,6 +56,7 @@ const getStatusConfig = (t: (key: string, fallback: string) => string): Record<s
 
 export function MajorEventsTimeline({ events, isLoading }: MajorEventsTimelineProps) {
   const { t } = useTranslation();
+  const statusConfig = getStatusConfig(t);
   const navigate = useNavigate();
 
   const handleEventClick = (eventId: string) => {

@@ -103,10 +103,10 @@ export function IncidentWorkflowCard({
 
   // Select appropriate workflow based on event type and contractor context
   const workflow = isContractorObservation && eventType === 'observation'
-    ? CONTRACTOR_OBSERVATION_WORKFLOW
+    ? getContractorObservationWorkflow(t)
     : eventType === 'observation' 
-      ? OBSERVATION_WORKFLOW 
-      : INCIDENT_WORKFLOW;
+      ? getObservationWorkflow(t) 
+      : getIncidentWorkflow(t);
 
   return (
     <Card>
