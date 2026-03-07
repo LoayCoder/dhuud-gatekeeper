@@ -33,11 +33,11 @@ interface TeamTaskAssignmentPanelProps {
   isTeamLeader: boolean;
 }
 
-const TASK_TYPES = [
-  { value: 'evidence_collection', icon: Camera, label: 'Evidence Collection' },
-  { value: 'witness_interview', icon: Users, label: 'Witness Interview' },
-  { value: 'property_assessment', icon: FileSearch, label: 'Property Assessment' },
-  { value: 'injury_documentation', icon: Stethoscope, label: 'Injury Documentation' },
+const getTaskTypes = (t: (key: string, fallback: string) => string) => [
+  { value: 'evidence_collection', icon: Camera, label: t('investigation.taskTypes.evidenceCollection', 'Evidence Collection') },
+  { value: 'witness_interview', icon: Users, label: t('investigation.taskTypes.witnessInterview', 'Witness Interview') },
+  { value: 'property_assessment', icon: FileSearch, label: t('investigation.taskTypes.propertyAssessment', 'Property Assessment') },
+  { value: 'injury_documentation', icon: Stethoscope, label: t('investigation.taskTypes.injuryDocumentation', 'Injury Documentation') },
 ];
 
 /**
@@ -50,6 +50,7 @@ export function TeamTaskAssignmentPanel({
 }: TeamTaskAssignmentPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
+  const TASK_TYPES = getTaskTypes(t);
 
   const form = useForm<TeamTaskAssignmentValues>({
     resolver: zodResolver(teamTaskAssignmentSchema),
@@ -188,7 +189,7 @@ export function TeamTaskAssignmentPanel({
                         <SelectItem key={type.value} value={type.value}>
                           <div className="flex items-center gap-2">
                             <type.icon className="h-4 w-4" />
-                            {t(`workflow.teamTasks.types.${type.value}`, type.label)}
+                            {String(t(`workflow.teamTasks.types.${type.value}`, type.label))}
                           </div>
                         </SelectItem>
                       ))}

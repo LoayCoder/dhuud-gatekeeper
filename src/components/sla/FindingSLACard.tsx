@@ -11,35 +11,35 @@ interface FindingSLACardProps {
   onEdit: () => void;
 }
 
-const getClassificationStyle = (classification: string) => {
+const getClassificationStyle = (classification: string, t: (key: string, fallback: string) => string) => {
   switch (classification) {
     case 'critical_nc':
       return { 
         dotColor: 'bg-destructive', 
         textColor: 'text-destructive',
         badgeVariant: 'destructive' as const,
-        label: 'Critical NC'
+        label: t('sla.classification.criticalNc', 'Critical NC')
       };
     case 'major_nc':
       return { 
         dotColor: 'bg-orange-500', 
         textColor: 'text-orange-600 dark:text-orange-400',
         badgeVariant: 'default' as const,
-        label: 'Major NC'
+        label: t('sla.classification.majorNc', 'Major NC')
       };
     case 'minor_nc':
       return { 
         dotColor: 'bg-yellow-500', 
         textColor: 'text-yellow-600 dark:text-yellow-400',
         badgeVariant: 'secondary' as const,
-        label: 'Minor NC'
+        label: t('sla.classification.minorNc', 'Minor NC')
       };
     case 'observation':
       return { 
         dotColor: 'bg-blue-500', 
         textColor: 'text-blue-600 dark:text-blue-400',
         badgeVariant: 'outline' as const,
-        label: 'Observation'
+        label: t('sla.classification.observation', 'Observation')
       };
     default:
       return { 
@@ -53,7 +53,7 @@ const getClassificationStyle = (classification: string) => {
 
 export function FindingSLACard({ config, onEdit }: FindingSLACardProps) {
   const { t } = useTranslation();
-  const style = getClassificationStyle(config.classification);
+  const style = getClassificationStyle(config.classification, t);
 
   const timelineItems = [
     {

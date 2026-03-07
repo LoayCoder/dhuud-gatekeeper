@@ -54,12 +54,12 @@ const FIELD_LABELS: Record<string, string> = {
   tags: 'Tags'
 };
 
-const STATUS_OPTIONS = [
-  { value: 'active', label: 'Active' },
-  { value: 'out_of_service', label: 'Out of Service' },
-  { value: 'under_maintenance', label: 'Under Maintenance' },
-  { value: 'retired', label: 'Retired' },
-  { value: 'missing', label: 'Missing' },
+const getStatusOptions = (t: (key: string, fallback: string) => string) => [
+  { value: 'active', label: t('assets.status.active', 'Active') },
+  { value: 'out_of_service', label: t('assets.status.outOfService', 'Out of Service') },
+  { value: 'under_maintenance', label: t('assets.status.underMaintenance', 'Under Maintenance') },
+  { value: 'retired', label: t('assets.status.retired', 'Retired') },
+  { value: 'missing', label: t('assets.status.missing', 'Missing') },
 ];
 
 const CONDITION_OPTIONS = [
@@ -89,6 +89,7 @@ export function ImportFieldEditor({
   autoFixSuggestion
 }: ImportFieldEditorProps) {
   const { t } = useTranslation();
+  const STATUS_OPTIONS = getStatusOptions(t);
   const [localValue, setLocalValue] = useState(value || '');
 
   useEffect(() => {

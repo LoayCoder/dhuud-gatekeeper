@@ -9005,5 +9005,58 @@
       "completed": "مكتمل"
     },
     "internalRequest": "طلب داخلي"
+  },
+  "investigation": {
+    "tabs": {
+      "overview": "نظرة عامة",
+      "evidence": "الأدلة",
+      "witnesses": "الشهود",
+      "rca": "تحليل السبب الجذري",
+      "actions": "الإجراءات",
+      "injuries": "الإصابات",
+      "propertyDamage": "أضرار الممتلكات",
+      "governance": "الحوكمة",
+      "environmentalImpact": "الأثر البيئي"
+    },
+    "taskTypes": {
+      "evidenceCollection": "جمع الأدلة",
+      "witnessInterview": "مقابلة الشهود",
+      "propertyAssessment": "تقييم الممتلكات",
+      "injuryDocumentation": "توثيق الإصابات"
+    }
+  },
+  "workflow": {
+    "status": {
+      "submitted": "تم التقديم",
+      "expertScreening": "فحص الخبير",
+      "pendingApproval": "بانتظار الموافقة",
+      "investigation": "التحقيق",
+      "pendingClosure": "بانتظار الإغلاق",
+      "closed": "مغلق",
+      "managerReview": "مراجعة المدير",
+      "hsseReview": "مراجعة السلامة",
+      "finalClosure": "الإغلاق النهائي",
+      "consultantReview": "مراجعة الاستشاري",
+      "siteClientApproval": "موافقة العميل",
+      "implementation": "التنفيذ",
+      "verification": "التحقق",
+      "violationIfAny": "المخالفة (إن وجدت)"
+    }
+  },
+  "kpi": {
+    "status": {
+      "exceeding": "يتجاوز الهدف",
+      "onTrack": "على المسار",
+      "atRisk": "معرض للخطر",
+      "failing": "فاشل"
+    }
+  },
+  "sla": {
+    "classification": {
+      "criticalNc": "عدم مطابقة حرج",
+      "majorNc": "عدم مطابقة رئيسي",
+      "minorNc": "عدم مطابقة ثانوي",
+      "observation": "ملاحظة"
+    }
   }
 }
