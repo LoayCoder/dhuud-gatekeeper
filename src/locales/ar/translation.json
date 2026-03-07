@@ -5666,16 +5666,16 @@
   },
   "audits": {
     "scoring": {
-      "title": "Audit Score",
-      "passed": "Passed",
+      "title": "درجة التدقيق",
+      "passed": "ناجح",
       "failed": "فشل",
-      "blocked": "Blocked",
-      "points": "points",
-      "progress": "Score Progress",
-      "threshold": "Pass Threshold",
+      "blocked": "محظور",
+      "points": "نقاط",
+      "progress": "تقدم الدرجة",
+      "threshold": "حد النجاح",
       "critical": "حرج",
-      "major": "Major",
-      "minor": "Minor"
+      "major": "رئيسي",
+      "minor": "ثانوي"
     },
     "types": {
       "asset": "فحص الأصول",
