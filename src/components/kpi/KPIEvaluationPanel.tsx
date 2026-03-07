@@ -13,36 +13,36 @@ interface KPIEvaluationPanelProps {
   isLoading?: boolean;
 }
 
-const statusConfig = {
+const getStatusConfig = (t: (key: string, fallback: string) => string) => ({
   'exceeding': { 
-    label: 'Exceeding', 
+    label: t('kpi.status.exceeding', 'Exceeding'), 
     color: 'text-green-500', 
     bg: 'bg-green-500/10',
     badge: 'default' as const,
     progressColor: 'bg-green-500'
   },
   'on-track': { 
-    label: 'On Track', 
+    label: t('kpi.status.onTrack', 'On Track'), 
     color: 'text-blue-500', 
     bg: 'bg-blue-500/10',
     badge: 'secondary' as const,
     progressColor: 'bg-blue-500'
   },
   'at-risk': { 
-    label: 'At Risk', 
+    label: t('kpi.status.atRisk', 'At Risk'), 
     color: 'text-yellow-500', 
     bg: 'bg-yellow-500/10',
     badge: 'outline' as const,
     progressColor: 'bg-yellow-500'
   },
   'failing': { 
-    label: 'Failing', 
+    label: t('kpi.status.failing', 'Failing'), 
     color: 'text-destructive', 
     bg: 'bg-destructive/10',
     badge: 'destructive' as const,
     progressColor: 'bg-destructive'
   },
-};
+});
 
 export function KPIEvaluationPanel({ evaluations, isLoading }: KPIEvaluationPanelProps) {
   const { t } = useTranslation();

@@ -237,11 +237,11 @@ export function KPIDashboardExport({
       doc.setFontSize(11);
       if (laggingData) {
         const laggingItems = [
-          { label: 'TRIR', value: laggingData.trir.toFixed(2) },
-          { label: 'LTIFR', value: laggingData.ltifr.toFixed(2) },
-          { label: 'DART Rate', value: laggingData.dart_rate.toFixed(2) },
-          { label: 'Fatality Rate', value: laggingData.fatality_rate.toFixed(4) },
-          { label: 'Severity Rate', value: laggingData.severity_rate.toFixed(2) },
+          { label: t('kpiDashboard.trir', 'TRIR'), value: laggingData.trir.toFixed(2) },
+          { label: t('kpiDashboard.ltifr', 'LTIFR'), value: laggingData.ltifr.toFixed(2) },
+          { label: t('kpiDashboard.dartRate', 'DART Rate'), value: laggingData.dart_rate.toFixed(2) },
+          { label: t('kpiDashboard.fatalityRate', 'Fatality Rate'), value: laggingData.fatality_rate.toFixed(4) },
+          { label: t('kpiDashboard.severityRate', 'Severity Rate'), value: laggingData.severity_rate.toFixed(2) },
         ];
 
         laggingItems.forEach((item, i) => {
@@ -257,9 +257,9 @@ export function KPIDashboardExport({
       doc.setFontSize(11);
       if (leadingData) {
         const leadingItems = [
-          { label: 'Near Miss Rate', value: leadingData.near_miss_rate.toFixed(2) },
-          { label: 'Action Closure %', value: leadingData.action_closure_pct.toFixed(1) + '%' },
-          { label: 'Observation %', value: leadingData.observation_completion_pct.toFixed(1) + '%' },
+          { label: t('kpiDashboard.nearMissRate', 'Near Miss Rate'), value: leadingData.near_miss_rate.toFixed(2) },
+          { label: t('kpiDashboard.actionClosurePct', 'Action Closure %'), value: leadingData.action_closure_pct.toFixed(1) + '%' },
+          { label: t('kpiDashboard.observationPct', 'Observation %'), value: leadingData.observation_completion_pct.toFixed(1) + '%' },
         ];
 
         leadingItems.forEach((item, i) => {

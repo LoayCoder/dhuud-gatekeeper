@@ -45,14 +45,14 @@ const severityConfig = {
   }
 };
 
-const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-  submitted: { label: 'Submitted', variant: 'secondary' },
-  expert_screening: { label: 'Expert Screening', variant: 'outline' },
-  pending_manager_approval: { label: 'Pending Approval', variant: 'outline' },
-  investigation_in_progress: { label: 'Investigation', variant: 'default' },
-  pending_closure: { label: 'Pending Closure', variant: 'outline' },
-  closed: { label: 'Closed', variant: 'secondary' }
-};
+const getStatusConfig = (t: (key: string, fallback: string) => string): Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> => ({
+  submitted: { label: t('workflow.status.submitted', 'Submitted'), variant: 'secondary' },
+  expert_screening: { label: t('workflow.status.expertScreening', 'Expert Screening'), variant: 'outline' },
+  pending_manager_approval: { label: t('workflow.status.pendingApproval', 'Pending Approval'), variant: 'outline' },
+  investigation_in_progress: { label: t('workflow.status.investigation', 'Investigation'), variant: 'default' },
+  pending_closure: { label: t('workflow.status.pendingClosure', 'Pending Closure'), variant: 'outline' },
+  closed: { label: t('workflow.status.closed', 'Closed'), variant: 'secondary' }
+});
 
 export function MajorEventsTimeline({ events, isLoading }: MajorEventsTimelineProps) {
   const { t } = useTranslation();

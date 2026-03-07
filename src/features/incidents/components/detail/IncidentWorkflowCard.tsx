@@ -29,31 +29,30 @@ interface WorkflowStep {
   label: string;
 }
 
-const INCIDENT_WORKFLOW: WorkflowStep[] = [
-  { key: 'submitted', icon: FileText, label: 'Submitted' },
-  { key: 'expert_screening', icon: Search, label: 'Expert Screening' },
-  { key: 'investigation_in_progress', icon: Clock, label: 'Investigation' },
-  { key: 'pending_closure', icon: UserCheck, label: 'Pending Closure' },
-  { key: 'closed', icon: Lock, label: 'Closed' },
+const getIncidentWorkflow = (t: (key: string, fallback: string) => string): WorkflowStep[] => [
+  { key: 'submitted', icon: FileText, label: t('workflow.status.submitted', 'Submitted') },
+  { key: 'expert_screening', icon: Search, label: t('workflow.status.expertScreening', 'Expert Screening') },
+  { key: 'investigation_in_progress', icon: Clock, label: t('workflow.status.investigation', 'Investigation') },
+  { key: 'pending_closure', icon: UserCheck, label: t('workflow.status.pendingClosure', 'Pending Closure') },
+  { key: 'closed', icon: Lock, label: t('workflow.status.closed', 'Closed') },
 ];
 
-const OBSERVATION_WORKFLOW: WorkflowStep[] = [
-  { key: 'submitted', icon: FileText, label: 'Submitted' },
-  { key: 'pending_manager_approval', icon: UserCheck, label: 'Manager Review' },
-  { key: 'expert_screening', icon: Search, label: 'HSSE Review' },
-  { key: 'pending_final_closure', icon: Clock, label: 'Final Closure' },
-  { key: 'closed', icon: Lock, label: 'Closed' },
+const getObservationWorkflow = (t: (key: string, fallback: string) => string): WorkflowStep[] => [
+  { key: 'submitted', icon: FileText, label: t('workflow.status.submitted', 'Submitted') },
+  { key: 'pending_manager_approval', icon: UserCheck, label: t('workflow.status.managerReview', 'Manager Review') },
+  { key: 'expert_screening', icon: Search, label: t('workflow.status.hsseReview', 'HSSE Review') },
+  { key: 'pending_final_closure', icon: Clock, label: t('workflow.status.finalClosure', 'Final Closure') },
+  { key: 'closed', icon: Lock, label: t('workflow.status.closed', 'Closed') },
 ];
 
-// New contractor observation workflow
-const CONTRACTOR_OBSERVATION_WORKFLOW: WorkflowStep[] = [
-  { key: 'submitted', icon: FileText, label: 'Submitted' },
-  { key: 'pending_consultant_review', icon: Search, label: 'Consultant Review' },
-  { key: 'pending_site_client_approval', icon: UserCheck, label: 'Site Client Approval' },
-  { key: 'pending_contractor_implementation', icon: Wrench, label: 'Implementation' },
-  { key: 'pending_consultant_verification', icon: CheckCircle2, label: 'Verification' },
-  { key: 'pending_violation_processing', icon: AlertTriangle, label: 'Violation (if any)' },
-  { key: 'closed', icon: Lock, label: 'Closed' },
+const getContractorObservationWorkflow = (t: (key: string, fallback: string) => string): WorkflowStep[] => [
+  { key: 'submitted', icon: FileText, label: t('workflow.status.submitted', 'Submitted') },
+  { key: 'pending_consultant_review', icon: Search, label: t('workflow.status.consultantReview', 'Consultant Review') },
+  { key: 'pending_site_client_approval', icon: UserCheck, label: t('workflow.status.siteClientApproval', 'Site Client Approval') },
+  { key: 'pending_contractor_implementation', icon: Wrench, label: t('workflow.status.implementation', 'Implementation') },
+  { key: 'pending_consultant_verification', icon: CheckCircle2, label: t('workflow.status.verification', 'Verification') },
+  { key: 'pending_violation_processing', icon: AlertTriangle, label: t('workflow.status.violationIfAny', 'Violation (if any)') },
+  { key: 'closed', icon: Lock, label: t('workflow.status.closed', 'Closed') },
 ];
 
 const getStepStatus = (

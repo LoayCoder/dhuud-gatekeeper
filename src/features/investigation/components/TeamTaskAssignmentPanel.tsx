@@ -33,11 +33,11 @@ interface TeamTaskAssignmentPanelProps {
   isTeamLeader: boolean;
 }
 
-const TASK_TYPES = [
-  { value: 'evidence_collection', icon: Camera, label: 'Evidence Collection' },
-  { value: 'witness_interview', icon: Users, label: 'Witness Interview' },
-  { value: 'property_assessment', icon: FileSearch, label: 'Property Assessment' },
-  { value: 'injury_documentation', icon: Stethoscope, label: 'Injury Documentation' },
+const getTaskTypes = (t: (key: string, fallback: string) => string) => [
+  { value: 'evidence_collection', icon: Camera, label: t('investigation.taskTypes.evidenceCollection', 'Evidence Collection') },
+  { value: 'witness_interview', icon: Users, label: t('investigation.taskTypes.witnessInterview', 'Witness Interview') },
+  { value: 'property_assessment', icon: FileSearch, label: t('investigation.taskTypes.propertyAssessment', 'Property Assessment') },
+  { value: 'injury_documentation', icon: Stethoscope, label: t('investigation.taskTypes.injuryDocumentation', 'Injury Documentation') },
 ];
 
 /**
