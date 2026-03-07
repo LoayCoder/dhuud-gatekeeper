@@ -102,6 +102,7 @@ export function useUpdateContractorCompany() {
 
 export function useSuspendContractorCompany() {
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
 
     return useMutation({
         mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
@@ -121,7 +122,7 @@ export function useSuspendContractorCompany() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["contractor-companies"] });
-            toast.success("Company suspended");
+            toast.success(t("contractors.messages.companySuspended", "Company suspended"));
         },
         onError: (error: Error) => {
             toast.error(error.message);
@@ -131,6 +132,7 @@ export function useSuspendContractorCompany() {
 
 export function useActivateContractorCompany() {
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
 
     return useMutation({
         mutationFn: async (id: string) => {
@@ -150,7 +152,7 @@ export function useActivateContractorCompany() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["contractor-companies"] });
-            toast.success("Company activated");
+            toast.success(t("contractors.messages.companyActivated", "Company activated"));
         },
         onError: (error: Error) => {
             toast.error(error.message);
@@ -160,6 +162,7 @@ export function useActivateContractorCompany() {
 
 export function useChangeContractorStatus() {
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
 
     return useMutation({
         mutationFn: async ({ id, status }: { id: string; status: string }) => {
@@ -182,7 +185,7 @@ export function useChangeContractorStatus() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["contractor-companies"] });
-            toast.success("Status updated");
+            toast.success(t("contractors.messages.statusUpdated", "Status updated"));
         },
         onError: (error: Error) => {
             toast.error(error.message);
@@ -192,6 +195,7 @@ export function useChangeContractorStatus() {
 
 export function useCheckExpiredContracts() {
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
 
     return useMutation({
         mutationFn: async () => {
@@ -211,7 +215,7 @@ export function useCheckExpiredContracts() {
         onSuccess: (data) => {
             if (data && data.length > 0) {
                 queryClient.invalidateQueries({ queryKey: ["contractor-companies"] });
-                toast.info(`${data.length} contract(s) marked as expired`);
+                toast.info(t("contractors.messages.contractsExpired", "{{count}} contract(s) marked as expired", { count: data.length }));
             }
         },
     });
@@ -219,6 +223,7 @@ export function useCheckExpiredContracts() {
 
 export function useDeleteContractorCompany() {
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
 
     return useMutation({
         mutationFn: async (companyId: string) => {
@@ -230,7 +235,7 @@ export function useDeleteContractorCompany() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["contractor-companies"] });
-            toast.success("Company deleted");
+            toast.success(t("contractors.messages.companyDeleted", "Company deleted"));
         },
         onError: (error: Error) => {
             toast.error(error.message);
@@ -240,6 +245,7 @@ export function useDeleteContractorCompany() {
 
 export function useHardDeleteContractorCompany() {
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
 
     return useMutation({
         mutationFn: async (companyId: string) => {
@@ -252,7 +258,7 @@ export function useHardDeleteContractorCompany() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["contractor-companies"] });
             queryClient.invalidateQueries({ queryKey: ["pending-company-approvals"] });
-            toast.success("Company permanently deleted");
+            toast.success(t("contractors.messages.companyPermanentlyDeleted", "Company permanently deleted"));
         },
         onError: (error: Error) => {
             toast.error(error.message);
@@ -262,6 +268,7 @@ export function useHardDeleteContractorCompany() {
 
 export function useApproveCompany() {
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
     const { user } = useAuth();
 
     return useMutation({
@@ -271,7 +278,7 @@ export function useApproveCompany() {
             });
 
             if (!hasAccess) {
-                throw new Error("Only HSSE Managers can approve company registrations");
+                throw new Error(t("contractors.messages.onlyHsseManagersApprove", "Only HSSE Managers can approve company registrations"));
             }
 
             const { data, error } = await supabase
@@ -291,7 +298,7 @@ export function useApproveCompany() {
         onSuccess: async (data) => {
             queryClient.invalidateQueries({ queryKey: ["contractor-companies"] });
             queryClient.invalidateQueries({ queryKey: ["pending-company-approvals"] });
-            toast.success("Company approved and activated");
+            toast.success(t("contractors.messages.companyApproved", "Company approved and activated"));
 
             try {
                 await supabase.functions.invoke("send-contractor-notification", {
@@ -326,6 +333,7 @@ export function useApproveCompany() {
 
 export function useRejectCompany() {
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
     const { user, profile } = useAuth();
 
     return useMutation({
@@ -335,7 +343,7 @@ export function useRejectCompany() {
             });
 
             if (!hasAccess) {
-                throw new Error("Only HSSE Managers can reject company registrations");
+                throw new Error(t("contractors.messages.onlyHsseManagersReject", "Only HSSE Managers can reject company registrations"));
             }
 
             const { data: companyData } = await supabase
@@ -362,7 +370,7 @@ export function useRejectCompany() {
         onSuccess: async (data) => {
             queryClient.invalidateQueries({ queryKey: ["contractor-companies"] });
             queryClient.invalidateQueries({ queryKey: ["pending-company-approvals"] });
-            toast.success("Company rejected");
+            toast.success(t("contractors.messages.companyRejected", "Company rejected"));
 
             if (data.createdBy && profile?.tenant_id) {
                 try {

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -51,6 +52,7 @@ export function useWorkerQRCode(workerId: string) {
 
 export function useGenerateWorkerQR() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   return useMutation({
     mutationFn: async ({ workerId, projectId }: { workerId: string; projectId: string }) => {
@@ -65,7 +67,7 @@ export function useGenerateWorkerQR() {
 
       if (error) {
         // Try to parse error message from edge function response
-        const errorMessage = error.message || "Failed to generate QR code";
+        const errorMessage = error.message || t("contractors.messages.qrError", "Failed to generate QR code");
         throw new Error(errorMessage);
       }
       
@@ -73,16 +75,17 @@ export function useGenerateWorkerQR() {
     },
     onSuccess: (_, { workerId }) => {
       queryClient.invalidateQueries({ queryKey: ["worker-qr-code", workerId] });
-      toast.success("QR code generated successfully");
+      toast.success(t("contractors.messages.qrGenerated", "QR code generated successfully"));
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to generate QR code");
+      toast.error(error.message || t("contractors.messages.qrError", "Failed to generate QR code"));
     },
   });
 }
 
 export function useRevokeWorkerQR() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   return useMutation({
     mutationFn: async ({ workerId, reason }: { workerId: string; reason: string }) => {
@@ -95,7 +98,7 @@ export function useRevokeWorkerQR() {
     },
     onSuccess: (_, { workerId }) => {
       queryClient.invalidateQueries({ queryKey: ["worker-qr-code", workerId] });
-      toast.success("QR code revoked");
+      toast.success(t("contractors.messages.qrRevoked", "QR code revoked"));
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -104,6 +107,8 @@ export function useRevokeWorkerQR() {
 }
 
 export function useSendInductionVideo() {
+  const { t } = useTranslation();
+
   return useMutation({
     mutationFn: async ({ workerId, language }: { workerId: string; language: string }) => {
       const { data, error } = await supabase.functions.invoke("send-induction-video", {
@@ -114,7 +119,7 @@ export function useSendInductionVideo() {
       return data;
     },
     onSuccess: () => {
-      toast.success("Induction video sent");
+      toast.success(t("contractors.messages.inductionSent", "Induction video sent successfully"));
     },
     onError: (error: Error) => {
       toast.error(error.message);
