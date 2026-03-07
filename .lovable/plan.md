@@ -1,59 +1,63 @@
 
-
-# Plan: Complete Arabic Translation Coverage for ar/translation.json
+# Fix "Take Action" Button for Department Representative
 
 ## Problem
-English translation file has 9,876 lines while Arabic has 8,957 lines — approximately 900+ missing keys across all sections. These cause fallback to English or auto-generated labels at runtime.
+When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
 
-## Approach
-Enhance the existing `scripts/i18n-audit-fix.cjs` with a significantly expanded HSSE dictionary (~800+ additional terms) covering all domain-specific vocabulary found in the EN file, then have the user run it. The enhanced dictionary will include:
+1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
+2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
 
-### Dictionary Expansion Areas (matching priority order)
+## What Changes
 
-1. **navigation, common, actions, auth** — Menu labels, form actions, authentication flows, MFA terms
-2. **incidents, investigation, inspections** — HSSE event types/subtypes, root cause analysis, environmental impact, property damage, witness management, corrective actions, audit scoring
-3. **security, guards, patrol** — Gate operations, QR scanner states, worker verification, command center, zones, shifts, roster, CCTV, emergency alerts
-4. **contractors, gatePasses, ptw** — Worker bulk actions, material gate passes, contractor access validation, permit workflows, violation processing
-5. **dashboard, analytics, reports** — KPIs, safety pyramid, Pareto/waterfall charts, executive report, data quality, caching, export
-6. **settings, admin, userManagement** — Branding console, subscription plans, module management, user invitations, tenant management
-7. **Remaining sections** — Risk assessments, observations AI analysis, positive observations, asset health, parts inventory, inspection schedules, location/boundary, quick observation, leaderboard
+### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
 
-## File Changes
+The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
 
-### 1. Update `scripts/i18n-audit-fix.cjs`
-- Expand `DICTIONARY` from ~300 to ~1100+ entries covering:
-  - Environmental terms: "Contaminant" → "ملوث", "Remediation" → "معالجة", "Spill" → "تسرب"
-  - Investigation terms: "Witness" → "شاهد", "Root Cause" → "السبب الجذري", "Corrective Action" → "إجراء تصحيحي"
-  - Risk terms: "Likelihood" → "الاحتمالية", "Hazard" → "الخطر", "Elimination" → "الإزالة"
-  - Inspection terms: "Finding" → "نتيجة", "Non-Conformance" → "عدم مطابقة", "Compliance" → "الامتثال"
-  - Security terms: "Geofence" → "نطاق جغرافي", "Checkpoint" → "نقطة تفتيش", "Blacklist" → "القائمة السوداء"
-  - Contractor terms: "Induction" → "التعريف", "Gate Pass" → "تصريح دخول", "Violation" → "مخالفة"
-  - Dashboard terms: "Pareto" → "باريتو", "Waterfall" → "الشلال", "KPI" → "مؤشر الأداء"
-  - UI patterns: "No data available" → "لا تتوفر بيانات", "Loading..." → "جاري التحميل..."
-- Expand `SENTENCE_DICT` with ~100+ full sentence patterns common in the EN file
-- Add compound word translation (e.g., "Risk Assessment" as a unit, not word-by-word)
+**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
 
-### 2. Update `src/locales/ar/translation.json` (via script execution)
-- All ~900+ missing keys added with Arabic translations
-- Empty values filled
-- English-only values in AR replaced with Arabic
-- Placeholder integrity verified
-- RTL-breaking characters removed
-
-## Execution
-After updating the script, the user runs:
-```
-node scripts/i18n-audit-fix.cjs
+```typescript
+case 'pending_dept_rep_review':
+case 'pending_dept_rep_approval':
+  return (
+    <DeptRepApprovalCard
+      incident={incidentData}
+      onComplete={handleRefresh}
+    />
+  );
 ```
 
-The script will output a detailed report showing:
-- Keys added per category (missing, empty, untranslated)
-- Keys auto-translated vs needing manual review
-- Final coverage percentage
+### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
 
-## Technical Notes
-- Dictionary-based translation preserves `{{variable}}` placeholders via regex extraction
-- Existing Arabic translations are never overwritten
-- The `parseJsonDedup` parser handles duplicate top-level keys in both files
-- Keys that can't be dictionary-translated get EN as fallback and are flagged in `I18N_MANUAL_REVIEW.md`
+The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
 
+**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
+
+```typescript
+<Button
+  size="lg"
+  className="shadow-lg px-8"
+  onClick={() => {
+    // Scroll to the workflow action card
+    const workflowCard = document.querySelector('[data-workflow-card]');
+    if (workflowCard) {
+      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }}
+>
+  Take Action
+  <ArrowRight className="h-4 w-4 ml-2" />
+</Button>
+```
+
+And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
+
+### 3. Localize the Button Text
+
+Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
+
+## Files Modified
+
+1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
+2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
+3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
+4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
