@@ -1445,8 +1445,8 @@
     "untitled": "بدون عنوان",
     "allProjects": "جميع المشاريع",
     "allStatuses": "جميع الحالات",
-    "higher": "Higher",
-    "lower": "Lower",
+    "higher": "أعلى",
+    "lower": "أقل",
     "notAssessed": "غير مقيم",
     "step": "خطوة",
     "public": "عام",
@@ -1571,7 +1571,7 @@
     "reset": "إعادة تعيين",
     "undo": "تراجع",
     "clear": "مسح",
-    "deleting": "Deleting..."
+    "deleting": "جاري الحذف..."
   },
   "auth": {
     "signIn": "تسجيل الدخول",
@@ -2045,8 +2045,8 @@
     "leaderboard": "لوحة الصدارة",
     "training": "التدريب",
     "trainingCenter": "مركز التدريب",
-    "kpiTargets": "KPI Targets",
-    "eventDashboard": "Event Dashboard",
+    "kpiTargets": "أهداف مؤشرات الأداء",
+    "eventDashboard": "لوحة الأحداث",
     "appUpdates": "تحديثات التطبيق",
     "webpageNotifications": "إشعارات صفحة الويب",
     "aiSettings": "إعدادات الذكاء الاصطناعي",
@@ -2746,7 +2746,7 @@
     },
     "myTasks": "مهامي",
     "quickActions": "إجراءات سريعة",
-    "managerKPIDashboard": "Manager KPI Dashboard"
+    "managerKPIDashboard": "لوحة مؤشرات أداء المدير"
   },
   "dashboard": {
     "greetingMorning": "صباح الخير{{name}}",
@@ -3187,7 +3187,13 @@
     "scoreCriticalMsg": "مطلوب إجراء فوري",
     "overdueActions": "إجراءات تصحيحية متأخرة تتطلب اهتمام",
     "overdueIncidents": "تحقيقات حوادث متأخرة",
-    "topPriorities": "الأولويات القصوى"
+    "topPriorities": "الأولويات القصوى",
+    "statusGood": "جيد",
+    "statusCaution": "تنبيه",
+    "statusCritical": "حرج",
+    "openInvestigations": "تحقيقات مفتوحة متعددة",
+    "highTrir": "معدل TRIR أعلى من الحد المستهدف",
+    "highLtifr": "معدل LTIFR أعلى من الحد المستهدف"
   },
   "incidents": {
     "occurredAt": "وقعت",
