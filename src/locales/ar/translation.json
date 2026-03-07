@@ -3621,13 +3621,13 @@
       "ai": {
         "suggest": "اقتراح الذكاء الاصطناعي",
         "rewrite": "إعادة صياغة",
-        "suggestCause": "AI Suggest",
-        "completeWhysFirst": "Complete 5-Whys analysis first",
-        "completeImmediateFirst": "Complete Immediate Cause first",
-        "completeUnderlyingFirst": "Complete Underlying Cause first",
-        "completeRootCausesFirst": "Identify at least one Root Cause first",
-        "generating": "Generating...",
-        "generated": "AI suggestion generated successfully"
+        "suggestCause": "اقتراح الذكاء الاصطناعي",
+        "completeWhysFirst": "أكمل تحليل الأسباب الخمسة أولاً",
+        "completeImmediateFirst": "أكمل السبب المباشر أولاً",
+        "completeUnderlyingFirst": "أكمل السبب الكامن أولاً",
+        "completeRootCausesFirst": "حدد سبباً جذرياً واحداً على الأقل أولاً",
+        "generating": "جاري الإنشاء...",
+        "generated": "تم إنشاء اقتراح الذكاء الاصطناعي بنجاح"
       },
       "lockedStatus": "تحليل الأسباب الجذرية مقفل. المدخلات معطلة.",
       "lockedClosed": "الحادث مغلق. التحليل للقراءة فقط.",
