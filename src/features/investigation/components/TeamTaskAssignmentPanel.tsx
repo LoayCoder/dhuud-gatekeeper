@@ -106,11 +106,11 @@ export function TeamTaskAssignmentPanel({
   const getTaskStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge variant="default" className="bg-green-100 text-green-800"><CheckCircle2 className="h-3 w-3 me-1" />Completed</Badge>;
+        return <Badge variant="default" className="bg-green-100 text-green-800"><CheckCircle2 className="h-3 w-3 me-1" />{t('common.completed', 'Completed')}</Badge>;
       case 'in_progress':
-        return <Badge variant="secondary"><Clock className="h-3 w-3 me-1" />In Progress</Badge>;
+        return <Badge variant="secondary"><Clock className="h-3 w-3 me-1" />{t('common.inProgress', 'In Progress')}</Badge>;
       default:
-        return <Badge variant="outline"><AlertTriangle className="h-3 w-3 me-1" />Pending</Badge>;
+        return <Badge variant="outline"><AlertTriangle className="h-3 w-3 me-1" />{t('common.pending', 'Pending')}</Badge>;
     }
   };
 

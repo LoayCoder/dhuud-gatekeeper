@@ -40,9 +40,9 @@ export function InvestigationLayout() {
         return (
             <div className="container py-8">
                 <div className="text-center">
-                    <h2 className="text-xl font-semibold">Incident Not Found</h2>
+                    <h2 className="text-xl font-semibold">{t('incidents.notFound', 'Incident Not Found')}</h2>
                     <Button variant="outline" className="mt-4" onClick={() => navigate('/incidents')}>
-                        Back to List
+                        {t('incidents.backToList', 'Back to List')}
                     </Button>
                 </div>
             </div>
@@ -66,8 +66,8 @@ export function InvestigationLayout() {
                         <h1 className="text-2xl font-bold tracking-tight">
                             {incident.reference_id} - {incident.title}
                         </h1>
-                        <Badge variant="outline" className="ml-2 capitalize">
-                            {userRole.replace('_', ' ')} View
+                        <Badge variant="outline" className="ms-2 capitalize">
+                            {userRole.replace('_', ' ')} {t('common.view', 'View')}
                         </Badge>
                     </div>
                     <p className="text-muted-foreground flex items-center gap-2">

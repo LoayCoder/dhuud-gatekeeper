@@ -663,6 +663,10 @@
     "notFound": "Incident not found",
     "backToList": "Back to Event List",
     "reportedBy": "Reported By",
+    "dateReported": "Date Reported",
+    "currentAssignment": "Current Assignment",
+    "workflowStage": "Workflow Stage",
+    "pendingWith": "Pending With",
     "observationLocation": "Observation Location",
     "reporterHomeBranch": "Reporter's Home Branch",
     "crossBranchReport": "Cross-Branch Report",
@@ -4452,7 +4456,22 @@
     "allMonths": "All Months",
     "allBranches": "All Branches",
     "year": "Year",
-    "filters": "Filters"
+    "filters": "Filters",
+    "completed": "Completed",
+    "inProgress": "In Progress",
+    "draft": "Draft",
+    "pendingApproval": "Pending Approval",
+    "finalized": "Finalized",
+    "unknownUser": "Unknown User",
+    "somethingWentWrong": "Something went wrong",
+    "errorEncountered": "The application encountered an error. Please try refreshing the page.",
+    "refreshPage": "Refresh Page",
+    "reloadPage": "Reload Page",
+    "continueAnyway": "Continue Anyway",
+    "errorDetails": "Error Details",
+    "dismiss": "Dismiss",
+    "progress": "Progress",
+    "view": "View"
   },
   "assignment": {
     "title": "Assignment Information",
@@ -7439,6 +7458,10 @@
       "hsseManager": "HSSE Manager",
       "investigator": "Investigator"
     },
+    "waitingForAssignment": "Waiting for Assignment",
+    "willPickUpFor": "will pick this up for:",
+    "notifyRole": "Notify {{role}}s",
+    "requestPriorityAssignment": "Request Priority Assignment",
     "disputeReview": "Dispute Review",
     "controllerReview": "Controller Review",
     "violationCategory": "Violation Category",
@@ -9961,6 +9984,43 @@
       "majorNc": "Major NC",
       "minorNc": "Minor NC",
       "observation": "Observation"
-    }
+    },
+    "onTrack": "On track",
+    "l1": "L1",
+    "l2": "L2"
+  },
+  "session": {
+    "managementError": "Session Management Error",
+    "managementErrorDescription": "There was an issue with session management. Some features like session timeout and concurrent login detection may not work properly."
+  },
+  "profile": {
+    "cropProfilePicture": "Crop Profile Picture",
+    "cropDescription": "Adjust the crop area to select your profile picture.",
+    "cropPreview": "Crop preview"
+  },
+  "achievements": {
+    "title": "Achievements",
+    "hsseJourney": "Your HSSE Journey",
+    "description": "Track your HSSE contributions and earn rewards",
+    "level": "Level",
+    "top1": "Top 1",
+    "rank": "Rank",
+    "hsseChampion": "HSSE Champion",
+    "keepUpGreatWork": "Keep up the great work! You are making a difference.",
+    "points": "Points",
+    "pointsToNextLevel": "{{points}} points to Level {{level}}",
+    "badges": "Badges",
+    "totalPts": "Total Pts",
+    "badgesCollection": "Badges Collection",
+    "unlocked": "Unlocked",
+    "recentActivity": "Recent Activity",
+    "noRecentActivity": "No recent activity.",
+    "leaderboardPosition": "Leaderboard Position",
+    "currentlyRanked": "You are currently ranked",
+    "inEntireCompany": "in the entire company",
+    "topContributors": "\"Top 5% of contributors!\""
+  },
+  "admin": {
+    "protectedServer": "Protected Server"
   }
 }

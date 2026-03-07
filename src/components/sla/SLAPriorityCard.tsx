@@ -100,9 +100,9 @@ export function SLAPriorityCard({ config, stats, onEdit }: SLAPriorityCardProps)
         {stats && stats.total > 0 && (
           <div className="pt-3 border-t border-border">
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <span>On track: <span className="font-medium text-foreground">{stats.level0}</span></span>
-              <span>L1: <span className="font-medium text-foreground">{stats.level1}</span></span>
-              <span>L2: <span className="font-medium text-foreground">{stats.level2}</span></span>
+              <span>{t('sla.onTrack', 'On track')}: <span className="font-medium text-foreground">{stats.level0}</span></span>
+              <span>{t('sla.l1', 'L1')}: <span className="font-medium text-foreground">{stats.level1}</span></span>
+              <span>{t('sla.l2', 'L2')}: <span className="font-medium text-foreground">{stats.level2}</span></span>
             </div>
           </div>
         )}
