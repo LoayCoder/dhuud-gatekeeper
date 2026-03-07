@@ -1,63 +1,135 @@
 
-# Fix "Take Action" Button for Department Representative
 
-## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
+# Systematic i18n Audit Plan
 
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+## Current State
 
-## What Changes
+The build is **succeeding** — the truncated output is just the long list of generated chunks, not an error. The real issues are untranslated UI strings.
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+After auditing the codebase, here are all findings classified by type:
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+---
 
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+## TYPE A — Hardcoded English Strings (not using `t()`)
 
-```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
-```
+### Priority 1: Investigation Workspace Tabs
+**File:** `src/pages/incidents/InvestigationWorkspace/components/InvestigationTabsContent.tsx`
+- Line 104: `Evidence` (hardcoded JSX text)
+- Line 109: `Witnesses`
+- Line 114: `RCA`
+- Line 119: `Actions`
+- Line 124: `Injuries`
+- Line 129: `Property Damage`
+- Line 134: `Governance`
 
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
+**Fix:** Wrap each with `t('investigation.tabs.evidence', 'Evidence')`, etc. Add keys to both en and ar JSON.
 
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
+### Priority 2: Workflow Status Labels
+**File:** `src/features/incidents/components/dashboard/MajorEventsTimeline.tsx` (lines 48-55)
+- `Submitted`, `Expert Screening`, `Pending Approval`, `Investigation`, `Pending Closure`, `Closed`
 
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
+**File:** `src/features/incidents/components/detail/IncidentWorkflowCard.tsx` (lines 32-57)
+- 3 workflow arrays with ~18 hardcoded labels: `Submitted`, `Expert Screening`, `Investigation`, `Pending Closure`, `Closed`, `Manager Review`, `HSSE Review`, `Final Closure`, `Consultant Review`, `Site Client Approval`, `Implementation`, `Verification`, `Violation (if any)`
 
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
-```
+**Fix:** These are defined outside the component (before `useTranslation` is available). Move labels into the component render, or use a function that accepts `t`. Add keys under `workflow.status.*` in both JSONs.
 
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
+### Priority 3: KPI Evaluation Panel
+**File:** `src/components/kpi/KPIEvaluationPanel.tsx` (lines 16-44)
+- `Exceeding`, `On Track`, `At Risk`, `Failing`
 
-### 3. Localize the Button Text
+**Fix:** Move into component or use a getter function with `t()`.
 
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
+### Priority 4: Investigation Task Types
+**File:** `src/features/investigation/components/TeamTaskAssignmentPanel.tsx` (lines 36-41)
+- `Evidence Collection`, `Witness Interview`, `Property Assessment`, `Injury Documentation`
 
-## Files Modified
+### Priority 5: SLA Classification Labels
+**File:** `src/components/sla/FindingSLACard.tsx` (lines 14-49)
+- `Critical NC`, `Major NC`, `Minor NC`, `Observation`
 
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
+### Priority 6: Asset Import Status Options
+**File:** `src/features/assets/components/import/ImportFieldEditor.tsx` (lines 57-62)
+- `Active`, `Out of Service`, `Under Maintenance`, `Retired`, `Missing`
+
+### Priority 7: KPI Dashboard PDF Export
+**File:** `src/features/incidents/components/dashboard/KPIDashboardExport.tsx` (lines 240-262)
+- `TRIR`, `LTIFR`, `DART Rate`, `Fatality Rate`, `Severity Rate`, `Near Miss Rate`, `Action Closure %`, `Observation %`
+
+### Priority 8: Debug Page
+**File:** `src/pages/incidents/InvestigationWorkspaceDebug.tsx` (line 294)
+- `Loading Incidents...`
+
+---
+
+## TYPE B — Missing Keys in ar/translation.json
+
+Based on the audit, the following `t()` keys used in code with fallbacks **already exist** in ar/translation.json:
+- `hsseDashboard.eventDistribution` ✅
+- `hsseDashboard.trendAnalysis` ✅
+- `hsseDashboard.actionsInvestigations` ✅
+- `executiveSummary.title/overallScore/topPriorities` ✅
+- `kpiDashboard.recordableInjuries/lostTimeInjuries/etc.` ✅
+- `common.allBranches/allMonths/filters` ✅
+- `contractors.nav.*` ✅
+- `security.menu.*` ✅
+
+**No significant TYPE B issues found** — previous fixes already added the Arabic translations.
+
+---
+
+## TYPE C — Wrong/Mismatched Keys
+
+No mismatched keys detected. All `t()` calls use paths that match the JSON structure.
+
+---
+
+## Implementation Plan (by priority)
+
+### Step 1: Fix Investigation Workspace Tabs (7 strings)
+- Edit `InvestigationTabsContent.tsx` — wrap 7 tab labels with `t()`
+- Add 7 keys to en/ar JSON under `investigation.tabs.*`
+
+### Step 2: Fix Workflow Status Labels (18 strings across 2 files)
+- `MajorEventsTimeline.tsx` — convert `statusConfig` to use `t()` inside component
+- `IncidentWorkflowCard.tsx` — convert 3 workflow arrays to use `t()` inside component
+- Add keys under `workflow.status.*` in both JSONs
+
+### Step 3: Fix KPI Evaluation Panel (4 strings)
+- `KPIEvaluationPanel.tsx` — move `statusConfig` labels into component with `t()`
+- Add keys under `kpi.status.*`
+
+### Step 4: Fix Team Task Assignment (4 strings)
+- `TeamTaskAssignmentPanel.tsx` — wrap labels with `t()`
+- Add keys under `investigation.taskTypes.*`
+
+### Step 5: Fix SLA Classification Labels (4 strings)
+- `FindingSLACard.tsx` — wrap with `t()`
+- Add keys under `sla.classification.*`
+
+### Step 6: Fix Asset Import Labels (5 strings)
+- `ImportFieldEditor.tsx` — wrap with `t()`
+- Add keys under `assets.status.*`
+
+### Step 7: Fix KPI Dashboard Export (8 strings)
+- `KPIDashboardExport.tsx` — wrap labels with `t()`
+- Use existing `kpiDashboard.*` keys
+
+### Step 8: Add all new Arabic translations
+- Add ~50 new Arabic translations covering all the above keys
+
+---
+
+## Summary of Changes
+
+| Metric | Count |
+|--------|-------|
+| Files to edit (code) | 7 component files |
+| Files to edit (JSON) | 2 (en + ar translation.json) |
+| TYPE A fixes | ~50 hardcoded strings |
+| TYPE B fixes | 0 (already covered) |
+| TYPE C fixes | 0 (no mismatches) |
+| New en keys | ~50 |
+| New ar translations | ~50 |
+
+No new translation files will be created. All keys go into existing `en/translation.json` and `ar/translation.json`.
+
