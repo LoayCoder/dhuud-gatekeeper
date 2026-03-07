@@ -6,13 +6,16 @@ import { parseJsonDedup } from './lib/parse-json-dedup';
 // Standard JSON.parse silently drops earlier duplicate keys — this preserves all data
 import enRaw from './locales/en/translation.json?raw';
 import arRaw from './locales/ar/translation.json?raw';
-import ur from './locales/ur/translation.json';
-import hi from './locales/hi/translation.json';
-import fil from './locales/fil/translation.json';
+import urRaw from './locales/ur/translation.json?raw';
+import hiRaw from './locales/hi/translation.json?raw';
+import filRaw from './locales/fil/translation.json?raw';
 
-// Parse EN and AR with duplicate-key-merging parser
+// Parse all locales with duplicate-key-merging parser
 const en = parseJsonDedup(enRaw);
 const ar = parseJsonDedup(arRaw);
+const ur = parseJsonDedup(urRaw);
+const hi = parseJsonDedup(hiRaw);
+const fil = parseJsonDedup(filRaw);
 
 export const defaultNS = 'translation';
 
