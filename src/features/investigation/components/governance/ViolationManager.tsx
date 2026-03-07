@@ -179,10 +179,10 @@ export function ViolationManager({ incidentId, canEdit = true }: ViolationManage
                   <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
-                      <SelectItem value="draft">Draft</SelectItem>
-                      <SelectItem value="pending_approval">Pending Approval</SelectItem>
-                      <SelectItem value="finalized">Finalized</SelectItem>
-                      <SelectItem value="rejected">Rejected</SelectItem>
+                      <SelectItem value="draft">{t('common.draft', 'Draft')}</SelectItem>
+                      <SelectItem value="pending_approval">{t('common.pendingApproval', 'Pending Approval')}</SelectItem>
+                      <SelectItem value="finalized">{t('common.finalized', 'Finalized')}</SelectItem>
+                      <SelectItem value="rejected">{t('common.rejected', 'Rejected')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </FormItem>
