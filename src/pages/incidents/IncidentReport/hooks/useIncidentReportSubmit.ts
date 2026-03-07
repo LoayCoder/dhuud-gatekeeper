@@ -180,7 +180,7 @@ export function useIncidentReportSubmit(
   }, [state.description, state.triggerAnalysis, state.setIsApplyingAISuggestions]);
 
   const handleConfirmTranslation = useCallback(() => {
-    (state.aiValidator as any).confirmTranslation?.();
+    (state.aiValidator as Record<string, unknown> & { confirmTranslation?: () => void }).confirmTranslation?.();
   }, [state.aiValidator]);
 
   const handleConfirmAnalysis = useCallback(() => {
@@ -204,7 +204,7 @@ export function useIncidentReportSubmit(
       state.form.setValue('immediate_actions', result.immediateActions.map((a, i) => `${i + 1}. ${a}`).join('\n'));
     }
     if (result.suggestedTags && result.suggestedTags.length > 0) state.setSelectedTags(result.suggestedTags);
-    (state.aiValidator as any).confirmAnalysis?.();
+    (state.aiValidator as Record<string, unknown> & { confirmAnalysis?: () => void }).confirmAnalysis?.();
     toast.success(state.t('incidents.ai.analysisComplete'));
     setTimeout(() => state.setIsApplyingAISuggestions(false), 100);
   }, [state, state.t]);

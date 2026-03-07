@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -183,7 +184,7 @@ export default function PlanManagement() {
           
           const { error: moduleError } = await supabase
             .from('plan_modules')
-            .insert(moduleInserts as any);
+            .insert(moduleInserts as Database['public']['Tables']['plan_modules']['Insert'][]);
           if (moduleError) throw moduleError;
         }
       }

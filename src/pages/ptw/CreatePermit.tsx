@@ -105,7 +105,7 @@ export default function CreatePermit() {
         permit_holder_id: result.data.permit_holder_id,
         operational_data: result.data.operational_data,
         safety_responses: result.data.safety_responses,
-      } as any);
+      } as Parameters<typeof createPermit.mutateAsync>[0]);
       navigate("/ptw");
     } catch (error) {
       console.error('[CreatePermit] Submit failed:', error)
@@ -219,13 +219,13 @@ export default function CreatePermit() {
           )}
           {currentStep === 4 && (
             <PermitSafetyStep
-              data={formData as any}
+              data={formData as unknown as Parameters<typeof PermitSafetyStep>[0]['data']}
               onChange={updateFormData}
               typeId={formData.type_id}
             />
           )}
           {currentStep === 5 && (
-            <PermitReviewStep data={formData as any} />
+            <PermitReviewStep data={formData as unknown as Parameters<typeof PermitReviewStep>[0]['data']} />
           )}
         </CardContent>
       </Card>

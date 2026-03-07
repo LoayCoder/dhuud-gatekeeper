@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { SecurityTeamMemberJoined, GuardJoinedProfile, TeamJoined } from '@/features/security/types';
 
 export interface SecurityGuard {
   guard_id: string;
@@ -29,7 +30,7 @@ export function useSecurityGuards() {
       const guardMap = new Map<string, SecurityGuard>();
 
       // Fetch guards from security_team_members with profiles
-      const { data: teamMembers, error: tmError } = await supabase
+      const { data: rawTeamMembers, error: tmError } = await supabase
         .from('security_team_members')
         .select(`
           guard_id,
@@ -41,9 +42,11 @@ export function useSecurityGuards() {
         .eq('tenant_id', profile.tenant_id)
         .is('deleted_at', null);
 
+      const teamMembers = (rawTeamMembers || []) as unknown as SecurityTeamMemberJoined[];
+
       if (!tmError && teamMembers) {
         for (const tm of teamMembers) {
-          const guard = tm.guard as any;
+          const guard = tm.guard;
           if (guard?.id) {
             guardMap.set(guard.id, {
               guard_id: guard.id,
@@ -51,7 +54,7 @@ export function useSecurityGuards() {
               avatar_url: guard.avatar_url,
               employee_id: guard.employee_id,
               job_title: guard.job_title,
-              team_name: (tm.team as any)?.name || null,
+              team_name: tm.team?.name || null,
             });
           }
         }

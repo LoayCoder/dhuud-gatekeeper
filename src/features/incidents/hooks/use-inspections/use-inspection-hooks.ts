@@ -221,7 +221,8 @@ export function useCompleteInspection() {
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['inspection', data.id] });
             queryClient.invalidateQueries({ queryKey: ['asset-inspections'] });
-            queryClient.invalidateQueries({ queryKey: ['asset', (data as any)?.asset?.id] });
+            const assetData = data as unknown as { asset?: { id?: string } };
+            queryClient.invalidateQueries({ queryKey: ['asset', assetData?.asset?.id] });
             queryClient.invalidateQueries({ queryKey: ['overdue-inspections'] });
             toast.success(t('inspections.inspectionCompleted'));
         },

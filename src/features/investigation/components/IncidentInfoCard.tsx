@@ -9,6 +9,7 @@ import { IncidentAttachmentsSection } from '@/features/incidents';
 import { getSeverityBadgeVariant } from "@/lib/hsse-severity-levels";
 import { getSubtypeTranslation, snakeToCamel, getHsseEventTypeForSubtype } from "@/lib/hsse-translation-utils";
 import { LocationDisplay } from "@/components/shared/LocationDisplay";
+import type { ViolationIncidentFields } from '../types/investigationTypes';
 
 interface IncidentInfoCardProps {
   incident: IncidentWithDetails;
@@ -19,6 +20,7 @@ interface IncidentInfoCardProps {
 export function IncidentInfoCard({ incident, isLocked, onEditLocation }: IncidentInfoCardProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
+  const vi = incident as unknown as ViolationIncidentFields;
 
   const InfoItem = ({ label, value, icon: Icon }: { label: string; value: React.ReactNode; icon?: React.ElementType }) => (
     <div className="space-y-1">
@@ -75,7 +77,7 @@ export function IncidentInfoCard({ incident, isLocked, onEditLocation }: Inciden
           {/* Category Badges Row */}
           {(() => {
             // Derive category from incident_type OR from subtype using HSSE mapping
-            const derivedCategory = (incident as any).incident_type || 
+            const derivedCategory = vi.incident_type || 
               (incident.subtype ? getHsseEventTypeForSubtype(incident.subtype) : null);
             
             return (
@@ -95,7 +97,7 @@ export function IncidentInfoCard({ incident, isLocked, onEditLocation }: Inciden
                       t,
                       incident.event_type,
                       incident.subtype,
-                      (incident as any).incident_type
+                      vi.incident_type
                     )}
                   </Badge>
                 )}
@@ -112,7 +114,7 @@ export function IncidentInfoCard({ incident, isLocked, onEditLocation }: Inciden
             />
             {incident.event_type === 'incident' && (() => {
               // Derive category from incident_type OR from subtype using HSSE mapping
-              const derivedCategory = (incident as any).incident_type || 
+              const derivedCategory = vi.incident_type || 
                 (incident.subtype ? getHsseEventTypeForSubtype(incident.subtype) : null);
               
               return (
@@ -133,7 +135,7 @@ export function IncidentInfoCard({ incident, isLocked, onEditLocation }: Inciden
                   t,
                   incident.event_type,
                   incident.subtype,
-                  (incident as any).incident_type
+                  vi.incident_type
                 )}
               />
             )}

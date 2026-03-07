@@ -14,7 +14,7 @@ export interface UserWithRoles {
   assigned_branch_id?: string;
   assigned_department_id?: string;
   roles?: Array<{ role_id: string; role_code: string; role_name: string; category?: string }>;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface UseUsersPaginatedFilters {
@@ -27,7 +27,7 @@ export interface UseUsersPaginatedFilters {
   roleCode?: string | null;
   page?: number;
   pageSize?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export function useUsersPaginated(options?: { filters?: UseUsersPaginatedFilters; pageSize?: number }) {
@@ -39,7 +39,7 @@ export function useUsersPaginated(options?: { filters?: UseUsersPaginatedFilters
     queryFn: async () => {
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
-      const { data, error, count } = await (supabase as any)
+      const { data, error, count } = await supabase
         .from('profiles')
         .select('id, full_name, email, user_type, is_active, has_login, employee_id, job_title, assigned_branch_id', { count: 'exact' })
         .is('deleted_at', null)

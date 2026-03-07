@@ -71,7 +71,8 @@ export function ObservationWorkflowTracker({
   
   const status = incident.status as string;
   const isContractor = !!incident.related_contractor_company_id;
-  const severity = (incident as any).severity_v2 || (incident as any).severity_level;
+  const vi = incident as unknown as import('../types/investigationTypes').ViolationIncidentFields;
+  const severity = incident.severity_v2 || vi.severity_level;
   
   // Parse severity level number
   const getSeverityLevel = (): number => {
@@ -103,7 +104,7 @@ export function ObservationWorkflowTracker({
     
     // Step 2: Consultant Screening
     // Use timestamp-based completion check - only marked complete if actually screened
-    const consultantScreenedAt = (incident as any).consultant_screened_at;
+    const consultantScreenedAt = vi.consultant_screened_at;
     const consultantCompleted = consultantScreenedAt != null;
     
     // Include legacy 'expert_screening' status for contractor consultant screening
@@ -124,7 +125,7 @@ export function ObservationWorkflowTracker({
     
     // Step 2.5: Dept Rep Review (if in dept rep approval flow)
     const deptRepStatuses = ['pending_dept_rep_approval', 'pending_dept_rep_review'];
-    const deptRepAcknowledgedAt = (incident as any).dept_rep_acknowledged_at;
+    const deptRepAcknowledgedAt = vi.dept_rep_acknowledged_at;
     const deptRepCompleted = deptRepAcknowledgedAt != null;
     
     if (deptRepStatuses.includes(status) || deptRepCompleted) {
@@ -142,7 +143,7 @@ export function ObservationWorkflowTracker({
     // Step 3: HSSE Expert Review (Level 3+ only)
     if (isLevel3Plus || status === 'pending_hsse_expert_review') {
       // Use timestamp-based check for HSSE expert completion
-      const hsseReviewedAt = (incident as any).hsse_expert_reviewed_at || (incident as any).expert_screened_at;
+      const hsseReviewedAt = vi.hsse_expert_reviewed_at || vi.expert_screened_at;
       const hsseCompleted = hsseReviewedAt != null;
       
       steps.push({
@@ -162,7 +163,7 @@ export function ObservationWorkflowTracker({
     // Step 4: Site Client Approval
     const siteClientStatuses = ['pending_site_client_approval', 'pending_site_client_action_approval'];
     // Use timestamp-based check for site client approval
-    const siteClientApprovedAt = (incident as any).site_client_approved_at;
+    const siteClientApprovedAt = vi.site_client_approved_at;
     const siteClientCompleted = siteClientApprovedAt != null;
     
     steps.push({
@@ -178,7 +179,7 @@ export function ObservationWorkflowTracker({
     // Step 5: Contractor Implementation
     const implementationStatuses = ['contractor_action_implementation', 'pending_contractor_action'];
     // Use timestamp-based check for contractor implementation
-    const contractorImplementedAt = (incident as any).contractor_actions_completed_at || (incident as any).contractor_implemented_at;
+    const contractorImplementedAt = vi.contractor_actions_completed_at || vi.contractor_implemented_at;
     const implementationCompleted = contractorImplementedAt != null;
     
     steps.push({
@@ -223,7 +224,7 @@ export function ObservationWorkflowTracker({
         icon: <ShieldCheck className="h-4 w-4" />,
         status: 'enforced',
         actorName: workflowActors?.hsse_manager?.full_name,
-        timestamp: (incident as any).hsse_enforced_at,
+        timestamp: vi.hsse_enforced_at,
         description: t('workflow.tracker.descriptions.finalDecision', 'Final decision - no appeals'),
       });
     } else if (status === 'closed') {
@@ -272,7 +273,7 @@ export function ObservationWorkflowTracker({
       status: status === 'pending_dept_rep_review' ? 'current' : 
               deptRepCompleted ? 'completed' : 'pending',
       actorName: workflowActors?.dept_rep?.full_name,
-      timestamp: (incident as any).dept_rep_acknowledged_at,
+      timestamp: vi.dept_rep_acknowledged_at,
     });
     
     // Step 3: HSSE Expert Review (Level 3+ only)
@@ -333,7 +334,7 @@ export function ObservationWorkflowTracker({
         icon: <ShieldCheck className="h-4 w-4" />,
         status: 'enforced',
         actorName: workflowActors?.hsse_manager?.full_name,
-        timestamp: (incident as any).hsse_enforced_at,
+        timestamp: vi.hsse_enforced_at,
         description: t('workflow.tracker.descriptions.finalDecision', 'Final decision - no appeals'),
       });
     } else if (status === 'closed') {

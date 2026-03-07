@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import type { Database } from '@/integrations/supabase/types';
 import type { AssetCategoryInsert, AssetCategoryUpdate, AssetTypeInsert, AssetTypeUpdate, AssetSubtypeInsert, AssetSubtypeUpdate } from './types';
 
 // ==================== CATEGORY MUTATIONS ====================
@@ -25,14 +26,16 @@ export function useCreateAssetCategory() {
 
             const { hsse_category, hsse_type, ...rest } = category;
 
-            const { data, error } = await supabase
-                .from('asset_categories')
-                .insert({
+            const insertPayload: Record<string, unknown> = {
                     ...rest,
                     tenant_id: profile.tenant_id,
                     ...(hsse_category !== undefined && { hsse_category }),
                     ...(hsse_type !== undefined && { hsse_type }),
-                } as any)
+                };
+
+            const { data, error } = await supabase
+                .from('asset_categories')
+                .insert(insertPayload as Database['public']['Tables']['asset_categories']['Insert'])
                 .select()
                 .single();
 
@@ -57,14 +60,16 @@ export function useUpdateAssetCategory() {
 
     return useMutation({
         mutationFn: async ({ id, hsse_category, hsse_type, ...updates }: AssetCategoryUpdate & { id: string; hsse_category?: string | null; hsse_type?: string | null }) => {
-            const { data, error } = await supabase
-                .from('asset_categories')
-                .update({
+            const updatePayload: Record<string, unknown> = {
                     ...updates,
                     updated_at: new Date().toISOString(),
                     ...(hsse_category !== undefined && { hsse_category }),
                     ...(hsse_type !== undefined && { hsse_type }),
-                } as any)
+                };
+
+            const { data, error } = await supabase
+                .from('asset_categories')
+                .update(updatePayload as Database['public']['Tables']['asset_categories']['Update'])
                 .eq('id', id)
                 .select()
                 .single();

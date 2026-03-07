@@ -17,7 +17,8 @@ import {
   Building2, Plus, MapPin, Calendar as CalendarIcon, Trash2, Star, RefreshCw 
 } from 'lucide-react';
 import { 
-  useGuardSiteAssignments, useCreateSiteAssignment, useUpdateSiteAssignment, useDeleteSiteAssignment 
+  useGuardSiteAssignments, useCreateSiteAssignment, useUpdateSiteAssignment, useDeleteSiteAssignment,
+  type GuardSiteAssignment
 } from '@/hooks/use-guard-site-assignments';
 import { useSites } from '@/hooks/use-sites';
 import { supabase } from '@/integrations/supabase/client';
@@ -70,7 +71,14 @@ export function GuardSiteAssignments() {
   });
 
   const onSubmit = async (values: GuardSiteAssignmentFormValues) => {
-    await createAssignment.mutateAsync(values as any);
+    await createAssignment.mutateAsync({
+      guard_id: values.guard_id,
+      site_id: values.site_id,
+      is_primary: values.is_primary,
+      can_float: values.can_float,
+      assignment_type: values.assignment_type as 'permanent' | 'temporary' | 'floating',
+      effective_from: values.effective_from,
+    });
     setDialogOpen(false);
     form.reset(defaultValues);
   };
@@ -95,7 +103,7 @@ export function GuardSiteAssignments() {
     }
     acc[guardId].assignments.push(a);
     return acc;
-  }, {} as Record<string, { guard: unknown; assignments: typeof assignments }>) || {};
+  }, {} as Record<string, { guard: GuardSiteAssignment['guard']; assignments: GuardSiteAssignment[] }>) || {};
 
   return (
     <div className="space-y-6">
@@ -238,7 +246,7 @@ export function GuardSiteAssignments() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Building2 className="h-4 w-4" />
-                  {(guard as any)?.full_name || 'Unknown Guard'}
+                  {guard?.full_name || 'Unknown Guard'}
                 </CardTitle>
               </CardHeader>
               <CardContent>

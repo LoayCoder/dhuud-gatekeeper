@@ -89,21 +89,18 @@ export function useBranchFilter() {
  * @param columnName - The name of the branch_id column (default: 'branch_id')
  * @returns The modified query builder
  */
-export function applyBranchFilter<T extends { in: (column: string, values: string[]) => T }>(
+export function applyBranchFilter<T extends { in: (column: string, values: string[]) => T; eq: (column: string, value: string) => T }>(
   query: T,
   branchIds: string[] | null,
   columnName = 'branch_id'
 ): T {
   if (branchIds === null || branchIds.length === 0) {
-    // No filter - return query as-is
     return query;
   }
   
   if (branchIds.length === 1) {
-    // Single branch - use eq for efficiency
-    return (query as any).eq(columnName, branchIds[0]);
+    return query.eq(columnName, branchIds[0]);
   }
   
-  // Multiple branches - use in
   return query.in(columnName, branchIds);
 }

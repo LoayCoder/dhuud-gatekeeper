@@ -5,6 +5,7 @@ import { toast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { offlineDataCache, CACHE_STORES } from '@/lib/offline-data-cache';
 import { encryptedStorage } from '@/lib/offline-encryption';
+import type { Database } from '@/integrations/supabase/types';
 
 export type OfflineActionType = 'inspection' | 'condition_update' | 'maintenance_log' | 'transfer' | 'scan_log' | 'photo_upload';
 
@@ -53,6 +54,8 @@ async function getCurrentPosition(): Promise<{ lat: number; lng: number; accurac
     );
   });
 }
+
+type OfflineActionInsert = Database['public']['Tables']['asset_offline_actions']['Insert'];
 
 export function useAssetOfflineActions() {
   const { t } = useTranslation();
@@ -168,23 +171,25 @@ export function useAssetOfflineActions() {
         a.id === action.id ? { ...a, sync_status: 'syncing' as const } : a
       ));
 
+      const insertPayload: OfflineActionInsert = {
+        tenant_id: profile.tenant_id,
+        device_id: action.device_id,
+        asset_id: action.asset_id,
+        asset_code: action.asset_code,
+        action_type: action.action_type,
+        action_data: action.action_data as unknown as OfflineActionInsert['action_data'],
+        gps_lat: action.gps_lat,
+        gps_lng: action.gps_lng,
+        gps_accuracy: action.gps_accuracy,
+        captured_at: action.captured_at,
+        sync_status: 'synced',
+        synced_at: new Date().toISOString(),
+        created_by: user.id,
+      };
+
       const { error } = await supabase
         .from('asset_offline_actions')
-        .insert({
-          tenant_id: profile.tenant_id,
-          device_id: action.device_id,
-          asset_id: action.asset_id,
-          asset_code: action.asset_code,
-          action_type: action.action_type,
-          action_data: action.action_data as unknown,
-          gps_lat: action.gps_lat,
-          gps_lng: action.gps_lng,
-          gps_accuracy: action.gps_accuracy,
-          captured_at: action.captured_at,
-          sync_status: 'synced',
-          synced_at: new Date().toISOString(),
-          created_by: user.id,
-        } as any);
+        .insert(insertPayload);
 
       if (error) throw error;
 

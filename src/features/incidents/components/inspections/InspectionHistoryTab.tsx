@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useAssetInspections } from '@/features/incidents';
+import { useAssetInspections, type AssetInspectionResult } from '@/features/incidents';
 import i18n from '@/i18n';
 
 interface InspectionHistoryTabProps {
@@ -87,11 +87,11 @@ export function InspectionHistoryTab({ assetId }: InspectionHistoryTabProps) {
                     <span className="font-medium">{inspection.reference_id}</span>
                     {getResultBadge(inspection.overall_result, inspection.status)}
                   </div>
-                                    <p className="text-sm text-muted-foreground">
-                                      {direction === 'rtl' && (inspection.template as any)?.name_ar
-                                        ? (inspection.template as any).name_ar
-                                        : (inspection.template as any)?.name}
-                                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {direction === 'rtl' && inspection.template?.name_ar
+                        ? inspection.template.name_ar
+                        : inspection.template?.name}
+                    </p>
                 </div>
               </div>
               
@@ -101,7 +101,7 @@ export function InspectionHistoryTab({ assetId }: InspectionHistoryTabProps) {
                     {format(new Date(inspection.inspection_date), 'PP')}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {(inspection.inspector as any)?.full_name}
+                    {inspection.inspector?.full_name}
                   </p>
                 </div>
                 

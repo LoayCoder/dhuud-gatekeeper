@@ -21,15 +21,35 @@ export interface GeofenceEscalationRule {
   zone?: { zone_name: string } | null;
 }
 
+/** Loose client for tables not yet in generated types */
+interface LooseQueryResult {
+  data: unknown;
+  error: { message: string; code?: string } | null;
+}
+type LooseFrom = {
+  select: (...args: unknown[]) => LooseFrom;
+  insert: (...args: unknown[]) => LooseFrom;
+  update: (...args: unknown[]) => LooseFrom;
+  eq: (...args: unknown[]) => LooseFrom;
+  is: (...args: unknown[]) => LooseFrom;
+  order: (...args: unknown[]) => LooseFrom;
+  single: () => Promise<LooseQueryResult>;
+  then: PromiseLike<LooseQueryResult>['then'];
+};
+interface LooseClient {
+  from: (table: string) => LooseFrom;
+}
+const looseClient = supabase as unknown as LooseClient;
+
 export function useGeofenceEscalationRules() {
   return useQuery({
     queryKey: ['geofence-escalation-rules'],
     queryFn: async () => {
-      const { data, error } = await (supabase
-        .from('geofence_escalation_rules' as any)
+      const { data, error } = await (looseClient
+        .from('geofence_escalation_rules')
         .select(`*, zone:security_zones(zone_name)`)
         .is('deleted_at', null)
-        .order('escalation_level', { ascending: true }));
+        .order('escalation_level', { ascending: true })) as unknown as LooseQueryResult;
 
       if (error) throw error;
       return data as unknown as GeofenceEscalationRule[];
@@ -57,8 +77,8 @@ export function useCreateEscalationRule() {
     }) => {
       if (!profile?.tenant_id) throw new Error('No tenant');
 
-      const { data, error } = await (supabase
-        .from('geofence_escalation_rules' as any)
+      const { data, error } = await (looseClient
+        .from('geofence_escalation_rules')
         .insert({
           tenant_id: profile.tenant_id,
           rule_name: params.rule_name,
@@ -74,7 +94,7 @@ export function useCreateEscalationRule() {
           created_by: user?.id,
         })
         .select()
-        .single());
+        .single()) as unknown as LooseQueryResult;
 
       if (error) throw error;
       return data;
@@ -102,12 +122,12 @@ export function useUpdateEscalationRule() {
       id,
       ...updates
     }: Partial<GeofenceEscalationRule> & { id: string }) => {
-      const { data, error } = await (supabase
-        .from('geofence_escalation_rules' as any)
+      const { data, error } = await (looseClient
+        .from('geofence_escalation_rules')
         .update(updates)
         .eq('id', id)
         .select()
-        .single());
+        .single()) as unknown as LooseQueryResult;
 
       if (error) throw error;
       return data;
@@ -132,10 +152,10 @@ export function useDeleteEscalationRule() {
 
   return useMutation({
     mutationFn: async (ruleId: string) => {
-      const { error } = await (supabase
-        .from('geofence_escalation_rules' as any)
+      const { error } = await (looseClient
+        .from('geofence_escalation_rules')
         .update({ deleted_at: new Date().toISOString() })
-        .eq('id', ruleId));
+        .eq('id', ruleId)) as unknown as LooseQueryResult;
 
       if (error) throw error;
     },

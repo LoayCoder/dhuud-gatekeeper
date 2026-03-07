@@ -16,12 +16,12 @@ import { useIncidentReport } from './hooks/useIncidentReport';
 
 export function IncidentReportForm({ viewProps }: { viewProps: ReturnType<typeof useIncidentReport> }) {
   const { t, i18n, direction, reportMode, setReportMode, currentStep, setCurrentStep, isGettingLocation, coordinates, selectedAsset, setSelectedAsset, availableIncidentTags, selectedTags, setSelectedTags, isApplyingAISuggestions, pendingAISubtype, autoDetectedBranch, autoDetectedSite, gpsDetectedSite, gpsDetectedBranch, noSiteNearby, gpsLocationConfirmed, gpsAccuracy, locationAddress, uploadedPhotos, setUploadedPhotos, uploadedVideo, setUploadedVideo, isUploading, activeEventId, setActiveEventId, showConfirmation, setShowConfirmation, closedOnSpot, setClosedOnSpot, closedOnSpotPhotos, setClosedOnSpotPhotos, showClosedOnSpotConfirm, setShowClosedOnSpotConfirm, pendingSubmitData, isConfirmSubmitting, hasSubmitted, submittedIncident, form, hasInjury, hasDamage, eventType, incidentType, isAgainstContractor, selectedBranchId, selectedSiteId, isAutoTriggerEnabled, setAutoTriggerEnabled, isPendingAutoTrigger, aiValidator, isObservation, filteredSites, filteredDepartments, departmentsLoading, departmentsUsingFallback, dynamicSubtypes, subtypeOptions, getReferencePreview, goToNextStep, goToPreviousStep, goToStep, handleGetLocation, handleGpsConfirm, handleGpsChangeLocation, handleAnalyzeDescription, handleConfirmTranslation, handleConfirmAnalysis, handleObservationSubmit, handleClosedOnSpotConfirm, contractorCompanies, branches, sites, branchesLoading, sitesLoading, dynamicCategories, isFetchingAddress, handleAssetSelect, onSubmit, navigate, profile } = viewProps;
-  const setIsConfirmSubmitting = (viewProps as any).setIsConfirmSubmitting || (() => {});
-  const createIncident = (viewProps as any).createIncident || { isPending: false };
+  const setIsConfirmSubmitting = (viewProps as Record<string, unknown>).setIsConfirmSubmitting as ((v: boolean) => void) || (() => {});
+  const createIncident = (viewProps as Record<string, unknown>).createIncident as { isPending: boolean } || { isPending: false };
 
   // Step Indicator Component
   if (reportMode === null) {
-    return <EventTypeSelector setReportMode={setReportMode as any} t={t} direction={direction} />;
+    return <EventTypeSelector setReportMode={setReportMode as (mode: string) => void} t={t} direction={direction} />;
   }
 
   // If observation mode selected, show the quick card

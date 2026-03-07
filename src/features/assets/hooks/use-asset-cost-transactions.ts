@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import type { Json } from '@/integrations/supabase/types';
+import type { Database } from '@/integrations/supabase/types';
 import { useTranslation } from 'react-i18next';
 
 export type TransactionType = 'purchase' | 'maintenance' | 'repair' | 'upgrade' | 'energy' | 'insurance' | 'disposal' | 'other';
@@ -68,28 +68,30 @@ export function useAssetCostTransactions(assetId: string | undefined) {
       const fiscalYear = transactionDate.getFullYear();
       const fiscalQuarter = Math.ceil((transactionDate.getMonth() + 1) / 3);
 
+      const insertPayload: Database['public']['Tables']['asset_cost_transactions']['Insert'] = {
+        tenant_id: profile.tenant_id,
+        asset_id: input.asset_id,
+        transaction_type: input.transaction_type,
+        amount: input.amount,
+        currency: input.currency || 'SAR',
+        transaction_date: input.transaction_date,
+        description: input.description,
+        vendor_name: input.vendor_name,
+        invoice_number: input.invoice_number,
+        maintenance_schedule_id: input.maintenance_schedule_id,
+        fiscal_year: fiscalYear,
+        fiscal_quarter: fiscalQuarter,
+        created_by: user?.id,
+      };
+
       const { data, error } = await supabase
         .from('asset_cost_transactions')
-        .insert({
-          tenant_id: profile.tenant_id,
-          asset_id: input.asset_id,
-          transaction_type: input.transaction_type,
-          amount: input.amount,
-          currency: input.currency || 'SAR',
-          transaction_date: input.transaction_date,
-          description: input.description,
-          vendor_name: input.vendor_name,
-          invoice_number: input.invoice_number,
-          maintenance_schedule_id: input.maintenance_schedule_id,
-          fiscal_year: fiscalYear,
-          fiscal_quarter: fiscalQuarter,
-        created_by: user?.id,
-      } as any)
-      .select()
-      .single();
+        .insert(insertPayload)
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data;
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['asset-cost-transactions', assetId] });

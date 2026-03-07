@@ -344,10 +344,10 @@ export default function IncidentList() {
         <div className="space-y-4">
           {viewMode === 'table' ? (
             <IncidentTableView
-              incidents={incidents.map((i: any) => ({
+              incidents={incidents.map((i: Record<string, unknown>) => ({
                 ...i,
                 incident_type: i.incident_type,
-              })) as any}
+              })) as Parameters<typeof IncidentTableView>[0]['incidents']}
               hasHSSEAccess={hasHSSEAccess}
               isAdmin={isAdmin}
               isHSSEManager={isHSSEManager}
@@ -361,8 +361,8 @@ export default function IncidentList() {
                   key={incident.id}
                   incident={{
                     ...incident,
-                    incident_type: (incident as any).incident_type,
-                  } as any}
+                    incident_type: (incident as Record<string, unknown>).incident_type as string,
+                  } as unknown as Parameters<typeof IncidentCardEnhanced>[0]['incident']}
                   hasHSSEAccess={hasHSSEAccess}
                   canDelete={canDeleteIncident(incident.status)}
                   onStartInvestigation={handleStartInvestigation}

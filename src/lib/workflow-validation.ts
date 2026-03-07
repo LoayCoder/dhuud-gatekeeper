@@ -49,10 +49,10 @@ export async function validateActionClosureGate(incidentId: string): Promise<{ v
   const errors: string[] = [];
 
   // Check if all actions are closed - bypass deep type instantiation
-  const result = await (supabase
-    .from('corrective_actions' as never) as any)
+  const result = await supabase
+    .from('corrective_actions')
     .select('id, status')
-    .eq('source_id', incidentId);
+    .eq('source_id' as never, incidentId);
   
   const actions = result.data as Array<{ id: string; status: string }> | null;
   const actError = result.error as Error | null;

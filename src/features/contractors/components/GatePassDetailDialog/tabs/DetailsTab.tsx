@@ -18,7 +18,20 @@ import {
   useGatePassDetails,
   GatePassItem,
   GatePassApproverProfile,
+  GatePassDetailData,
 } from "@/features/contractors/hooks/use-gate-pass-details";
+import type { TFunction } from "i18next";
+
+/** Extended profile that may include email from joined data */
+interface GatePassRequesterWithEmail extends GatePassApproverProfile {
+  email?: string | null;
+}
+
+/** Extended detail data for public requests with split plate fields */
+interface GatePassDetailExtended extends GatePassDetailData {
+  vehicle_plate_letters?: string | null;
+  vehicle_plate_numbers?: string | null;
+}
 
 // Details Tab Component
 export function DetailsTab({
@@ -29,12 +42,12 @@ export function DetailsTab({
   getStatusBadge,
   t,
 }: {
-  pass: any;
-  passDetails: any;
-  items: any[];
+  pass: MaterialGatePass | GatePassDetailData;
+  passDetails: GatePassDetailData | null | undefined;
+  items: GatePassItem[];
   isLoading: boolean;
   getStatusBadge: (status: string) => JSX.Element;
-  t: any;
+  t: TFunction;
 }) {
   if (isLoading) {
     return (
@@ -46,7 +59,7 @@ export function DetailsTab({
     );
   }
 
-  const data = passDetails || pass;
+  const data = (passDetails || pass) as GatePassDetailExtended;
 
   return (
     <div className="space-y-4 pe-4">
@@ -136,19 +149,12 @@ export function DetailsTab({
           <div className="pt-2 border-t mt-1">
             {(() => {
               const expiryDate = new Date(data.end_date || data.pass_date);
-              // Set to end of day to be generous if no time specified, or parse time window if needed. 
-              // For now, assuming end of the passed date.
               expiryDate.setHours(23, 59, 59, 999);
 
               const now = new Date();
               const isExpired = now > expiryDate;
 
-              // Calculate remaining
               const diffTime = Math.abs(expiryDate.getTime() - now.getTime());
-              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-              // using ceil for days to match common strictness, or calculate exact d/h
-
-              // More precise calc using date-fns logic manually or if imported
               const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
               const hours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 
@@ -192,8 +198,8 @@ export function DetailsTab({
               <div>
                 <span className="text-muted-foreground">{t("contractors.gatePassDetail.plateNumber", "Plate")}:</span>
                 <span className="ms-2 font-medium font-mono">
-                  {data.is_public_request && (data as any).vehicle_plate_letters && (data as any).vehicle_plate_numbers
-                    ? `${(data as any).vehicle_plate_letters} ${(data as any).vehicle_plate_numbers}`
+                  {data.is_public_request && data.vehicle_plate_letters && data.vehicle_plate_numbers
+                    ? `${data.vehicle_plate_letters} ${data.vehicle_plate_numbers}`
                     : data.vehicle_plate || "-"}
                 </span>
               </div>
@@ -238,8 +244,8 @@ export function DetailsTab({
                   ? (data.public_requester_name || t("common.publicUser", "Public User"))
                   : ((passDetails?.requester as GatePassApproverProfile)?.full_name || data.requester?.full_name || "-")}
               </span>
-              {!data.is_public_request && (passDetails?.requester as any)?.email && (
-                <span className="text-xs text-muted-foreground">{(passDetails?.requester as any).email}</span>
+              {!data.is_public_request && (passDetails?.requester as GatePassRequesterWithEmail)?.email && (
+                <span className="text-xs text-muted-foreground">{(passDetails?.requester as GatePassRequesterWithEmail).email}</span>
               )}
             </div>
           </div>
@@ -262,4 +268,3 @@ export function DetailsTab({
     </div >
   );
 }
-

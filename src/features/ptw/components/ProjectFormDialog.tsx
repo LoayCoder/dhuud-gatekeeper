@@ -74,13 +74,12 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
       if (linkedProject) {
         setFormData((prev) => ({
           ...prev,
-          contractor_company_id: linkedProject.company_id,
-          site_id: linkedProject.site_id || "",
-          // Also copy location data from linked project if available
-          latitude: linkedProject.latitude ?? prev.latitude,
-          longitude: linkedProject.longitude ?? prev.longitude,
-          boundary_polygon: linkedProject.boundary_polygon ?? prev.boundary_polygon,
-          geofence_radius_meters: linkedProject.geofence_radius_meters ?? prev.geofence_radius_meters,
+          contractor_company_id: String(linkedProject.company_id ?? ""),
+          site_id: String(linkedProject.site_id ?? ""),
+          latitude: typeof linkedProject.latitude === 'number' ? linkedProject.latitude : prev.latitude,
+          longitude: typeof linkedProject.longitude === 'number' ? linkedProject.longitude : prev.longitude,
+          boundary_polygon: (linkedProject.boundary_polygon as Coordinate[] | null) ?? prev.boundary_polygon,
+          geofence_radius_meters: typeof linkedProject.geofence_radius_meters === 'number' ? linkedProject.geofence_radius_meters : prev.geofence_radius_meters,
         }));
         setIsLinkedFieldsLocked(true);
       }

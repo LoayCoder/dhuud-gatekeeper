@@ -196,9 +196,10 @@ export function useCheckWorkerIsSiteRep() {
             .is("deleted_at", null)
             .maybeSingle();
 
+        const companyData = data?.company as unknown as { company_name: string } | null;
         return {
             isSiteRep: !!data,
-            companyName: (data?.company as any)?.company_name,
+            companyName: companyData?.company_name,
             companyId: data?.company_id,
         };
     };

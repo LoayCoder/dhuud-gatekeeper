@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,11 +20,11 @@ import {
   Users,
   Radar,
   Clock,
-  ArrowUpRight,
-  ArrowDownRight,
   Minus
 } from "lucide-react";
 import type { AIRiskInsights } from '@/features/incidents';
+
+type BadgeVariant = 'default' | 'destructive' | 'secondary' | 'outline';
 
 interface Props {
   insights: AIRiskInsights | null;
@@ -33,7 +33,7 @@ interface Props {
   lastUpdated?: Date;
 }
 
-function getRiskLevelColor(level: string) {
+function getRiskLevelColor(level: string): BadgeVariant {
   switch (level) {
     case 'critical': return 'destructive';
     case 'high': return 'destructive';
@@ -53,7 +53,7 @@ function getRiskLevelBgColor(level: string) {
   }
 }
 
-function getSeverityColor(severity: string) {
+function getSeverityColor(severity: string): BadgeVariant {
   switch (severity) {
     case 'critical': return 'destructive';
     case 'warning': return 'secondary';
@@ -61,7 +61,7 @@ function getSeverityColor(severity: string) {
   }
 }
 
-function getPriorityColor(priority: string) {
+function getPriorityColor(priority: string): BadgeVariant {
   switch (priority) {
     case 'high': return 'destructive';
     case 'medium': return 'secondary';
@@ -144,7 +144,6 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
           </div>
         ) : (
           <div className="space-y-4">
-            {/* Summary with insight count */}
             {insights.summary && (
               <div className="p-4 bg-primary/10 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
@@ -161,7 +160,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
               onValueChange={setExpandedSections}
               className="w-full"
             >
-              {/* Emerging Hazards - NEW */}
+              {/* Emerging Hazards */}
               {insights.emerging_hazards?.length > 0 && (
                 <AccordionItem value="emerging_hazards">
                   <AccordionTrigger className="hover:no-underline">
@@ -177,7 +176,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                         <div key={idx} className={`p-3 rounded-lg border ${getRiskLevelBgColor(hazard.risk_level)}`}>
                           <div className="flex items-start justify-between mb-2">
                             <span className="font-medium text-sm">{hazard.category}</span>
-                            <Badge variant={getRiskLevelColor(hazard.risk_level) as any} className="capitalize">
+                            <Badge variant={getRiskLevelColor(hazard.risk_level)} className="capitalize">
                               {hazard.risk_level}
                             </Badge>
                           </div>
@@ -192,7 +191,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                 </AccordionItem>
               )}
 
-              {/* Predictive Risks - NEW */}
+              {/* Predictive Risks */}
               {insights.predictive_risks?.length > 0 && (
                 <AccordionItem value="predictive_risks">
                   <AccordionTrigger className="hover:no-underline">
@@ -207,7 +206,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                       {insights.predictive_risks.map((risk, idx) => (
                         <div key={idx} className="p-3 bg-muted/50 rounded-lg">
                           <div className="flex items-center gap-2 mb-2">
-                            <Badge variant={getPriorityColor(risk.probability) as any} className="capitalize">
+                            <Badge variant={getPriorityColor(risk.probability)} className="capitalize">
                               {risk.probability} {t('hsseDashboard.probability')}
                             </Badge>
                             <span className="text-xs text-muted-foreground flex items-center gap-1">
@@ -227,7 +226,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                 </AccordionItem>
               )}
 
-              {/* Branch Risk Scores - NEW */}
+              {/* Branch Risk Scores */}
               {insights.branch_risk_scores?.length > 0 && (
                 <AccordionItem value="branch_risks">
                   <AccordionTrigger className="hover:no-underline">
@@ -246,7 +245,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                               <div className="p-3 bg-muted/50 rounded-lg cursor-help">
                                 <div className="flex items-center justify-between mb-2">
                                   <span className="font-medium text-sm">{branch.branch_name}</span>
-                                  <Badge variant={getRiskLevelColor(branch.risk_level) as any} className="capitalize">
+                                  <Badge variant={getRiskLevelColor(branch.risk_level)} className="capitalize">
                                     {branch.score}/100
                                   </Badge>
                                 </div>
@@ -265,7 +264,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                 </AccordionItem>
               )}
 
-              {/* Department Risk Scores - NEW */}
+              {/* Department Risk Scores */}
               {insights.department_risk_scores?.length > 0 && (
                 <AccordionItem value="department_risks">
                   <AccordionTrigger className="hover:no-underline">
@@ -281,7 +280,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                         <div key={idx} className="p-3 bg-muted/50 rounded-lg">
                           <div className="flex items-center justify-between mb-2">
                             <span className="font-medium text-sm">{dept.department_name}</span>
-                            <Badge variant={getRiskLevelColor(dept.risk_level) as any} className="capitalize">
+                            <Badge variant={getRiskLevelColor(dept.risk_level)} className="capitalize">
                               {dept.score}/100
                             </Badge>
                           </div>
@@ -294,7 +293,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                 </AccordionItem>
               )}
 
-              {/* Behavioral Insights - NEW */}
+              {/* Behavioral Insights */}
               {insights.behavioral_insights?.length > 0 && (
                 <AccordionItem value="behavioral">
                   <AccordionTrigger className="hover:no-underline">
@@ -325,7 +324,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                 </AccordionItem>
               )}
 
-              {/* Existing: Patterns */}
+              {/* Patterns */}
               {insights.patterns?.length > 0 && (
                 <AccordionItem value="patterns">
                   <AccordionTrigger className="hover:no-underline">
@@ -354,7 +353,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                 </AccordionItem>
               )}
 
-              {/* Existing: Anomalies */}
+              {/* Anomalies */}
               {insights.anomalies?.length > 0 && (
                 <AccordionItem value="anomalies">
                   <AccordionTrigger className="hover:no-underline">
@@ -369,7 +368,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                       {insights.anomalies.map((anomaly, idx) => (
                         <div key={idx} className="p-3 bg-muted/50 rounded-lg">
                           <div className="flex items-center gap-2 mb-2">
-                            <Badge variant={getSeverityColor(anomaly.severity) as any}>{anomaly.severity}</Badge>
+                            <Badge variant={getSeverityColor(anomaly.severity)}>{anomaly.severity}</Badge>
                             <span className="text-xs text-muted-foreground">{anomaly.date_range}</span>
                           </div>
                           <p className="text-sm">{anomaly.description}</p>
@@ -380,7 +379,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                 </AccordionItem>
               )}
 
-              {/* Existing: Recommendations */}
+              {/* Recommendations */}
               {insights.recommendations?.length > 0 && (
                 <AccordionItem value="recommendations">
                   <AccordionTrigger className="hover:no-underline">
@@ -395,7 +394,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                       {insights.recommendations.map((rec, idx) => (
                         <div key={idx} className="p-3 bg-muted/50 rounded-lg">
                           <div className="flex items-center gap-2 mb-2">
-                            <Badge variant={getPriorityColor(rec.priority) as any}>{rec.priority}</Badge>
+                            <Badge variant={getPriorityColor(rec.priority)}>{rec.priority}</Badge>
                             <span className="text-sm font-medium">{rec.area}</span>
                           </div>
                           <p className="text-sm mb-1">{rec.action}</p>
@@ -413,4 +412,3 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
     </Card>
   );
 }
-

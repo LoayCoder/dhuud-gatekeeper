@@ -25,7 +25,7 @@ export interface CreateGateEntryParams {
   mobile_number?: string;
   notify_host?: boolean;
   car_plate?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export function useGateEntries(filters?: GateEntryFilters) {

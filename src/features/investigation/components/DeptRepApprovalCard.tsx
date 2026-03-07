@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils";
 import { useDeptRepApproval, useCanApproveDeptRep } from '@/features/incidents';
 import { useDeptRepAcknowledgeObservation, useCanReviewAsDeptRep } from "@/hooks/use-dept-rep-workflow";
 const useCorrectiveActionsCount = (id: string) => ({ data: 0, refetch: () => {} });
-const useDeptRepRejectObservation = () => ({ mutate: (...args: any[]) => {}, isPending: false });
+const useDeptRepRejectObservation = () => ({ mutate: (..._args: unknown[]) => {}, isPending: false });
 import { useSubmitContractorViolation } from '@/features/contractors';
 import { ActionsPanel } from "./ActionsPanel";
 import { ContractorViolationSection } from "./ContractorViolationSection";
@@ -61,8 +61,9 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
   const [showActions, setShowActions] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+  const vi = incident as unknown as import('../types/investigationTypes').ViolationIncidentFields;
   const [selectedViolationTypeId, setSelectedViolationTypeId] = useState<string | null>(
-    (incident as any).violation_type_id || null
+    vi.violation_type_id || null
   );
   
   // Use the new can_approve_dept_rep_observation RPC function for observations

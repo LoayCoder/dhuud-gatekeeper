@@ -34,6 +34,10 @@ export interface ExportViolation {
   reported_at: string;
 }
 
+interface CompanyJoin {
+  company_name: string;
+}
+
 export function useClientSiteRepExportData() {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
@@ -63,7 +67,7 @@ export function useClientSiteRepExportData() {
       nationality: w.nationality,
       mobile_number: w.mobile_number,
       approval_status: w.approval_status || "pending",
-      company_name: (w.company as any)?.company_name || "",
+      company_name: (w.company as unknown as CompanyJoin)?.company_name || "",
       created_at: w.created_at,
     }));
   };
@@ -94,7 +98,7 @@ export function useClientSiteRepExportData() {
       status: i.status,
       location: i.location,
       occurred_at: i.occurred_at,
-      company_name: (i.company as any)?.company_name || "",
+      company_name: (i.company as unknown as CompanyJoin)?.company_name || "",
     }));
   };
 

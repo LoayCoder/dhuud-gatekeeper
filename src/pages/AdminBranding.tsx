@@ -26,7 +26,7 @@ export default function AdminBranding() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [tenant, setTenant] = useState<Record<string, any> | null>(null);
+  const [tenant, setTenant] = useState<Record<string, unknown> | null>(null);
 
   // Light mode colors
   const [brandColorLight, setBrandColorLight] = useState('');
@@ -92,7 +92,7 @@ export default function AdminBranding() {
       setSecondaryColorDark(tenantData.secondary_color_dark || '');
 
       // Background
-      setBgTheme((tenantData.background_theme as any) || 'color');
+      setBgTheme((tenantData.background_theme as 'color' | 'image') || 'color');
       setBgColor(tenantData.background_color || '');
       setBgPreview(tenantData.background_image_url);
 
@@ -127,7 +127,7 @@ export default function AdminBranding() {
       return;
     }
     const file = e.target.files[0];
-    const url = await uploadAsset(file, type as any, tenant.id);
+    const url = await uploadAsset(file, type, String(tenant.id));
     if (url) {
       switch (type) {
         case 'logo-light':
@@ -199,7 +199,7 @@ export default function AdminBranding() {
       const { error: saveError } = await supabase
         .from('tenants')
         .update(updates)
-        .eq('id', tenant.id);
+        .eq('id', String(tenant.id));
 
       if (saveError) throw saveError;
       await refreshTenantData();
@@ -250,7 +250,7 @@ export default function AdminBranding() {
         </Button>
         <div className="text-start">
           <h1 className="text-3xl font-bold">{t('adminBranding.title')}</h1>
-          <p className="text-muted-foreground">{String(t('adminBranding.subtitle'))} {tenant?.name}</p>
+          <p className="text-muted-foreground">{String(t('adminBranding.subtitle'))} {String(tenant?.name ?? '')}</p>
         </div>
       </div>
 

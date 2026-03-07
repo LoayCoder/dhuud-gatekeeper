@@ -32,7 +32,7 @@ export function usePrefetchCriticalData() {
   const [prefetchProgress, setPrefetchProgress] = useState({ current: 0, total: 0 });
 
   // Check network quality via Navigator API
-  const connection = typeof navigator !== 'undefined' ? (navigator as any).connection : null;
+  const connection = typeof navigator !== 'undefined' ? (navigator as unknown as Record<string, unknown>).connection as { effectiveType?: string } | null : null;
   const isSlowNetwork = connection?.effectiveType === '2g' || connection?.effectiveType === 'slow-2g';
 
   // Auto-prefetch when coming online
@@ -107,8 +107,9 @@ export function usePrefetchCriticalData() {
 
   const prefetchQuery = useCallback(async (query: typeof CRITICAL_QUERIES[0]) => {
     try {
-      const { data, error } = await supabase
-        .from(query.table as any)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic table name from config
+      const looseClient = supabase as unknown as { from: (t: string) => { select: (s: string) => { limit: (n: number) => Promise<{ data: unknown; error: { message: string } | null }> } } };
+      const { data, error } = await looseClient.from(query.table)
         .select(query.select)
         .limit(1000);
       

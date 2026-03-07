@@ -1,34 +1,24 @@
 import i18n from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
+import { parseJsonDedup } from './lib/parse-json-dedup';
 
-// Import main translations (bundled for Zero Trust compliance) - v3
-import en from './locales/en/translation.json';
-import ar from './locales/ar/translation.json';
+// Import translations as raw text to handle duplicate keys via deep-merge parser
+// Standard JSON.parse silently drops earlier duplicate keys — this preserves all data
+import enRaw from './locales/en/translation.json?raw';
+import arRaw from './locales/ar/translation.json?raw';
 import ur from './locales/ur/translation.json';
 import hi from './locales/hi/translation.json';
 import fil from './locales/fil/translation.json';
 
-// Import Arabic domain-specific translations
-import arAuth from './locales/ar/auth.json';
-import arCommon from './locales/ar/common.json';
-import arSecurity from './locales/ar/security.json';
-import arIncidents from './locales/ar/incidents.json';
-import arAssets from './locales/ar/assets.json';
-import arContractors from './locales/ar/contractors.json';
+// Parse EN and AR with duplicate-key-merging parser
+const en = parseJsonDedup(enRaw);
+const ar = parseJsonDedup(arRaw);
 
 export const defaultNS = 'translation';
 
 export const resources = {
   en: { translation: en },
-  ar: {
-    translation: ar,
-    auth: arAuth,
-    common: arCommon,
-    security: arSecurity,
-    incidents: arIncidents,
-    assets: arAssets,
-    contractors: arContractors,
-  },
+  ar: { translation: ar },
   ur: { translation: ur },
   hi: { translation: hi },
   fil: { translation: fil },

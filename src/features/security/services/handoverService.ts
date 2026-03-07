@@ -21,23 +21,25 @@ export const submitVacationHandover = async (
 
   if (!profile?.tenant_id) throw new Error('No tenant found');
 
+  const insertData = {
+    tenant_id: profile.tenant_id,
+    outgoing_guard_id: profile.id,
+    zone_id: payload.zone_id || null,
+    handover_type: payload.handover_type,
+    requires_approval: true,
+    outstanding_issues: payload.outstanding_issues as unknown as import('@/integrations/supabase/types').Json,
+    equipment_checklist: payload.equipment_checklist as unknown as import('@/integrations/supabase/types').Json,
+    key_observations: payload.key_observations || null,
+    next_shift_priorities: payload.next_shift_priorities || null,
+    notes: payload.notes || null,
+    outgoing_signature: payload.outgoing_signature || null,
+    signature_timestamp: payload.outgoing_signature ? new Date().toISOString() : null,
+    status: 'pending' as const,
+  };
+
   const { error } = await supabase
     .from('shift_handovers')
-    .insert({
-      tenant_id: profile.tenant_id,
-      outgoing_guard_id: profile.id,
-      zone_id: payload.zone_id || null,
-      handover_type: payload.handover_type,
-      requires_approval: true,
-      outstanding_issues: payload.outstanding_issues as any,
-      equipment_checklist: payload.equipment_checklist as any,
-      key_observations: payload.key_observations || null,
-      next_shift_priorities: payload.next_shift_priorities || null,
-      notes: payload.notes || null,
-      outgoing_signature: payload.outgoing_signature || null,
-      signature_timestamp: payload.outgoing_signature ? new Date().toISOString() : null,
-      status: 'pending',
-    } as any);
+    .insert(insertData);
 
   if (error) throw error;
 };

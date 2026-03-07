@@ -62,13 +62,14 @@ export function useOrgStructureHandlers(
           updatePayload.longitude = null;
         }
       }
-      const { error } = await (supabase as any).from(table).update(updatePayload).eq('id', id);
+      const { error } = await (supabase.from as Function)(table).update(updatePayload).eq('id', id);
       if (error) throw error;
       toast({ title: t('orgStructure.success'), description: t('orgStructure.itemUpdated') });
       cancelEditing();
       data.fetchData();
-    } catch (error: any) {
-      toast({ title: t('common.error'), description: error?.message || t('common.error'), variant: "destructive" });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : t('common.error');
+      toast({ title: t('common.error'), description: msg, variant: "destructive" });
     } finally {
       state.setSaving(false);
     }
@@ -144,14 +145,15 @@ export function useOrgStructureHandlers(
         payload.department_id = state.parentId;
       }
 
-      const { error } = await (supabase as any).from(table).insert([payload] as never);
+      const { error } = await (supabase.from as Function)(table).insert([payload]);
       if (error) throw error;
 
       toast({ title: t('orgStructure.success'), description: t('orgStructure.itemCreated') });
       state.setNewItemName("");
       data.fetchData();
-    } catch (error: any) {
-      toast({ title: t('common.error'), description: error?.message || t('common.error'), variant: "destructive" });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : t('common.error');
+      toast({ title: t('common.error'), description: msg, variant: "destructive" });
     } finally {
       state.setCreating(false);
     }
@@ -167,12 +169,13 @@ export function useOrgStructureHandlers(
   const handleDelete = async (table: string, id: string) => {
     if (!confirm(t('orgStructure.confirmDelete'))) return;
     try {
-      const { error } = await (supabase as any).from(table as string).update({ deleted_at: new Date().toISOString() }).eq('id', id);
+      const { error } = await (supabase.from as Function)(table).update({ deleted_at: new Date().toISOString() }).eq('id', id);
       if (error) throw error;
       toast({ title: t('orgStructure.deleted'), description: t('orgStructure.itemRemoved') });
       data.fetchData();
-    } catch (error: any) {
-      toast({ title: t('common.error'), description: error?.message || t('common.error'), variant: "destructive" });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : t('common.error');
+      toast({ title: t('common.error'), description: msg, variant: "destructive" });
     }
   };
 

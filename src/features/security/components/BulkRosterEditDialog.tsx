@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { AlertTriangle, Edit } from 'lucide-react';
 import { useSecurityZones } from '@/features/security';
 import { useSecurityShifts } from '@/features/security';
 import { useSupervisors, useBulkUpdateRosterAssignments } from '@/hooks/use-shift-roster';
+import type { SecurityZoneWithRisk, SecurityShiftRow } from '@/features/security/types';
 
 interface BulkRosterEditDialogProps {
   open: boolean;
@@ -76,7 +77,7 @@ export function BulkRosterEditDialog({ open, onOpenChange, selectedIds, onSucces
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">{t('security.roster.noChange', 'No change')}</SelectItem>
-                {(zones as any[])?.map((z: any) => (
+                {(zones as SecurityZoneWithRisk[] | undefined)?.map((z) => (
                   <SelectItem key={z.id} value={z.id}>{z.zone_code || ''} - {z.zone_name}</SelectItem>
                 ))}
               </SelectContent>
@@ -92,7 +93,7 @@ export function BulkRosterEditDialog({ open, onOpenChange, selectedIds, onSucces
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">{t('security.roster.noChange', 'No change')}</SelectItem>
-                {(shifts as any[])?.filter((s: any) => s.is_active).map((s: any) => (
+                {(shifts as SecurityShiftRow[] | undefined)?.filter((s) => s.is_active).map((s) => (
                   <SelectItem key={s.id} value={s.id}>{s.shift_name} ({s.start_time} - {s.end_time})</SelectItem>
                 ))}
               </SelectContent>

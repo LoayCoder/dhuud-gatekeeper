@@ -75,7 +75,7 @@ export function ContractorAccessLogTable({ logs, isLoading }: ContractorAccessLo
         </TableHeader>
         <TableBody>
           {logs.map((log) => {
-            const contractor = log.contractor as any;
+            const contractor = log.contractor as import('@/features/security/types').ContractorAccessContractor | null;
             return (
               <TableRow key={log.id}>
                 <TableCell>

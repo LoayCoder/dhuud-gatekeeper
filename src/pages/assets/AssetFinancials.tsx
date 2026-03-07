@@ -103,7 +103,7 @@ function AssetFinancialsContent() {
     );
   }
 
-  const assetData = asset as any;
+  const assetName = String((asset as unknown as Record<string, unknown>).name || '');
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
@@ -118,8 +118,8 @@ function AssetFinancialsContent() {
               <DollarSign className="h-6 w-6" />
               {String(t('assets.financials', 'Asset Financials'))}
             </h1>
-            <p className="text-muted-foreground">
-              {assetData.name} ({asset.asset_code})
+             <p className="text-muted-foreground">
+              {assetName} ({asset.asset_code})
             </p>
           </div>
         </div>
@@ -226,7 +226,7 @@ function AssetFinancialsContent() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">
-              {assetData.purchase_cost ? `${assetData.purchase_cost.toLocaleString()} SAR` : '-'}
+              {(asset as unknown as Record<string, unknown>).purchase_cost ? `${Number((asset as unknown as Record<string, unknown>).purchase_cost).toLocaleString()} SAR` : '-'}
             </p>
           </CardContent>
         </Card>
@@ -236,7 +236,7 @@ function AssetFinancialsContent() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-primary">
-              {assetData.current_book_value ? `${assetData.current_book_value.toLocaleString()} SAR` : '-'}
+              {(asset as unknown as Record<string, unknown>).current_book_value ? `${Number((asset as unknown as Record<string, unknown>).current_book_value).toLocaleString()} SAR` : '-'}
             </p>
           </CardContent>
         </Card>

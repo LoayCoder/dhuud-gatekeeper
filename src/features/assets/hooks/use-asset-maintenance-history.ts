@@ -3,6 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
+import type { Database } from '@/integrations/supabase/types';
+
+type MaintenanceHistoryRow = Database['public']['Tables']['asset_maintenance_history']['Row'];
 
 export interface MaintenanceHistoryEntry {
   id: string;
@@ -27,6 +30,11 @@ export interface MaintenanceHistoryEntry {
   was_unplanned: boolean;
   downtime_hours?: number;
   created_at: string;
+}
+
+/** Joined maintenance history row with performer profile */
+interface MaintenanceHistoryWithPerformer extends MaintenanceHistoryEntry {
+  performer?: { id: string; full_name: string | null; email: string | null } | null;
 }
 
 export interface CreateMaintenanceHistoryInput {
@@ -71,7 +79,7 @@ export function useAssetMaintenanceHistory(assetId: string | undefined) {
         .order('performed_date', { ascending: false });
 
       if (error) throw error;
-      return data as any[];
+      return (data ?? []) as unknown as MaintenanceHistoryWithPerformer[];
     },
     enabled: !!assetId,
   });
@@ -86,30 +94,32 @@ export function useCreateMaintenanceHistory() {
     mutationFn: async (input: CreateMaintenanceHistoryInput) => {
       if (!profile?.tenant_id) throw new Error('No tenant');
 
+      const insertPayload: Database['public']['Tables']['asset_maintenance_history']['Insert'] = {
+        tenant_id: profile.tenant_id,
+        asset_id: input.asset_id,
+        schedule_id: input.schedule_id,
+        maintenance_type: input.maintenance_type,
+        performed_date: input.performed_date,
+        performed_by: user?.id,
+        planned_duration_hours: input.planned_duration_hours,
+        actual_duration_hours: input.actual_duration_hours,
+        cost: input.cost,
+        currency: input.currency || 'SAR',
+        parts_used: (input.parts_used || []) as unknown as Database['public']['Tables']['asset_maintenance_history']['Insert']['parts_used'],
+        findings: (input.findings || {}) as unknown as Database['public']['Tables']['asset_maintenance_history']['Insert']['findings'],
+        notes: input.notes,
+        condition_before: input.condition_before,
+        condition_after: input.condition_after,
+        failure_mode: input.failure_mode,
+        root_cause: input.root_cause,
+        next_recommended_action: input.next_recommended_action,
+        was_unplanned: input.was_unplanned || false,
+        downtime_hours: input.downtime_hours,
+      };
+
       const { data, error } = await supabase
         .from('asset_maintenance_history')
-        .insert({
-          tenant_id: profile.tenant_id,
-          asset_id: input.asset_id,
-          schedule_id: input.schedule_id,
-          maintenance_type: input.maintenance_type,
-          performed_date: input.performed_date,
-          performed_by: user?.id,
-          planned_duration_hours: input.planned_duration_hours,
-          actual_duration_hours: input.actual_duration_hours,
-          cost: input.cost,
-          currency: input.currency || 'SAR',
-          parts_used: (input.parts_used || []) as unknown,
-          findings: (input.findings || {}) as unknown,
-          notes: input.notes,
-          condition_before: input.condition_before,
-          condition_after: input.condition_after,
-          failure_mode: input.failure_mode,
-          root_cause: input.root_cause,
-          next_recommended_action: input.next_recommended_action,
-          was_unplanned: input.was_unplanned || false,
-          downtime_hours: input.downtime_hours,
-        } as any)
+        .insert(insertPayload)
         .select()
         .single();
 

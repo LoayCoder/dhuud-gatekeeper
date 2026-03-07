@@ -115,9 +115,9 @@ export async function createAsset(asset: Omit<AssetInsert, 'tenant_id' | 'create
 
             if (existing) {
                 if (attempt < MAX_CREATE_RETRIES) continue;
-                const err = new Error(`DuplicateCodeError: ${currentAsset.asset_code}`);
-                (err as any).code = '23505';
-                (err as any).assetCode = currentAsset.asset_code;
+                const err = new Error(`DuplicateCodeError: ${currentAsset.asset_code}`) as Error & { code: string; assetCode: string };
+                err.code = '23505';
+                err.assetCode = currentAsset.asset_code;
                 throw err;
             }
 
@@ -134,9 +134,9 @@ export async function createAsset(asset: Omit<AssetInsert, 'tenant_id' | 'create
             if (error) {
                 if (error.code === '23505' && attempt < MAX_CREATE_RETRIES) continue;
                 if (error.code === '23505') {
-                    const err = new Error(`DuplicateCodeError: ${currentAsset.asset_code}`);
-                    (err as any).code = '23505';
-                    (err as any).assetCode = currentAsset.asset_code;
+                    const err = new Error(`DuplicateCodeError: ${currentAsset.asset_code}`) as Error & { code: string; assetCode: string };
+                    err.code = '23505';
+                    err.assetCode = currentAsset.asset_code;
                     throw err;
                 }
                 throw error;
@@ -145,7 +145,7 @@ export async function createAsset(asset: Omit<AssetInsert, 'tenant_id' | 'create
             return data;
         } catch (err: unknown) {
             lastError = err instanceof Error ? err : new Error('Unknown error');
-            const errorCode = (err as any)?.code;
+            const errorCode = (err as Error & { code?: string })?.code;
             if (errorCode !== '23505' || attempt >= MAX_CREATE_RETRIES) {
                 throw err;
             }
@@ -206,8 +206,8 @@ export async function createBulkAssets(baseAsset: Omit<AssetInsert, 'tenant_id' 
 
     if (error) {
         if (error.code === '23505') {
-            const err = new Error('ConstraintError');
-            (err as any).code = '23505';
+            const err = new Error('ConstraintError') as Error & { code: string };
+            err.code = '23505';
             throw err;
         }
         throw error;

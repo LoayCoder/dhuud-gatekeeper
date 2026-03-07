@@ -9,6 +9,46 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserRoles } from '@/features/users';
 import { UserFormValues, userFormSchema, UserFormDialogProps } from '../types';
 
+// Shape of the `user` prop passed in from the parent
+interface EditableUser {
+  id: string;
+  full_name: string;
+  email?: string | null;
+  phone_number?: string | null;
+  user_type?: string | null;
+  has_login?: boolean | null;
+  is_active?: boolean | null;
+  employee_id?: string | null;
+  job_title?: string | null;
+  contractor_company_name?: string | null;
+  contract_start?: string | null;
+  contract_end?: string | null;
+  membership_id?: string | null;
+  membership_start?: string | null;
+  membership_end?: string | null;
+  has_full_branch_access?: boolean | null;
+  assigned_branch_id?: string | null;
+  assigned_division_id?: string | null;
+  assigned_department_id?: string | null;
+  assigned_section_id?: string | null;
+  assigned_site_id?: string | null;
+}
+
+interface HierarchyItem {
+  id: string;
+  name: string;
+  branch_id?: string | null;
+  division_id?: string | null;
+  department_id?: string | null;
+  [key: string]: unknown;
+}
+
+interface SiteItem {
+  id: string;
+  name: string;
+  branch_id: string;
+}
+
 export function useUserFormState(props: UserFormDialogProps) {
   const { open, onOpenChange, user, onSave } = props;
   const { t, i18n } = useTranslation();
@@ -24,11 +64,11 @@ export function useUserFormState(props: UserFormDialogProps) {
   const direction = i18n.dir();
   
   const [hierarchy, setHierarchy] = useState<{
-    branches: any[];
-    divisions: any[];
-    departments: any[];
-    sections: any[];
-    sites: any[];
+    branches: HierarchyItem[];
+    divisions: HierarchyItem[];
+    departments: HierarchyItem[];
+    sections: HierarchyItem[];
+    sites: SiteItem[];
   }>({
     branches: [],
     divisions: [],
@@ -37,7 +77,6 @@ export function useUserFormState(props: UserFormDialogProps) {
     sites: [],
   });
   
-  // Multi-branch selection state
   const [selectedBranchIds, setSelectedBranchIds] = useState<string[]>([]);
 
   const form = useForm<UserFormValues>({
@@ -88,11 +127,11 @@ export function useUserFormState(props: UserFormDialogProps) {
       ]);
 
       setHierarchy({
-        branches: branchesRes.data || [],
-        divisions: divisionsRes.data || [],
-        departments: departmentsRes.data || [],
-        sections: sectionsRes.data || [],
-        sites: sitesRes.data || [],
+        branches: (branchesRes.data ?? []) as HierarchyItem[],
+        divisions: (divisionsRes.data ?? []) as HierarchyItem[],
+        departments: (departmentsRes.data ?? []) as HierarchyItem[],
+        sections: (sectionsRes.data ?? []) as HierarchyItem[],
+        sites: (sitesRes.data ?? []) as SiteItem[],
       });
     }
     loadHierarchy();
@@ -101,13 +140,13 @@ export function useUserFormState(props: UserFormDialogProps) {
   // Reset form and load user roles when user changes
   useEffect(() => {
     async function loadUserData() {
-      const u = user as any;
+      const u = user as EditableUser | undefined;
       if (u) {
         form.reset({
           full_name: u.full_name || '',
           email: u.email || '',
           phone_number: u.phone_number || '',
-          user_type: u.user_type || 'employee',
+          user_type: (u.user_type as UserFormValues['user_type']) || 'employee',
           has_login: u.has_login ?? true,
           is_active: u.is_active ?? true,
           employee_id: u.employee_id || '',
@@ -130,7 +169,6 @@ export function useUserFormState(props: UserFormDialogProps) {
         const userRoles = await fetchUserRoles(u.id);
         setSelectedRoleIds(userRoles.map(r => r.role_id));
 
-        // Load user branch assignments
         const { data: branchAssignments } = await supabase
           .from('user_branch_assignments')
           .select('branch_id, is_primary')
@@ -140,7 +178,6 @@ export function useUserFormState(props: UserFormDialogProps) {
         if (branchAssignments && branchAssignments.length > 0) {
           setSelectedBranchIds(branchAssignments.map(a => a.branch_id));
         } else if (u.assigned_branch_id) {
-          // Fallback to legacy single branch
           setSelectedBranchIds([u.assigned_branch_id]);
         } else {
           setSelectedBranchIds([]);
@@ -174,22 +211,18 @@ export function useUserFormState(props: UserFormDialogProps) {
 
   // Filter divisions by selected branches with deduplication
   const filteredDivisions = useMemo(() => {
-    // If no branches selected and no full access, show nothing
     const hasFullAccess = form.getValues('has_full_branch_access');
     if (selectedBranchIds.length === 0 && !hasFullAccess) return [];
     
-    // Get divisions to filter - include hybrid divisions (branch_id = NULL) for all users
     let divisions = hierarchy.divisions;
     
-    // If not full access, filter by selected branches OR hybrid divisions (branch_id = NULL)
     if (!hasFullAccess && selectedBranchIds.length > 0) {
       divisions = divisions.filter((d) => 
-        d.branch_id === null || selectedBranchIds.includes(d.branch_id)
+        d.branch_id === null || (d.branch_id != null && selectedBranchIds.includes(d.branch_id))
       );
     }
     
-    // Deduplicate by name for multi-branch selection
-    const seen = new Map();
+    const seen = new Map<string, HierarchyItem>();
     divisions.forEach((d) => {
       if (!seen.has(d.name)) {
         seen.set(d.name, d);
@@ -203,18 +236,15 @@ export function useUserFormState(props: UserFormDialogProps) {
     
     const hasFullAccess = form.getValues('has_full_branch_access');
     
-    // If no branches selected AND not full access, return empty
     if (selectedBranchIds.length === 0 && !hasFullAccess) return [];
     
     let depts = hierarchy.departments.filter((d) => d.division_id === selectedDivisionId);
     
-    // Filter by selected branches if not full access
     if (!hasFullAccess) {
       depts = depts.filter((d) => !d.branch_id || selectedBranchIds.includes(d.branch_id));
     }
     
-    // Deduplicate by name
-    const seen = new Map();
+    const seen = new Map<string, HierarchyItem>();
     depts.forEach((d) => {
       if (!seen.has(d.name)) {
         seen.set(d.name, d);
@@ -228,13 +258,11 @@ export function useUserFormState(props: UserFormDialogProps) {
     
     const hasFullAccess = form.getValues('has_full_branch_access');
     
-    // If no branches selected AND not full access, return empty
     if (selectedBranchIds.length === 0 && !hasFullAccess) return [];
     
     const secs = hierarchy.sections.filter((s) => s.department_id === selectedDepartmentId);
     
-    // Deduplicate by name for consistency
-    const seen = new Map();
+    const seen = new Map<string, HierarchyItem>();
     secs.forEach((s) => {
       if (!seen.has(s.name)) {
         seen.set(s.name, s);
@@ -243,7 +271,7 @@ export function useUserFormState(props: UserFormDialogProps) {
     return Array.from(seen.values());
   }, [hierarchy.sections, selectedDepartmentId, selectedBranchIds, form]);
 
-  // Filter sites by selected branches (multi-branch support)
+  // Filter sites by selected branches
   const filteredSites = useMemo(() => {
     if (selectedBranchIds.length === 0) return hierarchy.sites;
     return hierarchy.sites.filter((s) => selectedBranchIds.includes(s.branch_id));
@@ -278,7 +306,6 @@ export function useUserFormState(props: UserFormDialogProps) {
   useEffect(() => {
     const hasFullAccess = form.getValues('has_full_branch_access');
     
-    // If no branches selected and not full access, clear all hierarchy fields
     if (selectedBranchIds.length === 0 && !hasFullAccess) {
       form.setValue('assigned_division_id', null);
       form.setValue('assigned_department_id', null);
@@ -286,11 +313,10 @@ export function useUserFormState(props: UserFormDialogProps) {
       return;
     }
     
-    // If branches are selected, check if current division belongs to selected branches
     const currentDivisionId = form.getValues('assigned_division_id');
     if (currentDivisionId && !hasFullAccess) {
       const divisionBelongsToBranches = hierarchy.divisions.some(
-        d => d.id === currentDivisionId && selectedBranchIds.includes(d.branch_id)
+        d => d.id === currentDivisionId && d.branch_id != null && selectedBranchIds.includes(d.branch_id)
       );
       if (!divisionBelongsToBranches) {
         form.setValue('assigned_division_id', null);
@@ -323,10 +349,8 @@ export function useUserFormState(props: UserFormDialogProps) {
     return role?.code === 'manager';
   });
 
-  // Determine which type-specific tab to show
   const showTypeSpecificTab = userType === 'employee' || isContractorType(userType) || userType === 'member';
 
-  // Tab progress indicators
   const getTabStatus = (tabId: string) => {
     const values = form.getValues();
     switch (tabId) {
@@ -359,4 +383,3 @@ export function useUserFormState(props: UserFormDialogProps) {
     roles, user, onOpenChange, quota
   };
 }
-

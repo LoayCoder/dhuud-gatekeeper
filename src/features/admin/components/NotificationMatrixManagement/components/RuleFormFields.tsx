@@ -19,9 +19,9 @@ export interface RuleFormFieldsProps {
   users: { id: string; full_name: string | null; job_title?: string | null;[key: string]: unknown }[];
   getRoleLabel: (role: string) => string;
   getSeverityLabel: (level: string) => string;
-  emailTemplates: { id: string; slug: string; language: string;[key: string]: unknown }[];
-  whatsappTemplates: { id: string; slug: string; language: string;[key: string]: unknown }[];
-  pushTemplates: { id: string; slug: string; language: string;[key: string]: unknown }[];
+  emailTemplates: { id: string; slug: string; language: string }[];
+  whatsappTemplates: { id: string; slug: string; language: string }[];
+  pushTemplates: { id: string; slug: string; language: string }[];
 }
 
 export function RuleFormFields({

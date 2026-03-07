@@ -111,7 +111,7 @@ export default function InspectionWorkspace() {
       id: inspectionId,
       overall_result: overallResult,
       summary_notes: summaryNotes || undefined,
-    } as any);
+    } as unknown as Parameters<typeof completeInspection.mutateAsync>[0]);
 
     setCompleteDialogOpen(false);
   };
@@ -164,7 +164,7 @@ export default function InspectionWorkspace() {
               {isCancelled && <Badge variant="outline">{t('inspections.cancelled')}</Badge>}
             </div>
             <p className="text-muted-foreground">
-              {(inspection as any)?.asset?.name} • {(inspection as any)?.template?.name}
+              {inspection?.asset?.name} • {inspection?.template?.name}
             </p>
           </div>
         </div>

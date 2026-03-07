@@ -26,6 +26,17 @@ const TABLE_MAP: Record<SpecialistDataType, string> = {
   environmental: 'environmental_incident_details',
 };
 
+// LooseClient for dynamic table access
+interface LooseFrom {
+  select: (columns: string) => LooseFrom;
+  eq: (col: string, val: unknown) => LooseFrom;
+  is: (col: string, val: unknown) => LooseFrom;
+  in: (col: string, vals: unknown[]) => LooseFrom;
+  update: (vals: Record<string, unknown>) => LooseFrom;
+  then: (resolve: (value: { data: unknown[] | null; error: { message: string; code?: string } | null }) => void) => void;
+}
+const looseClient = supabase as unknown as { from: (table: string) => LooseFrom };
+
 /**
  * Hook to manage specialist data review status for leader review cycles
  */
@@ -41,8 +52,7 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
     queryFn: async () => {
       if (!incidentId) return [];
 
-      // Use any to handle dynamic table access until types are fully generated
-      const { data, error } = await (supabase.from(tableName as any) as any)
+      const { data, error } = await looseClient.from(tableName)
         .select('id, review_status, submitted_at, submitted_by, reviewed_at, reviewed_by, review_notes')
         .eq('incident_id', incidentId)
         .is('deleted_at', null);
@@ -63,26 +73,20 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
   // Calculate aggregate status
   const aggregateStatus = (): ReviewStatus | null => {
     if (!records || records.length === 0) return null;
-
-    // If any record is returned, overall is returned
     if (records.some(r => r.review_status === 'returned')) return 'returned';
-    // If any record is draft, overall is draft
     if (records.some(r => r.review_status === 'draft')) return 'draft';
-    // If any record is submitted (awaiting review), overall is submitted
     if (records.some(r => r.review_status === 'submitted')) return 'submitted';
-    // All approved
     if (records.every(r => r.review_status === 'approved')) return 'approved';
-
     return 'draft';
   };
 
   // Submit all records for review
   const submitForReview = useMutation({
     mutationFn: async () => {
-      const profileId = (profile as any)?.id;
+      const profileId = profile?.id;
       if (!incidentId || !profileId) throw new Error('Missing required data');
 
-      const { error } = await (supabase.from(tableName as any) as any)
+      const { error } = await looseClient.from(tableName)
         .update({
           review_status: 'submitted',
           submitted_at: new Date().toISOString(),
@@ -94,7 +98,6 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
 
       if (error) throw error;
 
-      // Log to audit trail
       await supabase.from('incident_audit_logs').insert({
         incident_id: incidentId,
         tenant_id: profile?.tenant_id,
@@ -107,7 +110,7 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
       queryClient.invalidateQueries({ queryKey: ['specialist-review', incidentId, dataType] });
       toast.success(t('investigation.review.submitted', 'Data submitted for review'));
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || t('common.error', 'Failed to submit for review'));
     },
   });
@@ -115,10 +118,10 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
   // Approve all records (for reviewers)
   const approveReview = useMutation({
     mutationFn: async (notes?: string) => {
-      const profileId = (profile as any)?.id;
+      const profileId = profile?.id;
       if (!incidentId || !profileId) throw new Error('Missing required data');
 
-      const { error } = await (supabase.from(tableName as any) as any)
+      const { error } = await looseClient.from(tableName)
         .update({
           review_status: 'approved',
           reviewed_at: new Date().toISOString(),
@@ -131,7 +134,6 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
 
       if (error) throw error;
 
-      // Log to audit trail
       await supabase.from('incident_audit_logs').insert({
         incident_id: incidentId,
         tenant_id: profile?.tenant_id,
@@ -144,7 +146,7 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
       queryClient.invalidateQueries({ queryKey: ['specialist-review', incidentId, dataType] });
       toast.success(t('investigation.review.approved', 'Data approved'));
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || t('common.error', 'Failed to approve'));
     },
   });
@@ -152,11 +154,11 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
   // Return records for corrections (for reviewers)
   const returnForCorrections = useMutation({
     mutationFn: async (notes: string) => {
-      const profileId = (profile as any)?.id;
+      const profileId = profile?.id;
       if (!incidentId || !profileId) throw new Error('Missing required data');
       if (!notes?.trim()) throw new Error('Notes are required when returning for corrections');
 
-      const { error } = await (supabase.from(tableName as any) as any)
+      const { error } = await looseClient.from(tableName)
         .update({
           review_status: 'returned',
           reviewed_at: new Date().toISOString(),
@@ -169,7 +171,6 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
 
       if (error) throw error;
 
-      // Log to audit trail
       await supabase.from('incident_audit_logs').insert({
         incident_id: incidentId,
         tenant_id: profile?.tenant_id,
@@ -182,7 +183,7 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
       queryClient.invalidateQueries({ queryKey: ['specialist-review', incidentId, dataType] });
       toast.success(t('investigation.review.returned', 'Data returned for corrections'));
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || t('common.error', 'Failed to return for corrections'));
     },
   });
@@ -190,10 +191,10 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
   // Reset to draft (after corrections made)
   const resetToDraft = useMutation({
     mutationFn: async () => {
-      const profileId = (profile as any)?.id;
+      const profileId = profile?.id;
       if (!incidentId || !profileId) throw new Error('Missing required data');
 
-      const { error } = await (supabase.from(tableName as any) as any)
+      const { error } = await looseClient.from(tableName)
         .update({
           review_status: 'draft',
           review_notes: null,
@@ -210,28 +211,19 @@ export function useSpecialistReview(incidentId: string | null, dataType: Special
   });
 
   return {
-    // Data
     records: records || [],
     recordCount: records?.length || 0,
     status: aggregateStatus(),
     isLoading,
-
-    // Status checks
     isDraft: aggregateStatus() === 'draft',
     isSubmitted: aggregateStatus() === 'submitted',
     isApproved: aggregateStatus() === 'approved',
     isReturned: aggregateStatus() === 'returned',
-
-    // Get return notes (from any returned record)
     returnNotes: records?.find(r => r.review_status === 'returned')?.review_notes || null,
-
-    // Mutations
     submitForReview: submitForReview.mutate,
     approveReview: approveReview.mutate,
     returnForCorrections: returnForCorrections.mutate,
     resetToDraft: resetToDraft.mutate,
-
-    // Loading states
     isSubmitting: submitForReview.isPending,
     isApproving: approveReview.isPending,
     isReturning: returnForCorrections.isPending,

@@ -85,8 +85,8 @@ function AreaSessionWorkspaceContent() {
     try {
       await startSession.mutateAsync(sessionId);
       toast.success(t('inspectionSessions.sessionStarted'));
-    } catch (error: any) {
-      toast.error(error?.message || 'Error');
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Error');
     }
   };
 
@@ -209,7 +209,7 @@ function AreaSessionWorkspaceContent() {
               session={session}
               responses={responses}
               findings={[]}
-            templateItems={templateItems as any}
+            templateItems={templateItems as unknown as Parameters<typeof SessionExportDropdown>[0]['templateItems']}
             isAreaSession={true}
             />
           )}

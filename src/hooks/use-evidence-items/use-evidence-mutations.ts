@@ -182,7 +182,8 @@ export function useDeleteEvidence() {
                 } as Json,
             });
 
-            const { data: deleteResult, error: deleteError } = await supabase.rpc('soft_delete_incident_evidence' as any, { p_evidence_id: id } as any);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- RPC may not be in generated types yet
+            const { data: deleteResult, error: deleteError } = await (supabase.rpc as (...args: unknown[]) => ReturnType<typeof supabase.rpc>)('soft_delete_incident_evidence', { p_evidence_id: id });
 
             if (deleteError) {
                 throw new Error(deleteError.message || 'Failed to delete evidence');

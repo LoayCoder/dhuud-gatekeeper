@@ -77,15 +77,11 @@ export default function InvestigationWorkspace() {
     closureEligibility, approveClosureMutation, rejectClosureMutation,
     workflowActors, investigatorInfo, editAccess, isInvestigator, canAccessGovernance,
     isAssignedClinicUser, isAssignedTechEvaluator, isAssignedEnvironmentalExpert,
-    canReviewSpecialistData, handleRefresh,
-  } = workspaceData as any;
-  const canApprove = (workspaceData as any).canApprove;
-  const status = (workspaceData as any).status;
-  const investigationAllowed = (workspaceData as any).investigationAllowed;
+    canReviewSpecialistData, handleRefresh, canApprove, status, investigationAllowed,
+    incidentData,
+  } = workspaceData;
 
 
-  // Type assertion for incident fields not in generated types yet
-  const incidentData = selectedIncident as any;
   const investigationAllowedStatuses = [
     'investigation_pending', 'under_investigation', 'investigation_in_progress',
     'pending_closure', 'pending_final_closure', 'investigation_closed', 'closed',
@@ -101,8 +97,8 @@ export default function InvestigationWorkspace() {
   // Render workflow cards based on current status
   const renderWorkflowCards = () => (
     <InvestigationWorkflowCards
-      incidentData={incidentData}
-      investigation={investigation}
+      incidentData={incidentData as unknown as Parameters<typeof InvestigationWorkflowCards>[0]['incidentData']}
+      investigation={investigation as unknown as Parameters<typeof InvestigationWorkflowCards>[0]['investigation']}
       actionsCount={actionsCount}
       handleCreateAction={() => setShowActionDialog(true)}
       handleRefresh={handleRefresh}
@@ -141,7 +137,7 @@ export default function InvestigationWorkspace() {
   // Calculate SLA for the detail view header
   let slaInfo = null;
   if (incidentData) {
-    slaInfo = calculateInvestigationSLA(incidentData.created_at || new Date().toISOString(), incidentData.severity_v2 || (incidentData as any).severity);
+    slaInfo = calculateInvestigationSLA(incidentData.created_at || new Date().toISOString(), incidentData.severity_v2 || String((incidentData as unknown as Record<string, unknown>).severity || ''));
   }
 
   return (
@@ -164,7 +160,7 @@ export default function InvestigationWorkspace() {
 
       {/* Current Owner & Status Bar - Only when incident selected */}
       {selectedIncidentId && selectedIncident && (
-        <CurrentOwnerCard incident={selectedIncident as any} />
+        <CurrentOwnerCard incident={selectedIncident} />
       )}
 
       {/* Investigation Content */}

@@ -181,13 +181,13 @@ function InspectionDashboardContent() {
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <StatusBadge 
-                        status={getClassificationStatus(finding.classification) as any}
+                        status={getClassificationStatus(finding.classification) as Parameters<typeof StatusBadge>[0]['status']}
                         size="sm"
                       >
                         {t(`inspectionDashboard.classifications.${finding.classification}`)}
                       </StatusBadge>
                       <Button variant="ghost" size="sm" asChild>
-                        <Link to={`/inspections/sessions/area/${(finding as any).session?.id || ''}`}>
+                        <Link to={`/inspections/sessions/area/${(finding as unknown as Record<string, unknown> & { session?: { id?: string } }).session?.id || ''}`}>
                           {t('common.view')}
                         </Link>
                       </Button>

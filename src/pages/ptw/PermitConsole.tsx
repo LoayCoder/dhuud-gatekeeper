@@ -19,7 +19,7 @@ import {
   Wrench,
   FileWarning
 } from "lucide-react";
-import { usePTWPermits, useActivePermitsForMap } from "@/hooks/ptw/index";
+import { usePTWPermits, useActivePermitsForMap, type ActiveMapPermit } from "@/hooks/ptw/index";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PermitConsoleMap } from '@/features/ptw';
 import { PermitListView } from '@/features/ptw';
@@ -114,7 +114,7 @@ export default function PermitConsole() {
           {mapLoading ? (
             <Skeleton className="h-[600px] w-full rounded-lg" />
           ) : (
-            <PermitConsoleMap permits={(mapPermits || []).map(p => ({
+            <PermitConsoleMap permits={(mapPermits || []).map((p: ActiveMapPermit) => ({
               id: p.id,
               reference_id: p.reference_id,
               gps_lat: p.gps_lat ?? 0,

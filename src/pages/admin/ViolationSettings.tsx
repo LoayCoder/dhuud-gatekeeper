@@ -101,7 +101,7 @@ export default function ViolationSettings() {
     const payload = {
       name: data.name!,
       name_ar: data.name_ar,
-      severity_level: data.severity_level as any,
+      severity_level: data.severity_level,
       first_action_type: data.first_action_type as ActionType,
       first_fine_amount: data.first_fine_amount,
       first_action_description: data.first_action_description,
@@ -150,9 +150,10 @@ export default function ViolationSettings() {
     prefix: 'first' | 'second' | 'third',
     label: string
   ) => {
-    const actionKey = `${prefix}_action_type` as keyof ViolationSettingsValues;
-    const fineKey = `${prefix}_fine_amount` as keyof ViolationSettingsValues;
-    const descKey = `${prefix}_action_description` as keyof ViolationSettingsValues;
+    type VSKey = keyof ViolationSettingsValues;
+    const actionKey = `${prefix}_action_type` as VSKey;
+    const fineKey = `${prefix}_fine_amount` as VSKey;
+    const descKey = `${prefix}_action_description` as VSKey;
     const actionValue = form.watch(actionKey) as ActionType;
 
     return (
@@ -162,7 +163,7 @@ export default function ViolationSettings() {
           <div className="space-y-2">
             <Label>{t('violations.actionType', 'Action Type')}</Label>
             <Controller
-              name={actionKey as any}
+              name={actionKey}
               control={form.control}
               render={({ field }) => (
                 <Select
@@ -189,8 +190,8 @@ export default function ViolationSettings() {
               <Input
                 type="number"
                 min={0}
-                value={form.watch(fineKey as any) || ''}
-                onChange={(e) => form.setValue(fineKey as any, e.target.value ? Number(e.target.value) : undefined)}
+                value={form.watch(fineKey) || ''}
+                onChange={(e) => form.setValue(fineKey, e.target.value ? Number(e.target.value) : undefined)}
                 placeholder="0"
               />
             </div>
@@ -199,8 +200,8 @@ export default function ViolationSettings() {
         <div className="space-y-2">
           <Label>{t('violations.actionDescription', 'Description')}</Label>
           <Textarea
-            value={(form.watch(descKey as any) as string) || ''}
-            onChange={(e) => form.setValue(descKey as any, e.target.value)}
+            value={(form.watch(descKey) as string) || ''}
+            onChange={(e) => form.setValue(descKey, e.target.value)}
             rows={2}
             placeholder={t('violations.descriptionPlaceholder', 'Optional description...')}
           />

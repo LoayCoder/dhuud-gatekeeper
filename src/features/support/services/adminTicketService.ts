@@ -8,8 +8,8 @@ export const sendTicketMessage = async (payload: {
   tenant_id: string;
 }) => {
   const { error } = await supabase
-    .from('ticket_messages')
-    .insert(payload as any);
+    .from('ticket_messages' as never)
+    .insert(payload as never);
   if (error) throw error;
 };
 

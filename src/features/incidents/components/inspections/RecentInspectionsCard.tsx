@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useRecentInspections } from '@/features/incidents';
+import { useRecentInspections, type AssetInspectionResult } from '@/features/incidents';
 import i18n from '@/i18n';
 
 export function RecentInspectionsCard() {
@@ -72,7 +72,7 @@ export function RecentInspectionsCard() {
                   {getResultIcon(inspection.overall_result)}
                   <div>
                     <p className="text-sm font-medium">
-                      {(inspection.asset as any)?.name}
+                      {inspection.asset?.name}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {inspection.reference_id}
