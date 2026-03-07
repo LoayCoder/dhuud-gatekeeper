@@ -3169,7 +3169,21 @@
       "root": "الأسباب الجذرية",
       "noCauses": "لا توجد بيانات",
       "topConnections": "أهم الروابط"
-    }
+    },
+    "eventDistribution": "توزيع الأحداث",
+    "trendAnalysis": "تحليل الاتجاهات",
+    "actionsInvestigations": "الإجراءات والتحقيقات",
+    "siteBubbleMap": "توزيع أحداث الموقع"
+  },
+  "executiveSummary": {
+    "title": "نظرة عامة على السلامة",
+    "overallScore": "درجة السلامة الإجمالية",
+    "scoreGoodMsg": "أداء السلامة ضمن الحدود المقبولة",
+    "scoreCautionMsg": "بعض المجالات تحتاج إلى اهتمام",
+    "scoreCriticalMsg": "مطلوب إجراء فوري",
+    "overdueActions": "إجراءات تصحيحية متأخرة تتطلب اهتمام",
+    "overdueIncidents": "تحقيقات حوادث متأخرة",
+    "topPriorities": "الأولويات القصوى"
   },
   "incidents": {
     "occurredAt": "وقعت",
