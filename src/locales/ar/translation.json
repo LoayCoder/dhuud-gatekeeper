@@ -3177,7 +3177,12 @@
     "eventDistribution": "توزيع الأحداث",
     "trendAnalysis": "تحليل الاتجاهات",
     "actionsInvestigations": "الإجراءات والتحقيقات",
-    "siteBubbleMap": "توزيع أحداث الموقع"
+    "siteBubbleMap": "توزيع أحداث الموقع",
+    "dataQuality": "جودة البيانات",
+    "dataQualityDetails": "تفاصيل جودة البيانات",
+    "dataQualityWarning": "قد تتأثر دقة تحليل الذكاء الاصطناعي بالبيانات غير المكتملة.",
+    "overallCompleteness": "الاكتمال الإجمالي",
+    "missingFields": "الحقول المفقودة"
   },
   "executiveSummary": {
     "title": "نظرة عامة على السلامة",
