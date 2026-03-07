@@ -8,27 +8,12 @@ import ur from './locales/ur/translation.json';
 import hi from './locales/hi/translation.json';
 import fil from './locales/fil/translation.json';
 
-// Import Arabic domain-specific translations
-import arAuth from './locales/ar/auth.json';
-import arCommon from './locales/ar/common.json';
-import arSecurity from './locales/ar/security.json';
-import arIncidents from './locales/ar/incidents.json';
-import arAssets from './locales/ar/assets.json';
-import arContractors from './locales/ar/contractors.json';
 
 export const defaultNS = 'translation';
 
 export const resources = {
   en: { translation: en },
-  ar: {
-    translation: ar,
-    auth: arAuth,
-    common: arCommon,
-    security: arSecurity,
-    incidents: arIncidents,
-    assets: arAssets,
-    contractors: arContractors,
-  },
+  ar: { translation: ar },
   ur: { translation: ur },
   hi: { translation: hi },
   fil: { translation: fil },
