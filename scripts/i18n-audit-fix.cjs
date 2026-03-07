@@ -1831,6 +1831,135 @@ const SENTENCE_DICT = {
   "Compliance check": "فحص الامتثال",
   "Compliance passed": "اجتاز فحص الامتثال",
   "Compliance failed": "فشل في فحص الامتثال",
+
+  // Gate pass sentences
+  "Gate pass request created successfully": "تم إنشاء طلب تصريح الدخول بنجاح",
+  "Fill in the details for your gate pass request": "أدخل تفاصيل طلب تصريح الدخول",
+  "You haven't created any gate passes yet": "لم تقم بإنشاء أي تصاريح دخول بعد",
+  "Gate passes you have reviewed": "تصاريح الدخول التي قمت بمراجعتها",
+  "No approval history found": "لم يتم العثور على سجل موافقات",
+  "You are not configured as a gate pass approver": "لم يتم تكوينك كمعتمد لتصاريح الدخول",
+  "Request a new internal gate pass": "طلب تصريح دخول داخلي جديد",
+  "View and manage your gate pass requests": "عرض وإدارة طلبات تصاريح الدخول",
+  "Vehicle plate does not match": "لوحة المركبة لا تتطابق",
+  "Driver name does not match": "اسم السائق لا يتطابق",
+  "Contact your supervisor": "تواصل مع مشرفك",
+
+  // Subscription sentences
+  "Configure your subscription plan": "قم بتكوين خطة اشتراكك",
+  "No Plan Selected": "لم يتم اختيار خطة",
+  "Payment processing integration coming soon": "تكامل معالجة الدفع قريباً",
+  "Select a plan to calculate pricing": "اختر خطة لحساب التسعير",
+  "Choose the features your organization needs": "اختر الميزات التي تحتاجها مؤسستك",
+  "Select how many users will access the platform": "اختر عدد المستخدمين الذين سيستخدمون المنصة",
+  "Choose the plan that best fits your organization": "اختر الخطة الأنسب لمؤسستك",
+  "You have a pending request": "لديك طلب معلق",
+  "You cannot submit a new request": "لا يمكنك إرسال طلب جديد",
+  "Your subscription request has been submitted": "تم إرسال طلب اشتراكك",
+  "Are you sure you want to cancel this subscription": "هل أنت متأكد من إلغاء هذا الاشتراك",
+  "You will soon receive a confirmation": "ستتلقى قريباً تأكيداً",
+
+  // Admin sentences
+  "Only organization administrators can access": "يمكن للمسؤولين فقط الوصول إلى",
+  "Configure which menu items each role can access": "تكوين عناصر القائمة التي يمكن لكل دور الوصول إليها",
+  "Select a role to configure": "اختر دوراً للتكوين",
+  "History of menu access changes": "سجل تغييرات الوصول للقائمة",
+  "Grant additional menu access to specific users": "منح وصول إضافي للقائمة لمستخدمين محددين",
+  "Select a user to grant or revoke": "اختر مستخداً لمنح أو إلغاء",
+  "No users have additional menu access": "لا يوجد مستخدمون بوصول إضافي للقائمة",
+  "This will remove all": "سيؤدي هذا إلى إزالة جميع",
+  "additional menu access": "وصول إضافي للقائمة",
+
+  // Visitor settings sentences
+  "Configure visitor management workflow": "تكوين سير عمل إدارة الزوار",
+  "Visitors must capture photo during registration": "يجب على الزوار التقاط صورة أثناء التسجيل",
+  "Same visitor can have multiple active visit requests": "يمكن لنفس الزائر الحصول على طلبات زيارة نشطة متعددة",
+  "All visits must be approved by security": "يجب الموافقة على جميع الزيارات من الأمن",
+  "Send WhatsApp to host when visitor checks in": "إرسال واتساب للمضيف عند تسجيل وصول الزائر",
+  "Send WhatsApp to host when visitor checks out": "إرسال واتساب للمضيف عند تسجيل مغادرة الزائر",
+
+  // Emergency instruction sentences
+  "Configure emergency contact details": "تكوين تفاصيل جهة اتصال الطوارئ",
+  "Primary emergency contact displayed": "جهة اتصال الطوارئ الرئيسية المعروضة",
+  "How instructions appear on visitor/worker passes": "كيف تظهر التعليمات على تصاريح الزوار/العمال",
+  "Bilingual safety instructions displayed": "تعليمات السلامة ثنائية اللغة المعروضة",
+  "No emergency information configured yet": "لم يتم تكوين معلومات الطوارئ بعد",
+
+  // Manhours sentences
+  "Record and track employee and contractor working hours": "تسجيل وتتبع ساعات عمل الموظفين والمقاولين",
+  "Last 12 months of recorded manhours": "آخر 12 شهراً من ساعات العمل المسجلة",
+  "No manhours records found": "لم يتم العثور على سجلات ساعات عمل",
+  "Enter the working hours for the selected period": "أدخل ساعات العمل للفترة المحددة",
+  "Successfully imported": "تم الاستيراد بنجاح",
+  "Failed to parse Excel file": "فشل في تحليل ملف Excel",
+  "Review the data before importing": "مراجعة البيانات قبل الاستيراد",
+  "Invalid rows will be skipped": "سيتم تخطي الصفوف غير الصالحة",
+  "No valid rows to import": "لا توجد صفوف صالحة للاستيراد",
+  "Hours cannot be negative": "لا يمكن أن تكون الساعات سالبة",
+  "Historical manhours trend": "اتجاه ساعات العمل التاريخي",
+
+  // Page editor sentences
+  "Manage page content and AI translations": "إدارة محتوى الصفحات والترجمات بالذكاء الاصطناعي",
+  "Edit the main page content": "تعديل محتوى الصفحة الرئيسية",
+  "No main page created yet": "لم يتم إنشاء صفحة رئيسية بعد",
+  "Select languages and use AI": "اختر اللغات واستخدم الذكاء الاصطناعي",
+  "Please select at least one target language": "يرجى اختيار لغة مستهدفة واحدة على الأقل",
+  "This will permanently delete this translated version": "سيؤدي هذا إلى حذف هذه النسخة المترجمة نهائياً",
+
+  // Alert sentences
+  "critical incidents detected": "تم اكتشاف حوادث حرجة",
+  "of actions are overdue": "من الإجراءات متأخرة",
+  "Review and prioritize": "مراجعة وتحديد الأولويات",
+  "incidents in the last 30 days": "حوادث في آخر 30 يوماً",
+  "incidents increased by": "زادت الحوادث بنسبة",
+  "actions have breached their SLA": "إجراءات اخترقت اتفاقية مستوى الخدمة",
+
+  // Asset category sentences
+  "Manage asset categories, types, and subtypes": "إدارة فئات الأصول وأنواعها وأنواعها الفرعية",
+  "Organize assets with categories": "تنظيم الأصول بالفئات",
+  "Add your first category to get started": "أضف أول فئة للبدء",
+  "Create a new category": "إنشاء فئة جديدة",
+  "Create a new type": "إنشاء نوع جديد",
+  "Create a new subtype": "إنشاء نوع فرعي جديد",
+  "Upload an Excel file to import": "رفع ملف Excel للاستيراد",
+  "Download a template file with sample data": "تنزيل ملف نموذج بالبيانات النموذجية",
+  "Existing items with the same code will be updated": "سيتم تحديث العناصر الموجودة بنفس الرمز",
+  "Asset hierarchy exported to Excel": "تم تصدير تسلسل الأصول إلى Excel",
+  "Default inspection frequency": "تكرار الفحص الافتراضي",
+  "Assets of this type require valid certification": "أصول من هذا النوع تتطلب شهادة صالحة",
+
+  // Access control sentences
+  "Unified visitor and worker access management": "إدارة وصول موحدة للزوار والعمال",
+  "Complete log of all entries and exits": "سجل كامل لجميع عمليات الدخول والخروج",
+  "Comprehensive view of security operations": "نظرة شاملة على عمليات الأمن",
+  "All visitors and workers currently checked in": "جميع الزوار والعمال المسجلين حالياً",
+  "Material gate passes pending your security approval": "تصاريح دخول المواد في انتظار موافقتك الأمنية",
+  "Recent visitor entries and exits": "عمليات دخول وخروج الزوار الأخيرة",
+  "Recent contractor worker entries and exits": "عمليات دخول وخروج عمال المقاولين الأخيرة",
+
+  // Support sentences
+  "Monitor notification compliance and acknowledgment rates": "مراقبة امتثال الإشعارات ومعدلات الإقرار",
+  "Notification volume and acknowledgment rate over time": "حجم الإشعارات ومعدل الإقرار عبر الزمن",
+  "Average acknowledgment time by notification priority": "متوسط وقت الإقرار حسب أولوية الإشعار",
+  "Acknowledgment rates and response times by branch": "معدلات الإقرار وأوقات الاستجابة حسب الفرع",
+  "Monitor platform usage and user activity": "مراقبة استخدام المنصة ونشاط المستخدم",
+  "Daily login count over the selected period": "عدد تسجيلات الدخول اليومية خلال الفترة المحددة",
+  "Breakdown of activity types": "تفصيل أنواع النشاط",
+  "User counts and login activity by tenant": "عدد المستخدمين ونشاط تسجيل الدخول حسب المستأجر",
+  "Latest user activity across the platform": "أحدث نشاط للمستخدم عبر المنصة",
+
+  // Module gate sentences
+  "Upgrade your plan to access": "قم بترقية خطتك للوصول إلى",
+  "Your role doesn't have access": "دورك لا يملك صلاحية الوصول",
+  "Please contact your administrator to request access": "يرجى التواصل مع المسؤول لطلب الوصول",
+
+  // Contractor sentences
+  "Worker must be approved before QR code": "يجب الموافقة على العامل قبل إنشاء رمز QR",
+  "Send safety induction video to worker": "إرسال فيديو تعريف السلامة للعامل",
+  "No induction has been sent to this worker": "لم يتم إرسال تعريف لهذا العامل",
+  "For Entry & Exit passes": "لتصاريح الدخول والخروج",
+  "same Vehicle Plate and Driver Name must be used": "يجب استخدام نفس لوحة المركبة واسم السائق",
+  "Mismatched details will result in the exit being rejected": "ستؤدي التفاصيل غير المتطابقة إلى رفض الخروج",
 };
 
 // ============================================================
