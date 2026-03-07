@@ -1490,7 +1490,22 @@
     "allMonths": "جميع الأشهر",
     "allBranches": "جميع الفروع",
     "year": "السنة",
-    "filters": "عوامل التصفية"
+    "filters": "عوامل التصفية",
+    "completed": "مكتمل",
+    "inProgress": "قيد التنفيذ",
+    "draft": "مسودة",
+    "pendingApproval": "بانتظار الموافقة",
+    "finalized": "نهائي",
+    "unknownUser": "مستخدم غير معروف",
+    "somethingWentWrong": "حدث خطأ ما",
+    "errorEncountered": "واجه التطبيق خطأ. يرجى تحديث الصفحة.",
+    "refreshPage": "تحديث الصفحة",
+    "reloadPage": "إعادة تحميل الصفحة",
+    "continueAnyway": "المتابعة على أي حال",
+    "errorDetails": "تفاصيل الخطأ",
+    "dismiss": "إغلاق",
+    "progress": "التقدم",
+    "view": "عرض"
   },
   "assignment": {
     "title": "معلومات التعيين",
@@ -9062,6 +9077,43 @@
       "majorNc": "عدم مطابقة رئيسي",
       "minorNc": "عدم مطابقة ثانوي",
       "observation": "ملاحظة"
-    }
+    },
+    "onTrack": "على المسار",
+    "l1": "المستوى 1",
+    "l2": "المستوى 2"
+  },
+  "session": {
+    "managementError": "خطأ في إدارة الجلسة",
+    "managementErrorDescription": "حدثت مشكلة في إدارة الجلسة. قد لا تعمل بعض الميزات مثل انتهاء مهلة الجلسة واكتشاف تسجيل الدخول المتزامن بشكل صحيح."
+  },
+  "profile": {
+    "cropProfilePicture": "اقتصاص صورة الملف الشخصي",
+    "cropDescription": "اضبط منطقة الاقتصاص لتحديد صورة ملفك الشخصي.",
+    "cropPreview": "معاينة الاقتصاص"
+  },
+  "achievements": {
+    "title": "الإنجازات",
+    "hsseJourney": "رحلتك في الصحة والسلامة",
+    "description": "تتبع مساهماتك في الصحة والسلامة واكسب المكافآت",
+    "level": "المستوى",
+    "top1": "الأول",
+    "rank": "الترتيب",
+    "hsseChampion": "بطل الصحة والسلامة",
+    "keepUpGreatWork": "استمر في العمل الرائع! أنت تُحدث فرقًا.",
+    "points": "نقاط",
+    "pointsToNextLevel": "{{points}} نقطة للمستوى {{level}}",
+    "badges": "الشارات",
+    "totalPts": "إجمالي النقاط",
+    "badgesCollection": "مجموعة الشارات",
+    "unlocked": "مفتوح",
+    "recentActivity": "النشاط الأخير",
+    "noRecentActivity": "لا يوجد نشاط حديث.",
+    "leaderboardPosition": "موقعك في لوحة المتصدرين",
+    "currentlyRanked": "ترتيبك الحالي",
+    "inEntireCompany": "في الشركة بأكملها",
+    "topContributors": "\"ضمن أفضل 5% من المساهمين!\""
+  },
+  "admin": {
+    "protectedServer": "خادم محمي"
   }
 }
