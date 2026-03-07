@@ -4438,7 +4438,11 @@
     "offline": "Offline",
     "cached": "Cached",
     "noPhoneNumber": "No phone number",
-    "verifying": "Verifying..."
+    "verifying": "Verifying...",
+    "allMonths": "All Months",
+    "allBranches": "All Branches",
+    "year": "Year",
+    "filters": "Filters"
   },
   "assignment": {
     "title": "Assignment Information",
@@ -7880,7 +7884,19 @@
     "exportPdf": "Export to PDF",
     "exportSuccess": "Report exported successfully",
     "exportError": "Failed to export report",
-    "summary": "Summary"
+    "summary": "Summary",
+    "filters": "Filters",
+    "recordableInjuries": "Recordable Injuries",
+    "lostTimeInjuries": "Lost Time Injuries",
+    "restrictedDuty": "Restricted Duty",
+    "totalLostDays": "Total Lost Days",
+    "manhours": "Man-Hours",
+    "noRecordableInjuries": "No Recordable Injuries",
+    "observationCompletion": "Observation Completion",
+    "hazardRate": "Hazard Identification",
+    "nearMisses": "near misses",
+    "closed": "closed",
+    "hazardsIdentified": "hazards identified"
   },
   "kpiAdmin": {
     "title": "KPI Targets Management",
