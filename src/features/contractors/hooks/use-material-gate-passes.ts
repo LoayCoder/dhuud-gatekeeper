@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type {
@@ -159,6 +160,7 @@ export function useCreateGatePass() {
 
 export function useApproveGatePass() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   return useMutation({
@@ -175,21 +177,22 @@ export function useApproveGatePass() {
       queryClient.invalidateQueries({ queryKey: ["gate-pass-details"] });
 
       if (result.newStatus === "rejected") {
-        toast.success("Gate pass rejected");
+        toast.success(t("contractors.messages.gatePassRejected", "Gate pass rejected"));
       } else if (result.newStatus === "approved") {
-        toast.success("Gate pass fully approved - QR generated");
+        toast.success(t("contractors.messages.gatePassFullyApproved", "Gate pass fully approved - QR generated"));
       } else {
-        toast.success("Approval recorded - forwarded to next stage");
+        toast.success(t("contractors.messages.approvalForwarded", "Approval recorded - forwarded to next stage"));
       }
     },
     onError: (error: Error) => {
-      toast.error(`Failed: ${error.message}`);
+      toast.error(error.message);
     },
   });
 }
 
 export function useRejectGatePass() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   return useMutation({
@@ -203,16 +206,17 @@ export function useRejectGatePass() {
       queryClient.invalidateQueries({ queryKey: ["pending-gate-pass-approvals"] });
       queryClient.invalidateQueries({ queryKey: ["my-gate-passes"] });
       queryClient.invalidateQueries({ queryKey: ["gate-pass-details"] });
-      toast.success("Gate pass rejected");
+      toast.success(t("contractors.messages.gatePassRejected", "Gate pass rejected"));
     },
     onError: (error: Error) => {
-      toast.error(`Failed to reject: ${error.message}`);
+      toast.error(error.message);
     },
   });
 }
 
 export function useVerifyGatePass() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { user, profile } = useAuth();
 
   return useMutation({
@@ -226,10 +230,12 @@ export function useVerifyGatePass() {
       queryClient.invalidateQueries({ queryKey: ["today-approved-passes"] });
       queryClient.invalidateQueries({ queryKey: ["gate-entries"] });
       queryClient.invalidateQueries({ queryKey: ["gate-pass-details"] });
-      toast.success(action === "entry" ? "Entry recorded" : "Exit recorded - pass completed");
+      toast.success(action === "entry" 
+        ? t("contractors.messages.entryRecorded", "Entry recorded") 
+        : t("contractors.messages.exitRecorded", "Exit recorded - pass completed"));
     },
     onError: (error: Error) => {
-      toast.error(`Failed to verify: ${error.message}`);
+      toast.error(error.message);
     },
   });
 }
@@ -246,6 +252,7 @@ interface BulkRejectParams {
 
 export function useBulkApproveGatePasses() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   return useMutation({
@@ -262,19 +269,20 @@ export function useBulkApproveGatePasses() {
       queryClient.invalidateQueries({ queryKey: ["gate-pass-details"] });
 
       if (results.success > 0 && results.failed === 0) {
-        toast.success(`${results.success} passes approved`);
+        toast.success(t("contractors.messages.passesApproved", "{{count}} passes approved", { count: results.success }));
       } else if (results.success > 0 && results.failed > 0) {
-        toast.warning(`${results.success} approved, ${results.failed} failed`);
+        toast.warning(t("contractors.messages.passesPartialApproval", "{{success}} approved, {{failed}} failed", { success: results.success, failed: results.failed }));
       }
     },
     onError: (error: Error) => {
-      toast.error(`Bulk approval failed: ${error.message}`);
+      toast.error(error.message);
     },
   });
 }
 
 export function useBulkRejectGatePasses() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   return useMutation({
@@ -290,13 +298,13 @@ export function useBulkRejectGatePasses() {
       queryClient.invalidateQueries({ queryKey: ["gate-pass-details"] });
 
       if (results.success > 0 && results.failed === 0) {
-        toast.success(`${results.success} passes rejected`);
+        toast.success(t("contractors.messages.passesRejected", "{{count}} passes rejected", { count: results.success }));
       } else if (results.success > 0 && results.failed > 0) {
-        toast.warning(`${results.success} rejected, ${results.failed} failed`);
+        toast.warning(t("contractors.messages.passesPartialRejection", "{{success}} rejected, {{failed}} failed", { success: results.success, failed: results.failed }));
       }
     },
     onError: (error: Error) => {
-      toast.error(`Bulk rejection failed: ${error.message}`);
+      toast.error(error.message);
     },
   });
 }
