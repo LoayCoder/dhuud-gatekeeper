@@ -8020,6 +8020,17 @@
   },
   "contractors": {
     "title": "Contractor Management",
+    "nav": {
+      "dashboard": "Dashboard",
+      "companies": "Companies",
+      "projects": "Projects",
+      "workers": "Workers",
+      "gatePasses": "Gate Passes",
+      "inductionVideos": "Induction Videos",
+      "analytics": "Analytics",
+      "settings": "Settings",
+      "siteRepDashboard": "Site Rep Dashboard"
+    },
     "workers": {
       "details": "Details",
       "qrCode": "QR Code",

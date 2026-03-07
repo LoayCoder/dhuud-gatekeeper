@@ -6723,6 +6723,17 @@
   },
   "contractors": {
     "company": "الشركة",
+    "nav": {
+      "dashboard": "لوحة المعلومات",
+      "companies": "الشركات",
+      "projects": "المشاريع",
+      "workers": "العمال",
+      "gatePasses": "تصاريح الدخول",
+      "inductionVideos": "فيديوهات التعريف",
+      "analytics": "التحليلات",
+      "settings": "الإعدادات",
+      "siteRepDashboard": "لوحة ممثل الموقع"
+    },
     "deletePermanentlyDescription": "سيؤدي هذا إلى إزالة الشركة وجميع البيانات المتعلقة بها نهائياً. لا يمكن التراجع عن هذا الإجراء.",
     "deletePermanentlyTitle": "حذف الشركة نهائياً؟",
     "gatePasses": {
