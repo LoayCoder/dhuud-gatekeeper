@@ -3158,16 +3158,20 @@
       "subtitle": "Top categories from completed investigations",
       "noData": "No root cause data available"
     },
-    "causeFlow": {
-      "title": "Cause Flow Analysis",
-      "subtitle": "Progression from immediate to root causes",
-      "noData": "No cause flow data available",
-      "immediate": "Immediate Causes",
-      "underlying": "Underlying Causes",
-      "root": "Root Causes",
-      "noCauses": "No data",
-      "topConnections": "Top Cause Connections"
-    }
+    "eventDistribution": "Event Distribution",
+    "trendAnalysis": "Trend Analysis",
+    "actionsInvestigations": "Actions & Investigations",
+    "siteBubbleMap": "Site Event Distribution"
+  },
+  "executiveSummary": {
+    "title": "Safety Overview",
+    "overallScore": "Overall Safety Score",
+    "scoreGoodMsg": "Safety performance is within acceptable limits",
+    "scoreCautionMsg": "Some areas require attention",
+    "scoreCriticalMsg": "Immediate action required",
+    "overdueActions": "Overdue corrective actions require attention",
+    "overdueIncidents": "Overdue incident investigations",
+    "topPriorities": "Top Priorities"
   },
   "investigation": {
     "title": "Investigation",
@@ -4438,7 +4442,11 @@
     "offline": "Offline",
     "cached": "Cached",
     "noPhoneNumber": "No phone number",
-    "verifying": "Verifying..."
+    "verifying": "Verifying...",
+    "allMonths": "All Months",
+    "allBranches": "All Branches",
+    "year": "Year",
+    "filters": "Filters"
   },
   "assignment": {
     "title": "Assignment Information",
@@ -7880,7 +7888,19 @@
     "exportPdf": "Export to PDF",
     "exportSuccess": "Report exported successfully",
     "exportError": "Failed to export report",
-    "summary": "Summary"
+    "summary": "Summary",
+    "filters": "Filters",
+    "recordableInjuries": "Recordable Injuries",
+    "lostTimeInjuries": "Lost Time Injuries",
+    "restrictedDuty": "Restricted Duty",
+    "totalLostDays": "Total Lost Days",
+    "manhours": "Man-Hours",
+    "noRecordableInjuries": "No Recordable Injuries",
+    "observationCompletion": "Observation Completion",
+    "hazardRate": "Hazard Identification",
+    "nearMisses": "near misses",
+    "closed": "closed",
+    "hazardsIdentified": "hazards identified"
   },
   "kpiAdmin": {
     "title": "KPI Targets Management",
@@ -8000,6 +8020,17 @@
   },
   "contractors": {
     "title": "Contractor Management",
+    "nav": {
+      "dashboard": "Dashboard",
+      "companies": "Companies",
+      "projects": "Projects",
+      "workers": "Workers",
+      "gatePasses": "Gate Passes",
+      "inductionVideos": "Induction Videos",
+      "analytics": "Analytics",
+      "settings": "Settings",
+      "siteRepDashboard": "Site Rep Dashboard"
+    },
     "workers": {
       "details": "Details",
       "qrCode": "QR Code",
