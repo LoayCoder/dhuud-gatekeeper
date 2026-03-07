@@ -5940,6 +5940,10 @@
       "hsseManager": "مدير السلامة",
       "investigator": "المحقق"
     },
+    "waitingForAssignment": "بانتظار التكليف",
+    "willPickUpFor": "سيتولى هذا الأمر لـ:",
+    "notifyRole": "إخطار {{role}}",
+    "requestPriorityAssignment": "طلب تكليف عاجل",
     "disputeReview": "مراجعة الاعتراض",
     "controllerReview": "مراجعة المراقب",
     "violationCategory": "فئة المخالفة",
