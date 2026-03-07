@@ -4452,7 +4452,22 @@
     "allMonths": "All Months",
     "allBranches": "All Branches",
     "year": "Year",
-    "filters": "Filters"
+    "filters": "Filters",
+    "completed": "Completed",
+    "inProgress": "In Progress",
+    "draft": "Draft",
+    "pendingApproval": "Pending Approval",
+    "finalized": "Finalized",
+    "unknownUser": "Unknown User",
+    "somethingWentWrong": "Something went wrong",
+    "errorEncountered": "The application encountered an error. Please try refreshing the page.",
+    "refreshPage": "Refresh Page",
+    "reloadPage": "Reload Page",
+    "continueAnyway": "Continue Anyway",
+    "errorDetails": "Error Details",
+    "dismiss": "Dismiss",
+    "progress": "Progress",
+    "view": "View"
   },
   "assignment": {
     "title": "Assignment Information",
