@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -6,6 +7,7 @@ import type { ContractorCompany } from "./types";
 
 export function useCreateContractorCompany() {
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
     const { profile, user } = useAuth();
 
     return useMutation({
@@ -45,7 +47,7 @@ export function useCreateContractorCompany() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["contractor-companies"] });
-            toast.success("Company created successfully");
+            toast.success(t("contractors.messages.companyCreated", "Company created successfully"));
         },
         onError: (error: Error) => {
             toast.error(error.message);
@@ -55,6 +57,7 @@ export function useCreateContractorCompany() {
 
 export function useUpdateContractorCompany() {
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
 
     return useMutation({
         mutationFn: async ({ id, data }: { id: string; data: Partial<ContractorCompany> & Record<string, unknown> }) => {
@@ -89,7 +92,7 @@ export function useUpdateContractorCompany() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["contractor-companies"] });
             queryClient.invalidateQueries({ queryKey: ["contractor-company-details"] });
-            toast.success("Company updated");
+            toast.success(t("contractors.messages.companyUpdated", "Company updated"));
         },
         onError: (error: Error) => {
             toast.error(error.message);
