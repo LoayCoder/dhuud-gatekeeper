@@ -50,6 +50,7 @@ export function TeamTaskAssignmentPanel({
 }: TeamTaskAssignmentPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
+  const TASK_TYPES = getTaskTypes(t);
 
   const form = useForm<TeamTaskAssignmentValues>({
     resolver: zodResolver(teamTaskAssignmentSchema),
@@ -188,7 +189,7 @@ export function TeamTaskAssignmentPanel({
                         <SelectItem key={type.value} value={type.value}>
                           <div className="flex items-center gap-2">
                             <type.icon className="h-4 w-4" />
-                            {t(`workflow.teamTasks.types.${type.value}`, type.label)}
+                            {String(t(`workflow.teamTasks.types.${type.value}`, type.label))}
                           </div>
                         </SelectItem>
                       ))}

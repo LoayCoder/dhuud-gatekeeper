@@ -89,6 +89,8 @@ export function ImportFieldEditor({
   autoFixSuggestion
 }: ImportFieldEditorProps) {
   const { t } = useTranslation();
+  const STATUS_OPTIONS = getStatusOptions(t);
+  const { t } = useTranslation();
   const [localValue, setLocalValue] = useState(value || '');
 
   useEffect(() => {
