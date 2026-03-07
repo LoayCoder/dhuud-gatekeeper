@@ -9909,5 +9909,58 @@
         "approvalHistory": "Approval History"
       }
     }
+  },
+  "investigation": {
+    "tabs": {
+      "overview": "Overview",
+      "evidence": "Evidence",
+      "witnesses": "Witnesses",
+      "rca": "RCA",
+      "actions": "Actions",
+      "injuries": "Injuries",
+      "propertyDamage": "Property Damage",
+      "governance": "Governance",
+      "environmentalImpact": "Environmental Impact"
+    },
+    "taskTypes": {
+      "evidenceCollection": "Evidence Collection",
+      "witnessInterview": "Witness Interview",
+      "propertyAssessment": "Property Assessment",
+      "injuryDocumentation": "Injury Documentation"
+    }
+  },
+  "workflow": {
+    "status": {
+      "submitted": "Submitted",
+      "expertScreening": "Expert Screening",
+      "pendingApproval": "Pending Approval",
+      "investigation": "Investigation",
+      "pendingClosure": "Pending Closure",
+      "closed": "Closed",
+      "managerReview": "Manager Review",
+      "hsseReview": "HSSE Review",
+      "finalClosure": "Final Closure",
+      "consultantReview": "Consultant Review",
+      "siteClientApproval": "Site Client Approval",
+      "implementation": "Implementation",
+      "verification": "Verification",
+      "violationIfAny": "Violation (if any)"
+    }
+  },
+  "kpi": {
+    "status": {
+      "exceeding": "Exceeding",
+      "onTrack": "On Track",
+      "atRisk": "At Risk",
+      "failing": "Failing"
+    }
+  },
+  "sla": {
+    "classification": {
+      "criticalNc": "Critical NC",
+      "majorNc": "Major NC",
+      "minorNc": "Minor NC",
+      "observation": "Observation"
+    }
   }
 }
