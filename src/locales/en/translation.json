@@ -1447,7 +1447,16 @@
     },
     "analytics": {
       "geofenceBreaches": "Geofence Breaches Over Time",
-      "breaches": "Breaches"
+      "breaches": "Breaches",
+      "selectRange": "Select range",
+      "today": "Today",
+      "last7Days": "Last 7 Days",
+      "last30Days": "Last 30 Days",
+      "thisWeek": "This Week",
+      "thisMonth": "This Month",
+      "custom": "Custom",
+      "startDate": "Start",
+      "endDate": "End"
     },
     "panicButton": "Panic Button",
     "emergency": "Emergency",

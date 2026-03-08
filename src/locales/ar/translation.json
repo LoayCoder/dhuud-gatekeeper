@@ -9097,6 +9097,19 @@
       "realtimeDisconnected": "انقطع الاتصال، جاري إعادة المحاولة...",
       "lastUpdate": "آخر تحديث"
     },
+    "analytics": {
+      "geofenceBreaches": "اختراقات السياج الجغرافي عبر الزمن",
+      "breaches": "اختراقات",
+      "selectRange": "اختر الفترة",
+      "today": "اليوم",
+      "last7Days": "آخر 7 أيام",
+      "last30Days": "آخر 30 يومًا",
+      "thisWeek": "هذا الأسبوع",
+      "thisMonth": "هذا الشهر",
+      "custom": "مخصص",
+      "startDate": "البداية",
+      "endDate": "النهاية"
+    },
     "patrols": {
       "dashboard": {
         "title": "لوحة الدوريات",
