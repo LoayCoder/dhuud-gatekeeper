@@ -11238,5 +11238,11 @@
     "high": "High",
     "medium": "Medium",
     "low": "Low"
+  },
+  "security": {
+    "emergencyAlerts": "Emergency Alerts",
+    "shiftHandover": "Shift Handover",
+    "guardPerformance": "Guard Performance",
+    "reportSchedules": "Report Schedules"
   }
 }
