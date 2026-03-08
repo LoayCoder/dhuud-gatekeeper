@@ -72,7 +72,7 @@ export default function SecurityDashboard() {
       icon: Shield,
       status: 'informational',
       trend: 'neutral',
-      trendValue: stats?.totalGuards ? `of ${stats.totalGuards} total` : undefined,
+      trendValue: stats?.totalGuards ? t('security.dashboard.ofTotal', { total: stats.totalGuards }) : undefined,
     },
     {
       label: t('security.dashboard.guardsOnZone', 'Guards On Zone'),
@@ -80,7 +80,7 @@ export default function SecurityDashboard() {
       icon: CheckCircle2,
       status: guardsOnZone === guardLocations.length ? 'completed' : 'pending',
       trend: 'neutral',
-      trendValue: `of ${guardLocations.length} tracked`,
+      trendValue: t('security.dashboard.ofTracked', { count: guardLocations.length }),
     },
     {
       label: t('security.dashboard.visitorsToday', 'Visitors Today'),
@@ -88,7 +88,7 @@ export default function SecurityDashboard() {
       icon: Users,
       status: 'informational',
       trend: 'neutral',
-      trendValue: stats?.visitorsOnSite ? `${stats.visitorsOnSite} on site` : undefined,
+      trendValue: stats?.visitorsOnSite ? t('security.dashboard.onSiteCount', { count: stats.visitorsOnSite }) : undefined,
     },
     {
       label: t('security.dashboard.openAlerts', 'Open Alerts'),
@@ -102,7 +102,7 @@ export default function SecurityDashboard() {
       icon: Route,
       status: avgPatrolProgress >= 80 ? 'completed' : avgPatrolProgress >= 50 ? 'pending' : 'critical',
       trend: 'neutral',
-      trendValue: `${stats?.patrolsCompleted ?? 0} completed`,
+      trendValue: t('security.dashboard.patrolsCompletedCount', { count: stats?.patrolsCompleted ?? 0 }),
     },
   ];
 

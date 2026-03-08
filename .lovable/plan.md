@@ -1,36 +1,63 @@
 
+# Fix "Take Action" Button for Department Representative
 
-## Plan: Localize Security Dashboard trendValue strings
+## Problem
+When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
 
-### Problem
-4 hardcoded English template literals in `SecurityDashboard.tsx` KPI trendValues (lines 75, 83, 91, 105) that don't translate to Arabic.
+1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
+2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
 
-### Changes
+## What Changes
 
-#### 1. `src/locales/en/translation.json` (line ~1886)
-Add 3 new keys to the existing `security.dashboard` block:
-- `"ofTracked": "of {{count}} tracked"`
-- `"onSiteCount": "{{count}} on site"`
-- `"patrolsCompletedCount": "{{count}} completed"`
+### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
 
-Note: `ofTotal` already exists at line 1886.
+The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
 
-#### 2. `src/locales/ar/translation.json` (line ~9062)
-Add matching Arabic keys to `security.dashboard`:
-- `"ofTotal": "من {{total}} إجمالي"`
-- `"ofTracked": "من {{count}} متتبع"`
-- `"onSiteCount": "{{count}} في الموقع"`
-- `"patrolsCompletedCount": "{{count}} مكتملة"`
+**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
 
-#### 3. `src/pages/security/SecurityDashboard.tsx`
-Replace 4 hardcoded trendValue strings:
+```typescript
+case 'pending_dept_rep_review':
+case 'pending_dept_rep_approval':
+  return (
+    <DeptRepApprovalCard
+      incident={incidentData}
+      onComplete={handleRefresh}
+    />
+  );
+```
 
-| Line | Before | After |
-|------|--------|-------|
-| 75 | `` `of ${stats.totalGuards} total` `` | `t('security.dashboard.ofTotal', { total: stats.totalGuards })` |
-| 83 | `` `of ${guardLocations.length} tracked` `` | `t('security.dashboard.ofTracked', { count: guardLocations.length })` |
-| 91 | `` `${stats.visitorsOnSite} on site` `` | `t('security.dashboard.onSiteCount', { count: stats.visitorsOnSite })` |
-| 105 | `` `${stats?.patrolsCompleted ?? 0} completed` `` | `t('security.dashboard.patrolsCompletedCount', { count: stats?.patrolsCompleted ?? 0 })` |
+### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
 
-No other changes needed — all other strings in the component already use `t()` calls.
+The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
 
+**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
+
+```typescript
+<Button
+  size="lg"
+  className="shadow-lg px-8"
+  onClick={() => {
+    // Scroll to the workflow action card
+    const workflowCard = document.querySelector('[data-workflow-card]');
+    if (workflowCard) {
+      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }}
+>
+  Take Action
+  <ArrowRight className="h-4 w-4 ml-2" />
+</Button>
+```
+
+And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
+
+### 3. Localize the Button Text
+
+Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
+
+## Files Modified
+
+1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
+2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
+3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
+4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
