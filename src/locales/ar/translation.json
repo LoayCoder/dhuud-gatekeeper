@@ -9075,7 +9075,23 @@
       "ofTotal": "من {{total}} إجمالي",
       "ofTracked": "من {{count}} متتبع",
       "onSiteCount": "{{count}} في الموقع",
-      "patrolsCompletedCount": "{{count}} مكتملة"
+      "patrolsCompletedCount": "{{count}} مكتملة",
+      "patrolTrends": "اتجاهات الدوريات",
+      "patrols": "الدوريات",
+      "completionRate": "نسبة الإنجاز",
+      "completed": "مكتمل",
+      "checkpointScans": "عمليات المسح",
+      "completedPatrols": "الدوريات المكتملة",
+      "scans": "عمليات المسح",
+      "liveGuardMap": "مواقع الحراس المباشرة",
+      "topGuards": "أفضل الحراس هذا الأسبوع",
+      "noGuardData": "لا تتوفر بيانات أداء الحراس",
+      "guard": "حارس",
+      "live": "مباشر",
+      "offline": "غير متصل",
+      "realtimeConnected": "التحديثات المباشرة نشطة",
+      "realtimeDisconnected": "انقطع الاتصال، جاري إعادة المحاولة...",
+      "lastUpdate": "آخر تحديث"
     },
     "patrols": {
       "dashboard": {
