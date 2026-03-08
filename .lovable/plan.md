@@ -1,63 +1,116 @@
 
-# Fix "Take Action" Button for Department Representative
 
-## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
+## Plan: Fix Missing Arabic Translations for /security/access-control
 
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+### Root Cause Analysis
 
-## What Changes
+After analyzing the `/security/access-control` page components, I found:
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+1. **Hardcoded English strings** in the mobile view tabs (lines 225, 234, 243, 252, 258, 264, 270 in AccessControlDashboard.tsx):
+   - "On Site", "Apps", "Passes", "Vis", "Wrk", "Analytic", "Hist"
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+2. **Missing translation keys** used in `UnifiedAccessLogTable.tsx` that don't exist in the translation files:
+   - `accessControl.noEntries` (line 79)
+   - `accessControl.exit` (line 136)
+   - `accessControl.person` (line 150)
+   - `accessControl.type` (line 151)
+   - `accessControl.entryTime` (line 152)
+   - `accessControl.exitTime` (line 153)
+   - `accessControl.status` (line 154)
+   - `accessControl.recordExit` (line 213)
+   - `accessControl.onSite` (lines 109, 197)
+   - `accessControl.entityTypes.contractor` (line 186)
+   - `accessControl.entityTypes.employee` (line 186)
+   - `accessControl.entityTypes.vehicle` (line 186)
+   - `accessControl.status.valid` (line 40)
+   - `accessControl.status.warning` (line 42)
+   - `accessControl.status.denied` (line 44)
 
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+3. **Missing in AccessControlDashboard.tsx**:
+   - `accessControl.gateDashboard` (line 156)
+   - `accessControl.entryRecorded` (used in hook)
+   - `accessControl.entryFailed` (used in hook)
+   - `accessControl.exitRecorded` (used in hook)
+   - `accessControl.exitFailed` (used in hook)
 
-```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
+### Solution
+
+**Step 1**: Add missing keys to `src/locales/en/translation.json` in the `accessControl` block (after line 10731):
+
+```json
+"workersOnSite": "Workers",
+"gateDashboard": "Gate Operations",
+"noEntries": "No access entries found",
+"onSite": "On Site",
+"exit": "Exit",
+"person": "Person",
+"type": "Type",
+"entryTime": "Entry",
+"exitTime": "Exit",
+"status": "Status",
+"recordExit": "Record Exit",
+"entryRecorded": "Entry recorded successfully",
+"entryFailed": "Failed to record entry",
+"exitRecorded": "Exit recorded successfully",
+"exitFailed": "Failed to record exit",
+"entityTypes": {
+  "visitor": "Visitors",
+  "worker": "Workers",
+  "contractor": "Contractor",
+  "employee": "Employee",
+  "vehicle": "Vehicle"
+},
+"status": {
+  "valid": "Valid",
+  "warning": "Warning",
+  "denied": "Denied"
+}
 ```
 
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
+**Step 2**: Add corresponding Arabic translations to `src/locales/ar/translation.json` in the `accessControl` block (after line 10085):
 
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
-
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
-
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
+```json
+"workersOnSite": "العمال",
+"gateDashboard": "عمليات البوابة",
+"noEntries": "لا توجد سجلات دخول",
+"onSite": "في الموقع",
+"exit": "خروج",
+"person": "الشخص",
+"type": "النوع",
+"entryTime": "الدخول",
+"exitTime": "الخروج",
+"status": "الحالة",
+"recordExit": "تسجيل خروج",
+"entryRecorded": "تم تسجيل الدخول بنجاح",
+"entryFailed": "فشل تسجيل الدخول",
+"exitRecorded": "تم تسجيل الخروج بنجاح",
+"exitFailed": "فشل تسجيل الخروج",
+"entityTypes": {
+  "visitor": "الزوار",
+  "worker": "العمال",
+  "contractor": "مقاول",
+  "employee": "موظف",
+  "vehicle": "مركبة"
+},
+"status": {
+  "valid": "صالح",
+  "warning": "تحذير",
+  "denied": "مرفوض"
+}
 ```
 
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
+**Step 3**: Update `AccessControlDashboard.tsx` to remove hardcoded mobile tab labels by using `t()` with the existing tab keys instead of hardcoded strings.
 
-### 3. Localize the Button Text
+### Files to Edit
+1. `src/locales/en/translation.json` - Add missing English keys
+2. `src/locales/ar/translation.json` - Add missing Arabic keys  
+3. `src/pages/security/AccessControlDashboard.tsx` - Remove hardcoded mobile labels
 
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
+### Expected Result
+All text on `/security/access-control` page will display correctly in Arabic when the Arabic language is selected, including:
+- Mobile tab labels
+- Table headers
+- Status badges
+- Toast notifications
+- Empty states
 
-## Files Modified
-
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
