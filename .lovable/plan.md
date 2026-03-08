@@ -1,63 +1,51 @@
 
-# Fix "Take Action" Button for Department Representative
 
-## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
+## Plan: Fix i18n for `/contractors/companies` page
 
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+### Problem
+The `/contractors/companies` page has **TYPE B** issues (missing translation keys). Console logs show 7 missing keys under `contractors.stats.*` and `contractors.charts.*` namespaces that don't exist in either EN or AR translation files.
 
-## What Changes
+### Missing Keys (from console logs)
+| Key | Fallback | Source Component |
+|-----|----------|-----------------|
+| `contractors.stats.pendingWorkers` | "Pending Workers" | ContractorCompanyKPICards.tsx |
+| `contractors.stats.totalWorkers` | "Total Workers" | ContractorCompanyKPICards.tsx |
+| `contractors.stats.expiringContracts` | "Expiring Soon" | ContractorCompanyKPICards.tsx |
+| `contractors.stats.within30Days` | "Within 30 days" | ContractorCompanyKPICards.tsx |
+| `contractors.stats.needsAttention` | "Needs Attention" | ContractorCompanyKPICards.tsx |
+| `contractors.stats.totalCompanies` | "Total Companies" | ContractorCompanyKPICards.tsx |
+| `contractors.stats.activeCompanies` | "Active" | ContractorCompanyKPICards.tsx |
+| `contractors.stats.companies` | "Companies" | CompaniesByCityChart.tsx |
+| `contractors.stats.expiring` | "Expiring" | Companies.tsx tab |
+| `contractors.charts.workersByCompany` | "Workers By Company" | WorkersByCompanyChart.tsx |
+| `contractors.charts.companiesByCity` | "Companies by City" | CompaniesByCityChart.tsx |
+| `contractors.charts.statusByBranch` | "Status By Branch" | StatusByBranchChart.tsx |
+| `contractors.status.expired` | "Expired" | CompanyListTable.tsx, StatusByBranchChart.tsx |
+| `contractors.status.pending_approval` | "Pending Approval" | CompanyListTable.tsx |
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+Also need to verify: `contractors.companies.*` sub-keys exist in AR (they exist in EN at lines 8283-8337 but need AR equivalents).
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+### Changes
 
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+#### 1. Add `contractors.stats` section to both EN and AR translation files
+- EN: Add under the `contractors` object with all stat keys
+- AR: Add corresponding Arabic translations
 
-```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
-```
+#### 2. Add `contractors.charts` section to both EN and AR translation files
+- EN: Add chart title keys
+- AR: Add Arabic translations
 
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
+#### 3. Add missing `contractors.status` keys
+- Add `expired` and `pending_approval` to both `contractors.status` sections
 
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
+#### 4. Add `contractors.companies` section to AR translation file
+- The EN file already has this section (lines 8283-8337)
+- AR file needs the full Arabic translation of all `contractors.companies.*` keys (~35 keys)
 
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
+### Files to Edit
+1. `src/locales/en/translation.json` — Add `contractors.stats`, `contractors.charts`, missing `contractors.status` keys
+2. `src/locales/ar/translation.json` — Add `contractors.stats`, `contractors.charts`, `contractors.companies`, missing `contractors.status` keys
 
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
-```
+### No component changes needed
+All components already use `t()` calls correctly. This is purely a TYPE B fix (adding missing keys to locale files).
 
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
-
-### 3. Localize the Button Text
-
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
-
-## Files Modified
-
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
