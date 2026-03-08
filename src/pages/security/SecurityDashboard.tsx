@@ -102,7 +102,7 @@ export default function SecurityDashboard() {
       icon: Route,
       status: avgPatrolProgress >= 80 ? 'completed' : avgPatrolProgress >= 50 ? 'pending' : 'critical',
       trend: 'neutral',
-      trendValue: `${stats?.patrolsCompleted ?? 0} completed`,
+      trendValue: t('security.dashboard.patrolsCompletedCount', { count: stats?.patrolsCompleted ?? 0 }),
     },
   ];
 
