@@ -221,6 +221,7 @@ export function useContractorPortalStats(companyId: string | undefined) {
 
 export function useContractorPortalCreateWorker() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { profile } = useAuth();
 
   return useMutation({

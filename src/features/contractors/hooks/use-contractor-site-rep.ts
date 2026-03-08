@@ -60,6 +60,7 @@ export function useContractorSiteRep(companyId: string | null) {
  */
 export function useUpsertSiteRep() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { profile } = useAuth();
 
   return useMutation({
