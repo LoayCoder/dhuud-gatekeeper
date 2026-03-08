@@ -1,63 +1,51 @@
 
-# Fix "Take Action" Button for Department Representative
 
-## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
+## Plan: Fix i18n for `/contractors/induction-videos` page
 
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+### Problem
+Three issues:
+1. **TYPE A** — `InductionVideos.tsx` (page) uses `contractors.inductionVideos.*` namespace, but the locale files have `contractors.inductionVideos` as a flat string (nav label). The actual keys live under `contractors.induction.*`.
+2. **TYPE B** — ~12 keys used by components are missing from EN `contractors.induction` section.
+3. **TYPE B** — The entire `contractors.induction` section is missing from AR locale.
 
-## What Changes
+### Missing Keys Analysis
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+**EN `contractors.induction` — keys used but missing:**
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+| Key | Default | Component |
+|-----|---------|-----------|
+| `searchVideos` | "Search videos..." | InductionVideoList |
+| `validFor` | "Valid For" | InductionVideoList |
+| `noVideos` | "No induction videos found" | InductionVideoList |
+| `deleteConfirm` | "Are you sure you want to delete this induction video?" | InductionVideoList |
+| `duration` | "Duration" | InductionVideoList (table header) |
+| `translate` | "Translate" | InductionVideoFormDialog |
+| `translateHint` | "Click 'Translate' to auto-translate..." | InductionVideoFormDialog |
+| `videoUrlHint` | "Link to the video file or streaming URL" | InductionVideoFormDialog |
+| `durationSeconds` | "Duration (seconds)" | InductionVideoFormDialog |
+| `validForDays` | "Valid for (days)" | InductionVideoFormDialog |
+| `isActiveHint` | "Only active videos can be sent to workers" | InductionVideoFormDialog |
+| `expiringAlert` | "{{count}} inductions expiring within 30 days" | InductionComplianceWidget |
+| `expiredAlert` | "{{count}} inductions have expired" | InductionComplianceWidget |
 
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+**AR — entire `contractors.induction` section missing (~35 keys).**
 
-```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
-```
+### Changes
 
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
+#### 1. `src/pages/contractors/InductionVideos.tsx`
+- Fix 3 key paths: `contractors.inductionVideos.title` → `contractors.induction.title`, `.description` → `.description` (rename to `pageDescription` to avoid collision with existing `description` key), `.addVideo` → `.addVideo`
+- Actually, `contractors.induction.title` already means "Induction Videos" and `.addVideo` exists. The page description needs a new key `pageDescription` since `description` already has a different value.
 
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
+#### 2. `src/locales/en/translation.json`
+- Add ~13 missing keys to `contractors.induction` section (lines 8189-8222): `searchVideos`, `validFor`, `noVideos`, `deleteConfirm`, `duration` (as table header, distinct from existing `duration` which says "Duration (seconds)"), `translate`, `translateHint`, `videoUrlHint`, `durationSeconds`, `validForDays`, `isActiveHint`, `expiringAlert`, `expiredAlert`, `pageDescription`
 
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
+#### 3. `src/locales/ar/translation.json`
+- Add complete `contractors.induction` section (~35 keys) with Arabic translations matching all EN keys
 
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
-```
+### Summary
+| File | Changes |
+|------|---------|
+| `InductionVideos.tsx` | Fix 3 key paths (TYPE A) |
+| EN `translation.json` | Add ~14 keys to `contractors.induction` |
+| AR `translation.json` | Add full `contractors.induction` section (~35 keys) |
 
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
-
-### 3. Localize the Button Text
-
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
-
-## Files Modified
-
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
