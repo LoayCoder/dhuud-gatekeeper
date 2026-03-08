@@ -60,7 +60,7 @@ export default function SLAAnalytics() {
 
     const columns: ExportColumn[] = [
       { key: 'department', label: t('common.department', 'Department') },
-      { key: 'total_actions', label: t('sla.totalActions', 'Total Actions') },
+      { key: 'total_actions', label: t('sla.totalActionsCount', 'Total Actions') },
       { key: 'completed_on_time', label: t('sla.onTime', 'On Time') },
       { key: 'breached', label: t('sla.breached', 'Breached') },
       { key: 'compliance_rate', label: t('sla.complianceRate', 'Compliance Rate') },
