@@ -1,63 +1,62 @@
 
-# Fix "Take Action" Button for Department Representative
 
-## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
+## Plan: Add i18n for `/admin/sla-analytics` page
 
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+### Problem
+The SLA Analytics page (`SLAAnalytics.tsx`) and its 3 sub-components (`SLAComplianceChart`, `DepartmentPerformanceTable`, `EscalationHeatmap`) use ~20 `sla.*` translation keys that are missing from both EN and AR locale files.
 
-## What Changes
+### Missing Keys
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+**Page-level (`SLAAnalytics.tsx`):**
+| Key | English |
+|-----|---------|
+| `sla.analyticsDescription` | "Historical trends, performance metrics, and compliance reports" |
+| `sla.complianceRate` | "Compliance Rate" |
+| `sla.onTimeCompletion` | "on-time completion" |
+| `sla.avgResolution` | "Avg Resolution" |
+| `sla.fromCreationToClose` | "from creation to close" |
+| `sla.escalationRate` | "Escalation Rate" |
+| `sla.escalatedActions` | "escalated actions" |
+| `sla.active` | "active" |
+| `sla.onTime` | "On Time" |
+| `sla.breached` | "Breached" |
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+**Chart component (`SLAComplianceChart.tsx`):**
+| Key | English |
+|-----|---------|
+| `sla.complianceTrend` | "SLA Compliance Trend" |
+| `sla.completedOnTime` | "Completed On Time" |
 
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+**Table component (`DepartmentPerformanceTable.tsx`):**
+| Key | English |
+|-----|---------|
+| `sla.departmentPerformance` | "Department Performance" |
+| `sla.totalActionsCount` | "Total Actions" |
 
-```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
-```
+**Heatmap component (`EscalationHeatmap.tsx`):**
+| Key | English |
+|-----|---------|
+| `sla.escalationDistribution` | "Escalation Distribution" |
+| `sla.noEscalation` | "No Escalation" |
+| `sla.level1` | "Level 1" |
+| `sla.level2` | "Level 2" |
+| `sla.priorityBreakdown` | "Priority Breakdown" |
+| `sla.total` | "Total" |
 
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
+### Key Conflict: `sla.totalActions`
+The existing `sla.totalActions` = `"{{count}} actions requiring attention"` (interpolated). But `DepartmentPerformanceTable` and `SLAAnalytics` KPI card use `t('sla.totalActions', 'Total Actions')` expecting a plain label. Fix: use a new key `sla.totalActionsCount` for the plain label, and update both components to reference it.
 
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
+### Changes
 
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
+#### 1. `src/locales/en/translation.json`
+Add all 20 missing keys to the `sla` block.
 
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
-```
+#### 2. `src/locales/ar/translation.json`
+Add matching Arabic translations.
 
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
+#### 3. `src/pages/admin/SLAAnalytics.tsx`
+Change `t('sla.totalActions', 'Total Actions')` → `t('sla.totalActionsCount', 'Total Actions')` (line 156).
 
-### 3. Localize the Button Text
+#### 4. `src/components/sla/DepartmentPerformanceTable.tsx`
+Change `t('sla.totalActions', 'Total Actions')` → `t('sla.totalActionsCount', 'Total Actions')`.
 
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
-
-## Files Modified
-
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
