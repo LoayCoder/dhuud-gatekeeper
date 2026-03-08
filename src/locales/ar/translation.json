@@ -4358,6 +4358,10 @@
     }
   },
   "actions": {
+    "title": "العنوان",
+    "referenceId": "الرقم المرجعي",
+    "assignee": "المسؤول",
+    "unassigned": "غير مسند",
     "sessionActions": "إجراءات الجلسة",
     "open": "مفتوح",
     "noActions": "لا توجد إجراءات تصحيحية لهذه الجلسة",
