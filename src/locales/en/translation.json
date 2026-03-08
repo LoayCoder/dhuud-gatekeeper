@@ -8086,7 +8086,7 @@
     },
     "projects": {
       "title": "Contractor Projects",
-      "description": "Description",
+      "description": "Manage contractor projects and assignments",
       "addProject": "Add Project",
       "editProject": "Edit Project",
       "noProjects": "No projects found",
@@ -8095,16 +8095,30 @@
       "selectCompany": "Select company",
       "projectManager": "Project Manager",
       "selectManager": "Select manager",
+      "selectProjectManager": "Select project manager",
       "details": "Details",
       "projectName": "Project Name",
+      "name": "Project Name",
       "projectCode": "Project Code",
+      "code": "Code",
       "site": "Site",
       "selectSite": "Select site",
       "startDate": "Start Date",
       "endDate": "End Date",
       "status": "Status",
+      "dates": "Dates",
       "location": "Location",
-      "schedule": "Schedule"
+      "projectLocation": "Project Location",
+      "locationDescription": "Location Description",
+      "locationDescriptionPlaceholder": "Describe the project location...",
+      "schedule": "Schedule",
+      "notes": "Notes"
+    },
+    "projectStatus": {
+      "planned": "Planned",
+      "active": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
     },
     "idCard": {
       "sentSuccess": "ID card sent via WhatsApp",
