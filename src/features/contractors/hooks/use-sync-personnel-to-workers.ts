@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SiteRepFormData } from '@/features/contractors';
@@ -13,6 +14,7 @@ interface SyncPersonnelParams {
 
 export function useSyncPersonnelToWorkers() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   return useMutation({
     mutationFn: async ({ companyId, tenantId, siteRep, safetyOfficers }: SyncPersonnelParams) => {
