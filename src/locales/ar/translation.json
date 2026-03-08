@@ -9097,6 +9097,13 @@
       "realtimeDisconnected": "انقطع الاتصال، جاري إعادة المحاولة...",
       "lastUpdate": "آخر تحديث"
     },
+    "guardsCount": "حراس",
+    "status": {
+      "active": "نشط",
+      "warning": "خارج المنطقة",
+      "alert": "تنبيه",
+      "offline": "غير متصل"
+    },
     "analytics": {
       "geofenceBreaches": "اختراقات السياج الجغرافي عبر الزمن",
       "breaches": "اختراقات",
