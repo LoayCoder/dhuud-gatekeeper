@@ -9029,6 +9029,10 @@
   "auditsInspections": "التدقيق والتفتيش",
   "security": {
     "protectedByZeroTrust": "محمي بواسطة الأمن بنظام انعدام الثقة",
+    "emergencyAlerts": "تنبيهات الطوارئ",
+    "shiftHandover": "تسليم المناوبة",
+    "guardPerformance": "أداء الحراس",
+    "reportSchedules": "جداول التقارير",
     "menu": {
       "securityDashboard": "لوحة الأمن",
       "accessDashboard": "لوحة التحكم بالدخول",
