@@ -140,7 +140,7 @@ export default function SLADashboard() {
     const columns: ExportColumn[] = [
       { key: 'reference_id', label: t('actions.referenceId', 'Reference ID') },
       { key: 'title', label: t('actions.title', 'Title') },
-      { key: 'priority', label: t('actions.priority', 'Priority') },
+      { key: 'priority', label: t('common.priority', 'Priority') },
       { key: 'assignee_name', label: t('actions.assignee', 'Assignee') },
       { key: 'due_date', label: t('actions.dueDate', 'Due Date') },
       { key: 'status', label: t('actions.status', 'Status') },
@@ -345,7 +345,7 @@ export default function SLADashboard() {
                       </TableHead>
                       <TableHead className="min-w-[120px]">{t('sla.countdown', 'Countdown')}</TableHead>
                       <TableHead className="min-w-[200px]">{t('actions.title', 'Title')}</TableHead>
-                      <TableHead>{t('actions.priority', 'Priority')}</TableHead>
+                      <TableHead>{t('common.priority', 'Priority')}</TableHead>
                       <TableHead>{t('actions.assignee', 'Assignee')}</TableHead>
                       <TableHead>{t('actions.dueDate', 'Due Date')}</TableHead>
                       <TableHead>{t('actions.status', 'Status')}</TableHead>
