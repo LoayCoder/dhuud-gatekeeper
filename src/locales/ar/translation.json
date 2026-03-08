@@ -6934,6 +6934,34 @@
         "label": "الحالة الحالية"
       }
     },
+    "analytics": {
+      "title": "تحليلات المقاولين",
+      "subtitle": "مقاييس الأداء والرؤى",
+      "activeCompanies": "الشركات النشطة",
+      "ofTotal": "من {{count}} إجمالي",
+      "approvedWorkers": "العمال المعتمدون",
+      "pending": "قيد الانتظار",
+      "todayPasses": "تصاريح اليوم",
+      "totalPasses": "{{count}} إجمالي",
+      "complianceRate": "معدل الامتثال",
+      "workerApprovalRate": "معدل اعتماد العمال",
+      "tabs": {
+        "overview": "نظرة عامة",
+        "workers": "العمال",
+        "gatePasses": "تصاريح البوابة"
+      },
+      "workersByCompany": "العمال حسب الشركة",
+      "noData": "لا توجد بيانات متاحة",
+      "workerStatus": "توزيع حالة العمال",
+      "monthlyTrend": "اتجاه النشاط الشهري",
+      "noTrendData": "لا يوجد نشاط تصاريح بوابة في آخر 6 أشهر",
+      "passTypes": "أنواع تصاريح البوابة",
+      "summary": "ملخص سريع",
+      "totalCompanies": "إجمالي الشركات",
+      "totalWorkers": "إجمالي العمال",
+      "totalGatePasses": "إجمالي تصاريح البوابة",
+      "avgWorkersPerCompany": "متوسط العمال/الشركة"
+    },
     "induction": {
       "title": "فيديوهات التعريف",
       "pageDescription": "إدارة فيديوهات التعريف بالسلامة",

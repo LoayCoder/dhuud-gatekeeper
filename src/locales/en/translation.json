@@ -8186,6 +8186,34 @@
       "suspended": "Suspended",
       "revoked": "Revoked"
     },
+    "analytics": {
+      "title": "Contractor Analytics",
+      "subtitle": "Performance metrics and insights",
+      "activeCompanies": "Active Companies",
+      "ofTotal": "of {{count}} total",
+      "approvedWorkers": "Approved Workers",
+      "pending": "pending",
+      "todayPasses": "Today's Passes",
+      "totalPasses": "{{count}} total",
+      "complianceRate": "Compliance Rate",
+      "workerApprovalRate": "Worker approval rate",
+      "tabs": {
+        "overview": "Overview",
+        "workers": "Workers",
+        "gatePasses": "Gate Passes"
+      },
+      "workersByCompany": "Workers by Company",
+      "noData": "No data available",
+      "workerStatus": "Worker Status Distribution",
+      "monthlyTrend": "Monthly Activity Trend",
+      "noTrendData": "No gate pass activity in the last 6 months",
+      "passTypes": "Gate Pass Types",
+      "summary": "Quick Summary",
+      "totalCompanies": "Total Companies",
+      "totalWorkers": "Total Workers",
+      "totalGatePasses": "Total Gate Passes",
+      "avgWorkersPerCompany": "Avg Workers/Company"
+    },
     "induction": {
       "title": "Induction Videos",
       "description": "Send safety induction video to worker via WhatsApp based on their preferred language.",
