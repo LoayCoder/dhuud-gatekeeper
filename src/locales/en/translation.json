@@ -11174,7 +11174,27 @@
     "secondEscalationDesc": "Leave as 0 to disable second escalation",
     "daysBefore_interpolated": "{{days}}d before",
     "daysAfterPlus": "+{{days}}d",
-    "daysValue": "{{days}}d"
+    "daysValue": "{{days}}d",
+    "analyticsDescription": "Historical trends, performance metrics, and compliance reports",
+    "complianceRate": "Compliance Rate",
+    "onTimeCompletion": "on-time completion",
+    "avgResolution": "Avg Resolution",
+    "fromCreationToClose": "from creation to close",
+    "escalationRate": "Escalation Rate",
+    "escalatedActions": "escalated actions",
+    "active": "active",
+    "onTime": "On Time",
+    "breached": "Breached",
+    "complianceTrend": "SLA Compliance Trend",
+    "completedOnTime": "Completed On Time",
+    "departmentPerformance": "Department Performance",
+    "totalActionsCount": "Total Actions",
+    "escalationDistribution": "Escalation Distribution",
+    "noEscalation": "No Escalation",
+    "level1": "Level 1",
+    "level2": "Level 2",
+    "priorityBreakdown": "Priority Breakdown",
+    "total": "Total"
   },
   "findings": {
     "classification": {

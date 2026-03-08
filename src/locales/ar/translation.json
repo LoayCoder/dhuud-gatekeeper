@@ -11150,7 +11150,27 @@
     "secondEscalationDesc": "اترك القيمة 0 لتعطيل التصعيد الثاني",
     "daysBefore_interpolated": "{{days}} يوم قبل",
     "daysAfterPlus": "+{{days}} يوم",
-    "daysValue": "{{days}} يوم"
+    "daysValue": "{{days}} يوم",
+    "analyticsDescription": "الاتجاهات التاريخية ومقاييس الأداء وتقارير الامتثال",
+    "complianceRate": "معدل الامتثال",
+    "onTimeCompletion": "الإنجاز في الوقت المحدد",
+    "avgResolution": "متوسط الحل",
+    "fromCreationToClose": "من الإنشاء إلى الإغلاق",
+    "escalationRate": "معدل التصعيد",
+    "escalatedActions": "إجراءات مُصعّدة",
+    "active": "نشط",
+    "onTime": "في الوقت",
+    "breached": "متجاوز",
+    "complianceTrend": "اتجاه الامتثال لاتفاقية مستوى الخدمة",
+    "completedOnTime": "مكتمل في الوقت المحدد",
+    "departmentPerformance": "أداء الأقسام",
+    "totalActionsCount": "إجمالي الإجراءات",
+    "escalationDistribution": "توزيع التصعيد",
+    "noEscalation": "بدون تصعيد",
+    "level1": "المستوى 1",
+    "level2": "المستوى 2",
+    "priorityBreakdown": "تفصيل الأولويات",
+    "total": "الإجمالي"
   },
   "findings": {
     "classification": {
