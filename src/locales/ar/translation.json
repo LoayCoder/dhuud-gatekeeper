@@ -9071,7 +9071,11 @@
       "registerVisitor": "تسجيل زائر",
       "startPatrol": "بدء دورية",
       "visitorsToday": "زوار اليوم",
-      "visitorTraffic": "حركة الزوار (7 أيام)"
+      "visitorTraffic": "حركة الزوار (7 أيام)",
+      "ofTotal": "من {{total}} إجمالي",
+      "ofTracked": "من {{count}} متتبع",
+      "onSiteCount": "{{count}} في الموقع",
+      "patrolsCompletedCount": "{{count}} مكتملة"
     },
     "patrols": {
       "dashboard": {

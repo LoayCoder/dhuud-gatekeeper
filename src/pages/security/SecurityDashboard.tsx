@@ -72,7 +72,7 @@ export default function SecurityDashboard() {
       icon: Shield,
       status: 'informational',
       trend: 'neutral',
-      trendValue: stats?.totalGuards ? `of ${stats.totalGuards} total` : undefined,
+      trendValue: stats?.totalGuards ? t('security.dashboard.ofTotal', { total: stats.totalGuards }) : undefined,
     },
     {
       label: t('security.dashboard.guardsOnZone', 'Guards On Zone'),
