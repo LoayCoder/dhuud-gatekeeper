@@ -8336,6 +8336,23 @@
       "safetyRatioNote": "Required ratio: 1 Safety Officer per 22 Workers (1:22)",
       "noScopeProvided": "No scope of work provided"
     },
+    "stats": {
+      "totalCompanies": "Total Companies",
+      "activeCompanies": "Active",
+      "pendingWorkers": "Pending Workers",
+      "totalWorkers": "Total Workers",
+      "expiringContracts": "Expiring Soon",
+      "within30Days": "Within 30 days",
+      "needsAttention": "Needs Attention",
+      "companies": "Companies",
+      "expiring": "Expiring"
+    },
+    "charts": {
+      "workersByCompany": "Workers by Company",
+      "companiesByCity": "Companies by City",
+      "statusByBranch": "Status by Branch",
+      "statusDistribution": "Company Status"
+    },
     "status": {
       "active": "Active",
       "inactive": "Inactive",
@@ -8349,7 +8366,9 @@
       "cancelled": "Cancelled",
       "pending_pm": "Pending PM",
       "pending_safety": "Pending Safety",
-      "verified": "Verified"
+      "verified": "Verified",
+      "expired": "Expired",
+      "pending_approval": "Pending Approval"
     },
     "companyManagement": {
       "title": "Company Management",
