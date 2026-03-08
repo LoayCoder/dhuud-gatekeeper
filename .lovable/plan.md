@@ -1,63 +1,52 @@
 
-# Fix "Take Action" Button for Department Representative
 
-## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
+## Plan: Fix i18n for `/contractors/analytics` page
 
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+### Problem
+The `Analytics.tsx` page uses ~25 `t()` keys under the `contractors.analytics.*` namespace, but this section does not exist in either EN or AR locale files. The `contractors.analytics` path currently resolves to the flat nav string `"Analytics"`, not an object.
 
-## What Changes
+### Missing Keys (all from `Analytics.tsx`)
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+| Key | Default Value |
+|-----|---------------|
+| `title` | "Contractor Analytics" |
+| `subtitle` | "Performance metrics and insights" |
+| `activeCompanies` | "Active Companies" |
+| `ofTotal` | "of {{count}} total" |
+| `approvedWorkers` | "Approved Workers" |
+| `pending` | "pending" |
+| `todayPasses` | "Today's Passes" |
+| `totalPasses` | "{{count}} total" |
+| `complianceRate` | "Compliance Rate" |
+| `workerApprovalRate` | "Worker approval rate" |
+| `tabs.overview` | "Overview" |
+| `tabs.workers` | "Workers" |
+| `tabs.gatePasses` | "Gate Passes" |
+| `workersByCompany` | "Workers by Company" |
+| `noData` | "No data available" |
+| `workerStatus` | "Worker Status Distribution" |
+| `monthlyTrend` | "Monthly Activity Trend" |
+| `noTrendData` | "No gate pass activity in the last 6 months" |
+| `passTypes` | "Gate Pass Types" |
+| `summary` | "Quick Summary" |
+| `totalCompanies` | "Total Companies" |
+| `totalWorkers` | "Total Workers" |
+| `totalGatePasses` | "Total Gate Passes" |
+| `avgWorkersPerCompany` | "Avg Workers/Company" |
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+### Conflict Resolution
+The EN nav key `contractors.nav.analytics` is `"Analytics"` (flat string). The new `contractors.analytics` must be an **object**. Currently line 8059 has `"analytics": "Analytics"` but that's inside the `nav` object, so there's no conflict — `contractors.analytics` as a sibling object is fine.
 
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+### Changes
 
-```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
-```
+#### 1. `src/locales/en/translation.json`
+- Add `contractors.analytics` object with all 25 keys (including nested `tabs` object)
 
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
+#### 2. `src/locales/ar/translation.json`
+- Add `contractors.analytics` object with Arabic translations for all 25 keys
 
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
+#### 3. `src/pages/contractors/Analytics.tsx`
+- Fix the `ofTotal` and `totalPasses` keys to use proper i18n interpolation (`{{count}}`) instead of template literals
 
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
+### No other component changes needed
 
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
-```
-
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
-
-### 3. Localize the Button Text
-
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
-
-## Files Modified
-
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
