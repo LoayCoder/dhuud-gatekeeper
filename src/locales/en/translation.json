@@ -11158,6 +11158,12 @@
     "escalationL2Help": "HSSE Manager receives critical alert",
     "fixValidationErrors": "Please fix the validation errors above"
   },
+  "navigation": {
+    "actionSlaSettings": "Action SLA Settings",
+    "actionSLASettings": "Action SLA Settings",
+    "findingSlaSettings": "Finding SLA Settings",
+    "violationSettings": "Violation Settings"
+  },
   "priority": {
     "critical": "Critical",
     "high": "High",

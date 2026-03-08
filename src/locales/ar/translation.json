@@ -11134,6 +11134,12 @@
     "escalationL2Help": "يتلقى مدير السلامة والصحة المهنية تنبيهًا حرجًا",
     "fixValidationErrors": "يرجى تصحيح أخطاء التحقق أعلاه"
   },
+  "navigation": {
+    "actionSlaSettings": "إعدادات SLA للإجراءات",
+    "actionSLASettings": "إعدادات SLA للإجراءات",
+    "findingSlaSettings": "إعدادات SLA للملاحظات",
+    "violationSettings": "إعدادات المخالفات"
+  },
   "priority": {
     "critical": "حرج",
     "high": "عالي",
