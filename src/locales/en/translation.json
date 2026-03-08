@@ -10646,8 +10646,19 @@
   "contractorPortal": {
     "gatePasses": {
       "pendingApprovals": "Pending Approvals",
+      "noPendingForRole": "There are no gate passes waiting for your approval",
+      "awaitingContractor": "Awaiting Contractor Approval",
+      "awaitingDeptAck": "Awaiting Dept Acknowledgment",
+      "awaitingDeptApproval": "Awaiting Dept Approval",
+      "awaitingClubMgmtAck": "Awaiting Golf Club Management",
+      "awaitingSecurity": "Awaiting Security Approval",
+      "awaitingPm": "Awaiting PM Approval",
+      "awaitingSafety": "Awaiting Safety Approval",
       "tabs": {
         "approvalHistory": "Approval History"
+      },
+      "bulk": {
+        "selectAll": "Select All"
       }
     }
   },

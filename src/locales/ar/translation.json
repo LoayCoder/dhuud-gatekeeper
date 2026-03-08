@@ -9933,8 +9933,19 @@
   "contractorPortal": {
     "gatePasses": {
       "pendingApprovals": "موافقات معلقة",
+      "noPendingForRole": "لا توجد تصاريح بانتظار موافقتك",
+      "awaitingContractor": "بانتظار موافقة المقاول",
+      "awaitingDeptAck": "بانتظار إقرار القسم",
+      "awaitingDeptApproval": "بانتظار موافقة القسم",
+      "awaitingClubMgmtAck": "بانتظار إدارة النادي",
+      "awaitingSecurity": "بانتظار الموافقة الأمنية",
+      "awaitingPm": "بانتظار موافقة مدير المشروع",
+      "awaitingSafety": "بانتظار موافقة السلامة",
       "tabs": {
         "approvalHistory": "سجل الموافقات"
+      },
+      "bulk": {
+        "selectAll": "تحديد الكل"
       }
     }
   },
