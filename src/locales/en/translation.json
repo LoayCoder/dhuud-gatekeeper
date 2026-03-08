@@ -11160,7 +11160,21 @@
     "fixValidationErrors": "Please fix the validation errors above",
     "targetLabel": "target",
     "days": "days",
-    "targetDays": "Target"
+    "targetDays": "Target",
+    "investigationSlaSettings": "Investigation SLA Settings",
+    "investigationSlaDescription": "Configure target completion dates and escalation thresholds for investigations based on incident severity",
+    "severityConfigs": "Severity Level Configurations",
+    "severityConfigsDesc": "Each severity level has different SLA thresholds. Higher severity incidents require faster resolution.",
+    "severityLevel": "Severity",
+    "warningBefore": "Warning",
+    "escalateAfter": "L1 Escalation",
+    "secondEscalation": "L2 Escalation",
+    "editConfig": "Edit SLA Configuration",
+    "editConfigDesc": "Update the SLA thresholds for this severity level",
+    "secondEscalationDesc": "Leave as 0 to disable second escalation",
+    "daysBefore_interpolated": "{{days}}d before",
+    "daysAfterPlus": "+{{days}}d",
+    "daysValue": "{{days}}d"
   },
   "findings": {
     "classification": {

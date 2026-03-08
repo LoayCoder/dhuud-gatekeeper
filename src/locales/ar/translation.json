@@ -11136,7 +11136,21 @@
     "fixValidationErrors": "يرجى تصحيح أخطاء التحقق أعلاه",
     "targetLabel": "الهدف",
     "days": "أيام",
-    "targetDays": "الهدف"
+    "targetDays": "الهدف",
+    "investigationSlaSettings": "إعدادات SLA للتحقيقات",
+    "investigationSlaDescription": "تكوين تواريخ الإنجاز المستهدفة وعتبات التصعيد للتحقيقات بناءً على شدة الحادث",
+    "severityConfigs": "تكوينات مستوى الشدة",
+    "severityConfigsDesc": "لكل مستوى شدة عتبات SLA مختلفة. الحوادث الأكثر شدة تتطلب حلاً أسرع.",
+    "severityLevel": "الشدة",
+    "warningBefore": "تحذير",
+    "escalateAfter": "تصعيد المستوى الأول",
+    "secondEscalation": "تصعيد المستوى الثاني",
+    "editConfig": "تعديل تكوين SLA",
+    "editConfigDesc": "تحديث عتبات SLA لمستوى الشدة هذا",
+    "secondEscalationDesc": "اترك القيمة 0 لتعطيل التصعيد الثاني",
+    "daysBefore_interpolated": "{{days}} يوم قبل",
+    "daysAfterPlus": "+{{days}} يوم",
+    "daysValue": "{{days}} يوم"
   },
   "findings": {
     "classification": {
