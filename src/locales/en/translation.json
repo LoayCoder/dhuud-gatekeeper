@@ -11041,5 +11041,11 @@
   "accessControl": {
     "accessDenied": "Access Denied",
     "notClientSiteRep": "You do not have any contractor companies assigned to you as a site representative. Contact your administrator to be assigned as a client site representative."
+  },
+  "priority": {
+    "critical": "Critical",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
   }
 }
