@@ -40,7 +40,7 @@ export function DepartmentPerformanceTable({ data }: DepartmentPerformanceTableP
           <TableHeader>
             <TableRow>
               <TableHead>{t('common.department', 'Department')}</TableHead>
-              <TableHead className="text-center">{t('sla.totalActions', 'Total Actions')}</TableHead>
+              <TableHead className="text-center">{t('sla.totalActionsCount', 'Total Actions')}</TableHead>
               <TableHead className="text-center">{t('sla.onTime', 'On Time')}</TableHead>
               <TableHead className="text-center">{t('sla.breached', 'Breached')}</TableHead>
               <TableHead className="text-center">{t('sla.complianceRate', 'Compliance')}</TableHead>
