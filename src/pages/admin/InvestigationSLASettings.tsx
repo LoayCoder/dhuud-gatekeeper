@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,7 +6,6 @@ import { investigationSLASchema, InvestigationSLAValues } from './InvestigationS
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -118,16 +117,16 @@ export default function InvestigationSLASettings() {
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
-                    {config.target_days}d
+                    {t('sla.daysValue', '{{days}}d', { days: config.target_days })}
                   </TableCell>
                   <TableCell className="text-center text-muted-foreground">
-                    {config.warning_days_before}d before
+                    {t('sla.daysBefore_interpolated', '{{days}}d before', { days: config.warning_days_before })}
                   </TableCell>
                   <TableCell className="text-center text-muted-foreground">
-                    +{config.escalation_days_after}d
+                    {t('sla.daysAfterPlus', '+{{days}}d', { days: config.escalation_days_after })}
                   </TableCell>
                   <TableCell className="text-center text-muted-foreground">
-                    {config.second_escalation_days_after ? `+${config.second_escalation_days_after}d` : 'â€”'}
+                    {config.second_escalation_days_after ? t('sla.daysAfterPlus', '+{{days}}d', { days: config.second_escalation_days_after }) : '—'}
                   </TableCell>
                   <TableCell className="text-end">
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(config)}>
@@ -220,4 +219,3 @@ export default function InvestigationSLASettings() {
     </div>
   );
 }
-
