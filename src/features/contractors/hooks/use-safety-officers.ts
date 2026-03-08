@@ -130,6 +130,7 @@ export function useEligibleSafetyOfficers(companyId: string | undefined) {
 
 export function useAssignSafetyOfficer() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { profile, user } = useAuth();
   const tenantId = profile?.tenant_id;
 
@@ -172,16 +173,17 @@ export function useAssignSafetyOfficer() {
     onSuccess: (_, { projectId }) => {
       queryClient.invalidateQueries({ queryKey: ["project-safety-officers", tenantId, projectId] });
       queryClient.invalidateQueries({ queryKey: ["safety-officer-requirement", tenantId, projectId] });
-      toast.success("Safety officer assigned");
+      toast.success(t("contractors.messages.safetyOfficerAssigned", "Safety officer assigned"));
     },
     onError: (error) => {
-      toast.error(`Failed to assign safety officer: ${error.message}`);
+      toast.error(t("contractors.messages.safetyOfficerAssignFailed", "Failed to assign safety officer: {{error}}", { error: error.message }));
     },
   });
 }
 
 export function useRemoveSafetyOfficer() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
 
@@ -200,10 +202,10 @@ export function useRemoveSafetyOfficer() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["project-safety-officers"] });
       queryClient.invalidateQueries({ queryKey: ["safety-officer-requirement"] });
-      toast.success("Safety officer removed");
+      toast.success(t("contractors.messages.safetyOfficerRemoved", "Safety officer removed"));
     },
     onError: (error) => {
-      toast.error(`Failed to remove officer: ${error.message}`);
+      toast.error(t("contractors.messages.safetyOfficerRemoveFailed", "Failed to remove officer: {{error}}", { error: error.message }));
     },
   });
 }
