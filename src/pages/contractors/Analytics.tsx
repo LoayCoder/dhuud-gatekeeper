@@ -90,7 +90,7 @@ export default function ContractorAnalytics() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activeCompanies}</div>
-            <p className="text-xs text-muted-foreground">{t("contractors.analytics.ofTotal", `of ${companies.length} total`)}</p>
+            <p className="text-xs text-muted-foreground">{t("contractors.analytics.ofTotal", "of {{count}} total", { count: companies.length })}</p>
           </CardContent>
         </Card>
 
