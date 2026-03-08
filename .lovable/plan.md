@@ -1,63 +1,45 @@
 
-# Fix "Take Action" Button for Department Representative
 
-## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
+## Plan: Fix i18n for `/contractors/projects` page
 
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+### Problem Summary
+The `/contractors/projects` page components already use `t()` calls correctly, but several translation keys are missing from the locale files (TYPE B), one value is wrong (TYPE C), and the entire `contractors.projects` section is missing from Arabic.
 
-## What Changes
+### Issues Found
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+| Type | Key | Issue |
+|------|-----|-------|
+| B | `contractors.projectStatus.*` | Section missing entirely from both EN and AR — used in Projects.tsx and ProjectListTable.tsx |
+| B | `contractors.projects.selectProjectManager` | Missing from EN — used in ProjectFormDialog.tsx |
+| B | `contractors.projects.dates` | Missing from EN — used in ProjectListTable.tsx |
+| B | `contractors.projects.name` | Missing (EN has `projectName` but code uses `name`) |
+| B | `contractors.projects.code` | Missing (EN has `projectCode` but code uses `code`) |
+| B | `contractors.projects.notes` | Missing from EN — used in ProjectFormDialog.tsx |
+| B | `contractors.projects.projectLocation` | Missing from EN — used in ProjectFormDialog.tsx |
+| B | `contractors.projects.locationDescription` | Missing from EN — used in ProjectFormDialog.tsx |
+| B | `contractors.projects.locationDescriptionPlaceholder` | Missing from EN — used in ProjectFormDialog.tsx |
+| B | `contractors.projects.*` (entire section) | Missing from AR locale |
+| C | `contractors.projects.description` | EN value is "Description" but should be "Manage contractor projects and assignments" |
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+### Changes
 
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+#### 1. `src/locales/en/translation.json`
+- Fix `contractors.projects.description` value from "Description" to "Manage contractor projects and assignments"
+- Add missing keys: `selectProjectManager`, `dates`, `name`, `code`, `notes`, `projectLocation`, `locationDescription`, `locationDescriptionPlaceholder`
+- Add new `contractors.projectStatus` section with: `planned`, `active`, `completed`, `cancelled`
 
-```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
-```
+#### 2. `src/locales/ar/translation.json`
+- Add complete `contractors.projects` section with Arabic translations for all ~20 keys
+- Add `contractors.projectStatus` section with: `مخطط`, `نشط`, `مكتمل`, `ملغى`
 
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
+### No component changes needed
+All 3 components (Projects.tsx, ProjectListTable.tsx, ProjectFormDialog.tsx) already use correct `t()` calls — this is purely a locale file fix.
 
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
+### Summary Table
+| File | TYPE A | TYPE B | TYPE C |
+|------|--------|--------|--------|
+| Projects.tsx | 0 | 4 (projectStatus keys) | 1 (description) |
+| ProjectListTable.tsx | 0 | 2 (dates, projectStatus) | 0 |
+| ProjectFormDialog.tsx | 0 | 5 (selectProjectManager, notes, location keys) | 0 |
+| **Total** | **0** | **11 EN + 20 AR** | **1** |
 
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
-
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
-```
-
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
-
-### 3. Localize the Button Text
-
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
-
-## Files Modified
-
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
