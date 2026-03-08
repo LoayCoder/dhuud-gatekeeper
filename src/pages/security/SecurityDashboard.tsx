@@ -80,7 +80,7 @@ export default function SecurityDashboard() {
       icon: CheckCircle2,
       status: guardsOnZone === guardLocations.length ? 'completed' : 'pending',
       trend: 'neutral',
-      trendValue: `of ${guardLocations.length} tracked`,
+      trendValue: t('security.dashboard.ofTracked', { count: guardLocations.length }),
     },
     {
       label: t('security.dashboard.visitorsToday', 'Visitors Today'),
