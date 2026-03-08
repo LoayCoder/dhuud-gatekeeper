@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
@@ -58,6 +59,7 @@ export function useWorkerAssignments(workerId: string | undefined) {
 
 export function useAssignWorkerToProject() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { profile, user } = useAuth();
   const tenantId = profile?.tenant_id;
 
@@ -70,16 +72,17 @@ export function useAssignWorkerToProject() {
     onSuccess: (_, { projectId, workerId }) => {
       queryClient.invalidateQueries({ queryKey: ["project-worker-assignments", tenantId, projectId] });
       queryClient.invalidateQueries({ queryKey: ["worker-assignments", tenantId, workerId] });
-      toast.success("Worker assigned to project");
+      toast.success(t("contractors.messages.workerAssigned", "Worker assigned to project"));
     },
     onError: (error) => {
-      toast.error(`Failed to assign worker: ${error.message}`);
+      toast.error(t("contractors.messages.workerAssignFailed", "Failed to assign worker: {{error}}", { error: error.message }));
     },
   });
 }
 
 export function useRemoveWorkerFromProject() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
 
@@ -92,10 +95,10 @@ export function useRemoveWorkerFromProject() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["project-worker-assignments"] });
       queryClient.invalidateQueries({ queryKey: ["worker-assignments"] });
-      toast.success("Worker removed from project");
+      toast.success(t("contractors.messages.workerRemoved", "Worker removed from project"));
     },
     onError: (error) => {
-      toast.error(`Failed to remove worker: ${error.message}`);
+      toast.error(t("contractors.messages.workerRemoveFailed", "Failed to remove worker: {{error}}", { error: error.message }));
     },
   });
 }

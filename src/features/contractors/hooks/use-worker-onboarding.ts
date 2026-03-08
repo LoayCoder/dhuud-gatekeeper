@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -25,6 +26,7 @@ interface OnboardWorkerResult {
 
 export function useOnboardWorker() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   return useMutation({
     mutationFn: async ({ workerId, projectId, tenantId, videoId }: OnboardWorkerParams): Promise<OnboardWorkerResult> => {
@@ -63,27 +65,26 @@ export function useOnboardWorker() {
       queryClient.invalidateQueries({ queryKey: ["worker-induction-status", workerId] });
       
       if (data.induction_sent) {
-        toast.success("Worker onboarded successfully - QR code generated and induction sent");
+        toast.success(t("contractors.messages.workerOnboardedFull", "Worker onboarded successfully - QR code generated and induction sent"));
       } else {
-        toast.success("QR code generated. Induction video could not be sent.");
+        toast.success(t("contractors.messages.workerOnboardedPartial", "QR code generated. Induction video could not be sent."));
       }
     },
     onError: (error: Error) => {
-      // Map technical errors to user-friendly messages
       const errorMessage = error.message?.toLowerCase() || '';
       
       if (errorMessage.includes('project must be active')) {
-        toast.error("Cannot onboard: The selected project is not active. Please choose an active project.");
+        toast.error(t("contractors.messages.onboardProjectNotActive", "Cannot onboard: The selected project is not active. Please choose an active project."));
       } else if (errorMessage.includes('worker must be approved')) {
-        toast.error("Cannot onboard: This worker has not been approved yet.");
+        toast.error(t("contractors.messages.onboardWorkerNotApproved", "Cannot onboard: This worker has not been approved yet."));
       } else if (errorMessage.includes('worker not found')) {
-        toast.error("Worker not found. Please refresh and try again.");
+        toast.error(t("contractors.messages.onboardWorkerNotFound", "Worker not found. Please refresh and try again."));
       } else if (errorMessage.includes('project not found')) {
-        toast.error("Project not found. Please refresh and try again.");
+        toast.error(t("contractors.messages.onboardProjectNotFound", "Project not found. Please refresh and try again."));
       } else if (errorMessage.includes('worker does not belong')) {
-        toast.error("This worker is not assigned to the selected project's company.");
+        toast.error(t("contractors.messages.onboardWorkerNotAssigned", "This worker is not assigned to the selected project's company."));
       } else {
-        toast.error(error.message || "Failed to onboard worker. Please try again.");
+        toast.error(error.message || t("contractors.messages.onboardFailed", "Failed to onboard worker. Please try again."));
       }
     },
   });

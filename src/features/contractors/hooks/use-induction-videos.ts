@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -93,6 +94,7 @@ export function useInductionVideo(videoId: string | undefined) {
 }
 
 export function useCreateInductionVideo() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { user, profile } = useAuth();
 
@@ -124,7 +126,7 @@ export function useCreateInductionVideo() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["induction-videos"] });
-      toast.success("Induction video created");
+      toast.success(t("contractors.messages.inductionVideoCreated", "Induction video created"));
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -133,6 +135,7 @@ export function useCreateInductionVideo() {
 }
 
 export function useUpdateInductionVideo() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -160,7 +163,7 @@ export function useUpdateInductionVideo() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["induction-videos"] });
-      toast.success("Induction video updated");
+      toast.success(t("contractors.messages.inductionVideoUpdated", "Induction video updated"));
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -169,6 +172,7 @@ export function useUpdateInductionVideo() {
 }
 
 export function useDeleteInductionVideo() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -182,7 +186,7 @@ export function useDeleteInductionVideo() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["induction-videos"] });
-      toast.success("Induction video deleted");
+      toast.success(t("contractors.messages.inductionVideoDeleted", "Induction video deleted"));
     },
     onError: (error: Error) => {
       toast.error(error.message);

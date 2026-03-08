@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -6,6 +7,7 @@ import type { ContractorWorker } from "./types";
 
 export function useCreateContractorWorker() {
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
     const { profile } = useAuth();
 
     return useMutation({
@@ -34,7 +36,7 @@ export function useCreateContractorWorker() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
             queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
-            toast.success("Worker added");
+            toast.success(t("contractors.messages.workerAdded", "Worker added"));
         },
         onError: (error: Error) => {
             toast.error(error.message);
@@ -45,6 +47,7 @@ export function useCreateContractorWorker() {
 // Stage 1: Contractor Consultant OR Contractor Admin approves worker -> moves to pending_security
 export function useApproveWorker() {
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
     const { user } = useAuth();
 
     return useMutation({
@@ -75,7 +78,7 @@ export function useApproveWorker() {
             queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
             queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
             queryClient.invalidateQueries({ queryKey: ["pending-security-approvals"] });
-            toast.success("Worker approved - pending security review");
+            toast.success(t("contractors.messages.workerApprovedPendingSecurity", "Worker approved - pending security review"));
 
             try {
                 await supabase.functions.invoke("contractor-audit-log", {
@@ -101,6 +104,7 @@ export function useApproveWorker() {
 // Stage 2: Security Supervisor OR Security Manager final approval
 export function useSecurityApproveWorker() {
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
     const { user } = useAuth();
 
     return useMutation({
@@ -132,7 +136,7 @@ export function useSecurityApproveWorker() {
             queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
             queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
             queryClient.invalidateQueries({ queryKey: ["pending-security-approvals"] });
-            toast.success("Worker approved by security");
+            toast.success(t("contractors.messages.workerApprovedBySecurity", "Worker approved by security"));
 
             try {
                 await supabase.functions.invoke("contractor-audit-log", {
@@ -172,7 +176,7 @@ export function useSecurityApproveWorker() {
                         tenant_id: data.tenant_id,
                     },
                 });
-                toast.info("Safety induction sent to worker");
+                toast.info(t("contractors.messages.inductionSentToWorker", "Safety induction sent to worker"));
             } catch (e) {
                 console.error("Failed to send induction video:", e);
             }
@@ -186,6 +190,7 @@ export function useSecurityApproveWorker() {
 // Security Supervisor/Manager rejection
 export function useSecurityRejectWorker() {
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
     const { user } = useAuth();
 
     return useMutation({
@@ -226,7 +231,7 @@ export function useSecurityRejectWorker() {
             queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
             queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
             queryClient.invalidateQueries({ queryKey: ["pending-security-approvals"] });
-            toast.success("Worker returned to pending with security comments");
+            toast.success(t("contractors.messages.workerReturnedPending", "Worker returned to pending with security comments"));
 
             try {
                 await supabase.functions.invoke("contractor-audit-log", {

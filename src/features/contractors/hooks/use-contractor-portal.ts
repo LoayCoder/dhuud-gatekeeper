@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -220,6 +221,7 @@ export function useContractorPortalStats(companyId: string | undefined) {
 
 export function useContractorPortalCreateWorker() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { profile } = useAuth();
 
   return useMutation({
@@ -249,7 +251,7 @@ export function useContractorPortalCreateWorker() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contractor-portal-workers"] });
-      toast.success("Worker submitted for approval");
+      toast.success(t("contractors.messages.workerSubmitted", "Worker submitted for approval"));
     },
     onError: (error: Error) => {
       toast.error(error.message);

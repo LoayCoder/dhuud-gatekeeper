@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -59,6 +60,7 @@ export function useContractorSiteRep(companyId: string | null) {
  */
 export function useUpsertSiteRep() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { profile } = useAuth();
 
   return useMutation({
@@ -131,7 +133,7 @@ export function useUpsertSiteRep() {
     },
     onError: (error) => {
       console.error("[useUpsertSiteRep] Error:", error);
-      toast.error("Failed to save site representative");
+      toast.error(t("contractors.messages.siteRepSaveFailed", "Failed to save site representative"));
     },
   });
 }

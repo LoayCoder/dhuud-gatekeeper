@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -7,7 +8,7 @@ import type { Contractor } from './types';
 import { getProfileId } from './types';
 
 export function useCreateContractor() {
-    const queryClient = useQueryClient(); const { profile } = useAuth();
+    const queryClient = useQueryClient(); const { profile } = useAuth(); const { t } = useTranslation();
     return useMutation({
         mutationFn: async (data: Partial<Contractor>) => {
             if (!profile?.tenant_id) throw new Error('No tenant');
@@ -26,46 +27,46 @@ export function useCreateContractor() {
             if (error) throw error;
             return result;
         },
-        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['contractors'] }); toast.success('Contractor created successfully'); },
-        onError: (error: Error) => { toast.error(`Failed to create contractor: ${error.message}`); },
+        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['contractors'] }); toast.success(t('contractors.messages.contractorCreated', 'Contractor created successfully')); },
+        onError: (error: Error) => { toast.error(t('contractors.messages.contractorCreateFailed', 'Failed to create contractor: {{error}}', { error: error.message })); },
     });
 }
 
 export function useUpdateContractor() {
-    const queryClient = useQueryClient();
+    const queryClient = useQueryClient(); const { t } = useTranslation();
     return useMutation({
         mutationFn: async ({ id, data }: { id: string; data: Partial<Contractor> }) => {
             const { data: result, error } = await supabase.from('contractors').update({ ...data, updated_at: new Date().toISOString() }).eq('id', id).select().single();
             if (error) throw error;
             return result;
         },
-        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['contractors'] }); toast.success('Contractor updated successfully'); },
-        onError: (error: Error) => { toast.error(`Failed to update contractor: ${error.message}`); },
+        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['contractors'] }); toast.success(t('contractors.messages.contractorUpdated', 'Contractor updated successfully')); },
+        onError: (error: Error) => { toast.error(t('contractors.messages.contractorUpdateFailed', 'Failed to update contractor: {{error}}', { error: error.message })); },
     });
 }
 
 export function useBanContractor() {
-    const queryClient = useQueryClient(); const { profile } = useAuth();
+    const queryClient = useQueryClient(); const { profile } = useAuth(); const { t } = useTranslation();
     return useMutation({
         mutationFn: async ({ id, reason, expiresAt }: { id: string; reason: string; expiresAt?: string }) => {
             const profileId = getProfileId(profile);
             const { error } = await supabase.from('contractors').update({ is_banned: true, ban_reason: reason, ban_expires_at: expiresAt || null, banned_at: new Date().toISOString(), banned_by: profileId }).eq('id', id);
             if (error) throw error;
         },
-        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['contractors'] }); toast.success('Contractor banned successfully'); },
-        onError: (error: Error) => { toast.error(`Failed to ban contractor: ${error.message}`); },
+        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['contractors'] }); toast.success(t('contractors.messages.contractorBanned', 'Contractor banned successfully')); },
+        onError: (error: Error) => { toast.error(t('contractors.messages.contractorBanFailed', 'Failed to ban contractor: {{error}}', { error: error.message })); },
     });
 }
 
 export function useUnbanContractor() {
-    const queryClient = useQueryClient();
+    const queryClient = useQueryClient(); const { t } = useTranslation();
     return useMutation({
         mutationFn: async (id: string) => {
             const { error } = await supabase.from('contractors').update({ is_banned: false, ban_reason: null, ban_expires_at: null, banned_at: null, banned_by: null }).eq('id', id);
             if (error) throw error;
         },
-        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['contractors'] }); toast.success('Contractor unbanned successfully'); },
-        onError: (error: Error) => { toast.error(`Failed to unban contractor: ${error.message}`); },
+        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['contractors'] }); toast.success(t('contractors.messages.contractorUnbanned', 'Contractor unbanned successfully')); },
+        onError: (error: Error) => { toast.error(t('contractors.messages.contractorUnbanFailed', 'Failed to unban contractor: {{error}}', { error: error.message })); },
     });
 }
 
@@ -81,7 +82,7 @@ export function useValidateContractor() {
 }
 
 export function useLogContractorAccess() {
-    const queryClient = useQueryClient(); const { profile } = useAuth();
+    const queryClient = useQueryClient(); const { profile } = useAuth(); const { t } = useTranslation();
     return useMutation({
         mutationFn: async (data: { contractorId: string; siteId?: string; zoneId?: string; accessType: 'entry' | 'exit'; validationStatus: string; validationErrors?: Json; notes?: string }) => {
             if (!profile?.tenant_id) throw new Error('No tenant');
@@ -93,19 +94,19 @@ export function useLogContractorAccess() {
             });
             if (error) throw error;
         },
-        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['contractor-access-logs'] }); toast.success('Access logged successfully'); },
-        onError: (error: Error) => { toast.error(`Failed to log access: ${error.message}`); },
+        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['contractor-access-logs'] }); toast.success(t('contractors.messages.accessLogged', 'Access logged successfully')); },
+        onError: (error: Error) => { toast.error(t('contractors.messages.accessLogFailed', 'Failed to log access: {{error}}', { error: error.message })); },
     });
 }
 
 export function useRecordExit() {
-    const queryClient = useQueryClient();
+    const queryClient = useQueryClient(); const { t } = useTranslation();
     return useMutation({
         mutationFn: async (logId: string) => {
             const { error } = await supabase.from('contractor_access_logs').update({ exit_time: new Date().toISOString() }).eq('id', logId);
             if (error) throw error;
         },
-        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['contractor-access-logs'] }); toast.success('Exit recorded'); },
-        onError: (error: Error) => { toast.error(`Failed to record exit: ${error.message}`); },
+        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['contractor-access-logs'] }); toast.success(t('contractors.messages.exitRecordedShort', 'Exit recorded')); },
+        onError: (error: Error) => { toast.error(t('contractors.messages.exitRecordFailed', 'Failed to record exit: {{error}}', { error: error.message })); },
     });
 }

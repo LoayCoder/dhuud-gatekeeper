@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -99,6 +100,7 @@ export function useAllGatePassTypes() {
  */
 export function useCreateGatePassType() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   return useMutation({
     mutationFn: async (input: CreateGatePassTypeInput) => {
@@ -135,10 +137,10 @@ export function useCreateGatePassType() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["gate-pass-types"] });
-      toast.success("Pass type created successfully");
+      toast.success(t("contractors.messages.passTypeCreated", "Pass type created successfully"));
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to create pass type");
+      toast.error(error.message || t("contractors.messages.passTypeCreateFailed", "Failed to create pass type"));
     },
   });
 }
@@ -148,6 +150,7 @@ export function useCreateGatePassType() {
  */
 export function useUpdateGatePassType() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   return useMutation({
     mutationFn: async (input: UpdateGatePassTypeInput) => {
@@ -168,10 +171,10 @@ export function useUpdateGatePassType() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["gate-pass-types"] });
-      toast.success("Pass type updated successfully");
+      toast.success(t("contractors.messages.passTypeUpdated", "Pass type updated successfully"));
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to update pass type");
+      toast.error(error.message || t("contractors.messages.passTypeUpdateFailed", "Failed to update pass type"));
     },
   });
 }
@@ -181,6 +184,7 @@ export function useUpdateGatePassType() {
  */
 export function useDeleteGatePassType() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -196,10 +200,10 @@ export function useDeleteGatePassType() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["gate-pass-types"] });
-      toast.success("Pass type deleted successfully");
+      toast.success(t("contractors.messages.passTypeDeleted", "Pass type deleted successfully"));
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete pass type");
+      toast.error(error.message || t("contractors.messages.passTypeDeleteFailed", "Failed to delete pass type"));
     },
   });
 }
