@@ -345,7 +345,7 @@ export default function SLADashboard() {
                       </TableHead>
                       <TableHead className="min-w-[120px]">{t('sla.countdown', 'Countdown')}</TableHead>
                       <TableHead className="min-w-[200px]">{t('actions.title', 'Title')}</TableHead>
-                      <TableHead>{t('actions.priority', 'Priority')}</TableHead>
+                      <TableHead>{t('common.priority', 'Priority')}</TableHead>
                       <TableHead>{t('actions.assignee', 'Assignee')}</TableHead>
                       <TableHead>{t('actions.dueDate', 'Due Date')}</TableHead>
                       <TableHead>{t('actions.status', 'Status')}</TableHead>
