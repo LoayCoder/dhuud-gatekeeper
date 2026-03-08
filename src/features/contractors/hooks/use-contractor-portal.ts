@@ -249,7 +249,7 @@ export function useContractorPortalCreateWorker() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contractor-portal-workers"] });
-      toast.success("Worker submitted for approval");
+      toast.success(t("contractors.messages.workerSubmitted", "Worker submitted for approval"));
     },
     onError: (error: Error) => {
       toast.error(error.message);

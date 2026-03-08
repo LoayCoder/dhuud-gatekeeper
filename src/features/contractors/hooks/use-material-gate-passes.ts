@@ -150,10 +150,10 @@ export function useCreateGatePass() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["material-gate-passes"] });
-      toast.success("Gate pass created successfully");
+      toast.success(t("contractors.messages.gatePassCreated", "Gate pass created successfully"));
     },
     onError: (error: Error) => {
-      toast.error(`Failed to create gate pass: ${error.message}`);
+      toast.error(t("contractors.messages.gatePassCreateFailed", "Failed to create gate pass: {{error}}", { error: error.message }));
     },
   });
 }

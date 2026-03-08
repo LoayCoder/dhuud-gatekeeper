@@ -131,7 +131,7 @@ export function useUpsertSiteRep() {
     },
     onError: (error) => {
       console.error("[useUpsertSiteRep] Error:", error);
-      toast.error("Failed to save site representative");
+      toast.error(t("contractors.messages.siteRepSaveFailed", "Failed to save site representative"));
     },
   });
 }
