@@ -260,7 +260,7 @@ export function useSyncPersonnelToWorkers() {
     },
     onError: (error) => {
       console.error("[useSyncPersonnelToWorkers] Sync failed:", error);
-      toast.error("Failed to sync personnel to workers list");
+      toast.error(t("contractors.messages.syncFailed", "Failed to sync personnel to workers list"));
     },
   });
 }
