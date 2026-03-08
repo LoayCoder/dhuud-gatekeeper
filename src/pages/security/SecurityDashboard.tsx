@@ -88,7 +88,7 @@ export default function SecurityDashboard() {
       icon: Users,
       status: 'informational',
       trend: 'neutral',
-      trendValue: stats?.visitorsOnSite ? `${stats.visitorsOnSite} on site` : undefined,
+      trendValue: stats?.visitorsOnSite ? t('security.dashboard.onSiteCount', { count: stats.visitorsOnSite }) : undefined,
     },
     {
       label: t('security.dashboard.openAlerts', 'Open Alerts'),
