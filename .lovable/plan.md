@@ -1,63 +1,54 @@
 
-# Fix "Take Action" Button for Department Representative
 
-## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
+## Plan: Add i18n for `/admin/finding-sla` page
 
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+### Problem
+The Finding SLA page and its components (`FindingSLASettings.tsx`, `FindingSLACard.tsx`, `FindingSLAEditDialog.tsx`, `use-finding-sla-config.ts`) use ~20 translation keys that are completely missing from both EN and AR locale files:
 
-## What Changes
+**Missing `sla.findingsConfig.*` keys (page-level, 4 keys):**
+- `findingsConfig.title` → "Finding SLA Settings"
+- `findingsConfig.description` → "Configure SLA thresholds for inspection findings"
+- `findingsConfig.infoTitle` → "How Finding SLA Works"
+- `findingsConfig.infoDescription` → "SLA configurations define when warnings are sent..."
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+**Missing `sla.*` keys (shared by card + dialog + hook, 12 keys):**
+- `configLoadError` → "Failed to load SLA configurations"
+- `configUpdated` → "SLA configuration updated"
+- `configUpdateError` → "Failed to update SLA configuration"
+- `editFindingConfig` → "Edit Finding SLA Configuration"
+- `configureThresholds` → "Configure escalation thresholds"
+- `timelinePreview` → "Timeline Preview"
+- `targetDaysLabel` → "Target Days to Close"
+- `targetDaysHelp` → "Number of days to resolve this finding type"
+- `warningDaysHelp` → "Assignee receives reminder this many days before due date"
+- `escalationDaysAfter` → "First Escalation Days After Due"
+- `secondEscalationDays` → "Second Escalation Days After Due"
+- `fixValidationErrors` → "Please fix the validation errors above"
+- `targetLabel` → "target"
+- `days` → "days"
+- `targetDays` → "Target"
+- `warningDaysBefore` → "Warning Days Before Due"
+- `escalationL1Help` → "Manager receives alert this many days after due date"
+- `escalationL2Help` → "HSSE Manager receives critical alert"
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+**Missing `findings.classification.*` keys (top-level, used by FindingSLACard):**
+- `findings.classification.critical_nc` → "Critical NC"
+- `findings.classification.major_nc` → "Major NC"
+- `findings.classification.minor_nc` → "Minor NC"
+- `findings.classification.observation` → "Observation"
 
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+### Additional Issue: Duplicate `sla` blocks
+Both EN and AR files have **two** `sla` top-level objects (the `parseJsonDedup` merger handles this at runtime, but the second block overwrites `classification` with level-based keys instead of NC-based ones). The second block's `classification` object has `level1-5` instead of `criticalNc/majorNc/minorNc/observation` — need to merge properly.
 
-```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
-```
+### Changes
 
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
+#### 1. `src/locales/en/translation.json`
+- Add all missing Finding SLA keys to the **first** `sla` block (around line 10794): `findingsConfig.*`, `configLoadError`, `configUpdated`, `configUpdateError`, `editFindingConfig`, `configureThresholds`, `timelinePreview`, `targetDaysLabel`, `targetDaysHelp`, `warningDaysBefore`, `warningDaysHelp`, `escalationDaysAfter`, `escalationL1Help`, `secondEscalationDays`, `escalationL2Help`, `fixValidationErrors`, `targetLabel`, `days`, `targetDays`
+- Add a new top-level `findings` object with `classification` sub-object containing `critical_nc`, `major_nc`, `minor_nc`, `observation`
 
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
+#### 2. `src/locales/ar/translation.json`
+- Add matching Arabic translations for all keys above
 
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
+#### No component changes needed
+All components already use the correct `t()` paths with inline defaults.
 
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
-```
-
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
-
-### 3. Localize the Button Text
-
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
-
-## Files Modified
-
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
