@@ -40,7 +40,7 @@ export default function InductionVideos() {
         </div>
         <Button onClick={() => setIsFormOpen(true)}>
           <Plus className="h-4 w-4 me-2" />
-          {t("contractors.inductionVideos.addVideo", "Add Video")}
+          {t("contractors.induction.addVideo", "Add Video")}
         </Button>
       </div>
 
