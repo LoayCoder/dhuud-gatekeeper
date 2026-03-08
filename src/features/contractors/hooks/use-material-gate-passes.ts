@@ -139,6 +139,7 @@ export function useTodayApprovedPasses() {
 
 export function useCreateGatePass() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { profile, user } = useAuth();
   const tenantId = profile?.tenant_id;
 
