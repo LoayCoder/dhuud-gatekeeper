@@ -31,16 +31,16 @@ export default function InductionVideos() {
           <Video className="h-8 w-8 text-primary" />
           <div>
             <h1 className="text-2xl font-bold">
-              {t("contractors.inductionVideos.title", "Induction Videos")}
+              {t("contractors.induction.title", "Induction Videos")}
             </h1>
             <p className="text-muted-foreground">
-              {t("contractors.inductionVideos.description", "Manage safety induction videos")}
+              {t("contractors.induction.pageDescription", "Manage safety induction videos")}
             </p>
           </div>
         </div>
         <Button onClick={() => setIsFormOpen(true)}>
           <Plus className="h-4 w-4 me-2" />
-          {t("contractors.inductionVideos.addVideo", "Add Video")}
+          {t("contractors.induction.addVideo", "Add Video")}
         </Button>
       </div>
 
