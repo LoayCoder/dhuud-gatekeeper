@@ -11136,6 +11136,38 @@
       "a3": "The responsible manager receives an email notification and the action is highlighted in their dashboard.",
       "q4": "How are SLA thresholds calculated?",
       "a4": "Thresholds are based on calendar days from the action due date. They are configured per priority level in Admin Settings."
+    },
+    "findingsConfig": {
+      "title": "Finding SLA Settings",
+      "description": "Configure SLA thresholds for inspection findings",
+      "infoTitle": "How Finding SLA Works",
+      "infoDescription": "SLA configurations define when warnings are sent before the due date and when escalations occur after the due date. Each finding classification can have different thresholds."
+    },
+    "configLoadError": "Failed to load SLA configurations",
+    "configUpdated": "SLA configuration updated",
+    "configUpdateError": "Failed to update SLA configuration",
+    "editFindingConfig": "Edit Finding SLA Configuration",
+    "configureThresholds": "Configure escalation thresholds",
+    "timelinePreview": "Timeline Preview",
+    "targetDaysLabel": "Target Days to Close",
+    "targetDaysHelp": "Number of days to resolve this finding type",
+    "warningDaysBefore": "Warning Days Before Due",
+    "warningDaysHelp": "Assignee receives reminder this many days before due date",
+    "escalationDaysAfter": "First Escalation Days After Due",
+    "escalationL1Help": "Manager receives alert this many days after due date",
+    "secondEscalationDays": "Second Escalation Days After Due",
+    "escalationL2Help": "HSSE Manager receives critical alert",
+    "fixValidationErrors": "Please fix the validation errors above",
+    "targetLabel": "target",
+    "days": "days",
+    "targetDays": "Target"
+  },
+  "findings": {
+    "classification": {
+      "critical_nc": "Critical NC",
+      "major_nc": "Major NC",
+      "minor_nc": "Minor NC",
+      "observation": "Observation"
     }
   },
   "adminActions": {
