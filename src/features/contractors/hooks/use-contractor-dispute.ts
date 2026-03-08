@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -133,6 +134,7 @@ export function usePendingContractorDisputes() {
 export function useSubmitContractorDispute() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   return useMutation({
@@ -203,13 +205,13 @@ export function useSubmitContractorDispute() {
       queryClient.invalidateQueries({ queryKey: ['incidents'] });
 
       toast({
-        title: 'Dispute Submitted',
-        description: 'Your dispute has been submitted for HSSE review.',
+        title: t("contractors.disputes.submitted", "Dispute Submitted"),
+        description: t("contractors.disputes.submittedDesc", "Your dispute has been submitted for HSSE review."),
       });
     },
     onError: (error) => {
       toast({
-        title: 'Error',
+        title: t("common.error", "Error"),
         description: error.message,
         variant: 'destructive',
       });
@@ -221,6 +223,7 @@ export function useSubmitContractorDispute() {
 export function useResolveContractorDispute() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   return useMutation({
@@ -287,20 +290,20 @@ export function useResolveContractorDispute() {
       queryClient.invalidateQueries({ queryKey: ['incidents'] });
 
       const messages: Record<ContractorDisputeStatus, string> = {
-        upheld: 'Dispute upheld. Contractor liability removed.',
-        rejected: 'Dispute rejected. Original finding stands.',
-        partially_accepted: 'Dispute partially accepted. Finding modified.',
-        pending_review: 'Dispute status updated.',
+        upheld: t("contractors.disputes.upheld", "Dispute upheld. Contractor liability removed."),
+        rejected: t("contractors.disputes.rejected", "Dispute rejected. Original finding stands."),
+        partially_accepted: t("contractors.disputes.partiallyAccepted", "Dispute partially accepted. Finding modified."),
+        pending_review: t("contractors.disputes.statusUpdated", "Dispute status updated."),
       };
 
       toast({
-        title: 'Dispute Resolved',
+        title: t("contractors.disputes.resolved", "Dispute Resolved"),
         description: messages[data.decision as ContractorDisputeStatus],
       });
     },
     onError: (error) => {
       toast({
-        title: 'Error',
+        title: t("common.error", "Error"),
         description: error.message,
         variant: 'destructive',
       });
