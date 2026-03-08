@@ -1,53 +1,63 @@
 
+# Fix "Take Action" Button for Department Representative
 
-## Plan: Add i18n for `/admin/action-sla` page
+## Problem
+When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
 
-### Problem
-The `adminActions` top-level namespace is **entirely missing** from both EN and AR locale files. All keys used by `ActionSLASettings.tsx` and `SLAConfigEditDialog.tsx` with prefix `adminActions.*` fall back to hardcoded defaults. Additionally, 3 `sla.*` keys used by `SLAPriorityCard.tsx` are missing.
+1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
+2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
 
-### Missing Keys
+## What Changes
 
-**`adminActions` namespace (new, ~15 keys):**
+### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
 
-| Key | Default | Source |
-|-----|---------|--------|
-| `slaConfigDescription` | "Configure warning and escalation thresholds per priority level" | ActionSLASettings |
-| `slaConfiguration` | "Configuration by Priority" | ActionSLASettings |
-| `howSLAWorks` | "How It Works" | ActionSLASettings |
-| `warningPhaseDesc` | "Assignee receives reminder before due date" | ActionSLASettings |
-| `escalationL1Desc` | "Manager notified when action is overdue" | ActionSLASettings |
-| `escalationL2Desc` | "HSSE Manager receives urgent notification" | ActionSLASettings |
-| `slaUpdated` | "SLA configuration updated successfully" | use-action-sla-config hook |
-| `slaUpdateError` | "Failed to update SLA configuration" | use-action-sla-config hook |
-| `editSLAConfig` | "Edit SLA Configuration" | SLAConfigEditDialog |
-| `configureThresholds` | "Configure escalation thresholds" | SLAConfigEditDialog |
-| `timelinePreview` | "Timeline Preview" | SLAConfigEditDialog |
-| `warningDaysBefore` | "Warning Days Before Due" | SLAConfigEditDialog |
-| `warningDaysHelp` | "Assignee receives reminder this many days before due date" | SLAConfigEditDialog |
-| `escalationDaysAfter` | "First Escalation Days After Due" | SLAConfigEditDialog |
-| `escalationL1Help` | "Manager receives alert this many days after due date" | SLAConfigEditDialog |
-| `secondEscalationDays` | "Second Escalation Days After Due" | SLAConfigEditDialog |
-| `escalationL2Help` | "HSSE Manager receives critical alert" | SLAConfigEditDialog |
-| `fixValidationErrors` | "Please fix the validation errors above" | SLAConfigEditDialog |
+The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
 
-**`sla` namespace — 3 missing keys (used by SLAPriorityCard):**
+**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
 
-| Key | Default |
-|-----|---------|
-| `daysBefore` | "days before" |
-| `daysAfter` | "days after" |
-| `activeActionsCount` | "{{count}} active" |
+```typescript
+case 'pending_dept_rep_review':
+case 'pending_dept_rep_approval':
+  return (
+    <DeptRepApprovalCard
+      incident={incidentData}
+      onComplete={handleRefresh}
+    />
+  );
+```
 
-### Changes
+### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
 
-#### 1. `src/locales/en/translation.json`
-- Add new top-level `adminActions` object with 18 keys (after the `sla` block, before `session`)
-- Add `daysBefore`, `daysAfter`, `activeActionsCount` to existing `sla` object
+The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
 
-#### 2. `src/locales/ar/translation.json`
-- Add matching `adminActions` object with Arabic translations
-- Add matching 3 `sla.*` keys with Arabic translations
+**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
 
-### No component changes needed
-All components already use correct `t()` call paths with proper defaults.
+```typescript
+<Button
+  size="lg"
+  className="shadow-lg px-8"
+  onClick={() => {
+    // Scroll to the workflow action card
+    const workflowCard = document.querySelector('[data-workflow-card]');
+    if (workflowCard) {
+      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }}
+>
+  Take Action
+  <ArrowRight className="h-4 w-4 ml-2" />
+</Button>
+```
 
+And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
+
+### 3. Localize the Button Text
+
+Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
+
+## Files Modified
+
+1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
+2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
+3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
+4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
