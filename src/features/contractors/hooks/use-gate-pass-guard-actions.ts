@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRoles } from '@/features/users';
 import { toast } from "sonner";
@@ -11,6 +12,7 @@ import type { GuardGateActionResult } from '@/features/contractors';
  */
 export function useGuardGateAction() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { user, profile } = useAuth();
   const { hasRole } = useUserRoles();
 
@@ -69,9 +71,9 @@ export function useGuardGateAction() {
       }
 
       if (result.action === 'entry') {
-        toast.success('Entry recorded');
+        toast.success(t("contractors.messages.entryRecorded", "Entry recorded"));
       } else {
-        toast.success('Exit recorded - Pass completed');
+        toast.success(t("contractors.messages.exitRecorded", "Exit recorded - Pass completed"));
       }
     },
     onError: (error: Error) => {
@@ -100,5 +102,3 @@ export function useVerifyPassByReference() {
     },
   });
 }
-
-

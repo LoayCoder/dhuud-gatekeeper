@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { GatePassVerificationResult } from '@/features/contractors';
@@ -20,6 +21,7 @@ export function useVerifyGatePassQR() {
 
 export function useConfirmGatePassEntry() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { user, profile } = useAuth();
   const tenantId = profile?.tenant_id;
 
@@ -34,7 +36,7 @@ export function useConfirmGatePassEntry() {
       queryClient.invalidateQueries({ queryKey: ["today-approved-passes"] });
       queryClient.invalidateQueries({ queryKey: ["gate-entries"] });
       queryClient.invalidateQueries({ queryKey: ["gate-pass-details"] });
-      toast.success("Entry confirmed");
+      toast.success(t("contractors.messages.entryConfirmed", "Entry confirmed"));
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -44,6 +46,7 @@ export function useConfirmGatePassEntry() {
 
 export function useConfirmGatePassExit() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { user, profile } = useAuth();
   const tenantId = profile?.tenant_id;
 
@@ -58,11 +61,10 @@ export function useConfirmGatePassExit() {
       queryClient.invalidateQueries({ queryKey: ["today-approved-passes"] });
       queryClient.invalidateQueries({ queryKey: ["gate-entries"] });
       queryClient.invalidateQueries({ queryKey: ["gate-pass-details"] });
-      toast.success("Exit confirmed - Pass completed");
+      toast.success(t("contractors.messages.exitConfirmed", "Exit confirmed - Pass completed"));
     },
     onError: (error: Error) => {
       toast.error(error.message);
     },
   });
 }
-
