@@ -1,63 +1,59 @@
 
-# Fix "Take Action" Button for Department Representative
+# Fix Translation Issues for `/security/attendance`
 
 ## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
+The `GuardAttendance.tsx` page and `GuardCheckInWidget.tsx` have:
+1. Missing translation keys (~15 keys) that fall back to English fallback strings
+2. One hardcoded string `"m late"` (line 329) that isn't using `t()`
 
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+## Changes
 
-## What Changes
+### 1. Add missing keys to `src/locales/en/translation.json`
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+Under `security` object (after line 1489), add:
+- `readyToCheckIn`: "Ready to Check In?"
+- `startYourShift`: "Start your shift by checking in"
+- `youAreOnDuty`: "You Are On Duty"
+- `confirmCheckIn`: "Confirm Check In"
+- `confirmCheckOut`: "Confirm Check Out"
+- `checkInDesc`: "You are about to start your shift. Your location will be recorded."
+- `checkOutDesc`: "You are about to end your shift. Make sure all tasks are complete."
+- `attendanceNotesPlaceholder`: "Add any notes about your shift..."
+- `checkedInAt`: "Checked in at {{time}}"
+- `lateByMinutes`: "Late by {{minutes}} minutes"
+- `accuracy`: "Accuracy: {{meters}}m"
+- `geolocationNotSupported`: "Geolocation is not supported"
+- `avgLate`: "Avg {{minutes}} min late"
+- `overtime`: "{{minutes}} min overtime"
+- `mLate`: "{{minutes}}m late"
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+### 2. Add Arabic translations to `src/locales/ar/translation.json`
 
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+Under `security` object (around line 9300+), add the same keys with Arabic:
+- `readyToCheckIn`: "هل أنت مستعد لتسجيل الحضور؟"
+- `startYourShift`: "ابدأ مناوبتك بتسجيل الحضور"
+- `youAreOnDuty`: "أنت في المناوبة"
+- `confirmCheckIn`: "تأكيد تسجيل الحضور"
+- `confirmCheckOut`: "تأكيد تسجيل الخروج"
+- `checkInDesc`: "أنت على وشك بدء مناوبتك. سيتم تسجيل موقعك."
+- `checkOutDesc`: "أنت على وشك إنهاء مناوبتك. تأكد من إكمال جميع المهام."
+- `attendanceNotesPlaceholder`: "أضف أي ملاحظات حول مناوبتك..."
+- `checkedInAt`: "تم تسجيل الحضور في {{time}}"
+- `lateByMinutes`: "متأخر {{minutes}} دقيقة"
+- `accuracy`: "الدقة: {{meters}} متر"
+- `geolocationNotSupported`: "تحديد الموقع الجغرافي غير مدعوم"
+- `avgLate`: "متوسط التأخر {{minutes}} دقيقة"
+- `overtime`: "{{minutes}} دقيقة إضافية"
+- `mLate`: "متأخر {{minutes}} دقيقة"
 
-```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
-```
+### 3. Fix hardcoded string in `GuardAttendance.tsx`
 
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
+Line 329: Replace `{record.late_minutes}m late` with `t('security.mLate', { minutes: record.late_minutes })`
 
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
+### Files Modified
 
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
-
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
-```
-
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
-
-### 3. Localize the Button Text
-
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
-
-## Files Modified
-
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
+| File | Change |
+|------|--------|
+| `src/locales/en/translation.json` | Add ~15 missing security keys |
+| `src/locales/ar/translation.json` | Add ~15 Arabic translations |
+| `src/pages/security/GuardAttendance.tsx` | Fix hardcoded "m late" string |
