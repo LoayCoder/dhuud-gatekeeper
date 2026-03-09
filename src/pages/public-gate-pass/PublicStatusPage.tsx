@@ -436,7 +436,7 @@ export default function PublicStatusPage() {
                     sr_number?: string;
                     photo_storage_path?: string;
                   }, idx: number) => (
-                    <Card key={item.id} className="overflow-hidden border shadow-sm hover:shadow-md transition-shadow">
+                    <Card key={item.id || idx} className="overflow-hidden border shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex">
                         {/* Image Section */}
                         <div className="w-24 h-24 sm:w-32 sm:h-32 bg-muted shrink-0 relative group cursor-pointer border-e">
