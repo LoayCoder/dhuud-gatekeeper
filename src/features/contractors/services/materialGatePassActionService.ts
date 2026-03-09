@@ -7,6 +7,7 @@ export const approveGatePass = async (passId: string, action: "approve" | "rejec
       id, is_public_request, public_requester_name, public_requester_phone,
       public_requester_email, public_requester_company, material_description,
       pass_date, reference_number, public_access_token, tenant_id, branch_id,
+      requested_by,
       tenants(slug)
     `)
         .eq("id", passId)
