@@ -11087,10 +11087,6 @@
       "dismissed": "Dismissed"
     }
   },
-  "accessControl": {
-    "accessDenied": "Access Denied",
-    "notClientSiteRep": "You do not have any contractor companies assigned to you as a site representative. Contact your administrator to be assigned as a client site representative."
-  },
   "sla": {
     "dashboard": "SLA Dashboard",
     "dashboardDescription": "Real-time overview of corrective action SLA status",

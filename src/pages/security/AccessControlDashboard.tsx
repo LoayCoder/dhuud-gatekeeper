@@ -267,7 +267,7 @@ export default function AccessControlDashboard() {
             <TabsTrigger value="history" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <History className="h-4 w-4" />
               <span className="hidden sm:inline">{t('accessControl.tabs.history', 'History')}</span>
-              <span className="sm:hidden">Hist</span>
+              <span className="sm:hidden">{t('accessControl.mobileTabs.history', 'Hist')}</span>
             </TabsTrigger>
           </TabsList>
         </div>

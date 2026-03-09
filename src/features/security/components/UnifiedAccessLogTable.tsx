@@ -54,7 +54,7 @@ export function UnifiedAccessLogTable({
   showExitButton = true,
   compact = false
 }: UnifiedAccessLogTableProps) {
-  const { t } = useTranslation(['security', 'translation']);
+  const { t } = useTranslation();
 
   if (isLoading) {
     return (
