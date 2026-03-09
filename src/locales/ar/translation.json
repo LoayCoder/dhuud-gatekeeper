@@ -12468,5 +12468,38 @@
       "total": "الإجمالي (24 ساعة)",
       "successRate": "نجاح"
     }
+  },
+  "whatsappSettings": {
+    "pageTitle": "إعدادات واتساب",
+    "pageDescription": "تكوين مزود خدمة واتساب وإرسال رسائل الاختبار",
+    "activeProvider": "مزود الواتساب النشط",
+    "activeProviderDesc": "اختر المزود الذي تريد استخدامه لإرسال رسائل الواتساب",
+    "active": "نشط",
+    "configured": "✓ مُعد",
+    "notConfigured": "✗ غير مُعد",
+    "activate": "تفعيل",
+    "wasenderNotConfigured": "WaSender غير مُعد. أضف WASENDER_API_KEY أولاً",
+    "twilioNotConfigured": "Twilio غير مُعد. أضف مفاتيح Twilio أولاً",
+    "switchedTo": "تم التبديل إلى {{provider}} بنجاح",
+    "testMessage": "اختبار رسالة واتساب",
+    "testMessageDesc": "أرسل رسالة اختبار للتحقق من إعداد الواتساب",
+    "phoneNumber": "رقم الهاتف",
+    "phoneHint": "أدخل الرقم مع رمز الدولة (مثال: +966)",
+    "messageText": "نص الرسالة",
+    "messagePlaceholder": "أدخل رسالة الاختبار...",
+    "defaultTestMessage": "مرحباً! هذه رسالة اختبار من نظام HSSE.",
+    "sending": "جارٍ الإرسال...",
+    "sendTestMessage": "إرسال رسالة اختبار",
+    "sentVia": "تم الإرسال عبر",
+    "failedToSend": "فشل الإرسال",
+    "enterPhoneNumber": "الرجاء إدخال رقم الهاتف",
+    "messageSentVia": "تم إرسال الرسالة بنجاح عبر {{provider}}",
+    "failedSendMessage": "فشل إرسال الرسالة",
+    "howToConfigure": "كيفية إعداد المزود",
+    "wasenderStep1": "احصل على مفتاح API من حساب WaSender",
+    "wasenderStep2": "أضف WASENDER_API_KEY في الإعدادات السرية",
+    "wasenderStep3": "انقر على 'تفعيل' أعلاه لتفعيل WaSender",
+    "twilioStep1": "أضف المفاتيح المطلوبة",
+    "twilioStep2": "انقر على 'تفعيل' أعلاه لتفعيل Twilio"
   }
 }
