@@ -9978,7 +9978,7 @@
   "installApp": "تثبيت التطبيق",
   "myAccount": "حسابي",
   "security": {
-    "zone": "المنطقة",
+    "zoneName": "المنطقة",
     "acknowledged": "تم الإقرار",
   "active": "نشط",
   "activeAlerts": "تنبيهات نشطة",
