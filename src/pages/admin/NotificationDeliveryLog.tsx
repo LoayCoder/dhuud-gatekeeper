@@ -217,7 +217,7 @@ export default function NotificationDeliveryLog() {
                   </TabsTrigger>
                   <TabsTrigger value="manual" className="gap-1.5">
                     <FileText className="h-3.5 w-3.5" />
-                    {isRTL ? 'ÙŠØ¯ÙˆÙŠ' : 'Manual'}
+                    {t('deliveryLog.manual')}
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
