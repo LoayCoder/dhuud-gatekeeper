@@ -240,7 +240,7 @@ export default function AccessControlDashboard() {
             <TabsTrigger value="gatepasses" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <Package className="h-4 w-4" />
               <span className="hidden sm:inline">{t('accessControl.tabs.gatePasses', 'Gate Passes')}</span>
-              <span className="sm:hidden">Passes</span>
+              <span className="sm:hidden">{t('accessControl.mobileTabs.gatePasses', 'Passes')}</span>
               {pendingGatePassApprovals.length > 0 && (
                 <Badge variant="destructive" className="ms-1 text-[10px] h-5 px-1.5 min-w-[1.25rem]">{pendingGatePassApprovals.length}</Badge>
               )}
