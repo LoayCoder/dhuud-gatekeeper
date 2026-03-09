@@ -186,9 +186,7 @@ export default function NotificationDeliveryLog() {
                     {t('deliveryLog.notificationDeliveryLog')}
                   </CardTitle>
                   <CardDescription>
-                    {isRTL 
-                      ? 'ØªØªØ¨Ø¹ Ø­Ø§Ù„Ø© ØªØ³Ù„ÙŠÙ… Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª Ø§Ù„Ù…Ø±Ø³Ù„Ø©' 
-                      : 'Track delivery status of all sent notifications'}
+                    {t('deliveryLog.trackDeliveryStatus')}
                   </CardDescription>
                 </div>
                 <Button 
