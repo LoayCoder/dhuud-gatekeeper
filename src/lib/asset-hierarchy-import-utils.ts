@@ -4,8 +4,8 @@
  * for bulk importing asset categories, types, subtypes, and inspectable parts.
  */
 
-import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
+import { readExcelAsObjects, writeExcelAndDownload, writeExcelAoaAndDownload } from './exceljs-utils';
 
 // Hierarchy levels
 export type HierarchyLevel = 'Category' | 'Type' | 'Subtype' | 'Part';
