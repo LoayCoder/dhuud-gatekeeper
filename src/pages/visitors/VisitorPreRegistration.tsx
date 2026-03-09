@@ -28,7 +28,7 @@ import { NATIONALITIES } from '@/lib/nationalities';
 import { isValidPhoneNumber } from "react-phone-number-input";
 import { DhuudPhoneInput } from "@/components/ui/phone-input";
 
-const getFormSchema = (t: (key: string, fallback?: string) => string) => z.object({
+const getFormSchema = (t: (key: string, fallback: string) => string) => z.object({
   full_name: z.string().min(2, t('visitors.validation.nameRequired', 'Name is required')),
   phone: z.string().refine((val) => isValidPhoneNumber(val), { message: t('visitors.validation.phoneRequired', 'Valid phone number is required') }),
   company_name: z.string().min(1, t('visitors.validation.companyRequired', 'Company name is required')),
