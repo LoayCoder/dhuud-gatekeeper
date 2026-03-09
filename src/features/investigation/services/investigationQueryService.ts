@@ -103,7 +103,7 @@ export const getCorrectiveActions = async (incidentId: string) => {
 export const getIncidentAuditLogs = async (incidentId: string) => {
     const { data, error } = await supabase
         .from('incident_audit_logs')
-        .select('*')
+        .select('id, action, actor_id, incident_id, old_value, new_value, details, ip_address, created_at, tenant_id, branch_id')
         .eq('incident_id', incidentId)
         .order('created_at', { ascending: false });
 
