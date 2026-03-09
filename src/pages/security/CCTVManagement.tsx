@@ -63,7 +63,7 @@ import { CCTVEventsList } from '@/features/security';
 export default function CCTVManagement() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'cameras' | 'events'>('cameras');
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [editingCamera, setEditingCamera] = useState<CCTVCamera | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
 
