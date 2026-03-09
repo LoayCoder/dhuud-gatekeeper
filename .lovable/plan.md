@@ -1,63 +1,65 @@
 
-# Fix "Take Action" Button for Department Representative
 
-## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
+## Findings
 
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+The translation issue on `/incidents/my-actions` is actually a **much bigger problem**: the entire page is a non-functional placeholder stub. The `MyActionsLayout.tsx` only renders a title and a count. All 6 tab files (`ActionsTab.tsx`, `InvestigationsTab.tsx`, `InspectionsTab.tsx`, `WitnessTab.tsx`, `ReportedTab.tsx`, `ApprovalsTab.tsx`) are **empty** (0 bytes).
 
-## What Changes
+It appears a refactoring script (`refactor-myactions-tabs.cjs`) was run to extract tabs from a full layout, but the extraction failed — the tab files are empty and the layout was replaced with a stub.
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+### What needs to happen
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+Rebuild the full `MyActionsLayout.tsx` with all 6 tabs, using the existing hooks (`useMyActions`, `useMyActionsFilters`, `useMyApprovalsState`) which are intact and fully functional. All text must use `t()` calls referencing existing keys under `investigation.*`.
 
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+### Plan
 
-```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
-```
+#### 1. Rebuild `MyActionsLayout.tsx` (~350 lines)
 
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
+Full layout with:
+- KPI summary cards (overdue, pending, in-progress, awaiting verification, closed, statements, approvals)
+- Search bar and priority filter
+- Tabbed interface with 6 tabs: Actions, Investigations, Inspections, Witness, Reported, Approvals
+- All text via `t()` using existing `investigation.*` keys
 
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
+#### 2. Rebuild `tabs/ActionsTab.tsx` (~120 lines)
 
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
+- Active actions list with status icons, priority badges, due date info
+- Action buttons: Start Work, Mark Completed, Request Extension
+- Closed actions toggle
+- Action confirmation dialog integration
 
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
-```
+#### 3. Rebuild `tabs/InvestigationsTab.tsx` (~50 lines)
 
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
+- List of assigned investigations with status, severity, link to workspace
 
-### 3. Localize the Button Text
+#### 4. Rebuild `tabs/InspectionsTab.tsx` (~50 lines)
 
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
+- Scheduled inspections list with date, location, status
 
-## Files Modified
+#### 5. Rebuild `tabs/WitnessTab.tsx` (~60 lines)
 
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
+- Pending witness statements with incident reference
+- Inline witness statement form via `WitnessDirectEntry`
+
+#### 6. Rebuild `tabs/ReportedTab.tsx` (~50 lines)
+
+- My reported incidents list with status tracking
+
+#### 7. Rebuild `tabs/ApprovalsTab.tsx` (~100 lines)
+
+- Severity approvals, action verifications, incident approvals, closure requests, extension requests, contractor approvals (workers, gate passes, companies)
+- Role-gated sections
+
+### Translation keys
+
+All required keys already exist in both EN and AR under the `investigation` namespace (`investigation.myActions`, `investigation.correctiveActions`, `investigation.approvals.*`, etc.). No new translation keys needed.
+
+### Files Modified
+
+1. `src/pages/incidents/MyActions/MyActionsLayout.tsx` — Full rebuild
+2. `src/pages/incidents/MyActions/tabs/ActionsTab.tsx` — Full rebuild
+3. `src/pages/incidents/MyActions/tabs/InvestigationsTab.tsx` — Full rebuild
+4. `src/pages/incidents/MyActions/tabs/InspectionsTab.tsx` — Full rebuild
+5. `src/pages/incidents/MyActions/tabs/WitnessTab.tsx` — Full rebuild
+6. `src/pages/incidents/MyActions/tabs/ReportedTab.tsx` — Full rebuild
+7. `src/pages/incidents/MyActions/tabs/ApprovalsTab.tsx` — Full rebuild
+
