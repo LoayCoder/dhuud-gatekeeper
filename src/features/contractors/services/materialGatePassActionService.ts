@@ -26,7 +26,7 @@ export const approveGatePass = async (passId: string, action: "approve" | "rejec
     // Trigger in-app notification for internal gate pass approvals
     if (!gatePass?.is_public_request && newStatus === "approved" && gatePass?.requested_by) {
         try {
-            await supabase.from("hsse_notifications").insert({
+            await supabase.from("hsse_notifications").insert([{
                 tenant_id: gatePass.tenant_id,
                 branch_id: gatePass.branch_id,
                 title_en: `Gate Pass ${gatePass.reference_number} Approved`,
@@ -39,7 +39,7 @@ export const approveGatePass = async (passId: string, action: "approve" | "rejec
                 is_active: true,
                 send_push_notification: true,
                 created_by: userId,
-            });
+            }]);
         } catch (notifyErr) {
             console.error("[Gate Pass] Failed to send internal approval notification:", notifyErr);
         }
