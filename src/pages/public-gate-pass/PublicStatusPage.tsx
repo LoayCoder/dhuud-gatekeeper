@@ -194,7 +194,7 @@ export default function PublicStatusPage() {
     });
   }, [queryClient, tenantSlug, token]);
 
-  usePublicGatePassRealtime(data?.gate_pass?.id);
+  usePublicGatePassRealtime(data?.gate_pass?.id, handleRealtimeUpdate);
 
   const brandColor = data?.tenant?.brand_color || "221.2 83.2% 53.3%";
   const brandStyle = {
