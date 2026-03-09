@@ -18,7 +18,7 @@ interface SecurityAuditLogFilters {
 export const getSecurityAuditLogs = async (tenantId: string, filters?: SecurityAuditLogFilters) => {
     let query = supabase
         .from('security_audit_logs')
-        .select('*')
+        .select('id, action, action_category, actor_id, actor_name, actor_role, entity_type, entity_id, entity_identifier, result, result_reason, site_id, gate_name, ip_address, created_at, tenant_id, metadata')
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false })
         .limit(filters?.limit || 100);

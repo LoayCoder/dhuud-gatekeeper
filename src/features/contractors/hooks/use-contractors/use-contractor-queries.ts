@@ -31,7 +31,7 @@ export function useContractor(id: string | null) {
         queryKey: ['contractor', id],
         queryFn: async () => {
             if (!id) return null;
-            const { data, error } = await supabase.from('contractors').select('*').eq('id', id).is('deleted_at', null).single();
+            const { data, error } = await supabase.from('contractors').select('id, contractor_code, full_name, company_name, mobile_number, nationality, preferred_language, permit_number, permit_expiry_date, safety_induction_date, safety_induction_expiry, medical_exam_date, medical_exam_expiry, is_banned, ban_reason, ban_expires_at, banned_at, photo_path, allowed_sites, allowed_zones, branch_id, tenant_id, created_at, updated_at').eq('id', id).is('deleted_at', null).single();
             if (error) throw error;
             return data as Contractor;
         },

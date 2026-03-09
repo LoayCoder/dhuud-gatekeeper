@@ -72,7 +72,7 @@ export async function createRiskAssessment(data: any, tenantId: string, userId: 
 }
 
 export async function getRiskAssessment(id: string, tenantId: string) {
-  const { data, error } = await supabase.from('risk_assessments').select('*').eq('id', id).eq('tenant_id', tenantId).single();
+  const { data, error } = await supabase.from('risk_assessments').select('id, tenant_id, assessment_number, activity_name, activity_name_ar, activity_type, activity_description, status, location, branch_id, contractor_id, project_id, assessment_date, valid_until, next_review_date, overall_risk_rating, scope_description, boundaries, risk_tolerance, review_frequency, permit_requirements, work_environment, applicable_legislation, management_approval_required, worker_consultation_date, worker_consultation_notes, union_representative_consulted, acceptance_justification, template_id, previous_version_id, revision_reason, created_by, approved_by, approved_at, rejection_reason, revision_number, created_at, updated_at, deleted_at').eq('id', id).eq('tenant_id', tenantId).single();
   if (error) throw error;
   return data;
 }
