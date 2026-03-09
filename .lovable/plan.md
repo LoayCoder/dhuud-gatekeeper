@@ -2,115 +2,71 @@
 
 ## Plan: Fix Missing Arabic Translations for /security/access-control
 
-### Root Cause Analysis
+### Problem Summary
 
-After analyzing the `/security/access-control` page components, I found:
+Three issues on this page:
 
-1. **Hardcoded English strings** in the mobile view tabs (lines 225, 234, 243, 252, 258, 264, 270 in AccessControlDashboard.tsx):
-   - "On Site", "Apps", "Passes", "Vis", "Wrk", "Analytic", "Hist"
+1. **Duplicate `accessControl` keys** in both EN (~line 10684 and ~line 11057) and AR (~line 10038 and ~line 11065) locale files. The second block has `accessDenied` and `notClientSiteRep` which should be merged into the first block.
+2. **Missing translation keys** used by `UnifiedAccessLogTable.tsx` and `AccessControlDashboard.tsx`: `noEntries`, `onSite`, `exit`, `person`, `type`, `entryTime`, `exitTime`, `status` (string for table header), `recordExit`, `gateDashboard`, `entryRecorded/entryFailed/exitRecorded/exitFailed`, `entityTypes.contractor/employee/vehicle`, and `validationStatus.valid/warning/denied` (used in `getStatusBadge` function).
+3. **Hardcoded English mobile tab labels** on lines 225, 234, 243, 252, 258, 264, 270 of `AccessControlDashboard.tsx`.
 
-2. **Missing translation keys** used in `UnifiedAccessLogTable.tsx` that don't exist in the translation files:
-   - `accessControl.noEntries` (line 79)
-   - `accessControl.exit` (line 136)
-   - `accessControl.person` (line 150)
-   - `accessControl.type` (line 151)
-   - `accessControl.entryTime` (line 152)
-   - `accessControl.exitTime` (line 153)
-   - `accessControl.status` (line 154)
-   - `accessControl.recordExit` (line 213)
-   - `accessControl.onSite` (lines 109, 197)
-   - `accessControl.entityTypes.contractor` (line 186)
-   - `accessControl.entityTypes.employee` (line 186)
-   - `accessControl.entityTypes.vehicle` (line 186)
-   - `accessControl.status.valid` (line 40)
-   - `accessControl.status.warning` (line 42)
-   - `accessControl.status.denied` (line 44)
+### Changes
 
-3. **Missing in AccessControlDashboard.tsx**:
-   - `accessControl.gateDashboard` (line 156)
-   - `accessControl.entryRecorded` (used in hook)
-   - `accessControl.entryFailed` (used in hook)
-   - `accessControl.exitRecorded` (used in hook)
-   - `accessControl.exitFailed` (used in hook)
+#### File 1: `src/locales/en/translation.json`
 
-### Solution
+**Merge and expand the `accessControl` block** (~line 10698-10731): Add missing keys for entity types (`contractor`, `employee`, `vehicle`), table headers (`person`, `type`, `entryTime`, `exitTime`, `status`, `recordExit`), empty states (`noEntries`), action feedback (`entryRecorded`, `entryFailed`, `exitRecorded`, `exitFailed`), gate dashboard (`gateDashboard`), on-site label (`onSite`), exit label (`exit`), validation statuses (`validationStatus.valid/warning/denied`), and mobile tab short labels (`mobileTabs.onSite/approvals/gatePasses/visitors/workers/analytics/history`).
 
-**Step 1**: Add missing keys to `src/locales/en/translation.json` in the `accessControl` block (after line 10731):
+**Remove duplicate `accessControl` block** (~line 11057-11060): Merge `accessDenied` and `notClientSiteRep` into the first block.
 
-```json
-"workersOnSite": "Workers",
-"gateDashboard": "Gate Operations",
-"noEntries": "No access entries found",
-"onSite": "On Site",
-"exit": "Exit",
-"person": "Person",
-"type": "Type",
-"entryTime": "Entry",
-"exitTime": "Exit",
-"status": "Status",
-"recordExit": "Record Exit",
-"entryRecorded": "Entry recorded successfully",
-"entryFailed": "Failed to record entry",
-"exitRecorded": "Exit recorded successfully",
-"exitFailed": "Failed to record exit",
-"entityTypes": {
-  "visitor": "Visitors",
-  "worker": "Workers",
-  "contractor": "Contractor",
-  "employee": "Employee",
-  "vehicle": "Vehicle"
-},
-"status": {
-  "valid": "Valid",
-  "warning": "Warning",
-  "denied": "Denied"
-}
-```
+#### File 2: `src/locales/ar/translation.json`
 
-**Step 2**: Add corresponding Arabic translations to `src/locales/ar/translation.json` in the `accessControl` block (after line 10085):
+**Same expansion and merge** for Arabic:
+- `noEntries` → `لا توجد سجلات دخول`
+- `onSite` → `في الموقع`
+- `exit` → `خروج`
+- `person` → `الشخص`
+- `type` → `النوع`
+- `entryTime` → `الدخول`
+- `exitTime` → `الخروج`
+- `status` → `الحالة`
+- `recordExit` → `تسجيل خروج`
+- `gateDashboard` → `عمليات البوابة`
+- `entryRecorded` → `تم تسجيل الدخول بنجاح`
+- `entryFailed` → `فشل تسجيل الدخول`
+- `exitRecorded` → `تم تسجيل الخروج بنجاح`
+- `exitFailed` → `فشل تسجيل الخروج`
+- `entityTypes.contractor` → `مقاول`
+- `entityTypes.employee` → `موظف`
+- `entityTypes.vehicle` → `مركبة`
+- `validationStatus.valid` → `صالح`
+- `validationStatus.warning` → `تحذير`
+- `validationStatus.denied` → `مرفوض`
+- `mobileTabs.*` → Arabic short labels (`الموقع`, `موافقات`, `تصاريح`, `زوار`, `عمال`, `تحليلات`, `سجل`)
+- `accessDenied` → `تم رفض الوصول`
+- `notClientSiteRep` → merged from duplicate block
 
-```json
-"workersOnSite": "العمال",
-"gateDashboard": "عمليات البوابة",
-"noEntries": "لا توجد سجلات دخول",
-"onSite": "في الموقع",
-"exit": "خروج",
-"person": "الشخص",
-"type": "النوع",
-"entryTime": "الدخول",
-"exitTime": "الخروج",
-"status": "الحالة",
-"recordExit": "تسجيل خروج",
-"entryRecorded": "تم تسجيل الدخول بنجاح",
-"entryFailed": "فشل تسجيل الدخول",
-"exitRecorded": "تم تسجيل الخروج بنجاح",
-"exitFailed": "فشل تسجيل الخروج",
-"entityTypes": {
-  "visitor": "الزوار",
-  "worker": "العمال",
-  "contractor": "مقاول",
-  "employee": "موظف",
-  "vehicle": "مركبة"
-},
-"status": {
-  "valid": "صالح",
-  "warning": "تحذير",
-  "denied": "مرفوض"
-}
-```
+**Remove duplicate `accessControl` block** (~line 11065-11068).
 
-**Step 3**: Update `AccessControlDashboard.tsx` to remove hardcoded mobile tab labels by using `t()` with the existing tab keys instead of hardcoded strings.
+#### File 3: `src/pages/security/AccessControlDashboard.tsx`
+
+- **Line 34**: Change `useTranslation(['security', 'translation'])` → `useTranslation()`
+- **Lines 225, 234, 243, 252, 258, 264, 270**: Replace hardcoded mobile labels with `t()` calls using `accessControl.mobileTabs.*` keys:
+  - `"On Site"` → `{t('accessControl.mobileTabs.onSite')}`
+  - `"Apps"` → `{t('accessControl.mobileTabs.approvals')}`
+  - `"Passes"` → `{t('accessControl.mobileTabs.gatePasses')}`
+  - `"Vis"` → `{t('accessControl.mobileTabs.visitors')}`
+  - `"Wrk"` → `{t('accessControl.mobileTabs.workers')}`
+  - `"Analytic"` → `{t('accessControl.mobileTabs.analytics')}`
+  - `"Hist"` → `{t('accessControl.mobileTabs.history')}`
+
+#### File 4: `src/features/security/components/UnifiedAccessLogTable.tsx`
+
+- **Line 57**: Change `useTranslation(['security', 'translation'])` → `useTranslation()`
+- **Lines 40, 42, 44**: Change `accessControl.status.valid` → `accessControl.validationStatus.valid` (and same for `warning`, `denied`) to avoid conflict with the string `accessControl.status` used as a table header on line 154.
 
 ### Files to Edit
-1. `src/locales/en/translation.json` - Add missing English keys
-2. `src/locales/ar/translation.json` - Add missing Arabic keys  
-3. `src/pages/security/AccessControlDashboard.tsx` - Remove hardcoded mobile labels
-
-### Expected Result
-All text on `/security/access-control` page will display correctly in Arabic when the Arabic language is selected, including:
-- Mobile tab labels
-- Table headers
-- Status badges
-- Toast notifications
-- Empty states
+1. `src/locales/en/translation.json` — Add missing keys, merge duplicate block
+2. `src/locales/ar/translation.json` — Add missing keys, merge duplicate block
+3. `src/pages/security/AccessControlDashboard.tsx` — Fix namespace, localize mobile tabs
+4. `src/features/security/components/UnifiedAccessLogTable.tsx` — Fix namespace, fix status key path
 
