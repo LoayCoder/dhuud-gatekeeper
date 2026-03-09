@@ -248,7 +248,7 @@ export default function NotificationDeliveryLog() {
                 </Select>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder={isRTL ? 'Ø§Ù„Ø­Ø§Ù„Ø©' : 'Status'} />
+                    <SelectValue placeholder={t('deliveryLog.status')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{isRTL ? 'Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø­Ø§Ù„Ø§Øª' : 'All Statuses'}</SelectItem>
