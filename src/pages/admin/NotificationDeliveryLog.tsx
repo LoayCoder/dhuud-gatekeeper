@@ -209,7 +209,7 @@ export default function NotificationDeliveryLog() {
                   </TabsTrigger>
                   <TabsTrigger value="hsse" className="gap-1.5">
                     <ShieldAlert className="h-3.5 w-3.5" />
-                    {isRTL ? 'Ø§Ù„ØµØ­Ø© ÙˆØ§Ù„Ø³Ù„Ø§Ù…Ø©' : 'HSSE'}
+                    {t('deliveryLog.hsse')}
                   </TabsTrigger>
                   <TabsTrigger value="incident" className="gap-1.5">
                     <Zap className="h-3.5 w-3.5" />
