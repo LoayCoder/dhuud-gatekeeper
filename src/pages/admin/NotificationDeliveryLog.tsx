@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -56,9 +56,9 @@ const HSSE_PRIORITY_COLORS: Record<string, string> = {
 };
 
 const RECIPIENT_TYPE_ICONS: Record<string, string> = {
-  'employee': 'ðŸ‘¤',
-  'worker': 'ðŸ”§',
-  'visitor': 'ðŸ‘¥',
+  'employee': '👤',
+  'worker': '🔧',
+  'visitor': '👥',
 };
 
 export default function NotificationDeliveryLog() {
@@ -150,9 +150,7 @@ export default function NotificationDeliveryLog() {
                 {t('deliveryLog.webhookUrl')}
               </CardTitle>
               <CardDescription className="text-xs">
-                {isRTL 
-                  ? 'Ø§Ø³ØªØ®Ø¯Ù… Ù‡Ø°Ø§ Ø§Ù„Ø±Ø§Ø¨Ø· ÙÙŠ Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ù…Ø²ÙˆØ¯ Ø§Ù„ÙˆØ§ØªØ³Ø§Ø¨ Ù„ØªÙ„Ù‚ÙŠ ØªØ­Ø¯ÙŠØ«Ø§Øª Ø­Ø§Ù„Ø© Ø§Ù„ØªØ³Ù„ÙŠÙ…' 
-                  : 'Use this URL in your WhatsApp provider settings to receive delivery status updates'}
+                {t('deliveryLog.webhookUrlDesc')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -251,12 +249,12 @@ export default function NotificationDeliveryLog() {
                     <SelectValue placeholder={t('deliveryLog.status')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">{isRTL ? 'Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø­Ø§Ù„Ø§Øª' : 'All Statuses'}</SelectItem>
-                    <SelectItem value="pending">{isRTL ? 'Ù‚ÙŠØ¯ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±' : 'Pending'}</SelectItem>
-                    <SelectItem value="sent">{isRTL ? 'ØªÙ… Ø§Ù„Ø¥Ø±Ø³Ø§Ù„' : 'Sent'}</SelectItem>
-                    <SelectItem value="delivered">{isRTL ? 'ØªÙ… Ø§Ù„ØªØ³Ù„ÙŠÙ…' : 'Delivered'}</SelectItem>
-                    <SelectItem value="read">{isRTL ? 'Ù…Ù‚Ø±ÙˆØ¡' : 'Read'}</SelectItem>
-                    <SelectItem value="failed">{isRTL ? 'ÙØ´Ù„' : 'Failed'}</SelectItem>
+                    <SelectItem value="all">{t('deliveryLog.allStatuses')}</SelectItem>
+                    <SelectItem value="pending">{t('deliveryLog.pending')}</SelectItem>
+                    <SelectItem value="sent">{t('deliveryLog.sent')}</SelectItem>
+                    <SelectItem value="delivered">{t('deliveryLog.delivered')}</SelectItem>
+                    <SelectItem value="read">{t('deliveryLog.read')}</SelectItem>
+                    <SelectItem value="failed">{t('deliveryLog.failed')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -283,7 +281,7 @@ export default function NotificationDeliveryLog() {
                             <div className="flex flex-col items-center gap-2">
                               <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
                               <span className="text-muted-foreground">
-                                {isRTL ? 'Ø¬Ø§Ø±Ù Ø§Ù„ØªØ­Ù…ÙŠÙ„...' : 'Loading...'}
+                                {t('deliveryLog.loading')}
                               </span>
                             </div>
                           ) : (
@@ -350,7 +348,7 @@ export default function NotificationDeliveryLog() {
                                 {log.hsse_priority.charAt(0).toUpperCase() + log.hsse_priority.slice(1)}
                               </Badge>
                             ) : (
-                              <span className="text-muted-foreground">â€”</span>
+                              <span className="text-muted-foreground">—</span>
                             )}
                           </TableCell>
                           <TableCell>
@@ -390,5 +388,3 @@ export default function NotificationDeliveryLog() {
     </div>
   );
 }
-
-
