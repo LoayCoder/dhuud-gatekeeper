@@ -295,7 +295,7 @@ export function GatePassVerificationPanel() {
                 {verificationResult.gatePass.entry_time && !verificationResult.gatePass.exit_time && (
                   <Button 
                     onClick={handleConfirmExit} 
-                    disabled={confirmExit.isPending}
+                    disabled={guardAction.isPending}
                     className="flex-1 h-14 text-lg gap-2 rounded-xl bg-orange-600 hover:bg-orange-700"
                   >
                     {confirmExit.isPending ? (
