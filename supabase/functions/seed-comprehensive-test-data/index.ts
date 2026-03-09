@@ -1275,7 +1275,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify(summary), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
-  } catch (error: unknown) {
+  } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     console.error('Seeding error:', error)
     return new Response(

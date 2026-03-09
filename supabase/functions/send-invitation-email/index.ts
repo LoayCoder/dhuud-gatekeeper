@@ -143,7 +143,7 @@ const handler = async (req: Request): Promise<Response> => {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Error sending invitation email:", error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     return new Response(

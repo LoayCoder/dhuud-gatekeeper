@@ -118,7 +118,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Email sent successfully:", result.messageId);
 
     return new Response(JSON.stringify({ success: true, messageId: result.messageId }), { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } });
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Error in send-subscription-email function:", error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(JSON.stringify({ error: errorMessage }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
