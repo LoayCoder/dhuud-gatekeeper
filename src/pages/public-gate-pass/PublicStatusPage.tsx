@@ -428,14 +428,14 @@ export default function PublicStatusPage() {
                 </h4>
                 <div className="space-y-3">
                   {gatePass.items?.map((item: {
-                    id: string;
+                    id?: string;
                     item_name: string;
-                    quantity: number;
-                    unit: string;
+                    quantity?: string;
+                    unit?: string;
                     description?: string;
                     sr_number?: string;
                     photo_storage_path?: string;
-                  }) => (
+                  }, idx: number) => (
                     <Card key={item.id} className="overflow-hidden border shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex">
                         {/* Image Section */}
