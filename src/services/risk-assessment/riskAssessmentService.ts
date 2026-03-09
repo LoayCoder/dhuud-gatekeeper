@@ -60,7 +60,7 @@ export async function removeTeamMember(memberId: string) {
 }
 
 export async function getRiskAssessments(tenantId: string, _filters?: any) {
-  const { data, error } = await supabase.from('risk_assessments').select('id, tenant_id, assessment_number, activity_name, activity_name_ar, activity_type, activity_description, status, location, branch_id, contractor_id, project_id, assessment_date, valid_until, next_review_date, overall_risk_rating, created_by, approved_by, approved_at, rejection_reason, revision_number, created_at, updated_at, deleted_at').eq('tenant_id', tenantId).is('deleted_at', null).order('created_at', { ascending: false });
+  const { data, error } = await supabase.from('risk_assessments').select('id, tenant_id, assessment_number, activity_name, activity_name_ar, activity_type, activity_description, status, location, branch_id, contractor_id, project_id, assessment_date, valid_until, next_review_date, overall_risk_rating, created_by, approved_by, approved_at, rejection_reason, revision_number, template_id, ai_risk_score, ai_confidence_level, created_at, updated_at, deleted_at').eq('tenant_id', tenantId).is('deleted_at', null).order('created_at', { ascending: false });
   if (error) throw error;
   return data || [];
 }
