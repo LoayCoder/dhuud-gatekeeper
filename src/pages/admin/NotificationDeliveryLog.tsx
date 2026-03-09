@@ -134,7 +134,7 @@ export default function NotificationDeliveryLog() {
           </TabsTrigger>
           <TabsTrigger value="whatsapp-settings" className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
-            {isRTL ? "Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª ÙˆØ§ØªØ³Ø§Ø¨" : "WhatsApp Settings"}
+            {t('deliveryLog.whatsappSettingsTab')}
           </TabsTrigger>
         </TabsList>
 
