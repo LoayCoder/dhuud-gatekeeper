@@ -1,63 +1,41 @@
 
-# Fix "Take Action" Button for Department Representative
 
-## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
+## Problem Analysis
 
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+The build has been failing since Feb 24 (last successful publish). The actual build **error message is truncated** — the log shows 6,118 modules transforming successfully, chunks rendering, gzip computation starting, and then the output is cut off before the error is visible.
 
-## What Changes
+Since I cannot see the actual error, here are the most likely causes and a plan to address each:
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+### Likely Cause: Build Output Size / Memory Limit
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+With 6,118 modules and heavy dependencies (ExcelJS, jsPDF, docx, Leaflet, Recharts, html2canvas, html5-qrcode, etc.), the build may be exceeding the deployment platform's memory or output size limit.
 
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+## Plan
 
-```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
+### Step 1: Reduce Build Size with Code Splitting
+
+Add `manualChunks` back to `vite.config.ts` to split heavy vendor libraries into separate smaller chunks. This reduces peak memory during chunk rendering:
+
+```text
+vendor-excel  → exceljs
+vendor-pdf    → jspdf, docx
+vendor-maps   → leaflet, react-leaflet
+vendor-charts → recharts
+vendor-ui     → radix-ui packages
 ```
 
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
+### Step 2: Disable PWA Precaching for Build
 
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
+The Workbox PWA plugin runs after chunk rendering and tries to precache all `**/*.{js,css,html,ico,png,svg}` — with 6,118 modules this creates a massive service worker. Temporarily disable the `globPatterns` to see if the build passes.
 
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
+### Step 3: Remove Unused Heavy Dependencies
 
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
-```
+Check if `@playwright/test` and `rollup-plugin-visualizer` are actually needed in production dependencies (they shouldn't be). Moving them to devDependencies reduces the install/build footprint.
 
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
+### Files to Modify
 
-### 3. Localize the Button Text
+1. `vite.config.ts` — Add manualChunks for code splitting, reduce workbox globPatterns
+2. `package.json` — Move `@playwright/test`, `@testing-library/react`, `rollup-plugin-visualizer` to devDependencies
 
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
+This is a systematic approach: if Step 1 fixes the build, we know it was a size/memory issue. If not, we progressively eliminate other causes.
 
-## Files Modified
-
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
