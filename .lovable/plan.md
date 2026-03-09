@@ -1,92 +1,63 @@
 
-
-# Fix: Missing Arabic Translations for Rate Limit & Threat Geography Widgets
+# Fix "Take Action" Button for Department Representative
 
 ## Problem
-The `RateLimitStatsWidget`, `IPBlocklistTable`, `WhitelistTable`, `SuspiciousActivityPanel`, `BlockIPDialog`, `WhitelistIPDialog`, `ThreatMapWidget`, and `ThreatMapLegend` components use ~60 `admin.*` translation keys that have **no Arabic translations**. The AR `admin` object (line 4404) has nested keys for menu access, visitors, etc., but zero rate-limit or threat-map keys. A second `admin` block at line 11204 only has `protectedServer` and `badges`.
+When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
 
-## All Missing `admin.*` Keys (~55 unique keys)
+1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
+2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
 
-### RateLimitStatsWidget (header + stats)
-`rateLimitStats`, `blockIP`, `whitelist`, `requests24h`, `failed`, `blocked`, `tempBlocks`, `permBlocks`, `whitelisted`, `threats`, `blockedIPs`, `suspiciousActivity` (as "Activity Log")
+## What Changes
 
-### IPBlocklistTable
-`noBlockedIPs`, `noBlockedIPsDesc`, `ipAddress`, `type`, `reason`, `attempts`, `expires`, `blockedAt`, `permanent`, `temporary`, `never`, `removeBlock`, `makePermanent`, `addToWhitelist`, `confirmUnblock`, `confirmPermanent`, `confirmWhitelist`, `confirmUnblockDesc`, `confirmPermanentDesc`, `confirmWhitelistDesc`
+### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
 
-### WhitelistTable
-`noWhitelistedIPs`, `noWhitelistedIPsDesc`, `addedAt`, `confirmRemoveWhitelist`, `confirmRemoveWhitelistDesc`
+The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
 
-### SuspiciousActivityPanel
-`autoBlocked`, `manualBlock`, `unblocked`, `rateLimitExceeded`, `noSuspiciousActivity`, `noSuspiciousActivityDesc`, `failedAttempts`
+**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
 
-### BlockIPDialog
-`blockIPAddress`, `blockIPDesc`, `ipAddressDesc`, `blockType`, `selectBlockType`, `duration`, `selectDuration`, `blockReasonPlaceholder`
+```typescript
+case 'pending_dept_rep_review':
+case 'pending_dept_rep_approval':
+  return (
+    <DeptRepApprovalCard
+      incident={incidentData}
+      onComplete={handleRefresh}
+    />
+  );
+```
 
-### WhitelistIPDialog
-`whitelistIPAddress`, `whitelistIPDesc`, `whitelistReasonPlaceholder`
+### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
 
-### ThreatMapWidget
-`threatGeography`, `yourLocation`, `permanentBlock`, `temporaryBlock`, `countries`, `resolveLocations`
+The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
 
-### ThreatMapLegend
-`legend`, `attackFlow`, `yourServer`, `topSources`
+**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
 
-## Fix
+```typescript
+<Button
+  size="lg"
+  className="shadow-lg px-8"
+  onClick={() => {
+    // Scroll to the workflow action card
+    const workflowCard = document.querySelector('[data-workflow-card]');
+    if (workflowCard) {
+      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }}
+>
+  Take Action
+  <ArrowRight className="h-4 w-4 ml-2" />
+</Button>
+```
 
-### File: `src/locales/ar/translation.json`
+And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
 
-Add all ~55 keys to the second `admin` block (line 11204, which gets deep-merged). Add them alongside the existing `protectedServer` and `badges` keys:
+### 3. Localize the Button Text
 
-**Rate Limit keys:**
-- `rateLimitStats` → "تحديد المعدل وحظر IP"
-- `blockIP` → "حظر IP"
-- `whitelist` → "القائمة البيضاء"
-- `requests24h` → "الطلبات (24 ساعة)"
-- `failed` → "فاشلة"
-- `blocked` → "محظورة"
-- `tempBlocks` → "حظر مؤقت"
-- `permBlocks` → "حظر دائم"
-- `whitelisted` → "مدرج بالقائمة البيضاء"
-- `threats` → "التهديدات (24 ساعة)"
-- `blockedIPs` → "عناوين IP المحظورة"
-- `suspiciousActivity` → "سجل النشاط"
-- `noBlockedIPs` → "لا توجد عناوين IP محظورة"
-- `noBlockedIPsDesc` → "كل شيء آمن! لا توجد عناوين IP مشبوهة محظورة حالياً."
-- `ipAddress` → "عنوان IP"
-- `type` → "النوع"
-- `reason` → "السبب"
-- `attempts` → "المحاولات"
-- `expires` → "ينتهي"
-- `blockedAt` → "تاريخ الحظر"
-- `permanent` → "دائم"
-- `temporary` → "مؤقت"
-- `never` → "أبداً"
-- `removeBlock` → "إزالة الحظر"
-- `makePermanent` → "جعله دائماً"
-- `addToWhitelist` → "إضافة للقائمة البيضاء"
-- `confirmUnblock` → "تأكيد إلغاء الحظر"
-- `confirmPermanent` → "تأكيد الحظر الدائم"
-- `confirmWhitelist` → "تأكيد الإدراج بالقائمة البيضاء"
-- `confirmUnblockDesc` → "سيتمكن عنوان IP هذا من تقديم طلبات التسجيل مرة أخرى. هل أنت متأكد؟"
-- `confirmPermanentDesc` → "سيتم حظر عنوان IP هذا بشكل دائم وسيتطلب مراجعة يدوية لإلغاء الحظر."
-- `confirmWhitelistDesc` → "سيتجاوز عنوان IP هذا جميع قيود المعدل والحظر. استخدم بحذر."
-- Plus: `noWhitelistedIPs`, `noWhitelistedIPsDesc`, `addedAt`, `confirmRemoveWhitelist`, `confirmRemoveWhitelistDesc`
-- Plus: `autoBlocked`, `manualBlock`, `unblocked`, `rateLimitExceeded`, `noSuspiciousActivity`, `noSuspiciousActivityDesc`, `failedAttempts`
-- Plus: `blockIPAddress`, `blockIPDesc`, `ipAddressDesc`, `blockType`, `selectBlockType`, `duration`, `selectDuration`, `blockReasonPlaceholder`
-- Plus: `whitelistIPAddress`, `whitelistIPDesc`, `whitelistReasonPlaceholder`
-
-**Threat Map keys:**
-- `threatGeography` → "الجغرافيا التهديدية"
-- `yourLocation` → "موقعك"
-- `permanentBlock` → "حظر دائم"
-- `temporaryBlock` → "حظر مؤقت"
-- `countries` → "الدول"
-- `resolveLocations` → "تحديد مواقع {{count}} عنوان IP"
-- `legend` → "دليل الخريطة"
-- `attackFlow` → "مسار الهجوم"
-- `yourServer` → "خادمك"
-- `topSources` → "أعلى المصادر"
+Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
 
 ## Files Modified
-1. **`src/locales/ar/translation.json`** — Add ~55 keys to the second `admin` block (line 11204)
 
+1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
+2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
+3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
+4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
