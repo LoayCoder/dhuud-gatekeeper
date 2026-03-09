@@ -275,7 +275,7 @@ export default function GuardAttendance() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t('common.guard', 'Guard')}</TableHead>
-                    <TableHead>{t('security.zone', 'Zone')}</TableHead>
+                    <TableHead>{t('security.zoneName', 'Zone')}</TableHead>
                     <TableHead>{t('security.checkIn', 'Check In')}</TableHead>
                     <TableHead>{t('security.checkOut', 'Check Out')}</TableHead>
                     <TableHead>{t('security.hoursWorked', 'Hours')}</TableHead>
