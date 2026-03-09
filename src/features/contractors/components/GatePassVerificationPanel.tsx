@@ -116,12 +116,12 @@ export function GatePassVerificationPanel() {
   const handleConfirmEntry = async () => {
     if (!verificationResult?.gatePass) return;
     
-    // Haptic feedback
-    if (navigator.vibrate) {
-      navigator.vibrate([50, 50, 100]);
-    }
-    
-    await confirmEntry.mutateAsync(verificationResult.gatePass.id);
+    await guardAction.mutateAsync({
+      passId: verificationResult.gatePass.id,
+      passReference: verificationResult.gatePass.reference_number || '',
+      action: 'entry',
+      validationMethod: 'qr_scan',
+    });
     setVerificationResult({
       ...verificationResult,
       gatePass: {
@@ -134,12 +134,12 @@ export function GatePassVerificationPanel() {
   const handleConfirmExit = async () => {
     if (!verificationResult?.gatePass) return;
     
-    // Haptic feedback
-    if (navigator.vibrate) {
-      navigator.vibrate([50, 50, 100]);
-    }
-    
-    await confirmExit.mutateAsync(verificationResult.gatePass.id);
+    await guardAction.mutateAsync({
+      passId: verificationResult.gatePass.id,
+      passReference: verificationResult.gatePass.reference_number || '',
+      action: 'exit',
+      validationMethod: 'qr_scan',
+    });
     setVerificationResult({
       ...verificationResult,
       gatePass: {
