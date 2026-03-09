@@ -1,40 +1,63 @@
 
-
-# Fix: WhatsApp Settings Page Translation
+# Fix "Take Action" Button for Department Representative
 
 ## Problem
-Both `WhatsAppSettingsPage.tsx` and `WhatsAppSettings.tsx` use **inline `isRTL ? "Arabic" : "English"` ternaries** for all text (~30 strings). This violates the project's RTL/localization standards and means translations aren't managed through the i18n system. The page wrapper also has mojibake Arabic characters.
+When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
 
-## Fix
+1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
+2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
 
-### 1. Add `whatsappSettings` namespace to English locale
-**File:** `src/locales/en/translation.json`
+## What Changes
 
-Add ~30 keys:
-- `pageTitle`, `pageDescription` (page wrapper)
-- `activeProvider`, `activeProviderDesc`, `active`, `configured`, `notConfigured`, `activate`
-- `wasenderNotConfigured`, `twilioNotConfigured`, `switchedTo`
-- `testMessage`, `testMessageDesc`, `phoneNumber`, `phoneHint`, `messageText`, `messagePlaceholder`
-- `sending`, `sendTestMessage`, `sentVia`, `failedToSend`, `enterPhoneNumber`, `messageSentVia`, `failedSendMessage`
-- `howToConfigure`, `wasenderStep1`, `wasenderStep2`, `wasenderStep3`, `twilioStep1`, `twilioStep2`
+### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
 
-### 2. Add `whatsappSettings` namespace to Arabic locale
-**File:** `src/locales/ar/translation.json`
+The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
 
-Same ~30 keys with proper Arabic translations (using the existing inline Arabic strings as the source).
+**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
 
-### 3. Refactor `WhatsAppSettingsPage.tsx`
-Replace mojibake inline strings with `t('whatsappSettings.pageTitle')` and `t('whatsappSettings.pageDescription')`.
+```typescript
+case 'pending_dept_rep_review':
+case 'pending_dept_rep_approval':
+  return (
+    <DeptRepApprovalCard
+      incident={incidentData}
+      onComplete={handleRefresh}
+    />
+  );
+```
 
-### 4. Refactor `WhatsAppSettings.tsx`
-Replace all ~30 `isRTL ? ... : ...` ternaries with proper `t()` calls. Examples:
-- `isRTL ? "نشط" : "Active"` → `t('whatsappSettings.active')`
-- `isRTL ? "مزود الواتساب النشط" : "Active WhatsApp Provider"` → `t('whatsappSettings.activeProvider')`
-- Toast messages: `isRTL ? "تم التبديل إلى..." : "Switched to..."` → `t('whatsappSettings.switchedTo', { provider })`
+### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
 
-### Files Modified
-1. `src/locales/en/translation.json` — Add `whatsappSettings` namespace (~30 keys)
-2. `src/locales/ar/translation.json` — Add `whatsappSettings` namespace (~30 keys)
-3. `src/pages/admin/WhatsAppSettingsPage.tsx` — Replace inline strings with `t()` calls
-4. `src/features/admin/components/WhatsAppSettings.tsx` — Replace all `isRTL ?` ternaries with `t()` calls
+The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
 
+**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
+
+```typescript
+<Button
+  size="lg"
+  className="shadow-lg px-8"
+  onClick={() => {
+    // Scroll to the workflow action card
+    const workflowCard = document.querySelector('[data-workflow-card]');
+    if (workflowCard) {
+      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }}
+>
+  Take Action
+  <ArrowRight className="h-4 w-4 ml-2" />
+</Button>
+```
+
+And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
+
+### 3. Localize the Button Text
+
+Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
+
+## Files Modified
+
+1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
+2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
+3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
+4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys

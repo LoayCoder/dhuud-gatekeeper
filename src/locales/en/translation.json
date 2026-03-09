@@ -11516,5 +11516,38 @@
       "total": "Total (24h)",
       "successRate": "success"
     }
+  },
+  "whatsappSettings": {
+    "pageTitle": "WhatsApp Settings",
+    "pageDescription": "Configure your WhatsApp provider and send test messages",
+    "activeProvider": "Active WhatsApp Provider",
+    "activeProviderDesc": "Choose which provider to use for sending WhatsApp messages",
+    "active": "Active",
+    "configured": "✓ Configured",
+    "notConfigured": "✗ Not configured",
+    "activate": "Activate",
+    "wasenderNotConfigured": "WaSender not configured. Add WASENDER_API_KEY first",
+    "twilioNotConfigured": "Twilio not configured. Add Twilio keys first",
+    "switchedTo": "Switched to {{provider}} successfully",
+    "testMessage": "Test WhatsApp Message",
+    "testMessageDesc": "Send a test message to verify WhatsApp configuration",
+    "phoneNumber": "Phone Number",
+    "phoneHint": "Enter number with country code (e.g., +966)",
+    "messageText": "Message Text",
+    "messagePlaceholder": "Enter test message...",
+    "defaultTestMessage": "Hello! This is a test message from the HSSE system.",
+    "sending": "Sending...",
+    "sendTestMessage": "Send Test Message",
+    "sentVia": "Sent via",
+    "failedToSend": "Failed to send",
+    "enterPhoneNumber": "Please enter a phone number",
+    "messageSentVia": "Message sent successfully via {{provider}}",
+    "failedSendMessage": "Failed to send message",
+    "howToConfigure": "How to Configure Provider",
+    "wasenderStep1": "Get API key from your WaSender account",
+    "wasenderStep2": "Add WASENDER_API_KEY in secrets settings",
+    "wasenderStep3": "Click 'Activate' above to enable WaSender",
+    "twilioStep1": "Add required keys",
+    "twilioStep2": "Click 'Activate' above to enable Twilio"
   }
 }

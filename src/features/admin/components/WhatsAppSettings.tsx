@@ -19,17 +19,12 @@ interface ProviderStatus {
 }
 
 export function WhatsAppSettings() {
-  const { t, i18n } = useTranslation();
-  const isRTL = i18n.language === 'ar';
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const currentTenantId = profile?.tenant_id;
 
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [testMessage, setTestMessage] = useState(
-    isRTL 
-      ? "مرحباً! هذه رسالة اختبار من نظام HSSE." 
-      : "Hello! This is a test message from the HSSE system."
-  );
+  const [testMessage, setTestMessage] = useState(t('whatsappSettings.defaultTestMessage'));
   const [sending, setSending] = useState(false);
   const [switching, setSwitching] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState(true);
@@ -69,13 +64,12 @@ export function WhatsAppSettings() {
   }, []);
 
   const handleSwitchProvider = async (newProvider: 'wasender' | 'twilio') => {
-    // Check if provider is configured
     if (newProvider === 'wasender' && !providerStatus?.wasenderConfigured) {
-      toast.error(isRTL ? "WaSender غير مُعد. أضف WASENDER_API_KEY أولاً" : "WaSender not configured. Add WASENDER_API_KEY first");
+      toast.error(t('whatsappSettings.wasenderNotConfigured'));
       return;
     }
     if (newProvider === 'twilio' && !providerStatus?.twilioConfigured) {
-      toast.error(isRTL ? "Twilio غير مُعد. أضف مفاتيح Twilio أولاً" : "Twilio not configured. Add Twilio keys first");
+      toast.error(t('whatsappSettings.twilioNotConfigured'));
       return;
     }
 
@@ -89,11 +83,7 @@ export function WhatsAppSettings() {
 
       if (data.success) {
         setProviderStatus(prev => prev ? { ...prev, activeProvider: newProvider } : null);
-        toast.success(
-          isRTL 
-            ? `تم التبديل إلى ${newProvider} بنجاح` 
-            : `Switched to ${newProvider} successfully`
-        );
+        toast.success(t('whatsappSettings.switchedTo', { provider: newProvider }));
       } else {
         throw new Error(data.error);
       }
@@ -107,7 +97,7 @@ export function WhatsAppSettings() {
 
   const handleSendTest = async () => {
     if (!phoneNumber.trim()) {
-      toast.error(isRTL ? "الرجاء إدخال رقم الهاتف" : "Please enter a phone number");
+      toast.error(t('whatsappSettings.enterPhoneNumber'));
       return;
     }
 
@@ -123,9 +113,7 @@ export function WhatsAppSettings() {
         },
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       if (data.success) {
         setLastResult({
@@ -133,18 +121,14 @@ export function WhatsAppSettings() {
           provider: data.provider,
           messageId: data.messageId,
         });
-        toast.success(
-          isRTL 
-            ? `تم إرسال الرسالة بنجاح عبر ${data.provider}` 
-            : `Message sent successfully via ${data.provider}`
-        );
+        toast.success(t('whatsappSettings.messageSentVia', { provider: data.provider }));
       } else {
         setLastResult({
           success: false,
           provider: data.provider || 'unknown',
           error: data.error,
         });
-        toast.error(data.error || (isRTL ? "فشل إرسال الرسالة" : "Failed to send message"));
+        toast.error(data.error || t('whatsappSettings.failedSendMessage'));
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
@@ -192,14 +176,14 @@ export function WhatsAppSettings() {
                 <span className="font-semibold">{providerName}</span>
                 {isActive && (
                   <Badge variant="default" className="bg-green-500 text-white text-xs">
-                    {isRTL ? "نشط" : "Active"}
+                    {t('whatsappSettings.active')}
                   </Badge>
                 )}
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {isConfigured 
-                  ? (isRTL ? "✓ مُعد" : "✓ Configured") 
-                  : (isRTL ? "✗ غير مُعد" : "✗ Not configured")}
+                  ? t('whatsappSettings.configured')
+                  : t('whatsappSettings.notConfigured')}
               </p>
             </div>
           </div>
@@ -214,7 +198,7 @@ export function WhatsAppSettings() {
               {switching ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                isRTL ? "تفعيل" : "Activate"
+                t('whatsappSettings.activate')
               )}
             </Button>
           )}
@@ -230,12 +214,10 @@ export function WhatsAppSettings() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings2 className="h-5 w-5" />
-            {isRTL ? "مزود الواتساب النشط" : "Active WhatsApp Provider"}
+            {t('whatsappSettings.activeProvider')}
           </CardTitle>
           <CardDescription>
-            {isRTL 
-              ? "اختر المزود الذي تريد استخدامه لإرسال رسائل الواتساب" 
-              : "Choose which provider to use for sending WhatsApp messages"}
+            {t('whatsappSettings.activeProviderDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -267,19 +249,17 @@ export function WhatsAppSettings() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            {isRTL ? "اختبار رسالة واتساب" : "Test WhatsApp Message"}
+            {t('whatsappSettings.testMessage')}
           </CardTitle>
           <CardDescription>
-            {isRTL 
-              ? "أرسل رسالة اختبار للتحقق من إعداد الواتساب" 
-              : "Send a test message to verify WhatsApp configuration"}
+            {t('whatsappSettings.testMessageDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="phone">
-                {isRTL ? "رقم الهاتف" : "Phone Number"}
+                {t('whatsappSettings.phoneNumber')}
               </Label>
               <Input
                 id="phone"
@@ -291,18 +271,16 @@ export function WhatsAppSettings() {
                 className="font-mono"
               />
               <p className="text-xs text-muted-foreground">
-                {isRTL 
-                  ? "أدخل الرقم مع رمز الدولة (مثال: +966)" 
-                  : "Enter number with country code (e.g., +966)"}
+                {t('whatsappSettings.phoneHint')}
               </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="message">
-                {isRTL ? "نص الرسالة" : "Message Text"}
+                {t('whatsappSettings.messageText')}
               </Label>
               <Textarea
                 id="message"
-                placeholder={isRTL ? "أدخل رسالة الاختبار..." : "Enter test message..."}
+                placeholder={t('whatsappSettings.messagePlaceholder')}
                 value={testMessage}
                 onChange={(e) => setTestMessage(e.target.value)}
                 rows={3}
@@ -321,12 +299,12 @@ export function WhatsAppSettings() {
               {sending ? (
                 <>
                   <Loader2 className="h-4 w-4 me-2 animate-spin" />
-                  {isRTL ? "جارٍ الإرسال..." : "Sending..."}
+                  {t('whatsappSettings.sending')}
                 </>
               ) : (
                 <>
                   <Send className="h-4 w-4 me-2" />
-                  {isRTL ? "إرسال رسالة اختبار" : "Send Test Message"}
+                  {t('whatsappSettings.sendTestMessage')}
                 </>
               )}
             </Button>
@@ -346,7 +324,7 @@ export function WhatsAppSettings() {
                   {lastResult.success ? (
                     <>
                       <span className="font-medium">
-                        {isRTL ? "تم الإرسال عبر" : "Sent via"} {lastResult.provider}
+                        {t('whatsappSettings.sentVia')} {lastResult.provider}
                       </span>
                       {lastResult.messageId && (
                         <span className="block text-xs opacity-75 font-mono">
@@ -357,7 +335,7 @@ export function WhatsAppSettings() {
                   ) : (
                     <>
                       <span className="font-medium">
-                        {isRTL ? "فشل الإرسال" : "Failed to send"}
+                        {t('whatsappSettings.failedToSend')}
                       </span>
                       {lastResult.error && (
                         <span className="block text-xs opacity-75">
@@ -377,27 +355,27 @@ export function WhatsAppSettings() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            {isRTL ? "كيفية إعداد المزود" : "How to Configure Provider"}
+            {t('whatsappSettings.howToConfigure')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-sm text-muted-foreground">
           <div>
             <h4 className="font-medium text-foreground mb-1">WaSender</h4>
             <ol className="list-decimal list-inside space-y-1 ps-2">
-              <li>{isRTL ? "احصل على مفتاح API من حساب WaSender" : "Get API key from your WaSender account"}</li>
-              <li>{isRTL ? "أضف WASENDER_API_KEY في الإعدادات السرية" : "Add WASENDER_API_KEY in secrets settings"}</li>
-              <li>{isRTL ? "انقر على 'تفعيل' أعلاه لتفعيل WaSender" : "Click 'Activate' above to enable WaSender"}</li>
+              <li>{t('whatsappSettings.wasenderStep1')}</li>
+              <li>{t('whatsappSettings.wasenderStep2')}</li>
+              <li>{t('whatsappSettings.wasenderStep3')}</li>
             </ol>
           </div>
           <div>
             <h4 className="font-medium text-foreground mb-1">Twilio</h4>
             <ol className="list-decimal list-inside space-y-1 ps-2">
-              <li>{isRTL ? "أضف المفاتيح المطلوبة" : "Add required keys"}:
+              <li>{t('whatsappSettings.twilioStep1')}:
                 <code className="text-xs bg-muted px-1 rounded ms-1">TWILIO_ACCOUNT_SID</code>,
                 <code className="text-xs bg-muted px-1 rounded ms-1">TWILIO_AUTH_TOKEN</code>,
                 <code className="text-xs bg-muted px-1 rounded ms-1">TWILIO_WHATSAPP_NUMBER</code>
               </li>
-              <li>{isRTL ? "انقر على 'تفعيل' أعلاه لتفعيل Twilio" : "Click 'Activate' above to enable Twilio"}</li>
+              <li>{t('whatsappSettings.twilioStep2')}</li>
             </ol>
           </div>
         </CardContent>
