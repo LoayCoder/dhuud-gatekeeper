@@ -40,16 +40,16 @@ export function GatePassVerificationPanel() {
   const [itemStates, setItemStates] = useState<ItemVerificationState[]>([]);
 
   const verifyQR = useVerifyGatePassQR();
-  const confirmEntry = useConfirmGatePassEntry();
-  const confirmExit = useConfirmGatePassExit();
+  const guardAction = useGuardGateAction();
 
-  const isLoading = verifyQR.isPending || confirmEntry.isPending || confirmExit.isPending;
+  const isLoading = verifyQR.isPending || guardAction.isPending;
 
-  // Fetch real items and photos after QR verification
+  // Fetch real items and photos after QR verification using unified media hook
   const verifiedPassId = verificationResult?.valid ? verificationResult.gatePass?.id || null : null;
   const isPublic = verificationResult?.gatePass?.is_public_request || false;
-  const { data: rawItems, isLoading: itemsLoading } = useGatePassItems(verifiedPassId, isPublic);
-  const { data: photos, isLoading: photosLoading } = useGatePassPhotos(verifiedPassId, isPublic);
+  const { items: rawItems, photos, isLoading: mediaLoading } = useGatePassMedia(verifiedPassId, isPublic);
+  const itemsLoading = mediaLoading;
+  const photosLoading = mediaLoading;
 
   // Map fetched items to GatePassItem format with photo URLs
   const realItems: GatePassItem[] = useMemo(() => {
