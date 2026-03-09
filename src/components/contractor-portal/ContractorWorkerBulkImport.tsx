@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { useBulkImportContractorWorkers } from "./use-bulk-import-contractor-workers";
 import { useDropzone } from "react-dropzone";
-import * as XLSX from "xlsx";
+import { readExcelAsObjects, writeExcelAndDownload } from "@/lib/exceljs-utils";
 
 interface ContractorWorkerBulkImportProps {
   open: boolean;
