@@ -50,11 +50,11 @@ export default function GuardAttendance() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'all' | 'checked_in' | 'pending' | 'issues'>('all');
   const [dateFilter, setDateFilter] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const { data: attendance, isLoading, refetch } = useGuardAttendance({
     date: dateFilter,
-    status: statusFilter || undefined,
+    status: statusFilter !== 'all' ? statusFilter : undefined,
   });
 
   const { data: stats, isLoading: statsLoading } = useAttendanceStats();
@@ -238,7 +238,7 @@ export default function GuardAttendance() {
                   <SelectValue placeholder={t('common.allStatus', 'All Status')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t('common.all', 'All')}</SelectItem>
+                  <SelectItem value="all">{t('common.all', 'All')}</SelectItem>
                   <SelectItem value="checked_in">{t('security.checkedIn', 'Checked In')}</SelectItem>
                   <SelectItem value="checked_out">{t('security.checkedOut', 'Checked Out')}</SelectItem>
                   <SelectItem value="approved">{t('common.approved', 'Approved')}</SelectItem>
