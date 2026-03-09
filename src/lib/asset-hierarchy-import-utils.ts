@@ -176,15 +176,15 @@ function validateRow(row: Partial<ParsedHierarchyRow>, allRows: Partial<ParsedHi
 /**
  * Parse an Excel/CSV file containing asset hierarchy data
  */
-export function parseHierarchyFile(data: ArrayBuffer): ParseResult {
+export async function parseHierarchyFile(data: ArrayBuffer): Promise<ParseResult> {
   try {
-    const workbook = XLSX.read(data, { type: 'array' });
-    const sheetName = workbook.SheetNames.find(name => 
-      name.toLowerCase() !== 'instructions' && name.toLowerCase() !== 'lookups'
-    ) || workbook.SheetNames[0];
-    
-    const sheet = workbook.Sheets[sheetName];
-    const jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' });
+    const jsonData = await readExcelAsObjects<Record<string, unknown>>(data, {
+      sheetSelector: (names) => {
+        return names.find(name => 
+          name.toLowerCase() !== 'instructions' && name.toLowerCase() !== 'lookups'
+        ) || names[0];
+      }
+    });
     
     if (jsonData.length === 0) {
       return {
