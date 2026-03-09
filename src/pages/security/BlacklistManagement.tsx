@@ -1,5 +1,6 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { TFunction } from 'i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,18 +21,17 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { cn } from '@/lib/utils';
 import { BlacklistPhotoUpload, BlacklistPhotoAvatar } from '@/features/security';
 
-const addSchema = z.object({
-  full_name: z.string().min(2, 'Name is required'),
-  national_id: z.string().min(1, 'National ID is required'),
-  reason: z.string().min(10, 'Reason must be at least 10 characters'),
+const getAddSchema = (t: TFunction) => z.object({
+  full_name: z.string().min(2, t('visitors.blacklist.validation.nameRequired', 'Name is required')),
+  national_id: z.string().min(1, t('visitors.blacklist.validation.nationalIdRequired', 'National ID is required')),
+  reason: z.string().min(10, t('visitors.blacklist.validation.reasonMinLength', 'Reason must be at least 10 characters')),
   entity_type: z.enum(['visitor', 'worker', 'contractor']).default('visitor'),
 });
 
-type AddFormValues = z.infer<typeof addSchema>;
+type AddFormValues = z.infer<ReturnType<typeof getAddSchema>>;
 
 export default function BlacklistManagement() {
-  const { t, i18n } = useTranslation();
-  const isRTL = i18n.language === 'ar';
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -41,6 +41,8 @@ export default function BlacklistManagement() {
   const { data: blacklist, isLoading } = useSecurityBlacklist({ search: search || undefined });
   const addMutation = useAddToBlacklist();
   const removeMutation = useRemoveFromBlacklist();
+
+  const addSchema = getAddSchema(t);
 
   const form = useForm<AddFormValues>({
     resolver: zodResolver(addSchema),
@@ -87,9 +89,9 @@ export default function BlacklistManagement() {
 
   const entityTypeBadge = (type?: string | null) => {
     const config = {
-      visitor: { label: isRTL ? 'Ø²Ø§Ø¦Ø±' : 'Visitor', icon: Users, color: 'bg-blue-500/10 text-blue-600' },
-      worker: { label: isRTL ? 'Ø¹Ø§Ù…Ù„' : 'Worker', icon: HardHat, color: 'bg-amber-500/10 text-amber-600' },
-      contractor: { label: isRTL ? 'Ù…Ù‚Ø§ÙˆÙ„' : 'Contractor', icon: Building2, color: 'bg-purple-500/10 text-purple-600' },
+      visitor: { label: t('visitors.blacklist.entityVisitor', 'Visitor'), icon: Users, color: 'bg-blue-500/10 text-blue-600' },
+      worker: { label: t('visitors.blacklist.entityWorker', 'Worker'), icon: HardHat, color: 'bg-amber-500/10 text-amber-600' },
+      contractor: { label: t('visitors.blacklist.entityContractor', 'Contractor'), icon: Building2, color: 'bg-purple-500/10 text-purple-600' },
     };
     const c = config[(type as keyof typeof config) || 'visitor'] || config.visitor;
     return (
@@ -106,10 +108,10 @@ export default function BlacklistManagement() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <ShieldAlert className="h-6 w-6 text-destructive" />
-            {isRTL ? 'Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø³ÙˆØ¯Ø§Ø¡' : 'Blacklist Management'}
+            {t('visitors.blacklist.pageTitle', 'Blacklist Management')}
           </h1>
           <p className="text-muted-foreground">
-            {isRTL ? 'Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø²ÙˆØ§Ø± ÙˆØ§Ù„Ø¹Ù…Ø§Ù„ ÙˆØ§Ù„Ù…Ù‚Ø§ÙˆÙ„ÙŠÙ† Ø§Ù„Ù…Ø­Ø¸ÙˆØ±ÙŠÙ†' : 'Manage blocked visitors, workers, and contractors'}
+            {t('visitors.blacklist.pageDescription', 'Manage blocked visitors, workers, and contractors')}
           </p>
         </div>
         <Dialog open={addDialogOpen} onOpenChange={handleDialogClose}>
@@ -128,7 +130,7 @@ export default function BlacklistManagement() {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 {/* Photo Upload */}
                 <div className="space-y-2">
-                  <FormLabel>{isRTL ? 'Ø§Ù„ØµÙˆØ±Ø©' : 'Photo'}</FormLabel>
+                  <FormLabel>{t('visitors.blacklist.photo', 'Photo')}</FormLabel>
                   <BlacklistPhotoUpload
                     photoPath={photoPath}
                     onPhotoChange={setPhotoPath}
@@ -141,7 +143,7 @@ export default function BlacklistManagement() {
                   name="entity_type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{isRTL ? 'Ù†ÙˆØ¹ Ø§Ù„ÙƒÙŠØ§Ù†' : 'Entity Type'} *</FormLabel>
+                      <FormLabel>{t('visitors.blacklist.entityType', 'Entity Type')} *</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -149,9 +151,9 @@ export default function BlacklistManagement() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="visitor">{isRTL ? 'Ø²Ø§Ø¦Ø±' : 'Visitor'}</SelectItem>
-                          <SelectItem value="worker">{isRTL ? 'Ø¹Ø§Ù…Ù„' : 'Worker'}</SelectItem>
-                          <SelectItem value="contractor">{isRTL ? 'Ù…Ù‚Ø§ÙˆÙ„' : 'Contractor'}</SelectItem>
+                          <SelectItem value="visitor">{t('visitors.blacklist.entityVisitor', 'Visitor')}</SelectItem>
+                          <SelectItem value="worker">{t('visitors.blacklist.entityWorker', 'Worker')}</SelectItem>
+                          <SelectItem value="contractor">{t('visitors.blacklist.entityContractor', 'Contractor')}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -216,19 +218,19 @@ export default function BlacklistManagement() {
         <TabsList>
           <TabsTrigger value="all" className="gap-2">
             <ShieldAlert className="h-4 w-4" />
-            {isRTL ? 'Ø§Ù„ÙƒÙ„' : 'All'}
+            {t('visitors.blacklist.filterAll', 'All')}
           </TabsTrigger>
           <TabsTrigger value="visitor" className="gap-2">
             <Users className="h-4 w-4" />
-            {isRTL ? 'Ø²ÙˆØ§Ø±' : 'Visitors'}
+            {t('visitors.blacklist.filterVisitors', 'Visitors')}
           </TabsTrigger>
           <TabsTrigger value="worker" className="gap-2">
             <HardHat className="h-4 w-4" />
-            {isRTL ? 'Ø¹Ù…Ø§Ù„' : 'Workers'}
+            {t('visitors.blacklist.filterWorkers', 'Workers')}
           </TabsTrigger>
           <TabsTrigger value="contractor" className="gap-2">
             <Building2 className="h-4 w-4" />
-            {isRTL ? 'Ù…Ù‚Ø§ÙˆÙ„ÙˆÙ†' : 'Contractors'}
+            {t('visitors.blacklist.filterContractors', 'Contractors')}
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -264,8 +266,8 @@ export default function BlacklistManagement() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-16">{isRTL ? 'Ø§Ù„ØµÙˆØ±Ø©' : 'Photo'}</TableHead>
-                    <TableHead>{isRTL ? 'Ø§Ù„Ù†ÙˆØ¹' : 'Type'}</TableHead>
+                    <TableHead className="w-16">{t('visitors.blacklist.photo', 'Photo')}</TableHead>
+                    <TableHead>{t('visitors.blacklist.type', 'Type')}</TableHead>
                     <TableHead>{t('visitors.fields.name')}</TableHead>
                     <TableHead>{t('visitors.fields.nationalId')}</TableHead>
                     <TableHead>{t('visitors.blacklist.reasonLabel')}</TableHead>

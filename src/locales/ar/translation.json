@@ -6650,7 +6650,24 @@
       "camera": "كاميرا",
       "capture": "التقاط",
       "photoHint": "الحد الأقصى 5 ميجا، JPG/PNG/WebP",
-      "photoPreview": "معاينة الصورة"
+      "photoPreview": "معاينة الصورة",
+      "pageTitle": "إدارة القائمة السوداء",
+      "pageDescription": "إدارة الزوار والعمال والمقاولين المحظورين",
+      "photo": "الصورة",
+      "entityType": "نوع الكيان",
+      "type": "النوع",
+      "filterAll": "الكل",
+      "filterVisitors": "زوار",
+      "filterWorkers": "عمال",
+      "filterContractors": "مقاولون",
+      "entityVisitor": "زائر",
+      "entityWorker": "عامل",
+      "entityContractor": "مقاول",
+      "validation": {
+        "nameRequired": "الاسم مطلوب",
+        "nationalIdRequired": "رقم الهوية مطلوب",
+        "reasonMinLength": "يجب أن يكون السبب 10 أحرف على الأقل"
+      }
     },
     "register": {
       "title": "تسجيل زائر مسبقاً",

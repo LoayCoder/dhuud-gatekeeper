@@ -1,60 +1,63 @@
 
-
-# Fix Translation Issues for `/security/blacklist`
+# Fix "Take Action" Button for Department Representative
 
 ## Problem
-The `BlacklistManagement.tsx` page has ~15 instances of hardcoded `isRTL ? 'Arabic' : 'English'` ternary patterns instead of using `t()` calls. The Zod validation schema also has hardcoded English error messages.
+When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
 
-## Changes
+1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
+2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
 
-### 1. Add missing keys to `src/locales/en/translation.json`
+## What Changes
 
-Under `visitors.blacklist`, add:
-- `pageTitle`: "Blacklist Management"
-- `pageDescription`: "Manage blocked visitors, workers, and contractors"
-- `photo`: "Photo"
-- `entityType`: "Entity Type"
-- `type`: "Type"
-- `filterAll`: "All"
-- `filterVisitors`: "Visitors"
-- `filterWorkers`: "Workers"
-- `filterContractors`: "Contractors"
-- `entityVisitor`: "Visitor"
-- `entityWorker`: "Worker"
-- `entityContractor`: "Contractor"
-- `validation.nameRequired`: "Name is required"
-- `validation.nationalIdRequired`: "National ID is required"
-- `validation.reasonMinLength`: "Reason must be at least 10 characters"
+### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
 
-### 2. Add Arabic translations to `src/locales/ar/translation.json`
+The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
 
-Same keys with Arabic:
-- `pageTitle`: "إدارة القائمة السوداء"
-- `pageDescription`: "إدارة الزوار والعمال والمقاولين المحظورين"
-- `photo`: "الصورة"
-- `entityType`: "نوع الكيان"
-- `type`: "النوع"
-- `filterAll`: "الكل"
-- `filterVisitors`: "زوار"
-- `filterWorkers`: "عمال"
-- `filterContractors`: "مقاولون"
-- `entityVisitor`: "زائر"
-- `entityWorker`: "عامل"
-- `entityContractor`: "مقاول"
-- Plus validation keys in Arabic
+**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
 
-### 3. Refactor `BlacklistManagement.tsx`
+```typescript
+case 'pending_dept_rep_review':
+case 'pending_dept_rep_approval':
+  return (
+    <DeptRepApprovalCard
+      incident={incidentData}
+      onComplete={handleRefresh}
+    />
+  );
+```
 
-- Convert `addSchema` to `getAddSchema(t)` getter function pattern
-- Replace all `isRTL ? ... : ...` ternaries with `t()` calls
-- Replace hardcoded entity labels in `entityTypeBadge()` with `t()` calls
-- Replace hardcoded tab labels with `t()` calls
+### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
 
-### Files Modified
+The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
 
-| File | Change |
-|------|--------|
-| `src/locales/en/translation.json` | Add ~15 missing blacklist keys |
-| `src/locales/ar/translation.json` | Add ~15 Arabic translations |
-| `src/pages/security/BlacklistManagement.tsx` | Replace all ternaries with `t()`, localize Zod schema |
+**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
 
+```typescript
+<Button
+  size="lg"
+  className="shadow-lg px-8"
+  onClick={() => {
+    // Scroll to the workflow action card
+    const workflowCard = document.querySelector('[data-workflow-card]');
+    if (workflowCard) {
+      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }}
+>
+  Take Action
+  <ArrowRight className="h-4 w-4 ml-2" />
+</Button>
+```
+
+And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
+
+### 3. Localize the Button Text
+
+Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
+
+## Files Modified
+
+1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
+2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
+3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
+4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys

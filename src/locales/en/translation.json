@@ -1123,7 +1123,24 @@
         "remove": "Remove from Blacklist",
         "removeDescription": "Are you sure you want to remove this person from the blacklist?",
         "removeTitle": "Remove from Blacklist",
-        "searchPlaceholder": "Search blacklist..."
+        "searchPlaceholder": "Search blacklist...",
+        "pageTitle": "Blacklist Management",
+        "pageDescription": "Manage blocked visitors, workers, and contractors",
+        "photo": "Photo",
+        "entityType": "Entity Type",
+        "type": "Type",
+        "filterAll": "All",
+        "filterVisitors": "Visitors",
+        "filterWorkers": "Workers",
+        "filterContractors": "Contractors",
+        "entityVisitor": "Visitor",
+        "entityWorker": "Worker",
+        "entityContractor": "Contractor",
+        "validation": {
+          "nameRequired": "Name is required",
+          "nationalIdRequired": "National ID is required",
+          "reasonMinLength": "Reason must be at least 10 characters"
+        }
       },
       "fields": {
         "name": "Name",
