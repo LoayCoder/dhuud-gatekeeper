@@ -41,7 +41,7 @@ serve(async (req: Request) => {
         } else {
           throw new Error(result.error || 'Email send failed');
         }
-      } catch (sendError: unknown) {
+      } catch (sendError) {
         const newRetryCount = emailLog.retry_count + 1;
         const isLastRetry = newRetryCount >= MAX_RETRIES;
         const nextRetryAt = !isLastRetry && newRetryCount < RETRY_DELAYS.length ? new Date(Date.now() + RETRY_DELAYS[newRetryCount] * 1000).toISOString() : null;
