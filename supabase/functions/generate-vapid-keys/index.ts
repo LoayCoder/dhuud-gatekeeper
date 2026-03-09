@@ -64,7 +64,7 @@ serve(async (req) => {
         status: 200 
       }
     );
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Error generating VAPID keys:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return new Response(
