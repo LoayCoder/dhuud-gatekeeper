@@ -230,7 +230,7 @@ async function sendInductionToWorker(
     }
 
     return { success: true };
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Error sending induction to worker:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return { success: false, error: errorMessage };
