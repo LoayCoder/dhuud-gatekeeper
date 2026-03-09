@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => ({
       injectRegister: 'auto',
       includeAssets: ['favicon.ico', 'placeholder.svg', 'sw-version.js'],
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: ['index.html'],
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
@@ -101,14 +101,26 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        // NO manualChunks - let Rollup handle dependency order automatically
-        // This prevents ALL chunk loading order issues
         chunkFileNames: 'assets/[name]-[hash]-v5.js',
         entryFileNames: 'assets/[name]-[hash]-v5.js',
         assetFileNames: 'assets/[name]-[hash]-v5.[ext]',
+        manualChunks: {
+          'vendor-excel': ['exceljs'],
+          'vendor-pdf': ['jspdf', 'docx'],
+          'vendor-maps': ['leaflet', 'react-leaflet', '@react-leaflet/core'],
+          'vendor-charts': ['recharts'],
+          'vendor-ui': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-select',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-accordion',
+            '@radix-ui/react-tooltip',
+          ],
+        },
       },
     },
-    // Ensure consistent module deduplication
     commonjsOptions: {
       include: [/node_modules/],
       transformMixedEsModules: true,
