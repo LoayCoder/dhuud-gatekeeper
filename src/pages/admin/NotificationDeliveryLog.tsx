@@ -205,7 +205,7 @@ export default function NotificationDeliveryLog() {
               <Tabs value={sourceFilter} onValueChange={handleSourceTabChange}>
                 <TabsList>
                   <TabsTrigger value="all" className="gap-1.5">
-                    {isRTL ? 'Ø§Ù„ÙƒÙ„' : 'All'}
+                    {t('deliveryLog.all')}
                   </TabsTrigger>
                   <TabsTrigger value="hsse" className="gap-1.5">
                     <ShieldAlert className="h-3.5 w-3.5" />
