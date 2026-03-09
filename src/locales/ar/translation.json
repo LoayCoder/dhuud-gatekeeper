@@ -10051,7 +10051,10 @@
     "currentlyOnSite": "المتواجدون حالياً",
     "entityTypes": {
       "visitor": "الزوار",
-      "worker": "العمال"
+      "worker": "العمال",
+      "contractor": "مقاول",
+      "employee": "موظف",
+      "vehicle": "مركبة"
     },
     "gatePassApprovals": "موافقات تصاريح الدخول",
     "gatePassDescription": "تصاريح دخول المواد بانتظار موافقتك الأمنية",
@@ -10069,6 +10072,15 @@
       "visitors": "الزوار",
       "workers": "العمال"
     },
+    "mobileTabs": {
+      "onSite": "الموقع",
+      "approvals": "موافقات",
+      "gatePasses": "تصاريح",
+      "visitors": "زوار",
+      "workers": "عمال",
+      "analytics": "تحليلات",
+      "history": "سجل"
+    },
     "totalOnSite": "إجمالي المتواجدين",
     "trends": {
       "fromLastMonth": "+20.1% عن الشهر الماضي",
@@ -10082,7 +10094,28 @@
     "workerAccess": "وصول العمال",
     "workerAccessDescription": "أحدث عمليات دخول وخروج عمال المقاولين",
     "workerApprovals": "موافقات العمال",
-    "workersOnSite": "العمال"
+    "workersOnSite": "العمال",
+    "noEntries": "لا توجد سجلات دخول",
+    "onSite": "في الموقع",
+    "exit": "خروج",
+    "person": "الشخص",
+    "type": "النوع",
+    "entryTime": "الدخول",
+    "exitTime": "الخروج",
+    "status": "الحالة",
+    "recordExit": "تسجيل خروج",
+    "gateDashboard": "عمليات البوابة",
+    "entryRecorded": "تم تسجيل الدخول بنجاح",
+    "entryFailed": "فشل تسجيل الدخول",
+    "exitRecorded": "تم تسجيل الخروج بنجاح",
+    "exitFailed": "فشل تسجيل الخروج",
+    "accessDenied": "تم رفض الوصول",
+    "notClientSiteRep": "لا توجد لديك شركات مقاولات مسندة إليك كممثل موقع. تواصل مع المسؤول لتعيينك كممثل موقع العميل.",
+    "validationStatus": {
+      "valid": "صالح",
+      "warning": "تحذير",
+      "denied": "مرفوض"
+    }
   },
   "contractorPortal": {
     "gatePasses": {
