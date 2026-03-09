@@ -282,7 +282,7 @@ export function GatePassVerificationPanel() {
                       canConfirmEntry ? "bg-green-600 hover:bg-green-700" : "bg-muted text-muted-foreground"
                     )}
                   >
-                    {confirmEntry.isPending ? (
+                    {guardAction.isPending ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
                       <LogIn className="h-5 w-5" />
