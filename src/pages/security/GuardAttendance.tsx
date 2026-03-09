@@ -54,7 +54,7 @@ export default function GuardAttendance() {
 
   const { data: attendance, isLoading, refetch } = useGuardAttendance({
     date: dateFilter,
-    status: statusFilter || undefined,
+    status: statusFilter !== 'all' ? statusFilter : undefined,
   });
 
   const { data: stats, isLoading: statsLoading } = useAttendanceStats();
