@@ -196,7 +196,7 @@ export default function NotificationDeliveryLog() {
                   disabled={loading}
                 >
                   <RefreshCw className={`h-4 w-4 me-2 ${loading ? 'animate-spin' : ''}`} />
-                  {isRTL ? 'ØªØ­Ø¯ÙŠØ«' : 'Refresh'}
+                  {t('deliveryLog.refresh')}
                 </Button>
               </div>
             </CardHeader>
