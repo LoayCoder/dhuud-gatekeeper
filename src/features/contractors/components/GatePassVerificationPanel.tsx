@@ -276,7 +276,7 @@ export function GatePassVerificationPanel() {
                 {!verificationResult.gatePass.entry_time && (
                   <Button 
                     onClick={handleConfirmEntry} 
-                    disabled={confirmEntry.isPending || !canConfirmEntry}
+                    disabled={guardAction.isPending || !canConfirmEntry}
                     className={cn(
                       "flex-1 h-14 text-lg gap-2 rounded-xl",
                       canConfirmEntry ? "bg-green-600 hover:bg-green-700" : "bg-muted text-muted-foreground"
