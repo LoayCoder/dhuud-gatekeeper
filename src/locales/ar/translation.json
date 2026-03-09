@@ -9977,7 +9977,9 @@
   "permitToWork": "تصريح العمل",
   "installApp": "تثبيت التطبيق",
   "myAccount": "حسابي",
-  "acknowledged": "تم الإقرار",
+  "security": {
+    "zone": "المنطقة",
+    "acknowledged": "تم الإقرار",
   "active": "نشط",
   "activeAlerts": "تنبيهات نشطة",
   "activeGuards": "حراس نشطون",
