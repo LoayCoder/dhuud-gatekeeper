@@ -31,7 +31,7 @@ import { GatePassApprovalQueue } from '@/features/contractors';
 import { GatePassApprovalHistoryTab } from '@/features/contractors';
 
 export default function AccessControlDashboard() {
-  const { t } = useTranslation(['security', 'translation']);
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('overview');
   const [scannerOpen, setScannerOpen] = useState(false);
   const [entityFilter, setEntityFilter] = useState<EntityType | 'all'>('all');
