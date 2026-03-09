@@ -64,7 +64,7 @@ export function useGateEntries(filters?: GateEntryFilters) {
     queryFn: async () => {
       if (!tenantId) return [];
 
-      const { getGateEntries } = await import('@/services/security/gateQRService');
+      const { getGateEntries } = await import('@/features/security/services/gateQRService');
       return getGateEntries(tenantId, filters);
     },
     enabled: !!tenantId,
