@@ -238,7 +238,7 @@ export default function GuardAttendance() {
                   <SelectValue placeholder={t('common.allStatus', 'All Status')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t('common.all', 'All')}</SelectItem>
+                  <SelectItem value="all">{t('common.all', 'All')}</SelectItem>
                   <SelectItem value="checked_in">{t('security.checkedIn', 'Checked In')}</SelectItem>
                   <SelectItem value="checked_out">{t('security.checkedOut', 'Checked Out')}</SelectItem>
                   <SelectItem value="approved">{t('common.approved', 'Approved')}</SelectItem>
