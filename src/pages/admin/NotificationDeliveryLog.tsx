@@ -116,7 +116,7 @@ export default function NotificationDeliveryLog() {
   const copyWebhookUrl = () => {
     navigator.clipboard.writeText(WEBHOOK_URL);
     setWebhookUrlCopied(true);
-    toast.success(isRTL ? 'ØªÙ… Ù†Ø³Ø® Ø§Ù„Ø±Ø§Ø¨Ø·' : 'URL copied');
+    toast.success(t('deliveryLog.urlCopied'));
     setTimeout(() => setWebhookUrlCopied(false), 2000);
   };
 
