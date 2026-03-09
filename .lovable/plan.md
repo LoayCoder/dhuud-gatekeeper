@@ -1,49 +1,63 @@
 
+# Fix "Take Action" Button for Department Representative
 
-## Fix Translation Keys for `/security/handover` Page
+## Problem
+When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
 
-### Problem
-The English `security.handover` sub-object (line 1544 in `en/translation.json`) only has 11 keys, but the page and its sub-components (`ShiftHandover.tsx`, `VacationHandoverForm.tsx`, `HandoverApprovalDialog.tsx`) use ~30+ keys under `security.handover.*`. The missing keys fall back to the default string parameter in `t()` calls, meaning:
-- English works visually (fallback strings are English) but keys are untracked
-- Arabic translations exist in the correct location (line 9794) and should work via `parseJsonDedup` merge of duplicate `security` objects
+1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
+2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
 
-### Fix: Add missing keys to English `security.handover` object
+## What Changes
 
-In `src/locales/en/translation.json`, expand the `handover` object at line 1544 to include all keys used by the 3 components:
+### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
 
-**Keys to add** (to the existing `handover` object inside `security`):
-```json
-"vacationHandover": "Vacation/Resignation",
-"vacationResignation": "Vacation/Resignation",
-"vacationResignationList": "Vacation & Resignation Handovers",
-"vacationTitle": "Vacation/Resignation Handover",
-"vacationDesc": "This handover requires manager approval before assignment",
-"noVacationHandovers": "No vacation/resignation handovers",
-"assignedTo": "Assigned to",
-"completed": "Completed",
-"acknowledged": "Acknowledged",
-"pending": "Pending",
-"reviewHandover": "Review Handover",
-"reviewHandoverDesc": "Review and approve or reject this handover request",
-"assignFollowup": "Assign Follow-up Guard",
-"selectGuard": "Select a guard...",
-"rejectionReason": "Rejection Reason",
-"rejectionReasonPlaceholder": "Explain why this handover is being rejected...",
-"rejectHandover": "Reject",
-"approveHandover": "Approve & Assign",
-"confirmReject": "Confirm Rejection",
-"approveFailed": "Approval Failed",
-"rejectFailed": "Rejection Failed",
-"submitted": "Handover Submitted",
-"awaitingApproval": "Awaiting manager approval",
-"submitFailed": "Submission Failed",
-"type": "Handover Type",
-"typeDesc": "Select the reason for this handover"
+The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+
+**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+
+```typescript
+case 'pending_dept_rep_review':
+case 'pending_dept_rep_approval':
+  return (
+    <DeptRepApprovalCard
+      incident={incidentData}
+      onComplete={handleRefresh}
+    />
+  );
 ```
 
-Also verify the Arabic file's `handover` object (line 9794) has matching keys — from the read, it already has the core ones (`pending`, `acknowledged`, `approved`, `rejected`, `completed`, `vacation`, `resignation`, `vacationHandover`, `vacationResignation`, etc.). Will add any missing Arabic keys for the approval dialog strings.
+### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
 
-### Files Changed
-- `src/locales/en/translation.json` — expand `security.handover` object (~25 new keys)
-- `src/locales/ar/translation.json` — add missing approval dialog keys to `security.handover` object (~10 new keys)
+The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
 
+**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
+
+```typescript
+<Button
+  size="lg"
+  className="shadow-lg px-8"
+  onClick={() => {
+    // Scroll to the workflow action card
+    const workflowCard = document.querySelector('[data-workflow-card]');
+    if (workflowCard) {
+      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }}
+>
+  Take Action
+  <ArrowRight className="h-4 w-4 ml-2" />
+</Button>
+```
+
+And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
+
+### 3. Localize the Button Text
+
+Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
+
+## Files Modified
+
+1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
+2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
+3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
+4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
