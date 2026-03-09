@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useContractorCompanies, ContractorCompany } from "@/features/contractors/hooks/use-contractor-companies";
 import { useCreateContractorWorker } from "@/features/contractors/hooks/use-contractor-workers";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
+import { readExcelAsObjects, writeExcelAndDownload } from "@/lib/exceljs-utils";
 
 interface WorkerBulkImportDialogProps {
   open: boolean;
