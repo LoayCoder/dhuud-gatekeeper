@@ -34,7 +34,7 @@ export async function bulkCreateRiskDetails(assessmentId: string, hazards: any[]
 }
 
 export async function getRiskAssessmentTeam(assessmentId: string, tenantId: string) {
-  const { data, error } = await supabase.from('risk_assessment_team').select('*').eq('risk_assessment_id', assessmentId).eq('tenant_id', tenantId).is('deleted_at', null);
+  const { data, error } = await supabase.from('risk_assessment_team').select('id, tenant_id, risk_assessment_id, worker_id, user_id, role, role_ar, signed_at, is_required, created_at, updated_at').eq('risk_assessment_id', assessmentId).eq('tenant_id', tenantId).is('deleted_at', null);
   if (error) throw error;
   return data || [];
 }
