@@ -1861,8 +1861,14 @@
       },
       "sections": {
         "visitor": "Visitor Information",
-        "visit": "Visit Details"
-      }
+        "visit": "Visit Details",
+        "userType": "Visitor Type",
+        "host": "Host Information"
+      },
+      "requestSubmitted": "Request Submitted",
+      "pendingApproval": "Your visit request is pending security approval",
+      "approvalMessage": "Once approved, the visitor will receive their QR access code and the host will be notified via WhatsApp.",
+      "submitRequest": "Submit Request"
     },
     "fields": {
       "name": "Full Name",
