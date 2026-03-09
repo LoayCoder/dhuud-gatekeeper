@@ -7,6 +7,36 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+/**
+ * Verify the caller is authenticated by validating the JWT from the Authorization header.
+ * Returns the authenticated user or null.
+ */
+async function verifyCallerAuth(req: Request): Promise<{ userId: string; email: string } | null> {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return null;
+  }
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+
+  const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+
+  const token = authHeader.replace('Bearer ', '');
+  const { data, error } = await supabaseAuth.auth.getClaims(token);
+
+  if (error || !data?.claims?.sub) {
+    return null;
+  }
+
+  return {
+    userId: data.claims.sub as string,
+    email: (data.claims.email as string) || '',
+  };
+}
+
 interface LoginDetectionRequest {
   user_id?: string;
   email: string;
