@@ -183,7 +183,7 @@ export default function NotificationDeliveryLog() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <Clock className="h-5 w-5" />
-                    {isRTL ? 'Ø³Ø¬Ù„ ØªØ³Ù„ÙŠÙ… Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª' : 'Notification Delivery Log'}
+                    {t('deliveryLog.notificationDeliveryLog')}
                   </CardTitle>
                   <CardDescription>
                     {isRTL 
