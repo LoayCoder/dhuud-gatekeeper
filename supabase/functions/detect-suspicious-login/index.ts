@@ -325,16 +325,24 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
+    // Authenticate the caller - require a valid JWT
+    const caller = await verifyCallerAuth(req);
+    if (!caller) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const body: LoginDetectionRequest = await req.json();
     const clientIP = getClientIP(req);
+
+    // Enforce: caller can only log events for themselves (prevent spoofing other user_ids)
+    const effectiveUserId = caller.userId;
+    const effectiveEmail = caller.email || body.email;
     
     console.log('Processing login detection:', { 
-      email: body.email, 
+      email: effectiveEmail, 
       success: body.success,
       ip: clientIP 
     });
