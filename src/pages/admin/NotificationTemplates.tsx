@@ -57,7 +57,8 @@ import {
 import { cn } from '@/lib/utils';
 
 export default function NotificationTemplates() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const direction = i18n.dir();
   const { data: templates = [], isLoading } = useNotificationTemplates();
   const createTemplate = useCreateTemplate();
   const updateTemplate = useUpdateTemplate();
@@ -72,7 +73,6 @@ export default function NotificationTemplates() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
 
-  // Selection helpers
   const allSelected = useMemo(
     () => templates.length > 0 && selectedIds.size === templates.length,
     [templates.length, selectedIds.size]
@@ -147,7 +147,6 @@ export default function NotificationTemplates() {
     });
   };
 
-  // Bulk actions
   const handleBulkActivate = () => {
     bulkUpdateStatus.mutate(
       { ids: Array.from(selectedIds), is_active: true },
@@ -225,20 +224,19 @@ export default function NotificationTemplates() {
     <div className="container py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{t('Notification Templates Generator')}</h1>
+          <h1 className="text-2xl font-bold">{t('templates.pageTitle')}</h1>
           <p className="text-muted-foreground">
-            {t('Create and manage notification templates for WhatsApp and Email channels')}
+            {t('templates.pageDescription')}
           </p>
         </div>
         <Button onClick={handleCreate}>
           <Plus className="h-4 w-4 me-2" />
-          {t('Create Template')}
+          {t('templates.createTemplate')}
         </Button>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
-          {/* Bulk actions toolbar */}
           <TemplateBulkActionsToolbar
             selectedCount={selectedIds.size}
             onClearSelection={clearSelection}
@@ -251,10 +249,10 @@ export default function NotificationTemplates() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                {t('Templates')}
+                {t('templates.templatesTitle')}
               </CardTitle>
               <CardDescription>
-                {templates.length} {t('templates configured')}
+                {t('templates.templatesConfigured', { count: templates.length })}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -265,9 +263,9 @@ export default function NotificationTemplates() {
               ) : templates.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>{t('No templates yet')}</p>
+                  <p>{t('templates.noTemplatesYet')}</p>
                   <Button variant="link" onClick={handleCreate}>
-                    {t('Create your first template')}
+                    {t('templates.createFirstTemplate')}
                   </Button>
                 </div>
               ) : (
@@ -281,16 +279,16 @@ export default function NotificationTemplates() {
                             // @ts-expect-error - indeterminate is valid
                             indeterminate={someSelected}
                             onCheckedChange={toggleSelectAll}
-                            aria-label={t('Select all')}
+                            aria-label={t('templates.selectAll')}
                           />
                         </TableHead>
                         <TableHead className="w-16 text-center">{t('templates.srNo')}</TableHead>
-                        <TableHead>{t('Slug')}</TableHead>
+                        <TableHead>{t('templates.slug')}</TableHead>
                         <TableHead>{t('templates.language')}</TableHead>
-                        <TableHead>{t('Channel')}</TableHead>
-                        <TableHead>{t('Category')}</TableHead>
+                        <TableHead>{t('templates.channel')}</TableHead>
+                        <TableHead>{t('templates.category')}</TableHead>
                         <TableHead>{t('templates.status')}</TableHead>
-                        <TableHead className="w-16">{t('Actions')}</TableHead>
+                        <TableHead className="w-16">{t('templates.actions')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -303,7 +301,7 @@ export default function NotificationTemplates() {
                             <Checkbox
                               checked={selectedIds.has(template.id)}
                               onCheckedChange={() => toggleSelect(template.id)}
-                              aria-label={t('Select template')}
+                              aria-label={t('templates.selectTemplate')}
                             />
                           </TableCell>
                           <TableCell className="text-center text-muted-foreground font-mono">
@@ -343,7 +341,7 @@ export default function NotificationTemplates() {
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => handleEdit(template)}>
                                   <Pencil className="h-4 w-4 me-2" />
-                                  {t('Edit')}
+                                  {t('templates.edit')}
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={() => handleToggleActive(template)}>
@@ -365,7 +363,7 @@ export default function NotificationTemplates() {
                                   className="text-destructive"
                                 >
                                   <Trash2 className="h-4 w-4 me-2" />
-                                  {t('Delete')}
+                                  {t('templates.delete')}
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -395,20 +393,20 @@ export default function NotificationTemplates() {
 
       {/* Single delete dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent dir={direction}>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('Delete Template')}</AlertDialogTitle>
+            <AlertDialogTitle>{t('templates.deleteTemplate')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('Are you sure you want to delete this template? This action cannot be undone.')}
+              {t('templates.deleteConfirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
+            <AlertDialogCancel>{t('templates.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-destructive text-destructive-foreground"
             >
-              {t('Delete')}
+              {t('templates.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -416,7 +414,7 @@ export default function NotificationTemplates() {
 
       {/* Bulk delete dialog */}
       <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent dir={direction}>
           <AlertDialogHeader>
             <AlertDialogTitle>{t('templates.deleteMultiple')}</AlertDialogTitle>
             <AlertDialogDescription>
@@ -424,12 +422,12 @@ export default function NotificationTemplates() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
+            <AlertDialogCancel>{t('templates.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmBulkDelete}
               className="bg-destructive text-destructive-foreground"
             >
-              {t('Delete')} ({selectedIds.size})
+              {t('templates.delete')} ({selectedIds.size})
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
