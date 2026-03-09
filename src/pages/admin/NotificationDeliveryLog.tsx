@@ -62,7 +62,7 @@ const RECIPIENT_TYPE_ICONS: Record<string, string> = {
 };
 
 export default function NotificationDeliveryLog() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
   const dateLocale = isRTL ? ar : enUS;
   
