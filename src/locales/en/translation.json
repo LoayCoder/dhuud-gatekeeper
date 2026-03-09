@@ -11388,5 +11388,133 @@
     "shiftHandover": "Shift Handover",
     "guardPerformance": "Guard Performance",
     "reportSchedules": "Report Schedules"
+  },
+  "actionCenter": {
+    "title": "Action Center",
+    "description": "Unified operational hub — execute tasks across all modules from one place",
+    "overview": "Overview",
+    "overviewDesc": "Cross-module summary of items requiring attention",
+    "sections": {
+      "operations": "Operations",
+      "operationsDesc": "Incident and observation management",
+      "accessControl": "Access Control",
+      "accessControlDesc": "Gate passes and access management",
+      "compliance": "Compliance & Quality",
+      "complianceDesc": "Inspections, audits, and compliance tracking",
+      "workforce": "Workforce & Contractors",
+      "workforceDesc": "Contractor management and compliance",
+      "administration": "Administration",
+      "administrationDesc": "User management and security"
+    },
+    "stats": {
+      "overdue": "Overdue Items",
+      "pendingApprovals": "Pending Approvals",
+      "inProgress": "In Progress",
+      "totalActions": "Total Open Actions"
+    },
+    "kpi": {
+      "overdue": "Overdue",
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "total": "Total",
+      "active": "Active",
+      "scheduled": "Scheduled",
+      "pendingActions": "Pending Actions",
+      "pendingApproval": "Pending",
+      "approved": "Approved",
+      "expiring": "Expiring",
+      "investigations": "Investigations",
+      "totalUsers": "Total Users",
+      "activeUsers": "Active",
+      "pendingInvites": "Pending",
+      "openFindings": "Open Findings",
+      "totalAssigned": "Total"
+    },
+    "modules": {
+      "incidents": {
+        "title": "Incidents Management",
+        "description": "Report, investigate, track, and close incidents"
+      },
+      "observations": {
+        "title": "Observations",
+        "description": "Submit, review, escalate, and close observations"
+      },
+      "gatePasses": {
+        "title": "Gate Passes",
+        "description": "People, vehicle, and material gate passes with approval workflows"
+      },
+      "inspections": {
+        "title": "Inspections",
+        "description": "Scheduled and ad-hoc inspections with follow-up actions"
+      },
+      "audits": {
+        "title": "Audits",
+        "description": "Audit planning, execution, findings, and corrective action tracking"
+      },
+      "contractors": {
+        "title": "Contractors Management",
+        "description": "Contractor registration, approval, and compliance monitoring"
+      },
+      "videoInduction": {
+        "title": "Company Video Induction",
+        "description": "Assignment, tracking, and verification of mandatory video inductions"
+      },
+      "users": {
+        "title": "User Management",
+        "description": "User creation, role assignment, and access control"
+      },
+      "passwordReset": {
+        "title": "Password Reset",
+        "description": "Secure self-service and admin-controlled password reset"
+      }
+    },
+    "actions": {
+      "reportIncident": "Report Incident",
+      "viewAll": "View All",
+      "myActions": "My Actions",
+      "investigate": "Investigation Workspace",
+      "pendingApprovals": "Pending Approvals",
+      "dashboard": "Dashboard",
+      "reportObservation": "Report Observation",
+      "reviewPending": "Review Pending",
+      "createGatePass": "Create Gate Pass",
+      "myGatePasses": "My Gate Passes",
+      "deptDashboard": "Dept Dashboard",
+      "todayPasses": "Today's Passes",
+      "history": "History",
+      "startInspection": "Start Inspection",
+      "viewSessions": "Active Sessions",
+      "myInspectionActions": "My Actions",
+      "schedules": "Schedules",
+      "startAudit": "Start Audit",
+      "viewAudits": "View Audits",
+      "openFindings": "Open Findings",
+      "registerContractor": "Register Contractor",
+      "viewCompanies": "View Companies",
+      "manageWorkers": "Workers",
+      "contractorGatePasses": "Gate Passes",
+      "analytics": "Analytics",
+      "viewInductions": "View Inductions",
+      "pendingVerification": "Pending Verification",
+      "completionTracking": "Completion Tracking",
+      "manageVideos": "Manage Videos",
+      "manageUsers": "Manage Users",
+      "roleAssignment": "Role Assignment",
+      "menuAccess": "Menu Access",
+      "orgStructure": "Org Structure",
+      "auditLog": "Security Audit",
+      "resetPassword": "Self-Service Reset",
+      "adminReset": "Admin Reset (Manage Users)",
+      "securityDashboard": "Security Dashboard"
+    },
+    "pipeline": {
+      "title": "Notification Delivery (24h)",
+      "sent": "Sent",
+      "pending": "Pending",
+      "failed": "Failed",
+      "total": "Total (24h)",
+      "successRate": "success"
+    }
   }
 }
