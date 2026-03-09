@@ -68,7 +68,7 @@ export default function CCTVManagement() {
   const [showAddDialog, setShowAddDialog] = useState(false);
 
   const { data: cameras, isLoading, refetch } = useCCTVCameras({
-    status: statusFilter || undefined,
+    status: statusFilter && statusFilter !== 'all' ? statusFilter : undefined,
   });
   const { data: stats, isLoading: statsLoading } = useCameraStats();
   const deleteMutation = useDeleteCamera();
