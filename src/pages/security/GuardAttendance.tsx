@@ -275,7 +275,7 @@ export default function GuardAttendance() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t('common.guard', 'Guard')}</TableHead>
-                    <TableHead>{t('security.zone', 'Zone')}</TableHead>
+                    <TableHead>{t('security.zoneName', 'Zone')}</TableHead>
                     <TableHead>{t('security.checkIn', 'Check In')}</TableHead>
                     <TableHead>{t('security.checkOut', 'Check Out')}</TableHead>
                     <TableHead>{t('security.hoursWorked', 'Hours')}</TableHead>
@@ -341,8 +341,8 @@ export default function GuardAttendance() {
                                 {format(new Date(record.check_out_at), 'HH:mm')}
                               </div>
                               {record.overtime_minutes > 0 && (
-                                <Badge variant="outline" className="text-xs border-success text-success">
-                                  +{record.overtime_minutes}m
+                              <Badge variant="outline" className="text-xs border-success text-success">
+                                  {t('security.overtime', '{{minutes}} min overtime', { minutes: record.overtime_minutes })}
                                 </Badge>
                               )}
                             </div>
