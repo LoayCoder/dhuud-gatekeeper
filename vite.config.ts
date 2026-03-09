@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => ({
       injectRegister: 'auto',
       includeAssets: ['favicon.ico', 'placeholder.svg', 'sw-version.js'],
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: ['index.html'],
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
