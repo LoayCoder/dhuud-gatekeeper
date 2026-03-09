@@ -1870,6 +1870,17 @@
       "approvalMessage": "Once approved, the visitor will receive their QR access code and the host will be notified via WhatsApp.",
       "submitRequest": "Submit Request"
     },
+    "userType": {
+      "external": "External Visitor",
+      "externalDesc": "No platform access",
+      "internal": "Internal User",
+      "internalDesc": "Has platform access"
+    },
+    "scan": {
+      "scanSuccess": "ID scanned successfully",
+      "scanId": "Scan ID",
+      "scanning": "Scanning..."
+    },
     "fields": {
       "name": "Full Name",
       "company": "Company",
@@ -1883,7 +1894,14 @@
       "startDate": "Start Date",
       "startTime": "Start Time",
       "endDate": "End Date",
-      "endTime": "End Time"
+      "endTime": "End Time",
+      "phone": "Mobile Number",
+      "nationality": "Nationality",
+      "hostUser": "Select Host",
+      "hostUserDesc": "The internal user who will host this visitor",
+      "hostName": "Host Name",
+      "hostPhone": "Host Mobile",
+      "hostEmail": "Host Email"
     },
     "placeholders": {
       "name": "Enter full name",
@@ -1891,7 +1909,30 @@
       "email": "Enter email address",
       "nationalId": "Enter national ID number",
       "site": "Select destination site",
-      "notes": "Add any security notes or instructions..."
+      "notes": "Add any security notes or instructions...",
+      "phone": "Enter mobile number",
+      "nationality": "Select nationality",
+      "selectHost": "Select a host from the organization",
+      "hostName": "Enter host name",
+      "hostPhone": "For WhatsApp notification",
+      "hostEmail": "Enter email address"
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "phoneRequired": "Valid phone number is required",
+      "companyRequired": "Company name is required",
+      "nationalIdRequired": "National ID is required",
+      "nationalityRequired": "Nationality is required",
+      "branchRequired": "Branch is required",
+      "siteRequired": "Site is required",
+      "startDateRequired": "Start date is required",
+      "startTimeRequired": "Start time is required",
+      "endDateRequired": "End date is required",
+      "endTimeRequired": "End time is required",
+      "purposeRequired": "Purpose of visit is required",
+      "emailRequired": "Valid email is required",
+      "hostRequired": "Host information is required",
+      "endAfterStart": "End date/time must be after start date/time"
     }
   },
   "dashboard": {
