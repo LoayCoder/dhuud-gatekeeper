@@ -147,7 +147,7 @@ export default function NotificationDeliveryLog() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
                 <ExternalLink className="h-4 w-4" />
-                {isRTL ? 'Ø±Ø§Ø¨Ø· Webhook Ù„Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª' : 'Notification Webhook URL'}
+                {t('deliveryLog.webhookUrl')}
               </CardTitle>
               <CardDescription className="text-xs">
                 {isRTL 
