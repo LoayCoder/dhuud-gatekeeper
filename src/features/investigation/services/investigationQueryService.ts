@@ -4,7 +4,7 @@ import type { Investigation, CorrectiveAction, IncidentAuditLog, FiveWhyEntry, R
 export const getInvestigation = async (incidentId: string) => {
     const { data: invData, error: invError } = await supabase
         .from('investigations')
-        .select('*')
+        .select('id, incident_id, investigator_id, started_at, completed_at, immediate_cause, underlying_cause, root_cause, contributing_factors, contributing_factors_list, findings_summary, five_whys, root_causes, ai_summary, ai_summary_generated_at, ai_summary_language, tenant_id, created_at, updated_at, assigned_by, assigned_at, assignment_notes, branch_id')
         .eq('incident_id', incidentId)
         .is('deleted_at', null)
         .maybeSingle();
