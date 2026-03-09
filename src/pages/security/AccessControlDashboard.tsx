@@ -222,7 +222,7 @@ export default function AccessControlDashboard() {
             <TabsTrigger value="overview" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">{t('accessControl.tabs.onSite', 'On Site')}</span>
-              <span className="sm:hidden">On Site</span>
+              <span className="sm:hidden">{t('accessControl.mobileTabs.onSite', 'On Site')}</span>
               {(stats?.totalOnSite ?? 0) > 0 && (
                 <Badge variant="secondary" className="ms-1 text-[10px] h-5 px-1.5 min-w-[1.25rem]">{stats?.totalOnSite}</Badge>
               )}
