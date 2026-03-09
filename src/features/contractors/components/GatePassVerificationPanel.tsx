@@ -176,8 +176,8 @@ export function GatePassVerificationPanel() {
   const hasVehicle = verificationResult?.gatePass?.vehicle_plate || verificationResult?.gatePass?.driver_name;
   const allVehicleChecks = !hasVehicle || (vehicleVerified.plateMatches && vehicleVerified.driverVerified);
   const allItemChecks = realItems.length === 0 || itemsVerified;
-  const canConfirmEntry = verificationResult?.valid && !verificationResult.gatePass?.entry_time && allVehicleChecks && allItemChecks && !itemsLoading;
-  const canConfirmExit = verificationResult?.valid && verificationResult.gatePass?.entry_time && !verificationResult.gatePass?.exit_time;
+  const canConfirmEntry = verificationResult?.valid && !verificationResult.gatePass?.entry_time && allVehicleChecks && allItemChecks && !itemsLoading && !guardAction.isPending;
+  const canConfirmExit = verificationResult?.valid && verificationResult.gatePass?.entry_time && !verificationResult.gatePass?.exit_time && !guardAction.isPending;
 
   return (
     <div className="flex flex-col min-h-[calc(100vh-200px)]">
