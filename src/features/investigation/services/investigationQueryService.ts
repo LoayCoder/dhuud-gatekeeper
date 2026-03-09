@@ -14,7 +14,7 @@ export const getInvestigation = async (incidentId: string) => {
 
     const { data: rcaData, error: rcaError } = await supabase
         .from('incident_rca')
-        .select('*')
+        .select('id, incident_id, five_whys, root_causes, contributing_factors, immediate_causes, underlying_causes, is_locked, locked_by, locked_at, tenant_id, created_at, updated_at')
         .eq('incident_id', incidentId)
         .maybeSingle();
 
