@@ -592,29 +592,13 @@ export async function exportAssetHierarchy(): Promise<boolean> {
       });
     });
 
-    // Create workbook
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(exportData);
-
-    // Set column widths
-    ws['!cols'] = [
-      { wch: 12 },  // Level
-      { wch: 20 },  // Code
-      { wch: 30 },  // Name (EN)
-      { wch: 30 },  // Name (AR)
-      { wch: 40 },  // Description (EN)
-      { wch: 40 },  // Description (AR)
-      { wch: 20 },  // Parent Code
-      { wch: 12 },  // Is Critical
-      { wch: 18 },  // Response Type
-      { wch: 12 },  // Sort Order
-    ];
-
-    XLSX.utils.book_append_sheet(wb, ws, 'Hierarchy');
-
-    // Download file
+    // Create workbook and download
     const timestamp = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(wb, `asset_hierarchy_export_${timestamp}.xlsx`);
+    await writeExcelAndDownload([{
+      name: 'Hierarchy',
+      data: exportData,
+      columnWidths: [12, 20, 30, 30, 40, 40, 20, 12, 18, 12],
+    }], `asset_hierarchy_export_${timestamp}.xlsx`);
     
     return true;
   } catch (error) {

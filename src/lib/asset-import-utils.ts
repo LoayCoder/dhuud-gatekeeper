@@ -419,60 +419,39 @@ export async function generateAssetImportTemplate(options: GenerateAssetTemplate
   URL.revokeObjectURL(url);
 }
 
-export function parseAssetExcelFile(file: File): Promise<ImportAsset[]> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    
-    reader.onload = (e) => {
-      try {
-        const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
-        
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
-          header: 1,
-          defval: ''
-        }) as unknown[][];
-        
-        // Skip header and instruction rows
-        const dataRows = jsonData.slice(2);
-        
-        const assets: ImportAsset[] = dataRows
-          .filter(row => row && row[0]) // Filter out empty rows
-          .map(row => ({
-            name: String(row[0] || '').trim(),
-            category_name: String(row[1] || '').trim(),
-            type_name: String(row[2] || '').trim(),
-            subtype_name: String(row[3] || '').trim() || undefined,
-            serial_number: String(row[4] || '').trim() || undefined,
-            manufacturer: String(row[5] || '').trim() || undefined,
-            model: String(row[6] || '').trim() || undefined,
-            description: String(row[7] || '').trim() || undefined,
-            branch_name: String(row[8] || '').trim() || undefined,
-            site_name: String(row[9] || '').trim() || undefined,
-            building_name: String(row[10] || '').trim() || undefined,
-            floor_zone_name: String(row[11] || '').trim() || undefined,
-            status: String(row[12] || '').toLowerCase().trim() || undefined,
-            condition_rating: String(row[13] || '').toLowerCase().trim() || undefined,
-            criticality_level: String(row[14] || '').toLowerCase().trim() || undefined,
-            installation_date: parseDate(row[15]),
-            commissioning_date: parseDate(row[16]),
-            warranty_expiry_date: parseDate(row[17]),
-            inspection_interval_days: parseNumber(row[18]),
-            tags: String(row[19] || '').trim() || undefined,
-          }));
-        
-        resolve(assets);
-      } catch (error) {
-        reject(new Error('Failed to parse Excel file'));
-      }
-    };
-    
-    reader.onerror = () => reject(new Error('Failed to read file'));
-    reader.readAsArrayBuffer(file);
-  });
+export async function parseAssetExcelFile(file: File): Promise<ImportAsset[]> {
+  const buffer = await file.arrayBuffer();
+  const rows = await readExcelAsRows(buffer);
+  
+  // Skip header and instruction rows
+  const dataRows = rows.slice(2);
+  
+  const assets: ImportAsset[] = dataRows
+    .filter(row => row && row[0]) // Filter out empty rows
+    .map(row => ({
+      name: String(row[0] || '').trim(),
+      category_name: String(row[1] || '').trim(),
+      type_name: String(row[2] || '').trim(),
+      subtype_name: String(row[3] || '').trim() || undefined,
+      serial_number: String(row[4] || '').trim() || undefined,
+      manufacturer: String(row[5] || '').trim() || undefined,
+      model: String(row[6] || '').trim() || undefined,
+      description: String(row[7] || '').trim() || undefined,
+      branch_name: String(row[8] || '').trim() || undefined,
+      site_name: String(row[9] || '').trim() || undefined,
+      building_name: String(row[10] || '').trim() || undefined,
+      floor_zone_name: String(row[11] || '').trim() || undefined,
+      status: String(row[12] || '').toLowerCase().trim() || undefined,
+      condition_rating: String(row[13] || '').toLowerCase().trim() || undefined,
+      criticality_level: String(row[14] || '').toLowerCase().trim() || undefined,
+      installation_date: parseDate(row[15]),
+      commissioning_date: parseDate(row[16]),
+      warranty_expiry_date: parseDate(row[17]),
+      inspection_interval_days: parseNumber(row[18]),
+      tags: String(row[19] || '').trim() || undefined,
+    }));
+  
+  return assets;
 }
 
 function parseDate(value: unknown): string | undefined {
