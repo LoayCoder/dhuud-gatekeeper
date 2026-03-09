@@ -50,7 +50,7 @@ export default function GuardAttendance() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'all' | 'checked_in' | 'pending' | 'issues'>('all');
   const [dateFilter, setDateFilter] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const { data: attendance, isLoading, refetch } = useGuardAttendance({
     date: dateFilter,
