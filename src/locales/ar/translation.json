@@ -5679,7 +5679,55 @@
       "findingsSummary": "ملخص النتائج"
     }
   },
-  "inspectionDashboard": "لوحة التفتيش",
+  "inspectionDashboard": {
+    "title": "لوحة التفتيش",
+    "description": "نظرة عامة على جلسات التفتيش والامتثال والنتائج",
+    "viewAllSessions": "عرض جميع الجلسات",
+    "analytics": "التحليلات",
+    "stats": {
+      "totalSessions": "إجمالي الجلسات",
+      "inProgress": "قيد التنفيذ",
+      "avgCompliance": "متوسط الامتثال",
+      "openFindings": "نتائج مفتوحة"
+    },
+    "overdueAlert": {
+      "title": "تفتيشات متأخرة",
+      "description": "{{count}} أصول متأخرة عن موعد التفتيش",
+      "viewAssets": "عرض الأصول"
+    },
+    "charts": {
+      "complianceTrend": "اتجاه الامتثال",
+      "complianceTrendDesc": "متوسط معدل الامتثال خلال الأشهر الستة الماضية",
+      "findingsDistribution": "توزيع النتائج",
+      "findingsDistributionDesc": "تفصيل حسب نوع التصنيف",
+      "noData": "لا توجد بيانات",
+      "compliance": "الامتثال",
+      "count": "العدد"
+    },
+    "recentFindings": {
+      "title": "النتائج المفتوحة الأخيرة",
+      "description": "أحدث النتائج التي تتطلب اهتمامًا",
+      "noFindings": "لا توجد نتائج مفتوحة",
+      "noDescription": "لم يتم تقديم وصف"
+    },
+    "classifications": {
+      "critical_nc": "عدم مطابقة حرج",
+      "major_nc": "عدم مطابقة رئيسي",
+      "minor_nc": "عدم مطابقة ثانوي",
+      "observation": "ملاحظة",
+      "ofi": "فرصة للتحسين"
+    },
+    "export": {
+      "title": "تصدير",
+      "pdf": "تصدير كـ PDF",
+      "csv": "تصدير كـ CSV",
+      "excel": "تصدير كـ Excel",
+      "pdfSuccess": "تم إنشاء تقرير PDF",
+      "csvSuccess": "تم تصدير CSV",
+      "excelSuccess": "تم تصدير Excel",
+      "error": "فشل التصدير"
+    }
+  },
   "myInspections": {
     "title": "فحوصاتي",
     "upcomingScheduled": "الجدولة القادمة",
