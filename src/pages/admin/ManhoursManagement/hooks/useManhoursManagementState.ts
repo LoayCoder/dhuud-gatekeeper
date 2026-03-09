@@ -6,7 +6,7 @@ import { useManhours, useCreateManhour, useUpdateManhour, useDeleteManhour, useM
 import { useBranches } from '@/hooks/use-branches';
 import { useSites } from '@/hooks/use-sites';
 import { useDepartmentsByBranch } from '@/hooks/use-departments-by-site';
-import * as XLSX from 'xlsx';
+import { readExcelAsObjects, writeExcelAndDownload } from '@/lib/exceljs-utils';
 import { ManhourFormData, ImportRow, defaultFormData, getDefaultWorkingDays } from '../types';
 
 export function useManhoursManagementState() {
