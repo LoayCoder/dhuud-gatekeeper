@@ -379,9 +379,9 @@ serve(async (req) => {
     const { error: insertError } = await supabase
       .from('login_history')
       .insert({
-        user_id: body.user_id,
+        user_id: effectiveUserId,
         tenant_id: tenantId,
-        email: body.email,
+        email: effectiveEmail,
         ip_address: clientIP,
         country_code: geoLocation.country_code,
         country_name: geoLocation.country_name,
