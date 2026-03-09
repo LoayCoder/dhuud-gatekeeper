@@ -231,7 +231,7 @@ export default function AccessControlDashboard() {
             <TabsTrigger value="approvals" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <ClipboardCheck className="h-4 w-4" />
               <span className="hidden sm:inline">{t('accessControl.tabs.approvals', 'Approvals')}</span>
-              <span className="sm:hidden">Apps</span>
+              <span className="sm:hidden">{t('accessControl.mobileTabs.approvals', 'Apps')}</span>
               {totalPendingApprovals > 0 && (
                 <Badge variant="destructive" className="ms-1 text-[10px] h-5 px-1.5 min-w-[1.25rem] animate-pulse">{totalPendingApprovals}</Badge>
               )}
