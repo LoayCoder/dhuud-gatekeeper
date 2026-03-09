@@ -37,7 +37,7 @@ const getCSPHeader = () => {
     `font-src 'self' https://fonts.gstatic.com data:`,
     
     // Connect - API endpoints, Supabase, WebSockets
-    `connect-src 'self' ${SUPABASE_PROJECT_URL} wss://*.supabase.co https://api.ipify.org https://*.lovable.app`,
+    `connect-src 'self' ${SUPABASE_PROJECT_URL} wss://*.supabase.co https://*.lovable.app`,
     
     // Media - audio/video from self and Supabase
     `media-src 'self' ${SUPABASE_PROJECT_URL} blob:`,
