@@ -194,7 +194,7 @@ export default function PublicStatusPage() {
     });
   }, [queryClient, tenantSlug, token]);
 
-  usePublicGatePassRealtime(data?.gate_pass?.id);
+  usePublicGatePassRealtime(data?.gate_pass?.id, handleRealtimeUpdate);
 
   const brandColor = data?.tenant?.brand_color || "221.2 83.2% 53.3%";
   const brandStyle = {
@@ -428,15 +428,15 @@ export default function PublicStatusPage() {
                 </h4>
                 <div className="space-y-3">
                   {gatePass.items?.map((item: {
-                    id: string;
+                    id?: string;
                     item_name: string;
-                    quantity: number;
-                    unit: string;
+                    quantity?: string;
+                    unit?: string;
                     description?: string;
                     sr_number?: string;
                     photo_storage_path?: string;
-                  }) => (
-                    <Card key={item.id} className="overflow-hidden border shadow-sm hover:shadow-md transition-shadow">
+                  }, idx: number) => (
+                    <Card key={item.id || idx} className="overflow-hidden border shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex">
                         {/* Image Section */}
                         <div className="w-24 h-24 sm:w-32 sm:h-32 bg-muted shrink-0 relative group cursor-pointer border-e">
