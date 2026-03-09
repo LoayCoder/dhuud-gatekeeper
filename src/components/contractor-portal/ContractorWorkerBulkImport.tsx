@@ -87,50 +87,44 @@ export default function ContractorWorkerBulkImport({
     onOpenChange(open);
   }, [onOpenChange, resetState]);
 
-  const parseFile = useCallback((file: File) => {
+  const parseFile = useCallback(async (file: File) => {
     setParseError(null);
     setFileName(file.name);
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: "array" });
-        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-        const jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(firstSheet, { defval: "" });
+    try {
+      const buffer = await file.arrayBuffer();
+      const jsonData = await readExcelAsObjects<Record<string, unknown>>(buffer);
 
-        if (jsonData.length === 0) {
-          setParseError(t("contractorPortal.bulkImport.emptyFile", "The file is empty or has no valid data rows."));
-          return;
-        }
-
-        // Map columns using aliases
-        const mappedWorkers: ParsedWorker[] = jsonData.map((row) => {
-          const mapped: Partial<ParsedWorker> = {};
-          for (const [key, value] of Object.entries(row)) {
-            const normalizedKey = normalizeColumnName(key);
-            if (normalizedKey) {
-              (mapped as unknown)[normalizedKey] = String(value).trim();
-            }
-          }
-          const validation = validateWorker(mapped);
-          return {
-            full_name: mapped.full_name || "",
-            national_id: mapped.national_id || "",
-            mobile_number: mapped.mobile_number || "",
-            nationality: mapped.nationality,
-            preferred_language: mapped.preferred_language || "ar",
-            isValid: validation.isValid,
-            errors: validation.errors,
-          };
-        });
-
-        setParsedWorkers(mappedWorkers);
-      } catch (err) {
-        setParseError(t("contractorPortal.bulkImport.parseError", "Failed to parse the file. Please check the format."));
+      if (jsonData.length === 0) {
+        setParseError(t("contractorPortal.bulkImport.emptyFile", "The file is empty or has no valid data rows."));
+        return;
       }
-    };
-    reader.readAsArrayBuffer(file);
+
+      // Map columns using aliases
+      const mappedWorkers: ParsedWorker[] = jsonData.map((row) => {
+        const mapped: Partial<ParsedWorker> = {};
+        for (const [key, value] of Object.entries(row)) {
+          const normalizedKey = normalizeColumnName(key);
+          if (normalizedKey) {
+            (mapped as unknown)[normalizedKey] = String(value).trim();
+          }
+        }
+        const validation = validateWorker(mapped);
+        return {
+          full_name: mapped.full_name || "",
+          national_id: mapped.national_id || "",
+          mobile_number: mapped.mobile_number || "",
+          nationality: mapped.nationality,
+          preferred_language: mapped.preferred_language || "ar",
+          isValid: validation.isValid,
+          errors: validation.errors,
+        };
+      });
+
+      setParsedWorkers(mappedWorkers);
+    } catch (err) {
+      setParseError(t("contractorPortal.bulkImport.parseError", "Failed to parse the file. Please check the format."));
+    }
   }, [t]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
