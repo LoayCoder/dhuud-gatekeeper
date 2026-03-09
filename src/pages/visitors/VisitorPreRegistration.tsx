@@ -107,6 +107,8 @@ export default function VisitorPreRegistration() {
     return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   };
 
+  const formSchema = useMemo(() => getFormSchema(t), [t]);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
