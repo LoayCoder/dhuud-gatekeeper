@@ -8491,7 +8491,146 @@
     "actualSeverity": "الفعلي",
     "potentialSeverity": "المحتمل"
   },
-  "settings": "الإعدادات",
+  "settings": {
+    "eventCategories": {
+      "title": "إدارة فئات الأحداث",
+      "description": "تفعيل أو تعطيل فئات وأنواع أحداث السلامة والصحة المهنية لمنظمتك",
+      "pageTitle": "فئات الأحداث",
+      "pageDescription": "إدارة فئات وأنواع الأحداث المتاحة عند الإبلاغ عن الحوادث",
+      "activeCategories": "{{count}}/{{total}} فئة نشطة",
+      "expandAll": "توسيع الكل",
+      "collapseAll": "طي الكل",
+      "searchPlaceholder": "البحث في الفئات أو الأنواع الفرعية...",
+      "customized": "مخصص",
+      "categoryEnabled": "تم تفعيل الفئة",
+      "categoryDisabled": "تم تعطيل الفئة",
+      "subtypeEnabled": "تم تفعيل النوع الفرعي",
+      "subtypeDisabled": "تم تعطيل النوع الفرعي",
+      "noMatchingCategories": "لم يتم العثور على فئات مطابقة",
+      "noCategories": "لا توجد فئات متاحة",
+      "noMatchingSubtypes": "لم يتم العثور على أنواع فرعية مطابقة",
+      "noSubtypes": "لا توجد أنواع فرعية متاحة",
+      "infoNote": "الفئات والأنواع الفرعية المعطلة لن تظهر في نماذج الإبلاغ عن الحوادث. التغييرات تُطبق فوراً على جميع المستخدمين في منظمتك.",
+      "tabs": {
+        "testing": "الاختبار"
+      },
+      "testing": {
+        "title": "اختبار أحداث السلامة",
+        "description": "تحميل وثائق الاختبار والموارد لاختبار سير عمل أحداث السلامة",
+        "functionalTestDoc": "وثيقة الاختبار الوظيفي",
+        "functionalTestDocDesc": "سيناريوهات اختبار شاملة تغطي دورة حياة حوادث السلامة بالكامل من الإبلاغ حتى الإغلاق."
+      },
+      "crud": {
+        "addCategory": "إضافة فئة",
+        "addCategoryDescription": "إنشاء فئة حدث مخصصة جديدة لمنظمتك",
+        "editCategory": "تعديل الفئة",
+        "editCategoryDescription": "تعديل تفاصيل الفئة",
+        "deleteConfirmTitle": "حذف الفئة؟",
+        "deleteConfirmDescription": "سيتم تعطيل الفئة. يمكن إعادة تفعيلها لاحقاً.",
+        "categoryCreated": "تم إنشاء الفئة بنجاح",
+        "categoryUpdated": "تم تحديث الفئة بنجاح",
+        "categoryDeleted": "تم حذف الفئة بنجاح",
+        "addSubtype": "إضافة نوع فرعي",
+        "addSubtypeDescription": "إنشاء نوع فرعي جديد تحت {{category}}",
+        "editSubtype": "تعديل النوع الفرعي",
+        "editSubtypeDescription": "تعديل تفاصيل النوع الفرعي",
+        "deleteSubtypeConfirmTitle": "حذف النوع الفرعي؟",
+        "deleteSubtypeConfirmDescription": "سيتم تعطيل النوع الفرعي. يمكن إعادة تفعيله لاحقاً.",
+        "subtypeCreated": "تم إنشاء النوع الفرعي بنجاح",
+        "subtypeUpdated": "تم تحديث النوع الفرعي بنجاح",
+        "subtypeDeleted": "تم حذف النوع الفرعي بنجاح",
+        "code": "الرمز",
+        "nameEn": "الاسم (إنجليزي)",
+        "nameAr": "الاسم (عربي)",
+        "nameKey": "مفتاح الترجمة",
+        "icon": "الأيقونة",
+        "sortOrder": "ترتيب العرض",
+        "validationError": "يرجى ملء جميع الحقول المطلوبة"
+      }
+    },
+    "inspectionCategories": {
+      "title": "فئات التفتيش",
+      "description": "إدارة فئات قوالب التفتيش",
+      "addCategory": "إضافة فئة",
+      "addCategoryDescription": "إنشاء فئة تفتيش جديدة",
+      "editCategory": "تعديل الفئة",
+      "editCategoryDescription": "تعديل تفاصيل فئة التفتيش",
+      "deleteConfirmTitle": "حذف الفئة؟",
+      "deleteConfirmDescription": "سيتم حذف الفئة بشكل مؤقت. يمكن استعادتها لاحقاً.",
+      "iconHelp": "استخدم اسم أيقونة Lucide (مثل: Flame, Shield, Wrench)"
+    },
+    "notificationMatrix": {
+      "title": "مصفوفة الإشعارات",
+      "description": "تكوين من يتلقى الإشعارات بناءً على شدة الحدث",
+      "tabs": {
+        "categories": "فئات الأحداث",
+        "notifications": "مصفوفة الإشعارات"
+      },
+      "eventTypes": {
+        "incident": "الحوادث",
+        "observation": "الملاحظات",
+        "all": "جميع الأحداث"
+      },
+      "stakeholder": "الجهة المعنية",
+      "condition": "الشرط",
+      "addRule": "إضافة قاعدة",
+      "addRuleDesc": "إضافة قاعدة إشعار جديدة لدور أو مستخدم محدد",
+      "resetDefaults": "إعادة التعيين للافتراضي",
+      "resetSuccess": "تمت إعادة تعيين المصفوفة",
+      "resetSuccessDesc": "تمت إعادة تعيين مصفوفة الإشعارات إلى القيم الافتراضية",
+      "confirmReset": "إعادة التعيين للافتراضي؟",
+      "confirmResetDesc": "سيؤدي ذلك إلى إزالة جميع قواعد الإشعارات المخصصة واستعادة المصفوفة الافتراضية. لا يمكن التراجع عن هذا الإجراء.",
+      "confirmDelete": "حذف القاعدة؟",
+      "confirmDeleteDesc": "سيتم حذف قاعدة الإشعار هذه نهائياً.",
+      "ruleAdded": "تمت إضافة القاعدة",
+      "ruleAddedDesc": "تمت إضافة قاعدة الإشعار بنجاح",
+      "ruleUpdated": "تم تحديث القاعدة",
+      "ruleDeleted": "تم حذف القاعدة",
+      "noRules": "لا توجد قواعد إشعارات مكونة",
+      "noRulesDesc": "أضف قواعد لتحديد من يتم إشعاره لكل مستوى شدة حدث",
+      "addFirstRule": "أضف قاعدتك الأولى",
+      "userSpecific": "مستخدم",
+      "assignToUser": "تعيين لمستخدم محدد",
+      "selectUser": "اختر مستخدم",
+      "selectUserPlaceholder": "اختر مستخدماً...",
+      "selectRole": "اختر الدور",
+      "selectRolePlaceholder": "اختر دور الجهة المعنية...",
+      "severityLevel": "مستوى الشدة",
+      "channelsLabel": "قنوات الإشعار",
+      "conditionLabel": "الشرط (اختياري)",
+      "noCondition": "بدون شرط (إشعار دائم)",
+      "conditionHelp": "الشروط تحدد متى يتم إرسال الإشعارات",
+      "recipientType": "نوع المستلم",
+      "roleBased": "حسب الدور",
+      "channels": {
+        "push": "إشعار التطبيق",
+        "email": "البريد الإلكتروني",
+        "whatsapp": "واتساب"
+      },
+      "severity": {
+        "level_1": "المستوى 1 (منخفض)",
+        "level_2": "المستوى 2 (متوسط)",
+        "level_3": "المستوى 3 (خطير)",
+        "level_4": "المستوى 4 (كبير)",
+        "level_5": "المستوى 5 (كارثي)"
+      },
+      "conditions": {
+        "injury": "فقط إذا تم الإبلاغ عن إصابة"
+      },
+      "roles": {
+        "area_owner": "مسؤول المنطقة",
+        "hsse_manager": "مدير السلامة",
+        "hsse_expert": "خبير السلامة",
+        "dept_representative": "ممثل القسم",
+        "bc_team": "فريق استمرارية الأعمال",
+        "first_aider": "المسعف الأولي",
+        "clinic_team": "فريق العيادة",
+        "site_manager": "مدير الموقع",
+        "security_manager": "مدير الأمن",
+        "security": "الأمن"
+      }
+    }
+  },
   "quickObservation": {
     "title": "ملاحظة سريعة",
     "subtitle": "الإبلاغ عن الظروف أو السلوكيات غير الآمنة بسرعة",
