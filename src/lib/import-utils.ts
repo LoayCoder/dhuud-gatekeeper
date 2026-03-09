@@ -1,5 +1,5 @@
-import * as XLSX from 'xlsx';
 import ExcelJS from 'exceljs';
+import { readExcelAsRows } from './exceljs-utils';
 
 export interface ImportUser {
   full_name: string;
