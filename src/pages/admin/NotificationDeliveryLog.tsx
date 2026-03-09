@@ -227,7 +227,7 @@ export default function NotificationDeliveryLog() {
                 <div className="relative flex-1">
                   <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder={isRTL ? 'Ø¨Ø­Ø« Ø¨Ø§Ù„Ù…Ø³ØªÙ„Ù…...' : 'Search by recipient...'}
+                    placeholder={t('deliveryLog.searchRecipient')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="ps-9"
