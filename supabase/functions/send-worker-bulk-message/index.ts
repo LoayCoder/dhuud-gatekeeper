@@ -223,7 +223,7 @@ Deno.serve(async (req) => {
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Error in send-worker-bulk-message:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(

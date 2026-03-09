@@ -239,7 +239,7 @@ Deno.serve(async (req) => {
       JSON.stringify(response),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error: unknown) {
+  } catch (error) {
     console.error('[GetInduction] Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     return new Response(

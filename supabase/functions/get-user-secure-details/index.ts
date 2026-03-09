@@ -104,7 +104,7 @@ serve(async (req: Request) => {
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
 
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Error in get-user-secure-details:", error);
     const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
     return new Response(
