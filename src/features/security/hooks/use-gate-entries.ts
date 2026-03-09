@@ -144,7 +144,7 @@ export function useSendWhatsAppNotification() {
     }) => {
       if (!tenantId) throw new Error('No tenant ID');
 
-      const { sendGateWhatsAppNotification } = await import('@/services/security/gateQRService');
+      const { sendGateWhatsAppNotification } = await import('@/features/security/services/gateQRService');
       return sendGateWhatsAppNotification({ ...params, tenantId });
     },
     onSuccess: () => {

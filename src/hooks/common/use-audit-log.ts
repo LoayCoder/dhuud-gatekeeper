@@ -54,8 +54,8 @@ export function useAuditLog() {
         }
       }
 
-      // Try to get IP address
-      const ip_address = entry.ip_address || await getClientIP();
+      // IP is captured server-side; pass null from client
+      const ip_address = entry.ip_address || null;
 
       const auditEntry = {
         who_id: userId,

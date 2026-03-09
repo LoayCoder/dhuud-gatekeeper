@@ -107,9 +107,16 @@ export function GatePassPrintView({ open, onOpenChange, gatePass }: GatePassPrin
 
           {/* QR Code */}
           <div className="flex justify-center my-6">
-            <div className="p-3 border rounded-lg bg-white">
-              <QRCodeSVG value={gatePass.qr_code_token} size={150} level="H" />
-            </div>
+            {gatePass.qr_code_token ? (
+              <div className="p-3 border rounded-lg bg-white">
+                <QRCodeSVG value={gatePass.qr_code_token} size={150} level="H" />
+              </div>
+            ) : (
+              <div className="p-6 border-2 border-dashed rounded-lg text-center text-muted-foreground">
+                <p className="text-sm">{t("contractors.gatePasses.qrNotGenerated", "QR code not yet generated")}</p>
+                <p className="text-xs mt-1">{t("contractors.gatePasses.qrPendingApproval", "Available after approval")}</p>
+              </div>
+            )}
           </div>
 
           {/* Pass Type */}

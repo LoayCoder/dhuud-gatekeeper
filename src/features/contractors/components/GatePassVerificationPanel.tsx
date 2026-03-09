@@ -298,7 +298,7 @@ export function GatePassVerificationPanel() {
                     disabled={guardAction.isPending}
                     className="flex-1 h-14 text-lg gap-2 rounded-xl bg-orange-600 hover:bg-orange-700"
                   >
-                    {confirmExit.isPending ? (
+                    {guardAction.isPending ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
                       <LogOut className="h-5 w-5" />

@@ -103,7 +103,7 @@ export function useSubmitPublicGatePass() {
           p_notify_whatsapp: data.notify_whatsapp ?? true,
           p_notify_email: data.notify_email ?? true,
           p_notify_sms: data.notify_sms ?? false,
-          p_client_ip: clientIp,
+          p_client_ip: null,
           p_items: itemsJsonb,
           p_start_date: data.start_date,
           p_end_date: data.end_date,

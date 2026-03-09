@@ -22,6 +22,34 @@ export const approveGatePass = async (passId: string, action: "approve" | "rejec
     if (error) throw error;
     const newStatus = data as string;
 
+    // Trigger in-app notification for internal gate pass approvals
+    if (!gatePass?.is_public_request && newStatus === "approved" && gatePass) {
+        try {
+            const { data: requesterProfile } = await supabase
+                .from("profiles")
+                .select("id")
+                .eq("id", gatePass.requested_by || '')
+                .single();
+
+            if (requesterProfile) {
+                await supabase.from("hsse_notifications").insert({
+                    user_id: requesterProfile.id,
+                    tenant_id: gatePass.tenant_id,
+                    title: `Gate Pass ${gatePass.reference_number} Approved`,
+                    title_ar: `تم اعتماد تصريح البوابة ${gatePass.reference_number}`,
+                    message: `Your gate pass request ${gatePass.reference_number} has been approved.`,
+                    message_ar: `تمت الموافقة على طلب تصريح البوابة ${gatePass.reference_number}.`,
+                    notification_type: 'gate_pass_approved',
+                    entity_type: 'gate_pass',
+                    entity_id: passId,
+                    priority: 'normal',
+                });
+            }
+        } catch (notifyErr) {
+            console.error("[Gate Pass] Failed to send internal approval notification:", notifyErr);
+        }
+    }
+
     if (gatePass?.is_public_request && (newStatus === "approved" || newStatus === "rejected" || newStatus === "pending_security_approval")) {
         const tenantSlug = (gatePass.tenants as { slug: string } | null)?.slug || "";
         const eventType = newStatus === "approved" ? "approved" : newStatus === "rejected" ? "rejected" : "acknowledged";
