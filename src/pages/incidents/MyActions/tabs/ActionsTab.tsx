@@ -52,7 +52,7 @@ export function ActionsTab({ viewProps }: { viewProps: MyActionsViewProps }) {
                 <span className="font-medium truncate">{action.title}</span>
                 {action.priority && (
                   <Badge variant={getPriorityBadgeVariant(action.priority)} className="text-xs">
-                    {t(`investigation.priority.${action.priority}`, action.priority)}
+                    {String(t(`investigation.priority.${action.priority}`, action.priority))}
                   </Badge>
                 )}
                 <Badge variant="outline" className="text-xs">
