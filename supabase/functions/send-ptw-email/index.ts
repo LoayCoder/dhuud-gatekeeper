@@ -392,7 +392,7 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ success: true, messageId: emailResult.messageId }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error: unknown) {
+  } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error("Error in send-ptw-email:", errorMessage);
     return new Response(

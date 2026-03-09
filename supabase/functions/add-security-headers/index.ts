@@ -150,7 +150,7 @@ serve(async (req) => {
       },
     });
 
-  } catch (error: unknown) {
+  } catch (error) {
     console.error('[Security Headers] Error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     
