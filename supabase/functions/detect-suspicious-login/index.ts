@@ -7,6 +7,36 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+/**
+ * Verify the caller is authenticated by validating the JWT from the Authorization header.
+ * Returns the authenticated user or null.
+ */
+async function verifyCallerAuth(req: Request): Promise<{ userId: string; email: string } | null> {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return null;
+  }
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+
+  const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+
+  const token = authHeader.replace('Bearer ', '');
+  const { data, error } = await supabaseAuth.auth.getClaims(token);
+
+  if (error || !data?.claims?.sub) {
+    return null;
+  }
+
+  return {
+    userId: data.claims.sub as string,
+    email: (data.claims.email as string) || '',
+  };
+}
+
 interface LoginDetectionRequest {
   user_id?: string;
   email: string;
@@ -295,19 +325,32 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
+    // Authenticate the caller - require a valid JWT
+    const caller = await verifyCallerAuth(req);
+    if (!caller) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const body: LoginDetectionRequest = await req.json();
     const clientIP = getClientIP(req);
+
+    // Enforce: caller can only log events for themselves (prevent spoofing other user_ids)
+    const effectiveUserId = caller.userId;
+    const effectiveEmail = caller.email || body.email;
     
     console.log('Processing login detection:', { 
-      email: body.email, 
+      email: effectiveEmail, 
       success: body.success,
       ip: clientIP 
     });
+
+    // Create service-role client for DB writes
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get geolocation
     const geoLocation = await getGeoLocation(clientIP);
@@ -316,32 +359,29 @@ serve(async (req) => {
     // Assess risk
     const riskAssessment = await assessRisk(
       supabase,
-      body.user_id,
+      effectiveUserId,
       body.device_fingerprint,
       geoLocation,
       body.success
     );
     console.log('Risk assessment:', riskAssessment);
 
-    // Get tenant_id for the user if available
+    // Get tenant_id for the user
     let tenantId: string | null = null;
-    if (body.user_id) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('tenant_id')
-        .eq('id', body.user_id)
-        .single();
-      
-      tenantId = profile?.tenant_id || null;
-    }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('tenant_id')
+      .eq('id', effectiveUserId)
+      .single();
+    tenantId = profile?.tenant_id || null;
 
     // Log to login_history
     const { error: insertError } = await supabase
       .from('login_history')
       .insert({
-        user_id: body.user_id,
+        user_id: effectiveUserId,
         tenant_id: tenantId,
-        email: body.email,
+        email: effectiveEmail,
         ip_address: clientIP,
         country_code: geoLocation.country_code,
         country_name: geoLocation.country_name,
@@ -367,44 +407,35 @@ serve(async (req) => {
       console.error('Failed to insert login history:', insertError);
     }
 
-    // Also log to user_activity_logs if user_id is available
-    if (body.user_id) {
-      const eventType = !body.success 
-        ? 'login' // Will use metadata to distinguish
-        : riskAssessment.is_suspicious 
-          ? 'login' 
-          : riskAssessment.is_new_device 
-            ? 'login' 
-            : 'login';
-
-      await supabase
-        .from('user_activity_logs')
-        .insert({
-          user_id: body.user_id,
-          tenant_id: tenantId,
-          event_type: eventType,
-          ip_address: clientIP,
-          metadata: {
-            login_success: body.success,
-            failure_reason: body.failure_reason,
-            risk_score: riskAssessment.risk_score,
-            risk_factors: riskAssessment.risk_factors,
-            is_suspicious: riskAssessment.is_suspicious,
-            is_new_device: riskAssessment.is_new_device,
-            is_new_location: riskAssessment.is_new_location,
-            country: geoLocation.country_name,
-            city: geoLocation.city,
-            device_fingerprint: body.device_fingerprint,
-            user_agent: body.user_agent,
-            timestamp: new Date().toISOString(),
-          },
-        });
-    }
+    // Also log to user_activity_logs
+    const eventType = 'login';
+    await supabase
+      .from('user_activity_logs')
+      .insert({
+        user_id: effectiveUserId,
+        tenant_id: tenantId,
+        event_type: eventType,
+        ip_address: clientIP,
+        metadata: {
+          login_success: body.success,
+          failure_reason: body.failure_reason,
+          risk_score: riskAssessment.risk_score,
+          risk_factors: riskAssessment.risk_factors,
+          is_suspicious: riskAssessment.is_suspicious,
+          is_new_device: riskAssessment.is_new_device,
+          is_new_location: riskAssessment.is_new_location,
+          country: geoLocation.country_name,
+          city: geoLocation.city,
+          device_fingerprint: body.device_fingerprint,
+          user_agent: body.user_agent,
+          timestamp: new Date().toISOString(),
+        },
+      });
 
     // Send admin alert if suspicious
     if (riskAssessment.is_suspicious && body.success) {
       await sendAdminAlert(
-        body.email,
+        effectiveEmail,
         riskAssessment,
         geoLocation,
         clientIP,
