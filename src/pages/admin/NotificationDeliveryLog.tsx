@@ -130,7 +130,7 @@ export default function NotificationDeliveryLog() {
         <TabsList className="grid w-full max-w-md grid-cols-2">
           <TabsTrigger value="delivery-log" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            {isRTL ? "Ø³Ø¬Ù„ Ø§Ù„ØªØ³Ù„ÙŠÙ…" : "Delivery Log"}
+            {t('deliveryLog.deliveryLogTab')}
           </TabsTrigger>
           <TabsTrigger value="whatsapp-settings" className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
