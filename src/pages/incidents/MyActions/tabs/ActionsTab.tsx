@@ -56,7 +56,7 @@ export function ActionsTab({ viewProps }: { viewProps: MyActionsViewProps }) {
                   </Badge>
                 )}
                 <Badge variant="outline" className="text-xs">
-                  {t(`investigation.source.${action.source}`, action.source)}
+                  {String(t(`investigation.source.${action.source}`, action.source))}
                 </Badge>
               </div>
               {action.reference_id && (
