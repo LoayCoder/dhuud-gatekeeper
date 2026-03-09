@@ -82,7 +82,7 @@ export function useCreateGateEntry() {
     mutationFn: async (entry: CreateGateEntryParams) => {
       if (!tenantId) throw new Error('No tenant ID');
 
-      const { createGateEntry } = await import('@/services/security/gateQRService');
+      const { createGateEntry } = await import('@/features/security/services/gateQRService');
       return createGateEntry(entry, tenantId, user?.id);
     },
     onSuccess: () => {
