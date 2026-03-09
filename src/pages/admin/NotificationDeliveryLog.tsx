@@ -239,11 +239,11 @@ export default function NotificationDeliveryLog() {
                     <SelectValue placeholder={t('deliveryLog.channel')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">{isRTL ? 'Ø¬Ù…ÙŠØ¹ Ø§Ù„Ù‚Ù†ÙˆØ§Øª' : 'All Channels'}</SelectItem>
-                    <SelectItem value="whatsapp">{isRTL ? 'ÙˆØ§ØªØ³Ø§Ø¨' : 'WhatsApp'}</SelectItem>
-                    <SelectItem value="email">{isRTL ? 'Ø§Ù„Ø¨Ø±ÙŠØ¯' : 'Email'}</SelectItem>
-                    <SelectItem value="push">{isRTL ? 'Ø¥Ø´Ø¹Ø§Ø±' : 'Push'}</SelectItem>
-                    <SelectItem value="sms">{isRTL ? 'Ø±Ø³Ø§Ù„Ø© Ù†ØµÙŠØ©' : 'SMS'}</SelectItem>
+                    <SelectItem value="all">{t('deliveryLog.allChannels')}</SelectItem>
+                    <SelectItem value="whatsapp">{t('deliveryLog.whatsapp')}</SelectItem>
+                    <SelectItem value="email">{t('deliveryLog.email')}</SelectItem>
+                    <SelectItem value="push">{t('deliveryLog.push')}</SelectItem>
+                    <SelectItem value="sms">{t('deliveryLog.sms')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
