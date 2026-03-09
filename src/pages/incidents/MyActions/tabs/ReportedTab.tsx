@@ -35,7 +35,7 @@ export function ReportedTab({ viewProps }: { viewProps: MyActionsViewProps }) {
                   {inc.severity && <Badge variant="destructive" className="text-xs">{inc.severity}</Badge>}
                   {inc.status && (
                     <Badge variant="outline" className="text-xs">
-                      {t(`investigation.actionStatus.${inc.status}`, inc.status?.replace(/_/g, ' '))}
+                      {String(t(`investigation.actionStatus.${inc.status}`, inc.status?.replace(/_/g, ' ')))}
                     </Badge>
                   )}
                 </div>

@@ -67,7 +67,7 @@ export function ActionsTab({ viewProps }: { viewProps: MyActionsViewProps }) {
               )}
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <Badge variant="outline" className="text-xs">
-                  {t(`investigation.actionStatus.${action.status}`, action.status)}
+                  {String(t(`investigation.actionStatus.${action.status}`, action.status))}
                 </Badge>
                 {action.due_date && (
                   <span className={cn('flex items-center gap-1', daysInfo?.isOverdue ? 'text-destructive font-medium' : daysInfo?.isDueSoon ? 'text-warning' : '')}>
