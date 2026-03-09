@@ -326,7 +326,7 @@ export default function GuardAttendance() {
                               </div>
                               {record.late_minutes > 0 && (
                                 <Badge variant="destructive" className="text-xs">
-                                  {record.late_minutes}m late
+                                  {t('security.mLate', { minutes: record.late_minutes })}
                                 </Badge>
                               )}
                             </div>
