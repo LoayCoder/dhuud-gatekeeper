@@ -427,6 +427,7 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  try {
     // Authenticate: require either a valid service-role/JWT Authorization header or edge secret
     const authHeader = req.headers.get('Authorization');
     const hasServiceRole = authHeader?.includes(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '___none___');
