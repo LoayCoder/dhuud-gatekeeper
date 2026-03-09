@@ -6,11 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   useVerifyGatePassQR, 
-  useConfirmGatePassEntry, 
-  useConfirmGatePassExit,
   GatePassVerificationResult 
 } from "@/features/contractors/hooks/use-gate-pass-verification";
-import { useGatePassItems, useGatePassPhotos } from "@/features/contractors/hooks/use-gate-pass-details";
+import { useGuardGateAction, useVerifyPassByReference } from "@/features/contractors/hooks/use-gate-pass-guard-actions";
+import { useGatePassMedia } from "@/features/contractors/hooks/use-gate-pass-media";
 import { 
   FullScreenScanner,
   VerificationResult,
