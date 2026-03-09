@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -56,13 +56,13 @@ const HSSE_PRIORITY_COLORS: Record<string, string> = {
 };
 
 const RECIPIENT_TYPE_ICONS: Record<string, string> = {
-  'employee': 'ðŸ‘¤',
-  'worker': 'ðŸ”§',
-  'visitor': 'ðŸ‘¥',
+  'employee': '👤',
+  'worker': '🔧',
+  'visitor': '👥',
 };
 
 export default function NotificationDeliveryLog() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
   const dateLocale = isRTL ? ar : enUS;
   
@@ -116,7 +116,7 @@ export default function NotificationDeliveryLog() {
   const copyWebhookUrl = () => {
     navigator.clipboard.writeText(WEBHOOK_URL);
     setWebhookUrlCopied(true);
-    toast.success(isRTL ? 'ØªÙ… Ù†Ø³Ø® Ø§Ù„Ø±Ø§Ø¨Ø·' : 'URL copied');
+    toast.success(t('deliveryLog.urlCopied'));
     setTimeout(() => setWebhookUrlCopied(false), 2000);
   };
 
@@ -130,11 +130,11 @@ export default function NotificationDeliveryLog() {
         <TabsList className="grid w-full max-w-md grid-cols-2">
           <TabsTrigger value="delivery-log" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            {isRTL ? "Ø³Ø¬Ù„ Ø§Ù„ØªØ³Ù„ÙŠÙ…" : "Delivery Log"}
+            {t('deliveryLog.deliveryLogTab')}
           </TabsTrigger>
           <TabsTrigger value="whatsapp-settings" className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
-            {isRTL ? "Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª ÙˆØ§ØªØ³Ø§Ø¨" : "WhatsApp Settings"}
+            {t('deliveryLog.whatsappSettingsTab')}
           </TabsTrigger>
         </TabsList>
 
@@ -147,12 +147,10 @@ export default function NotificationDeliveryLog() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
                 <ExternalLink className="h-4 w-4" />
-                {isRTL ? 'Ø±Ø§Ø¨Ø· Webhook Ù„Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª' : 'Notification Webhook URL'}
+                {t('deliveryLog.webhookUrl')}
               </CardTitle>
               <CardDescription className="text-xs">
-                {isRTL 
-                  ? 'Ø§Ø³ØªØ®Ø¯Ù… Ù‡Ø°Ø§ Ø§Ù„Ø±Ø§Ø¨Ø· ÙÙŠ Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ù…Ø²ÙˆØ¯ Ø§Ù„ÙˆØ§ØªØ³Ø§Ø¨ Ù„ØªÙ„Ù‚ÙŠ ØªØ­Ø¯ÙŠØ«Ø§Øª Ø­Ø§Ù„Ø© Ø§Ù„ØªØ³Ù„ÙŠÙ…' 
-                  : 'Use this URL in your WhatsApp provider settings to receive delivery status updates'}
+                {t('deliveryLog.webhookUrlDesc')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -183,12 +181,10 @@ export default function NotificationDeliveryLog() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <Clock className="h-5 w-5" />
-                    {isRTL ? 'Ø³Ø¬Ù„ ØªØ³Ù„ÙŠÙ… Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª' : 'Notification Delivery Log'}
+                    {t('deliveryLog.notificationDeliveryLog')}
                   </CardTitle>
                   <CardDescription>
-                    {isRTL 
-                      ? 'ØªØªØ¨Ø¹ Ø­Ø§Ù„Ø© ØªØ³Ù„ÙŠÙ… Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª Ø§Ù„Ù…Ø±Ø³Ù„Ø©' 
-                      : 'Track delivery status of all sent notifications'}
+                    {t('deliveryLog.trackDeliveryStatus')}
                   </CardDescription>
                 </div>
                 <Button 
@@ -198,7 +194,7 @@ export default function NotificationDeliveryLog() {
                   disabled={loading}
                 >
                   <RefreshCw className={`h-4 w-4 me-2 ${loading ? 'animate-spin' : ''}`} />
-                  {isRTL ? 'ØªØ­Ø¯ÙŠØ«' : 'Refresh'}
+                  {t('deliveryLog.refresh')}
                 </Button>
               </div>
             </CardHeader>
@@ -207,19 +203,19 @@ export default function NotificationDeliveryLog() {
               <Tabs value={sourceFilter} onValueChange={handleSourceTabChange}>
                 <TabsList>
                   <TabsTrigger value="all" className="gap-1.5">
-                    {isRTL ? 'Ø§Ù„ÙƒÙ„' : 'All'}
+                    {t('deliveryLog.all')}
                   </TabsTrigger>
                   <TabsTrigger value="hsse" className="gap-1.5">
                     <ShieldAlert className="h-3.5 w-3.5" />
-                    {isRTL ? 'Ø§Ù„ØµØ­Ø© ÙˆØ§Ù„Ø³Ù„Ø§Ù…Ø©' : 'HSSE'}
+                    {t('deliveryLog.hsse')}
                   </TabsTrigger>
                   <TabsTrigger value="incident" className="gap-1.5">
                     <Zap className="h-3.5 w-3.5" />
-                    {isRTL ? 'Ø§Ù„Ø­ÙˆØ§Ø¯Ø«' : 'Incidents'}
+                    {t('deliveryLog.incidents')}
                   </TabsTrigger>
                   <TabsTrigger value="manual" className="gap-1.5">
                     <FileText className="h-3.5 w-3.5" />
-                    {isRTL ? 'ÙŠØ¯ÙˆÙŠ' : 'Manual'}
+                    {t('deliveryLog.manual')}
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -229,7 +225,7 @@ export default function NotificationDeliveryLog() {
                 <div className="relative flex-1">
                   <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder={isRTL ? 'Ø¨Ø­Ø« Ø¨Ø§Ù„Ù…Ø³ØªÙ„Ù…...' : 'Search by recipient...'}
+                    placeholder={t('deliveryLog.searchRecipient')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="ps-9"
@@ -238,27 +234,27 @@ export default function NotificationDeliveryLog() {
                 <Select value={channelFilter} onValueChange={setChannelFilter}>
                   <SelectTrigger className="w-[140px]">
                     <Filter className="h-4 w-4 me-2" />
-                    <SelectValue placeholder={isRTL ? 'Ø§Ù„Ù‚Ù†Ø§Ø©' : 'Channel'} />
+                    <SelectValue placeholder={t('deliveryLog.channel')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">{isRTL ? 'Ø¬Ù…ÙŠØ¹ Ø§Ù„Ù‚Ù†ÙˆØ§Øª' : 'All Channels'}</SelectItem>
-                    <SelectItem value="whatsapp">{isRTL ? 'ÙˆØ§ØªØ³Ø§Ø¨' : 'WhatsApp'}</SelectItem>
-                    <SelectItem value="email">{isRTL ? 'Ø§Ù„Ø¨Ø±ÙŠØ¯' : 'Email'}</SelectItem>
-                    <SelectItem value="push">{isRTL ? 'Ø¥Ø´Ø¹Ø§Ø±' : 'Push'}</SelectItem>
-                    <SelectItem value="sms">{isRTL ? 'Ø±Ø³Ø§Ù„Ø© Ù†ØµÙŠØ©' : 'SMS'}</SelectItem>
+                    <SelectItem value="all">{t('deliveryLog.allChannels')}</SelectItem>
+                    <SelectItem value="whatsapp">{t('deliveryLog.whatsapp')}</SelectItem>
+                    <SelectItem value="email">{t('deliveryLog.email')}</SelectItem>
+                    <SelectItem value="push">{t('deliveryLog.push')}</SelectItem>
+                    <SelectItem value="sms">{t('deliveryLog.sms')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder={isRTL ? 'Ø§Ù„Ø­Ø§Ù„Ø©' : 'Status'} />
+                    <SelectValue placeholder={t('deliveryLog.status')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">{isRTL ? 'Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø­Ø§Ù„Ø§Øª' : 'All Statuses'}</SelectItem>
-                    <SelectItem value="pending">{isRTL ? 'Ù‚ÙŠØ¯ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±' : 'Pending'}</SelectItem>
-                    <SelectItem value="sent">{isRTL ? 'ØªÙ… Ø§Ù„Ø¥Ø±Ø³Ø§Ù„' : 'Sent'}</SelectItem>
-                    <SelectItem value="delivered">{isRTL ? 'ØªÙ… Ø§Ù„ØªØ³Ù„ÙŠÙ…' : 'Delivered'}</SelectItem>
-                    <SelectItem value="read">{isRTL ? 'Ù…Ù‚Ø±ÙˆØ¡' : 'Read'}</SelectItem>
-                    <SelectItem value="failed">{isRTL ? 'ÙØ´Ù„' : 'Failed'}</SelectItem>
+                    <SelectItem value="all">{t('deliveryLog.allStatuses')}</SelectItem>
+                    <SelectItem value="pending">{t('deliveryLog.pending')}</SelectItem>
+                    <SelectItem value="sent">{t('deliveryLog.sent')}</SelectItem>
+                    <SelectItem value="delivered">{t('deliveryLog.delivered')}</SelectItem>
+                    <SelectItem value="read">{t('deliveryLog.read')}</SelectItem>
+                    <SelectItem value="failed">{t('deliveryLog.failed')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -268,12 +264,12 @@ export default function NotificationDeliveryLog() {
                 <Table>
                   <TableHeader className="sticky top-0 bg-background z-10">
                     <TableRow>
-                      <TableHead className="w-[70px]">{isRTL ? 'Ø§Ù„Ù‚Ù†Ø§Ø©' : 'Channel'}</TableHead>
-                      <TableHead>{isRTL ? 'Ø§Ù„Ù…Ø³ØªÙ„Ù…' : 'Recipient'}</TableHead>
-                      <TableHead>{isRTL ? 'Ø§Ù„Ù†ÙˆØ¹' : 'Type'}</TableHead>
-                      <TableHead className="w-[80px]">{isRTL ? 'Ø§Ù„Ù…Ø³ØªÙˆÙ‰' : 'Severity'}</TableHead>
-                      <TableHead className="w-[100px]">{isRTL ? 'Ø§Ù„Ø­Ø§Ù„Ø©' : 'Status'}</TableHead>
-                      <TableHead>{isRTL ? 'Ø§Ù„ÙˆÙ‚Øª' : 'Time'}</TableHead>
+                      <TableHead className="w-[70px]">{t('deliveryLog.channel')}</TableHead>
+                      <TableHead>{t('deliveryLog.recipient')}</TableHead>
+                      <TableHead>{t('deliveryLog.type')}</TableHead>
+                      <TableHead className="w-[80px]">{t('deliveryLog.severity')}</TableHead>
+                      <TableHead className="w-[100px]">{t('deliveryLog.status')}</TableHead>
+                      <TableHead>{t('deliveryLog.time')}</TableHead>
                       <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -285,14 +281,14 @@ export default function NotificationDeliveryLog() {
                             <div className="flex flex-col items-center gap-2">
                               <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
                               <span className="text-muted-foreground">
-                                {isRTL ? 'Ø¬Ø§Ø±Ù Ø§Ù„ØªØ­Ù…ÙŠÙ„...' : 'Loading...'}
+                                {t('deliveryLog.loading')}
                               </span>
                             </div>
                           ) : (
                             <div className="flex flex-col items-center gap-2">
                               <BellOff className="h-10 w-10 text-muted-foreground/40" />
                               <span className="text-muted-foreground">
-                                {isRTL ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø³Ø¬Ù„Ø§Øª' : 'No notifications found'}
+                                {t('deliveryLog.noNotifications')}
                               </span>
                             </div>
                           )}
@@ -318,10 +314,10 @@ export default function NotificationDeliveryLog() {
                                 className={`text-xs ${log.source === 'hsse' ? 'border-amber-500 text-amber-700 dark:text-amber-400' : ''}`}
                               >
                                 {log.source === 'incident' 
-                                  ? (isRTL ? 'Ø­Ø§Ø¯Ø«Ø©' : 'Incident')
+                                  ? t('deliveryLog.incident')
                                   : log.source === 'hsse'
-                                    ? (isRTL ? 'ØµØ­Ø© ÙˆØ³Ù„Ø§Ù…Ø©' : 'HSSE')
-                                    : (isRTL ? 'ÙŠØ¯ÙˆÙŠ' : 'Manual')
+                                    ? t('deliveryLog.sourceHsse')
+                                    : t('deliveryLog.sourceManual')
                                 }
                               </Badge>
                               {log.stakeholder_role && (
@@ -352,7 +348,7 @@ export default function NotificationDeliveryLog() {
                                 {log.hsse_priority.charAt(0).toUpperCase() + log.hsse_priority.slice(1)}
                               </Badge>
                             ) : (
-                              <span className="text-muted-foreground">â€”</span>
+                              <span className="text-muted-foreground">—</span>
                             )}
                           </TableCell>
                           <TableCell>
@@ -392,5 +388,3 @@ export default function NotificationDeliveryLog() {
     </div>
   );
 }
-
-
