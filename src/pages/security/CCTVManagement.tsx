@@ -254,7 +254,7 @@ export default function CCTVManagement() {
                     <SelectValue placeholder={t('common.allStatus', 'All Status')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">{t('common.all', 'All')}</SelectItem>
+                    <SelectItem value="all">{t('common.all', 'All')}</SelectItem>
                     <SelectItem value="online">{t('common.online', 'Online')}</SelectItem>
                     <SelectItem value="offline">{t('common.offline', 'Offline')}</SelectItem>
                     <SelectItem value="maintenance">{t('common.maintenance', 'Maintenance')}</SelectItem>
