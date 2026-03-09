@@ -322,11 +322,11 @@ export async function generateImportTemplate(options: GenerateTemplateOptions = 
   URL.revokeObjectURL(url);
 }
 
-// Legacy function for backward compatibility (deprecated)
-export function generateImportTemplateLegacy(includeSamples: boolean = false): void {
-  const wb = XLSX.utils.book_new();
+// Legacy function for backward compatibility (deprecated) - now uses ExcelJS
+export async function generateImportTemplateLegacy(includeSamples: boolean = false): Promise<void> {
+  const { writeExcelAoaAndDownload } = await import('./exceljs-utils');
   
-  const data: (string | boolean)[][] = [
+  const data: unknown[][] = [
     TEMPLATE_HEADERS,
     TEMPLATE_INSTRUCTIONS,
   ];
@@ -335,28 +335,12 @@ export function generateImportTemplateLegacy(includeSamples: boolean = false): v
     data.push(...SAMPLE_DATA);
   }
   
-  const ws = XLSX.utils.aoa_to_sheet(data);
-  
-  // Set column widths
-  ws['!cols'] = [
-    { wch: 25 }, // Full Name
-    { wch: 30 }, // Email
-    { wch: 18 }, // Phone
-    { wch: 22 }, // User Type
-    { wch: 15 }, // Employee ID
-    { wch: 20 }, // Job Title
-    { wch: 12 }, // Has Login
-    { wch: 18 }, // Branch
-    { wch: 18 }, // Division
-    { wch: 18 }, // Department
-    { wch: 18 }, // Section
-    { wch: 30 }, // Roles
-  ];
-  
-  XLSX.utils.book_append_sheet(wb, ws, 'Users');
-  
   const filename = includeSamples ? 'user_import_template_with_samples.xlsx' : 'user_import_template.xlsx';
-  XLSX.writeFile(wb, filename);
+  await writeExcelAoaAndDownload([{
+    name: 'Users',
+    data,
+    columnWidths: [25, 30, 18, 22, 15, 20, 12, 18, 18, 18, 18, 30],
+  }], filename);
 }
 
 export function parseExcelFile(file: File): Promise<ImportUser[]> {
