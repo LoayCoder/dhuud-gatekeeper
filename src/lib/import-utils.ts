@@ -1,5 +1,5 @@
-import * as XLSX from 'xlsx';
 import ExcelJS from 'exceljs';
+import { readExcelAsRows } from './exceljs-utils';
 
 export interface ImportUser {
   full_name: string;
@@ -322,11 +322,11 @@ export async function generateImportTemplate(options: GenerateTemplateOptions = 
   URL.revokeObjectURL(url);
 }
 
-// Legacy function for backward compatibility (deprecated)
-export function generateImportTemplateLegacy(includeSamples: boolean = false): void {
-  const wb = XLSX.utils.book_new();
+// Legacy function for backward compatibility (deprecated) - now uses ExcelJS
+export async function generateImportTemplateLegacy(includeSamples: boolean = false): Promise<void> {
+  const { writeExcelAoaAndDownload } = await import('./exceljs-utils');
   
-  const data: (string | boolean)[][] = [
+  const data: unknown[][] = [
     TEMPLATE_HEADERS,
     TEMPLATE_INSTRUCTIONS,
   ];
@@ -335,92 +335,55 @@ export function generateImportTemplateLegacy(includeSamples: boolean = false): v
     data.push(...SAMPLE_DATA);
   }
   
-  const ws = XLSX.utils.aoa_to_sheet(data);
-  
-  // Set column widths
-  ws['!cols'] = [
-    { wch: 25 }, // Full Name
-    { wch: 30 }, // Email
-    { wch: 18 }, // Phone
-    { wch: 22 }, // User Type
-    { wch: 15 }, // Employee ID
-    { wch: 20 }, // Job Title
-    { wch: 12 }, // Has Login
-    { wch: 18 }, // Branch
-    { wch: 18 }, // Division
-    { wch: 18 }, // Department
-    { wch: 18 }, // Section
-    { wch: 30 }, // Roles
-  ];
-  
-  XLSX.utils.book_append_sheet(wb, ws, 'Users');
-  
   const filename = includeSamples ? 'user_import_template_with_samples.xlsx' : 'user_import_template.xlsx';
-  XLSX.writeFile(wb, filename);
+  await writeExcelAoaAndDownload([{
+    name: 'Users',
+    data,
+    columnWidths: [25, 30, 18, 22, 15, 20, 12, 18, 18, 18, 18, 30],
+  }], filename);
 }
 
-export function parseExcelFile(file: File): Promise<ImportUser[]> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    
-    reader.onload = (e) => {
-      try {
-        const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
-        
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
-          header: 1,
-          defval: ''
-        }) as unknown[][];
-        
-        // Skip header and instruction rows
-        const dataRows = jsonData.slice(2);
-        
-        const users: ImportUser[] = dataRows
-          .filter(row => row && row[0]) // Filter out empty rows
-          .map(row => {
-            const hasLoginValue = String(row[6] || '').toUpperCase();
-            const userType = String(row[3] || '').toLowerCase().trim();
-            
-            // Auto-determine has_login based on user type if not specified
-            let hasLogin: boolean;
-            if (hasLoginValue === 'TRUE' || hasLoginValue === '1' || hasLoginValue === 'YES') {
-              hasLogin = true;
-            } else if (hasLoginValue === 'FALSE' || hasLoginValue === '0' || hasLoginValue === 'NO') {
-              hasLogin = false;
-            } else {
-              // Default based on user type
-              hasLogin = ['employee', 'contractor_longterm'].includes(userType);
-            }
-            
-            return {
-              full_name: String(row[0] || '').trim(),
-              email: String(row[1] || '').trim() || undefined,
-              phone_number: String(row[2] || '').trim() || undefined,
-              user_type: userType,
-              employee_id: String(row[4] || '').trim() || undefined,
-              job_title: String(row[5] || '').trim() || undefined,
-              has_login: hasLogin,
-              branch_name: String(row[7] || '').trim() || undefined,
-              division_name: String(row[8] || '').trim() || undefined,
-              department_name: String(row[9] || '').trim() || undefined,
-              section_name: String(row[10] || '').trim() || undefined,
-              role_codes: String(row[11] || '').trim() || undefined,
-            };
-          });
-        
-        resolve(users);
-      } catch (error) {
-        reject(new Error('Failed to parse Excel file'));
+export async function parseExcelFile(file: File): Promise<ImportUser[]> {
+  const buffer = await file.arrayBuffer();
+  const rows = await readExcelAsRows(buffer);
+  
+  // Skip header and instruction rows
+  const dataRows = rows.slice(2);
+  
+  const users: ImportUser[] = dataRows
+    .filter(row => row && row[0]) // Filter out empty rows
+    .map(row => {
+      const hasLoginValue = String(row[6] || '').toUpperCase();
+      const userType = String(row[3] || '').toLowerCase().trim();
+      
+      // Auto-determine has_login based on user type if not specified
+      let hasLogin: boolean;
+      if (hasLoginValue === 'TRUE' || hasLoginValue === '1' || hasLoginValue === 'YES') {
+        hasLogin = true;
+      } else if (hasLoginValue === 'FALSE' || hasLoginValue === '0' || hasLoginValue === 'NO') {
+        hasLogin = false;
+      } else {
+        // Default based on user type
+        hasLogin = ['employee', 'contractor_longterm'].includes(userType);
       }
-    };
-    
-    reader.onerror = () => reject(new Error('Failed to read file'));
-    reader.readAsArrayBuffer(file);
-  });
+      
+      return {
+        full_name: String(row[0] || '').trim(),
+        email: String(row[1] || '').trim() || undefined,
+        phone_number: String(row[2] || '').trim() || undefined,
+        user_type: userType,
+        employee_id: String(row[4] || '').trim() || undefined,
+        job_title: String(row[5] || '').trim() || undefined,
+        has_login: hasLogin,
+        branch_name: String(row[7] || '').trim() || undefined,
+        division_name: String(row[8] || '').trim() || undefined,
+        department_name: String(row[9] || '').trim() || undefined,
+        section_name: String(row[10] || '').trim() || undefined,
+        role_codes: String(row[11] || '').trim() || undefined,
+      };
+    });
+  
+  return users;
 }
 
 interface HierarchyLookup {

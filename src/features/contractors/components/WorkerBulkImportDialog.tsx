@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useContractorCompanies, ContractorCompany } from "@/features/contractors/hooks/use-contractor-companies";
 import { useCreateContractorWorker } from "@/features/contractors/hooks/use-contractor-workers";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
+import { readExcelAsObjects, writeExcelAndDownload } from "@/lib/exceljs-utils";
 
 interface WorkerBulkImportDialogProps {
   open: boolean;
@@ -74,39 +74,32 @@ export function WorkerBulkImportDialog({ open, onOpenChange }: WorkerBulkImportD
     };
   }, [t]);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: "array" });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json<Record<string, string>>(worksheet);
+    try {
+      const buffer = await file.arrayBuffer();
+      const jsonData = await readExcelAsObjects<Record<string, string>>(buffer);
 
-        // Map Excel columns to our format
-        const mappedData: WorkerRow[] = jsonData.map((row) => ({
-          full_name: row["Full Name"] || row["Name"] || row["full_name"] || "",
-          full_name_ar: row["Name (Arabic)"] || row["full_name_ar"] || "",
-          national_id: String(row["National ID"] || row["ID"] || row["national_id"] || ""),
-          mobile_number: String(row["Mobile"] || row["Mobile Number"] || row["mobile_number"] || ""),
-          nationality: row["Nationality"] || row["nationality"] || "",
-          company_name: row["Company"] || row["Company Name"] || row["company_name"] || "",
-          preferred_language: row["Language"] || row["preferred_language"] || "en",
-        }));
+      // Map Excel columns to our format
+      const mappedData: WorkerRow[] = jsonData.map((row) => ({
+        full_name: row["Full Name"] || row["Name"] || row["full_name"] || "",
+        full_name_ar: row["Name (Arabic)"] || row["full_name_ar"] || "",
+        national_id: String(row["National ID"] || row["ID"] || row["national_id"] || ""),
+        mobile_number: String(row["Mobile"] || row["Mobile Number"] || row["mobile_number"] || ""),
+        nationality: row["Nationality"] || row["nationality"] || "",
+        company_name: row["Company"] || row["Company Name"] || row["company_name"] || "",
+        preferred_language: row["Language"] || row["preferred_language"] || "en",
+      }));
 
-        // Validate all rows
-        const validatedData = mappedData.map(row => validateRow(row, companies));
-        setParsedData(validatedData);
-      } catch (error) {
-        console.error("Error parsing file:", error);
-        toast.error(t("contractors.import.parseError", "Failed to parse file"));
-      }
-    };
-    reader.readAsArrayBuffer(file);
+      // Validate all rows
+      const validatedData = mappedData.map(row => validateRow(row, companies));
+      setParsedData(validatedData);
+    } catch (error) {
+      console.error("Error parsing file:", error);
+      toast.error(t("contractors.import.parseError", "Failed to parse file"));
+    }
   }, [companies, validateRow, t]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -119,7 +112,7 @@ export function WorkerBulkImportDialog({ open, onOpenChange }: WorkerBulkImportD
     },
   });
 
-  const downloadTemplate = () => {
+  const downloadTemplate = async () => {
     const template = [
       {
         "Full Name": "John Smith",
@@ -141,10 +134,10 @@ export function WorkerBulkImportDialog({ open, onOpenChange }: WorkerBulkImportD
       },
     ];
 
-    const ws = XLSX.utils.json_to_sheet(template);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Workers");
-    XLSX.writeFile(wb, "worker_import_template.xlsx");
+    await writeExcelAndDownload([{
+      name: "Workers",
+      data: template,
+    }], "worker_import_template.xlsx");
   };
 
   const handleImport = async () => {
