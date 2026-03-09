@@ -150,7 +150,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Diagnose user error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
     return new Response(JSON.stringify({ error: message }), {
@@ -574,7 +574,7 @@ async function executeFix(
       default:
         return { success: false, message: `Unknown fix action: ${fixAction}` };
     }
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Fix execution error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
     return { success: false, message };

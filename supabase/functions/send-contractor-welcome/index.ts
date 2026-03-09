@@ -333,7 +333,7 @@ You will receive your access credentials shortly.
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error: unknown) {
+  } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('[Send Welcome] Error:', errorMessage);
     return new Response(

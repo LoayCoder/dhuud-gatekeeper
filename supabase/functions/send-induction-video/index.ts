@@ -356,7 +356,7 @@ Deno.serve(async (req) => {
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error: unknown) {
+  } catch (error) {
     console.error('Error sending induction video:', error);
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     return new Response(

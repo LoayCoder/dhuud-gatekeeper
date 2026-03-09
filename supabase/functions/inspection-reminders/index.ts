@@ -125,7 +125,7 @@ Deno.serve(async (req) => {
     console.log(`[inspection-reminders] Complete. Processed: ${results.processed}, Emails: ${results.emailsSent}`);
 
     return new Response(JSON.stringify({ success: true, ...results }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 });
-  } catch (error: unknown) {
+  } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('[inspection-reminders] Fatal error:', error);
     return new Response(JSON.stringify({ success: false, error: errorMessage }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 });

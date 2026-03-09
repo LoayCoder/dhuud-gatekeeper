@@ -230,7 +230,7 @@ async function sendInductionToWorker(
     }
 
     return { success: true };
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Error sending induction to worker:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return { success: false, error: errorMessage };
@@ -384,7 +384,7 @@ Deno.serve(async (req) => {
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Error in send-bulk-induction:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(

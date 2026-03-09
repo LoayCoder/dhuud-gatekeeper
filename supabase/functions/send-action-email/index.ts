@@ -567,7 +567,7 @@ serve(async (req: Request) => {
       JSON.stringify({ success: true, messageId: result.messageId, language: lang, whatsappSent }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Error in send-action-email function:", error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(

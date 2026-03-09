@@ -84,7 +84,7 @@ serve(async (req) => {
       }
     );
 
-  } catch (error: unknown) {
+  } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     console.error('Error sending test WhatsApp:', error);
     return new Response(
