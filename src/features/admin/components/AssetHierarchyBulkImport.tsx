@@ -344,20 +344,16 @@ export function AssetHierarchyBulkImport({
     onOpenChange(open);
   }, [onOpenChange, resetState]);
 
-  const parseFile = useCallback((file: File) => {
+  const parseFile = useCallback(async (file: File) => {
     setFileName(file.name);
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const data = new Uint8Array(e.target?.result as ArrayBuffer);
-      const result = parseHierarchyFile(data.buffer);
-      setParseResult(result);
-      // Move to validation step after parsing
-      if (!result.parseError) {
-        setCurrentStep('validate');
-      }
-    };
-    reader.readAsArrayBuffer(file);
+    const buffer = await file.arrayBuffer();
+    const result = await parseHierarchyFile(buffer);
+    setParseResult(result);
+    // Move to validation step after parsing
+    if (!result.parseError) {
+      setCurrentStep('validate');
+    }
   }, []);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {

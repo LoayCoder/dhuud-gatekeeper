@@ -143,7 +143,7 @@ export default function ContractorWorkerBulkImport({
     maxFiles: 1,
   });
 
-  const downloadTemplate = useCallback(() => {
+  const downloadTemplate = useCallback(async () => {
     const templateData = [
       {
         full_name: "Ahmed Ali",
@@ -160,10 +160,10 @@ export default function ContractorWorkerBulkImport({
         preferred_language: "en",
       },
     ];
-    const ws = XLSX.utils.json_to_sheet(templateData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Workers");
-    XLSX.writeFile(wb, "worker_import_template.xlsx");
+    await writeExcelAndDownload([{
+      name: "Workers",
+      data: templateData,
+    }], "worker_import_template.xlsx");
   }, []);
 
   const validWorkers = parsedWorkers.filter((w) => w.isValid);

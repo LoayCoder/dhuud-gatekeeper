@@ -112,7 +112,7 @@ export function WorkerBulkImportDialog({ open, onOpenChange }: WorkerBulkImportD
     },
   });
 
-  const downloadTemplate = () => {
+  const downloadTemplate = async () => {
     const template = [
       {
         "Full Name": "John Smith",
@@ -134,10 +134,10 @@ export function WorkerBulkImportDialog({ open, onOpenChange }: WorkerBulkImportD
       },
     ];
 
-    const ws = XLSX.utils.json_to_sheet(template);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Workers");
-    XLSX.writeFile(wb, "worker_import_template.xlsx");
+    await writeExcelAndDownload([{
+      name: "Workers",
+      data: template,
+    }], "worker_import_template.xlsx");
   };
 
   const handleImport = async () => {
