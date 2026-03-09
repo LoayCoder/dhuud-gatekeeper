@@ -23,18 +23,9 @@ export type {
 } from "@/types/public-gate-pass.types";
 
 /**
- * Get client IP address for rate limiting
- * This is a best-effort approach; actual IP validation happens server-side
+ * Client IP is not resolved on the client (Zero Trust policy).
+ * The server-side edge function extracts IP from request headers.
  */
-async function getClientIP(): Promise<string | null> {
-  try {
-    const response = await fetch("https://api.ipify.org?format=json");
-    const data = await response.json();
-    return data.ip;
-  } catch {
-    return null;
-  }
-}
 
 /**
  * Helper function to handle error responses from gate pass submission
@@ -70,9 +61,6 @@ export function useSubmitPublicGatePass() {
 
   return useMutation({
     mutationFn: async (data: PublicGatePassSubmission): Promise<PublicGatePassSubmissionResult> => {
-      // Get client IP for rate limiting
-      const clientIp = await getClientIP();
-
       // Prepare items array for RPC
       const itemsJsonb = data.items?.map(item => ({
         sr_number: item.sr_number || null,
@@ -115,7 +103,7 @@ export function useSubmitPublicGatePass() {
           p_notify_whatsapp: data.notify_whatsapp ?? true,
           p_notify_email: data.notify_email ?? true,
           p_notify_sms: data.notify_sms ?? false,
-          p_client_ip: clientIp,
+          p_client_ip: null,
           p_items: itemsJsonb,
           p_start_date: data.start_date,
           p_end_date: data.end_date,

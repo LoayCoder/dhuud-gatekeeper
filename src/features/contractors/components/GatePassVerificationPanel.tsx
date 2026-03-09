@@ -6,11 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   useVerifyGatePassQR, 
-  useConfirmGatePassEntry, 
-  useConfirmGatePassExit,
   GatePassVerificationResult 
 } from "@/features/contractors/hooks/use-gate-pass-verification";
-import { useGatePassItems, useGatePassPhotos } from "@/features/contractors/hooks/use-gate-pass-details";
+import { useGuardGateAction, useVerifyPassByReference } from "@/features/contractors/hooks/use-gate-pass-guard-actions";
+import { useGatePassMedia } from "@/features/contractors/hooks/use-gate-pass-media";
 import { 
   FullScreenScanner,
   VerificationResult,
@@ -41,16 +40,16 @@ export function GatePassVerificationPanel() {
   const [itemStates, setItemStates] = useState<ItemVerificationState[]>([]);
 
   const verifyQR = useVerifyGatePassQR();
-  const confirmEntry = useConfirmGatePassEntry();
-  const confirmExit = useConfirmGatePassExit();
+  const guardAction = useGuardGateAction();
 
-  const isLoading = verifyQR.isPending || confirmEntry.isPending || confirmExit.isPending;
+  const isLoading = verifyQR.isPending || guardAction.isPending;
 
-  // Fetch real items and photos after QR verification
+  // Fetch real items and photos after QR verification using unified media hook
   const verifiedPassId = verificationResult?.valid ? verificationResult.gatePass?.id || null : null;
   const isPublic = verificationResult?.gatePass?.is_public_request || false;
-  const { data: rawItems, isLoading: itemsLoading } = useGatePassItems(verifiedPassId, isPublic);
-  const { data: photos, isLoading: photosLoading } = useGatePassPhotos(verifiedPassId, isPublic);
+  const { items: rawItems, photos, isLoading: mediaLoading } = useGatePassMedia(verifiedPassId, isPublic);
+  const itemsLoading = mediaLoading;
+  const photosLoading = mediaLoading;
 
   // Map fetched items to GatePassItem format with photo URLs
   const realItems: GatePassItem[] = useMemo(() => {
@@ -117,12 +116,12 @@ export function GatePassVerificationPanel() {
   const handleConfirmEntry = async () => {
     if (!verificationResult?.gatePass) return;
     
-    // Haptic feedback
-    if (navigator.vibrate) {
-      navigator.vibrate([50, 50, 100]);
-    }
-    
-    await confirmEntry.mutateAsync(verificationResult.gatePass.id);
+    await guardAction.mutateAsync({
+      passId: verificationResult.gatePass.id,
+      passReference: verificationResult.gatePass.reference_number || '',
+      action: 'entry',
+      validationMethod: 'qr_scan',
+    });
     setVerificationResult({
       ...verificationResult,
       gatePass: {
@@ -135,12 +134,12 @@ export function GatePassVerificationPanel() {
   const handleConfirmExit = async () => {
     if (!verificationResult?.gatePass) return;
     
-    // Haptic feedback
-    if (navigator.vibrate) {
-      navigator.vibrate([50, 50, 100]);
-    }
-    
-    await confirmExit.mutateAsync(verificationResult.gatePass.id);
+    await guardAction.mutateAsync({
+      passId: verificationResult.gatePass.id,
+      passReference: verificationResult.gatePass.reference_number || '',
+      action: 'exit',
+      validationMethod: 'qr_scan',
+    });
     setVerificationResult({
       ...verificationResult,
       gatePass: {
@@ -177,8 +176,8 @@ export function GatePassVerificationPanel() {
   const hasVehicle = verificationResult?.gatePass?.vehicle_plate || verificationResult?.gatePass?.driver_name;
   const allVehicleChecks = !hasVehicle || (vehicleVerified.plateMatches && vehicleVerified.driverVerified);
   const allItemChecks = realItems.length === 0 || itemsVerified;
-  const canConfirmEntry = verificationResult?.valid && !verificationResult.gatePass?.entry_time && allVehicleChecks && allItemChecks && !itemsLoading;
-  const canConfirmExit = verificationResult?.valid && verificationResult.gatePass?.entry_time && !verificationResult.gatePass?.exit_time;
+  const canConfirmEntry = verificationResult?.valid && !verificationResult.gatePass?.entry_time && allVehicleChecks && allItemChecks && !itemsLoading && !guardAction.isPending;
+  const canConfirmExit = verificationResult?.valid && verificationResult.gatePass?.entry_time && !verificationResult.gatePass?.exit_time && !guardAction.isPending;
 
   return (
     <div className="flex flex-col min-h-[calc(100vh-200px)]">
@@ -277,13 +276,13 @@ export function GatePassVerificationPanel() {
                 {!verificationResult.gatePass.entry_time && (
                   <Button 
                     onClick={handleConfirmEntry} 
-                    disabled={confirmEntry.isPending || !canConfirmEntry}
+                    disabled={guardAction.isPending || !canConfirmEntry}
                     className={cn(
                       "flex-1 h-14 text-lg gap-2 rounded-xl",
                       canConfirmEntry ? "bg-green-600 hover:bg-green-700" : "bg-muted text-muted-foreground"
                     )}
                   >
-                    {confirmEntry.isPending ? (
+                    {guardAction.isPending ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
                       <LogIn className="h-5 w-5" />
@@ -296,10 +295,10 @@ export function GatePassVerificationPanel() {
                 {verificationResult.gatePass.entry_time && !verificationResult.gatePass.exit_time && (
                   <Button 
                     onClick={handleConfirmExit} 
-                    disabled={confirmExit.isPending}
+                    disabled={guardAction.isPending}
                     className="flex-1 h-14 text-lg gap-2 rounded-xl bg-orange-600 hover:bg-orange-700"
                   >
-                    {confirmExit.isPending ? (
+                    {guardAction.isPending ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
                       <LogOut className="h-5 w-5" />
