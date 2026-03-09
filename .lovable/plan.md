@@ -1,63 +1,23 @@
 
-# Fix "Take Action" Button for Department Representative
+
+# Fix: Missing `orgStructure` Translation Namespace in Arabic
 
 ## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
+In `src/locales/ar/translation.json` line 2943, `orgStructure` is a flat string (`"الهيكل التنظيمي"`). The English file has it as a nested object with ~128 keys (lines 5552–5680). Every `t('orgStructure.title')`, `t('orgStructure.addBranch')`, etc. falls back to English for Arabic users — the entire `/admin/org-structure` page is untranslated.
 
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+## Fix
+Replace the flat string with a full nested Arabic translation object matching the EN structure. Key groups:
 
-## What Changes
+- **Page chrome** (~5): title, description
+- **Entity tabs** (~8): branches, divisions, departments, sections, sites, buildings, floorsZones
+- **Form fields** (~25): branchName, siteName, buildingName, floorZoneName, placeholders, parent selectors
+- **Validation messages** (~10): nameRequired, divisionRequired, alreadyExists variants
+- **CRUD toasts** (~6): itemCreated, itemUpdated, itemRemoved, success, deleted
+- **Location/GPS** (~12): latitude, longitude, useCurrentLocation, viewOnMap, coordinates, errors
+- **Site management** (~20): siteLocation, drawBoundary, assignDepartment/Section, setPrimary, confirmBoundary
+- **Buildings & Floors** (~18): manageBuildings, addBuilding, floorCount, zoneType, levelNumber
+- **Filters** (~5): filterByBranch, allBranches, searchSites, assignToBranch
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+## File Modified
+1. **`src/locales/ar/translation.json`** — Replace line 2943 flat string with full nested object (~128 Arabic keys)
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
-
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
-
-```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
-```
-
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
-
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
-
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
-
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
-```
-
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
-
-### 3. Localize the Button Text
-
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
-
-## Files Modified
-
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
