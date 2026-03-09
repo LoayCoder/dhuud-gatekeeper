@@ -61,9 +61,6 @@ export function useSubmitPublicGatePass() {
 
   return useMutation({
     mutationFn: async (data: PublicGatePassSubmission): Promise<PublicGatePassSubmissionResult> => {
-      // Get client IP for rate limiting
-      const clientIp = await getClientIP();
-
       // Prepare items array for RPC
       const itemsJsonb = data.items?.map(item => ({
         sr_number: item.sr_number || null,
