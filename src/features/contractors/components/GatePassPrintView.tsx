@@ -36,7 +36,7 @@ export function GatePassPrintView({ open, onOpenChange, gatePass }: GatePassPrin
   const { t } = useTranslation();
   const printRef = useRef<HTMLDivElement>(null);
 
-  if (!gatePass || !gatePass.qr_code_token) return null;
+  if (!gatePass) return null;
 
   const handlePrint = () => {
     const printContent = printRef.current;
