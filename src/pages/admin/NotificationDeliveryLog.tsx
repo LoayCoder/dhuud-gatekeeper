@@ -236,7 +236,7 @@ export default function NotificationDeliveryLog() {
                 <Select value={channelFilter} onValueChange={setChannelFilter}>
                   <SelectTrigger className="w-[140px]">
                     <Filter className="h-4 w-4 me-2" />
-                    <SelectValue placeholder={isRTL ? 'Ø§Ù„Ù‚Ù†Ø§Ø©' : 'Channel'} />
+                    <SelectValue placeholder={t('deliveryLog.channel')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{isRTL ? 'Ø¬Ù…ÙŠØ¹ Ø§Ù„Ù‚Ù†ÙˆØ§Øª' : 'All Channels'}</SelectItem>
