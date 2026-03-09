@@ -6670,8 +6670,14 @@
       },
       "sections": {
         "visitor": "معلومات الزائر",
-        "visit": "تفاصيل الزيارة"
-      }
+        "visit": "تفاصيل الزيارة",
+        "userType": "نوع الزائر",
+        "host": "معلومات المضيف"
+      },
+      "requestSubmitted": "تم تقديم الطلب",
+      "pendingApproval": "طلب الزيارة بانتظار موافقة الأمن",
+      "approvalMessage": "بمجرد الموافقة، سيحصل الزائر على رمز QR للوصول وسيتم إخطار المضيف عبر واتساب.",
+      "submitRequest": "إرسال الطلب"
     },
     "list": {
       "title": "دليل الزوار",
@@ -6684,8 +6690,19 @@
       "viewQR": "عرض رمز QR",
       "resetQR": "إعادة تعيين رمز QR"
     },
+    "userType": {
+      "external": "زائر خارجي",
+      "externalDesc": "بدون وصول للمنصة",
+      "internal": "مستخدم داخلي",
+      "internalDesc": "لديه وصول للمنصة"
+    },
+    "scan": {
+      "scanSuccess": "تم مسح الهوية بنجاح",
+      "scanId": "مسح الهوية",
+      "scanning": "جارٍ المسح..."
+    },
     "fields": {
-      "name": "الاسم",
+      "name": "الاسم الكامل",
       "company": "الشركة",
       "email": "البريد الإلكتروني",
       "nationalId": "رقم الهوية",
@@ -6698,15 +6715,45 @@
       "startTime": "وقت البدء",
       "endDate": "تاريخ الانتهاء",
       "endTime": "وقت الانتهاء",
-      "host": "المضيف"
+      "host": "المضيف",
+      "phone": "رقم الجوال",
+      "nationality": "الجنسية",
+      "hostUser": "اختيار المضيف",
+      "hostUserDesc": "المستخدم الداخلي الذي سيستضيف هذا الزائر",
+      "hostName": "اسم المضيف",
+      "hostPhone": "جوال المضيف",
+      "hostEmail": "بريد المضيف"
     },
     "placeholders": {
-      "name": "أدخل الاسم",
+      "name": "أدخل الاسم الكامل",
       "company": "أدخل اسم الشركة",
       "email": "أدخل البريد الإلكتروني",
       "nationalId": "أدخل رقم الهوية",
       "site": "اختر الموقع المقصود",
-      "notes": "أضف أي ملاحظات أو تعليمات أمنية..."
+      "notes": "أضف أي ملاحظات أو تعليمات أمنية...",
+      "phone": "أدخل رقم الجوال",
+      "nationality": "اختر الجنسية",
+      "selectHost": "اختر مضيفاً من المنظمة",
+      "hostName": "أدخل اسم المضيف",
+      "hostPhone": "لإشعار واتساب",
+      "hostEmail": "أدخل البريد الإلكتروني"
+    },
+    "validation": {
+      "nameRequired": "الاسم مطلوب",
+      "phoneRequired": "رقم جوال صالح مطلوب",
+      "companyRequired": "اسم الشركة مطلوب",
+      "nationalIdRequired": "رقم الهوية مطلوب",
+      "nationalityRequired": "الجنسية مطلوبة",
+      "branchRequired": "الفرع مطلوب",
+      "siteRequired": "الموقع مطلوب",
+      "startDateRequired": "تاريخ البدء مطلوب",
+      "startTimeRequired": "وقت البدء مطلوب",
+      "endDateRequired": "تاريخ الانتهاء مطلوب",
+      "endTimeRequired": "وقت الانتهاء مطلوب",
+      "purposeRequired": "غرض الزيارة مطلوب",
+      "emailRequired": "بريد إلكتروني صالح مطلوب",
+      "hostRequired": "معلومات المضيف مطلوبة",
+      "endAfterStart": "يجب أن يكون تاريخ/وقت الانتهاء بعد تاريخ/وقت البدء"
     }
   },
   "environmental": {

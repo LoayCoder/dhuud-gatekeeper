@@ -1,51 +1,63 @@
 
-
-# Fix Translation Issues for `/visitors/register` Page
+# Fix "Take Action" Button for Department Representative
 
 ## Problem
-The Visitor Pre-Registration page has ~25 missing translation keys in both English and Arabic locale files, plus hardcoded English strings in the Zod validation schema. Many `t()` calls use inline fallback strings that mask the missing keys.
+When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
 
-## Changes Required
+1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
+2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
 
-### 1. Add missing keys to `src/locales/en/translation.json`
+## What Changes
 
-Under `visitors.register.sections`, add:
-- `userType`: "Visitor Type"
-- `host`: "Host Information"
+### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
 
-Under `visitors.register`, add:
-- `requestSubmitted`: "Request Submitted"
-- `pendingApproval`: "Your visit request is pending security approval"
-- `approvalMessage`: "Once approved, the visitor will receive their QR access code and the host will be notified via WhatsApp."
-- `submitRequest`: "Submit Request"
+The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
 
-Add new `visitors.userType` section:
-- `external` / `externalDesc` / `internal` / `internalDesc`
+**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
 
-Under `visitors.fields`, add:
-- `phone`, `nationality`, `hostUser`, `hostUserDesc`, `hostName`, `hostPhone`, `hostEmail`
+```typescript
+case 'pending_dept_rep_review':
+case 'pending_dept_rep_approval':
+  return (
+    <DeptRepApprovalCard
+      incident={incidentData}
+      onComplete={handleRefresh}
+    />
+  );
+```
 
-Under `visitors.placeholders`, add:
-- `phone`, `nationality`, `selectHost`, `hostName`, `hostPhone`, `hostEmail`
+### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
 
-Under `visitors.scan` (used by VisitorIdScanner):
-- `scanSuccess`, `scanId`, `scanning`
+The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
 
-### 2. Add Arabic translations to `src/locales/ar/translation.json`
+**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
 
-Same keys with proper Arabic translations:
-- "نوع الزائر", "معلومات المضيف", "تم تقديم الطلب", "طلب الزيارة بانتظار موافقة الأمن"
-- "زائر خارجي", "بدون وصول للمنصة", "مستخدم داخلي", "لديه وصول للمنصة"
-- "رقم الجوال", "الجنسية", "اختيار المضيف", etc.
+```typescript
+<Button
+  size="lg"
+  className="shadow-lg px-8"
+  onClick={() => {
+    // Scroll to the workflow action card
+    const workflowCard = document.querySelector('[data-workflow-card]');
+    if (workflowCard) {
+      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }}
+>
+  Take Action
+  <ArrowRight className="h-4 w-4 ml-2" />
+</Button>
+```
 
-### 3. Localize Zod validation messages in `VisitorPreRegistration.tsx`
+And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
 
-Refactor the `formSchema` into a getter function `getFormSchema(t)` following the project's getter function pattern, so validation error messages like "Name is required", "Valid phone number is required" are passed through `t()`.
+### 3. Localize the Button Text
 
-### 4. Summary of files to modify
-| File | Change |
-|------|--------|
-| `src/locales/en/translation.json` | Add ~25 missing keys |
-| `src/locales/ar/translation.json` | Add ~25 Arabic translations |
-| `src/pages/visitors/VisitorPreRegistration.tsx` | Refactor Zod schema to use `t()` via getter pattern |
+Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
 
+## Files Modified
+
+1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
+2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
+3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
+4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
