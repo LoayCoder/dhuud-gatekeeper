@@ -4,7 +4,7 @@ import type { Investigation, CorrectiveAction, IncidentAuditLog, FiveWhyEntry, R
 export const getInvestigation = async (incidentId: string) => {
     const { data: invData, error: invError } = await supabase
         .from('investigations')
-        .select('*')
+        .select('id, incident_id, investigator_id, started_at, completed_at, immediate_cause, underlying_cause, root_cause, contributing_factors, contributing_factors_list, findings_summary, five_whys, root_causes, ai_summary, ai_summary_generated_at, ai_summary_language, tenant_id, created_at, updated_at, assigned_by, assigned_at, assignment_notes, branch_id')
         .eq('incident_id', incidentId)
         .is('deleted_at', null)
         .maybeSingle();
@@ -14,7 +14,7 @@ export const getInvestigation = async (incidentId: string) => {
 
     const { data: rcaData, error: rcaError } = await supabase
         .from('incident_rca')
-        .select('*')
+        .select('id, incident_id, five_whys, root_causes, contributing_factors, immediate_causes, underlying_causes, is_locked, locked_by, locked_at, tenant_id, created_at, updated_at')
         .eq('incident_id', incidentId)
         .maybeSingle();
 
@@ -103,7 +103,7 @@ export const getCorrectiveActions = async (incidentId: string) => {
 export const getIncidentAuditLogs = async (incidentId: string) => {
     const { data, error } = await supabase
         .from('incident_audit_logs')
-        .select('*')
+        .select('id, action, actor_id, incident_id, old_value, new_value, details, ip_address, created_at, tenant_id, branch_id')
         .eq('incident_id', incidentId)
         .order('created_at', { ascending: false });
 

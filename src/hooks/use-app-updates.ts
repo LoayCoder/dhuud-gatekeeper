@@ -77,7 +77,7 @@ export function useAppUpdates() {
     queryFn: async () => {
       const { count, error } = await supabase
         .from('push_subscriptions')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('is_active', true)
         .is('deleted_at', null);
       
