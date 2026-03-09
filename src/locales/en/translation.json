@@ -1456,6 +1456,7 @@
     "training": "Training",
     "weeklyPatrols": "Weekly Patrols",
     "guardsCount": "guards",
+    "zone": "Zone",
     "status": {
       "active": "Active",
       "warning": "Outside Zone",
