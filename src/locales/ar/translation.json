@@ -11713,5 +11713,133 @@
     "high": "عالي",
     "medium": "متوسط",
     "low": "منخفض"
+  },
+  "actionCenter": {
+    "title": "مركز العمليات",
+    "description": "مركز تشغيلي موحّد — نفّذ المهام عبر جميع الوحدات من مكان واحد",
+    "overview": "نظرة عامة",
+    "overviewDesc": "ملخص شامل للعناصر التي تتطلب الانتباه عبر الوحدات",
+    "sections": {
+      "operations": "العمليات",
+      "operationsDesc": "إدارة الحوادث والملاحظات",
+      "accessControl": "التحكم بالوصول",
+      "accessControlDesc": "تصاريح الدخول وإدارة الوصول",
+      "compliance": "الامتثال والجودة",
+      "complianceDesc": "التفتيشات والتدقيق وتتبع الامتثال",
+      "workforce": "القوى العاملة والمقاولون",
+      "workforceDesc": "إدارة المقاولين والامتثال",
+      "administration": "الإدارة",
+      "administrationDesc": "إدارة المستخدمين والأمان"
+    },
+    "stats": {
+      "overdue": "عناصر متأخرة",
+      "pendingApprovals": "بانتظار الموافقة",
+      "inProgress": "قيد التنفيذ",
+      "totalActions": "إجمالي الإجراءات المفتوحة"
+    },
+    "kpi": {
+      "overdue": "متأخر",
+      "pending": "قيد الانتظار",
+      "inProgress": "قيد التنفيذ",
+      "completed": "مكتمل",
+      "total": "الإجمالي",
+      "active": "نشط",
+      "scheduled": "مجدول",
+      "pendingActions": "إجراءات معلقة",
+      "pendingApproval": "قيد الانتظار",
+      "approved": "معتمد",
+      "expiring": "منتهي الصلاحية",
+      "investigations": "التحقيقات",
+      "totalUsers": "إجمالي المستخدمين",
+      "activeUsers": "نشط",
+      "pendingInvites": "قيد الانتظار",
+      "openFindings": "نتائج مفتوحة",
+      "totalAssigned": "الإجمالي"
+    },
+    "modules": {
+      "incidents": {
+        "title": "إدارة الحوادث",
+        "description": "الإبلاغ عن الحوادث والتحقيق فيها وتتبعها وإغلاقها"
+      },
+      "observations": {
+        "title": "الملاحظات",
+        "description": "تقديم الملاحظات ومراجعتها وتصعيدها وإغلاقها"
+      },
+      "gatePasses": {
+        "title": "تصاريح الدخول",
+        "description": "تصاريح دخول الأفراد والمركبات والمواد مع سير عمل الموافقة"
+      },
+      "inspections": {
+        "title": "التفتيشات",
+        "description": "التفتيشات المجدولة والفورية مع إجراءات المتابعة"
+      },
+      "audits": {
+        "title": "التدقيق",
+        "description": "تخطيط التدقيق وتنفيذه وتتبع النتائج والإجراءات التصحيحية"
+      },
+      "contractors": {
+        "title": "إدارة المقاولين",
+        "description": "تسجيل المقاولين والموافقة عليهم ومراقبة الامتثال"
+      },
+      "videoInduction": {
+        "title": "التعريف المرئي للشركة",
+        "description": "تعيين وتتبع والتحقق من التعريفات المرئية الإلزامية"
+      },
+      "users": {
+        "title": "إدارة المستخدمين",
+        "description": "إنشاء المستخدمين وتعيين الأدوار والتحكم بالوصول"
+      },
+      "passwordReset": {
+        "title": "إعادة تعيين كلمة المرور",
+        "description": "إعادة تعيين كلمة المرور الذاتية والمُدارة من المشرف"
+      }
+    },
+    "actions": {
+      "reportIncident": "الإبلاغ عن حادث",
+      "viewAll": "عرض الكل",
+      "myActions": "إجراءاتي",
+      "investigate": "مساحة التحقيق",
+      "pendingApprovals": "بانتظار الموافقة",
+      "dashboard": "لوحة المعلومات",
+      "reportObservation": "الإبلاغ عن ملاحظة",
+      "reviewPending": "مراجعة المعلّق",
+      "createGatePass": "إنشاء تصريح دخول",
+      "myGatePasses": "تصاريحي",
+      "deptDashboard": "لوحة القسم",
+      "todayPasses": "تصاريح اليوم",
+      "history": "السجل",
+      "startInspection": "بدء التفتيش",
+      "viewSessions": "الجلسات النشطة",
+      "myInspectionActions": "إجراءاتي",
+      "schedules": "الجداول",
+      "startAudit": "بدء التدقيق",
+      "viewAudits": "عرض التدقيقات",
+      "openFindings": "النتائج المفتوحة",
+      "registerContractor": "تسجيل مقاول",
+      "viewCompanies": "عرض الشركات",
+      "manageWorkers": "العمال",
+      "contractorGatePasses": "تصاريح الدخول",
+      "analytics": "التحليلات",
+      "viewInductions": "عرض التعريفات",
+      "pendingVerification": "بانتظار التحقق",
+      "completionTracking": "تتبع الإنجاز",
+      "manageVideos": "إدارة الفيديوهات",
+      "manageUsers": "إدارة المستخدمين",
+      "roleAssignment": "تعيين الأدوار",
+      "menuAccess": "صلاحيات القوائم",
+      "orgStructure": "الهيكل التنظيمي",
+      "auditLog": "سجل الأمان",
+      "resetPassword": "إعادة التعيين الذاتي",
+      "adminReset": "إعادة تعيين المشرف (إدارة المستخدمين)",
+      "securityDashboard": "لوحة الأمان"
+    },
+    "pipeline": {
+      "title": "تسليم الإشعارات (24 ساعة)",
+      "sent": "مُرسَل",
+      "pending": "قيد الانتظار",
+      "failed": "فشل",
+      "total": "الإجمالي (24 ساعة)",
+      "successRate": "نجاح"
+    }
   }
 }
