@@ -255,7 +255,7 @@ export default function AccessControlDashboard() {
             <TabsTrigger value="workers" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <HardHat className="h-4 w-4" />
               <span className="hidden sm:inline">{t('accessControl.tabs.workers', 'Workers')}</span>
-              <span className="sm:hidden">Wrk</span>
+              <span className="sm:hidden">{t('accessControl.mobileTabs.workers', 'Wrk')}</span>
             </TabsTrigger>
 
             <TabsTrigger value="analytics" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
