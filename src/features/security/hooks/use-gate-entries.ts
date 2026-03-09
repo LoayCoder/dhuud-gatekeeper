@@ -106,7 +106,7 @@ export function useRecordExit() {
 
   return useMutation({
     mutationFn: async (entryId: string) => {
-      const { recordExit } = await import('@/services/security/gateQRService');
+      const { recordExit } = await import('@/features/security/services/gateQRService');
       return recordExit(entryId);
     },
     onSuccess: () => {
