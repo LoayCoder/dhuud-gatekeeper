@@ -266,12 +266,12 @@ export default function NotificationDeliveryLog() {
                 <Table>
                   <TableHeader className="sticky top-0 bg-background z-10">
                     <TableRow>
-                      <TableHead className="w-[70px]">{isRTL ? 'Ø§Ù„Ù‚Ù†Ø§Ø©' : 'Channel'}</TableHead>
-                      <TableHead>{isRTL ? 'Ø§Ù„Ù…Ø³ØªÙ„Ù…' : 'Recipient'}</TableHead>
-                      <TableHead>{isRTL ? 'Ø§Ù„Ù†ÙˆØ¹' : 'Type'}</TableHead>
-                      <TableHead className="w-[80px]">{isRTL ? 'Ø§Ù„Ù…Ø³ØªÙˆÙ‰' : 'Severity'}</TableHead>
-                      <TableHead className="w-[100px]">{isRTL ? 'Ø§Ù„Ø­Ø§Ù„Ø©' : 'Status'}</TableHead>
-                      <TableHead>{isRTL ? 'Ø§Ù„ÙˆÙ‚Øª' : 'Time'}</TableHead>
+                      <TableHead className="w-[70px]">{t('deliveryLog.channel')}</TableHead>
+                      <TableHead>{t('deliveryLog.recipient')}</TableHead>
+                      <TableHead>{t('deliveryLog.type')}</TableHead>
+                      <TableHead className="w-[80px]">{t('deliveryLog.severity')}</TableHead>
+                      <TableHead className="w-[100px]">{t('deliveryLog.status')}</TableHead>
+                      <TableHead>{t('deliveryLog.time')}</TableHead>
                       <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                   </TableHeader>
