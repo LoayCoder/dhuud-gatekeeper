@@ -427,7 +427,20 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
+    // Authenticate: require either a valid service-role/JWT Authorization header or edge secret
+    const authHeader = req.headers.get('Authorization');
+    const hasServiceRole = authHeader?.includes(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '___none___');
+    const hasEdgeSecret = validateEdgeSecret(req);
+
+    if (!hasServiceRole && !hasEdgeSecret) {
+      console.error(`[${requestId}] Unauthorized: no valid service-role key or edge secret`);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`[${requestId}] Auth passed (service_role=${!!hasServiceRole}, edge_secret=${hasEdgeSecret})`);
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
