@@ -290,7 +290,7 @@ export default function NotificationDeliveryLog() {
                             <div className="flex flex-col items-center gap-2">
                               <BellOff className="h-10 w-10 text-muted-foreground/40" />
                               <span className="text-muted-foreground">
-                                {isRTL ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø³Ø¬Ù„Ø§Øª' : 'No notifications found'}
+                                {t('deliveryLog.noNotifications')}
                               </span>
                             </div>
                           )}
