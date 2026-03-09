@@ -316,10 +316,10 @@ export default function NotificationDeliveryLog() {
                                 className={`text-xs ${log.source === 'hsse' ? 'border-amber-500 text-amber-700 dark:text-amber-400' : ''}`}
                               >
                                 {log.source === 'incident' 
-                                  ? (isRTL ? 'Ø­Ø§Ø¯Ø«Ø©' : 'Incident')
+                                  ? t('deliveryLog.incident')
                                   : log.source === 'hsse'
-                                    ? (isRTL ? 'ØµØ­Ø© ÙˆØ³Ù„Ø§Ù…Ø©' : 'HSSE')
-                                    : (isRTL ? 'ÙŠØ¯ÙˆÙŠ' : 'Manual')
+                                    ? t('deliveryLog.sourceHsse')
+                                    : t('deliveryLog.sourceManual')
                                 }
                               </Badge>
                               {log.stakeholder_role && (
