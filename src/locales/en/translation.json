@@ -10697,7 +10697,10 @@
     "currentlyOnSite": "Currently On Site",
     "entityTypes": {
       "visitor": "Visitors",
-      "worker": "Workers"
+      "worker": "Workers",
+      "contractor": "Contractor",
+      "employee": "Employee",
+      "vehicle": "Vehicle"
     },
     "gatePassApprovals": "Gate Pass Approvals",
     "gatePassDescription": "Material gate passes pending your security approval",
@@ -10715,6 +10718,15 @@
       "visitors": "Visitors",
       "workers": "Workers"
     },
+    "mobileTabs": {
+      "onSite": "On Site",
+      "approvals": "Apps",
+      "gatePasses": "Passes",
+      "visitors": "Vis",
+      "workers": "Wrk",
+      "analytics": "Analytics",
+      "history": "Hist"
+    },
     "totalOnSite": "Total On Site",
     "trends": {
       "fromLastMonth": "+20.1% from last month",
@@ -10728,7 +10740,28 @@
     "workerAccess": "Worker Access",
     "workerAccessDescription": "Recent contractor worker entries and exits",
     "workerApprovals": "Worker Approvals",
-    "workersOnSite": "Workers"
+    "workersOnSite": "Workers",
+    "noEntries": "No access entries found",
+    "onSite": "On Site",
+    "exit": "Exit",
+    "person": "Person",
+    "type": "Type",
+    "entryTime": "Entry",
+    "exitTime": "Exit",
+    "status": "Status",
+    "recordExit": "Record Exit",
+    "gateDashboard": "Gate Operations",
+    "entryRecorded": "Entry recorded successfully",
+    "entryFailed": "Failed to record entry",
+    "exitRecorded": "Exit recorded successfully",
+    "exitFailed": "Failed to record exit",
+    "accessDenied": "Access Denied",
+    "notClientSiteRep": "You do not have any contractor companies assigned to you as a site representative. Contact your administrator to be assigned as a client site representative.",
+    "validationStatus": {
+      "valid": "Valid",
+      "warning": "Warning",
+      "denied": "Denied"
+    }
   },
   "contractorPortal": {
     "gatePasses": {
@@ -11053,10 +11086,6 @@
       "resolved": "Resolved",
       "dismissed": "Dismissed"
     }
-  },
-  "accessControl": {
-    "accessDenied": "Access Denied",
-    "notClientSiteRep": "You do not have any contractor companies assigned to you as a site representative. Contact your administrator to be assigned as a client site representative."
   },
   "sla": {
     "dashboard": "SLA Dashboard",

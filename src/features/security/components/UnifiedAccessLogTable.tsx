@@ -37,11 +37,11 @@ function getStatusBadge(status: string | null | undefined, translate: (key: stri
 
   switch (status) {
     case 'valid':
-      return <Badge variant="default" className="bg-green-600"><CheckCircle2 className="h-3 w-3 me-1" />{translate('accessControl.status.valid', 'Valid')}</Badge>;
+      return <Badge variant="default" className="bg-green-600"><CheckCircle2 className="h-3 w-3 me-1" />{translate('accessControl.validationStatus.valid', 'Valid')}</Badge>;
     case 'warning':
-      return <Badge variant="secondary" className="bg-yellow-500 text-white"><AlertTriangle className="h-3 w-3 me-1" />{translate('accessControl.status.warning', 'Warning')}</Badge>;
+      return <Badge variant="secondary" className="bg-yellow-500 text-white"><AlertTriangle className="h-3 w-3 me-1" />{translate('accessControl.validationStatus.warning', 'Warning')}</Badge>;
     case 'denied':
-      return <Badge variant="destructive"><XCircle className="h-3 w-3 me-1" />{translate('accessControl.status.denied', 'Denied')}</Badge>;
+      return <Badge variant="destructive"><XCircle className="h-3 w-3 me-1" />{translate('accessControl.validationStatus.denied', 'Denied')}</Badge>;
     default:
       return <Badge variant="outline">{status}</Badge>;
   }
@@ -54,7 +54,7 @@ export function UnifiedAccessLogTable({
   showExitButton = true,
   compact = false
 }: UnifiedAccessLogTableProps) {
-  const { t } = useTranslation(['security', 'translation']);
+  const { t } = useTranslation();
 
   if (isLoading) {
     return (

@@ -1,72 +1,63 @@
 
+# Fix "Take Action" Button for Department Representative
 
-## Plan: Fix Missing Arabic Translations for /security/access-control
+## Problem
+When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
 
-### Problem Summary
+1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
+2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
 
-Three issues on this page:
+## What Changes
 
-1. **Duplicate `accessControl` keys** in both EN (~line 10684 and ~line 11057) and AR (~line 10038 and ~line 11065) locale files. The second block has `accessDenied` and `notClientSiteRep` which should be merged into the first block.
-2. **Missing translation keys** used by `UnifiedAccessLogTable.tsx` and `AccessControlDashboard.tsx`: `noEntries`, `onSite`, `exit`, `person`, `type`, `entryTime`, `exitTime`, `status` (string for table header), `recordExit`, `gateDashboard`, `entryRecorded/entryFailed/exitRecorded/exitFailed`, `entityTypes.contractor/employee/vehicle`, and `validationStatus.valid/warning/denied` (used in `getStatusBadge` function).
-3. **Hardcoded English mobile tab labels** on lines 225, 234, 243, 252, 258, 264, 270 of `AccessControlDashboard.tsx`.
+### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
 
-### Changes
+The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
 
-#### File 1: `src/locales/en/translation.json`
+**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
 
-**Merge and expand the `accessControl` block** (~line 10698-10731): Add missing keys for entity types (`contractor`, `employee`, `vehicle`), table headers (`person`, `type`, `entryTime`, `exitTime`, `status`, `recordExit`), empty states (`noEntries`), action feedback (`entryRecorded`, `entryFailed`, `exitRecorded`, `exitFailed`), gate dashboard (`gateDashboard`), on-site label (`onSite`), exit label (`exit`), validation statuses (`validationStatus.valid/warning/denied`), and mobile tab short labels (`mobileTabs.onSite/approvals/gatePasses/visitors/workers/analytics/history`).
+```typescript
+case 'pending_dept_rep_review':
+case 'pending_dept_rep_approval':
+  return (
+    <DeptRepApprovalCard
+      incident={incidentData}
+      onComplete={handleRefresh}
+    />
+  );
+```
 
-**Remove duplicate `accessControl` block** (~line 11057-11060): Merge `accessDenied` and `notClientSiteRep` into the first block.
+### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
 
-#### File 2: `src/locales/ar/translation.json`
+The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
 
-**Same expansion and merge** for Arabic:
-- `noEntries` → `لا توجد سجلات دخول`
-- `onSite` → `في الموقع`
-- `exit` → `خروج`
-- `person` → `الشخص`
-- `type` → `النوع`
-- `entryTime` → `الدخول`
-- `exitTime` → `الخروج`
-- `status` → `الحالة`
-- `recordExit` → `تسجيل خروج`
-- `gateDashboard` → `عمليات البوابة`
-- `entryRecorded` → `تم تسجيل الدخول بنجاح`
-- `entryFailed` → `فشل تسجيل الدخول`
-- `exitRecorded` → `تم تسجيل الخروج بنجاح`
-- `exitFailed` → `فشل تسجيل الخروج`
-- `entityTypes.contractor` → `مقاول`
-- `entityTypes.employee` → `موظف`
-- `entityTypes.vehicle` → `مركبة`
-- `validationStatus.valid` → `صالح`
-- `validationStatus.warning` → `تحذير`
-- `validationStatus.denied` → `مرفوض`
-- `mobileTabs.*` → Arabic short labels (`الموقع`, `موافقات`, `تصاريح`, `زوار`, `عمال`, `تحليلات`, `سجل`)
-- `accessDenied` → `تم رفض الوصول`
-- `notClientSiteRep` → merged from duplicate block
+**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
 
-**Remove duplicate `accessControl` block** (~line 11065-11068).
+```typescript
+<Button
+  size="lg"
+  className="shadow-lg px-8"
+  onClick={() => {
+    // Scroll to the workflow action card
+    const workflowCard = document.querySelector('[data-workflow-card]');
+    if (workflowCard) {
+      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }}
+>
+  Take Action
+  <ArrowRight className="h-4 w-4 ml-2" />
+</Button>
+```
 
-#### File 3: `src/pages/security/AccessControlDashboard.tsx`
+And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
 
-- **Line 34**: Change `useTranslation(['security', 'translation'])` → `useTranslation()`
-- **Lines 225, 234, 243, 252, 258, 264, 270**: Replace hardcoded mobile labels with `t()` calls using `accessControl.mobileTabs.*` keys:
-  - `"On Site"` → `{t('accessControl.mobileTabs.onSite')}`
-  - `"Apps"` → `{t('accessControl.mobileTabs.approvals')}`
-  - `"Passes"` → `{t('accessControl.mobileTabs.gatePasses')}`
-  - `"Vis"` → `{t('accessControl.mobileTabs.visitors')}`
-  - `"Wrk"` → `{t('accessControl.mobileTabs.workers')}`
-  - `"Analytic"` → `{t('accessControl.mobileTabs.analytics')}`
-  - `"Hist"` → `{t('accessControl.mobileTabs.history')}`
+### 3. Localize the Button Text
 
-#### File 4: `src/features/security/components/UnifiedAccessLogTable.tsx`
+Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
 
-- **Line 57**: Change `useTranslation(['security', 'translation'])` → `useTranslation()`
-- **Lines 40, 42, 44**: Change `accessControl.status.valid` → `accessControl.validationStatus.valid` (and same for `warning`, `denied`) to avoid conflict with the string `accessControl.status` used as a table header on line 154.
+## Files Modified
 
-### Files to Edit
-1. `src/locales/en/translation.json` — Add missing keys, merge duplicate block
-2. `src/locales/ar/translation.json` — Add missing keys, merge duplicate block
-3. `src/pages/security/AccessControlDashboard.tsx` — Fix namespace, localize mobile tabs
-4. `src/features/security/components/UnifiedAccessLogTable.tsx` — Fix namespace, fix status key path
-
+1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
+2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
+3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
+4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys

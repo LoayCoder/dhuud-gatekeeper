@@ -31,7 +31,7 @@ import { GatePassApprovalQueue } from '@/features/contractors';
 import { GatePassApprovalHistoryTab } from '@/features/contractors';
 
 export default function AccessControlDashboard() {
-  const { t } = useTranslation(['security', 'translation']);
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('overview');
   const [scannerOpen, setScannerOpen] = useState(false);
   const [entityFilter, setEntityFilter] = useState<EntityType | 'all'>('all');
@@ -222,7 +222,7 @@ export default function AccessControlDashboard() {
             <TabsTrigger value="overview" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">{t('accessControl.tabs.onSite', 'On Site')}</span>
-              <span className="sm:hidden">On Site</span>
+              <span className="sm:hidden">{t('accessControl.mobileTabs.onSite', 'On Site')}</span>
               {(stats?.totalOnSite ?? 0) > 0 && (
                 <Badge variant="secondary" className="ms-1 text-[10px] h-5 px-1.5 min-w-[1.25rem]">{stats?.totalOnSite}</Badge>
               )}
@@ -231,7 +231,7 @@ export default function AccessControlDashboard() {
             <TabsTrigger value="approvals" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <ClipboardCheck className="h-4 w-4" />
               <span className="hidden sm:inline">{t('accessControl.tabs.approvals', 'Approvals')}</span>
-              <span className="sm:hidden">Apps</span>
+              <span className="sm:hidden">{t('accessControl.mobileTabs.approvals', 'Apps')}</span>
               {totalPendingApprovals > 0 && (
                 <Badge variant="destructive" className="ms-1 text-[10px] h-5 px-1.5 min-w-[1.25rem] animate-pulse">{totalPendingApprovals}</Badge>
               )}
@@ -240,7 +240,7 @@ export default function AccessControlDashboard() {
             <TabsTrigger value="gatepasses" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <Package className="h-4 w-4" />
               <span className="hidden sm:inline">{t('accessControl.tabs.gatePasses', 'Gate Passes')}</span>
-              <span className="sm:hidden">Passes</span>
+              <span className="sm:hidden">{t('accessControl.mobileTabs.gatePasses', 'Passes')}</span>
               {pendingGatePassApprovals.length > 0 && (
                 <Badge variant="destructive" className="ms-1 text-[10px] h-5 px-1.5 min-w-[1.25rem]">{pendingGatePassApprovals.length}</Badge>
               )}
@@ -249,25 +249,25 @@ export default function AccessControlDashboard() {
             <TabsTrigger value="visitors" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">{t('accessControl.tabs.visitors', 'Visitors')}</span>
-              <span className="sm:hidden">Vis</span>
+              <span className="sm:hidden">{t('accessControl.mobileTabs.visitors', 'Vis')}</span>
             </TabsTrigger>
 
             <TabsTrigger value="workers" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <HardHat className="h-4 w-4" />
               <span className="hidden sm:inline">{t('accessControl.tabs.workers', 'Workers')}</span>
-              <span className="sm:hidden">Wrk</span>
+              <span className="sm:hidden">{t('accessControl.mobileTabs.workers', 'Wrk')}</span>
             </TabsTrigger>
 
             <TabsTrigger value="analytics" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <LayoutDashboard className="h-4 w-4" />
               <span className="hidden sm:inline">{t('accessControl.tabs.analytics', 'Analytics')}</span>
-              <span className="sm:hidden">Analytic</span>
+              <span className="sm:hidden">{t('accessControl.mobileTabs.analytics', 'Analytics')}</span>
             </TabsTrigger>
 
             <TabsTrigger value="history" className="gap-2 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <History className="h-4 w-4" />
               <span className="hidden sm:inline">{t('accessControl.tabs.history', 'History')}</span>
-              <span className="sm:hidden">Hist</span>
+              <span className="sm:hidden">{t('accessControl.mobileTabs.history', 'Hist')}</span>
             </TabsTrigger>
           </TabsList>
         </div>
