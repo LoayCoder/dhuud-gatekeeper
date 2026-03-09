@@ -347,6 +347,11 @@ serve(async (req) => {
       ip: clientIP 
     });
 
+    // Create service-role client for DB writes
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
     // Get geolocation
     const geoLocation = await getGeoLocation(clientIP);
     console.log('Geolocation:', geoLocation);
@@ -354,24 +359,21 @@ serve(async (req) => {
     // Assess risk
     const riskAssessment = await assessRisk(
       supabase,
-      body.user_id,
+      effectiveUserId,
       body.device_fingerprint,
       geoLocation,
       body.success
     );
     console.log('Risk assessment:', riskAssessment);
 
-    // Get tenant_id for the user if available
+    // Get tenant_id for the user
     let tenantId: string | null = null;
-    if (body.user_id) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('tenant_id')
-        .eq('id', body.user_id)
-        .single();
-      
-      tenantId = profile?.tenant_id || null;
-    }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('tenant_id')
+      .eq('id', effectiveUserId)
+      .single();
+    tenantId = profile?.tenant_id || null;
 
     // Log to login_history
     const { error: insertError } = await supabase
