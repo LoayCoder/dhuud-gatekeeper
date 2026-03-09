@@ -23,18 +23,9 @@ export type {
 } from "@/types/public-gate-pass.types";
 
 /**
- * Get client IP address for rate limiting
- * This is a best-effort approach; actual IP validation happens server-side
+ * Client IP is not resolved on the client (Zero Trust policy).
+ * The server-side edge function extracts IP from request headers.
  */
-async function getClientIP(): Promise<string | null> {
-  try {
-    const response = await fetch("https://api.ipify.org?format=json");
-    const data = await response.json();
-    return data.ip;
-  } catch {
-    return null;
-  }
-}
 
 /**
  * Helper function to handle error responses from gate pass submission
