@@ -6558,7 +6558,27 @@
     "autoGenerateSessionDescription": "إنشاء جلسات الفحص تلقائياً عند الاستحقاق",
     "generationStats": "إحصائيات الإنشاء"
   },
-  "teamPerformance": "أداء الفريق",
+  "teamPerformance": {
+    "title": "لوحة أداء الفريق",
+    "subtitle": "عرض معدلات إتمام الإجراءات وأوقات الحل ومقاييس الامتثال لاتفاقية مستوى الخدمة",
+    "totalAssignees": "إجمالي المكلفين",
+    "avgCompletionRate": "متوسط معدل الإنجاز",
+    "avgResolutionTime": "متوسط وقت الحل",
+    "slaBreaches": "مخالفات اتفاقية مستوى الخدمة",
+    "completionRateByAssignee": "معدل الإنجاز حسب المكلف",
+    "assigneeMetrics": "مقاييس المكلفين",
+    "departmentMetrics": "مقاييس الأقسام",
+    "assignee": "المكلف",
+    "department": "القسم",
+    "totalActions": "إجمالي الإجراءات",
+    "completed": "مكتملة",
+    "overdue": "متأخرة",
+    "completionRate": "معدل الإنجاز",
+    "slaCompliance": "الامتثال لاتفاقية مستوى الخدمة",
+    "avgResolution": "متوسط الحل",
+    "noData": "لا توجد بيانات إجراءات للفترة المحددة",
+    "noDepartmentData": "لا توجد بيانات أقسام متاحة"
+  },
   "executiveReport": "التقرير التنفيذي",
   "assetManagement": "إدارة الأصول",
   "workflow": {
