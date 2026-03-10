@@ -9911,7 +9911,23 @@
       "return": "إرجاع"
     }
   },
-  "location": "الموقع",
+  "location": {
+    "locationAndBoundary": "الموقع والحدود",
+    "locationTab": "الموقع",
+    "geofenceRadius": "نطاق السياج الجغرافي",
+    "geofenceRadiusDescription": "منطقة تشغيل التنبيه حول الموقع",
+    "setMarker": "تعيين علامة",
+    "drawBoundary": "رسم الحدود",
+    "polygonPoints": "{{count}} نقاط",
+    "needMorePoints": "تحتاج {{count}} نقاط إضافية",
+    "confirmBoundary": "تأكيد الحدود",
+    "boundarySet": "تم تعيين الحدود",
+    "boundaryConfirmed": "تم تأكيد الحدود",
+    "boundaryDefined": "تم تحديد الحدود",
+    "vertices": "رؤوس",
+    "showRadiusBuffer": "إظهار منطقة النطاق",
+    "coordinates": "الإحداثيات"
+  },
   "risk": {
     "title": "تقييمات المخاطر",
     "subtitle": "إدارة تقييمات مخاطر الأنشطة",
