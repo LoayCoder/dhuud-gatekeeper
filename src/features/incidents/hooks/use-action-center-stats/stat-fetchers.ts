@@ -44,7 +44,8 @@ export async function fetchCorrectiveActionStats(tenantId: string, now: string) 
     };
 
     // Build parallel queries for each source × status group + overdue
-    const queries: Promise<{ count: number | null }>[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const queries: any[] = [];
 
     for (const source of sources) {
         // pending
