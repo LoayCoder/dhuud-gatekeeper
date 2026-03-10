@@ -7025,7 +7025,37 @@
       "recommendation": "التوصية"
     }
   },
-  "assetManagement": "إدارة الأصول",
+  "assetManagement": {
+    "linkedAssets": "الأصول المرتبطة",
+    "noLinkedAssets": "لا توجد أصول مرتبطة بهذا الحدث",
+    "linkAsset": "ربط أصل",
+    "linkAssetToIncident": "ربط أصل بالحادثة",
+    "unlinkAsset": "إلغاء ربط الأصل",
+    "unlinkAssetConfirm": "هل أنت متأكد من إلغاء ربط هذا الأصل؟",
+    "unlink": "إلغاء الربط",
+    "searchAssets": "البحث عن أصول...",
+    "noAssetsFound": "لم يتم العثور على أصول",
+    "linkType": "نوع الربط",
+    "linkNotes": "ملاحظات",
+    "linkNotesPlaceholder": "أضف ملاحظات حول هذا الربط...",
+    "noIncidentHistory": "لا يوجد سجل حوادث",
+    "noIncidentHistoryDescription": "لم يتم ربط هذا الأصل بأي حوادث بعد",
+    "linkTypes": {
+      "involved": "متورط",
+      "damaged": "متضرر",
+      "caused_by": "سبب بواسطة",
+      "affected": "متأثر"
+    },
+    "status": {
+      "label": "الحالة",
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "under_maintenance": "قيد الصيانة",
+      "out_of_service": "خارج الخدمة",
+      "disposed": "تم التخلص منه",
+      "pending_disposal": "بانتظار التخلص"
+    }
+  },
   "workflow": {
     "steps": {
       "submitted": "تم تقديم التقرير",
