@@ -61,7 +61,12 @@
     "probability": "संभावना",
     "branchRiskScores": "शाखा जोखिम स्कोर",
     "departmentRiskScores": "विभाग जोखिम स्कोर",
-    "riskLevel": "जोखिम स्तर",
+    "riskLevel": {
+      "critical": "गंभीर",
+      "high": "उच्च",
+      "medium": "मध्यम",
+      "low": "कम"
+    },
     "behavioralInsights": "व्यवहार अंतर्दृष्टि",
     "eventTypes": {
       "observation": "अवलोकन",
@@ -142,12 +147,6 @@
     "departmentAnalytics": "विभाग विश्लेषण",
     "highRiskDepts": "उच्च जोखिम",
     "actionOverdueRate": "विभाग द्वारा कार्रवाई विलंब दर",
-    "riskLevel": {
-      "critical": "गंभीर",
-      "high": "उच्च",
-      "medium": "मध्यम",
-      "low": "कम"
-    },
     "safetyKPIs": "सुरक्षा प्रदर्शन संकेतक",
     "kpiPeriod": "वर्तमान अवधि",
     "closureRate": "घटना समापन दर",
@@ -208,13 +207,25 @@
       "health": "स्वास्थ्य (बीमारी / एक्सपोज़र)",
       "process_safety": "प्रक्रिया सुरक्षा (LOPC / आग)",
       "environment": "पर्यावरण (रिसाव / उत्सर्जन)",
-      "security": "सुरक्षा (लोग / संपत्ति)",
+      "security": "सुरक्षा",
       "property_asset": "संपत्ति और एसेट क्षति",
       "road_traffic": "सड़क यातायात / वाहन",
       "quality_service": "गुणवत्ता / सेवा प्रभाव",
       "community_third_party": "समुदाय / तृतीय-पक्ष प्रभाव",
       "compliance_regulatory": "अनुपालन / नियामक उल्लंघन",
-      "emergency_crisis": "आपातकाल / संकट सक्रियण"
+      "emergency_crisis": "आपातकाल / संकट सक्रियण",
+      "nearMiss": "निकट दुर्घटना",
+      "near_miss": "निकट दुर्घटना",
+      "unsafeAct": "असुरक्षित कार्य",
+      "unsafe_act": "असुरक्षित कार्य",
+      "propertyDamage": "संपत्ति क्षति",
+      "property_damage": "संपत्ति क्षति",
+      "environmental": "पर्यावरण मामला",
+      "firstAid": "प्राथमिक चिकित्सा",
+      "first_aid": "प्राथमिक चिकित्सा",
+      "medicalTreatment": "चिकित्सा उपचार",
+      "medical_treatment": "चिकित्सा उपचार",
+      "fire": "आग"
     },
     "subtypes": {
       "safety": {
@@ -347,17 +358,17 @@
     },
     "status": {
       "submitted": "जमा किया गया",
-      "pending_review": "समीक्षा के लिए लंबित",
+      "pending_review": "समीक्षा लंबित",
       "investigation_pending": "जांच लंबित",
-      "investigation_in_progress": "जांच के अधीन",
+      "investigation_in_progress": "जांच जारी",
       "closed": "बंद",
       "expert_screening": "विशेषज्ञ जांच",
       "returned_to_reporter": "रिपोर्टर को वापस",
       "expert_rejected": "विशेषज्ञ द्वारा अस्वीकृत",
-      "no_investigation_required": "जांच की आवश्यकता नहीं",
+      "no_investigation_required": "जांच आवश्यक नहीं",
       "pending_manager_approval": "प्रबंधक अनुमोदन लंबित",
       "manager_rejected": "प्रबंधक द्वारा अस्वीकृत",
-      "hsse_manager_escalation": "HSSE प्रबंधक को बढ़ाया गया",
+      "hsse_manager_escalation": "HSSE प्रबंधक को एस्केलेट",
       "pending_dept_rep_approval": "विभाग प्रतिनिधि अनुमोदन लंबित",
       "observation_actions_pending": "कार्रवाई प्रगति पर",
       "pending_closure": "बंद होने की प्रतीक्षा में",
@@ -451,7 +462,6 @@
     "gpsDetectedFromSite": "GPS साइट से स्वचालित पहचान",
     "withinMeters": "{{distance}} मीटर के भीतर",
     "noSiteNearby": "आपके स्थान के 500 मीटर के भीतर कोई साइट नहीं मिली",
-    "locationDetails": "स्थान विवरण",
     "locationDetailsPlaceholder": "जैसे: भवन ए, मंजिल 2, प्रवेश द्वार के पास",
     "locationDetailsDescription": "वैकल्पिक: साइट के भीतर विशिष्ट स्थान का वर्णन करें",
     "responsibleDepartment": "जिम्मेदार विभाग",
@@ -465,21 +475,6 @@
     "observationTypes": {
       "unsafeAct": "असुरक्षित कार्य",
       "unsafeCondition": "असुरक्षित स्थिति"
-    },
-    "incidentTypes": {
-      "nearMiss": "निकट दुर्घटना",
-      "near_miss": "निकट दुर्घटना",
-      "unsafeAct": "असुरक्षित कार्य",
-      "unsafe_act": "असुरक्षित कार्य",
-      "propertyDamage": "संपत्ति क्षति",
-      "property_damage": "संपत्ति क्षति",
-      "environmental": "पर्यावरण मामला",
-      "firstAid": "प्राथमिक चिकित्सा",
-      "first_aid": "प्राथमिक चिकित्सा",
-      "medicalTreatment": "चिकित्सा उपचार",
-      "medical_treatment": "चिकित्सा उपचार",
-      "fire": "आग",
-      "security": "सुरक्षा"
     },
     "hsseEventType": "घटना श्रेणी",
     "incidentCategory": "घटना श्रेणी",
@@ -594,21 +589,6 @@
         "erpWeatherOther": "ERP सक्रिय (मौसम/अन्य)"
       }
     },
-    "status": {
-      "submitted": "जमा किया गया",
-      "pending_review": "समीक्षा लंबित",
-      "investigation_pending": "जांच लंबित",
-      "investigation_in_progress": "जांच जारी",
-      "closed": "बंद",
-      "expert_screening": "विशेषज्ञ जांच",
-      "returned_to_reporter": "रिपोर्टर को वापस",
-      "expert_rejected": "विशेषज्ञ द्वारा अस्वीकृत",
-      "no_investigation_required": "जांच आवश्यक नहीं",
-      "pending_manager_approval": "प्रबंधक अनुमोदन लंबित",
-      "manager_rejected": "प्रबंधक द्वारा अस्वीकृत",
-      "hsse_manager_escalation": "HSSE प्रबंधक को एस्केलेट",
-      "pending_dept_rep_approval": "विभाग प्रतिनिधि अनुमोदन लंबित"
-    },
     "quickCapture": {
       "title": "त्वरित कैप्चर",
       "aiComingSoon": "AI संचालित - जल्द आ रहा है",
@@ -651,7 +631,8 @@
       "evidence": "साक्ष्य",
       "witnesses": "गवाह",
       "rca": "मूल कारण विश्लेषण",
-      "actions": "सुधारात्मक कार्रवाई"
+      "actions": "सुधारात्मक कार्रवाई",
+      "overview": "अवलोकन"
     },
     "evidence": {
       "title": "साक्ष्य प्रबंधन",
@@ -900,8 +881,8 @@
       "occurredAt": "घटना का समय",
       "location": "स्थान",
       "site": "साइट",
-"investigatorAssignment": "जांचकर्ता नियुक्ति",
-        "awaitingExpertAssignment": "HSSE विशेषज्ञ इस मामले के लिए एक जांचकर्ता नियुक्त करेगा।",
+      "investigatorAssignment": "जांचकर्ता नियुक्ति",
+      "awaitingExpertAssignment": "HSSE विशेषज्ञ इस मामले के लिए एक जांचकर्ता नियुक्त करेगा।",
       "assignInvestigator": "जांचकर्ता नियुक्त करें",
       "selectInvestigator": "जांचकर्ता चुनें",
       "currentInvestigator": "वर्तमान जांचकर्ता",
@@ -981,9 +962,6 @@
       "button": "समीक्षा के लिए जांच सबमिट करें",
       "note": "सभी नियुक्त कार्रवाई मालिकों को ईमेल द्वारा सूचित किया जाएगा",
       "success": "जांच समीक्षा के लिए सबमिट हुई"
-    },
-    "tabs": {
-      "overview": "अवलोकन"
     },
     "severityAssessment": "गंभीरता मूल्यांकन",
     "actualSeverity": "वास्तविक गंभीरता",
@@ -1200,7 +1178,7 @@
     "pageNotFound": "उफ़! पृष्ठ नहीं मिला",
     "returnHome": "होम पर वापस जाएं"
   },
-"common": {
+  "common": {
     "loading": "लोड हो रहा है...",
     "phone": "फ़ोन",
     "save": "सहेजें",
@@ -1248,9 +1226,6 @@
     "description": "विवरण",
     "create": "बनाएं",
     "update": "अपडेट",
-    "view": "देखें",
-    "details": "विवरण",
-    "all": "सभी",
     "none": "कोई नहीं",
     "select": "चुनें",
     "selectOptional": "चुनें (वैकल्पिक)",
@@ -1801,7 +1776,6 @@
     "executiveReport": "कार्यकारी रिपोर्ट",
     "actionSlaSettings": "एक्शन SLA सेटिंग्स",
     "manhoursManagement": "मैनहोर्स प्रबंधन",
-    
     "menuAccess": "मेनू एक्सेस"
   },
   "actions": {
@@ -2764,6 +2738,15 @@
       "batteryCritical": "बैटरी गंभीर!",
       "chargeSoon": "कृपया तुरंत अपना डिवाइस चार्ज करें",
       "chargeWhenPossible": "जब संभव हो चार्ज करें"
+    },
+    "gate": {
+      "alreadyOnSite": "पहले से साइट पर",
+      "alreadyOnSiteDesc": "यह व्यक्ति {{time}} से साइट पर है"
+    },
+    "workerScanHistory": {
+      "title": "आज के वर्कर स्कैन",
+      "noScans": "आज कोई वर्कर स्कैन नहीं",
+      "exitedAt": "बाहर निकला"
     }
   },
   "dashboard": {
@@ -3019,7 +3002,7 @@
     "organizationalAssignment": "संगठनात्मक असाइनमेंट",
     "fullBranchAccess": "सभी शाखाओं तक पूर्ण पहुँच",
     "fullBranchAccessDescription": "एक शाखा के बजाय सभी संगठनात्मक शाखाओं तक पहुँच प्रदान करें",
-    "allBranches": "सभी शाखाएं (पूर्ण पहुँच)",
+    "allBranches": "सभी शाखाएं",
     "filters": "फ़िल्टर",
     "filterByType": "प्रकार से फ़िल्टर",
     "filterByStatus": "स्थिति से फ़िल्टर",
@@ -3027,7 +3010,6 @@
     "filterByDivision": "डिवीजन से फ़िल्टर",
     "allTypes": "सभी प्रकार",
     "allStatuses": "सभी स्थितियां",
-    "allBranches": "सभी शाखाएं",
     "allDivisions": "सभी डिवीजन",
     "active": "सक्रिय",
     "inactive": "निष्क्रिय",
@@ -3950,7 +3932,8 @@
       "sync": "सिंक सूचनाएं",
       "update": "अपडेट और स्वीकृतियां",
       "info": "जानकारी अलर्ट",
-      "error": "सुरक्षा और त्रुटि अलर्ट"
+      "error": "सुरक्षा और त्रुटि अलर्ट",
+      "urgent": "तत्काल SLA अलर्ट"
     },
     "categoryDescription": {
       "sync": "जब ऑफ़लाइन परिवर्तन सिंक हों तो सूचनाएं",
@@ -3958,13 +3941,6 @@
       "info": "सामान्य जानकारी और स्थिति अपडेट",
       "error": "सुरक्षा अलर्ट, त्रुटियाँ, और महत्वपूर्ण चेतावनियाँ",
       "urgent": "महत्वपूर्ण SLA एस्केलेशन और देर से कार्रवाइयाँ जिन पर तत्काल ध्यान आवश्यक है"
-    },
-    "category": {
-      "sync": "सिंक सूचनाएं",
-      "update": "अपडेट और स्वीकृतियां",
-      "info": "जानकारी अलर्ट",
-      "error": "सुरक्षा और त्रुटि अलर्ट",
-      "urgent": "तत्काल SLA अलर्ट"
     },
     "digestPreferences": "डाइजेस्ट ईमेल प्राथमिकताएं",
     "digestPreferencesDescription": "दैनिक डाइजेस्ट ईमेल कब और कैसे प्राप्त करें कॉन्फ़िगर करें",
@@ -4085,11 +4061,52 @@
     "reset": "डिफ़ॉल्ट पर रीसेट करें",
     "saveSuccess": "दस्तावेज़ सेटिंग्स सफलतापूर्वक सहेजी गईं",
     "saveError": "दस्तावेज़ सेटिंग्स सहेजने में विफल",
-    "tabs": { "header": "हेडर", "footer": "फ़ुटर", "watermark": "वॉटरमार्क" },
-    "header": { "primaryText": "प्राथमिक पाठ", "primaryTextPlaceholder": "उदा: सुरक्षा विभाग", "secondaryText": "द्वितीयक पाठ", "secondaryTextPlaceholder": "उदा: ISO 45001", "logoPosition": "लोगो स्थिति", "positionLeft": "बाएं", "positionCenter": "केंद्र", "positionRight": "दाएं", "showLogo": "लोगो दिखाएं", "bgColor": "पृष्ठभूमि रंग", "textColor": "पाठ रंग" },
-    "footer": { "text": "फ़ुटर पाठ", "textPlaceholder": "उदा: गोपनीय", "showPageNumbers": "पृष्ठ संख्या दिखाएं", "showDatePrinted": "प्रिंट तिथि दिखाएं", "bgColor": "पृष्ठभूमि रंग", "textColor": "पाठ रंग" },
-    "watermark": { "enabled": "वॉटरमार्क सक्षम करें", "text": "वॉटरमार्क पाठ", "textPlaceholder": "उदा: गोपनीय, ड्राफ्ट", "opacity": "अपारदर्शिता" },
-    "preview": { "title": "लाइव पूर्वावलोकन", "description": "देखें कि आपके दस्तावेज़ कैसे दिखेंगे", "sampleTitle": "नमूना दस्तावेज़ शीर्षक", "fieldLabel": "फ़ील्ड लेबल", "fieldValue": "नमूना मान", "dateLabel": "तिथि", "locationLabel": "स्थान", "locationValue": "नमूना स्थान", "signature": "हस्ताक्षर:", "date": "तिथि:", "pageNumber": "पृष्ठ {{page}}", "hint": "यह आपके दस्तावेज़ लेआउट का अनुमान दिखाता है" }
+    "tabs": {
+      "header": "हेडर",
+      "footer": "फ़ुटर",
+      "watermark": "वॉटरमार्क"
+    },
+    "header": {
+      "primaryText": "प्राथमिक पाठ",
+      "primaryTextPlaceholder": "उदा: सुरक्षा विभाग",
+      "secondaryText": "द्वितीयक पाठ",
+      "secondaryTextPlaceholder": "उदा: ISO 45001",
+      "logoPosition": "लोगो स्थिति",
+      "positionLeft": "बाएं",
+      "positionCenter": "केंद्र",
+      "positionRight": "दाएं",
+      "showLogo": "लोगो दिखाएं",
+      "bgColor": "पृष्ठभूमि रंग",
+      "textColor": "पाठ रंग"
+    },
+    "footer": {
+      "text": "फ़ुटर पाठ",
+      "textPlaceholder": "उदा: गोपनीय",
+      "showPageNumbers": "पृष्ठ संख्या दिखाएं",
+      "showDatePrinted": "प्रिंट तिथि दिखाएं",
+      "bgColor": "पृष्ठभूमि रंग",
+      "textColor": "पाठ रंग"
+    },
+    "watermark": {
+      "enabled": "वॉटरमार्क सक्षम करें",
+      "text": "वॉटरमार्क पाठ",
+      "textPlaceholder": "उदा: गोपनीय, ड्राफ्ट",
+      "opacity": "अपारदर्शिता"
+    },
+    "preview": {
+      "title": "लाइव पूर्वावलोकन",
+      "description": "देखें कि आपके दस्तावेज़ कैसे दिखेंगे",
+      "sampleTitle": "नमूना दस्तावेज़ शीर्षक",
+      "fieldLabel": "फ़ील्ड लेबल",
+      "fieldValue": "नमूना मान",
+      "dateLabel": "तिथि",
+      "locationLabel": "स्थान",
+      "locationValue": "नमूना स्थान",
+      "signature": "हस्ताक्षर:",
+      "date": "तिथि:",
+      "pageNumber": "पृष्ठ {{page}}",
+      "hint": "यह आपके दस्तावेज़ लेआउट का अनुमान दिखाता है"
+    }
   },
   "upload": {
     "uploading": "अपलोड हो रहा है...",
@@ -4842,9 +4859,9 @@
     "createTemplate": "ऑडिट टेम्पलेट बनाएं",
     "templateType": "टेम्पलेट प्रकार",
     "types": {
-      "asset": "संपत्ति",
-      "area": "क्षेत्र/साइट",
-      "audit": "अनुपालन ऑडिट"
+      "asset": "संपत्ति निरीक्षण",
+      "area": "क्षेत्र निरीक्षण",
+      "audit": "ऑडिट"
     },
     "standardReference": "मानक संदर्भ",
     "standards": {
@@ -4878,11 +4895,6 @@
       "minorNc": "मामूली गैर-अनुरूपता",
       "majorNc": "बड़ी गैर-अनुरूपता",
       "criticalNc": "गंभीर गैर-अनुरूपता"
-    },
-    "types": {
-      "asset": "संपत्ति निरीक्षण",
-      "area": "क्षेत्र निरीक्षण",
-      "audit": "ऑडिट"
     },
     "sessionStarted": "ऑडिट सत्र शुरू हुआ",
     "sessionCompleted": "ऑडिट सत्र पूर्ण हुआ",
@@ -5457,7 +5469,7 @@
       "name": "नाम",
       "nationalId": "राष्ट्रीय आईडी",
       "nationality": "राष्ट्रीयता",
-      "induction": "इंडक्शन",
+      "induction": "प्रेरण",
       "noWorkers": "कोई श्रमिक नहीं मिला",
       "selectAll": "सभी चुनें",
       "selectWorker": "{{name}} चुनें",
@@ -5471,7 +5483,7 @@
       "updateSuccess": "श्रमिक सफलतापूर्वक अपडेट किया गया",
       "duplicateNationalId": "इस राष्ट्रीय आईडी वाला श्रमिक पहले से मौजूद है",
       "bulkRejectTitle": "{{count}} श्रमिकों को अस्वीकृत करें",
-      "rejectionReason": "अस्वीकृति का कारण",
+      "rejectionReason": "अस्वीकृति कारण",
       "rejectionReasonPlaceholder": "अस्वीकृति का कारण दर्ज करें...",
       "alsoAddToBlacklist": "सुरक्षा ब्लैकलिस्ट में भी जोड़ें",
       "addToBlacklistTitle": "सुरक्षा ब्लैकलिस्ट में जोड़ें",
@@ -5498,18 +5510,31 @@
       "selectProject": "इंडक्शन के लिए प्रोजेक्ट चुनें",
       "eligibleWorkers": "योग्य श्रमिक",
       "noEligibleWorkers": "कोई योग्य श्रमिक नहीं। श्रमिकों को स्वीकृत होना चाहिए और मोबाइल नंबर होना चाहिए।",
-      "sendInduction": "इंडक्शन भेजें",
+      "sendInduction": "प्रेरण वीडियो भेजें",
       "inductionSent": "इंडक्शन सफलतापूर्वक भेजे गए",
       "inductionFailed": "इंडक्शन भेजने में विफल",
       "languageBreakdown": "भाषा वितरण",
       "languageBreakdownDesc": "प्रत्येक श्रमिक को उनकी निर्धारित भाषा में इंडक्शन संदेश मिलेगा",
       "templateNotice": "संदेश अधिसूचना टेम्पलेट का उपयोग करते हैं। प्रत्येक भाषा के लिए WhatsApp टेम्पलेट बनाएं।",
       "messageDelayTitle": "संदेश विलंब",
-      "noPendingApprovals": "कोई लंबित अनुमोदन नहीं"
+      "noPendingApprovals": "कोई लंबित अनुमोदन नहीं",
+      "details": "विवरण",
+      "qrCode": "QR कोड",
+      "personalInfo": "व्यक्तिगत जानकारी",
+      "mobile": "मोबाइल",
+      "preferredLanguage": "पसंदीदा भाषा",
+      "approvalRequiredForQr": "QR कोड बनाने से पहले कर्मचारी को अनुमोदित किया जाना चाहिए",
+      "safetyInduction": "सुरक्षा प्रेरण",
+      "inductionDescription": "कर्मचारी की पसंदीदा भाषा के आधार पर व्हाट्सएप के माध्यम से सुरक्षा प्रेरण वीडियो भेजें।",
+      "status": {
+        "pending": "लंबित",
+        "approved": "अनुमोदित",
+        "rejected": "अस्वीकृत"
+      }
     },
     "projects": {
       "title": "ठेकेदार परियोजनाएं",
-      "description": "ठेकेदार परियोजनाओं और असाइनमेंट का प्रबंधन करें",
+      "description": "विवरण",
       "addProject": "परियोजना जोड़ें",
       "editProject": "परियोजना संपादित करें",
       "noProjects": "कोई परियोजना नहीं मिली",
@@ -5527,8 +5552,7 @@
       "endDate": "समाप्ति तिथि",
       "status": "स्थिति",
       "location": "स्थान",
-      "schedule": "अनुसूची",
-      "description": "विवरण"
+      "schedule": "अनुसूची"
     },
     "workerStatus": {
       "pending": "लंबित",
@@ -5544,7 +5568,39 @@
       "notCompleted": "पूर्ण नहीं",
       "expiredWarning": "इंडक्शन समाप्त",
       "expiringSoonWarning": "इंडक्शन जल्द समाप्त हो रही है",
-      "expiryDate": "समाप्ति: {{date}}"
+      "expiryDate": "समाप्ति: {{date}}",
+      "title": "प्रेरण वीडियो",
+      "description": "ठेकेदार कर्मचारियों के लिए सुरक्षा प्रेरण वीडियो प्रबंधित करें",
+      "addVideo": "वीडियो जोड़ें",
+      "editVideo": "वीडियो संपादित करें",
+      "deleteVideo": "वीडियो हटाएं",
+      "videoTitle": "वीडियो शीर्षक",
+      "videoTitleAr": "वीडियो शीर्षक (अरबी)",
+      "videoUrl": "वीडियो URL",
+      "thumbnailUrl": "थंबनेल URL",
+      "duration": "अवधि (सेकंड)",
+      "validityPeriod": "वैधता अवधि (दिन)",
+      "language": "भाषा",
+      "isActive": "सक्रिय",
+      "status": "प्रेरण स्थिति",
+      "notSent": "नहीं भेजा गया",
+      "sent": "भेजा गया",
+      "viewed": "देखा गया",
+      "completed": "पूर्ण",
+      "pending": "लंबित",
+      "sentAt": "भेजने की तिथि",
+      "viewedAt": "देखने की तिथि",
+      "completedAt": "पूर्ण होने की तिथि",
+      "expiresAt": "समाप्ति तिथि",
+      "noInductionSent": "अभी तक इस कर्मचारी को कोई प्रेरण नहीं भेजा गया।",
+      "sendVideo": "प्रेरण वीडियो भेजें",
+      "send": "प्रेरण वीडियो भेजें",
+      "resend": "प्रेरण वीडियो पुनः भेजें",
+      "compliance": "प्रेरण अनुपालन",
+      "completionRate": "पूर्णता दर",
+      "expiringSoon": "जल्द समाप्त हो रहा है",
+      "expiredInductions": "समाप्त प्रेरण",
+      "pendingInductions": "लंबित प्रेरण"
     },
     "nav": {
       "dashboard": "डैशबोर्ड",
@@ -5719,62 +5775,6 @@
       "noVideoAvailable": "इस भाषा के लिए कोई प्रेरण वीडियो उपलब्ध नहीं"
     },
     "inductionVideos": "प्रेरण वीडियो",
-    "induction": {
-      "title": "प्रेरण वीडियो",
-      "description": "ठेकेदार कर्मचारियों के लिए सुरक्षा प्रेरण वीडियो प्रबंधित करें",
-      "addVideo": "वीडियो जोड़ें",
-      "editVideo": "वीडियो संपादित करें",
-      "deleteVideo": "वीडियो हटाएं",
-      "videoTitle": "वीडियो शीर्षक",
-      "videoTitleAr": "वीडियो शीर्षक (अरबी)",
-      "videoUrl": "वीडियो URL",
-      "thumbnailUrl": "थंबनेल URL",
-      "duration": "अवधि (सेकंड)",
-      "validityPeriod": "वैधता अवधि (दिन)",
-      "language": "भाषा",
-      "isActive": "सक्रिय",
-      "status": "प्रेरण स्थिति",
-      "notSent": "नहीं भेजा गया",
-      "sent": "भेजा गया",
-      "viewed": "देखा गया",
-      "completed": "पूर्ण",
-      "expired": "समाप्त",
-      "pending": "लंबित",
-      "sentAt": "भेजने की तिथि",
-      "viewedAt": "देखने की तिथि",
-      "completedAt": "पूर्ण होने की तिथि",
-      "expiresAt": "समाप्ति तिथि",
-      "noInductionSent": "अभी तक इस कर्मचारी को कोई प्रेरण नहीं भेजा गया।",
-      "sendVideo": "प्रेरण वीडियो भेजें",
-      "send": "प्रेरण वीडियो भेजें",
-      "resend": "प्रेरण वीडियो पुनः भेजें",
-      "compliance": "प्रेरण अनुपालन",
-      "completionRate": "पूर्णता दर",
-      "expiringSoon": "जल्द समाप्त हो रहा है",
-      "expiredInductions": "समाप्त प्रेरण",
-      "pendingInductions": "लंबित प्रेरण"
-    },
-    "workers": {
-      "details": "विवरण",
-      "qrCode": "QR कोड",
-      "induction": "प्रेरण",
-      "personalInfo": "व्यक्तिगत जानकारी",
-      "nationalId": "राष्ट्रीय आईडी",
-      "nationality": "राष्ट्रीयता",
-      "mobile": "मोबाइल",
-      "company": "कंपनी",
-      "preferredLanguage": "पसंदीदा भाषा",
-      "rejectionReason": "अस्वीकृति कारण",
-      "approvalRequiredForQr": "QR कोड बनाने से पहले कर्मचारी को अनुमोदित किया जाना चाहिए",
-      "safetyInduction": "सुरक्षा प्रेरण",
-      "inductionDescription": "कर्मचारी की पसंदीदा भाषा के आधार पर व्हाट्सएप के माध्यम से सुरक्षा प्रेरण वीडियो भेजें।",
-      "sendInduction": "प्रेरण वीडियो भेजें",
-      "status": {
-        "pending": "लंबित",
-        "approved": "अनुमोदित",
-        "rejected": "अस्वीकृत"
-      }
-    },
     "portal": {
       "dashboard": "ठेकेदार पोर्टल",
       "welcome": "ठेकेदार पोर्टल में आपका स्वागत है",
@@ -6242,12 +6242,24 @@
       "step5": "नियंत्रण उपाय",
       "step6": "अंतिम समीक्षा"
     },
-    "step1": { "title": "गतिविधि विवरण" },
-    "step2": { "title": "AI जोखिम विश्लेषण" },
-    "step3": { "title": "मूल्यांकन टीम" },
-    "step4": { "title": "खतरा पहचान" },
-    "step5": { "title": "नियंत्रण उपाय और अवशिष्ट जोखिम" },
-    "step6": { "title": "अंतिम समीक्षा" },
+    "step1": {
+      "title": "गतिविधि विवरण"
+    },
+    "step2": {
+      "title": "AI जोखिम विश्लेषण"
+    },
+    "step3": {
+      "title": "मूल्यांकन टीम"
+    },
+    "step4": {
+      "title": "खतरा पहचान"
+    },
+    "step5": {
+      "title": "नियंत्रण उपाय और अवशिष्ट जोखिम"
+    },
+    "step6": {
+      "title": "अंतिम समीक्षा"
+    },
     "activity": {
       "name": "गतिविधि का नाम",
       "namePlaceholder": "जैसे, हॉट वर्क - वेल्डिंग ऑपरेशन",
@@ -6348,7 +6360,14 @@
       "hazards": "खतरे",
       "team": "टीम सदस्य",
       "controls": "नियंत्रण",
-      "rating": "रेटिंग"
+      "rating": "रेटिंग",
+      "highRisk": "उच्च/गंभीर",
+      "totalHazards": "कुल खतरे",
+      "improved": "सुधरे",
+      "avgReduction": "औसत कमी",
+      "overallReduction": "समग्र कमी",
+      "riskReductionProgress": "जोखिम कमी प्रगति",
+      "noHazards": "विश्लेषण के लिए कोई खतरे नहीं"
     },
     "team": {
       "requirement": "जोखिम मूल्यांकन एक सक्षम टीम द्वारा किया जाना चाहिए जिसमें पर्यवेक्षक, सुरक्षा प्रतिनिधि और कर्मचारी प्रतिनिधि शामिल हों।",
@@ -6497,30 +6516,6 @@
       "totalInitial": "प्रारंभिक",
       "totalResidual": "अवशिष्ट",
       "reduction": "कमी"
-    },
-    "summary": {
-      "hazards": "खतरे",
-      "team": "टीम सदस्य",
-      "controls": "नियंत्रण",
-      "rating": "रेटिंग",
-      "highRisk": "उच्च/गंभीर",
-      "totalHazards": "कुल खतरे",
-      "improved": "सुधरे",
-      "avgReduction": "औसत कमी",
-      "overallReduction": "समग्र कमी",
-      "riskReductionProgress": "जोखिम कमी प्रगति",
-      "noHazards": "विश्लेषण के लिए कोई खतरे नहीं"
-    }
-  },
-  "security": {
-    "gate": {
-      "alreadyOnSite": "पहले से साइट पर",
-      "alreadyOnSiteDesc": "यह व्यक्ति {{time}} से साइट पर है"
-    },
-    "workerScanHistory": {
-      "title": "आज के वर्कर स्कैन",
-      "noScans": "आज कोई वर्कर स्कैन नहीं",
-      "exitedAt": "बाहर निकला"
     }
   }
 }
