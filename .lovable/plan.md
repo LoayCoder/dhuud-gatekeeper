@@ -1,48 +1,63 @@
 
-
-# Implement Real Stat Fetchers for Action Center
+# Fix "Take Action" Button for Department Representative
 
 ## Problem
-The Action Center page (`/action-center`) shows all zeros because every stat fetcher in `stat-fetchers.ts` is a stub returning `{}`. The page structure and aggregation logic in `use-action-center-stats.ts` is already correct — only the data fetchers need real database queries.
+When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
+
+1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
+2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
 
 ## What Changes
 
-**Single file: `src/features/incidents/hooks/use-action-center-stats/stat-fetchers.ts`**
+### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
 
-Replace all 9 stub functions with real Supabase queries. Each fetcher returns the exact shape expected by `use-action-center-stats.ts`:
+The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
 
-### 1. `fetchIncidentStats(tenantId)`
-Query `incidents` table (non-deleted):
-- `total`: count all
-- `openInvestigations`: count where status in `investigation_pending`, `investigation_in_progress`
-- `pendingApprovals`: count where status in `pending_dept_rep_approval`, `pending_manager_approval`, `pending_dept_rep_incident_review`
+**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
 
-### 2. `fetchCorrectiveActionStats(tenantId, now)`
-Query `corrective_actions` table grouped by `source_type` × status/overdue:
-- For each source (`incident`, `observation`, `inspection`): count pending (assigned), in_progress, completed (verified/closed), overdue (due_date < now and not completed)
+```typescript
+case 'pending_dept_rep_review':
+case 'pending_dept_rep_approval':
+  return (
+    <DeptRepApprovalCard
+      incident={incidentData}
+      onComplete={handleRefresh}
+    />
+  );
+```
 
-### 3. `fetchGatePassStats(tenantId, now)`
-Query `material_gate_passes` table:
-- `total`, `pending` (pending_dept_approval, pending_security_approval, pending_club_mgmt_ack), `active` (approved), `completed` (exit confirmed), `pendingApprovals` (same as pending), `todayActive` (approved with today's pass_date or active date range)
+### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
 
-### 4. `fetchInspectionStats(tenantId)`
-Query `inspection_sessions` table:
-- `total`, `scheduled` (status=scheduled if exists), `pendingActions` (in_progress), `auditTotal`/`auditInProgress`/`auditCompleted` (by session_type=audit if exists), `openFindings`
+The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
 
-### 5. `fetchContractorStats(tenantId)`
-Query `contractor_companies` + `contractor_workers`:
-- `total` companies, `pending`/`approved`, `pendingApprovals` (workers with approval_status=pending), `expiringCompliance`: 0 (no expiry column on companies)
+**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
 
-### 6. `fetchInductionStats(tenantId)`
-Query `worker_inductions`:
-- `totalAssigned`: count all, `completed`: acknowledged, `pending`: sent/viewed, `overdue`: expired (expires_at < now and not acknowledged)
+```typescript
+<Button
+  size="lg"
+  className="shadow-lg px-8"
+  onClick={() => {
+    // Scroll to the workflow action card
+    const workflowCard = document.querySelector('[data-workflow-card]');
+    if (workflowCard) {
+      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }}
+>
+  Take Action
+  <ArrowRight className="h-4 w-4 ml-2" />
+</Button>
+```
 
-### 7. `fetchUserStats(tenantId)`
-Query `profiles`:
-- `total`: count all, `active`: is_active=true, `pendingInvites`: has_login=false or is_active=false
+And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
 
-All queries use the Supabase JS client with `select('id', { count: 'exact', head: true })` pattern for efficient counting. Multiple counts per table use parallel queries via `Promise.all`.
+### 3. Localize the Button Text
+
+Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
 
 ## Files Modified
-1. **`src/features/incidents/hooks/use-action-center-stats/stat-fetchers.ts`** — Replace all stubs with real Supabase queries
 
+1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
+2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
+3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
+4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
