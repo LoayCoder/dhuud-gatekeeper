@@ -3920,7 +3920,13 @@
       "investigationStarted": "Investigation Started",
       "readOnly": "Read-only"
     },
+    "sla": {
+      "overdueBy": "{{count}}d OVERDUE",
+      "daysRemaining": "{{days}}d {{hours}}h REMAINING",
+      "dueIn": "Due in {{count}} days"
+    },
     "workflow": {
+      "completeWorkflowFirst": "Complete the approval workflow above before accessing investigation tools.",
       "inProgress": "Investigation In Progress",
       "locked": "Reporter data is locked during investigation",
       "completed": "Investigation Completed",

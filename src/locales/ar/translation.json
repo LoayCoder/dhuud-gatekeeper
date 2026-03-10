@@ -4445,7 +4445,13 @@
       "investigationStarted": "بدأ التحقيق",
       "readOnly": "للقراءة فقط"
     },
+    "sla": {
+      "overdueBy": "متأخر {{count}} يوم",
+      "daysRemaining": "{{days}} يوم {{hours}} ساعة متبقية",
+      "dueIn": "مستحق خلال {{count}} يوم"
+    },
     "workflow": {
+      "completeWorkflowFirst": "أكمل سير عمل الموافقة أعلاه قبل الوصول إلى أدوات التحقيق.",
       "inProgress": "التحقيق جارٍ",
       "locked": "بيانات المُبلّغ مقفلة أثناء التحقيق",
       "completed": "اكتمل التحقيق",
