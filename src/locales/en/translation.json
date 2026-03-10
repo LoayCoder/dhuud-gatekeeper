@@ -3319,6 +3319,7 @@
     "allIncidents": "All Incidents",
     "all": "All",
     "selectToStart": "Select an incident above to begin investigation",
+    "selectToStartDescription": "Choose an incident from the list to view its details and start or continue the investigation process.",
     "startInvestigation": "Start Investigation",
     "accessDenied": "Access Denied",
     "hsseAccessRequired": "Only administrators, managers, or HSSE personnel can access this page.",
@@ -3919,7 +3920,13 @@
       "investigationStarted": "Investigation Started",
       "readOnly": "Read-only"
     },
+    "sla": {
+      "overdueBy": "{{count}}d OVERDUE",
+      "daysRemaining": "{{days}}d {{hours}}h REMAINING",
+      "dueIn": "Due in {{count}} days"
+    },
     "workflow": {
+      "completeWorkflowFirst": "Complete the approval workflow above before accessing investigation tools.",
       "inProgress": "Investigation In Progress",
       "locked": "Reporter data is locked during investigation",
       "completed": "Investigation Completed",

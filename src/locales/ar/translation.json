@@ -3834,6 +3834,7 @@
     "allIncidents": "كل الحوادث",
     "all": "الكل",
     "selectToStart": "اختر حادثاً أعلاه لبدء التحقيق",
+    "selectToStartDescription": "اختر حادثاً من القائمة لعرض تفاصيله وبدء أو متابعة عملية التحقيق.",
     "startInvestigation": "بدء التحقيق",
     "accessDenied": "الوصول مرفوض",
     "hsseAccessRequired": "فقط المسؤولون والمديرون أو موظفو الصحة والسلامة يمكنهم الوصول لهذه الصفحة.",
@@ -4444,7 +4445,13 @@
       "investigationStarted": "بدأ التحقيق",
       "readOnly": "للقراءة فقط"
     },
+    "sla": {
+      "overdueBy": "متأخر {{count}} يوم",
+      "daysRemaining": "{{days}} يوم {{hours}} ساعة متبقية",
+      "dueIn": "مستحق خلال {{count}} يوم"
+    },
     "workflow": {
+      "completeWorkflowFirst": "أكمل سير عمل الموافقة أعلاه قبل الوصول إلى أدوات التحقيق.",
       "inProgress": "التحقيق جارٍ",
       "locked": "بيانات المُبلّغ مقفلة أثناء التحقيق",
       "completed": "اكتمل التحقيق",

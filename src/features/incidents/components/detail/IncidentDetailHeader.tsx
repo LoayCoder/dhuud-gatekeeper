@@ -127,8 +127,8 @@ export function IncidentDetailHeader({
             )}>
               {slaInfo.status === 'red' ? <AlertCircle className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
               {slaInfo.isOverdue
-                ? t('investigation.sla.overdueBy', { count: Math.abs(slaInfo.daysRemaining), defaultValue: `${Math.abs(slaInfo.daysRemaining)}d OVERDUE` })
-                : t('investigation.sla.daysRemaining', { count: slaInfo.daysRemaining, defaultValue: `${slaInfo.daysRemaining}d ${slaInfo.hoursRemaining}h REMAINING` })
+                ? t('investigation.sla.overdueBy', { count: Math.abs(slaInfo.daysRemaining), defaultValue: '{{count}}d OVERDUE' })
+                : t('investigation.sla.daysRemaining', { days: slaInfo.daysRemaining, hours: slaInfo.hoursRemaining, defaultValue: '{{days}}d {{hours}}h REMAINING' })
               }
             </div>
           )}
