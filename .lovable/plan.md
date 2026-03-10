@@ -1,29 +1,63 @@
 
-
-# Fix: Missing `documentSettings` Translation Namespace in Arabic
+# Fix "Take Action" Button for Department Representative
 
 ## Problem
-In `src/locales/ar/translation.json` line 5925, `documentSettings` is a flat string (`"إعدادات المستندات"`). The English file has it as a nested object with ~45 keys across 5 sub-objects (`tabs`, `header`, `footer`, `watermark`, `preview`). All `t('documentSettings.*')` calls fall back to English.
+When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
 
-## Fix
+1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
+2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
 
-### File: `src/locales/ar/translation.json`
+## What Changes
 
-Replace the flat string at line 5925 with the full nested object:
+### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
 
-**Top-level keys (~8):**
-- `title`, `description`, `configuration`, `configurationHint`, `save`, `reset`, `saveSuccess`, `saveError`
+The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
 
-**Nested `tabs` (3 keys):** `header`, `footer`, `watermark`
+**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
 
-**Nested `header` (8 keys):** `primaryText`, `primaryTextPlaceholder`, `secondaryText`, `secondaryTextPlaceholder`, `logoPosition`, `positionLeft/Center/Right`, `showLogo`, `bgColor`, `textColor`
+```typescript
+case 'pending_dept_rep_review':
+case 'pending_dept_rep_approval':
+  return (
+    <DeptRepApprovalCard
+      incident={incidentData}
+      onComplete={handleRefresh}
+    />
+  );
+```
 
-**Nested `footer` (5 keys):** `text`, `textPlaceholder`, `showPageNumbers`, `showDatePrinted`, `bgColor`, `textColor`
+### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
 
-**Nested `watermark` (4 keys):** `enabled`, `text`, `textPlaceholder`, `opacity`
+The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
 
-**Nested `preview` (~10 keys):** `title`, `description`, `sampleTitle`, `fieldLabel`, `fieldValue`, `dateLabel`, `locationLabel`, `locationValue`, `signature`, `date`, `pageNumber`, `hint`
+**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
 
-### Files Modified
-1. `src/locales/ar/translation.json` — Replace flat string with nested object (~45 keys)
+```typescript
+<Button
+  size="lg"
+  className="shadow-lg px-8"
+  onClick={() => {
+    // Scroll to the workflow action card
+    const workflowCard = document.querySelector('[data-workflow-card]');
+    if (workflowCard) {
+      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }}
+>
+  Take Action
+  <ArrowRight className="h-4 w-4 ml-2" />
+</Button>
+```
 
+And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
+
+### 3. Localize the Button Text
+
+Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
+
+## Files Modified
+
+1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
+2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
+3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
+4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
