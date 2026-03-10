@@ -160,7 +160,13 @@ export function TenantTrialControl({ tenant }: TenantTrialControlProps) {
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">{t('tenantManagement.trial.status')}</span>
             <Badge variant={isTrialing ? 'default' : tenant.subscription_status === 'active' ? 'secondary' : 'outline'}>
-              {tenant.subscription_status || 'inactive'}
+              {tenant.subscription_status === 'active'
+                ? t('subscription.activeStatus')
+                : tenant.subscription_status === 'trialing'
+                ? t('subscription.trialStatus', { days: '' }).replace(' - ', '')
+                : tenant.subscription_status === 'canceled'
+                ? t('subscription.canceledStatus')
+                : t('subscription.inactiveStatus')}
             </Badge>
           </div>
           
