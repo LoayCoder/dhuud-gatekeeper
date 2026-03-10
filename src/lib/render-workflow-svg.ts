@@ -126,7 +126,7 @@ function calculateLayout(workflow: WorkflowDefinition): LayoutResult {
 
 // Generate node shape SVG
 function renderNode(step: WorkflowStep, pos: NodePosition, isRtl: boolean): string {
-  const config = NODE_CONFIG[step.type];
+  const config = NODE_CONFIG[step.type] ?? NODE_CONFIG.action;
   const label = isRtl ? step.labelAr : step.label;
   const actor = isRtl ? step.actorAr : step.actor;
   
