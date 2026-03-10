@@ -1,63 +1,40 @@
 
-# Fix "Take Action" Button for Department Representative
+
+# Fix: KPI Targets Page Translation — Missing Keys in Both Locales
 
 ## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
+The `/admin/kpi-targets` page and its components use ~40 translation keys that exist nowhere in the locale files. They work in English only because of inline fallback defaults in `t()` calls. Arabic shows English fallbacks for all of them.
 
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+Three groups of missing keys:
 
-## What Changes
+### 1. `kpiAdmin.*` — ~20 missing keys (both EN and AR)
+Used across `KPITargetCard`, `KPIAuditLog`, `AddKPIDialog`, `KPITargetsManagement`, `KPIPageLayout`:
+- `targets`, `auditLog`, `auditLogDescription`
+- `dateTime`, `kpi`, `action`, `previousValue`, `newValue`
+- `noAuditLogs`, `noAuditLogsDescription`
+- `addTarget`, `addTargetDescription`, `addManually`
+- `selectKPI`, `selectKPIPlaceholder`, `noAvailableKPIs`
+- `warning`, `critical`, `lowerBetterHint`, `higherBetterHint`
+- `targetCount`, `seedDefaults`, `noTargets`, `noTargetsDescription`
+- `deleteTitle`, `deleteDescription`
+- `action_created`, `action_updated`, `action_deleted`
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+### 2. `kpiHelp.*` — ~15 missing keys (both EN and AR)
+Used in `KPIHelpDrawer.tsx`:
+- `title`, `subtitle`, `overviewTitle`, `overviewContent`
+- `thresholdsTitle`, `thresholdsContent`, `comparisonTitle`, `comparisonContent`
+- `bestPracticesTitle`, `bestPracticesContent`
+- `faqTitle`, `faq1q`, `faq1a`, `faq2q`, `faq2a`, `faq3q`, `faq3a`
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+### 3. `kpi.status.*` — 4 missing keys (both EN and AR)
+Used in `KPIEvaluationPanel.tsx`:
+- `exceeding`, `onTrack`, `atRisk`, `failing`
 
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+## Fix
 
-```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
-```
+### Files Modified
+1. **`src/locales/en/translation.json`** — Add ~40 missing keys across `kpiAdmin`, `kpiHelp`, and `kpi.status` namespaces
+2. **`src/locales/ar/translation.json`** — Add matching ~40 Arabic translations
 
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
+No component changes needed — all components already use proper `t()` calls with the correct key paths. We just need to add the missing keys to both locale files.
 
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
-
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
-
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
-```
-
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
-
-### 3. Localize the Button Text
-
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
-
-## Files Modified
-
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
