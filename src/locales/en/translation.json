@@ -6297,7 +6297,22 @@
     "atRisk": "At Risk",
     "completed": "Completed",
     "responseDue": "Response due",
-    "resolutionDueLabel": "Resolution due"
+    "resolutionDueLabel": "Resolution due",
+    "slaCompleted": "SLA Completed",
+    "slaOnTrack": "On Track",
+    "slaAtRisk": "At Risk",
+    "dueIn": "Due in",
+    "firstResponseBreached": "First response time breached",
+    "resolutionBreached": "Resolution time breached",
+    "configureSLA": "Configure SLA Policies",
+    "slaHoursNote": "All times are in hours",
+    "firstResponse": "First Response",
+    "resolution": "Resolution",
+    "escalation": "Escalation",
+    "respondedAt": "Responded at",
+    "resolved": "Resolved",
+    "noAgents": "No agents available",
+    "open": "Open"
   },
   "moduleGate": {
     "featureLocked": "Feature Not Available",

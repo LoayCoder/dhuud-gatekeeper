@@ -5488,7 +5488,22 @@
     "atRisk": "في خطر",
     "completed": "مكتمل",
     "responseDue": "موعد الرد",
-    "resolutionDueLabel": "موعد الحل"
+    "resolutionDueLabel": "موعد الحل",
+    "slaCompleted": "اتفاقية مستوى الخدمة مكتملة",
+    "slaOnTrack": "في المسار الصحيح",
+    "slaAtRisk": "في خطر",
+    "dueIn": "مستحق خلال",
+    "firstResponseBreached": "تم انتهاك موعد الرد الأول",
+    "resolutionBreached": "تم انتهاك موعد الحل",
+    "configureSLA": "تكوين سياسات اتفاقية مستوى الخدمة",
+    "slaHoursNote": "جميع الأوقات بالساعات",
+    "firstResponse": "الرد الأول",
+    "resolution": "الحل",
+    "escalation": "التصعيد",
+    "respondedAt": "تم الرد في",
+    "resolved": "تم الحل",
+    "noAgents": "لا يوجد وكلاء متاحون",
+    "open": "مفتوحة"
   },
   "moduleGate": {
     "featureLocked": "الميزة غير متاحة",
