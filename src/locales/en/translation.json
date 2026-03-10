@@ -11214,6 +11214,36 @@
       "updateSuccess": "Badge updated successfully",
       "deleteSuccess": "Badge deleted successfully",
       "confirmDelete": "Are you sure you want to delete this badge?"
+    },
+    "override": {
+      "title": "Pending Approvals Override",
+      "description": "Review and override stuck approval workflows across all modules",
+      "pendingItems": "pending items",
+      "minDaysStuck": "Minimum Days Pending",
+      "noItems": "No pending approvals",
+      "stuckFor": "Pending For",
+      "override": "Override",
+      "modalTitle": "Override Approval",
+      "modalDescription": "This action will bypass the normal approval workflow.",
+      "currentStatus": "Current Status",
+      "originalApprover": "Original Approver",
+      "originalApproverPlaceholder": "Name of the person who should have approved",
+      "reason": "Override Reason",
+      "reasonPlaceholder": "Explain why this approval is being overridden...",
+      "reasonMinLength": "Reason must be at least 10 characters",
+      "confirm": "Confirm Override",
+      "success": "Override Successful",
+      "successDescription": "The approval has been overridden successfully"
+    },
+    "approvals": {
+      "categories": {
+        "incident": "Incidents",
+        "gatePass": "Gate Passes",
+        "worker": "Workers",
+        "contractor": "Contractors",
+        "visitor": "Visitors",
+        "asset": "Assets"
+      }
     }
   },
   "clientSiteRep": {

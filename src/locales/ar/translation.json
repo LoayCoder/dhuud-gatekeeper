@@ -11692,7 +11692,37 @@
     "legend": "دليل الخريطة",
     "attackFlow": "مسار الهجوم",
     "yourServer": "خادمك",
-    "topSources": "أعلى المصادر"
+    "topSources": "أعلى المصادر",
+    "override": {
+      "title": "تجاوز الموافقات المعلقة",
+      "description": "مراجعة وتجاوز سير عمل الموافقات المتوقفة عبر جميع الوحدات",
+      "pendingItems": "عناصر معلقة",
+      "minDaysStuck": "الحد الأدنى لأيام الانتظار",
+      "noItems": "لا توجد موافقات معلقة",
+      "stuckFor": "معلق منذ",
+      "override": "تجاوز",
+      "modalTitle": "تجاوز الموافقة",
+      "modalDescription": "هذا الإجراء سيتجاوز سير عمل الموافقة العادي.",
+      "currentStatus": "الحالة الحالية",
+      "originalApprover": "المعتمد الأصلي",
+      "originalApproverPlaceholder": "اسم الشخص الذي كان يجب أن يوافق",
+      "reason": "سبب التجاوز",
+      "reasonPlaceholder": "اشرح سبب تجاوز هذه الموافقة...",
+      "reasonMinLength": "يجب أن يكون السبب 10 أحرف على الأقل",
+      "confirm": "تأكيد التجاوز",
+      "success": "تم التجاوز بنجاح",
+      "successDescription": "تم تجاوز الموافقة بنجاح"
+    },
+    "approvals": {
+      "categories": {
+        "incident": "الحوادث",
+        "gatePass": "تصاريح الدخول",
+        "worker": "العمال",
+        "contractor": "المقاولون",
+        "visitor": "الزوار",
+        "asset": "الأصول"
+      }
+    }
   },
   "ptw": {
     "nav": {
