@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -166,7 +166,7 @@ export function InvestigationListView() {
                                     <div className="p-5 md:w-1/3 border-b md:border-b-0 md:border-r bg-muted/10">
                                         <div className="flex items-center gap-2 mb-3">
                                             <Badge className={cn("px-2 py-0.5 border shadow-sm font-bold tracking-wider rounded-md", priorityColor)} variant="outline">
-                                                {severity && (priorityColor.includes('red') ? 'ðŸ”´ ' : priorityColor.includes('yellow') || priorityColor.includes('orange') ? 'ðŸŸ¡ ' : 'ðŸ”µ ')}
+                                                {severity && (priorityColor.includes('red') ? '🔴 ' : priorityColor.includes('yellow') || priorityColor.includes('orange') ? '🟡 ' : '🔵 ')}
                                                 {priorityLabel}
                                             </Badge>
                                             <span className="font-mono text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
@@ -199,8 +199,8 @@ export function InvestigationListView() {
                                                 )}>
                                                     {sla.status === 'red' ? <AlertCircle className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
                                                     {sla.isOverdue
-                                                        ? t('investigation.sla.overdueBy', { count: Math.abs(sla.daysRemaining), defaultValue: `Overdue by ${Math.abs(sla.daysRemaining)} days âš ï¸` })
-                                                        : t('investigation.sla.dueIn', { count: sla.daysRemaining, defaultValue: `Due in ${sla.daysRemaining} days` })
+                                                        ? t('investigation.sla.overdueBy', { count: Math.abs(sla.daysRemaining), defaultValue: 'Overdue by {{count}} days ⚠️' })
+                                                        : t('investigation.sla.dueIn', { count: sla.daysRemaining, defaultValue: 'Due in {{count}} days' })
                                                     }
                                                 </div>
                                             )}
@@ -235,4 +235,3 @@ export function InvestigationListView() {
         </div>
     );
 }
-
