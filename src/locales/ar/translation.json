@@ -13006,5 +13006,163 @@
     "totalDeleted": "إجمالي المحذوف",
     "cleanupSuccess": "تم مسح بيانات الاختبار بنجاح",
     "cleanupError": "فشل في مسح بيانات الاختبار"
+  },
+  "tenantManagement": {
+    "title": "إدارة المستأجرين",
+    "description": "إدارة المنظمات وحالة حساباتها.",
+    "addTenant": "إضافة مستأجر",
+    "editTenant": "تعديل المستأجر",
+    "addDescription": "إنشاء منظمة مستأجر جديدة.",
+    "editDescription": "تحديث بيانات المستأجر.",
+    "searchPlaceholder": "البحث في المستأجرين...",
+    "noTenants": "لم يتم العثور على مستأجرين.",
+    "selectCurrency": "اختر العملة",
+    "columns": {
+      "name": "الاسم",
+      "slug": "المعرّف",
+      "users": "المستخدمون",
+      "industry": "القطاع",
+      "location": "الموقع",
+      "contact": "جهة الاتصال"
+    },
+    "fields": {
+      "name": "اسم المنظمة",
+      "slug": "المعرّف (رابط URL)",
+      "industry": "القطاع",
+      "country": "الدولة",
+      "city": "المدينة",
+      "crNumber": "رقم السجل التجاري",
+      "vatNumber": "الرقم الضريبي",
+      "employeeCount": "عدد الموظفين",
+      "contactPerson": "الشخص المسؤول",
+      "contactEmail": "البريد الإلكتروني للتواصل",
+      "contactPhone": "هاتف التواصل",
+      "notes": "ملاحظات",
+      "preferredCurrency": "العملة المفضلة",
+      "templateCodePrefix": "بادئة رمز القالب"
+    },
+    "placeholders": {
+      "name": "مثال: شركة أكمي",
+      "slug": "مثال: acme-corp",
+      "industry": "مثال: النفط والغاز، البناء",
+      "country": "مثال: المملكة العربية السعودية",
+      "city": "مثال: الرياض",
+      "crNumber": "مثال: 1010123456",
+      "vatNumber": "مثال: 300012345600003",
+      "employeeCount": "مثال: 150",
+      "contactPerson": "مثال: أحمد محمد",
+      "contactEmail": "مثال: ahmed@acme.com",
+      "contactPhone": "مثال: 966 50 123 4567+",
+      "notes": "ملاحظات داخلية حول هذا المستأجر...",
+      "templateCodePrefix": "مثال: GS"
+    },
+    "descriptions": {
+      "templateCodePrefix": "بادئة اختيارية لرموز قوالب التفتيش المُنشأة تلقائياً (مثال: GS-ASSET-001)"
+    },
+    "status": {
+      "active": "نشط",
+      "suspended": "معلّق",
+      "disabled": "معطّل"
+    },
+    "actions": {
+      "openMenu": "فتح القائمة",
+      "activate": "تفعيل",
+      "suspend": "تعليق",
+      "disable": "تعطيل",
+      "manageTenant": "إدارة المستأجر"
+    },
+    "detail": {
+      "description": "إدارة إعدادات المستأجر ورموز الدعوة.",
+      "invitations": "الدعوات",
+      "modules": "الوحدات",
+      "trial": "الفترة التجريبية والحالة",
+      "security": "الأمان",
+      "publicFeatures": "الميزات العامة"
+    },
+    "publicFeatures": {
+      "gatePass": {
+        "title": "طلبات تصاريح الدخول العامة",
+        "description": "السماح للزوار والمقاولين بتقديم طلبات تصاريح الدخول عبر رابط عام بدون مصادقة.",
+        "enabled": "مفعّل",
+        "disabled": "معطّل",
+        "publicUrl": "رابط الطلب العام",
+        "copyUrl": "نسخ الرابط",
+        "urlCopied": "تم نسخ الرابط إلى الحافظة",
+        "customDomain": "نطاق مخصص (اختياري)",
+        "customDomainDesc": "تكوين نطاق مخصص لرابط تصريح الدخول العام. اتركه فارغاً لاستخدام نطاق النظام الافتراضي.",
+        "customDomainPlaceholder": "https://www.example.com",
+        "domainSaved": "تم حفظ النطاق المخصص بنجاح.",
+        "instructions": "تعليمات الطلب",
+        "instructionsDesc": "تعليمات اختيارية تظهر للزوار في النموذج العام.",
+        "instructionsEn": "التعليمات (الإنجليزية)",
+        "instructionsAr": "التعليمات (العربية)",
+        "placeholderEn": "مثال: يرجى الوصول إلى البوابة 2 وتقديم هذا التصريح للأمن...",
+        "placeholderAr": "مثال: يرجى الوصول إلى البوابة 2 وتقديم هذا التصريح للأمن...",
+        "updated": "تم تحديث الميزات العامة",
+        "updatedDesc": "تم حفظ إعدادات تصريح الدخول العام.",
+        "toggleUpdated": "تم تحديث الإعداد",
+        "toggleEnabled": "تم تفعيل طلبات تصاريح الدخول العامة.",
+        "toggleDisabled": "تم تعطيل طلبات تصاريح الدخول العامة."
+      }
+    },
+    "security": {
+      "mfaTrustDuration": "مدة الثقة بجهاز المصادقة الثنائية",
+      "mfaTrustDurationDesc": "تكوين مدة بقاء الأجهزة موثوقة بعد التحقق بالمصادقة الثنائية.",
+      "trustDurationLabel": "مدة الثقة",
+      "trustDurationHelp": "يمكن للمستخدمين تخطي المصادقة الثنائية لهذا العدد من الأيام على الأجهزة الموثوقة (1-365 يوماً).",
+      "currentSetting": "الإعداد الحالي",
+      "invalidDuration": "يجب أن تكون المدة بين 1 و 365 يوماً.",
+      "updated": "تم تحديث إعدادات الأمان",
+      "updatedDesc": "تم حفظ إعدادات أمان المستأجر.",
+      "overview": "نظرة عامة على الأمان",
+      "overviewDesc": "ستتوفر إعدادات أمان إضافية هنا في التحديثات المستقبلية."
+    },
+    "modules": {
+      "description": "تفعيل أو تعطيل وحدات الميزات لهذا المستأجر. يتجاوز الإعدادات الافتراضية للخطة.",
+      "updated": "تم تحديث الوحدة",
+      "updatedDesc": "تم تحديث صلاحية الوصول للوحدة.",
+      "override": "تجاوز",
+      "fromPlan": "من الخطة",
+      "required": "مطلوب"
+    },
+    "trial": {
+      "currentStatus": "الحالة الحالية",
+      "status": "حالة الاشتراك",
+      "startDate": "بداية الفترة التجريبية",
+      "endDate": "نهاية الفترة التجريبية",
+      "daysRemaining": "الأيام المتبقية",
+      "days": "أيام",
+      "actions": "إجراءات الفترة التجريبية",
+      "actionsDesc": "إدارة الفترة التجريبية وحالة الاشتراك.",
+      "duration": "مدة الفترة التجريبية",
+      "extendBy": "تمديد الفترة التجريبية بـ",
+      "start": "بدء الفترة التجريبية",
+      "extend": "تمديد الفترة التجريبية",
+      "end": "إنهاء الفترة التجريبية",
+      "customEndDate": "تاريخ انتهاء مخصص",
+      "setDate": "تعيين التاريخ",
+      "subscriptionStatus": "حالة الاشتراك",
+      "subscriptionStatusDesc": "تغيير حالة الاشتراك يدوياً.",
+      "updated": "تم تحديث الفترة التجريبية",
+      "updatedDesc": "تم تحديث إعدادات الفترة التجريبية."
+    },
+    "statusDialog": {
+      "activateTitle": "تفعيل المستأجر",
+      "activateDescription": "سيتم تفعيل {{name}} والسماح لمستخدميهم بالوصول إلى المنصة.",
+      "suspendTitle": "تعليق المستأجر",
+      "suspendDescription": "سيتم تعليق {{name}} مؤقتاً.",
+      "suspendWarning": "لن يتمكن مستخدمو هذه المنظمة من تسجيل الدخول أثناء التعليق.",
+      "disableTitle": "تعطيل المستأجر",
+      "disableDescription": "سيتم تعطيل {{name}}.",
+      "disableWarning": "سيؤدي هذا الإجراء إلى حظر جميع مستخدمي هذه المنظمة. لن يتمكنوا من الوصول إلى المنصة."
+    },
+    "toast": {
+      "created": "تم إنشاء المستأجر",
+      "createdDescription": "تم إنشاء المستأجر الجديد بنجاح.",
+      "updated": "تم تحديث المستأجر",
+      "updatedDescription": "تم تحديث المستأجر بنجاح.",
+      "statusUpdated": "تم تحديث الحالة",
+      "statusUpdatedDescription": "تم تحديث حالة المستأجر."
+    }
   }
 }
