@@ -1,63 +1,63 @@
 
-# Fix "Take Action" Button for Department Representative
+
+# Fix: Localize Raw Subscription Status Badges
 
 ## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
 
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+Three locations display raw database values (`active`, `trialing`, `inactive`) directly in badges instead of using translation keys:
 
-## What Changes
+1. **`src/pages/admin/SubscriptionManagement.tsx` line 246** — `{subscription?.subscriptionStatus || 'inactive'}` shown raw
+2. **`src/components/tenants/TenantTrialControl.tsx` line 163** — `{tenant.subscription_status || 'inactive'}` shown raw
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+The translation keys already exist (`subscription.activeStatus`, `subscription.inactiveStatus`, `subscription.trialStatus`, `subscription.canceledStatus`), they're just not used in these spots.
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+`SubscriptionOverview.tsx` already has a proper `getStatusBadge()` function using translations — no fix needed there.
 
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+## Fix
 
-```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
+### File 1: `src/pages/admin/SubscriptionManagement.tsx` (line 245-247)
+
+Replace raw status text with a helper that maps status to existing translation keys and capitalizes:
+
+```tsx
+// Before
+<Badge variant={...}>
+  {subscription?.subscriptionStatus || 'inactive'}
+</Badge>
+
+// After — use t() with existing keys
+<Badge variant={...}>
+  {subscription?.subscriptionStatus === 'active' 
+    ? t('subscription.activeStatus')
+    : subscription?.subscriptionStatus === 'trialing'
+    ? t('subscription.trialStatus', { days: getTrialDaysRemaining() })
+    : subscription?.subscriptionStatus === 'canceled'
+    ? t('subscription.canceledStatus')
+    : t('subscription.inactiveStatus')}
+</Badge>
 ```
 
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
+### File 2: `src/components/tenants/TenantTrialControl.tsx` (line 162-164)
 
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
+Same pattern — replace raw `tenant.subscription_status` with translated text:
 
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
+```tsx
+// Before
+<Badge variant={...}>
+  {tenant.subscription_status || 'inactive'}
+</Badge>
 
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
+// After
+<Badge variant={...}>
+  {tenant.subscription_status === 'active'
+    ? t('subscription.activeStatus')
+    : tenant.subscription_status === 'trialing'
+    ? t('subscription.trialStatus', { days: '' }).replace(' - ', '')
+    : tenant.subscription_status === 'canceled'
+    ? t('subscription.canceledStatus')
+    : t('subscription.inactiveStatus')}
+</Badge>
 ```
 
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
+Both fixes reuse existing translation keys — no new keys needed. The translated values are already capitalized (e.g., "Active", "نشط").
 
-### 3. Localize the Button Text
-
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
-
-## Files Modified
-
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
