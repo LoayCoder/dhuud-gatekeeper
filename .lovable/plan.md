@@ -1,36 +1,63 @@
 
-
-# Fix: WorkflowCanvas crash — missing node type configs
+# Fix "Take Action" Button for Department Representative
 
 ## Problem
-`NodeType` defines 9 types: `start`, `end`, `action`, `decision`, `approval`, `subprocess`, `notification`, `gate`, `ai`. But `NODE_CONFIG` in `render-workflow-svg.ts` only has 6 entries. When a workflow step uses `notification`, `gate`, or `ai`, `NODE_CONFIG[step.type]` returns `undefined`, and accessing `.rx` crashes the page.
+When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
 
-## Fix
+1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
+2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
 
-### File: `src/lib/render-workflow-svg.ts`
+## What Changes
 
-Add the 3 missing node types to `NODE_CONFIG` (after line 26):
+### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
 
-```typescript
-const NODE_CONFIG = {
-  start: { fill: 'hsl(142, 76%, 36%)', stroke: 'hsl(142, 76%, 28%)', textColor: '#ffffff', rx: 20 },
-  end: { fill: 'hsl(0, 84%, 60%)', stroke: 'hsl(0, 84%, 50%)', textColor: '#ffffff', rx: 20 },
-  action: { fill: 'hsl(217, 91%, 60%)', stroke: 'hsl(217, 91%, 50%)', textColor: '#ffffff', rx: 8 },
-  decision: { fill: 'hsl(45, 93%, 47%)', stroke: 'hsl(45, 93%, 40%)', textColor: '#000000', rx: 0 },
-  approval: { fill: 'hsl(270, 76%, 60%)', stroke: 'hsl(270, 76%, 50%)', textColor: '#ffffff', rx: 0 },
-  subprocess: { fill: 'hsl(199, 89%, 48%)', stroke: 'hsl(199, 89%, 38%)', textColor: '#ffffff', rx: 8 },
-  notification: { fill: 'hsl(38, 92%, 50%)', stroke: 'hsl(38, 92%, 40%)', textColor: '#ffffff', rx: 8 },
-  gate: { fill: 'hsl(210, 40%, 50%)', stroke: 'hsl(210, 40%, 40%)', textColor: '#ffffff', rx: 4 },
-  ai: { fill: 'hsl(280, 67%, 55%)', stroke: 'hsl(280, 67%, 45%)', textColor: '#ffffff', rx: 12 },
-};
-```
+The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
 
-Also add a safety fallback in `renderNode` (line 126) so any future unknown types don't crash:
+**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
 
 ```typescript
-const config = NODE_CONFIG[step.type] ?? NODE_CONFIG.action;
+case 'pending_dept_rep_review':
+case 'pending_dept_rep_approval':
+  return (
+    <DeptRepApprovalCard
+      incident={incidentData}
+      onComplete={handleRefresh}
+    />
+  );
 ```
 
-### Files Modified
-1. `src/lib/render-workflow-svg.ts` — Add 3 missing node configs + fallback guard
+### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
 
+The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
+
+**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
+
+```typescript
+<Button
+  size="lg"
+  className="shadow-lg px-8"
+  onClick={() => {
+    // Scroll to the workflow action card
+    const workflowCard = document.querySelector('[data-workflow-card]');
+    if (workflowCard) {
+      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }}
+>
+  Take Action
+  <ArrowRight className="h-4 w-4 ml-2" />
+</Button>
+```
+
+And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
+
+### 3. Localize the Button Text
+
+Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
+
+## Files Modified
+
+1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
+2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
+3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
+4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
