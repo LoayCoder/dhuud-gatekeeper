@@ -236,11 +236,6 @@ export default function SubscriptionManagement() {
             <p className="text-lg font-semibold">
               {subscription?.planName || t('subscription.noPlan')}
             </p>
-            <p className="text-sm text-muted-foreground">
-              {subscription?.subscriptionStatus === 'trialing' ? t('subscription.trialStatus', {
-                days: getTrialDaysRemaining()
-              }) : subscription?.subscriptionStatus === 'active' ? t('subscription.activeStatus') : t('subscription.inactiveStatus')}
-            </p>
           </div>
           <Badge variant={subscription?.subscriptionStatus === 'active' ? 'default' : 'secondary'}>
             {subscription?.subscriptionStatus === 'active'
