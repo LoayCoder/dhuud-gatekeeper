@@ -243,7 +243,13 @@ export default function SubscriptionManagement() {
             </p>
           </div>
           <Badge variant={subscription?.subscriptionStatus === 'active' ? 'default' : 'secondary'}>
-            {subscription?.subscriptionStatus || 'inactive'}
+            {subscription?.subscriptionStatus === 'active'
+              ? t('subscription.activeStatus')
+              : subscription?.subscriptionStatus === 'trialing'
+              ? t('subscription.trialStatus', { days: getTrialDaysRemaining() })
+              : subscription?.subscriptionStatus === 'canceled'
+              ? t('subscription.canceledStatus')
+              : t('subscription.inactiveStatus')}
           </Badge>
         </div>
         <UserLimitIndicator />
