@@ -24,6 +24,9 @@ const NODE_CONFIG = {
   decision: { fill: 'hsl(45, 93%, 47%)', stroke: 'hsl(45, 93%, 40%)', textColor: '#000000', rx: 0 },
   approval: { fill: 'hsl(270, 76%, 60%)', stroke: 'hsl(270, 76%, 50%)', textColor: '#ffffff', rx: 0 },
   subprocess: { fill: 'hsl(199, 89%, 48%)', stroke: 'hsl(199, 89%, 38%)', textColor: '#ffffff', rx: 8 },
+  notification: { fill: 'hsl(38, 92%, 50%)', stroke: 'hsl(38, 92%, 40%)', textColor: '#ffffff', rx: 8 },
+  gate: { fill: 'hsl(210, 40%, 50%)', stroke: 'hsl(210, 40%, 40%)', textColor: '#ffffff', rx: 4 },
+  ai: { fill: 'hsl(280, 67%, 55%)', stroke: 'hsl(280, 67%, 45%)', textColor: '#ffffff', rx: 12 },
 };
 
 // Connection colors based on condition type
