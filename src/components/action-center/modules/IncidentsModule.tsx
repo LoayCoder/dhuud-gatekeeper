@@ -87,7 +87,7 @@ export function IncidentsModule({ stats }: IncidentsModuleProps) {
           {
             label: t('actionCenter.actions.investigate', 'Investigation Workspace'),
             icon: Search,
-            badge: stats.openInvestigations,
+            badge: myInvestigationsCount,
             showOnlyWithBadge: true,
             onExpand: () => setOpenSheet(openSheet === 'investigations' ? null : 'investigations'),
             isExpanded: openSheet === 'investigations',
