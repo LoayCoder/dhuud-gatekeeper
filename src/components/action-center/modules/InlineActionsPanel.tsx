@@ -132,7 +132,7 @@ export function InlineActionsPanel() {
 
   if (isLoading) {
     return (
-      <div className="space-y-2 pt-2 border-t">
+      <div className="space-y-2 pt-2">
         {[1, 2, 3].map((i) => (
           <Skeleton key={i} className="h-16 w-full rounded-lg" />
         ))}
