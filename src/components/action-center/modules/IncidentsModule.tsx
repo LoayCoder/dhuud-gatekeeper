@@ -29,15 +29,15 @@ export function IncidentsModule({ stats }: IncidentsModuleProps) {
   const { t } = useTranslation();
   const [openSheet, setOpenSheet] = useState<SheetType>(null);
 
-  // Fetch user-specific count for the badge
+  // Fetch user-specific count for the badge — filter to incidents only
   const { data: myActions } = useMyCorrectiveActions();
   const { data: pendingApprovals } = usePendingIncidentApprovals();
   const { data: myInvestigations } = useMyAssignedInvestigations();
-  const myOpenActions = ((myActions || []) as Array<{ status: string }>).filter(
-    (a) => a.status !== 'completed' && a.status !== 'verified' && a.status !== 'closed'
+  const myOpenActions = ((myActions || []) as Array<{ status: string; incident?: { event_type?: string | null } }>).filter(
+    (a) => a.status !== 'completed' && a.status !== 'verified' && a.status !== 'closed' && (a as any).incident?.event_type !== 'observation'
   );
-  const pendingApprovalsCount = (pendingApprovals || []).length;
-  const myInvestigationsCount = (myInvestigations || []).length;
+  const pendingApprovalsCount = (pendingApprovals || []).filter((a) => a.event_type !== 'observation').length;
+  const myInvestigationsCount = ((myInvestigations || []) as Array<{ incident?: { event_type?: string | null } | null }>).filter((inv) => inv.incident?.event_type !== 'observation').length;
 
   const handleKpiClick = (kpiLabel: string) => {
     if (kpiLabel === t('actionCenter.kpi.overdue', 'Overdue')) {
