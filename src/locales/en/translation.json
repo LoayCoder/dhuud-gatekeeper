@@ -11731,6 +11731,32 @@
       "viewAll": "View All Actions",
       "noActions": "No open actions assigned to you",
       "showingCount": "Showing {{count}} of {{total}}"
+    },
+    "sheet": {
+      "myActions": "My Actions",
+      "myActionsDesc": "Corrective actions assigned to you",
+      "pendingApprovals": "Pending Approvals",
+      "pendingApprovalsDesc": "Incidents awaiting your review",
+      "investigations": "My Investigations",
+      "investigationsDesc": "Investigations assigned to you",
+      "noApprovals": "No pending approvals",
+      "noInvestigations": "No active investigations assigned to you"
+    },
+    "table": {
+      "search": "Search...",
+      "noResults": "No results found",
+      "showing": "Showing {{count}} of {{total}}"
+    },
+    "columns": {
+      "referenceId": "Reference",
+      "title": "Title",
+      "status": "Status",
+      "severity": "Severity",
+      "priority": "Priority",
+      "createdDate": "Created",
+      "dueDate": "Due Date",
+      "targetDate": "Target Date",
+      "assignedRole": "Role"
     }
   },
   "whatsappSettings": {

@@ -12681,6 +12681,32 @@
       "viewAll": "عرض جميع الإجراءات",
       "noActions": "لا توجد إجراءات مفتوحة مسندة إليك",
       "showingCount": "عرض {{count}} من {{total}}"
+    },
+    "sheet": {
+      "myActions": "إجراءاتي",
+      "myActionsDesc": "الإجراءات التصحيحية المسندة إليك",
+      "pendingApprovals": "بانتظار الموافقة",
+      "pendingApprovalsDesc": "الحوادث التي تنتظر مراجعتك",
+      "investigations": "تحقيقاتي",
+      "investigationsDesc": "التحقيقات المسندة إليك",
+      "noApprovals": "لا توجد موافقات معلقة",
+      "noInvestigations": "لا توجد تحقيقات نشطة مسندة إليك"
+    },
+    "table": {
+      "search": "بحث...",
+      "noResults": "لا توجد نتائج",
+      "showing": "عرض {{count}} من {{total}}"
+    },
+    "columns": {
+      "referenceId": "المرجع",
+      "title": "العنوان",
+      "status": "الحالة",
+      "severity": "الخطورة",
+      "priority": "الأولوية",
+      "createdDate": "تاريخ الإنشاء",
+      "dueDate": "تاريخ الاستحقاق",
+      "targetDate": "التاريخ المستهدف",
+      "assignedRole": "الدور"
     }
   }
 }
