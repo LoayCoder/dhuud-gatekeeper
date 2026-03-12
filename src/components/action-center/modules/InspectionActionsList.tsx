@@ -8,12 +8,12 @@ import { useMyInspectionActions } from '@/features/incidents';
 import type { InspectionAction } from '@/features/incidents/hooks/use-inspection-actions/types';
 import { cn } from '@/lib/utils';
 
-const STATUS_MAP: Record<string, 'success' | 'warning' | 'error' | 'pending' | 'info'> = {
-  completed: 'success',
-  verified: 'success',
-  in_progress: 'info',
+const STATUS_MAP: Record<string, 'completed' | 'pending' | 'critical' | 'informational' | 'neutral'> = {
+  completed: 'completed',
+  verified: 'completed',
+  in_progress: 'informational',
   pending: 'pending',
-  overdue: 'error',
+  overdue: 'critical',
 };
 
 export function InspectionActionsList() {
