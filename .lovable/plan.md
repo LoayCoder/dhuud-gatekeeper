@@ -1,63 +1,34 @@
 
-# Fix "Take Action" Button for Department Representative
+
+# Fix: "Pending With" Badge Shows Wrong Role for Contractor Observations
 
 ## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
 
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+OBS-2026-0111 is a contractor observation (status: `expert_screening`, contractor: P54) but the "Pending With" badge shows **"Unassigned (HSSE Expert)"** instead of **"Unassigned (Contractor Consultant)"**.
 
-## What Changes
+The centralized `getCurrentOwner()` in `src/lib/current-owner.ts` hardcodes "HSSE Expert" for `expert_screening` status without checking if the incident is a contractor observation.
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+## Fix
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+**File:** `src/lib/current-owner.ts` (lines 55-60)
 
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+For statuses `expert_screening` and `pending_expert_screening`, check if `incident.related_contractor_company` exists. If so, return "Contractor Consultant" as the role instead of "HSSE Expert".
 
 ```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
-```
-
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
-
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
-
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
-
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+case "expert_screening":
+case "pending_expert_screening":
+    if (incident.related_contractor_company_id || incident.related_contractor_company) {
+        return buildOwner(null, "Contractor Consultant", true);
     }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
+    return buildOwner(null, "HSSE Expert", true);
+
+case "investigation_pending":
+case "pending_investigator_assignment":
+case "pending_hsse_expert_review":
+    return buildOwner(null, "HSSE Expert", true);
 ```
 
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
+This separates the contractor-specific statuses from the general HSSE Expert statuses. The `ResponsibleUserBadge` and all other UI components that consume `getCurrentOwner` will automatically show the correct role.
 
-### 3. Localize the Button Text
+**Scope:** 1 file, ~5 lines changed.
 
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
-
-## Files Modified
-
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
