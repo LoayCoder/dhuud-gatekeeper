@@ -62,7 +62,7 @@ export function IncidentsModule({ stats }: IncidentsModuleProps) {
           { label: t('actionCenter.kpi.overdue', 'Overdue'), value: stats.overdue, colorClass: 'text-destructive', onClick: () => handleKpiClick(t('actionCenter.kpi.overdue', 'Overdue')) },
           { label: t('actionCenter.kpi.pending', 'Pending'), value: pendingApprovalsCount, colorClass: 'text-warning', onClick: () => setOpenSheet('approvals') },
           { label: t('actionCenter.kpi.investigations', 'Investigations'), value: stats.openInvestigations, colorClass: 'text-info', onClick: () => setOpenSheet('investigations') },
-          { label: t('actionCenter.kpi.total', 'Total'), value: stats.total },
+          { label: t('actionCenter.kpi.totalReported', 'Total Reported'), value: stats.total },
         ]}
         actionLinks={[
           {
