@@ -1,63 +1,108 @@
 
-# Fix "Take Action" Button for Department Representative
 
-## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
-
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+# Enhanced Action Center: Sheet-Based Interactive Panels for Incidents Module
 
 ## What Changes
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+Replace the current inline expandable panel with a **slide-over Sheet** pattern. Each metric/button on the Incidents card opens a right-side Sheet containing a filtered, searchable, sortable, paginated table. This becomes a reusable pattern for all module cards.
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+## Architecture
 
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
-
-```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
+```text
+Reusable Components (new):
+├── ActionListSheet.tsx          — Generic Sheet wrapper (title, description, children slot)
+├── ActionListTable.tsx          — Generic table with search, sort, pagination
+├── useActionListState.ts        — Hook: search, sort, pagination state management
+│
+Incidents-specific:
+├── IncidentsModule.tsx          — Updated: each button opens a Sheet with type filter
+├── InlineActionsPanel.tsx       — Kept as the Sheet content for "My Actions"
+├── IncidentApprovalsList.tsx    — New: Sheet content for "Pending Approvals"
+├── IncidentInvestigationsList.tsx — New: Sheet content for "Investigations"
 ```
 
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
+## Detailed Changes
 
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
+### 1. `src/components/action-center/ActionListSheet.tsx` (New)
+Reusable Sheet wrapper component:
+- Props: `open`, `onOpenChange`, `title`, `description`, `badge?`, `children`
+- Uses existing `Sheet` + `SheetContent` (side="right") from `src/components/ui/sheet.tsx`
+- Width: `w-full sm:max-w-lg` on mobile full-screen, desktop 512px
+- PWA safe-area padding at bottom
+- RTL-aware (uses `side` prop — Sheet already handles this)
 
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
+### 2. `src/components/action-center/ActionListTable.tsx` (New)
+Reusable table component with built-in UX features:
+- Props: generic `<T>` with `items`, `columns`, `onRowClick`, `isLoading`, `emptyMessage`
+- Built-in: search input (filters client-side across all string fields), column sort toggles, pagination (25 per page)
+- Uses existing `Table`, `TableHead`, `TableRow`, `TableCell` from `src/components/ui/table.tsx`
+- Mobile: horizontal scroll with sticky first column
+- Loading: skeleton rows
+- Empty: centered icon + message
 
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
-```
+### 3. `src/hooks/use-action-list-state.ts` (New)
+Lightweight state hook:
+- `searchQuery`, `sortField`, `sortDirection`, `page`, `pageSize`
+- `filteredItems(items)` — applies search + sort + pagination
+- No external dependencies, pure client-side filtering (data already fetched by parent hooks)
 
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
+### 4. `src/components/action-center/modules/IncidentsModule.tsx` (Updated)
+- Replace `expandedPanel` state with `openSheet: 'my-actions' | 'approvals' | 'investigations' | null`
+- "My Actions" button → opens Sheet with `InlineActionsPanel` content (already built, just move into Sheet)
+- "Pending Approvals" button → `onExpand` that opens Sheet with `IncidentApprovalsList`
+- "Investigation Workspace" button → `onExpand` that opens Sheet with `IncidentInvestigationsList`
+- KPI cards (Overdue, Pending, Investigations, Total) — make clickable, each opens the appropriate Sheet with pre-applied filter
+- Remove `children` prop usage (content now in Sheets, not inline)
 
-### 3. Localize the Button Text
+### 5. `src/components/action-center/modules/IncidentApprovalsList.tsx` (New)
+- Uses `usePendingIncidentApprovals()` hook (already exists)
+- Renders via `ActionListTable` with columns: Reference, Title, Status, Severity, Created Date
+- Row click → navigate to `/incidents/{id}`
+- Action buttons per row: "Review" → navigates to incident detail
 
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
+### 6. `src/components/action-center/modules/IncidentInvestigationsList.tsx` (New)
+- Uses `useMyAssignedInvestigations()` hook (already exists in `use-my-workflow-tasks.ts`)
+- Renders via `ActionListTable` with columns: Reference, Title, Status, Severity, Assigned Date, Target Date
+- Row click → navigate to `/incidents/{incident_id}`
 
-## Files Modified
+### 7. `src/components/action-center/ActionModuleCard.tsx` (Updated)
+- Add optional `onKpiClick?: (kpiKey: string) => void` to `ModuleKPI` interface
+- When a KPI has `onClick`, make it a clickable card with hover/cursor styles
+- No other changes needed — `ActionLink.onExpand` already supports toggling
 
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
+### 8. PWA Responsiveness (Minor tweaks)
+- `ActionCenter.tsx`: Add `pb-[env(safe-area-inset-bottom)]` to page container
+- `ActionListSheet`: Full-screen on mobile (`w-full` below 640px), drawer on desktop
+- All touch targets already ≥44px from previous work
+
+### 9. Translations
+Add keys for Sheet headers and table columns:
+- `actionCenter.sheet.myActions`, `actionCenter.sheet.pendingApprovals`, `actionCenter.sheet.investigations`
+- `actionCenter.table.search`, `actionCenter.table.noResults`, `actionCenter.table.showing`
+- Column labels: `actionCenter.columns.referenceId`, `actionCenter.columns.title`, etc.
+
+## Files Summary
+| File | Action |
+|------|--------|
+| `src/components/action-center/ActionListSheet.tsx` | Create |
+| `src/components/action-center/ActionListTable.tsx` | Create |
+| `src/hooks/use-action-list-state.ts` | Create |
+| `src/components/action-center/modules/IncidentApprovalsList.tsx` | Create |
+| `src/components/action-center/modules/IncidentInvestigationsList.tsx` | Create |
+| `src/components/action-center/modules/IncidentsModule.tsx` | Update |
+| `src/components/action-center/modules/InlineActionsPanel.tsx` | Minor update (remove border-t, adapt for Sheet context) |
+| `src/components/action-center/ActionModuleCard.tsx` | Update (clickable KPIs) |
+| `src/pages/ActionCenter.tsx` | Update (safe-area padding) |
+| `src/components/action-center/modules/index.ts` | Update exports |
+| `src/components/action-center/index.ts` | Update exports |
+| `src/locales/en/translation.json` | Add keys |
+| `src/locales/ar/translation.json` | Add keys |
+
+## Extensibility
+The `ActionListSheet` + `ActionListTable` + `useActionListState` trio is fully generic. To add the same pattern to Observations, Audits, etc., each module just needs to:
+1. Add `openSheet` state
+2. Create a module-specific list component using `ActionListTable`
+3. Wrap it in `ActionListSheet`
+
+No changes to the reusable components required.
+
