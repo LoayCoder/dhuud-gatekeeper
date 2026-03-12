@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useIncident, useDeleteIncident } from '@/features/incidents';
+import { getCurrentOwner as getCurrentOwnerFromLib } from '@/lib/current-owner';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
@@ -109,59 +110,9 @@ export default function IncidentDetail() {
     enabled: !!teamMemberIds && teamMemberIds.length > 0
   });
 
-  // Get current owner based on incident status
-  const getCurrentOwner = () => {
-    if (!incident) return null;
-  const status = incident.status as string;
-
-    if (status === 'submitted' || status === 'pending_review') {
-      return { role: t('incidents.workflowOwners.hsse_expert', 'HSSE Expert'), name: null };
-    }
-    // Contractor Consultant screening statuses (expert_screening is legacy)
-    if (status === 'expert_screening' || status === 'pending_consultant_screening' ||
-      status === 'pending_consultant_review' || status === 'pending_consultant_actions') {
-      return { role: t('incidents.workflowOwners.consultant', 'Contractor Consultant'), name: null };
-    }
-    if (status === 'pending_manager_approval' || status === 'hsse_manager_escalation') {
-      return { role: t('incidents.workflowOwners.department_manager', 'Department Manager'), name: null };
-    }
-    if (status === 'pending_dept_rep_approval') {
-      return { role: t('incidents.workflowOwners.department_rep', 'Department Representative'), name: null };
-    }
-    if (status === 'pending_department_manager_approval') {
-      return { role: t('incidents.workflowOwners.department_manager', 'Department Manager'), name: null };
-    }
-    if (status === 'pending_clinic_review') {
-      return { role: t('incidents.workflowOwners.clinic_team', 'Clinic Team'), name: null };
-    }
-    if (status === 'investigation_in_progress' || status === 'investigation_pending') {
-      const inv = investigation?.investigator as { full_name?: string } | null;
-      const investigatorName = inv?.full_name;
-      return {
-        role: t('incidents.workflowOwners.investigator', 'Investigator'),
-        name: investigatorName || null
-      };
-    }
-    if (status === 'pending_closure' || status === 'pending_final_closure' || status === 'observation_actions_pending') {
-      return { role: t('incidents.workflowOwners.hsse_manager', 'HSSE Manager'), name: null };
-    }
-    if (status === 'closed' || status === 'no_investigation_required' || status === 'investigation_closed' || status === 'hsse_enforced') {
-      return null;
-    }
-    // New contractor workflow statuses
-    if (status === 'pending_consultant_screening' || status === 'pending_action_dispute_review') {
-      return { role: t('incidents.workflowOwners.consultant', 'Contractor Consultant'), name: null };
-    }
-    if (status === 'pending_dept_rep_review') {
-      return { role: t('incidents.workflowOwners.department_rep', 'Department Representative'), name: null };
-    }
-    if (status === 'pending_hsse_expert_review') {
-      return { role: t('incidents.workflowOwners.hsse_expert', 'HSSE Expert'), name: null };
-    }
-    return { role: t('incidents.workflowOwners.awaiting_assignment', 'Awaiting Assignment'), name: null };
-  };
-
-  const currentOwner = getCurrentOwner();
+  // Get current owner using centralized resolver
+  const ownerInfo = getCurrentOwnerFromLib(incident as any);
+  const currentOwner = ownerInfo ? { role: ownerInfo.role, name: ownerInfo.name } : null;
 
   // Determine back navigation path based on where user came from
   const searchParams = new URLSearchParams(location.search);
