@@ -62,6 +62,9 @@ export function HeaderControls({ showLogout = false, className }: HeaderControls
 
   return (
     <div className={cn("flex items-center gap-1", className)}>
+      {/* Notifications */}
+      <HSSENotificationCenter />
+
       {/* Language Selector */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
