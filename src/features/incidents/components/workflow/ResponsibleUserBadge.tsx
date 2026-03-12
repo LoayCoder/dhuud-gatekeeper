@@ -3,103 +3,24 @@ import { Badge } from "@/components/ui/badge";
 import { User, Users, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { IncidentWithDetails } from '@/features/incidents';
+import { getCurrentOwner } from "@/lib/current-owner";
 
 /**
- * Maps workflow statuses to their responsible parties
- * @returns { user: { name: string, title?: string }, role?: string, unassigned?: boolean }
+ * Maps workflow statuses to their responsible parties using the centralized getCurrentOwner.
  */
 export function getResponsibleParty(incident: Partial<IncidentWithDetails> | null) {
-    if (!incident || !incident.status) return null;
+    const owner = getCurrentOwner(incident);
+    if (!owner) return null;
 
-    const status = String(incident.status);
-    switch (status) {
-        // Dept Rep Stage
-        case "pending_dept_rep_incident_review":
-        case "pending_dept_rep_approval":
-            if (incident.approval_manager?.full_name) {
-                return {
-                    user: {
-                        name: incident.approval_manager.full_name,
-                        title: incident.approval_manager.job_title || undefined,
-                    }
-                };
-            }
-            return { role: "Department Representative", unassigned: true };
-
-        // Manager / Area Authority Stage
-        case "pending_manager_approval":
-        case "pending_no_investigation_approval":
-            if (incident.approval_manager?.full_name) {
-                return {
-                    user: {
-                        name: incident.approval_manager.full_name,
-                        title: incident.approval_manager.job_title || undefined,
-                    }
-                };
-            }
-            return { role: "Department Manager", unassigned: true };
-
-        // HSSE Expert Queue
-        case "expert_screening":
-        case "investigation_pending":
-            return { role: "HSSE Expert", unassigned: true };
-
-        // HSSE Manager Escalation Queue
-        case "hsse_manager_escalation":
-            return { role: "HSSE Manager", unassigned: true };
-
-        // Investigation Stage (Assigned Investigator)
-        case "investigation_in_progress": {
-            const investigator = incident.investigations?.[0]?.investigator;
-            if (investigator?.full_name) {
-                return {
-                    user: {
-                        name: investigator.full_name,
-                        title: investigator.job_title || undefined,
-                    }
-                };
-            }
-            return { role: "Investigator", unassigned: true };
-        }
-
-        // Contractor Consultant Validation Queue
-        // case "expert_screening": // Already handled above
-        case "pending_consultant_screening":
-        case "pending_consultant_review":
-        case "pending_consultant_verification":
-            return { role: "Contractor Consultant", unassigned: true };
-
-        // Contractor Implementation
-        case "pending_contractor_implementation":
-            if (incident.related_contractor_company?.company_name) {
-                return {
-                    user: { name: incident.related_contractor_company.company_name },
-                    isCompany: true
-                };
-            }
-            return { role: "Contractor", unassigned: true };
-
-        // Site Client Approval
-        case "pending_site_client_approval":
-            return { role: "Site Client Rep", unassigned: true };
-
-        // Monitoring Stages
-        case "monitoring_30_day":
-        case "monitoring_60_day":
-        case "monitoring_90_day":
-        case "pending_final_closure":
-            return { role: "HSSE Team", unassigned: true };
-
-        // Closed / Completed (No one is pending)
-        case "closed":
-        case "expert_rejected":
-        case "returned_to_reporter":
-        case "submitted":
-            return null;
-
-        default:
-            return null;
+    if (owner.isUnassigned) {
+        return { role: owner.role, unassigned: true };
     }
+
+    return {
+        user: {
+            name: owner.name || owner.role,
+        },
+    };
 }
 
 interface ResponsibleUserBadgeProps {
