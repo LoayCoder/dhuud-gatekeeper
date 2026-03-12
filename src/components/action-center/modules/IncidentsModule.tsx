@@ -117,7 +117,7 @@ export function IncidentsModule({ stats }: IncidentsModuleProps) {
         description={t('actionCenter.sheet.myActionsDesc', 'Corrective actions assigned to you')}
         badge={myOpenActions.length}
       >
-        <InlineActionsPanel />
+        <InlineActionsPanel eventTypeFilter="incident" />
       </ActionListSheet>
 
       <ActionListSheet
