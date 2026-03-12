@@ -47,26 +47,7 @@ interface InspectionSessionRow {
     compliance_percentage: number | null;
 }
 
-/**
- * Escape hatch for Supabase queries on tables/columns/enum values
- * not yet reflected in generated types. Uses a loosely-typed client
- * to avoid "excessively deep type instantiation" errors.
- */
-interface LooseQueryBuilder {
-    select(columns: string, options?: Record<string, unknown>): LooseQueryBuilder;
-    eq(column: string, value: unknown): LooseQueryBuilder;
-    neq(column: string, value: unknown): LooseQueryBuilder;
-    in(column: string, values: unknown[]): LooseQueryBuilder;
-    order(column: string, options?: Record<string, unknown>): LooseQueryBuilder;
-    limit(count: number): LooseQueryBuilder;
-    then: Promise<{ data: unknown[] | null; error: unknown }>['then'];
-}
 
-interface LooseSupabaseClient {
-    from(table: string): LooseQueryBuilder;
-}
-
-const looseClient = supabase as unknown as LooseSupabaseClient;
 
 // ── Exported interfaces ─────────────────────────────────────
 export interface UserOverviewStats {
