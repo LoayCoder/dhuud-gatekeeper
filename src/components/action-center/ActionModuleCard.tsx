@@ -27,6 +27,7 @@ export interface ModuleKPI {
   label: string;
   value: number;
   colorClass?: string;
+  onClick?: () => void;
 }
 
 interface ActionModuleCardProps {
