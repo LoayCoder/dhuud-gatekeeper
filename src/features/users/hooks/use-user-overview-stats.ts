@@ -47,26 +47,7 @@ interface InspectionSessionRow {
     compliance_percentage: number | null;
 }
 
-/**
- * Escape hatch for Supabase queries on tables/columns/enum values
- * not yet reflected in generated types. Uses a loosely-typed client
- * to avoid "excessively deep type instantiation" errors.
- */
-interface LooseQueryBuilder {
-    select(columns: string, options?: Record<string, unknown>): LooseQueryBuilder;
-    eq(column: string, value: unknown): LooseQueryBuilder;
-    neq(column: string, value: unknown): LooseQueryBuilder;
-    in(column: string, values: unknown[]): LooseQueryBuilder;
-    order(column: string, options?: Record<string, unknown>): LooseQueryBuilder;
-    limit(count: number): LooseQueryBuilder;
-    then: Promise<{ data: unknown[] | null; error: unknown }>['then'];
-}
 
-interface LooseSupabaseClient {
-    from(table: string): LooseQueryBuilder;
-}
-
-const looseClient = supabase as unknown as LooseSupabaseClient;
 
 // ── Exported interfaces ─────────────────────────────────────
 export interface UserOverviewStats {
@@ -157,28 +138,38 @@ export function useUserOverviewStats() {
 
             // 1. Fetch My Incidents
             const fetchMyIncidents = async () => {
-                // Use untypedFrom because some status values (draft, cancelled, pending_more_info)
-                // may not be in the generated enum yet
-                const { data: assignedData } = await looseClient.from('incidents')
-                    .select('id, reference_id, title, status, severity, created_at')
-                    .eq('tenant_id', tenantId)
-                    .eq('lead_investigator_id', user.id)
-                    .neq('status', 'closed')
-                    .neq('status', 'cancelled');
-
-                const { data: reportedData } = await looseClient.from('incidents')
+                // Fetch incidents where user is reporter and status requires attention
+                const { data: reportedData } = await supabase.from('incidents')
                     .select('id, reference_id, title, status, severity, created_at')
                     .eq('tenant_id', tenantId)
                     .eq('reporter_id', user.id)
-                    .in('status', ['draft', 'pending_more_info']);
+                    .in('status', ['submitted', 'returned_to_reporter']);
 
-                const assigned = (assignedData ?? []) as unknown as IncidentSummary[];
-                const pendingReport = (reportedData ?? []) as unknown as IncidentSummary[];
+                // Fetch incidents where user is the investigator via investigations table
+                const { data: investigationsData } = await supabase.from('investigations')
+                    .select('incident_id')
+                    .eq('tenant_id', tenantId)
+                    .eq('investigator_id', user.id);
+
+                let assigned: IncidentSummary[] = [];
+                if (investigationsData && investigationsData.length > 0) {
+                    const incidentIds = investigationsData.map(inv => inv.incident_id).filter(Boolean) as string[];
+                    if (incidentIds.length > 0) {
+                        const { data: assignedData } = await supabase.from('incidents')
+                            .select('id, reference_id, title, status, severity, created_at')
+                            .eq('tenant_id', tenantId)
+                            .in('id', incidentIds)
+                            .neq('status', 'closed');
+                        assigned = (assignedData ?? []) as IncidentSummary[];
+                    }
+                }
+
+                const pendingReport = (reportedData ?? []) as IncidentSummary[];
 
                 return {
                     assigned,
                     pendingReport,
-                    awaitingAction: assigned, // Placeholder logic
+                    awaitingAction: assigned,
                 };
             };
 
@@ -205,23 +196,12 @@ export function useUserOverviewStats() {
             };
 
             // 3. Fetch My Observations
-            // Note: 'observations' table may not be in generated types yet; use untypedFrom
-            const fetchMyObservations = async () => {
-                const { data: reported } = await looseClient.from('observations')
-                    .select('id, reference_number, description, status, created_at, observation_type')
-                    .eq('tenant_id', tenantId)
-                    .eq('created_by', user.id)
-                    .order('created_at', { ascending: false })
-                    .limit(20);
-
-                const allObs = (reported ?? []) as unknown as ObservationSummary[];
-                const pendingClosure = allObs.filter((o) => o.status === 'pending_closure');
-                const recentlyClosed = allObs.filter((o) => o.status === 'closed').slice(0, 5);
-
+            // The 'observations' table does not exist yet — return empty data gracefully
+            const fetchMyObservations = async (): Promise<{ assigned: ObservationSummary[]; pendingClosure: ObservationSummary[]; recentlyClosed: ObservationSummary[] }> => {
                 return {
-                    assigned: allObs,
-                    pendingClosure,
-                    recentlyClosed
+                    assigned: [],
+                    pendingClosure: [],
+                    recentlyClosed: [],
                 };
             };
 
@@ -255,10 +235,10 @@ export function useUserOverviewStats() {
 
                 // HSSE Manager Escalation & Pending Final Closure
                 if (isHsseManager || isAdmin) {
-                    const { data: hsseIncidents } = await looseClient.from('incidents')
+                    const { data: hsseIncidents } = await supabase.from('incidents')
                         .select('id, reference_id, title, status, created_at, reporter:profiles!incidents_reporter_id_fkey(full_name)')
                         .eq('tenant_id', tenantId)
-                        .in('status', ['hsse_manager_escalation', 'pending_final_closure', 'pending_investigation_plan_approval'])
+                        .in('status', ['hsse_manager_escalation', 'pending_final_closure', 'pending_closure'])
                         .order('created_at', { ascending: true });
 
                     const typedHsseIncidents = (hsseIncidents ?? []) as unknown as IncidentWithReporter[];
@@ -277,7 +257,7 @@ export function useUserOverviewStats() {
 
                 // Pending Manager Approval
                 if (isManager || isAdmin) {
-                    const { data: managerIncidents } = await looseClient.from('incidents')
+                    const { data: managerIncidents } = await supabase.from('incidents')
                         .select('id, reference_id, title, status, created_at, reporter:profiles!incidents_reporter_id_fkey(full_name)')
                         .eq('tenant_id', tenantId)
                         .eq('status', 'pending_manager_approval')
