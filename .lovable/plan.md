@@ -1,40 +1,63 @@
 
+# Fix "Take Action" Button for Department Representative
 
-## Why Admin Cannot Take Action on Consultant-Stage Observations
+## Problem
+When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
 
-### Root Cause
+1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
+2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
 
-The `ConsultantReviewCard` (the UI component that renders the approval controls for observations in `expert_screening` / `pending_consultant_screening` statuses) uses `useCanReviewAsConsultant()` to check permissions. This hook **only** checks `has_contractor_consultant_access_for_branch` -- it does NOT check for admin role. So even though the database RPC `can_approve_investigation` returns TRUE for admins, the **frontend UI card** hides the approval controls from them.
+## What Changes
 
-```text
-Database (can_approve_investigation):  Admin → TRUE  ✓
-Frontend (useCanReviewAsConsultant):   Admin → FALSE ✗  ← blocks UI
-```
+### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
 
-### Fix
+The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
 
-**File:** `src/hooks/use-consultant-workflow.ts` (lines ~145-175)
-
-In `useCanReviewAsConsultant`, after the status/contractor checks pass, add an admin role check before the `has_contractor_consultant_access_for_branch` RPC call:
-
-1. Import `has_role` check or call the existing `is_admin` RPC
-2. If the user is admin, return `true` immediately (skip the consultant-specific branch check)
-3. Otherwise, continue with the existing `has_contractor_consultant_access_for_branch` check
-
-This aligns the frontend permission gate with the database-level permission that already grants admin access.
-
-### Changes
-
-**`src/hooks/use-consultant-workflow.ts`** — In `useCanReviewAsConsultant`, after confirming `statusValid && hasContractor`, add:
+**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
 
 ```typescript
-// Admin can always review contractor observations
-const { data: isAdmin } = await supabase.rpc('is_admin');
-if (isAdmin) return true;
-
-// Otherwise check contractor consultant branch access
-const { data: hasAccess, error } = await supabase.rpc('has_contractor_consultant_access_for_branch', { ... });
+case 'pending_dept_rep_review':
+case 'pending_dept_rep_approval':
+  return (
+    <DeptRepApprovalCard
+      incident={incidentData}
+      onComplete={handleRefresh}
+    />
+  );
 ```
 
-This is a single-file change that unblocks admin users from taking action on contractor observations stuck in consultant workflow stages.
+### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
 
+The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
+
+**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
+
+```typescript
+<Button
+  size="lg"
+  className="shadow-lg px-8"
+  onClick={() => {
+    // Scroll to the workflow action card
+    const workflowCard = document.querySelector('[data-workflow-card]');
+    if (workflowCard) {
+      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }}
+>
+  Take Action
+  <ArrowRight className="h-4 w-4 ml-2" />
+</Button>
+```
+
+And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
+
+### 3. Localize the Button Text
+
+Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
+
+## Files Modified
+
+1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
+2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
+3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
+4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
