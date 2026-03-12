@@ -8,7 +8,7 @@ import { useState } from 'react';
 
 export interface ActionLink {
   label: string;
-  href: string;
+  href?: string;
   icon?: LucideIcon;
   variant?: 'default' | 'outline' | 'ghost' | 'destructive' | 'secondary';
   badge?: number;
@@ -17,6 +17,10 @@ export interface ActionLink {
   requiredRoles?: string[];
   /** Whether to show only when badge > 0 */
   showOnlyWithBadge?: boolean;
+  /** Toggle inline expand instead of navigating */
+  onExpand?: () => void;
+  /** Whether this link's inline panel is currently expanded */
+  isExpanded?: boolean;
 }
 
 export interface ModuleKPI {
@@ -38,6 +42,8 @@ interface ActionModuleCardProps {
   hasCritical?: boolean;
   /** Default expanded state */
   defaultExpanded?: boolean;
+  /** Inline panel content rendered below action links */
+  children?: React.ReactNode;
 }
 
 export function ActionModuleCard({
@@ -50,6 +56,7 @@ export function ActionModuleCard({
   attentionCount = 0,
   hasCritical = false,
   defaultExpanded = true,
+  children,
 }: ActionModuleCardProps) {
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -87,7 +94,7 @@ export function ActionModuleCard({
           <Button
             variant="ghost"
             size="sm"
-            className="flex-shrink-0 h-8 w-8 p-0"
+            className="flex-shrink-0 h-11 w-11 p-0"
             onClick={() => setIsExpanded(!isExpanded)}
           >
             {isExpanded ? (
@@ -121,28 +128,46 @@ export function ActionModuleCard({
           <div className="flex flex-wrap gap-2">
             {visibleLinks.map((link) => {
               const LinkIcon = link.icon;
+              const isToggle = !!link.onExpand;
               return (
                 <Button
-                  key={link.href + link.label}
-                  variant={link.variant || 'outline'}
+                  key={(link.href || '') + link.label}
+                  variant={link.isExpanded ? 'default' : (link.variant || 'outline')}
                   size="sm"
-                  className="h-8 text-xs gap-1.5"
-                  onClick={() => navigate(link.href)}
+                  className={cn(
+                    'h-11 min-h-[44px] text-xs gap-1.5 px-3',
+                    link.isExpanded && 'ring-2 ring-primary/30',
+                  )}
+                  onClick={() => {
+                    if (isToggle) {
+                      link.onExpand!();
+                    } else if (link.href) {
+                      navigate(link.href);
+                    }
+                  }}
                 >
                   {LinkIcon && <LinkIcon className="h-3.5 w-3.5" />}
                   {link.label}
                   {link.badge !== undefined && link.badge > 0 && (
                     <Badge
-                      variant={link.badgeVariant || 'secondary'}
+                      variant={link.isExpanded ? 'outline' : (link.badgeVariant || 'secondary')}
                       className="h-4 min-w-4 px-1 text-[10px] leading-none"
                     >
                       {link.badge}
                     </Badge>
                   )}
+                  {isToggle && (
+                    link.isExpanded
+                      ? <ChevronUp className="h-3 w-3 ms-0.5" />
+                      : <ChevronDown className="h-3 w-3 ms-0.5" />
+                  )}
                 </Button>
               );
             })}
           </div>
+
+          {/* Inline Panel Slot */}
+          {children}
         </CardContent>
       )}
     </Card>
