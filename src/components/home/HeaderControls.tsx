@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { HSSENotificationCenter } from '@/components/notifications/HSSENotificationCenter';
 
 const LANGUAGES = [
   { code: 'ar', label: 'العربية', dir: 'rtl' },
