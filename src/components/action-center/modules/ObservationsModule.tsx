@@ -37,7 +37,7 @@ export function ObservationsModule({ stats }: ObservationsModuleProps) {
   return (
     <>
       <ActionModuleCard
-        title={t('actionCenter.modules.observations.title', 'Observations')}
+        title={t('actionCenter.modules.observations.title', 'Observations Management')}
         description={t('actionCenter.modules.observations.description', 'Submit, review, escalate, and close observations')}
         icon={Eye}
         iconColorClass="text-info"
