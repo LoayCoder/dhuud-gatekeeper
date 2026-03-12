@@ -27,6 +27,7 @@ export interface MyAssignedInvestigation {
     event_type: string | null;
     site?: { name: string } | null;
     reporter?: { full_name: string | null } | null;
+    approval_manager?: { full_name: string | null } | null;
   } | null;
 }
 

@@ -255,6 +255,7 @@ export function usePendingIncidentApprovals() {
                             event_type: incident.event_type,
                             created_at: incident.created_at,
                             reporter: incident.reporter as { id: string; full_name: string | null } | null,
+                            approval_manager: incident.approval_manager as { id: string; full_name: string | null } | null,
                         });
                     }
                 } catch (err) {
