@@ -97,7 +97,7 @@ export function IncidentsModule({ stats }: IncidentsModuleProps) {
             icon: ClipboardList,
             badge: pendingApprovalsCount,
             badgeVariant: 'destructive',
-            showOnlyWithBadge: true,
+            showOnlyWithBadge: false,
             onExpand: () => setOpenSheet(openSheet === 'approvals' ? null : 'approvals'),
             isExpanded: openSheet === 'approvals',
           },
