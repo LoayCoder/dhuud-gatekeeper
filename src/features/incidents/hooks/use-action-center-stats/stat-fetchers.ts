@@ -127,66 +127,20 @@ export async function fetchCorrectiveActionStats(tenantId: string, now: string, 
 }
 
 export async function fetchInspectionStats(tenantId: string, userId: string) {
+    // Helper to reduce type chain depth
+    const sessionQuery = () =>
+        supabase.from('inspection_sessions').select('id', { count: 'exact', head: true })
+            .match({ tenant_id: tenantId, created_by: userId }).is('deleted_at', null);
+
     const [totalRes, scheduledRes, inProgressRes, auditTotalRes, auditInProgressRes, auditCompletedRes, findingsRes] = await Promise.all([
-        // Inspections created by or assigned to this user
-        supabase
-            .from('inspection_sessions')
-            .select('id', { count: 'exact', head: true })
-            .eq('tenant_id', tenantId)
-            .is('deleted_at', null)
-            .neq('session_type', 'audit')
-            .eq('created_by', userId),
-        // Scheduled inspections assigned to this user
-        supabase
-            .from('inspection_sessions')
-            .select('id', { count: 'exact', head: true })
-            .eq('tenant_id', tenantId)
-            .is('deleted_at', null)
-            .neq('session_type', 'audit')
-            .eq('status', 'scheduled')
-            .eq('created_by', userId),
-        // In progress inspections by this user
-        supabase
-            .from('inspection_sessions')
-            .select('id', { count: 'exact', head: true })
-            .eq('tenant_id', tenantId)
-            .is('deleted_at', null)
-            .neq('session_type', 'audit')
-            .eq('status', 'in_progress')
-            .eq('created_by', userId),
-        // Audits created by this user
-        supabase
-            .from('inspection_sessions')
-            .select('id', { count: 'exact', head: true })
-            .eq('tenant_id', tenantId)
-            .is('deleted_at', null)
-            .eq('session_type', 'audit')
-            .eq('created_by', userId),
-        // Audit in progress by this user
-        supabase
-            .from('inspection_sessions')
-            .select('id', { count: 'exact', head: true })
-            .eq('tenant_id', tenantId)
-            .is('deleted_at', null)
-            .eq('session_type', 'audit')
-            .eq('status', 'in_progress')
-            .eq('created_by', userId),
-        // Audit completed by this user
-        supabase
-            .from('inspection_sessions')
-            .select('id', { count: 'exact', head: true })
-            .eq('tenant_id', tenantId)
-            .is('deleted_at', null)
-            .eq('session_type', 'audit')
-            .eq('status', 'completed')
-            .eq('created_by', userId),
-        // Open findings created by this user
-        supabase
-            .from('area_inspection_findings')
-            .select('id', { count: 'exact', head: true })
-            .eq('tenant_id', tenantId)
-            .is('deleted_at', null)
-            .eq('created_by', userId)
+        sessionQuery().neq('session_type', 'audit'),
+        sessionQuery().neq('session_type', 'audit').eq('status', 'scheduled'),
+        sessionQuery().neq('session_type', 'audit').eq('status', 'in_progress'),
+        sessionQuery().eq('session_type', 'audit'),
+        sessionQuery().match({ session_type: 'audit', status: 'in_progress' }),
+        sessionQuery().match({ session_type: 'audit', status: 'completed' }),
+        supabase.from('area_inspection_findings').select('id', { count: 'exact', head: true })
+            .match({ tenant_id: tenantId, created_by: userId }).is('deleted_at', null)
             .in('status', ['open', 'in_progress']),
     ]);
 
