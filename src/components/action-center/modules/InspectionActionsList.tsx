@@ -26,7 +26,14 @@ export function InspectionActionsList() {
   );
 
   const items = openActions.map((a) => ({
-    ...a,
+    ...(a as Record<string, unknown>),
+    id: a.id,
+    title: a.title,
+    status: a.status,
+    priority: a.priority,
+    reference_id: a.reference_id,
+    due_date: a.due_date,
+    session_id: a.session_id,
     _isOverdue: a.due_date ? new Date(a.due_date) < new Date() : false,
   }));
 
