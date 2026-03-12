@@ -53,7 +53,7 @@ export function InspectionActionsList() {
       sortable: true,
       render: (item) => (
         <span className="inline-flex items-center gap-1.5 text-xs">
-          <StatusDot status={item._isOverdue ? 'error' : (STATUS_MAP[item.status] || 'pending')} size="sm" />
+          <StatusDot status={item._isOverdue ? 'critical' : (STATUS_MAP[item.status] || 'pending')} size="sm" />
           <span className="capitalize">
             {item._isOverdue ? t('actions.overdue', 'Overdue') : item.status?.replace(/_/g, ' ') || '—'}
           </span>
