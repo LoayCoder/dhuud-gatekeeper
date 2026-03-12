@@ -54,6 +54,11 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         // HSSE Expert Queue
         case "expert_screening":
         case "pending_expert_screening":
+            if (incident.related_contractor_company_id || incident.related_contractor_company) {
+                return buildOwner(null, "Contractor Consultant", true);
+            }
+            return buildOwner(null, "HSSE Expert", true);
+
         case "investigation_pending":
         case "pending_investigator_assignment":
         case "pending_hsse_expert_review":
