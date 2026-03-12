@@ -126,7 +126,7 @@ export function IncidentsModule({ stats }: IncidentsModuleProps) {
         title={t('actionCenter.sheet.pendingApprovals', 'Pending Approvals')}
         description={t('actionCenter.sheet.pendingApprovalsDesc', 'Incidents awaiting your review')}
       >
-        <IncidentApprovalsList />
+        <IncidentApprovalsList eventTypeFilter="incident" />
       </ActionListSheet>
 
       <ActionListSheet
