@@ -1,48 +1,63 @@
 
+# Fix "Take Action" Button for Department Representative
 
-# Redesign: Simplified UnifiedTimelineTracker
+## Problem
+When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
 
-## Current Issues
-- Visually heavy: large circles (w-10 h-10), thick role badges, excessive padding
-- Duplicated mobile/desktop layouts with lots of repeated code
-- Role badges clutter the view -- they're secondary info shown with equal prominence
-- Card wrapper adds unnecessary border/shadow weight
+1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
+2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
 
-## New Design: Clean Stepper Bar
+## What Changes
 
-A minimal horizontal progress bar with small dots, clean labels, and role shown only on the active step. Mobile gets a compact vertical list.
+### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
 
-```text
-Desktop:
-  ●───────●───────◉───────○───────○
-  Submitted  Review   Approval  Actions  Closed
-                     Dept Rep
-                     (current)
+The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
 
-Mobile:
-  ● Submitted
-  ● Initial Review
-  ◉ Approval · Dept Rep / Client  ← current
-  ○ Actions
-  ○ Closed
+**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+
+```typescript
+case 'pending_dept_rep_review':
+case 'pending_dept_rep_approval':
+  return (
+    <DeptRepApprovalCard
+      incident={incidentData}
+      onComplete={handleRefresh}
+    />
+  );
 ```
 
-## Key Changes (1 file: `UnifiedTimelineTracker.tsx`)
+### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
 
-1. **Smaller nodes**: w-7 h-7 circles with smaller icons (h-3.5 w-3.5)
-2. **Role only on current step**: Hide `typicalRole` badges on completed/upcoming steps -- show only on the active step as subtle text below the label
-3. **Remove Card wrapper**: Use a simple `div` with light border-bottom or no border, reducing visual weight
-4. **Merge mobile/desktop**: Use a single responsive layout -- horizontal on md+, vertical on mobile -- without duplicating all the markup
-5. **Tighter spacing**: Reduce padding from p-4/p-6 to p-3, smaller gaps
-6. **Current step highlight**: Subtle primary background pill around the current step label instead of a ring on the circle
-7. **Completed steps**: Small filled primary dots with checkmark, no large circles
-8. **Upcoming steps**: Small muted dots with step number in tiny text
+The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
 
-## Technical Details
+**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
 
-- Keep all existing props, types, `getStepIndex`, `getSteps` logic unchanged
-- Keep all `t()` translation wrappers
-- Keep role-color imports for the current step's role badge
-- Remove `Tooltip` usage to simplify (role info only shown on active step inline)
-- Keep RTL compatibility with logical CSS properties
+```typescript
+<Button
+  size="lg"
+  className="shadow-lg px-8"
+  onClick={() => {
+    // Scroll to the workflow action card
+    const workflowCard = document.querySelector('[data-workflow-card]');
+    if (workflowCard) {
+      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }}
+>
+  Take Action
+  <ArrowRight className="h-4 w-4 ml-2" />
+</Button>
+```
 
+And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
+
+### 3. Localize the Button Text
+
+Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
+
+## Files Modified
+
+1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
+2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
+3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
+4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
