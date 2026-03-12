@@ -152,6 +152,13 @@ export function useCanReviewAsConsultant(incidentId: string | null) {
         console.log('[ConsultantReview] Access denied - no contractor company');
         return false;
       }
+
+      // Admin can always review contractor observations (aligns with can_approve_investigation RPC)
+      const { data: isAdmin } = await supabase.rpc('is_admin', { p_user_id: user.id });
+      if (isAdmin) {
+        console.log('[ConsultantReview] Admin override - granting access');
+        return true;
+      }
       
       // Use branch-aware RPC for RBAC-based access check
       const { data: hasAccess, error } = await supabase
