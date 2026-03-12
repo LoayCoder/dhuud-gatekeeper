@@ -254,10 +254,10 @@ export function useUserOverviewStats() {
 
                 // HSSE Manager Escalation & Pending Final Closure
                 if (isHsseManager || isAdmin) {
-                    const { data: hsseIncidents } = await looseClient.from('incidents')
+                    const { data: hsseIncidents } = await supabase.from('incidents')
                         .select('id, reference_id, title, status, created_at, reporter:profiles!incidents_reporter_id_fkey(full_name)')
                         .eq('tenant_id', tenantId)
-                        .in('status', ['hsse_manager_escalation', 'pending_final_closure', 'pending_investigation_plan_approval'])
+                        .in('status', ['hsse_manager_escalation', 'pending_final_closure', 'pending_closure'])
                         .order('created_at', { ascending: true });
 
                     const typedHsseIncidents = (hsseIncidents ?? []) as unknown as IncidentWithReporter[];
