@@ -239,7 +239,7 @@ export default function IncidentDetail() {
           site_id: incident.site_id,
           related_contractor_company_id: incident.related_contractor_company_id,
           approval_manager: incident.approval_manager,
-          approval_manager_id: incident.approval_manager_id,
+          
           investigations: incident.investigations,
           related_contractor_company: incident.related_contractor_company,
         }}
