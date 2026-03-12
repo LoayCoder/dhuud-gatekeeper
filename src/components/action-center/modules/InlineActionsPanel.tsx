@@ -152,7 +152,7 @@ export function InlineActionsPanel() {
   }
 
   return (
-    <div className="pt-3 border-t space-y-2" dir={direction}>
+    <div className="pt-3 space-y-2" dir={direction}>
       {/* Header */}
       <div className="flex items-center justify-between px-1">
         <p className="text-xs text-muted-foreground font-medium">
