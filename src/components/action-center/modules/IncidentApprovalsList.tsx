@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
+import { StatusDot } from '@/components/ui/status-badge';
 import { ActionListTable, type ActionListColumn } from '../ActionListTable';
 import { usePendingIncidentApprovals } from '@/hooks/use-pending-approvals';
 import type { PendingIncidentApproval } from '@/hooks/use-pending-approvals';
@@ -20,19 +21,17 @@ export function IncidentApprovalsList() {
 
   const columns: ActionListColumn<RowItem>[] = [
     {
-      key: 'reference_id',
-      label: t('actionCenter.columns.referenceId', 'Reference'),
-      sortable: true,
-      render: (item) => (
-        <span className="font-mono text-xs">{item.reference_id || '—'}</span>
-      ),
-    },
-    {
       key: 'title',
       label: t('actionCenter.columns.title', 'Title'),
       sortable: true,
+      primary: true,
       render: (item) => (
-        <span className="line-clamp-1 max-w-[200px]">{item.title}</span>
+        <div className="flex flex-col gap-0.5">
+          <span className="line-clamp-2 font-medium">{item.title}</span>
+          {item.reference_id && (
+            <span className="font-mono text-[10px] text-muted-foreground">{item.reference_id}</span>
+          )}
+        </div>
       ),
     },
     {
@@ -40,9 +39,10 @@ export function IncidentApprovalsList() {
       label: t('actionCenter.columns.status', 'Status'),
       sortable: true,
       render: (item) => (
-        <Badge variant="outline" className="text-[10px]">
-          {item.status?.replace(/_/g, ' ') || '—'}
-        </Badge>
+        <span className="inline-flex items-center gap-1.5 text-xs">
+          <StatusDot status="pending" size="sm" />
+          <span className="capitalize">{item.status?.replace(/_/g, ' ') || '—'}</span>
+        </span>
       ),
     },
     {
@@ -61,11 +61,14 @@ export function IncidentApprovalsList() {
       label: t('actionCenter.columns.severity', 'Severity'),
       sortable: true,
       hideOnMobile: true,
-      render: (item) => (
-        <Badge variant="outline" className="text-[10px] capitalize">
-          {item.severity || '—'}
-        </Badge>
-      ),
+      render: (item) => {
+        if (!item.severity) return null;
+        return (
+          <Badge variant="outline" className="text-[10px] capitalize">
+            {item.severity}
+          </Badge>
+        );
+      },
     },
     {
       key: 'created_at',

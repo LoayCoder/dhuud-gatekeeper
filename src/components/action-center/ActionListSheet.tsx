@@ -34,7 +34,7 @@ export function ActionListSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side={direction === 'rtl' ? 'left' : 'right'}
-        className="w-full sm:max-w-lg flex flex-col p-0 pb-[env(safe-area-inset-bottom)]"
+        className="w-full sm:max-w-xl flex flex-col p-0 pb-[env(safe-area-inset-bottom)]"
         dir={direction}
       >
         <SheetHeader className="px-4 pt-6 pb-3 border-b flex-shrink-0">
