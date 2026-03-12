@@ -276,7 +276,7 @@ export function useUserOverviewStats() {
 
                 // Pending Manager Approval
                 if (isManager || isAdmin) {
-                    const { data: managerIncidents } = await looseClient.from('incidents')
+                    const { data: managerIncidents } = await supabase.from('incidents')
                         .select('id, reference_id, title, status, created_at, reporter:profiles!incidents_reporter_id_fkey(full_name)')
                         .eq('tenant_id', tenantId)
                         .eq('status', 'pending_manager_approval')

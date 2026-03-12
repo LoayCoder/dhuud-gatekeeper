@@ -57,14 +57,8 @@ export function useGamification() {
                 .eq('assigned_to', user.id)
                 .eq('status', 'closed');
 
-            // Observations Reported (Assuming they are incidents with type 'observation' OR separate table)
-            // Checking 'observations' table first as per previous context
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- observations table may not be in generated types
-            const observationsResult = await (supabase as unknown as { from: (t: string) => { select: (...a: unknown[]) => { eq: (...a: unknown[]) => { eq: (...a: unknown[]) => Promise<{ count: number | null }> } } } }).from('observations')
-                .select('*', { count: 'exact', head: true })
-                .eq('tenant_id', tenantId)
-                .eq('created_by', user.id);
-            const observationsCount = observationsResult.count;
+            // Observations table does not exist yet — use 0 as count
+            const observationsCount = 0;
 
             // 2. Calculate Points
             // Weightage: Incident=50, Action=20, Observation=10
