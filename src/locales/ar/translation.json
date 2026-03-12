@@ -2039,7 +2039,9 @@
       "summary": "ملخص",
       "metric": "المقياس",
       "value": "القيمة"
-    }
+    },
+    "acknowledged": "تم الإقرار بالإشعار",
+    "acknowledgeAction": "أقر بذلك"
   },
   "navigation": {
     "dashboard": "لوحة المعلومات",

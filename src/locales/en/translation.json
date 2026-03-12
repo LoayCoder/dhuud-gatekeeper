@@ -5203,7 +5203,9 @@
       "notifications": "Notifications",
       "acknowledged": "Acknowledged",
       "rate": "Rate"
-    }
+    },
+    "acknowledged": "Notification acknowledged",
+    "acknowledgeAction": "I Acknowledge"
   },
   "inspectionSessions": {
     "title": "Inspection Sessions",
