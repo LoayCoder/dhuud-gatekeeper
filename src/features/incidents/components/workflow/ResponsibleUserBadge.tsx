@@ -52,11 +52,6 @@ export function ResponsibleUserBadge({ incident, className, showTitle = false }:
                     <Badge variant="secondary" className="text-xs py-0.5 font-normal bg-secondary mix-blend-multiply dark:mix-blend-screen text-secondary-foreground border border-border/50">
                         <User className="h-3 w-3 mr-1" />
                         <span className="truncate max-w-[150px] font-medium">{responsibleInfo.user.name}</span>
-                        {showTitle && responsibleInfo.user.title && (
-                            <span className="text-muted-foreground truncate max-w-[100px] ml-1.5 hidden sm:inline-block border-l border-border/50 pl-1.5">
-                                {responsibleInfo.user.title}
-                            </span>
-                        )}
                     </Badge>
                 ) : null}
             </div>
