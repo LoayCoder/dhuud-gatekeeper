@@ -1,63 +1,43 @@
 
-# Fix "Take Action" Button for Department Representative
 
-## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
+## Split Incidents & Observations Cards by `event_type`
 
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+Currently both cards share the same data without filtering by `event_type`. The Incidents card shows all 15 pending approvals (including observations), and the Observations card shows 0s. The fix is to filter data by `event_type` throughout.
 
-## What Changes
+### Data Available
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+- `usePendingIncidentApprovals()` returns items with `event_type` field
+- `useMyCorrectiveActions()` returns items with `incident.event_type` 
+- `useMyAssignedInvestigations()` needs checking but likely has `event_type`
+- Stats in `use-action-center-stats` already split by source type (`incident` vs `observation` corrective actions)
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+### Changes
 
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+**1. `src/components/action-center/modules/IncidentsModule.tsx`**
+- Filter `myActions` to exclude `event_type === 'observation'`
+- Filter `pendingApprovals` to exclude `event_type === 'observation'`
+- Filter `myInvestigations` to exclude observations (if applicable)
+- Pass filtered counts to KPIs and badges
 
-```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
-```
+**2. `src/components/action-center/modules/ObservationsModule.tsx`**
+- Convert to stateful component like IncidentsModule
+- Add `usePendingIncidentApprovals()` hook, filter to `event_type === 'observation'` only
+- Add `useMyCorrectiveActions()` hook, filter to observation actions only
+- Add My Actions expandable button with sheet + InlineActionsPanel (observation-filtered)
+- Add Pending Approvals expandable button with sheet + filtered approvals list
+- Wire up KPI clicks to open sheets
 
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
+**3. `src/components/action-center/modules/IncidentApprovalsList.tsx`**
+- Accept optional `eventTypeFilter` prop
+- Filter displayed items by `event_type` when provided
 
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
+**4. `src/components/action-center/modules/InlineActionsPanel.tsx`**
+- Accept optional `eventTypeFilter` prop  
+- Filter displayed actions by `incident.event_type` when provided
 
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
+**5. Stats already correct** — `use-action-center-stats` already separates `incidentOverdue` vs `observationOverdue` etc., and these map correctly to each card's stats.
 
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
-```
+### Result
+- Incidents card: only shows incident-type approvals, actions, investigations
+- Observations card: only shows observation-type approvals and actions with expandable sheets
 
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
-
-### 3. Localize the Button Text
-
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
-
-## Files Modified
-
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
