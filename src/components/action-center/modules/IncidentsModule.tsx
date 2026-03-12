@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   AlertTriangle,
@@ -9,6 +10,8 @@ import {
   Eye,
 } from 'lucide-react';
 import { ActionModuleCard } from '../ActionModuleCard';
+import { InlineActionsPanel } from './InlineActionsPanel';
+import { useMyCorrectiveActions } from '@/features/incidents';
 import type { ActionCenterStats } from '@/features/incidents';
 
 interface IncidentsModuleProps {
@@ -17,6 +20,13 @@ interface IncidentsModuleProps {
 
 export function IncidentsModule({ stats }: IncidentsModuleProps) {
   const { t } = useTranslation();
+  const [expandedPanel, setExpandedPanel] = useState<'my-actions' | null>(null);
+
+  // Fetch user-specific count for the badge
+  const { data: myActions } = useMyCorrectiveActions();
+  const myOpenActions = ((myActions || []) as Array<{ status: string }>).filter(
+    (a) => a.status !== 'completed' && a.status !== 'verified' && a.status !== 'closed'
+  );
 
   return (
     <ActionModuleCard
@@ -46,10 +56,11 @@ export function IncidentsModule({ stats }: IncidentsModuleProps) {
         },
         {
           label: t('actionCenter.actions.myActions', 'My Actions'),
-          href: '/incidents/my-actions',
           icon: CheckSquare,
-          badge: stats.pending + stats.overdue,
-          badgeVariant: stats.overdue > 0 ? 'destructive' : 'secondary',
+          badge: myOpenActions.length,
+          badgeVariant: myOpenActions.some((a) => a.status === 'overdue') ? 'destructive' : 'secondary',
+          onExpand: () => setExpandedPanel(expandedPanel === 'my-actions' ? null : 'my-actions'),
+          isExpanded: expandedPanel === 'my-actions',
         },
         {
           label: t('actionCenter.actions.investigate', 'Investigation Workspace'),
@@ -72,6 +83,8 @@ export function IncidentsModule({ stats }: IncidentsModuleProps) {
           icon: ArrowUpRight,
         },
       ]}
-    />
+    >
+      {expandedPanel === 'my-actions' && <InlineActionsPanel />}
+    </ActionModuleCard>
   );
 }
