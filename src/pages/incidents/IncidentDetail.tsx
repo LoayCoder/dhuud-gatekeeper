@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useIncident, useDeleteIncident } from '@/features/incidents';
+import { getCurrentOwner as getCurrentOwnerFromLib } from '@/lib/current-owner';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
