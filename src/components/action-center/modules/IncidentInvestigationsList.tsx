@@ -69,7 +69,7 @@ export function IncidentInvestigationsList() {
       key: 'reporter_name',
       label: t('actionCenter.columns.reportedBy', 'Reported By'),
       sortable: true,
-      hideOnMobile: true,
+      expandable: true,
       render: (item) => (
         <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
           <User className="h-3 w-3 shrink-0" />
@@ -81,7 +81,7 @@ export function IncidentInvestigationsList() {
       key: 'action_by_name',
       label: t('actionCenter.columns.actionBy', 'Action By'),
       sortable: true,
-      hideOnMobile: true,
+      expandable: true,
       render: (item) => (
         <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
           <User className="h-3 w-3 shrink-0" />
@@ -93,7 +93,7 @@ export function IncidentInvestigationsList() {
       key: 'target_completion_date',
       label: t('actionCenter.columns.targetDate', 'Target Date'),
       sortable: true,
-      hideOnMobile: true,
+      expandable: true,
       render: (item) =>
         item.target_completion_date
           ? new Date(item.target_completion_date).toLocaleDateString(
