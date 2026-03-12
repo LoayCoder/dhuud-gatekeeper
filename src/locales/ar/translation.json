@@ -12707,6 +12707,11 @@
       "dueDate": "تاريخ الاستحقاق",
       "targetDate": "التاريخ المستهدف",
       "assignedRole": "الدور"
+    },
+    "roles": {
+      "approver": "مُعتمِد",
+      "investigator": "محقق",
+      "reviewer": "مُراجِع"
     }
   }
 }

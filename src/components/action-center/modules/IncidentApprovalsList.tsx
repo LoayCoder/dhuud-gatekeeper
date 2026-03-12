@@ -13,6 +13,7 @@ export function IncidentApprovalsList() {
   const items = (approvals || []).map((a) => ({
     ...a,
     reporter_name: a.reporter?.full_name || '—',
+    assigned_role: t('actionCenter.roles.approver', 'Approver'),
   }));
 
   type RowItem = typeof items[number];
@@ -41,6 +42,17 @@ export function IncidentApprovalsList() {
       render: (item) => (
         <Badge variant="outline" className="text-[10px]">
           {item.status?.replace(/_/g, ' ') || '—'}
+        </Badge>
+      ),
+    },
+    {
+      key: 'assigned_role',
+      label: t('actionCenter.columns.assignedRole', 'Role'),
+      sortable: false,
+      hideOnMobile: true,
+      render: (item) => (
+        <Badge variant="secondary" className="text-[10px]">
+          {item.assigned_role}
         </Badge>
       ),
     },
