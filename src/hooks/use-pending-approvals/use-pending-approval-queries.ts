@@ -210,6 +210,7 @@ export function usePendingIncidentApprovals() {
           location, location_city, latitude, longitude,
           reporter:profiles!incidents_reporter_id_fkey(id, full_name),
           reporter_id,
+          approval_manager:profiles!incidents_approval_manager_id_fkey(id, full_name),
           site:sites!incidents_site_id_fkey(id, name, latitude, longitude),
           branch:branches!incidents_branch_id_fkey(id, name)
         `)
