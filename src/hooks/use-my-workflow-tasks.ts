@@ -26,6 +26,7 @@ export interface MyAssignedInvestigation {
     severity_v2: string | null;
     event_type: string | null;
     site?: { name: string } | null;
+    reporter?: { full_name: string | null } | null;
   } | null;
 }
 
