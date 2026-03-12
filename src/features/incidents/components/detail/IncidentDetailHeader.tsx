@@ -233,9 +233,6 @@ export function IncidentDetailHeader({
 
         {/* Right Side: Assignment */}
         <div className="shrink-0 bg-background/60 p-3 sm:p-4 rounded-lg border shadow-sm backdrop-blur-sm xl:min-w-[280px]">
-          <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-            Pending With
-          </div>
           <ResponsibleUserBadge incident={incident as unknown} showTitle={false} className="text-sm font-medium" />
         </div>
       </div>

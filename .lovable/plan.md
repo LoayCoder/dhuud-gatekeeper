@@ -1,28 +1,63 @@
 
+# Fix "Take Action" Button for Department Representative
 
-## Fix: "Pending With" Still Shows "Unassigned" in Header
+## Problem
+When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
 
-### Root Cause
+1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
+2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
 
-The previous fix only updated the `currentOwner` variable passed to `IncidentDetailsLayout`. But the **visible** "Pending With" badge in the header comes from a completely different path:
+## What Changes
 
-```text
-IncidentDetailHeader.tsx (line 239)
-  → ResponsibleUserBadge
-    → getResponsibleParty()  ← OLD logic, hardcodes name: null for consultant statuses
+### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+
+The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+
+**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+
+```typescript
+case 'pending_dept_rep_review':
+case 'pending_dept_rep_approval':
+  return (
+    <DeptRepApprovalCard
+      incident={incidentData}
+      onComplete={handleRefresh}
+    />
+  );
 ```
 
-This `getResponsibleParty` in `ResponsibleUserBadge.tsx` is the second duplicate implementation that was never updated.
+### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
 
-Additionally, there's a **duplicate "PENDING WITH" label** — one from `IncidentDetailHeader.tsx` (line 237) and one from inside `ResponsibleUserBadge` itself (line 97).
+The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
 
-### Changes
+**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
 
-**1. `src/features/incidents/components/workflow/ResponsibleUserBadge.tsx`**
-- Replace the internal `getResponsibleParty` function with the centralized `getCurrentOwner` from `@/lib/current-owner`
-- Map the result to the same UI shape the component expects
-- This fixes the "Unassigned" bug for all statuses across the entire app
+```typescript
+<Button
+  size="lg"
+  className="shadow-lg px-8"
+  onClick={() => {
+    // Scroll to the workflow action card
+    const workflowCard = document.querySelector('[data-workflow-card]');
+    if (workflowCard) {
+      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }}
+>
+  Take Action
+  <ArrowRight className="h-4 w-4 ml-2" />
+</Button>
+```
 
-**2. `src/features/incidents/components/detail/IncidentDetailHeader.tsx`**
-- Remove the extra "Pending With" text label (line 236-238) since `ResponsibleUserBadge` already renders its own "Pending With" label internally — fixing the duplicate label issue
+And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
 
+### 3. Localize the Button Text
+
+Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
+
+## Files Modified
+
+1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
+2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
+3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
+4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
