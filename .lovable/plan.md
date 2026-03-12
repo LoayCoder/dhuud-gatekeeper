@@ -1,63 +1,36 @@
 
-# Fix "Take Action" Button for Department Representative
 
-## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
+## Problem: Duplicate `getCurrentOwner` Logic with Inconsistent Results
 
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+There are **two separate implementations** of `getCurrentOwner`:
 
-## What Changes
+1. **`src/lib/current-owner.ts`** — the proper centralized version. For `pending_consultant_screening`, it correctly reads `approval_manager.full_name` and returns **"Ruyuf Al Otaibi (Contractor Consultant)"**.
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+2. **`src/pages/incidents/IncidentDetail.tsx` (lines 112-162)** — a local inline version that **always returns `name: null`** for consultant statuses. This is why the detail page shows **"Unassigned (Contractor Consultant)"** even though Ruyuf is assigned.
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+### OBS-2026-0001 Approval Workflow (Golf Saudi)
 
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+```text
+Reporter: Mohammed Al Khammees
+Status:   pending_consultant_screening
+Role:     Contractor Consultant
+Assigned: Ruyuf Al Otaibi (approval_manager)
 
-```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
+Pending Approvals list → reads approval_manager → shows "Ruyuf Al Otaibi" ✓
+Detail page            → hardcodes name: null   → shows "Unassigned"      ✗
 ```
 
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
+Luay sees it in Pending Approvals because `can_approve_investigation` RPC returns `true` — Luay also has the `contractor_consultant` role.
 
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
+### Fix
 
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
+Replace the inline `getCurrentOwner` in `IncidentDetail.tsx` with the centralized one from `src/lib/current-owner.ts`. This will:
+- Show **"Ruyuf Al Otaibi (Contractor Consultant)"** on the detail page
+- Eliminate the duplicate logic
+- Ensure consistency across the app
 
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
-```
+**File to modify:** `src/pages/incidents/IncidentDetail.tsx`
+- Remove the local `getCurrentOwner` function (lines 112-162)
+- Import and use the centralized `getCurrentOwner` from `@/lib/current-owner`
+- Map the result to the format expected by the detail page UI
 
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
-
-### 3. Localize the Button Text
-
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
-
-## Files Modified
-
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
