@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { StatusDot } from '@/components/ui/status-badge';
+import { User } from 'lucide-react';
 import { ActionListTable, type ActionListColumn } from '../ActionListTable';
 import { usePendingIncidentApprovals } from '@/hooks/use-pending-approvals';
 import type { PendingIncidentApproval } from '@/hooks/use-pending-approvals';
@@ -14,7 +15,6 @@ export function IncidentApprovalsList() {
   const items = (approvals || []).map((a) => ({
     ...a,
     reporter_name: a.reporter?.full_name || '—',
-    assigned_role: t('actionCenter.roles.approver', 'Approver'),
   }));
 
   type RowItem = typeof items[number];
