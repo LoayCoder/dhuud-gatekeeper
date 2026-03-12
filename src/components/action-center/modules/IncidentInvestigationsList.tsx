@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { StatusDot } from '@/components/ui/status-badge';
+import { User } from 'lucide-react';
 import { ActionListTable, type ActionListColumn } from '../ActionListTable';
 import { useMyAssignedInvestigations } from '@/hooks/use-my-workflow-tasks';
 import type { MyAssignedInvestigation } from '@/hooks/use-my-workflow-tasks';
