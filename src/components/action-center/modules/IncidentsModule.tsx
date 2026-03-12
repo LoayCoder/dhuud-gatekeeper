@@ -16,6 +16,7 @@ import { IncidentApprovalsList } from './IncidentApprovalsList';
 import { IncidentInvestigationsList } from './IncidentInvestigationsList';
 import { useMyCorrectiveActions } from '@/features/incidents';
 import type { ActionCenterStats } from '@/features/incidents';
+import { usePendingIncidentApprovals } from '@/hooks/use-pending-approvals';
 
 interface IncidentsModuleProps {
   stats: ActionCenterStats['incidents'];
@@ -29,9 +30,11 @@ export function IncidentsModule({ stats }: IncidentsModuleProps) {
 
   // Fetch user-specific count for the badge
   const { data: myActions } = useMyCorrectiveActions();
+  const { data: pendingApprovals } = usePendingIncidentApprovals();
   const myOpenActions = ((myActions || []) as Array<{ status: string }>).filter(
     (a) => a.status !== 'completed' && a.status !== 'verified' && a.status !== 'closed'
   );
+  const pendingApprovalsCount = (pendingApprovals || []).length;
 
   const handleKpiClick = (kpiLabel: string) => {
     if (kpiLabel === t('actionCenter.kpi.overdue', 'Overdue')) {
@@ -50,11 +53,11 @@ export function IncidentsModule({ stats }: IncidentsModuleProps) {
         description={t('actionCenter.modules.incidents.description', 'Report, investigate, track, and close incidents')}
         icon={AlertTriangle}
         iconColorClass="text-destructive"
-        attentionCount={stats.overdue + stats.pendingApprovals}
+        attentionCount={stats.overdue + pendingApprovalsCount}
         hasCritical={stats.overdue > 0}
         kpis={[
           { label: t('actionCenter.kpi.overdue', 'Overdue'), value: stats.overdue, colorClass: 'text-destructive', onClick: () => handleKpiClick(t('actionCenter.kpi.overdue', 'Overdue')) },
-          { label: t('actionCenter.kpi.pending', 'Pending'), value: stats.pending, colorClass: 'text-warning', onClick: () => setOpenSheet('approvals') },
+          { label: t('actionCenter.kpi.pending', 'Pending'), value: pendingApprovalsCount, colorClass: 'text-warning', onClick: () => setOpenSheet('approvals') },
           { label: t('actionCenter.kpi.investigations', 'Investigations'), value: stats.openInvestigations, colorClass: 'text-info', onClick: () => setOpenSheet('investigations') },
           { label: t('actionCenter.kpi.total', 'Total'), value: stats.total },
         ]}
@@ -89,7 +92,7 @@ export function IncidentsModule({ stats }: IncidentsModuleProps) {
           {
             label: t('actionCenter.actions.pendingApprovals', 'Pending Approvals'),
             icon: ClipboardList,
-            badge: stats.pendingApprovals,
+            badge: pendingApprovalsCount,
             badgeVariant: 'destructive',
             showOnlyWithBadge: true,
             onExpand: () => setOpenSheet(openSheet === 'approvals' ? null : 'approvals'),

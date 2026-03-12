@@ -1,57 +1,63 @@
 
-
-# Fix Pending Approvals Count Mismatch
+# Fix "Take Action" Button for Department Representative
 
 ## Problem
-Three different numbers for the same concept:
-- **Card title badge "15"** = `stats.overdue (5) + stats.pendingApprovals (10)` — correct sum, but `pendingApprovals` is wrong
-- **"Pending Approvals" button badge = "10"** — uses `stats.pendingApprovals` from `fetchIncidentStats`
-- **Sheet content = "Showing 15 of 15"** — uses `usePendingIncidentApprovals()` which fetches the actual list
+When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
 
-## Root Cause
-The status filters are misaligned between the two queries:
+1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
+2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
 
-- **`fetchIncidentStats`** (stat-fetchers.ts line 21) counts only **4 statuses**: `pending_dept_rep_incident_review`, `pending_manager_approval`, `pending_department_manager_approval`, `expert_screening`
-- **`usePendingIncidentApprovals`** (use-pending-approval-queries.ts line 190) uses **12 statuses** including `pending_closure`, `pending_final_closure`, `pending_dept_rep_approval`, `hsse_manager_escalation`, `pending_consultant_*`, `pending_contract_controller_approval`, etc.
+## What Changes
 
-The stat query is missing 8 statuses, so it undercounts.
+### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
 
-## Fix
+The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
 
-### `stat-fetchers.ts` — Align pending approval statuses
-Update `fetchIncidentStats` (line 21) to use the same status list as `usePendingIncidentApprovals`:
+**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
 
 ```typescript
-.in('status', [
-  'pending_manager_approval',
-  'hsse_manager_escalation',
-  'pending_closure',
-  'pending_final_closure',
-  'pending_dept_rep_approval',
-  'pending_dept_rep_incident_review',
-  'expert_screening',
-  'pending_consultant_screening',
-  'pending_consultant_review',
-  'pending_consultant_actions',
-  'pending_department_manager_violation_approval',
-  'pending_contract_controller_approval'
-])
+case 'pending_dept_rep_review':
+case 'pending_dept_rep_approval':
+  return (
+    <DeptRepApprovalCard
+      incident={incidentData}
+      onComplete={handleRefresh}
+    />
+  );
 ```
 
-Note: The stat count is tenant-wide while the sheet filters by `can_approve_investigation` per user. For perfect accuracy, the badge on the button should ideally use the actual list length from `usePendingIncidentApprovals`. But aligning statuses is the minimum fix to reduce the gap.
+### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
 
-### `IncidentsModule.tsx` — Use actual list count for button badge
-Replace `stats.pendingApprovals` on the Pending Approvals button with the real count from `usePendingIncidentApprovals()`:
+The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
+
+**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
 
 ```typescript
-const { data: pendingApprovals } = usePendingIncidentApprovals();
-// ...
-badge: (pendingApprovals || []).length,
+<Button
+  size="lg"
+  className="shadow-lg px-8"
+  onClick={() => {
+    // Scroll to the workflow action card
+    const workflowCard = document.querySelector('[data-workflow-card]');
+    if (workflowCard) {
+      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }}
+>
+  Take Action
+  <ArrowRight className="h-4 w-4 ml-2" />
+</Button>
 ```
 
-This ensures the button badge matches the sheet content exactly.
+And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
 
-### Files
-1. `src/features/incidents/hooks/use-action-center-stats/stat-fetchers.ts`
-2. `src/components/action-center/modules/IncidentsModule.tsx`
+### 3. Localize the Button Text
 
+Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
+
+## Files Modified
+
+1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
+2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
+3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
+4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
