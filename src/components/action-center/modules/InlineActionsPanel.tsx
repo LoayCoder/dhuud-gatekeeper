@@ -97,27 +97,37 @@ export function InlineActionsPanel() {
     setConfirmDialog({ open: true, action, type: 'complete' });
   };
 
+  const isOverdueNeedsNotes =
+    confirmDialog.type === 'complete' &&
+    isOverdue(confirmDialog.action?.due_date) &&
+    !completionNotes.trim();
+
   const handleConfirm = async () => {
     if (!confirmDialog.action) return;
 
     const isOverdueAction = isOverdue(confirmDialog.action.due_date);
 
-    if (confirmDialog.type === 'start') {
-      await updateStatus.mutateAsync({
-        id: confirmDialog.action.id,
-        status: 'in_progress',
-      });
-    } else {
-      await updateStatus.mutateAsync({
-        id: confirmDialog.action.id,
-        status: 'completed',
-        completionNotes: completionNotes || undefined,
-        overdueJustification: isOverdueAction && completionNotes ? completionNotes : undefined,
-      });
-    }
+    try {
+      if (confirmDialog.type === 'start') {
+        await updateStatus.mutateAsync({
+          id: confirmDialog.action.id,
+          status: 'in_progress',
+        });
+      } else {
+        await updateStatus.mutateAsync({
+          id: confirmDialog.action.id,
+          status: 'completed',
+          completionNotes: completionNotes || undefined,
+          overdueJustification: isOverdueAction && completionNotes ? completionNotes : undefined,
+        });
+      }
 
-    setConfirmDialog({ open: false, action: null, type: 'start' });
-    setCompletionNotes('');
+      setConfirmDialog({ open: false, action: null, type: 'start' });
+      setCompletionNotes('');
+    } catch (error) {
+      // Keep dialog open on error — toast is shown by the mutation hook
+      console.error('[InlineActionsPanel] Action failed:', error);
+    }
   };
 
   if (isLoading) {
@@ -339,7 +349,7 @@ export function InlineActionsPanel() {
             </Button>
             <Button
               onClick={handleConfirm}
-              disabled={updateStatus.isPending}
+              disabled={updateStatus.isPending || isOverdueNeedsNotes}
             >
               {updateStatus.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
               {t('common.confirm', 'Confirm')}

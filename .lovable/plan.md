@@ -1,60 +1,63 @@
 
+# Fix "Take Action" Button for Department Representative
 
-# Fix Action Workflow Gaps + Build Notification Bell
+## Problem
+When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
 
-## Issues Found
+1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
+2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
 
-### 1. `HSSENotificationCenter` is a stub returning `null`
-The header renders `<HSSENotificationCenter />` which returns nothing — no bell icon, no unread badge, no notification popover. The realtime subscription (`useRealtimeNotifications`) fires toasts but there's no persistent notification center UI.
+## What Changes
 
-### 2. `MandatoryNotificationDialog` is also a stub returning `null`
-Critical HSSE mandatory notifications (from `get_pending_mandatory_notifications` RPC) are never shown to users.
+### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
 
-### 3. InlineActionsPanel — Minor Gaps
-- **No error handling on confirm**: `handleConfirm` has no try/catch — if `mutateAsync` fails, the dialog stays open in a broken state
-- **No success feedback after action**: Toast comes from the mutation hook but the dialog closes before the mutation completes (optimistic) — this is fine but should handle errors gracefully
-- **Overdue completion requires notes but no validation enforced**: When completing an overdue action, the hint says "provide justification" but `completionNotes` can be empty
+The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
 
-### 4. No `notifications` table in the database
-The `notificationService.ts` queries a `notifications` table but it doesn't exist in the schema. The real data lives in `hsse_notifications` + `hsse_notification_reads`. The realtime hook subscribes to `user_notifications` which also doesn't exist. These are disconnected stubs.
+**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
 
-## Plan
+```typescript
+case 'pending_dept_rep_review':
+case 'pending_dept_rep_approval':
+  return (
+    <DeptRepApprovalCard
+      incident={incidentData}
+      onComplete={handleRefresh}
+    />
+  );
+```
 
-### Task 1: Build `HSSENotificationCenter` — Real Bell Icon with Popover
-Replace the stub with a fully functional notification bell placed next to the language selector.
+### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
 
-**File: `src/components/notifications/HSSENotificationCenter.tsx`**
-- Import and use `useHSSENotificationsUser()` hook (already has `unreadCount`, `notifications`, `markAsRead`, `getLocalizedTitle`, `getLocalizedBody`)
-- Render a `Popover` with:
-  - **Trigger**: Bell icon button with unread badge (red dot or count)
-  - **Content**: Scrollable notification list (max 10 items), each showing: priority icon, localized title, time ago, read/unread state
-  - Click on item → `markAsRead` + navigate to related entity if applicable
-  - "Mark All Read" button in header
-  - Empty state when no notifications
-- Full RTL support, 44px touch targets, responsive width
+The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
 
-### Task 2: Build `MandatoryNotificationDialog`
-Replace the stub with a real dialog that blocks UI until acknowledged.
+**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
 
-**File: `src/components/notifications/MandatoryNotificationDialog.tsx`**
-- Use `useHSSENotificationsUser()` → `pendingMandatory`, `acknowledgeNotification`
-- Show a non-dismissible `AlertDialog` for the first pending mandatory notification
-- Display priority badge, localized title/body, acknowledge button
-- On acknowledge → next mandatory shows (or dialog closes)
+```typescript
+<Button
+  size="lg"
+  className="shadow-lg px-8"
+  onClick={() => {
+    // Scroll to the workflow action card
+    const workflowCard = document.querySelector('[data-workflow-card]');
+    if (workflowCard) {
+      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }}
+>
+  Take Action
+  <ArrowRight className="h-4 w-4 ml-2" />
+</Button>
+```
 
-### Task 3: Fix InlineActionsPanel Error Handling
-**File: `src/components/action-center/modules/InlineActionsPanel.tsx`**
-- Wrap `handleConfirm` in try/catch — on error, keep dialog open
-- Enforce notes for overdue completions (disable confirm button if overdue and notes empty)
+And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
 
-### Task 4: Add Translation Keys
-**Files: `src/locales/en/translation.json`, `src/locales/ar/translation.json`**
-- Add keys for notification bell: `notifications.title`, `notifications.markAllRead`, `notifications.empty`, `notifications.mandatory.acknowledge`, `notifications.mandatory.title`
+### 3. Localize the Button Text
+
+Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
 
 ## Files Modified
-1. `src/components/notifications/HSSENotificationCenter.tsx` — Full bell + popover implementation
-2. `src/components/notifications/MandatoryNotificationDialog.tsx` — Blocking mandatory dialog
-3. `src/components/action-center/modules/InlineActionsPanel.tsx` — Error handling + overdue validation
-4. `src/locales/en/translation.json` — Notification keys
-5. `src/locales/ar/translation.json` — Notification keys (Arabic)
 
+1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
+2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
+3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
+4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
