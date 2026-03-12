@@ -1,5 +1,6 @@
+import { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, ArrowUpDown, ArrowUp, ArrowDown, Inbox, ChevronLeft, ChevronRight, ChevronRight as ChevronEnd } from 'lucide-react';
+import { Search, ArrowUpDown, ArrowUp, ArrowDown, Inbox, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,14 +11,12 @@ export interface ActionListColumn<T> {
   key: keyof T | string;
   label: string;
   sortable?: boolean;
-  /** Render cell content; defaults to String(value) */
   render?: (item: T) => React.ReactNode;
-  /** Extra class on td */
   className?: string;
-  /** Hide on mobile */
   hideOnMobile?: boolean;
-  /** If true, column is the primary/title column (gets more space) */
   primary?: boolean;
+  /** If true, column is hidden from the main row and shown in the expandable detail strip */
+  expandable?: boolean;
 }
 
 interface ActionListTableProps<T extends Record<string, unknown>> {
@@ -28,7 +27,6 @@ interface ActionListTableProps<T extends Record<string, unknown>> {
   emptyMessage?: string;
   emptyIcon?: React.ReactNode;
   searchableFields?: string[];
-  /** Extra actions above the table (e.g. filter chips) */
   headerActions?: React.ReactNode;
 }
 
@@ -43,6 +41,7 @@ export function ActionListTable<T extends Record<string, unknown>>({
   headerActions,
 }: ActionListTableProps<T>) {
   const { t } = useTranslation();
+  const [expandedRows, setExpandedRows] = useState<Set<string | number>>(new Set());
 
   const {
     searchQuery,
@@ -56,6 +55,20 @@ export function ActionListTable<T extends Record<string, unknown>>({
     paginatedItems,
     filteredCount,
   } = useActionListState<T>(items, { searchableFields });
+
+  const visibleColumns = useMemo(() => columns.filter(c => !c.expandable), [columns]);
+  const expandableColumns = useMemo(() => columns.filter(c => c.expandable), [columns]);
+  const hasExpandable = expandableColumns.length > 0;
+
+  const toggleRow = useCallback((id: string | number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedRows(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
 
   if (isLoading) {
     return (
@@ -105,7 +118,8 @@ export function ActionListTable<T extends Record<string, unknown>>({
             <table className="w-full text-sm">
               <thead className="sticky top-0 z-10">
                 <tr className="border-b bg-muted/60">
-                  {columns.map((col) => (
+                  {hasExpandable && <th className="w-8" />}
+                  {visibleColumns.map((col) => (
                     <th
                       key={String(col.key)}
                       className={cn(
@@ -124,38 +138,76 @@ export function ActionListTable<T extends Record<string, unknown>>({
                       </span>
                     </th>
                   ))}
-                  {/* Chevron column for clickable rows */}
                   {onRowClick && <th className="w-8" />}
                 </tr>
               </thead>
               <tbody>
-                {paginatedItems.map((item, idx) => (
-                  <tr
-                    key={(item as Record<string, unknown>).id as string || idx}
-                    className={cn(
-                      'border-b transition-colors',
-                      idx % 2 === 1 && 'bg-muted/20',
-                      onRowClick && 'cursor-pointer hover:bg-accent/50 active:bg-accent/70',
-                    )}
-                    onClick={() => onRowClick?.(item)}
-                  >
-                    {columns.map((col) => (
-                      <td
-                        key={String(col.key)}
-                        className={cn('px-3 py-2.5 align-middle', col.className)}
+                {paginatedItems.map((item, idx) => {
+                  const rowId = (item as Record<string, unknown>).id as string || idx;
+                  const isExpanded = expandedRows.has(rowId);
+
+                  return (
+                    <>
+                      <tr
+                        key={rowId}
+                        className={cn(
+                          'border-b transition-colors',
+                          idx % 2 === 1 && 'bg-muted/20',
+                          onRowClick && 'cursor-pointer hover:bg-accent/50 active:bg-accent/70',
+                        )}
+                        onClick={() => onRowClick?.(item)}
                       >
-                        {col.render
-                          ? col.render(item)
-                          : String(item[col.key as keyof T] ?? '—')}
-                      </td>
-                    ))}
-                    {onRowClick && (
-                      <td className="px-2 py-2.5 align-middle text-muted-foreground">
-                        <ChevronEnd className="h-4 w-4 rtl:rotate-180" />
-                      </td>
-                    )}
-                  </tr>
-                ))}
+                        {hasExpandable && (
+                          <td className="px-2 py-2.5 align-middle">
+                            <button
+                              type="button"
+                              className="p-1 rounded hover:bg-muted/60 transition-transform"
+                              onClick={(e) => toggleRow(rowId, e)}
+                              aria-label={isExpanded ? 'Collapse' : 'Expand'}
+                            >
+                              <ChevronDown className={cn(
+                                'h-4 w-4 text-muted-foreground transition-transform duration-200',
+                                isExpanded && 'rotate-180',
+                                !isExpanded && 'rtl:-rotate-90 ltr:-rotate-90',
+                              )} />
+                            </button>
+                          </td>
+                        )}
+                        {visibleColumns.map((col) => (
+                          <td
+                            key={String(col.key)}
+                            className={cn('px-3 py-2.5 align-middle', col.className)}
+                          >
+                            {col.render
+                              ? col.render(item)
+                              : String(item[col.key as keyof T] ?? '—')}
+                          </td>
+                        ))}
+                        {onRowClick && (
+                          <td className="px-2 py-2.5 align-middle text-muted-foreground">
+                            <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+                          </td>
+                        )}
+                      </tr>
+                      {hasExpandable && isExpanded && (
+                        <tr key={`${rowId}-detail`} className="border-b bg-muted/30">
+                          <td colSpan={visibleColumns.length + (onRowClick ? 2 : 1)} className="px-4 py-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-2">
+                              {expandableColumns.map((col) => (
+                                <div key={String(col.key)} className="flex flex-col gap-0.5">
+                                  <span className="text-[10px] text-muted-foreground uppercase tracking-wide">{col.label}</span>
+                                  <span className="text-xs font-medium">
+                                    {col.render ? col.render(item) : String(item[col.key as keyof T] ?? '—')}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -163,32 +215,39 @@ export function ActionListTable<T extends Record<string, unknown>>({
           {/* Mobile cards */}
           <div className="sm:hidden space-y-2">
             {paginatedItems.map((item, idx) => {
-              const primaryCol = columns.find(c => c.primary && !c.hideOnMobile);
-              const otherCols = columns.filter(c => !c.hideOnMobile && c !== primaryCol);
+              const rowId = (item as Record<string, unknown>).id as string || idx;
+              const isExpanded = expandedRows.has(rowId);
+              const primaryCol = visibleColumns.find(c => c.primary);
+              const otherVisibleCols = visibleColumns.filter(c => c !== primaryCol);
 
               return (
                 <div
-                  key={(item as Record<string, unknown>).id as string || idx}
+                  key={rowId}
                   className={cn(
                     'rounded-lg border p-3 space-y-2 transition-colors',
                     onRowClick && 'cursor-pointer hover:bg-muted/50 active:bg-muted',
                   )}
-                  onClick={() => onRowClick?.(item)}
                 >
                   {/* Primary column as card header */}
                   {primaryCol && (
-                    <div className="flex items-start justify-between gap-2">
+                    <div
+                      className="flex items-start justify-between gap-2"
+                      onClick={() => onRowClick?.(item)}
+                    >
                       <div className="font-medium text-sm line-clamp-2 flex-1">
                         {primaryCol.render ? primaryCol.render(item) : String(item[primaryCol.key as keyof T] ?? '—')}
                       </div>
                       {onRowClick && (
-                        <ChevronEnd className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5 rtl:rotate-180" />
+                        <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5 rtl:rotate-180" />
                       )}
                     </div>
                   )}
-                  {/* Other fields as compact rows */}
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-                    {otherCols.map((col) => (
+                  {/* Other visible fields */}
+                  <div
+                    className="grid grid-cols-2 gap-x-3 gap-y-1"
+                    onClick={() => onRowClick?.(item)}
+                  >
+                    {otherVisibleCols.map((col) => (
                       <div key={String(col.key)} className="flex flex-col gap-0.5">
                         <span className="text-[10px] text-muted-foreground uppercase tracking-wide">{col.label}</span>
                         <span className="text-xs font-medium">
@@ -197,6 +256,37 @@ export function ActionListTable<T extends Record<string, unknown>>({
                       </div>
                     ))}
                   </div>
+                  {/* Expandable detail toggle */}
+                  {hasExpandable && (
+                    <>
+                      <button
+                        type="button"
+                        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground w-full pt-1 min-h-[44px]"
+                        onClick={(e) => toggleRow(rowId, e)}
+                      >
+                        <ChevronDown className={cn(
+                          'h-3.5 w-3.5 transition-transform duration-200',
+                          isExpanded && 'rotate-180',
+                        )} />
+                        <span>{isExpanded
+                          ? t('actionCenter.table.lessDetails', 'Less details')
+                          : t('actionCenter.table.moreDetails', 'More details')
+                        }</span>
+                      </button>
+                      {isExpanded && (
+                        <div className="grid grid-cols-2 gap-x-3 gap-y-2 pt-1 border-t border-border/50">
+                          {expandableColumns.map((col) => (
+                            <div key={String(col.key)} className="flex flex-col gap-0.5">
+                              <span className="text-[10px] text-muted-foreground uppercase tracking-wide">{col.label}</span>
+                              <span className="text-xs font-medium">
+                                {col.render ? col.render(item) : String(item[col.key as keyof T] ?? '—')}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               );
             })}

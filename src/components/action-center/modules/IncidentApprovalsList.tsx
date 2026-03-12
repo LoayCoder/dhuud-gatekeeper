@@ -58,7 +58,7 @@ export function IncidentApprovalsList() {
       key: 'reporter_name',
       label: t('actionCenter.columns.reportedBy', 'Reported By'),
       sortable: true,
-      hideOnMobile: true,
+      expandable: true,
       render: (item) => (
         <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
           <User className="h-3 w-3 shrink-0" />
@@ -70,7 +70,7 @@ export function IncidentApprovalsList() {
       key: 'action_by_name',
       label: t('actionCenter.columns.actionBy', 'Action By'),
       sortable: true,
-      hideOnMobile: true,
+      expandable: true,
       render: (item) => (
         <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
           <User className="h-3 w-3 shrink-0" />
@@ -82,7 +82,7 @@ export function IncidentApprovalsList() {
       key: 'created_at',
       label: t('actionCenter.columns.createdDate', 'Created'),
       sortable: true,
-      hideOnMobile: true,
+      expandable: true,
       render: (item) =>
         item.created_at
           ? new Date(item.created_at).toLocaleDateString(
