@@ -53,7 +53,7 @@ export function IncidentsModule({ stats }: IncidentsModuleProps) {
         description={t('actionCenter.modules.incidents.description', 'Report, investigate, track, and close incidents')}
         icon={AlertTriangle}
         iconColorClass="text-destructive"
-        attentionCount={stats.overdue + stats.pendingApprovals}
+        attentionCount={stats.overdue + pendingApprovalsCount}
         hasCritical={stats.overdue > 0}
         kpis={[
           { label: t('actionCenter.kpi.overdue', 'Overdue'), value: stats.overdue, colorClass: 'text-destructive', onClick: () => handleKpiClick(t('actionCenter.kpi.overdue', 'Overdue')) },
