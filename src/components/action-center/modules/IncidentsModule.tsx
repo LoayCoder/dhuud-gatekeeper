@@ -119,8 +119,6 @@ export function IncidentsModule({ stats }: IncidentsModuleProps) {
         onOpenChange={(open) => setOpenSheet(open ? 'approvals' : null)}
         title={t('actionCenter.sheet.pendingApprovals', 'Pending Approvals')}
         description={t('actionCenter.sheet.pendingApprovalsDesc', 'Incidents awaiting your review')}
-        badge={stats.pendingApprovals}
-        badgeVariant="destructive"
       >
         <IncidentApprovalsList />
       </ActionListSheet>
@@ -130,7 +128,6 @@ export function IncidentsModule({ stats }: IncidentsModuleProps) {
         onOpenChange={(open) => setOpenSheet(open ? 'investigations' : null)}
         title={t('actionCenter.sheet.investigations', 'My Investigations')}
         description={t('actionCenter.sheet.investigationsDesc', 'Investigations assigned to you')}
-        badge={stats.openInvestigations}
       >
         <IncidentInvestigationsList />
       </ActionListSheet>

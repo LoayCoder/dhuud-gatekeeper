@@ -19,6 +19,7 @@ export function IncidentInvestigationsList() {
     severity_v2: inv.incident?.severity_v2 || null,
     assigned_at: inv.assigned_at,
     target_completion_date: inv.target_completion_date,
+    assigned_role: t('actionCenter.roles.investigator', 'Investigator'),
   }));
 
   type RowItem = typeof items[number];
@@ -47,6 +48,17 @@ export function IncidentInvestigationsList() {
       render: (item) => (
         <Badge variant="outline" className="text-[10px]">
           {item.status?.replace(/_/g, ' ') || '—'}
+        </Badge>
+      ),
+    },
+    {
+      key: 'assigned_role',
+      label: t('actionCenter.columns.assignedRole', 'Role'),
+      sortable: false,
+      hideOnMobile: true,
+      render: (item) => (
+        <Badge variant="secondary" className="text-[10px]">
+          {item.assigned_role}
         </Badge>
       ),
     },
