@@ -45,7 +45,7 @@ export const ALL_HOME_CARDS: HomeActionCard[] = [
     labelKey: 'home.cards.myActions',
     descriptionKey: 'home.cards.myActionsDesc',
     icon: ListChecks,
-    path: '/incidents/my-actions',
+    path: '/action-center',
     colorScheme: 'warning',
     categories: ['base'],
     requiredModule: 'incidents',
