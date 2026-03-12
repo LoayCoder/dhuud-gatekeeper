@@ -142,7 +142,7 @@ export function InlineActionsPanel() {
 
   if (actions.length === 0) {
     return (
-      <div className="pt-3 border-t text-center py-6">
+      <div className="pt-3 text-center py-6">
         <CheckCircle2 className="h-8 w-8 mx-auto text-muted-foreground/40 mb-2" />
         <p className="text-sm text-muted-foreground">
           {t('actionCenter.inlinePanel.noActions', 'No open actions assigned to you')}
