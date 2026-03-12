@@ -49,9 +49,11 @@ export function UnifiedTimelineTracker({ incident }: UnifiedTimelineTrackerProps
 
     const getSteps = (): TimelineStep[] => {
         if (isObservation) {
+            const isContractor = !!incident?.related_contractor_company;
+            const reviewRole = isContractor ? t('workflow.roles.consultant', 'Consultant') : t('workflow.roles.hsseExpert', 'HSSE Expert');
             return [
                 { id: '1', label: t('workflow.merged.submitted', 'Submitted'), icon: FileText, roleCategory: 'system', typicalRole: 'Reporter', state: getS(0) },
-                { id: '2', label: t('workflow.merged.initialReview', 'Initial Review'), icon: Shield, roleCategory: 'hsse', typicalRole: 'HSSE Expert', state: getS(1) },
+                { id: '2', label: t('workflow.merged.initialReview', 'Initial Review'), icon: Shield, roleCategory: isContractor ? 'contractor' : 'hsse', typicalRole: reviewRole, state: getS(1) },
                 { id: '3', label: t('workflow.merged.approval', 'Approval'), icon: ClipboardCheck, roleCategory: 'internal', typicalRole: 'Department Rep / Client', state: getS(2) },
                 { id: '4', label: t('workflow.merged.actions', 'Actions'), icon: Clock, roleCategory: 'contractor', typicalRole: 'Contractor / Action Owner', state: getS(3) },
                 { id: '5', label: t('workflow.merged.closed', 'Closed'), icon: Lock, roleCategory: 'system', typicalRole: 'System Verifier', state: getS(4) },
