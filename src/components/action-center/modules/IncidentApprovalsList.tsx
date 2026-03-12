@@ -15,12 +15,20 @@ function resolveActionBy(item: PendingIncidentApproval): string {
   return '—';
 }
 
-export function IncidentApprovalsList() {
+interface IncidentApprovalsListProps {
+  eventTypeFilter?: 'incident' | 'observation';
+}
+
+export function IncidentApprovalsList({ eventTypeFilter }: IncidentApprovalsListProps) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { data: approvals, isLoading } = usePendingIncidentApprovals();
 
-  const items = (approvals || []).map((a) => ({
+  const filtered = eventTypeFilter
+    ? (approvals || []).filter((a) => a.event_type === eventTypeFilter)
+    : (approvals || []);
+
+  const items = filtered.map((a) => ({
     ...a,
     reporter_name: a.reporter?.full_name || '—',
     action_by_name: resolveActionBy(a),

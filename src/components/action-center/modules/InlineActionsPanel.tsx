@@ -63,7 +63,11 @@ interface ActionItem {
   return_count?: number | null;
 }
 
-export function InlineActionsPanel() {
+interface InlineActionsPanelProps {
+  eventTypeFilter?: 'incident' | 'observation';
+}
+
+export function InlineActionsPanel({ eventTypeFilter }: InlineActionsPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const navigate = useNavigate();
@@ -81,10 +85,13 @@ export function InlineActionsPanel() {
   // Extension dialog state
   const [extensionAction, setExtensionAction] = useState<ActionItem | null>(null);
 
-  // Filter to unclosed actions only
-  const actions = ((rawActions || []) as ActionItem[]).filter(
+  // Filter to unclosed actions only, then by event_type if provided
+  const unclosed = ((rawActions || []) as (ActionItem & { incident?: { event_type?: string | null } })[]).filter(
     (a) => a.status !== 'completed' && a.status !== 'verified' && a.status !== 'closed'
   );
+  const actions = eventTypeFilter
+    ? unclosed.filter((a) => (a as any).incident?.event_type === eventTypeFilter)
+    : unclosed;
   const visibleActions = actions.slice(0, MAX_VISIBLE);
   const hasMore = actions.length > MAX_VISIBLE;
 
