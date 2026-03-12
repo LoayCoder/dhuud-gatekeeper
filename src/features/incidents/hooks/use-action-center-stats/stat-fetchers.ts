@@ -18,7 +18,21 @@ export async function fetchIncidentStats(tenantId: string) {
             .select('id', { count: 'exact', head: true })
             .eq('tenant_id', tenantId)
             .is('deleted_at', null)
-            .in('status', ['pending_dept_rep_incident_review', 'pending_manager_approval', 'pending_department_manager_approval', 'expert_screening']),
+            .in('status', [
+                'pending_manager_approval',
+                'hsse_manager_escalation',
+                'pending_closure',
+                'pending_final_closure',
+                'pending_dept_rep_approval',
+                'pending_dept_rep_incident_review',
+                'expert_screening',
+                'pending_consultant_screening',
+                'pending_consultant_review',
+                'pending_consultant_actions',
+                'pending_department_manager_approval',
+                'pending_department_manager_violation_approval',
+                'pending_contract_controller_approval',
+            ]),
     ]);
 
     return {

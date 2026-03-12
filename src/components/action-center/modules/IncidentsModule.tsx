@@ -16,6 +16,7 @@ import { IncidentApprovalsList } from './IncidentApprovalsList';
 import { IncidentInvestigationsList } from './IncidentInvestigationsList';
 import { useMyCorrectiveActions } from '@/features/incidents';
 import type { ActionCenterStats } from '@/features/incidents';
+import { usePendingIncidentApprovals } from '@/hooks/use-pending-approvals';
 
 interface IncidentsModuleProps {
   stats: ActionCenterStats['incidents'];
