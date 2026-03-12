@@ -157,28 +157,38 @@ export function useUserOverviewStats() {
 
             // 1. Fetch My Incidents
             const fetchMyIncidents = async () => {
-                // Use untypedFrom because some status values (draft, cancelled, pending_more_info)
-                // may not be in the generated enum yet
-                const { data: assignedData } = await looseClient.from('incidents')
-                    .select('id, reference_id, title, status, severity, created_at')
-                    .eq('tenant_id', tenantId)
-                    .eq('lead_investigator_id', user.id)
-                    .neq('status', 'closed')
-                    .neq('status', 'cancelled');
-
-                const { data: reportedData } = await looseClient.from('incidents')
+                // Fetch incidents where user is reporter and status requires attention
+                const { data: reportedData } = await supabase.from('incidents')
                     .select('id, reference_id, title, status, severity, created_at')
                     .eq('tenant_id', tenantId)
                     .eq('reporter_id', user.id)
-                    .in('status', ['draft', 'pending_more_info']);
+                    .in('status', ['submitted', 'returned_to_reporter']);
 
-                const assigned = (assignedData ?? []) as unknown as IncidentSummary[];
-                const pendingReport = (reportedData ?? []) as unknown as IncidentSummary[];
+                // Fetch incidents where user is the investigator via investigations table
+                const { data: investigationsData } = await supabase.from('investigations')
+                    .select('incident_id')
+                    .eq('tenant_id', tenantId)
+                    .eq('investigator_id', user.id);
+
+                let assigned: IncidentSummary[] = [];
+                if (investigationsData && investigationsData.length > 0) {
+                    const incidentIds = investigationsData.map(inv => inv.incident_id).filter(Boolean) as string[];
+                    if (incidentIds.length > 0) {
+                        const { data: assignedData } = await supabase.from('incidents')
+                            .select('id, reference_id, title, status, severity, created_at')
+                            .eq('tenant_id', tenantId)
+                            .in('id', incidentIds)
+                            .neq('status', 'closed');
+                        assigned = (assignedData ?? []) as IncidentSummary[];
+                    }
+                }
+
+                const pendingReport = (reportedData ?? []) as IncidentSummary[];
 
                 return {
                     assigned,
                     pendingReport,
-                    awaitingAction: assigned, // Placeholder logic
+                    awaitingAction: assigned,
                 };
             };
 
