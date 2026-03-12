@@ -21,7 +21,7 @@ export function IncidentInvestigationsList() {
     severity_v2: inv.incident?.severity_v2 || null,
     assigned_at: inv.assigned_at,
     target_completion_date: inv.target_completion_date,
-    assigned_role: t('actionCenter.roles.investigator', 'Investigator'),
+    reporter_name: inv.incident?.reporter?.full_name || '—',
   }));
 
   type RowItem = typeof items[number];
