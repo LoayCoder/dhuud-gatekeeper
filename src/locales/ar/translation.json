@@ -12674,6 +12674,11 @@
       "failed": "فشل",
       "total": "الإجمالي (24 ساعة)",
       "successRate": "نجاح"
+    },
+    "inlinePanel": {
+      "viewAll": "عرض جميع الإجراءات",
+      "noActions": "لا توجد إجراءات مفتوحة مسندة إليك",
+      "showingCount": "عرض {{count}} من {{total}}"
     }
   }
 }

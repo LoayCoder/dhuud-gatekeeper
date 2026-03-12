@@ -11724,6 +11724,11 @@
       "failed": "Failed",
       "total": "Total (24h)",
       "successRate": "success"
+    },
+    "inlinePanel": {
+      "viewAll": "View All Actions",
+      "noActions": "No open actions assigned to you",
+      "showingCount": "Showing {{count}} of {{total}}"
     }
   },
   "whatsappSettings": {

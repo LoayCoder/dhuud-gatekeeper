@@ -3,6 +3,7 @@ export { ActionModuleCard } from './ActionModuleCard';
 export { NotificationPipelineStatus } from './NotificationPipelineStatus';
 export {
   IncidentsModule,
+  InlineActionsPanel,
   ObservationsModule,
   GatePassesModule,
   InspectionsModule,
