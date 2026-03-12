@@ -46,14 +46,15 @@ export function IncidentApprovalsList() {
       ),
     },
     {
-      key: 'assigned_role',
-      label: t('actionCenter.columns.assignedRole', 'Role'),
-      sortable: false,
+      key: 'reporter_name',
+      label: t('actionCenter.columns.reportedBy', 'Reported By'),
+      sortable: true,
       hideOnMobile: true,
       render: (item) => (
-        <Badge variant="secondary" className="text-[10px]">
-          {item.assigned_role}
-        </Badge>
+        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+          <User className="h-3 w-3 shrink-0" />
+          <span className="truncate max-w-[120px]">{item.reporter_name}</span>
+        </span>
       ),
     },
     {
