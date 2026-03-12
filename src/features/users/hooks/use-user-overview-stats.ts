@@ -215,23 +215,12 @@ export function useUserOverviewStats() {
             };
 
             // 3. Fetch My Observations
-            // Note: 'observations' table may not be in generated types yet; use untypedFrom
-            const fetchMyObservations = async () => {
-                const { data: reported } = await looseClient.from('observations')
-                    .select('id, reference_number, description, status, created_at, observation_type')
-                    .eq('tenant_id', tenantId)
-                    .eq('created_by', user.id)
-                    .order('created_at', { ascending: false })
-                    .limit(20);
-
-                const allObs = (reported ?? []) as unknown as ObservationSummary[];
-                const pendingClosure = allObs.filter((o) => o.status === 'pending_closure');
-                const recentlyClosed = allObs.filter((o) => o.status === 'closed').slice(0, 5);
-
+            // The 'observations' table does not exist yet — return empty data gracefully
+            const fetchMyObservations = async (): Promise<{ assigned: ObservationSummary[]; pendingClosure: ObservationSummary[]; recentlyClosed: ObservationSummary[] }> => {
                 return {
-                    assigned: allObs,
-                    pendingClosure,
-                    recentlyClosed
+                    assigned: [],
+                    pendingClosure: [],
+                    recentlyClosed: [],
                 };
             };
 
