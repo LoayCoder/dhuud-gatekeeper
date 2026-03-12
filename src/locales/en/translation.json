@@ -11757,6 +11757,11 @@
       "dueDate": "Due Date",
       "targetDate": "Target Date",
       "assignedRole": "Role"
+    },
+    "roles": {
+      "approver": "Approver",
+      "investigator": "Investigator",
+      "reviewer": "Reviewer"
     }
   },
   "whatsappSettings": {
