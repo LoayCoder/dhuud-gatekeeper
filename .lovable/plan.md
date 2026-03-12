@@ -1,63 +1,35 @@
 
-# Fix "Take Action" Button for Department Representative
 
-## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
-
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+# Replace Severity with Current Action Owner Name
 
 ## What Changes
+Replace the "Severity" column in both Approvals and Investigations lists with an "Action By" column showing the name of the person who currently needs to take action on the incident.
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+## Data Changes
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+### `use-pending-approval-queries.ts`
+- Add `approval_manager:profiles!incidents_approval_manager_id_fkey(full_name)` to the incident select query (line 209)
+- Include `approval_manager` in the `PendingIncidentApproval` type and pass it through to `approvableIncidents`
 
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+### `use-my-workflow-tasks.ts`
+- Add `approval_manager:profiles!incidents_approval_manager_id_fkey(full_name)` to the investigation's incident select query (line 63)
+- Update `MyAssignedInvestigation` type to include `approval_manager`
 
-```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
-```
+## Column Changes
 
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
+### `IncidentApprovalsList.tsx`
+- Map `action_by` from status-based logic:
+  - `pending_manager_approval` / `pending_dept_rep_*` → `approval_manager.full_name`
+  - `expert_screening` / `pending_consultant_*` → "HSSE Expert" / "Consultant" (role fallback)
+- Replace severity column with "Action By" column showing `User` icon + name
 
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
+### `IncidentInvestigationsList.tsx`
+- Map `action_by` similarly using status + available data (investigator = current user, approval_manager for review stages)
+- Same column replacement
 
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
+## Files
+1. `src/hooks/use-pending-approvals/use-pending-approval-queries.ts`
+2. `src/hooks/use-my-workflow-tasks.ts`
+3. `src/components/action-center/modules/IncidentApprovalsList.tsx`
+4. `src/components/action-center/modules/IncidentInvestigationsList.tsx`
 
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
-```
-
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
-
-### 3. Localize the Button Text
-
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
-
-## Files Modified
-
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
