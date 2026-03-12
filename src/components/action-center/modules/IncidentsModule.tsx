@@ -32,10 +32,12 @@ export function IncidentsModule({ stats }: IncidentsModuleProps) {
   // Fetch user-specific count for the badge
   const { data: myActions } = useMyCorrectiveActions();
   const { data: pendingApprovals } = usePendingIncidentApprovals();
+  const { data: myInvestigations } = useMyAssignedInvestigations();
   const myOpenActions = ((myActions || []) as Array<{ status: string }>).filter(
     (a) => a.status !== 'completed' && a.status !== 'verified' && a.status !== 'closed'
   );
   const pendingApprovalsCount = (pendingApprovals || []).length;
+  const myInvestigationsCount = (myInvestigations || []).length;
 
   const handleKpiClick = (kpiLabel: string) => {
     if (kpiLabel === t('actionCenter.kpi.overdue', 'Overdue')) {
