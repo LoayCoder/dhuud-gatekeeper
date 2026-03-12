@@ -349,7 +349,7 @@ export function InlineActionsPanel() {
             </Button>
             <Button
               onClick={handleConfirm}
-              disabled={updateStatus.isPending}
+              disabled={updateStatus.isPending || isOverdueNeedsNotes}
             >
               {updateStatus.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
               {t('common.confirm', 'Confirm')}
