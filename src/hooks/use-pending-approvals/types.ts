@@ -10,6 +10,7 @@ export interface PendingIncidentApproval {
     event_type: string | null;
     created_at: string | null;
     reporter?: { id: string; full_name: string | null } | null;
+    approval_manager?: { id: string; full_name: string | null } | null;
     // Location fields
     location?: string | null;
     location_city?: string | null;

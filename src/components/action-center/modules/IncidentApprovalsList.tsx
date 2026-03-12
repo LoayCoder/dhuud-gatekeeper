@@ -1,11 +1,19 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Badge } from '@/components/ui/badge';
 import { StatusDot } from '@/components/ui/status-badge';
 import { User } from 'lucide-react';
 import { ActionListTable, type ActionListColumn } from '../ActionListTable';
 import { usePendingIncidentApprovals } from '@/hooks/use-pending-approvals';
 import type { PendingIncidentApproval } from '@/hooks/use-pending-approvals';
+import { getCurrentOwner } from '@/lib/current-owner';
+
+function resolveActionBy(item: PendingIncidentApproval): string {
+  const owner = getCurrentOwner({ status: item.status as any, approval_manager: item.approval_manager } as any);
+  if (owner?.name) return owner.name;
+  if (item.approval_manager?.full_name) return item.approval_manager.full_name;
+  if (owner?.role) return owner.role;
+  return '—';
+}
 
 export function IncidentApprovalsList() {
   const { t, i18n } = useTranslation();
@@ -15,6 +23,7 @@ export function IncidentApprovalsList() {
   const items = (approvals || []).map((a) => ({
     ...a,
     reporter_name: a.reporter?.full_name || '—',
+    action_by_name: resolveActionBy(a),
   }));
 
   type RowItem = typeof items[number];
@@ -58,18 +67,16 @@ export function IncidentApprovalsList() {
       ),
     },
     {
-      key: 'severity',
-      label: t('actionCenter.columns.severity', 'Severity'),
+      key: 'action_by_name',
+      label: t('actionCenter.columns.actionBy', 'Action By'),
       sortable: true,
       hideOnMobile: true,
-      render: (item) => {
-        if (!item.severity) return null;
-        return (
-          <Badge variant="outline" className="text-[10px] capitalize">
-            {item.severity}
-          </Badge>
-        );
-      },
+      render: (item) => (
+        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+          <User className="h-3 w-3 shrink-0" />
+          <span className="truncate max-w-[120px]">{item.action_by_name}</span>
+        </span>
+      ),
     },
     {
       key: 'created_at',
@@ -93,7 +100,7 @@ export function IncidentApprovalsList() {
       isLoading={isLoading}
       onRowClick={(item) => navigate(`/incidents/${item.id}`)}
       emptyMessage={t('actionCenter.sheet.noApprovals', 'No pending approvals')}
-      searchableFields={['reference_id', 'title', 'status', 'severity', 'reporter_name']}
+      searchableFields={['reference_id', 'title', 'status', 'reporter_name', 'action_by_name']}
     />
   );
 }

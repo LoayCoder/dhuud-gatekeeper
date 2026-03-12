@@ -1,11 +1,24 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Badge } from '@/components/ui/badge';
 import { StatusDot } from '@/components/ui/status-badge';
 import { User } from 'lucide-react';
 import { ActionListTable, type ActionListColumn } from '../ActionListTable';
 import { useMyAssignedInvestigations } from '@/hooks/use-my-workflow-tasks';
 import type { MyAssignedInvestigation } from '@/hooks/use-my-workflow-tasks';
+import { getCurrentOwner } from '@/lib/current-owner';
+
+function resolveActionBy(inv: MyAssignedInvestigation): string {
+  if (!inv.incident) return '—';
+  const owner = getCurrentOwner({
+    status: inv.incident.status as any,
+    approval_manager: inv.incident.approval_manager as any,
+    investigations: [{ investigator: { full_name: null } }],
+  } as any);
+  if (owner?.name) return owner.name;
+  if (inv.incident.approval_manager?.full_name) return inv.incident.approval_manager.full_name;
+  if (owner?.role) return owner.role;
+  return '—';
+}
 
 export function IncidentInvestigationsList() {
   const { t, i18n } = useTranslation();
@@ -18,10 +31,10 @@ export function IncidentInvestigationsList() {
     reference_id: inv.incident?.reference_id || null,
     title: inv.incident?.title || '—',
     status: inv.incident?.status || null,
-    severity_v2: inv.incident?.severity_v2 || null,
     assigned_at: inv.assigned_at,
     target_completion_date: inv.target_completion_date,
     reporter_name: inv.incident?.reporter?.full_name || '—',
+    action_by_name: resolveActionBy(inv),
   }));
 
   type RowItem = typeof items[number];
@@ -65,18 +78,16 @@ export function IncidentInvestigationsList() {
       ),
     },
     {
-      key: 'severity_v2',
-      label: t('actionCenter.columns.severity', 'Severity'),
+      key: 'action_by_name',
+      label: t('actionCenter.columns.actionBy', 'Action By'),
       sortable: true,
       hideOnMobile: true,
-      render: (item) => {
-        if (!item.severity_v2) return null;
-        return (
-          <Badge variant="outline" className="text-[10px] capitalize">
-            {item.severity_v2.replace('_', ' ')}
-          </Badge>
-        );
-      },
+      render: (item) => (
+        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+          <User className="h-3 w-3 shrink-0" />
+          <span className="truncate max-w-[120px]">{item.action_by_name}</span>
+        </span>
+      ),
     },
     {
       key: 'target_completion_date',
@@ -100,7 +111,7 @@ export function IncidentInvestigationsList() {
       isLoading={isLoading}
       onRowClick={(item) => navigate(`/incidents/${item.incident_id}`)}
       emptyMessage={t('actionCenter.sheet.noInvestigations', 'No active investigations assigned to you')}
-      searchableFields={['reference_id', 'title', 'status', 'severity_v2']}
+      searchableFields={['reference_id', 'title', 'status', 'action_by_name']}
     />
   );
 }

@@ -27,6 +27,7 @@ export interface MyAssignedInvestigation {
     event_type: string | null;
     site?: { name: string } | null;
     reporter?: { full_name: string | null } | null;
+    approval_manager?: { full_name: string | null } | null;
   } | null;
 }
 
@@ -60,7 +61,7 @@ export function useMyAssignedInvestigations() {
         (data || []).map(async (inv) => {
           const { data: incident } = await supabase
             .from('incidents')
-            .select('id, reference_id, title, status, severity_v2, event_type, reporter:profiles!incidents_reporter_id_fkey(full_name)')
+            .select('id, reference_id, title, status, severity_v2, event_type, reporter:profiles!incidents_reporter_id_fkey(full_name), approval_manager:profiles!incidents_approval_manager_id_fkey(full_name)')
             .eq('id', inv.incident_id)
             .eq('tenant_id', profile.tenant_id)
             .single();
