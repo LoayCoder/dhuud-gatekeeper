@@ -27,6 +27,7 @@ export interface ModuleKPI {
   label: string;
   value: number;
   colorClass?: string;
+  onClick?: () => void;
 }
 
 interface ActionModuleCardProps {
@@ -112,7 +113,17 @@ export function ActionModuleCard({
           {kpis && kpis.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {kpis.map((kpi) => (
-                <div key={kpi.label} className="rounded-md border bg-muted/30 px-3 py-2 text-center">
+                <div
+                  key={kpi.label}
+                  className={cn(
+                    'rounded-md border bg-muted/30 px-3 py-2 text-center transition-colors',
+                    kpi.onClick && 'cursor-pointer hover:bg-muted/60 active:bg-muted',
+                  )}
+                  onClick={kpi.onClick}
+                  role={kpi.onClick ? 'button' : undefined}
+                  tabIndex={kpi.onClick ? 0 : undefined}
+                  onKeyDown={kpi.onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') kpi.onClick!(); } : undefined}
+                >
                   <div className={cn('text-lg font-bold tabular-nums', kpi.colorClass || 'text-foreground')}>
                     {kpi.value}
                   </div>

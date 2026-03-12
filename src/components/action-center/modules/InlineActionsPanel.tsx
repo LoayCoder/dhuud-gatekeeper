@@ -132,7 +132,7 @@ export function InlineActionsPanel() {
 
   if (isLoading) {
     return (
-      <div className="space-y-2 pt-2 border-t">
+      <div className="space-y-2 pt-2">
         {[1, 2, 3].map((i) => (
           <Skeleton key={i} className="h-16 w-full rounded-lg" />
         ))}
@@ -142,7 +142,7 @@ export function InlineActionsPanel() {
 
   if (actions.length === 0) {
     return (
-      <div className="pt-3 border-t text-center py-6">
+      <div className="pt-3 text-center py-6">
         <CheckCircle2 className="h-8 w-8 mx-auto text-muted-foreground/40 mb-2" />
         <p className="text-sm text-muted-foreground">
           {t('actionCenter.inlinePanel.noActions', 'No open actions assigned to you')}
@@ -152,7 +152,7 @@ export function InlineActionsPanel() {
   }
 
   return (
-    <div className="pt-3 border-t space-y-2" dir={direction}>
+    <div className="pt-3 space-y-2" dir={direction}>
       {/* Header */}
       <div className="flex items-center justify-between px-1">
         <p className="text-xs text-muted-foreground font-medium">

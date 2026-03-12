@@ -1,5 +1,7 @@
 export { IncidentsModule } from './IncidentsModule';
 export { InlineActionsPanel } from './InlineActionsPanel';
+export { IncidentApprovalsList } from './IncidentApprovalsList';
+export { IncidentInvestigationsList } from './IncidentInvestigationsList';
 export { ObservationsModule } from './ObservationsModule';
 export { GatePassesModule } from './GatePassesModule';
 export { InspectionsModule } from './InspectionsModule';

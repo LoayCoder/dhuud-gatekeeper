@@ -64,6 +64,7 @@ export default function ActionCenter() {
       title={t('actionCenter.title', 'Action Center')}
       description={t('actionCenter.description', 'Unified operational hub â€” execute tasks across all modules from one place')}
       titleIcon={Zap}
+      className="pb-[env(safe-area-inset-bottom)]"
     >
       {/* Cross-Module KPI Summary */}
       <section className="space-y-3">
