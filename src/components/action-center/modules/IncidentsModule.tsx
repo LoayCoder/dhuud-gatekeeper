@@ -34,7 +34,9 @@ export function IncidentsModule({ stats }: IncidentsModuleProps) {
   );
 
   const handleKpiClick = (kpiLabel: string) => {
-    if (kpiLabel === t('actionCenter.kpi.overdue', 'Overdue') || kpiLabel === t('actionCenter.kpi.pending', 'Pending')) {
+    if (kpiLabel === t('actionCenter.kpi.overdue', 'Overdue')) {
+      setOpenSheet('my-actions'); // Overdue maps to user's own actions
+    } else if (kpiLabel === t('actionCenter.kpi.pending', 'Pending')) {
       setOpenSheet('approvals');
     } else if (kpiLabel === t('actionCenter.kpi.investigations', 'Investigations')) {
       setOpenSheet('investigations');
