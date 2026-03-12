@@ -52,19 +52,19 @@ export function UnifiedTimelineTracker({ incident }: UnifiedTimelineTrackerProps
             const isContractor = !!incident?.related_contractor_company;
             const reviewRole = isContractor ? t('workflow.roles.consultant', 'Consultant') : t('workflow.roles.hsseExpert', 'HSSE Expert');
             return [
-                { id: '1', label: t('workflow.merged.submitted', 'Submitted'), icon: FileText, roleCategory: 'system', typicalRole: 'Reporter', state: getS(0) },
+                { id: '1', label: t('workflow.merged.submitted', 'Submitted'), icon: FileText, roleCategory: 'system', typicalRole: t('workflow.roles.reporter', 'Reporter'), state: getS(0) },
                 { id: '2', label: t('workflow.merged.initialReview', 'Initial Review'), icon: Shield, roleCategory: isContractor ? 'contractor' : 'hsse', typicalRole: reviewRole, state: getS(1) },
-                { id: '3', label: t('workflow.merged.approval', 'Approval'), icon: ClipboardCheck, roleCategory: 'internal', typicalRole: 'Department Rep / Client', state: getS(2) },
-                { id: '4', label: t('workflow.merged.actions', 'Actions'), icon: Clock, roleCategory: 'contractor', typicalRole: 'Contractor / Action Owner', state: getS(3) },
-                { id: '5', label: t('workflow.merged.closed', 'Closed'), icon: Lock, roleCategory: 'system', typicalRole: 'System Verifier', state: getS(4) },
+                { id: '3', label: t('workflow.merged.approval', 'Approval'), icon: ClipboardCheck, roleCategory: 'internal', typicalRole: t('workflow.roles.deptRepClient', 'Department Rep / Client'), state: getS(2) },
+                { id: '4', label: t('workflow.merged.actions', 'Actions'), icon: Clock, roleCategory: 'contractor', typicalRole: t('workflow.roles.contractorActionOwner', 'Contractor / Action Owner'), state: getS(3) },
+                { id: '5', label: t('workflow.merged.closed', 'Closed'), icon: Lock, roleCategory: 'system', typicalRole: t('workflow.roles.systemVerifier', 'System Verifier'), state: getS(4) },
             ];
         }
         return [
-            { id: '1', label: t('workflow.merged.reported', 'Reported'), icon: FileText, roleCategory: 'system', typicalRole: 'Reporter', state: getS(0) },
-            { id: '2', label: t('workflow.merged.triage', 'Triage'), icon: Shield, roleCategory: 'hsse', typicalRole: 'HSSE Expert', state: getS(1) },
-            { id: '3', label: t('workflow.merged.investigation', 'Investigation'), icon: Search, roleCategory: 'internal', typicalRole: 'Investigator', state: getS(2) },
-            { id: '4', label: t('workflow.merged.correctives', 'Corrective Actions'), icon: ListChecks, roleCategory: 'contractor', typicalRole: 'Action Owner', state: getS(3) },
-            { id: '5', label: t('workflow.merged.closed', 'Closed'), icon: Lock, roleCategory: 'system', typicalRole: 'System Verifier', state: getS(4) },
+            { id: '1', label: t('workflow.merged.reported', 'Reported'), icon: FileText, roleCategory: 'system', typicalRole: t('workflow.roles.reporter', 'Reporter'), state: getS(0) },
+            { id: '2', label: t('workflow.merged.triage', 'Triage'), icon: Shield, roleCategory: 'hsse', typicalRole: t('workflow.roles.hsseExpert', 'HSSE Expert'), state: getS(1) },
+            { id: '3', label: t('workflow.merged.investigation', 'Investigation'), icon: Search, roleCategory: 'internal', typicalRole: t('workflow.roles.investigator', 'Investigator'), state: getS(2) },
+            { id: '4', label: t('workflow.merged.correctives', 'Corrective Actions'), icon: ListChecks, roleCategory: 'contractor', typicalRole: t('workflow.roles.actionOwner', 'Action Owner'), state: getS(3) },
+            { id: '5', label: t('workflow.merged.closed', 'Closed'), icon: Lock, roleCategory: 'system', typicalRole: t('workflow.roles.systemVerifier', 'System Verifier'), state: getS(4) },
         ];
     };
 
