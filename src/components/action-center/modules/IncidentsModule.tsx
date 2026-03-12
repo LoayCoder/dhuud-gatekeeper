@@ -92,7 +92,7 @@ export function IncidentsModule({ stats }: IncidentsModuleProps) {
           {
             label: t('actionCenter.actions.pendingApprovals', 'Pending Approvals'),
             icon: ClipboardList,
-            badge: stats.pendingApprovals,
+            badge: pendingApprovalsCount,
             badgeVariant: 'destructive',
             showOnlyWithBadge: true,
             onExpand: () => setOpenSheet(openSheet === 'approvals' ? null : 'approvals'),
