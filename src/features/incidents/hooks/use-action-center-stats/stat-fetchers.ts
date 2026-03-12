@@ -1,38 +1,29 @@
 import { supabase } from '@/integrations/supabase/client';
 
-export async function fetchIncidentStats(tenantId: string) {
+/**
+ * All stat fetchers are USER-SPECIFIC (strict personal assignment).
+ * They accept both tenantId and userId, filtering by the user's own assignments.
+ */
+
+export async function fetchIncidentStats(tenantId: string, userId: string) {
     const [totalRes, investigationsRes, approvalsRes] = await Promise.all([
+        // Total incidents reported by the user
         supabase
             .from('incidents')
             .select('id', { count: 'exact', head: true })
             .eq('tenant_id', tenantId)
+            .eq('reporter_id', userId)
             .is('deleted_at', null),
+        // Investigations assigned to this user
         supabase
-            .from('incidents')
+            .from('investigations')
             .select('id', { count: 'exact', head: true })
             .eq('tenant_id', tenantId)
-            .is('deleted_at', null)
-            .in('status', ['investigation_pending', 'investigation_in_progress']),
-        supabase
-            .from('incidents')
-            .select('id', { count: 'exact', head: true })
-            .eq('tenant_id', tenantId)
-            .is('deleted_at', null)
-            .in('status', [
-                'pending_manager_approval',
-                'hsse_manager_escalation',
-                'pending_closure',
-                'pending_final_closure',
-                'pending_dept_rep_approval',
-                'pending_dept_rep_incident_review',
-                'expert_screening',
-                'pending_consultant_screening',
-                'pending_consultant_review',
-                'pending_consultant_actions',
-                'pending_department_manager_approval',
-                'pending_department_manager_violation_approval',
-                'pending_contract_controller_approval',
-            ]),
+            .eq('investigator_id', userId)
+            .is('deleted_at', null),
+        // Pending approvals - use RPC-based count via separate hook, return 0 here
+        // The actual count comes from usePendingIncidentApprovals in the module
+        Promise.resolve({ count: 0 }),
     ]);
 
     return {
@@ -42,13 +33,11 @@ export async function fetchIncidentStats(tenantId: string) {
     };
 }
 
-export async function fetchObservationStats(tenantId: string) {
-    // Observations are tracked via corrective actions with source_type 'observation'
-    // This function is not directly used by use-action-center-stats (observations come from fetchCorrectiveActionStats)
+export async function fetchObservationStats(_tenantId: string, _userId: string) {
     return {};
 }
 
-export async function fetchCorrectiveActionStats(tenantId: string, now: string) {
+export async function fetchCorrectiveActionStats(tenantId: string, now: string, userId: string) {
     const today = now.split('T')[0];
     const sources = ['incident', 'observation', 'inspection'] as const;
     const statusGroups = {
@@ -57,47 +46,50 @@ export async function fetchCorrectiveActionStats(tenantId: string, now: string) 
         completed: ['completed', 'verified', 'closed'],
     };
 
-    // Build parallel queries for each source × status group + overdue
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const queries: any[] = [];
 
     for (const source of sources) {
-        // pending
+        // pending - assigned to this user
         queries.push(
             supabase
                 .from('corrective_actions')
                 .select('id', { count: 'exact', head: true })
                 .eq('tenant_id', tenantId)
+                .eq('assigned_to', userId)
                 .is('deleted_at', null)
                 .eq('source_type', source)
                 .in('status', statusGroups.pending)
         );
-        // in_progress
+        // in_progress - assigned to this user
         queries.push(
             supabase
                 .from('corrective_actions')
                 .select('id', { count: 'exact', head: true })
                 .eq('tenant_id', tenantId)
+                .eq('assigned_to', userId)
                 .is('deleted_at', null)
                 .eq('source_type', source)
                 .in('status', statusGroups.inProgress)
         );
-        // completed
+        // completed - assigned to this user
         queries.push(
             supabase
                 .from('corrective_actions')
                 .select('id', { count: 'exact', head: true })
                 .eq('tenant_id', tenantId)
+                .eq('assigned_to', userId)
                 .is('deleted_at', null)
                 .eq('source_type', source)
                 .in('status', statusGroups.completed)
         );
-        // overdue: due_date < today AND not completed
+        // overdue - assigned to this user, due_date < today AND not completed
         queries.push(
             supabase
                 .from('corrective_actions')
                 .select('id', { count: 'exact', head: true })
                 .eq('tenant_id', tenantId)
+                .eq('assigned_to', userId)
                 .is('deleted_at', null)
                 .eq('source_type', source)
                 .not('status', 'in', '("completed","verified","closed")')
@@ -107,7 +99,6 @@ export async function fetchCorrectiveActionStats(tenantId: string, now: string) 
 
     const results = await Promise.all(queries);
 
-    // Each source has 4 results: pending, inProgress, completed, overdue
     const extract = (sourceIdx: number) => ({
         pending: results[sourceIdx * 4].count || 0,
         inProgress: results[sourceIdx * 4 + 1].count || 0,
@@ -135,60 +126,21 @@ export async function fetchCorrectiveActionStats(tenantId: string, now: string) 
     };
 }
 
-export async function fetchInspectionStats(tenantId: string) {
+export async function fetchInspectionStats(tenantId: string, userId: string) {
+    // Helper to reduce type chain depth
+    const sessionQuery = () =>
+        supabase.from('inspection_sessions').select('id', { count: 'exact', head: true })
+            .match({ tenant_id: tenantId, created_by: userId }).is('deleted_at', null);
+
     const [totalRes, scheduledRes, inProgressRes, auditTotalRes, auditInProgressRes, auditCompletedRes, findingsRes] = await Promise.all([
-        // Total inspections (non-audit)
-        supabase
-            .from('inspection_sessions')
-            .select('id', { count: 'exact', head: true })
-            .eq('tenant_id', tenantId)
-            .is('deleted_at', null)
-            .neq('session_type', 'audit'),
-        // Scheduled
-        supabase
-            .from('inspection_sessions')
-            .select('id', { count: 'exact', head: true })
-            .eq('tenant_id', tenantId)
-            .is('deleted_at', null)
-            .neq('session_type', 'audit')
-            .eq('status', 'scheduled'),
-        // In progress (pendingActions)
-        supabase
-            .from('inspection_sessions')
-            .select('id', { count: 'exact', head: true })
-            .eq('tenant_id', tenantId)
-            .is('deleted_at', null)
-            .neq('session_type', 'audit')
-            .eq('status', 'in_progress'),
-        // Audit total
-        supabase
-            .from('inspection_sessions')
-            .select('id', { count: 'exact', head: true })
-            .eq('tenant_id', tenantId)
-            .is('deleted_at', null)
-            .eq('session_type', 'audit'),
-        // Audit in progress
-        supabase
-            .from('inspection_sessions')
-            .select('id', { count: 'exact', head: true })
-            .eq('tenant_id', tenantId)
-            .is('deleted_at', null)
-            .eq('session_type', 'audit')
-            .eq('status', 'in_progress'),
-        // Audit completed
-        supabase
-            .from('inspection_sessions')
-            .select('id', { count: 'exact', head: true })
-            .eq('tenant_id', tenantId)
-            .is('deleted_at', null)
-            .eq('session_type', 'audit')
-            .eq('status', 'completed'),
-        // Open findings
-        supabase
-            .from('area_inspection_findings')
-            .select('id', { count: 'exact', head: true })
-            .eq('tenant_id', tenantId)
-            .is('deleted_at', null)
+        sessionQuery().neq('session_type', 'audit'),
+        sessionQuery().neq('session_type', 'audit').eq('status', 'scheduled'),
+        sessionQuery().neq('session_type', 'audit').eq('status', 'in_progress'),
+        sessionQuery().eq('session_type', 'audit'),
+        sessionQuery().match({ session_type: 'audit', status: 'in_progress' }),
+        sessionQuery().match({ session_type: 'audit', status: 'completed' }),
+        supabase.from('area_inspection_findings').select('id', { count: 'exact', head: true })
+            .match({ tenant_id: tenantId, created_by: userId }).is('deleted_at', null)
             .in('status', ['open', 'in_progress']),
     ]);
 
@@ -203,12 +155,12 @@ export async function fetchInspectionStats(tenantId: string) {
     };
 }
 
-export async function fetchActionStats(tenantId: string) {
-    // Not used directly by use-action-center-stats; actions are covered by fetchCorrectiveActionStats
+export async function fetchActionStats(_tenantId: string) {
     return {};
 }
 
 export async function fetchContractorStats(tenantId: string) {
+    // Contractor stats remain tenant-wide as they are role-gated at the module visibility level
     const [totalRes, pendingRes, approvedRes, workerApprovalsRes] = await Promise.all([
         supabase
             .from('contractor_companies')
@@ -245,6 +197,7 @@ export async function fetchContractorStats(tenantId: string) {
 }
 
 export async function fetchInductionStats(tenantId: string) {
+    // Induction stats remain tenant-wide (organizational/admin module)
     const now = new Date().toISOString();
 
     const [totalRes, completedRes, pendingRes, overdueRes] = await Promise.all([
@@ -283,6 +236,7 @@ export async function fetchInductionStats(tenantId: string) {
 }
 
 export async function fetchUserStats(tenantId: string) {
+    // User stats remain tenant-wide (admin module)
     const [totalRes, activeRes, pendingRes] = await Promise.all([
         supabase
             .from('profiles')
@@ -310,37 +264,43 @@ export async function fetchUserStats(tenantId: string) {
     };
 }
 
-export async function fetchGatePassStats(tenantId: string, now: string) {
+export async function fetchGatePassStats(tenantId: string, now: string, userId: string) {
     const today = now.split('T')[0];
 
     const [totalRes, pendingRes, activeRes, completedRes, todayActiveRes] = await Promise.all([
+        // Gate passes requested by this user
         supabase
             .from('material_gate_passes')
             .select('id', { count: 'exact', head: true })
             .eq('tenant_id', tenantId)
+            .eq('requested_by', userId)
             .is('deleted_at', null),
         supabase
             .from('material_gate_passes')
             .select('id', { count: 'exact', head: true })
             .eq('tenant_id', tenantId)
+            .eq('requested_by', userId)
             .is('deleted_at', null)
             .in('status', ['pending_pm_approval', 'pending_safety_approval', 'pending_club_mgmt_ack']),
         supabase
             .from('material_gate_passes')
             .select('id', { count: 'exact', head: true })
             .eq('tenant_id', tenantId)
+            .eq('requested_by', userId)
             .is('deleted_at', null)
             .eq('status', 'approved'),
         supabase
             .from('material_gate_passes')
             .select('id', { count: 'exact', head: true })
             .eq('tenant_id', tenantId)
+            .eq('requested_by', userId)
             .is('deleted_at', null)
             .in('status', ['exit_confirmed', 'completed']),
         supabase
             .from('material_gate_passes')
             .select('id', { count: 'exact', head: true })
             .eq('tenant_id', tenantId)
+            .eq('requested_by', userId)
             .is('deleted_at', null)
             .eq('status', 'approved')
             .eq('pass_date', today),
