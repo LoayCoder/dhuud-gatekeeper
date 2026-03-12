@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { StatusDot } from '@/components/ui/status-badge';
+import { User } from 'lucide-react';
 import { ActionListTable, type ActionListColumn } from '../ActionListTable';
 import { useMyAssignedInvestigations } from '@/hooks/use-my-workflow-tasks';
 import type { MyAssignedInvestigation } from '@/hooks/use-my-workflow-tasks';
@@ -20,7 +21,7 @@ export function IncidentInvestigationsList() {
     severity_v2: inv.incident?.severity_v2 || null,
     assigned_at: inv.assigned_at,
     target_completion_date: inv.target_completion_date,
-    assigned_role: t('actionCenter.roles.investigator', 'Investigator'),
+    reporter_name: inv.incident?.reporter?.full_name || '—',
   }));
 
   type RowItem = typeof items[number];
@@ -52,14 +53,15 @@ export function IncidentInvestigationsList() {
       ),
     },
     {
-      key: 'assigned_role',
-      label: t('actionCenter.columns.assignedRole', 'Role'),
-      sortable: false,
+      key: 'reporter_name',
+      label: t('actionCenter.columns.reportedBy', 'Reported By'),
+      sortable: true,
       hideOnMobile: true,
       render: (item) => (
-        <Badge variant="secondary" className="text-[10px]">
-          {item.assigned_role}
-        </Badge>
+        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+          <User className="h-3 w-3 shrink-0" />
+          <span className="truncate max-w-[120px]">{item.reporter_name}</span>
+        </span>
       ),
     },
     {
