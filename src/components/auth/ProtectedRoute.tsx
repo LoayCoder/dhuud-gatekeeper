@@ -13,7 +13,7 @@ const VERIFIED_DEVICE_STORAGE_KEY = 'invitation_verified_device_token';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
-  const { isAuthenticated, mfaEnabled, tenantMfaVerified, isLoading, profile, user, validateTenantAccess, isUsingCachedSession } = useAuth();
+  const { isAuthenticated, mfaEnabled, tenantMfaVerified, mfaGraceActive, isLoading, profile, user, validateTenantAccess, isUsingCachedSession } = useAuth();
   const location = useLocation();
   const isOnline = useOnlineStatus();
   const [accessValidated, setAccessValidated] = useState<boolean | null>(null);
