@@ -115,13 +115,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const checkTenantMfaStatus = async (userId: string, tenantId: string) => {
     const { data } = await supabase
       .from('tenant_user_mfa_status')
-      .select('requires_setup, mfa_verified_at')
+      .select('requires_setup, mfa_verified_at, mfa_grace_until')
       .eq('user_id', userId)
       .eq('tenant_id', tenantId)
       .single();
     
     // MFA is verified for this tenant if record exists and requires_setup is false
     setTenantMfaVerified(data ? !data.requires_setup : false);
+    
+    // Check grace period
+    if (data && (data as any).mfa_grace_until) {
+      setMfaGraceUntil(new Date((data as any).mfa_grace_until));
+    } else {
+      setMfaGraceUntil(null);
+    }
   };
 
   const checkMFA = async () => {
