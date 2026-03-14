@@ -55,6 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [mfaEnabled, setMfaEnabled] = useState(false);
   const [tenantMfaVerified, setTenantMfaVerified] = useState(false);
+  const [mfaGraceUntil, setMfaGraceUntil] = useState<Date | null>(null);
   const [currentTenantId, setCurrentTenantId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUsingCachedSession, setIsUsingCachedSession] = useState(false);
