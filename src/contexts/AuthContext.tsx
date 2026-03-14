@@ -35,6 +35,7 @@ interface AuthContextType {
   isAdmin: boolean;
   mfaEnabled: boolean;
   tenantMfaVerified: boolean; // NEW: Tenant-scoped MFA verification status
+  mfaGraceActive: boolean; // NEW: Whether MFA grace period is active
   isLoading: boolean;
   isAuthenticated: boolean;
   currentTenantId: string | null; // NEW: Current tenant context
