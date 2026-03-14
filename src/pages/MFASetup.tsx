@@ -386,6 +386,8 @@ export default function MFASetup() {
                           title: t('mfaSetup.skippedTitle', 'Skipped for now'),
                           description: t('mfaSetup.skippedDescription', 'You can set up 2FA later from your profile settings.'),
                         });
+                        // Refresh auth context so ProtectedRoute sees the grace period
+                        await refreshProfile();
                         navigate('/');
                       } catch (err) {
                         console.error('Failed to set MFA grace period:', err);
