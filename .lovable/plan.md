@@ -1,63 +1,34 @@
 
-# Fix "Take Action" Button for Department Representative
 
-## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
+# AI Login Prompt Document
 
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+I'll create a comprehensive prompt/guide document that teaches an AI agent how to successfully log into the Dhuud platform, covering the full authentication flow including MFA bypass via the "Skip for now" grace period.
 
-## What Changes
+## What I'll Create
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+A new document `docs/AI_LOGIN_PROMPT.md` containing:
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+1. **Pre-requisites** — Required credentials (email, password), target URL
+2. **Step-by-step login flow**:
+   - Navigate to `/login`
+   - Enter email and password in the form fields
+   - Click the login button
+   - Handle the MFA setup redirect (`/mfa-setup`)
+   - Click the **"Skip for now"** button to activate the 24-hour grace period
+   - Confirm successful redirect to the home page (`/`)
+3. **MFA scenarios** — How to handle:
+   - First-time login (no MFA enrolled) → redirected to `/mfa-setup` → skip
+   - MFA already enrolled → MFA verification dialog appears → enter TOTP code
+   - Grace period active → no MFA prompt, direct access
+4. **Troubleshooting** — Common issues (stale sessions, redirect loops, offline mode)
+5. **Database-level bypass for automation** — SQL to set long-term grace period for test accounts
+6. **Sample automation script** — Pseudocode/prompt showing the exact sequence of browser actions
 
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+## Files to Create
 
-```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
-```
+- `docs/AI_LOGIN_PROMPT.md` — The complete AI login guide and prompt template
 
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
+## Approach
 
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
+The document will be written as a reusable prompt that can be given to any AI agent (browser automation, testing agent, or LLM with browser tools) to successfully authenticate into the platform without getting stuck on MFA enforcement.
 
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
-
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
-```
-
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
-
-### 3. Localize the Button Text
-
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
-
-## Files Modified
-
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
