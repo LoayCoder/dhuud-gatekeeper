@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -62,6 +63,34 @@ export function MFADisableDialog({
     setLoading(false);
 
     if (success) {
+      // Set grace period (24 hours) so user isn't immediately redirected to MFA setup
+      try {
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (currentUser) {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('tenant_id')
+            .eq('user_id', currentUser.id)
+            .is('deleted_at', null)
+            .single();
+          
+          if (profileData?.tenant_id) {
+            const graceUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+            await supabase
+              .from('tenant_user_mfa_status')
+              .upsert({
+                user_id: currentUser.id,
+                tenant_id: profileData.tenant_id,
+                requires_setup: true,
+                mfa_grace_until: graceUntil,
+                updated_at: new Date().toISOString()
+              }, { onConflict: 'user_id,tenant_id' });
+          }
+        }
+      } catch (err) {
+        console.error('Failed to set MFA grace period:', err);
+      }
+
       // Log MFA disabled event
       await logUserActivity({ eventType: 'mfa_disabled' });
       

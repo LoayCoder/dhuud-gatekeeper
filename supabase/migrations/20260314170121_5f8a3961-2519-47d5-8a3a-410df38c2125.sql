@@ -1,0 +1,1 @@
+ALTER TABLE public.tenant_user_mfa_status ADD COLUMN mfa_grace_until timestamptz DEFAULT NULL;

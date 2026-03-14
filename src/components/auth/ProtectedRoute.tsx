@@ -13,7 +13,7 @@ const VERIFIED_DEVICE_STORAGE_KEY = 'invitation_verified_device_token';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
-  const { isAuthenticated, mfaEnabled, tenantMfaVerified, isLoading, profile, user, validateTenantAccess, isUsingCachedSession } = useAuth();
+  const { isAuthenticated, mfaEnabled, tenantMfaVerified, mfaGraceActive, isLoading, profile, user, validateTenantAccess, isUsingCachedSession } = useAuth();
   const location = useLocation();
   const isOnline = useOnlineStatus();
   const [accessValidated, setAccessValidated] = useState<boolean | null>(null);
@@ -149,8 +149,8 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   // ONLINE MODE: Use live React state for MFA checks
-  // If MFA not enabled globally, redirect to MFA setup
-  if (!mfaEnabled && location.pathname !== '/mfa-setup') {
+  // If MFA not enabled globally and no grace period active, redirect to MFA setup
+  if (!mfaEnabled && !mfaGraceActive && location.pathname !== '/mfa-setup') {
     return <Navigate to="/mfa-setup" replace />;
   }
 

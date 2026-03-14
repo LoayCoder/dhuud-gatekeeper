@@ -35,6 +35,7 @@ interface AuthContextType {
   isAdmin: boolean;
   mfaEnabled: boolean;
   tenantMfaVerified: boolean; // NEW: Tenant-scoped MFA verification status
+  mfaGraceActive: boolean; // NEW: Whether MFA grace period is active
   isLoading: boolean;
   isAuthenticated: boolean;
   currentTenantId: string | null; // NEW: Current tenant context
@@ -54,6 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [mfaEnabled, setMfaEnabled] = useState(false);
   const [tenantMfaVerified, setTenantMfaVerified] = useState(false);
+  const [mfaGraceUntil, setMfaGraceUntil] = useState<Date | null>(null);
   const [currentTenantId, setCurrentTenantId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUsingCachedSession, setIsUsingCachedSession] = useState(false);
@@ -113,13 +115,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const checkTenantMfaStatus = async (userId: string, tenantId: string) => {
     const { data } = await supabase
       .from('tenant_user_mfa_status')
-      .select('requires_setup, mfa_verified_at')
+      .select('requires_setup, mfa_verified_at, mfa_grace_until')
       .eq('user_id', userId)
       .eq('tenant_id', tenantId)
       .single();
     
     // MFA is verified for this tenant if record exists and requires_setup is false
     setTenantMfaVerified(data ? !data.requires_setup : false);
+    
+    // Check grace period
+    if (data && (data as any).mfa_grace_until) {
+      setMfaGraceUntil(new Date((data as any).mfa_grace_until));
+    } else {
+      setMfaGraceUntil(null);
+    }
   };
 
   const checkMFA = async () => {
@@ -420,6 +429,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [cacheCurrentSession, restoreFromCache]);
 
+  const mfaGraceActive = !!(mfaGraceUntil && new Date() < mfaGraceUntil);
+
   const value: AuthContextType = {
     session,
     user,
@@ -428,6 +439,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isAdmin: userRole === 'admin',
     mfaEnabled,
     tenantMfaVerified,
+    mfaGraceActive,
     isLoading,
     isAuthenticated: !!session,
     currentTenantId,

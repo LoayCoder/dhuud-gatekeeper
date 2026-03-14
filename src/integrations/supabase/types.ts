@@ -21877,6 +21877,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          mfa_grace_until: string | null
           mfa_verified_at: string | null
           requires_setup: boolean
           tenant_id: string
@@ -21886,6 +21887,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          mfa_grace_until?: string | null
           mfa_verified_at?: string | null
           requires_setup?: boolean
           tenant_id: string
@@ -21895,6 +21897,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          mfa_grace_until?: string | null
           mfa_verified_at?: string | null
           requires_setup?: boolean
           tenant_id?: string
