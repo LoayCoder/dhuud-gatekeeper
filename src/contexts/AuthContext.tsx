@@ -429,6 +429,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [cacheCurrentSession, restoreFromCache]);
 
+  const mfaGraceActive = !!(mfaGraceUntil && new Date() < mfaGraceUntil);
+
   const value: AuthContextType = {
     session,
     user,
@@ -437,6 +439,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isAdmin: userRole === 'admin',
     mfaEnabled,
     tenantMfaVerified,
+    mfaGraceActive,
     isLoading,
     isAuthenticated: !!session,
     currentTenantId,

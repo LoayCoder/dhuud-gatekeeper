@@ -149,8 +149,8 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   // ONLINE MODE: Use live React state for MFA checks
-  // If MFA not enabled globally, redirect to MFA setup
-  if (!mfaEnabled && location.pathname !== '/mfa-setup') {
+  // If MFA not enabled globally and no grace period active, redirect to MFA setup
+  if (!mfaEnabled && !mfaGraceActive && location.pathname !== '/mfa-setup') {
     return <Navigate to="/mfa-setup" replace />;
   }
 
