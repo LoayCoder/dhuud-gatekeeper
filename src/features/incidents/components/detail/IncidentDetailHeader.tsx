@@ -90,7 +90,7 @@ export function IncidentDetailHeader({
     incident.branch?.name,
     incident.site?.name,
     incident.location,
-  ].filter(Boolean).join(' â€º ');
+  ].filter(Boolean).join(' › ');
 
   // Calculate SLA for the detail view header
   let slaInfo = null;
