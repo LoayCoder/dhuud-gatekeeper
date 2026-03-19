@@ -55,7 +55,8 @@ export default function IncidentDetail() {
   const direction = i18n.dir();
   const navigate = useNavigate();
   const location = useLocation();
-  const { data: incident, isLoading } = useIncident(id);
+  const { data: incident, isLoading, refetch: refetchIncident } = useIncident(id);
+  const handleRefresh = () => { refetchIncident(); };
   const { isAdmin, profile } = useAuth();
 
   // Fetch tenant name for legal evidence metadata
