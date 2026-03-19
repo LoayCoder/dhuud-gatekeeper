@@ -304,10 +304,10 @@ export default function IncidentDetail() {
 
       {incident.related_contractor_company_id && !ext.consultant_assigned_id && (
         <>
-          <DeptManagerViolationApprovalCard incident={incident} onComplete={() => window.location.reload()} />
-          <ContractControllerApprovalCard incident={incident} onComplete={() => window.location.reload()} />
-          <ContractorSiteRepAcknowledgeCard incident={incident} onComplete={() => window.location.reload()} />
-          <HSSEViolationReviewCard incident={incident} onComplete={() => window.location.reload()} />
+          <DeptManagerViolationApprovalCard incident={incident} onComplete={handleRefresh} />
+          <ContractControllerApprovalCard incident={incident} onComplete={handleRefresh} />
+          <ContractorSiteRepAcknowledgeCard incident={incident} onComplete={handleRefresh} />
+          <HSSEViolationReviewCard incident={incident} onComplete={handleRefresh} />
         </>
       )}
 
