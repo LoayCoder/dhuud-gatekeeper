@@ -295,10 +295,9 @@ export default function IncidentDetail() {
       {/* Workflow Approval Cards - Keep them above tabs for visibility/actionability */}
       {incident.event_type === 'observation' && (
         <>
-          <HSSEValidationCard incident={incident} onComplete={() => window.location.reload()} />
-          <HSSEObservationValidationCard incident={incident} onComplete={() => window.location.reload()} />
-          <ObservationClosureGate incident={incident} onComplete={() => window.location.reload()} />
-          <HSSEExpertRejectionReviewCard incident={incident} onComplete={() => window.location.reload()} />
+          <HSSEObservationValidationCard incident={incident} onComplete={handleRefresh} />
+          <ObservationClosureGate incident={incident} onComplete={handleRefresh} />
+          <HSSEExpertRejectionReviewCard incident={incident} onComplete={handleRefresh} />
         </>
       )}
 

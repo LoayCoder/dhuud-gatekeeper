@@ -197,7 +197,7 @@ export function HSSEExpertRejectionReviewCard({ incident, onComplete }: HSSEExpe
           </Button>
           
           <Button
-            className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+            className="flex-1 flex items-center justify-center gap-2 bg-success hover:bg-success/90 text-success-foreground"
             onClick={handleApproveRejection}
             disabled={rejectionReview.isPending}
           >
