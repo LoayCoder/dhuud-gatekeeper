@@ -26,7 +26,6 @@ import { useState } from 'react';
 import { generateIncidentReportPDF } from '@/lib/generate-incident-report-pdf';
 import { toast } from 'sonner';
 import { getSubtypeTranslation, snakeToCamel, getHsseEventTypeForSubtype } from '@/lib/hsse-translation-utils';
-import { HSSEValidationCard } from '@/features/investigation';
 import { ObservationClosureGate } from '@/features/investigation';
 import { HSSEExpertRejectionReviewCard } from '@/features/investigation';
 import { ContractorViolationSection } from '@/features/investigation';
