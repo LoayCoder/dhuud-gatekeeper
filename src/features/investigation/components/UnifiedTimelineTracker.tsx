@@ -1,8 +1,9 @@
 import { useTranslation } from "react-i18next";
-import { FileText, ClipboardCheck, Shield, CheckCircle, Lock, Clock, Search, ListChecks, Check } from "lucide-react";
+import { FileText, ClipboardCheck, Shield, CheckCircle, Lock, Clock, Search, ListChecks, Check, User, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { IncidentWithDetails } from '@/features/incidents';
 import { ROLE_TEXT_COLORS, type RoleCategory } from "@/lib/role-colors";
+import { getCurrentOwner } from "@/lib/current-owner";
 
 type StepState = 'completed' | 'current' | 'upcoming';
 
@@ -23,16 +24,27 @@ interface UnifiedTimelineTrackerProps {
 function getStepIndex(status: string, isObservation: boolean): number {
     if (isObservation) {
         if (["submitted"].includes(status)) return 0;
-        if (["pending_expert_screening", "expert_screening", "pending_consultant_screening"].includes(status)) return 1;
-        if (["pending_dept_rep_approval", "pending_manager_approval", "pending_site_client_approval"].includes(status)) return 2;
-        if (["observation_actions_pending", "pending_contractor_implementation", "pending_consultant_actions"].includes(status)) return 3;
-        if (["closed", "hsse_enforced", "pending_closure", "pending_hsse_validation"].includes(status)) return 4;
+        if ([
+            "pending_expert_screening", "expert_screening", "pending_consultant_screening",
+            "pending_consultant_review", "pending_consultant_actions",
+            "pending_consultant_verification", "pending_action_dispute_review"
+        ].includes(status)) return 1;
+        if ([
+            "pending_dept_rep_approval", "pending_dept_rep_review", "pending_dept_rep_mandatory_action",
+            "pending_manager_approval", "pending_site_client_approval", "pending_site_client_action_approval",
+            "pending_hsse_expert_review", "pending_hsse_rejection_review", "pending_hsse_escalation_review"
+        ].includes(status)) return 2;
+        if ([
+            "observation_actions_pending", "pending_contractor_implementation",
+            "contractor_action_implementation", "pending_contractor_action"
+        ].includes(status)) return 3;
+        if (["closed", "hsse_enforced", "pending_closure", "pending_hsse_validation", "pending_final_closure", "pending_hsse_manager_closure"].includes(status)) return 4;
     } else {
         if (["submitted", "draft", "returned_to_reporter"].includes(status)) return 0;
-        if (["pending_dept_rep_incident_review", "expert_screening", "pending_manager_approval", "hsse_manager_escalation"].includes(status)) return 1;
+        if (["pending_dept_rep_incident_review", "expert_screening", "pending_expert_screening", "pending_manager_approval", "hsse_manager_escalation", "pending_hsse_escalation_review"].includes(status)) return 1;
         if (["investigation_pending", "pending_investigator_assignment", "investigation_in_progress", "under_investigation"].includes(status)) return 2;
-        if (["pending_contractor_implementation", "observation_actions_pending"].includes(status)) return 3;
-        if (["pending_closure", "investigation_closed", "closed", "no_investigation_required"].includes(status)) return 4;
+        if (["pending_contractor_implementation", "observation_actions_pending", "contractor_action_implementation", "pending_contractor_action"].includes(status)) return 3;
+        if (["pending_closure", "pending_final_closure", "investigation_closed", "closed", "no_investigation_required"].includes(status)) return 4;
     }
     return 0;
 }
@@ -42,6 +54,9 @@ export function UnifiedTimelineTracker({ incident }: UnifiedTimelineTrackerProps
     const status = incident?.status || "submitted";
     const isObservation = incident?.event_type === "observation";
     const currentStepNum = getStepIndex(status, isObservation);
+
+    // Get current owner info for the active step
+    const ownerInfo = getCurrentOwner(incident as Partial<IncidentWithDetails>);
 
     const getS = (idx: number): StepState => {
         if (currentStepNum === idx) return 'current';
@@ -71,6 +86,25 @@ export function UnifiedTimelineTracker({ incident }: UnifiedTimelineTrackerProps
     };
 
     const steps = getSteps();
+
+    // Render owner info inline on active step
+    const renderOwnerBadge = () => {
+        if (!ownerInfo) return null;
+        if (ownerInfo.isUnassigned) {
+            return (
+                <span className="inline-flex items-center gap-1 text-[10px] text-warning-foreground bg-warning/10 px-1.5 py-0.5 rounded-full border border-warning/20">
+                    <AlertTriangle className="w-2.5 h-2.5" />
+                    {t('workflow.awaitingRole', 'Awaiting {{role}}', { role: ownerInfo.role })}
+                </span>
+            );
+        }
+        return (
+            <span className="inline-flex items-center gap-1 text-[10px] text-foreground/80 bg-secondary/50 px-1.5 py-0.5 rounded-full">
+                <User className="w-2.5 h-2.5" />
+                <span className="truncate max-w-[100px]">{ownerInfo.name}</span>
+            </span>
+        );
+    };
 
     return (
         <div className="w-full py-3">
@@ -115,8 +149,8 @@ export function UnifiedTimelineTracker({ incident }: UnifiedTimelineTrackerProps
                                 ) : <div className="flex-1" />}
                             </div>
 
-                            {/* Label + role (role only on current) */}
-                            <div className="mt-1.5 flex flex-col items-center gap-0.5 max-w-[90px]">
+                            {/* Label + role + owner (role & owner only on current) */}
+                            <div className="mt-1.5 flex flex-col items-center gap-0.5 max-w-[110px]">
                                 <span className={cn(
                                     "text-[11px] font-medium text-center leading-tight",
                                     isCurrent && "text-primary font-semibold",
@@ -126,9 +160,12 @@ export function UnifiedTimelineTracker({ incident }: UnifiedTimelineTrackerProps
                                     {step.label}
                                 </span>
                                 {isCurrent && (
-                                    <span className={cn("text-[10px] text-center leading-tight", roleTextClass)}>
-                                        {step.typicalRole}
-                                    </span>
+                                    <>
+                                        <span className={cn("text-[10px] text-center leading-tight", roleTextClass)}>
+                                            {step.typicalRole}
+                                        </span>
+                                        {renderOwnerBadge()}
+                                    </>
                                 )}
                             </div>
                         </div>
@@ -166,21 +203,24 @@ export function UnifiedTimelineTracker({ incident }: UnifiedTimelineTrackerProps
                                 )}
                             </div>
 
-                            {/* Label + role */}
-                            <div className="flex items-baseline gap-2 pt-1">
-                                <span className={cn(
-                                    "text-sm font-medium",
-                                    isCurrent && "text-primary font-semibold",
-                                    isCompleted && "text-foreground",
-                                    isUpcoming && "text-muted-foreground"
-                                )}>
-                                    {step.label}
-                                </span>
-                                {isCurrent && (
-                                    <span className={cn("text-xs", roleTextClass)}>
-                                        · {step.typicalRole}
+                            {/* Label + role + owner */}
+                            <div className="flex flex-col gap-0.5 pt-1">
+                                <div className="flex items-baseline gap-2">
+                                    <span className={cn(
+                                        "text-sm font-medium",
+                                        isCurrent && "text-primary font-semibold",
+                                        isCompleted && "text-foreground",
+                                        isUpcoming && "text-muted-foreground"
+                                    )}>
+                                        {step.label}
                                     </span>
-                                )}
+                                    {isCurrent && (
+                                        <span className={cn("text-xs", roleTextClass)}>
+                                            · {step.typicalRole}
+                                        </span>
+                                    )}
+                                </div>
+                                {isCurrent && renderOwnerBadge()}
                             </div>
                         </div>
                     );

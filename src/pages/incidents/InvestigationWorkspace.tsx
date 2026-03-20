@@ -158,10 +158,7 @@ export default function InvestigationWorkspace() {
 
       {/* Filter Card is now in InvestigationListView */}
 
-      {/* Current Owner & Status Bar - Only when incident selected */}
-      {selectedIncidentId && selectedIncident && (
-        <CurrentOwnerCard incident={selectedIncident} />
-      )}
+      {/* Owner info now embedded in UnifiedTimelineTracker */}
 
       {/* Investigation Content */}
       {selectedIncidentId && incidentData ? (
