@@ -91,7 +91,7 @@ export function ContractControllerApprovalCard({ incident, onComplete }: Contrac
         {/* Violation & Fine Summary */}
         <div className="rounded-lg bg-muted/50 p-4 space-y-3">
           <div className="flex items-center gap-2">
-            <Building2 className="h-4 w-4 text-amber-600" />
+            <Building2 className="h-4 w-4 text-warning" />
             <span className="font-medium">
               {incident.related_contractor_company?.company_name}
             </span>
