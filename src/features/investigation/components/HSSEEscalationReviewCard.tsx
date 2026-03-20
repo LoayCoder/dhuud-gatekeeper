@@ -339,12 +339,12 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
             </AlertDialogDescription>
           </AlertDialogHeader>
           
-          <Alert className="bg-amber-50 border-amber-200">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <AlertTitle className="text-amber-800">
+          <Alert className="bg-warning/10 border-warning/30">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            <AlertTitle className="text-warning">
               {t('workflow.escalationReview.upgradeWarningTitle', 'Important')}
             </AlertTitle>
-            <AlertDescription className="text-amber-700 text-sm">
+            <AlertDescription className="text-muted-foreground text-sm">
               <ul className="list-disc list-inside space-y-1 mt-2">
                 <li>{t('workflow.escalationReview.upgradeWarning1', 'A new INC reference number will be generated')}</li>
                 <li>{t('workflow.escalationReview.upgradeWarning2', 'The original observation will be linked for audit trail')}</li>
