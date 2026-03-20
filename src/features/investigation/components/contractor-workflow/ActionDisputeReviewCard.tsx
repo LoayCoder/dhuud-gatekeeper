@@ -23,6 +23,7 @@ interface ActionDisputeReviewCardProps {
   disputeReason?: string;
   contractorComments?: string;
   onResolved?: () => void;
+  onComplete?: () => void;
 }
 
 export function ActionDisputeReviewCard({
