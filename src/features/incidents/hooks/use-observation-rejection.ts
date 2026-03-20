@@ -25,7 +25,7 @@ export function useCorrectiveActionsCount(incidentId: string | null) {
       
       const { count, error } = await supabase
         .from('corrective_actions')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('incident_id', incidentId)
         .is('deleted_at', null);
       

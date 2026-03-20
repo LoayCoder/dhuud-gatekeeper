@@ -63,6 +63,7 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         case "investigation_pending":
         case "pending_investigator_assignment":
         case "pending_hsse_expert_review":
+        case "pending_hsse_rejection_review":
             return buildOwner(null, "HSSE Expert", true);
 
         // HSSE Manager Queue
