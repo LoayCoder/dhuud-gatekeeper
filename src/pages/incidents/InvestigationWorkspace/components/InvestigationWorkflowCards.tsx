@@ -84,6 +84,7 @@ export function InvestigationWorkflowCards({
 
     case 'pending_dept_rep_review':
     case 'pending_dept_rep_approval':
+    case 'pending_dept_rep_mandatory_action':
       // Observations go through DeptRepApprovalCard (full access with actions)
       return (
         <DeptRepApprovalCard
