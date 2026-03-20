@@ -191,7 +191,7 @@ export function DisputeResolutionCard({ incident, investigation, onComplete }: D
                   key={option.value}
                   className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
                     selectedDecision === option.value
-                      ? 'border-amber-400 bg-amber-100/50 dark:bg-amber-900/20'
+                      ? 'border-warning bg-warning/10'
                       : 'border-border hover:bg-muted/50'
                   }`}
                   onClick={() => setSelectedDecision(option.value)}

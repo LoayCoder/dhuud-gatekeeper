@@ -166,7 +166,7 @@ export function ContractControllerApprovalCard({ incident, onComplete }: Contrac
           </Button>
           
           <Button
-            className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700"
+            className="flex-1 flex items-center justify-center gap-2 bg-success hover:bg-success/90 text-success-foreground"
             onClick={handleApprove}
             disabled={contractControllerApproval.isPending}
           >
