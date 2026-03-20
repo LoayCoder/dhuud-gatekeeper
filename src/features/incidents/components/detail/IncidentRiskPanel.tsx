@@ -35,6 +35,7 @@ export function IncidentRiskPanel({
   actualSeverity,
   potentialSeverity,
   eventType,
+  aiConfidence,
 }: IncidentRiskPanelProps) {
   const { t } = useTranslation();
 

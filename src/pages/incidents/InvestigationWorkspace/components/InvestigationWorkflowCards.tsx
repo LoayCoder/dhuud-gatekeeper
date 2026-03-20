@@ -328,7 +328,7 @@ export function InvestigationWorkflowCards({
 
     case 'pending_hsse_expert_review':
       return (
-        <HSSEValidationCard
+        <HSSEObservationValidationCard
           incident={incidentData}
           onComplete={handleRefresh}
         />
