@@ -86,15 +86,15 @@ export function DeptRepIncidentReviewCard({ incident, onComplete }: DeptRepIncid
     if (!severity) return null;
     
     const colorMap: Record<string, string> = {
-      'level_1': 'bg-green-100 text-green-800 border-green-300',
-      'level_2': 'bg-blue-100 text-blue-800 border-blue-300',
-      'level_3': 'bg-yellow-100 text-yellow-800 border-yellow-300',
-      'level_4': 'bg-orange-100 text-orange-800 border-orange-300',
-      'level_5': 'bg-red-100 text-red-800 border-red-300',
-      'low': 'bg-green-100 text-green-800 border-green-300',
-      'medium': 'bg-yellow-100 text-yellow-800 border-yellow-300',
-      'high': 'bg-orange-100 text-orange-800 border-orange-300',
-      'critical': 'bg-red-100 text-red-800 border-red-300',
+      'level_1': 'bg-success/20 text-success border-success/30',
+      'level_2': 'bg-primary/20 text-primary border-primary/30',
+      'level_3': 'bg-warning/20 text-warning border-warning/30',
+      'level_4': 'bg-warning/30 text-warning border-warning/40',
+      'level_5': 'bg-destructive/20 text-destructive border-destructive/30',
+      'low': 'bg-success/20 text-success border-success/30',
+      'medium': 'bg-warning/20 text-warning border-warning/30',
+      'high': 'bg-warning/30 text-warning border-warning/40',
+      'critical': 'bg-destructive/20 text-destructive border-destructive/30',
     };
     
     return (
