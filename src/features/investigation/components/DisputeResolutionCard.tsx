@@ -110,21 +110,21 @@ export function DisputeResolutionCard({ incident, investigation, onComplete }: D
       label: t('workflow.dispute.override', 'Override Rejection'),
       description: t('workflow.dispute.overrideDesc', 'Agree with investigator. Proceed to closure despite manager objection.'),
       icon: CheckCircle,
-      color: 'text-green-600',
+      color: 'text-success',
     },
     {
       value: 'maintain_rejection' as const,
       label: t('workflow.dispute.maintain', 'Maintain Rejection'),
       description: t('workflow.dispute.maintainDesc', 'Agree with manager. Investigation must be reworked.'),
       icon: XCircle,
-      color: 'text-red-600',
+      color: 'text-destructive',
     },
     {
       value: 'partial_rework' as const,
       label: t('workflow.dispute.partialRework', 'Partial Rework'),
       description: t('workflow.dispute.partialReworkDesc', 'Some aspects need revision. Investigation reopened with specific scope.'),
       icon: RotateCcw,
-      color: 'text-amber-600',
+      color: 'text-warning',
     },
   ];
 
