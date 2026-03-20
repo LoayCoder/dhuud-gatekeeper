@@ -28,7 +28,8 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         role,
         roleCategory: getRoleCategory(role),
         isUnassigned,
-        actionRequired
+        actionRequired,
+        warningMessage: isUnassigned ? `Contact admin to assign a ${role}` : null,
     });
 
     switch (status) {
