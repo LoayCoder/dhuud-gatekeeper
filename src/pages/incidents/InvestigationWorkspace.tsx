@@ -23,7 +23,7 @@ import {
   AuditLogPanel,
   IncidentClosureRequestDialog,
   IncidentClosureApprovalCard,
-  CurrentOwnerCard,
+  CurrentOwnerCard as _CurrentOwnerCard,
   UnifiedTimelineTracker,
   EscalationAlertBanner,
   IncidentClosurePrerequisitesCard,
