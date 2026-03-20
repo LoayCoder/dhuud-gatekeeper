@@ -108,8 +108,9 @@ export function HSSEObservationValidationCard({ incident, onComplete }: HSSEObse
   
   const incidentStatus = incident.status as string;
   
-  // Only show for observations pending HSSE validation
-  if (incident.event_type !== 'observation' || incidentStatus !== 'pending_hsse_validation') {
+  // Only show for observations pending HSSE validation or related statuses
+  const validValidationStatuses = ['pending_hsse_validation', 'pending_hsse_expert_review', 'observation_actions_pending'];
+  if (incident.event_type !== 'observation' || !validValidationStatuses.includes(incidentStatus)) {
     return null;
   }
   
