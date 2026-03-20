@@ -247,6 +247,9 @@ export function getStatusDisplayLabel(status: string, isArabic: boolean = false)
     // HSSE steps
     pending_hsse_expert_review: { en: 'HSSE Expert Review', ar: 'مراجعة خبير السلامة' },
     pending_hsse_manager_closure: { en: 'HSSE Manager Closure', ar: 'إغلاق مدير السلامة' },
+    pending_hsse_rejection_review: { en: 'HSSE Rejection Review', ar: 'مراجعة رفض السلامة' },
+    pending_hsse_escalation_review: { en: 'HSSE Escalation Review', ar: 'مراجعة تصعيد السلامة' },
+    pending_hsse_validation: { en: 'HSSE Validation', ar: 'التحقق من السلامة' },
     
     // Department Rep steps
     pending_dept_rep_approval: { en: 'Dept Rep Approval', ar: 'موافقة ممثل القسم' },
