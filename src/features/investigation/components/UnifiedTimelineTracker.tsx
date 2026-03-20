@@ -185,11 +185,12 @@ export function UnifiedTimelineTracker({ incident, workflowActors }: UnifiedTime
     // Render actor info for mobile (inline)
     const renderActorInfoMobile = (step: TimelineStep) => {
         const actor = getActorInfo(step);
-        if (!actor?.full_name) return null;
+        const actorName = actor?.full_name ? String(actor.full_name) : null;
+        if (!actorName) return null;
         const time = formatActorTimestamp(actor.timestamp);
         return (
             <span className="text-xs text-muted-foreground">
-                · {actor.full_name}{time ? ` · ${time}` : ''}
+                · {actorName}{time ? ` · ${time}` : ''}
             </span>
         );
     };
