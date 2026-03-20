@@ -150,7 +150,7 @@ export function HSSEObservationValidationCard({ incident, onComplete }: HSSEObse
           </h4>
           <div className="space-y-1.5">
             <ChecklistItem 
-              checked={true} 
+              checked={!!incident.violation_type_id} 
               label={t('validation.violationFinalized', 'Violation type assigned')}
             />
             <ChecklistItem 
@@ -160,7 +160,7 @@ export function HSSEObservationValidationCard({ incident, onComplete }: HSSEObse
               warningText={t('validation.pendingActionsWarning', '{{count}} actions pending', { count: pendingActionsCount })}
             />
             <ChecklistItem 
-              checked={true} 
+              checked={!!incident.evidence_description || ((incident as Record<string, unknown>).evidence_count as number) > 0} 
               label={t('validation.evidenceDocumented', 'Evidence documented')}
             />
           </div>
