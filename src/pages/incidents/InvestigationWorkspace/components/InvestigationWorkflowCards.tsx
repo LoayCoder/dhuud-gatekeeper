@@ -47,6 +47,7 @@ export function InvestigationWorkflowCards({
   handleCreateAction,
   handleRefresh
 }: InvestigationWorkflowCardsProps) {
+  const { t } = useTranslation();
   if (!incidentData) return null;
 
   // Cast status to string to handle new enum values not yet in generated types
