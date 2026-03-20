@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { RotateCcw, Edit, Loader2 } from "lucide-react";
 import { useReporterResponse } from '@/features/incidents';
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import type { IncidentWithDetails } from '@/features/incidents';
 
 interface ReporterCorrectionBannerProps {
