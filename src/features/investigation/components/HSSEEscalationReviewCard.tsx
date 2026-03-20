@@ -264,7 +264,7 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
             {/* Accept - Keep as Observation */}
             <Button
               variant="outline"
-              className="w-full flex items-center justify-center gap-2 text-blue-600 border-blue-300 hover:bg-blue-50"
+              className="w-full flex items-center justify-center gap-2 text-primary border-primary/30 hover:bg-primary/10"
               onClick={handleAcceptAsObservation}
               disabled={escalationReview.isPending}
             >
