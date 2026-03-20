@@ -165,12 +165,13 @@ export function UnifiedTimelineTracker({ incident, workflowActors }: UnifiedTime
     // Render actor name + timestamp for completed steps
     const renderActorInfo = (step: TimelineStep) => {
         const actor = getActorInfo(step);
-        if (!actor?.full_name) return null;
+        const actorName = actor?.full_name ? String(actor.full_name) : null;
+        if (!actorName) return null;
         const time = formatActorTimestamp(actor.timestamp);
         return (
             <div className="flex flex-col items-center gap-0">
                 <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">
-                    {actor.full_name}
+                    {actorName}
                 </span>
                 {time && (
                     <span className="text-[9px] text-muted-foreground/70">
