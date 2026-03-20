@@ -86,7 +86,7 @@ export function useUpdateWitnessStatement() {
             if (updates.contact !== undefined) updateData.witness_contact = updates.contact;
             if (updates.relationship !== undefined) updateData.relationship = updates.relationship;
             if (updates.statement !== undefined) updateData.statement_text = updates.statement;
-            if (updates.status !== undefined) updateData.status = updates.status;
+            if (updates.status !== undefined) updateData.assignment_status = updates.status;
 
             const { data, error } = await supabase
                 .from("witness_statements")
