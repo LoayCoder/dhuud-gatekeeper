@@ -70,16 +70,16 @@ export function ContractControllerApprovalCard({ incident, onComplete }: Contrac
   };
   
   return (
-    <Card className="border-green-500/50 bg-green-500/5" dir={direction}>
+    <Card className="border-success/30 bg-success/5" dir={direction}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Wallet className="h-5 w-5 text-green-600" />
+            <Wallet className="h-5 w-5 text-success" />
             <CardTitle className="text-lg">
               {t('workflow.violation.contractControllerApproval', 'Contract Controller - Fine Approval')}
             </CardTitle>
           </div>
-          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+          <Badge variant="outline" className="bg-success/10 text-success border-success/30">
             {t('workflow.pendingApproval', 'Pending Approval')}
           </Badge>
         </div>
