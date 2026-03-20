@@ -164,7 +164,7 @@ export default function InvestigationWorkspace() {
         <>
           {/* Unified Horizontal Timeline Tracker */}
           <div className="my-4">
-            <UnifiedTimelineTracker incident={incidentData} />
+            <UnifiedTimelineTracker incident={incidentData} workflowActors={workflowActors} />
           </div>
 
           {/* Escalation Alert Banner - Shows when observation triggered escalation */}

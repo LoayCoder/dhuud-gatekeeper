@@ -4,8 +4,24 @@ import { cn } from "@/lib/utils";
 import type { IncidentWithDetails } from '@/features/incidents';
 import { ROLE_TEXT_COLORS, type RoleCategory } from "@/lib/role-colors";
 import { getCurrentOwner } from "@/lib/current-owner";
+import { formatDate } from "@/lib/date-utils";
 
 type StepState = 'completed' | 'current' | 'upcoming';
+
+interface WorkflowActor {
+    full_name: string | null;
+    timestamp: string | null;
+}
+
+interface WorkflowActors {
+    submitted_by?: WorkflowActor;
+    dept_rep?: WorkflowActor;
+    expert_screener?: WorkflowActor;
+    manager_approver?: WorkflowActor;
+    hsse_manager?: WorkflowActor;
+    investigator?: WorkflowActor;
+    closure_approver?: WorkflowActor;
+}
 
 interface TimelineStep {
     id: string;
@@ -14,10 +30,12 @@ interface TimelineStep {
     roleCategory: RoleCategory;
     typicalRole: string;
     state: StepState;
+    actorKey: keyof WorkflowActors;
 }
 
 interface UnifiedTimelineTrackerProps {
     incident: Partial<IncidentWithDetails>;
+    workflowActors?: WorkflowActors | null;
 }
 
 // Map actual db status strings to a rigid 5-step integer scale
@@ -73,7 +91,16 @@ function getStepIndex(status: string, isObservation: boolean): number {
     return 0;
 }
 
-export function UnifiedTimelineTracker({ incident }: UnifiedTimelineTrackerProps) {
+function formatActorTimestamp(timestamp: string | null): string | null {
+    if (!timestamp) return null;
+    try {
+        return formatDate(timestamp, 'MMM d, HH:mm');
+    } catch {
+        return null;
+    }
+}
+
+export function UnifiedTimelineTracker({ incident, workflowActors }: UnifiedTimelineTrackerProps) {
     const { t } = useTranslation();
     const status = incident?.status || "submitted";
     const isObservation = incident?.event_type === "observation";
@@ -93,23 +120,28 @@ export function UnifiedTimelineTracker({ incident }: UnifiedTimelineTrackerProps
             const isContractor = !!incident?.related_contractor_company;
             const reviewRole = isContractor ? t('workflow.roles.consultant', 'Consultant') : t('workflow.roles.hsseExpert', 'HSSE Expert');
             return [
-                { id: '1', label: t('workflow.merged.submitted', 'Submitted'), icon: FileText, roleCategory: 'system', typicalRole: t('workflow.roles.reporter', 'Reporter'), state: getS(0) },
-                { id: '2', label: t('workflow.merged.initialReview', 'Initial Review'), icon: Shield, roleCategory: isContractor ? 'contractor' : 'hsse', typicalRole: reviewRole, state: getS(1) },
-                { id: '3', label: t('workflow.merged.approval', 'Approval'), icon: ClipboardCheck, roleCategory: 'internal', typicalRole: t('workflow.roles.deptRepClient', 'Department Rep / Client'), state: getS(2) },
-                { id: '4', label: t('workflow.merged.actions', 'Actions'), icon: Clock, roleCategory: 'contractor', typicalRole: t('workflow.roles.contractorActionOwner', 'Contractor / Action Owner'), state: getS(3) },
-                { id: '5', label: t('workflow.merged.closed', 'Closed'), icon: Lock, roleCategory: 'system', typicalRole: t('workflow.roles.systemVerifier', 'System Verifier'), state: getS(4) },
+                { id: '1', label: t('workflow.merged.submitted', 'Submitted'), icon: FileText, roleCategory: 'system', typicalRole: t('workflow.roles.reporter', 'Reporter'), state: getS(0), actorKey: 'submitted_by' },
+                { id: '2', label: t('workflow.merged.initialReview', 'Initial Review'), icon: Shield, roleCategory: isContractor ? 'contractor' : 'hsse', typicalRole: reviewRole, state: getS(1), actorKey: 'expert_screener' },
+                { id: '3', label: t('workflow.merged.approval', 'Approval'), icon: ClipboardCheck, roleCategory: 'internal', typicalRole: t('workflow.roles.deptRepClient', 'Department Rep / Client'), state: getS(2), actorKey: 'dept_rep' },
+                { id: '4', label: t('workflow.merged.actions', 'Actions'), icon: Clock, roleCategory: 'contractor', typicalRole: t('workflow.roles.contractorActionOwner', 'Contractor / Action Owner'), state: getS(3), actorKey: 'manager_approver' },
+                { id: '5', label: t('workflow.merged.closed', 'Closed'), icon: Lock, roleCategory: 'system', typicalRole: t('workflow.roles.systemVerifier', 'System Verifier'), state: getS(4), actorKey: 'closure_approver' },
             ];
         }
         return [
-            { id: '1', label: t('workflow.merged.reported', 'Reported'), icon: FileText, roleCategory: 'system', typicalRole: t('workflow.roles.reporter', 'Reporter'), state: getS(0) },
-            { id: '2', label: t('workflow.merged.triage', 'Triage'), icon: Shield, roleCategory: 'hsse', typicalRole: t('workflow.roles.hsseExpert', 'HSSE Expert'), state: getS(1) },
-            { id: '3', label: t('workflow.merged.investigation', 'Investigation'), icon: Search, roleCategory: 'internal', typicalRole: t('workflow.roles.investigator', 'Investigator'), state: getS(2) },
-            { id: '4', label: t('workflow.merged.correctives', 'Corrective Actions'), icon: ListChecks, roleCategory: 'contractor', typicalRole: t('workflow.roles.actionOwner', 'Action Owner'), state: getS(3) },
-            { id: '5', label: t('workflow.merged.closed', 'Closed'), icon: Lock, roleCategory: 'system', typicalRole: t('workflow.roles.systemVerifier', 'System Verifier'), state: getS(4) },
+            { id: '1', label: t('workflow.merged.reported', 'Reported'), icon: FileText, roleCategory: 'system', typicalRole: t('workflow.roles.reporter', 'Reporter'), state: getS(0), actorKey: 'submitted_by' },
+            { id: '2', label: t('workflow.merged.triage', 'Triage'), icon: Shield, roleCategory: 'hsse', typicalRole: t('workflow.roles.hsseExpert', 'HSSE Expert'), state: getS(1), actorKey: 'expert_screener' },
+            { id: '3', label: t('workflow.merged.investigation', 'Investigation'), icon: Search, roleCategory: 'internal', typicalRole: t('workflow.roles.investigator', 'Investigator'), state: getS(2), actorKey: 'investigator' },
+            { id: '4', label: t('workflow.merged.correctives', 'Corrective Actions'), icon: ListChecks, roleCategory: 'contractor', typicalRole: t('workflow.roles.actionOwner', 'Action Owner'), state: getS(3), actorKey: 'manager_approver' },
+            { id: '5', label: t('workflow.merged.closed', 'Closed'), icon: Lock, roleCategory: 'system', typicalRole: t('workflow.roles.systemVerifier', 'System Verifier'), state: getS(4), actorKey: 'closure_approver' },
         ];
     };
 
     const steps = getSteps();
+
+    const getActorInfo = (step: TimelineStep): WorkflowActor | null => {
+        if (!workflowActors) return null;
+        return workflowActors[step.actorKey] || null;
+    };
 
     // Render owner info inline on active step
     const renderOwnerBadge = () => {
@@ -126,6 +158,37 @@ export function UnifiedTimelineTracker({ incident }: UnifiedTimelineTrackerProps
             <span className="inline-flex items-center gap-1 text-[10px] text-foreground/80 bg-secondary/50 px-1.5 py-0.5 rounded-full">
                 <User className="w-2.5 h-2.5" />
                 <span className="truncate max-w-[100px]">{ownerInfo.name}</span>
+            </span>
+        );
+    };
+
+    // Render actor name + timestamp for completed steps
+    const renderActorInfo = (step: TimelineStep) => {
+        const actor = getActorInfo(step);
+        if (!actor?.full_name) return null;
+        const time = formatActorTimestamp(actor.timestamp);
+        return (
+            <div className="flex flex-col items-center gap-0">
+                <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">
+                    {actor.full_name}
+                </span>
+                {time && (
+                    <span className="text-[9px] text-muted-foreground/70">
+                        {time}
+                    </span>
+                )}
+            </div>
+        );
+    };
+
+    // Render actor info for mobile (inline)
+    const renderActorInfoMobile = (step: TimelineStep) => {
+        const actor = getActorInfo(step);
+        if (!actor?.full_name) return null;
+        const time = formatActorTimestamp(actor.timestamp);
+        return (
+            <span className="text-xs text-muted-foreground">
+                · {actor.full_name}{time ? ` · ${time}` : ''}
             </span>
         );
     };
@@ -173,7 +236,7 @@ export function UnifiedTimelineTracker({ incident }: UnifiedTimelineTrackerProps
                                 ) : <div className="flex-1" />}
                             </div>
 
-                            {/* Label + role + owner (role & owner only on current) */}
+                            {/* Label + role + owner + actor info */}
                             <div className="mt-1.5 flex flex-col items-center gap-0.5 max-w-[110px]">
                                 <span className={cn(
                                     "text-[11px] font-medium text-center leading-tight",
@@ -183,6 +246,7 @@ export function UnifiedTimelineTracker({ incident }: UnifiedTimelineTrackerProps
                                 )}>
                                     {step.label}
                                 </span>
+                                {isCompleted && renderActorInfo(step)}
                                 {isCurrent && (
                                     <>
                                         <span className={cn("text-[10px] text-center leading-tight", roleTextClass)}>
@@ -227,9 +291,9 @@ export function UnifiedTimelineTracker({ incident }: UnifiedTimelineTrackerProps
                                 )}
                             </div>
 
-                            {/* Label + role + owner */}
+                            {/* Label + role + owner + actor */}
                             <div className="flex flex-col gap-0.5 pt-1">
-                                <div className="flex items-baseline gap-2">
+                                <div className="flex items-baseline gap-2 flex-wrap">
                                     <span className={cn(
                                         "text-sm font-medium",
                                         isCurrent && "text-primary font-semibold",
@@ -238,6 +302,7 @@ export function UnifiedTimelineTracker({ incident }: UnifiedTimelineTrackerProps
                                     )}>
                                         {step.label}
                                     </span>
+                                    {isCompleted && renderActorInfoMobile(step)}
                                     {isCurrent && (
                                         <span className={cn("text-xs", roleTextClass)}>
                                             · {step.typicalRole}
