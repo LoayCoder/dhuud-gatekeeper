@@ -57,9 +57,9 @@ export function DisputeResolutionCard({ incident, investigation, onComplete }: D
 
   if (checkingPermission) {
     return (
-      <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-900/10">
+      <Card className="border-warning/30 bg-warning/5">
         <CardContent className="py-6 flex items-center justify-center">
-          <Loader2 className="h-5 w-5 animate-spin text-amber-600" />
+          <Loader2 className="h-5 w-5 animate-spin text-warning" />
         </CardContent>
       </Card>
     );
