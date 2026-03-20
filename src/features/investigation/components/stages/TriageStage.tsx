@@ -64,6 +64,7 @@ export function TriageStage() {
 
         case 'pending_dept_rep_approval':
         case 'pending_dept_rep_mandatory_action':
+        case 'pending_dept_rep_review':
             return (
                 <DeptRepApprovalCard
                     incident={typedIncident}
