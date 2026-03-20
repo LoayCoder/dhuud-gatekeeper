@@ -142,7 +142,7 @@ export function ContractControllerApprovalCard({ incident, onComplete }: Contrac
         </div>
         
         {/* Warning */}
-        <div className="flex items-start gap-2 text-sm text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200">
+        <div className="flex items-start gap-2 text-sm text-warning bg-warning/10 p-3 rounded-lg border border-warning/30">
           <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
           <span>
             {t('workflow.violation.fineApprovalWarning', 'Approving this fine will finalize the violation and make it enforceable.')}
