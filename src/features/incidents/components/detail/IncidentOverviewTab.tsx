@@ -123,7 +123,7 @@ export function IncidentOverviewTab({ incident }: IncidentOverviewTabProps) {
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-base flex items-center gap-2">
-                            <FileTextIcon className="h-4 w-4 text-primary" />
+                            <FileText className="h-4 w-4 text-primary" />
                             {t('incidents.description', 'Description')}
                         </CardTitle>
                     </CardHeader>
