@@ -9,6 +9,7 @@ interface IncidentRiskPanelProps {
   actualSeverity: string | null;
   potentialSeverity?: string | null;
   eventType: string;
+  aiConfidence?: number | null;
 }
 
 const SEVERITY_LEVELS = ['level_1', 'level_2', 'level_3', 'level_4', 'level_5'];
