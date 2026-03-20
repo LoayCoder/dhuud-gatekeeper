@@ -42,7 +42,7 @@ export function useCreateWitnessStatement() {
                     witness_contact: input.contact,
                     relationship: input.relationship,
                     statement_text: input.statement,
-                    statement_method: input.statement_method,
+                    statement_type: input.statement_method,
                     audio_url: input.audio_url,
                     original_transcription: input.original_transcription,
                     assigned_witness_id: input.assigned_witness_id,
