@@ -109,7 +109,17 @@ export function InvestigationWorkflowStatusCard({
         'upgraded_to_incident',
         'pending_hsse_expert_review',
         'pending_hsse_rejection_review',
-        'pending_hsse_escalation_review'
+        'pending_hsse_escalation_review',
+        'pending_consultant_screening',
+        'pending_consultant_review',
+        'pending_consultant_actions',
+        'pending_consultant_verification',
+        'pending_site_client_approval',
+        'pending_site_client_action_approval',
+        'contractor_action_implementation',
+        'pending_contractor_action',
+        'pending_contractor_implementation',
+        'pending_action_dispute_review',
       ].includes(status);
       
       const deptRepCurrentStatuses = ['pending_dept_rep_approval', 'pending_dept_rep_review', 'pending_dept_rep_mandatory_action'];
