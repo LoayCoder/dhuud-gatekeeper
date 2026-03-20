@@ -113,6 +113,7 @@ export function ConsultantReviewCard({
 
       toast.success(t('workflow.consultant.claimed', 'Task claimed successfully'));
       queryClient.invalidateQueries({ queryKey: ['incident', incidentId] });
+      queryClient.invalidateQueries({ queryKey: ['workflow-actors', incidentId] });
     } catch (error) {
       console.error('Error claiming task:', error);
       toast.error(t('common.error', 'Failed to claim task'));

@@ -48,7 +48,10 @@ export function useInvestigationWorkspaceData(selectedIncidentId: string | null)
           manager_decision_at,
           hsse_manager_decision_by,
           closure_approved_by,
-          closure_approved_at
+          closure_approved_at,
+          related_contractor_company_id,
+          consultant_screened_at,
+          event_type
         `)
                 .eq('id', selectedIncidentId)
                 .single();
