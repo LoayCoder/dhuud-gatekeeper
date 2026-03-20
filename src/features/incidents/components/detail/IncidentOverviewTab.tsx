@@ -9,6 +9,7 @@ import {
     Tag,
     AlertTriangle,
     Building2,
+    FileText,
     Activity,
     ShieldAlert
 } from "lucide-react";
