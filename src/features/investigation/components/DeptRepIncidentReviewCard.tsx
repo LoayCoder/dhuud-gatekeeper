@@ -307,7 +307,7 @@ export function DeptRepIncidentReviewCard({ incident, onComplete }: DeptRepIncid
           {/* Decision Flow Info */}
           <div className="text-xs text-muted-foreground bg-muted/30 rounded-md p-3 space-y-1">
             <p className="flex items-start gap-2">
-              <CheckCircle2 className="h-3 w-3 mt-0.5 text-green-600" />
+              <CheckCircle2 className="h-3 w-3 mt-0.5 text-success" />
               <span>
                 {t('workflow.deptRepIncidentReview.approveInfo', 'Approve: Incident will be sent to the appropriate workflow step based on severity.')}
               </span>

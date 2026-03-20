@@ -202,7 +202,8 @@ export function InvestigationWorkflowCards({
                   variant="outline"
                   className="shrink-0"
                   onClick={() => {
-                    window.open(`/incidents/${incidentData.upgraded_to_incident_id}`, '_blank');
+                    const nav = document.querySelector('[data-router]');
+                    window.location.href = `/incidents/${incidentData.upgraded_to_incident_id}`;
                   }}
                 >
                   <ExternalLink className="h-4 w-4 me-2" />

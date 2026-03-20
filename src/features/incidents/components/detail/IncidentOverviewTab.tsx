@@ -254,6 +254,7 @@ export function IncidentOverviewTab({ incident }: IncidentOverviewTabProps) {
 }
 
 function FileTextIcon(props: React.SVGProps<SVGSVGElement>) {
+    // Use lucide-react FileText instead of custom SVG
     return (
         <svg
             {...props}
