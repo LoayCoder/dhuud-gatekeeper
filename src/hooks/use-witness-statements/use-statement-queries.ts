@@ -35,7 +35,7 @@ export function useWitnessStatements(incidentId: string | null) {
                 ai_analysis: row.ai_analysis as Record<string, unknown> | null,
                 assigned_witness_id: row.assigned_witness_id as string,
                 assignment_status: null,
-                status: row.status as WitnessStatus,
+                status: row.assignment_status as WitnessStatus,
                 created_by: row.created_by as string,
                 created_at: row.created_at as string,
                 deleted_at: row.deleted_at as string,

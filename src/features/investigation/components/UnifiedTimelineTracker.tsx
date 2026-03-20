@@ -148,10 +148,15 @@ export function UnifiedTimelineTracker({ incident, workflowActors }: UnifiedTime
         if (!ownerInfo) return null;
         if (ownerInfo.isUnassigned) {
             return (
-                <span className="inline-flex items-center gap-1 text-[10px] text-warning-foreground bg-warning/10 px-1.5 py-0.5 rounded-full border border-warning/20">
-                    <AlertTriangle className="w-2.5 h-2.5" />
-                    {t('workflow.awaitingRole', 'Awaiting {{role}}', { role: ownerInfo.role })}
-                </span>
+                <div className="flex flex-col items-center gap-0.5">
+                    <span className="inline-flex items-center gap-1 text-[10px] text-destructive bg-destructive/10 px-1.5 py-0.5 rounded-full border border-destructive/20">
+                        <AlertTriangle className="w-2.5 h-2.5" />
+                        {t('workflow.noUserAssigned', 'No user assigned to this role')}
+                    </span>
+                    <span className="text-[9px] text-destructive/70 text-center">
+                        {t('workflow.contactAdmin', 'Contact admin to assign a {{role}}', { role: ownerInfo.role })}
+                    </span>
+                </div>
             );
         }
         return (
