@@ -75,8 +75,7 @@ export function InvestigationWorkflowCards({
       </CardContent>
     </Card>
   ) : null;
-
-  switch (currentStatus) {
+  const renderCard = () => { switch (currentStatus) {
     case 'submitted':
       return (
         <HSSEExpertScreeningCard
