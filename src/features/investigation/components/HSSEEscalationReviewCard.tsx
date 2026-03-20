@@ -330,7 +330,7 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
       <AlertDialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
         <AlertDialogContent dir={direction} className="max-w-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-amber-600">
+            <AlertDialogTitle className="flex items-center gap-2 text-warning">
               <ArrowUpCircle className="h-5 w-5" />
               {t('workflow.escalationReview.upgradeDialogTitle', 'Upgrade to Incident?')}
             </AlertDialogTitle>
