@@ -41,7 +41,7 @@ interface UnifiedTimelineTrackerProps {
 // Map actual db status strings to a rigid 5-step integer scale
 function getStepIndex(status: string, isObservation: boolean): number {
     if (isObservation) {
-        if (["submitted"].includes(status)) return 0;
+        if (["submitted", "returned_to_reporter", "expert_rejected", "dept_rep_rejected"].includes(status)) return 0;
         if ([
             "pending_expert_screening", "expert_screening", "pending_consultant_screening",
             "pending_consultant_review", "pending_consultant_actions",
@@ -56,7 +56,7 @@ function getStepIndex(status: string, isObservation: boolean): number {
             "observation_actions_pending", "pending_contractor_implementation",
             "contractor_action_implementation", "pending_contractor_action"
         ].includes(status)) return 3;
-        if (["closed", "hsse_enforced", "pending_closure", "pending_hsse_validation", "pending_final_closure", "pending_hsse_manager_closure"].includes(status)) return 4;
+        if (["closed", "hsse_enforced", "pending_closure", "pending_hsse_validation", "pending_final_closure", "pending_hsse_manager_closure", "upgraded_to_incident"].includes(status)) return 4;
     } else {
         if (["submitted", "draft", "returned_to_reporter"].includes(status)) return 0;
         if ([

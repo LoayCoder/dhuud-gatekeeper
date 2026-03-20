@@ -28,7 +28,7 @@ export function useWitnessStatements(incidentId: string | null) {
                 statement: row.statement_text as string,
                 statement_method: 'text' as StatementType,
                 audio_url: row.audio_url as string,
-                ai_transcription_text: row.ai_transcription_text as string,
+                ai_transcription_text: null,
                 original_transcription: row.original_transcription as string,
                 transcription_edited: (row.transcription_edited as boolean) || false,
                 transcription_approved: (row.transcription_approved as boolean) || false,

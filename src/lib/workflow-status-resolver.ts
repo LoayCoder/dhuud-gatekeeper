@@ -270,6 +270,16 @@ export function getStatusDisplayLabel(status: string, isArabic: boolean = false)
     pending_expert_screening: { en: 'Expert Screening', ar: 'فحص الخبير' },
     pending_manager_approval: { en: 'Manager Approval', ar: 'موافقة المدير' },
     
+    // Observation-specific
+    returned_to_reporter: { en: 'Returned to Reporter', ar: 'أُعيد للمبلغ' },
+    upgraded_to_incident: { en: 'Upgraded to Incident', ar: 'تم الترقية إلى حادث' },
+    observation_actions_pending: { en: 'Actions Pending', ar: 'إجراءات معلقة' },
+    under_investigation: { en: 'Under Investigation', ar: 'تحت التحقيق' },
+    monitoring_30_day: { en: '30-Day Monitoring', ar: 'مراقبة 30 يوم' },
+    monitoring_60_day: { en: '60-Day Monitoring', ar: 'مراقبة 60 يوم' },
+    monitoring_90_day: { en: '90-Day Monitoring', ar: 'مراقبة 90 يوم' },
+    pending_final_closure: { en: 'Final Closure', ar: 'الإغلاق النهائي' },
+    
     // Terminal states
     closed: { en: 'Closed', ar: 'مغلق' },
     hsse_enforced: { en: 'HSSE Enforced', ar: 'تم الإنفاذ' },

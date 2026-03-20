@@ -77,8 +77,17 @@ export function InvestigationWorkflowCards({
   ) : null;
   const renderCard = () => { switch (currentStatus) {
     case 'submitted':
+    case 'pending_expert_screening':
       return (
         <HSSEExpertScreeningCard
+          incident={incidentData}
+          onComplete={handleRefresh}
+        />
+      );
+
+    case 'pending_no_investigation_approval':
+      return (
+        <DeptManagerIncidentApprovalCard
           incident={incidentData}
           onComplete={handleRefresh}
         />

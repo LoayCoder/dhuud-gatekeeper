@@ -107,7 +107,9 @@ export function useInvestigationWorkspaceData(selectedIncidentId: string | null)
                 submitted_by: { full_name: profileMap.get(incidentData.reporter_id || '') || null, timestamp: incidentData.created_at },
                 dept_rep: { full_name: profileMap.get(incidentData.dept_rep_approved_by || '') || null, timestamp: incidentData.dept_rep_approved_at },
                 expert_screener: { full_name: profileMap.get(expertScreenerId || '') || null, timestamp: expertScreenedAt },
-                manager_approver: { full_name: profileMap.get(incidentData.approval_manager_id || '') || null, timestamp: incidentData.manager_decision_at },
+                manager_approver: isContractorPath
+                    ? { full_name: null, timestamp: null }
+                    : { full_name: profileMap.get(incidentData.approval_manager_id || '') || null, timestamp: incidentData.manager_decision_at },
                 hsse_manager: { full_name: profileMap.get(incidentData.hsse_manager_decision_by || '') || null, timestamp: null },
                 investigator: { full_name: investigatorName, timestamp: null },
                 closure_approver: { full_name: profileMap.get(incidentData.closure_approved_by || '') || null, timestamp: incidentData.closure_approved_at }
