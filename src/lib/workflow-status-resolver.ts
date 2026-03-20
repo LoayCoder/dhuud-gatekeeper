@@ -69,6 +69,7 @@ export const HSSE_EXPERT_STATUSES = [
 export const HSSE_MANAGER_STATUSES = [
   'pending_hsse_manager_closure',
   'pending_hsse_manager_approval',
+  'pending_hsse_escalation_review',
 ] as const;
 
 /**
