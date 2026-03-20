@@ -88,6 +88,7 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         case "pending_consultant_review":
         case "pending_consultant_verification":
         case "pending_consultant_actions":
+        case "pending_action_dispute_review":
             return buildOwner(
                 incident.approval_manager?.full_name || null,
                 "Contractor Consultant",
@@ -96,6 +97,8 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
 
         // Contractor Implementation & Observations actions
         case "pending_contractor_implementation":
+        case "contractor_action_implementation":
+        case "pending_contractor_action":
         case "observation_actions_pending":
             if (incident.related_contractor_company_id || incident.related_contractor_company?.company_name) {
                 return buildOwner(
@@ -108,6 +111,7 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
 
         // Site Client Approval
         case "pending_site_client_approval":
+        case "pending_site_client_action_approval":
             return buildOwner(null, "Site Client Rep", true);
 
         // Compliance & Dispute
