@@ -376,5 +376,15 @@ export function InvestigationWorkflowCards({
 
     default:
       return null;
-  }
+  }};
+
+  const card = renderCard();
+  if (!card && !sourceObservationBanner) return null;
+  
+  return (
+    <div className="space-y-3">
+      {sourceObservationBanner}
+      {card}
+    </div>
+  );
 }
