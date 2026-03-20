@@ -35,6 +35,7 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         case "pending_dept_rep_incident_review":
         case "pending_dept_rep_approval":
         case "pending_dept_rep_review":
+        case "pending_dept_rep_mandatory_action":
             return buildOwner(
                 incident.approval_manager?.full_name || null,
                 "Department Representative",
@@ -62,11 +63,13 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         case "investigation_pending":
         case "pending_investigator_assignment":
         case "pending_hsse_expert_review":
+        case "pending_hsse_rejection_review":
             return buildOwner(null, "HSSE Expert", true);
 
         // HSSE Manager Queue
         case "hsse_manager_escalation":
         case "pending_hsse_escalation_review":
+        case "pending_hsse_manager_closure":
             return buildOwner(null, "HSSE Manager", true);
 
         // Investigation Stage (Assigned Investigator)

@@ -12,7 +12,8 @@ import {
     HSSEValidationCard,
     LegalReviewCard,
     DisputeResolutionCard,
-    MonitoringCheckCard
+    MonitoringCheckCard,
+    HSSEExpertRejectionReviewCard
 } from '@/features/investigation';
 import { NoInvestigationApprovalCard } from '@/features/investigation';
 import { IncidentWithDetails } from '@/features/incidents';
@@ -63,6 +64,7 @@ export function TriageStage() {
 
         case 'pending_dept_rep_approval':
         case 'pending_dept_rep_mandatory_action':
+        case 'pending_dept_rep_review':
             return (
                 <DeptRepApprovalCard
                     incident={typedIncident}
@@ -108,6 +110,14 @@ export function TriageStage() {
             return (
                 <LegalReviewCard
                     incident={typedIncident}
+                    onComplete={refresh}
+                />
+            );
+
+        case 'pending_hsse_rejection_review':
+            return (
+                <HSSEExpertRejectionReviewCard
+                    incident={typedIncident as unknown as IncidentWithDetails}
                     onComplete={refresh}
                 />
             );
