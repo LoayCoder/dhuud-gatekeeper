@@ -46,7 +46,7 @@ export function useCreateWitnessStatement() {
                     audio_url: input.audio_url,
                     original_transcription: input.original_transcription,
                     assigned_witness_id: input.assigned_witness_id,
-                    status: input.status || 'pending',
+                    assignment_status: input.status || 'pending',
                     tenant_id: freshProfile.tenant_id,
                     created_by: freshUser.id,
                 })
