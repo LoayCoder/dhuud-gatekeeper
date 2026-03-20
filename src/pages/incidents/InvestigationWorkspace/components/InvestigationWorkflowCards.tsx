@@ -19,7 +19,10 @@ import {
   HSSEIncidentValidationCard,
   DeptManagerIncidentApprovalCard,
   ClinicReviewCard,
-  TeamInvestigationAssignmentStep
+  TeamInvestigationAssignmentStep,
+  HSSEExpertRejectionReviewCard,
+  ObservationClosureGate,
+  HSSEObservationValidationCard
 } from '@/features/investigation';
 import { ActionDisputeReviewCard, ConsultantReviewCard, SiteClientActionApprovalCard } from '@/features/investigation';
 import { HSSEEnforcementBanner } from '@/features/investigation';
