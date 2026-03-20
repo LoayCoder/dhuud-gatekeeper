@@ -159,7 +159,7 @@ export function DisputeResolutionCard({ incident, investigation, onComplete }: D
             <Label className="text-muted-foreground">
               {t('workflow.dispute.investigatorResponse', 'Investigator\'s Dispute Notes')}
             </Label>
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-900/20 dark:border-blue-800">
+            <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
               <p className="text-sm">{incident.mediation_notes || t('common.notProvided', 'Not provided')}</p>
             </div>
           </div>
