@@ -273,7 +273,7 @@ function ChecklistItem({
     <div className="flex items-center gap-2 text-sm">
       <div className={cn(
         'h-4 w-4 rounded-full flex items-center justify-center',
-        checked && !warning ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'
+        checked && !warning ? 'bg-success/20 text-success' : 'bg-warning/20 text-warning'
       )}>
         {checked && !warning ? (
           <CheckCircle2 className="h-3 w-3" />
