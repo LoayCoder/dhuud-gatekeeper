@@ -1,75 +1,33 @@
 
 
-# E2E Audit — Observations Module (Follow-up)
+# Fix: "Pending With" shows unassigned for claimed non-contractor observations
 
-## Summary
+## Problem
 
-After verifying all previous fixes and re-auditing the full lifecycle, I found **3 remaining bugs** — all in the witness statements subsystem. The core observation workflow (creation, submission, AI processing, assignment, review, approval, status transitions, closure, escalation) is now clean.
+In `src/lib/current-owner.ts` line 64, for non-contractor observations at `expert_screening` / `pending_expert_screening`, the code **always** returns `buildOwner(null, "HSSE Expert", true)` — hardcoded as unassigned. It never checks whether `approval_manager` is already set (which happens when the HSSE Expert claims the observation).
 
----
+The contractor path (lines 60-62) correctly resolves the name from `approval_manager`, but the non-contractor fallback on line 64 skips this entirely.
 
-## Finding 1 — CRITICAL: Witness mutations write to non-existent `status` column
+## Fix
 
-**Impact**: Creating, updating, approving, and returning witness statements silently fails or errors because the mutations write to `status` instead of the actual column `assignment_status`.
+**File:** `src/lib/current-owner.ts` (line 64)
 
-**Database reality**: Column is `assignment_status` (confirmed via schema query). No `status` column exists.
+Change the non-contractor fallback from:
+```typescript
+return buildOwner(null, "HSSE Expert", true);
+```
 
-**Files affected**:
+To:
+```typescript
+const expertName = incident.approval_manager?.full_name || null;
+return buildOwner(expertName, "HSSE Expert", !expertName);
+```
 
-### `src/hooks/use-witness-statements/use-statement-mutations.ts`
-- **Line 49**: Insert uses `status: input.status || 'pending'` → should be `assignment_status`
-- **Line 89**: Update uses `updateData.status = updates.status` → should be `updateData.assignment_status`
-- **Line 133**: Review approve uses `status: "approved"` → should be `assignment_status`
-- **Line 156**: Review return uses `status: "returned"` → should be `assignment_status`
+This mirrors the contractor path logic — if `approval_manager` is set (expert claimed it), show their name. If not, show the unassigned warning with "Contact admin to assign a HSSE Expert".
 
----
+## Impact
 
-## Finding 2 — MEDIUM: Witness insert uses non-existent `statement_method` column
-
-**Impact**: Creating witness statements writes to `statement_method` which doesn't exist. The actual column is `statement_type`.
-
-**File**: `src/hooks/use-witness-statements/use-statement-mutations.ts`
-- **Line 45**: `statement_method: input.statement_method` → should be `statement_type: input.statement_method`
-
----
-
-## Finding 3 — LOW: Query maps `ai_transcription_text: null` (dead field in interface)
-
-**File**: `src/hooks/use-witness-statements/use-statement-queries.ts`
-- **Line 31**: Maps `ai_transcription_text: null` — this field was removed from the DB but still exists in `types.ts` interface (line 8). Harmless but should be cleaned up.
-
-**File**: `src/hooks/use-witness-statements/types.ts`
-- **Line 8**: `ai_transcription_text: string | null;` — remove from interface.
-
----
-
-## Implementation Plan
-
-### Step 1: Fix all `status` → `assignment_status` in mutations (Critical)
-In `use-statement-mutations.ts`, replace every occurrence of the `status` column name with `assignment_status` in insert/update operations (lines 49, 89, 133, 156).
-
-### Step 2: Fix `statement_method` → `statement_type` in insert (Medium)
-In `use-statement-mutations.ts` line 45, change `statement_method` to `statement_type`.
-
-### Step 3: Remove dead `ai_transcription_text` from interface and query mapping (Low)
-- Remove from `types.ts` line 8
-- Remove from `use-statement-queries.ts` line 31
-
-## Files to Edit
-
-1. `src/hooks/use-witness-statements/use-statement-mutations.ts` — fix column names
-2. `src/hooks/use-witness-statements/use-statement-queries.ts` — remove dead mapping
-3. `src/hooks/use-witness-statements/types.ts` — remove dead field
-
-## Observation Lifecycle Verification
-
-All other lifecycle stages are confirmed clean:
-- Creation (QuickObservationCard) — correct fields, proper offline/online paths
-- AI Processing (analyze-observation edge function) — integrated correctly
-- Assignment & Routing (current-owner.ts) — all statuses mapped, contractor path resolved
-- Timeline (UnifiedTimelineTracker) — all statuses mapped to correct steps
-- Workflow Cards (InvestigationWorkflowCards) — all statuses have action cards
-- Status Labels (workflow-status-resolver.ts) — complete bilingual coverage
-- Escalation to Incident — `upgraded_to_incident` status handled with backlink
-- Closure — `pending_hsse_manager_closure` and `pending_hsse_validation` handled
+- OBS-2026-0111 and OBS-2026-0115 will show the user's name instead of the red warning badge
+- Unclaimed observations will still correctly show the "No user assigned" warning
+- No other files need changes — `ResponsibleUserBadge` and `UnifiedTimelineTracker` already handle both assigned and unassigned states correctly
 
