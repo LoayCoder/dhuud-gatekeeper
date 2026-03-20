@@ -130,7 +130,7 @@ export function useReviewWitnessStatement() {
                 const { data, error } = await supabase
                     .from("witness_statements")
                     .update({
-                        status: "approved",
+                        assignment_status: "approved",
                         reviewed_by: user?.id,
                         reviewed_at: new Date().toISOString(),
                     })
