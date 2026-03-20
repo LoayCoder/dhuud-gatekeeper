@@ -22,6 +22,7 @@ import type { ViolationIncidentFields } from '../../types/investigationTypes';
 
 export function TriageStage() {
     const { incident, refresh } = useInvestigationContext();
+    const navigate = useNavigate();
 
     if (!incident) return null;
 
