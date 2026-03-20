@@ -59,6 +59,8 @@ export const CONTRACTOR_STATUSES = [
 export const HSSE_EXPERT_STATUSES = [
   'pending_hsse_expert_review',
   'pending_hsse_expert_approval',
+  'pending_hsse_rejection_review',
+  'pending_hsse_validation',
 ] as const;
 
 /**
