@@ -12,7 +12,8 @@ import {
     HSSEValidationCard,
     LegalReviewCard,
     DisputeResolutionCard,
-    MonitoringCheckCard
+    MonitoringCheckCard,
+    HSSEExpertRejectionReviewCard
 } from '@/features/investigation';
 import { NoInvestigationApprovalCard } from '@/features/investigation';
 import { IncidentWithDetails } from '@/features/incidents';
