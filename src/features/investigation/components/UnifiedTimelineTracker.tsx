@@ -9,7 +9,7 @@ import { formatDate } from "@/lib/date-utils";
 type StepState = 'completed' | 'current' | 'upcoming';
 
 interface WorkflowActor {
-    full_name: string | null;
+    full_name: unknown;
     timestamp: string | null;
 }
 
