@@ -146,17 +146,20 @@ export function AuditLogPanel({ incidentId, defaultOpen = false }: AuditLogPanel
                               for this redesign we assume user profile is passed or just render standard user icon) */}
                           <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2 mb-3 bg-background/50 w-fit px-2.5 py-1 rounded-md border">
                             <User className="h-3.5 w-3.5" />
-                            <span>System / User</span>
+                            <span>{log.actor_name || t('investigation.audit.system', 'System')}</span>
                           </div>
 
                           {log.details && typeof log.details === 'object' && (
                             <div className="bg-background rounded-lg p-3 text-sm text-muted-foreground border mt-2 overflow-x-auto font-mono text-xs">
-                              {Object.entries(log.details).map(([key, value]) => (
-                                <div key={key} className="flex gap-2">
-                                  <span className="font-semibold text-foreground/80">{key}:</span>
-                                  <span className="truncate">{String(value)}</span>
-                                </div>
-                              ))}
+                              {Object.entries(log.details as Record<string, unknown>).map(([key, value]) => {
+                                const resolvedValue = log.resolved_details?.[key] || String(value);
+                                return (
+                                  <div key={key} className="flex gap-2">
+                                    <span className="font-semibold text-foreground/80">{key}:</span>
+                                    <span className="truncate">{resolvedValue}</span>
+                                  </div>
+                                );
+                              })}
                             </div>
                           )}
                         </div>

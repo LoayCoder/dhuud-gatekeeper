@@ -79,10 +79,12 @@ export interface IncidentAuditLog {
     id: string;
     incident_id: string;
     actor_id: string | null;
+    actor_name?: string | null;
     action: string;
     old_value: Json | null;
     new_value: Json | null;
     details: Json | null;
+    resolved_details?: Record<string, string> | null;
     ip_address: string | null;
     created_at: string;
 }
