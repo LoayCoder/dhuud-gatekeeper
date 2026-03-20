@@ -97,6 +97,8 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
 
         // Contractor Implementation & Observations actions
         case "pending_contractor_implementation":
+        case "contractor_action_implementation":
+        case "pending_contractor_action":
         case "observation_actions_pending":
             if (incident.related_contractor_company_id || incident.related_contractor_company?.company_name) {
                 return buildOwner(
