@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowUpCircle, ExternalLink } from "lucide-react";
+import { ArrowUpCircle, ExternalLink, ArrowLeft } from "lucide-react";
 import type { SeverityLevelV2 } from "@/lib/hsse-severity-levels";
 import {
   HSSEExpertScreeningCard,
