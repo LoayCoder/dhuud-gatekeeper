@@ -80,6 +80,7 @@ export const DEPT_REP_STATUSES = [
   'pending_dept_rep_approval',
   'pending_dept_rep_review',
   'pending_dept_rep_mandatory_action',
+  'pending_dept_rep_incident_review',
 ] as const;
 
 // ============================================
@@ -257,6 +258,17 @@ export function getStatusDisplayLabel(status: string, isArabic: boolean = false)
     pending_dept_rep_approval: { en: 'Dept Rep Approval', ar: 'موافقة ممثل القسم' },
     pending_dept_rep_review: { en: 'Dept Rep Review', ar: 'مراجعة ممثل القسم' },
     pending_dept_rep_mandatory_action: { en: 'Dept Rep Mandatory Action', ar: 'إجراء إلزامي لممثل القسم' },
+    pending_dept_rep_incident_review: { en: 'Dept Rep Incident Review', ar: 'مراجعة حوادث ممثل القسم' },
+    
+    // Incident-specific statuses
+    pending_department_manager_approval: { en: 'Dept Manager Approval', ar: 'موافقة مدير القسم' },
+    pending_clinic_review: { en: 'Clinic Review', ar: 'مراجعة العيادة' },
+    pending_legal_review: { en: 'Legal Review', ar: 'مراجعة قانونية' },
+    investigation_pending: { en: 'Awaiting Assignment', ar: 'في انتظار التعيين' },
+    investigation_in_progress: { en: 'Investigation In Progress', ar: 'التحقيق جارٍ' },
+    pending_no_investigation_approval: { en: 'No Investigation Approval', ar: 'موافقة عدم التحقيق' },
+    pending_expert_screening: { en: 'Expert Screening', ar: 'فحص الخبير' },
+    pending_manager_approval: { en: 'Manager Approval', ar: 'موافقة المدير' },
     
     // Terminal states
     closed: { en: 'Closed', ar: 'مغلق' },

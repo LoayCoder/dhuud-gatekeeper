@@ -41,10 +41,34 @@ function getStepIndex(status: string, isObservation: boolean): number {
         if (["closed", "hsse_enforced", "pending_closure", "pending_hsse_validation", "pending_final_closure", "pending_hsse_manager_closure"].includes(status)) return 4;
     } else {
         if (["submitted", "draft", "returned_to_reporter"].includes(status)) return 0;
-        if (["pending_dept_rep_incident_review", "expert_screening", "pending_expert_screening", "pending_manager_approval", "hsse_manager_escalation", "pending_hsse_escalation_review"].includes(status)) return 1;
-        if (["investigation_pending", "pending_investigator_assignment", "investigation_in_progress", "under_investigation"].includes(status)) return 2;
-        if (["pending_contractor_implementation", "observation_actions_pending", "contractor_action_implementation", "pending_contractor_action"].includes(status)) return 3;
-        if (["pending_closure", "pending_final_closure", "investigation_closed", "closed", "no_investigation_required"].includes(status)) return 4;
+        if ([
+            "pending_dept_rep_incident_review", "pending_dept_rep_approval",
+            "expert_screening", "pending_expert_screening",
+            "pending_manager_approval", "pending_department_manager_approval",
+            "pending_no_investigation_approval",
+            "hsse_manager_escalation", "pending_hsse_escalation_review",
+            "pending_hsse_expert_review", "pending_hsse_rejection_review",
+            "expert_rejected", "manager_rejected",
+            "pending_clinic_review", "pending_legal_review",
+        ].includes(status)) return 1;
+        if ([
+            "investigation_pending", "pending_investigator_assignment",
+            "investigation_in_progress", "under_investigation",
+        ].includes(status)) return 2;
+        if ([
+            "pending_contractor_implementation", "observation_actions_pending",
+            "contractor_action_implementation", "pending_contractor_action",
+            "pending_department_manager_violation_approval",
+            "pending_contract_controller_approval",
+            "dispute_resolution", "pending_contractor_dispute_review",
+        ].includes(status)) return 3;
+        if ([
+            "pending_closure", "pending_final_closure", "pending_hsse_validation",
+            "pending_hsse_incident_validation",
+            "monitoring_30_day", "monitoring_60_day", "monitoring_90_day",
+            "investigation_closed", "closed", "no_investigation_required",
+            "hsse_enforced",
+        ].includes(status)) return 4;
     }
     return 0;
 }
