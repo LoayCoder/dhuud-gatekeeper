@@ -281,7 +281,7 @@ export function ObservationWorkflowTracker({
     if (isLevel3Plus || status === 'pending_hsse_expert_review') {
       const hsseCompleted = ![
         'submitted',
-        'pending_dept_rep_review',
+        'pending_dept_rep_review', 'pending_dept_rep_approval', 'pending_dept_rep_mandatory_action',
         'pending_hsse_expert_review'
       ].includes(status);
       
