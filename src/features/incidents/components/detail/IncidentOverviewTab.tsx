@@ -138,12 +138,12 @@ export function IncidentOverviewTab({ incident }: IncidentOverviewTabProps) {
                     <Card>
                         <CardHeader>
                             <CardTitle className="text-base flex items-center gap-2">
-                                <ShieldAlert className="h-4 w-4 text-amber-600" />
+                                <ShieldAlert className="h-4 w-4 text-warning" />
                                 {t('incidents.immediateActions', 'Immediate Actions')}
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-md">
+                            <div className="p-3 bg-warning/10 border border-warning/30 rounded-md">
                                 <p className="whitespace-pre-wrap text-sm">
                                     {incident.immediate_actions}
                                 </p>
