@@ -165,11 +165,11 @@ export function DeptRepIncidentReviewCard({ incident, onComplete }: DeptRepIncid
               <div className="flex items-center gap-2 text-muted-foreground">
                 <MapPin className={cn(
                   "h-4 w-4",
-                  (incident.site?.name || incident.latitude) ? "text-green-500" : "text-amber-500"
+                  (incident.site?.name || incident.latitude) ? "text-success" : "text-warning"
                 )} />
                 <span className={cn(
                   !(incident.site?.name || incident.branch?.name || incident.location || incident.latitude) 
-                    ? "text-amber-600 dark:text-amber-400" 
+                    ? "text-warning" 
                     : ""
                 )}>
                   {incident.site?.name || 
