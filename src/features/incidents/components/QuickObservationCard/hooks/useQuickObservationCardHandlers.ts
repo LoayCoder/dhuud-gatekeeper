@@ -297,15 +297,11 @@ export function useQuickObservationCardHandlers(state: any) {
           }
         }
         
-        // Show success dialog and auto-redirect after 3 seconds
+        // Show success dialog - dialog handles auto-redirect via countdown
         setSubmittedObservation({
           id: data.id,
           referenceId: data.reference_id || '',
         });
-        
-        setTimeout(() => {
-          navigate(`/incidents/${data.id}`);
-        }, 3000);
       },
       onError: () => {
         // Reset submission guard on error

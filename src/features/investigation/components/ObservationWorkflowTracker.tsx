@@ -261,16 +261,17 @@ export function ObservationWorkflowTracker({
     });
     
     // Step 2: Dept Rep Review
+    const deptRepStatuses = ['pending_dept_rep_review', 'pending_dept_rep_approval', 'pending_dept_rep_mandatory_action'];
     const deptRepCompleted = ![
       'submitted', 
-      'pending_dept_rep_review'
+      ...deptRepStatuses
     ].includes(status);
     
     steps.push({
       key: 'dept_rep_review',
       label: t('workflow.tracker.steps.deptRepReview', 'Dept Rep Review'),
       icon: <ClipboardCheck className="h-4 w-4" />,
-      status: status === 'pending_dept_rep_review' ? 'current' : 
+      status: deptRepStatuses.includes(status) ? 'current' : 
               deptRepCompleted ? 'completed' : 'pending',
       actorName: workflowActors?.dept_rep?.full_name,
       timestamp: vi.dept_rep_acknowledged_at,
@@ -280,7 +281,7 @@ export function ObservationWorkflowTracker({
     if (isLevel3Plus || status === 'pending_hsse_expert_review') {
       const hsseCompleted = ![
         'submitted',
-        'pending_dept_rep_review',
+        'pending_dept_rep_review', 'pending_dept_rep_approval', 'pending_dept_rep_mandatory_action',
         'pending_hsse_expert_review'
       ].includes(status);
       
