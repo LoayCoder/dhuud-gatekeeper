@@ -398,7 +398,7 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
             <AlertDialogAction
               onClick={handleUpgradeToIncident}
               disabled={!canUpgrade || escalationReview.isPending}
-              className="bg-amber-600 hover:bg-amber-700"
+              className="bg-warning hover:bg-warning/90 text-warning-foreground"
             >
               {escalationReview.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
               {t('workflow.escalationReview.confirmUpgrade', 'Upgrade to Incident')}

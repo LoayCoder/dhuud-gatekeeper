@@ -177,8 +177,38 @@ export function InvestigationWorkflowCards({
       );
 
     case 'upgraded_to_incident':
-      // Show info that observation was upgraded - could show link to new incident
-      return null;
+      // Show info that observation was upgraded with link to the new incident
+      return (
+        <Card className="border-info/30 bg-info/5">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-info/10">
+                <ArrowUpCircle className="h-5 w-5 text-info" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-foreground">
+                  {t('workflow.upgradedToIncident.title', 'Upgraded to Incident')}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {t('workflow.upgradedToIncident.description', 'This observation has been escalated and converted to a full incident for investigation.')}
+                </p>
+              </div>
+              {incidentData.upgraded_to_incident_id && (
+                <Button
+                  variant="outline"
+                  className="shrink-0"
+                  onClick={() => {
+                    window.open(`/incidents/${incidentData.upgraded_to_incident_id}`, '_blank');
+                  }}
+                >
+                  <ExternalLink className="h-4 w-4 me-2" />
+                  {t('workflow.upgradedToIncident.viewIncident', 'View Incident')}
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      );
 
     case 'pending_hsse_rejection_review':
       return (

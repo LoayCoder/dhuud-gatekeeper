@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 export function CurrentOwnerCard({ incident }: { incident: IncidentWithDetails }) {
     const { t } = useTranslation();
     const { profile } = useAuth();
+    const { toast } = useToast();
 
     const owner = getCurrentOwner(incident);
     if (!owner) return null; // If no one is pending (e.g. Closed), do not render the card.
