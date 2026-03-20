@@ -26,7 +26,6 @@ import { useState } from 'react';
 import { generateIncidentReportPDF } from '@/lib/generate-incident-report-pdf';
 import { toast } from 'sonner';
 import { getSubtypeTranslation, snakeToCamel, getHsseEventTypeForSubtype } from '@/lib/hsse-translation-utils';
-import { HSSEValidationCard } from '@/features/investigation';
 import { ObservationClosureGate } from '@/features/investigation';
 import { HSSEExpertRejectionReviewCard } from '@/features/investigation';
 import { ContractorViolationSection } from '@/features/investigation';
@@ -55,7 +54,8 @@ export default function IncidentDetail() {
   const direction = i18n.dir();
   const navigate = useNavigate();
   const location = useLocation();
-  const { data: incident, isLoading } = useIncident(id);
+  const { data: incident, isLoading, refetch: refetchIncident } = useIncident(id);
+  const handleRefresh = () => { refetchIncident(); };
   const { isAdmin, profile } = useAuth();
 
   // Fetch tenant name for legal evidence metadata
@@ -295,19 +295,18 @@ export default function IncidentDetail() {
       {/* Workflow Approval Cards - Keep them above tabs for visibility/actionability */}
       {incident.event_type === 'observation' && (
         <>
-          <HSSEValidationCard incident={incident} onComplete={() => window.location.reload()} />
-          <HSSEObservationValidationCard incident={incident} onComplete={() => window.location.reload()} />
-          <ObservationClosureGate incident={incident} onComplete={() => window.location.reload()} />
-          <HSSEExpertRejectionReviewCard incident={incident} onComplete={() => window.location.reload()} />
+          <HSSEObservationValidationCard incident={incident} onComplete={handleRefresh} />
+          <ObservationClosureGate incident={incident} onComplete={handleRefresh} />
+          <HSSEExpertRejectionReviewCard incident={incident} onComplete={handleRefresh} />
         </>
       )}
 
       {incident.related_contractor_company_id && !ext.consultant_assigned_id && (
         <>
-          <DeptManagerViolationApprovalCard incident={incident} onComplete={() => window.location.reload()} />
-          <ContractControllerApprovalCard incident={incident} onComplete={() => window.location.reload()} />
-          <ContractorSiteRepAcknowledgeCard incident={incident} onComplete={() => window.location.reload()} />
-          <HSSEViolationReviewCard incident={incident} onComplete={() => window.location.reload()} />
+          <DeptManagerViolationApprovalCard incident={incident} onComplete={handleRefresh} />
+          <ContractControllerApprovalCard incident={incident} onComplete={handleRefresh} />
+          <ContractorSiteRepAcknowledgeCard incident={incident} onComplete={handleRefresh} />
+          <HSSEViolationReviewCard incident={incident} onComplete={handleRefresh} />
         </>
       )}
 

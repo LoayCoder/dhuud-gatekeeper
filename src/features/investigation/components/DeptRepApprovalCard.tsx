@@ -32,7 +32,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useDeptRepApproval, useCanApproveDeptRep } from '@/features/incidents';
 import { useDeptRepAcknowledgeObservation, useCanReviewAsDeptRep } from "@/hooks/use-dept-rep-workflow";
-const useCorrectiveActionsCount = (id: string) => ({ data: 0, refetch: () => {} });
+import { useCorrectiveActionsCount } from '@/features/incidents/hooks/use-observation-rejection';
 const useDeptRepRejectObservation = () => ({ mutate: (..._args: unknown[]) => {}, isPending: false });
 import { useSubmitContractorViolation } from '@/features/contractors';
 import { ActionsPanel } from "./ActionsPanel";
