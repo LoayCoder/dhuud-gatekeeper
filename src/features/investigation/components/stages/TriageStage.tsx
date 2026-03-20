@@ -43,7 +43,7 @@ export function TriageStage() {
             return (
                 <ReporterCorrectionBanner
                     incident={typedIncident}
-                    onEdit={() => {/* TODO: Navigate to edit form */ }}
+                    onEdit={() => navigate(`/incidents/report?edit=${incident.id}`)}
                     onComplete={refresh}
                 />
             );

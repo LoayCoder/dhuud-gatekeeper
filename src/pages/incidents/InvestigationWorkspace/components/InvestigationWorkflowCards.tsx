@@ -66,7 +66,6 @@ export function InvestigationWorkflowCards({
       return (
         <ReporterCorrectionBanner
           incident={incidentData}
-          onEdit={() => {/* TODO: Navigate to edit form */ }}
           onComplete={handleRefresh}
         />
       );
