@@ -107,7 +107,6 @@ export function TriageStage() {
                 />
             );
 
-        // New incident workflow statuses that fit in "Triage/Review" bucket
         case 'pending_legal_review':
             return (
                 <LegalReviewCard
@@ -120,6 +119,25 @@ export function TriageStage() {
             return (
                 <HSSEExpertRejectionReviewCard
                     incident={typedIncident as unknown as IncidentWithDetails}
+                    onComplete={refresh}
+                />
+            );
+
+        case 'pending_hsse_validation':
+        case 'pending_hsse_expert_review':
+        case 'observation_actions_pending':
+            return (
+                <HSSEValidationCard
+                    incident={incident as IncidentWithDetails}
+                    onComplete={refresh}
+                />
+            );
+
+        case 'pending_hsse_manager_closure':
+        case 'pending_final_closure':
+            return (
+                <MonitoringCheckCard
+                    incident={typedIncident}
                     onComplete={refresh}
                 />
             );

@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowUpCircle, ExternalLink } from "lucide-react";
+import { ArrowUpCircle, ExternalLink, ArrowLeft } from "lucide-react";
 import type { SeverityLevelV2 } from "@/lib/hsse-severity-levels";
 import {
   HSSEExpertScreeningCard,
@@ -48,12 +49,33 @@ export function InvestigationWorkflowCards({
   handleRefresh
 }: InvestigationWorkflowCardsProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   if (!incidentData) return null;
 
   // Cast status to string to handle new enum values not yet in generated types
   const currentStatus = incidentData.status as string;
 
-  switch (currentStatus) {
+  // Source observation backlink for escalated incidents
+  const sourceObservationId = (incidentData as unknown as Record<string, unknown>).source_observation_id as string | null;
+  
+  const sourceObservationBanner = sourceObservationId ? (
+    <Card className="border-muted bg-muted/30">
+      <CardContent className="p-3 flex items-center gap-3">
+        <ArrowLeft className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
+        <span className="text-sm text-muted-foreground flex-1">
+          {t('workflow.sourceObservation', 'Escalated from observation')}
+        </span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(`/incidents/${sourceObservationId}`)}
+        >
+          {t('workflow.viewSourceObservation', 'View Observation')}
+        </Button>
+      </CardContent>
+    </Card>
+  ) : null;
+  const renderCard = () => { switch (currentStatus) {
     case 'submitted':
       return (
         <HSSEExpertScreeningCard
@@ -201,9 +223,7 @@ export function InvestigationWorkflowCards({
                 <Button
                   variant="outline"
                   className="shrink-0"
-                  onClick={() => {
-                    window.open(`/incidents/${incidentData.upgraded_to_incident_id}`, '_blank');
-                  }}
+                  onClick={() => navigate(`/incidents/${incidentData.upgraded_to_incident_id}`)}
                 >
                   <ExternalLink className="h-4 w-4 me-2" />
                   {t('workflow.upgradedToIncident.viewIncident', 'View Incident')}
@@ -356,5 +376,15 @@ export function InvestigationWorkflowCards({
 
     default:
       return null;
-  }
+  }};
+
+  const card = renderCard();
+  if (!card && !sourceObservationBanner) return null;
+  
+  return (
+    <div className="space-y-3">
+      {sourceObservationBanner}
+      {card}
+    </div>
+  );
 }

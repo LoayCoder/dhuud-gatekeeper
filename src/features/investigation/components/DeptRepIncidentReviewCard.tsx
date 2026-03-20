@@ -86,15 +86,15 @@ export function DeptRepIncidentReviewCard({ incident, onComplete }: DeptRepIncid
     if (!severity) return null;
     
     const colorMap: Record<string, string> = {
-      'level_1': 'bg-green-100 text-green-800 border-green-300',
-      'level_2': 'bg-blue-100 text-blue-800 border-blue-300',
-      'level_3': 'bg-yellow-100 text-yellow-800 border-yellow-300',
-      'level_4': 'bg-orange-100 text-orange-800 border-orange-300',
-      'level_5': 'bg-red-100 text-red-800 border-red-300',
-      'low': 'bg-green-100 text-green-800 border-green-300',
-      'medium': 'bg-yellow-100 text-yellow-800 border-yellow-300',
-      'high': 'bg-orange-100 text-orange-800 border-orange-300',
-      'critical': 'bg-red-100 text-red-800 border-red-300',
+      'level_1': 'bg-success/20 text-success border-success/30',
+      'level_2': 'bg-primary/20 text-primary border-primary/30',
+      'level_3': 'bg-warning/20 text-warning border-warning/30',
+      'level_4': 'bg-warning/30 text-warning border-warning/40',
+      'level_5': 'bg-destructive/20 text-destructive border-destructive/30',
+      'low': 'bg-success/20 text-success border-success/30',
+      'medium': 'bg-warning/20 text-warning border-warning/30',
+      'high': 'bg-warning/30 text-warning border-warning/40',
+      'critical': 'bg-destructive/20 text-destructive border-destructive/30',
     };
     
     return (
@@ -106,16 +106,16 @@ export function DeptRepIncidentReviewCard({ incident, onComplete }: DeptRepIncid
 
   return (
     <div className="space-y-4" dir={direction}>
-      <Card className="border-amber-500/50 bg-amber-500/5">
+      <Card className="border-warning/50 bg-warning/5">
         <CardHeader>
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
-              <FileSearch className="h-5 w-5 text-amber-600" />
+              <FileSearch className="h-5 w-5 text-warning" />
               <CardTitle className="text-lg">
                 {t('workflow.deptRepIncidentReview.title', 'Department Representative Incident Review')}
               </CardTitle>
             </div>
-            <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
+            <Badge variant="outline" className="bg-warning/20 text-warning border-warning/30">
               {t('workflow.deptRepIncidentReview.pendingAction', 'Review Required')}
             </Badge>
           </div>
@@ -125,12 +125,12 @@ export function DeptRepIncidentReviewCard({ incident, onComplete }: DeptRepIncid
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Read-Only Notice */}
-          <Alert variant="default" className="border-blue-200 bg-blue-50">
-            <Info className="h-4 w-4 text-blue-600" />
-            <AlertTitle className="text-blue-800">
+          <Alert variant="default" className="border-primary/30 bg-primary/5">
+            <Info className="h-4 w-4 text-primary" />
+            <AlertTitle className="text-primary">
               {t('workflow.deptRepIncidentReview.readOnlyNotice', 'Read-Only Review')}
             </AlertTitle>
-            <AlertDescription className="text-blue-700">
+            <AlertDescription className="text-primary/80">
               {t('workflow.deptRepIncidentReview.readOnlyDescription', 'You can only approve or reject this incident. Modifications are not allowed at this stage.')}
             </AlertDescription>
           </Alert>
@@ -165,11 +165,11 @@ export function DeptRepIncidentReviewCard({ incident, onComplete }: DeptRepIncid
               <div className="flex items-center gap-2 text-muted-foreground">
                 <MapPin className={cn(
                   "h-4 w-4",
-                  (incident.site?.name || incident.latitude) ? "text-green-500" : "text-amber-500"
+                  (incident.site?.name || incident.latitude) ? "text-success" : "text-warning"
                 )} />
                 <span className={cn(
                   !(incident.site?.name || incident.branch?.name || incident.location || incident.latitude) 
-                    ? "text-amber-600 dark:text-amber-400" 
+                    ? "text-warning" 
                     : ""
                 )}>
                   {incident.site?.name || 
@@ -225,7 +225,7 @@ export function DeptRepIncidentReviewCard({ incident, onComplete }: DeptRepIncid
                   </div>
                 )}
                 {incident.has_damage && (
-                  <div className="flex items-center gap-2 text-amber-600 text-sm">
+                  <div className="flex items-center gap-2 text-warning text-sm">
                     <AlertTriangle className="h-4 w-4" />
                     <span>{t('workflow.deptRepIncidentReview.hasDamage', 'Damage reported')}</span>
                   </div>
@@ -289,12 +289,12 @@ export function DeptRepIncidentReviewCard({ incident, onComplete }: DeptRepIncid
           </div>
           
           {/* Severity-Based Routing Info */}
-          <Alert variant="default" className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/50">
-            <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-            <AlertTitle className="text-blue-800 dark:text-blue-300">
+          <Alert variant="default" className="border-primary/30 bg-primary/5 dark:border-primary/20 dark:bg-primary/10">
+            <Info className="h-4 w-4 text-primary" />
+            <AlertTitle className="text-primary">
               {t('workflow.deptRepIncidentReview.severityRoutingInfo', 'Severity-based Routing')}
             </AlertTitle>
-            <AlertDescription className="text-blue-700 dark:text-blue-400 text-sm space-y-1">
+            <AlertDescription className="text-primary/80 text-sm space-y-1">
               <p>{t('workflow.deptRepIncidentReview.level12Route', 'Level 1-2: Will be forwarded to HSSE Expert')}</p>
               <p>{t('workflow.deptRepIncidentReview.level35Route', 'Level 3-5: Will be forwarded to Department Manager')}</p>
               <div className="flex items-center gap-2 mt-2">
@@ -307,7 +307,7 @@ export function DeptRepIncidentReviewCard({ incident, onComplete }: DeptRepIncid
           {/* Decision Flow Info */}
           <div className="text-xs text-muted-foreground bg-muted/30 rounded-md p-3 space-y-1">
             <p className="flex items-start gap-2">
-              <CheckCircle2 className="h-3 w-3 mt-0.5 text-green-600" />
+              <CheckCircle2 className="h-3 w-3 mt-0.5 text-success" />
               <span>
                 {t('workflow.deptRepIncidentReview.approveInfo', 'Approve: Incident will be sent to the appropriate workflow step based on severity.')}
               </span>

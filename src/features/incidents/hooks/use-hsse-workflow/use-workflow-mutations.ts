@@ -51,7 +51,7 @@ export function useReporterResponse() {
                     
                     if (incidentData?.description) {
                         await supabase.functions.invoke('analyze-observation', {
-                            body: { description: incidentData.description, responseLanguage: 'en' }
+                            body: { incidentId: variables.incidentId, description: incidentData.description, responseLanguage: 'en' }
                         });
                         // Refresh to pick up any updated AI classifications
                         queryClient.invalidateQueries({ queryKey: ['incident', variables.incidentId] });

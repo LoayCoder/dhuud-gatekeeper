@@ -23,6 +23,7 @@ interface ActionDisputeReviewCardProps {
   disputeReason?: string;
   contractorComments?: string;
   onResolved?: () => void;
+  onComplete?: () => void;
 }
 
 export function ActionDisputeReviewCard({
@@ -30,7 +31,8 @@ export function ActionDisputeReviewCard({
   status,
   disputeReason,
   contractorComments,
-  onResolved
+  onResolved,
+  onComplete
 }: ActionDisputeReviewCardProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
@@ -57,7 +59,9 @@ export function ActionDisputeReviewCard({
       decision: decisionMap[resolution],
       notes: notes.trim() || undefined
     }, {
-      onSuccess: onResolved
+      onSuccess: () => {
+        (onResolved || onComplete)?.();
+      }
     });
   };
 

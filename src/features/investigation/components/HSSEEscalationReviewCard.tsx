@@ -150,16 +150,16 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
 
   return (
     <>
-      <Card className="border-amber-500/50 bg-amber-500/5" dir={direction}>
+      <Card className="border-warning/50 bg-warning/5" dir={direction}>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ClipboardCheck className="h-5 w-5 text-amber-600" />
+              <ClipboardCheck className="h-5 w-5 text-warning" />
               <CardTitle className="text-lg">
                 {t('workflow.escalationReview.title', 'HSSE Escalation Review')}
               </CardTitle>
             </div>
-            <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
+            <Badge variant="outline" className="bg-warning/20 text-warning border-warning/30">
               {t('workflow.escalationReview.pendingReview', 'Escalation Pending')}
             </Badge>
           </div>
@@ -184,11 +184,11 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
             <div className="flex items-center gap-2 text-sm pt-2 border-t border-border/50">
               <MapPin className={cn(
                 "h-4 w-4 flex-shrink-0",
-                (incident.site?.name || incident.latitude) ? "text-green-500" : "text-amber-500"
+                (incident.site?.name || incident.latitude) ? "text-success" : "text-warning"
               )} />
               <span className={cn(
                 !(incident.site?.name || incident.branch?.name || incident.location || incident.latitude) 
-                  ? "text-amber-600 dark:text-amber-400" 
+                  ? "text-warning" 
                   : "text-muted-foreground"
               )}>
                 {incident.site?.name || 
@@ -220,11 +220,11 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
           
           {/* Dept Rep Escalation Notes */}
           {deptRepNotes && (
-            <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
-              <p className="text-sm font-medium text-blue-800 mb-1">
+            <div className="rounded-lg bg-primary/5 border border-primary/30 p-3">
+              <p className="text-sm font-medium text-primary mb-1">
                 {t('workflow.escalationReview.deptRepNotes', 'Dept Rep Escalation Notes')}:
               </p>
-              <p className="text-sm text-blue-700">{deptRepNotes}</p>
+              <p className="text-sm text-primary/80">{deptRepNotes}</p>
             </div>
           )}
           
@@ -253,7 +253,7 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
             {/* Reject Escalation */}
             <Button
               variant="outline"
-              className="w-full flex items-center justify-center gap-2 text-red-600 border-red-300 hover:bg-red-50"
+              className="w-full flex items-center justify-center gap-2 text-destructive border-destructive/30 hover:bg-destructive/10"
               onClick={() => setShowRejectDialog(true)}
               disabled={escalationReview.isPending}
             >
@@ -264,7 +264,7 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
             {/* Accept - Keep as Observation */}
             <Button
               variant="outline"
-              className="w-full flex items-center justify-center gap-2 text-blue-600 border-blue-300 hover:bg-blue-50"
+              className="w-full flex items-center justify-center gap-2 text-primary border-primary/30 hover:bg-primary/10"
               onClick={handleAcceptAsObservation}
               disabled={escalationReview.isPending}
             >
@@ -278,7 +278,7 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
             
             {/* Upgrade to Incident */}
             <Button
-              className="w-full flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700"
+              className="w-full flex items-center justify-center gap-2 bg-warning hover:bg-warning/90 text-warning-foreground"
               onClick={() => setShowUpgradeDialog(true)}
               disabled={escalationReview.isPending}
             >
@@ -293,7 +293,7 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
       <AlertDialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
         <AlertDialogContent dir={direction}>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
               <XCircle className="h-5 w-5" />
               {t('workflow.escalationReview.rejectDialogTitle', 'Reject Escalation?')}
             </AlertDialogTitle>

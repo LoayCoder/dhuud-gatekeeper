@@ -108,8 +108,9 @@ export function HSSEObservationValidationCard({ incident, onComplete }: HSSEObse
   
   const incidentStatus = incident.status as string;
   
-  // Only show for observations pending HSSE validation
-  if (incident.event_type !== 'observation' || incidentStatus !== 'pending_hsse_validation') {
+  // Only show for observations pending HSSE validation or related statuses
+  const validValidationStatuses = ['pending_hsse_validation', 'pending_hsse_expert_review', 'observation_actions_pending'];
+  if (incident.event_type !== 'observation' || !validValidationStatuses.includes(incidentStatus)) {
     return null;
   }
   
@@ -149,7 +150,7 @@ export function HSSEObservationValidationCard({ incident, onComplete }: HSSEObse
           </h4>
           <div className="space-y-1.5">
             <ChecklistItem 
-              checked={true} 
+              checked={!!(incident as unknown as Record<string, unknown>).violation_type_id} 
               label={t('validation.violationFinalized', 'Violation type assigned')}
             />
             <ChecklistItem 
@@ -159,7 +160,7 @@ export function HSSEObservationValidationCard({ incident, onComplete }: HSSEObse
               warningText={t('validation.pendingActionsWarning', '{{count}} actions pending', { count: pendingActionsCount })}
             />
             <ChecklistItem 
-              checked={true} 
+              checked={!!(incident as unknown as Record<string, unknown>).evidence_description || !!((incident as unknown as Record<string, unknown>).evidence_count)}
               label={t('validation.evidenceDocumented', 'Evidence documented')}
             />
           </div>
@@ -272,7 +273,7 @@ function ChecklistItem({
     <div className="flex items-center gap-2 text-sm">
       <div className={cn(
         'h-4 w-4 rounded-full flex items-center justify-center',
-        checked && !warning ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'
+        checked && !warning ? 'bg-success/20 text-success' : 'bg-warning/20 text-warning'
       )}>
         {checked && !warning ? (
           <CheckCircle2 className="h-3 w-3" />
@@ -284,7 +285,7 @@ function ChecklistItem({
         {label}
       </span>
       {warning && warningText && (
-        <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">
+        <Badge variant="outline" className="text-xs text-warning border-warning/30">
           {warningText}
         </Badge>
       )}
