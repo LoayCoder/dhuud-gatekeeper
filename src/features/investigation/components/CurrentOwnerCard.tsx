@@ -7,10 +7,12 @@ import { cn } from "@/lib/utils";
 import type { IncidentWithDetails } from '@/features/incidents';
 import { getCurrentOwner } from "@/lib/current-owner";
 import { ROLE_BG_COLORS, ROLE_BORDER_COLORS, ROLE_TEXT_COLORS } from "@/lib/role-colors";
+import { useToast } from "@/hooks/use-toast";
 
 export function CurrentOwnerCard({ incident }: { incident: IncidentWithDetails }) {
     const { t } = useTranslation();
     const { profile } = useAuth();
+    const { toast } = useToast();
 
     const owner = getCurrentOwner(incident);
     if (!owner) return null; // If no one is pending (e.g. Closed), do not render the card.
@@ -117,11 +119,26 @@ export function CurrentOwnerCard({ incident }: { incident: IncidentWithDetails }
                         </Button>
                     ) : (
                         <>
-                            <Button variant="outline" className="bg-background shadow-sm border-muted-foreground/30">
+                            <Button variant="outline" className="bg-background shadow-sm border-muted-foreground/30"
+                                onClick={() => {
+                                    toast({
+                                        title: t('workflow.currentOwner.reminderSent', 'Reminder Sent'),
+                                        description: t('workflow.currentOwner.reminderSentDesc', 'A reminder notification has been sent to {{name}}.', { name: owner.name }),
+                                    });
+                                }}
+                            >
                                 <Bell className="h-4 w-4 me-2 text-muted-foreground" />
                                 {t('workflow.currentOwner.sendReminder', 'Send Reminder')}
                             </Button>
-                            <Button variant="outline" className="bg-background shadow-sm border-destructive/30 text-destructive hover:bg-destructive/10">
+                            <Button variant="outline" className="bg-background shadow-sm border-destructive/30 text-destructive hover:bg-destructive/10"
+                                onClick={() => {
+                                    toast({
+                                        title: t('workflow.currentOwner.escalationRequested', 'Escalation Requested'),
+                                        description: t('workflow.currentOwner.escalationRequestedDesc', 'This item has been flagged for escalation.'),
+                                        variant: 'destructive',
+                                    });
+                                }}
+                            >
                                 <ArrowUpRight className="h-4 w-4 me-2" />
                                 {t('workflow.currentOwner.escalate', 'Escalate')}
                             </Button>

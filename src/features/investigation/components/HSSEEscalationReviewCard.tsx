@@ -317,7 +317,7 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
             <AlertDialogAction
               onClick={handleReject}
               disabled={!isNotesValid || escalationReview.isPending}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             >
               {escalationReview.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
               {t('workflow.escalationReview.confirmReject', 'Reject Escalation')}
@@ -330,7 +330,7 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
       <AlertDialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
         <AlertDialogContent dir={direction} className="max-w-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-amber-600">
+            <AlertDialogTitle className="flex items-center gap-2 text-warning">
               <ArrowUpCircle className="h-5 w-5" />
               {t('workflow.escalationReview.upgradeDialogTitle', 'Upgrade to Incident?')}
             </AlertDialogTitle>
@@ -339,12 +339,12 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
             </AlertDialogDescription>
           </AlertDialogHeader>
           
-          <Alert className="bg-amber-50 border-amber-200">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <AlertTitle className="text-amber-800">
+          <Alert className="bg-warning/10 border-warning/30">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            <AlertTitle className="text-warning">
               {t('workflow.escalationReview.upgradeWarningTitle', 'Important')}
             </AlertTitle>
-            <AlertDescription className="text-amber-700 text-sm">
+            <AlertDescription className="text-muted-foreground text-sm">
               <ul className="list-disc list-inside space-y-1 mt-2">
                 <li>{t('workflow.escalationReview.upgradeWarning1', 'A new INC reference number will be generated')}</li>
                 <li>{t('workflow.escalationReview.upgradeWarning2', 'The original observation will be linked for audit trail')}</li>
@@ -398,7 +398,7 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
             <AlertDialogAction
               onClick={handleUpgradeToIncident}
               disabled={!canUpgrade || escalationReview.isPending}
-              className="bg-amber-600 hover:bg-amber-700"
+              className="bg-warning hover:bg-warning/90 text-warning-foreground"
             >
               {escalationReview.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
               {t('workflow.escalationReview.confirmUpgrade', 'Upgrade to Incident')}
