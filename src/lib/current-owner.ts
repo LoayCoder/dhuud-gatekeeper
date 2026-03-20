@@ -8,6 +8,7 @@ export interface CurrentOwnerInfo {
     roleCategory: RoleCategory;
     isUnassigned: boolean;
     actionRequired: string;
+    warningMessage: string | null;
 }
 
 /**
@@ -27,7 +28,8 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         role,
         roleCategory: getRoleCategory(role),
         isUnassigned,
-        actionRequired
+        actionRequired,
+        warningMessage: isUnassigned ? `Contact admin to assign a ${role}` : null,
     });
 
     switch (status) {
@@ -56,7 +58,8 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         case "expert_screening":
         case "pending_expert_screening":
             if (incident.related_contractor_company_id || incident.related_contractor_company) {
-                return buildOwner(null, "Contractor Consultant", true);
+                const consultantName = incident.approval_manager?.full_name || null;
+                return buildOwner(consultantName, "Contractor Consultant", !consultantName);
             }
             return buildOwner(null, "HSSE Expert", true);
 

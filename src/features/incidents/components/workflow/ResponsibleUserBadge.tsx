@@ -37,20 +37,29 @@ export function ResponsibleUserBadge({ incident, className, showTitle = false }:
     // If status is closed or doesn't have a clear pending party, render nothing
     if (!responsibleInfo) return null;
 
+    const owner = getCurrentOwner(incident);
+
     return (
         <div className={cn("flex flex-col gap-1 items-start", className)}>
             <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
                 {t("workflow.pendingWith", "Pending With")}
             </span>
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-col gap-1">
                 {responsibleInfo.unassigned ? (
-                    <Badge variant="outline" className="border-warning text-warning-foreground bg-warning/10 text-xs py-0.5 font-normal">
-                        <AlertTriangle className="h-3 w-3 mr-1" />
-                        {t("workflow.unassigned", "Unassigned")} ({responsibleInfo.role})
-                    </Badge>
+                    <>
+                        <Badge variant="outline" className="border-destructive text-destructive bg-destructive/10 text-xs py-0.5 font-normal">
+                            <AlertTriangle className="h-3 w-3 me-1" />
+                            {t("workflow.noUserAssigned", "No user assigned to this role")}
+                        </Badge>
+                        {owner?.warningMessage && (
+                            <span className="text-[11px] text-destructive/80 ps-1">
+                                {t("workflow.contactAdmin", "Contact admin to assign a {{role}}", { role: responsibleInfo.role })}
+                            </span>
+                        )}
+                    </>
                 ) : responsibleInfo.user ? (
                     <Badge variant="secondary" className="text-xs py-0.5 font-normal bg-secondary mix-blend-multiply dark:mix-blend-screen text-secondary-foreground border border-border/50">
-                        <User className="h-3 w-3 mr-1" />
+                        <User className="h-3 w-3 me-1" />
                         <span className="truncate max-w-[150px] font-medium">{responsibleInfo.user.name}</span>
                     </Badge>
                 ) : null}
