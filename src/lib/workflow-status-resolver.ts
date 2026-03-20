@@ -34,6 +34,7 @@ export const CONTRACTOR_CONSULTANT_STATUSES = [
   'pending_consultant_review',     // Consultant reviewing actions
   'pending_consultant_actions',    // Consultant creating actions
   'pending_action_dispute_review', // Consultant reviewing action dispute from contractor
+  'pending_consultant_verification', // Consultant verifying completed contractor actions
 ] as const;
 
 /**
@@ -234,6 +235,7 @@ export function getStatusDisplayLabel(status: string, isArabic: boolean = false)
     pending_consultant_review: { en: 'Consultant Review', ar: 'مراجعة المستشار' },
     pending_consultant_actions: { en: 'Creating Actions', ar: 'إنشاء الإجراءات' },
     pending_action_dispute_review: { en: 'Dispute Review', ar: 'مراجعة النزاع' },
+    pending_consultant_verification: { en: 'Consultant Verification', ar: 'تحقق المستشار' },
     
     // Site Client steps
     pending_site_client_approval: { en: 'Site Client Approval', ar: 'موافقة عميل الموقع' },
