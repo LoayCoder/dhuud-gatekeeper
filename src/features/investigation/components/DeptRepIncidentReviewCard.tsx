@@ -106,16 +106,16 @@ export function DeptRepIncidentReviewCard({ incident, onComplete }: DeptRepIncid
 
   return (
     <div className="space-y-4" dir={direction}>
-      <Card className="border-amber-500/50 bg-amber-500/5">
+      <Card className="border-warning/50 bg-warning/5">
         <CardHeader>
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
-              <FileSearch className="h-5 w-5 text-amber-600" />
+              <FileSearch className="h-5 w-5 text-warning" />
               <CardTitle className="text-lg">
                 {t('workflow.deptRepIncidentReview.title', 'Department Representative Incident Review')}
               </CardTitle>
             </div>
-            <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
+            <Badge variant="outline" className="bg-warning/20 text-warning border-warning/30">
               {t('workflow.deptRepIncidentReview.pendingAction', 'Review Required')}
             </Badge>
           </div>
