@@ -225,7 +225,7 @@ export function DeptRepIncidentReviewCard({ incident, onComplete }: DeptRepIncid
                   </div>
                 )}
                 {incident.has_damage && (
-                  <div className="flex items-center gap-2 text-amber-600 text-sm">
+                  <div className="flex items-center gap-2 text-warning text-sm">
                     <AlertTriangle className="h-4 w-4" />
                     <span>{t('workflow.deptRepIncidentReview.hasDamage', 'Damage reported')}</span>
                   </div>
