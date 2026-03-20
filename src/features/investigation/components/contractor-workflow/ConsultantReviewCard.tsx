@@ -13,6 +13,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { 
+  Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
