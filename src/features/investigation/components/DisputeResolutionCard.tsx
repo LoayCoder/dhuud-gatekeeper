@@ -129,14 +129,14 @@ export function DisputeResolutionCard({ incident, investigation, onComplete }: D
   ];
 
   return (
-    <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-900/10">
+    <Card className="border-warning/30 bg-warning/5">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-amber-800 dark:text-amber-300">
+          <CardTitle className="flex items-center gap-2 text-warning">
             <Gavel className="h-5 w-5" />
             {t('workflow.dispute.title', 'Dispute Resolution')}
           </CardTitle>
-          <Badge variant="outline" className="border-amber-300 text-amber-700">
+          <Badge variant="outline" className="border-warning/30 text-warning">
             {categoryLabel}
           </Badge>
         </div>
