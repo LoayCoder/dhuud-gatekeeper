@@ -220,11 +220,11 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
           
           {/* Dept Rep Escalation Notes */}
           {deptRepNotes && (
-            <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
-              <p className="text-sm font-medium text-blue-800 mb-1">
+            <div className="rounded-lg bg-primary/5 border border-primary/30 p-3">
+              <p className="text-sm font-medium text-primary mb-1">
                 {t('workflow.escalationReview.deptRepNotes', 'Dept Rep Escalation Notes')}:
               </p>
-              <p className="text-sm text-blue-700">{deptRepNotes}</p>
+              <p className="text-sm text-primary/80">{deptRepNotes}</p>
             </div>
           )}
           
