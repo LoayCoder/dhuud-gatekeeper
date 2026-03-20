@@ -180,9 +180,34 @@ export function InvestigationWorkflowCards({
       // Show info that observation was upgraded - could show link to new incident
       return null;
 
+    case 'pending_hsse_rejection_review':
+      return (
+        <HSSEExpertRejectionReviewCard
+          incident={incidentData}
+          onComplete={handleRefresh}
+        />
+      );
+
+    case 'pending_hsse_manager_closure':
+      return (
+        <ObservationClosureGate
+          incident={incidentData}
+          onComplete={handleRefresh}
+        />
+      );
+
+    case 'observation_actions_pending':
+      // Actions are in progress - show validation card for HSSE to monitor
+      return (
+        <HSSEObservationValidationCard
+          incident={incidentData}
+          onComplete={handleRefresh}
+        />
+      );
+
     case 'pending_hsse_validation':
       return (
-        <HSSEValidationCard
+        <HSSEObservationValidationCard
           incident={incidentData}
           onComplete={handleRefresh}
         />
