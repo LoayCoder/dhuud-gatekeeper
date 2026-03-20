@@ -253,7 +253,7 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
             {/* Reject Escalation */}
             <Button
               variant="outline"
-              className="w-full flex items-center justify-center gap-2 text-red-600 border-red-300 hover:bg-red-50"
+              className="w-full flex items-center justify-center gap-2 text-destructive border-destructive/30 hover:bg-destructive/10"
               onClick={() => setShowRejectDialog(true)}
               disabled={escalationReview.isPending}
             >
