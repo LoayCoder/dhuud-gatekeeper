@@ -11,7 +11,7 @@ export function useWitnessStatements(incidentId: string | null) {
 
             const { data, error } = await supabase
                 .from("witness_statements")
-                .select("id, incident_id, tenant_id, witness_name, witness_contact, relationship, statement_text, audio_url, ai_transcription_text, original_transcription, transcription_edited, transcription_approved, ai_analysis, assigned_witness_id, status, created_by, created_at, deleted_at, return_reason, return_count, returned_by, returned_at, reviewed_by, reviewed_at")
+                .select("id, incident_id, tenant_id, witness_name, witness_contact, relationship, statement_text, audio_url, original_transcription, transcription_edited, transcription_approved, ai_analysis, assigned_witness_id, status, created_by, created_at, deleted_at, return_reason, return_count, returned_by, returned_at, reviewed_by, reviewed_at")
                 .eq("incident_id", incidentId)
                 .is("deleted_at", null)
                 .order("created_at", { ascending: false });
@@ -28,7 +28,7 @@ export function useWitnessStatements(incidentId: string | null) {
                 statement: row.statement_text as string,
                 statement_method: 'text' as StatementType,
                 audio_url: row.audio_url as string,
-                ai_transcription_text: row.ai_transcription_text as string,
+                ai_transcription_text: null,
                 original_transcription: row.original_transcription as string,
                 transcription_edited: (row.transcription_edited as boolean) || false,
                 transcription_approved: (row.transcription_approved as boolean) || false,

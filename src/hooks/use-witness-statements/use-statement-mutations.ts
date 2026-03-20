@@ -17,7 +17,6 @@ export function useCreateWitnessStatement() {
             statement: string;
             statement_method: StatementType;
             audio_url?: string;
-            ai_transcription_text?: string;
             original_transcription?: string;
             assigned_witness_id?: string;
             status?: WitnessStatus;
@@ -45,7 +44,6 @@ export function useCreateWitnessStatement() {
                     statement_text: input.statement,
                     statement_method: input.statement_method,
                     audio_url: input.audio_url,
-                    ai_transcription_text: input.ai_transcription_text,
                     original_transcription: input.original_transcription,
                     assigned_witness_id: input.assigned_witness_id,
                     status: input.status || 'pending',

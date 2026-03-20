@@ -137,8 +137,10 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         case "expert_rejected":
         case "manager_rejected":
         case "dept_rep_rejected":
-        case "returned_to_reporter":
             return null;
+
+        case "returned_to_reporter":
+            return buildOwner(null, "Reporter", true);
 
         // Submitted observations are pending HSSE Expert / Dept Rep routing
         case "submitted":
