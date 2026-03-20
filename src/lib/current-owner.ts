@@ -35,6 +35,7 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         case "pending_dept_rep_incident_review":
         case "pending_dept_rep_approval":
         case "pending_dept_rep_review":
+        case "pending_dept_rep_mandatory_action":
             return buildOwner(
                 incident.approval_manager?.full_name || null,
                 "Department Representative",
