@@ -66,7 +66,6 @@ export function InvestigationWorkflowCards({
       return (
         <ReporterCorrectionBanner
           incident={incidentData}
-          onEdit={() => {/* TODO: Navigate to edit form */ }}
           onComplete={handleRefresh}
         />
       );
@@ -329,7 +328,7 @@ export function InvestigationWorkflowCards({
 
     case 'pending_hsse_expert_review':
       return (
-        <HSSEValidationCard
+        <HSSEObservationValidationCard
           incident={incidentData}
           onComplete={handleRefresh}
         />

@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { RotateCcw, Edit, Loader2 } from "lucide-react";
 import { useReporterResponse } from '@/features/incidents';
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import type { IncidentWithDetails } from '@/features/incidents';
 
 interface ReporterCorrectionBannerProps {
   incident: IncidentWithDetails;
-  onEdit: () => void;
+  onEdit?: () => void;
   onComplete: () => void;
 }
 
@@ -22,6 +23,11 @@ export function ReporterCorrectionBanner({ incident, onEdit, onComplete }: Repor
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  const handleEdit = onEdit || (() => {
+    navigate(`/incidents/report?edit=${incident.id}`);
+  });
   
   const reporterResponse = useReporterResponse();
   
@@ -76,7 +82,7 @@ export function ReporterCorrectionBanner({ incident, onEdit, onComplete }: Repor
           <Button
             size="sm"
             variant="outline"
-            onClick={onEdit}
+            onClick={handleEdit}
             className="border-warning/50 text-warning hover:bg-warning/10"
           >
             <Edit className="h-4 w-4 me-2" />

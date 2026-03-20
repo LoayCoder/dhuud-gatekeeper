@@ -1,4 +1,5 @@
 ﻿
+import { useNavigate } from "react-router-dom";
 import { useInvestigationContext } from "@/features/investigation/context/InvestigationContext";
 import {
     HSSEExpertScreeningCard,
@@ -21,6 +22,7 @@ import type { ViolationIncidentFields } from '../../types/investigationTypes';
 
 export function TriageStage() {
     const { incident, refresh } = useInvestigationContext();
+    const navigate = useNavigate();
 
     if (!incident) return null;
 
@@ -41,7 +43,7 @@ export function TriageStage() {
             return (
                 <ReporterCorrectionBanner
                     incident={typedIncident}
-                    onEdit={() => {/* TODO: Navigate to edit form */ }}
+                    onEdit={() => navigate(`/incidents/report?edit=${incident.id}`)}
                     onComplete={refresh}
                 />
             );
