@@ -150,16 +150,16 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
 
   return (
     <>
-      <Card className="border-amber-500/50 bg-amber-500/5" dir={direction}>
+      <Card className="border-warning/50 bg-warning/5" dir={direction}>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ClipboardCheck className="h-5 w-5 text-amber-600" />
+              <ClipboardCheck className="h-5 w-5 text-warning" />
               <CardTitle className="text-lg">
                 {t('workflow.escalationReview.title', 'HSSE Escalation Review')}
               </CardTitle>
             </div>
-            <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
+            <Badge variant="outline" className="bg-warning/20 text-warning border-warning/30">
               {t('workflow.escalationReview.pendingReview', 'Escalation Pending')}
             </Badge>
           </div>

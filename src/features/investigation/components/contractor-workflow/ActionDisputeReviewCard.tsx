@@ -59,7 +59,9 @@ export function ActionDisputeReviewCard({
       decision: decisionMap[resolution],
       notes: notes.trim() || undefined
     }, {
-      onSuccess: onResolved
+      onSuccess: () => {
+        (onResolved || onComplete)?.();
+      }
     });
   };
 
