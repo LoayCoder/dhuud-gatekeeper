@@ -293,17 +293,31 @@ export function ConsultantReviewCard({
                 {t('workflow.createAction', 'Create Action')}
               </Button>
 
-              <Button
-                onClick={handleSubmit}
-                disabled={!canSubmit || isPending}
-                className="flex-1 gap-2"
-              >
-                {isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-                {t('workflow.consultant.submitToSiteClient', 'Submit to Site Client')}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="flex-1">
+                      <Button
+                        onClick={handleSubmit}
+                        disabled={!canSubmit || isPending}
+                        className="w-full gap-2"
+                      >
+                        {isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Send className="h-4 w-4" />
+                        )}
+                        {t('workflow.consultant.submitToSiteClient', 'Submit to Site Client')}
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  {!canSubmit && (
+                    <TooltipContent>
+                      <p>{t('workflow.consultant.submitTooltip', 'Add at least one corrective action and fill in review notes to enable submission')}</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
               </Button>
             </div>
 
