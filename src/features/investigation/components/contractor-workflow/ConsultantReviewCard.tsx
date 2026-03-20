@@ -318,7 +318,7 @@ export function ConsultantReviewCard({
                   )}
                 </Tooltip>
               </TooltipProvider>
-              </Button>
+            </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-border/50">
