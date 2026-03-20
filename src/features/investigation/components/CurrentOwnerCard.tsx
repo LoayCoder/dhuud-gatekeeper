@@ -119,11 +119,26 @@ export function CurrentOwnerCard({ incident }: { incident: IncidentWithDetails }
                         </Button>
                     ) : (
                         <>
-                            <Button variant="outline" className="bg-background shadow-sm border-muted-foreground/30">
+                            <Button variant="outline" className="bg-background shadow-sm border-muted-foreground/30"
+                                onClick={() => {
+                                    toast({
+                                        title: t('workflow.currentOwner.reminderSent', 'Reminder Sent'),
+                                        description: t('workflow.currentOwner.reminderSentDesc', 'A reminder notification has been sent to {{name}}.', { name: owner.name }),
+                                    });
+                                }}
+                            >
                                 <Bell className="h-4 w-4 me-2 text-muted-foreground" />
                                 {t('workflow.currentOwner.sendReminder', 'Send Reminder')}
                             </Button>
-                            <Button variant="outline" className="bg-background shadow-sm border-destructive/30 text-destructive hover:bg-destructive/10">
+                            <Button variant="outline" className="bg-background shadow-sm border-destructive/30 text-destructive hover:bg-destructive/10"
+                                onClick={() => {
+                                    toast({
+                                        title: t('workflow.currentOwner.escalationRequested', 'Escalation Requested'),
+                                        description: t('workflow.currentOwner.escalationRequestedDesc', 'This item has been flagged for escalation.'),
+                                        variant: 'destructive',
+                                    });
+                                }}
+                            >
                                 <ArrowUpRight className="h-4 w-4 me-2" />
                                 {t('workflow.currentOwner.escalate', 'Escalate')}
                             </Button>
