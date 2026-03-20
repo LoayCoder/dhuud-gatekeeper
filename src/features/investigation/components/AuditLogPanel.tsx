@@ -25,21 +25,21 @@ export function AuditLogPanel({ incidentId, defaultOpen = false }: AuditLogPanel
   const getActionDetails = (action: string) => {
     switch (action) {
       case 'investigation_started':
-        return { label: t('investigation.audit.started', 'Investigation Started'), icon: PlayCircle, color: 'text-blue-500', bg: 'bg-blue-50 border-blue-200' };
+        return { label: t('investigation.audit.started', 'Investigation Started'), icon: PlayCircle, color: 'text-primary', bg: 'bg-primary/10 border-primary/20' };
       case 'investigation_updated':
-        return { label: t('investigation.audit.updated', 'Investigation Updated'), icon: Edit, color: 'text-amber-500', bg: 'bg-amber-50 border-amber-200' };
+        return { label: t('investigation.audit.updated', 'Investigation Updated'), icon: Edit, color: 'text-warning', bg: 'bg-warning/10 border-warning/20' };
       case 'action_created':
-        return { label: t('investigation.audit.actionCreated', 'Action Created'), icon: PlusCircle, color: 'text-emerald-500', bg: 'bg-emerald-50 border-emerald-200' };
+        return { label: t('investigation.audit.actionCreated', 'Action Created'), icon: PlusCircle, color: 'text-success', bg: 'bg-success/10 border-success/20' };
       case 'action_updated':
-        return { label: t('investigation.audit.actionUpdated', 'Action Updated'), icon: CheckSquare, color: 'text-emerald-500', bg: 'bg-emerald-50 border-emerald-200' };
+        return { label: t('investigation.audit.actionUpdated', 'Action Updated'), icon: CheckSquare, color: 'text-success', bg: 'bg-success/10 border-success/20' };
       case 'evidence_uploaded':
-        return { label: t('investigation.audit.evidenceUploaded', 'Evidence Uploaded'), icon: FileText, color: 'text-indigo-500', bg: 'bg-indigo-50 border-indigo-200' };
+        return { label: t('investigation.audit.evidenceUploaded', 'Evidence Uploaded'), icon: FileText, color: 'text-info', bg: 'bg-info/10 border-info/20' };
       case 'evidence_reviewed':
-        return { label: t('investigation.audit.evidenceReviewed', 'Evidence Reviewed'), icon: CheckCircle2, color: 'text-indigo-500', bg: 'bg-indigo-50 border-indigo-200' };
+        return { label: t('investigation.audit.evidenceReviewed', 'Evidence Reviewed'), icon: CheckCircle2, color: 'text-info', bg: 'bg-info/10 border-info/20' };
       case 'evidence_deleted':
         return { label: t('investigation.auditLog.evidenceDeleted', 'Evidence Deleted'), icon: Trash2, color: 'text-destructive', bg: 'bg-destructive/10 border-destructive/20' };
       case 'witness_added':
-        return { label: t('investigation.audit.witnessAdded', 'Witness Statement Added'), icon: User, color: 'text-purple-500', bg: 'bg-purple-50 border-purple-200' };
+        return { label: t('investigation.audit.witnessAdded', 'Witness Statement Added'), icon: User, color: 'text-accent-foreground', bg: 'bg-accent border-accent/20' };
       case 'status_changed':
         return { label: t('investigation.audit.statusChanged', 'Status Changed'), icon: Clock, color: 'text-primary', bg: 'bg-primary/10 border-primary/20' };
       default:

@@ -14,7 +14,7 @@ import {
   Loader2,
   RefreshCw
 } from 'lucide-react';
-import { useConsultantResolveActionDispute } from '@/features/incidents';
+import { useConsultantResolveActionDispute } from '@/features/incidents/hooks/use-action-dispute';
 
 interface ActionDisputeReviewCardProps {
   incidentId: string;

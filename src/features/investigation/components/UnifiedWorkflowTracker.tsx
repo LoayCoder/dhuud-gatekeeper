@@ -265,7 +265,7 @@ export function UnifiedWorkflowTracker({
           </div>
           <div className="flex items-center gap-2">
             {isContractor && (
-              <Badge variant="outline" className="bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200">
+              <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30">
                 {t('workflow.unified.contractorTag', 'Contractor')}
               </Badge>
             )}
