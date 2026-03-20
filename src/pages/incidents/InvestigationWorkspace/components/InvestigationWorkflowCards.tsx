@@ -203,10 +203,7 @@ export function InvestigationWorkflowCards({
                 <Button
                   variant="outline"
                   className="shrink-0"
-                  onClick={() => {
-                    const nav = document.querySelector('[data-router]');
-                    window.location.href = `/incidents/${incidentData.upgraded_to_incident_id}`;
-                  }}
+                  onClick={() => navigate(`/incidents/${incidentData.upgraded_to_incident_id}`)}
                 >
                   <ExternalLink className="h-4 w-4 me-2" />
                   {t('workflow.upgradedToIncident.viewIncident', 'View Incident')}
