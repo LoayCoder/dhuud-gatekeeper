@@ -236,7 +236,7 @@ export function IncidentOverviewTab({ incident }: IncidentOverviewTabProps) {
                                 <p className="text-sm font-medium text-muted-foreground mb-1">
                                     {t('incidents.contractor', 'Contractor')}
                                 </p>
-                                <div className="flex items-center gap-2 text-amber-600 dark:text-amber-500">
+                                <div className="flex items-center gap-2 text-warning">
                                     <Building2 className="h-4 w-4" />
                                     <span className="text-sm font-medium">{incident.related_contractor_company.company_name}</span>
                                 </div>
