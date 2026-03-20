@@ -114,6 +114,14 @@ export function TriageStage() {
                 />
             );
 
+        case 'pending_hsse_rejection_review':
+            return (
+                <HSSEExpertRejectionReviewCard
+                    incident={typedIncident as unknown as IncidentWithDetails}
+                    onComplete={refresh}
+                />
+            );
+
         default:
             return (
                 <div className="p-4 bg-muted rounded border border-dashed text-center text-muted-foreground">
