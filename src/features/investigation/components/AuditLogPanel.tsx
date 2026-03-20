@@ -108,7 +108,7 @@ export function AuditLogPanel({ incidentId, defaultOpen = false }: AuditLogPanel
                 </p>
               </div>
             ) : (
-              <div className="relative pl-6 sm:pl-8 border-l-2 border-muted space-y-8 mt-6">
+              <div className="relative ps-6 sm:ps-8 border-s-2 border-muted space-y-8 mt-6">
                 {sortedLogs.map((log) => {
                   const details = getActionDetails(log.action);
                   const Icon = details.icon;

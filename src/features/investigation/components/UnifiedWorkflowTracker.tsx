@@ -55,9 +55,10 @@ interface WorkflowStep {
 const SUBMITTED_STATUSES = ['submitted'];
 const REVIEW_STATUSES = [
   'pending_consultant_screening', 'expert_screening',
-  'pending_dept_rep_approval', 'pending_dept_rep_review'
+  'pending_dept_rep_approval', 'pending_dept_rep_review',
+  'pending_dept_rep_mandatory_action'
 ];
-const EXPERT_REVIEW_STATUSES = ['pending_hsse_expert_review', 'pending_hsse_validation'];
+const EXPERT_REVIEW_STATUSES = ['pending_hsse_expert_review', 'pending_hsse_validation', 'pending_hsse_escalation_review', 'pending_hsse_rejection_review'];
 const APPROVAL_STATUSES = [
   'pending_site_client_approval', 'pending_manager_approval',
   'pending_department_manager_approval'
@@ -65,8 +66,10 @@ const APPROVAL_STATUSES = [
 const ACTION_STATUSES = [
   'pending_contractor_implementation', 'contractor_action_implementation',
   'pending_consultant_verification', 'observation_actions_pending',
-  'pending_action_completion', 'pending_action_verification'
+  'pending_action_completion', 'pending_action_verification',
+  'pending_consultant_actions'
 ];
+const CLOSURE_STATUSES = ['pending_hsse_manager_closure', 'pending_final_closure'];
 const CLOSED_STATUSES = ['closed', 'hsse_enforced'];
 
 export function UnifiedWorkflowTracker({
