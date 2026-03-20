@@ -8,6 +8,7 @@ export interface CurrentOwnerInfo {
     roleCategory: RoleCategory;
     isUnassigned: boolean;
     actionRequired: string;
+    warningMessage: string | null;
 }
 
 /**
