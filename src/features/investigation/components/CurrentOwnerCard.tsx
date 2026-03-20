@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import type { IncidentWithDetails } from '@/features/incidents';
 import { getCurrentOwner } from "@/lib/current-owner";
 import { ROLE_BG_COLORS, ROLE_BORDER_COLORS, ROLE_TEXT_COLORS } from "@/lib/role-colors";
+import { useToast } from "@/hooks/use-toast";
 
 export function CurrentOwnerCard({ incident }: { incident: IncidentWithDetails }) {
     const { t } = useTranslation();
