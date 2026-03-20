@@ -226,6 +226,9 @@ export function UnifiedWorkflowTracker({
     if (ACTION_STATUSES.includes(status)) {
       return isContractor ? t('roles.contractor', 'Contractor') : t('roles.action_owner', 'Action Owner');
     }
+    if (CLOSURE_STATUSES.includes(status)) {
+      return t('roles.hsse_manager', 'HSSE Manager');
+    }
     return null;
   };
 
