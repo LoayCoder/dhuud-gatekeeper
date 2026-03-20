@@ -63,13 +63,20 @@ export function IncidentRiskPanel({
           </p>
           <div className="flex items-center gap-3">
             {actualSeverity ? (
-              <Badge 
-                variant={getSeverityBadgeVariant(actualSeverity)}
-                className="text-sm px-3 py-1.5"
-              >
-                <AlertTriangle className="h-3.5 w-3.5 me-1.5" />
-                {t(`severity.${actualSeverity}.label`)}
-              </Badge>
+              <>
+                <Badge 
+                  variant={getSeverityBadgeVariant(actualSeverity)}
+                  className="text-sm px-3 py-1.5"
+                >
+                  <AlertTriangle className="h-3.5 w-3.5 me-1.5" />
+                  {t(`severity.${actualSeverity}.label`)}
+                </Badge>
+                {aiConfidence != null && aiConfidence > 0 && (
+                  <Badge variant="outline" className="text-xs text-muted-foreground">
+                    {t('incidents.detail.aiConfidence', 'AI Confidence')}: {Math.round(aiConfidence * 100)}%
+                  </Badge>
+                )}
+              </>
             ) : (
               <Badge variant="outline" className="text-sm">
                 {t('common.notAssessed', 'Not Assessed')}
