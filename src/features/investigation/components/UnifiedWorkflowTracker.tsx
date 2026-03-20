@@ -184,7 +184,7 @@ export function UnifiedWorkflowTracker({
       key: 'actions',
       label: t('workflow.unified.actions', 'Actions'),
       icon: <Clock className="h-4 w-4" />,
-      status: getStepStatus(ACTION_STATUSES, [CLOSED_STATUSES]),
+      status: getStepStatus(ACTION_STATUSES, [CLOSURE_STATUSES, CLOSED_STATUSES]),
       actorName: workflowActors?.implementer?.full_name,
     });
     
@@ -193,11 +193,15 @@ export function UnifiedWorkflowTracker({
       key: 'closed',
       label: status === 'hsse_enforced' 
         ? t('workflow.unified.enforced', 'Enforced')
-        : t('workflow.unified.closed', 'Closed'),
+        : CLOSURE_STATUSES.includes(status)
+          ? t('workflow.unified.pendingClosure', 'Pending Closure')
+          : t('workflow.unified.closed', 'Closed'),
       icon: status === 'hsse_enforced' ? <Shield className="h-4 w-4" /> : <Lock className="h-4 w-4" />,
       status: CLOSED_STATUSES.includes(status) 
         ? (status === 'hsse_enforced' ? 'enforced' : 'completed')
-        : 'pending',
+        : CLOSURE_STATUSES.includes(status)
+          ? 'current'
+          : 'pending',
       actorName: workflowActors?.closure_approver?.full_name,
     });
     
