@@ -17,7 +17,6 @@ export function useCreateWitnessStatement() {
             statement: string;
             statement_method: StatementType;
             audio_url?: string;
-            ai_transcription_text?: string;
             original_transcription?: string;
             assigned_witness_id?: string;
             status?: WitnessStatus;
