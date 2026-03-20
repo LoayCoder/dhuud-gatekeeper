@@ -111,6 +111,7 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
 
         // Site Client Approval
         case "pending_site_client_approval":
+        case "pending_site_client_action_approval":
             return buildOwner(null, "Site Client Rep", true);
 
         // Compliance & Dispute

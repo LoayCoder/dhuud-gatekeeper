@@ -335,12 +335,43 @@ export function InvestigationWorkflowCards({
       );
 
     case 'pending_site_client_approval':
+    case 'pending_site_client_action_approval':
       return (
         <SiteClientActionApprovalCard
           incidentId={incidentData.id}
           status={currentStatus}
           actionsCount={actionsCount}
           consultantNotes={incidentData.consultant_screening_notes || undefined}
+        />
+      );
+
+    case 'contractor_action_implementation':
+    case 'pending_contractor_action':
+    case 'pending_contractor_implementation':
+      return (
+        <ConsultantReviewCard
+          incidentId={incidentData.id}
+          status={currentStatus}
+          assigneeId={incidentData.approval_manager_id}
+          severityLevel={incidentData.severity_v2 ? incidentData.severity_v2 as SeverityLevelV2 : undefined}
+          hasActions={actionsCount > 0}
+          actionsCount={actionsCount}
+          onActionCreated={handleCreateAction}
+          onComplete={handleRefresh}
+        />
+      );
+
+    case 'pending_consultant_verification':
+      return (
+        <ConsultantReviewCard
+          incidentId={incidentData.id}
+          status={currentStatus}
+          assigneeId={incidentData.approval_manager_id}
+          severityLevel={incidentData.severity_v2 ? incidentData.severity_v2 as SeverityLevelV2 : undefined}
+          hasActions={actionsCount > 0}
+          actionsCount={actionsCount}
+          onActionCreated={handleCreateAction}
+          onComplete={handleRefresh}
         />
       );
 

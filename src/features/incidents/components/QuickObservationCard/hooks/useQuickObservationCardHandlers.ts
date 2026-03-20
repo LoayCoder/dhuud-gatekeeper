@@ -183,11 +183,6 @@ export function useQuickObservationCardHandlers(state: any) {
           id: offlineId,
           referenceId: t('offline.pendingSync'),
         });
-        
-        // Navigate back after delay
-        setTimeout(() => {
-          state.onCancel?.();
-        }, 3000);
       } else {
         setHasSubmitted(false);
         toast.error(t('offline.failedToSaveOffline'));

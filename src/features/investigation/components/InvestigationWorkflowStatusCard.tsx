@@ -106,7 +106,10 @@ export function InvestigationWorkflowStatusCard({
         'pending_hsse_validation',
         'pending_hsse_manager_closure',
         'pending_final_closure',
-        'upgraded_to_incident'
+        'upgraded_to_incident',
+        'pending_hsse_expert_review',
+        'pending_hsse_rejection_review',
+        'pending_hsse_escalation_review'
       ].includes(status);
       
       const deptRepCurrentStatuses = ['pending_dept_rep_approval', 'pending_dept_rep_review', 'pending_dept_rep_mandatory_action'];
