@@ -278,7 +278,7 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
             
             {/* Upgrade to Incident */}
             <Button
-              className="w-full flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700"
+              className="w-full flex items-center justify-center gap-2 bg-warning hover:bg-warning/90 text-warning-foreground"
               onClick={() => setShowUpgradeDialog(true)}
               disabled={escalationReview.isPending}
             >

@@ -188,11 +188,11 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
             <div className="flex items-center gap-2 text-sm pt-2 border-t border-border/50">
               <MapPin className={cn(
                 "h-4 w-4 flex-shrink-0",
-                (incident.site?.name || incident.latitude) ? "text-green-500" : "text-amber-500"
+                (incident.site?.name || incident.latitude) ? "text-success" : "text-warning"
               )} />
               <span className={cn(
                 !(incident.site?.name || incident.branch?.name || incident.location || incident.latitude) 
-                  ? "text-amber-600 dark:text-amber-400" 
+                  ? "text-warning" 
                   : "text-muted-foreground"
               )}>
                 {incident.site?.name || 
