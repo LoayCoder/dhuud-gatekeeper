@@ -109,15 +109,16 @@ export function InvestigationWorkflowStatusCard({
         'upgraded_to_incident'
       ].includes(status);
       
+      const deptRepCurrentStatuses = ['pending_dept_rep_approval', 'pending_dept_rep_review', 'pending_dept_rep_mandatory_action'];
       steps.push({
         key: 'dept_rep',
         label: t('workflow.steps.deptRepReview', 'Department Rep Review'),
         icon: <ClipboardCheck className="h-5 w-5" />,
-        status: status === 'pending_dept_rep_approval' ? 'current' : 
+        status: deptRepCurrentStatuses.includes(status) ? 'current' : 
                 deptRepCompleted ? 'completed' : 'pending',
         actorName: workflowActors?.dept_rep?.full_name,
         timestamp: workflowActors?.dept_rep?.timestamp,
-        description: status === 'pending_dept_rep_approval' 
+        description: deptRepCurrentStatuses.includes(status)
           ? t('workflow.descriptions.awaitingDeptRep', 'Awaiting department representative review')
           : deptRepCompleted ? t('workflow.descriptions.deptRepApproved', 'Reviewed and approved') : undefined
       });
