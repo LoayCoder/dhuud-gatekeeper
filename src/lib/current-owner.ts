@@ -61,7 +61,8 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
                 const consultantName = incident.approval_manager?.full_name || null;
                 return buildOwner(consultantName, "Contractor Consultant", !consultantName);
             }
-            return buildOwner(null, "HSSE Expert", true);
+            const expertName = incident.approval_manager?.full_name || null;
+            return buildOwner(expertName, "HSSE Expert", !expertName);
 
         case "investigation_pending":
         case "pending_investigator_assignment":
