@@ -293,7 +293,7 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
       <AlertDialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
         <AlertDialogContent dir={direction}>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
               <XCircle className="h-5 w-5" />
               {t('workflow.escalationReview.rejectDialogTitle', 'Reject Escalation?')}
             </AlertDialogTitle>
