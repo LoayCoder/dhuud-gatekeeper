@@ -285,7 +285,7 @@ function ChecklistItem({
         {label}
       </span>
       {warning && warningText && (
-        <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">
+        <Badge variant="outline" className="text-xs text-warning border-warning/30">
           {warningText}
         </Badge>
       )}
