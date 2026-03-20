@@ -78,6 +78,7 @@ export const HSSE_MANAGER_STATUSES = [
 export const DEPT_REP_STATUSES = [
   'pending_dept_rep_approval',
   'pending_dept_rep_review',
+  'pending_dept_rep_mandatory_action',
 ] as const;
 
 // ============================================
