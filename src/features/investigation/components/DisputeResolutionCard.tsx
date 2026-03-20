@@ -151,7 +151,7 @@ export function DisputeResolutionCard({ incident, investigation, onComplete }: D
             <Label className="text-muted-foreground">
               {t('workflow.dispute.managerReason', 'Manager\'s Rejection Reason')}
             </Label>
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800">
+            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
               <p className="text-sm">{incident.manager_rejection_reason || t('common.notProvided', 'Not provided')}</p>
             </div>
           </div>
