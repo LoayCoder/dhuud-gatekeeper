@@ -58,7 +58,7 @@ export function InvestigationLayout() {
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="-ml-2 h-8 w-8 p-0"
+                            className="-ms-2 h-8 w-8 p-0"
                             onClick={() => navigate('/incidents')}
                         >
                             <ArrowLeft className="h-4 w-4" />
@@ -78,7 +78,7 @@ export function InvestigationLayout() {
 
                 <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" onClick={refresh}>
-                        <RefreshCw className="h-4 w-4 mr-2" />
+                        <RefreshCw className="h-4 w-4 me-2" />
                         {t('common.refresh', 'Refresh')}
                     </Button>
                 </div>

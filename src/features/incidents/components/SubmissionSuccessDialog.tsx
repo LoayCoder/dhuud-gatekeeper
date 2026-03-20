@@ -10,7 +10,7 @@ interface SubmissionSuccessDialogProps {
   open: boolean;
   referenceId: string;
   incidentId: string;
-  onViewIncident: () => void;
+  onViewIncident?: () => void;
   redirectSeconds?: number;
 }
 
