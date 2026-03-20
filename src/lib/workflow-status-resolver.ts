@@ -34,6 +34,7 @@ export const CONTRACTOR_CONSULTANT_STATUSES = [
   'pending_consultant_review',     // Consultant reviewing actions
   'pending_consultant_actions',    // Consultant creating actions
   'pending_action_dispute_review', // Consultant reviewing action dispute from contractor
+  'pending_consultant_verification', // Consultant verifying completed contractor actions
 ] as const;
 
 /**
