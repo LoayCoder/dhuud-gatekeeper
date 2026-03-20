@@ -105,7 +105,7 @@ export function UnifiedWorkflowTracker({
     
     // If we're past this step (current status is in a later stage)
     const allLaterStatuses = nextSteps.flat();
-    if (allLaterStatuses.includes(status) || CLOSED_STATUSES.includes(status)) {
+    if (allLaterStatuses.includes(status) || CLOSURE_STATUSES.includes(status) || CLOSED_STATUSES.includes(status)) {
       return 'completed';
     }
     

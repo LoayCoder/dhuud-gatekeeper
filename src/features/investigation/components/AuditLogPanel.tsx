@@ -117,7 +117,7 @@ export function AuditLogPanel({ incidentId, defaultOpen = false }: AuditLogPanel
                     <div key={log.id} className="relative group">
                       {/* Timeline Dot */}
                       <div className={cn(
-                        "absolute -left-[33px] sm:-left-[41px] top-1.5 h-8 w-8 rounded-full flex items-center justify-center ring-4 ring-card border transition-all duration-200 shadow-sm",
+                        "absolute -start-[33px] sm:-start-[41px] top-1.5 h-8 w-8 rounded-full flex items-center justify-center ring-4 ring-card border transition-all duration-200 shadow-sm",
                         details.bg, details.color
                       )}>
                         <Icon className="h-4 w-4" />
