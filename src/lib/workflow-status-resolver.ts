@@ -254,6 +254,7 @@ export function getStatusDisplayLabel(status: string, isArabic: boolean = false)
     // Department Rep steps
     pending_dept_rep_approval: { en: 'Dept Rep Approval', ar: 'موافقة ممثل القسم' },
     pending_dept_rep_review: { en: 'Dept Rep Review', ar: 'مراجعة ممثل القسم' },
+    pending_dept_rep_mandatory_action: { en: 'Dept Rep Mandatory Action', ar: 'إجراء إلزامي لممثل القسم' },
     
     // Terminal states
     closed: { en: 'Closed', ar: 'مغلق' },
