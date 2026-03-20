@@ -152,7 +152,7 @@ export function useReviewWitnessStatement() {
                 const { data, error } = await supabase
                     .from("witness_statements")
                     .update({
-                        status: "returned",
+                        assignment_status: "returned",
                         return_reason: returnReason,
                         return_count: newReturnCount,
                         returned_by: user?.id,
