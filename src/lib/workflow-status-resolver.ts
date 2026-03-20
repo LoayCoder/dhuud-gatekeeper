@@ -80,6 +80,7 @@ export const DEPT_REP_STATUSES = [
   'pending_dept_rep_approval',
   'pending_dept_rep_review',
   'pending_dept_rep_mandatory_action',
+  'pending_dept_rep_incident_review',
 ] as const;
 
 // ============================================
