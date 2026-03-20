@@ -125,12 +125,12 @@ export function DeptRepIncidentReviewCard({ incident, onComplete }: DeptRepIncid
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Read-Only Notice */}
-          <Alert variant="default" className="border-blue-200 bg-blue-50">
-            <Info className="h-4 w-4 text-blue-600" />
-            <AlertTitle className="text-blue-800">
+          <Alert variant="default" className="border-primary/30 bg-primary/5">
+            <Info className="h-4 w-4 text-primary" />
+            <AlertTitle className="text-primary">
               {t('workflow.deptRepIncidentReview.readOnlyNotice', 'Read-Only Review')}
             </AlertTitle>
-            <AlertDescription className="text-blue-700">
+            <AlertDescription className="text-primary/80">
               {t('workflow.deptRepIncidentReview.readOnlyDescription', 'You can only approve or reject this incident. Modifications are not allowed at this stage.')}
             </AlertDescription>
           </Alert>
