@@ -133,8 +133,11 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         case "manager_rejected":
         case "dept_rep_rejected":
         case "returned_to_reporter":
-        case "submitted": // Note: Submitted incidents might immediately hit 'pending_dept_rep_review' but if staying 'submitted', no action is actively assigned
             return null;
+
+        // Submitted observations are pending HSSE Expert / Dept Rep routing
+        case "submitted":
+            return buildOwner(null, "HSSE Expert", true);
 
         default:
             return null;
