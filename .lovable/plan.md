@@ -1,66 +1,86 @@
 
 
-# Unify Observation Workflow Status Display
+# Deep Audit — Unified Timeline Tracker & Workflow Status Accuracy (v10)
 
-## Problem
+## Audit Summary
 
-The InvestigationWorkspace page shows **three separate, inconsistent workflow displays** for observations:
+After reviewing all key files (`UnifiedTimelineTracker.tsx`, `InvestigationWorkflowCards.tsx`, `current-owner.ts`, `workflow-status-resolver.ts`, `InvestigationWorkflowStatusCard.tsx`, `incident-status-colors.ts`), I found **3 issues** — 1 High, 1 Medium, 1 Low.
 
-1. **Status badge** in the header ("pending consultant screening")
-2. **CurrentOwnerCard** below header ("Awaiting Assignment" — misleading for consultant screening)
-3. **UnifiedTimelineTracker** horizontal stepper (may show wrong step for contractor statuses)
+---
 
-This creates user confusion — the status says "pending consultant screening" but the owner card says "Awaiting Assignment" and the workflow tracker shows "Department Rep Review: Pending."
+## Finding 1 — HIGH: `UnifiedTimelineTracker.getStepIndex()` missing 10+ incident statuses
 
-## Root Causes
+**File:** `src/features/investigation/components/UnifiedTimelineTracker.tsx` (lines 42-48)
 
-- **`CurrentOwnerCard`**: For `pending_consultant_screening`, `approval_manager` is null, so it shows "Awaiting Assignment" even though the Contractor Consultant role is correctly identified — the visual presentation is misleading
-- **`InvestigationWorkflowStatusCard`**: Missing contractor observation statuses in `deptRepCompleted` array — `pending_consultant_screening` and all contractor-specific statuses are absent, causing Dept Rep step to show as "pending" instead of "completed"
-- **Duplication**: Three separate components all try to communicate "where is this in the workflow" — this fragments the information
+The incident path of `getStepIndex()` is missing many statuses, causing the timeline to fallback to step 0 ("Reported") even when the incident has progressed further. This is the root cause of confusing timeline display.
 
-## Plan
+**Missing from step 1 (Triage):**
+- `pending_department_manager_approval` — Dept Manager approval stage
+- `pending_no_investigation_approval` — No-investigation gate
+- `pending_hsse_rejection_review` — HSSE expert rejection review
+- `pending_hsse_expert_review` — HSSE expert review
+- `expert_rejected` — rejected by expert (terminal but triage-stage)
+- `manager_rejected` — rejected by manager
+- `pending_clinic_review` — clinic review
+- `pending_legal_review` — legal review
+- `pending_dept_rep_approval` — dept rep approval (for incidents that go through this)
 
-### Step 1: Merge Current Owner info into UnifiedTimelineTracker
+**Missing from step 3 (Corrective Actions):**
+- `pending_department_manager_violation_approval` — violation approval
+- `pending_contract_controller_approval` — contract controller
+- `dispute_resolution` — dispute stage
+- `pending_contractor_dispute_review` — contractor dispute
 
-Enhance `UnifiedTimelineTracker` to show the current owner role and name **inline on the active step**, replacing the need for a separate `CurrentOwnerCard`. The tracker already shows roles for each step — we'll add the owner's name and an "Awaiting" indicator for unassigned states directly on the active step.
+**Missing from step 4 (Closed):**
+- `pending_hsse_incident_validation` — final HSSE validation
+- `monitoring_30_day`, `monitoring_60_day`, `monitoring_90_day` — monitoring periods
+- `hsse_enforced` — enforcement closure
 
-**File**: `src/features/investigation/components/UnifiedTimelineTracker.tsx`
-- Import and call `getCurrentOwner()` from `@/lib/current-owner`
-- Display the owner name/role badge on the active (current) step
-- For unassigned states, show a subtle "Awaiting [Role]" label instead of a separate card
+**Fix:** Add all missing statuses to the correct step indices.
 
-### Step 2: Remove CurrentOwnerCard from InvestigationWorkspace
+---
 
-Remove the `CurrentOwnerCard` rendering from `InvestigationWorkspace.tsx` since its information is now embedded in the timeline tracker.
+## Finding 2 — MEDIUM: `workflow-status-resolver.ts` DEPT_REP_STATUSES missing incident status
 
-**File**: `src/pages/incidents/InvestigationWorkspace.tsx`
-- Remove the `CurrentOwnerCard` import and its JSX block (lines 162-164)
+**File:** `src/lib/workflow-status-resolver.ts` (lines 79-83)
 
-### Step 3: Fix InvestigationWorkflowStatusCard contractor status coverage
+`DEPT_REP_STATUSES` does not include `pending_dept_rep_incident_review`. The `canRoleActOnStatus()` function will return `false` for Dept Reps viewing incidents at this status, which could prevent the admin from seeing it's pending with a Dept Rep.
 
-Even though this card is only used in the debug page, fix it for consistency. Add all contractor observation statuses to the `deptRepCompleted` array so the Dept Rep step correctly shows as "completed" when the workflow has moved to consultant screening.
+**Fix:** Add `'pending_dept_rep_incident_review'` to `DEPT_REP_STATUSES`.
 
-**File**: `src/features/investigation/components/InvestigationWorkflowStatusCard.tsx`
-- Add `pending_consultant_screening`, `pending_consultant_review`, `pending_consultant_actions`, `pending_site_client_approval`, `pending_site_client_action_approval`, `contractor_action_implementation`, `pending_contractor_action`, `pending_contractor_implementation`, `pending_consultant_verification`, `pending_action_dispute_review` to the `deptRepCompleted` array (lines 103-113)
+---
 
-### Step 4: Verify UnifiedTimelineTracker handles contractor statuses correctly
+## Finding 3 — LOW: `getStatusDisplayLabel()` missing incident-specific statuses
 
-Ensure the horizontal stepper correctly marks "Initial Review" as current for `pending_consultant_screening` and shows the correct role (Contractor Consultant vs HSSE Expert).
+**File:** `src/lib/workflow-status-resolver.ts` (lines 230-266)
 
-**File**: `src/features/investigation/components/UnifiedTimelineTracker.tsx`
-- Verify contractor status arrays include all relevant statuses
-- Ensure the active step role label resolves correctly
+Missing display labels for:
+- `pending_dept_rep_incident_review` — { en: 'Dept Rep Incident Review', ar: 'مراجعة حوادث ممثل القسم' }
+- `pending_department_manager_approval` — { en: 'Dept Manager Approval', ar: 'موافقة مدير القسم' }
+- `pending_clinic_review` — { en: 'Clinic Review', ar: 'مراجعة العيادة' }
+- `investigation_pending` — { en: 'Awaiting Assignment', ar: 'في انتظار التعيين' }
+- `investigation_in_progress` — { en: 'Investigation In Progress', ar: 'التحقيق جارٍ' }
+- `pending_legal_review` — { en: 'Legal Review', ar: 'مراجعة قانونية' }
+
+**Fix:** Add the missing label entries.
+
+---
+
+## Implementation Plan
+
+### Step 1: Fix `UnifiedTimelineTracker.getStepIndex()` for incidents
+Add all missing incident statuses to the correct step index so the timeline accurately reflects where the incident is in its lifecycle. This is the most impactful fix — it's what users actually see.
+
+### Step 2: Add `pending_dept_rep_incident_review` to `DEPT_REP_STATUSES`
+Ensures the centralized resolver correctly identifies Dept Reps as the owner for incident review status.
+
+### Step 3: Add missing display labels to `getStatusDisplayLabel()`
+Ensures all incident statuses have proper bilingual labels.
+
+---
 
 ## Files to Edit
 
-1. `src/features/investigation/components/UnifiedTimelineTracker.tsx` — merge owner display into active step
-2. `src/pages/incidents/InvestigationWorkspace.tsx` — remove `CurrentOwnerCard`
-3. `src/features/investigation/components/InvestigationWorkflowStatusCard.tsx` — fix contractor status arrays
-
-## Result
-
-One unified, single-source-of-truth workflow display that shows:
-- Which step is active
-- Who owns it (with name if assigned, or "Awaiting [Role]" if not)
-- Clear visual progression without duplication or contradiction
+1. `src/features/investigation/components/UnifiedTimelineTracker.tsx` — add ~15 missing incident statuses to `getStepIndex()`
+2. `src/lib/workflow-status-resolver.ts` — add to DEPT_REP_STATUSES + add display labels
 
