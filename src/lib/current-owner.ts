@@ -68,6 +68,7 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         // HSSE Manager Queue
         case "hsse_manager_escalation":
         case "pending_hsse_escalation_review":
+        case "pending_hsse_manager_closure":
             return buildOwner(null, "HSSE Manager", true);
 
         // Investigation Stage (Assigned Investigator)
