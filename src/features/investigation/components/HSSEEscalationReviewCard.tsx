@@ -243,7 +243,7 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
               placeholder={t('workflow.escalationReview.notesPlaceholder', 'Provide justification for your decision...')}
               rows={3}
             />
-            <p className={`text-xs ${notes.length >= MIN_NOTES_LENGTH ? 'text-green-600' : 'text-muted-foreground'}`}>
+            <p className={`text-xs ${notes.length >= MIN_NOTES_LENGTH ? 'text-success' : 'text-muted-foreground'}`}>
               {notes.length}/{MIN_NOTES_LENGTH} {t('common.characters', 'characters minimum')}
             </p>
           </div>
