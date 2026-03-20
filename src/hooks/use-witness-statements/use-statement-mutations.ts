@@ -42,11 +42,11 @@ export function useCreateWitnessStatement() {
                     witness_contact: input.contact,
                     relationship: input.relationship,
                     statement_text: input.statement,
-                    statement_method: input.statement_method,
+                    statement_type: input.statement_method,
                     audio_url: input.audio_url,
                     original_transcription: input.original_transcription,
                     assigned_witness_id: input.assigned_witness_id,
-                    status: input.status || 'pending',
+                    assignment_status: input.status || 'pending',
                     tenant_id: freshProfile.tenant_id,
                     created_by: freshUser.id,
                 })
@@ -86,7 +86,7 @@ export function useUpdateWitnessStatement() {
             if (updates.contact !== undefined) updateData.witness_contact = updates.contact;
             if (updates.relationship !== undefined) updateData.relationship = updates.relationship;
             if (updates.statement !== undefined) updateData.statement_text = updates.statement;
-            if (updates.status !== undefined) updateData.status = updates.status;
+            if (updates.status !== undefined) updateData.assignment_status = updates.status;
 
             const { data, error } = await supabase
                 .from("witness_statements")
@@ -130,7 +130,7 @@ export function useReviewWitnessStatement() {
                 const { data, error } = await supabase
                     .from("witness_statements")
                     .update({
-                        status: "approved",
+                        assignment_status: "approved",
                         reviewed_by: user?.id,
                         reviewed_at: new Date().toISOString(),
                     })
@@ -152,7 +152,7 @@ export function useReviewWitnessStatement() {
                 const { data, error } = await supabase
                     .from("witness_statements")
                     .update({
-                        status: "returned",
+                        assignment_status: "returned",
                         return_reason: returnReason,
                         return_count: newReturnCount,
                         returned_by: user?.id,

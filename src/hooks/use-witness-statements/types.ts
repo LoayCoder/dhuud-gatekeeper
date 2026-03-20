@@ -5,7 +5,7 @@ export interface WitnessStatement {
     id: string; incident_id: string | null; tenant_id: string;
     name: string; contact: string | null; relationship: string | null;
     statement: string; statement_method: StatementType;
-    audio_url: string | null; ai_transcription_text: string | null;
+    audio_url: string | null; 
     original_transcription: string | null; transcription_edited: boolean;
     transcription_approved: boolean; ai_analysis: Record<string, unknown> | null;
     assigned_witness_id: string | null; assignment_status: string | null;
