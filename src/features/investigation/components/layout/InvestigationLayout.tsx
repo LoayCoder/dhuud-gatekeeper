@@ -58,7 +58,7 @@ export function InvestigationLayout() {
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="-ml-2 h-8 w-8 p-0"
+                            className="-ms-2 h-8 w-8 p-0"
                             onClick={() => navigate('/incidents')}
                         >
                             <ArrowLeft className="h-4 w-4" />
