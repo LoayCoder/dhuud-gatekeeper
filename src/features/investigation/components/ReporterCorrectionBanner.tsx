@@ -9,7 +9,7 @@ import type { IncidentWithDetails } from '@/features/incidents';
 
 interface ReporterCorrectionBannerProps {
   incident: IncidentWithDetails;
-  onEdit: () => void;
+  onEdit?: () => void;
   onComplete: () => void;
 }
 
