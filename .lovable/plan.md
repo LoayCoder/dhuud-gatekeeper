@@ -1,33 +1,39 @@
 
 
-# Fix: "Pending With" shows unassigned for claimed non-contractor observations
+# Fix Audit Trail — Resolve UUIDs to Human-Readable Names
 
 ## Problem
 
-In `src/lib/current-owner.ts` line 64, for non-contractor observations at `expert_screening` / `pending_expert_screening`, the code **always** returns `buildOwner(null, "HSSE Expert", true)` — hardcoded as unassigned. It never checks whether `approval_manager` is already set (which happens when the HSSE Expert claims the observation).
-
-The contractor path (lines 60-62) correctly resolves the name from `approval_manager`, but the non-contractor fallback on line 64 skips this entirely.
+The Audit Trail panel has two issues:
+1. **Actor name hardcoded as "System / User"** — the `actor_id` field from `incident_audit_logs` is never resolved to a profile name
+2. **Raw UUIDs displayed in details** — fields like `branch_id` and `assigned_to` are shown as raw UUIDs instead of branch names / user names
 
 ## Fix
 
-**File:** `src/lib/current-owner.ts` (line 64)
+### 1. Resolve actor names in the query service
 
-Change the non-contractor fallback from:
-```typescript
-return buildOwner(null, "HSSE Expert", true);
-```
+**File:** `src/features/investigation/services/investigationQueryService.ts`
 
-To:
-```typescript
-const expertName = incident.approval_manager?.full_name || null;
-return buildOwner(expertName, "HSSE Expert", !expertName);
-```
+After fetching audit logs, collect all unique `actor_id` values and any UUID values from `details` that match known fields (`assigned_to`, `branch_id`, `site_id`). Batch-fetch profiles and branches to build lookup maps, then enrich each log entry with resolved names.
 
-This mirrors the contractor path logic — if `approval_manager` is set (expert claimed it), show their name. If not, show the unassigned warning with "Contact admin to assign a HSSE Expert".
+### 2. Update the query to join profiles
 
-## Impact
+Alternatively (simpler approach): add a second query after fetching logs to resolve `actor_id` values from the `profiles` table, and `branch_id` values from `branches` table. Attach `actor_name` and `branch_name` to each log.
 
-- OBS-2026-0111 and OBS-2026-0115 will show the user's name instead of the red warning badge
-- Unclaimed observations will still correctly show the "No user assigned" warning
-- No other files need changes — `ResponsibleUserBadge` and `UnifiedTimelineTracker` already handle both assigned and unassigned states correctly
+### 3. Update AuditLogPanel rendering
+
+**File:** `src/features/investigation/components/AuditLogPanel.tsx`
+
+- **Line 149**: Replace hardcoded `"System / User"` with `log.actor_name || t('investigation.audit.system', 'System')`.
+- **Lines 154-158**: For known UUID fields (`branch_id`, `assigned_to`, `site_id`), display resolved names instead of raw UUIDs. For `assigned_to`, show the user's full name. For `branch_id`, show the branch name. Hide or label other fields appropriately.
+
+### 4. Update the IncidentAuditLog type
+
+Add `actor_name?: string` and ensure the details rendering logic has a field-level formatter that substitutes known UUIDs.
+
+## Files to Edit
+
+1. `src/features/investigation/services/investigationQueryService.ts` — enrich logs with resolved names
+2. `src/features/investigation/components/AuditLogPanel.tsx` — display resolved names, remove hardcoded "System / User"
+3. `src/features/investigation/types.ts` (or wherever `IncidentAuditLog` is defined) — add `actor_name` field
 
