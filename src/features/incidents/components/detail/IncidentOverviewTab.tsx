@@ -174,6 +174,7 @@ export function IncidentOverviewTab({ incident }: IncidentOverviewTabProps) {
                     actualSeverity={incident.severity_v2}
                     potentialSeverity={incident.potential_severity_v2 ?? undefined}
                     eventType={incident.event_type}
+                    aiConfidence={incident.ai_severity_confidence as number | undefined}
                 />
 
                 {/* Classification */}
