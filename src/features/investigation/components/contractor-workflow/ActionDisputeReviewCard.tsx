@@ -31,7 +31,8 @@ export function ActionDisputeReviewCard({
   status,
   disputeReason,
   contractorComments,
-  onResolved
+  onResolved,
+  onComplete
 }: ActionDisputeReviewCardProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
