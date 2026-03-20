@@ -317,7 +317,7 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
             <AlertDialogAction
               onClick={handleReject}
               disabled={!isNotesValid || escalationReview.isPending}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             >
               {escalationReview.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
               {t('workflow.escalationReview.confirmReject', 'Reject Escalation')}
