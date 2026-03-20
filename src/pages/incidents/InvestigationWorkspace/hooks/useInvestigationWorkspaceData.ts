@@ -94,10 +94,19 @@ export function useInvestigationWorkspaceData(selectedIncidentId: string | null)
                 investigatorName = invProfile?.full_name || null;
             }
 
+            // For contractor observations, the consultant (approval_manager_id) acts as expert_screener
+            const isContractorPath = !!incidentData.related_contractor_company_id;
+            const expertScreenerId = isContractorPath
+                ? incidentData.approval_manager_id
+                : incidentData.expert_screened_by;
+            const expertScreenedAt = isContractorPath
+                ? (incidentData.consultant_screened_at || incidentData.expert_screened_at)
+                : incidentData.expert_screened_at;
+
             return {
                 submitted_by: { full_name: profileMap.get(incidentData.reporter_id || '') || null, timestamp: incidentData.created_at },
                 dept_rep: { full_name: profileMap.get(incidentData.dept_rep_approved_by || '') || null, timestamp: incidentData.dept_rep_approved_at },
-                expert_screener: { full_name: profileMap.get(incidentData.expert_screened_by || '') || null, timestamp: incidentData.expert_screened_at },
+                expert_screener: { full_name: profileMap.get(expertScreenerId || '') || null, timestamp: expertScreenedAt },
                 manager_approver: { full_name: profileMap.get(incidentData.approval_manager_id || '') || null, timestamp: incidentData.manager_decision_at },
                 hsse_manager: { full_name: profileMap.get(incidentData.hsse_manager_decision_by || '') || null, timestamp: null },
                 investigator: { full_name: investigatorName, timestamp: null },
