@@ -23,6 +23,11 @@ export function ReporterCorrectionBanner({ incident, onEdit, onComplete }: Repor
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  const handleEdit = onEdit || (() => {
+    navigate(`/incidents/report?edit=${incident.id}`);
+  });
   
   const reporterResponse = useReporterResponse();
   
