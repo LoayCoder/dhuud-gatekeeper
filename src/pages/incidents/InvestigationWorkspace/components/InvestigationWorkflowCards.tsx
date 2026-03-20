@@ -55,6 +55,27 @@ export function InvestigationWorkflowCards({
   // Cast status to string to handle new enum values not yet in generated types
   const currentStatus = incidentData.status as string;
 
+  // Source observation backlink for escalated incidents
+  const sourceObservationId = (incidentData as unknown as Record<string, unknown>).source_observation_id as string | null;
+  
+  const sourceObservationBanner = sourceObservationId ? (
+    <Card className="border-muted bg-muted/30">
+      <CardContent className="p-3 flex items-center gap-3">
+        <ArrowLeft className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
+        <span className="text-sm text-muted-foreground flex-1">
+          {t('workflow.sourceObservation', 'Escalated from observation')}
+        </span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(`/incidents/${sourceObservationId}`)}
+        >
+          {t('workflow.viewSourceObservation', 'View Observation')}
+        </Button>
+      </CardContent>
+    </Card>
+  ) : null;
+
   switch (currentStatus) {
     case 'submitted':
       return (
