@@ -82,7 +82,7 @@ export function ReporterCorrectionBanner({ incident, onEdit, onComplete }: Repor
           <Button
             size="sm"
             variant="outline"
-            onClick={onEdit}
+            onClick={handleEdit}
             className="border-warning/50 text-warning hover:bg-warning/10"
           >
             <Edit className="h-4 w-4 me-2" />
