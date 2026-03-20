@@ -103,7 +103,7 @@ function StageTransitionButton({ incidentId }: { incidentId: string }) {
 
     return (
         <Button onClick={handleProceed} disabled={updateInvestigation.isPending}>
-            {updateInvestigation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <ArrowRight className="h-4 w-4 mr-2" />}
+            {updateInvestigation.isPending ? <Loader2 className="h-4 w-4 me-2 animate-spin" /> : <ArrowRight className="h-4 w-4 me-2 rtl:rotate-180" />}
             {t('investigation.stages.proceedToAnalysis', 'Proceed to Root Cause Analysis')}
         </Button>
     );
