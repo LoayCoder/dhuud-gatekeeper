@@ -289,12 +289,12 @@ export function DeptRepIncidentReviewCard({ incident, onComplete }: DeptRepIncid
           </div>
           
           {/* Severity-Based Routing Info */}
-          <Alert variant="default" className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/50">
-            <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-            <AlertTitle className="text-blue-800 dark:text-blue-300">
+          <Alert variant="default" className="border-primary/30 bg-primary/5 dark:border-primary/20 dark:bg-primary/10">
+            <Info className="h-4 w-4 text-primary" />
+            <AlertTitle className="text-primary">
               {t('workflow.deptRepIncidentReview.severityRoutingInfo', 'Severity-based Routing')}
             </AlertTitle>
-            <AlertDescription className="text-blue-700 dark:text-blue-400 text-sm space-y-1">
+            <AlertDescription className="text-primary/80 text-sm space-y-1">
               <p>{t('workflow.deptRepIncidentReview.level12Route', 'Level 1-2: Will be forwarded to HSSE Expert')}</p>
               <p>{t('workflow.deptRepIncidentReview.level35Route', 'Level 3-5: Will be forwarded to Department Manager')}</p>
               <div className="flex items-center gap-2 mt-2">
