@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Calendar, Building, Building2, MapPin, ExternalLink, Tag, HeartPulse, Users, Crown } from 'lucide-react';
+import { AlertTriangle, Calendar, Building, Building2, MapPin, ExternalLink, Tag, HeartPulse, Users, Crown, ArrowRight } from 'lucide-react';
 import { IncidentAttachmentsSection } from '@/features/incidents';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
