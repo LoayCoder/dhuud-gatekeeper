@@ -129,6 +129,12 @@ export function InvestigationTabsContent({
               <Wrench className="h-4 w-4" /> {t('investigation.tabs.propertyDamage', 'Property Damage')}
             </button>
           )}
+          {(selectedIncident?.event_type === 'environmental' || selectedIncident?.event_type === 'environment' ||
+            ['oil_chemical_spill_land', 'spill_to_water', 'air_emission', 'soil_contamination', 'waste_mismanagement', 'wildlife_impact', 'non_compliant_discharge'].includes(selectedIncident?.subtype || '')) && isTabLocked('environmental-impact') && (
+            <button onClick={() => { const el = document.getElementById('environmental-impact'); const y = (el?.getBoundingClientRect().top || 0) + window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('environmental-impact'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'environmental-impact' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}>
+              <Leaf className="h-4 w-4" /> {t('investigation.tabs.environmentalImpact', 'Environmental Impact')}
+            </button>
+          )}
           {canAccessGovernance && isTabLocked('governance') && (
             <button onClick={() => { const el = document.getElementById('governance'); const y = (el?.getBoundingClientRect().top || 0) + window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('governance'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'governance' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}>
               <Scale className="h-4 w-4" /> {t('investigation.tabs.governance', 'Governance')}
