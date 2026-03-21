@@ -50,7 +50,7 @@ export function IncidentActionsTab({ incidentId }: IncidentActionsTabProps) {
                 <CardTitle className="flex items-center gap-2">
                     <CheckSquare className="h-5 w-5 text-primary" />
                     {t('incidents.tabs.actions', 'Corrective Actions')}
-                    <Badge variant="secondary" className="ml-2">
+                    <Badge variant="secondary" className="ms-2">
                         {actions?.length || 0}
                     </Badge>
                 </CardTitle>

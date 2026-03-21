@@ -161,7 +161,7 @@ export function IncidentInvestigationTab({ incidentId }: IncidentInvestigationTa
                     <CardDescription>{t('investigation.timelineDesc', 'Key events and milestones')}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="relative pl-6 border-l-2 border-muted space-y-8 my-4">
+                    <div className="relative ps-6 border-s-2 border-muted space-y-8 my-4">
 
                         {/* Timeline Item: Incident Reported */}
                         <div className="relative">

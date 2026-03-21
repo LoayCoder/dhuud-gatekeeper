@@ -110,7 +110,7 @@ export function IncidentDetailHeader({
 
       {/* Top Row - Back & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4 relative z-10">
-        <Button asChild variant="ghost" size="sm" className="gap-2 -ml-2 text-muted-foreground hover:text-foreground">
+        <Button asChild variant="ghost" size="sm" className="gap-2 -ms-2 text-muted-foreground hover:text-foreground">
           <Link to={backPath}>
             <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
             {t('incidents.backToList', 'Back')}

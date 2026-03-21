@@ -176,7 +176,7 @@ export function DrilldownModal() {
                     )}
                   </div>
 
-                  <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity ml-2" />
+                  <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity ms-2" />
                 </div>
               ))}
             </div>

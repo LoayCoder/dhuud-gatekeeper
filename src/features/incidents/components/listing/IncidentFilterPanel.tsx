@@ -336,7 +336,7 @@ export function IncidentFilterPanel({
                             >
                               <Check
                                 className={cn(
-                                  "mr-2 h-4 w-4",
+                                  "me-2 h-4 w-4",
                                   filters.contractorId === contractor.id ? "opacity-100" : "opacity-0"
                                 )}
                               />
