@@ -221,7 +221,7 @@ export default function InvestigationWorkspace() {
           <InvestigationTabsContent
             activeTab={activeTab}
             setActiveTab={setActiveTab}
-            isTabLocked={isTabLocked}
+            isTabUnlocked={isTabUnlocked}
             selectedIncidentId={selectedIncidentId!}
             selectedIncident={selectedIncident}
             investigation={investigation}
