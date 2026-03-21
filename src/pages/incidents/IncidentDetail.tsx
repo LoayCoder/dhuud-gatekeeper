@@ -311,7 +311,7 @@ export default function IncidentDetail() {
       )}
 
       {/* Investigation Workspace CTA for active incidents */}
-      {incident.event_type !== 'observation' && incident.status !== 'closed' && incident.status !== 'investigation_closed' && incident.status !== 'no_investigation_required' && (
+      {incident.event_type !== 'observation' && !['closed', 'investigation_closed', 'no_investigation_required', 'dept_rep_rejected', 'manager_rejected', 'expert_rejected'].includes(String(incident.status)) && (
         <Card className="border-primary/30 bg-primary/5">
           <CardContent className="flex items-center justify-between py-4">
             <div>
