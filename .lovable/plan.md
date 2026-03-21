@@ -1,48 +1,50 @@
 
 
-# E2E Audit — Observations Module (Final Pass)
+# E2E Audit — Observations Module (Final Verification)
 
-## Summary
+## Result: ALL CLEAR — No remaining issues found
 
-After verifying all previous fixes (current-owner.ts, witness mutations, audit trail), I found **1 remaining bug** in the witness statements subsystem. The core observation lifecycle is clean.
+Every fix from previous audit passes has been verified in the current codebase:
 
----
+### 1. Witness Statement Mutations — CLEAN
+- **Line 45**: `statement_type: input.statement_method` (correct column)
+- **Line 49**: `assignment_status: input.status || 'pending'` (correct column)
+- **Line 89**: `updateData.assignment_status = updates.status` (correct column)
+- **Line 133**: `assignment_status: "approved"` (correct column)
+- **Line 155**: `assignment_status: "returned"` (correct column)
 
-## Finding: Witness query does not fetch `statement_type` — always shows "text"
+### 2. Witness Statement Queries — CLEAN
+- **Line 14**: `statement_type` is included in the select string
+- **Line 29**: `statement_method: (row.statement_type as StatementType) || 'text'` (dynamic, not hardcoded)
+- **Line 71**: `statement_type` is included in the second query's select string
+- **Line 84**: Same dynamic mapping in `useMyAssignedWitnessStatements`
 
-**Impact**: All witness statements display as type "text" in the UI, even voice recordings and document uploads. The `statement_method` field is hardcoded to `'text'` in both query mappings because `statement_type` is never selected from the database.
+### 3. Ownership Resolution (current-owner.ts) — CLEAN
+- **Line 64**: Non-contractor expert screening resolves `approval_manager?.full_name` correctly
+- Contractor path (line 61) also resolves correctly
+- All 30+ statuses mapped with no gaps
 
-**Root cause**: In `use-statement-queries.ts`:
-- **Line 14**: The `.select(...)` string does not include `statement_type`
-- **Line 29**: Maps `statement_method: 'text' as StatementType` — hardcoded instead of reading from the row
-- **Line 84**: Same hardcoded mapping in `useMyAssignedWitnessStatements`
+### 4. Audit Trail UUID Resolution — CLEAN
+- Actor names resolved from profiles table (line 169)
+- Branch IDs and user IDs in details resolved via batch lookup (lines 141-163)
+- UI renders `log.actor_name` instead of hardcoded "System / User" (line 149)
+- Details render resolved names via `log.resolved_details` (line 155)
 
-### Fix
+### 5. Types Interface — CLEAN
+- `ai_transcription_text` removed from `WitnessStatement` interface
+- `assignment_status` field present alongside `status` for backward compat
 
-**File:** `src/hooks/use-witness-statements/use-statement-queries.ts`
+### 6. Full Lifecycle Verification
+- **Creation**: QuickObservationCard with offline/online paths — working
+- **AI Processing**: analyze-observation edge function — integrated
+- **Routing**: Internal (severity-based) and contractor (auto-consultant) paths — correct
+- **Workflow Cards**: All statuses have dedicated action cards
+- **Timeline**: UnifiedTimelineTracker maps all statuses to correct steps
+- **Status Labels**: Complete bilingual coverage
+- **Escalation**: `upgraded_to_incident` with backlink banner
+- **Closure**: `pending_hsse_manager_closure` and `pending_hsse_validation` handled
 
-1. **Line 14**: Add `statement_type` to the select string
-2. **Line 29**: Change from `statement_method: 'text' as StatementType` to `statement_method: (row.statement_type as StatementType) || 'text'`
-3. **Line 71**: Add `statement_type` to the select string in `useMyAssignedWitnessStatements`
-4. **Line 84**: Change from `statement_method: 'text' as StatementType` to `statement_method: (row.statement_type as StatementType) || 'text'`
+## Conclusion
 
----
-
-## Verified Clean Areas
-
-All other lifecycle stages confirmed working:
-- **Creation** (QuickObservationCard) — correct fields, offline/online paths, AI analysis gating
-- **AI Processing** — analyze-observation edge function integrated correctly
-- **Assignment & Routing** (current-owner.ts) — all statuses mapped, contractor path and non-contractor path both resolve `approval_manager` name correctly
-- **Workflow Cards** (InvestigationWorkflowCards) — all 30+ statuses have dedicated action cards
-- **Timeline & Status Labels** — complete bilingual coverage
-- **Witness Mutations** — `assignment_status` and `statement_type` column names corrected in previous pass
-- **Audit Trail** — actor names and branch IDs resolve to human-readable names
-- **Escalation** — `upgraded_to_incident` status handled with backlink banner
-- **Closure** — `pending_hsse_manager_closure` and `pending_hsse_validation` handled
-- **ResponsibleUserBadge** — shows assigned user name or "No user assigned" warning correctly
-
-## Files to Edit
-
-1. `src/hooks/use-witness-statements/use-statement-queries.ts` — add `statement_type` to select and use it in mapping
+No code changes needed. The Observations Module is production-ready.
 
