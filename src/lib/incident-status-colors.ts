@@ -33,6 +33,7 @@ const STATUS_CATEGORIES: Record<string, StatusCategory> = {
   'investigation_pending': 'investigation',
   'investigation_in_progress': 'investigation',
   'under_investigation': 'investigation',
+  'pending_investigator_assignment': 'investigation',
 
   // Action Required (pending approvals) - Warning
   'pending_manager_approval': 'action_required',
@@ -46,8 +47,17 @@ const STATUS_CATEGORIES: Record<string, StatusCategory> = {
   'pending_hsse_expert_review': 'action_required',
   'pending_action_dispute_review': 'action_required',
   'pending_contractor_implementation': 'action_required',
-  'pending_no_investigation_approval': 'action_required',       // C4: new gate
-  'pending_escalation_approval': 'action_required',             // Spec: obs→incident escalation
+  'pending_no_investigation_approval': 'action_required',
+  'pending_escalation_approval': 'action_required',
+  'pending_dept_rep_mandatory_action': 'action_required',
+  'pending_consultant_actions': 'action_required',
+  'pending_consultant_verification': 'action_required',
+  'pending_site_client_action_approval': 'action_required',
+  'contractor_action_implementation': 'action_required',
+  'pending_contractor_action': 'action_required',
+  'pending_hsse_rejection_review': 'action_required',
+  'pending_department_manager_violation_approval': 'action_required',
+  'pending_contract_controller_approval': 'action_required',
 
   // Monitoring - Pending
   'monitoring_30_day': 'pending_closure',
@@ -58,15 +68,18 @@ const STATUS_CATEGORIES: Record<string, StatusCategory> = {
   'observation_actions_pending': 'pending_closure',
   'pending_closure': 'pending_closure',
   'pending_final_closure': 'pending_closure',
+  'pending_hsse_validation': 'pending_closure',
+  'pending_hsse_incident_validation': 'pending_closure',
+  'pending_hsse_manager_closure': 'pending_closure',
 
   // Rejected/Returned - Destructive
   'expert_rejected': 'rejected',
   'manager_rejected': 'rejected',
   'returned_to_reporter': 'rejected',
-  'dept_rep_rejected': 'rejected',                              // Spec: dept rep rejection
+  'dept_rep_rejected': 'rejected',
 
   // Compliance
-  'osha_reportable': 'action_required',                         // C10: OSHA flagged
+  'osha_reportable': 'action_required',
   'pending_legal_review': 'action_required',
   'dispute_resolution': 'action_required',
   'pending_contractor_dispute_review': 'action_required',
