@@ -66,8 +66,11 @@ function getStepIndex(status: string, isObservation: boolean): number {
             "pending_no_investigation_approval",
             "hsse_manager_escalation", "pending_hsse_escalation_review",
             "pending_hsse_expert_review", "pending_hsse_rejection_review",
-            "expert_rejected", "manager_rejected",
+            "pending_escalation_approval",
+            "expert_rejected", "manager_rejected", "dept_rep_rejected",
             "pending_clinic_review", "pending_legal_review",
+            "osha_reportable",
+            "pending_consultant_screening", "pending_consultant_review",
         ].includes(status)) return 1;
         if ([
             "investigation_pending", "pending_investigator_assignment",
@@ -79,13 +82,20 @@ function getStepIndex(status: string, isObservation: boolean): number {
             "pending_department_manager_violation_approval",
             "pending_contract_controller_approval",
             "dispute_resolution", "pending_contractor_dispute_review",
+            "pending_action_dispute_review",
+            "pending_consultant_actions", "pending_consultant_verification",
+            "pending_contractor_site_rep_approval", "pending_hsse_violation_review",
         ].includes(status)) return 3;
         if ([
             "pending_closure", "pending_final_closure", "pending_hsse_validation",
-            "pending_hsse_incident_validation",
+            "pending_hsse_incident_validation", "pending_hsse_manager_closure",
             "monitoring_30_day", "monitoring_60_day", "monitoring_90_day",
             "investigation_closed", "closed", "no_investigation_required",
-            "hsse_enforced",
+            "hsse_enforced", "closed_rejected_approved_by_hsse",
+            "contractor_violation_enforced", "contractor_violation_approved_fine",
+            "contractor_violation_cancelled", "contractor_violation_warning",
+            "contractor_violation_terminated",
+            "upgraded_to_incident", "rejected_invalid",
         ].includes(status)) return 4;
     }
     return 0;
