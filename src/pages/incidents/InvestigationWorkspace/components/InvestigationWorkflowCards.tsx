@@ -156,6 +156,7 @@ export function InvestigationWorkflowCards({
         />
       );
 
+    case 'pending_investigator_assignment':
     case 'investigation_pending': {
       // Check severity for team investigation requirement
       const severityLevel = (incidentData.severity_v2 as string) || (incidentData.severity as string);
@@ -178,6 +179,50 @@ export function InvestigationWorkflowCards({
         />
       );
     }
+
+    case 'osha_reportable':
+      return (
+        <HSSEExpertScreeningCard
+          incident={incidentData}
+          onComplete={handleRefresh}
+        />
+      );
+
+    case 'pending_contractor_site_rep_approval':
+      return (
+        <ContractorSiteRepAcknowledgeCard
+          incident={incidentData}
+          onComplete={handleRefresh}
+        />
+      );
+
+    case 'pending_hsse_violation_review':
+      return (
+        <HSSEViolationReviewCard
+          incident={incidentData}
+          onComplete={handleRefresh}
+        />
+      );
+
+    case 'pending_escalation_approval':
+      return (
+        <HSSEManagerEscalationCard
+          incident={incidentData}
+          onComplete={handleRefresh}
+        />
+      );
+
+    case 'dept_rep_rejected':
+      return (
+        <RejectionConfirmationCard
+          incident={incidentData}
+          onComplete={handleRefresh}
+        />
+      );
+
+    case 'investigation_in_progress':
+    case 'under_investigation':
+      return null;
 
     case 'pending_department_manager_approval':
       return (
