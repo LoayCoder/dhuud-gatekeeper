@@ -253,7 +253,9 @@ export default function InvestigationWorkspace() {
           )}
 
           {/* Audit Log */}
-          <AuditLogPanel incidentId={selectedIncidentId} />
+          <section id="audit-log" className="scroll-mt-32">
+            <AuditLogPanel incidentId={selectedIncidentId} />
+          </section>
 
           {/* Closure Dialog */}
           <IncidentClosureRequestDialog
