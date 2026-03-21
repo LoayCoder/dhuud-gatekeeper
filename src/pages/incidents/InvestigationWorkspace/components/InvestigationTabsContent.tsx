@@ -211,7 +211,7 @@ export function InvestigationTabsContent({
               openDialogTrigger={showActionDialog}
               onDialogTriggered={() => setShowActionDialog(false)}
             />
-            {editAccess.canEdit && incidentData?.status === 'investigation_in_progress' && (
+            {editAccess.canEdit && (incidentData?.status === 'investigation_in_progress' || incidentData?.status === 'under_investigation') && (
               <SubmitInvestigationCard
                 incidentId={selectedIncidentId}
                 onSubmitted={handleRefresh}
