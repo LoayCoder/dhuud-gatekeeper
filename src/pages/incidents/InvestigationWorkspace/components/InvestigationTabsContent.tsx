@@ -9,7 +9,8 @@ import {
   HeartPulse,
   Wrench,
   Scale,
-  Leaf
+  Leaf,
+  History
 } from "lucide-react";
 import {
   EvidenceManager,
