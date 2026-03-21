@@ -159,12 +159,13 @@ export function useVerifyAction() {
                     await supabase.functions.invoke('send-action-email', {
                         body: {
                             type: emailType,
-                            to: assigneeEmail,
-                            assignee_name: assigneeProfile?.full_name || 'Team Member',
+                            recipient_email: assigneeEmail,
+                            recipient_name: assigneeProfile?.full_name || 'Team Member',
                             action_title: action?.title || 'Corrective Action',
                             incident_reference: null,
                             verifier_name: verifierProfile?.full_name || 'HSSE Verifier',
-                            return_reason: input.verification_notes || undefined,
+                            rejection_notes: input.verification_notes || undefined,
+                            verification_notes: input.verification_notes || undefined,
                         },
                     });
                 } catch (emailError) {
