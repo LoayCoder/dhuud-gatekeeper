@@ -104,7 +104,7 @@ export default function InvestigationWorkspace() {
     />
   );
 
-  const isTabLocked = (tabKey: string) => !unlockedTabs.includes(tabKey);
+  const isTabUnlocked = (tabKey: string) => unlockedTabs.includes(tabKey);
   const isTabCompleted = (tabKey: string) => completedTabs.includes(tabKey);
 
   const startInvestigation = () => {
@@ -123,6 +123,35 @@ export default function InvestigationWorkspace() {
     setUnlockedTabs(newUnlocked);
     setActiveTab('evidence'); // auto-switch to evidence
   };
+
+  // Auto-unlock tabs when returning to an in-progress or later-stage investigation
+  useEffect(() => {
+    if (!investigationAllowed || !selectedIncident) return;
+    // If investigation is already in progress or beyond, auto-unlock all relevant tabs
+    const autoUnlockStatuses = [
+      'investigation_in_progress', 'under_investigation',
+      'pending_closure', 'pending_final_closure', 'investigation_closed', 'closed',
+      'monitoring_30_day', 'monitoring_60_day', 'monitoring_90_day',
+      'pending_hsse_incident_validation',
+      'expert_screening', 'pending_consultant_screening', 'pending_consultant_review',
+      'pending_consultant_actions', 'pending_site_client_approval',
+      'pending_contractor_implementation', 'pending_consultant_verification',
+    ];
+    if (status && autoUnlockStatuses.includes(status) && unlockedTabs.length <= 1) {
+      const showEnvironmental = selectedIncident?.event_type === 'environmental' ||
+        selectedIncident?.event_type === 'environment' ||
+        ['oil_chemical_spill_land', 'spill_to_water', 'air_emission', 'soil_contamination',
+          'waste_mismanagement', 'wildlife_impact', 'non_compliant_discharge'].includes(selectedIncident?.subtype || '');
+
+      const newUnlocked = ['overview', 'evidence', 'witnesses', 'rca', 'actions'];
+      if (selectedIncident?.has_injury) newUnlocked.push('injuries');
+      if (selectedIncident?.has_damage) newUnlocked.push('property-damage');
+      if (showEnvironmental) newUnlocked.push('environmental-impact');
+      if (canAccessGovernance) newUnlocked.push('governance');
+
+      setUnlockedTabs(newUnlocked);
+    }
+  }, [investigationAllowed, selectedIncident, status, canAccessGovernance, unlockedTabs.length]);
 
   // If no incident is selected, render the ListView
   if (!selectedIncidentId) {
@@ -192,7 +221,7 @@ export default function InvestigationWorkspace() {
           <InvestigationTabsContent
             activeTab={activeTab}
             setActiveTab={setActiveTab}
-            isTabLocked={isTabLocked}
+            isTabUnlocked={isTabUnlocked}
             selectedIncidentId={selectedIncidentId!}
             selectedIncident={selectedIncident}
             investigation={investigation}
