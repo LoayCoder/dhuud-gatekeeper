@@ -26,7 +26,7 @@ export function useWitnessStatements(incidentId: string | null) {
                 contact: row.witness_contact as string,
                 relationship: row.relationship as string,
                 statement: row.statement_text as string,
-                statement_method: 'text' as StatementType,
+                statement_method: (row.statement_type as StatementType) || 'text',
                 audio_url: row.audio_url as string,
                 
                 original_transcription: row.original_transcription as string,
