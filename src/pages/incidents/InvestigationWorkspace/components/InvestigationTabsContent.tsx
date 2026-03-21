@@ -141,6 +141,9 @@ export function InvestigationTabsContent({
               <Scale className="h-4 w-4" /> {t('investigation.tabs.governance', 'Governance')}
             </button>
           )}
+          <button onClick={() => { const el = document.getElementById('audit-log'); const y = (el?.getBoundingClientRect().top || 0) + window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('audit-log'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'audit-log' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}>
+            <History className="h-4 w-4" /> {t('investigation.tabs.auditLog', 'Audit Log')}
+          </button>
         </nav>
       </div>
 
