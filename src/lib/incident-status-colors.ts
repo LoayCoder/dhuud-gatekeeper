@@ -106,10 +106,15 @@ const STATUS_CATEGORIES: Record<string, StatusCategory> = {
 };
 
 // Closed statuses (for filtering)
-const CLOSED_STATUSES = ['closed', 'no_investigation_required', 'investigation_closed', 'closed_rejected_approved_by_hsse'];
+const CLOSED_STATUSES = [
+  'closed', 'no_investigation_required', 'investigation_closed', 'closed_rejected_approved_by_hsse',
+  'hsse_enforced', 'contractor_violation_enforced', 'contractor_violation_approved_fine',
+  'contractor_violation_cancelled', 'contractor_violation_warning', 'contractor_violation_terminated',
+  'upgraded_to_incident',
+];
 
 // Rejected statuses (for filtering)
-const REJECTED_STATUSES = ['expert_rejected', 'manager_rejected', 'dept_rep_rejected'];
+const REJECTED_STATUSES = ['expert_rejected', 'manager_rejected', 'dept_rep_rejected', 'rejected_invalid'];
 
 /**
  * Human-readable display labels for all incident statuses.
