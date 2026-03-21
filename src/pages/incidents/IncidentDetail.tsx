@@ -319,7 +319,7 @@ export default function IncidentDetail() {
               <p className="text-sm text-muted-foreground">{t('investigation.workspace.ctaDescription', 'Access workflow actions, approvals, and investigation tools')}</p>
             </div>
             <Button asChild variant="default" size="sm">
-              <Link to={`/incidents/investigate/${incident.id}`}>
+              <Link to={`/incidents/investigate?incident=${incident.id}`}>
                 {t('investigation.workspace.open', 'Open Workspace')}
                 <ArrowRight className="h-4 w-4 ms-2 rtl:rotate-180" />
               </Link>
