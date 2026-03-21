@@ -1,89 +1,105 @@
 
 
-# E2E Audit — Corrective Action Lifecycle (Creation → Verified → Closed)
+# E2E Audit — Corrective Action Lifecycle — Pass 10
 
-## Action Status Lifecycle Map
+## Overall Status: ✅ PASS (Conditional — 1 LOW finding)
+
+Previous passes (7, 8, 9) addressed the critical gaps: verification logic alignment, cache invalidation, and `return_count` tracking. This pass validates the full lifecycle end-to-end.
+
+---
+
+## Lifecycle Validation Summary
 
 ```text
-Created (assigned) → in_progress → completed → [HSSE Verification] → closed
-                                       ↑                    ↓
-                                       └── returned_for_correction
+Creation (assigned) → in_progress → completed → [Verification] → closed
+                                        ↑                ↓
+                                        └── returned_for_correction
 ```
 
-## Result: 2 findings (1 MEDIUM, 1 LOW)
+### 1. Action Creation & Data Integrity — CLEAN
+
+| Source | Hook/Service | Status |
+|--------|-------------|--------|
+| Incident RCA | `useCreateCorrectiveAction` (investigation-mutations) | Sets `status: assigned`, `tenant_id`, `branch_id`, creates audit log |
+| Inspection Finding | `useCreateActionFromFinding` (use-action-mutations) | Sets `source_type: inspection`, `source_finding_id`, links finding, sends assignment email |
+| Area Inspection Finding | `use-findings-mutations` | Sets `source_type: inspection_finding`, `source_finding_id`, `session_id` |
+
+All creation paths set mandatory fields (title, tenant_id, status). Incident-sourced actions inherit `branch_id` from parent incident.
+
+### 2. Source Linking & Traceability — CLEAN
+
+- Incident actions: `incident_id` FK, `released_at` gate (only visible to assignee after investigation release)
+- Observation actions: bypass `released_at` gate (visible immediately)
+- Inspection actions: `session_id` + `source_finding_id` FKs, finding status updated to `action_assigned`
+- Bi-directional navigation: Incident detail → Actions tab → Action detail; My Actions → "View Incident" link
+
+### 3. Assignment & Responsibility — CLEAN
+
+- `assigned_to` FK to profiles
+- `responsible_department_id` FK to departments
+- Assignment email via `send-action-email` (type: `action_assigned`) for inspection actions
+- Incident actions: notification deferred until investigation release (by design)
+- My Actions query: `incidentQueryService.ts` filters `assigned_to = user.id`
+
+### 4. Execution & Status Transitions — CLEAN
+
+| Transition | Hook | Fields Set |
+|-----------|------|------------|
+| assigned → in_progress | `useUpdateMyActionStatus` / `useUpdateInspectionActionStatus` | `started_at`, `progress_notes` |
+| in_progress → completed | Same hooks | `completed_date`, `completion_notes`, `overdue_justification` |
+| completed → closed (approved) | All 3 verify hooks | `verified_by`, `verified_at`, `verification_notes` |
+| completed → returned_for_correction | All 3 verify hooks | `rejected_by`, `rejected_at`, `rejection_notes`, `last_returned_at`, `last_return_reason`, `return_count++` |
+| returned_for_correction → in_progress | `useUpdateMyActionStatus` | Re-enters execution cycle |
+
+Optimistic updates implemented for My Actions and Inspection Actions with rollback on error.
+
+### 5. Verification — ALL 3 IMPLEMENTATIONS ALIGNED
+
+| Feature | Pending Approvals | Investigation Workspace | Inspection |
+|---------|:-:|:-:|:-:|
+| `return_count` increment | ✅ | ✅ (Pass 8 fix) | ✅ (Pass 8 fix) |
+| `action_returned` email | ✅ | ✅ (Pass 8 fix) | ❌ |
+| `action_closed` email | ✅ | ✅ (Pass 8 fix) | ❌ |
+| `incident_audit_logs` entry | ✅ | ✅ (Pass 8 fix) | N/A (no incident_id) |
+| Cache invalidation: `pending-action-approvals` | ✅ | ✅ (Pass 8 fix) | N/A |
+| Cache invalidation: `my-corrective-actions` | ✅ | ✅ (Pass 8 fix) | N/A |
+
+### 6. Dashboard & Action Center Consistency — CLEAN
+
+- `useActionCenterStats` counts by tenant with module-specific filtering
+- `InlineActionsPanel` uses same `useMyCorrectiveActions` + `useUpdateMyActionStatus`
+- `useUpdateMyActionStatus` invalidates `my-corrective-actions`, `corrective-actions`, and `pending-action-approvals`
+
+### 7. SLA & Overdue Logic — CLEAN
+
+- SLA countdown stops for terminal statuses (`completed`, `verified`, `closed`)
+- Overdue justification mandatory when completing overdue actions
+- `hsse-cron` edge function checks SLA breach at hourly intervals
+
+### 8. Audit Trail — CLEAN
+
+- `action_created` logged on creation (incident source)
+- `action_updated` logged on field updates
+- `action_closed_by_verifier` logged on verification approval (pending-approvals + investigation workspace)
+- All entries include `incident_id`, `tenant_id`, `actor_id`
+
+### 9. Access Control — CLEAN
+
+- Verification restricted to HSSE roles via `usePendingApprovals` query (filters by role category)
+- `tenant_id` enforced on all queries
+- `branch_id` inherited from parent incident
 
 ---
 
-## Finding 1: MEDIUM — `verifyCorrectiveAction` in Investigation service is missing `return_count` increment, audit logging, and email notifications
+## Finding 1: LOW — Inspection `useVerifyAction` missing email notifications
 
-There are **3 separate verify implementations** for corrective actions:
+The inspection-specific `useVerifyAction` (use-action-mutations.ts lines 100-162) correctly increments `return_count` on rejection (fixed in Pass 8), but still does NOT send:
+- `action_returned` email to assignee on rejection
+- `action_closed` email to assignee on approval
 
-| Hook | Location | Used By |
-|------|----------|---------|
-| `useVerifyAction` | `src/hooks/use-pending-approvals/use-pending-approval-mutations.ts` | Investigation Workspace `ActionVerificationDialog` (Pending Approvals tab) |
-| `useVerifyCorrectiveAction` | `src/features/investigation/hooks/use-investigation/use-investigation-mutations.ts` | Investigation Workspace inline actions |
-| `useVerifyAction` | `src/features/incidents/hooks/use-inspection-actions/use-action-mutations.ts` | Inspection session action verification |
+This is lower priority because inspection actions may not have an `incident_id` for the email template's `incident_reference` field, and inspection verification volume is typically lower than incident verification. However, for full compliance parity, these emails should be added.
 
-The **pending-approvals version** (lines 9-165) is the most complete:
-- Increments `return_count` on rejection
-- Sends email notification to assignee on rejection (`action_returned`)
-- Sends email notification on closure (`action_closed`)
-- Creates `incident_audit_logs` entry for closures
-- Fetches verifier profile name for email
-
-The **investigation service version** (`verifyCorrectiveAction` in `investigationMutationService.ts`, lines 197-224) is missing ALL of the above:
-- Does NOT increment `return_count`
-- Does NOT send any email notifications
-- Does NOT create audit log entries
-- Does NOT track verifier name
-
-The **inspection version** (lines 100-151) also lacks `return_count` increment and emails, but does update `last_returned_at` and `last_return_reason`.
-
-**Impact**: When an HSSE Expert verifies/rejects actions from the Investigation Workspace (using `useVerifyCorrectiveAction`), the assignee receives no email notification, the rejection count is not tracked, and no audit trail is created. This breaks HSSE compliance requirements.
-
-**Fix**: Align `verifyCorrectiveAction` in `investigationMutationService.ts` with the pending-approvals version:
-1. Fetch action details (title, assigned user email, incident reference, return_count) before updating
-2. Increment `return_count` on rejection
-3. Send `action_returned` email on rejection
-4. Send `action_closed` email on approval
-5. Create `incident_audit_logs` entry on approval
-
-Also align the inspection version (`use-action-mutations.ts` lines 100-151) with the same `return_count` increment logic.
-
----
-
-## Finding 2: LOW — `useVerifyCorrectiveAction` does not invalidate `pending-action-approvals` query cache
-
-When actions are verified/rejected via the Investigation Workspace's inline `useVerifyCorrectiveAction` hook, it only invalidates:
-- `corrective-actions`
-- `incident`
-- `incidents`
-
-But it does NOT invalidate `pending-action-approvals`, which means the Pending Approvals tab will still show the action as pending until the user refreshes or navigates away.
-
-Compare with `useVerifyAction` (pending-approvals), which correctly invalidates:
-- `pending-action-approvals`
-- `corrective-actions`
-- `my-corrective-actions`
-
-**Fix**: Add `pending-action-approvals` and `my-corrective-actions` to the `onSuccess` invalidation list in `useVerifyCorrectiveAction`.
-
----
-
-## Verified Clean
-
-| Area | Status |
-|------|--------|
-| Action creation (`useCreateCorrectiveAction`) | CLEAN — Sets status `assigned`, creates audit log, sends assignment email |
-| Status transitions: assigned → in_progress → completed | CLEAN — `useUpdateMyActionStatus` correctly sets `started_at`, `completed_date`, `progress_notes`, `completion_notes`, `overdue_justification` |
-| Overdue justification enforcement | CLEAN — Memory confirms mandatory notes for overdue completions |
-| `ActionWorkflowTimeline` visual tracker | CLEAN — 4-stage stepper (Assigned → In Progress → Pending Verification → Closed) with return count badge |
-| My Actions filtering | CLEAN — Correctly groups `assigned`/`pending`/`returned_for_correction` as actionable; `in_progress` as active; `completed`/`verified`/`closed` as done |
-| Released-at gate for incident actions | CLEAN — `incidentQueryService` filters `released_at !== null` for incident actions (observations bypass) |
-| Evidence upload/view | CLEAN — `useActionEvidence`, `useUploadActionEvidence`, `useDeleteActionEvidence` all functional |
-| SLA countdown | CLEAN — Stops for `completed`/`verified`/`closed` statuses |
-| Pending approvals query | CLEAN — Filters `status === 'completed'` with role-based access (HSSE Expert/Manager, Environmental Expert/Manager, Admin) |
-| Action Center sync | CLEAN — `stat-fetchers.ts` counts actions by tenant |
+**Fix**: Add email notification logic to the inspection `useVerifyAction`, fetching assignee details and calling `send-action-email` for both rejection and approval paths (similar to the pending-approvals version, but with `incident_reference: null`).
 
 ---
 
@@ -91,7 +107,5 @@ Compare with `useVerifyAction` (pending-approvals), which correctly invalidates:
 
 | Priority | File | Change |
 |----------|------|--------|
-| MEDIUM | `src/features/investigation/services/investigationMutationService.ts` | Add return_count increment, email notifications, and audit logging to `verifyCorrectiveAction` |
-| MEDIUM | `src/features/investigation/hooks/use-investigation/use-investigation-mutations.ts` | Add `pending-action-approvals` and `my-corrective-actions` to `useVerifyCorrectiveAction` cache invalidation |
-| LOW | `src/features/incidents/hooks/use-inspection-actions/use-action-mutations.ts` | Add `return_count` increment to inspection `useVerifyAction` rejection path |
+| LOW | `src/features/incidents/hooks/use-inspection-actions/use-action-mutations.ts` | Add email notifications (`action_returned` / `action_closed`) to `useVerifyAction` |
 
