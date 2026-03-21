@@ -293,6 +293,16 @@ const ACTION_VERBS: Record<string, string> = {
   investigation_closed: "Closed",
   closed_rejected_approved_by_hsse: "Closed",
   hsse_enforced: "Enforced",
+
+  contractor_violation_enforced: "Violation enforced",
+  contractor_violation_approved_fine: "Fine approved",
+  contractor_violation_cancelled: "Violation cancelled",
+  contractor_violation_warning: "Warning issued",
+  contractor_violation_terminated: "Contract terminated",
+  upgraded_to_incident: "Escalated to incident",
+  rejected_invalid: "Rejected as invalid",
+  pending_contractor_site_rep_approval: "Pending contractor site rep approval",
+  pending_hsse_violation_review: "Reviewing violation",
 };
 
 export function getActionVerb(status: string | null | undefined): string {
