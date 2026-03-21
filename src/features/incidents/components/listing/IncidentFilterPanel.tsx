@@ -167,7 +167,7 @@ export function IncidentFilterPanel({
               })}
               className="h-8 px-2 lg:px-3 text-muted-foreground hover:text-foreground"
             >
-              <X className="mr-2 h-4 w-4" />
+              <X className="me-2 h-4 w-4" />
               {t('common.reset', 'Reset')}
             </Button>
           )}
