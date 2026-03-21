@@ -11,7 +11,7 @@ export function useWitnessStatements(incidentId: string | null) {
 
             const { data, error } = await supabase
                 .from("witness_statements")
-                .select("id, incident_id, tenant_id, witness_name, witness_contact, relationship, statement_text, audio_url, original_transcription, transcription_edited, transcription_approved, ai_analysis, assigned_witness_id, assignment_status, created_by, created_at, deleted_at, return_reason, return_count, returned_by, returned_at, reviewed_by, reviewed_at")
+                .select("id, incident_id, tenant_id, witness_name, witness_contact, relationship, statement_text, statement_type, audio_url, original_transcription, transcription_edited, transcription_approved, ai_analysis, assigned_witness_id, assignment_status, created_by, created_at, deleted_at, return_reason, return_count, returned_by, returned_at, reviewed_by, reviewed_at")
                 .eq("incident_id", incidentId)
                 .is("deleted_at", null)
                 .order("created_at", { ascending: false });
@@ -26,7 +26,7 @@ export function useWitnessStatements(incidentId: string | null) {
                 contact: row.witness_contact as string,
                 relationship: row.relationship as string,
                 statement: row.statement_text as string,
-                statement_method: 'text' as StatementType,
+                statement_method: (row.statement_type as StatementType) || 'text',
                 audio_url: row.audio_url as string,
                 
                 original_transcription: row.original_transcription as string,
@@ -68,7 +68,7 @@ export function useMyAssignedWitnessStatements() {
 
             const { data, error } = await supabase
                 .from("witness_statements")
-                .select("id, incident_id, witness_name, witness_contact, statement_text, assignment_status, created_at, return_reason, return_count, returned_at")
+                .select("id, incident_id, witness_name, witness_contact, statement_text, statement_type, assignment_status, created_at, return_reason, return_count, returned_at")
                 .eq("assigned_witness_id", user.id)
                 .is("deleted_at", null)
                 .order("created_at", { ascending: false });
@@ -81,7 +81,7 @@ export function useMyAssignedWitnessStatements() {
                 name: row.witness_name as string,
                 contact: row.witness_contact as string,
                 statement: row.statement_text as string,
-                statement_method: 'text' as StatementType,
+                statement_method: (row.statement_type as StatementType) || 'text',
                 status: (row.assignment_status || 'pending') as WitnessStatus,
                 created_at: row.created_at as string,
                 return_reason: row.return_reason as string,
