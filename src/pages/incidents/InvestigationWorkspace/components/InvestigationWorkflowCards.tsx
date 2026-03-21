@@ -360,6 +360,7 @@ export function InvestigationWorkflowCards({
         />
       );
 
+    case 'pending_closure':
     case 'pending_final_closure':
     case 'pending_hsse_incident_validation':
       return (
