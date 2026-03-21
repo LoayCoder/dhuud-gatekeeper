@@ -1,83 +1,75 @@
 
 
-# E2E Audit — Incidents Module (Post-Submission Flow) — Pass 4
+# E2E Audit — Incidents Module (Post-Submission Flow) — Pass 5
 
-## Result: 3 gaps found across status maps
+## Result: 2 gaps found
 
-All previous fixes verified clean. This pass focuses on contractor violation statuses and a few edge cases that were missed in earlier audits.
+### Finding 1: MEDIUM — `UnifiedTimelineTracker.getStepIndex()` missing ~15 incident statuses
 
----
+The incident (non-observation) path in `getStepIndex()` is missing these statuses, causing them to fall through to `return 0` (step "Reported") instead of the correct step:
 
-## Finding 1: MEDIUM — `current-owner.ts` missing 5 statuses
+| Missing Status | Correct Step |
+|---|---|
+| `osha_reportable` | 1 (Triage) |
+| `pending_escalation_approval` | 1 (Triage) |
+| `dept_rep_rejected` | 1 (Triage) |
+| `pending_hsse_manager_closure` | 4 (Closed) |
+| `pending_action_dispute_review` | 3 (Corrective Actions) |
+| `pending_consultant_screening` | 1 (Triage) |
+| `pending_consultant_review` | 1 (Triage) |
+| `pending_consultant_actions` | 3 (Corrective Actions) |
+| `pending_consultant_verification` | 3 (Corrective Actions) |
+| `pending_contractor_site_rep_approval` | 3 (Corrective Actions) |
+| `pending_hsse_violation_review` | 3 (Corrective Actions) |
+| `contractor_violation_enforced` | 4 (Closed) |
+| `contractor_violation_approved_fine` | 4 (Closed) |
+| `contractor_violation_cancelled` | 4 (Closed) |
+| `contractor_violation_warning` | 4 (Closed) |
+| `contractor_violation_terminated` | 4 (Closed) |
+| `closed_rejected_approved_by_hsse` | 4 (Closed) |
+| `upgraded_to_incident` | 4 (Closed) |
+| `rejected_invalid` | 4 (Closed) |
 
-These statuses fall through to `default: return null`, causing blank ownership in the timeline tracker:
+**Impact**: Timeline tracker shows the wrong active step for these statuses, misleading users about workflow progress.
 
-| Status | Expected Owner |
-|--------|---------------|
-| `pending_contractor_site_rep_approval` | Contractor Site Rep |
-| `pending_hsse_violation_review` | HSSE Expert |
-| `pending_legal_review` | Legal & Compliance |
-| `upgraded_to_incident` | System (closed/terminal) — should return `null` explicitly |
-| `rejected_invalid` | System (closed/terminal) — should return `null` explicitly |
-
-**Fix**: Add 3 new `case` blocks with `buildOwner()` for the actionable statuses, and add 2 statuses to the existing terminal/closed group.
-
----
-
-## Finding 2: MEDIUM — `STATUS_CATEGORIES` missing contractor violation terminal statuses
-
-These 7 statuses are defined in the DB enum and have `STATUS_LABELS` entries but no `STATUS_CATEGORIES` mapping, so they default to `'open'` (blue) instead of their correct category:
-
-| Status | Should Be |
-|--------|-----------|
-| `pending_contractor_site_rep_approval` | `action_required` |
-| `pending_hsse_violation_review` | `action_required` |
-| `contractor_violation_enforced` | `closed` |
-| `contractor_violation_approved_fine` | `closed` |
-| `contractor_violation_cancelled` | `closed` |
-| `contractor_violation_warning` | `closed` |
-| `contractor_violation_terminated` | `closed` |
-| `upgraded_to_incident` | `closed` |
-| `rejected_invalid` | `rejected` |
-
-**Fix**: Add 9 entries to `STATUS_CATEGORIES`.
+**Fix**: Add these statuses to the correct arrays in the incident branch of `getStepIndex()`.
 
 ---
 
-## Finding 3: LOW — `IncidentStatus` constants missing contractor violation + escalation statuses
+### Finding 2: LOW — `CLOSED_STATUSES` and `REJECTED_STATUSES` arrays incomplete
 
-The centralized constants file lacks these statuses that exist in the DB enum:
+In `src/lib/incident-status-colors.ts`:
 
-- `PENDING_CONTRACTOR_SITE_REP_APPROVAL`
-- `PENDING_HSSE_VIOLATION_REVIEW`
-- `CONTRACTOR_VIOLATION_ENFORCED`
-- `CONTRACTOR_VIOLATION_APPROVED_FINE`
-- `CONTRACTOR_VIOLATION_CANCELLED`
-- `CONTRACTOR_VIOLATION_WARNING`
-- `CONTRACTOR_VIOLATION_TERMINATED`
-- `UPGRADED_TO_INCIDENT`
-- `REJECTED_INVALID`
+**`CLOSED_STATUSES`** (line 109) is missing:
+- `hsse_enforced`
+- `contractor_violation_enforced`
+- `contractor_violation_approved_fine`
+- `contractor_violation_cancelled`
+- `contractor_violation_warning`
+- `contractor_violation_terminated`
+- `upgraded_to_incident`
 
-**Fix**: Add 9 constants to `src/types/incident-statuses.ts`.
+**`REJECTED_STATUSES`** (line 112) is missing:
+- `rejected_invalid`
+
+**Impact**: `isOpenStatus()`, `isClosedStatus()`, and `getClosedStatuses()` return wrong results for these terminal statuses. Any filtering logic using these functions (e.g., showing "open" incidents) would incorrectly include closed/terminal records.
+
+**Fix**: Add the missing entries to both arrays.
 
 ---
 
 ## Verified Clean
-
-- **InvestigationWorkflowCards**: All actionable statuses have cards (contractor violation cards handled via IncidentDetail.tsx for `pending_contractor_site_rep_approval` and `pending_hsse_violation_review`)
-- **STATUS_LABELS**: Complete — all statuses have human-readable labels
-- **ACTION_VERBS**: Complete for all actionable statuses
-- **Investigation Workspace CTA**: Correctly uses `?incident=` query param
-- **Audit Trail**: UUID resolution working
-- **AI Analysis**: Edge function integration clean
-
----
+- `current-owner.ts`: All statuses mapped (complete)
+- `STATUS_CATEGORIES`: All statuses mapped (complete)
+- `STATUS_LABELS` / `ACTION_VERBS`: All statuses have labels (complete)
+- `InvestigationWorkflowCards`: All actionable statuses have cards (complete)
+- Investigation Workspace CTA: Correct `?incident=` query param (complete)
+- `IncidentStatusBadge`: Has fallback for unmapped statuses (acceptable)
 
 ## Files to Edit
 
 | File | Change |
 |------|--------|
-| `src/lib/current-owner.ts` | Add 3 actionable cases + 2 terminal statuses |
-| `src/lib/incident-status-colors.ts` | Add 9 entries to `STATUS_CATEGORIES` |
-| `src/types/incident-statuses.ts` | Add 9 missing constants |
+| `src/features/investigation/components/UnifiedTimelineTracker.tsx` | Add ~19 missing statuses to incident path in `getStepIndex()` |
+| `src/lib/incident-status-colors.ts` | Add 7 entries to `CLOSED_STATUSES`, 1 to `REJECTED_STATUSES` |
 
