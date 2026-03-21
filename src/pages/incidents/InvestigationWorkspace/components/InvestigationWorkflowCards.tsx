@@ -27,7 +27,7 @@ import {
   TeamInvestigationAssignmentStep,
   HSSEExpertRejectionReviewCard,
   ObservationClosureGate,
-  HSSEObservationValidationCard
+  HSSEObservationValidationCard,
   ContractorSiteRepAcknowledgeCard,
 } from '@/features/investigation';
 import { ActionDisputeReviewCard, ConsultantReviewCard, SiteClientActionApprovalCard } from '@/features/investigation';
