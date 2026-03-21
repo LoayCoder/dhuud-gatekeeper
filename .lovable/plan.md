@@ -1,50 +1,81 @@
 
 
-# E2E Audit — Observations Module (Final Verification)
+# E2E Audit Report — Incidents Module (Post-Submission Flow)
 
-## Result: ALL CLEAR — No remaining issues found
+## Finding 1: CRITICAL — `current-owner.ts` missing 6 incident-specific statuses
 
-Every fix from previous audit passes has been verified in the current codebase:
+**Impact**: For these statuses, `getCurrentOwner()` returns `null` (falls through to `default`), so the UnifiedTimelineTracker shows no ownership info — no name, no "unassigned" warning. Users see a blank active step.
 
-### 1. Witness Statement Mutations — CLEAN
-- **Line 45**: `statement_type: input.statement_method` (correct column)
-- **Line 49**: `assignment_status: input.status || 'pending'` (correct column)
-- **Line 89**: `updateData.assignment_status = updates.status` (correct column)
-- **Line 133**: `assignment_status: "approved"` (correct column)
-- **Line 155**: `assignment_status: "returned"` (correct column)
+**Missing statuses in `current-owner.ts`**:
 
-### 2. Witness Statement Queries — CLEAN
-- **Line 14**: `statement_type` is included in the select string
-- **Line 29**: `statement_method: (row.statement_type as StatementType) || 'text'` (dynamic, not hardcoded)
-- **Line 71**: `statement_type` is included in the second query's select string
-- **Line 84**: Same dynamic mapping in `useMyAssignedWitnessStatements`
+| Status | Expected Owner |
+|--------|---------------|
+| `pending_clinic_review` | Clinic User |
+| `pending_department_manager_violation_approval` | Department Manager |
+| `pending_contract_controller_approval` | Contract Controller |
+| `pending_hsse_incident_validation` | HSSE Team |
+| `pending_escalation_approval` | HSSE Manager |
+| `osha_reportable` | HSSE Expert |
 
-### 3. Ownership Resolution (current-owner.ts) — CLEAN
-- **Line 64**: Non-contractor expert screening resolves `approval_manager?.full_name` correctly
-- Contractor path (line 61) also resolves correctly
-- All 30+ statuses mapped with no gaps
+**Fix**: Add 6 new `case` blocks to the `switch` in `src/lib/current-owner.ts`, mapping each to the correct role with `buildOwner(null, "Role", true)`.
 
-### 4. Audit Trail UUID Resolution — CLEAN
-- Actor names resolved from profiles table (line 169)
-- Branch IDs and user IDs in details resolved via batch lookup (lines 141-163)
-- UI renders `log.actor_name` instead of hardcoded "System / User" (line 149)
-- Details render resolved names via `log.resolved_details` (line 155)
+---
 
-### 5. Types Interface — CLEAN
-- `ai_transcription_text` removed from `WitnessStatement` interface
-- `assignment_status` field present alongside `status` for backward compat
+## Finding 2: MEDIUM — `incident-statuses.ts` missing several incident workflow statuses
 
-### 6. Full Lifecycle Verification
-- **Creation**: QuickObservationCard with offline/online paths — working
-- **AI Processing**: analyze-observation edge function — integrated
-- **Routing**: Internal (severity-based) and contractor (auto-consultant) paths — correct
-- **Workflow Cards**: All statuses have dedicated action cards
-- **Timeline**: UnifiedTimelineTracker maps all statuses to correct steps
-- **Status Labels**: Complete bilingual coverage
-- **Escalation**: `upgraded_to_incident` with backlink banner
-- **Closure**: `pending_hsse_manager_closure` and `pending_hsse_validation` handled
+The centralized constants file `src/types/incident-statuses.ts` only has ~20 entries but the actual codebase uses 40+ statuses. Missing from the constants:
 
-## Conclusion
+- `pending_clinic_review`
+- `pending_department_manager_violation_approval`
+- `pending_contract_controller_approval`
+- `pending_hsse_incident_validation`
+- `pending_escalation_approval`
+- `under_investigation`
+- `pending_investigator_assignment`
+- `monitoring_30_day`, `monitoring_60_day`, `monitoring_90_day`
+- `dispute_resolution`, `pending_contractor_dispute_review`
+- `pending_legal_review` (already in the file but inconsistently)
+- Several contractor/observation statuses
 
-No code changes needed. The Observations Module is production-ready.
+**Fix**: Add all missing statuses to `src/types/incident-statuses.ts` so the single source of truth is actually complete. Components that reference raw strings should migrate to use these constants.
+
+---
+
+## Finding 3: LOW — `IncidentDetail.tsx` only shows observation workflow cards, not incident workflow cards
+
+In `IncidentDetail.tsx` (lines 296-311), workflow approval cards (like `HSSEObservationValidationCard`, `ObservationClosureGate`) are conditionally rendered only for `event_type === 'observation'`. For incidents, only contractor-related cards appear (lines 304-311). There is no rendering of incident-specific cards like `ClinicReviewCard`, `LegalReviewCard`, `MonitoringCheckCard`, etc. on the detail page.
+
+**Impact**: Low — the Investigation Workspace (`/incidents/investigate`) handles all these via `InvestigationWorkflowCards.tsx`. The detail page is primarily read-only. However, users navigating directly to `/incidents/:id` won't see actionable workflow cards for incident-specific stages.
+
+**Recommendation**: Either add incident workflow card rendering to `IncidentDetail.tsx` or add a prominent "Open in Investigation Workspace" CTA for non-closed incidents.
+
+---
+
+## Finding 4: LOW — `InvestigationTabsContent.tsx` nav tabs use inverted lock logic
+
+Lines 102-136 show tabs when `isTabLocked('evidence')` returns `true`, which seems inverted. Looking at the logic: `isTabLocked = (tabKey) => !unlockedTabs.includes(tabKey)` — so `isTabLocked` returns `true` when the tab is NOT unlocked. But the condition renders the button when `isTabLocked` is true, meaning it shows the nav button for locked tabs.
+
+**Impact**: Actually correct by accident — the tabs render for display but sections also check `isTabLocked` on lines 154-282, gating content visibility the same way. The naming is confusing but functionally correct. No code change needed — just noting the confusing naming.
+
+---
+
+## Verified Clean Areas
+
+- **InvestigationWorkflowCards.tsx**: All 30+ statuses have dedicated action cards including clinic review, legal review, dispute, monitoring, contractor violations, OSHA, and escalation
+- **UnifiedTimelineTracker**: Correctly maps all statuses to 5-step indices for both observations and incidents
+- **Audit Trail**: UUID resolution working correctly for actors and branches
+- **Action Center**: Incident filtering via `event_type` is correct
+- **SPA Refresh**: Uses `handleRefresh()` with React Query invalidation, no `window.location.reload()`
+- **Status Labels**: Complete coverage in `incident-status-colors.ts` with bilingual support in `workflow-status-resolver.ts`
+- **Closure Flow**: Prerequisites card, closure request dialog, and approval card all properly gated
+
+---
+
+## Summary of Required Changes
+
+| Priority | File | Change |
+|----------|------|--------|
+| CRITICAL | `src/lib/current-owner.ts` | Add 6 missing incident status cases |
+| MEDIUM | `src/types/incident-statuses.ts` | Add ~15 missing status constants |
+| LOW | `src/pages/incidents/IncidentDetail.tsx` | Add "Open in Investigation Workspace" CTA for active incidents |
 
