@@ -1,39 +1,48 @@
 
 
-# Fix Audit Trail — Resolve UUIDs to Human-Readable Names
+# E2E Audit — Observations Module (Final Pass)
 
-## Problem
+## Summary
 
-The Audit Trail panel has two issues:
-1. **Actor name hardcoded as "System / User"** — the `actor_id` field from `incident_audit_logs` is never resolved to a profile name
-2. **Raw UUIDs displayed in details** — fields like `branch_id` and `assigned_to` are shown as raw UUIDs instead of branch names / user names
+After verifying all previous fixes (current-owner.ts, witness mutations, audit trail), I found **1 remaining bug** in the witness statements subsystem. The core observation lifecycle is clean.
 
-## Fix
+---
 
-### 1. Resolve actor names in the query service
+## Finding: Witness query does not fetch `statement_type` — always shows "text"
 
-**File:** `src/features/investigation/services/investigationQueryService.ts`
+**Impact**: All witness statements display as type "text" in the UI, even voice recordings and document uploads. The `statement_method` field is hardcoded to `'text'` in both query mappings because `statement_type` is never selected from the database.
 
-After fetching audit logs, collect all unique `actor_id` values and any UUID values from `details` that match known fields (`assigned_to`, `branch_id`, `site_id`). Batch-fetch profiles and branches to build lookup maps, then enrich each log entry with resolved names.
+**Root cause**: In `use-statement-queries.ts`:
+- **Line 14**: The `.select(...)` string does not include `statement_type`
+- **Line 29**: Maps `statement_method: 'text' as StatementType` — hardcoded instead of reading from the row
+- **Line 84**: Same hardcoded mapping in `useMyAssignedWitnessStatements`
 
-### 2. Update the query to join profiles
+### Fix
 
-Alternatively (simpler approach): add a second query after fetching logs to resolve `actor_id` values from the `profiles` table, and `branch_id` values from `branches` table. Attach `actor_name` and `branch_name` to each log.
+**File:** `src/hooks/use-witness-statements/use-statement-queries.ts`
 
-### 3. Update AuditLogPanel rendering
+1. **Line 14**: Add `statement_type` to the select string
+2. **Line 29**: Change from `statement_method: 'text' as StatementType` to `statement_method: (row.statement_type as StatementType) || 'text'`
+3. **Line 71**: Add `statement_type` to the select string in `useMyAssignedWitnessStatements`
+4. **Line 84**: Change from `statement_method: 'text' as StatementType` to `statement_method: (row.statement_type as StatementType) || 'text'`
 
-**File:** `src/features/investigation/components/AuditLogPanel.tsx`
+---
 
-- **Line 149**: Replace hardcoded `"System / User"` with `log.actor_name || t('investigation.audit.system', 'System')`.
-- **Lines 154-158**: For known UUID fields (`branch_id`, `assigned_to`, `site_id`), display resolved names instead of raw UUIDs. For `assigned_to`, show the user's full name. For `branch_id`, show the branch name. Hide or label other fields appropriately.
+## Verified Clean Areas
 
-### 4. Update the IncidentAuditLog type
-
-Add `actor_name?: string` and ensure the details rendering logic has a field-level formatter that substitutes known UUIDs.
+All other lifecycle stages confirmed working:
+- **Creation** (QuickObservationCard) — correct fields, offline/online paths, AI analysis gating
+- **AI Processing** — analyze-observation edge function integrated correctly
+- **Assignment & Routing** (current-owner.ts) — all statuses mapped, contractor path and non-contractor path both resolve `approval_manager` name correctly
+- **Workflow Cards** (InvestigationWorkflowCards) — all 30+ statuses have dedicated action cards
+- **Timeline & Status Labels** — complete bilingual coverage
+- **Witness Mutations** — `assignment_status` and `statement_type` column names corrected in previous pass
+- **Audit Trail** — actor names and branch IDs resolve to human-readable names
+- **Escalation** — `upgraded_to_incident` status handled with backlink banner
+- **Closure** — `pending_hsse_manager_closure` and `pending_hsse_validation` handled
+- **ResponsibleUserBadge** — shows assigned user name or "No user assigned" warning correctly
 
 ## Files to Edit
 
-1. `src/features/investigation/services/investigationQueryService.ts` — enrich logs with resolved names
-2. `src/features/investigation/components/AuditLogPanel.tsx` — display resolved names, remove hardcoded "System / User"
-3. `src/features/investigation/types.ts` (or wherever `IncidentAuditLog` is defined) — add `actor_name` field
+1. `src/hooks/use-witness-statements/use-statement-queries.ts` — add `statement_type` to select and use it in mapping
 
