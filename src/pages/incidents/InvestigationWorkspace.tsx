@@ -104,7 +104,7 @@ export default function InvestigationWorkspace() {
     />
   );
 
-  const isTabLocked = (tabKey: string) => !unlockedTabs.includes(tabKey);
+  const isTabUnlocked = (tabKey: string) => unlockedTabs.includes(tabKey);
   const isTabCompleted = (tabKey: string) => completedTabs.includes(tabKey);
 
   const startInvestigation = () => {
