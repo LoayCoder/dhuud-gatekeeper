@@ -1,4 +1,4 @@
-﻿import { useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -70,7 +70,7 @@ export function AuditLogChangeDialog({ open, onOpenChange, log }: AuditLogChange
   const changedFields = getChangedFields();
 
   const formatValue = (value: unknown): string => {
-    if (value === null || value === undefined) return "â€”";
+    if (value === null || value === undefined) return "—";
     if (typeof value === "boolean") return value ? "âœ“" : "âœ—";
     if (typeof value === "object") return JSON.stringify(value, null, 2);
     return String(value);

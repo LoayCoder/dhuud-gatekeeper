@@ -1,4 +1,4 @@
-﻿
+
 import { createContext, useContext, ReactNode, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";

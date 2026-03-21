@@ -1,4 +1,4 @@
-﻿
+
 import { useNavigate } from "react-router-dom";
 import { useInvestigationContext } from "@/features/investigation/context/InvestigationContext";
 import {

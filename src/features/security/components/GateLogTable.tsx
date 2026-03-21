@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format, formatDistanceToNow } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -62,7 +62,7 @@ export function GateLogTable() {
       <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
         <span className="flex items-center gap-1">
           <Clock className="h-3 w-3" />
-          {format(new Date(entry.entry_time), 'HH:mm')} â€¢ {format(new Date(entry.entry_time), 'dd/MM')}
+          {format(new Date(entry.entry_time), 'HH:mm')} • {format(new Date(entry.entry_time), 'dd/MM')}
         </span>
         {entry.car_plate && (
           <span className="flex items-center gap-1">

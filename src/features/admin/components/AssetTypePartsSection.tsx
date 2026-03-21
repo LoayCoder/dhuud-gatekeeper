@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Asset Type Parts Section
  * 
  * A collapsible section to manage inspectable parts for an asset type OR subtype.

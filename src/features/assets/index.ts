@@ -1,4 +1,4 @@
-﻿export * from './components/bulk/BulkActionsToolbar';
+export * from './components/bulk/BulkActionsToolbar';
 export * from './components/bulk/BulkDeleteDialog';
 export * from './components/bulk/BulkLocationChangeDialog';
 export * from './components/bulk/BulkStatusChangeDialog';

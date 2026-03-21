@@ -1,4 +1,4 @@
-﻿
+
 // types and utils imported from local files but local declarations take precedence
 import type {} from './types';
 import {} from './utils';

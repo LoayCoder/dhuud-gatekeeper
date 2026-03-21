@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -276,7 +276,7 @@ export function CommandCenterMap({
         <div class="p-2">
           <strong>${zone.zone_name}</strong>
           <br/>
-          <span class="text-xs">${zone.zone_code} â€¢ ${zone.zone_type}</span>
+          <span class="text-xs">${zone.zone_code} • ${zone.zone_type}</span>
           <br/>
           <span class="text-xs">Risk: ${zone.risk_level}</span>
         </div>

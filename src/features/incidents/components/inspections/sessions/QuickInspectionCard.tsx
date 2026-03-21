@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { CheckCircle, XCircle, Ban, MapPin, Clock, Loader2 } from 'lucide-react';

@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { logger } from '@/lib/logger';
 import { useDropzone } from 'react-dropzone';

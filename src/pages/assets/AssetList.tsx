@@ -1,4 +1,4 @@
-﻿import { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Package, Filter, Grid, List, AlertTriangle, Calendar, Upload, Download, Edit } from 'lucide-react';

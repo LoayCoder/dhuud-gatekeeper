@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Asset Type Part Dialog
  * 
  * Dialog for adding or editing an asset type part.

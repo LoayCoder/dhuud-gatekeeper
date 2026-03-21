@@ -1,4 +1,4 @@
-﻿import { useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { User, Users, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";

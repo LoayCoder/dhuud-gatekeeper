@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Generate PDF summary report for security team performance
  */
 import { format } from 'date-fns';

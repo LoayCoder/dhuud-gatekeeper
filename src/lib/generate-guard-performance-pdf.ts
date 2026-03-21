@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Generate individual guard performance PDF report
  */
 import { format } from 'date-fns';

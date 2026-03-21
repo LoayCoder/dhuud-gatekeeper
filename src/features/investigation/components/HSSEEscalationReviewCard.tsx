@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -273,7 +273,7 @@ export function HSSEEscalationReviewCard({ incident, onComplete }: HSSEEscalatio
               ) : (
                 <CheckCircle2 className="h-4 w-4" />
               )}
-              {t('workflow.escalationReview.acceptAsObservation', 'Accept â€“ Keep as Observation')}
+              {t('workflow.escalationReview.acceptAsObservation', 'Accept – Keep as Observation')}
             </Button>
             
             {/* Upgrade to Incident */}

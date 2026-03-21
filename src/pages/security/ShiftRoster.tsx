@@ -1,4 +1,4 @@
-﻿import { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format, addDays, startOfWeek, eachDayOfInterval } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -353,7 +353,7 @@ export default function ShiftRoster() {
                       <div className="flex-1 min-w-0">
                         <div className="font-medium">{format(new Date(a.roster_date), 'PP')}</div>
                         <div className="text-sm text-muted-foreground truncate">
-                          {a.guard?.full_name || 'Unknown Guard'} â€¢ {a.zone?.zone_name || 'Unknown Zone'}
+                          {a.guard?.full_name || 'Unknown Guard'} • {a.zone?.zone_name || 'Unknown Zone'}
                         </div>
                         {a.supervisor?.full_name && (
                           <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
@@ -413,7 +413,7 @@ export default function ShiftRoster() {
                           <div>
                             <div className="font-medium text-sm">{a.guard?.full_name || 'Unknown'}</div>
                             <div className="text-xs text-muted-foreground">
-                              {a.zone?.zone_name} â€¢ {format(new Date(a.roster_date), 'MMM d')}
+                              {a.zone?.zone_name} • {format(new Date(a.roster_date), 'MMM d')}
                             </div>
                           </div>
                         </div>

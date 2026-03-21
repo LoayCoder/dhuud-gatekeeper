@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -245,7 +245,7 @@ export default function HSSEValidationDashboard() {
                           {t(`incidents.status.${item.status}`, item.status)}
                         </Badge>
                       </TableCell>
-                      <TableCell>{item.site_name || 'â€”'}</TableCell>
+                      <TableCell>{item.site_name || '—'}</TableCell>
                       <TableCell>
                         <Badge variant={item.days_pending > 5 ? 'destructive' : 'outline'}>
                           {Math.floor(item.days_pending)} {t('common.days', 'days')}

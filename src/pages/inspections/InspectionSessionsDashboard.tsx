@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 // Inspection Sessions Dashboard - Type imports fixed for Vite bundling
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';

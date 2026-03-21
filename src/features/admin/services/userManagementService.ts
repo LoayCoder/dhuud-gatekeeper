@@ -1,4 +1,4 @@
-﻿import { supabase } from '../supabaseClient';
+import { supabase } from '../supabaseClient';
 import type { UserWithRoles, UseUsersPaginatedFilters } from '@/features/users';
 import { Json } from '@/integrations/supabase/types';
 

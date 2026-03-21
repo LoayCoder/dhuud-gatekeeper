@@ -1,4 +1,4 @@
-﻿import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Package, Edit, Trash2, MapPin, Calendar, AlertTriangle, FileText, Wrench, History, ShieldAlert, ImageIcon, ArrowRightLeft, ClipboardCheck, QrCode, Barcode, Activity, DollarSign, ExternalLink, Shield, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';

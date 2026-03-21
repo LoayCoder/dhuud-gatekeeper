@@ -1,4 +1,4 @@
-﻿import { useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, User, UserCheck, Bell, ArrowUpRight, ArrowRight } from "lucide-react";
@@ -26,7 +26,7 @@ export function CurrentOwnerCard({ incident }: { incident: IncidentWithDetails }
                 <div className="bg-warning/10 px-4 py-2 border-b border-warning/20 flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4 text-warning" />
                     <span className="text-xs font-semibold text-warning tracking-wider uppercase">
-                        {t('workflow.unassigned', 'Action Required â€¢ Unassigned')}
+                        {t('workflow.unassigned', 'Action Required • Unassigned')}
                     </span>
                 </div>
                 <CardContent className="p-6">
@@ -95,7 +95,7 @@ export function CurrentOwnerCard({ incident }: { incident: IncidentWithDetails }
                             <span className={cn("font-medium px-2 py-0.5 rounded-md text-xs border bg-background/50", borderClass, textClass)}>
                                 {owner.role}
                             </span>
-                            <span>â€¢</span>
+                            <span>•</span>
                             <span>{owner.actionRequired}</span>
                         </div>
                     </div>

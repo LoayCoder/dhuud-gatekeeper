@@ -1,4 +1,4 @@
-﻿import { useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { Building2, MapPin, Star, Globe } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ProfileData } from "./types";

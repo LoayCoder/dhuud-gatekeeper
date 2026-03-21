@@ -1,4 +1,4 @@
-﻿
+
 import { useState } from "react";
 import { useInvestigationContext } from "@/features/investigation/context/InvestigationContext";
 import { RCAPanel } from '@/features/investigation';

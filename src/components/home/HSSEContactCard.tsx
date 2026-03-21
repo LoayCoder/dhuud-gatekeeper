@@ -1,4 +1,4 @@
-﻿import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { Phone, MessageCircle, User, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -138,7 +138,7 @@ export function HSSEContactCard() {
                     </Badge>
                     {contact.match_scope === 'organization' && (
                       <span className="text-xs text-muted-foreground">
-                        â€¢ {getScopeLabel(contact.match_scope)}
+                        • {getScopeLabel(contact.match_scope)}
                       </span>
                     )}
                   </div>

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Investigator Violation Submission Card
  * 
  * Displayed when a violation has been identified but not yet submitted.

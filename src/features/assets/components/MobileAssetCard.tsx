@@ -1,4 +1,4 @@
-﻿import { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Package, ChevronLeft, ChevronRight, Calendar, AlertTriangle, Trash2, Search, Edit } from 'lucide-react';

@@ -1,4 +1,4 @@
-﻿import { useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -467,7 +467,7 @@ export function InvestigationWorkflowStatusCard({
                         <span className="text-sm font-medium">{step.actorName}</span>
                         {step.timestamp && (
                           <span className="text-xs text-muted-foreground">
-                            â€¢ {formatDate(step.timestamp)}
+                            • {formatDate(step.timestamp)}
                           </span>
                         )}
                       </div>

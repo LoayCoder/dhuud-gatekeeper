@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Bell, Send, Eye, Trash2, CloudSun, Gavel, ShieldAlert, BookOpen, GraduationCap, Users, Building2, MapPin, CheckCircle2, Clock, AlertTriangle, Mail, BarChart3, HardHat, UserCheck, MessageCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

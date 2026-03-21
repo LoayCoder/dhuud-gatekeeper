@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search, Link2, Package, MapPin, AlertTriangle, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';

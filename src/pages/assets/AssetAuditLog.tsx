@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { ar, enUS } from "date-fns/locale";

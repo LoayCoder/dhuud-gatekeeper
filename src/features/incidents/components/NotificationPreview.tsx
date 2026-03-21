@@ -1,4 +1,4 @@
-﻿/**
+/**
  * NotificationPreview - Shows who will be notified before incident submission
  * Displays stakeholder roles and their notification channels based on severity matrix
  */

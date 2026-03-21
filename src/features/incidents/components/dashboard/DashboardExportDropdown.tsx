@@ -1,4 +1,4 @@
-﻿import { useState, RefObject } from "react";
+import { useState, RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import {
   DropdownMenu,

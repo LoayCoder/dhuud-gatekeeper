@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search, QrCode, UserCheck, UserX, AlertTriangle, LogIn, LogOut, WifiOff, Loader2, HardHat, Building2, GraduationCap, Clock, Calendar, ShieldCheck } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -629,7 +629,7 @@ export function WorkerVerificationPanel({ onSwitchTab }: WorkerVerificationPanel
                             {t('security.qrScanner.workerOnSiteDesc', 'This worker entered at {{time}}', { 
                               time: format(new Date(verificationResult.entryTime), 'HH:mm') 
                             })}
-                            {' â€¢ '}
+                            {' • '}
                             {t('security.qrScanner.onSiteDuration', 'On site for {{duration}}', {
                               duration: `${Math.floor(differenceInMinutes(new Date(), new Date(verificationResult.entryTime)) / 60)}h ${differenceInMinutes(new Date(), new Date(verificationResult.entryTime)) % 60}m`
                             })}

@@ -1,4 +1,4 @@
-﻿
+
 import { useState } from "react";
 import { useInvestigationContext } from "@/features/investigation/context/InvestigationContext";
 import { EvidenceManager } from '@/features/investigation';

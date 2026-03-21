@@ -1,4 +1,4 @@
-﻿export * from './components/analytics/AnalyticsKPICards';
+export * from './components/analytics/AnalyticsKPICards';
 export * from './components/analytics/ComplianceGauges';
 export * from './components/analytics';
 export * from './components/analytics/MonthlyTrendChart';

@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Package, DollarSign, Clock, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';

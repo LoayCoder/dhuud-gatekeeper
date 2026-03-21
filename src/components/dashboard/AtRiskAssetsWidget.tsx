@@ -1,4 +1,4 @@
-﻿import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -94,7 +94,7 @@ export function AtRiskAssetsWidget() {
                     <span>{asset.assetCode}</span>
                     {asset.daysUntilFailure !== null && (
                       <>
-                        <span>â€¢</span>
+                        <span>•</span>
                         <span className={cn(
                           asset.daysUntilFailure < 30 ? 'text-destructive' : ''
                         )}>
