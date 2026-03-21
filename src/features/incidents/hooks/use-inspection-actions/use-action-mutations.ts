@@ -111,16 +111,21 @@ export function useVerifyAction() {
         }) => {
             if (!user?.id) throw new Error('No user');
 
-            // Fetch current return_count for rejection increment
-            let currentReturnCount = 0;
-            if (!input.approved) {
-                const { data: action } = await supabase
-                    .from('corrective_actions')
-                    .select('return_count')
-                    .eq('id', input.actionId)
-                    .single();
-                currentReturnCount = action?.return_count || 0;
-            }
+            // Fetch action details for return_count increment and email notifications
+            const { data: action } = await supabase
+                .from('corrective_actions')
+                .select('title, return_count, assigned_to, incident_id, profiles!corrective_actions_assigned_to_fkey(email, full_name)')
+                .eq('id', input.actionId)
+                .single();
+
+            const currentReturnCount = action?.return_count || 0;
+
+            // Fetch verifier profile name for email context
+            const { data: verifierProfile } = await supabase
+                .from('profiles')
+                .select('full_name')
+                .eq('id', user.id)
+                .single();
 
             const updateData = input.approved
                 ? {
@@ -144,6 +149,28 @@ export function useVerifyAction() {
                 .eq('id', input.actionId);
 
             if (error) throw error;
+
+            // Send email notifications
+            const assigneeProfile = action?.profiles as any;
+            const assigneeEmail = assigneeProfile?.email;
+            if (assigneeEmail) {
+                try {
+                    const emailType = input.approved ? 'action_closed' : 'action_returned';
+                    await supabase.functions.invoke('send-action-email', {
+                        body: {
+                            type: emailType,
+                            to: assigneeEmail,
+                            assignee_name: assigneeProfile?.full_name || 'Team Member',
+                            action_title: action?.title || 'Corrective Action',
+                            incident_reference: null,
+                            verifier_name: verifierProfile?.full_name || 'HSSE Verifier',
+                            return_reason: input.verification_notes || undefined,
+                        },
+                    });
+                } catch (emailError) {
+                    console.error('[InspectionVerify] Email notification failed:', emailError);
+                }
+            }
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['session-actions'] });
