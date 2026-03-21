@@ -71,7 +71,7 @@ export function OverviewPanel({
   return (
     <div className="space-y-6" dir={direction}>
       {/* Investigation Progress Summary - NEW */}
-      {(incident.status === 'investigation_pending' || incident.status === 'investigation_in_progress' || incident.status === 'under_investigation') && (
+      {(incident.status === 'investigation_pending' || incident.status === 'investigation_in_progress' || (incident.status as string) === 'under_investigation') && (
         <Card className="border-primary/20 shadow-sm bg-gradient-to-br from-card to-primary/5">
           <CardHeader className="pb-3 border-b bg-muted/20">
             <div className="flex justify-between items-center">
