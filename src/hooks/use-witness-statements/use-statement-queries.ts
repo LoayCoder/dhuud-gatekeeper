@@ -81,7 +81,7 @@ export function useMyAssignedWitnessStatements() {
                 name: row.witness_name as string,
                 contact: row.witness_contact as string,
                 statement: row.statement_text as string,
-                statement_method: 'text' as StatementType,
+                statement_method: (row.statement_type as StatementType) || 'text',
                 status: (row.assignment_status || 'pending') as WitnessStatus,
                 created_at: row.created_at as string,
                 return_reason: row.return_reason as string,
