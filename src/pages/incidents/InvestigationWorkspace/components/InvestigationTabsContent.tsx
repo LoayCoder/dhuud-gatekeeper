@@ -194,6 +194,7 @@ export function InvestigationTabsContent({
               incidentDescription={selectedIncident?.description}
               incidentSeverity={selectedIncident?.severity}
               incidentEventType={selectedIncident?.event_type}
+              incidentEventSubtype={selectedIncident?.subtype}
               canEdit={editAccess.canEdit}
             />
           </section>
