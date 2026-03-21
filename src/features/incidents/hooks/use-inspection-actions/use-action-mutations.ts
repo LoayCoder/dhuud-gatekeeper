@@ -111,6 +111,17 @@ export function useVerifyAction() {
         }) => {
             if (!user?.id) throw new Error('No user');
 
+            // Fetch current return_count for rejection increment
+            let currentReturnCount = 0;
+            if (!input.approved) {
+                const { data: action } = await supabase
+                    .from('corrective_actions')
+                    .select('return_count')
+                    .eq('id', input.actionId)
+                    .single();
+                currentReturnCount = action?.return_count || 0;
+            }
+
             const updateData = input.approved
                 ? {
                     status: 'closed',
@@ -125,6 +136,7 @@ export function useVerifyAction() {
                     rejection_notes: input.verification_notes,
                     last_returned_at: new Date().toISOString(),
                     last_return_reason: input.verification_notes,
+                    return_count: currentReturnCount + 1,
                 };
 
             const { error } = await supabase.from('corrective_actions')

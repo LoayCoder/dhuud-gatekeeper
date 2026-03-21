@@ -277,7 +277,7 @@ export function useUpdateCorrectiveAction() {
 
 export function useVerifyCorrectiveAction() {
     const queryClient = useQueryClient();
-    const { user } = useAuth();
+    const { user, profile } = useAuth();
     const { t } = useTranslation();
 
     return useMutation({
@@ -290,12 +290,14 @@ export function useVerifyCorrectiveAction() {
             if (!user?.id) throw new Error('No user');
 
             const { verifyCorrectiveAction } = await import('@/features/investigation/services/investigationMutationService');
-            await verifyCorrectiveAction(input, user.id);
+            await verifyCorrectiveAction(input, user.id, profile?.tenant_id);
         },
         onSuccess: (_, { incidentId, approved }) => {
             queryClient.invalidateQueries({ queryKey: ['corrective-actions', incidentId] });
             queryClient.invalidateQueries({ queryKey: ['incident', incidentId] });
             queryClient.invalidateQueries({ queryKey: ['incidents'] });
+            queryClient.invalidateQueries({ queryKey: ['pending-action-approvals'] });
+            queryClient.invalidateQueries({ queryKey: ['my-corrective-actions'] });
 
             const message = approved
                 ? t('investigation.actions.verified', 'Action verified and closed')

@@ -199,7 +199,20 @@ export const verifyCorrectiveAction = async (input: {
     incidentId: string;
     verification_notes?: string;
     approved: boolean;
-}, userId: string) => {
+}, userId: string, tenantId?: string) => {
+    // Fetch action details for email notification and return_count tracking
+    const { data: action, error: fetchError } = await supabase
+        .from('corrective_actions')
+        .select(`
+            id, title, return_count, incident_id,
+            assigned_user:profiles!corrective_actions_assigned_to_fkey(id, full_name, email),
+            incident:incidents!corrective_actions_incident_id_fkey(id, reference_id)
+        `)
+        .eq('id', input.actionId)
+        .single();
+
+    if (fetchError) throw fetchError;
+
     const updateData = input.approved
         ? {
             status: 'closed',
@@ -212,7 +225,9 @@ export const verifyCorrectiveAction = async (input: {
             rejected_by: userId,
             rejected_at: new Date().toISOString(),
             rejection_notes: input.verification_notes,
+            last_returned_at: new Date().toISOString(),
             last_return_reason: input.verification_notes,
+            return_count: (action?.return_count || 0) + 1,
         };
 
     const { error } = await supabase
@@ -221,6 +236,75 @@ export const verifyCorrectiveAction = async (input: {
         .eq('id', input.actionId);
 
     if (error) throw error;
+
+    const assignedUser = action?.assigned_user as { id: string; full_name: string | null; email: string | null } | null;
+    const incident = action?.incident as { id: string; reference_id: string | null } | null;
+
+    // Send email notification for returned actions
+    if (!input.approved && assignedUser?.email) {
+        try {
+            await supabase.functions.invoke('send-action-email', {
+                body: {
+                    type: 'action_returned',
+                    recipient_email: assignedUser.email,
+                    recipient_name: assignedUser.full_name || 'Team Member',
+                    action_title: action?.title,
+                    incident_reference: incident?.reference_id || undefined,
+                    rejection_notes: input.verification_notes || undefined,
+                    return_count: (action?.return_count || 0) + 1,
+                },
+            });
+        } catch (emailError) {
+            console.error('Failed to send action returned email:', emailError);
+        }
+    }
+
+    // Send email notification & audit log for closed actions
+    if (input.approved && assignedUser?.email) {
+        // Get verifier name for email
+        const { data: verifierProfile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', userId)
+            .single();
+
+        try {
+            await supabase.functions.invoke('send-action-email', {
+                body: {
+                    type: 'action_closed',
+                    recipient_email: assignedUser.email,
+                    recipient_name: assignedUser.full_name || 'Team Member',
+                    action_title: action?.title,
+                    incident_reference: incident?.reference_id || undefined,
+                    verification_notes: input.verification_notes || undefined,
+                    verifier_name: verifierProfile?.full_name || 'HSSE Expert',
+                },
+            });
+        } catch (emailError) {
+            console.error('Failed to send action closed email:', emailError);
+        }
+
+        // Log audit entry for action closure
+        if (incident?.id && tenantId) {
+            try {
+                await supabase.from('incident_audit_logs').insert({
+                    incident_id: incident.id,
+                    tenant_id: tenantId,
+                    actor_id: userId,
+                    action: 'action_closed_by_verifier',
+                    new_value: {
+                        action_id: input.actionId,
+                        action_title: action?.title,
+                        verification_notes: input.verification_notes || null,
+                        closed_at: new Date().toISOString(),
+                        closed_by: verifierProfile?.full_name || userId,
+                    },
+                });
+            } catch (auditError) {
+                console.error('Failed to create audit log:', auditError);
+            }
+        }
+    }
 };
 
 export const softDeleteCorrectiveAction = async (id: string, incidentId: string) => {
