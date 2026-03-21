@@ -298,7 +298,7 @@ export function IncidentFilterPanel({
                       {filters.contractorId
                         ? contractors.find((c) => c.id === filters.contractorId)?.company_name
                         : t('common.selectContractor', 'Select Contractor...')}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-[200px] p-0">
