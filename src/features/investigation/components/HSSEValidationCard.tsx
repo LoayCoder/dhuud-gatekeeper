@@ -1,4 +1,4 @@
-﻿/**
+/**
  * HSSE Validation Card
  * 
  * Displayed to HSSE Experts for observations at Levels 3+

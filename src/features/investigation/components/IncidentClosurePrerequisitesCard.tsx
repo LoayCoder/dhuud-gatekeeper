@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Incident Closure Prerequisites Card
  * 
  * Visual checklist showing all requirements that must be met before an incident

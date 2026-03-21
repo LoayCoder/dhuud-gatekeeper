@@ -1,4 +1,4 @@
-﻿export * from './components/actions/ActionProgressDialog';
+export * from './components/actions/ActionProgressDialog';
 export * from './components/actions/ActionSLABadge';
 export * from './components/actions/ActionWorkflowTimeline';
 export * from './components/actions/DelegateVerifierDialog';

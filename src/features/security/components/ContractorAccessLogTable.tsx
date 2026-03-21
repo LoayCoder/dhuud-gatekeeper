@@ -1,4 +1,4 @@
-﻿import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -99,7 +99,7 @@ export function ContractorAccessLogTable({ logs, isLoading }: ContractorAccessLo
                   {log.exit_time ? (
                     format(new Date(log.exit_time), 'dd/MM/yyyy HH:mm')
                   ) : (
-                    <span className="text-muted-foreground">â€”</span>
+                    <span className="text-muted-foreground">—</span>
                   )}
                 </TableCell>
                 <TableCell>

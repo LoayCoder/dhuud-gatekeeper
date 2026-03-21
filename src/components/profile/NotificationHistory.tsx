@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatDistanceToNow } from "date-fns";
 import { Bell, RefreshCw, Info, AlertTriangle, Check, Trash2, CheckCheck } from "lucide-react";

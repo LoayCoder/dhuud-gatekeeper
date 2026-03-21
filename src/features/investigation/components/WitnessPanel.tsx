@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -354,7 +354,7 @@ export function WitnessPanel({ incidentId, incident, incidentStatus, canEdit: ca
                         {t('investigation.witnesses.statementApproved', 'Statement approved')}
                         {witness.reviewed_at && (
                           <span className="text-muted-foreground">
-                            â€¢ {format(new Date(witness.reviewed_at), 'MMM d, yyyy')}
+                            • {format(new Date(witness.reviewed_at), 'MMM d, yyyy')}
                           </span>
                         )}
                       </div>

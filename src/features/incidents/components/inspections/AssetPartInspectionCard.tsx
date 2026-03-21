@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Asset Part Inspection Card
  * 
  * Card component for inspecting individual parts of an asset during inspection.

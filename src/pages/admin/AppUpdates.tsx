@@ -1,4 +1,4 @@
-﻿import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { AppUpdateBroadcastPanel } from '@/features/admin';
 
 export default function AppUpdates() {

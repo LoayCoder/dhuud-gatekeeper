@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { User, Users, Pencil, Trash2, BellOff, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';

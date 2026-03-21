@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -136,7 +136,7 @@ export function NoInvestigationApprovalCard({ incident, onComplete }: NoInvestig
             ) : (
               <XCircle className="h-4 w-4 me-2" />
             )}
-            {t('workflow.noInvestigationApproval.reject', 'Reject â€” Return to Expert')}
+            {t('workflow.noInvestigationApproval.reject', 'Reject — Return to Expert')}
           </Button>
 
           <Button
@@ -149,7 +149,7 @@ export function NoInvestigationApprovalCard({ incident, onComplete }: NoInvestig
             ) : (
               <CheckCircle2 className="h-4 w-4 me-2" />
             )}
-            {t('workflow.noInvestigationApproval.approve', 'Approve â€” Close as No Investigation')}
+            {t('workflow.noInvestigationApproval.approve', 'Approve — Close as No Investigation')}
           </Button>
         </div>
 

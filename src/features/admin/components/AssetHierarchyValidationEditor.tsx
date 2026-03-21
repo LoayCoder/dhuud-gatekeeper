@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Asset Hierarchy Validation Editor
  * Displays detailed validation errors/warnings for each row with inline editing capabilities
  */

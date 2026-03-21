@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { History, FileSpreadsheet, User, AlertTriangle, CheckCircle, AlertCircle, Boxes, Package, Layers, Cog } from 'lucide-react';
 import { useAssetImportHistory, type AssetImportHistoryRecord } from '@/features/assets';

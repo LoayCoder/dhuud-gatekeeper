@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   Lock, Users, History, UserPlus, UserMinus, 
@@ -382,7 +382,7 @@ export function ConfidentialityManagementPanel({ incidentId, tenantId }: Confide
                           {entry.action === 'auto_declassified' && t('confidentiality.audit.autoDeclassified', 'Auto-declassified to {{level}}', { level: entry.new_level })}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {entry.actor_name} â€¢ {format(new Date(entry.created_at), 'PPp')}
+                          {entry.actor_name} • {format(new Date(entry.created_at), 'PPp')}
                         </p>
                         {entry.reason && (
                           <p className="text-xs text-muted-foreground mt-1 italic">"{entry.reason}"</p>

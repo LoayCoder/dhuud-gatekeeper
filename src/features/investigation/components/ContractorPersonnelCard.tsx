@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Building2, User, ShieldCheck, Phone, Mail, Loader2, ChevronDown, MessageCircle, Edit } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";

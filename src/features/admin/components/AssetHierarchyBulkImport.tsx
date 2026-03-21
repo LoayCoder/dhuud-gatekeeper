@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Asset Hierarchy Bulk Import Dialog
  * Allows admins to upload Excel files to bulk import categories, types, subtypes, and parts.
  * Also supports exporting existing data, smart update/insert mode, and real-time progress tracking.

@@ -1,4 +1,4 @@
-﻿import { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Search, X, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -128,7 +128,7 @@ export function TeamMemberSelector({
                         )}
                         {user.job_title && (
                           <>
-                            <span className="text-muted-foreground/50">â€¢</span>
+                            <span className="text-muted-foreground/50">•</span>
                             <span className="truncate">{user.job_title}</span>
                           </>
                         )}
@@ -174,7 +174,7 @@ export function SelectedMemberCard({ user, role, onRemove, isRequired }: Selecte
             )}
             {user.job_title && (
               <>
-                <span>â€¢</span>
+                <span>•</span>
                 <span>{user.job_title}</span>
               </>
             )}

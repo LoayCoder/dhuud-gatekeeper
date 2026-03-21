@@ -1,4 +1,4 @@
-﻿/**
+/**
  * HSSE Incident Validation Card
  * 
  * Displayed for HSSE users when an incident is awaiting final validation before closure.

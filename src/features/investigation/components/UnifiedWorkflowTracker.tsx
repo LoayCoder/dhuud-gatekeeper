@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Unified Workflow Tracker
  * Single consistent timeline UI for all observations
  * Replaces separate contractor/department trackers with unified stages

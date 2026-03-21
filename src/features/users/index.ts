@@ -1,4 +1,4 @@
-﻿export * from './components/UserFormDialog/components/BasicTab';
+export * from './components/UserFormDialog/components/BasicTab';
 export * from './components/UserFormDialog/components/DetailsTab';
 export * from './components/UserFormDialog/components/OrganizationTab';
 export * from './components/UserFormDialog/components/RolesTab';

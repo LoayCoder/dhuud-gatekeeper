@@ -1,4 +1,4 @@
-﻿import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { Link as RouterLink } from 'react-router-dom';
 import { format } from 'date-fns';
 import { AlertTriangle, FileText, ExternalLink, Calendar, Tag } from 'lucide-react';

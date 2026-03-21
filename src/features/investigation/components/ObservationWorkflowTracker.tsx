@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Observation Workflow Tracker
  * Visual component showing where an observation is in its lifecycle
  * Supports both Contractor and Normal observation paths

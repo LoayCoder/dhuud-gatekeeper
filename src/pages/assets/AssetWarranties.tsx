@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Shield, AlertTriangle, Clock, CheckCircle, XCircle, Search } from 'lucide-react';
@@ -75,7 +75,7 @@ function AssetWarrantiesContent() {
                   <span>{asset.asset_code}</span>
                   {asset.warranty_provider && (
                     <>
-                      <span>â€¢</span>
+                      <span>•</span>
                       <span>{asset.warranty_provider}</span>
                     </>
                   )}

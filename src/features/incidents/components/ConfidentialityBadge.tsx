@@ -1,4 +1,4 @@
-﻿import { Lock, LockOpen, ShieldAlert } from 'lucide-react';
+import { Lock, LockOpen, ShieldAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useTranslation } from 'react-i18next';

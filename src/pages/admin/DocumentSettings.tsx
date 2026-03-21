@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useDocumentBranding } from "@/hooks/use-document-branding";
 import { DocumentA4Preview } from '@/features/admin';

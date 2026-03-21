@@ -1,4 +1,4 @@
-﻿export { EvidenceManager } from './evidence/EvidenceManager';
+export { EvidenceManager } from './evidence/EvidenceManager';
 export { WitnessPanel } from './WitnessPanel';
 export { RCAPanel } from './RCAPanel';
 export { ActionsPanel } from './ActionsPanel';

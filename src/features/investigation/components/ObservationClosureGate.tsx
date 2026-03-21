@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Observation Closure Gate Component
  * 
  * Controls observation closure based on severity level:

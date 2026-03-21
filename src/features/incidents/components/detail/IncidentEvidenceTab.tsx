@@ -1,4 +1,4 @@
-﻿import { IncidentAttachmentsSection } from '@/features/incidents';
+import { IncidentAttachmentsSection } from '@/features/incidents';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';

@@ -1,4 +1,4 @@
-﻿import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { AssetLocationMap } from '@/features/assets';
 
 export default function AssetMap() {

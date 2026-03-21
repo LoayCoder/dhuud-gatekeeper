@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { ar, enUS } from 'date-fns/locale';
@@ -364,7 +364,7 @@ export function PropertyDamageCard({
                 {damage.recorded_by_profile.full_name}
                 {damage.created_at && (
                   <>
-                    {' â€¢ '}
+                    {' • '}
                     {format(new Date(damage.created_at), 'PPP', { locale: dateLocale })}
                   </>
                 )}

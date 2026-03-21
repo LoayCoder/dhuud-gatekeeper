@@ -1,4 +1,4 @@
-﻿import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { RiskAssessmentWizard } from '@/features/risk-assessment';
 

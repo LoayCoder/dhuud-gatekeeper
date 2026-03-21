@@ -1,4 +1,4 @@
-﻿export * from './components/dashboard/BlacklistSummaryCard';
+export * from './components/dashboard/BlacklistSummaryCard';
 export * from './components/dashboard/HSSEEventsSummaryCard';
 export * from './components/dashboard/OnsiteWorkersCard';
 export * from './components/dashboard/ProjectStatusCard';

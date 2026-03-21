@@ -1,4 +1,4 @@
-﻿import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { Smartphone } from 'lucide-react';
 import { MobileAssetScannerUI } from '@/features/assets';
 import { ModuleGate } from '@/components';

@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -268,7 +268,7 @@ export default function AssetTrash() {
                       {getCategoryName(asset) && (
                         <span>{getCategoryName(asset)}</span>
                       )}
-                      <span>â€¢</span>
+                      <span>•</span>
                       <span>
                         {t('assets.trash.deletedAt', { 
                           time: formatDistanceToNow(new Date(asset.deleted_at), { 

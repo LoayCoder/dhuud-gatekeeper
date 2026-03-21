@@ -1,4 +1,4 @@
-﻿/**
+/**
  * HSSE Observation Validation Card
  * 
  * Displayed to HSSE Experts/Managers when an observation is pending final validation

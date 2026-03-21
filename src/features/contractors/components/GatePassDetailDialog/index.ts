@@ -1,3 +1,3 @@
-﻿export * from './GatePassDetailDialog';
+export * from './GatePassDetailDialog';
 export * from './types';
 

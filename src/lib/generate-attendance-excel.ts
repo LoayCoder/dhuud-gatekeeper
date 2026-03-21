@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Generate Excel file for attendance records export
  */
 import { format } from 'date-fns';

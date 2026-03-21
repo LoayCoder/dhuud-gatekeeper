@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Investigator Violation Identification Card
  * 
  * Displayed during investigation_in_progress for contractor-related incidents.

@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle, XCircle, Clock, Loader2, User } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -130,7 +130,7 @@ export function IncidentClosureApprovalCard({
             <div className={`flex items-center gap-2 text-sm ${isFinalClosure ? 'text-success' : 'text-warning'}`}>
               <User className="h-4 w-4" />
               <span className="font-medium">{requesterName || (isFinalClosure ? t('common.system', 'System') : t('common.unknown', 'Unknown'))}</span>
-              <span>â€¢</span>
+              <span>•</span>
               <span className="text-muted-foreground">{requestedTimeAgo}</span>
             </div>
             

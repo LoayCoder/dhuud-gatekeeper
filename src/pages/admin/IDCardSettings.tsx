@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ID Card Settings Admin Page
  * Configure ID card designs for each card type with live preview
  */
