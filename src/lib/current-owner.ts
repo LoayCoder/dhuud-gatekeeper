@@ -120,9 +120,18 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         case "pending_site_client_action_approval":
             return buildOwner(null, "Site Client Rep", true);
 
+        // Contractor Site Rep Approval
+        case "pending_contractor_site_rep_approval":
+            return buildOwner(null, "Contractor Site Rep", true);
+
+        // HSSE Violation Review
+        case "pending_hsse_violation_review":
+            return buildOwner(null, "HSSE Expert", true);
+
         // Compliance & Dispute
         case "dispute_resolution":
         case "pending_contractor_dispute_review":
+        case "pending_legal_review":
             return buildOwner(null, "Legal & Compliance", true);
 
         // Monitoring & Closure Verification Stages
