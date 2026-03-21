@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Calendar, Building, Building2, MapPin, ExternalLink, Tag, HeartPulse, Users, Crown } from 'lucide-react';
+import { AlertTriangle, Calendar, Building, Building2, MapPin, ExternalLink, Tag, HeartPulse, Users, Crown, ArrowRight } from 'lucide-react';
 import { IncidentAttachmentsSection } from '@/features/incidents';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -308,6 +308,24 @@ export default function IncidentDetail() {
           <ContractorSiteRepAcknowledgeCard incident={incident} onComplete={handleRefresh} />
           <HSSEViolationReviewCard incident={incident} onComplete={handleRefresh} />
         </>
+      )}
+
+      {/* Investigation Workspace CTA for active incidents */}
+      {incident.event_type !== 'observation' && !['closed', 'investigation_closed', 'no_investigation_required', 'dept_rep_rejected', 'manager_rejected', 'expert_rejected'].includes(String(incident.status)) && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="flex items-center justify-between py-4">
+            <div>
+              <p className="font-medium text-foreground">{t('investigation.workspace.ctaTitle', 'Manage this incident in the Investigation Workspace')}</p>
+              <p className="text-sm text-muted-foreground">{t('investigation.workspace.ctaDescription', 'Access workflow actions, approvals, and investigation tools')}</p>
+            </div>
+            <Button asChild variant="default" size="sm">
+              <Link to={`/incidents/investigate/${incident.id}`}>
+                {t('investigation.workspace.open', 'Open Workspace')}
+                <ArrowRight className="h-4 w-4 ms-2 rtl:rotate-180" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
       {/* Main Content Layout */}
