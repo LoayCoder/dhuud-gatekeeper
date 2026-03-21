@@ -1,100 +1,83 @@
 
 
-# E2E Audit Report — Incidents Module (Post-Submission Flow)
+# E2E Audit — Incidents Module (Post-Submission Flow) — Pass 4
 
-## Finding 1: CRITICAL — Investigation Workspace CTA uses wrong URL pattern
+## Result: 3 gaps found across status maps
 
-**File:** `src/pages/incidents/IncidentDetail.tsx` (line 322)
-
-The "Open Investigation Workspace" CTA navigates to `/incidents/investigate/${incident.id}`, but:
-- The route is defined as `/incidents/investigate` (no path param)
-- The workspace reads the incident ID from `?incident=` query parameter
-- Every other link in the codebase uses `/incidents/investigate?incident=${id}`
-
-This means clicking the CTA on the IncidentDetail page navigates to a non-existent route, which either shows the wrong content or a blank page.
-
-**Fix:** Change line 322 from:
-```
-<Link to={`/incidents/investigate/${incident.id}`}>
-```
-to:
-```
-<Link to={`/incidents/investigate?incident=${incident.id}`}>
-```
+All previous fixes verified clean. This pass focuses on contractor violation statuses and a few edge cases that were missed in earlier audits.
 
 ---
 
-## Finding 2: MEDIUM — `STATUS_CATEGORIES` missing several statuses
+## Finding 1: MEDIUM — `current-owner.ts` missing 5 statuses
 
-**File:** `src/lib/incident-status-colors.ts`
+These statuses fall through to `default: return null`, causing blank ownership in the timeline tracker:
 
-The `STATUS_CATEGORIES` map (used by `getStatusCategory`, `getStatusBorderColor`, etc.) is missing these statuses, causing them to default to `'open'` (blue) instead of their correct category:
+| Status | Expected Owner |
+|--------|---------------|
+| `pending_contractor_site_rep_approval` | Contractor Site Rep |
+| `pending_hsse_violation_review` | HSSE Expert |
+| `pending_legal_review` | Legal & Compliance |
+| `upgraded_to_incident` | System (closed/terminal) — should return `null` explicitly |
+| `rejected_invalid` | System (closed/terminal) — should return `null` explicitly |
+
+**Fix**: Add 3 new `case` blocks with `buildOwner()` for the actionable statuses, and add 2 statuses to the existing terminal/closed group.
+
+---
+
+## Finding 2: MEDIUM — `STATUS_CATEGORIES` missing contractor violation terminal statuses
+
+These 7 statuses are defined in the DB enum and have `STATUS_LABELS` entries but no `STATUS_CATEGORIES` mapping, so they default to `'open'` (blue) instead of their correct category:
 
 | Status | Should Be |
 |--------|-----------|
-| `pending_dept_rep_mandatory_action` | `action_required` |
-| `pending_consultant_actions` | `action_required` |
-| `pending_consultant_verification` | `action_required` |
-| `pending_site_client_action_approval` | `action_required` |
-| `contractor_action_implementation` | `action_required` |
-| `pending_contractor_action` | `action_required` |
-| `pending_hsse_incident_validation` | `pending_closure` |
-| `pending_hsse_manager_closure` | `pending_closure` |
-| `pending_escalation_approval` | `action_required` (already present) |
-| `pending_hsse_rejection_review` | `action_required` |
-| `pending_investigator_assignment` | `investigation` |
-| `investigation_closed` | `closed` (already present) |
+| `pending_contractor_site_rep_approval` | `action_required` |
+| `pending_hsse_violation_review` | `action_required` |
+| `contractor_violation_enforced` | `closed` |
+| `contractor_violation_approved_fine` | `closed` |
+| `contractor_violation_cancelled` | `closed` |
+| `contractor_violation_warning` | `closed` |
+| `contractor_violation_terminated` | `closed` |
+| `upgraded_to_incident` | `closed` |
+| `rejected_invalid` | `rejected` |
 
-**Impact**: Cards for these statuses show incorrect border/background colors (blue "open" instead of warning/pending).
-
-**Fix:** Add missing entries to `STATUS_CATEGORIES`.
+**Fix**: Add 9 entries to `STATUS_CATEGORIES`.
 
 ---
 
-## Finding 3: LOW — `ACTION_VERBS` missing several statuses
+## Finding 3: LOW — `IncidentStatus` constants missing contractor violation + escalation statuses
 
-**File:** `src/lib/incident-status-colors.ts`
+The centralized constants file lacks these statuses that exist in the DB enum:
 
-The `ACTION_VERBS` map is missing entries for:
-- `pending_clinic_review` → "Awaiting clinic review"
-- `pending_department_manager_violation_approval` → "Pending violation approval"
-- `pending_contract_controller_approval` → "Pending contract controller approval"
-- `pending_hsse_incident_validation` → "Verifying closure"
-- `pending_hsse_rejection_review` → "Reviewing rejection"
-- `osha_reportable` → "OSHA report required"
-- `monitoring_30_day/60_day/90_day` → "Monitoring in progress"
+- `PENDING_CONTRACTOR_SITE_REP_APPROVAL`
+- `PENDING_HSSE_VIOLATION_REVIEW`
+- `CONTRACTOR_VIOLATION_ENFORCED`
+- `CONTRACTOR_VIOLATION_APPROVED_FINE`
+- `CONTRACTOR_VIOLATION_CANCELLED`
+- `CONTRACTOR_VIOLATION_WARNING`
+- `CONTRACTOR_VIOLATION_TERMINATED`
+- `UPGRADED_TO_INCIDENT`
+- `REJECTED_INVALID`
 
-These fall through to the generic fallback, which works but is less descriptive.
-
-**Fix:** Add explicit entries to `ACTION_VERBS`.
-
----
-
-## Finding 4: LOW — `InvestigationTabsContent` tab visibility logic is inverted in naming
-
-The `isTabLocked` function returns `true` when a tab is NOT in `unlockedTabs`. But the rendering condition `{isTabLocked('evidence') && (...)}` shows the tab when it's "locked". This is functionally correct (tabs render when they've been added to the unlocked list, but the function name is inverted — it should be `isTabUnlocked`).
-
-**Impact**: No functional bug — naming confusion only. No code change needed.
+**Fix**: Add 9 constants to `src/types/incident-statuses.ts`.
 
 ---
 
-## Verified Clean Areas
+## Verified Clean
 
-- **InvestigationWorkflowCards**: All 35+ statuses covered with dedicated action cards
-- **UnifiedTimelineTracker**: All statuses mapped to correct 5-step indices
-- **current-owner.ts**: All statuses mapped (including the 6 added in previous pass)
+- **InvestigationWorkflowCards**: All actionable statuses have cards (contractor violation cards handled via IncidentDetail.tsx for `pending_contractor_site_rep_approval` and `pending_hsse_violation_review`)
+- **STATUS_LABELS**: Complete — all statuses have human-readable labels
+- **ACTION_VERBS**: Complete for all actionable statuses
+- **Investigation Workspace CTA**: Correctly uses `?incident=` query param
 - **Audit Trail**: UUID resolution working
-- **Closure flow**: Prerequisites card, approval card, and closure dialog correctly gated
-- **Escalation**: `upgraded_to_incident` banner and backlink both working
-- **Monitoring**: 30/60/90-day cards rendering correctly
+- **AI Analysis**: Edge function integration clean
 
 ---
 
-## Summary of Required Changes
+## Files to Edit
 
-| Priority | File | Change |
-|----------|------|--------|
-| CRITICAL | `src/pages/incidents/IncidentDetail.tsx` | Fix CTA link to use `?incident=` query param |
-| MEDIUM | `src/lib/incident-status-colors.ts` | Add ~10 missing statuses to `STATUS_CATEGORIES` |
-| LOW | `src/lib/incident-status-colors.ts` | Add ~8 missing entries to `ACTION_VERBS` |
+| File | Change |
+|------|--------|
+| `src/lib/current-owner.ts` | Add 3 actionable cases + 2 terminal statuses |
+| `src/lib/incident-status-colors.ts` | Add 9 entries to `STATUS_CATEGORIES` |
+| `src/types/incident-statuses.ts` | Add 9 missing constants |
 
