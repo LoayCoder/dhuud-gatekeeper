@@ -84,12 +84,25 @@ const STATUS_CATEGORIES: Record<string, StatusCategory> = {
   'dispute_resolution': 'action_required',
   'pending_contractor_dispute_review': 'action_required',
 
+  // Contractor violation & escalation — action required
+  'pending_contractor_site_rep_approval': 'action_required',
+  'pending_hsse_violation_review': 'action_required',
+
   // Closed - Success
   'closed': 'closed',
   'no_investigation_required': 'closed',
   'investigation_closed': 'closed',
   'hsse_enforced': 'closed',
   'closed_rejected_approved_by_hsse': 'closed',
+  'contractor_violation_enforced': 'closed',
+  'contractor_violation_approved_fine': 'closed',
+  'contractor_violation_cancelled': 'closed',
+  'contractor_violation_warning': 'closed',
+  'contractor_violation_terminated': 'closed',
+  'upgraded_to_incident': 'closed',
+
+  // Rejected — invalid
+  'rejected_invalid': 'rejected',
 };
 
 // Closed statuses (for filtering)

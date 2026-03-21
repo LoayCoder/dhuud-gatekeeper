@@ -165,6 +165,13 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         case "expert_rejected":
         case "manager_rejected":
         case "dept_rep_rejected":
+        case "upgraded_to_incident":
+        case "rejected_invalid":
+        case "contractor_violation_enforced":
+        case "contractor_violation_approved_fine":
+        case "contractor_violation_cancelled":
+        case "contractor_violation_warning":
+        case "contractor_violation_terminated":
             return null;
 
         case "returned_to_reporter":

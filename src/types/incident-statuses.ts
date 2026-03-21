@@ -77,6 +77,19 @@ export const IncidentStatus = {
 
   // === Observation Specific ===
   OBSERVATION_ACTIONS_PENDING: 'observation_actions_pending',
+
+  // === Contractor Violations ===
+  PENDING_CONTRACTOR_SITE_REP_APPROVAL: 'pending_contractor_site_rep_approval',
+  PENDING_HSSE_VIOLATION_REVIEW: 'pending_hsse_violation_review',
+  CONTRACTOR_VIOLATION_ENFORCED: 'contractor_violation_enforced',
+  CONTRACTOR_VIOLATION_APPROVED_FINE: 'contractor_violation_approved_fine',
+  CONTRACTOR_VIOLATION_CANCELLED: 'contractor_violation_cancelled',
+  CONTRACTOR_VIOLATION_WARNING: 'contractor_violation_warning',
+  CONTRACTOR_VIOLATION_TERMINATED: 'contractor_violation_terminated',
+
+  // === Escalation & Terminal ===
+  UPGRADED_TO_INCIDENT: 'upgraded_to_incident',
+  REJECTED_INVALID: 'rejected_invalid',
 } as const;
 
 export type IncidentStatusType = typeof IncidentStatus[keyof typeof IncidentStatus];
