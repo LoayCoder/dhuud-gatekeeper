@@ -23,7 +23,8 @@ const STATUS_CATEGORIES: Record<string, StatusCategory> = {
   // Open/Submitted states - Info
   'submitted': 'open',
   'pending_review': 'open',
-  'expert_screening': 'open',
+  'expert_screening': 'action_required',
+  'pending_expert_screening': 'action_required',
 
   // NEW: Consultant/Dept Rep initial review stages
   'pending_consultant_screening': 'open',
