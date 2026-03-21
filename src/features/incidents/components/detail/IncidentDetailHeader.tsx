@@ -106,11 +106,11 @@ export function IncidentDetailHeader({
       )}
     >
       {/* Decorative background element for modern look */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-background/0 to-muted/20 rounded-bl-full pointer-events-none -mr-10 -mt-10 blur-2xl" />
+      <div className="absolute top-0 end-0 w-64 h-64 bg-gradient-to-br from-background/0 to-muted/20 rounded-bl-full pointer-events-none -me-10 -mt-10 blur-2xl" />
 
       {/* Top Row - Back & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4 relative z-10">
-        <Button asChild variant="ghost" size="sm" className="gap-2 -ml-2 text-muted-foreground hover:text-foreground">
+        <Button asChild variant="ghost" size="sm" className="gap-2 -ms-2 text-muted-foreground hover:text-foreground">
           <Link to={backPath}>
             <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
             {t('incidents.backToList', 'Back')}

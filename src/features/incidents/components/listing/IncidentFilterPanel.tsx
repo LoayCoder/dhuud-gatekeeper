@@ -167,7 +167,7 @@ export function IncidentFilterPanel({
               })}
               className="h-8 px-2 lg:px-3 text-muted-foreground hover:text-foreground"
             >
-              <X className="mr-2 h-4 w-4" />
+              <X className="me-2 h-4 w-4" />
               {t('common.reset', 'Reset')}
             </Button>
           )}
@@ -190,12 +190,12 @@ export function IncidentFilterPanel({
               <div className="space-y-2">
                 <label className="text-sm font-medium">{t('common.search', 'Search')}</label>
                 <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute start-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder={t('incidents.searchPlaceholder', 'ID, Title...')}
                     value={filters.search}
                     onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
-                    className="pl-9"
+                    className="ps-9"
                   />
                 </div>
               </div>
@@ -298,7 +298,7 @@ export function IncidentFilterPanel({
                       {filters.contractorId
                         ? contractors.find((c) => c.id === filters.contractorId)?.company_name
                         : t('common.selectContractor', 'Select Contractor...')}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-[200px] p-0">
@@ -316,7 +316,7 @@ export function IncidentFilterPanel({
                           >
                             <Check
                               className={cn(
-                                "mr-2 h-4 w-4",
+                                "me-2 h-4 w-4",
                                 !filters.contractorId ? "opacity-100" : "opacity-0"
                               )}
                             />
@@ -336,7 +336,7 @@ export function IncidentFilterPanel({
                             >
                               <Check
                                 className={cn(
-                                  "mr-2 h-4 w-4",
+                                  "me-2 h-4 w-4",
                                   filters.contractorId === contractor.id ? "opacity-100" : "opacity-0"
                                 )}
                               />

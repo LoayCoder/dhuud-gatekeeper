@@ -94,7 +94,7 @@ export function IncidentSummarySection({ incident }: IncidentSummarySectionProps
                                             {incident.subtype && (
                                                 <div className="flex flex-col sm:flex-row sm:justify-between text-sm">
                                                     <span className="text-muted-foreground">{t('incidents.subCategory', 'Sub Category')}:</span>
-                                                    <span className="font-medium text-wrap text-right sm:max-w-[200px]">
+                                                    <span className="font-medium text-wrap text-end sm:max-w-[200px]">
                                                         {getSubtypeTranslation(t, incident.event_type, incident.subtype, incident.incident_type ?? undefined)}
                                                     </span>
                                                 </div>

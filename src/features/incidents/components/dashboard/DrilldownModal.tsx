@@ -165,7 +165,7 @@ export function DrilldownModal() {
                     )}
                   </div>
 
-                  <div className="flex flex-col items-end min-w-[120px] gap-1 text-xs text-muted-foreground ml-auto">
+                  <div className="flex flex-col items-end min-w-[120px] gap-1 text-xs text-muted-foreground ms-auto">
                     <span>{format(new Date(event.occurred_at), "dd MMM yyyy")}</span>
                     {event.status !== 'closed' && (
                       <span className="text-[10px] font-medium text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded-full border border-orange-100">
@@ -176,7 +176,7 @@ export function DrilldownModal() {
                     )}
                   </div>
 
-                  <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity ml-2" />
+                  <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity ms-2" />
                 </div>
               ))}
             </div>
