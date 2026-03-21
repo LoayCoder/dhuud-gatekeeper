@@ -310,6 +310,24 @@ export default function IncidentDetail() {
         </>
       )}
 
+      {/* Investigation Workspace CTA for active incidents */}
+      {incident.event_type !== 'observation' && incident.status !== 'closed' && incident.status !== 'investigation_closed' && incident.status !== 'no_investigation_required' && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="flex items-center justify-between py-4">
+            <div>
+              <p className="font-medium text-foreground">{t('investigation.workspace.ctaTitle', 'Manage this incident in the Investigation Workspace')}</p>
+              <p className="text-sm text-muted-foreground">{t('investigation.workspace.ctaDescription', 'Access workflow actions, approvals, and investigation tools')}</p>
+            </div>
+            <Button asChild variant="default" size="sm">
+              <Link to={`/incidents/investigate/${incident.id}`}>
+                {t('investigation.workspace.open', 'Open Workspace')}
+                <ArrowRight className="h-4 w-4 ms-2 rtl:rotate-180" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Main Content Layout */}
       <IncidentDetailsLayout incident={incident} currentOwner={currentOwner} isPrinting={isPrinting} />
 
