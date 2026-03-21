@@ -1,50 +1,23 @@
 
 
-# E2E Audit — Observations Module (Final Verification)
+# E2E Audit — Incidents Module (Post-Submission Flow)
 
-## Result: ALL CLEAR — No remaining issues found
+## Result: ALL 3 FINDINGS FIXED
 
-Every fix from previous audit passes has been verified in the current codebase:
+### Finding 1: CRITICAL — Fixed ✅
+Added 6 missing incident statuses to `src/lib/current-owner.ts`:
+- `pending_clinic_review` → Clinic User
+- `pending_department_manager_violation_approval` → Department Manager
+- `pending_contract_controller_approval` → Contract Controller
+- `pending_hsse_incident_validation` → HSSE Team
+- `pending_escalation_approval` → HSSE Manager
+- `osha_reportable` → HSSE Expert
 
-### 1. Witness Statement Mutations — CLEAN
-- **Line 45**: `statement_type: input.statement_method` (correct column)
-- **Line 49**: `assignment_status: input.status || 'pending'` (correct column)
-- **Line 89**: `updateData.assignment_status = updates.status` (correct column)
-- **Line 133**: `assignment_status: "approved"` (correct column)
-- **Line 155**: `assignment_status: "returned"` (correct column)
+### Finding 2: MEDIUM — Fixed ✅
+Expanded `src/types/incident-statuses.ts` from ~20 to ~50 constants, organized by workflow stage with clear section comments.
 
-### 2. Witness Statement Queries — CLEAN
-- **Line 14**: `statement_type` is included in the select string
-- **Line 29**: `statement_method: (row.statement_type as StatementType) || 'text'` (dynamic, not hardcoded)
-- **Line 71**: `statement_type` is included in the second query's select string
-- **Line 84**: Same dynamic mapping in `useMyAssignedWitnessStatements`
-
-### 3. Ownership Resolution (current-owner.ts) — CLEAN
-- **Line 64**: Non-contractor expert screening resolves `approval_manager?.full_name` correctly
-- Contractor path (line 61) also resolves correctly
-- All 30+ statuses mapped with no gaps
-
-### 4. Audit Trail UUID Resolution — CLEAN
-- Actor names resolved from profiles table (line 169)
-- Branch IDs and user IDs in details resolved via batch lookup (lines 141-163)
-- UI renders `log.actor_name` instead of hardcoded "System / User" (line 149)
-- Details render resolved names via `log.resolved_details` (line 155)
-
-### 5. Types Interface — CLEAN
-- `ai_transcription_text` removed from `WitnessStatement` interface
-- `assignment_status` field present alongside `status` for backward compat
-
-### 6. Full Lifecycle Verification
-- **Creation**: QuickObservationCard with offline/online paths — working
-- **AI Processing**: analyze-observation edge function — integrated
-- **Routing**: Internal (severity-based) and contractor (auto-consultant) paths — correct
-- **Workflow Cards**: All statuses have dedicated action cards
-- **Timeline**: UnifiedTimelineTracker maps all statuses to correct steps
-- **Status Labels**: Complete bilingual coverage
-- **Escalation**: `upgraded_to_incident` with backlink banner
-- **Closure**: `pending_hsse_manager_closure` and `pending_hsse_validation` handled
+### Finding 3: LOW — Fixed ✅
+Added "Open Investigation Workspace" CTA card to `IncidentDetail.tsx` for non-closed incidents, with RTL support and proper routing.
 
 ## Conclusion
-
-No code changes needed. The Observations Module is production-ready.
-
+The Incidents Module post-submission flow is now production-ready with complete ownership resolution and centralized status constants.
