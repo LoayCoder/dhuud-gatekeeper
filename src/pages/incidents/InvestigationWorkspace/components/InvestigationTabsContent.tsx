@@ -99,43 +99,43 @@ export function InvestigationTabsContent({
             <span className="hidden sm:inline font-medium">{t('investigation.tabs.overview', 'Overview')}</span>
           </button>
 
-          {isTabLocked('evidence') && (
+          {investigationAllowed && isTabLocked('evidence') && (
             <button onClick={() => { const el = document.getElementById('evidence'); const y = (el?.getBoundingClientRect().top || 0) + window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('evidence'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'evidence' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}>
               <FileSearch className="h-4 w-4" /> {t('investigation.tabs.evidence', 'Evidence')}
             </button>
           )}
-          {isTabLocked('witnesses') && (
+          {investigationAllowed && isTabLocked('witnesses') && (
             <button onClick={() => { const el = document.getElementById('witnesses'); const y = (el?.getBoundingClientRect().top || 0) + window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('witnesses'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'witnesses' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}>
               <Users className="h-4 w-4" /> {t('investigation.tabs.witnesses', 'Witnesses')}
             </button>
           )}
-          {isTabLocked('rca') && (
+          {investigationAllowed && isTabLocked('rca') && (
             <button onClick={() => { const el = document.getElementById('rca'); const y = (el?.getBoundingClientRect().top || 0) + window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('rca'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'rca' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}>
               <Search className="h-4 w-4" /> {t('investigation.tabs.rca', 'RCA')}
             </button>
           )}
-          {isTabLocked('actions') && (
+          {investigationAllowed && isTabLocked('actions') && (
             <button onClick={() => { const el = document.getElementById('actions'); const y = (el?.getBoundingClientRect().top || 0) + window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('actions'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'actions' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}>
               <ListChecks className="h-4 w-4" /> {t('investigation.tabs.actions', 'Actions')}
             </button>
           )}
-          {selectedIncident?.has_injury && isTabLocked('injuries') && (
+          {investigationAllowed && selectedIncident?.has_injury && isTabLocked('injuries') && (
             <button onClick={() => { const el = document.getElementById('injuries'); const y = (el?.getBoundingClientRect().top || 0) + window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('injuries'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'injuries' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}>
               <HeartPulse className="h-4 w-4" /> {t('investigation.tabs.injuries', 'Injuries')}
             </button>
           )}
-          {selectedIncident?.has_damage && isTabLocked('property-damage') && (
+          {investigationAllowed && selectedIncident?.has_damage && isTabLocked('property-damage') && (
             <button onClick={() => { const el = document.getElementById('property-damage'); const y = (el?.getBoundingClientRect().top || 0) + window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('property-damage'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'property-damage' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}>
               <Wrench className="h-4 w-4" /> {t('investigation.tabs.propertyDamage', 'Property Damage')}
             </button>
           )}
-          {(selectedIncident?.event_type === 'environmental' || selectedIncident?.event_type === 'environment' ||
+          {investigationAllowed && (selectedIncident?.event_type === 'environmental' || selectedIncident?.event_type === 'environment' ||
             ['oil_chemical_spill_land', 'spill_to_water', 'air_emission', 'soil_contamination', 'waste_mismanagement', 'wildlife_impact', 'non_compliant_discharge'].includes(selectedIncident?.subtype || '')) && isTabLocked('environmental-impact') && (
             <button onClick={() => { const el = document.getElementById('environmental-impact'); const y = (el?.getBoundingClientRect().top || 0) + window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('environmental-impact'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'environmental-impact' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}>
               <Leaf className="h-4 w-4" /> {t('investigation.tabs.environmentalImpact', 'Environmental Impact')}
             </button>
           )}
-          {canAccessGovernance && isTabLocked('governance') && (
+          {canAccessGovernance && investigationAllowed && isTabLocked('governance') && (
             <button onClick={() => { const el = document.getElementById('governance'); const y = (el?.getBoundingClientRect().top || 0) + window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('governance'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'governance' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}>
               <Scale className="h-4 w-4" /> {t('investigation.tabs.governance', 'Governance')}
             </button>
