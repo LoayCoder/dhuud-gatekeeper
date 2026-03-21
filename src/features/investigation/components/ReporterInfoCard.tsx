@@ -1,4 +1,4 @@
-﻿import { useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Briefcase, Building2, MapPin, Phone, BadgeCheck, AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -48,7 +48,7 @@ export function ReporterInfoCard({ incident }: ReporterInfoCardProps) {
       <Icon className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
       <div className="min-w-0">
         <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-sm font-medium truncate">{value || 'â€”'}</p>
+        <p className="text-sm font-medium truncate">{value || '—'}</p>
       </div>
     </div>
   );
