@@ -1,105 +1,101 @@
 
 
-# E2E Audit — Corrective Action Lifecycle — Pass 10
+# E2E Audit — Incident Investigation Process — Pass 12
 
-## Overall Status: ✅ PASS (Conditional — 1 LOW finding)
-
-Previous passes (7, 8, 9) addressed the critical gaps: verification logic alignment, cache invalidation, and `return_count` tracking. This pass validates the full lifecycle end-to-end.
+## Overall Status: CONDITIONAL PASS (1 HIGH, 1 MEDIUM finding)
 
 ---
 
-## Lifecycle Validation Summary
+## Phase 1: System Understanding Summary
+
+The incident investigation lifecycle is implemented across these core components:
 
 ```text
-Creation (assigned) → in_progress → completed → [Verification] → closed
-                                        ↑                ↓
-                                        └── returned_for_correction
+Incident Report → AI Analysis → Dept Rep Review → HSSE Expert Screening
+→ Manager Approval → Investigator Assignment (Single L1-2 / Team L3-5)
+→ Evidence Collection → Witness Statements → RCA (5 Whys + Root Causes)
+→ RCA Lock → Completeness Check → Server-Side Readiness Gate
+→ Submit Investigation → HSSE Validation → Final Closure
+→ Monitoring (30/60/90 day) → Closed
 ```
 
-### 1. Action Creation & Data Integrity — CLEAN
+Key pages: `/incidents/report` (wizard), `/incidents/{id}` (detail), `/incidents/investigate` (workspace), `/incidents/my-actions`, `/action-center`.
 
-| Source | Hook/Service | Status |
-|--------|-------------|--------|
-| Incident RCA | `useCreateCorrectiveAction` (investigation-mutations) | Sets `status: assigned`, `tenant_id`, `branch_id`, creates audit log |
-| Inspection Finding | `useCreateActionFromFinding` (use-action-mutations) | Sets `source_type: inspection`, `source_finding_id`, links finding, sends assignment email |
-| Area Inspection Finding | `use-findings-mutations` | Sets `source_type: inspection_finding`, `source_finding_id`, `session_id` |
-
-All creation paths set mandatory fields (title, tenant_id, status). Incident-sourced actions inherit `branch_id` from parent incident.
-
-### 2. Source Linking & Traceability — CLEAN
-
-- Incident actions: `incident_id` FK, `released_at` gate (only visible to assignee after investigation release)
-- Observation actions: bypass `released_at` gate (visible immediately)
-- Inspection actions: `session_id` + `source_finding_id` FKs, finding status updated to `action_assigned`
-- Bi-directional navigation: Incident detail → Actions tab → Action detail; My Actions → "View Incident" link
-
-### 3. Assignment & Responsibility — CLEAN
-
-- `assigned_to` FK to profiles
-- `responsible_department_id` FK to departments
-- Assignment email via `send-action-email` (type: `action_assigned`) for inspection actions
-- Incident actions: notification deferred until investigation release (by design)
-- My Actions query: `incidentQueryService.ts` filters `assigned_to = user.id`
-
-### 4. Execution & Status Transitions — CLEAN
-
-| Transition | Hook | Fields Set |
-|-----------|------|------------|
-| assigned → in_progress | `useUpdateMyActionStatus` / `useUpdateInspectionActionStatus` | `started_at`, `progress_notes` |
-| in_progress → completed | Same hooks | `completed_date`, `completion_notes`, `overdue_justification` |
-| completed → closed (approved) | All 3 verify hooks | `verified_by`, `verified_at`, `verification_notes` |
-| completed → returned_for_correction | All 3 verify hooks | `rejected_by`, `rejected_at`, `rejection_notes`, `last_returned_at`, `last_return_reason`, `return_count++` |
-| returned_for_correction → in_progress | `useUpdateMyActionStatus` | Re-enters execution cycle |
-
-Optimistic updates implemented for My Actions and Inspection Actions with rollback on error.
-
-### 5. Verification — ALL 3 IMPLEMENTATIONS ALIGNED
-
-| Feature | Pending Approvals | Investigation Workspace | Inspection |
-|---------|:-:|:-:|:-:|
-| `return_count` increment | ✅ | ✅ (Pass 8 fix) | ✅ (Pass 8 fix) |
-| `action_returned` email | ✅ | ✅ (Pass 8 fix) | ❌ |
-| `action_closed` email | ✅ | ✅ (Pass 8 fix) | ❌ |
-| `incident_audit_logs` entry | ✅ | ✅ (Pass 8 fix) | N/A (no incident_id) |
-| Cache invalidation: `pending-action-approvals` | ✅ | ✅ (Pass 8 fix) | N/A |
-| Cache invalidation: `my-corrective-actions` | ✅ | ✅ (Pass 8 fix) | N/A |
-
-### 6. Dashboard & Action Center Consistency — CLEAN
-
-- `useActionCenterStats` counts by tenant with module-specific filtering
-- `InlineActionsPanel` uses same `useMyCorrectiveActions` + `useUpdateMyActionStatus`
-- `useUpdateMyActionStatus` invalidates `my-corrective-actions`, `corrective-actions`, and `pending-action-approvals`
-
-### 7. SLA & Overdue Logic — CLEAN
-
-- SLA countdown stops for terminal statuses (`completed`, `verified`, `closed`)
-- Overdue justification mandatory when completing overdue actions
-- `hsse-cron` edge function checks SLA breach at hourly intervals
-
-### 8. Audit Trail — CLEAN
-
-- `action_created` logged on creation (incident source)
-- `action_updated` logged on field updates
-- `action_closed_by_verifier` logged on verification approval (pending-approvals + investigation workspace)
-- All entries include `incident_id`, `tenant_id`, `actor_id`
-
-### 9. Access Control — CLEAN
-
-- Verification restricted to HSSE roles via `usePendingApprovals` query (filters by role category)
-- `tenant_id` enforced on all queries
-- `branch_id` inherited from parent incident
+Investigation Workspace tabs: Overview, Evidence, Witnesses, RCA, Actions, Audit Log. Workflow cards render dynamically based on 40+ statuses via `InvestigationWorkflowCards.tsx`.
 
 ---
 
-## Finding 1: LOW — Inspection `useVerifyAction` missing email notifications
+## Phase 2: Key Findings
 
-The inspection-specific `useVerifyAction` (use-action-mutations.ts lines 100-162) correctly increments `return_count` on rejection (fixed in Pass 8), but still does NOT send:
-- `action_returned` email to assignee on rejection
-- `action_closed` email to assignee on approval
+### Finding 1: HIGH — `useInvestigationCompleteness` uses STUB evidence hook (always returns empty)
 
-This is lower priority because inspection actions may not have an `incident_id` for the email template's `incident_reference` field, and inspection verification volume is typically lower than incident verification. However, for full compliance parity, these emails should be added.
+**File:** `src/features/investigation/hooks/use-investigation-completeness.ts` (line 3)
 
-**Fix**: Add email notification logic to the inspection `useVerifyAction`, fetching assignee details and calling `send-action-email` for both rejection and approval paths (similar to the pending-approvals version, but with `incident_reference: null`).
+The hook imports `useEvidenceItems` from `./use-evidence-items` — a **stub file** that always returns an empty array:
+
+```typescript
+// src/features/investigation/hooks/use-evidence-items.ts (STUB)
+export function useEvidenceItems(incidentId: string | null) {
+  return useQuery({
+    queryKey: ['evidence-items', incidentId],
+    queryFn: async () => [] as unknown[],  // ALWAYS EMPTY
+    enabled: !!incidentId,
+  });
+}
+```
+
+The **real** implementation lives at `@/hooks/use-evidence-items/use-evidence-queries.ts` and queries the `incident_evidence` table.
+
+**Impact:** `SubmitInvestigationCard` always shows "Evidence Uploaded (min. 1)" as unchecked (red X) in the UI checklist, even when evidence exists. The submit button remains disabled because `completeness.isComplete` is always `false` (since `hasEvidence` is always false).
+
+However, the server-side `check_investigation_readiness` RPC performs its own evidence check, so if a user clicks submit (when it becomes enabled via other conditions), the server gate would catch it. But since the client-side completeness blocks the button from ever being enabled, **investigators cannot submit their investigation at all** through the standard UI flow.
+
+**Fix:** Change the import in `use-investigation-completeness.ts` from `./use-evidence-items` to `@/hooks/use-evidence-items`:
+
+```typescript
+import { useEvidenceItems } from '@/hooks/use-evidence-items';
+```
+
+Then delete the stub file `src/features/investigation/hooks/use-evidence-items.ts`.
+
+---
+
+### Finding 2: MEDIUM — `InvestigationWorkflowCards` missing `pending_closure` status case
+
+When an investigation is submitted (status → `pending_closure`), the `InvestigationWorkflowCards` switch statement has no explicit `case 'pending_closure'` entry. It falls through to the `default: return null` case, meaning no workflow card is rendered for HSSE Managers to act on.
+
+The `pending_final_closure` status IS handled (maps to `HSSEIncidentValidationCard`), and `pending_closure` appears in the `InvestigationWorkflowStatusCard` stepper. But the actual action card for the HSSE Manager to approve/reject the closure submission is missing from the workflow cards.
+
+**Mitigation:** The `HSSEIncidentValidationCard` checks for `pending_final_closure` and `pending_hsse_incident_validation` but NOT `pending_closure`. If the `submitInvestigation` service sets status to `pending_closure`, there is no UI card for the next actor to act on this status.
+
+**Fix:** Add `pending_closure` as a case in `InvestigationWorkflowCards` mapping to the appropriate validation/closure approval card. Also add `pending_closure` to the `validStatuses` array in `HSSEIncidentValidationCard.tsx`.
+
+---
+
+## Verified Clean
+
+| Area | Status |
+|------|--------|
+| Incident creation (3-step wizard with AI analysis) | CLEAN |
+| AI classification and severity assignment | CLEAN — analyze-incident edge function, confidence display, translation gate |
+| Notification dispatch on submission | CLEAN — `dispatch-incident-notification` triggered |
+| Severity-based routing (L1-2 → Expert, L3-5 → Team Investigation) | CLEAN |
+| Investigator assignment (single + team) | CLEAN — `InvestigatorAssignmentStep` / `TeamInvestigationAssignmentStep` |
+| Evidence Manager (upload, review, delete, CCTV, types) | CLEAN — uses real `@/hooks/use-evidence-items` |
+| Witness Panel (text, voice, upload, task assignment, review) | CLEAN |
+| RCA Panel (5 Whys, Root Causes, Contributing Factors, AI assist) | CLEAN — auto-save, lock/unlock, category enforcement, 50-char minimum |
+| RCA Lock/Unlock (server-side RPCs) | CLEAN |
+| Corrective Action creation linked to root causes | CLEAN — `linked_root_cause_id` + `linked_cause_type` |
+| Cause Coverage indicator | CLEAN — tracks action coverage per root cause and contributing factor |
+| Action verification (return_count, emails, audit logs) | CLEAN — aligned in Pass 8-11 |
+| Investigation submission with server-side readiness gate | CLEAN — `check_investigation_readiness` RPC |
+| Closure prerequisites card (7-point checklist) | CLEAN |
+| Edit access control (investigator, consultant, locked states) | CLEAN |
+| Observation → Incident escalation (upgrade + backlink) | CLEAN |
+| Workflow status trackers (5-step unified + 6-step observation) | CLEAN |
+| Audit trail (all mutations log to `incident_audit_logs`) | CLEAN |
+| SLA monitoring (`hsse-cron` hourly check, 30-day breach flag) | CLEAN |
+| Monitoring phases (30/60/90 day) | CLEAN — `MonitoringCheckCard` |
 
 ---
 
@@ -107,5 +103,8 @@ This is lower priority because inspection actions may not have an `incident_id` 
 
 | Priority | File | Change |
 |----------|------|--------|
-| LOW | `src/features/incidents/hooks/use-inspection-actions/use-action-mutations.ts` | Add email notifications (`action_returned` / `action_closed`) to `useVerifyAction` |
+| HIGH | `src/features/investigation/hooks/use-investigation-completeness.ts` | Change import from `./use-evidence-items` to `@/hooks/use-evidence-items` |
+| HIGH | `src/features/investigation/hooks/use-evidence-items.ts` | Delete this stub file |
+| MEDIUM | `src/pages/incidents/InvestigationWorkspace/components/InvestigationWorkflowCards.tsx` | Add `case 'pending_closure':` mapping to `HSSEIncidentValidationCard` |
+| MEDIUM | `src/features/investigation/components/HSSEIncidentValidationCard.tsx` | Add `'pending_closure'` to `validStatuses` array (line 43) |
 
