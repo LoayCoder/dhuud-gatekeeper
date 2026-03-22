@@ -23,6 +23,18 @@ interface SpeechRecognitionInstance {
   abort: () => void;
 }
 
+const SPEECH_LANGS = ['auto', 'ar', 'en', 'ur', 'hi', 'fil'] as const;
+type SpeechLang = typeof SPEECH_LANGS[number];
+
+const SPEECH_LANG_LABELS: Record<SpeechLang, string> = {
+  auto: 'Auto',
+  ar: 'AR',
+  en: 'EN',
+  ur: 'UR',
+  hi: 'HI',
+  fil: 'FIL',
+};
+
 interface UseSpeechToTextOptions {
   lang?: string;
   onTranscript: (text: string) => void;
