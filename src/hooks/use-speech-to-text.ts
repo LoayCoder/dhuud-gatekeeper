@@ -58,10 +58,15 @@ const LANG_MAP: Record<string, string> = {
 
 export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDuration = 120 }: UseSpeechToTextOptions) {
   const [isListening, setIsListening] = useState(false);
+  const [speechLang, setSpeechLang] = useState<SpeechLang>(() => {
+    const baseLang = lang.split('-')[0];
+    return (SPEECH_LANGS.includes(baseLang as SpeechLang) ? baseLang : 'auto') as SpeechLang;
+  });
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const timeoutRef = useRef<number | null>(null);
   const shouldRestartRef = useRef(false);
   const isSupported = !!getSpeechRecognition();
+  const speechLangRef = useRef(speechLang);
 
   // Store latest callbacks in refs to avoid stale closures during auto-restart
   const onTranscriptRef = useRef(onTranscript);
