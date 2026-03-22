@@ -160,7 +160,7 @@ export function InvestigationListView() {
                         const sla = calculateInvestigationSLA(incident.created_at || new Date().toISOString(), severity);
 
                         // Dynamic progress based on status (simulated)
-                        const mockProgress = getMockProgress(incident.id, incident.status || '');
+                        const mockProgress = getInvestigationProgress(incident.id, incident.status || '');
                         const isComplete = incident.status === 'closed';
 
                         return (
