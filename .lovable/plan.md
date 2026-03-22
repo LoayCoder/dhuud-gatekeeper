@@ -1,23 +1,44 @@
 
 
-# Fix Plan: Incident Dashboard & KPI Integrity Issues
+# Add Speech-to-Text for Description Fields
 
-## Issues to Fix (Priority Order)
+## What
+Add a microphone button next to the description textarea in both the Incident Report form and the Quick Observation form. When tapped, the browser's built-in Web Speech API transcribes the user's voice in real-time, appending text into the description field as they speak.
 
-### 1. CRITICAL — `rejected_invalid` enum value missing from DB
-The `get_hsse_dashboard_summary` RPC references `'rejected_invalid'` in 12 places, but the `incident_status` enum does not contain this value. This causes a **runtime failure** of the entire dashboard RPC.
+## Where (2 locations)
+1. **Incident/Observation Report** — `src/pages/incidents/IncidentReport/Step1Capture.tsx` (line 112, the description Textarea)
+2. **Quick Observation Card** — `src/features/incidents/components/QuickObservationCard/QuickObservationCardFormDetails.tsx` (line 83, the description Textarea)
 
-**Fix:** Replace all `'rejected_invalid'` references in the RPC with the actual terminal statuses from the enum. The closed/terminal statuses that exist are: `closed`, `closed_rejected_approved_by_hsse`, `contractor_violation_cancelled`, `contractor_violation_terminated`. Update the RPC to use a proper closed-set list.
+## Implementation
 
-### 2. CRITICAL — `get_kpi_historical_trend` references non-existent column `incident_date`
-The current RPC uses `i.incident_date` but the `incidents` table only has `occurred_at`. This causes the trend query to fail silently or error out.
+### Step 1: Create `useSpeechToText` hook
+New file: `src/hooks/use-speech-to-text.ts`
 
-**Fix:** Replace `i.incident_date` with `i.occurred_at` throughout the function.
+- Uses the browser-native `webkitSpeechRecognition` / `SpeechRecognition` API (no external dependencies needed)
+- Accepts: `onTranscript(text: string)` callback, `lang` parameter (from i18n)
+- Returns: `{ isListening, startListening, stopListening, isSupported }`
+- Sets `interimResults = true` so the user sees words appearing live
+- On `onresult`, calls `onTranscript` with the final transcript which appends to the current field value
+- Handles errors gracefully (microphone permission denied, unsupported browser)
+- Auto-stops after silence or max duration (60s safety)
 
-### 3. HIGH — KPI Trend uses hardcoded `200000` manhours instead of real data
-TRIR, LTIFR, DART, and Severity Rate all divide by the constant `200000`, making the formulas trivially wrong (e.g., TRIR = recordable count, not a rate). The `manhours` table exists with real data (`employee_hours`, `contractor_hours`).
+### Step 2: Add mic button to Step1Capture description field
+- Import the hook, wire `onTranscript` to append to `form.setValue('description', current + ' ' + transcript)`
+- Add a small `Mic` / `MicOff` icon button next to the AI Analyze button in the footer row
+- While listening, show a pulsing red dot indicator
+- Hide button entirely if `!isSupported` (e.g. Firefox on some platforms)
 
-**Fix:** Rewrite `get_kpi_historical_trend` to LEFT JOIN the `manhours` table (aggregated monthly by `period_date`) and use `SUM(employee_hours + contractor_hours)` as the denominator. Fall back to `200000` only when no manhours data exists for a month. Also compute `near_miss_rate` and `action_closure_pct` from real data.
+### Step 3: Add mic button to QuickObservationCardFormDetails
+- Same pattern: mic toggle button next to the AI analyze button
+- Same hook, same append logic
 
-### 4. MEDIUM — Investigation progress uses hardcoded mock values
-`InvestigationListView.tsx` has `getMockProgress()` returning static percentages (10/25/60/90/100) based on status strings instead of actual completion data.
+### Step 4: Export from hooks barrel
+- Add `use-speech-to-text` export to `src/hooks/common/index.ts`
+
+## Technical Details
+- **No API key required** — Web Speech API is built into Chrome, Edge, Safari, and most mobile browsers
+- **RTL-aware** — button placement will respect the existing `direction` prop
+- **PWA-compatible** — works in installed PWA mode on Android/iOS Safari
+- **Language support** — passes `i18n.language` (e.g. `ar-SA`, `en-US`) to recognition for correct transcription
+- **Appends, not replaces** — each speech segment appends to existing text so users can mix typing and voice
+
