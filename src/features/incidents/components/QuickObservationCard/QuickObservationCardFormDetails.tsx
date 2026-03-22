@@ -74,28 +74,40 @@ export function QuickObservationCardFormDetails({ state, form }: any) {
                       <FormLabel>{t('quickObservation.whatDidYouObserve')}</FormLabel>
                       <div className="flex items-center gap-1">
                         {speechToText.isSupported && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className={cn(
-                              "h-7 w-7 p-0",
-                              speechToText.isListening
-                                ? "text-destructive hover:text-destructive/80 hover:bg-destructive/10"
-                                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                            )}
-                            onClick={speechToText.toggleListening}
-                            title={speechToText.isListening ? t('common.stopRecording', 'Stop recording') : t('common.startRecording', 'Voice input')}
-                          >
-                            {speechToText.isListening ? (
-                              <span className="relative flex h-3.5 w-3.5">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
-                                <MicOff className="relative h-3.5 w-3.5" />
-                              </span>
-                            ) : (
-                              <Mic className="h-3.5 w-3.5" />
-                            )}
-                          </Button>
+                          <div className="flex items-center gap-0.5">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-1 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted"
+                              onClick={speechToText.cycleSpeechLang}
+                              title={t('common.switchSpeechLanguage', 'Switch speech language')}
+                            >
+                              {speechToText.speechLangLabel}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className={cn(
+                                "h-7 w-7 p-0",
+                                speechToText.isListening
+                                  ? "text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                              )}
+                              onClick={speechToText.toggleListening}
+                              title={speechToText.isListening ? t('common.stopRecording', 'Stop recording') : t('common.startRecording', 'Voice input')}
+                            >
+                              {speechToText.isListening ? (
+                                <span className="relative flex h-3.5 w-3.5">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
+                                  <MicOff className="relative h-3.5 w-3.5" />
+                                </span>
+                              ) : (
+                                <Mic className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                          </div>
                         )}
                         {isOnline && (
                           <Button

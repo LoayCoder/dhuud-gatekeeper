@@ -153,28 +153,40 @@ export function Step1Capture({ viewProps }: { viewProps: ReturnType<typeof useIn
                       </label>
 
                       {speechToText.isSupported && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className={cn(
-                            "h-8 w-8 p-0",
-                            speechToText.isListening
-                              ? "text-destructive hover:text-destructive/80 hover:bg-destructive/10"
-                              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                          )}
-                          onClick={speechToText.toggleListening}
-                          title={speechToText.isListening ? t('common.stopRecording', 'Stop recording') : t('common.startRecording', 'Voice input')}
-                        >
-                          {speechToText.isListening ? (
-                            <span className="relative flex h-4 w-4">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
-                              <MicOff className="relative h-4 w-4" />
-                            </span>
-                          ) : (
-                            <Mic className="h-4 w-4" />
-                          )}
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted"
+                            onClick={speechToText.cycleSpeechLang}
+                            title={t('common.switchSpeechLanguage', 'Switch speech language')}
+                          >
+                            {speechToText.speechLangLabel}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className={cn(
+                              "h-8 w-8 p-0",
+                              speechToText.isListening
+                                ? "text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                            )}
+                            onClick={speechToText.toggleListening}
+                            title={speechToText.isListening ? t('common.stopRecording', 'Stop recording') : t('common.startRecording', 'Voice input')}
+                          >
+                            {speechToText.isListening ? (
+                              <span className="relative flex h-4 w-4">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
+                                <MicOff className="relative h-4 w-4" />
+                              </span>
+                            ) : (
+                              <Mic className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
                       )}
 
                       <Button
