@@ -35,9 +35,9 @@ export function InvestigationsTab({ viewProps }: { viewProps: MyActionsViewProps
                   {inv.severity && <Badge variant="destructive" className="text-xs">{inv.severity}</Badge>}
                   {inv.status && <Badge variant="outline" className="text-xs">{inv.status}</Badge>}
                 </div>
-                {inv.incident_date && (
+                {(inv.occurred_at || inv.created_at) && (
                   <p className="text-xs text-muted-foreground">
-                    {new Date(inv.incident_date).toLocaleDateString(i18n.language)}
+                    {new Date(inv.occurred_at || inv.created_at).toLocaleDateString(i18n.language)}
                   </p>
                 )}
               </div>

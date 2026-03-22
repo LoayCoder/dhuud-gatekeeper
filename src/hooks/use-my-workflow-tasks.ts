@@ -71,9 +71,16 @@ export function useMyAssignedInvestigations() {
       );
 
       // Filter to only show active investigations (not terminal statuses)
+      const terminalStatuses = [
+        'closed', 'investigation_closed', 'no_investigation_required',
+        'closed_rejected_approved_by_hsse', 'contractor_violation_cancelled',
+        'contractor_violation_terminated', 'contractor_violation_warning',
+        'dept_rep_rejected', 'expert_rejected', 'manager_rejected',
+        'upgraded_to_incident'
+      ];
       const activeInvestigations = investigationsWithIncidents.filter(inv => {
         const status = inv.incident?.status;
-        return status && !['closed', 'rejected', 'rejected_invalid'].includes(status);
+        return status && !terminalStatuses.includes(status);
       });
 
       return activeInvestigations as MyAssignedInvestigation[];

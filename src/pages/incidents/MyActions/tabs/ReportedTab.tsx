@@ -40,8 +40,8 @@ export function ReportedTab({ viewProps }: { viewProps: MyActionsViewProps }) {
                   )}
                 </div>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  {inc.incident_date && (
-                    <span>{new Date(inc.incident_date).toLocaleDateString(i18n.language)}</span>
+                  {(inc.occurred_at || inc.created_at) && (
+                    <span>{new Date(inc.occurred_at || inc.created_at).toLocaleDateString(i18n.language)}</span>
                   )}
                   {inc.incident_type && <span>{inc.incident_type}</span>}
                 </div>
