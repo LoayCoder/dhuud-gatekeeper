@@ -1,4 +1,11 @@
 {
+  "speech": {
+    "startRecording": "بولیں",
+    "stopRecording": "رکیں",
+    "listeningIn": "{{language}} میں سن رہا ہے",
+    "autoHint": "عربی کے لیے، بہتر نتائج کے لیے عربی منتخب کریں",
+    "speechLanguage": "تقریر کی زبان"
+  },
   "hsseDashboard": {
     "title": "HSSE ایونٹ ڈیش بورڈ",
     "subtitle": "حفاظتی کارکردگی اور خطرے کے تجزیات کی حقیقی وقت میں مرئیت",

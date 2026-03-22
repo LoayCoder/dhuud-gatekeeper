@@ -1,4 +1,11 @@
 {
+  "speech": {
+    "startRecording": "تحدث",
+    "stopRecording": "إيقاف",
+    "listeningIn": "الاستماع بـ {{language}}",
+    "autoHint": "للعربية، اختر العربية للحصول على أفضل النتائج",
+    "speechLanguage": "لغة الكلام"
+  },
   "_reload": "true",
   "assets": {
     "usingLocationFromSite": "استخدام موقع الموقع",

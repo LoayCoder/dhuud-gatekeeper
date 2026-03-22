@@ -1,4 +1,11 @@
 {
+  "speech": {
+    "startRecording": "बोलें",
+    "stopRecording": "रुकें",
+    "listeningIn": "{{language}} में सुन रहा है",
+    "autoHint": "अरबी के लिए, सर्वोत्तम परिणामों के लिए अरबी चुनें",
+    "speechLanguage": "बोली की भाषा"
+  },
   "hsseDashboard": {
     "title": "HSSE इवेंट डैशबोर्ड",
     "subtitle": "सुरक्षा प्रदर्शन और जोखिम विश्लेषण में वास्तविक समय की दृश्यता",
