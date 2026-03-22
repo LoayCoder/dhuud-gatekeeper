@@ -1,44 +1,51 @@
 
 
-# Add Speech-to-Text for Description Fields
+# Fix Speech-to-Text: Language Detection and Text Stuttering
 
-## What
-Add a microphone button next to the description textarea in both the Incident Report form and the Quick Observation form. When tapped, the browser's built-in Web Speech API transcribes the user's voice in real-time, appending text into the description field as they speak.
+## Problems Identified
 
-## Where (2 locations)
-1. **Incident/Observation Report** — `src/pages/incidents/IncidentReport/Step1Capture.tsx` (line 112, the description Textarea)
-2. **Quick Observation Card** — `src/features/incidents/components/QuickObservationCard/QuickObservationCardFormDetails.tsx` (line 83, the description Textarea)
+### Problem 1: Arabic speech transcribed as English letters
+The `recognition.lang` is set correctly to `ar-SA` via `LANG_MAP`, but `continuous: true` combined with `interimResults: true` causes the Web Speech API on some browsers/devices to fall back to the browser's default language (English) when it can't confidently match Arabic in continuous mode. The recognition instance captures the `lang` value at creation time, which should be correct — but `continuous` mode is less reliable for non-English languages.
 
-## Implementation
+### Problem 2: Stuttering/repeating text ("there is there is there is worker...")
+With `continuous: true`, the Web Speech API fires `onresult` events where each new result rebuilds from the beginning of the current speech segment. While the code uses `event.resultIndex` to skip old results, in `continuous` mode the same result index can flip between interim and final multiple times, causing the same phrase to be appended repeatedly.
 
-### Step 1: Create `useSpeechToText` hook
-New file: `src/hooks/use-speech-to-text.ts`
+## Fix Strategy
 
-- Uses the browser-native `webkitSpeechRecognition` / `SpeechRecognition` API (no external dependencies needed)
-- Accepts: `onTranscript(text: string)` callback, `lang` parameter (from i18n)
-- Returns: `{ isListening, startListening, stopListening, isSupported }`
-- Sets `interimResults = true` so the user sees words appearing live
-- On `onresult`, calls `onTranscript` with the final transcript which appends to the current field value
-- Handles errors gracefully (microphone permission denied, unsupported browser)
-- Auto-stops after silence or max duration (60s safety)
+Rewrite the `useSpeechToText` hook to use **non-continuous mode with auto-restart**:
 
-### Step 2: Add mic button to Step1Capture description field
-- Import the hook, wire `onTranscript` to append to `form.setValue('description', current + ' ' + transcript)`
-- Add a small `Mic` / `MicOff` icon button next to the AI Analyze button in the footer row
-- While listening, show a pulsing red dot indicator
-- Hide button entirely if `!isSupported` (e.g. Firefox on some platforms)
+1. **Set `continuous = false`** — Each recognition session captures one clean utterance and fires a single final result
+2. **Auto-restart on `onend`** — If still "listening" (user hasn't pressed stop), immediately restart recognition for the next sentence
+3. **Track accumulated text via ref** — Store a `baseTextRef` capturing the field value at the start of listening, and an `accumulatedRef` for all appended segments. Show interim text as a preview but only commit final results
+4. **Remove interim appending** — Only append finalized transcript segments to the description field
+5. **Add language debug logging** — Log the resolved BCP-47 language tag when recognition starts
 
-### Step 3: Add mic button to QuickObservationCardFormDetails
-- Same pattern: mic toggle button next to the AI analyze button
-- Same hook, same append logic
+### Files to Change
 
-### Step 4: Export from hooks barrel
-- Add `use-speech-to-text` export to `src/hooks/common/index.ts`
+**`src/hooks/use-speech-to-text.ts`** — Core rewrite:
+- `continuous = false` instead of `true`
+- Add `shouldRestartRef` to track if auto-restart is needed on `onend`
+- In `onend`: if `shouldRestartRef` is true, create a new recognition instance and start it (this also re-applies the latest `lang`)
+- Keep `interimResults = true` for visual feedback, but only call `onTranscript` for `isFinal` results
+- Log `recognition.lang` at start for debugging
 
-## Technical Details
-- **No API key required** — Web Speech API is built into Chrome, Edge, Safari, and most mobile browsers
-- **RTL-aware** — button placement will respect the existing `direction` prop
-- **PWA-compatible** — works in installed PWA mode on Android/iOS Safari
-- **Language support** — passes `i18n.language` (e.g. `ar-SA`, `en-US`) to recognition for correct transcription
-- **Appends, not replaces** — each speech segment appends to existing text so users can mix typing and voice
+No changes needed to `Step1Capture.tsx` or `QuickObservationCardFormDetails.tsx` — the hook API stays the same.
+
+## Technical Detail
+
+```text
+Before (continuous mode):
+  User says: "worker fell from second floor"
+  Events: interim "worker" → interim "worker fell" → interim "worker fell from" → ...
+  With continuous=true, resultIndex stays 0, same segment keeps updating
+  Bug: final fires multiple times for overlapping segments → repeated text
+
+After (non-continuous + auto-restart):
+  User says: "worker fell from second floor"
+  Events: interim → interim → interim → FINAL "worker fell from second floor" → onend
+  onend → auto-restart new session
+  User says: "he was injured"
+  Events: interim → FINAL "he was injured" → onend
+  Result: clean appended text with no stuttering
+```
 
