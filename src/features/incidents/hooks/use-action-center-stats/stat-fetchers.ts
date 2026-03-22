@@ -20,7 +20,8 @@ export async function fetchIncidentStats(tenantId: string, userId: string) {
             .select('id', { count: 'exact', head: true })
             .eq('tenant_id', tenantId)
             .eq('investigator_id', userId)
-            .is('deleted_at', null),
+            .is('deleted_at', null)
+            .is('completed_at', null),
         // Pending approvals - use RPC-based count via separate hook, return 0 here
         // The actual count comes from usePendingIncidentApprovals in the module
         Promise.resolve({ count: 0 }),
