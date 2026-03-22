@@ -43,6 +43,7 @@ export * from '../use-reverse-geocode';
 
 // Voice
 export * from '../use-voice-memo';
+export * from '../use-speech-to-text';
 
 // Map
 export * from '../use-map-style';

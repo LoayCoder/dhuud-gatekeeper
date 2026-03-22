@@ -8,7 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Info, Navigation, Camera, ChevronRight, ChevronLeft, Check, Trophy, Eye, Siren, Building2 } from 'lucide-react';
+import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Info, Navigation, Camera, ChevronRight, ChevronLeft, Check, Trophy, Eye, Siren, Building2, Mic, MicOff } from 'lucide-react';
+import { useSpeechToText } from '@/hooks/use-speech-to-text';
+import { useTranslation } from 'react-i18next';
 import { QuickObservationCard } from '@/features/incidents';
 import { MediaUploadSection } from '@/features/incidents';
 import { ClosedOnSpotSection, ClosedOnSpotConfirmDialog } from '@/features/incidents';
