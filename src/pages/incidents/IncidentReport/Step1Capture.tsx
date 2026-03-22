@@ -152,6 +152,31 @@ export function Step1Capture({ viewProps }: { viewProps: ReturnType<typeof useIn
                         <span className="text-muted-foreground">{t('incidents.ai.autoTrigger', 'Auto')}</span>
                       </label>
 
+                      {speechToText.isSupported && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className={cn(
+                            "h-8 w-8 p-0",
+                            speechToText.isListening
+                              ? "text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                          )}
+                          onClick={speechToText.toggleListening}
+                          title={speechToText.isListening ? t('common.stopRecording', 'Stop recording') : t('common.startRecording', 'Voice input')}
+                        >
+                          {speechToText.isListening ? (
+                            <span className="relative flex h-4 w-4">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
+                              <MicOff className="relative h-4 w-4" />
+                            </span>
+                          ) : (
+                            <Mic className="h-4 w-4" />
+                          )}
+                        </Button>
+                      )}
+
                       <Button
                         type="button"
                         variant="ghost"

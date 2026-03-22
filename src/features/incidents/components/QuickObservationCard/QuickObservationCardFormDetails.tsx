@@ -3,15 +3,26 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarDays, Clock, Loader2, Sparkles, Tags } from 'lucide-react';
+import { CalendarDays, Clock, Loader2, Sparkles, Tags, Mic, MicOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { AIAnalysisPanel } from '@/features/incidents';
 import { AITagsSelector } from '@/components/ai/AITagsSelector';
 import { OBSERVATION_TYPES } from './types';
+import { useSpeechToText } from '@/hooks/use-speech-to-text';
+import { cn } from '@/lib/utils';
 
 export function QuickObservationCardFormDetails({ state, form }: any) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { isOnline, aiValidator, handleAnalyzeDescription, handleConfirmTranslation, handleConfirmAnalysis, availableObservationTags, selectedTags, setSelectedTags } = state;
+
+  const speechToText = useSpeechToText({
+    lang: i18n.language,
+    onTranscript: (text) => {
+      const current = form.getValues('description') || '';
+      const separator = current && !current.endsWith(' ') ? ' ' : '';
+      form.setValue('description', current + separator + text, { shouldValidate: true, shouldDirty: true });
+    },
+  });
   return (
     <>      {/* Observation Date & Time */}
               <div className="grid grid-cols-2 gap-3">
