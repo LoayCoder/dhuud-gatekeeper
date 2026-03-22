@@ -169,6 +169,8 @@ export function useCanAccessApprovals() {
 // Fetch incidents pending manager approval for the current user
 export function usePendingIncidentApprovals() {
     const { profile, user, isLoading: authLoading } = useAuth();
+    const { hasRole } = useUserRoles();
+    const isAdmin = hasRole('admin');
 
     return useQuery({
         queryKey: ['pending-incident-approvals', profile?.tenant_id, user?.id],
@@ -211,6 +213,7 @@ export function usePendingIncidentApprovals() {
           reporter:profiles!incidents_reporter_id_fkey(id, full_name),
           reporter_id,
           approval_manager:profiles!incidents_approval_manager_id_fkey(id, full_name),
+          approval_manager_id,
           site:sites!incidents_site_id_fkey(id, name, latitude, longitude),
           branch:branches!incidents_branch_id_fkey(id, name)
         `)
@@ -246,6 +249,10 @@ export function usePendingIncidentApprovals() {
                     logger.debug('[PendingApprovals] can_approve_investigation result:', incident.reference_id, canApprove);
 
                     if (canApprove) {
+                        // Determine if this is an admin override (user is admin but not the assigned owner)
+                        const isOverride = isAdmin && 
+                            incident.approval_manager_id !== user.id;
+
                         approvableIncidents.push({
                             id: incident.id,
                             reference_id: incident.reference_id,
@@ -256,6 +263,7 @@ export function usePendingIncidentApprovals() {
                             created_at: incident.created_at,
                             reporter: incident.reporter as { id: string; full_name: string | null } | null,
                             approval_manager: incident.approval_manager as { id: string; full_name: string | null } | null,
+                            isAdminOverride: isOverride,
                         });
                     }
                 } catch (err) {

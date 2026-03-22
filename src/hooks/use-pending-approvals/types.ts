@@ -18,6 +18,8 @@ export interface PendingIncidentApproval {
     longitude?: number | null;
     site?: { id: string; name: string; latitude?: number | null; longitude?: number | null } | null;
     branch?: { id: string; name: string } | null;
+    // Admin override indicator
+    isAdminOverride?: boolean;
 }
 
 export interface PendingActionApproval {
