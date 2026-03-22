@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { StatusDot } from '@/components/ui/status-badge';
-import { User } from 'lucide-react';
+import { User, ShieldAlert } from 'lucide-react';
 import { ActionListTable, type ActionListColumn } from '../ActionListTable';
 import { usePendingIncidentApprovals } from '@/hooks/use-pending-approvals';
 import type { PendingIncidentApproval } from '@/hooks/use-pending-approvals';
@@ -44,7 +44,15 @@ export function IncidentApprovalsList({ eventTypeFilter }: IncidentApprovalsList
       primary: true,
       render: (item) => (
         <div className="flex flex-col gap-0.5">
-          <span className="line-clamp-2 font-medium">{item.title}</span>
+          <div className="flex items-center gap-1.5">
+            <span className="line-clamp-2 font-medium">{item.title}</span>
+            {item.isAdminOverride && (
+              <span className="inline-flex items-center gap-1 rounded-md border border-warning/30 bg-warning/10 px-1.5 py-0.5 text-[10px] font-medium text-warning whitespace-nowrap">
+                <ShieldAlert className="h-3 w-3 shrink-0" />
+                {t('actionCenter.adminOverride', 'Admin Override')}
+              </span>
+            )}
+          </div>
           {item.reference_id && (
             <span className="font-mono text-[10px] text-muted-foreground">{item.reference_id}</span>
           )}
