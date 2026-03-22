@@ -25286,6 +25286,10 @@ export type Database = {
         Args: { _incident_id: string; _user_id: string }
         Returns: boolean
       }
+      can_start_investigation: {
+        Args: { p_incident_id: string; p_user_id: string }
+        Returns: boolean
+      }
       can_view_incident: {
         Args: { _incident_reporter_id: string; _user_id: string }
         Returns: boolean
