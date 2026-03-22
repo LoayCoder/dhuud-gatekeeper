@@ -23,6 +23,18 @@ interface SpeechRecognitionInstance {
   abort: () => void;
 }
 
+const SPEECH_LANGS = ['auto', 'ar', 'en', 'ur', 'hi', 'fil'] as const;
+type SpeechLang = typeof SPEECH_LANGS[number];
+
+const SPEECH_LANG_LABELS: Record<SpeechLang, string> = {
+  auto: 'Auto',
+  ar: 'AR',
+  en: 'EN',
+  ur: 'UR',
+  hi: 'HI',
+  fil: 'FIL',
+};
+
 interface UseSpeechToTextOptions {
   lang?: string;
   onTranscript: (text: string) => void;
@@ -46,10 +58,15 @@ const LANG_MAP: Record<string, string> = {
 
 export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDuration = 120 }: UseSpeechToTextOptions) {
   const [isListening, setIsListening] = useState(false);
+  const [speechLang, setSpeechLang] = useState<SpeechLang>(() => {
+    const baseLang = lang.split('-')[0];
+    return (SPEECH_LANGS.includes(baseLang as SpeechLang) ? baseLang : 'auto') as SpeechLang;
+  });
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const timeoutRef = useRef<number | null>(null);
   const shouldRestartRef = useRef(false);
   const isSupported = !!getSpeechRecognition();
+  const speechLangRef = useRef(speechLang);
 
   // Store latest callbacks in refs to avoid stale closures during auto-restart
   const onTranscriptRef = useRef(onTranscript);
@@ -59,6 +76,7 @@ export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDurat
   useEffect(() => { onTranscriptRef.current = onTranscript; }, [onTranscript]);
   useEffect(() => { onInterimRef.current = onInterim; }, [onInterim]);
   useEffect(() => { langRef.current = lang; }, [lang]);
+  useEffect(() => { speechLangRef.current = speechLang; }, [speechLang]);
 
   const clearTimer = useCallback(() => {
     if (timeoutRef.current) {
@@ -80,14 +98,19 @@ export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDurat
     }
 
     const recognition = new SpeechRecognition();
-    const baseLang = langRef.current.split('-')[0];
-    const resolvedLang = LANG_MAP[baseLang] || langRef.current;
-    recognition.lang = resolvedLang;
-    recognition.continuous = false; // Single utterance per session — prevents stuttering
+    const currentSpeechLang = speechLangRef.current;
+    
+    if (currentSpeechLang !== 'auto') {
+      const resolvedLang = LANG_MAP[currentSpeechLang] || currentSpeechLang;
+      recognition.lang = resolvedLang;
+      console.log('[SpeechToText] Starting session, lang:', resolvedLang);
+    } else {
+      console.log('[SpeechToText] Starting session, lang: auto (browser default)');
+    }
+    
+    recognition.continuous = false;
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
-
-    console.log('[SpeechToText] Starting session, lang:', resolvedLang);
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       let finalTranscript = '';
@@ -202,11 +225,21 @@ export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDurat
     };
   }, [clearTimer]);
 
+  const cycleSpeechLang = useCallback(() => {
+    setSpeechLang(prev => {
+      const idx = SPEECH_LANGS.indexOf(prev);
+      return SPEECH_LANGS[(idx + 1) % SPEECH_LANGS.length];
+    });
+  }, []);
+
   return {
     isListening,
     isSupported,
     startListening,
     stopListening,
     toggleListening,
+    speechLang,
+    speechLangLabel: SPEECH_LANG_LABELS[speechLang],
+    cycleSpeechLang,
   };
 }
