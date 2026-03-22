@@ -98,14 +98,19 @@ export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDurat
     }
 
     const recognition = new SpeechRecognition();
-    const baseLang = langRef.current.split('-')[0];
-    const resolvedLang = LANG_MAP[baseLang] || langRef.current;
-    recognition.lang = resolvedLang;
-    recognition.continuous = false; // Single utterance per session — prevents stuttering
+    const currentSpeechLang = speechLangRef.current;
+    
+    if (currentSpeechLang !== 'auto') {
+      const resolvedLang = LANG_MAP[currentSpeechLang] || currentSpeechLang;
+      recognition.lang = resolvedLang;
+      console.log('[SpeechToText] Starting session, lang:', resolvedLang);
+    } else {
+      console.log('[SpeechToText] Starting session, lang: auto (browser default)');
+    }
+    
+    recognition.continuous = false;
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
-
-    console.log('[SpeechToText] Starting session, lang:', resolvedLang);
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       let finalTranscript = '';
