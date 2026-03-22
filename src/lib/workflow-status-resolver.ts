@@ -176,16 +176,31 @@ export function getWorkflowOwner(status: string, isContractor: boolean): Workflo
 }
 
 /**
- * Check if a user role can act on the current workflow status
+ * Check if a user role can act on the current workflow status.
+ * Uses the central approval authorization matrix when available,
+ * falls back to owner-matching for statuses not yet in the matrix.
  */
 export function canRoleActOnStatus(role: string, status: string, isContractor: boolean): boolean {
+  // Normalize role for comparison
+  const normalizedRole = role.toLowerCase().replace(/[^a-z_]/g, '');
+  
+  // First check: is the role explicitly blocked by the matrix?
+  // Import lazily to avoid circular deps
+  try {
+    const { isRoleBlocked, isRoleAllowed, getApprovalRule } = require('./approval-authorization-matrix');
+    const rule = getApprovalRule(status, isContractor);
+    if (rule) {
+      if (isRoleBlocked(status, normalizedRole, isContractor)) return false;
+      return isRoleAllowed(status, normalizedRole, isContractor);
+    }
+  } catch {
+    // Matrix not available, fall back to owner matching
+  }
+
+  // Fallback: match against workflow owner
   const owner = getWorkflowOwner(status, isContractor);
   if (!owner) return false;
-  
-  // Normalize role names for comparison
-  const normalizedRole = role.toLowerCase().replace(/[^a-z_]/g, '');
   const normalizedOwnerRole = owner.role.toLowerCase().replace(/[^a-z_]/g, '');
-  
   return normalizedRole === normalizedOwnerRole;
 }
 
