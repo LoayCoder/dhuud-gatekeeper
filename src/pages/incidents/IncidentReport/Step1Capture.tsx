@@ -28,6 +28,17 @@ import { WIZARD_STEPS, RISK_RATING_LEVELS } from './helpers';
 import { useIncidentReport } from './hooks/useIncidentReport';
 export function Step1Capture({ viewProps }: { viewProps: ReturnType<typeof useIncidentReport> }) {
   const { t, direction, form, branches, sites, profile, activeEventId, setActiveEventId, uploadedPhotos, setUploadedPhotos, uploadedVideo, setUploadedVideo, isAutoTriggerEnabled, setAutoTriggerEnabled, isPendingAutoTrigger, handleAnalyzeDescription, aiValidator, handleConfirmTranslation, handleConfirmAnalysis, availableIncidentTags, selectedTags, setSelectedTags, eventType, incidentType, isApplyingAISuggestions, getReferencePreview, dynamicCategories, subtypeOptions, currentStep } = viewProps;
+  const { i18n } = useTranslation();
+
+  const speechToText = useSpeechToText({
+    lang: i18n.language,
+    onTranscript: (text) => {
+      const current = form.getValues('description') || '';
+      const separator = current && !current.endsWith(' ') ? ' ' : '';
+      form.setValue('description', current + separator + text, { shouldValidate: true, shouldDirty: true });
+    },
+  });
+
   return (<>
     {currentStep === 1 && (
       <div className="space-y-6 animate-in fade-in duration-300">
