@@ -225,11 +225,21 @@ export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDurat
     };
   }, [clearTimer]);
 
+  const cycleSpeechLang = useCallback(() => {
+    setSpeechLang(prev => {
+      const idx = SPEECH_LANGS.indexOf(prev);
+      return SPEECH_LANGS[(idx + 1) % SPEECH_LANGS.length];
+    });
+  }, []);
+
   return {
     isListening,
     isSupported,
     startListening,
     stopListening,
     toggleListening,
+    speechLang,
+    speechLangLabel: SPEECH_LANG_LABELS[speechLang],
+    cycleSpeechLang,
   };
 }
