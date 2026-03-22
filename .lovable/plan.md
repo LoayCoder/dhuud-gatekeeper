@@ -1,51 +1,38 @@
 
 
-# Fix Speech-to-Text: Language Detection and Text Stuttering
+# Fix: Arabic Speech Recognition Not Working
 
-## Problems Identified
+## Root Cause
 
-### Problem 1: Arabic speech transcribed as English letters
-The `recognition.lang` is set correctly to `ar-SA` via `LANG_MAP`, but `continuous: true` combined with `interimResults: true` causes the Web Speech API on some browsers/devices to fall back to the browser's default language (English) when it can't confidently match Arabic in continuous mode. The recognition instance captures the `lang` value at creation time, which should be correct — but `continuous` mode is less reliable for non-English languages.
-
-### Problem 2: Stuttering/repeating text ("there is there is there is worker...")
-With `continuous: true`, the Web Speech API fires `onresult` events where each new result rebuilds from the beginning of the current speech segment. While the code uses `event.resultIndex` to skip old results, in `continuous` mode the same result index can flip between interim and final multiple times, causing the same phrase to be appended repeatedly.
+The speech recognition language is tied to `i18n.language` (the app's UI language). If the user is using the app in English but speaks Arabic, the recognition is set to `en-US` and will transcribe Arabic speech as English gibberish. Even if the app is set to Arabic, some browsers ignore the `lang` property in certain conditions.
 
 ## Fix Strategy
 
-Rewrite the `useSpeechToText` hook to use **non-continuous mode with auto-restart**:
+**Two changes:**
 
-1. **Set `continuous = false`** — Each recognition session captures one clean utterance and fires a single final result
-2. **Auto-restart on `onend`** — If still "listening" (user hasn't pressed stop), immediately restart recognition for the next sentence
-3. **Track accumulated text via ref** — Store a `baseTextRef` capturing the field value at the start of listening, and an `accumulatedRef` for all appended segments. Show interim text as a preview but only commit final results
-4. **Remove interim appending** — Only append finalized transcript segments to the description field
-5. **Add language debug logging** — Log the resolved BCP-47 language tag when recognition starts
+1. **Remove hard-binding to UI language** — Instead of always using `i18n.language`, don't force a language on the Speech API when the user might speak in a different language than the UI. Chrome's Speech API has good auto-detection when `lang` is not set.
+
+2. **Add a speech language toggle button** — Place a small language indicator chip next to the mic button that shows the current speech language (e.g., "AR" / "EN"). Tapping it cycles through supported languages. This lets users speak Arabic even when the UI is in English.
 
 ### Files to Change
 
-**`src/hooks/use-speech-to-text.ts`** — Core rewrite:
-- `continuous = false` instead of `true`
-- Add `shouldRestartRef` to track if auto-restart is needed on `onend`
-- In `onend`: if `shouldRestartRef` is true, create a new recognition instance and start it (this also re-applies the latest `lang`)
-- Keep `interimResults = true` for visual feedback, but only call `onTranscript` for `isFinal` results
-- Log `recognition.lang` at start for debugging
+- **`src/hooks/use-speech-to-text.ts`** — Add a `speechLang` state that defaults to `i18n.language` but can be overridden. Return `speechLang` and `setSpeechLang` from the hook. When `speechLang` is set to `'auto'`, omit setting `recognition.lang` entirely so the browser auto-detects.
 
-No changes needed to `Step1Capture.tsx` or `QuickObservationCardFormDetails.tsx` — the hook API stays the same.
+- **`src/pages/incidents/IncidentReport/Step1Capture.tsx`** — Add a small language badge/chip next to the mic button showing the active speech language. Clicking it cycles: current UI lang → `ar` → `en` → `auto` (or the supported set).
 
-## Technical Detail
+- **`src/features/incidents/components/QuickObservationCard/QuickObservationCardFormDetails.tsx`** — Same language toggle chip next to the mic button.
+
+### Technical Details
 
 ```text
-Before (continuous mode):
-  User says: "worker fell from second floor"
-  Events: interim "worker" → interim "worker fell" → interim "worker fell from" → ...
-  With continuous=true, resultIndex stays 0, same segment keeps updating
-  Bug: final fires multiple times for overlapping segments → repeated text
+Hook API change:
+  useSpeechToText({ lang, onTranscript, ... })
+  returns: { ..., speechLang, cycleSpeechLang }
 
-After (non-continuous + auto-restart):
-  User says: "worker fell from second floor"
-  Events: interim → interim → interim → FINAL "worker fell from second floor" → onend
-  onend → auto-restart new session
-  User says: "he was injured"
-  Events: interim → FINAL "he was injured" → onend
-  Result: clean appended text with no stuttering
+speechLang cycles through: [current i18n lang, ...other supported langs, 'auto']
+When 'auto': recognition.lang is NOT set → browser auto-detects
+When specific: recognition.lang = LANG_MAP[speechLang]
+
+UI: Small chip like [AR] or [EN] or [Auto] next to mic button
 ```
 
