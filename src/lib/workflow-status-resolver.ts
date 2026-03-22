@@ -6,6 +6,8 @@
  * with duplicated and potentially conflicting status logic.
  */
 
+import { isRoleBlocked, isRoleAllowed, getApprovalRule } from './approval-authorization-matrix';
+
 export interface WorkflowOwner {
   role: string;
   roleKey: string;
