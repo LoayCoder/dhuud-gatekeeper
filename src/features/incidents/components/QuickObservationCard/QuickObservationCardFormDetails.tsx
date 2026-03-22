@@ -3,15 +3,26 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarDays, Clock, Loader2, Sparkles, Tags } from 'lucide-react';
+import { CalendarDays, Clock, Loader2, Sparkles, Tags, Mic, MicOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { AIAnalysisPanel } from '@/features/incidents';
 import { AITagsSelector } from '@/components/ai/AITagsSelector';
 import { OBSERVATION_TYPES } from './types';
+import { useSpeechToText } from '@/hooks/use-speech-to-text';
+import { cn } from '@/lib/utils';
 
 export function QuickObservationCardFormDetails({ state, form }: any) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { isOnline, aiValidator, handleAnalyzeDescription, handleConfirmTranslation, handleConfirmAnalysis, availableObservationTags, selectedTags, setSelectedTags } = state;
+
+  const speechToText = useSpeechToText({
+    lang: i18n.language,
+    onTranscript: (text) => {
+      const current = form.getValues('description') || '';
+      const separator = current && !current.endsWith(' ') ? ' ' : '';
+      form.setValue('description', current + separator + text, { shouldValidate: true, shouldDirty: true });
+    },
+  });
   return (
     <>      {/* Observation Date & Time */}
               <div className="grid grid-cols-2 gap-3">
@@ -61,23 +72,49 @@ export function QuickObservationCardFormDetails({ state, form }: any) {
                   <FormItem>
                     <div className="flex items-center justify-between">
                       <FormLabel>{t('quickObservation.whatDidYouObserve')}</FormLabel>
-                      {isOnline && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={handleAnalyzeDescription}
-                          disabled={aiValidator.validationState === 'analyzing' || field.value.length < 10}
-                          className="gap-1.5 h-7 text-xs"
-                        >
-                          {aiValidator.validationState === 'analyzing' ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          ) : (
-                            <Sparkles className="h-3.5 w-3.5" />
-                          )}
-                          {aiValidator.validationState === 'analyzing' ? t('quickObservation.analyzing') : t('quickObservation.aiAnalyze')}
-                        </Button>
-                      )}
+                      <div className="flex items-center gap-1">
+                        {speechToText.isSupported && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className={cn(
+                              "h-7 w-7 p-0",
+                              speechToText.isListening
+                                ? "text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                            )}
+                            onClick={speechToText.toggleListening}
+                            title={speechToText.isListening ? t('common.stopRecording', 'Stop recording') : t('common.startRecording', 'Voice input')}
+                          >
+                            {speechToText.isListening ? (
+                              <span className="relative flex h-3.5 w-3.5">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
+                                <MicOff className="relative h-3.5 w-3.5" />
+                              </span>
+                            ) : (
+                              <Mic className="h-3.5 w-3.5" />
+                            )}
+                          </Button>
+                        )}
+                        {isOnline && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleAnalyzeDescription}
+                            disabled={aiValidator.validationState === 'analyzing' || field.value.length < 10}
+                            className="gap-1.5 h-7 text-xs"
+                          >
+                            {aiValidator.validationState === 'analyzing' ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Sparkles className="h-3.5 w-3.5" />
+                            )}
+                            {aiValidator.validationState === 'analyzing' ? t('quickObservation.analyzing') : t('quickObservation.aiAnalyze')}
+                          </Button>
+                        )}
+                      </div>
                     </div>
                     <FormControl>
                       <Textarea
