@@ -6,6 +6,8 @@
  * with duplicated and potentially conflicting status logic.
  */
 
+import { isRoleBlocked, isRoleAllowed, getApprovalRule } from './approval-authorization-matrix';
+
 export interface WorkflowOwner {
   role: string;
   roleKey: string;
@@ -176,16 +178,24 @@ export function getWorkflowOwner(status: string, isContractor: boolean): Workflo
 }
 
 /**
- * Check if a user role can act on the current workflow status
+ * Check if a user role can act on the current workflow status.
+ * Uses the central approval authorization matrix when available,
+ * falls back to owner-matching for statuses not yet in the matrix.
  */
 export function canRoleActOnStatus(role: string, status: string, isContractor: boolean): boolean {
+  const normalizedRole = role.toLowerCase().replace(/[^a-z_]/g, '');
+  
+  // Check against the central approval matrix
+  const rule = getApprovalRule(status, isContractor);
+  if (rule) {
+    if (isRoleBlocked(status, normalizedRole, isContractor)) return false;
+    return isRoleAllowed(status, normalizedRole, isContractor);
+  }
+
+  // Fallback: match against workflow owner for statuses not in the matrix
   const owner = getWorkflowOwner(status, isContractor);
   if (!owner) return false;
-  
-  // Normalize role names for comparison
-  const normalizedRole = role.toLowerCase().replace(/[^a-z_]/g, '');
   const normalizedOwnerRole = owner.role.toLowerCase().replace(/[^a-z_]/g, '');
-  
   return normalizedRole === normalizedOwnerRole;
 }
 
