@@ -76,6 +76,7 @@ export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDurat
   useEffect(() => { onTranscriptRef.current = onTranscript; }, [onTranscript]);
   useEffect(() => { onInterimRef.current = onInterim; }, [onInterim]);
   useEffect(() => { langRef.current = lang; }, [lang]);
+  useEffect(() => { speechLangRef.current = speechLang; }, [speechLang]);
 
   const clearTimer = useCallback(() => {
     if (timeoutRef.current) {
