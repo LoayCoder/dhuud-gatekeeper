@@ -25875,6 +25875,15 @@ export type Database = {
           role_name: string
         }[]
       }
+      get_hsse_dashboard_summary: {
+        Args: {
+          p_branch_id?: string
+          p_end_date?: string
+          p_site_id?: string
+          p_start_date?: string
+        }
+        Returns: Json
+      }
       get_hsse_event_dashboard_stats:
         | {
             Args: {

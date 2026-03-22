@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { format, parseISO, startOfMonth, subMonths } from "date-fns";
 
 export interface DashboardSummary {
   total_events: number;
@@ -10,6 +9,7 @@ export interface DashboardSummary {
   open_investigations: number;
   pending_closure: number;
   closed_this_month: number;
+  closed_in_period: number;
   avg_closure_days: number;
   incidents_open: number;
   incidents_closed: number;
@@ -24,14 +24,7 @@ export interface DashboardSummary {
 }
 
 export interface StatusDistribution {
-  submitted: number;
-  expert_screening: number;
-  pending_manager_approval: number;
-  investigation_in_progress: number;
-  pending_closure: number;
-  closed: number;
-  returned: number;
-  rejected: number;
+  [key: string]: number;
 }
 
 export interface SeverityDistribution {
@@ -85,246 +78,101 @@ export interface HSSEEventDashboardData {
   actions: ActionStats;
 }
 
-/** Shape of incident rows fetched for dashboard aggregation */
-interface DashboardIncidentRow {
-  id: string;
-  event_type: string | null;
-  subtype: string | null;
-  status: string | null;
-  severity_v2: string | null;
-  created_at: string;
-  updated_at: string | null;
-  occurred_at: string | null;
-  incident_type: string | null;
-  branch_id: string | null;
-  site_id: string | null;
-}
-
 export function useHSSEEventDashboard(startDate?: Date, endDate?: Date, branchId?: string, siteId?: string) {
   const { profile } = useAuth();
 
   return useQuery({
     queryKey: ['hsse-event-dashboard', profile?.tenant_id, startDate?.toISOString(), endDate?.toISOString(), branchId, siteId],
     queryFn: async () => {
-      let query = supabase
-        .from('incidents')
-        .select(`
-          id, event_type, subtype, status, severity_v2, created_at, updated_at, 
-          occurred_at, incident_type, branch_id, site_id
-        `)
-        .eq('tenant_id', profile?.tenant_id)
-        .is('deleted_at', null);
+      const startDateStr = startDate?.toISOString().split('T')[0] || null;
+      const endDateStr = endDate?.toISOString().split('T')[0] || null;
 
-      if (startDate) {
-        query = query.gte('created_at', startDate.toISOString());
-      }
-      if (endDate) {
-        query = query.lte('created_at', endDate.toISOString());
-      }
-      if (branchId) {
-        query = query.eq('branch_id', branchId);
-      }
-      if (siteId) {
-        query = query.eq('site_id', siteId);
-      }
+      const { data, error } = await supabase.rpc('get_hsse_dashboard_summary', {
+        p_start_date: startDateStr,
+        p_end_date: endDateStr,
+        p_branch_id: branchId || null,
+        p_site_id: siteId || null,
+      });
 
-      const { data: incidents, error } = await query;
       if (error) throw error;
 
-      const rows = (incidents ?? []) as DashboardIncidentRow[];
+      const result = data as unknown as {
+        summary: Record<string, number>;
+        by_status: Record<string, number>;
+        by_severity: Record<string, number>;
+        by_event_type: Record<string, number>;
+        by_subtype: Record<string, number>;
+        monthly_trend: MonthlyTrendItem[];
+        actions: Record<string, number>;
+      };
 
+      // Map server response to typed interfaces
       const summary: DashboardSummary = {
-        total_events: rows.length,
-        total_incidents: 0,
-        total_observations: 0,
-        open_investigations: 0,
-        pending_closure: 0,
-        closed_this_month: 0,
-        avg_closure_days: 0,
-        incidents_open: 0,
-        incidents_closed: 0,
-        incidents_overdue: 0,
-        observations_open: 0,
-        observations_closed: 0,
-        total_investigations: 0,
-        investigations_open: 0,
-        investigations_closed: 0,
-        near_miss_count: 0,
+        total_events: result.summary.total_events ?? 0,
+        total_incidents: result.summary.total_incidents ?? 0,
+        total_observations: result.summary.total_observations ?? 0,
+        open_investigations: result.summary.open_investigations ?? 0,
+        pending_closure: result.summary.pending_closure ?? 0,
+        closed_this_month: result.summary.closed_in_period ?? 0,
+        closed_in_period: result.summary.closed_in_period ?? 0,
+        avg_closure_days: result.summary.avg_closure_days ?? 0,
+        incidents_open: result.summary.incidents_open ?? 0,
+        incidents_closed: result.summary.incidents_closed ?? 0,
+        incidents_overdue: result.summary.incidents_overdue ?? 0,
+        observations_open: result.summary.observations_open ?? 0,
+        observations_closed: result.summary.observations_closed ?? 0,
+        total_investigations: result.summary.total_investigations ?? 0,
+        investigations_open: result.summary.investigations_open ?? 0,
+        investigations_closed: result.summary.investigations_closed ?? 0,
+        near_miss_count: result.summary.near_miss_count ?? 0,
       };
 
-      const by_status: StatusDistribution = {
-        submitted: 0, expert_screening: 0, pending_manager_approval: 0,
-        investigation_in_progress: 0, pending_closure: 0, closed: 0,
-        returned: 0, rejected: 0,
-      };
+      // Compute near miss rate
+      if (summary.total_incidents > 0) {
+        summary.near_miss_rate = ((summary.near_miss_count || 0) / summary.total_incidents) * 100;
+      }
 
       const by_severity: SeverityDistribution = {
-        level_1: 0, level_2: 0, level_3: 0, level_4: 0, level_5: 0, unassigned: 0,
+        level_1: result.by_severity?.level_1 ?? 0,
+        level_2: result.by_severity?.level_2 ?? 0,
+        level_3: result.by_severity?.level_3 ?? 0,
+        level_4: result.by_severity?.level_4 ?? 0,
+        level_5: result.by_severity?.level_5 ?? 0,
+        unassigned: result.by_severity?.unassigned ?? 0,
       };
 
       const by_event_type: EventTypeDistribution = {
-        observation: 0, incident: 0, near_miss: 0, security_event: 0, environmental_event: 0,
+        observation: result.by_event_type?.observation ?? 0,
+        incident: result.by_event_type?.incident ?? 0,
+        near_miss: result.by_event_type?.near_miss ?? 0,
+        security_event: result.by_event_type?.security_event ?? 0,
+        environmental_event: result.by_event_type?.environmental_event ?? 0,
       };
-
-      const by_subtype: SubtypeDistribution = {};
-      const currentMonth = format(new Date(), 'yyyy-MM');
-
-      rows.forEach((inc) => {
-        if (inc.event_type === 'incident') {
-          summary.total_incidents++;
-          by_event_type.incident++;
-          if (inc.incident_type === 'near_miss') {
-            by_event_type.near_miss++;
-            summary.near_miss_count = (summary.near_miss_count || 0) + 1;
-          } else if (inc.incident_type === 'security') {
-            by_event_type.security_event++;
-          } else if (inc.incident_type === 'environmental') {
-            by_event_type.environmental_event++;
-          }
-        } else if (inc.event_type === 'observation') {
-          summary.total_observations++;
-          by_event_type.observation++;
-        }
-
-        const status = inc.status as keyof StatusDistribution;
-        if (by_status[status] !== undefined) {
-          by_status[status]++;
-        }
-
-        const isOpen = status !== 'closed' && status !== 'rejected';
-
-        if (inc.event_type === 'incident') {
-          if (isOpen) summary.incidents_open++;
-          else summary.incidents_closed++;
-
-          summary.total_investigations++;
-          if (isOpen) {
-            summary.investigations_open++;
-            summary.open_investigations++;
-          } else {
-            summary.investigations_closed++;
-          }
-        } else if (inc.event_type === 'observation') {
-          if (isOpen) summary.observations_open++;
-          else summary.observations_closed++;
-        }
-
-        if (status === 'pending_closure') summary.pending_closure++;
-
-        if (status === 'closed' && inc.updated_at) {
-          if (format(parseISO(inc.updated_at), 'yyyy-MM') === currentMonth) {
-            summary.closed_this_month++;
-          }
-        }
-
-        if (isOpen) {
-          const ageInHours = (new Date().getTime() - new Date(inc.created_at).getTime()) / (1000 * 60 * 60);
-          let slaHours = 720;
-
-          if (inc.severity_v2 === 'level_5') slaHours = 24;
-          else if (inc.severity_v2 === 'level_4') slaHours = 72;
-          else if (inc.severity_v2 === 'level_3') slaHours = 168;
-          else if (inc.severity_v2 === 'level_2') slaHours = 336;
-
-          if (ageInHours > slaHours) {
-            summary.incidents_overdue++;
-          }
-        }
-
-        const sev = inc.severity_v2 as keyof SeverityDistribution;
-        if (sev && by_severity[sev] !== undefined) {
-          by_severity[sev]++;
-        } else {
-          by_severity.unassigned++;
-        }
-
-        if (inc.subtype) {
-          by_subtype[inc.subtype] = (by_subtype[inc.subtype] || 0) + 1;
-        }
-      });
-
-      // Monthly Trend
-      const trendMap = new Map<string, MonthlyTrendItem>();
-      for (let i = 5; i >= 0; i--) {
-        const d = subMonths(startOfMonth(new Date()), i);
-        const monthKey = format(d, 'yyyy-MM');
-        trendMap.set(monthKey, { month: monthKey, total: 0, incidents: 0, observations: 0 });
-      }
-
-      rows.forEach(inc => {
-        const monthKey = format(parseISO(inc.created_at), 'yyyy-MM');
-        if (trendMap.has(monthKey)) {
-          const item = trendMap.get(monthKey)!;
-          item.total++;
-          if (inc.event_type === 'incident') item.incidents++;
-          if (inc.event_type === 'observation') item.observations++;
-        }
-      });
-
-      const monthly_trend = Array.from(trendMap.values());
-
-      // Fetch Corrective Actions
-      const matchedIncidentIds = rows.map(i => i.id);
-      let actionsQuery = supabase
-        .from('corrective_actions')
-        .select('id, status, due_date, priority, created_at, completed_date, incident_id')
-        .eq('tenant_id', profile?.tenant_id)
-        .is('deleted_at', null);
-
-      if (startDate) actionsQuery = actionsQuery.gte('created_at', startDate.toISOString());
-      if (endDate) actionsQuery = actionsQuery.lte('created_at', endDate.toISOString());
-
-      if (branchId || siteId) {
-        if (matchedIncidentIds.length > 0) {
-          actionsQuery = actionsQuery.in('incident_id', matchedIncidentIds);
-        } else {
-          const dashboardData: HSSEEventDashboardData = {
-            summary, by_status, by_severity, by_event_type, by_subtype, monthly_trend,
-            actions: { open_actions: 0, overdue_actions: 0, critical_actions: 0, high_priority_actions: 0, total_actions: 0, actions_closed: 0, actions_in_progress: 0, actions_pending_verification: 0 },
-          };
-          return dashboardData;
-        }
-      }
-
-      const { data: actionsData, error: actionsError } = await actionsQuery;
-      if (actionsError) throw actionsError;
 
       const actions: ActionStats = {
-        open_actions: 0, overdue_actions: 0, critical_actions: 0, high_priority_actions: 0,
-        total_actions: actionsData.length,
-        actions_closed: 0,
-        actions_in_progress: 0,
-        actions_pending_verification: 0
+        total_actions: result.actions?.total_actions ?? 0,
+        open_actions: result.actions?.open_actions ?? 0,
+        actions_closed: result.actions?.actions_closed ?? 0,
+        actions_in_progress: result.actions?.actions_in_progress ?? 0,
+        actions_pending_verification: result.actions?.actions_pending_verification ?? 0,
+        overdue_actions: result.actions?.overdue_actions ?? 0,
+        critical_actions: result.actions?.critical_actions ?? 0,
+        high_priority_actions: result.actions?.high_priority_actions ?? 0,
       };
 
-      const now = new Date();
-
-      actionsData.forEach(action => {
-        const isClosed = action.status === 'completed' || action.status === 'closed';
-        if (isClosed) {
-          actions.actions_closed++;
-        } else {
-          actions.open_actions++;
-          if (action.status === 'in_progress') actions.actions_in_progress++;
-          if (action.status === 'pending_verification') actions.actions_pending_verification++;
-
-          if (action.due_date && new Date(action.due_date) < now) {
-            actions.overdue_actions++;
-          }
-        }
-
-        if (action.priority === 'critical') actions.critical_actions++;
-        if (action.priority === 'high') actions.high_priority_actions++;
-      });
+      // Compute overdue rate
+      if (actions.total_actions > 0) {
+        actions.overdue_rate = (actions.overdue_actions / actions.total_actions) * 100;
+      }
 
       const dashboardData: HSSEEventDashboardData = {
         summary,
-        by_status,
+        by_status: result.by_status ?? {},
         by_severity,
         by_event_type,
-        by_subtype,
-        monthly_trend,
-        actions
+        by_subtype: result.by_subtype ?? {},
+        monthly_trend: result.monthly_trend ?? [],
+        actions,
       };
 
       return dashboardData;
