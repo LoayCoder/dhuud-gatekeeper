@@ -50,48 +50,31 @@ export async function fetchCorrectiveActionStats(tenantId: string, now: string, 
     const queries: any[] = [];
 
     for (const source of sources) {
-        // pending - assigned to this user
-        queries.push(
-            supabase
+        // For incident-source actions, apply the released_at gate
+        // (actions are only visible once the investigation is released)
+        const baseQuery = () => {
+            let q = supabase
                 .from('corrective_actions')
                 .select('id', { count: 'exact', head: true })
                 .eq('tenant_id', tenantId)
                 .eq('assigned_to', userId)
                 .is('deleted_at', null)
-                .eq('source_type', source)
-                .in('status', statusGroups.pending)
-        );
-        // in_progress - assigned to this user
+                .eq('source_type', source);
+            if (source === 'incident') {
+                q = q.not('released_at', 'is', null);
+            }
+            return q;
+        };
+
+        // pending
+        queries.push(baseQuery().in('status', statusGroups.pending));
+        // in_progress
+        queries.push(baseQuery().in('status', statusGroups.inProgress));
+        // completed
+        queries.push(baseQuery().in('status', statusGroups.completed));
+        // overdue - due_date < today AND not completed
         queries.push(
-            supabase
-                .from('corrective_actions')
-                .select('id', { count: 'exact', head: true })
-                .eq('tenant_id', tenantId)
-                .eq('assigned_to', userId)
-                .is('deleted_at', null)
-                .eq('source_type', source)
-                .in('status', statusGroups.inProgress)
-        );
-        // completed - assigned to this user
-        queries.push(
-            supabase
-                .from('corrective_actions')
-                .select('id', { count: 'exact', head: true })
-                .eq('tenant_id', tenantId)
-                .eq('assigned_to', userId)
-                .is('deleted_at', null)
-                .eq('source_type', source)
-                .in('status', statusGroups.completed)
-        );
-        // overdue - assigned to this user, due_date < today AND not completed
-        queries.push(
-            supabase
-                .from('corrective_actions')
-                .select('id', { count: 'exact', head: true })
-                .eq('tenant_id', tenantId)
-                .eq('assigned_to', userId)
-                .is('deleted_at', null)
-                .eq('source_type', source)
+            baseQuery()
                 .not('status', 'in', '("completed","verified","closed")')
                 .lt('due_date', today)
         );
