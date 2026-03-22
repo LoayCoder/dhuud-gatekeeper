@@ -1,52 +1,56 @@
 
 
-# Fix: HSSE Expert Incorrectly Seeing Contractor Observations in Pending Approvals
+# Add Admin Override Visual Indicator to Pending Approvals
 
-## Confirmed Root Cause
+## Root Cause Finding
 
-In the `can_approve_investigation` RPC (latest version: migration `20260118135335`), line 71:
+**The user Luay.Madkhali@golfsaudi.com has the `admin` role assigned.** The `can_approve_investigation` RPC correctly returns `TRUE` for admins on ALL workflow items (line 64: `IF v_is_admin THEN RETURN TRUE`). This is the intentional Admin Override architecture — not a bug. The 16 contractor observations appear because admin bypasses assignment checks.
 
-```sql
-IF v_is_hsse_expert THEN RETURN TRUE; END IF;
-```
+The previous HSSE Expert fix (migration `20260322125912`) is correctly deployed and working. This is a separate concern about admin visibility UX.
 
-This is inside the contractor consultant workflow block (lines 51-72), which handles statuses like `pending_consultant_screening`. The HSSE Expert check has **no guard** against `v_is_against_contractor`, so any HSSE Expert can approve contractor-specific observations that should only be handled by the Contractor Consultant, Admin, or HSSE Manager.
+## What Changes
 
-## Fix
+Add a visual "Admin Override" badge to pending approval items where the current user is not the assigned owner but can act due to admin privileges. This makes it clear WHY items appear without changing any authorization logic.
 
-### 1. Database Migration — Fix `can_approve_investigation`
+## Implementation
 
-Change line 71 from:
-```sql
-IF v_is_hsse_expert THEN RETURN TRUE; END IF;
-```
-To:
-```sql
-IF v_is_hsse_expert AND NOT v_is_against_contractor THEN RETURN TRUE; END IF;
-```
+### 1. Enrich `PendingIncidentApproval` type with override flag
 
-This ensures HSSE Experts can only act on **non-contractor** observations in these statuses. Contractor observations remain restricted to:
-- Assigned Contractor Consultant (line 57)
-- Admin (line 62)
-- HSSE Manager (line 65)
+In `src/hooks/use-pending-approvals/types.ts`, add an `isAdminOverride` boolean field to `PendingIncidentApproval`.
 
-### 2. No Frontend Changes Required
+### 2. Set the flag in `usePendingIncidentApprovals` query
 
-The Pending Approvals query (`use-pending-approval-queries.ts`) already calls `can_approve_investigation` per incident and filters based on the result. Once the RPC is fixed, contractor observations in `pending_consultant_screening` will no longer pass the check for HSSE Experts.
+In `src/hooks/use-pending-approvals/use-pending-approval-queries.ts`, after the RPC check confirms `canApprove`, determine if this is an admin override by checking:
+- User has admin role (via `hasRole('admin')`)
+- User is NOT the `approval_manager_id` on the incident
+- For contractor statuses, user is NOT the assigned consultant
 
-### 3. Dependency Verification
+Set `isAdminOverride: true` on matching items.
 
-Reviewed all consumers of `can_approve_investigation`:
-- **`use-pending-approval-queries.ts`** — Uses RPC as gatekeeper; will auto-correct
-- **`use-consultant-workflow.ts`** — Has its own contractor-specific checks; not affected
-- **`use-investigation-edit-access.ts`** — Separate edit permission logic; not affected
-- **Dashboard counters** — Derive from the same pending approvals query; will auto-correct
-- **Notifications** — Routed at submission time via `auto_route_observation_on_submit`; correctly sets `approval_manager_id` to the consultant, not HSSE Expert
+### 3. Show badge in `IncidentApprovalsList`
 
-### Impact
+In `src/components/action-center/modules/IncidentApprovalsList.tsx`, render a small "Admin Override" badge (amber/warning color) next to items where `isAdminOverride === true`. This appears in the status or title column.
 
-- Contractor observations in `pending_consultant_screening` stop appearing for HSSE Experts
-- Non-contractor observations in these statuses continue working for HSSE Experts
-- All pending approval counts correct automatically
-- No UI, notification, or other RPC changes needed
+### 4. Show badge in Investigation Workspace pending list
+
+In the investigation list view sidebar where pending items are shown, add the same visual indicator.
+
+### 5. Add translations
+
+Add `actionCenter.adminOverride` key to all 5 locale files (`en`, `ar`, `ur`, `hi`, `fil`) with value like "Admin Override" / "تجاوز المسؤول".
+
+## Files to Modify
+
+- `src/hooks/use-pending-approvals/types.ts` — add `isAdminOverride` field
+- `src/hooks/use-pending-approvals/use-pending-approval-queries.ts` — compute override flag
+- `src/components/action-center/modules/IncidentApprovalsList.tsx` — render badge
+- `src/locales/en/translation.json` — add translation key
+- `src/locales/ar/translation.json` — add translation key
+- `src/locales/ur/translation.json` — add translation key
+- `src/locales/hi/translation.json` — add translation key
+- `src/locales/fil/translation.json` — add translation key
+
+## No Backend Changes
+
+The RPC and authorization logic remain unchanged. Admin override is working as designed.
 
