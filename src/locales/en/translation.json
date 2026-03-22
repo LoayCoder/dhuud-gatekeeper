@@ -1,4 +1,11 @@
 {
+  "speech": {
+    "startRecording": "Speak",
+    "stopRecording": "Stop",
+    "listeningIn": "Listening in {{language}}",
+    "autoHint": "For Arabic, select Arabic for best results",
+    "speechLanguage": "Speech language"
+  },
   "assets": {
     "usingLocationFromSite": "Using site location",
     "ownLocation": "Own GPS",

@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Info, Navigation, Camera, ChevronRight, ChevronLeft, Check, Trophy, Eye, Siren, Building2, Mic, MicOff } from 'lucide-react';
+import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Info, Navigation, Camera, ChevronRight, ChevronLeft, Check, Trophy, Eye, Siren, Building2 } from 'lucide-react';
 import { useSpeechToText } from '@/hooks/use-speech-to-text';
 import { useTranslation } from 'react-i18next';
 import { QuickObservationCard } from '@/features/incidents';
@@ -26,6 +26,8 @@ import { HSSE_SEVERITY_LEVELS, calculateMinimumSeverity, isSeverityBelowMinimum 
 import { HSSE_EVENT_TYPES, getSubtypesForEventType } from '@/lib/hsse-event-types';
 import { WIZARD_STEPS, RISK_RATING_LEVELS } from './helpers';
 import { useIncidentReport } from './hooks/useIncidentReport';
+import { SpeechLanguageToolbar } from '@/features/incidents/components/SpeechLanguageToolbar';
+
 export function Step1Capture({ viewProps }: { viewProps: ReturnType<typeof useIncidentReport> }) {
   const { t, direction, form, branches, sites, profile, activeEventId, setActiveEventId, uploadedPhotos, setUploadedPhotos, uploadedVideo, setUploadedVideo, isAutoTriggerEnabled, setAutoTriggerEnabled, isPendingAutoTrigger, handleAnalyzeDescription, aiValidator, handleConfirmTranslation, handleConfirmAnalysis, availableIncidentTags, selectedTags, setSelectedTags, eventType, incidentType, isApplyingAISuggestions, getReferencePreview, dynamicCategories, subtypeOptions, currentStep } = viewProps;
   const { i18n } = useTranslation();
@@ -128,10 +130,20 @@ export function Step1Capture({ viewProps }: { viewProps: ReturnType<typeof useIn
                       {...field}
                     />
                   </FormControl>
+
+                  {/* Speech Language Toolbar - separate row */}
+                  <SpeechLanguageToolbar
+                    isSupported={speechToText.isSupported}
+                    isListening={speechToText.isListening}
+                    speechLang={speechToText.speechLang}
+                    setSpeechLang={speechToText.setSpeechLang}
+                    toggleListening={speechToText.toggleListening}
+                  />
+
+                  {/* AI controls row */}
                   <div className="flex flex-wrap justify-between gap-2 text-sm text-muted-foreground items-center">
                     <div className="flex items-center gap-3">
                       <span>{field.value.length} / 5000</span>
-                      {/* Auto-trigger status indicator */}
                       {isAutoTriggerEnabled && isPendingAutoTrigger && (
                         <span className="flex items-center gap-1 text-xs text-primary animate-pulse">
                           <Loader2 className="h-3 w-3 animate-spin" />
@@ -141,7 +153,6 @@ export function Step1Capture({ viewProps }: { viewProps: ReturnType<typeof useIn
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {/* Auto-trigger toggle */}
                       <label className="flex items-center gap-1.5 cursor-pointer text-xs">
                         <input
                           type="checkbox"
@@ -149,45 +160,8 @@ export function Step1Capture({ viewProps }: { viewProps: ReturnType<typeof useIn
                           onChange={(e) => setAutoTriggerEnabled(e.target.checked)}
                           className="h-3.5 w-3.5 rounded border-muted-foreground/30"
                         />
-                        <span className="text-muted-foreground">{t('incidents.ai.autoTrigger', 'Auto')}</span>
+                        <span className="text-muted-foreground">{t('incidents.ai.autoTrigger', 'Auto AI')}</span>
                       </label>
-
-                      {speechToText.isSupported && (
-                        <div className="flex items-center gap-1">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 px-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted"
-                            onClick={speechToText.cycleSpeechLang}
-                            title={t('common.switchSpeechLanguage', 'Switch speech language')}
-                          >
-                            {speechToText.speechLangLabel}
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className={cn(
-                              "h-8 w-8 p-0",
-                              speechToText.isListening
-                                ? "text-destructive hover:text-destructive/80 hover:bg-destructive/10"
-                                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                            )}
-                            onClick={speechToText.toggleListening}
-                            title={speechToText.isListening ? t('common.stopRecording', 'Stop recording') : t('common.startRecording', 'Voice input')}
-                          >
-                            {speechToText.isListening ? (
-                              <span className="relative flex h-4 w-4">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
-                                <MicOff className="relative h-4 w-4" />
-                              </span>
-                            ) : (
-                              <Mic className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                      )}
 
                       <Button
                         type="button"
@@ -248,7 +222,6 @@ export function Step1Capture({ viewProps }: { viewProps: ReturnType<typeof useIn
                     <Select
                       onValueChange={(value) => {
                         field.onChange(value);
-                        // Only clear subtype if user is manually changing (not AI)
                         if (!isApplyingAISuggestions) {
                           form.setValue('subtype', '');
                         }
@@ -262,7 +235,6 @@ export function Step1Capture({ viewProps }: { viewProps: ReturnType<typeof useIn
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {/* Use dynamic categories if available, fallback to static */}
                         {(dynamicCategories.length > 0
                           ? dynamicCategories.map((cat) => (
                             <SelectItem key={cat.code} value={cat.code}>

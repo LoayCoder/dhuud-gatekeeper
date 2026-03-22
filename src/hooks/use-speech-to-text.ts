@@ -23,17 +23,16 @@ interface SpeechRecognitionInstance {
   abort: () => void;
 }
 
-const SPEECH_LANGS = ['auto', 'ar', 'en', 'ur', 'hi', 'fil'] as const;
-type SpeechLang = typeof SPEECH_LANGS[number];
+export const SPEECH_LANG_OPTIONS = [
+  { value: 'ar', label: 'العربية', shortLabel: 'AR' },
+  { value: 'en', label: 'English', shortLabel: 'EN' },
+  { value: 'ur', label: 'اردو', shortLabel: 'UR' },
+  { value: 'hi', label: 'हिन्दी', shortLabel: 'HI' },
+  { value: 'fil', label: 'Filipino', shortLabel: 'FIL' },
+  { value: 'auto', label: 'Auto-detect', shortLabel: 'Auto' },
+] as const;
 
-const SPEECH_LANG_LABELS: Record<SpeechLang, string> = {
-  auto: 'Auto',
-  ar: 'AR',
-  en: 'EN',
-  ur: 'UR',
-  hi: 'HI',
-  fil: 'FIL',
-};
+export type SpeechLang = typeof SPEECH_LANG_OPTIONS[number]['value'];
 
 interface UseSpeechToTextOptions {
   lang?: string;
@@ -58,9 +57,10 @@ const LANG_MAP: Record<string, string> = {
 
 export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDuration = 120 }: UseSpeechToTextOptions) {
   const [isListening, setIsListening] = useState(false);
-  const [speechLang, setSpeechLang] = useState<SpeechLang>(() => {
+  const [speechLang, setSpeechLangState] = useState<SpeechLang>(() => {
     const baseLang = lang.split('-')[0];
-    return (SPEECH_LANGS.includes(baseLang as SpeechLang) ? baseLang : 'auto') as SpeechLang;
+    const valid = SPEECH_LANG_OPTIONS.some(o => o.value === baseLang);
+    return (valid ? baseLang : 'ar') as SpeechLang;
   });
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const timeoutRef = useRef<number | null>(null);
@@ -68,15 +68,16 @@ export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDurat
   const isSupported = !!getSpeechRecognition();
   const speechLangRef = useRef(speechLang);
 
-  // Store latest callbacks in refs to avoid stale closures during auto-restart
   const onTranscriptRef = useRef(onTranscript);
   const onInterimRef = useRef(onInterim);
-  const langRef = useRef(lang);
 
   useEffect(() => { onTranscriptRef.current = onTranscript; }, [onTranscript]);
   useEffect(() => { onInterimRef.current = onInterim; }, [onInterim]);
-  useEffect(() => { langRef.current = lang; }, [lang]);
   useEffect(() => { speechLangRef.current = speechLang; }, [speechLang]);
+
+  const setSpeechLang = useCallback((value: SpeechLang) => {
+    setSpeechLangState(value);
+  }, []);
 
   const clearTimer = useCallback(() => {
     if (timeoutRef.current) {
@@ -89,7 +90,6 @@ export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDurat
     const SpeechRecognition = getSpeechRecognition();
     if (!SpeechRecognition) return;
 
-    // Clean up previous instance
     if (recognitionRef.current) {
       recognitionRef.current.onresult = null;
       recognitionRef.current.onerror = null;
@@ -125,12 +125,10 @@ export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDurat
         }
       }
 
-      // Show interim text as preview only
       if (interimTranscript && onInterimRef.current) {
         onInterimRef.current(interimTranscript);
       }
 
-      // Only commit final results — prevents repeated/stuttering text
       if (finalTranscript) {
         onTranscriptRef.current(finalTranscript.trim());
       }
@@ -138,9 +136,8 @@ export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDurat
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       console.warn('[SpeechToText] Error:', event.error);
-      // 'no-speech' is normal — just restart to keep listening
       if (event.error === 'no-speech' && shouldRestartRef.current) {
-        return; // onend will fire and handle restart
+        return;
       }
       if (event.error !== 'aborted') {
         shouldRestartRef.current = false;
@@ -150,10 +147,8 @@ export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDurat
     };
 
     recognition.onend = () => {
-      // Auto-restart if user hasn't pressed stop
       if (shouldRestartRef.current) {
         console.log('[SpeechToText] Auto-restarting for next utterance...');
-        // Small delay to avoid rapid-fire restarts
         setTimeout(() => {
           if (shouldRestartRef.current) {
             createAndStartRecognition();
@@ -190,7 +185,6 @@ export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDurat
     const SpeechRecognition = getSpeechRecognition();
     if (!SpeechRecognition) return;
 
-    // Stop any existing session
     if (recognitionRef.current) {
       recognitionRef.current.abort();
       recognitionRef.current = null;
@@ -200,7 +194,6 @@ export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDurat
     setIsListening(true);
     createAndStartRecognition();
 
-    // Safety timeout
     timeoutRef.current = window.setTimeout(() => {
       stopListening();
     }, maxDuration * 1000);
@@ -214,7 +207,6 @@ export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDurat
     }
   }, [isListening, startListening, stopListening]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       shouldRestartRef.current = false;
@@ -225,12 +217,7 @@ export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDurat
     };
   }, [clearTimer]);
 
-  const cycleSpeechLang = useCallback(() => {
-    setSpeechLang(prev => {
-      const idx = SPEECH_LANGS.indexOf(prev);
-      return SPEECH_LANGS[(idx + 1) % SPEECH_LANGS.length];
-    });
-  }, []);
+  const currentOption = SPEECH_LANG_OPTIONS.find(o => o.value === speechLang) || SPEECH_LANG_OPTIONS[0];
 
   return {
     isListening,
@@ -239,7 +226,8 @@ export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDurat
     stopListening,
     toggleListening,
     speechLang,
-    speechLangLabel: SPEECH_LANG_LABELS[speechLang],
-    cycleSpeechLang,
+    setSpeechLang,
+    speechLangLabel: currentOption.shortLabel,
+    speechLangFullLabel: currentOption.label,
   };
 }

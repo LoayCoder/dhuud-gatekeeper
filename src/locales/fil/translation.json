@@ -1,4 +1,11 @@
 {
+  "speech": {
+    "startRecording": "Magsalita",
+    "stopRecording": "Itigil",
+    "listeningIn": "Nakikinig sa {{language}}",
+    "autoHint": "Para sa Arabic, piliin ang Arabic para sa pinakamahusay na resulta",
+    "speechLanguage": "Wika ng pagsasalita"
+  },
   "hsseDashboard": {
     "title": "HSSE Event Dashboard",
     "subtitle": "Real-time na visibility sa safety performance at risk analytics",
