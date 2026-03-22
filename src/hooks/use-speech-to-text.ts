@@ -27,7 +27,7 @@ interface UseSpeechToTextOptions {
   lang?: string;
   onTranscript: (text: string) => void;
   onInterim?: (text: string) => void;
-  maxDuration?: number; // seconds, default 60
+  maxDuration?: number;
 }
 
 function getSpeechRecognition(): (new () => SpeechRecognitionInstance) | null {
@@ -36,7 +36,6 @@ function getSpeechRecognition(): (new () => SpeechRecognitionInstance) | null {
     (new () => SpeechRecognitionInstance) | null ?? null;
 }
 
-// Map i18n language codes to BCP-47 for speech recognition
 const LANG_MAP: Record<string, string> = {
   en: 'en-US',
   ar: 'ar-SA',
@@ -45,49 +44,50 @@ const LANG_MAP: Record<string, string> = {
   fil: 'fil-PH',
 };
 
-export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDuration = 60 }: UseSpeechToTextOptions) {
+export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDuration = 120 }: UseSpeechToTextOptions) {
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const timeoutRef = useRef<number | null>(null);
+  const shouldRestartRef = useRef(false);
   const isSupported = !!getSpeechRecognition();
 
-  const cleanup = useCallback(() => {
+  // Store latest callbacks in refs to avoid stale closures during auto-restart
+  const onTranscriptRef = useRef(onTranscript);
+  const onInterimRef = useRef(onInterim);
+  const langRef = useRef(lang);
+
+  useEffect(() => { onTranscriptRef.current = onTranscript; }, [onTranscript]);
+  useEffect(() => { onInterimRef.current = onInterim; }, [onInterim]);
+  useEffect(() => { langRef.current = lang; }, [lang]);
+
+  const clearTimer = useCallback(() => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
+  }, []);
+
+  const createAndStartRecognition = useCallback(() => {
+    const SpeechRecognition = getSpeechRecognition();
+    if (!SpeechRecognition) return;
+
+    // Clean up previous instance
     if (recognitionRef.current) {
       recognitionRef.current.onresult = null;
       recognitionRef.current.onerror = null;
       recognitionRef.current.onend = null;
-      recognitionRef.current = null;
-    }
-    setIsListening(false);
-  }, []);
-
-  const stopListening = useCallback(() => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
-    cleanup();
-  }, [cleanup]);
-
-  const startListening = useCallback(() => {
-    const SpeechRecognition = getSpeechRecognition();
-    if (!SpeechRecognition) return;
-
-    // Stop any existing session
-    if (recognitionRef.current) {
-      recognitionRef.current.abort();
-      cleanup();
+      try { recognitionRef.current.abort(); } catch (_) { /* ignore */ }
     }
 
     const recognition = new SpeechRecognition();
-    const baseLang = lang.split('-')[0];
-    recognition.lang = LANG_MAP[baseLang] || lang;
-    recognition.continuous = true;
+    const baseLang = langRef.current.split('-')[0];
+    const resolvedLang = LANG_MAP[baseLang] || langRef.current;
+    recognition.lang = resolvedLang;
+    recognition.continuous = false; // Single utterance per session — prevents stuttering
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
+
+    console.log('[SpeechToText] Starting session, lang:', resolvedLang);
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       let finalTranscript = '';
@@ -102,35 +102,86 @@ export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDurat
         }
       }
 
-      if (interimTranscript && onInterim) {
-        onInterim(interimTranscript);
+      // Show interim text as preview only
+      if (interimTranscript && onInterimRef.current) {
+        onInterimRef.current(interimTranscript);
       }
 
+      // Only commit final results — prevents repeated/stuttering text
       if (finalTranscript) {
-        onTranscript(finalTranscript.trim());
+        onTranscriptRef.current(finalTranscript.trim());
       }
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       console.warn('[SpeechToText] Error:', event.error);
+      // 'no-speech' is normal — just restart to keep listening
+      if (event.error === 'no-speech' && shouldRestartRef.current) {
+        return; // onend will fire and handle restart
+      }
       if (event.error !== 'aborted') {
-        cleanup();
+        shouldRestartRef.current = false;
+        clearTimer();
+        setIsListening(false);
       }
     };
 
     recognition.onend = () => {
-      cleanup();
+      // Auto-restart if user hasn't pressed stop
+      if (shouldRestartRef.current) {
+        console.log('[SpeechToText] Auto-restarting for next utterance...');
+        // Small delay to avoid rapid-fire restarts
+        setTimeout(() => {
+          if (shouldRestartRef.current) {
+            createAndStartRecognition();
+          }
+        }, 100);
+      } else {
+        clearTimer();
+        setIsListening(false);
+        recognitionRef.current = null;
+      }
     };
 
     recognitionRef.current = recognition;
-    recognition.start();
+
+    try {
+      recognition.start();
+    } catch (e) {
+      console.warn('[SpeechToText] Failed to start:', e);
+      shouldRestartRef.current = false;
+      setIsListening(false);
+    }
+  }, [clearTimer]);
+
+  const stopListening = useCallback(() => {
+    shouldRestartRef.current = false;
+    clearTimer();
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsListening(false);
+  }, [clearTimer]);
+
+  const startListening = useCallback(() => {
+    const SpeechRecognition = getSpeechRecognition();
+    if (!SpeechRecognition) return;
+
+    // Stop any existing session
+    if (recognitionRef.current) {
+      recognitionRef.current.abort();
+      recognitionRef.current = null;
+    }
+
+    shouldRestartRef.current = true;
     setIsListening(true);
+    createAndStartRecognition();
 
     // Safety timeout
     timeoutRef.current = window.setTimeout(() => {
       stopListening();
     }, maxDuration * 1000);
-  }, [lang, onTranscript, onInterim, maxDuration, cleanup, stopListening]);
+  }, [maxDuration, createAndStartRecognition, stopListening]);
 
   const toggleListening = useCallback(() => {
     if (isListening) {
@@ -143,12 +194,13 @@ export function useSpeechToText({ lang = 'en', onTranscript, onInterim, maxDurat
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      shouldRestartRef.current = false;
       if (recognitionRef.current) {
         recognitionRef.current.abort();
       }
-      cleanup();
+      clearTimer();
     };
-  }, [cleanup]);
+  }, [clearTimer]);
 
   return {
     isListening,
