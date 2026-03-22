@@ -47,14 +47,25 @@ export function InvestigationListView() {
         return severity.toUpperCase().split('_')[0];
     };
 
-    // Mock progress calculation for list view (in a real app, this might come from a DB aggregate)
-    const getMockProgress = (id: string, status: string) => {
-        if (status === 'submitted' || status === 'pending_manager_approval') return 10;
-        if (status === 'investigation_pending') return 25;
-        if (status === 'investigation_in_progress') return 60;
-        if (status === 'pending_closure') return 90;
-        if (status === 'closed') return 100;
-        return 0;
+    // Status-weighted progress: maps workflow stages to meaningful completion percentages
+    const getInvestigationProgress = (_id: string, status: string): number => {
+        // Stage 1: Initial submission / triage (0-15%)
+        if (['submitted', 'returned_to_reporter', 'pending_dept_rep_incident_review', 'pending_dept_rep_approval'].includes(status)) return 10;
+        // Stage 2: Manager/expert screening (15-30%)
+        if (['pending_manager_approval', 'pending_department_manager_approval', 'pending_expert_screening', 'expert_screening', 'pending_hsse_expert_review'].includes(status)) return 25;
+        // Stage 3: Investigation assignment (30-40%)
+        if (['pending_investigator_assignment', 'investigation_pending'].includes(status)) return 35;
+        // Stage 4: Active investigation (40-70%)
+        if (['investigation_in_progress', 'under_investigation'].includes(status)) return 60;
+        // Stage 5: Investigation closed, pending actions/review (70-85%)
+        if (['investigation_closed', 'pending_hsse_validation', 'pending_hsse_incident_validation', 'observation_actions_pending'].includes(status)) return 80;
+        // Stage 6: Pending closure (85-95%)
+        if (['pending_closure', 'pending_final_closure', 'pending_hsse_manager_closure'].includes(status)) return 90;
+        // Stage 7: Closed/terminal (100%)
+        if (['closed', 'closed_rejected_approved_by_hsse', 'no_investigation_required'].includes(status)) return 100;
+        // Rejected/escalated states
+        if (['dept_rep_rejected', 'manager_rejected', 'expert_rejected', 'hsse_enforced'].includes(status)) return 100;
+        return 15; // Default for any unmapped status
     };
 
     return (
