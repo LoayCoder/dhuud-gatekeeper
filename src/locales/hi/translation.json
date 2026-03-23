@@ -6524,5 +6524,9 @@
       "totalResidual": "अवशिष्ट",
       "reduction": "कमी"
     }
+  },
+  "actionCenter": {
+    "adminOverride": "एडमिन ओवरराइड",
+    "adminOverrideTooltip": "आप इस आइटम को एडमिन विशेषाधिकारों के कारण देख रहे हैं, सीधे असाइनमेंट के कारण नहीं"
   }
 }
