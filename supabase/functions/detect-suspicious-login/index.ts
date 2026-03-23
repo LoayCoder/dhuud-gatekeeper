@@ -325,26 +325,28 @@ serve(async (req) => {
   }
 
   try {
-    // Authenticate the caller - require a valid JWT
+    // Try to authenticate - but allow unauthenticated calls for failed login tracking
     const caller = await verifyCallerAuth(req);
-    if (!caller) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
     const body: LoginDetectionRequest = await req.json();
     const clientIP = getClientIP(req);
 
-    // Enforce: caller can only log events for themselves (prevent spoofing other user_ids)
-    const effectiveUserId = caller.userId;
-    const effectiveEmail = caller.email || body.email;
+    // If authenticated, use caller identity; otherwise use body email (for failed logins)
+    const effectiveUserId = caller?.userId || body.user_id || null;
+    const effectiveEmail = caller?.email || body.email;
     
+    if (!effectiveEmail) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Email is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log('Processing login detection:', { 
       email: effectiveEmail, 
       success: body.success,
-      ip: clientIP 
+      ip: clientIP,
+      authenticated: !!caller
     });
 
     // Create service-role client for DB writes
