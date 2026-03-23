@@ -131,7 +131,7 @@ serve(async (req) => {
           id, shift_name, start_time, end_time, is_overnight
         ),
         profiles!shift_roster_guard_id_fkey (
-          full_name, mobile_number
+          full_name, phone_number
         )
       `)
       .eq('is_active', true)
