@@ -95,6 +95,8 @@ export function useActionCenterStats() {
             };
 
             const totalOverdue = correctiveActionStats.incidentOverdue + correctiveActionStats.observationOverdue + correctiveActionStats.inspectionOverdue + (inductionStats.overdue || 0);
+            // Note: incidentStats.pendingApprovals is 0 here (RPC-based count is in the module).
+            // We add a placeholder; the real count is injected by ActionCenterStatsBar via usePendingIncidentApprovals.
             const totalPendingApprovals = (incidentStats.pendingApprovals || 0) + gatePassStats.pendingApprovals + contractorStats.pendingApprovals;
             const totalInProgress = correctiveActionStats.incidentInProgress + correctiveActionStats.observationInProgress + correctiveActionStats.inspectionInProgress + gatePassStats.active;
             const totalActions = totalOverdue + totalPendingApprovals + totalInProgress +

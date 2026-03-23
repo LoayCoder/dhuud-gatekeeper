@@ -57,8 +57,8 @@ interface RosterData {
   tenant_id: string;
   security_zones: {
     id: string;
-    name: string;
-    zone_polygon: { coordinates: number[][][] } | null;
+    zone_name: string;
+    polygon_geojson: { coordinates: number[][][] } | null;
     zone_type: string;
     geofence_radius_meters: number | null;
   };
@@ -125,7 +125,7 @@ serve(async (req) => {
         zone_id,
         tenant_id,
         security_zones (
-          id, name, zone_polygon, zone_type, geofence_radius_meters
+          id, zone_name, polygon_geojson, zone_type, geofence_radius_meters
         ),
         security_shifts (
           id, shift_name, start_time, end_time, days_of_week
@@ -209,8 +209,8 @@ serve(async (req) => {
       }
       
       // Check if guard is within assigned zone (with radius tolerance)
-      if (zone.zone_polygon?.coordinates) {
-        const polygon = zone.zone_polygon.coordinates[0];
+      if (zone.polygon_geojson?.coordinates) {
+        const polygon = zone.polygon_geojson.coordinates[0];
         const radiusTolerance = zone.geofence_radius_meters ?? 50; // Default 50m if not set
         
         const inZone = isPointInPolygon(
@@ -254,10 +254,10 @@ serve(async (req) => {
                 severity: 'high',
                 guard_lat: latestLocation.latitude,
                 guard_lng: latestLocation.longitude,
-                alert_message: `Guard outside assigned zone: ${zone.name}`
+                alert_message: `Guard outside assigned zone: ${zone.zone_name}`
               });
             alertsCreated++;
-            console.log(`ALERT: Guard ${roster.guard_id} outside zone ${zone.name}`);
+            console.log(`ALERT: Guard ${roster.guard_id} outside zone ${zone.zone_name}`);
           }
         } else {
           // Guard is in zone - resolve any existing zone_exit alerts
