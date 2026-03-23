@@ -4,7 +4,6 @@ import { format } from 'date-fns';
 import { CheckCircle, XCircle, AlertTriangle, ClipboardCheck } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRecentInspections, type AssetInspectionResult } from '@/features/incidents';
 import i18n from '@/i18n';
@@ -18,11 +17,11 @@ export function RecentInspectionsCard() {
   const getResultIcon = (result: string | null) => {
     switch (result) {
       case 'pass':
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
+        return <CheckCircle className="h-4 w-4 text-success" />;
       case 'fail':
-        return <XCircle className="h-4 w-4 text-red-600" />;
+        return <XCircle className="h-4 w-4 text-destructive" />;
       case 'partial':
-        return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
+        return <AlertTriangle className="h-4 w-4 text-warning" />;
       default:
         return null;
     }
@@ -31,11 +30,11 @@ export function RecentInspectionsCard() {
   const getResultBadge = (result: string | null) => {
     switch (result) {
       case 'pass':
-        return <Badge className="bg-green-600 text-xs">{t('inspections.results.pass')}</Badge>;
+        return <Badge className="bg-success text-success-foreground text-xs">{t('inspections.results.pass')}</Badge>;
       case 'fail':
         return <Badge variant="destructive" className="text-xs">{t('inspections.results.fail')}</Badge>;
       case 'partial':
-        return <Badge className="bg-yellow-600 text-xs">{t('inspections.results.partial')}</Badge>;
+        return <Badge className="bg-warning text-warning-foreground text-xs">{t('inspections.results.partial')}</Badge>;
       default:
         return null;
     }
@@ -61,17 +60,17 @@ export function RecentInspectionsCard() {
             {t('inspections.noInspections')}
           </p>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {inspections?.map((inspection) => (
               <Link
                 key={inspection.id}
                 to={`/assets/${inspection.asset_id}/inspections/${inspection.id}`}
-                className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                className="flex items-center justify-between p-2.5 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
                   {getResultIcon(inspection.overall_result)}
-                  <div>
-                    <p className="text-sm font-medium">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">
                       {inspection.asset?.name}
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -79,10 +78,10 @@ export function RecentInspectionsCard() {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   {getResultBadge(inspection.overall_result)}
-                  <span className="text-xs text-muted-foreground">
-                    {format(new Date(inspection.inspection_date), 'MMM d')}
+                  <span className="text-xs text-muted-foreground hidden sm:inline">
+                    {inspection.completed_at && format(new Date(inspection.completed_at), 'MMM d')}
                   </span>
                 </div>
               </Link>
