@@ -1,10 +1,8 @@
 
 
-# Inspection Module Audit Report — Follow-Up
+# Asset Management ↔ Inspection Module Integration Audit
 
-## Module Health Score: ⚠️ Minor Issue (1 remaining bug)
-
-All 5 issues from the previous audit are confirmed fixed and deployed. However, a **new routing bug** was found in the Action Center's inspection actions list.
+## Integration Health: ⚠️ Partial Issues (4 bugs found)
 
 ---
 
@@ -12,62 +10,76 @@ All 5 issues from the previous audit are confirmed fixed and deployed. However, 
 
 | # | Area | Issue | Severity | Root Cause | Impact |
 |---|------|-------|----------|------------|--------|
-| 1 | Action Center / Navigation | `InspectionActionsList` always routes to asset workspace for non-audit actions — area session actions navigate to wrong workspace | **Medium** | The `useMyInspectionActions` query does not join `inspection_sessions` to retrieve `session_type`. The `InspectionActionsList` click handler uses `sourceType === 'audit' ? '/audit' : ''` — so area sessions get no suffix and land on the asset workspace. | Users clicking an inspection action from the Action Center that belongs to an area session see the wrong workspace (QR scanner instead of checklist). |
+| 1 | Navigation | `StartInspectionDialog` navigates to `/assets/inspections/${result.id}` — **no matching route** | **Critical** | Route is `assets/:id/inspections/:inspectionId` (requires both asset ID and inspection ID), but dialog only builds path with inspection ID | After starting an asset inspection, user lands on a 404/blank page |
+| 2 | Navigation | `InspectionHistoryTab` "View" link uses `/assets/inspections/${inspection.id}` — **no matching route** | **Critical** | Same as above — missing asset ID segment in URL | Clicking "View" on any inspection history entry navigates to non-existent page |
+| 3 | Navigation | `RecentInspectionsCard` links to `/assets/inspections/${inspection.id}` — **no matching route** | **Critical** | Same broken pattern repeated in dashboard widget | Recent inspections links are all broken |
+| 4 | Data Sync | `useCompleteInspection` does NOT update `hsse_assets.last_inspection_date` after inspection completion | **Medium** | The mutation only updates `asset_inspections.status` to `completed`. The DB trigger `calculate_next_inspection_due` fires on `hsse_assets` updates, but `last_inspection_date` is never written — so `next_inspection_due` is never recalculated | Asset detail page and map show stale/incorrect "next inspection due" dates. Overdue badges become permanently inaccurate. |
+| 5 | API Signature | `StartInspectionDialog` calls `useTemplatesForAsset(category_id)` with 1 arg but the real hook accepts 2 `(categoryId, typeId)` | **Low** | Stub and real hook have different signatures. `type_id` from the asset is available in the dialog props but not passed through | Template filtering ignores asset type — user may see irrelevant templates |
 
 ---
 
-## Previously Fixed (Verified)
+## Verified as Correct ✅
 
-- CreateAreaSessionDialog → navigates to `/area` suffix ✅
-- CreateAuditSessionDialog → navigates to `/audit` suffix ✅
-- CreateSessionDialog → dynamic session-type routing ✅
-- InspectionSessionsDashboard → status counts from full dataset, session cards route by type ✅
-- InspectionDashboard → findings link uses correct path ✅
-- InspectionsTab (My Actions) → uses `session_type` for routing ✅
+- `useAssetInspections` correctly queries `asset_inspections` by `asset_id`
+- `useStartInspection` correctly inserts with `asset_id`, `tenant_id`, `inspector_id`
+- `InspectionHistoryTab` correctly displays inspection history with template names, results, dates
+- Asset detail page has a dedicated "Inspections" tab rendering `InspectionHistoryTab`
+- `InspectionWorkspace` correctly reads `inspectionId` from params and loads inspection data
+- `useCompleteInspection` invalidates both inspection and asset query caches
+- DB trigger `calculate_next_inspection_due` correctly recalculates dates when `last_inspection_date` changes
+- Asset map shows overdue inspection badges (via `next_inspection_due` comparison)
+- Asset import correctly handles `inspection_interval_days` and `next_inspection_due`
+- RLS is properly scoped via `tenant_id` on both `hsse_assets` and `asset_inspections`
 
 ---
 
 ## Fix Plan
 
-### Step 1: Add `session_type` to the corrective actions query
+### Fix 1 — Navigation links (Critical, 3 files)
 
-**File:** `src/features/incidents/hooks/use-inspection-actions/use-action-queries.ts`
+**All three files** use the broken pattern `/assets/inspections/${id}`. The correct route is `/assets/${assetId}/inspections/${inspectionId}`.
 
-In `useMyInspectionActions`, add a join to `inspection_sessions` to get `session_type`:
+**`StartInspectionDialog.tsx` (line 72):**
+Change `navigate(\`/assets/inspections/${result.id}\`)` to `navigate(\`/assets/${asset.id}/inspections/${result.id}\`)`
 
-```sql
-session:inspection_sessions!corrective_actions_session_id_fkey(session_type)
+**`InspectionHistoryTab.tsx` (line 109):**
+Change `to={\`/assets/inspections/${inspection.id}\`}` to `to={\`/assets/${assetId}/inspections/${inspection.id}\`}`
+(The `assetId` prop is already available)
+
+**`RecentInspectionsCard.tsx` (line 68):**
+Change `to={\`/assets/inspections/${inspection.id}\`}` to `to={\`/assets/${inspection.asset_id}/inspections/${inspection.id}\`}`
+(Need to include `asset_id` in the query select — verify it's already fetched)
+
+### Fix 2 — Update `last_inspection_date` on completion (Medium)
+
+**`use-inspection-hooks.ts` — `useCompleteInspection`:**
+After updating `asset_inspections`, also update `hsse_assets.last_inspection_date`:
+
+```typescript
+// After the inspection update succeeds:
+const assetId = (result as any).asset?.id || result.asset_id;
+if (assetId) {
+  await supabase
+    .from('hsse_assets')
+    .update({ last_inspection_date: new Date().toISOString().split('T')[0] })
+    .eq('id', assetId);
+}
 ```
 
-Add `session` to the `InspectionAction` type in `types.ts`:
+This triggers the existing DB trigger to recalculate `next_inspection_due`.
 
-```ts
-session?: {
-    reference_id: string;
-    name: string | null;
-    session_type?: string;
-} | null;
-```
+### Fix 3 — Pass `type_id` to `useTemplatesForAsset` (Low)
 
-### Step 2: Use `session_type` in InspectionActionsList routing
+**`StartInspectionDialog.tsx`:**
+- Add `type_id` to the `asset` prop interface
+- Change `useTemplatesForAsset(asset.category_id)` to `useTemplatesForAsset(asset.category_id, asset.type_id)`
 
-**File:** `src/components/action-center/modules/InspectionActionsList.tsx`
+---
 
-Change the `onRowClick` handler from:
-```ts
-const suffix = sourceType === 'audit' ? '/audit' : '';
-```
-To:
-```ts
-const sessionType = (item as any).session_type || (sourceType === 'audit' ? 'audit' : 'asset');
-const suffix = sessionType === 'area' ? '/area' : sessionType === 'audit' ? '/audit' : '';
-```
+## Files to Modify
 
-And pass `session_type` through from the query data into the `items` mapping.
-
-### Files to Modify
-
-1. `src/features/incidents/hooks/use-inspection-actions/types.ts` — add `session_type` to session join type
-2. `src/features/incidents/hooks/use-inspection-actions/use-action-queries.ts` — join `inspection_sessions` for `session_type`
-3. `src/components/action-center/modules/InspectionActionsList.tsx` — use `session_type` for routing
+1. `src/features/incidents/components/inspections/StartInspectionDialog.tsx` — Fix navigate path + pass `type_id`
+2. `src/features/incidents/components/inspections/InspectionHistoryTab.tsx` — Fix "View" link path
+3. `src/features/incidents/components/inspections/RecentInspectionsCard.tsx` — Fix link path (verify `asset_id` in query)
+4. `src/features/incidents/hooks/use-inspections/use-inspection-hooks.ts` — Update `last_inspection_date` in `useCompleteInspection`
 
