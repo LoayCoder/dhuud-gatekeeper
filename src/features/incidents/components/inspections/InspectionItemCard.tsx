@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Camera, Check, X, Minus, Star, ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertTriangle, Check, X, Minus, Star, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { TemplateItem, InspectionResponse } from '@/features/incidents';
 import i18n from '@/i18n';
@@ -44,6 +43,10 @@ export function InspectionItemCard({
   
   const handleResultChange = (result: 'pass' | 'fail' | 'na') => {
     onResponseChange({ result, response_value: localValue, notes: localNotes });
+    // Auto-show notes on fail to encourage documenting
+    if (result === 'fail' && !showNotes) {
+      setShowNotes(true);
+    }
   };
   
   const handleNotesBlur = () => {
@@ -58,7 +61,6 @@ export function InspectionItemCard({
   
   const handleValueBlur = () => {
     if (localValue !== response?.response_value) {
-      // Determine result based on value for numeric types
       let result = response?.result;
       if (item.response_type === 'numeric' && localValue) {
         const numVal = parseFloat(localValue);
@@ -78,12 +80,15 @@ export function InspectionItemCard({
     switch (item.response_type) {
       case 'pass_fail':
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Button
               type="button"
               size="sm"
               variant={response?.result === 'pass' ? 'default' : 'outline'}
-              className={cn(response?.result === 'pass' && 'bg-green-600 hover:bg-green-700')}
+              className={cn(
+                'min-h-[40px] sm:min-h-[36px] flex-1 sm:flex-none',
+                response?.result === 'pass' && 'bg-success hover:bg-success/90 text-success-foreground'
+              )}
               onClick={() => handleResultChange('pass')}
               disabled={disabled}
             >
@@ -94,7 +99,10 @@ export function InspectionItemCard({
               type="button"
               size="sm"
               variant={response?.result === 'fail' ? 'default' : 'outline'}
-              className={cn(response?.result === 'fail' && 'bg-red-600 hover:bg-red-700')}
+              className={cn(
+                'min-h-[40px] sm:min-h-[36px] flex-1 sm:flex-none',
+                response?.result === 'fail' && 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'
+              )}
               onClick={() => handleResultChange('fail')}
               disabled={disabled}
             >
@@ -105,6 +113,7 @@ export function InspectionItemCard({
               type="button"
               size="sm"
               variant={response?.result === 'na' ? 'secondary' : 'outline'}
+              className="min-h-[40px] sm:min-h-[36px] flex-1 sm:flex-none"
               onClick={() => handleResultChange('na')}
               disabled={disabled}
             >
@@ -121,7 +130,10 @@ export function InspectionItemCard({
               type="button"
               size="sm"
               variant={response?.result === 'pass' ? 'default' : 'outline'}
-              className={cn(response?.result === 'pass' && 'bg-green-600 hover:bg-green-700')}
+              className={cn(
+                'min-h-[40px] sm:min-h-[36px] flex-1',
+                response?.result === 'pass' && 'bg-success hover:bg-success/90 text-success-foreground'
+              )}
               onClick={() => handleResultChange('pass')}
               disabled={disabled}
             >
@@ -131,7 +143,10 @@ export function InspectionItemCard({
               type="button"
               size="sm"
               variant={response?.result === 'fail' ? 'default' : 'outline'}
-              className={cn(response?.result === 'fail' && 'bg-red-600 hover:bg-red-700')}
+              className={cn(
+                'min-h-[40px] sm:min-h-[36px] flex-1',
+                response?.result === 'fail' && 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'
+              )}
               onClick={() => handleResultChange('fail')}
               disabled={disabled}
             >
@@ -143,14 +158,14 @@ export function InspectionItemCard({
       case 'rating': {
         const scale = item.rating_scale || 5;
         return (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-wrap">
             {Array.from({ length: scale }, (_, i) => i + 1).map((num) => (
               <Button
                 key={num}
                 type="button"
                 size="icon"
                 variant={parseInt(localValue) === num ? 'default' : 'outline'}
-                className="h-8 w-8"
+                className="h-9 w-9 sm:h-8 sm:w-8"
                 onClick={() => {
                   setLocalValue(num.toString());
                   const result = num >= scale / 2 ? 'pass' : 'fail';
@@ -158,9 +173,14 @@ export function InspectionItemCard({
                 }}
                 disabled={disabled}
               >
-                <Star className={cn('h-4 w-4', parseInt(localValue) >= num && 'fill-current')} />
+                <Star className={cn('h-4 w-4', parseInt(localValue) >= num && 'fill-current text-warning')} />
               </Button>
             ))}
+            {localValue && (
+              <span className="text-sm text-muted-foreground ms-2">
+                {localValue}/{scale}
+              </span>
+            )}
           </div>
         );
       }
@@ -207,28 +227,29 @@ export function InspectionItemCard({
   
   return (
     <div className={cn(
-      'border rounded-lg p-4 space-y-3',
-      item.is_critical && 'border-destructive/50 bg-destructive/5',
-      response?.result === 'pass' && 'border-green-500/50 bg-green-500/5',
-      response?.result === 'fail' && 'border-red-500/50 bg-red-500/5',
+      'border rounded-lg p-3 sm:p-4 space-y-3 transition-colors',
+      item.is_critical && !response?.result && 'border-destructive/50 bg-destructive/5',
+      response?.result === 'pass' && 'border-success/50 bg-success/5',
+      response?.result === 'fail' && 'border-destructive/50 bg-destructive/5',
+      response?.result === 'na' && 'border-muted bg-muted/30',
     )}>
       {/* Question */}
       <div className="flex items-start gap-2">
-        <div className="flex-1">
-          <p className="font-medium">{question}</p>
+        <div className="flex-1 min-w-0">
+          <p className="font-medium text-sm sm:text-base">{question}</p>
           {instructions && (
-            <p className="text-sm text-muted-foreground mt-1">{instructions}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">{instructions}</p>
           )}
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           {item.is_critical && (
-            <Badge variant="destructive" className="shrink-0">
+            <Badge variant="destructive" className="text-xs">
               <AlertTriangle className="h-3 w-3 me-1" />
               {t('inspections.critical')}
             </Badge>
           )}
-          {item.is_required && (
-            <Badge variant="secondary" className="shrink-0">{t('common.required')}</Badge>
+          {item.is_required && !item.is_critical && (
+            <Badge variant="secondary" className="text-xs">{t('common.required')}</Badge>
           )}
         </div>
       </div>
@@ -242,11 +263,12 @@ export function InspectionItemCard({
           type="button"
           variant="ghost"
           size="sm"
-          className="text-muted-foreground h-auto p-0"
+          className="text-muted-foreground h-auto p-0 text-xs"
           onClick={() => setShowNotes(!showNotes)}
         >
-          {showNotes ? <ChevronUp className="h-4 w-4 me-1" /> : <ChevronDown className="h-4 w-4 me-1" />}
+          {showNotes ? <ChevronUp className="h-3.5 w-3.5 me-1" /> : <ChevronDown className="h-3.5 w-3.5 me-1" />}
           {t('inspections.itemNotes')}
+          {localNotes && <Badge variant="secondary" className="ms-1.5 text-[10px] h-4">{t('common.filled')}</Badge>}
         </Button>
         
         {showNotes && (
