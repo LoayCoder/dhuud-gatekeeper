@@ -70,7 +70,7 @@ export function StartInspectionDialog({
     });
     
     onOpenChange(false);
-    navigate(`/assets/inspections/${result.id}`);
+    navigate(`/assets/${asset.id}/inspections/${result.id}`);
   };
   
   return (

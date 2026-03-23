@@ -106,7 +106,7 @@ export function InspectionHistoryTab({ assetId }: InspectionHistoryTabProps) {
                 </div>
                 
                 <Button variant="outline" size="sm" asChild>
-                  <Link to={`/assets/inspections/${inspection.id}`}>
+                  <Link to={`/assets/${assetId}/inspections/${inspection.id}`}>
                     <ExternalLink className="h-4 w-4 me-1" />
                     {t('common.view')}
                   </Link>

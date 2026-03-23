@@ -216,6 +216,16 @@ export function useCompleteInspection() {
                 .single();
 
             if (error) throw error;
+
+            // Update asset's last_inspection_date to trigger next_inspection_due recalculation
+            const assetId = (result as any).asset?.id;
+            if (assetId) {
+                await supabase
+                    .from('hsse_assets')
+                    .update({ last_inspection_date: new Date().toISOString().split('T')[0] })
+                    .eq('id', assetId);
+            }
+
             return result;
         },
         onSuccess: (data) => {
