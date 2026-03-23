@@ -32,20 +32,18 @@ export function useSessionActions(sessionId: string | undefined) {
     });
 }
 
-export function useMyInspectionActions() {
+export function useMyInspectionActions(sourceType?: 'inspection' | 'audit') {
     const { user, profile } = useAuth();
 
     return useQuery({
-        queryKey: ['my-inspection-actions', user?.id],
+        queryKey: ['my-inspection-actions', user?.id, sourceType],
         queryFn: async () => {
             if (!user?.id || !profile?.tenant_id) return [];
 
-            if (!user?.id || !profile?.tenant_id) return [];
-
-            const { data, error } = await supabase.from('corrective_actions' as never)
+            let query = supabase.from('corrective_actions' as never)
                 .select(`
           id, reference_id, title, description, status, priority, due_date, 
-          assigned_to, session_id, source_finding_id,
+          assigned_to, session_id, source_finding_id, source_type,
           verified_by, verified_at, verification_notes, created_at,
           completed_date, return_count, rejection_notes, last_return_reason, rejected_at,
           started_at, progress_notes, completion_notes, overdue_justification,
@@ -54,7 +52,14 @@ export function useMyInspectionActions() {
                 .eq('assigned_to', user.id)
                 .eq('tenant_id', profile.tenant_id)
                 .not('session_id', 'is', null)
-                .is('deleted_at', null)
+                .is('deleted_at', null);
+
+            // Filter by source_type when provided to differentiate inspections vs audits
+            if (sourceType) {
+                query = query.eq('source_type', sourceType);
+            }
+
+            const { data, error } = await query
                 .order('due_date', { ascending: true, nullsFirst: false });
 
             if (error) throw error;

@@ -16,10 +16,14 @@ const STATUS_MAP: Record<string, 'completed' | 'pending' | 'critical' | 'informa
   overdue: 'critical',
 };
 
-export function InspectionActionsList() {
+interface InspectionActionsListProps {
+  sourceType?: 'inspection' | 'audit';
+}
+
+export function InspectionActionsList({ sourceType }: InspectionActionsListProps = {}) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { data: actions, isLoading } = useMyInspectionActions();
+  const { data: actions, isLoading } = useMyInspectionActions(sourceType);
 
   const openActions = (actions || []).filter(
     (a) => a.status !== 'completed' && a.status !== 'verified' && a.status !== 'closed'
