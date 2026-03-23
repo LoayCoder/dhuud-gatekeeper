@@ -99,10 +99,12 @@ export function OverviewPanel({
                   <p className="text-muted-foreground text-sm max-w-sm mt-1 mb-4">
                     {t('investigation.overview.readyToStartDesc', 'Review the basic info below, then click start to unlock evidence, witness, and RCA tools.')}
                   </p>
-                  <Button size="lg" onClick={onStartInvestigation} className="gap-2 group shadow-sm transition-all hover:shadow-md">
-                    <Play className="h-4 w-4 fill-current group-hover:scale-110 transition-transform" />
-                    {t('investigation.overview.startBtn', 'Start Investigation')}
-                  </Button>
+                  {canApprove && (
+                    <Button size="lg" onClick={onStartInvestigation} className="gap-2 group shadow-sm transition-all hover:shadow-md">
+                      <Play className="h-4 w-4 fill-current group-hover:scale-110 transition-transform" />
+                      {t('investigation.overview.startBtn', 'Start Investigation')}
+                    </Button>
+                  )}
                 </div>
               </div>
             ) : (
