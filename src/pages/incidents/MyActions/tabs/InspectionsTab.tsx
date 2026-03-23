@@ -46,7 +46,7 @@ export function InspectionsTab({ viewProps }: { viewProps: MyActionsViewProps })
                 </div>
               </div>
               <Button size="sm" variant="outline" asChild>
-                <Link to={`/inspections/sessions/${insp.id}`}>
+                <Link to={`/inspections/sessions/${insp.id}${insp.session_type === 'area' ? '/area' : insp.session_type === 'audit' ? '/audit' : ''}`}>
                   {t('common.view', 'View')}
                   <ArrowRight className="h-4 w-4 ms-1 rtl:rotate-180" />
                 </Link>
