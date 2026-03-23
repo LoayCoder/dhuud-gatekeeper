@@ -70,7 +70,7 @@ interface RosterData {
   };
   profiles: {
     full_name: string;
-    mobile_number: string;
+    phone_number: string;
   };
 }
 
