@@ -28,15 +28,17 @@ function InspectionSessionsDashboardContent() {
   
   const deleteSession = useDeleteSession();
   
-  const { data: sessions = [], isLoading } = useInspectionSessions(
-    statusFilter !== 'all' ? { status: statusFilter } : undefined
-  );
+  const { data: allSessions = [], isLoading } = useInspectionSessions();
+  
+  const sessions = statusFilter !== 'all' 
+    ? allSessions.filter(s => s.status === statusFilter) 
+    : allSessions;
   
   const statusCounts = {
-    all: sessions.length,
-    in_progress: sessions.filter(s => s.status === 'in_progress').length,
-    completed_with_open_actions: sessions.filter(s => s.status === 'completed_with_open_actions').length,
-    closed: sessions.filter(s => s.status === 'closed').length,
+    all: allSessions.length,
+    in_progress: allSessions.filter(s => s.status === 'in_progress').length,
+    completed_with_open_actions: allSessions.filter(s => s.status === 'completed_with_open_actions').length,
+    closed: allSessions.filter(s => s.status === 'closed').length,
   };
 
   const handleEditClick = (e: React.MouseEvent, session: InspectionSession) => {

@@ -142,7 +142,8 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
       
       toast({ title: t('common.success'), description: t('inspectionSessions.sessionCreated') });
       onOpenChange(false);
-      navigate(`/inspections/sessions/${session.id}`);
+      const suffix = data.sessionType === 'area' ? '/area' : data.sessionType === 'audit' ? '/audit' : '';
+      navigate(`/inspections/sessions/${session.id}${suffix}`);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Error';
       toast({ title: t('common.error'), description: message, variant: 'destructive' });
