@@ -37,6 +37,7 @@ export function InspectionActionsList({ sourceType }: InspectionActionsListProps
     reference_id: a.reference_id ?? null,
     due_date: a.due_date ?? null,
     session_id: (a as any).session_id as string | null,
+    session_type: (a as any).session?.session_type ?? null,
     _isOverdue: a.due_date ? new Date(a.due_date) < new Date() : false,
   }));
 
@@ -106,7 +107,8 @@ export function InspectionActionsList({ sourceType }: InspectionActionsListProps
       isLoading={isLoading}
       onRowClick={(item) => {
         if (item.session_id) {
-          const suffix = sourceType === 'audit' ? '/audit' : '';
+          const st = item.session_type || (sourceType === 'audit' ? 'audit' : 'asset');
+          const suffix = st === 'area' ? '/area' : st === 'audit' ? '/audit' : '';
           navigate(`/inspections/sessions/${item.session_id}${suffix}`);
         }
       }}
