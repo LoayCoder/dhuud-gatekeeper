@@ -350,7 +350,7 @@ export function RCAPanel({
           <p className="text-muted-foreground mb-4">
             {t('investigation.rca.noInvestigation', 'No investigation has been started for this incident.')}
           </p>
-          {canEdit && (
+          {canEditProp !== false && (
             <Button onClick={() => createInvestigation.mutateAsync(incidentId)} disabled={createInvestigation.isPending}>
               {createInvestigation.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
               {t('investigation.startInvestigation', 'Start Investigation')}
