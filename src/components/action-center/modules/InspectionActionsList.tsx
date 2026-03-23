@@ -37,6 +37,7 @@ export function InspectionActionsList({ sourceType }: InspectionActionsListProps
     reference_id: a.reference_id ?? null,
     due_date: a.due_date ?? null,
     session_id: (a as any).session_id as string | null,
+    session_type: a.session?.session_type ?? null,
     _isOverdue: a.due_date ? new Date(a.due_date) < new Date() : false,
   }));
 
