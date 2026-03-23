@@ -125,7 +125,7 @@ serve(async (req) => {
         zone_id,
         tenant_id,
         security_zones (
-          id, name, zone_polygon, zone_type, geofence_radius_meters
+          id, zone_name, polygon_geojson, zone_type, geofence_radius_meters
         ),
         security_shifts (
           id, shift_name, start_time, end_time, days_of_week
