@@ -370,12 +370,14 @@ serve(async (req) => {
 
     // Get tenant_id for the user
     let tenantId: string | null = null;
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('tenant_id')
-      .eq('id', effectiveUserId)
-      .single();
-    tenantId = profile?.tenant_id || null;
+    if (effectiveUserId) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', effectiveUserId)
+        .single();
+      tenantId = profile?.tenant_id || null;
+    }
 
     // Log to login_history
     const { error: insertError } = await supabase
