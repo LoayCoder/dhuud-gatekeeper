@@ -325,26 +325,28 @@ serve(async (req) => {
   }
 
   try {
-    // Authenticate the caller - require a valid JWT
+    // Try to authenticate - but allow unauthenticated calls for failed login tracking
     const caller = await verifyCallerAuth(req);
-    if (!caller) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
     const body: LoginDetectionRequest = await req.json();
     const clientIP = getClientIP(req);
 
-    // Enforce: caller can only log events for themselves (prevent spoofing other user_ids)
-    const effectiveUserId = caller.userId;
-    const effectiveEmail = caller.email || body.email;
+    // If authenticated, use caller identity; otherwise use body email (for failed logins)
+    const effectiveUserId = caller?.userId || body.user_id || null;
+    const effectiveEmail = caller?.email || body.email;
     
+    if (!effectiveEmail) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Email is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log('Processing login detection:', { 
       email: effectiveEmail, 
       success: body.success,
-      ip: clientIP 
+      ip: clientIP,
+      authenticated: !!caller
     });
 
     // Create service-role client for DB writes
@@ -368,12 +370,14 @@ serve(async (req) => {
 
     // Get tenant_id for the user
     let tenantId: string | null = null;
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('tenant_id')
-      .eq('id', effectiveUserId)
-      .single();
-    tenantId = profile?.tenant_id || null;
+    if (effectiveUserId) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', effectiveUserId)
+        .single();
+      tenantId = profile?.tenant_id || null;
+    }
 
     // Log to login_history
     const { error: insertError } = await supabase
@@ -407,30 +411,32 @@ serve(async (req) => {
       console.error('Failed to insert login history:', insertError);
     }
 
-    // Also log to user_activity_logs
-    const eventType = 'login';
-    await supabase
-      .from('user_activity_logs')
-      .insert({
-        user_id: effectiveUserId,
-        tenant_id: tenantId,
-        event_type: eventType,
-        ip_address: clientIP,
-        metadata: {
-          login_success: body.success,
-          failure_reason: body.failure_reason,
-          risk_score: riskAssessment.risk_score,
-          risk_factors: riskAssessment.risk_factors,
-          is_suspicious: riskAssessment.is_suspicious,
-          is_new_device: riskAssessment.is_new_device,
-          is_new_location: riskAssessment.is_new_location,
-          country: geoLocation.country_name,
-          city: geoLocation.city,
-          device_fingerprint: body.device_fingerprint,
-          user_agent: body.user_agent,
-          timestamp: new Date().toISOString(),
-        },
-      });
+    // Also log to user_activity_logs (only if we have a user)
+    if (effectiveUserId) {
+      const eventType = 'login';
+      await supabase
+        .from('user_activity_logs')
+        .insert({
+          user_id: effectiveUserId,
+          tenant_id: tenantId,
+          event_type: eventType,
+          ip_address: clientIP,
+          metadata: {
+            login_success: body.success,
+            failure_reason: body.failure_reason,
+            risk_score: riskAssessment.risk_score,
+            risk_factors: riskAssessment.risk_factors,
+            is_suspicious: riskAssessment.is_suspicious,
+            is_new_device: riskAssessment.is_new_device,
+            is_new_location: riskAssessment.is_new_location,
+            country: geoLocation.country_name,
+            city: geoLocation.city,
+            device_fingerprint: body.device_fingerprint,
+            user_agent: body.user_agent,
+            timestamp: new Date().toISOString(),
+          },
+        });
+    }
 
     // Send admin alert if suspicious
     if (riskAssessment.is_suspicious && body.success) {
