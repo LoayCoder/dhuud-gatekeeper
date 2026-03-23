@@ -179,9 +179,9 @@ export function useRecentInspections(limit = 5) {
   });
 }
 
-export function useMyInspectionActions() {
+export function useMyInspectionActions(sourceType?: 'inspection' | 'audit') {
   return useQuery({
-    queryKey: ['my-inspection-actions'],
+    queryKey: ['my-inspection-actions', sourceType],
     queryFn: async () => [] as InspectionAction[],
   });
 }

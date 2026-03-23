@@ -29,7 +29,6 @@ function distanceToPolygonEdge(lat: number, lng: number, polygon: number[][]): n
   const earthRadius = 6371000; // meters
   const toRad = (deg: number) => deg * Math.PI / 180;
   
-  // Calculate distance between two points
   const haversine = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
     const dLat = toRad(lat2 - lat1);
     const dLng = toRad(lng2 - lng1);
@@ -40,7 +39,6 @@ function distanceToPolygonEdge(lat: number, lng: number, polygon: number[][]): n
     return earthRadius * c;
   };
   
-  // Find minimum distance to any polygon vertex (simplified approach)
   let minDist = Infinity;
   for (const vertex of polygon) {
     const dist = haversine(lat, lng, vertex[0], vertex[1]);
@@ -55,6 +53,7 @@ interface RosterData {
   guard_id: string;
   zone_id: string;
   tenant_id: string;
+  roster_date: string;
   security_zones: {
     id: string;
     zone_name: string;
@@ -67,11 +66,11 @@ interface RosterData {
     shift_name: string;
     start_time: string;
     end_time: string;
-    days_of_week: string[];
+    is_overnight: boolean | null;
   };
   profiles: {
     full_name: string;
-    mobile_number: string;
+    phone_number: string;
   };
 }
 
@@ -88,11 +87,12 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
     
     const now = new Date();
-    const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
     const currentTime = now.toTimeString().substring(0, 5);
+    // Format today's date as YYYY-MM-DD for roster_date comparison
+    const todayDate = now.toISOString().substring(0, 10);
     
     // Fetch configurable tracking interval from platform_settings
-    let trackingIntervalMinutes = 5; // Default to 5 minutes
+    let trackingIntervalMinutes = 5;
     try {
       const { data: settingData } = await supabase
         .from('platform_settings')
@@ -110,13 +110,12 @@ serve(async (req) => {
       console.warn('Could not fetch tracking interval, using default 5 minutes:', e);
     }
     
-    // Use 2x the interval as tolerance for "no signal" detection
     const noSignalThresholdMs = trackingIntervalMinutes * 60 * 1000 * 2;
     const signalThresholdTime = new Date(now.getTime() - noSignalThresholdMs);
     
     console.log(`Using tracking interval: ${trackingIntervalMinutes} min, no-signal threshold: ${noSignalThresholdMs / 60000} min`);
     
-    // Get all active shift assignments
+    // Get active shift assignments for TODAY's date (roster_date based, not days_of_week)
     const { data: activeRosters, error: rosterError } = await supabase
       .from('shift_roster')
       .select(`
@@ -124,17 +123,18 @@ serve(async (req) => {
         guard_id,
         zone_id,
         tenant_id,
+        roster_date,
         security_zones (
           id, zone_name, polygon_geojson, zone_type, geofence_radius_meters
         ),
         security_shifts (
-          id, shift_name, start_time, end_time, days_of_week
+          id, shift_name, start_time, end_time, is_overnight
         ),
         profiles!shift_roster_guard_id_fkey (
-          full_name, mobile_number
+          full_name, phone_number
         )
       `)
-      .eq('is_active', true)
+      .eq('roster_date', todayDate)
       .is('deleted_at', null);
     
     if (rosterError) {
@@ -151,14 +151,13 @@ serve(async (req) => {
       
       if (!shift || !zone) continue;
       
-      // Check if current time is within shift
-      if (!shift.days_of_week?.includes(currentDay)) continue;
-      
+      // Check if current time is within shift hours
       const shiftStart = shift.start_time;
       const shiftEnd = shift.end_time;
       
       let isInShift = false;
-      if (shiftStart > shiftEnd) {
+      if (shift.is_overnight || shiftStart > shiftEnd) {
+        // Overnight shift: e.g. 22:00 - 06:00
         isInShift = currentTime >= shiftStart || currentTime <= shiftEnd;
       } else {
         isInShift = currentTime >= shiftStart && currentTime <= shiftEnd;
@@ -180,7 +179,6 @@ serve(async (req) => {
       
       if (!latestLocation) {
         // No recent location - guard may be offline
-        // Check if we already have an unresolved offline alert
         const { data: existingAlert } = await supabase
           .from('geofence_alerts')
           .select('id')
@@ -211,7 +209,7 @@ serve(async (req) => {
       // Check if guard is within assigned zone (with radius tolerance)
       if (zone.polygon_geojson?.coordinates) {
         const polygon = zone.polygon_geojson.coordinates[0];
-        const radiusTolerance = zone.geofence_radius_meters ?? 50; // Default 50m if not set
+        const radiusTolerance = zone.geofence_radius_meters ?? 50;
         
         const inZone = isPointInPolygon(
           latestLocation.latitude, 
@@ -219,7 +217,6 @@ serve(async (req) => {
           polygon
         );
         
-        // If not inside polygon, check if within radius tolerance
         let isCompliant = inZone;
         if (!inZone) {
           const distanceToEdge = distanceToPolygonEdge(
@@ -232,7 +229,6 @@ serve(async (req) => {
         }
         
         if (!isCompliant) {
-          // Check if we already have an unresolved zone_exit alert
           const { data: existingAlert } = await supabase
             .from('geofence_alerts')
             .select('id')

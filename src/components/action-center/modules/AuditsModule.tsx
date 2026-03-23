@@ -23,7 +23,7 @@ export function AuditsModule({ stats }: AuditsModuleProps) {
   const { t } = useTranslation();
   const [openSheet, setOpenSheet] = useState<SheetType>(null);
 
-  const { data: inspectionActions } = useMyInspectionActions();
+  const { data: inspectionActions } = useMyInspectionActions('audit');
   const openFindings = (inspectionActions || []).filter(
     (a) => a.status !== 'completed' && a.status !== 'verified' && a.status !== 'closed'
   );
@@ -79,7 +79,7 @@ export function AuditsModule({ stats }: AuditsModuleProps) {
         description={t('actionCenter.sheet.openFindingsDesc', 'Audit findings requiring corrective action')}
         badge={openFindings.length}
       >
-        <InspectionActionsList />
+        <InspectionActionsList sourceType="audit" />
       </ActionListSheet>
     </>
   );
