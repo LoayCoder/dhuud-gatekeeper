@@ -280,7 +280,7 @@ export function useRecentInspections(limit: number = 5) {
             const { data, error } = await supabase
                 .from('asset_inspections')
                 .select(`
-          id, reference_id, status, inspection_date, overall_result, completed_at,
+          id, reference_id, asset_id, status, inspection_date, overall_result, completed_at,
           asset:hsse_assets(name, asset_code),
           inspector:profiles(full_name)
         `)
