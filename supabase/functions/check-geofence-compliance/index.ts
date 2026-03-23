@@ -254,10 +254,10 @@ serve(async (req) => {
                 severity: 'high',
                 guard_lat: latestLocation.latitude,
                 guard_lng: latestLocation.longitude,
-                alert_message: `Guard outside assigned zone: ${zone.name}`
+                alert_message: `Guard outside assigned zone: ${zone.zone_name}`
               });
             alertsCreated++;
-            console.log(`ALERT: Guard ${roster.guard_id} outside zone ${zone.name}`);
+            console.log(`ALERT: Guard ${roster.guard_id} outside zone ${zone.zone_name}`);
           }
         } else {
           // Guard is in zone - resolve any existing zone_exit alerts
