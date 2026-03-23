@@ -107,7 +107,8 @@ export function InspectionActionsList({ sourceType }: InspectionActionsListProps
       isLoading={isLoading}
       onRowClick={(item) => {
         if (item.session_id) {
-          const suffix = sourceType === 'audit' ? '/audit' : '';
+          const st = item.session_type || (sourceType === 'audit' ? 'audit' : 'asset');
+          const suffix = st === 'area' ? '/area' : st === 'audit' ? '/audit' : '';
           navigate(`/inspections/sessions/${item.session_id}${suffix}`);
         }
       }}
