@@ -134,7 +134,6 @@ serve(async (req) => {
           full_name, phone_number
         )
       `)
-      .eq('is_active', true)
       .eq('roster_date', todayDate)
       .is('deleted_at', null);
     
