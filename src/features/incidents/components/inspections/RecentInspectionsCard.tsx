@@ -65,7 +65,7 @@ export function RecentInspectionsCard() {
             {inspections?.map((inspection) => (
               <Link
                 key={inspection.id}
-                to={`/assets/inspections/${inspection.id}`}
+                to={`/assets/${inspection.asset_id}/inspections/${inspection.id}`}
                 className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors"
               >
                 <div className="flex items-center gap-3">

@@ -216,6 +216,16 @@ export function useCompleteInspection() {
                 .single();
 
             if (error) throw error;
+
+            // Update asset's last_inspection_date to trigger next_inspection_due recalculation
+            const assetId = (result as any).asset?.id;
+            if (assetId) {
+                await supabase
+                    .from('hsse_assets')
+                    .update({ last_inspection_date: new Date().toISOString().split('T')[0] })
+                    .eq('id', assetId);
+            }
+
             return result;
         },
         onSuccess: (data) => {
@@ -270,7 +280,7 @@ export function useRecentInspections(limit: number = 5) {
             const { data, error } = await supabase
                 .from('asset_inspections')
                 .select(`
-          id, reference_id, status, inspection_date, overall_result, completed_at,
+          id, reference_id, asset_id, status, inspection_date, overall_result, completed_at,
           asset:hsse_assets(name, asset_code),
           inspector:profiles(full_name)
         `)
