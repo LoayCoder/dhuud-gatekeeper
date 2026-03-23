@@ -28,6 +28,17 @@ export default function ActionCenter() {
   const { hasModule } = useModuleAccess();
   const { hasRole, hasRoleInCategory } = useUserRoles();
   const { data: stats, isLoading } = useActionCenterStats();
+  const { data: pendingIncidentApprovals } = usePendingIncidentApprovals();
+
+  // Enrich stats with real pending incident/observation approvals count
+  const enrichedStats = stats ? {
+    ...stats,
+    summary: {
+      ...stats.summary,
+      totalPendingApprovals: stats.summary.totalPendingApprovals + (pendingIncidentApprovals?.length || 0),
+      totalActions: stats.summary.totalActions + (pendingIncidentApprovals?.length || 0),
+    }
+  } : stats;
 
   // Module access checks
   const hasHSSEAccess = hasModule('hsse_core') || hasModule('incidents');
