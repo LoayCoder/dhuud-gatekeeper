@@ -84,7 +84,7 @@ export default function ActionCenter() {
           title={t('actionCenter.overview', 'Overview')}
           description={t('actionCenter.overviewDesc', 'Cross-module summary of items requiring attention')}
         />
-        <ActionCenterStatsBar stats={stats} isLoading={isLoading} />
+        <ActionCenterStatsBar stats={enrichedStats} isLoading={isLoading} />
         {/* Notification delivery status — admin only */}
         {isAdmin && <NotificationPipelineStatus />}
       </section>
