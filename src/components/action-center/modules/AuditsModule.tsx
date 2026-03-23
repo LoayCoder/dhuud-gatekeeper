@@ -79,7 +79,7 @@ export function AuditsModule({ stats }: AuditsModuleProps) {
         description={t('actionCenter.sheet.openFindingsDesc', 'Audit findings requiring corrective action')}
         badge={openFindings.length}
       >
-        <InspectionActionsList />
+        <InspectionActionsList sourceType="audit" />
       </ActionListSheet>
     </>
   );

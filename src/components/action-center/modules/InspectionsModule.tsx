@@ -84,7 +84,7 @@ export function InspectionsModule({ stats }: InspectionsModuleProps) {
         description={t('actionCenter.sheet.myInspectionActionsDesc', 'Corrective actions from inspections assigned to you')}
         badge={openActions.length}
       >
-        <InspectionActionsList />
+        <InspectionActionsList sourceType="inspection" />
       </ActionListSheet>
     </>
   );
