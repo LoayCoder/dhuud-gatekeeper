@@ -106,7 +106,8 @@ export function InspectionActionsList({ sourceType }: InspectionActionsListProps
       isLoading={isLoading}
       onRowClick={(item) => {
         if (item.session_id) {
-          navigate(`/inspections/sessions/${item.session_id}`);
+          const suffix = sourceType === 'audit' ? '/audit' : '';
+          navigate(`/inspections/sessions/${item.session_id}${suffix}`);
         }
       }}
       emptyMessage={t('actionCenter.sheet.noInspectionActions', 'No open inspection actions')}

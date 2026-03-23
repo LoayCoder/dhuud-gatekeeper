@@ -138,7 +138,7 @@ function InspectionSessionsDashboardContent() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {sessions.map((session) => (
                 <Card key={session.id} className="hover:border-primary transition-colors h-full relative">
-                  <Link to={`/inspections/sessions/${session.id}`} className="block">
+                  <Link to={`/inspections/sessions/${session.id}${session.session_type === 'area' ? '/area' : session.session_type === 'audit' ? '/audit' : ''}`} className="block">
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between">
                         <div>
