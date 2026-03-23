@@ -200,6 +200,37 @@ export * from './hooks/use-action-evidence';
 export * from './hooks/use-action-extensions';
 export * from './hooks/use-observation-trends';
 export * from './hooks/use-inspection-stubs';
+// Override stubs with real implementations where they exist
+export {
+  useAssetInspections,
+  useInspection,
+  useInspectionResponses,
+  useStartInspection,
+  useSaveInspectionResponse,
+  useCompleteInspection,
+  useCancelInspection,
+  useRecentInspections,
+  useInspectionStats,
+} from './hooks/use-inspections/use-inspection-hooks';
+export {
+  useInspectionTemplates,
+  useInspectionTemplate,
+  useTemplateItems,
+  useTemplatesForAsset,
+  useCreateTemplate,
+  useUpdateTemplate,
+  useDeleteTemplate,
+  useBulkUpdateTemplateStatus,
+  useBulkDeleteTemplates,
+  useCreateTemplateItem,
+  useUpdateTemplateItem,
+  useDeleteTemplateItem,
+} from './hooks/use-inspections/use-inspection-template-hooks';
+export type {
+  AssetInspection,
+  TemplateItem,
+  InspectionResponse,
+} from './hooks/use-inspections/types';
 // Re-export only hooks from use-inspection-sessions that aren't in stubs
 export {
   useInspectionSessions,
