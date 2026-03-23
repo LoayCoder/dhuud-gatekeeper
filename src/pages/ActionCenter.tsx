@@ -3,6 +3,7 @@ import { useModuleAccess } from '@/hooks/use-module-access';
 import { useUserRoles } from '@/features/users';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActionCenterStats } from '@/features/incidents';
+import { usePendingIncidentApprovals } from '@/hooks/use-pending-approvals';
 import { EnterprisePage } from '@/components/layout/EnterprisePage';
 import { SectionHeader } from '@/components/ui/section-header';
 import { Skeleton } from '@/components/ui/skeleton';
