@@ -228,6 +228,8 @@ export {
 } from './hooks/use-inspections/use-inspection-template-hooks';
 export type {
   AssetInspection,
+  TemplateItem,
+  InspectionResponse,
 } from './hooks/use-inspections/types';
 // Re-export only hooks from use-inspection-sessions that aren't in stubs
 export {
