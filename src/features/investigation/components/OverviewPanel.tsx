@@ -42,6 +42,7 @@ export function OverviewPanel({
   const { isAdmin } = useAuth();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editMode, setEditMode] = useState<'location' | 'contractor'>('location');
+  const [isStarting, setIsStarting] = useState(false);
 
   const handleEditLocation = () => {
     setEditMode('location');
