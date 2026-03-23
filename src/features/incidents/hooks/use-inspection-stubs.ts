@@ -208,11 +208,11 @@ export function useStartInspection() {
   });
 }
 
-export function useTemplatesForAsset(assetId: string) {
+export function useTemplatesForAsset(categoryId?: string, typeId?: string) {
   return useQuery({
-    queryKey: ['templates-for-asset', assetId],
+    queryKey: ['templates-for-asset', categoryId, typeId],
     queryFn: async () => [] as InspectionTemplate[],
-    enabled: !!assetId,
+    enabled: !!categoryId,
   });
 }
 
