@@ -57,8 +57,8 @@ interface RosterData {
   tenant_id: string;
   security_zones: {
     id: string;
-    name: string;
-    zone_polygon: { coordinates: number[][][] } | null;
+    zone_name: string;
+    polygon_geojson: { coordinates: number[][][] } | null;
     zone_type: string;
     geofence_radius_meters: number | null;
   };
