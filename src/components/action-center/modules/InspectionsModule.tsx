@@ -24,7 +24,7 @@ export function InspectionsModule({ stats }: InspectionsModuleProps) {
   const { t } = useTranslation();
   const [openSheet, setOpenSheet] = useState<SheetType>(null);
 
-  const { data: inspectionActions } = useMyInspectionActions();
+  const { data: inspectionActions } = useMyInspectionActions('inspection');
   const openActions = (inspectionActions || []).filter(
     (a) => a.status !== 'completed' && a.status !== 'verified' && a.status !== 'closed'
   );
