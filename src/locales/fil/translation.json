@@ -6519,5 +6519,9 @@
       "totalResidual": "Natitira",
       "reduction": "Pagbabawas"
     }
+  },
+  "actionCenter": {
+    "adminOverride": "Admin Override",
+    "adminOverrideTooltip": "Nakikita mo ang item na ito dahil sa admin privileges, hindi dahil sa direktang assignment"
   }
 }

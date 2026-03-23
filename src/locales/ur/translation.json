@@ -6522,5 +6522,9 @@
       "totalResidual": "بقایا",
       "reduction": "کمی"
     }
+  },
+  "actionCenter": {
+    "adminOverride": "ایڈمن اوور رائیڈ",
+    "adminOverrideTooltip": "آپ یہ آئٹم ایڈمن مراعات کی وجہ سے دیکھ رہے ہیں، براہ راست تفویض کی وجہ سے نہیں"
   }
 }
