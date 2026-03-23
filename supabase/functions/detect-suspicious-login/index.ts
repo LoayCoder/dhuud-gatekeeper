@@ -411,30 +411,32 @@ serve(async (req) => {
       console.error('Failed to insert login history:', insertError);
     }
 
-    // Also log to user_activity_logs
-    const eventType = 'login';
-    await supabase
-      .from('user_activity_logs')
-      .insert({
-        user_id: effectiveUserId,
-        tenant_id: tenantId,
-        event_type: eventType,
-        ip_address: clientIP,
-        metadata: {
-          login_success: body.success,
-          failure_reason: body.failure_reason,
-          risk_score: riskAssessment.risk_score,
-          risk_factors: riskAssessment.risk_factors,
-          is_suspicious: riskAssessment.is_suspicious,
-          is_new_device: riskAssessment.is_new_device,
-          is_new_location: riskAssessment.is_new_location,
-          country: geoLocation.country_name,
-          city: geoLocation.city,
-          device_fingerprint: body.device_fingerprint,
-          user_agent: body.user_agent,
-          timestamp: new Date().toISOString(),
-        },
-      });
+    // Also log to user_activity_logs (only if we have a user)
+    if (effectiveUserId) {
+      const eventType = 'login';
+      await supabase
+        .from('user_activity_logs')
+        .insert({
+          user_id: effectiveUserId,
+          tenant_id: tenantId,
+          event_type: eventType,
+          ip_address: clientIP,
+          metadata: {
+            login_success: body.success,
+            failure_reason: body.failure_reason,
+            risk_score: riskAssessment.risk_score,
+            risk_factors: riskAssessment.risk_factors,
+            is_suspicious: riskAssessment.is_suspicious,
+            is_new_device: riskAssessment.is_new_device,
+            is_new_location: riskAssessment.is_new_location,
+            country: geoLocation.country_name,
+            city: geoLocation.city,
+            device_fingerprint: body.device_fingerprint,
+            user_agent: body.user_agent,
+            timestamp: new Date().toISOString(),
+          },
+        });
+    }
 
     // Send admin alert if suspicious
     if (riskAssessment.is_suspicious && body.success) {
