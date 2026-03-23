@@ -209,7 +209,7 @@ serve(async (req) => {
       }
       
       // Check if guard is within assigned zone (with radius tolerance)
-      if (zone.zone_polygon?.coordinates) {
+      if (zone.polygon_geojson?.coordinates) {
         const polygon = zone.zone_polygon.coordinates[0];
         const radiusTolerance = zone.geofence_radius_meters ?? 50; // Default 50m if not set
         
