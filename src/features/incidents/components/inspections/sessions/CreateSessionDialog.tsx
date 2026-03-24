@@ -340,7 +340,7 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
                 {t('common.cancel')}
               </Button>
-              <Button type="submit" disabled={isLoading || !watchedTemplateId}>
+              <Button type="submit" disabled={isLoading || !watchedTemplateId || !!hasNoItems}>
                 {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
                 {t('inspectionSessions.startInspection')}
               </Button>
