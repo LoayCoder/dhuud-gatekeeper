@@ -6834,6 +6834,8 @@
     "totalItems": "الإجمالي",
     "sessionInfo": "معلومات الجلسة",
     "noItems": "لم يتم العثور على عناصر قائمة التحقق",
+    "templateHasNoItems": "هذا القالب لا يحتوي على عناصر قائمة تحقق",
+    "addItemsToTemplate": "يرجى إضافة عناصر قائمة التحقق إلى القالب قبل بدء جلسة التفتيش.",
     "autoSaving": "جاري الحفظ...",
     "captureGPS": "التقاط GPS",
     "gpsRecorded": "تم تسجيل GPS",
