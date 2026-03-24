@@ -5319,6 +5319,7 @@
     "noAssetsForFilters": "No assets match the selected filters. Try adjusting your site, category, or type filters, or add assets to the system first.",
     "startInspection": "Start Inspection",
     "sessionCreated": "Session created successfully",
+    "templateHasNoItems": "This template has no checklist items. Please add items to the template first.",
     "refreshAssets": "Refresh Assets",
     "addAssetToSession": "Add Asset to Session",
     "confirmAddAsset": "Would you like to add {{code}} ({{name}}) to this inspection session?",
