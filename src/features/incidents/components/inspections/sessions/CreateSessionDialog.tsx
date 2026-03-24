@@ -58,6 +58,8 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
   const { data: templates = [] } = useInspectionTemplates();
   const createSession = useCreateSession();
   const startSession = useStartSession();
+  const { data: itemCount, isLoading: itemCountLoading } = useTemplateItemCount(watchedTemplateId || undefined);
+  const hasNoItems = !itemCountLoading && watchedTemplateId && itemCount === 0;
   
   // Fetch sites and categories
   useEffect(() => {
