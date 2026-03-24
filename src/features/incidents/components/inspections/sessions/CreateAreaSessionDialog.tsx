@@ -74,6 +74,10 @@ export function CreateAreaSessionDialog({ open, onOpenChange }: CreateAreaSessio
   const createSession = useCreateAreaSession();
   const startSession = useStartAreaSession();
   
+  const watchedTemplateId = form.watch('templateId');
+  const { data: itemCount, isLoading: itemCountLoading } = useTemplateItemCount(watchedTemplateId || undefined);
+  const hasNoItems = !itemCountLoading && watchedTemplateId && itemCount === 0;
+  
   // Fetch location hierarchy
   useEffect(() => {
     if (!profile?.tenant_id) return;
