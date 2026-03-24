@@ -71,6 +71,9 @@ export function CreateAuditSessionDialog({ open, onOpenChange }: CreateAuditSess
   const createSession = useCreateAuditSession();
   const startSession = useStartAuditSession();
   
+  const { data: itemCount, isLoading: itemCountLoading } = useTemplateItemCount(watchedTemplateId || undefined);
+  const hasNoItems = !itemCountLoading && watchedTemplateId && itemCount === 0;
+  
   const selectedTemplate = templates.find(t => t.id === watchedTemplateId);
   
   // Fetch location hierarchy
