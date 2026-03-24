@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { useInspectionTemplates } from '@/features/incidents';
 import { useCreateSession, useStartSession } from '@/features/incidents';
+import { useTemplateItemCount } from '@/hooks/use-template-item-count';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
