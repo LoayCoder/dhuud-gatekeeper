@@ -201,7 +201,7 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
                         <SelectValue placeholder={t('inspectionSessions.selectTemplate')} />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                     <SelectContent>
                       {templates.map((template) => (
                         <SelectItem key={template.id} value={template.id}>
                           {i18n.language === 'ar' && template.name_ar ? template.name_ar : template.name}
@@ -209,6 +209,12 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
                       ))}
                     </SelectContent>
                   </Select>
+                  {hasNoItems && (
+                    <p className="text-sm text-destructive flex items-center gap-1 mt-1">
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      {t('inspectionSessions.templateHasNoItems')}
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
