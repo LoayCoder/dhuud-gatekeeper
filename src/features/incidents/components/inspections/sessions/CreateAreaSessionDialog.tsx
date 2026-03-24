@@ -205,6 +205,12 @@ export function CreateAreaSessionDialog({ open, onOpenChange }: CreateAreaSessio
                       ))}
                     </SelectContent>
                   </Select>
+                  {hasNoItems && (
+                    <p className="text-sm text-destructive flex items-center gap-1 mt-1">
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      {t('inspectionSessions.templateHasNoItems')}
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
