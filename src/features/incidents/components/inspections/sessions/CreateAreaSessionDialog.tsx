@@ -420,7 +420,7 @@ export function CreateAreaSessionDialog({ open, onOpenChange }: CreateAreaSessio
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
                 {t('common.cancel')}
               </Button>
-              <Button type="submit" disabled={isLoading || !form.watch('templateId')}>
+              <Button type="submit" disabled={isLoading || !form.watch('templateId') || !!hasNoItems}>
                 {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
                 {t('inspectionSessions.startInspection')}
               </Button>
