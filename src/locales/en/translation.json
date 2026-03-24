@@ -7255,6 +7255,8 @@
     "totalItems": "Total",
     "sessionInfo": "Session Info",
     "noItems": "No checklist items found",
+    "templateHasNoItems": "This template has no checklist items",
+    "addItemsToTemplate": "Please add checklist items to the template before starting an inspection session.",
     "autoSaving": "Saving...",
     "captureGPS": "Capture GPS",
     "gpsRecorded": "GPS Recorded",
