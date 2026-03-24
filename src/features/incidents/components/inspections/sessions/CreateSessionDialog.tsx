@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import { CalendarIcon, Loader2, AlertTriangle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { useInspectionTemplates } from '@/features/incidents';
 import { useCreateSession, useStartSession } from '@/features/incidents';
+import { useTemplateItemCount } from '@/hooks/use-template-item-count';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
@@ -57,6 +58,8 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
   const { data: templates = [] } = useInspectionTemplates();
   const createSession = useCreateSession();
   const startSession = useStartSession();
+  const { data: itemCount, isLoading: itemCountLoading } = useTemplateItemCount(watchedTemplateId || undefined);
+  const hasNoItems = !itemCountLoading && watchedTemplateId && itemCount === 0;
   
   // Fetch sites and categories
   useEffect(() => {
@@ -198,7 +201,7 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
                         <SelectValue placeholder={t('inspectionSessions.selectTemplate')} />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                     <SelectContent>
                       {templates.map((template) => (
                         <SelectItem key={template.id} value={template.id}>
                           {i18n.language === 'ar' && template.name_ar ? template.name_ar : template.name}
@@ -206,6 +209,12 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
                       ))}
                     </SelectContent>
                   </Select>
+                  {hasNoItems && (
+                    <p className="text-sm text-destructive flex items-center gap-1 mt-1">
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      {t('inspectionSessions.templateHasNoItems')}
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -331,7 +340,7 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
                 {t('common.cancel')}
               </Button>
-              <Button type="submit" disabled={isLoading || !watchedTemplateId}>
+              <Button type="submit" disabled={isLoading || !watchedTemplateId || !!hasNoItems}>
                 {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
                 {t('inspectionSessions.startInspection')}
               </Button>

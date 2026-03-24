@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Pencil, Trash2, MapPin, Cloud, Users, Download, Zap } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, MapPin, Cloud, Users, Download, Zap, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -362,9 +362,15 @@ function AreaSessionWorkspaceContent() {
         </CardHeader>
         <CardContent className="space-y-4">
           {templateItems.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
-              {t('inspections.noItems')}
-            </p>
+            <div className="text-center py-12 space-y-3">
+              <AlertTriangle className="h-10 w-10 text-warning mx-auto" />
+              <p className="text-muted-foreground font-medium">
+                {t('inspections.templateHasNoItems')}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {t('inspections.addItemsToTemplate')}
+              </p>
+            </div>
           ) : (
             templateItems.map((item) => (
               <AreaChecklistItem

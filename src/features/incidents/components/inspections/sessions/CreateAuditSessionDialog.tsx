@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CalendarIcon, Loader2, Plus, X, Shield, Users } from 'lucide-react';
+import { CalendarIcon, Loader2, Plus, X, Shield, Users, AlertTriangle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Badge } from '@/components/ui/badge';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { useAuditTemplates, useCreateAuditSession, useStartAuditSession } from '@/hooks/use-audit-sessions';
+import { useTemplateItemCount } from '@/hooks/use-template-item-count';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
@@ -69,6 +70,9 @@ export function CreateAuditSessionDialog({ open, onOpenChange }: CreateAuditSess
   const { data: templates = [] } = useAuditTemplates();
   const createSession = useCreateAuditSession();
   const startSession = useStartAuditSession();
+  
+  const { data: itemCount, isLoading: itemCountLoading } = useTemplateItemCount(watchedTemplateId || undefined);
+  const hasNoItems = !itemCountLoading && watchedTemplateId && itemCount === 0;
   
   const selectedTemplate = templates.find(t => t.id === watchedTemplateId);
   
@@ -192,6 +196,12 @@ export function CreateAuditSessionDialog({ open, onOpenChange }: CreateAuditSess
                       ))}
                     </SelectContent>
                   </Select>
+                  {hasNoItems && (
+                    <p className="text-sm text-destructive flex items-center gap-1 mt-1">
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      {t('inspectionSessions.templateHasNoItems')}
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -399,7 +409,7 @@ export function CreateAuditSessionDialog({ open, onOpenChange }: CreateAuditSess
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
                 {t('common.cancel')}
               </Button>
-              <Button type="submit" disabled={isLoading || !watchedTemplateId}>
+              <Button type="submit" disabled={isLoading || !watchedTemplateId || !!hasNoItems}>
                 {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
                 {t('audits.startAudit')}
               </Button>

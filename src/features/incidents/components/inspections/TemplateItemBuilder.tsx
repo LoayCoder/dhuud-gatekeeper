@@ -177,9 +177,15 @@ export function TemplateItemBuilder({ templateId }: TemplateItemBuilderProps) {
       </CardHeader>
       <CardContent className="space-y-2">
         {items?.length === 0 ? (
-          <p className="text-muted-foreground text-sm py-4 text-center">
-            {t('inspections.noItems')}
-          </p>
+          <div className="py-6 text-center space-y-2">
+            <AlertTriangle className="h-8 w-8 text-warning mx-auto" />
+            <p className="text-muted-foreground text-sm font-medium">
+              {t('inspections.templateHasNoItems')}
+            </p>
+            <p className="text-muted-foreground text-xs">
+              {t('inspections.addItemsToTemplate')}
+            </p>
+          </div>
         ) : (
           items?.map((item, index) => (
             <div
