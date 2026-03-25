@@ -96,7 +96,7 @@ export default function InspectionTemplates() {
 
   const handleUpdate = async (data: Record<string, unknown>) => {
     if (editingTemplate) {
-      await updateTemplate.mutateAsync({ id: editingTemplate.id, ...data });
+      await updateTemplate.mutateAsync({ id: editingTemplate.id, ...data } as unknown as Parameters<typeof updateTemplate.mutateAsync>[0]);
       setEditingTemplate(null);
     }
   };
