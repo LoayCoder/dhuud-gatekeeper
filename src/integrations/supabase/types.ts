@@ -12949,6 +12949,7 @@ export type Database = {
         Row: {
           area_type: string | null
           branch_id: string | null
+          building_id: string | null
           category_id: string | null
           code: string
           created_at: string | null
@@ -12967,6 +12968,7 @@ export type Database = {
           scope_description: string | null
           site_id: string | null
           standard_reference: string | null
+          subtype_id: string | null
           template_type: string
           tenant_id: string
           type_id: string | null
@@ -12976,6 +12978,7 @@ export type Database = {
         Insert: {
           area_type?: string | null
           branch_id?: string | null
+          building_id?: string | null
           category_id?: string | null
           code: string
           created_at?: string | null
@@ -12994,6 +12997,7 @@ export type Database = {
           scope_description?: string | null
           site_id?: string | null
           standard_reference?: string | null
+          subtype_id?: string | null
           template_type?: string
           tenant_id: string
           type_id?: string | null
@@ -13003,6 +13007,7 @@ export type Database = {
         Update: {
           area_type?: string | null
           branch_id?: string | null
+          building_id?: string | null
           category_id?: string | null
           code?: string
           created_at?: string | null
@@ -13021,6 +13026,7 @@ export type Database = {
           scope_description?: string | null
           site_id?: string | null
           standard_reference?: string | null
+          subtype_id?: string | null
           template_type?: string
           tenant_id?: string
           type_id?: string | null
@@ -13033,6 +13039,13 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_templates_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
             referencedColumns: ["id"]
           },
           {
@@ -13061,6 +13074,13 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_templates_subtype_id_fkey"
+            columns: ["subtype_id"]
+            isOneToOne: false
+            referencedRelation: "asset_subtypes"
             referencedColumns: ["id"]
           },
           {

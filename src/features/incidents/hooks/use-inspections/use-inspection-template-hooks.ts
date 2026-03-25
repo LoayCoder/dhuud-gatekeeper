@@ -20,13 +20,15 @@ export function useInspectionTemplates(templateType?: 'asset' | 'area' | 'audit'
                 .select(`
           id, tenant_id, code, name, name_ar, description,
           template_type, scope_description, estimated_duration_minutes, requires_photos, requires_gps,
-          category_id, type_id, branch_id, site_id,
+          category_id, type_id, subtype_id, branch_id, site_id, building_id,
           inspection_category_id, area_type, standard_reference, passing_score_percentage,
           version, is_active, created_by, created_at, updated_at,
           category:asset_categories(name, name_ar),
           type:asset_types(name, name_ar),
+          subtype:asset_subtypes(name, name_ar),
           branch:branches(name),
-          site:sites(name)
+          site:sites(name),
+          building:buildings(name, name_ar)
         `)
                 .is('deleted_at', null)
                 .order('name');
@@ -57,13 +59,15 @@ export function useInspectionTemplate(templateId: string | undefined) {
                 .select(`
           id, tenant_id, code, name, name_ar, description,
           template_type, scope_description, estimated_duration_minutes, requires_photos, requires_gps,
-          category_id, type_id, branch_id, site_id,
+          category_id, type_id, subtype_id, branch_id, site_id, building_id,
           inspection_category_id, area_type, standard_reference, passing_score_percentage,
           version, is_active, created_by, created_at, updated_at,
           category:asset_categories(name, name_ar),
           type:asset_types(name, name_ar),
+          subtype:asset_subtypes(name, name_ar),
           branch:branches(name),
-          site:sites(name)
+          site:sites(name),
+          building:buildings(name, name_ar)
         `)
                 .eq('id', templateId!)
                 .single();
@@ -93,21 +97,44 @@ export function useTemplateItems(templateId: string | undefined) {
     });
 }
 
-export function useTemplatesForAsset(categoryId: string | undefined, typeId: string | undefined) {
+export function useTemplatesForAsset(params: {
+    categoryId?: string;
+    typeId?: string;
+    subtypeId?: string;
+    branchId?: string;
+    siteId?: string;
+    buildingId?: string;
+}) {
+    const { categoryId, typeId, subtypeId, branchId, siteId, buildingId } = params;
+
     return useQuery({
-        queryKey: ['templates-for-asset', categoryId, typeId],
+        queryKey: ['templates-for-asset', categoryId, typeId, subtypeId, branchId, siteId, buildingId],
         queryFn: async () => {
             let query = supabase
                 .from('inspection_templates')
                 .select('id, name, name_ar, code, description')
                 .eq('is_active', true)
+                .eq('template_type', 'asset')
                 .is('deleted_at', null);
 
-            // Filter by category/type if set, or get templates with no category/type (universal)
-            if (categoryId || typeId) {
-                query = query.or(
-                    `category_id.is.null,category_id.eq.${categoryId || '00000000-0000-0000-0000-000000000000'}`
-                );
+            // Hierarchical matching: template field is NULL (universal) OR matches asset value
+            if (categoryId) {
+                query = query.or(`category_id.is.null,category_id.eq.${categoryId}`);
+            }
+            if (typeId) {
+                query = query.or(`type_id.is.null,type_id.eq.${typeId}`);
+            }
+            if (subtypeId) {
+                query = query.or(`subtype_id.is.null,subtype_id.eq.${subtypeId}`);
+            }
+            if (branchId) {
+                query = query.or(`branch_id.is.null,branch_id.eq.${branchId}`);
+            }
+            if (siteId) {
+                query = query.or(`site_id.is.null,site_id.eq.${siteId}`);
+            }
+            if (buildingId) {
+                query = query.or(`building_id.is.null,building_id.eq.${buildingId}`);
             }
 
             const { data, error } = await query.order('name');
@@ -139,8 +166,10 @@ export function useCreateTemplate() {
             requires_gps?: boolean;
             category_id?: string;
             type_id?: string;
+            subtype_id?: string;
             branch_id?: string;
             site_id?: string;
+            building_id?: string;
             is_active?: boolean;
         }) => {
             // Fetch tenant_id at mutation time to avoid race condition
@@ -206,8 +235,10 @@ export function useUpdateTemplate() {
             requires_gps?: boolean;
             category_id?: string | null;
             type_id?: string | null;
+            subtype_id?: string | null;
             branch_id?: string | null;
             site_id?: string | null;
+            building_id?: string | null;
             is_active?: boolean;
         }) => {
             const { data: result, error } = await supabase

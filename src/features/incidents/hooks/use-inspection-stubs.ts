@@ -49,8 +49,10 @@ export interface InspectionTemplate {
   is_active: boolean;
   category_id?: string;
   type_id?: string;
+  subtype_id?: string;
   branch_id?: string;
   site_id?: string;
+  building_id?: string;
   inspection_category_id?: string;
   area_type?: string;
   standard_reference?: string;
@@ -64,8 +66,10 @@ export interface InspectionTemplate {
   scope_description?: string | null;
   category?: { name: string; name_ar: string | null } | null;
   type?: { name: string; name_ar: string | null } | null;
+  subtype?: { name: string; name_ar: string | null } | null;
   branch?: { name: string } | null;
   site?: { name: string } | null;
+  building?: { name: string; name_ar: string | null } | null;
 }
 
 /** Represents an asset inspection result (returned by useAssetInspections / useRecentInspections) */
