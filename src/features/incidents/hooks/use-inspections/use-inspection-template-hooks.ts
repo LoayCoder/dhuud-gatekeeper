@@ -166,8 +166,10 @@ export function useCreateTemplate() {
             requires_gps?: boolean;
             category_id?: string;
             type_id?: string;
+            subtype_id?: string;
             branch_id?: string;
             site_id?: string;
+            building_id?: string;
             is_active?: boolean;
         }) => {
             // Fetch tenant_id at mutation time to avoid race condition
