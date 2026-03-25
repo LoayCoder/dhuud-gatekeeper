@@ -55,8 +55,10 @@ const templateSchema = z.object({
   requires_gps: z.boolean().default(false),
   category_id: z.string().optional(),
   type_id: z.string().optional(),
+  subtype_id: z.string().optional(),
   branch_id: z.string().optional(),
   site_id: z.string().optional(),
+  building_id: z.string().optional(),
   is_active: z.boolean().default(true),
 });
 
