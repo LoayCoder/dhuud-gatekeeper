@@ -610,6 +610,7 @@ export function InspectionTemplateForm({
                               field.onChange(val || undefined);
                               form.setValue('subtype_id', undefined);
                             }}
+                            disabled={!selectedCategoryId}
                             dir={direction}
                           >
                             <FormControl>
@@ -621,6 +622,36 @@ export function InspectionTemplateForm({
                               {assetTypes?.map((type) => (
                                 <SelectItem key={type.id} value={type.id}>
                                   {direction === 'rtl' ? type.name_ar || type.name : type.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="subtype_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('inspections.linkedSubtype', 'Subtype')}</FormLabel>
+                          <Select
+                            value={field.value || ''}
+                            onValueChange={(val) => field.onChange(val || undefined)}
+                            disabled={!selectedTypeId}
+                            dir={direction}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('common.selectOptional')} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {assetSubtypes?.map((subtype) => (
+                                <SelectItem key={subtype.id} value={subtype.id}>
+                                  {direction === 'rtl' ? subtype.name_ar || subtype.name : subtype.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>
