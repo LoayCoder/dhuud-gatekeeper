@@ -19,6 +19,7 @@ export {
     useCreateTemplateItem,
     useUpdateTemplateItem,
     useDeleteTemplateItem,
+    useGenerateItemsFromParts,
 } from './use-inspection-template-hooks';
 
 export {
