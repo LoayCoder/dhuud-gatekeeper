@@ -1,84 +1,67 @@
 
 
-# Asset ↔ Inspection Template Integration Gaps
+# Auto-populate Inspection Checklist Items from Asset Type Parts
 
-## Current Column Comparison
+## Problem
+
+The `asset_type_parts` table contains inspectable parts for each asset type/subtype (e.g., "Discharge Mechanism", "Cylinder Body Integrity" for Dry Powder extinguishers). There are hundreds of parts already defined. However, when an inspection template is created with a specific type/subtype, **no checklist items are generated** — the template remains empty because items must be manually added one by one.
+
+The expected behavior: when a template targets a specific category/type/subtype, the system should pull the relevant inspectable parts from `asset_type_parts` and auto-create matching `inspection_template_items`.
+
+## Data Flow
 
 ```text
-Field              hsse_assets          inspection_templates
-─────────────────  ───────────────────  ────────────────────
-tenant_id          ✅ uuid (NOT NULL)    ✅ uuid (NOT NULL)
-category_id        ✅ uuid (NOT NULL)    ✅ uuid (nullable)
-type_id            ✅ uuid (NOT NULL)    ✅ uuid (nullable)
-subtype_id         ✅ uuid (nullable)    ❌ MISSING
-branch_id          ✅ uuid (nullable)    ✅ uuid (nullable)
-site_id            ✅ uuid (nullable)    ✅ uuid (nullable)
-building_id        ✅ uuid (nullable)    ❌ MISSING
-floor_zone_id      ✅ uuid (nullable)    — (not relevant)
+asset_type_parts (source of truth)
+  ├── type_id → matches template's type_id
+  ├── subtype_id → matches template's subtype_id
+  ├── name → becomes question text
+  ├── default_response_type → becomes response_type
+  └── is_critical → becomes is_critical
+
+       ↓ Auto-generate on template save
+
+inspection_template_items (checklist)
+  ├── template_id
+  ├── question = part.name
+  ├── response_type = part.default_response_type
+  ├── is_critical = part.is_critical
+  └── sort_order = part.sort_order
 ```
-
-**Two columns exist on assets but are missing from inspection_templates:** `building_id` and `subtype_id`. This means templates cannot be scoped to a specific building or asset subtype.
-
-## Template Matching Logic — Broken
-
-The `useTemplatesForAsset` hook currently:
-- Only filters by `category_id` (loosely)
-- Completely ignores `type_id`, `branch_id`, `site_id`
-- Does not filter by `template_type = 'asset'`
-
-This means **all active templates show up** regardless of whether they match the asset's location or classification — and non-asset templates (area/audit) also appear.
 
 ## Plan
 
-### 1. Database Migration — Add `building_id` and `subtype_id` to `inspection_templates`
+### 1. Add "Generate from Asset Parts" button to TemplateItemBuilder
 
-```sql
-ALTER TABLE public.inspection_templates
-  ADD COLUMN building_id uuid REFERENCES public.buildings(id) ON DELETE SET NULL,
-  ADD COLUMN subtype_id uuid REFERENCES public.asset_subtypes(id) ON DELETE SET NULL;
-```
+When a template has `template_type = 'asset'` and a `type_id` or `subtype_id`, show a button that fetches matching `asset_type_parts` and bulk-inserts them as `inspection_template_items`.
 
-### 2. Update TypeScript Types
+- **File**: `TemplateItemBuilder.tsx`
+- Accept `templateType`, `typeId`, `subtypeId` as additional props
+- Add a "Generate from Asset Parts" button (visible only for asset templates with type/subtype set)
+- On click: query `asset_type_parts` where `type_id` or `subtype_id` matches, then bulk-insert as template items
+- Show confirmation if items already exist (to avoid duplicates)
 
-In `types.ts`, add `building_id`, `subtype_id` to `InspectionTemplate` interface. Add `building` and `subtype` join types.
+### 2. Create `useGenerateItemsFromParts` hook
 
-### 3. Update SELECT Queries
+- **File**: `use-inspection-template-hooks.ts`
+- New mutation hook that:
+  1. Queries `asset_type_parts` filtered by `type_id` and/or `subtype_id`
+  2. Maps each part to an `inspection_template_items` insert (question = name, response_type = default_response_type, etc.)
+  3. Bulk-inserts into `inspection_template_items`
+  4. Invalidates the `template-items` query cache
 
-Both `useInspectionTemplates` and `useInspectionTemplate` — add `building_id, subtype_id` to select, plus joins:
-```
-building:buildings(name, name_ar),
-subtype:asset_subtypes(name, name_ar)
-```
+### 3. Auto-generate on template creation (optional prompt)
 
-### 4. Fix `useTemplatesForAsset` — Proper Hierarchical Matching
+- **File**: `InspectionTemplateForm.tsx`
+- After a template is successfully created with a type/subtype, show a toast or prompt asking "Generate checklist from asset parts?" to streamline the workflow
 
-Replace the current broken filter with a proper match that accepts the full asset context and filters correctly:
+### 4. Pass template metadata to TemplateItemBuilder
 
-```typescript
-useTemplatesForAsset({
-  categoryId, typeId, subtypeId,
-  branchId, siteId, buildingId
-})
-```
-
-Matching logic: for each field, template value must be NULL (universal) OR equal to the asset's value. Always filter `template_type = 'asset'`.
-
-### 5. Update Template Form
-
-In `InspectionTemplateForm.tsx`:
-- Add **Building** dropdown (filtered by selected site)
-- Add **Subtype** dropdown (filtered by selected type, asset templates only)
-- Cascade resets: Branch change clears Site→Building; Category change clears Type→Subtype
-- Include both fields in create/update mutations
-
-### 6. Update `StartInspectionDialog`
-
-Pass full asset context (branch_id, site_id, building_id, subtype_id) to `useTemplatesForAsset` so only relevant templates appear.
+- **File**: `InspectionTemplates.tsx` (admin page)
+- Pass `template.template_type`, `template.type_id`, `template.subtype_id` to `TemplateItemBuilder` so it can render the generate button
 
 ### Files Modified
-- `inspection_templates` table (migration)
-- `src/features/incidents/hooks/use-inspections/types.ts`
-- `src/features/incidents/hooks/use-inspections/use-inspection-template-hooks.ts`
-- `src/features/incidents/components/inspections/InspectionTemplateForm.tsx`
-- `src/features/incidents/components/inspections/StartInspectionDialog.tsx`
+- `src/features/incidents/hooks/use-inspections/use-inspection-template-hooks.ts` — new hook
+- `src/features/incidents/components/inspections/TemplateItemBuilder.tsx` — generate button + props
+- `src/pages/admin/InspectionTemplates.tsx` — pass template metadata to builder
+- `src/features/incidents/components/inspections/InspectionTemplateForm.tsx` — post-create prompt
 
