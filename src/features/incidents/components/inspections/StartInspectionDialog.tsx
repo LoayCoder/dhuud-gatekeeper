@@ -38,6 +38,10 @@ interface StartInspectionDialogProps {
     asset_code: string;
     category_id?: string;
     type_id?: string;
+    subtype_id?: string;
+    branch_id?: string;
+    site_id?: string;
+    building_id?: string;
   };
 }
 
