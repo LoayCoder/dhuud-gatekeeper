@@ -74,7 +74,7 @@ const DEFAULT_VALUES: TemplateItemFormValues = {
   instructions_ar: '',
 };
 
-export function TemplateItemBuilder({ templateId }: TemplateItemBuilderProps) {
+export function TemplateItemBuilder({ templateId, templateType, typeId, subtypeId }: TemplateItemBuilderProps) {
   const { t } = useTranslation();
   const direction = i18n.dir();
   
