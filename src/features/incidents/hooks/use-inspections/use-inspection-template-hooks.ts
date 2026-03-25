@@ -59,13 +59,15 @@ export function useInspectionTemplate(templateId: string | undefined) {
                 .select(`
           id, tenant_id, code, name, name_ar, description,
           template_type, scope_description, estimated_duration_minutes, requires_photos, requires_gps,
-          category_id, type_id, branch_id, site_id,
+          category_id, type_id, subtype_id, branch_id, site_id, building_id,
           inspection_category_id, area_type, standard_reference, passing_score_percentage,
           version, is_active, created_by, created_at, updated_at,
           category:asset_categories(name, name_ar),
           type:asset_types(name, name_ar),
+          subtype:asset_subtypes(name, name_ar),
           branch:branches(name),
-          site:sites(name)
+          site:sites(name),
+          building:buildings(name, name_ar)
         `)
                 .eq('id', templateId!)
                 .single();
