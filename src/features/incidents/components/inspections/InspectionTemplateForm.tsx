@@ -779,7 +779,10 @@ export function InspectionTemplateForm({
                       <FormLabel>{t('inspections.linkedSite')}</FormLabel>
                       <Select
                         value={field.value || ''}
-                        onValueChange={(val) => field.onChange(val || undefined)}
+                        onValueChange={(val) => {
+                          field.onChange(val || undefined);
+                          form.setValue('building_id', undefined);
+                        }}
                         dir={direction}
                       >
                         <FormControl>
@@ -791,6 +794,36 @@ export function InspectionTemplateForm({
                           {sites?.map((site) => (
                             <SelectItem key={site.id} value={site.id}>
                               {site.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="building_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('inspections.linkedBuilding', 'Building')}</FormLabel>
+                      <Select
+                        value={field.value || ''}
+                        onValueChange={(val) => field.onChange(val || undefined)}
+                        disabled={!selectedSiteId}
+                        dir={direction}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={t('common.selectOptional')} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {buildings?.map((building) => (
+                            <SelectItem key={building.id} value={building.id}>
+                              {direction === 'rtl' ? building.name_ar || building.name : building.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
