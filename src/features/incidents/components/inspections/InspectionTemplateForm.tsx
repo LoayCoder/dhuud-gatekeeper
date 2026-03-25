@@ -106,8 +106,10 @@ export function InspectionTemplateForm({
       requires_gps: false,
       category_id: undefined,
       type_id: undefined,
+      subtype_id: undefined,
       branch_id: undefined,
       site_id: undefined,
+      building_id: undefined,
       is_active: true,
     },
   });
