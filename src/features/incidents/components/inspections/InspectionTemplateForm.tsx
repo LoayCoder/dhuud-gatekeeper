@@ -749,6 +749,7 @@ export function InspectionTemplateForm({
                         onValueChange={(val) => {
                           field.onChange(val || undefined);
                           form.setValue('site_id', undefined);
+                          form.setValue('building_id', undefined);
                         }}
                         dir={direction}
                       >
