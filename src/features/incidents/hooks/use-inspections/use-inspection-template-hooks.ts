@@ -20,7 +20,9 @@ export function useInspectionTemplates(templateType?: 'asset' | 'area' | 'audit'
                 .select(`
           id, tenant_id, code, name, name_ar, description,
           template_type, scope_description, estimated_duration_minutes, requires_photos, requires_gps,
-          category_id, type_id, branch_id, site_id, version, is_active, created_by, created_at, updated_at,
+          category_id, type_id, branch_id, site_id,
+          inspection_category_id, area_type, standard_reference, passing_score_percentage,
+          version, is_active, created_by, created_at, updated_at,
           category:asset_categories(name, name_ar),
           type:asset_types(name, name_ar),
           branch:branches(name),
@@ -54,7 +56,10 @@ export function useInspectionTemplate(templateId: string | undefined) {
                 .from('inspection_templates')
                 .select(`
           id, tenant_id, code, name, name_ar, description,
-          category_id, type_id, branch_id, site_id, version, is_active, created_by, created_at, updated_at,
+          template_type, scope_description, estimated_duration_minutes, requires_photos, requires_gps,
+          category_id, type_id, branch_id, site_id,
+          inspection_category_id, area_type, standard_reference, passing_score_percentage,
+          version, is_active, created_by, created_at, updated_at,
           category:asset_categories(name, name_ar),
           type:asset_types(name, name_ar),
           branch:branches(name),
