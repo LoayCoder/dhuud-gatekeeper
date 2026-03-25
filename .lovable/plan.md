@@ -1,56 +1,45 @@
 
 
-# Fix: Inspection Template Creation Not Saving
+# Deeper Fix: SelectBubbleInput Crash in Session Creation Dialogs
 
 ## Root Cause
 
-**`InspectionTemplates.tsx` imports from the stub file instead of the real hooks.**
+This is a **known Radix UI Select bug** (issues #3133, #3135, #3597 on GitHub). The crash occurs when:
+1. A controlled `Select` has a `value` that doesn't match any rendered `SelectItem` (e.g., during async data loading or after filtering changes the available options)
+2. The internal Radix collection becomes empty momentarily during React re-renders, causing a null ref access in `SelectBubbleInput`
 
-Line 39 of `src/pages/admin/InspectionTemplates.tsx`:
-```typescript
-// CURRENT — imports no-op stubs that do nothing
-import { useCreateTemplate, useUpdateTemplate, useDeleteTemplate, ... }
-  from '@/features/incidents/hooks/use-inspection-stubs';
+The current defensive guards (`field.value && filteredSites.some(...)`) are insufficient because the crash happens at the Radix internals level during render transitions, not from the value prop alone.
+
+## Fix Strategy: Replace Radix Select with native HTML selects for cascading fields
+
+The template and session-type selects (which have stable option lists) can stay as Radix Selects. But the **cascading filter selects** (Branch → Site, Category → Type) whose options change dynamically are the crash source. These will be replaced with styled native `<select>` elements wrapped in a reusable component.
+
+### Files to modify
+
+**1. Create `src/components/ui/native-select.tsx`**
+A styled native `<select>` component matching the design system (same height, border, font as SelectTrigger). This avoids all Radix internals while maintaining visual consistency.
+
+```text
+Props: value, onChange, placeholder, disabled, options: {value, label}[], dir
 ```
 
-The stub's `useCreateTemplate` mutation is literally `async (data) => data` — it returns the input without making any database call. The form appears to submit successfully but nothing is saved.
+**2. Update `CreateSessionDialog.tsx`**
+- Replace the 4 cascading Radix Selects (Branch, Site, Category, Type) with `NativeSelect`
+- Keep the Session Type and Template selects as Radix (stable option lists)
+- Remove the defensive `.some()` guards (no longer needed)
 
-The **real** implementations exist in `use-inspection-template-hooks.ts` and are already exported from the barrel file `@/features/incidents`.
+**3. Update `CreateAreaSessionDialog.tsx`**
+- Same pattern: replace cascading location selects (Branch, Site, Building, Floor/Zone) with `NativeSelect`
 
-## Fix
+**4. Update `CreateAuditSessionDialog.tsx`**
+- Same pattern for any cascading selects
 
-### Single file change: `src/pages/admin/InspectionTemplates.tsx`
+### Why native select?
+- Zero crash risk — no virtual DOM collection management
+- Works perfectly with dynamic/filtered option lists
+- RTL-compatible via `dir` prop
+- Simpler code, fewer edge cases
+- Visually identical with proper Tailwind styling
 
-Change the import on lines 31-39 from:
-```typescript
-import {
-  useInspectionTemplates,
-  useCreateTemplate,
-  useUpdateTemplate,
-  useDeleteTemplate,
-  useBulkUpdateTemplateStatus,
-  useBulkDeleteTemplates,
-  type InspectionTemplate,
-} from '@/features/incidents/hooks/use-inspection-stubs';
-```
-
-To:
-```typescript
-import {
-  useInspectionTemplates,
-  useCreateTemplate,
-  useUpdateTemplate,
-  useDeleteTemplate,
-  useBulkUpdateTemplateStatus,
-  useBulkDeleteTemplates,
-  type InspectionTemplate,
-} from '@/features/incidents';
-```
-
-This points to the barrel file which exports the real hooks that perform actual Supabase INSERT/UPDATE/DELETE operations with proper tenant isolation and error handling.
-
-### No other changes needed
-- The real hooks already exist and are tested
-- RLS policies on `inspection_templates` are correctly configured
-- The form component (`InspectionTemplateForm.tsx`) passes the right data shape
+### No database changes needed
 
