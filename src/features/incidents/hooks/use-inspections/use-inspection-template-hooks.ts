@@ -235,8 +235,10 @@ export function useUpdateTemplate() {
             requires_gps?: boolean;
             category_id?: string | null;
             type_id?: string | null;
+            subtype_id?: string | null;
             branch_id?: string | null;
             site_id?: string | null;
+            building_id?: string | null;
             is_active?: boolean;
         }) => {
             const { data: result, error } = await supabase
