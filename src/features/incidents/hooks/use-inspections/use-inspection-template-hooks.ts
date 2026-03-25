@@ -439,7 +439,106 @@ export function useUpdateTemplateItem() {
     });
 }
 
+export function useGenerateItemsFromParts() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ templateId, typeId, subtypeId }: {
+            templateId: string;
+            typeId?: string | null;
+            subtypeId?: string | null;
+        }) => {
+            // Fetch tenant_id
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error('Not authenticated');
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('tenant_id')
+                .eq('user_id', user.id)
+                .single();
+            if (!profile?.tenant_id) throw new Error('No tenant found');
+
+            // Fetch matching asset_type_parts
+            let query = supabase
+                .from('asset_type_parts')
+                .select('id, name, name_ar, default_response_type, is_critical, sort_order, description, description_ar')
+                .eq('is_active', true)
+                .is('deleted_at', null)
+                .order('sort_order', { ascending: true })
+                .order('name', { ascending: true });
+
+            if (subtypeId) {
+                query = query.eq('subtype_id', subtypeId).is('type_id', null);
+            } else if (typeId) {
+                query = query.eq('type_id', typeId).is('subtype_id', null);
+            } else {
+                throw new Error('Either typeId or subtypeId is required');
+            }
+
+            const { data: parts, error: partsError } = await query;
+            if (partsError) throw partsError;
+            if (!parts || parts.length === 0) throw new Error('No asset parts found for this type/subtype');
+
+            // Map response types: asset_type_parts uses 'condition_rating' but template items use 'rating'
+            const mapResponseType = (rt: string) => {
+                if (rt === 'condition_rating') return 'rating';
+                if (rt === 'numeric') return 'numeric';
+                return 'pass_fail';
+            };
+
+            // Bulk insert as template items
+            const items = parts.map((part, index) => ({
+                template_id: templateId,
+                tenant_id: profile.tenant_id,
+                question: part.name,
+                question_ar: part.name_ar || null,
+                response_type: mapResponseType(part.default_response_type),
+                is_critical: part.is_critical,
+                is_required: true,
+                sort_order: part.sort_order ?? (index + 1),
+                rating_scale: part.default_response_type === 'condition_rating' ? 5 : 5,
+                instructions: part.description || null,
+                instructions_ar: part.description_ar || null,
+            }));
+
+            const { error: insertError } = await supabase
+                .from('inspection_template_items')
+                .insert(items);
+            if (insertError) throw insertError;
+
+            return { count: items.length };
+        },
+        onSuccess: (result, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['template-items', variables.templateId] });
+            toast.success(`Generated ${result.count} checklist items from asset parts`);
+        },
+        onError: (error: Error) => {
+            toast.error(error.message);
+        },
+    });
+}
+
 export function useDeleteTemplateItem() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ id, template_id }: { id: string; template_id: string }) => {
+            const { error } = await supabase
+                .from('inspection_template_items')
+                .update({ deleted_at: new Date().toISOString() })
+                .eq('id', id);
+
+            if (error) throw error;
+            return { template_id };
+        },
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ['template-items', data.template_id] });
+        },
+        onError: (error: Error) => {
+            toast.error(error.message);
+        },
+    });
+}
     const queryClient = useQueryClient();
 
     return useMutation({
