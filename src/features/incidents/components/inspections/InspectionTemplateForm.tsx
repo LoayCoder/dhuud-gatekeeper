@@ -606,8 +606,10 @@ export function InspectionTemplateForm({
                           <FormLabel>{t('inspections.linkedType')}</FormLabel>
                           <Select
                             value={field.value || ''}
-                            onValueChange={(val) => field.onChange(val || undefined)}
-                            disabled={!selectedCategoryId}
+                            onValueChange={(val) => {
+                              field.onChange(val || undefined);
+                              form.setValue('subtype_id', undefined);
+                            }}
                             dir={direction}
                           >
                             <FormControl>
