@@ -82,27 +82,29 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
     fetchData();
   }, [profile?.tenant_id]);
   
-  // Auto-populate filters from selected template
+  // Auto-populate filters from selected template (only set values that exist in loaded options)
   useEffect(() => {
     if (!watchedTemplateId) return;
     
     const selectedTemplate = templates.find(t => t.id === watchedTemplateId);
     if (selectedTemplate) {
       if (selectedTemplate.site_id) {
-        form.setValue('siteId', selectedTemplate.site_id);
         const site = sites.find(s => s.id === selectedTemplate.site_id);
-        if (site?.branch_id) {
-          form.setValue('branchId', site.branch_id);
+        if (site) {
+          form.setValue('siteId', selectedTemplate.site_id);
+          if (site.branch_id && branches.some(b => b.id === site.branch_id)) {
+            form.setValue('branchId', site.branch_id);
+          }
         }
       }
-      if (selectedTemplate.category_id) {
+      if (selectedTemplate.category_id && categories.some(c => c.id === selectedTemplate.category_id)) {
         form.setValue('categoryId', selectedTemplate.category_id);
       }
-      if (selectedTemplate.type_id) {
+      if (selectedTemplate.type_id && types.some(t => t.id === selectedTemplate.type_id)) {
         form.setValue('typeId', selectedTemplate.type_id);
       }
     }
-  }, [watchedTemplateId, templates, sites]);
+  }, [watchedTemplateId, templates, sites, branches, categories, types]);
   
   const filteredSites = watchedBranch 
     ? sites.filter(s => s.branch_id === watchedBranch)
@@ -195,7 +197,7 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('inspectionSessions.selectTemplate')} *</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange} dir={direction}>
+                  <Select value={field.value || undefined} onValueChange={field.onChange} dir={direction}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={t('inspectionSessions.selectTemplate')} />
@@ -274,7 +276,7 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
               name="siteId"
               render={({ field }) => (
                 <FormItem>
-                  <Select value={field.value || "__all__"} onValueChange={(v) => field.onChange(v === "__all__" ? "" : v)} dir={direction}>
+                  <Select value={(field.value && filteredSites.some(s => s.id === field.value)) ? field.value : "__all__"} onValueChange={(v) => field.onChange(v === "__all__" ? "" : v)} dir={direction}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={t('inspectionSessions.allSites')} />
@@ -316,7 +318,7 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('assets.type')} ({t('common.optional')})</FormLabel>
-                  <Select value={field.value || "__all__"} onValueChange={(v) => field.onChange(v === "__all__" ? "" : v)} dir={direction} disabled={!watchedCategory}>
+                  <Select value={(field.value && filteredTypes.some(t => t.id === field.value)) ? field.value : "__all__"} onValueChange={(v) => field.onChange(v === "__all__" ? "" : v)} dir={direction} disabled={!watchedCategory}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={t('inspectionSessions.allTypes')} />
