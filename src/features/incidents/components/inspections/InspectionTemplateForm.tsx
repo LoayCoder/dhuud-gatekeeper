@@ -361,8 +361,10 @@ export function InspectionTemplateForm({
       area_type: templateType === 'area' ? data.area_type : undefined,
       category_id: templateType === 'asset' ? data.category_id : undefined,
       type_id: templateType === 'asset' ? data.type_id : undefined,
+      subtype_id: templateType === 'asset' ? data.subtype_id : undefined,
       branch_id: data.branch_id || undefined,
       site_id: data.site_id || undefined,
+      building_id: data.building_id || undefined,
     });
     form.reset();
   };
