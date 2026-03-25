@@ -539,23 +539,3 @@ export function useDeleteTemplateItem() {
         },
     });
 }
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async ({ id, template_id }: { id: string; template_id: string }) => {
-            const { error } = await supabase
-                .from('inspection_template_items')
-                .update({ deleted_at: new Date().toISOString() })
-                .eq('id', id);
-
-            if (error) throw error;
-            return { template_id };
-        },
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ['template-items', data.template_id] });
-        },
-        onError: (error: Error) => {
-            toast.error(error.message);
-        },
-    });
-}

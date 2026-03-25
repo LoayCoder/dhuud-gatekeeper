@@ -346,7 +346,12 @@ export default function InspectionTemplates() {
 
                     <CollapsibleContent>
                       <div className="border-t p-4">
-                        <TemplateItemBuilder templateId={template.id} />
+                        <TemplateItemBuilder
+                          templateId={template.id}
+                          templateType={template.template_type}
+                          typeId={template.type_id}
+                          subtypeId={template.subtype_id}
+                        />
                       </div>
                     </CollapsibleContent>
                   </div>
