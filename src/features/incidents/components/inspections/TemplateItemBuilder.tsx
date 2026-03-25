@@ -41,11 +41,16 @@ import {
   useUpdateTemplateItem,
   useDeleteTemplateItem,
 } from '@/features/incidents';
+import { useGenerateItemsFromParts } from '@/features/incidents/hooks/use-inspections/use-inspection-template-hooks';
 import i18n from '@/i18n';
 import { templateItemSchema, TemplateItemFormValues } from './TemplateItemBuilderSchema';
+import { Wand2 } from 'lucide-react';
 
 interface TemplateItemBuilderProps {
   templateId: string;
+  templateType?: 'asset' | 'area' | 'audit';
+  typeId?: string | null;
+  subtypeId?: string | null;
 }
 
 const RESPONSE_TYPES = [
@@ -69,7 +74,7 @@ const DEFAULT_VALUES: TemplateItemFormValues = {
   instructions_ar: '',
 };
 
-export function TemplateItemBuilder({ templateId }: TemplateItemBuilderProps) {
+export function TemplateItemBuilder({ templateId, templateType, typeId, subtypeId }: TemplateItemBuilderProps) {
   const { t } = useTranslation();
   const direction = i18n.dir();
   
@@ -77,6 +82,9 @@ export function TemplateItemBuilder({ templateId }: TemplateItemBuilderProps) {
   const createItem = useCreateTemplateItem();
   const updateItem = useUpdateTemplateItem();
   const deleteItem = useDeleteTemplateItem();
+  const generateFromParts = useGenerateItemsFromParts();
+
+  const canGenerateFromParts = templateType === 'asset' && (!!typeId || !!subtypeId);
   
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -168,12 +176,25 @@ export function TemplateItemBuilder({ templateId }: TemplateItemBuilderProps) {
   
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-2">
         <CardTitle className="text-lg">{t('inspections.items')}</CardTitle>
-        <Button size="sm" onClick={handleOpenAdd}>
-          <Plus className="h-4 w-4 me-1" />
-          {t('inspections.addItem')}
-        </Button>
+        <div className="flex items-center gap-2">
+          {canGenerateFromParts && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => generateFromParts.mutate({ templateId, typeId, subtypeId })}
+              disabled={generateFromParts.isPending}
+            >
+              <Wand2 className="h-4 w-4 me-1" />
+              {generateFromParts.isPending ? t('common.loading') : 'Generate from Asset Parts'}
+            </Button>
+          )}
+          <Button size="sm" onClick={handleOpenAdd}>
+            <Plus className="h-4 w-4 me-1" />
+            {t('inspections.addItem')}
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-2">
         {items?.length === 0 ? (
