@@ -197,8 +197,10 @@ export function InspectionTemplateForm({
         requires_gps: template?.requires_gps || false,
         category_id: template?.category_id || undefined,
         type_id: template?.type_id || undefined,
+        subtype_id: template?.subtype_id || undefined,
         branch_id: template?.branch_id || undefined,
         site_id: template?.site_id || undefined,
+        building_id: template?.building_id || undefined,
         is_active: template?.is_active ?? true,
       });
     }
