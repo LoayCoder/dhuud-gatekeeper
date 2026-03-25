@@ -318,7 +318,7 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('assets.type')} ({t('common.optional')})</FormLabel>
-                  <Select value={field.value || "__all__"} onValueChange={(v) => field.onChange(v === "__all__" ? "" : v)} dir={direction} disabled={!watchedCategory}>
+                  <Select value={(field.value && filteredTypes.some(t => t.id === field.value)) ? field.value : "__all__"} onValueChange={(v) => field.onChange(v === "__all__" ? "" : v)} dir={direction} disabled={!watchedCategory}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={t('inspectionSessions.allTypes')} />
