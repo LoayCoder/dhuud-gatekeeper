@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { NativeSelect } from '@/components/ui/native-select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
@@ -61,7 +62,6 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
   const { data: itemCount, isLoading: itemCountLoading } = useTemplateItemCount(watchedTemplateId || undefined);
   const hasNoItems = !itemCountLoading && watchedTemplateId && itemCount === 0;
   
-  // Fetch sites and categories
   useEffect(() => {
     if (!profile?.tenant_id) return;
     
@@ -82,7 +82,6 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
     fetchData();
   }, [profile?.tenant_id]);
   
-  // Auto-populate filters from selected template (only set values that exist in loaded options)
   useEffect(() => {
     if (!watchedTemplateId) return;
     
@@ -116,7 +115,6 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
   
   const period = format(watchedPeriodDate, 'MMMM yyyy');
 
-  // Cascade handlers
   const handleBranchChange = (value: string) => {
     form.setValue('branchId', value === '__all__' ? '' : value);
     form.setValue('siteId', '');
@@ -166,7 +164,7 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-            {/* Session Type */}
+            {/* Session Type — stable options, keep Radix */}
             <FormField
               control={form.control}
               name="sessionType"
@@ -190,7 +188,7 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
               )}
             />
             
-            {/* Template */}
+            {/* Template — stable options, keep Radix */}
             <FormField
               control={form.control}
               name="templateId"
@@ -255,84 +253,63 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
               )}
             />
             
-            {/* Branch → Site cascade */}
+            {/* Branch — native select (cascading) */}
             <div className="space-y-2">
               <Label>{t('inspectionSessions.selectSite')} ({t('common.optional')})</Label>
-              <Select value={watchedBranch || "__all__"} onValueChange={handleBranchChange} dir={direction}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('inspectionSessions.allSites')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">{t('inspectionSessions.allSites')}</SelectItem>
-                  {branches.map((branch) => (
-                    <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <NativeSelect
+                value={watchedBranch || '__all__'}
+                onChange={handleBranchChange}
+                placeholder={t('inspectionSessions.allSites')}
+                options={branches.map(b => ({ value: b.id, label: b.name }))}
+                dir={direction}
+              />
             </div>
 
+            {/* Site — native select (cascading) */}
             <FormField
               control={form.control}
               name="siteId"
               render={({ field }) => (
                 <FormItem>
-                  <Select value={(field.value && filteredSites.some(s => s.id === field.value)) ? field.value : "__all__"} onValueChange={(v) => field.onChange(v === "__all__" ? "" : v)} dir={direction}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('inspectionSessions.allSites')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="__all__">{t('inspectionSessions.allSites')}</SelectItem>
-                      {filteredSites.map((site) => (
-                        <SelectItem key={site.id} value={site.id}>{site.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <NativeSelect
+                    value={field.value || '__all__'}
+                    onChange={(v) => field.onChange(v === '__all__' ? '' : v)}
+                    placeholder={t('inspectionSessions.allSites')}
+                    options={filteredSites.map(s => ({ value: s.id, label: s.name }))}
+                    dir={direction}
+                  />
                   <FormMessage />
                 </FormItem>
               )}
             />
             
-            {/* Category → Type cascade */}
+            {/* Category — native select (cascading) */}
             <div className="space-y-2">
               <Label>{t('assets.category')} ({t('common.optional')})</Label>
-              <Select value={watchedCategory || "__all__"} onValueChange={handleCategoryChange} dir={direction}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('inspectionSessions.allCategories')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">{t('inspectionSessions.allCategories')}</SelectItem>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {i18n.language === 'ar' && cat.name_ar ? cat.name_ar : cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <NativeSelect
+                value={watchedCategory || '__all__'}
+                onChange={handleCategoryChange}
+                placeholder={t('inspectionSessions.allCategories')}
+                options={categories.map(c => ({ value: c.id, label: i18n.language === 'ar' && c.name_ar ? c.name_ar : c.name }))}
+                dir={direction}
+              />
             </div>
             
+            {/* Type — native select (cascading) */}
             <FormField
               control={form.control}
               name="typeId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('assets.type')} ({t('common.optional')})</FormLabel>
-                  <Select value={(field.value && filteredTypes.some(t => t.id === field.value)) ? field.value : "__all__"} onValueChange={(v) => field.onChange(v === "__all__" ? "" : v)} dir={direction} disabled={!watchedCategory}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('inspectionSessions.allTypes')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="__all__">{t('inspectionSessions.allTypes')}</SelectItem>
-                      {filteredTypes.map((type) => (
-                        <SelectItem key={type.id} value={type.id}>
-                          {i18n.language === 'ar' && type.name_ar ? type.name_ar : type.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <NativeSelect
+                    value={field.value || '__all__'}
+                    onChange={(v) => field.onChange(v === '__all__' ? '' : v)}
+                    placeholder={t('inspectionSessions.allTypes')}
+                    options={filteredTypes.map(ty => ({ value: ty.id, label: i18n.language === 'ar' && ty.name_ar ? ty.name_ar : ty.name }))}
+                    disabled={!watchedCategory}
+                    dir={direction}
+                  />
                   <FormMessage />
                 </FormItem>
               )}
