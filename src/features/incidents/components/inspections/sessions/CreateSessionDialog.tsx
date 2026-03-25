@@ -195,7 +195,7 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('inspectionSessions.selectTemplate')} *</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange} dir={direction}>
+                  <Select value={field.value || undefined} onValueChange={field.onChange} dir={direction}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={t('inspectionSessions.selectTemplate')} />
