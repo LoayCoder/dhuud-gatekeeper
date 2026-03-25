@@ -57,10 +57,14 @@ export function StartInspectionDialog({
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [inspectionDate, setInspectionDate] = useState<Date>(new Date());
   
-  const { data: templates, isLoading: templatesLoading } = useTemplatesForAsset(
-    asset.category_id,
-    asset.type_id
-  );
+  const { data: templates, isLoading: templatesLoading } = useTemplatesForAsset({
+    categoryId: asset.category_id,
+    typeId: asset.type_id,
+    subtypeId: asset.subtype_id,
+    branchId: asset.branch_id,
+    siteId: asset.site_id,
+    buildingId: asset.building_id,
+  });
   
   const startInspection = useStartInspection();
   
