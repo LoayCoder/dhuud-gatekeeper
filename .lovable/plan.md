@@ -1,50 +1,56 @@
 
 
-# Fix: "0 of 0" — Sessions Created from Empty Templates
+# Fix: Inspection Template Creation Not Saving
 
 ## Root Cause
 
-The template **"Fire protection equipment inspection"** (`007fae6c`) has **zero checklist items** in `inspection_template_items`. The system allows creating and starting sessions from templates with no questions, resulting in an empty "0 of 0 answered" display. This is a **validation gap**, not a data sync bug.
+**`InspectionTemplates.tsx` imports from the stub file instead of the real hooks.**
 
-**Database evidence:**
-- `inspection_template_items` table has 0 rows total
-- The session correctly links to the template, but the template has no content
+Line 39 of `src/pages/admin/InspectionTemplates.tsx`:
+```typescript
+// CURRENT — imports no-op stubs that do nothing
+import { useCreateTemplate, useUpdateTemplate, useDeleteTemplate, ... }
+  from '@/features/incidents/hooks/use-inspection-stubs';
+```
 
----
+The stub's `useCreateTemplate` mutation is literally `async (data) => data` — it returns the input without making any database call. The form appears to submit successfully but nothing is saved.
 
-## Fix Plan
+The **real** implementations exist in `use-inspection-template-hooks.ts` and are already exported from the barrel file `@/features/incidents`.
 
-### 1. Add validation in session creation dialogs
+## Fix
 
-**Files:** `CreateAreaSessionDialog.tsx`, `CreateSessionDialog.tsx`, `CreateAuditSessionDialog.tsx`
+### Single file change: `src/pages/admin/InspectionTemplates.tsx`
 
-Before allowing form submission, query `inspection_template_items` count for the selected template. If count is 0:
-- Disable the "Create" button
-- Show a warning: "This template has no checklist items. Please add items to the template first."
+Change the import on lines 31-39 from:
+```typescript
+import {
+  useInspectionTemplates,
+  useCreateTemplate,
+  useUpdateTemplate,
+  useDeleteTemplate,
+  useBulkUpdateTemplateStatus,
+  useBulkDeleteTemplates,
+  type InspectionTemplate,
+} from '@/features/incidents/hooks/use-inspection-stubs';
+```
 
-### 2. Add empty-state guidance in AreaSessionWorkspace
+To:
+```typescript
+import {
+  useInspectionTemplates,
+  useCreateTemplate,
+  useUpdateTemplate,
+  useDeleteTemplate,
+  useBulkUpdateTemplateStatus,
+  useBulkDeleteTemplates,
+  type InspectionTemplate,
+} from '@/features/incidents';
+```
 
-**File:** `src/pages/inspections/AreaSessionWorkspace.tsx`
+This points to the barrel file which exports the real hooks that perform actual Supabase INSERT/UPDATE/DELETE operations with proper tenant isolation and error handling.
 
-When `templateItems.length === 0` and session is `in_progress`, show a more helpful message with a link to the template editor instead of just "No items".
-
-### 3. Add item count indicator in template selector
-
-**Files:** `CreateAreaSessionDialog.tsx` (and other create dialogs)
-
-Show the item count next to each template in the dropdown (e.g., "Fire protection — 5 items") so users can see which templates are ready to use.
-
-### 4. Add validation in TemplateItemBuilder
-
-**File:** `TemplateItemBuilder.tsx`
-
-Show a warning banner when the template has 0 items, prompting the user to add at least one checklist question before the template can be used in sessions.
-
----
-
-## Technical Details
-
-- Template item count query: `supabase.from('inspection_template_items').select('id', { count: 'exact', head: true }).eq('template_id', templateId).is('deleted_at', null)`
-- No database migration needed — this is purely frontend validation
-- The `useTemplateItems` hook already works correctly; the data is simply empty
+### No other changes needed
+- The real hooks already exist and are tested
+- RLS policies on `inspection_templates` are correctly configured
+- The form component (`InspectionTemplateForm.tsx`) passes the right data shape
 
