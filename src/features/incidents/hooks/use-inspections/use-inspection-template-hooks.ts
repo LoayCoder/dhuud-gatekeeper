@@ -97,21 +97,44 @@ export function useTemplateItems(templateId: string | undefined) {
     });
 }
 
-export function useTemplatesForAsset(categoryId: string | undefined, typeId: string | undefined) {
+export function useTemplatesForAsset(params: {
+    categoryId?: string;
+    typeId?: string;
+    subtypeId?: string;
+    branchId?: string;
+    siteId?: string;
+    buildingId?: string;
+}) {
+    const { categoryId, typeId, subtypeId, branchId, siteId, buildingId } = params;
+
     return useQuery({
-        queryKey: ['templates-for-asset', categoryId, typeId],
+        queryKey: ['templates-for-asset', categoryId, typeId, subtypeId, branchId, siteId, buildingId],
         queryFn: async () => {
             let query = supabase
                 .from('inspection_templates')
                 .select('id, name, name_ar, code, description')
                 .eq('is_active', true)
+                .eq('template_type', 'asset')
                 .is('deleted_at', null);
 
-            // Filter by category/type if set, or get templates with no category/type (universal)
-            if (categoryId || typeId) {
-                query = query.or(
-                    `category_id.is.null,category_id.eq.${categoryId || '00000000-0000-0000-0000-000000000000'}`
-                );
+            // Hierarchical matching: template field is NULL (universal) OR matches asset value
+            if (categoryId) {
+                query = query.or(`category_id.is.null,category_id.eq.${categoryId}`);
+            }
+            if (typeId) {
+                query = query.or(`type_id.is.null,type_id.eq.${typeId}`);
+            }
+            if (subtypeId) {
+                query = query.or(`subtype_id.is.null,subtype_id.eq.${subtypeId}`);
+            }
+            if (branchId) {
+                query = query.or(`branch_id.is.null,branch_id.eq.${branchId}`);
+            }
+            if (siteId) {
+                query = query.or(`site_id.is.null,site_id.eq.${siteId}`);
+            }
+            if (buildingId) {
+                query = query.or(`building_id.is.null,building_id.eq.${buildingId}`);
             }
 
             const { data, error } = await query.order('name');
