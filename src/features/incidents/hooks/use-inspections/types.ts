@@ -18,6 +18,10 @@ export interface InspectionTemplate {
     type_id: string | null;
     branch_id: string | null;
     site_id: string | null;
+    inspection_category_id: string | null;
+    area_type: string | null;
+    standard_reference: string | null;
+    passing_score_percentage: number | null;
     version: number;
     is_active: boolean;
     created_by: string | null;
