@@ -276,7 +276,7 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
               name="siteId"
               render={({ field }) => (
                 <FormItem>
-                  <Select value={field.value || "__all__"} onValueChange={(v) => field.onChange(v === "__all__" ? "" : v)} dir={direction}>
+                  <Select value={(field.value && filteredSites.some(s => s.id === field.value)) ? field.value : "__all__"} onValueChange={(v) => field.onChange(v === "__all__" ? "" : v)} dir={direction}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={t('inspectionSessions.allSites')} />
