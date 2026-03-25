@@ -32,8 +32,10 @@ export interface InspectionTemplate {
     items?: TemplateItem[];
     category?: { name: string; name_ar: string | null };
     type?: { name: string; name_ar: string | null };
+    subtype?: { name: string; name_ar: string | null };
     branch?: { name: string };
     site?: { name: string };
+    building?: { name: string; name_ar: string | null };
 }
 
 export interface TemplateItem {
