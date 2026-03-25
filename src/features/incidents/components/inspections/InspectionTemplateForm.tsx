@@ -266,6 +266,8 @@ export function InspectionTemplateForm({
   });
   
   const selectedCategoryId = form.watch('category_id');
+  const selectedTypeId = form.watch('type_id');
+  const selectedSiteId = form.watch('site_id');
   
   const { data: assetTypes } = useQuery({
     queryKey: ['asset-types', selectedCategoryId],
@@ -281,6 +283,45 @@ export function InspectionTemplateForm({
       return data;
     },
     enabled: !!selectedCategoryId && templateType === 'asset',
+  });
+
+  // Fetch asset subtypes based on selected type
+  const { data: assetSubtypes } = useQuery({
+    queryKey: ['asset-subtypes', selectedTypeId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('asset_subtypes')
+        .select('id, name, name_ar')
+        .eq('type_id', selectedTypeId!)
+        .eq('is_active', true)
+        .is('deleted_at', null)
+        .order('name');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedTypeId && templateType === 'asset',
+  });
+
+  // Fetch buildings based on selected site
+  const { data: buildings } = useQuery({
+    queryKey: ['buildings', profile?.tenant_id, selectedSiteId],
+    queryFn: async () => {
+      let query = supabase
+        .from('buildings')
+        .select('id, name, name_ar')
+        .eq('tenant_id', profile!.tenant_id)
+        .is('deleted_at', null)
+        .order('name');
+      
+      if (selectedSiteId) {
+        query = query.eq('site_id', selectedSiteId);
+      }
+      
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!profile?.tenant_id,
   });
   
   // Check if template code already exists for the tenant
