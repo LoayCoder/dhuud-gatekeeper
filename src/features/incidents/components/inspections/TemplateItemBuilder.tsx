@@ -78,7 +78,7 @@ const DEFAULT_VALUES: TemplateItemFormValues = {
   instructions_ar: '',
 };
 
-export function TemplateItemBuilder({ templateId, templateType, typeId, subtypeId }: TemplateItemBuilderProps) {
+export function TemplateItemBuilder({ templateId, templateType, typeId, subtypeId, branchId, siteId, buildingId, categoryId }: TemplateItemBuilderProps) {
   const { t } = useTranslation();
   const direction = i18n.dir();
   
@@ -89,6 +89,18 @@ export function TemplateItemBuilder({ templateId, templateType, typeId, subtypeI
   const generateFromParts = useGenerateItemsFromParts();
 
   const canGenerateFromParts = templateType === 'asset' && (!!typeId || !!subtypeId);
+
+  // Matching assets preview for asset templates
+  const showMatchingAssets = templateType === 'asset';
+  const { data: matchingData, isLoading: matchingLoading } = useMatchingAssets({
+    branchId,
+    siteId,
+    buildingId,
+    categoryId,
+    typeId,
+    subtypeId,
+    enabled: showMatchingAssets,
+  });
   
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);

@@ -518,6 +518,61 @@ export function useGenerateItemsFromParts() {
     });
 }
 
+/**
+ * Hook: Query hsse_assets matching a template's hierarchy scope.
+ * Used to show a "matching assets" preview in the template editor.
+ */
+export function useMatchingAssets(params: {
+    branchId?: string | null;
+    siteId?: string | null;
+    buildingId?: string | null;
+    categoryId?: string | null;
+    typeId?: string | null;
+    subtypeId?: string | null;
+    enabled?: boolean;
+}) {
+    const { profile } = useAuth();
+    const { branchId, siteId, buildingId, categoryId, typeId, subtypeId, enabled = true } = params;
+
+    const hasScope = !!(branchId || siteId || buildingId || categoryId || typeId || subtypeId);
+
+    return useQuery({
+        queryKey: ['matching-assets', branchId, siteId, buildingId, categoryId, typeId, subtypeId],
+        queryFn: async () => {
+            if (!profile?.tenant_id) return { count: 0, sample: [] };
+
+            let query = supabase
+                .from('hsse_assets')
+                .select('id, name, asset_code, subtype_id, building:buildings(name), type:asset_types(name, name_ar)', { count: 'exact' })
+                .eq('tenant_id', profile.tenant_id)
+                .is('deleted_at', null);
+
+            if (branchId) query = query.eq('branch_id', branchId);
+            if (siteId) query = query.eq('site_id', siteId);
+            if (buildingId) query = query.eq('building_id', buildingId);
+            if (categoryId) query = query.eq('category_id', categoryId);
+            if (typeId) query = query.eq('type_id', typeId);
+            if (subtypeId) query = query.eq('subtype_id', subtypeId);
+
+            const { data, count, error } = await query.limit(5).order('asset_code');
+            if (error) throw error;
+
+            return {
+                count: count ?? 0,
+                sample: (data || []) as Array<{
+                    id: string;
+                    name: string;
+                    asset_code: string;
+                    subtype_id: string | null;
+                    building?: { name: string } | null;
+                    type?: { name: string; name_ar: string | null } | null;
+                }>,
+            };
+        },
+        enabled: enabled && hasScope && !!profile?.tenant_id,
+    });
+}
+
 export function useDeleteTemplateItem() {
     const queryClient = useQueryClient();
 
