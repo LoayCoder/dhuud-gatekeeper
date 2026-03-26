@@ -231,8 +231,11 @@ export function useUpdateSession() {
             updates: Partial<{
                 period: string;
                 site_id: string | null;
+                building_id: string | null;
                 category_id: string | null;
                 type_id: string | null;
+                subtype_id: string | null;
+                branch_id: string | null;
             }>;
         }) => {
             const { data, error } = await supabase
