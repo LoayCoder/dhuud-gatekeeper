@@ -183,11 +183,13 @@ export function useRefreshSessionAssets() {
                 .eq('tenant_id', profile.tenant_id)
                 .is('deleted_at', null);
 
+            if (session.branch_id) assetQuery = assetQuery.eq('branch_id', session.branch_id);
             if (session.site_id) assetQuery = assetQuery.eq('site_id', session.site_id);
             if (session.building_id) assetQuery = assetQuery.eq('building_id', session.building_id);
             if (session.floor_zone_id) assetQuery = assetQuery.eq('floor_zone_id', session.floor_zone_id);
             if (session.category_id) assetQuery = assetQuery.eq('category_id', session.category_id);
             if (session.type_id) assetQuery = assetQuery.eq('type_id', session.type_id);
+            if (session.subtype_id) assetQuery = assetQuery.eq('subtype_id', session.subtype_id);
 
             const { data: allMatchingAssets, error: assetsError } = await assetQuery;
             if (assetsError) throw assetsError;
