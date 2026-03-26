@@ -170,7 +170,7 @@ export function useRefreshSessionAssets() {
             // Get session details
             const { data: session, error: sessionError } = await supabase
                 .from('inspection_sessions')
-                .select('site_id, building_id, floor_zone_id, category_id, type_id')
+                .select('site_id, building_id, floor_zone_id, category_id, type_id, subtype_id, branch_id')
                 .eq('id', sessionId)
                 .single();
 
