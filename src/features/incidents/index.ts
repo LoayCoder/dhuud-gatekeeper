@@ -226,6 +226,7 @@ export {
   useUpdateTemplateItem,
   useDeleteTemplateItem,
   useGenerateItemsFromParts,
+  useMatchingAssets,
 } from './hooks/use-inspections/use-inspection-template-hooks';
 export type {
   AssetInspection,
