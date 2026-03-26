@@ -103,6 +103,12 @@ export function useAddAssetToSession() {
             if (session.type_id && asset.type_id !== session.type_id) {
                 throw new Error('Asset does not match session type filter');
             }
+            if (session.subtype_id && asset.subtype_id !== session.subtype_id) {
+                throw new Error('Asset does not match session subtype filter');
+            }
+            if (session.branch_id && asset.branch_id !== session.branch_id) {
+                throw new Error('Asset does not match session branch filter');
+            }
 
             // Check if already in session
             const { data: existing } = await supabase
