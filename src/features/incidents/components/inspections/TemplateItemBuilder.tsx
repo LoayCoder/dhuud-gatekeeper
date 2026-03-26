@@ -189,19 +189,8 @@ export function TemplateItemBuilder({ templateId, templateType, typeId, subtypeI
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-2">
-        <CardTitle className="text-lg">{t('inspections.items')}</CardTitle>
+        <CardTitle className="text-lg">{t('inspections.checklistQuestions', 'Inspection Checklist Questions')}</CardTitle>
         <div className="flex items-center gap-2">
-          {canGenerateFromParts && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => generateFromParts.mutate({ templateId, typeId, subtypeId })}
-              disabled={generateFromParts.isPending}
-            >
-              <Wand2 className="h-4 w-4 me-1" />
-              {generateFromParts.isPending ? t('common.loading') : 'Generate from Asset Parts'}
-            </Button>
-          )}
           <Button size="sm" onClick={handleOpenAdd}>
             <Plus className="h-4 w-4 me-1" />
             {t('inspections.addItem')}
