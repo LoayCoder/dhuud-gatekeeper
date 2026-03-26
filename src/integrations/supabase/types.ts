@@ -12637,6 +12637,7 @@ export type Database = {
           site_id: string | null
           started_at: string | null
           status: string
+          subtype_id: string | null
           template_id: string
           tenant_id: string
           total_assets: number | null
@@ -12673,6 +12674,7 @@ export type Database = {
           site_id?: string | null
           started_at?: string | null
           status?: string
+          subtype_id?: string | null
           template_id: string
           tenant_id: string
           total_assets?: number | null
@@ -12709,6 +12711,7 @@ export type Database = {
           site_id?: string | null
           started_at?: string | null
           status?: string
+          subtype_id?: string | null
           template_id?: string
           tenant_id?: string
           total_assets?: number | null
@@ -12757,6 +12760,13 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_sessions_subtype_id_fkey"
+            columns: ["subtype_id"]
+            isOneToOne: false
+            referencedRelation: "asset_subtypes"
             referencedColumns: ["id"]
           },
           {
