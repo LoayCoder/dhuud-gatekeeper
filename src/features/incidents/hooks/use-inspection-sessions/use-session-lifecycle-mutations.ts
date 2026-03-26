@@ -50,13 +50,16 @@ export function useStartSession() {
 
             if (sessionError) throw sessionError;
 
-            // Build asset query based on session filters
+            // Build asset query based on session filters (full hierarchy)
             let assetQuery = supabase
                 .from('hsse_assets')
                 .select('id')
                 .eq('tenant_id', profile.tenant_id)
                 .is('deleted_at', null);
 
+            if (session.branch_id) {
+                assetQuery = assetQuery.eq('branch_id', session.branch_id);
+            }
             if (session.site_id) {
                 assetQuery = assetQuery.eq('site_id', session.site_id);
             }
@@ -71,6 +74,9 @@ export function useStartSession() {
             }
             if (session.type_id) {
                 assetQuery = assetQuery.eq('type_id', session.type_id);
+            }
+            if (session.subtype_id) {
+                assetQuery = assetQuery.eq('subtype_id', session.subtype_id);
             }
 
             const { data: assets, error: assetsError } = await assetQuery;
@@ -225,8 +231,11 @@ export function useUpdateSession() {
             updates: Partial<{
                 period: string;
                 site_id: string | null;
+                building_id: string | null;
                 category_id: string | null;
                 type_id: string | null;
+                subtype_id: string | null;
+                branch_id: string | null;
             }>;
         }) => {
             const { data, error } = await supabase

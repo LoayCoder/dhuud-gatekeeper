@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, GripVertical, Trash2, Edit, AlertTriangle } from 'lucide-react';
+import { Plus, GripVertical, Trash2, Edit, AlertTriangle, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -41,7 +41,7 @@ import {
   useUpdateTemplateItem,
   useDeleteTemplateItem,
 } from '@/features/incidents';
-import { useGenerateItemsFromParts } from '@/features/incidents/hooks/use-inspections/use-inspection-template-hooks';
+import { useGenerateItemsFromParts, useMatchingAssets } from '@/features/incidents/hooks/use-inspections/use-inspection-template-hooks';
 import i18n from '@/i18n';
 import { templateItemSchema, TemplateItemFormValues } from './TemplateItemBuilderSchema';
 import { Wand2 } from 'lucide-react';
@@ -51,6 +51,10 @@ interface TemplateItemBuilderProps {
   templateType?: 'asset' | 'area' | 'audit';
   typeId?: string | null;
   subtypeId?: string | null;
+  branchId?: string | null;
+  siteId?: string | null;
+  buildingId?: string | null;
+  categoryId?: string | null;
 }
 
 const RESPONSE_TYPES = [
@@ -74,7 +78,7 @@ const DEFAULT_VALUES: TemplateItemFormValues = {
   instructions_ar: '',
 };
 
-export function TemplateItemBuilder({ templateId, templateType, typeId, subtypeId }: TemplateItemBuilderProps) {
+export function TemplateItemBuilder({ templateId, templateType, typeId, subtypeId, branchId, siteId, buildingId, categoryId }: TemplateItemBuilderProps) {
   const { t } = useTranslation();
   const direction = i18n.dir();
   
@@ -85,6 +89,18 @@ export function TemplateItemBuilder({ templateId, templateType, typeId, subtypeI
   const generateFromParts = useGenerateItemsFromParts();
 
   const canGenerateFromParts = templateType === 'asset' && (!!typeId || !!subtypeId);
+
+  // Matching assets preview for asset templates
+  const showMatchingAssets = templateType === 'asset';
+  const { data: matchingData, isLoading: matchingLoading } = useMatchingAssets({
+    branchId,
+    siteId,
+    buildingId,
+    categoryId,
+    typeId,
+    subtypeId,
+    enabled: showMatchingAssets,
+  });
   
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -261,6 +277,48 @@ export function TemplateItemBuilder({ templateId, templateType, typeId, subtypeI
           ))
         )}
       </CardContent>
+
+      {/* Matching Assets Panel — shows real assets matching the template scope */}
+      {showMatchingAssets && (
+        <CardContent className="border-t pt-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Package className="h-4 w-4 text-muted-foreground" />
+            <h4 className="text-sm font-semibold">{t('inspections.matchingAssets', 'Matching Assets')}</h4>
+            {!matchingLoading && matchingData && (
+              <Badge variant="secondary" className="text-xs">
+                {matchingData.count}
+              </Badge>
+            )}
+          </div>
+          {matchingLoading ? (
+            <p className="text-xs text-muted-foreground">{t('common.loading')}</p>
+          ) : !matchingData || matchingData.count === 0 ? (
+            <div className="py-3 text-center">
+              <AlertTriangle className="h-5 w-5 text-warning mx-auto mb-1" />
+              <p className="text-xs text-muted-foreground">
+                {t('inspections.noMatchingAssets', 'No assets match this template scope. Check the category, type, site, and building filters.')}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {matchingData.sample.map((asset) => (
+                <div key={asset.id} className="flex items-center gap-2 text-xs p-2 bg-muted/30 rounded">
+                  <Badge variant="outline" className="text-[10px] shrink-0">{asset.asset_code}</Badge>
+                  <span className="truncate">{asset.name}</span>
+                  {asset.building?.name && (
+                    <span className="text-muted-foreground shrink-0">• {asset.building.name}</span>
+                  )}
+                </div>
+              ))}
+              {matchingData.count > 5 && (
+                <p className="text-[10px] text-muted-foreground text-center pt-1">
+                  {t('inspections.andMoreAssets', '...and {{count}} more', { count: matchingData.count - 5 })}
+                </p>
+              )}
+            </div>
+          )}
+        </CardContent>
+      )}
       
       {/* Edit/Add Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
