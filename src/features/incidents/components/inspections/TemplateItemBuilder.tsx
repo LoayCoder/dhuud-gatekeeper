@@ -86,10 +86,6 @@ export function TemplateItemBuilder({ templateId, templateType, typeId, subtypeI
   const createItem = useCreateTemplateItem();
   const updateItem = useUpdateTemplateItem();
   const deleteItem = useDeleteTemplateItem();
-  const generateFromParts = useGenerateItemsFromParts();
-
-  const canGenerateFromParts = templateType === 'asset' && (!!typeId || !!subtypeId);
-
   // Matching assets preview for asset templates
   const showMatchingAssets = templateType === 'asset';
   const { data: matchingData, isLoading: matchingLoading } = useMatchingAssets({
