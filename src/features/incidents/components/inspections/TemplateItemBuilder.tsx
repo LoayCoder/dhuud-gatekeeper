@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, GripVertical, Trash2, Edit, AlertTriangle } from 'lucide-react';
+import { Plus, GripVertical, Trash2, Edit, AlertTriangle, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -41,7 +41,7 @@ import {
   useUpdateTemplateItem,
   useDeleteTemplateItem,
 } from '@/features/incidents';
-import { useGenerateItemsFromParts } from '@/features/incidents/hooks/use-inspections/use-inspection-template-hooks';
+import { useGenerateItemsFromParts, useMatchingAssets } from '@/features/incidents/hooks/use-inspections/use-inspection-template-hooks';
 import i18n from '@/i18n';
 import { templateItemSchema, TemplateItemFormValues } from './TemplateItemBuilderSchema';
 import { Wand2 } from 'lucide-react';
@@ -51,6 +51,10 @@ interface TemplateItemBuilderProps {
   templateType?: 'asset' | 'area' | 'audit';
   typeId?: string | null;
   subtypeId?: string | null;
+  branchId?: string | null;
+  siteId?: string | null;
+  buildingId?: string | null;
+  categoryId?: string | null;
 }
 
 const RESPONSE_TYPES = [
