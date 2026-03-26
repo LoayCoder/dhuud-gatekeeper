@@ -351,6 +351,10 @@ export default function InspectionTemplates() {
                           templateType={template.template_type}
                           typeId={template.type_id}
                           subtypeId={template.subtype_id}
+                          branchId={template.branch_id}
+                          siteId={template.site_id}
+                          buildingId={template.building_id}
+                          categoryId={template.category_id}
                         />
                       </div>
                     </CollapsibleContent>
