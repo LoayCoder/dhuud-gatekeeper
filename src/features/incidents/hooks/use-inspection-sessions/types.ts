@@ -103,6 +103,8 @@ export interface CreateSessionInput {
     floor_zone_id?: string | null;
     category_id?: string | null;
     type_id?: string | null;
+    subtype_id?: string | null;
+    branch_id?: string | null;
 }
 
 export interface RecordInspectionInput {

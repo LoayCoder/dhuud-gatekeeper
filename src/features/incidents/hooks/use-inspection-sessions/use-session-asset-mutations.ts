@@ -82,7 +82,7 @@ export function useAddAssetToSession() {
             // Get asset details
             const { data: asset, error: assetError } = await supabase
                 .from('hsse_assets')
-                .select('id, site_id, building_id, floor_zone_id, category_id, type_id')
+                .select('id, site_id, building_id, floor_zone_id, category_id, type_id, subtype_id, branch_id')
                 .eq('id', assetId)
                 .eq('tenant_id', profile.tenant_id)
                 .is('deleted_at', null)
