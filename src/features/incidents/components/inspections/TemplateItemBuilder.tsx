@@ -41,7 +41,7 @@ import {
   useUpdateTemplateItem,
   useDeleteTemplateItem,
 } from '@/features/incidents';
-import { useGenerateItemsFromParts, useMatchingAssets } from '@/features/incidents/hooks/use-inspections/use-inspection-template-hooks';
+import { useMatchingAssets } from '@/features/incidents/hooks/use-inspections/use-inspection-template-hooks';
 import i18n from '@/i18n';
 import { templateItemSchema, TemplateItemFormValues } from './TemplateItemBuilderSchema';
 import { Wand2 } from 'lucide-react';
