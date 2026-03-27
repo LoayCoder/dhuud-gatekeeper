@@ -36,6 +36,7 @@ function InspectionSessionsDashboardContent() {
   
   const statusCounts = {
     all: allSessions.length,
+    draft: allSessions.filter(s => s.status === 'draft').length,
     in_progress: allSessions.filter(s => s.status === 'in_progress').length,
     completed_with_open_actions: allSessions.filter(s => s.status === 'completed_with_open_actions').length,
     closed: allSessions.filter(s => s.status === 'closed').length,
@@ -96,6 +97,9 @@ function InspectionSessionsDashboardContent() {
         <TabsList>
           <TabsTrigger value="all">
             {t('common.all')} ({statusCounts.all})
+          </TabsTrigger>
+          <TabsTrigger value="draft">
+            {t('inspectionSessions.status.draft', 'Draft')} ({statusCounts.draft})
           </TabsTrigger>
           <TabsTrigger value="in_progress">
             {t('inspectionSessions.status.inProgress')} ({statusCounts.in_progress})
