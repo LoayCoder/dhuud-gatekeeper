@@ -66,7 +66,7 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
   const [types, setTypes] = useState<{ id: string; name: string; name_ar: string | null; category_id: string }[]>([]);
   const [subtypes, setSubtypes] = useState<{ id: string; name: string; name_ar: string | null; type_id: string }[]>([]);
   
-  const { data: templates = [] } = useInspectionTemplates();
+  const { data: templates = [] } = useInspectionTemplates(watchedSessionType as 'asset' | 'area' | 'audit');
   const createSession = useCreateSession();
   const startSession = useStartSession();
 
