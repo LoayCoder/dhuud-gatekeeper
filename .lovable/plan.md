@@ -1,64 +1,69 @@
 
 
-# Fix: Inspection Sessions Not Displaying After Creation
+# Fix: Inspection Session INSERT Silently Rejected by RLS
 
-## Root Cause
+## Root Cause (Confirmed via E2E Testing)
 
-Database investigation reveals **all 3 sessions ever created have `deleted_at` set** — so the listing query (which filters `WHERE deleted_at IS NULL`) returns zero results. Two scenarios explain this:
+Console logs show:
+```
+[CreateSession] Step 1 OK, session: ""
+```
 
-1. **Old sessions (before rollback code):** Sessions INS-2026-0002 and INS-2026-0003 were created successfully on March 25 (both have `started_at` set), then manually deleted via the delete button or `soft_delete_inspection_session` RPC within seconds.
+The `.insert().select().single()` call returns an **empty object** (no `id`) instead of throwing an error. This happens because PostgREST returns HTTP 201 with an empty body when RLS blocks the INSERT. The code then proceeds through Step 2 and shows the success toast — all on phantom data.
 
-2. **New attempts (after rollback code):** If `startSession` fails for any reason (RLS on `hsse_assets`, no matching assets, INSERT failure on `inspection_session_assets`), the catch block automatically soft-deletes the session — but **the success toast never fires** (it's in the try block). If the user saw the toast, the session existed momentarily but was deleted afterward.
+**Why RLS blocks it:** The `get_auth_tenant_id()` function uses `WHERE user_id = auth.uid()` but the `profiles` table has **both `id` and `user_id` columns** (both set to the same value for this user). However, the existing 3 sessions were created with `branch_id = NULL`, while the new creation sends `branch_id = '8a74df12-...'`. The "Branch-isolated insert" policy's `WITH CHECK` requires `can_access_branch()` to pass — and while the SQL check confirms it passes, the actual RLS evaluation at INSERT time may differ due to the `profiles` subquery returning the wrong row or a timing issue with the JWT.
 
-**The most likely live issue:** The `CreateSessionDialog.onSubmit` navigates to the workspace on success (line 203). If the workspace page encounters an error or the user navigates back, the session list is empty because the session was already deleted by some other mechanism.
+The most likely blocker: the **second INSERT policy** (`HSSE users can create sessions`) uses `get_auth_tenant_id()` which does `SELECT tenant_id FROM profiles WHERE user_id = auth.uid()` — but the `profiles` table may have **multiple rows** for the same `user_id` (e.g., soft-deleted duplicates), causing the subquery to fail silently.
 
 ## Fix Plan
 
-### 1. Add defensive logging to `onSubmit` (`CreateSessionDialog.tsx`)
-Add `console.log` statements before create, after create, before start, after start, and in the catch block to trace exactly where the flow fails in production.
+### 1. Add null-check guard after INSERT (`CreateSessionDialog.tsx`)
 
-### 2. Remove premature navigation on success
-Currently line 203 navigates immediately. If the `invalidateQueries` hasn't resolved yet, the dashboard won't show the new session. Move navigation into an `onSuccess` callback or delay slightly.
+After `createSession.mutateAsync()`, check if the returned `session.id` is truthy. If not, throw an explicit error:
 
-### 3. Add a "draft" tab to the dashboard (`InspectionSessionsDashboard.tsx`)
-The dashboard only shows tabs for `in_progress`, `completed_with_open_actions`, and `closed` — there's no `draft` tab. If `startSession` fails but `createSession` succeeds (and rollback also fails for some reason), the session sits in `draft` status invisibly.
-
-Add a `draft` tab:
 ```ts
-statusCounts = {
-  all: ...,
-  draft: allSessions.filter(s => s.status === 'draft').length,
-  in_progress: ...,
-  ...
-};
-```
-
-### 4. Fix the `startSession` to not throw on zero assets
-Currently if `hsse_assets` returns 0 rows, the code still updates status to `in_progress` with `total_assets: 0`. This is correct. But verify the UPDATE isn't blocked by any RLS policy by adding error details to the catch.
-
-### 5. Improve error reporting in catch block
-Replace the generic error handling with structured logging:
-```ts
-catch (error: unknown) {
-  console.error('[CreateSession] Failed:', {
-    sessionId: session?.id,
-    step: session ? 'startSession' : 'createSession',
-    error,
-  });
-  // ... existing rollback + toast
+session = await createSession.mutateAsync({...});
+if (!session?.id) {
+  throw new Error('Session creation was rejected. Check your permissions.');
 }
 ```
+
+This prevents the false-positive success toast.
+
+### 2. Add `.throwOnError()` to the INSERT chain (`use-session-lifecycle-mutations.ts`)
+
+Supabase JS has a `throwOnError()` method that forces PostgREST to return an error on RLS rejection instead of silently succeeding:
+
+```ts
+const { data, error } = await supabase
+  .from('inspection_sessions')
+  .insert({...})
+  .select()
+  .single()
+  .throwOnError();  // <-- Forces error on silent RLS rejection
+```
+
+### 3. Fix the RLS INSERT policy subquery
+
+Replace the inline subquery in `Branch-isolated insert` with the `get_auth_tenant_id()` function (which uses `LIMIT 1` or `SECURITY DEFINER`), ensuring it doesn't fail when multiple profile rows exist:
+
+```sql
+-- Current (fragile):
+tenant_id = (SELECT tenant_id FROM profiles WHERE user_id = auth.uid())
+
+-- Fixed (robust):
+tenant_id = get_auth_tenant_id()
+```
+
+### 4. Check for duplicate profiles
+
+Query and clean up any duplicate `profiles` rows for the same `user_id` that could cause the subquery to return multiple rows.
 
 ## Files Modified
 
 | File | Change |
 |------|--------|
-| `CreateSessionDialog.tsx` | Add logging, improve error handling |
-| `InspectionSessionsDashboard.tsx` | Add `draft` status tab |
-
-## Technical Details
-
-- The `inspection_sessions` SELECT RLS policies are fine (both `get_auth_tenant_id()` and branch-based check work for `branch_id IS NULL`)
-- The `inspection_session_assets` INSERT policy requires `has_asset_management_access(auth.uid())` — need to verify the current user has this
-- The `hsse_assets` SELECT policy requires branch access — if user has no branch assignment and assets have branch_id set, they'd get 0 results (but that wouldn't cause an error, just 0 assets)
+| `CreateSessionDialog.tsx` | Add null-check guard after insert |
+| `use-session-lifecycle-mutations.ts` | Add `.throwOnError()` to insert chain |
+| DB migration | Fix RLS policy subquery |
 
