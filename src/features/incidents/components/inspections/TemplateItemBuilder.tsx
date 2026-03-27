@@ -60,12 +60,16 @@ export function TemplateItemBuilder({ templateId, templateType, typeId, subtypeI
       label: t('common.asset', 'Asset'),
       primary: true,
       sortable: true,
-      render: (item) => (
-        <div className="flex flex-col gap-0.5">
-          <span className="font-medium text-sm">{item.name}</span>
-          <Badge variant="outline" className="text-[10px] w-fit">{item.asset_code}</Badge>
-        </div>
-      ),
+      render: (item) => {
+        // If name contains " - ", show only the part after it (category is already in Type column)
+        const shortName = item.name.includes(' - ') ? item.name.split(' - ').slice(1).join(' - ') : item.name;
+        return (
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-sm">{shortName}</span>
+            <span className="text-[10px] text-muted-foreground font-mono shrink-0">{item.asset_code}</span>
+          </div>
+        );
+      },
     },
     {
       key: 'type_name',
