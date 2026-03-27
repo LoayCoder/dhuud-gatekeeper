@@ -543,7 +543,7 @@ export function useMatchingAssets(params: {
 
             let query = supabase
                 .from('hsse_assets')
-                .select('id, name, asset_code, subtype_id, building:buildings(name), type:asset_types(name, name_ar)', { count: 'exact' })
+                .select('id, name, asset_code, subtype_id, building:buildings(name), type:asset_types(name, name_ar), subtype:asset_subtypes(name, name_ar), floor_zone:floors_zones(name)', { count: 'exact' })
                 .eq('tenant_id', profile.tenant_id)
                 .is('deleted_at', null);
 
@@ -554,18 +554,20 @@ export function useMatchingAssets(params: {
             if (typeId) query = query.eq('type_id', typeId);
             if (subtypeId) query = query.eq('subtype_id', subtypeId);
 
-            const { data, count, error } = await query.limit(5).order('asset_code');
+            const { data, count, error } = await query.order('asset_code');
             if (error) throw error;
 
             return {
                 count: count ?? 0,
-                sample: (data || []) as Array<{
+                assets: (data || []) as Array<{
                     id: string;
                     name: string;
                     asset_code: string;
                     subtype_id: string | null;
                     building?: { name: string } | null;
                     type?: { name: string; name_ar: string | null } | null;
+                    subtype?: { name: string; name_ar: string | null } | null;
+                    floor_zone?: { name: string } | null;
                 }>,
             };
         },
