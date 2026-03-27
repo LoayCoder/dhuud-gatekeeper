@@ -1,97 +1,85 @@
 
+# Enrich Matching Assets — Professional Card Layout
 
-# Reuse ActionListTable for Matching Assets Panel
-
-## Idea
-
-The `ActionListTable` component already has everything needed: search, pagination, expandable detail rows, mobile card layout, and RTL support. Instead of building custom responsive logic in `TemplateItemBuilder`, reuse `ActionListTable` directly.
+## Current State
+The primary column shows `shortName + asset_code` inline. The expandable section only has Zone and Building. The query doesn't fetch category, status, last_inspection_date, or next_inspection_due.
 
 ## Changes
 
-### `TemplateItemBuilder.tsx`
+### 1. Expand the query (`use-inspection-template-hooks.ts`)
 
-Replace the custom asset list with `ActionListTable`, defining columns like:
+Add to the select string:
+- `status`
+- `last_inspection_date`
+- `next_inspection_due`
+- `category:asset_categories(name, name_ar)`
+- `location_details`
 
-| Column | Primary? | Expandable? | Content |
-|--------|----------|-------------|---------|
-| Asset (code + name) | ✅ | — | Badge + name |
-| Type / Subtype | — | — | `Type / Subtype` |
-| Zone | — | ✅ | MapPin icon + zone name |
-| Building | — | ✅ | Building name |
+### 2. Restructure columns (`TemplateItemBuilder.tsx`)
 
-This gives us for free:
-- **Mobile cards** with expand/collapse "More details" / "Less details" toggle (exactly like the Pending Approvals screenshot)
-- **Search** across asset code, name, type, subtype
-- **Pagination** when there are many assets
-- **Desktop table** with sortable columns
-- Removes the custom `useState` expand logic and `ScrollArea`
+**Primary column** — clean title + asset ID:
+```text
+Fire Extinguisher – Lobby (ABC Dry Powder)
+Asset ID: FE-2026-0063
+```
+- Parse the `name` field: strip category prefix (before " - "), show the rest
+- If `subtype` exists, append it in parentheses
+- If `floor_zone` exists, append `– {zone}` 
+- Show `asset_code` on a second line as `Asset ID: {code}`
 
-### Column definitions (sketch)
+**Visible columns** (always shown):
+| Column | Content |
+|--------|---------|
+| Asset (primary) | Formatted name + Asset ID |
+| Status | Badge with color |
 
-```tsx
-const columns: ActionListColumn<AssetRow>[] = [
-  {
-    key: 'name',
-    label: t('common.asset'),
-    primary: true,
-    sortable: true,
-    render: (item) => (
-      <div className="flex flex-col gap-0.5">
-        <span className="font-medium text-sm">{item.name}</span>
-        <Badge variant="outline" className="text-[10px] w-fit">{item.asset_code}</Badge>
-      </div>
-    ),
-  },
-  {
-    key: 'type_name',
-    label: t('assets.type'),
-    sortable: true,
-    render: (item) => (
-      <span className="text-xs text-muted-foreground">
-        {item.type_name}{item.subtype_name ? ` / ${item.subtype_name}` : ''}
-      </span>
-    ),
-  },
-  {
-    key: 'zone_name',
-    label: t('common.zone'),
-    expandable: true,
-    render: (item) => item.zone_name ? (
-      <span className="inline-flex items-center gap-1 text-xs">
-        <MapPin className="h-3 w-3" /> {item.zone_name}
-      </span>
-    ) : '—',
-  },
-  {
-    key: 'building_name',
-    label: t('common.building'),
-    expandable: true,
-    render: (item) => item.building_name || '—',
-  },
-];
+**Expandable columns** (in "More details"):
+| Column | Content |
+|--------|---------|
+| Category | `category.name` |
+| Asset Type | `type / subtype` |
+| Building | `building.name` |
+| Floor/Zone | `floor_zone.name` |
+| Last Inspection | Formatted date or "—" |
+| Next Due | Formatted date or "—" |
+
+### 3. Data mapping
+
+Flatten to `AssetRow` with new fields:
+```ts
+interface AssetRow extends Record<string, unknown> {
+  id: string;
+  name: string;           // full name
+  display_name: string;   // parsed: "Fire Extinguisher – Lobby (ABC Dry Powder)"
+  asset_code: string;
+  category_name: string;
+  type_name: string;
+  subtype_name: string;
+  zone_name: string;
+  building_name: string;
+  status: string;
+  last_inspection: string;
+  next_due: string;
+}
 ```
 
-### Data mapping
-
-Flatten the nested asset objects into a flat `Record<string, unknown>` so `ActionListTable` can search/sort:
-
-```tsx
-const rows = assets.map(a => ({
-  id: a.id,
-  name: a.name,
-  asset_code: a.asset_code,
-  type_name: a.type?.name ?? '',
-  subtype_name: a.subtype?.name ?? '',
-  zone_name: a.floor_zone?.name ?? '',
-  building_name: a.building?.name ?? '',
-}));
+Name parsing logic:
+```ts
+const parts = a.name.split(' - ');
+const baseName = parts.length > 1 ? parts.slice(1).join(' - ') : a.name;
+const subtypeLabel = a.subtype?.name ? ` (${a.subtype.name})` : '';
+const zoneLabel = a.floor_zone?.name ? ` – ${a.floor_zone.name}` : '';
+const displayName = `${baseName}${zoneLabel}${subtypeLabel}`;
 ```
+
+### 4. Status badge colors
+
+Map asset status to badge variants:
+- `active` → green/success outline
+- `under_maintenance` → yellow/warning
+- `out_of_service` → red/destructive
+- Others → default muted
 
 ## Files Modified
-
-- **`TemplateItemBuilder.tsx`** — Replace custom list with `ActionListTable`, define columns, flatten data
-
-## Result
-
-The matching assets panel will look and behave identically to the Pending Approvals sheet on mobile (expandable cards, search, pagination) with zero custom responsive code.
-
+- `use-inspection-template-hooks.ts` — add category, status, dates to select
+- `TemplateItemBuilder.tsx` — new column definitions, richer primary column, 6 expandable detail fields
