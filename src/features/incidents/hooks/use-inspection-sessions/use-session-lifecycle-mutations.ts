@@ -87,6 +87,7 @@ export function useStartSession() {
             if (assets && assetCount > 0) {
                 const sessionAssets = assets.map(asset => ({
                     tenant_id: profile.tenant_id,
+                    branch_id: session.branch_id || null,
                     session_id: sessionId,
                     asset_id: asset.id,
                 }));
