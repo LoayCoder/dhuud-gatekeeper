@@ -44,7 +44,7 @@ export function useStartSession() {
             // Get session details to know filters
             const { data: session, error: sessionError } = await supabase
                 .from('inspection_sessions')
-                .select('*')
+                .select('id, tenant_id, branch_id, site_id, building_id, floor_zone_id, category_id, type_id, subtype_id')
                 .eq('id', sessionId)
                 .single();
 
@@ -87,6 +87,7 @@ export function useStartSession() {
             if (assets && assetCount > 0) {
                 const sessionAssets = assets.map(asset => ({
                     tenant_id: profile.tenant_id,
+                    branch_id: session.branch_id || null,
                     session_id: sessionId,
                     asset_id: asset.id,
                 }));

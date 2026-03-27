@@ -66,7 +66,7 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
   const [types, setTypes] = useState<{ id: string; name: string; name_ar: string | null; category_id: string }[]>([]);
   const [subtypes, setSubtypes] = useState<{ id: string; name: string; name_ar: string | null; type_id: string }[]>([]);
   
-  const { data: templates = [] } = useInspectionTemplates();
+  const { data: templates = [] } = useInspectionTemplates(watchedSessionType as 'asset' | 'area' | 'audit');
   const createSession = useCreateSession();
   const startSession = useStartSession();
 
@@ -181,8 +181,9 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
       return;
     }
     
+    let session: Record<string, unknown> | null = null;
     try {
-      const session = await createSession.mutateAsync({
+      session = await createSession.mutateAsync({
         session_type: data.sessionType as 'asset' | 'area' | 'audit',
         template_id: data.templateId,
         period,
@@ -194,14 +195,24 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
         subtype_id: data.subtypeId || null,
       });
       
-      await startSession.mutateAsync(session.id);
+      await startSession.mutateAsync(session.id as string);
       
       toast({ title: t('common.success'), description: t('inspectionSessions.sessionCreated') });
       onOpenChange(false);
       const suffix = data.sessionType === 'area' ? '/area' : data.sessionType === 'audit' ? '/audit' : '';
       navigate(`/inspections/sessions/${session.id}${suffix}`);
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Error';
+      // Rollback: soft-delete orphaned session if create succeeded but start failed
+      if (session?.id) {
+        await supabase
+          .from('inspection_sessions')
+          .update({ deleted_at: new Date().toISOString() })
+          .eq('id', session.id as string);
+      }
+      const raw = error instanceof Error ? error.message : 'Error';
+      const message = raw.includes('row-level security')
+        ? t('inspectionSessions.noAccessToBranch', 'You do not have access to create sessions for the selected branch.')
+        : raw;
       toast({ title: t('common.error'), description: message, variant: 'destructive' });
     }
   };
@@ -224,7 +235,7 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('inspectionSessions.sessionType')}</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange} dir={direction}>
+                  <Select value={field.value} onValueChange={(v) => { field.onChange(v); form.setValue('templateId', ''); }} dir={direction}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue />
