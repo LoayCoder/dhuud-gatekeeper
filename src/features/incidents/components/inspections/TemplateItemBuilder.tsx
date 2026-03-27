@@ -68,8 +68,11 @@ export function TemplateItemBuilder({ templateId, templateType, typeId, subtypeI
   const rows = useMemo<AssetRow[]>(() => {
     if (!matchingData?.assets) return [];
     return matchingData.assets.map((a: any) => {
+      // Strip category prefix (before " - ") and asset code (in parentheses like "(code-2026-0063)")
       const parts = (a.name ?? '').split(' - ');
-      const baseName = parts.length > 1 ? parts.slice(1).join(' - ') : a.name ?? '';
+      let baseName = parts.length > 1 ? parts.slice(1).join(' - ') : a.name ?? '';
+      // Remove inline asset code pattern e.g. "(fire_safety-2026-0063)"
+      baseName = baseName.replace(/\s*\([^)]*-\d{4}-\d+\)\s*/g, '').trim();
       const zoneLabel = a.floor_zone?.name ? ` – ${a.floor_zone.name}` : '';
       const subtypeLabel = a.subtype?.name ? ` (${a.subtype.name})` : '';
       const displayName = `${baseName}${zoneLabel}${subtypeLabel}`;
