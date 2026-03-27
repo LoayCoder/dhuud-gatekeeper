@@ -197,6 +197,10 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
       });
       console.log('[CreateSession] Step 1 OK, session:', session?.id);
       
+      if (!session?.id) {
+        throw new Error('Session creation was rejected by the server. Please check your permissions.');
+      }
+      
       console.log('[CreateSession] Step 2: Starting session...');
       await startSession.mutateAsync(session.id as string);
       console.log('[CreateSession] Step 2 OK, session started');

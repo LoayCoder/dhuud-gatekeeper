@@ -21,7 +21,8 @@ export function useCreateSession() {
                     status: 'draft',
                 })
                 .select()
-                .single();
+                .single()
+                .throwOnError();
 
             if (error) throw error;
             return data;
