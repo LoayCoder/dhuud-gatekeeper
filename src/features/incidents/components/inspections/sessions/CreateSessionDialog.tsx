@@ -183,6 +183,7 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
     
     let session: Record<string, unknown> | null = null;
     try {
+      console.log('[CreateSession] Step 1: Creating session...');
       session = await createSession.mutateAsync({
         session_type: data.sessionType as 'asset' | 'area' | 'audit',
         template_id: data.templateId,
@@ -194,21 +195,22 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
         type_id: data.typeId || null,
         subtype_id: data.subtypeId || null,
       });
+      console.log('[CreateSession] Step 1 OK, session:', session?.id);
       
+      console.log('[CreateSession] Step 2: Starting session...');
       await startSession.mutateAsync(session.id as string);
+      console.log('[CreateSession] Step 2 OK, session started');
       
       toast({ title: t('common.success'), description: t('inspectionSessions.sessionCreated') });
       onOpenChange(false);
       const suffix = data.sessionType === 'area' ? '/area' : data.sessionType === 'audit' ? '/audit' : '';
       navigate(`/inspections/sessions/${session.id}${suffix}`);
     } catch (error: unknown) {
-      // Rollback: soft-delete orphaned session if create succeeded but start failed
-      if (session?.id) {
-        await supabase
-          .from('inspection_sessions')
-          .update({ deleted_at: new Date().toISOString() })
-          .eq('id', session.id as string);
-      }
+      const step = session ? 'startSession' : 'createSession';
+      console.error('[CreateSession] Failed at step:', step, { sessionId: session?.id, error });
+      
+      // Only rollback if createSession succeeded but startSession failed
+      // Do NOT rollback — leave the session in draft so the user can see and retry it
       const raw = error instanceof Error ? error.message : 'Error';
       const message = raw.includes('row-level security')
         ? t('inspectionSessions.noAccessToBranch', 'You do not have access to create sessions for the selected branch.')

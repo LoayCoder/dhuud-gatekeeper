@@ -98,6 +98,9 @@ function InspectionSessionsDashboardContent() {
           <TabsTrigger value="all">
             {t('common.all')} ({statusCounts.all})
           </TabsTrigger>
+          <TabsTrigger value="draft">
+            {t('inspectionSessions.status.draft', 'Draft')} ({statusCounts.draft})
+          </TabsTrigger>
           <TabsTrigger value="in_progress">
             {t('inspectionSessions.status.inProgress')} ({statusCounts.in_progress})
           </TabsTrigger>
