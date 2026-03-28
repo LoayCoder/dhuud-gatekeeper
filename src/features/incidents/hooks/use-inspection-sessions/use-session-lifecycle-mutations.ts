@@ -83,8 +83,12 @@ export function useStartSession() {
             const { data: assets, error: assetsError } = await assetQuery;
             if (assetsError) throw assetsError;
 
-            // Insert all assets into session_assets
+            // Guard: zero assets means dead-end session
             const assetCount = assets?.length || 0;
+            if (assetCount === 0) {
+                throw new Error('No assets match the session scope. Add assets or adjust filters.');
+            }
+
             if (assets && assetCount > 0) {
                 const sessionAssets = assets.map(asset => ({
                     tenant_id: profile.tenant_id,
@@ -176,12 +180,36 @@ export function useCompleteSession() {
 
             const hasOpenActions = (failedCount as unknown as { count?: number })?.count ? (failedCount as unknown as { count: number }).count > 0 : false;
 
+            // Aggregate part-level results for completion metadata
+            const { data: sessionAssetIds } = await supabase
+                .from('inspection_session_assets')
+                .select('id')
+                .eq('session_id', sessionId);
+
+            let partsSummary = { total: 0, passed: 0, failed: 0, na: 0 };
+            if (sessionAssetIds && sessionAssetIds.length > 0) {
+                const ids = sessionAssetIds.map(sa => sa.id);
+                const { data: partResults } = await supabase
+                    .from('asset_inspection_part_results')
+                    .select('result')
+                    .in('inspection_id', ids)
+                    .is('deleted_at', null);
+
+                if (partResults) {
+                    partsSummary.total = partResults.length;
+                    partsSummary.passed = partResults.filter(r => r.result === 'pass').length;
+                    partsSummary.failed = partResults.filter(r => r.result === 'fail').length;
+                    partsSummary.na = partResults.filter(r => r.result === 'na').length;
+                }
+            }
+
             const { data, error } = await supabase
                 .from('inspection_sessions')
                 .update({
                     status: hasOpenActions ? 'completed_with_open_actions' : 'closed',
                     completed_at: new Date().toISOString(),
                     closed_at: hasOpenActions ? null : new Date().toISOString(),
+                    ai_summary: JSON.stringify({ parts: partsSummary }),
                 })
                 .eq('id', sessionId)
                 .select()

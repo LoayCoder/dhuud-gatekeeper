@@ -1,14 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { ArrowLeft, QrCode, CheckCircle, RefreshCw, Loader2, Plus, Pencil, Trash2 } from 'lucide-react';
+import { ArrowLeft, QrCode, CheckCircle, RefreshCw, Loader2, Plus, Pencil, Trash2, Search, MapPin, ChevronDown, XCircle, Ban, Cog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { ModuleGate } from '@/components';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,25 +31,45 @@ import {
 import {
   useInspectionSession,
   useSessionAssets,
-  useUninspectedAssets,
   useSessionProgress,
   useCompleteSession,
   useSessionAssetByAssetId,
   useAddAssetToSession,
   useRefreshSessionAssets,
   useDeleteSession,
+  useSessionPartsProgress,
+  type SessionAsset,
 } from '@/features/incidents';
 // @ts-ignore - type compat
 import {
   SessionProgressCard,
   QuickInspectionCard,
-  UninspectedAssetsList,
   BulkInspectionScanner,
   SessionStatusBadge,
   EditSessionDialog,
 } from '@/features/incidents';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePartInspectionResults } from '@/hooks/use-part-inspection-results';
+import { usePartsForAsset } from '@/features/assets';
+
+/** Inline component to show parts completion count for a session asset */
+function AssetPartsCount({ sessionAssetId, typeId, subtypeId }: { sessionAssetId: string; typeId?: string; subtypeId?: string | null }) {
+  const { data: parts } = usePartsForAsset(typeId || '', subtypeId || null);
+  const { data: results } = usePartInspectionResults(sessionAssetId);
+
+  const totalParts = parts?.length || 0;
+  const completedParts = results?.length || 0;
+
+  if (totalParts === 0) return null;
+
+  return (
+    <Badge variant="outline" className="text-xs gap-1">
+      <Cog className="h-3 w-3" />
+      {completedParts}/{totalParts}
+    </Badge>
+  );
+}
 
 function SessionWorkspaceContent() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -51,16 +80,16 @@ function SessionWorkspaceContent() {
   
   const [showScanner, setShowScanner] = useState(false);
   const [scannedAssetId, setScannedAssetId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('inspect');
   const [showAddAssetDialog, setShowAddAssetDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [pendingAssetToAdd, setPendingAssetToAdd] = useState<{ id: string; name: string; code: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   
   const { data: session, isLoading: sessionLoading } = useInspectionSession(sessionId);
   const { data: allAssets = [] } = useSessionAssets(sessionId);
-  const { data: uninspectedAssets = [], refetch: refetchUninspected } = useUninspectedAssets(sessionId);
   const { data: progress } = useSessionProgress(sessionId);
+  const { data: partsProgress } = useSessionPartsProgress(sessionId);
   const { data: scannedSessionAsset, isLoading: scanLookupLoading } = useSessionAssetByAssetId(sessionId, scannedAssetId || undefined);
   
   const completeSession = useCompleteSession();
@@ -68,18 +97,13 @@ function SessionWorkspaceContent() {
   const refreshSessionAssets = useRefreshSessionAssets();
   const deleteSession = useDeleteSession();
   
-  const [selectedAsset, setSelectedAsset] = useState<typeof uninspectedAssets[0] | null>(null);
-  
   // When a QR is scanned and lookup completes
   useEffect(() => {
     if (scannedAssetId && !scanLookupLoading) {
       if (scannedSessionAsset) {
-        // Asset is in session, select it for inspection
-        setSelectedAsset(scannedSessionAsset);
         setShowScanner(false);
         setScannedAssetId(null);
       } else {
-        // Asset not in session - check if it matches filters and offer to add
         checkAndOfferToAddAsset(scannedAssetId);
       }
     }
@@ -89,7 +113,6 @@ function SessionWorkspaceContent() {
     if (!profile?.tenant_id || !session) return;
     
     try {
-      // Get asset details
       const { data: asset, error } = await supabase
         .from('hsse_assets')
         .select('id, name, asset_code, site_id, building_id, floor_zone_id, category_id, type_id')
@@ -104,7 +127,6 @@ function SessionWorkspaceContent() {
         return;
       }
       
-      // Check if asset matches session filters
       let matches = true;
       if (session.site_id && asset.site_id !== session.site_id) matches = false;
       if (session.building_id && asset.building_id !== session.building_id) matches = false;
@@ -112,7 +134,6 @@ function SessionWorkspaceContent() {
       if (session.type_id && asset.type_id !== session.type_id) matches = false;
       
       if (matches) {
-        // Asset matches filters, offer to add
         setPendingAssetToAdd({ id: asset.id, name: asset.name, code: asset.asset_code });
         setShowAddAssetDialog(true);
       } else {
@@ -129,7 +150,6 @@ function SessionWorkspaceContent() {
   
   const handleAddAssetConfirm = async () => {
     if (!pendingAssetToAdd || !sessionId) return;
-    
     try {
       await addAssetToSession.mutateAsync({ sessionId, assetId: pendingAssetToAdd.id });
       toast.success(t('inspectionSessions.assetAddedToSession'));
@@ -142,7 +162,6 @@ function SessionWorkspaceContent() {
   
   const handleRefreshAssets = async () => {
     if (!sessionId) return;
-    
     try {
       const result = await refreshSessionAssets.mutateAsync(sessionId);
       if (result.added > 0) {
@@ -159,14 +178,8 @@ function SessionWorkspaceContent() {
     setScannedAssetId(assetId);
   };
   
-  const handleInspectionComplete = () => {
-    setSelectedAsset(null);
-    refetchUninspected();
-  };
-  
   const handleCompleteSession = async () => {
     if (!sessionId) return;
-    
     try {
       await completeSession.mutateAsync(sessionId);
       toast.success(t('inspectionSessions.sessionCompleted'));
@@ -185,6 +198,29 @@ function SessionWorkspaceContent() {
       toast.error(error?.message || 'Error');
     }
   };
+
+  // Sort: uninspected first, then by code; filter by search
+  const sortedAssets = useMemo(() => {
+    let filtered = allAssets;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      filtered = allAssets.filter(sa => {
+        const asset = sa.asset;
+        if (!asset) return false;
+        return (
+          asset.asset_code?.toLowerCase().includes(q) ||
+          asset.name?.toLowerCase().includes(q) ||
+          asset.building?.name?.toLowerCase().includes(q)
+        );
+      });
+    }
+    return [...filtered].sort((a, b) => {
+      const aInspected = a.quick_result !== null ? 1 : 0;
+      const bInspected = b.quick_result !== null ? 1 : 0;
+      if (aInspected !== bInspected) return aInspected - bInspected;
+      return (a.asset?.asset_code || '').localeCompare(b.asset?.asset_code || '');
+    });
+  }, [allAssets, searchQuery]);
   
   if (sessionLoading) {
     return (
@@ -215,7 +251,7 @@ function SessionWorkspaceContent() {
   const canComplete = progress && progress.inspected_count === progress.total_assets && progress.total_assets > 0;
   
   return (
-    <div className="container mx-auto py-6 space-y-6" dir={direction}>
+    <div className="container mx-auto py-6 space-y-4" dir={direction}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -237,27 +273,19 @@ function SessionWorkspaceContent() {
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {session.status === 'in_progress' && (
             <>
-              <Button 
-                variant="outline" 
-                onClick={handleRefreshAssets}
-                disabled={refreshSessionAssets.isPending}
-              >
-                {refreshSessionAssets.isPending ? (
-                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="me-2 h-4 w-4" />
-                )}
+              <Button variant="outline" size="sm" onClick={handleRefreshAssets} disabled={refreshSessionAssets.isPending}>
+                {refreshSessionAssets.isPending ? <Loader2 className="me-2 h-4 w-4 animate-spin" /> : <RefreshCw className="me-2 h-4 w-4" />}
                 {t('inspectionSessions.refreshAssets')}
               </Button>
-              <Button variant="outline" onClick={() => setShowScanner(true)}>
+              <Button variant="outline" size="sm" onClick={() => setShowScanner(true)}>
                 <QrCode className="me-2 h-4 w-4" />
                 {t('inspectionSessions.scanQR')}
               </Button>
               {canComplete && (
-                <Button onClick={handleCompleteSession} disabled={completeSession.isPending}>
+                <Button size="sm" onClick={handleCompleteSession} disabled={completeSession.isPending}>
                   {completeSession.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
                   <CheckCircle className="me-2 h-4 w-4" />
                   {t('inspectionSessions.completeSession')}
@@ -279,22 +307,14 @@ function SessionWorkspaceContent() {
       </div>
       
       {/* Edit Dialog */}
-      {session && (
-        <EditSessionDialog 
-          open={showEditDialog} 
-          onOpenChange={setShowEditDialog} 
-          session={session}
-        />
-      )}
+      {session && <EditSessionDialog open={showEditDialog} onOpenChange={setShowEditDialog} session={session} />}
 
       {/* Delete Confirmation */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent dir={direction}>
           <AlertDialogHeader>
             <AlertDialogTitle>{t('inspectionSessions.deleteSession')}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('inspectionSessions.confirmDeleteSession')}
-            </AlertDialogDescription>
+            <AlertDialogDescription>{t('inspectionSessions.confirmDeleteSession')}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
@@ -304,6 +324,11 @@ function SessionWorkspaceContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Scanner Overlay */}
+      {showScanner && (
+        <BulkInspectionScanner onScan={handleQRScan} onClose={() => setShowScanner(false)} isProcessing={scanLookupLoading} />
+      )}
       
       {/* Progress Card */}
       {progress && (
@@ -314,96 +339,91 @@ function SessionWorkspaceContent() {
           failed={progress.failed_count}
           notAccessible={progress.not_accessible_count}
           compliancePercentage={progress.compliance_percentage}
+          partsProgress={partsProgress}
         />
       )}
       
-      {/* Main Content */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Left: Scanner or Selected Asset */}
-        <div>
-          {showScanner ? (
-            <BulkInspectionScanner
-              onScan={handleQRScan}
-              onClose={() => setShowScanner(false)}
-              isProcessing={scanLookupLoading}
-            />
-          ) : selectedAsset ? (
-            <QuickInspectionCard
-              sessionAsset={selectedAsset}
-              sessionId={sessionId!}
-              onComplete={handleInspectionComplete}
-            />
-          ) : (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <QrCode className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground mb-4">
-                  {isCompleted 
-                    ? t('inspectionSessions.sessionCompleted')
-                    : t('inspectionSessions.scanOrSelectAsset')
-                  }
-                </p>
-                {!isCompleted && (
-                  <Button onClick={() => setShowScanner(true)}>
-                    <QrCode className="me-2 h-4 w-4" />
-                    {t('inspectionSessions.startScanning')}
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </div>
-        
-        {/* Right: Uninspected Assets List */}
-        <div>
-          <UninspectedAssetsList
-            assets={uninspectedAssets}
-            onSelectAsset={setSelectedAsset}
-            onScanQR={() => setShowScanner(true)}
-          />
-        </div>
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder={t('inspectionSessions.searchAssets')}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="ps-9"
+        />
       </div>
-      
-      {/* Inspected Assets Tab */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} dir={direction}>
-        <TabsList>
-          <TabsTrigger value="inspect">{t('inspectionSessions.inspectionView')}</TabsTrigger>
-          <TabsTrigger value="all">{t('inspectionSessions.allAssets')} ({allAssets.length})</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="all" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('inspectionSessions.allSessionAssets')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {allAssets.map((sa) => (
-                  <div 
-                    key={sa.id} 
-                    className="flex items-center justify-between p-3 rounded-lg border"
-                  >
-                    <div>
-                      <span className="font-medium">{sa.asset?.asset_code}</span>
-                      <span className="text-muted-foreground ms-2">{sa.asset?.name}</span>
+
+      {/* Accordion Asset List */}
+      <Accordion type="single" collapsible className="space-y-2">
+        {sortedAssets.map((sa) => {
+          const asset = sa.asset;
+          if (!asset) return null;
+
+          const resultColor = sa.quick_result === 'good' 
+            ? 'border-success/50 bg-success/5' 
+            : sa.quick_result === 'not_good' 
+              ? 'border-destructive/50 bg-destructive/5' 
+              : sa.quick_result === 'not_accessible' 
+                ? 'border-warning/50 bg-warning/5' 
+                : '';
+
+          return (
+            <AccordionItem key={sa.id} value={sa.id} className={cn("border rounded-lg px-0", resultColor)}>
+              <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                <div className="flex flex-1 items-center justify-between me-2">
+                  <div className="flex flex-col items-start gap-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm">{asset.asset_code}</span>
+                      {sa.quick_result && (
+                        <Badge 
+                          variant={sa.quick_result === 'good' ? 'default' : sa.quick_result === 'not_good' ? 'destructive' : 'secondary'}
+                          className="text-xs py-0"
+                        >
+                          {sa.quick_result === 'good' && <CheckCircle className="h-3 w-3 me-1" />}
+                          {sa.quick_result === 'not_good' && <XCircle className="h-3 w-3 me-1" />}
+                          {sa.quick_result === 'not_accessible' && <Ban className="h-3 w-3 me-1" />}
+                          {t(`inspectionSessions.result_${sa.quick_result}`)}
+                        </Badge>
+                      )}
                     </div>
-                    {sa.quick_result ? (
-                      <span className={`text-sm font-medium ${
-                        sa.quick_result === 'good' ? 'text-green-600' :
-                        sa.quick_result === 'not_good' ? 'text-red-600' : 'text-yellow-600'
-                      }`}>
-                        {t(`inspectionSessions.result_${sa.quick_result}`)}
+                    <span className="text-xs text-muted-foreground">{asset.name}</span>
+                    {asset.building && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {asset.building.name}
+                        {asset.floor_zone && ` / ${asset.floor_zone.name}`}
                       </span>
-                    ) : (
-                      <span className="text-sm text-muted-foreground">{t('inspectionSessions.pending')}</span>
                     )}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                  <AssetPartsCount
+                    sessionAssetId={sa.id}
+                    typeId={asset.type?.id}
+                    subtypeId={asset.subtype_id}
+                  />
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4">
+                <QuickInspectionCard
+                  sessionAsset={sa}
+                  sessionId={sessionId!}
+                  onComplete={() => {}}
+                />
+              </AccordionContent>
+            </AccordionItem>
+          );
+        })}
+      </Accordion>
+
+      {sortedAssets.length === 0 && (
+        <Card>
+          <CardContent className="py-8 text-center">
+            <p className="text-muted-foreground">
+              {searchQuery ? t('common.noResults') : t('inspectionSessions.noAssetsInSession')}
+            </p>
+          </CardContent>
+        </Card>
+      )}
       
       {/* Add Asset Confirmation Dialog */}
       <AlertDialog open={showAddAssetDialog} onOpenChange={setShowAddAssetDialog}>
@@ -411,20 +431,12 @@ function SessionWorkspaceContent() {
           <AlertDialogHeader>
             <AlertDialogTitle>{t('inspectionSessions.addAssetToSession')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('inspectionSessions.confirmAddAsset', { 
-                code: pendingAssetToAdd?.code, 
-                name: pendingAssetToAdd?.name 
-              })}
+              {t('inspectionSessions.confirmAddAsset', { code: pendingAssetToAdd?.code, name: pendingAssetToAdd?.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setPendingAssetToAdd(null)}>
-              {t('common.cancel')}
-            </AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleAddAssetConfirm}
-              disabled={addAssetToSession.isPending}
-            >
+            <AlertDialogCancel onClick={() => setPendingAssetToAdd(null)}>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleAddAssetConfirm} disabled={addAssetToSession.isPending}>
               {addAssetToSession.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
               <Plus className="me-2 h-4 w-4" />
               {t('common.add')}

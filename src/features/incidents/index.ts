@@ -248,6 +248,7 @@ export {
   useUpdateFinding,
   useAddAssetToSession,
   useRefreshSessionAssets,
+  useSessionPartsProgress,
 } from './hooks/use-inspection-sessions';
 // Re-export types with explicit names to avoid collision
-export type { InspectionSession, SessionAsset, InspectionFinding, CreateSessionInput, RecordInspectionInput } from './hooks/use-inspection-sessions';
+export type { InspectionSession, SessionAsset, InspectionFinding, CreateSessionInput, RecordInspectionInput, SessionPartsProgress } from './hooks/use-inspection-sessions';
