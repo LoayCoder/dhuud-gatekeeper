@@ -83,8 +83,12 @@ export function useStartSession() {
             const { data: assets, error: assetsError } = await assetQuery;
             if (assetsError) throw assetsError;
 
-            // Insert all assets into session_assets
+            // Guard: zero assets means dead-end session
             const assetCount = assets?.length || 0;
+            if (assetCount === 0) {
+                throw new Error('No assets match the session scope. Add assets or adjust filters.');
+            }
+
             if (assets && assetCount > 0) {
                 const sessionAssets = assets.map(asset => ({
                     tenant_id: profile.tenant_id,
