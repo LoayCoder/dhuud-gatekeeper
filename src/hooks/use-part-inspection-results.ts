@@ -117,7 +117,8 @@ export function useSavePartInspectionResult() {
           }
         )
         .select()
-        .single();
+        .single()
+        .throwOnError();
 
       if (error) throw error;
       return data as AssetInspectionPartResult;
