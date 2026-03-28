@@ -109,7 +109,7 @@ export interface CreateSessionInput {
 
 export interface RecordInspectionInput {
     session_asset_id: string;
-    quick_result: 'good' | 'not_good' | 'not_accessible';
+    quick_result: 'good' | 'not_good' | 'not_accessible' | 'partial';
     failure_reason?: string | null;
     notes?: string | null;
     gps_lat?: number | null;
