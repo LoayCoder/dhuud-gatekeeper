@@ -1943,6 +1943,8 @@
     "result_good": "अच्छा",
     "result_not_good": "अच्छा नहीं",
     "result_not_accessible": "उपलब्ध नहीं",
+    "result_partial": "आंशिक",
+    "quickPartial": "आंशिक",
     "pending": "लंबित",
     "passed": "पास",
     "failed": "विफल",
