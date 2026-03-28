@@ -1929,7 +1929,7 @@ export type Database = {
             foreignKeyName: "asset_inspection_part_results_inspection_id_fkey"
             columns: ["inspection_id"]
             isOneToOne: false
-            referencedRelation: "asset_inspections"
+            referencedRelation: "inspection_session_assets"
             referencedColumns: ["id"]
           },
           {
