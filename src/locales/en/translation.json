@@ -5306,6 +5306,8 @@
     "result_good": "Good",
     "result_not_good": "Not Good",
     "result_not_accessible": "Not Accessible",
+    "result_partial": "Partial",
+    "quickPartial": "Partial",
     "pending": "Pending",
     "passed": "Passed",
     "failed": "Failed",

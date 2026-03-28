@@ -1938,6 +1938,8 @@
     "result_good": "Maganda",
     "result_not_good": "Hindi Maganda",
     "result_not_accessible": "Hindi Accessible",
+    "result_partial": "Partial",
+    "quickPartial": "Partial",
     "pending": "Pending",
     "passed": "Pumasa",
     "failed": "Bumagsak",

@@ -1943,6 +1943,8 @@
     "result_good": "اچھا",
     "result_not_good": "اچھا نہیں",
     "result_not_accessible": "دستیاب نہیں",
+    "result_partial": "جزوی",
+    "quickPartial": "جزوی",
     "pending": "زیر التوا",
     "passed": "کامیاب",
     "failed": "ناکام",

@@ -172,11 +172,12 @@ export function useCompleteSession() {
     return useMutation({
         mutationFn: async (sessionId: string) => {
             // Check if there are any failed items (which means open actions)
+            // Count failed items: both 'not_good' and 'partial' indicate issues
             const { data: failedCount } = await supabase
                 .from('inspection_session_assets')
                 .select('id', { count: 'exact', head: true })
                 .eq('session_id', sessionId)
-                .eq('quick_result', 'not_good');
+                .in('quick_result', ['not_good', 'partial']);
 
             const hasOpenActions = (failedCount as unknown as { count?: number })?.count ? (failedCount as unknown as { count: number }).count > 0 : false;
 

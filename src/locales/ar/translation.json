@@ -5497,6 +5497,8 @@
     "result_good": "جيد",
     "result_not_good": "غير جيد",
     "result_not_accessible": "غير متاح للوصول",
+    "result_partial": "جزئي",
+    "quickPartial": "جزئي",
     "pending": "معلق",
     "passed": "ناجح",
     "failed": "فاشل",

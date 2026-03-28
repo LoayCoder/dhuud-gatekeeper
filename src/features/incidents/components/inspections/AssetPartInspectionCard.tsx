@@ -4,9 +4,10 @@
  * Card component for inspecting individual parts of an asset during inspection.
  * Uses smart lookup to fetch parts from subtype if exists, otherwise from type.
  * Displays all defined parts with quick Pass/Fail/N/A toggles.
+ * Auto-derives overall condition from part results via onConditionChange callback.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   Cog, 
@@ -45,6 +46,8 @@ interface AssetPartInspectionCardProps {
   assetTypeName: string;
   assetTypeNameAr?: string | null;
   readOnly?: boolean;
+  /** Called when all parts are answered — derives 'good' or 'not_good' */
+  onConditionChange?: (condition: 'good' | 'not_good') => void;
 }
 
 interface PartRowProps {
@@ -196,12 +199,15 @@ export function AssetPartInspectionCard({
   assetTypeName,
   assetTypeNameAr,
   readOnly = false,
+  onConditionChange,
 }: AssetPartInspectionCardProps) {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.dir() === 'rtl';
   const [isExpanded, setIsExpanded] = useState(true);
   const [localResults, setLocalResults] = useState<Record<string, { result: PartInspectionResult; notes: string }>>({});
   const [savingPartId, setSavingPartId] = useState<string | null>(null);
+  // Track last derived condition to avoid duplicate callbacks
+  const lastDerivedRef = useRef<string | null>(null);
 
   const displayTypeName = isRTL && assetTypeNameAr ? assetTypeNameAr : assetTypeName;
 
@@ -224,12 +230,33 @@ export function AssetPartInspectionCard({
     }
   }, [existingResults]);
 
+  // Auto-derive overall condition when all parts are answered
+  const deriveCondition = (results: Record<string, { result: PartInspectionResult; notes: string }>) => {
+    if (!parts || parts.length === 0 || !onConditionChange) return;
+    
+    const answeredParts = parts.filter(p => results[p.id]?.result);
+    if (answeredParts.length < parts.length) return; // Not all parts answered yet
+    
+    const hasFail = answeredParts.some(p => results[p.id].result === 'fail');
+    const derived = hasFail ? 'not_good' : 'good';
+    
+    // Only fire callback if the derived value changed
+    if (lastDerivedRef.current !== derived) {
+      lastDerivedRef.current = derived;
+      onConditionChange(derived);
+    }
+  };
+
   const handleResultChange = async (partId: string, result: PartInspectionResult) => {
     // Optimistic update
-    setLocalResults((prev) => ({
-      ...prev,
-      [partId]: { ...prev[partId], result, notes: prev[partId]?.notes || '' },
-    }));
+    const newResults = {
+      ...localResults,
+      [partId]: { ...localResults[partId], result, notes: localResults[partId]?.notes || '' },
+    };
+    setLocalResults(newResults);
+
+    // Derive condition after update
+    deriveCondition(newResults);
 
     setSavingPartId(partId);
     try {
@@ -356,4 +383,3 @@ export function AssetPartInspectionCard({
     </Card>
   );
 }
-
