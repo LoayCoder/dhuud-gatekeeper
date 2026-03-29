@@ -162,7 +162,7 @@ export function useSessionAssetByAssetId(sessionId: string | undefined, assetId:
     });
 }
 
-// Hook: Get session progress stats
+// Hook: Get session progress stats — derived from inspection_session_assets (source of truth)
 export function useSessionProgress(sessionId: string | undefined) {
     return useQuery({
         queryKey: ['session-progress', sessionId],
@@ -170,16 +170,36 @@ export function useSessionProgress(sessionId: string | undefined) {
             if (!sessionId) return null;
 
             const { data, error } = await supabase
-                .from('inspection_sessions')
-                .select('total_assets, inspected_count, passed_count, failed_count, not_accessible_count, compliance_percentage')
-                .eq('id', sessionId)
-                .single();
+                .from('inspection_session_assets')
+                .select('quick_result')
+                .eq('session_id', sessionId);
 
             if (error) throw error;
-            return data;
+
+            const rows = data || [];
+            const total_assets = rows.length;
+            const inspected_count = rows.filter(r => r.quick_result !== null).length;
+            const passed_count = rows.filter(r => r.quick_result === 'good').length;
+            const failed_count = rows.filter(r => r.quick_result === 'not_good').length;
+            const not_accessible_count = rows.filter(r => r.quick_result === 'not_accessible').length;
+            const partial_count = rows.filter(r => r.quick_result === 'partial').length;
+
+            const denominator = passed_count + failed_count + partial_count;
+            const compliance_percentage = denominator > 0
+                ? Math.round((passed_count / denominator) * 100)
+                : null;
+
+            return {
+                total_assets,
+                inspected_count,
+                passed_count,
+                failed_count,
+                not_accessible_count,
+                compliance_percentage,
+            };
         },
         enabled: !!sessionId,
-        refetchInterval: 2000, // Poll every 2 seconds during active inspection
+        refetchInterval: 2000,
     });
 }
 

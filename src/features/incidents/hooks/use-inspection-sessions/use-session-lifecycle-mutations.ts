@@ -233,12 +233,47 @@ export function useRecordAssetInspection() {
             if (error) throw error;
             return data;
         },
-        onSuccess: (data) => {
+        onSuccess: async (data) => {
             // Get session_id from the returned data to invalidate correct queries
-            queryClient.invalidateQueries({ queryKey: ['session-assets', data.session_id] });
-            queryClient.invalidateQueries({ queryKey: ['session-assets-uninspected', data.session_id] });
-            queryClient.invalidateQueries({ queryKey: ['inspection-session', data.session_id] });
-            queryClient.invalidateQueries({ queryKey: ['session-progress', data.session_id] });
+            const sessionId = data.session_id;
+
+            // Sync session-level counters from inspection_session_assets
+            try {
+                const { data: rows } = await supabase
+                    .from('inspection_session_assets')
+                    .select('quick_result')
+                    .eq('session_id', sessionId);
+
+                if (rows) {
+                    const total = rows.length;
+                    const inspected = rows.filter(r => r.quick_result !== null).length;
+                    const passed = rows.filter(r => r.quick_result === 'good').length;
+                    const failed = rows.filter(r => r.quick_result === 'not_good').length;
+                    const notAccessible = rows.filter(r => r.quick_result === 'not_accessible').length;
+                    const partial = rows.filter(r => r.quick_result === 'partial').length;
+                    const denom = passed + failed + partial;
+
+                    await supabase
+                        .from('inspection_sessions')
+                        .update({
+                            total_assets: total,
+                            inspected_count: inspected,
+                            passed_count: passed,
+                            failed_count: failed,
+                            not_accessible_count: notAccessible,
+                            compliance_percentage: denom > 0 ? Math.round((passed / denom) * 100) : null,
+                            updated_at: new Date().toISOString(),
+                        })
+                        .eq('id', sessionId);
+                }
+            } catch (err) {
+                console.warn('[RecordInspection] Failed to sync session counters:', err);
+            }
+
+            queryClient.invalidateQueries({ queryKey: ['session-assets', sessionId] });
+            queryClient.invalidateQueries({ queryKey: ['session-assets-uninspected', sessionId] });
+            queryClient.invalidateQueries({ queryKey: ['inspection-session', sessionId] });
+            queryClient.invalidateQueries({ queryKey: ['session-progress', sessionId] });
         },
     });
 }

@@ -32,6 +32,7 @@ import {
   useStartSession,
   useSessionAssets,
   useSessionPartsProgress,
+  useSessionProgress as useAssetSessionProgress,
 } from '@/features/incidents';
 import {
   useAreaChecklistProgress,
@@ -106,7 +107,7 @@ function AreaSessionWorkspaceContent() {
   const executionMode = (session as any)?.execution_mode as string | null | undefined;
   const isAssetMode = executionMode === 'asset';
   const { data: allAssets = [] } = useSessionAssets(isAssetMode ? sessionId : undefined);
-  const { data: assetProgress } = useSessionProgress(isAssetMode ? sessionId : undefined);
+  const { data: assetProgress } = useAssetSessionProgress(isAssetMode ? sessionId : undefined);
   const { data: partsProgress } = useSessionPartsProgress(isAssetMode ? sessionId : undefined);
   
   const startSession = useStartSession();
@@ -251,7 +252,7 @@ function AreaSessionWorkspaceContent() {
   
   const isCompleted = session.status === 'completed_with_open_actions' || session.status === 'closed';
   const canComplete = isAssetMode
-    ? assetProgress && assetProgress.completed > 0 && assetProgress.completed === assetProgress.total
+    ? assetProgress && assetProgress.inspected_count > 0 && assetProgress.inspected_count === assetProgress.total_assets
     : progress && progress.responded === progress.total && progress.total > 0;
   
   // Parse attendees from session
@@ -380,12 +381,12 @@ function AreaSessionWorkspaceContent() {
             /* Asset-mode progress */
             assetProgress && (
               <SessionProgressCard
-                total={assetProgress.total}
-                inspected={assetProgress.completed}
-                passed={assetProgress.total} // Will be refined with actual counts
-                failed={0}
-                notAccessible={0}
-                compliancePercentage={assetProgress.percentage}
+                total={assetProgress.total_assets}
+                inspected={assetProgress.inspected_count}
+                passed={assetProgress.passed_count}
+                failed={assetProgress.failed_count}
+                notAccessible={assetProgress.not_accessible_count}
+                compliancePercentage={assetProgress.compliance_percentage}
                 partsProgress={partsProgress}
               />
             )
