@@ -1,43 +1,43 @@
 
 
-# Fix: PWA Update Pipeline — 4 Critical Issues
+# Fix: Auto-Derive Asset Condition from Part Inspection Results
 
-## Issues Found
+## What's wrong now
 
-### 1. Dual Service Worker registration (HIGH)
-`vite.config.ts` has `injectRegister: 'auto'`, which makes VitePWA inject its own SW registration script. But `src/lib/register-sw.ts` also manually registers `/sw.js?v=${appVersion}`. This means TWO registration attempts happen — the auto-injected one at a fixed URL (`/sw.js`) and the manual one with cache-busting (`/sw.js?v=...`). The auto-injected one wins first and defeats the cache-busting.
+The auto-derive logic already exists in the code (`QuickInspectionCard.tsx` and `AssetPartInspectionCard.tsx`), but it's broken because **every button click** (Good, Not Good, Partial, Not Accessible) sets `manualOverride = true`, which permanently disables auto-derivation after the first click. The auto-derive callback `onConditionChange` never fires after that.
 
-**Fix:** Change `injectRegister: 'auto'` → `injectRegister: false` in `vite.config.ts`. The manual registration in `register-sw.ts` already handles everything correctly.
+## What will change
 
-### 2. Two different localStorage keys for version tracking (MEDIUM)
-- `version-manager.ts` uses key `'app-version'`
-- `use-app-update-check.ts` uses key `'app-current-version'`
+### File: `QuickInspectionCard.tsx`
 
-They track the same thing but never see each other's writes. When version-manager detects an update and stores the new version in `'app-version'`, the update-check hook still reads `'app-current-version'` and may show a stale state (or vice versa).
+**1. Fix manualOverride triggers**
+- `handleGood` and the auto-derive callback → do NOT set `manualOverride` (these match what auto-derive would produce)
+- `handlePartial` and `handleNotAccessible` → set `manualOverride = true` (these are deliberate overrides)
+- `handleFailureSubmit` (Not Good with failure dialog) → do NOT set `manualOverride` (matches auto-derive output)
 
-**Fix:** Unify both to use `'app-current-version'` (the one the UI hook reads). Update `version-manager.ts` constant from `'app-version'` to `'app-current-version'`.
+**2. Allow auto-derive to clear manual override**
+- When `handleConditionChange` fires from parts, if `manualOverride` is false, save the derived result as today
+- Add a "reset override" behavior: clicking Good or Not Good buttons explicitly clears `manualOverride = false`, so subsequent part changes resume auto-derivation
 
-### 3. devOptions enabled in development (LOW-MEDIUM)
-`devOptions: { enabled: mode === 'development' }` activates a dev service worker inside the Lovable preview iframe, which can cause stale content and caching issues during development. Per Lovable's own PWA guidelines, this must be `false`.
+**3. Ensure Partial stays manual-only**
+- `onConditionChange` callback only produces `'good'` or `'not_good'` — never `'partial'`
+- Partial is only ever set by the user clicking the amber Partial button
 
-**Fix:** Change to `devOptions: { enabled: false }`.
+### File: `AssetPartInspectionCard.tsx`
 
-### 4. clearAllCaches nukes OneSignal (LOW)
-`version-manager.ts` line 93 unregisters ALL service workers including OneSignal's `OneSignalSDKWorker.js`. Push notifications break after any version update.
+No changes needed — the `deriveCondition` function already correctly derives `'good'` (all pass) or `'not_good'` (any fail) and fires `onConditionChange`.
 
-**Fix:** Add the same OneSignal guard used in `register-sw.ts` — skip unregistration if the SW URL contains `'OneSignalSDKWorker'`.
+## Resulting behavior
 
-## Files Changed
+| Scenario | Result |
+|----------|--------|
+| All 6 parts pass | Auto → **Good** |
+| Any part fails | Auto → **Not Good** |
+| User clicks Partial | Manual override → **Partial** (auto-derive stops) |
+| User clicks Good/Not Good after Partial | Clears override, auto-derive resumes |
+| User clicks Not Accessible | Manual override → **Not Accessible** |
 
-### `vite.config.ts` (2 changes)
-- Line 25: `injectRegister: 'auto'` → `injectRegister: false`
-- Line 79: `enabled: mode === 'development'` → `enabled: false`
+## Technical summary
 
-### `src/lib/version-manager.ts` (2 changes)
-- Line 7: `VERSION_STORAGE_KEY` from `'app-version'` → `'app-current-version'`
-- Lines 91-93: Add OneSignal guard before unregistering service workers
-
-## What this fixes for users
-
-After publishing, the versioned SW URL (`/sw.js?v=timestamp`) will actually take effect because VitePWA's auto-injected registration no longer races against it. The browser fetches the new SW, `skipWaiting` activates it, `controllerchange` fires, and the page auto-reloads with fresh content. No more stale cached builds.
+Only `QuickInspectionCard.tsx` is modified. The change is ~10 lines: removing `setManualOverride(true)` from `handleGood` and `handleFailureSubmit`, and adding `setManualOverride(false)` to those handlers so they re-enable auto-derivation.
 
