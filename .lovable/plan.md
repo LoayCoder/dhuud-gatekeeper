@@ -1,27 +1,47 @@
 
 
-# Verification: Asset Inspection Session Workspace — Already Complete
+# Fix: Backfill Missing Checklist Responses for Already-Started Area Sessions
 
-## Status
+## Root Cause
 
-All components and logic described in your UI specification are **already implemented** in the codebase. No code changes are needed.
+Session `9c865bff-...` was started **before** the area/audit branching fix was deployed. The old `useStartSession` code populated `inspection_session_assets` (the asset table) instead of `area_inspection_responses` (the checklist table). Result:
 
-## What's already built (confirmed by code review)
+- Template has **6 checklist items** → only **2 response rows** exist
+- `total_assets` is **58** (asset count) instead of **6** (checklist item count)
+- The UI shows nothing useful because the checklist data is incomplete
 
-| UI Element | File | Status |
-|---|---|---|
-| Top Header (back arrow, reference ID, status badge, template name, period, action buttons) | `SessionWorkspace.tsx` lines 256–307 | Done |
-| Progress Card (asset-level + parts-level bars, 2×2 stats grid, compliance badge) | `SessionProgressCard.tsx` + `useSessionPartsProgress` | Done |
-| Search Bar (filter by code, name, building) | `SessionWorkspace.tsx` lines 347–355 | Done |
-| Accordion Asset List (color-coded borders, result badges, parts count, uninspected sort to top) | `SessionWorkspace.tsx` lines 358–416 | Done |
-| QuickInspectionCard (asset info, result banner, 4 action buttons with h-16 touch targets) | `QuickInspectionCard.tsx` lines 158–264 | Done |
-| AssetPartInspectionCard (collapsible parts, Pass/Fail/NA toggles, criticality badges) | `AssetPartInspectionCard.tsx` | Done |
-| Auto-derive logic (all pass → Good, any fail → Not Good) | `QuickInspectionCard.tsx` lines 104–116 | Done |
-| Manual override (Partial/Not Accessible set override; Good/Not Good clear it) | `QuickInspectionCard.tsx` lines 29–66 | Done |
-| Session initialization branching (area vs asset) | `use-session-lifecycle-mutations.ts` lines 56–128 | Done |
-| `deleted_at` filter on area responses | `use-area-inspection-queries.ts` line 141 | Done |
+## Plan
 
-## Recommended next step
+### 1. Add a self-healing check in `AreaSessionWorkspace`
 
-Test the asset inspection flow end-to-end by creating a new **Asset** session for fire extinguishers and verifying all 56 assets appear with their 6 inspection parts each.
+When the page loads and the session is `in_progress`, compare the count of `area_inspection_responses` against `inspection_template_items`. If items are missing:
+
+- Insert the missing response rows (for template items that don't yet have a response)
+- Update `total_assets` on the session to match the template item count
+- Invalidate queries so the UI refreshes
+
+This runs once on mount, fixing any pre-existing sessions without requiring manual intervention.
+
+### 2. File changes
+
+| File | Change |
+|------|--------|
+| `src/hooks/use-area-inspections/use-area-inspection-mutations.ts` (or new hook file) | Add `useBackfillAreaResponses` mutation that inserts missing response rows and corrects `total_assets` |
+| `src/pages/inspections/AreaSessionWorkspace.tsx` | Call the backfill hook on mount when session is `in_progress` and response count < template item count |
+
+### 3. Backfill logic (pseudocode)
+
+```text
+1. Fetch template_items for session.template_id (where deleted_at IS NULL)
+2. Fetch existing response template_item_ids for this session
+3. Compute missing = template_items - existing_response_items
+4. If missing.length > 0:
+   a. INSERT missing rows into area_inspection_responses
+   b. UPDATE inspection_sessions SET total_assets = template_items.length
+   c. Invalidate queries
+```
+
+### 4. No database migration needed
+
+All tables already exist with the correct schema. This is purely a frontend data-repair mechanism.
 
