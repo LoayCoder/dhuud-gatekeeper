@@ -8,6 +8,9 @@ import { versionUpdatePlugin } from "./scripts/update-version";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  define: {
+    '__APP_VERSION__': JSON.stringify(Date.now().toString()),
+  },
   server: {
     host: "::",
     port: 8080,
