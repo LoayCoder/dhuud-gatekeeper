@@ -95,7 +95,9 @@ function AreaSessionWorkspaceContent() {
   const [completionMode, setCompletionMode] = useState<'complete' | 'close'>('complete');
   const [showSwipeMode, setShowSwipeMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  
+  const [showScanner, setShowScanner] = useState(false);
+  const [expandedAssetId, setExpandedAssetId] = useState<string | undefined>(undefined);
+  const assetRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const { data: session, isLoading: sessionLoading } = useInspectionSession(sessionId);
   const { data: progress } = useAreaChecklistProgress(sessionId);
   const { data: templateItems = [] } = useTemplateItems(session?.template_id);
