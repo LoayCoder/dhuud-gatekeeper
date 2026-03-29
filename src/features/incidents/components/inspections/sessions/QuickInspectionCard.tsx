@@ -27,7 +27,7 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
   if (!asset) return null;
   
   const handleGood = async () => {
-    setManualOverride(true);
+    setManualOverride(false);
     try {
       await recordInspection.mutateAsync({
         session_asset_id: sessionAsset.id,
