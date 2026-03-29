@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => ({
     // PWA Plugin with Workbox - simplified config
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
+      injectRegister: false,
       includeAssets: ['favicon.ico', 'placeholder.svg', 'sw-version.js'],
       workbox: {
         globPatterns: ['index.html'],
