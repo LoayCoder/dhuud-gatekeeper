@@ -227,6 +227,31 @@ function AreaSessionWorkspaceContent() {
       toast.error(error?.message || 'Error');
     }
   };
+
+  const handleScanResult = useCallback((scannedText: string) => {
+    const text = scannedText.trim().toLowerCase();
+    const match = allAssets.find((sa: any) => {
+      const asset = sa.asset;
+      if (!asset) return false;
+      return (
+        asset.asset_code?.toLowerCase() === text ||
+        asset.id?.toLowerCase() === text ||
+        sa.id?.toLowerCase() === text
+      );
+    });
+
+    if (match) {
+      setShowScanner(false);
+      setSearchQuery('');
+      setExpandedAssetId(match.id);
+      setTimeout(() => {
+        assetRefs.current[match.id]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+      toast.success(t('inspectionSessions.assetFound', 'Asset found'));
+    } else {
+      toast.error(t('inspectionSessions.assetNotInSession', 'Asset not found in this session'));
+    }
+  }, [allAssets, t]);
   
   if (sessionLoading) {
     return (
