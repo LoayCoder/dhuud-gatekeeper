@@ -52,48 +52,97 @@ export function useStartSession() {
             if (sessionError) throw sessionError;
 
             let totalCount = 0;
+            let executionMode: 'asset' | 'area' = 'area';
 
             if (session.session_type === 'area' || session.session_type === 'audit') {
-                // --- Area / Audit: pre-create response rows from template items ---
+                // --- Area / Audit: check for matching assets first ---
                 if (!session.template_id) {
                     throw new Error('Session has no template assigned.');
                 }
 
-                const { data: templateItems, error: itemsError } = await supabase
-                    .from('inspection_template_items')
-                    .select('id')
-                    .eq('template_id', session.template_id)
-                    .is('deleted_at', null)
-                    .order('sort_order');
-
-                if (itemsError) throw itemsError;
-
-                totalCount = templateItems?.length || 0;
-                if (totalCount === 0) {
-                    throw new Error('Template has no checklist items. Add items to the template first.');
-                }
-
-                // Insert one area_inspection_responses row per template item
-                const responseRows = templateItems!.map(item => ({
-                    tenant_id: profile.tenant_id,
-                    branch_id: session.branch_id || null,
-                    session_id: sessionId,
-                    template_item_id: item.id,
-                    result: null,
-                    response_value: null,
-                }));
-
-                const { error: insertError } = await supabase
-                    .from('area_inspection_responses')
-                    .insert(responseRows);
-
-                if (insertError) throw insertError;
-
-            } else {
-                // --- Asset: populate from live asset register ---
+                // Try to find matching assets for asset-based execution mode
                 let assetQuery = supabase
                     .from('hsse_assets')
-                    .select('id')
+                    .select('id, name, asset_code, building:buildings(name), type:asset_types(name)')
+                    .eq('tenant_id', profile.tenant_id)
+                    .is('deleted_at', null);
+
+                if (session.branch_id) assetQuery = assetQuery.eq('branch_id', session.branch_id);
+                if (session.site_id) assetQuery = assetQuery.eq('site_id', session.site_id);
+                if (session.building_id) assetQuery = assetQuery.eq('building_id', session.building_id);
+                if (session.floor_zone_id) assetQuery = assetQuery.eq('floor_zone_id', session.floor_zone_id);
+                if (session.category_id) assetQuery = assetQuery.eq('category_id', session.category_id);
+                if (session.type_id) assetQuery = assetQuery.eq('type_id', session.type_id);
+                if (session.subtype_id) assetQuery = assetQuery.eq('subtype_id', session.subtype_id);
+
+                const { data: matchingAssets } = await assetQuery;
+
+                if (matchingAssets && matchingAssets.length > 0) {
+                    // --- ASSET execution mode: per-asset checklists ---
+                    executionMode = 'asset';
+                    totalCount = matchingAssets.length;
+
+                    const sessionAssets = matchingAssets.map(asset => ({
+                        tenant_id: profile.tenant_id,
+                        branch_id: session.branch_id || null,
+                        session_id: sessionId,
+                        asset_id: asset.id,
+                        asset_name_snapshot: asset.name || null,
+                        asset_code_snapshot: asset.asset_code || null,
+                        asset_location_snapshot: (asset.building as any)?.name || null,
+                        asset_type_snapshot: (asset.type as any)?.name || null,
+                    }));
+
+                    const { error: insertError } = await supabase
+                        .from('inspection_session_assets')
+                        .insert(sessionAssets);
+
+                    if (insertError) throw insertError;
+
+                    console.log(`[StartSession] Asset mode: inserted ${totalCount} assets for area/audit session ${sessionId}`);
+                } else {
+                    // --- AREA execution mode: flat checklist ---
+                    executionMode = 'area';
+
+                    const { data: templateItems, error: itemsError } = await supabase
+                        .from('inspection_template_items')
+                        .select('id')
+                        .eq('template_id', session.template_id)
+                        .is('deleted_at', null)
+                        .order('sort_order');
+
+                    if (itemsError) throw itemsError;
+
+                    totalCount = templateItems?.length || 0;
+                    if (totalCount === 0) {
+                        throw new Error('Template has no checklist items. Add items to the template first.');
+                    }
+
+                    const responseRows = templateItems!.map(item => ({
+                        tenant_id: profile.tenant_id,
+                        branch_id: session.branch_id || null,
+                        session_id: sessionId,
+                        template_item_id: item.id,
+                        result: null,
+                        response_value: null,
+                    }));
+
+                    const { error: insertError } = await supabase
+                        .from('area_inspection_responses')
+                        .insert(responseRows);
+
+                    if (insertError) throw insertError;
+
+                    console.log(`[StartSession] Area mode: inserted ${totalCount} checklist responses for session ${sessionId}`);
+                }
+
+            } else {
+                // --- Asset session type: always asset mode ---
+                executionMode = 'asset';
+
+                let assetQuery = supabase
+                    .from('hsse_assets')
+                    .select('id, name, asset_code, building:buildings(name), type:asset_types(name)')
                     .eq('tenant_id', profile.tenant_id)
                     .is('deleted_at', null);
 
@@ -118,6 +167,10 @@ export function useStartSession() {
                     branch_id: session.branch_id || null,
                     session_id: sessionId,
                     asset_id: asset.id,
+                    asset_name_snapshot: asset.name || null,
+                    asset_code_snapshot: asset.asset_code || null,
+                    asset_location_snapshot: (asset.building as any)?.name || null,
+                    asset_type_snapshot: (asset.type as any)?.name || null,
                 }));
 
                 const { error: insertError } = await supabase
@@ -127,13 +180,14 @@ export function useStartSession() {
                 if (insertError) throw insertError;
             }
 
-            // Update session status to in_progress and set total count
+            // Update session status to in_progress and set total count + execution mode
             const { data, error } = await supabase
                 .from('inspection_sessions')
                 .update({
                     status: 'in_progress',
                     started_at: new Date().toISOString(),
                     total_assets: totalCount,
+                    execution_mode: executionMode,
                 })
                 .eq('id', sessionId)
                 .select()
@@ -146,6 +200,7 @@ export function useStartSession() {
             queryClient.invalidateQueries({ queryKey: ['inspection-sessions'] });
             queryClient.invalidateQueries({ queryKey: ['inspection-session', sessionId] });
             queryClient.invalidateQueries({ queryKey: ['session-assets', sessionId] });
+            queryClient.invalidateQueries({ queryKey: ['area-sessions'] });
         },
     });
 }
