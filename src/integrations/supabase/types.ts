@@ -12512,7 +12512,11 @@ export type Database = {
       }
       inspection_session_assets: {
         Row: {
+          asset_code_snapshot: string | null
           asset_id: string
+          asset_location_snapshot: string | null
+          asset_name_snapshot: string | null
+          asset_type_snapshot: string | null
           branch_id: string | null
           created_at: string | null
           failure_reason: string | null
@@ -12529,7 +12533,11 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          asset_code_snapshot?: string | null
           asset_id: string
+          asset_location_snapshot?: string | null
+          asset_name_snapshot?: string | null
+          asset_type_snapshot?: string | null
           branch_id?: string | null
           created_at?: string | null
           failure_reason?: string | null
@@ -12546,7 +12554,11 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          asset_code_snapshot?: string | null
           asset_id?: string
+          asset_location_snapshot?: string | null
+          asset_name_snapshot?: string | null
+          asset_type_snapshot?: string | null
           branch_id?: string | null
           created_at?: string | null
           failure_reason?: string | null
@@ -12620,6 +12632,7 @@ export type Database = {
           compliance_percentage: number | null
           created_at: string | null
           deleted_at: string | null
+          execution_mode: string | null
           failed_count: number | null
           floor_zone_id: string | null
           gps_boundary: Json | null
@@ -12657,6 +12670,7 @@ export type Database = {
           compliance_percentage?: number | null
           created_at?: string | null
           deleted_at?: string | null
+          execution_mode?: string | null
           failed_count?: number | null
           floor_zone_id?: string | null
           gps_boundary?: Json | null
@@ -12694,6 +12708,7 @@ export type Database = {
           compliance_percentage?: number | null
           created_at?: string | null
           deleted_at?: string | null
+          execution_mode?: string | null
           failed_count?: number | null
           floor_zone_id?: string | null
           gps_boundary?: Json | null
