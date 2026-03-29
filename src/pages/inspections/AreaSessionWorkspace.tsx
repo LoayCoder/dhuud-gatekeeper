@@ -107,7 +107,7 @@ function AreaSessionWorkspaceContent() {
   const executionMode = (session as any)?.execution_mode as string | null | undefined;
   const isAssetMode = executionMode === 'asset';
   const { data: allAssets = [] } = useSessionAssets(isAssetMode ? sessionId : undefined);
-  const { data: assetProgress } = useSessionProgress(isAssetMode ? sessionId : undefined);
+  const { data: assetProgress } = useAssetSessionProgress(isAssetMode ? sessionId : undefined);
   const { data: partsProgress } = useSessionPartsProgress(isAssetMode ? sessionId : undefined);
   
   const startSession = useStartSession();
