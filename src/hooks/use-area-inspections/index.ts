@@ -21,3 +21,5 @@ export {
     useCompleteAreaSession,
     useUpdateAreaSession,
 } from './use-area-inspection-mutations';
+
+export { useBackfillAreaResponses } from './use-backfill-area-responses';

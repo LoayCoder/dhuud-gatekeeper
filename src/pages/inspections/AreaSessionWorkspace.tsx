@@ -27,6 +27,7 @@ import {
   useAreaChecklistProgress,
   useAreaInspectionResponses,
   useAreaTemplate,
+  useBackfillAreaResponses,
 } from '@/hooks/use-area-inspections';
 import { useAreaFindingsCount } from '@/hooks/use-area-findings';
 import { useCanCloseSession, useCompleteAreaSession, useCloseAreaSession } from '@/hooks/use-session-lifecycle';
