@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { type SessionAsset, useRecordAssetInspection, useCreateFinding } from '@/features/incidents';
 import { FailureReasonDialog } from './FailureReasonDialog';
 import { AssetPartInspectionCard } from '@/features/incidents';
+import { cn } from '@/lib/utils';
 
 interface QuickInspectionCardProps {
   sessionAsset: SessionAsset;
@@ -116,37 +117,40 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
   }, [manualOverride, sessionAsset.id, recordInspection]);
   
   const isLoading = recordInspection.isPending || createFinding.isPending;
-  const isAlreadyInspected = sessionAsset.quick_result !== null;
+  const currentResult = sessionAsset.quick_result;
+  const isNotAccessible = currentResult === 'not_accessible';
 
   const getResultBadge = () => {
-    const result = sessionAsset.quick_result;
-    if (result === 'good') {
+    if (currentResult === 'good') {
       return (
-        <Badge variant="default" className="w-full justify-center py-2 bg-green-600">
+        <Badge variant="default" className="w-full justify-center py-2.5 text-sm bg-green-600 border-green-600">
           <CheckCircle className="me-2 h-4 w-4" />
           {t('inspectionSessions.result_good')}
+          {!manualOverride && <span className="ms-2 text-xs opacity-75">({t('common.auto', 'Auto')})</span>}
         </Badge>
       );
     }
-    if (result === 'not_good') {
+    if (currentResult === 'not_good') {
       return (
-        <Badge variant="destructive" className="w-full justify-center py-2">
+        <Badge variant="destructive" className="w-full justify-center py-2.5 text-sm">
           <XCircle className="me-2 h-4 w-4" />
           {t('inspectionSessions.result_not_good')}
+          {!manualOverride && <span className="ms-2 text-xs opacity-75">({t('common.auto', 'Auto')})</span>}
         </Badge>
       );
     }
-    if (result === 'partial') {
+    if (currentResult === 'partial') {
       return (
-        <Badge variant="outline" className="w-full justify-center py-2 bg-amber-500/15 text-amber-700 border-amber-500/40">
+        <Badge variant="outline" className="w-full justify-center py-2.5 text-sm bg-amber-500/15 text-amber-700 border-amber-500/40">
           <AlertTriangle className="me-2 h-4 w-4" />
           {t('inspectionSessions.result_partial', 'Partial')}
+          <span className="ms-2 text-xs opacity-75">({t('common.manual', 'Manual')})</span>
         </Badge>
       );
     }
-    if (result === 'not_accessible') {
+    if (currentResult === 'not_accessible') {
       return (
-        <Badge variant="secondary" className="w-full justify-center py-2">
+        <Badge variant="secondary" className="w-full justify-center py-2.5 text-sm">
           <Ban className="me-2 h-4 w-4" />
           {t('inspectionSessions.result_not_accessible')}
         </Badge>
@@ -154,6 +158,41 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
     }
     return null;
   };
+
+  const conditionButtons = [
+    {
+      key: 'good' as const,
+      icon: CheckCircle,
+      label: t('inspectionSessions.quickGood'),
+      onClick: handleGood,
+      selectedClasses: 'bg-green-600 hover:bg-green-700 text-white ring-2 ring-green-600 ring-offset-2',
+      unselectedClasses: 'text-green-700 border-green-300 hover:bg-green-50 dark:text-green-400 dark:border-green-700 dark:hover:bg-green-950',
+    },
+    {
+      key: 'not_good' as const,
+      icon: XCircle,
+      label: t('inspectionSessions.quickNotGood'),
+      onClick: () => setShowFailureDialog(true),
+      selectedClasses: 'bg-destructive hover:bg-destructive/90 text-destructive-foreground ring-2 ring-destructive ring-offset-2',
+      unselectedClasses: 'text-destructive border-destructive/30 hover:bg-destructive/5',
+    },
+    {
+      key: 'partial' as const,
+      icon: AlertTriangle,
+      label: t('inspectionSessions.quickPartial', 'Partial'),
+      onClick: handlePartial,
+      selectedClasses: 'bg-amber-500 hover:bg-amber-600 text-white ring-2 ring-amber-500 ring-offset-2',
+      unselectedClasses: 'text-amber-700 border-amber-300 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-700 dark:hover:bg-amber-950',
+    },
+    {
+      key: 'not_accessible' as const,
+      icon: Ban,
+      label: t('inspectionSessions.quickNotAccessible'),
+      onClick: handleNotAccessible,
+      selectedClasses: 'bg-muted-foreground hover:bg-muted-foreground/90 text-background ring-2 ring-muted-foreground ring-offset-2',
+      unselectedClasses: 'text-muted-foreground border-muted-foreground/30 hover:bg-muted/50',
+    },
+  ];
   
   return (
     <>
@@ -188,91 +227,67 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
               </div>
             )}
           </div>
-          
-          {/* Result Badge (when already inspected) */}
-          {isAlreadyInspected && (
-            <div className="pt-2">
+
+          {/* Result Badge — above buttons for immediate visibility */}
+          {currentResult && (
+            <div className="pt-1 animate-in fade-in duration-200">
               {getResultBadge()}
             </div>
           )}
 
-          {/* Quick Action Buttons — always visible so user can override */}
-          <div className="grid grid-cols-4 gap-2 pt-2">
-            <Button 
-              size="lg" 
-              className="h-16 flex-col gap-1 bg-green-600 hover:bg-green-700"
-              onClick={handleGood}
-              disabled={isLoading}
-              variant={sessionAsset.quick_result === 'good' ? 'default' : 'outline'}
-            >
-              {isLoading ? (
-                <Loader2 className="h-6 w-6 animate-spin" />
-              ) : (
-                <>
-                  <CheckCircle className="h-6 w-6" />
-                  <span className="text-xs">{t('inspectionSessions.quickGood')}</span>
-                </>
-              )}
-            </Button>
-            
-            <Button 
-              size="lg" 
-              variant={sessionAsset.quick_result === 'not_good' ? 'destructive' : 'outline'}
-              className="h-16 flex-col gap-1"
-              onClick={() => setShowFailureDialog(true)}
-              disabled={isLoading}
-            >
-              <XCircle className="h-6 w-6" />
-              <span className="text-xs">{t('inspectionSessions.quickNotGood')}</span>
-            </Button>
-
-            <Button 
-              size="lg" 
-              variant={sessionAsset.quick_result === 'partial' ? 'default' : 'outline'}
-              className={`h-16 flex-col gap-1 ${sessionAsset.quick_result === 'partial' ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'text-amber-700 border-amber-300 hover:bg-amber-50'}`}
-              onClick={handlePartial}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <Loader2 className="h-6 w-6 animate-spin" />
-              ) : (
-                <>
-                  <AlertTriangle className="h-6 w-6" />
-                  <span className="text-xs">{t('inspectionSessions.quickPartial', 'Partial')}</span>
-                </>
-              )}
-            </Button>
-            
-            <Button 
-              size="lg" 
-              variant={sessionAsset.quick_result === 'not_accessible' ? 'secondary' : 'outline'}
-              className="h-16 flex-col gap-1"
-              onClick={handleNotAccessible}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <Loader2 className="h-6 w-6 animate-spin" />
-              ) : (
-                <>
-                  <Ban className="h-6 w-6" />
-                  <span className="text-xs">{t('inspectionSessions.quickNotAccessible')}</span>
-                </>
-              )}
-            </Button>
+          {/* Quick Action Buttons */}
+          <div className="grid grid-cols-4 gap-2 pt-1">
+            {conditionButtons.map((btn) => {
+              const isSelected = currentResult === btn.key;
+              const Icon = btn.icon;
+              return (
+                <Button
+                  key={btn.key}
+                  type="button"
+                  variant="outline"
+                  className={cn(
+                    "h-16 min-h-[44px] flex-col gap-1 transition-all duration-200",
+                    isSelected ? btn.selectedClasses : btn.unselectedClasses,
+                  )}
+                  onClick={btn.onClick}
+                  disabled={isLoading}
+                >
+                  {isLoading && currentResult === btn.key ? (
+                    <Loader2 className="h-7 w-7 animate-spin" />
+                  ) : (
+                    <>
+                      <Icon className="h-7 w-7" />
+                      <span className="text-xs leading-tight text-center">{btn.label}</span>
+                    </>
+                  )}
+                </Button>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
 
       {/* Parts Inspection - only show if asset has a type */}
       {asset.type && sessionAsset.id && (
-        <div className="mt-4">
+        <div className={cn(
+          "mt-4 relative transition-opacity duration-200",
+          isNotAccessible && "opacity-50 pointer-events-none"
+        )}>
+          {isNotAccessible && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/60 rounded-lg">
+              <Badge variant="secondary" className="py-2 px-4 text-sm">
+                <Ban className="me-2 h-4 w-4" />
+                {t('inspectionSessions.notAccessibleDisabled', 'Asset not accessible — checklist disabled')}
+              </Badge>
+            </div>
+          )}
           <AssetPartInspectionCard
             inspectionId={sessionAsset.id}
             assetTypeId={asset.type?.id || ''}
             assetSubtypeId={asset.subtype_id || null}
             assetTypeName={asset.type?.name || ''}
             assetTypeNameAr={asset.type?.name_ar}
-            readOnly={false}
+            readOnly={isNotAccessible}
             onConditionChange={handleConditionChange}
           />
         </div>
