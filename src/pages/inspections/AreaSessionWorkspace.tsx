@@ -382,10 +382,10 @@ function AreaSessionWorkspaceContent() {
               <SessionProgressCard
                 total={assetProgress.total}
                 inspected={assetProgress.completed}
-                passed={assetProgress.total} // Will be refined with actual counts
-                failed={0}
-                notAccessible={0}
-                compliancePercentage={assetProgress.percentage}
+                passed={assetProgress.passed ?? 0}
+                failed={assetProgress.failed ?? 0}
+                notAccessible={assetProgress.notAccessible ?? 0}
+                compliancePercentage={assetProgress.compliance ?? null}
                 partsProgress={partsProgress}
               />
             )
