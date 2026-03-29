@@ -1,42 +1,27 @@
 
 
-# Fix: Both Area & Asset Inspection Session Types
+# Verification: Asset Inspection Session Workspace — Already Complete
 
-## Problems Identified
+## Status
 
-1. **`useStartSession` never branches on `session_type`** — It always queries `hsse_assets` and inserts into `inspection_session_assets`. For area/audit sessions, this either errors (0 matching assets) or does the wrong thing entirely. Area sessions need to pre-create `area_inspection_responses` rows from template items instead.
+All components and logic described in your UI specification are **already implemented** in the codebase. No code changes are needed.
 
-2. **Area progress query missing `deleted_at` filter** — `useAreaChecklistProgress` (line 140) queries `area_inspection_responses` without `.is('deleted_at', null)`, so soft-deleted responses inflate counts.
+## What's already built (confirmed by code review)
 
-3. **Session Status card shows infinite spinner** — The `SessionStatusCard` uses `closureStatus` which likely fails or returns null for sessions that weren't properly initialized, causing the loading spinner seen in the screenshot.
+| UI Element | File | Status |
+|---|---|---|
+| Top Header (back arrow, reference ID, status badge, template name, period, action buttons) | `SessionWorkspace.tsx` lines 256–307 | Done |
+| Progress Card (asset-level + parts-level bars, 2×2 stats grid, compliance badge) | `SessionProgressCard.tsx` + `useSessionPartsProgress` | Done |
+| Search Bar (filter by code, name, building) | `SessionWorkspace.tsx` lines 347–355 | Done |
+| Accordion Asset List (color-coded borders, result badges, parts count, uninspected sort to top) | `SessionWorkspace.tsx` lines 358–416 | Done |
+| QuickInspectionCard (asset info, result banner, 4 action buttons with h-16 touch targets) | `QuickInspectionCard.tsx` lines 158–264 | Done |
+| AssetPartInspectionCard (collapsible parts, Pass/Fail/NA toggles, criticality badges) | `AssetPartInspectionCard.tsx` | Done |
+| Auto-derive logic (all pass → Good, any fail → Not Good) | `QuickInspectionCard.tsx` lines 104–116 | Done |
+| Manual override (Partial/Not Accessible set override; Good/Not Good clear it) | `QuickInspectionCard.tsx` lines 29–66 | Done |
+| Session initialization branching (area vs asset) | `use-session-lifecycle-mutations.ts` lines 56–128 | Done |
+| `deleted_at` filter on area responses | `use-area-inspection-queries.ts` line 141 | Done |
 
-## Changes
+## Recommended next step
 
-### 1. `use-session-lifecycle-mutations.ts` — Branch `useStartSession` on `session_type`
-
-Add `session_type` and `template_id` to the session SELECT (line 48). Then:
-
-- **If `session_type === 'area'` or `'audit'`:**
-  - Fetch `inspection_template_items` for the session's `template_id`
-  - Insert one `area_inspection_responses` row per template item (with `result: null`)
-  - Set `total_assets` = number of checklist items
-  - Skip the `hsse_assets` query entirely
-
-- **If `session_type === 'asset'` (or default):**
-  - Keep existing asset-population logic unchanged
-
-### 2. `use-area-inspection-queries.ts` — Add `deleted_at` filter
-
-Line 140: Add `.is('deleted_at', null)` to the responses query in `useAreaChecklistProgress`.
-
-### 3. No UI changes needed
-
-Both `AreaSessionWorkspace` and `SessionWorkspace` are already correctly wired — they just need the backend initialization to work properly for each session type.
-
-## Files Modified
-
-| File | Change |
-|------|--------|
-| `src/features/incidents/hooks/use-inspection-sessions/use-session-lifecycle-mutations.ts` | Add `session_type` + `template_id` to query; branch area vs asset initialization |
-| `src/hooks/use-area-inspections/use-area-inspection-queries.ts` | Add `.is('deleted_at', null)` to responses query (line 140) |
+Test the asset inspection flow end-to-end by creating a new **Asset** session for fire extinguishers and verifying all 56 assets appear with their 6 inspection parts each.
 
