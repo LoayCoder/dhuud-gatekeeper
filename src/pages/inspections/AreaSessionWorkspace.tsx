@@ -615,6 +615,21 @@ function AreaSessionWorkspaceContent() {
               </CardContent>
             </Card>
           )}
+
+          {/* Mobile Scan FAB */}
+          <Button
+            size="lg"
+            className={cn(
+              'fixed bottom-20 z-50 rounded-full shadow-lg',
+              'h-14 w-14 p-0',
+              'sm:hidden',
+              direction === 'rtl' ? 'left-4' : 'right-4',
+            )}
+            onClick={() => setShowScanner(true)}
+          >
+            <QrCode className="h-6 w-6" />
+            <span className="sr-only">{t('inspectionSessions.scanAsset', 'Scan Asset')}</span>
+          </Button>
         </>
       )}
       
