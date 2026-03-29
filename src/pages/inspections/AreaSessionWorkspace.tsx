@@ -63,6 +63,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSessionProgress } from '@/hooks/use-inspection-sessions';
 import { usePartsForAsset } from '@/features/assets';
 import { usePartInspectionResults } from '@/hooks/use-part-inspection-results';
+import { ScannerDialog } from '@/components/ui/scanner-dialog';
 
 /** Inline component to show parts completion count for a session asset */
 function AssetPartsCount({ sessionAssetId, typeId, subtypeId }: { sessionAssetId: string; typeId?: string; subtypeId?: string | null }) {
