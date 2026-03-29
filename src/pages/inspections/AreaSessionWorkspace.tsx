@@ -601,6 +601,7 @@ function AreaSessionWorkspaceContent() {
                     />
                   </AccordionContent>
                 </AccordionItem>
+                </div>
               );
             })}
           </Accordion>
