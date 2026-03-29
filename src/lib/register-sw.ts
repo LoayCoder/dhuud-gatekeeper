@@ -23,11 +23,22 @@ export function registerServiceWorker() {
     return;
   }
 
-  // Production only: register service worker for push notifications and offline support
+  // Auto-reload when a new SW takes control (new build deployed)
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    refreshing = true;
+    logger.info('[SW] New version activated, reloading page...');
+    window.location.reload();
+  });
+
+  // Production only: register service worker with build-version cache-busting
   window.addEventListener('load', async () => {
     try {
-      const registration = await navigator.serviceWorker.register('/sw.js');
-      logger.info('SW registered:', registration.scope);
+      // @ts-expect-error - __APP_VERSION__ is injected by Vite at build time
+      const appVersion = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : Date.now().toString();
+      const registration = await navigator.serviceWorker.register(`/sw.js?v=${appVersion}`);
+      logger.info('[SW] Registered with version:', appVersion, 'scope:', registration.scope);
       
       // Register periodic background sync if supported and enabled
       await registerPeriodicSync(registration);
