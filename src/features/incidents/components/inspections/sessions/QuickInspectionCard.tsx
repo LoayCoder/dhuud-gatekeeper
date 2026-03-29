@@ -72,7 +72,7 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
     gps_lng?: number;
     photo_paths?: string[];
   }) => {
-    setManualOverride(true);
+    setManualOverride(false);
     try {
       await recordInspection.mutateAsync({
         session_asset_id: sessionAsset.id,
