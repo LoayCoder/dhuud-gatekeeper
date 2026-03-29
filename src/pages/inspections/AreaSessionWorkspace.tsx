@@ -27,6 +27,7 @@ import {
   useAreaChecklistProgress,
   useAreaInspectionResponses,
   useAreaTemplate,
+  useBackfillAreaResponses,
 } from '@/hooks/use-area-inspections';
 import { useAreaFindingsCount } from '@/hooks/use-area-findings';
 import { useCanCloseSession, useCompleteAreaSession, useCloseAreaSession } from '@/hooks/use-session-lifecycle';
@@ -72,6 +73,15 @@ function AreaSessionWorkspaceContent() {
   const reopenSession = useReopenAreaSession();
   const deleteSession = useDeleteSession();
   const { profile } = useAuth();
+  
+  // Self-healing: backfill missing checklist responses for sessions started before the fix
+  useBackfillAreaResponses(
+    sessionId,
+    session?.template_id,
+    session?.tenant_id,
+    session?.status,
+    (session as any)?.branch_id ?? null
+  );
   
   // Check if user can verify actions (for now, allow all authenticated users)
   // TODO: Implement proper HSSE role check when role structure is available
