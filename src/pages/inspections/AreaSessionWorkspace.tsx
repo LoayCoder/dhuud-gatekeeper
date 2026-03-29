@@ -502,19 +502,38 @@ function AreaSessionWorkspaceContent() {
       {/* ===== ASSET MODE: Asset Accordion ===== */}
       {isAssetMode && (
         <>
-          {/* Search Bar */}
-          <div className="relative">
-            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={t('inspectionSessions.searchAssets')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="ps-9"
-            />
+          {/* Search Bar + Scan Button */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={t('inspectionSessions.searchAssets')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="ps-9"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              className="shrink-0 h-10 w-10"
+              onClick={() => setShowScanner(true)}
+            >
+              <QrCode className="h-4 w-4" />
+            </Button>
           </div>
 
+          {/* Scanner Dialog */}
+          <ScannerDialog
+            open={showScanner}
+            onOpenChange={setShowScanner}
+            onScan={handleScanResult}
+            title={t('inspectionSessions.scanAsset', 'Scan Asset')}
+            description={t('inspectionSessions.scanAssetDescription', 'Scan QR code to find asset in session')}
+          />
+
           {/* Asset Accordion */}
-          <Accordion type="single" collapsible className="space-y-2">
+          <Accordion type="single" collapsible className="space-y-2" value={expandedAssetId} onValueChange={setExpandedAssetId}>
             {sortedAssets.map((sa: any) => {
               const asset = sa.asset;
               if (!asset) return null;
