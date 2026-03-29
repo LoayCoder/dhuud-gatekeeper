@@ -76,7 +76,7 @@ export default defineConfig(({ mode }) => ({
       },
       manifest: false,
       devOptions: {
-        enabled: mode === 'development',
+        enabled: false,
         type: 'module',
       },
     }),
