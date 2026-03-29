@@ -1,43 +1,42 @@
 
 
-# Fix: Auto-Derive Asset Condition from Part Inspection Results
+# Confirmation: Fire Extinguisher Inspection Flow — Fully Integrated
 
-## What's wrong now
+## Current State (Already Working)
 
-The auto-derive logic already exists in the code (`QuickInspectionCard.tsx` and `AssetPartInspectionCard.tsx`), but it's broken because **every button click** (Good, Not Good, Partial, Not Accessible) sets `manualOverride = true`, which permanently disables auto-derivation after the first click. The auto-derive callback `onConditionChange` never fires after that.
+The entire pipeline for inspecting 56 fire extinguishers with per-asset parts is already built and integrated across three modules:
 
-## What will change
+### 1. Asset Management → Inspection Templates
+- **Template editor** shows a "Matching Assets" preview panel that queries `hsse_assets` by the template's scope (Category: Fire Safety, Type: Fire Extinguisher, Site, Building, etc.)
+- Templates are filtered by `template_type` so asset sessions only see asset templates
 
-### File: `QuickInspectionCard.tsx`
+### 2. Session Creation → Asset Population
+- **CreateSessionDialog** shows matching asset count (e.g., "56") before the user starts
+- **useStartSession** queries `hsse_assets` with the full hierarchy filters (branch → site → building → category → type → subtype) and inserts one row per asset into `inspection_session_assets`
+- Session's `total_assets` is set to the matched count (56)
 
-**1. Fix manualOverride triggers**
-- `handleGood` and the auto-derive callback → do NOT set `manualOverride` (these match what auto-derive would produce)
-- `handlePartial` and `handleNotAccessible` → set `manualOverride = true` (these are deliberate overrides)
-- `handleFailureSubmit` (Not Good with failure dialog) → do NOT set `manualOverride` (matches auto-derive output)
+### 3. Session Workspace → Per-Asset Part Inspection
+- **SessionWorkspace** displays all 56 fire extinguishers in an accordion list
+- Each accordion item shows `QuickInspectionCard` with:
+  - 4 buttons: Good, Not Good, Partial (manual only), Not Accessible
+  - `AssetPartInspectionCard` that loads parts via `usePartsForAsset(typeId, subtypeId)` — e.g., 6 parts per fire extinguisher
+  - Parts completion badge (e.g., "3/6") on each accordion header
+- **Auto-derive logic** (just fixed): All parts pass → Good; any fail → Not Good; user can manually override to Partial
+- Part results stored in `asset_inspection_part_results` linked to `inspection_session_assets.id`
 
-**2. Allow auto-derive to clear manual override**
-- When `handleConditionChange` fires from parts, if `manualOverride` is false, save the derived result as today
-- Add a "reset override" behavior: clicking Good or Not Good buttons explicitly clears `manualOverride = false`, so subsequent part changes resume auto-derivation
+### 4. Progress Tracking
+- **SessionProgressCard** shows dual metrics:
+  - Asset-level: "12/56 inspected"
+  - Part-level: "48/336 parts completed" (via `useSessionPartsProgress`)
 
-**3. Ensure Partial stays manual-only**
-- `onConditionChange` callback only produces `'good'` or `'not_good'` — never `'partial'`
-- Partial is only ever set by the user clicking the amber Partial button
+## No Changes Needed
 
-### File: `AssetPartInspectionCard.tsx`
+The integration between Asset Management, Inspection Templates, and the Session Workspace is complete. The auto-derive condition logic was just fixed in the previous step. The 56 fire extinguishers will appear when:
+1. The `hsse_assets` table has 56 active fire extinguisher records matching the session's scope filters
+2. The session is created with the correct category/type/site filters
+3. The fire extinguisher type (or subtypes like Dry Powder, CO2) has inspection parts defined in `asset_type_parts`
 
-No changes needed — the `deriveCondition` function already correctly derives `'good'` (all pass) or `'not_good'` (any fail) and fires `onConditionChange`.
-
-## Resulting behavior
-
-| Scenario | Result |
-|----------|--------|
-| All 6 parts pass | Auto → **Good** |
-| Any part fails | Auto → **Not Good** |
-| User clicks Partial | Manual override → **Partial** (auto-derive stops) |
-| User clicks Good/Not Good after Partial | Clears override, auto-derive resumes |
-| User clicks Not Accessible | Manual override → **Not Accessible** |
-
-## Technical summary
-
-Only `QuickInspectionCard.tsx` is modified. The change is ~10 lines: removing `setManualOverride(true)` from `handleGood` and `handleFailureSubmit`, and adding `setManualOverride(false)` to those handlers so they re-enable auto-derivation.
+If you're seeing fewer than 56 assets in a specific session, verify:
+- The session's scope filters (branch, site, category, type) match where the assets are registered
+- The assets have `status = 'active'` and `deleted_at IS NULL`
 
