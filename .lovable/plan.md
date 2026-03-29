@@ -1,83 +1,58 @@
 
 
-# Enhance Asset Inspection UI & Logic
+# Fix Session Progress — Derive from Real Asset Data
 
-## Summary
-Improve the QuickInspectionCard and AssetPartInspectionCard components for a professional inspection-grade experience: better button layout, stacked part controls, inline comments, disabled state for "Not Accessible", and real-time condition sync.
+## Problem
+The progress card shows "0 of 7" instead of "5 of 58" because:
+1. `useSessionProgress` reads counter columns (`inspected_count`, `passed_count`, etc.) from `inspection_sessions` table — but these counters are **never updated** when assets are inspected
+2. `AreaSessionWorkspace` hardcodes `passed={assetProgress.total}`, `failed={0}`, `notAccessible={0}` as placeholders
+
+## Solution
+Compute progress metrics directly from `inspection_session_assets` rows (the actual source of truth) instead of relying on stale counter columns.
 
 ## Changes
 
-### 1. QuickInspectionCard — Condition Buttons Redesign
-**File:** `QuickInspectionCard.tsx`
+### 1. Replace `useSessionProgress` with asset-derived computation
+**File:** `src/features/incidents/hooks/use-inspection-sessions/use-inspection-session-queries.ts`
 
-- Keep existing 4 buttons (Good, Not Good, Partial, Not Accessible) but improve styling:
-  - Selected state: solid fill with white text + ring indicator
-  - Unselected state: subtle outline with colored icon/text
-  - Consistent icon sizing (h-7 w-7) and min touch target (44px)
-- When **Not Accessible** is selected, pass `readOnly={true}` to `AssetPartInspectionCard` and show a muted overlay message ("Asset not accessible — checklist disabled")
-- Move result badge above the buttons (currently below asset info) for immediate visibility
-- Add smooth CSS transition on selection (`transition-all duration-200`)
+Rewrite `useSessionProgress` to query `inspection_session_assets` directly:
+- `total` = count of all session assets
+- `inspected` = count where `quick_result IS NOT NULL`
+- `passed` = count where `quick_result = 'good'`
+- `failed` = count where `quick_result = 'not_good'`
+- `not_accessible` = count where `quick_result = 'not_accessible'`
+- `compliance_percentage` = `passed / (passed + failed) * 100` (exclude NA and not_accessible)
 
-### 2. AssetPartInspectionCard — Stacked Part Layout
-**File:** `AssetPartInspectionCard.tsx`
+Returns the same shape (`total_assets`, `inspected_count`, `passed_count`, `failed_count`, `not_accessible_count`, `compliance_percentage`) so existing consumers work unchanged.
 
-Current layout places Pass/Fail/NA/Comment buttons **beside** the part name. Change to **stacked**:
+### 2. Fix `AreaSessionWorkspace` to pass real data
+**File:** `src/pages/inspections/AreaSessionWorkspace.tsx`
 
-```text
-┌─────────────────────────────────┐
-│ Agent Rating        [Critical]  │
-│                                 │
-│  [ ✔ Pass ] [ ✖ Fail ] [ – NA ] [ 💬 ] │
-│                                 │
-│  (Comment textarea — if open)   │
-└─────────────────────────────────┘
+Replace the hardcoded placeholders at lines 382-390:
+```tsx
+// Before (broken):
+passed={assetProgress.total}  // ← wrong
+failed={0}                     // ← hardcoded
+notAccessible={0}              // ← hardcoded
+
+// After (real data):
+passed={assetProgress.passed_count}
+failed={assetProgress.failed_count}
+notAccessible={assetProgress.not_accessible_count}
 ```
 
-- Part name + badges on first row (full width)
-- Action buttons on second row below, wrapped in `flex gap-2`
-- Buttons: larger touch targets (`h-10 min-w-[60px]`) with labels always visible (remove `hidden sm:inline`)
-- Comment button: distinct from result buttons, positioned at end
-- Auto-expand notes field when **Fail** is selected on any part (per UX memory)
+### 3. Also update session counters on each inspection (sync back)
+**File:** `src/features/incidents/hooks/use-inspection-sessions/use-session-lifecycle-mutations.ts`
 
-### 3. Condition Sync — Auto-derive with Override
-**Files:** `QuickInspectionCard.tsx`, `AssetPartInspectionCard.tsx`
-
-Current logic already implements this correctly:
-- All pass → auto `good`
-- Any fail → auto `not_good`
-- Manual `partial`/`not_accessible` sets `manualOverride = true`, blocking auto-derive
-
-Enhancement:
-- When user clicks **Good** or **Not Good** manually after a manual override, reset `manualOverride = false` (already done)
-- Add visual indicator on the condition badge when auto-derived vs manually overridden (small "auto" or "manual" label)
-
-### 4. Disabled Checklist for Not Accessible
-**File:** `QuickInspectionCard.tsx`
-
-When `quick_result === 'not_accessible'`:
-- Pass `readOnly={true}` to `AssetPartInspectionCard`
-- Wrap parts card in `opacity-50 pointer-events-none` with a centered overlay message
-
-### 5. Visual Hierarchy — Color-coded Part Cards
-**File:** `AssetPartInspectionCard.tsx` (PartRow)
-
-Already partially implemented. Enhance:
-- **Pass**: Green left border (`border-s-4 border-s-green-500`) + subtle green bg
-- **Fail**: Red left border + subtle red bg
-- **Fail + Critical**: Red border all around + destructive bg (already done)
-- **NA**: Gray left border + muted bg
-- **Unanswered**: Default border, no color
-- Add entrance animation on result change (`animate-in fade-in`)
-
-### 6. Critical Fail → Auto Not Good
-Already implemented in `deriveCondition()`. No change needed — if any part fails (critical or not), condition becomes `not_good`. The Critical badge is visual emphasis only.
+In `useRecordAssetInspection.onSuccess`, after invalidating queries, also update the session-level counters by aggregating from `inspection_session_assets`. This keeps the `inspection_sessions` table in sync for dashboards and reports.
 
 ## Files Modified
 | File | Change |
 |------|--------|
-| `QuickInspectionCard.tsx` | Improved button styling, selected states, disabled checklist on Not Accessible, transition animations |
-| `AssetPartInspectionCard.tsx` | Stacked layout for part rows, larger touch targets, auto-expand notes on Fail, enhanced color borders |
+| `use-inspection-session-queries.ts` | Rewrite `useSessionProgress` to derive metrics from `inspection_session_assets` |
+| `AreaSessionWorkspace.tsx` | Use real progress fields instead of hardcoded values |
+| `use-session-lifecycle-mutations.ts` | Sync session counters after each inspection |
 
 ## No Schema Changes
-All data fields already exist: `session_id`, `asset_id`, `part_id`, `result`, `notes`, `quick_result` (with `partial` value). No migration needed.
+All required columns already exist on both tables.
 
