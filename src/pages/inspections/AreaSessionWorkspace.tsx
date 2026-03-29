@@ -32,6 +32,7 @@ import {
   useStartSession,
   useSessionAssets,
   useSessionPartsProgress,
+  useSessionProgress as useAssetSessionProgress,
 } from '@/features/incidents';
 import {
   useAreaChecklistProgress,
