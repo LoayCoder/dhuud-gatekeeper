@@ -1,58 +1,47 @@
 
 
-# Fix Session Progress — Derive from Real Asset Data
+# Add QR/Barcode Scanning to Area Session Workspace (Asset Mode)
 
 ## Problem
-The progress card shows "0 of 7" instead of "5 of 58" because:
-1. `useSessionProgress` reads counter columns (`inspected_count`, `passed_count`, etc.) from `inspection_sessions` table — but these counters are **never updated** when assets are inspected
-2. `AreaSessionWorkspace` hardcodes `passed={assetProgress.total}`, `failed={0}`, `notAccessible={0}` as placeholders
+The AreaSessionWorkspace in asset mode shows 58 fire extinguishers in an accordion, but there's no scanning option to quickly locate and open a specific asset. Users must scroll/search manually — impractical in the field.
 
 ## Solution
-Compute progress metrics directly from `inspection_session_assets` rows (the actual source of truth) instead of relying on stale counter columns.
+Add a **Scan QR** button next to the search bar that opens a scanner dialog. When an asset code is scanned, auto-expand the matching accordion item and scroll to it.
 
 ## Changes
 
-### 1. Replace `useSessionProgress` with asset-derived computation
-**File:** `src/features/incidents/hooks/use-inspection-sessions/use-inspection-session-queries.ts`
-
-Rewrite `useSessionProgress` to query `inspection_session_assets` directly:
-- `total` = count of all session assets
-- `inspected` = count where `quick_result IS NOT NULL`
-- `passed` = count where `quick_result = 'good'`
-- `failed` = count where `quick_result = 'not_good'`
-- `not_accessible` = count where `quick_result = 'not_accessible'`
-- `compliance_percentage` = `passed / (passed + failed) * 100` (exclude NA and not_accessible)
-
-Returns the same shape (`total_assets`, `inspected_count`, `passed_count`, `failed_count`, `not_accessible_count`, `compliance_percentage`) so existing consumers work unchanged.
-
-### 2. Fix `AreaSessionWorkspace` to pass real data
+### 1. Add Scan Button + Dialog to AreaSessionWorkspace
 **File:** `src/pages/inspections/AreaSessionWorkspace.tsx`
 
-Replace the hardcoded placeholders at lines 382-390:
-```tsx
-// Before (broken):
-passed={assetProgress.total}  // ← wrong
-failed={0}                     // ← hardcoded
-notAccessible={0}              // ← hardcoded
+- Import `QrCode` icon, `Dialog`/`DialogContent`/`DialogHeader`/`DialogTitle`, and `AssetQRScanner` from `@/features/assets`
+- Add state: `showScanner` (boolean)
+- Next to the search `Input` (line ~478), add a scan button:
+  ```tsx
+  <Button variant="outline" size="icon" onClick={() => setShowScanner(true)}>
+    <QrCode className="h-4 w-4" />
+  </Button>
+  ```
+- Add scanner dialog that uses `AssetQRScanner` or `ScannerDialog`
+- On scan success: match scanned code against `sessionAssets` by `asset.asset_code`, set the accordion value to the matching `sa.id`, and scroll it into view
+- If no match found, show a toast: "Asset not found in this session"
 
-// After (real data):
-passed={assetProgress.passed_count}
-failed={assetProgress.failed_count}
-notAccessible={assetProgress.not_accessible_count}
-```
+### 2. Convert Accordion to controlled mode
+**File:** `src/pages/inspections/AreaSessionWorkspace.tsx`
 
-### 3. Also update session counters on each inspection (sync back)
-**File:** `src/features/incidents/hooks/use-inspection-sessions/use-session-lifecycle-mutations.ts`
+- Add state: `expandedAssetId` (string)
+- Change `<Accordion type="single" collapsible>` to use `value={expandedAssetId}` and `onValueChange={setExpandedAssetId}`
+- On scan match, set `expandedAssetId` to the matched session asset ID and use `scrollIntoView`
 
-In `useRecordAssetInspection.onSuccess`, after invalidating queries, also update the session-level counters by aggregating from `inspection_session_assets`. This keeps the `inspection_sessions` table in sync for dashboards and reports.
+### 3. Add ScanFAB for mobile
+**File:** `src/pages/inspections/AreaSessionWorkspace.tsx`
+
+- Import `ScanFAB` from `@/features/assets` — but repurpose for session context (open the same scanner dialog instead of navigating away)
+- Or: add a floating scan button visible on mobile (`sm:hidden`, fixed bottom-right) that opens the same scanner dialog
 
 ## Files Modified
 | File | Change |
 |------|--------|
-| `use-inspection-session-queries.ts` | Rewrite `useSessionProgress` to derive metrics from `inspection_session_assets` |
-| `AreaSessionWorkspace.tsx` | Use real progress fields instead of hardcoded values |
-| `use-session-lifecycle-mutations.ts` | Sync session counters after each inspection |
+| `AreaSessionWorkspace.tsx` | Add scan button, scanner dialog, controlled accordion, scroll-to-asset on scan, mobile FAB |
 
 ## No Schema Changes
-All required columns already exist on both tables.
 
