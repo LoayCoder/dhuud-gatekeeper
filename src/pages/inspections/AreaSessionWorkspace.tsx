@@ -251,7 +251,7 @@ function AreaSessionWorkspaceContent() {
   
   const isCompleted = session.status === 'completed_with_open_actions' || session.status === 'closed';
   const canComplete = isAssetMode
-    ? assetProgress && assetProgress.completed > 0 && assetProgress.completed === assetProgress.total
+    ? assetProgress && assetProgress.inspected_count > 0 && assetProgress.inspected_count === assetProgress.total_assets
     : progress && progress.responded === progress.total && progress.total > 0;
   
   // Parse attendees from session
