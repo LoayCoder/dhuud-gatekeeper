@@ -1,42 +1,42 @@
 
 
-# Confirmation: Fire Extinguisher Inspection Flow — Fully Integrated
+# Fix: Both Area & Asset Inspection Session Types
 
-## Current State (Already Working)
+## Problems Identified
 
-The entire pipeline for inspecting 56 fire extinguishers with per-asset parts is already built and integrated across three modules:
+1. **`useStartSession` never branches on `session_type`** — It always queries `hsse_assets` and inserts into `inspection_session_assets`. For area/audit sessions, this either errors (0 matching assets) or does the wrong thing entirely. Area sessions need to pre-create `area_inspection_responses` rows from template items instead.
 
-### 1. Asset Management → Inspection Templates
-- **Template editor** shows a "Matching Assets" preview panel that queries `hsse_assets` by the template's scope (Category: Fire Safety, Type: Fire Extinguisher, Site, Building, etc.)
-- Templates are filtered by `template_type` so asset sessions only see asset templates
+2. **Area progress query missing `deleted_at` filter** — `useAreaChecklistProgress` (line 140) queries `area_inspection_responses` without `.is('deleted_at', null)`, so soft-deleted responses inflate counts.
 
-### 2. Session Creation → Asset Population
-- **CreateSessionDialog** shows matching asset count (e.g., "56") before the user starts
-- **useStartSession** queries `hsse_assets` with the full hierarchy filters (branch → site → building → category → type → subtype) and inserts one row per asset into `inspection_session_assets`
-- Session's `total_assets` is set to the matched count (56)
+3. **Session Status card shows infinite spinner** — The `SessionStatusCard` uses `closureStatus` which likely fails or returns null for sessions that weren't properly initialized, causing the loading spinner seen in the screenshot.
 
-### 3. Session Workspace → Per-Asset Part Inspection
-- **SessionWorkspace** displays all 56 fire extinguishers in an accordion list
-- Each accordion item shows `QuickInspectionCard` with:
-  - 4 buttons: Good, Not Good, Partial (manual only), Not Accessible
-  - `AssetPartInspectionCard` that loads parts via `usePartsForAsset(typeId, subtypeId)` — e.g., 6 parts per fire extinguisher
-  - Parts completion badge (e.g., "3/6") on each accordion header
-- **Auto-derive logic** (just fixed): All parts pass → Good; any fail → Not Good; user can manually override to Partial
-- Part results stored in `asset_inspection_part_results` linked to `inspection_session_assets.id`
+## Changes
 
-### 4. Progress Tracking
-- **SessionProgressCard** shows dual metrics:
-  - Asset-level: "12/56 inspected"
-  - Part-level: "48/336 parts completed" (via `useSessionPartsProgress`)
+### 1. `use-session-lifecycle-mutations.ts` — Branch `useStartSession` on `session_type`
 
-## No Changes Needed
+Add `session_type` and `template_id` to the session SELECT (line 48). Then:
 
-The integration between Asset Management, Inspection Templates, and the Session Workspace is complete. The auto-derive condition logic was just fixed in the previous step. The 56 fire extinguishers will appear when:
-1. The `hsse_assets` table has 56 active fire extinguisher records matching the session's scope filters
-2. The session is created with the correct category/type/site filters
-3. The fire extinguisher type (or subtypes like Dry Powder, CO2) has inspection parts defined in `asset_type_parts`
+- **If `session_type === 'area'` or `'audit'`:**
+  - Fetch `inspection_template_items` for the session's `template_id`
+  - Insert one `area_inspection_responses` row per template item (with `result: null`)
+  - Set `total_assets` = number of checklist items
+  - Skip the `hsse_assets` query entirely
 
-If you're seeing fewer than 56 assets in a specific session, verify:
-- The session's scope filters (branch, site, category, type) match where the assets are registered
-- The assets have `status = 'active'` and `deleted_at IS NULL`
+- **If `session_type === 'asset'` (or default):**
+  - Keep existing asset-population logic unchanged
+
+### 2. `use-area-inspection-queries.ts` — Add `deleted_at` filter
+
+Line 140: Add `.is('deleted_at', null)` to the responses query in `useAreaChecklistProgress`.
+
+### 3. No UI changes needed
+
+Both `AreaSessionWorkspace` and `SessionWorkspace` are already correctly wired — they just need the backend initialization to work properly for each session type.
+
+## Files Modified
+
+| File | Change |
+|------|--------|
+| `src/features/incidents/hooks/use-inspection-sessions/use-session-lifecycle-mutations.ts` | Add `session_type` + `template_id` to query; branch area vs asset initialization |
+| `src/hooks/use-area-inspections/use-area-inspection-queries.ts` | Add `.is('deleted_at', null)` to responses query (line 140) |
 
