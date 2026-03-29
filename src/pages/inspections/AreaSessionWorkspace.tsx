@@ -549,7 +549,8 @@ function AreaSessionWorkspaceContent() {
                       : '';
 
               return (
-                <AccordionItem key={sa.id} value={sa.id} className={cn("border rounded-lg px-0", resultColor)}>
+                <div key={sa.id} ref={(el) => { assetRefs.current[sa.id] = el; }}>
+                <AccordionItem value={sa.id} className={cn("border rounded-lg px-0", resultColor)}>
                   <AccordionTrigger className="px-4 py-3 hover:no-underline">
                     <div className="flex flex-1 items-center justify-between me-2">
                       <div className="flex flex-col items-start gap-0.5">
