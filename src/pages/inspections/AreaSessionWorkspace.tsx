@@ -80,7 +80,7 @@ function AreaSessionWorkspaceContent() {
     session?.template_id,
     session?.tenant_id,
     session?.status,
-    session?.branch_id ?? null
+    (session as any)?.branch_id ?? null
   );
   
   // Check if user can verify actions (for now, allow all authenticated users)
