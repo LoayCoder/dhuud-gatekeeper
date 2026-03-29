@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Pencil, Trash2, MapPin, Cloud, Users, Zap, AlertTriangle, Search, CheckCircle, XCircle, Ban, Cog } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, MapPin, Cloud, Users, Zap, AlertTriangle, Search, CheckCircle, XCircle, Ban, Cog, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -63,6 +63,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSessionProgress } from '@/hooks/use-inspection-sessions';
 import { usePartsForAsset } from '@/features/assets';
 import { usePartInspectionResults } from '@/hooks/use-part-inspection-results';
+import { ScannerDialog } from '@/components/ui/scanner-dialog';
 
 /** Inline component to show parts completion count for a session asset */
 function AssetPartsCount({ sessionAssetId, typeId, subtypeId }: { sessionAssetId: string; typeId?: string; subtypeId?: string | null }) {
@@ -94,7 +95,9 @@ function AreaSessionWorkspaceContent() {
   const [completionMode, setCompletionMode] = useState<'complete' | 'close'>('complete');
   const [showSwipeMode, setShowSwipeMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  
+  const [showScanner, setShowScanner] = useState(false);
+  const [expandedAssetId, setExpandedAssetId] = useState<string | undefined>(undefined);
+  const assetRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const { data: session, isLoading: sessionLoading } = useInspectionSession(sessionId);
   const { data: progress } = useAreaChecklistProgress(sessionId);
   const { data: templateItems = [] } = useTemplateItems(session?.template_id);
@@ -224,6 +227,31 @@ function AreaSessionWorkspaceContent() {
       toast.error(error?.message || 'Error');
     }
   };
+
+  const handleScanResult = useCallback((scannedText: string) => {
+    const text = scannedText.trim().toLowerCase();
+    const match = allAssets.find((sa: any) => {
+      const asset = sa.asset;
+      if (!asset) return false;
+      return (
+        asset.asset_code?.toLowerCase() === text ||
+        asset.id?.toLowerCase() === text ||
+        sa.id?.toLowerCase() === text
+      );
+    });
+
+    if (match) {
+      setShowScanner(false);
+      setSearchQuery('');
+      setExpandedAssetId(match.id);
+      setTimeout(() => {
+        assetRefs.current[match.id]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+      toast.success(t('inspectionSessions.assetFound', 'Asset found'));
+    } else {
+      toast.error(t('inspectionSessions.assetNotInSession', 'Asset not found in this session'));
+    }
+  }, [allAssets, t]);
   
   if (sessionLoading) {
     return (
@@ -474,19 +502,38 @@ function AreaSessionWorkspaceContent() {
       {/* ===== ASSET MODE: Asset Accordion ===== */}
       {isAssetMode && (
         <>
-          {/* Search Bar */}
-          <div className="relative">
-            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={t('inspectionSessions.searchAssets')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="ps-9"
-            />
+          {/* Search Bar + Scan Button */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={t('inspectionSessions.searchAssets')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="ps-9"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              className="shrink-0 h-10 w-10"
+              onClick={() => setShowScanner(true)}
+            >
+              <QrCode className="h-4 w-4" />
+            </Button>
           </div>
 
+          {/* Scanner Dialog */}
+          <ScannerDialog
+            open={showScanner}
+            onOpenChange={setShowScanner}
+            onScan={handleScanResult}
+            title={t('inspectionSessions.scanAsset', 'Scan Asset')}
+            description={t('inspectionSessions.scanAssetDescription', 'Scan QR code to find asset in session')}
+          />
+
           {/* Asset Accordion */}
-          <Accordion type="single" collapsible className="space-y-2">
+          <Accordion type="single" collapsible className="space-y-2" value={expandedAssetId} onValueChange={setExpandedAssetId}>
             {sortedAssets.map((sa: any) => {
               const asset = sa.asset;
               if (!asset) return null;
@@ -502,7 +549,8 @@ function AreaSessionWorkspaceContent() {
                       : '';
 
               return (
-                <AccordionItem key={sa.id} value={sa.id} className={cn("border rounded-lg px-0", resultColor)}>
+                <div key={sa.id} ref={(el) => { assetRefs.current[sa.id] = el; }}>
+                <AccordionItem value={sa.id} className={cn("border rounded-lg px-0", resultColor)}>
                   <AccordionTrigger className="px-4 py-3 hover:no-underline">
                     <div className="flex flex-1 items-center justify-between me-2">
                       <div className="flex flex-col items-start gap-0.5">
@@ -553,6 +601,7 @@ function AreaSessionWorkspaceContent() {
                     />
                   </AccordionContent>
                 </AccordionItem>
+                </div>
               );
             })}
           </Accordion>
@@ -566,6 +615,21 @@ function AreaSessionWorkspaceContent() {
               </CardContent>
             </Card>
           )}
+
+          {/* Mobile Scan FAB */}
+          <Button
+            size="lg"
+            className={cn(
+              'fixed bottom-20 z-50 rounded-full shadow-lg',
+              'h-14 w-14 p-0',
+              'sm:hidden',
+              direction === 'rtl' ? 'left-4' : 'right-4',
+            )}
+            onClick={() => setShowScanner(true)}
+          >
+            <QrCode className="h-6 w-6" />
+            <span className="sr-only">{t('inspectionSessions.scanAsset', 'Scan Asset')}</span>
+          </Button>
         </>
       )}
       
