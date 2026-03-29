@@ -42,55 +42,78 @@ export function useStartSession() {
         mutationFn: async (sessionId: string) => {
             if (!profile?.tenant_id) throw new Error('Not authenticated');
 
-            // Get session details to know filters
+            // Get session details to know filters and session type
             const { data: session, error: sessionError } = await supabase
                 .from('inspection_sessions')
-                .select('id, tenant_id, branch_id, site_id, building_id, floor_zone_id, category_id, type_id, subtype_id')
+                .select('id, tenant_id, session_type, template_id, branch_id, site_id, building_id, floor_zone_id, category_id, type_id, subtype_id')
                 .eq('id', sessionId)
                 .single();
 
             if (sessionError) throw sessionError;
 
-            // Build asset query based on session filters (full hierarchy)
-            let assetQuery = supabase
-                .from('hsse_assets')
-                .select('id')
-                .eq('tenant_id', profile.tenant_id)
-                .is('deleted_at', null);
+            let totalCount = 0;
 
-            if (session.branch_id) {
-                assetQuery = assetQuery.eq('branch_id', session.branch_id);
-            }
-            if (session.site_id) {
-                assetQuery = assetQuery.eq('site_id', session.site_id);
-            }
-            if (session.building_id) {
-                assetQuery = assetQuery.eq('building_id', session.building_id);
-            }
-            if (session.floor_zone_id) {
-                assetQuery = assetQuery.eq('floor_zone_id', session.floor_zone_id);
-            }
-            if (session.category_id) {
-                assetQuery = assetQuery.eq('category_id', session.category_id);
-            }
-            if (session.type_id) {
-                assetQuery = assetQuery.eq('type_id', session.type_id);
-            }
-            if (session.subtype_id) {
-                assetQuery = assetQuery.eq('subtype_id', session.subtype_id);
-            }
+            if (session.session_type === 'area' || session.session_type === 'audit') {
+                // --- Area / Audit: pre-create response rows from template items ---
+                if (!session.template_id) {
+                    throw new Error('Session has no template assigned.');
+                }
 
-            const { data: assets, error: assetsError } = await assetQuery;
-            if (assetsError) throw assetsError;
+                const { data: templateItems, error: itemsError } = await supabase
+                    .from('inspection_template_items')
+                    .select('id')
+                    .eq('template_id', session.template_id)
+                    .is('deleted_at', null)
+                    .order('sort_order');
 
-            // Guard: zero assets means dead-end session
-            const assetCount = assets?.length || 0;
-            if (assetCount === 0) {
-                throw new Error('No assets match the session scope. Add assets or adjust filters.');
-            }
+                if (itemsError) throw itemsError;
 
-            if (assets && assetCount > 0) {
-                const sessionAssets = assets.map(asset => ({
+                totalCount = templateItems?.length || 0;
+                if (totalCount === 0) {
+                    throw new Error('Template has no checklist items. Add items to the template first.');
+                }
+
+                // Insert one area_inspection_responses row per template item
+                const responseRows = templateItems!.map(item => ({
+                    tenant_id: profile.tenant_id,
+                    branch_id: session.branch_id || null,
+                    session_id: sessionId,
+                    template_item_id: item.id,
+                    result: null,
+                    response_value: null,
+                }));
+
+                const { error: insertError } = await supabase
+                    .from('area_inspection_responses')
+                    .insert(responseRows);
+
+                if (insertError) throw insertError;
+
+            } else {
+                // --- Asset: populate from live asset register ---
+                let assetQuery = supabase
+                    .from('hsse_assets')
+                    .select('id')
+                    .eq('tenant_id', profile.tenant_id)
+                    .is('deleted_at', null);
+
+                if (session.branch_id) assetQuery = assetQuery.eq('branch_id', session.branch_id);
+                if (session.site_id) assetQuery = assetQuery.eq('site_id', session.site_id);
+                if (session.building_id) assetQuery = assetQuery.eq('building_id', session.building_id);
+                if (session.floor_zone_id) assetQuery = assetQuery.eq('floor_zone_id', session.floor_zone_id);
+                if (session.category_id) assetQuery = assetQuery.eq('category_id', session.category_id);
+                if (session.type_id) assetQuery = assetQuery.eq('type_id', session.type_id);
+                if (session.subtype_id) assetQuery = assetQuery.eq('subtype_id', session.subtype_id);
+
+                const { data: assets, error: assetsError } = await assetQuery;
+                if (assetsError) throw assetsError;
+
+                totalCount = assets?.length || 0;
+                if (totalCount === 0) {
+                    throw new Error('No assets match the session scope. Add assets or adjust filters.');
+                }
+
+                const sessionAssets = assets!.map(asset => ({
                     tenant_id: profile.tenant_id,
                     branch_id: session.branch_id || null,
                     session_id: sessionId,
@@ -104,13 +127,13 @@ export function useStartSession() {
                 if (insertError) throw insertError;
             }
 
-            // Update session status to in_progress and set total_assets count
+            // Update session status to in_progress and set total count
             const { data, error } = await supabase
                 .from('inspection_sessions')
                 .update({
                     status: 'in_progress',
                     started_at: new Date().toISOString(),
-                    total_assets: assetCount,
+                    total_assets: totalCount,
                 })
                 .eq('id', sessionId)
                 .select()

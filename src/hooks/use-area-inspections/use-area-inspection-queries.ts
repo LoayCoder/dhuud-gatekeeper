@@ -137,7 +137,8 @@ export function useAreaChecklistProgress(sessionId: string | undefined) {
             const { data: responses, error: responsesError } = await supabase
                 .from('area_inspection_responses')
                 .select('result')
-                .eq('session_id', sessionId);
+                .eq('session_id', sessionId)
+                .is('deleted_at', null);
 
             if (responsesError) throw responsesError;
 
