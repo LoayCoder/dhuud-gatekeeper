@@ -30,7 +30,15 @@ export default defineConfig(({ mode }) => ({
         clientsClaim: true,
         cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        navigateFallbackDenylist: [/^\/version\.json/, /^\/~oauth/],
         runtimeCaching: [
+          {
+            urlPattern: /\/version\.json$/,
+            handler: 'NetworkOnly',
+            options: {
+              cacheName: 'version-check',
+            },
+          },
           {
             urlPattern: /^https:\/\/xdlowvfzhvjzbtgvurzj\.supabase\.co\/rest\/v1\/.*/i,
             handler: 'NetworkFirst',
