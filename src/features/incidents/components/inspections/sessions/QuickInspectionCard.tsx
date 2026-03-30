@@ -68,6 +68,7 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
       onComplete?.();
     } catch (error) {
       console.error('Failed to confirm inspection:', error);
+      toast.error(t('inspectionSessions.confirmFailed', 'Failed to confirm inspection. Please try again.'));
     }
   };
   

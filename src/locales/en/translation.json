@@ -11206,7 +11206,8 @@
     "addNotes": "Add notes for this part...",
     "saveFailed": "Failed to save part result",
     "resultsSaved": "Part results saved",
-    "bulkSaveFailed": "Failed to save part results"
+    "bulkSaveFailed": "Failed to save part results",
+    "hasNotes": "•"
   },
   "search": {
     "noResults": "No results found",

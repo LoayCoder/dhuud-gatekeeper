@@ -10963,7 +10963,8 @@
     "addNotes": "أضف ملاحظات لهذا الجزء...",
     "saveFailed": "فشل في حفظ نتيجة الجزء",
     "resultsSaved": "تم حفظ نتائج الأجزاء",
-    "bulkSaveFailed": "فشل في حفظ نتائج الأجزاء"
+    "bulkSaveFailed": "فشل في حفظ نتائج الأجزاء",
+    "hasNotes": "•"
   },
   "_sidebar_overrides_below": "DO NOT ADD OBJECT KEYS BELOW THIS LINE - sidebar needs flat strings",
   "hsseManagement": "إدارة الصحة والسلامة والأمن والبيئة",
