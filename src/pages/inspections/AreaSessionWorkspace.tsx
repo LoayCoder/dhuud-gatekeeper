@@ -126,7 +126,7 @@ function AreaSessionWorkspaceContent() {
     session?.template_id,
     session?.tenant_id,
     session?.status,
-    (session as any)?.branch_id ?? null
+    session?.branch_id ?? null
   );
   
   // Self-healing: backfill missing assets for legacy sessions without execution_mode
@@ -136,17 +136,24 @@ function AreaSessionWorkspaceContent() {
     session?.status,
     executionMode,
     session ? {
-      branch_id: (session as any)?.branch_id,
+      branch_id: session?.branch_id,
       site_id: session?.site_id,
-      building_id: (session as any)?.building_id,
+      building_id: session?.building_id,
       category_id: session?.category_id,
-      type_id: (session as any)?.type_id,
-      subtype_id: (session as any)?.subtype_id,
+      type_id: session?.type_id,
+      subtype_id: session?.subtype_id,
     } : undefined
   );
   
-  // Check if user can verify actions
-  const canVerifyActions = !!profile;
+  // Check if user can verify actions — restrict to inspector or HSSE roles
+  const { user } = useAuth();
+  const canVerifyActions = !!profile && (
+    session?.inspector_id === user?.id ||
+    profile?.role === 'hsse_officer' ||
+    profile?.role === 'hsse_manager' ||
+    profile?.role === 'admin' ||
+    profile?.role === 'super_admin'
+  );
   
   // Create a map of responses by template_item_id for quick lookup (area mode)
   const responseMap = new Map(responses.map(r => [r.template_item_id, r]));

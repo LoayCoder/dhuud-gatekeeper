@@ -8,8 +8,8 @@ import {
   useAreaInspectionResponses,
   useSaveAreaResponse,
   useAreaChecklistProgress,
-  useCompleteAreaSession,
 } from '../use-area-inspections';
+import { useCompleteAreaSession } from '../use-session-lifecycle';
 import {
   createWrapper,
   resetSupabaseMocks,

@@ -160,6 +160,6 @@ export function useAreaChecklistProgress(sessionId: string | undefined, sessionS
             };
         },
         enabled: !!sessionId,
-        refetchInterval: 2000, // Poll every 2 seconds during active inspection
+        refetchInterval: sessionStatus === 'in_progress' ? 5000 : false,
     });
 }

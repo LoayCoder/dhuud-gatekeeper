@@ -28,6 +28,10 @@ export interface InspectionSession {
     created_at: string;
     updated_at: string;
     deleted_at: string | null;
+    // Hierarchy & execution fields
+    execution_mode: 'asset' | 'area' | null;
+    branch_id: string | null;
+    subtype_id: string | null;
     // Area inspection extended fields
     scope_notes: string | null;
     weather_conditions: string | null;

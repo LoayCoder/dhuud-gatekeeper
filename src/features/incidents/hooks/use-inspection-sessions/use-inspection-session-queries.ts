@@ -161,6 +161,7 @@ export function useSessionAssetByAssetId(sessionId: string | undefined, assetId:
         `)
                 .eq('session_id', sessionId)
                 .eq('asset_id', assetId)
+                .is('deleted_at', null)
                 .maybeSingle();
 
             if (error) throw error;

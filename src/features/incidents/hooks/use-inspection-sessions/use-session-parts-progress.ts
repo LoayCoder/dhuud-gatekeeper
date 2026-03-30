@@ -104,6 +104,6 @@ export function useSessionPartsProgress(sessionId: string | undefined) {
       };
     },
     enabled: !!sessionId,
-    refetchInterval: 5000,
+    refetchInterval: 5000, // Caller should conditionally enable this hook for in_progress sessions
   });
 }

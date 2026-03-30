@@ -18,7 +18,7 @@ export interface SessionClosureStatus {
   }>;
 }
 
-export function useCanCloseSession(sessionId: string | undefined) {
+export function useCanCloseSession(sessionId: string | undefined, sessionStatus?: string) {
   return useQuery({
     queryKey: ['session-closure-status', sessionId],
     queryFn: async () => {
@@ -31,7 +31,7 @@ export function useCanCloseSession(sessionId: string | undefined) {
       return data as unknown as SessionClosureStatus;
     },
     enabled: !!sessionId,
-    refetchInterval: 10000,
+    refetchInterval: sessionStatus === 'in_progress' || sessionStatus === 'completed_with_open_actions' ? 10000 : false,
   });
 }
 

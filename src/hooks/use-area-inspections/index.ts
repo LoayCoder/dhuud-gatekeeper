@@ -18,7 +18,6 @@ export {
     useCreateAreaSession,
     useStartAreaSession,
     useSaveAreaResponse,
-    useCompleteAreaSession,
     useUpdateAreaSession,
 } from './use-area-inspection-mutations';
 
