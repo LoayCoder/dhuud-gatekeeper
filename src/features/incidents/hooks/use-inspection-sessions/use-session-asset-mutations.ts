@@ -198,8 +198,7 @@ export function useRefreshSessionAssets() {
             const { data: existingAssets } = await supabase
                 .from('inspection_session_assets')
                 .select('asset_id')
-                .eq('session_id', sessionId)
-                .is('deleted_at', null);
+                .eq('session_id', sessionId);
 
             const existingAssetIds = new Set(existingAssets?.map(a => a.asset_id) || []);
             const newAssets = allMatchingAssets?.filter(a => !existingAssetIds.has(a.id)) || [];

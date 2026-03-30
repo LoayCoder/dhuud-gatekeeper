@@ -23,8 +23,7 @@ export function useSessionPartsProgress(sessionId: string | undefined) {
       const { data: sessionAssets } = await supabase
         .from('inspection_session_assets')
         .select('id, asset:hsse_assets(type_id, subtype_id)')
-        .eq('session_id', sessionId)
-        .is('deleted_at', null);
+        .eq('session_id', sessionId);
 
       if (!sessionAssets || sessionAssets.length === 0) {
         return { totalParts: 0, completedParts: 0, passedParts: 0, failedParts: 0, naParts: 0, percentage: 0 };

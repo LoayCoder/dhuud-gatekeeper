@@ -180,8 +180,7 @@ export function useSessionProgress(sessionId: string | undefined, sessionStatus?
                 .from('inspection_session_assets')
                 .select('quick_result')
                 .eq('session_id', sessionId)
-                .eq('tenant_id', profile.tenant_id)
-                .is('deleted_at', null);
+                .eq('tenant_id', profile.tenant_id);
 
             if (error) throw error;
 
