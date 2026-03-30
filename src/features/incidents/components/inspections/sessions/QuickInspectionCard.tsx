@@ -52,10 +52,6 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
         quick_result: condition,
       });
       
-      // Auto-complete when all parts are answered
-      if (allComplete) {
-        onComplete?.();
-      }
     } catch (error) {
       console.error('Failed to auto-set condition:', error);
     }
