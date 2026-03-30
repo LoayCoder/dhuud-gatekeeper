@@ -107,7 +107,7 @@ export function useAreaInspectionResponses(sessionId: string | undefined) {
 /**
  * Get pass/fail/pending stats for checklist items in an area session
  */
-export function useAreaChecklistProgress(sessionId: string | undefined) {
+export function useAreaChecklistProgress(sessionId: string | undefined, sessionStatus?: string) {
     return useQuery({
         queryKey: ['area-checklist-progress', sessionId],
         queryFn: async (): Promise<AreaChecklistProgress | null> => {
