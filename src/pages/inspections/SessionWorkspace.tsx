@@ -88,7 +88,7 @@ function SessionWorkspaceContent() {
   
   const { data: session, isLoading: sessionLoading } = useInspectionSession(sessionId);
   const { data: allAssets = [] } = useSessionAssets(sessionId);
-  const { data: progress } = useSessionProgress(sessionId);
+  const { data: progress } = useSessionProgress(sessionId, session?.status);
   const { data: partsProgress } = useSessionPartsProgress(sessionId);
   const { data: scannedSessionAsset, isLoading: scanLookupLoading } = useSessionAssetByAssetId(sessionId, scannedAssetId || undefined);
   

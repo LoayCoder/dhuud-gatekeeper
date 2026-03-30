@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import type { CreateSessionInput } from './types';
+import type { CreateSessionInput, RecordInspectionInput } from './types';
 
 // Hook: Create new session
 export function useCreateSession() {
@@ -89,8 +89,8 @@ export function useStartSession() {
                         asset_id: asset.id,
                         asset_name_snapshot: asset.name || null,
                         asset_code_snapshot: asset.asset_code || null,
-                        asset_location_snapshot: (asset.building as any)?.name || null,
-                        asset_type_snapshot: (asset.type as any)?.name || null,
+                        asset_location_snapshot: (asset.building as { name: string } | null)?.name || null,
+                        asset_type_snapshot: (asset.type as { name: string } | null)?.name || null,
                     }));
 
                     const { error: insertError } = await supabase
@@ -169,8 +169,8 @@ export function useStartSession() {
                     asset_id: asset.id,
                     asset_name_snapshot: asset.name || null,
                     asset_code_snapshot: asset.asset_code || null,
-                    asset_location_snapshot: (asset.building as any)?.name || null,
-                    asset_type_snapshot: (asset.type as any)?.name || null,
+                    asset_location_snapshot: (asset.building as { name: string } | null)?.name || null,
+                    asset_type_snapshot: (asset.type as { name: string } | null)?.name || null,
                 }));
 
                 const { error: insertError } = await supabase
@@ -300,7 +300,8 @@ export function useCompleteSession() {
             const { data: sessionAssetIds } = await supabase
                 .from('inspection_session_assets')
                 .select('id')
-                .eq('session_id', sessionId);
+                .eq('session_id', sessionId)
+                .is('deleted_at', null);
 
             let partsSummary = { total: 0, passed: 0, failed: 0, na: 0 };
             if (sessionAssetIds && sessionAssetIds.length > 0) {
@@ -421,4 +422,4 @@ export function useDeleteSession() {
     });
 }
 
-import type { RecordInspectionInput } from './types';
+
