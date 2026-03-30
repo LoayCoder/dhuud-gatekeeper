@@ -249,43 +249,53 @@ export function CreateSessionActionDialog({
           </div>
         ) : (
           <>
-        {/* Step 1: Failed Assets Summary (Read-only) */}
-        <div className="space-y-2">
+        {/* Step 1: Failed Assets Summary (Read-only, compact) */}
+        <div className="space-y-1.5">
           <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
             {t('actions.failedAssetsSummary', { defaultValue: 'Failed Assets Summary' })}
+            <span className="ms-2 text-xs font-normal lowercase">
+              ({safeFailedAssets.length} {t('inspections.assets', { defaultValue: 'asset(s)' })})
+            </span>
           </h4>
-          <ScrollArea className="max-h-[200px]">
-            <div className="space-y-2">
-              {safeFailedAssets.map((fa) => (
-                <div key={fa.id} className="p-3 border rounded-lg bg-muted/30 space-y-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="outline" className="font-mono text-xs">
-                      {fa.asset_code}
-                    </Badge>
-                    <span className="font-medium text-sm">{fa.asset_name}</span>
-                    <Badge variant={fa.quick_result === 'not_good' ? 'destructive' : 'secondary'} className="text-xs">
-                      {fa.quick_result === 'not_good' ? t('inspections.notGood', { defaultValue: 'Not Good' }) : t('inspections.partial', { defaultValue: 'Partial' })}
-                    </Badge>
-                  </div>
+          <div className="max-h-[300px] overflow-y-auto border rounded-lg divide-y">
+            {safeFailedAssets.map((fa) => (
+              <Collapsible key={fa.id}>
+                <CollapsibleTrigger className="w-full px-3 py-2 flex items-center gap-2 text-start hover:bg-muted/40 transition-colors">
+                  <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${fa.quick_result === 'not_good' ? 'bg-destructive' : 'bg-warning'}`} />
+                  <span className="font-mono text-xs text-muted-foreground shrink-0">{fa.asset_code}</span>
+                  <span className="text-sm font-medium truncate">{fa.asset_name}</span>
                   {fa.location !== '-' && (
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground truncate hidden sm:inline">{fa.location}</span>
+                  )}
+                  <span className="ms-auto shrink-0 text-xs text-muted-foreground">
+                    {fa.failed_parts.length > 0
+                      ? `${fa.failed_parts.length} ${t('inspections.failedParts', { defaultValue: 'failed part(s)' })}`
+                      : fa.quick_result === 'not_good'
+                        ? t('inspections.notGood', { defaultValue: 'Not Good' })
+                        : t('inspections.partial', { defaultValue: 'Partial' })}
+                  </span>
+                  <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform [[data-state=open]>&]:rotate-180" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="px-3 pb-2 pt-0.5 space-y-1 bg-muted/20">
+                  {fa.location !== '-' && (
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground sm:hidden">
                       <MapPin className="h-3 w-3" />
                       {fa.location}
                     </div>
                   )}
                   {fa.failed_parts.length > 0 && (
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Wrench className="h-3 w-3" />
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground flex-wrap">
+                      <Wrench className="h-3 w-3 shrink-0" />
                       {fa.failed_parts.join(', ')}
                     </div>
                   )}
                   {fa.failure_reason && (
                     <p className="text-xs text-muted-foreground">{fa.failure_reason}</p>
                   )}
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
+                </CollapsibleContent>
+              </Collapsible>
+            ))}
+          </div>
         </div>
 
         {/* Step 2: Action Form */}
