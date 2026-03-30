@@ -98,6 +98,26 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
       console.error('Failed to record inspection:', error);
     }
   };
+
+  // Explicit confirm — the only way to finalize an asset (except Not Accessible)
+  const handleConfirm = async () => {
+    if (!partsAllComplete) {
+      toast.warning(t('inspectionSessions.completeAllParts', 'Please complete all inspection parts before finalizing this asset.'));
+      return;
+    }
+    const finalResult = manualOverride ? 'partial' : (derivedCondition || 'good');
+    try {
+      await recordInspection.mutateAsync({
+        session_asset_id: sessionAsset.id,
+        quick_result: finalResult,
+      });
+      setConfirmed(true);
+      toast.success(t('inspectionSessions.inspectionConfirmed', 'Inspection confirmed successfully.'));
+      onComplete?.();
+    } catch (error) {
+      console.error('Failed to confirm inspection:', error);
+    }
+  };
   
   const handleFailureSubmit = async (data: { 
     failure_reason: string; 
