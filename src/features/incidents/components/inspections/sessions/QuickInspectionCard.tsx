@@ -61,42 +61,16 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
     }
   };
 
-  // Partial — manual override, only when conditions are met
-  const handlePartial = async () => {
+  // Explicit confirm — accepts the final result to save
+  const handleConfirm = async (result: 'good' | 'not_good' | 'partial') => {
     if (!partsAllComplete) {
       toast.warning(t('inspectionSessions.completeAllParts', 'Please complete all inspection parts before finalizing this asset.'));
       return;
     }
-    if (!hasFails) {
-      toast.warning(t('inspectionSessions.partialRequiresFails', 'Partial condition requires at least one failed part.'));
-      return;
-    }
-    if (hasCriticalFail) {
-      toast.error(t('inspectionSessions.criticalFailForced', 'Critical failure detected — condition is forced to Not Good.'));
-      return;
-    }
-    setManualOverride(true);
     try {
       await recordInspection.mutateAsync({
         session_asset_id: sessionAsset.id,
-        quick_result: 'partial',
-      });
-    } catch (error) {
-      console.error('Failed to record inspection:', error);
-    }
-  };
-
-  // Explicit confirm — the only way to finalize an asset (except Not Accessible)
-  const handleConfirm = async () => {
-    if (!partsAllComplete) {
-      toast.warning(t('inspectionSessions.completeAllParts', 'Please complete all inspection parts before finalizing this asset.'));
-      return;
-    }
-    const finalResult = manualOverride ? 'partial' : (derivedCondition || 'good');
-    try {
-      await recordInspection.mutateAsync({
-        session_asset_id: sessionAsset.id,
-        quick_result: finalResult,
+        quick_result: result,
       });
       setConfirmed(true);
       toast.success(t('inspectionSessions.inspectionConfirmed', 'Inspection confirmed successfully.'));
