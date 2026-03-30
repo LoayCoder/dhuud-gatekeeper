@@ -35,8 +35,7 @@ export function useSessionFailedAssets(sessionId: string | undefined, enabled = 
         `)
         .eq('session_id', sessionId)
         .eq('tenant_id', profile.tenant_id)
-        .in('quick_result', ['not_good', 'partial'])
-        .is('deleted_at', null);
+        .in('quick_result', ['not_good', 'partial']);
 
       if (error) throw error;
       if (!sessionAssets || sessionAssets.length === 0) return [];
