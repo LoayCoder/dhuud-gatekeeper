@@ -94,8 +94,6 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
         session_asset_id: sessionAsset.id,
         quick_result: 'partial',
       });
-      // Partial counts as completed
-      onComplete?.();
     } catch (error) {
       console.error('Failed to record inspection:', error);
     }
