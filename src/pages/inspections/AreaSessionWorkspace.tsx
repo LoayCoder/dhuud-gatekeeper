@@ -99,7 +99,7 @@ function AreaSessionWorkspaceContent() {
   const [expandedAssetId, setExpandedAssetId] = useState<string | undefined>(undefined);
   const assetRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const { data: session, isLoading: sessionLoading } = useInspectionSession(sessionId);
-  const { data: progress } = useAreaChecklistProgress(sessionId);
+  const { data: progress } = useAreaChecklistProgress(sessionId, session?.status);
   const { data: templateItems = [] } = useTemplateItems(session?.template_id);
   const { data: responses = [] } = useAreaInspectionResponses(sessionId);
   const { data: areaTemplate } = useAreaTemplate(session?.template_id);
