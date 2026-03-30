@@ -242,7 +242,16 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
   
   return (
     <>
-      <Card className="border-2 border-primary">
+      <Card className={cn(
+        "border-2 transition-colors duration-300",
+        confirmed ? "border-green-600 bg-green-50/30 dark:bg-green-950/20" : "border-primary"
+      )}>
+        {confirmed && (
+          <div className="flex items-center justify-center gap-2 py-2 bg-green-600 text-white rounded-t-lg">
+            <ShieldCheck className="h-5 w-5" />
+            <span className="font-medium text-sm">{t('inspectionSessions.inspected', 'Inspected')} ✓</span>
+          </div>
+        )}
         <CardHeader className="pb-2">
           <div className="flex items-start justify-between">
             <div>
@@ -252,7 +261,7 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
             <Badge variant="outline">{asset.status}</Badge>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className={cn("space-y-4", confirmed && "pointer-events-none opacity-60")}>
           {/* Asset Info */}
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div className="flex items-center gap-1 text-muted-foreground">
@@ -286,8 +295,7 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
             {conditionButtons.map((btn) => {
               const isSelected = currentResult === btn.key;
               const Icon = btn.icon;
-              // Disable Good/Not Good (indicators), disable Partial when conditions not met
-              const isDisabled = isLoading || btn.isIndicator || (btn.key === 'partial' && !canSelectPartial);
+              const isDisabled = isLoading || confirmed || btn.isIndicator || (btn.key === 'partial' && !canSelectPartial);
               return (
                 <Button
                   key={btn.key}
@@ -315,7 +323,7 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
           </div>
 
           {/* Validation hint */}
-          {!partsAllComplete && !isNotAccessible && (
+          {!partsAllComplete && !isNotAccessible && !confirmed && (
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <AlertTriangle className="h-3 w-3 text-warning" />
               {t('inspectionSessions.completeAllPartsHint', 'Complete all checklist parts to finalize this asset.')}
@@ -328,7 +336,7 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
       {asset.type && sessionAsset.id && (
         <div className={cn(
           "mt-4 relative transition-opacity duration-200",
-          isNotAccessible && "opacity-50 pointer-events-none"
+          (isNotAccessible || confirmed) && "opacity-50 pointer-events-none"
         )}>
           {isNotAccessible && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/60 rounded-lg">
@@ -344,9 +352,40 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
             assetSubtypeId={asset.subtype_id || null}
             assetTypeName={asset.type?.name || ''}
             assetTypeNameAr={asset.type?.name_ar}
-            readOnly={isNotAccessible}
+            readOnly={isNotAccessible || confirmed}
             onConditionChange={handleConditionChange}
           />
+        </div>
+      )}
+
+      {/* Confirm Inspection Button — explicit finalization */}
+      {!isNotAccessible && !confirmed && (
+        <div className="mt-4">
+          <Button
+            type="button"
+            className={cn(
+              "w-full h-12 text-base font-semibold transition-all duration-200",
+              !partsAllComplete && "opacity-50",
+              manualOverride
+                ? "bg-amber-500 hover:bg-amber-600 text-white"
+                : derivedCondition === 'not_good'
+                  ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                  : "bg-green-600 hover:bg-green-700 text-white"
+            )}
+            onClick={handleConfirm}
+            disabled={!partsAllComplete || isLoading}
+          >
+            {isLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin me-2" />
+            ) : (
+              <ShieldCheck className="h-5 w-5 me-2" />
+            )}
+            {manualOverride
+              ? t('inspectionSessions.confirmPartial', 'Confirm — Partial')
+              : derivedCondition === 'not_good'
+                ? t('inspectionSessions.confirmNotGood', 'Confirm — Not Good')
+                : t('inspectionSessions.confirmGood', 'Confirm — Good Condition')}
+          </Button>
         </div>
       )}
       
