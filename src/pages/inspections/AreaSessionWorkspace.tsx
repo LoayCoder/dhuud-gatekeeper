@@ -104,7 +104,7 @@ function AreaSessionWorkspaceContent() {
   const { data: responses = [] } = useAreaInspectionResponses(sessionId);
   const { data: areaTemplate } = useAreaTemplate(session?.template_id);
   const { data: findingsCount } = useAreaFindingsCount(sessionId);
-  const { data: closureStatus, isLoading: closureLoading } = useCanCloseSession(sessionId);
+  const { data: closureStatus, isLoading: closureLoading } = useCanCloseSession(sessionId, session?.status);
   
   // Asset-mode hooks
   const executionMode = (session as any)?.execution_mode as string | null | undefined;
