@@ -5,6 +5,7 @@
  * Uses smart lookup to fetch parts from subtype if exists, otherwise from type.
  * Displays all defined parts with quick Pass/Fail/N/A toggles in stacked layout.
  * Auto-derives overall condition from part results via onConditionChange callback.
+ * Reports completion status and critical fail flags on every change.
  */
 
 import { useState, useEffect, useRef } from 'react';
@@ -46,8 +47,8 @@ interface AssetPartInspectionCardProps {
   assetTypeName: string;
   assetTypeNameAr?: string | null;
   readOnly?: boolean;
-  /** Called when all parts are answered — derives 'good' or 'not_good' */
-  onConditionChange?: (condition: 'good' | 'not_good') => void;
+  /** Called on every part change with derived condition, completion status, and critical fail flag */
+  onConditionChange?: (condition: 'good' | 'not_good', allComplete: boolean, hasCriticalFail: boolean) => void;
 }
 
 interface PartRowProps {
@@ -235,6 +236,8 @@ export function AssetPartInspectionCard({
   const [savingPartId, setSavingPartId] = useState<string | null>(null);
   // Track last derived condition to avoid duplicate callbacks
   const lastDerivedRef = useRef<string | null>(null);
+  const lastCompleteRef = useRef<boolean | null>(null);
+  const lastCriticalRef = useRef<boolean | null>(null);
 
   const displayTypeName = isRTL && assetTypeNameAr ? assetTypeNameAr : assetTypeName;
 
@@ -257,20 +260,22 @@ export function AssetPartInspectionCard({
     }
   }, [existingResults]);
 
-  // Auto-derive overall condition when all parts are answered
+  // Auto-derive overall condition on every part change — report to parent always
   const deriveCondition = (results: Record<string, { result: PartInspectionResult; notes: string }>) => {
     if (!parts || parts.length === 0 || !onConditionChange) return;
     
     const answeredParts = parts.filter(p => results[p.id]?.result);
-    if (answeredParts.length < parts.length) return; // Not all parts answered yet
-    
-    const hasFail = answeredParts.some(p => results[p.id].result === 'fail');
+    const allComplete = answeredParts.length === parts.length;
+    const hasFail = answeredParts.some(p => results[p.id]?.result === 'fail');
+    const hasCriticalFail = parts.some(p => p.is_critical && results[p.id]?.result === 'fail');
     const derived = hasFail ? 'not_good' : 'good';
     
-    // Only fire callback if the derived value changed
-    if (lastDerivedRef.current !== derived) {
+    // Fire callback on every change (even incomplete) so parent knows status
+    if (lastDerivedRef.current !== derived || lastCompleteRef.current !== allComplete || lastCriticalRef.current !== hasCriticalFail) {
       lastDerivedRef.current = derived;
-      onConditionChange(derived);
+      lastCompleteRef.current = allComplete;
+      lastCriticalRef.current = hasCriticalFail;
+      onConditionChange(derived, allComplete, hasCriticalFail);
     }
   };
 
