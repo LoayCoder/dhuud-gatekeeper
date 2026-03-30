@@ -597,7 +597,21 @@ function AreaSessionWorkspaceContent() {
                     <QuickInspectionCard
                       sessionAsset={sa}
                       sessionId={sessionId!}
-                      onComplete={() => {}}
+                      onComplete={() => {
+                        // Auto-advance to next uninspected asset
+                        const nextUninspected = sortedAssets.find(
+                          (a: any) => a.id !== sa.id && !a.quick_result
+                        );
+                        if (nextUninspected) {
+                          setExpandedAssetId(nextUninspected.id);
+                          setTimeout(() => {
+                            assetRefs.current[nextUninspected.id]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          }, 200);
+                        } else {
+                          setExpandedAssetId(undefined);
+                          toast.success(t('inspectionSessions.allAssetsInspected', 'All assets have been inspected!'));
+                        }
+                      }}
                     />
                   </AccordionContent>
                 </AccordionItem>
