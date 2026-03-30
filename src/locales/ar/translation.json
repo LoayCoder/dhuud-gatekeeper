@@ -5551,7 +5551,11 @@
     },
     "maxPhotosReached": "الحد الأقصى {{max}} صور مسموح بها",
     "photosCount": "{{count}} من {{max}} صور",
-    "saveFirstForPhotos": "احفظ الاستجابة أولاً لإضافة الصور"
+    "saveFirstForPhotos": "احفظ الاستجابة أولاً لإضافة الصور",
+    "confirmFail": "تأكيد — فشل",
+    "confirmPartial": "تأكيد — جزئي",
+    "confirmFailed": "فشل في تأكيد التفتيش. يرجى المحاولة مرة أخرى.",
+    "inspectionConfirmed": "تم تأكيد التفتيش بنجاح."
   },
   "securityAudit": {
     "title": "سجل تدقيق الأمان",
@@ -10959,7 +10963,8 @@
     "addNotes": "أضف ملاحظات لهذا الجزء...",
     "saveFailed": "فشل في حفظ نتيجة الجزء",
     "resultsSaved": "تم حفظ نتائج الأجزاء",
-    "bulkSaveFailed": "فشل في حفظ نتائج الأجزاء"
+    "bulkSaveFailed": "فشل في حفظ نتائج الأجزاء",
+    "hasNotes": "•"
   },
   "_sidebar_overrides_below": "DO NOT ADD OBJECT KEYS BELOW THIS LINE - sidebar needs flat strings",
   "hsseManagement": "إدارة الصحة والسلامة والأمن والبيئة",

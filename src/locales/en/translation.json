@@ -5360,7 +5360,11 @@
     },
     "maxPhotosReached": "Maximum {{max}} photos allowed",
     "photosCount": "{{count}} of {{max}} photos",
-    "saveFirstForPhotos": "Save the response first to add photos"
+    "saveFirstForPhotos": "Save the response first to add photos",
+    "confirmFail": "Confirm — Fail",
+    "confirmPartial": "Confirm — Partial",
+    "confirmFailed": "Failed to confirm inspection. Please try again.",
+    "inspectionConfirmed": "Inspection confirmed successfully."
   },
   "securityAudit": {
     "title": "Security Audit Log",
@@ -11202,7 +11206,8 @@
     "addNotes": "Add notes for this part...",
     "saveFailed": "Failed to save part result",
     "resultsSaved": "Part results saved",
-    "bulkSaveFailed": "Failed to save part results"
+    "bulkSaveFailed": "Failed to save part results",
+    "hasNotes": "•"
   },
   "search": {
     "noResults": "No results found",
