@@ -137,35 +137,7 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
     }
   };
 
-  // Auto-derive callback from parts checklist — receives completion + critical info
-  const handleConditionChange = useCallback(async (condition: 'good' | 'not_good', allComplete: boolean, criticalFail: boolean) => {
-    setDerivedCondition(condition);
-    setPartsAllComplete(allComplete);
-    setHasCriticalFail(criticalFail);
-    setHasFails(condition === 'not_good');
-
-    // If user manually set partial but now has critical fail, force back to auto
-    if (manualOverride && criticalFail) {
-      setManualOverride(false);
-    }
-    
-    // Don't override if user manually selected partial
-    if (manualOverride) return;
-    
-    try {
-      await recordInspection.mutateAsync({
-        session_asset_id: sessionAsset.id,
-        quick_result: condition,
-      });
-      
-      // Auto-complete when all parts are answered
-      if (allComplete) {
-        onComplete?.();
-      }
-    } catch (error) {
-      console.error('Failed to auto-set condition:', error);
-    }
-  }, [manualOverride, sessionAsset.id, recordInspection, onComplete]);
+  
   
   const isLoading = recordInspection.isPending || createFinding.isPending;
   const currentResult = sessionAsset.quick_result;
