@@ -43,7 +43,6 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
 
   // Not Accessible — keeps current direct-save behavior
   const handleNotAccessible = async () => {
-    setManualOverride(true);
     try {
       await recordInspection.mutateAsync({
         session_asset_id: sessionAsset.id,
