@@ -1,27 +1,27 @@
 
 
-# Fix: Failed Assets Summary Shows Only 1 of 5 Assets
+# Fix: Category Check Constraint Mismatch
 
 ## Problem
-The "Failed Assets Summary" section uses a `ScrollArea` with `max-h-[200px]`, but each asset card is tall (~80px+ with padding, badges, parts list). Only ~1 card fits in view, making it look like there's only 1 failed asset. The user has to scroll inside a tiny area to see the rest — poor discoverability.
+The corrective action creation fails with: `new row for relation "corrective_actions" violates check constraint "corrective_actions_category_check"`
 
-## Solution
-Replace the verbose card-per-asset layout with a **compact table-like list** that shows all 5 assets at a glance without needing to scroll, plus increase the max height.
+The database constraint allows: `engineering`, `administrative`, `ppe`, `training`, `procedures_update`, `environmental`
 
-### New layout per asset (single row, ~32px each):
-```text
-🔴 fire_safety-00067  Fire Extinguisher  Club House / Ground Floor  3 failed parts
-🔴 fire_safety-00066  Fire Extinguisher  Club House / Ground Floor  2 failed parts  
-🟡 fire_safety-00065  Fire Extinguisher  Main Building / 1st Floor  1 failed part
-...
-```
+But the form and mutation use: `operations`, `maintenance`, `training`, `procedural`, `equipment`
 
-### Changes in `CreateSessionActionDialog.tsx`:
-1. **Remove `ScrollArea max-h-[200px]`** — replace with a simple div, increase max-h to `300px` with overflow-y-auto
-2. **Compact each asset row**: single-line flex row with inline badge (result), asset code, name, location, and failed parts count — all in one line
-3. **Expandable detail**: tap a row to see the full failed parts list (optional accordion), keeping the default view compact
-4. **Counter header**: Keep the "5 failed asset(s) detected" subtitle already present
+Only `training` overlaps. The default value `operations` is invalid.
 
-### File to change
-- `src/features/incidents/components/inspections/sessions/CreateSessionActionDialog.tsx` (lines 252-289)
+## Fix
+
+### 1. Update `CreateSessionActionDialog.tsx`
+- Change the Zod schema enum to match DB constraint values: `engineering`, `administrative`, `ppe`, `training`, `procedures_update`, `environmental`
+- Change the default form value from `'operations'` to `'administrative'`
+- Update the Select dropdown options to show these 6 valid categories with proper labels
+
+### 2. Update `use-create-session-action.ts`
+- Change the fallback default from `'operations'` to `'administrative'` (line 64)
+
+### Files to change
+1. `src/features/incidents/components/inspections/sessions/CreateSessionActionDialog.tsx` — schema, defaults, select options
+2. `src/features/incidents/hooks/use-inspection-actions/use-create-session-action.ts` — fallback default on line 64
 
