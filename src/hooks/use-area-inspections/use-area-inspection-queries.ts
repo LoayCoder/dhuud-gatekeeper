@@ -89,6 +89,7 @@ export function useAreaInspectionResponses(sessionId: string | undefined) {
           responder:profiles!area_inspection_responses_responded_by_fkey(full_name)
         `)
                 .eq('session_id', sessionId)
+                .is('deleted_at', null)
                 .order('created_at', { ascending: true });
 
             if (error) throw error;
