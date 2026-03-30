@@ -169,8 +169,8 @@ export function useStartSession() {
                     asset_id: asset.id,
                     asset_name_snapshot: asset.name || null,
                     asset_code_snapshot: asset.asset_code || null,
-                    asset_location_snapshot: (asset.building as any)?.name || null,
-                    asset_type_snapshot: (asset.type as any)?.name || null,
+                    asset_location_snapshot: (asset.building as { name: string } | null)?.name || null,
+                    asset_type_snapshot: (asset.type as { name: string } | null)?.name || null,
                 }));
 
                 const { error: insertError } = await supabase
