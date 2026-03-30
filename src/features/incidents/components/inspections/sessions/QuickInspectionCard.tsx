@@ -23,7 +23,7 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
   // Track parts inspection state from child
   const [partsAllComplete, setPartsAllComplete] = useState(false);
   const [hasCriticalFail, setHasCriticalFail] = useState(false);
-  const [hasFails, setHasFails] = useState(false);
+  
   const [derivedCondition, setDerivedCondition] = useState<'good' | 'not_good' | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   
@@ -35,7 +35,7 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
     setDerivedCondition(condition);
     setPartsAllComplete(allComplete);
     setHasCriticalFail(criticalFail);
-    setHasFails(condition === 'not_good');
+    
   }, []);
 
   const asset = sessionAsset.asset;
