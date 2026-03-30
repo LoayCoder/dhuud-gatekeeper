@@ -119,11 +119,6 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
   const currentResult = sessionAsset.quick_result;
   const isNotAccessible = currentResult === 'not_accessible';
 
-  // Partial button availability
-  const canSelectPartial = partsAllComplete && hasFails && !hasCriticalFail;
-
-  // Filter out partial from condition buttons — it's now a confirm option
-  const filteredConditionButtons = conditionButtons.filter(btn => btn.key !== 'partial');
 
   const getResultBadge = () => {
     if (currentResult === 'good') {
