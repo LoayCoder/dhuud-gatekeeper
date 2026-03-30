@@ -39,6 +39,7 @@ import {
   AlertTriangle,
   MapPin,
   Wrench,
+  ChevronDown,
 } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
