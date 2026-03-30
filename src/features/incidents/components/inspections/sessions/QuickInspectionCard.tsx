@@ -18,7 +18,6 @@ interface QuickInspectionCardProps {
 
 export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: QuickInspectionCardProps) {
   const { t, i18n } = useTranslation();
-  const [showFailureDialog, setShowFailureDialog] = useState(false);
   // Track parts inspection state from child
   const [partsAllComplete, setPartsAllComplete] = useState(false);
   const [hasCriticalFail, setHasCriticalFail] = useState(false);
