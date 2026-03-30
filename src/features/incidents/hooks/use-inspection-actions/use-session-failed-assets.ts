@@ -24,7 +24,7 @@ export function useSessionFailedAssets(sessionId: string | undefined, enabled = 
 
       // Fetch failed/partial session assets with asset details
       const { data: sessionAssets, error } = await supabase
-        .from('inspection_session_assets')
+        .from('inspection_session_assets' as never)
         .select(`
           id, asset_id, quick_result, failure_reason, notes,
           asset:hsse_assets!inspection_session_assets_asset_id_fkey(
