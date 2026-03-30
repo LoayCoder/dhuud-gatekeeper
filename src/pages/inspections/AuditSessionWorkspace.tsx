@@ -28,6 +28,7 @@ import {
   useStartAuditSession,
   useCompleteAuditSession,
 } from '@/hooks/use-audit-sessions';
+import { useUserRoles } from '@/features/users';
 import { useCanCloseSession, useCloseAreaSession } from '@/hooks/use-session-lifecycle';
 import {
   SessionStatusBadge,
@@ -71,10 +72,17 @@ function AuditSessionWorkspaceContent() {
   const closeSession = useCloseAreaSession();
   const reopenSession = useReopenAreaSession();
   const deleteSession = useDeleteSession();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
+  const { hasRole } = useUserRoles();
   
-  // Check if user can verify actions (for now, allow all authenticated users)
-  const canVerifyActions = !!profile;
+  // Check if user can verify actions — restrict to inspector or HSSE roles
+  const canVerifyActions = !!profile && (
+    session?.inspector_id === user?.id ||
+    hasRole('hsse_officer') ||
+    hasRole('hsse_manager') ||
+    hasRole('admin') ||
+    hasRole('super_admin')
+  );
   
   // Create response map for quick lookup
   const responseMap = useMemo(() => {

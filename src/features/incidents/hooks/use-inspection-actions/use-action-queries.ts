@@ -11,8 +11,6 @@ export function useSessionActions(sessionId: string | undefined) {
         queryFn: async () => {
             if (!sessionId || !profile?.tenant_id) return [];
 
-            if (!sessionId || !profile?.tenant_id) return [];
-
             const { data, error } = await supabase.from('corrective_actions' as never)
                 .select(`
           id, reference_id, title, description, status, priority, due_date, 

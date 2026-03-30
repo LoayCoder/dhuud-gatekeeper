@@ -242,7 +242,8 @@ export function useRecordAssetInspection() {
                 const { data: rows } = await supabase
                     .from('inspection_session_assets')
                     .select('quick_result')
-                    .eq('session_id', sessionId);
+                    .eq('session_id', sessionId)
+                    .is('deleted_at', null);
 
                 if (rows) {
                     const total = rows.length;

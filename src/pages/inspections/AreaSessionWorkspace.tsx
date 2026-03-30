@@ -63,6 +63,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSessionProgress } from '@/features/incidents/hooks/use-inspection-sessions/use-inspection-session-queries';
 import { usePartsForAsset } from '@/features/assets';
 import { usePartInspectionResults } from '@/hooks/use-part-inspection-results';
+import { useUserRoles } from '@/features/users';
 import { ScannerDialog } from '@/components/ui/scanner-dialog';
 
 /** Inline component to show parts completion count for a session asset */
@@ -99,15 +100,15 @@ function AreaSessionWorkspaceContent() {
   const [expandedAssetId, setExpandedAssetId] = useState<string | undefined>(undefined);
   const assetRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const { data: session, isLoading: sessionLoading } = useInspectionSession(sessionId);
-  const { data: progress } = useAreaChecklistProgress(sessionId);
+  const { data: progress } = useAreaChecklistProgress(sessionId, session?.status);
   const { data: templateItems = [] } = useTemplateItems(session?.template_id);
   const { data: responses = [] } = useAreaInspectionResponses(sessionId);
   const { data: areaTemplate } = useAreaTemplate(session?.template_id);
   const { data: findingsCount } = useAreaFindingsCount(sessionId);
-  const { data: closureStatus, isLoading: closureLoading } = useCanCloseSession(sessionId);
+  const { data: closureStatus, isLoading: closureLoading } = useCanCloseSession(sessionId, session?.status);
   
   // Asset-mode hooks
-  const executionMode = (session as any)?.execution_mode as string | null | undefined;
+  const executionMode = session?.execution_mode;
   const isAssetMode = executionMode === 'asset';
   const { data: allAssets = [] } = useSessionAssets(isAssetMode ? sessionId : undefined);
   const { data: assetProgress } = useAssetSessionProgress(isAssetMode ? sessionId : undefined);
@@ -118,7 +119,8 @@ function AreaSessionWorkspaceContent() {
   const closeSession = useCloseAreaSession();
   const reopenSession = useReopenAreaSession();
   const deleteSession = useDeleteSession();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
+  const { hasRole } = useUserRoles();
   
   // Self-healing: backfill missing checklist responses for area-mode sessions
   useBackfillAreaResponses(
@@ -126,7 +128,7 @@ function AreaSessionWorkspaceContent() {
     session?.template_id,
     session?.tenant_id,
     session?.status,
-    (session as any)?.branch_id ?? null
+    session?.branch_id ?? null
   );
   
   // Self-healing: backfill missing assets for legacy sessions without execution_mode
@@ -136,17 +138,23 @@ function AreaSessionWorkspaceContent() {
     session?.status,
     executionMode,
     session ? {
-      branch_id: (session as any)?.branch_id,
+      branch_id: session?.branch_id,
       site_id: session?.site_id,
-      building_id: (session as any)?.building_id,
+      building_id: session?.building_id,
       category_id: session?.category_id,
-      type_id: (session as any)?.type_id,
-      subtype_id: (session as any)?.subtype_id,
+      type_id: session?.type_id,
+      subtype_id: session?.subtype_id,
     } : undefined
   );
   
-  // Check if user can verify actions
-  const canVerifyActions = !!profile;
+  // Check if user can verify actions — restrict to inspector or HSSE roles
+  const canVerifyActions = !!profile && (
+    session?.inspector_id === user?.id ||
+    hasRole('hsse_officer') ||
+    hasRole('hsse_manager') ||
+    hasRole('admin') ||
+    hasRole('super_admin')
+  );
   
   // Create a map of responses by template_item_id for quick lookup (area mode)
   const responseMap = new Map(responses.map(r => [r.template_item_id, r]));

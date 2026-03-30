@@ -89,6 +89,7 @@ export function useAreaInspectionResponses(sessionId: string | undefined) {
           responder:profiles!area_inspection_responses_responded_by_fkey(full_name)
         `)
                 .eq('session_id', sessionId)
+                .is('deleted_at', null)
                 .order('created_at', { ascending: true });
 
             if (error) throw error;
@@ -106,7 +107,7 @@ export function useAreaInspectionResponses(sessionId: string | undefined) {
 /**
  * Get pass/fail/pending stats for checklist items in an area session
  */
-export function useAreaChecklistProgress(sessionId: string | undefined) {
+export function useAreaChecklistProgress(sessionId: string | undefined, sessionStatus?: string) {
     return useQuery({
         queryKey: ['area-checklist-progress', sessionId],
         queryFn: async (): Promise<AreaChecklistProgress | null> => {
@@ -159,6 +160,6 @@ export function useAreaChecklistProgress(sessionId: string | undefined) {
             };
         },
         enabled: !!sessionId,
-        refetchInterval: 2000, // Poll every 2 seconds during active inspection
+        refetchInterval: sessionStatus === 'in_progress' ? 5000 : false,
     });
 }
