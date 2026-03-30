@@ -505,11 +505,12 @@ export function CreateSessionActionDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent dir={direction}>
-                        <SelectItem value="operations">{t('inspections.findings.categories.operations', { defaultValue: 'Operations' })}</SelectItem>
-                        <SelectItem value="maintenance">{t('inspections.findings.categories.maintenance', { defaultValue: 'Maintenance' })}</SelectItem>
-                        <SelectItem value="training">{t('inspections.findings.categories.training', { defaultValue: 'Training' })}</SelectItem>
-                        <SelectItem value="procedural">{t('inspections.findings.categories.procedural', { defaultValue: 'Procedural' })}</SelectItem>
-                        <SelectItem value="equipment">{t('inspections.findings.categories.equipment', { defaultValue: 'Equipment' })}</SelectItem>
+                         <SelectItem value="engineering">{t('inspections.findings.categories.engineering', { defaultValue: 'Engineering' })}</SelectItem>
+                         <SelectItem value="administrative">{t('inspections.findings.categories.administrative', { defaultValue: 'Administrative' })}</SelectItem>
+                         <SelectItem value="ppe">{t('inspections.findings.categories.ppe', { defaultValue: 'PPE' })}</SelectItem>
+                         <SelectItem value="training">{t('inspections.findings.categories.training', { defaultValue: 'Training' })}</SelectItem>
+                         <SelectItem value="procedures_update">{t('inspections.findings.categories.procedures_update', { defaultValue: 'Procedures Update' })}</SelectItem>
+                         <SelectItem value="environmental">{t('inspections.findings.categories.environmental', { defaultValue: 'Environmental' })}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
