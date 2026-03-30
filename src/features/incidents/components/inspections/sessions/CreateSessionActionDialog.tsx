@@ -153,7 +153,7 @@ export function CreateSessionActionDialog({
         due_date: addDays(new Date(), 7),
         priority: 'medium',
         action_type: 'corrective',
-        category: 'operations',
+        category: 'administrative',
       });
     }
   }, [open, form]);
