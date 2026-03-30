@@ -79,8 +79,11 @@ export function CreateSessionActionDialog({
 
   const [users, setUsers] = useState<Array<{ id: string; full_name: string }>>([]);
   const [departments, setDepartments] = useState<Array<{ id: string; name: string }>>([]);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  const safeFailedAssets = Array.isArray(failedAssets) ? failedAssets.filter(Boolean) : [];
   const createAction = useCreateSessionAction();
 
   const form = useForm<FormValues>({
@@ -101,25 +104,38 @@ export function CreateSessionActionDialog({
   useEffect(() => {
     if (!open || !profile?.tenant_id) return;
 
-    const loadData = async () => {
-      const [usersRes, deptsRes] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('id, full_name')
-          .eq('tenant_id', profile.tenant_id)
-          .eq('is_active', true)
-          .is('deleted_at', null)
-          .order('full_name'),
-        supabase
-          .from('departments')
-          .select('id, name')
-          .eq('tenant_id', profile.tenant_id)
-          .is('deleted_at', null)
-          .order('name'),
-      ]);
+    setIsLoadingData(true);
+    setLoadError(null);
 
-      if (usersRes.data) setUsers(usersRes.data);
-      if (deptsRes.data) setDepartments(deptsRes.data);
+    const loadData = async () => {
+      try {
+        const [usersRes, deptsRes] = await Promise.all([
+          supabase
+            .from('profiles')
+            .select('id, full_name')
+            .eq('tenant_id', profile.tenant_id)
+            .eq('is_active', true)
+            .is('deleted_at', null)
+            .order('full_name'),
+          supabase
+            .from('departments')
+            .select('id, name')
+            .eq('tenant_id', profile.tenant_id)
+            .is('deleted_at', null)
+            .order('name'),
+        ]);
+
+        if (usersRes.error) throw usersRes.error;
+        if (deptsRes.error) throw deptsRes.error;
+
+        setUsers(usersRes.data || []);
+        setDepartments(deptsRes.data || []);
+      } catch (err) {
+        console.error('[CreateSessionActionDialog] Failed to load form data:', err);
+        setLoadError('Failed to load form data. Please try again.');
+      } finally {
+        setIsLoadingData(false);
+      }
     };
 
     loadData();
@@ -144,8 +160,8 @@ export function CreateSessionActionDialog({
   const handleAISuggestion = async () => {
     setIsGenerating(true);
     try {
-      const failureSummary = failedAssets
-        .map((fa) => `${fa.asset_name} (${fa.asset_code}): ${fa.failed_parts.join(', ') || fa.failure_reason || 'Failed'}`)
+      const failureSummary = safeFailedAssets
+        .map((fa) => `${fa.asset_name} (${fa.asset_code}): ${fa.failed_parts?.join(', ') || fa.failure_reason || 'Failed'}`)
         .join('; ');
 
       const { data, error } = await supabase.functions.invoke('suggest-inspection-action', {
@@ -153,7 +169,7 @@ export function CreateSessionActionDialog({
           finding_classification: 'major_nc',
           finding_risk_level: 'high',
           checklist_item_question: `Session-level failures: ${failureSummary}`,
-          finding_description: `${failedAssets.length} assets failed inspection`,
+          finding_description: `${safeFailedAssets.length} assets failed inspection`,
           failure_notes: failureSummary,
         },
       });
@@ -185,11 +201,13 @@ export function CreateSessionActionDialog({
       priority: values.priority,
       action_type: values.action_type,
       category: values.category,
-      failedAssets,
+      failedAssets: safeFailedAssets,
     });
 
     onOpenChange(false);
   };
+
+  if (!open) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -201,12 +219,36 @@ export function CreateSessionActionDialog({
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
             {t('actions.failedAssetsContext', {
-              count: failedAssets.length,
-              defaultValue: `${failedAssets.length} failed asset(s) detected`,
+              count: safeFailedAssets.length,
+              defaultValue: `${safeFailedAssets.length} failed asset(s) detected`,
             })}
           </p>
         </DialogHeader>
 
+        {isLoadingData ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <span className="ms-2 text-sm text-muted-foreground">Loading form data...</span>
+          </div>
+        ) : loadError ? (
+          <div className="text-center py-8 space-y-2">
+            <AlertTriangle className="h-8 w-8 text-destructive mx-auto" />
+            <p className="text-sm text-destructive">{loadError}</p>
+            <Button variant="outline" size="sm" onClick={() => {
+              setLoadError(null);
+              // Re-trigger load
+              const event = new Event('reload');
+              window.dispatchEvent(event);
+            }}>
+              {t('common.retry', { defaultValue: 'Retry' })}
+            </Button>
+          </div>
+        ) : safeFailedAssets.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-sm text-muted-foreground">No failed assets found for this session.</p>
+          </div>
+        ) : (
+          <>
         {/* Step 1: Failed Assets Summary (Read-only) */}
         <div className="space-y-2">
           <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
@@ -214,7 +256,7 @@ export function CreateSessionActionDialog({
           </h4>
           <ScrollArea className="max-h-[200px]">
             <div className="space-y-2">
-              {failedAssets.map((fa) => (
+              {safeFailedAssets.map((fa) => (
                 <div key={fa.id} className="p-3 border rounded-lg bg-muted/30 space-y-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <Badge variant="outline" className="font-mono text-xs">
@@ -476,6 +518,8 @@ export function CreateSessionActionDialog({
             </DialogFooter>
           </form>
         </Form>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
