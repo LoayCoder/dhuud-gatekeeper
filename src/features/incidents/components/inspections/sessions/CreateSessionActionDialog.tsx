@@ -160,8 +160,8 @@ export function CreateSessionActionDialog({
   const handleAISuggestion = async () => {
     setIsGenerating(true);
     try {
-      const failureSummary = failedAssets
-        .map((fa) => `${fa.asset_name} (${fa.asset_code}): ${fa.failed_parts.join(', ') || fa.failure_reason || 'Failed'}`)
+      const failureSummary = safeFailedAssets
+        .map((fa) => `${fa.asset_name} (${fa.asset_code}): ${fa.failed_parts?.join(', ') || fa.failure_reason || 'Failed'}`)
         .join('; ');
 
       const { data, error } = await supabase.functions.invoke('suggest-inspection-action', {
