@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { type SessionAsset, useRecordAssetInspection, useCreateFinding } from '@/features/incidents';
-import { FailureReasonDialog } from './FailureReasonDialog';
 import { AssetPartInspectionCard } from '@/features/incidents';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
