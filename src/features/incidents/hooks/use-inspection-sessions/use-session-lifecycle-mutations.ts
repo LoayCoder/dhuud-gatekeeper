@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import type { CreateSessionInput } from './types';
+import type { CreateSessionInput, RecordInspectionInput } from './types';
 
 // Hook: Create new session
 export function useCreateSession() {
