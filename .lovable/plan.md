@@ -1,30 +1,48 @@
 
 
-# Fix: Remove Invalid `deleted_at` Filters on `inspection_session_assets`
+# Fix: `partial` Not Saving — Database Constraint Blocking It
 
 ## Root Cause
 
-The previous audit rounds added `.is('deleted_at', null)` filters to all `inspection_session_assets` queries as a "defense-in-depth" measure. However, **the `inspection_session_assets` table does not have a `deleted_at` column**. This causes Supabase to either error silently or return zero rows, making all sessions appear to have no assets.
+The `inspection_session_assets` table has a CHECK constraint:
+```sql
+CHECK (quick_result = ANY (ARRAY['good', 'not_good', 'not_accessible']))
+```
 
-This is why new sessions show "no assets" — the assets are inserted correctly (with `tenant_id`), but every read query filters on a non-existent column.
+`partial` is **not included**. When the UI calls `handleConfirm('partial')`, the Supabase update silently fails (the error is caught but the toast doesn't show the DB error), so nothing saves and nothing happens.
 
-## Confirmed Schema
+## Fix
 
-The `inspection_session_assets` table columns are:
-`id, tenant_id, session_id, asset_id, quick_result, failure_reason, notes, gps_lat, gps_lng, photo_paths, inspected_at, inspected_by, created_at, updated_at, branch_id, asset_name_snapshot, asset_code_snapshot, asset_location_snapshot, asset_type_snapshot`
+### 1. Database Migration — Add `partial` to the CHECK constraint
+Drop and recreate the constraint to include `partial`:
+```sql
+ALTER TABLE public.inspection_session_assets
+  DROP CONSTRAINT inspection_session_assets_quick_result_check;
 
-**No `deleted_at` column exists.**
+ALTER TABLE public.inspection_session_assets
+  ADD CONSTRAINT inspection_session_assets_quick_result_check
+  CHECK (quick_result = ANY (ARRAY['good', 'not_good', 'not_accessible', 'partial']));
+```
 
-## Fix Plan
+### 2. Add Missing i18n Keys
+The console shows missing translation keys. Add to the English and Arabic translation files:
+- `inspectionSessions.confirmFail` → "Confirm — Fail"
+- `inspectionSessions.confirmPartial` → "Confirm — Partial"
+- `assetParts.hasNotes` → "•"
 
-Remove all `.is('deleted_at', null)` calls on queries targeting `inspection_session_assets` across these files:
+### 3. Improve Error Visibility in `handleConfirm`
+In `QuickInspectionCard.tsx`, the catch block only does `console.error`. Add a `toast.error` so users see DB errors:
+```typescript
+} catch (error) {
+  console.error('Failed to confirm inspection:', error);
+  toast.error(t('inspectionSessions.confirmFailed', 'Failed to confirm inspection. Please try again.'));
+}
+```
 
-| # | File | Lines to fix |
-|---|------|-------------|
-| 1 | `use-inspection-session-queries.ts` | Lines 100, 132, 164, 187 — `useSessionAssets`, `useUninspectedAssets`, `useSessionAssetByAssetId`, `useSessionProgress` |
-| 2 | `use-session-parts-progress.ts` | Line 27 — session assets sub-query |
-| 3 | `use-session-asset-mutations.ts` | Lines 119, 203 — duplicate check + refresh query |
-| 4 | `use-session-lifecycle-mutations.ts` | Lines 246, 294, 304 — sync-back, completion count, parts summary |
-
-Each fix is a single line removal. No other logic changes needed — the `tenant_id` filters remain correct.
+## Files to Change
+| File | Change |
+|------|--------|
+| Database migration | Add `partial` to CHECK constraint |
+| `QuickInspectionCard.tsx` | Add `toast.error` to catch block |
+| Translation files (en/ar) | Add missing keys |
 
