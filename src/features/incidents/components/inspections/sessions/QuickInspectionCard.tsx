@@ -35,7 +35,7 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
     setDerivedCondition(condition);
     setPartsAllComplete(allComplete);
     setHasCriticalFail(criticalFail);
-    setHasFails(condition === 'not_good');
+    
   }, []);
 
   const asset = sessionAsset.asset;
