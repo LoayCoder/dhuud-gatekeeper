@@ -128,7 +128,6 @@ export function useUninspectedAssets(sessionId: string | undefined) {
         `)
                 .eq('session_id', sessionId)
                 .eq('tenant_id', profile.tenant_id)
-                .is('deleted_at', null)
                 .is('quick_result', null)
                 .order('created_at', { ascending: true });
 
