@@ -63,6 +63,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSessionProgress } from '@/features/incidents/hooks/use-inspection-sessions/use-inspection-session-queries';
 import { usePartsForAsset } from '@/features/assets';
 import { usePartInspectionResults } from '@/hooks/use-part-inspection-results';
+import { useUserRoles } from '@/features/users';
 import { ScannerDialog } from '@/components/ui/scanner-dialog';
 
 /** Inline component to show parts completion count for a session asset */

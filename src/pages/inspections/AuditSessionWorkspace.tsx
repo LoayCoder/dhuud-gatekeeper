@@ -28,6 +28,7 @@ import {
   useStartAuditSession,
   useCompleteAuditSession,
 } from '@/hooks/use-audit-sessions';
+import { useUserRoles } from '@/features/users';
 import { useCanCloseSession, useCloseAreaSession } from '@/hooks/use-session-lifecycle';
 import {
   SessionStatusBadge,
