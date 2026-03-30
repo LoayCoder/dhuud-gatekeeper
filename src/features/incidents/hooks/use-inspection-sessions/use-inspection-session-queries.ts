@@ -172,7 +172,7 @@ export function useSessionAssetByAssetId(sessionId: string | undefined, assetId:
 }
 
 // Hook: Get session progress stats — derived from inspection_session_assets (source of truth)
-export function useSessionProgress(sessionId: string | undefined) {
+export function useSessionProgress(sessionId: string | undefined, sessionStatus?: string) {
     const { profile } = useAuth();
     return useQuery({
         queryKey: ['session-progress', sessionId],
@@ -211,7 +211,7 @@ export function useSessionProgress(sessionId: string | undefined) {
             };
         },
         enabled: !!sessionId,
-        refetchInterval: 5000,
+        refetchInterval: sessionStatus === 'in_progress' ? 5000 : false,
     });
 }
 

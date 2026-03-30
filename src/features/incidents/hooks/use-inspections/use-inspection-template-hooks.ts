@@ -30,6 +30,7 @@ export function useInspectionTemplates(templateType?: 'asset' | 'area' | 'audit'
           site:sites(name),
           building:buildings(name, name_ar)
         `)
+                .eq('tenant_id', profile!.tenant_id)
                 .is('deleted_at', null)
                 .order('name');
 

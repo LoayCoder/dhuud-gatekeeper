@@ -256,3 +256,20 @@ export {
 } from './hooks/use-inspection-sessions';
 // Re-export types with explicit names to avoid collision
 export type { InspectionSession, SessionAsset, InspectionFinding, CreateSessionInput, RecordInspectionInput, SessionPartsProgress } from './hooks/use-inspection-sessions';
+// Override stub inspection-action hooks with real implementations
+export {
+  useSessionActions,
+  useMyInspectionActions,
+} from './hooks/use-inspection-actions/use-action-queries';
+export {
+  useCreateActionFromFinding,
+  useVerifyAction,
+  useUpdateActionStatus,
+  useUpdateInspectionActionStatus,
+} from './hooks/use-inspection-actions/use-action-mutations';
+export {
+  useCreateSessionAction,
+} from './hooks/use-inspection-actions/use-create-session-action';
+export {
+  useSessionFailedAssets,
+} from './hooks/use-inspection-actions/use-session-failed-assets';
