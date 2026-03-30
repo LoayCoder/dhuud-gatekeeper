@@ -30,7 +30,7 @@ export function useSessionFailedAssets(sessionId: string | undefined, enabled = 
           asset:hsse_assets!inspection_session_assets_asset_id_fkey(
             id, name, asset_code,
             building:buildings!hsse_assets_building_id_fkey(name),
-            floor_zone:floor_zones!hsse_assets_floor_zone_id_fkey(name)
+            floor_zone:floors_zones!hsse_assets_floor_zone_id_fkey(name)
           )
         `)
         .eq('session_id', sessionId)
