@@ -20,7 +20,6 @@ interface QuickInspectionCardProps {
 export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: QuickInspectionCardProps) {
   const { t, i18n } = useTranslation();
   const [showFailureDialog, setShowFailureDialog] = useState(false);
-  const [manualOverride, setManualOverride] = useState(false);
   // Track parts inspection state from child
   const [partsAllComplete, setPartsAllComplete] = useState(false);
   const [hasCriticalFail, setHasCriticalFail] = useState(false);
@@ -37,12 +36,7 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
     setPartsAllComplete(allComplete);
     setHasCriticalFail(criticalFail);
     setHasFails(condition === 'not_good');
-
-    // If user manually set partial but now has critical fail, force back to auto
-    if (manualOverride && criticalFail) {
-      setManualOverride(false);
-    }
-  }, [manualOverride]);
+  }, []);
 
   const asset = sessionAsset.asset;
   if (!asset) return null;
