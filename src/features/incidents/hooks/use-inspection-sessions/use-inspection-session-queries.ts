@@ -14,6 +14,7 @@ export function useInspectionSessions(filters?: {
     return useQuery({
         queryKey: ['inspection-sessions', filters],
         queryFn: async () => {
+            if (!profile?.tenant_id) return [];
             let query = supabase
                 .from('inspection_sessions')
                 .select(`
@@ -24,6 +25,7 @@ export function useInspectionSessions(filters?: {
           type:asset_types(name, name_ar),
           inspector:profiles!inspection_sessions_inspector_id_fkey(full_name)
         `)
+                .eq('tenant_id', profile.tenant_id)
                 .is('deleted_at', null)
                 .order('created_at', { ascending: false });
 
