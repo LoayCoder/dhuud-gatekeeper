@@ -1,132 +1,125 @@
 
-# Fix: Corrective Action UI Not Appearing After Completing Asset-Mode Inspection Sessions
+# Fix plan: inspection corrective action flow is only partially fixed
 
 ## What I verified
+I checked the live session UI for `INS-2026-0004`.
 
-For session `INS-2026-0004`:
+Current state is now:
+- Session status shows **Completed (Actions Pending)**
+- Session actions panel is visible
+- **Create Corrective Action** button is visible
+- Backend state is correct:
+  - session = `completed_with_open_actions`
+  - responded assets = `58/58`
+  - failed assets = `5`
+  - corrective actions = `0`
+  - close RPC returns `can_close = false`
 
-- It is an **asset-mode area session**
-- It has **58/58 responded assets**
-- It still has **5 failed assets** (`not_good` / `partial`)
-- It is currently marked **`closed`**
-- It has **0 corrective_actions** created
+So the old gating/status problem is fixed.
 
-So the user is right: the flow is not complete yet.
+## What is still broken
+The remaining blocker is the **creation flow itself**:
 
-## Root causes
-
-### 1. Failed-assets query is broken in the UI
-`SessionActionsPanel` correctly tries to show the corrective action button after completion, but `useSessionFailedAssets` still does this:
-
-```ts
-.from('inspection_session_assets')
-...
-.is('deleted_at', null)
-```
-
-`inspection_session_assets` does **not** have a `deleted_at` column. That means the failed-assets query can fail/return nothing, so:
-
-- `hasFailures` becomes false
-- `Create Corrective Action` button never appears
-- the dialog for creating the action is never reachable
-
-This is the main UI bug.
-
-### 2. The close RPC now allows asset-mode sessions to close too early
-The new `can_close_area_session` function checks asset-mode findings only from `corrective_actions`:
-
-- if there are no actions yet, `open_findings = 0`
-- then `can_close = true`
-- so the session can be moved directly to `closed`
-
-That breaks the intended workflow, because failed assets should keep the session in `completed_with_open_actions` until actions are created and resolved.
-
-### 3. The status message is misleading
-The toast/message says the session is closed and actions can be handled, but in reality the workflow should remain in the “open actions” phase until corrective actions exist and are resolved.
+When I click **Create Corrective Action**, the page crashes into **“Page Failed to Load”**.  
+That means the user is no longer blocked by session status — they are blocked by the **CreateSessionActionDialog / action creation path**.
 
 ## Implementation plan
 
-### 1. Fix `useSessionFailedAssets`
+### 1. Stabilize the Create Corrective Action dialog
 File:
-- `src/features/incidents/hooks/use-inspection-actions/use-session-failed-assets.ts`
+- `src/features/incidents/components/inspections/sessions/CreateSessionActionDialog.tsx`
 
-Change:
-- remove the invalid `.is('deleted_at', null)` on `inspection_session_assets`
-- keep tenant + session + `quick_result in ('not_good', 'partial')`
+Changes:
+- Replace the inline dialog data-loading logic with safer query-based loading patterns already used elsewhere
+- Add explicit loading / error UI for assignees and departments
+- Defensively normalize `failedAssets` before rendering the summary
+- Prevent the entire page from crashing if dialog data is incomplete
 
 Result:
-- failed assets will load again
-- `SessionActionsPanel` will detect failures
-- the **Create Corrective Action** button/dialog will appear
+- Clicking **Create Corrective Action** opens a usable dialog instead of breaking the page
 
-### 2. Fix asset-mode close logic in `can_close_area_session`
+### 2. Harden inspection action creation mutation
 File:
-- new migration updating `public.can_close_area_session(uuid)`
+- `src/features/incidents/hooks/use-inspection-actions/use-create-session-action.ts`
 
-For `execution_mode = 'asset'`:
-- derive whether failed assets exist from `inspection_session_assets`
-- if failed assets exist **and no corrective actions exist yet**, `can_close` must be `false`
-- `open_findings` / `pending_actions` should represent:
-  - unhandled failed assets when no action exists yet
-  - open corrective actions once actions are created
-- only allow close when:
-  - all assets are responded, and
-  - all failed assets are covered/resolved through the corrective action workflow
+Changes:
+- Add `.throwOnError()` to inserts/selects so permission or RLS failures are surfaced properly
+- Include any required session metadata when creating the action, especially session branch context if needed
+- Return and toast the real error message instead of only a generic failure
+- Keep the `failure_context_snapshot` as the canonical inspection-action payload
 
 Result:
-- asset-mode sessions stay in `completed_with_open_actions`
-- users are forced through the action workflow before true closure
+- If creation fails, the user sees the real reason
+- If creation succeeds, the action record is fully usable by the rest of the workflow
 
-### 3. Prevent misleading post-complete behavior in the workspace
+### 3. Verify the action loop is actually integrated
+Files to audit/update:
+- `src/features/incidents/hooks/use-inspection-actions/use-action-queries.ts`
+- `src/features/incidents/hooks/use-inspection-actions/use-action-mutations.ts`
+- related action-center / my-actions inspection views
+
+Checks/fixes:
+- Created session actions must appear immediately in the session panel
+- Assigned inspection actions must appear in the assignee’s action views
+- Verification/closure path must update session closure status correctly
+- Confirm the identity used for `assigned_to` is consistent across:
+  - insert
+  - list queries
+  - update queries
+  - permission checks
+
+Result:
+- The full corrective-action lifecycle works, not just the button
+
+### 4. Add missing defensive UX around this flow
 Files:
-- `src/hooks/use-session-lifecycle.ts`
-- possibly `src/features/incidents/components/inspections/sessions/SessionCompletionDialog.tsx`
-- possibly `src/features/incidents/components/inspections/sessions/SessionStatusCard.tsx`
+- `CreateSessionActionDialog.tsx`
+- `SessionActionsPanel.tsx`
+- possibly `SessionStatusCard.tsx`
 
-Adjust:
-- ensure complete action for asset mode sets `completed_with_open_actions` whenever failed assets exist
-- update wording so users understand:
-  - “Session completed”
-  - “Corrective actions are required before closing”
+Changes:
+- Show a clear inline error if dialog support data cannot load
+- Show success feedback and immediate refresh after create
+- Keep the session in **Completed - Actions Pending** until actions are handled
+- Make the wording clearer that the next required step is corrective action creation
 
 Result:
-- status and UI messaging match the actual workflow
+- Users understand what to do next and do not get stuck on silent failures
 
-### 4. Verify `SessionActionsPanel` stays visible for asset-mode area sessions
-File:
-- `src/pages/inspections/AreaSessionWorkspace.tsx`
+### 5. End-to-end verification after fix
+I would verify this exact path:
+1. Open session `INS-2026-0004`
+2. Click **Create Corrective Action**
+3. Confirm dialog opens without crashing
+4. Create one corrective action
+5. Confirm it appears in **Session Actions**
+6. Confirm session still shows open findings until the action is progressed/resolved
+7. Confirm the assignee can see and work the action
 
-This panel is already mounted, which is good. After fixing the failed-assets hook, it should work. I would still verify:
-- it renders for `completed_with_open_actions`
-- it also renders when reopening/refreshing the session page
-- the create-action dialog opens with failed asset context
+## Technical details
+Most likely remaining root cause is in the **dialog/action creation layer**, not session completion logic.
 
-### 5. Data repair for already-closed broken sessions
-Because `INS-2026-0004` is already incorrectly `closed`, add a small remediation step:
+Evidence:
+- `useSessionFailedAssets` is now returning failures correctly
+- `SessionActionsPanel` renders correctly
+- live UI already shows the create button
+- session/backend status is now correct
+- crash happens specifically when the create dialog opens
 
-- update affected asset-mode sessions that:
-  - are `closed`
-  - have failed assets
-  - have no corrective actions
-- set them back to `completed_with_open_actions`
+Secondary deep issue to verify while fixing:
+- inspection corrective actions use the shared `corrective_actions` system, so the assignment identity and query filters must match the rest of the action workflow exactly, otherwise creation may work but downstream action handling will still look broken
 
-This can be done as a one-time migration/data-fix for existing bad records.
-
-## Files likely to change
-
-1. `src/features/incidents/hooks/use-inspection-actions/use-session-failed-assets.ts`
-2. `src/hooks/use-session-lifecycle.ts`
-3. `src/features/incidents/components/inspections/sessions/SessionStatusCard.tsx`
-4. `src/features/incidents/components/inspections/sessions/SessionCompletionDialog.tsx` (if message text is adjusted)
-5. new migration for `can_close_area_session`
-6. optional data-fix migration for already-closed invalid sessions
+## Files most likely to change
+1. `src/features/incidents/components/inspections/sessions/CreateSessionActionDialog.tsx`
+2. `src/features/incidents/hooks/use-inspection-actions/use-create-session-action.ts`
+3. `src/features/incidents/hooks/use-inspection-actions/use-action-queries.ts`
+4. `src/features/incidents/hooks/use-inspection-actions/use-action-mutations.ts`
+5. possibly a small backend migration if branch/permission metadata is missing for inspection-created actions
 
 ## Expected outcome
-
 After this fix:
-
-- completing an asset-mode session with failures will move it to `completed_with_open_actions`
-- the workspace will show the failed-assets-driven corrective action UI
-- the user can open **Create Corrective Action**
-- the session cannot be truly closed until those actions are handled
-- already broken sessions like `INS-2026-0004` can be restored to the correct state
+- the user can open the corrective action dialog
+- create corrective actions from failed inspection assets
+- see those actions inside the session immediately
+- continue the normal action workflow without the page crashing
+- only close the inspection after corrective actions are properly handled
