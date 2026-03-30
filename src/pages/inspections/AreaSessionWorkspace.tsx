@@ -60,7 +60,7 @@ import {
 } from '@/features/incidents';
 import { useReopenAreaSession } from '@/hooks/use-session-lifecycle';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSessionProgress } from '@/hooks/use-inspection-sessions';
+import { useSessionProgress } from '@/features/incidents/hooks/use-inspection-sessions/use-inspection-session-queries';
 import { usePartsForAsset } from '@/features/assets';
 import { usePartInspectionResults } from '@/hooks/use-part-inspection-results';
 import { ScannerDialog } from '@/components/ui/scanner-dialog';

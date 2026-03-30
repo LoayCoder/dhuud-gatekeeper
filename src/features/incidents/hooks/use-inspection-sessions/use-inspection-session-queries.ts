@@ -14,6 +14,7 @@ export function useInspectionSessions(filters?: {
     return useQuery({
         queryKey: ['inspection-sessions', filters],
         queryFn: async () => {
+            if (!profile?.tenant_id) return [];
             let query = supabase
                 .from('inspection_sessions')
                 .select(`
@@ -24,6 +25,7 @@ export function useInspectionSessions(filters?: {
           type:asset_types(name, name_ar),
           inspector:profiles!inspection_sessions_inspector_id_fkey(full_name)
         `)
+                .eq('tenant_id', profile.tenant_id)
                 .is('deleted_at', null)
                 .order('created_at', { ascending: false });
 
@@ -75,10 +77,11 @@ export function useInspectionSession(sessionId: string | undefined) {
 
 // Hook: Get all assets in session
 export function useSessionAssets(sessionId: string | undefined) {
+    const { profile } = useAuth();
     return useQuery({
         queryKey: ['session-assets', sessionId],
         queryFn: async () => {
-            if (!sessionId) return [];
+            if (!sessionId || !profile?.tenant_id) return [];
 
             const { data, error } = await supabase
                 .from('inspection_session_assets')
@@ -93,6 +96,8 @@ export function useSessionAssets(sessionId: string | undefined) {
           )
         `)
                 .eq('session_id', sessionId)
+                .eq('tenant_id', profile.tenant_id)
+                .is('deleted_at', null)
                 .order('created_at', { ascending: true });
 
             if (error) throw error;
@@ -104,10 +109,11 @@ export function useSessionAssets(sessionId: string | undefined) {
 
 // Hook: Get uninspected assets in session
 export function useUninspectedAssets(sessionId: string | undefined) {
+    const { profile } = useAuth();
     return useQuery({
         queryKey: ['session-assets-uninspected', sessionId],
         queryFn: async () => {
-            if (!sessionId) return [];
+            if (!sessionId || !profile?.tenant_id) return [];
 
             const { data, error } = await supabase
                 .from('inspection_session_assets')
@@ -122,6 +128,8 @@ export function useUninspectedAssets(sessionId: string | undefined) {
           )
         `)
                 .eq('session_id', sessionId)
+                .eq('tenant_id', profile.tenant_id)
+                .is('deleted_at', null)
                 .is('quick_result', null)
                 .order('created_at', { ascending: true });
 
@@ -164,15 +172,18 @@ export function useSessionAssetByAssetId(sessionId: string | undefined, assetId:
 
 // Hook: Get session progress stats — derived from inspection_session_assets (source of truth)
 export function useSessionProgress(sessionId: string | undefined) {
+    const { profile } = useAuth();
     return useQuery({
         queryKey: ['session-progress', sessionId],
         queryFn: async () => {
-            if (!sessionId) return null;
+            if (!sessionId || !profile?.tenant_id) return null;
 
             const { data, error } = await supabase
                 .from('inspection_session_assets')
                 .select('quick_result')
-                .eq('session_id', sessionId);
+                .eq('session_id', sessionId)
+                .eq('tenant_id', profile.tenant_id)
+                .is('deleted_at', null);
 
             if (error) throw error;
 
@@ -199,7 +210,7 @@ export function useSessionProgress(sessionId: string | undefined) {
             };
         },
         enabled: !!sessionId,
-        refetchInterval: 2000,
+        refetchInterval: 5000,
     });
 }
 

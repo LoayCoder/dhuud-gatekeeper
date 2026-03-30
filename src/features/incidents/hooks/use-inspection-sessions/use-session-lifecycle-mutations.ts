@@ -286,13 +286,14 @@ export function useCompleteSession() {
         mutationFn: async (sessionId: string) => {
             // Check if there are any failed items (which means open actions)
             // Count failed items: both 'not_good' and 'partial' indicate issues
-            const { data: failedCount } = await supabase
+            const { count: failedCount } = await supabase
                 .from('inspection_session_assets')
                 .select('id', { count: 'exact', head: true })
                 .eq('session_id', sessionId)
+                .is('deleted_at', null)
                 .in('quick_result', ['not_good', 'partial']);
 
-            const hasOpenActions = (failedCount as unknown as { count?: number })?.count ? (failedCount as unknown as { count: number }).count > 0 : false;
+            const hasOpenActions = (failedCount ?? 0) > 0;
 
             // Aggregate part-level results for completion metadata
             const { data: sessionAssetIds } = await supabase

@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { type SessionAsset, useRecordAssetInspection, useCreateFinding } from '@/features/incidents';
-import { FailureReasonDialog } from './FailureReasonDialog';
 import { AssetPartInspectionCard } from '@/features/incidents';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -19,7 +18,6 @@ interface QuickInspectionCardProps {
 
 export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: QuickInspectionCardProps) {
   const { t, i18n } = useTranslation();
-  const [showFailureDialog, setShowFailureDialog] = useState(false);
   // Track parts inspection state from child
   const [partsAllComplete, setPartsAllComplete] = useState(false);
   const [hasCriticalFail, setHasCriticalFail] = useState(false);
@@ -73,38 +71,6 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
     }
   };
   
-  const handleFailureSubmit = async (data: { 
-    failure_reason: string; 
-    notes: string; 
-    gps_lat?: number; 
-    gps_lng?: number;
-    photo_paths?: string[];
-  }) => {
-    try {
-      await recordInspection.mutateAsync({
-        session_asset_id: sessionAsset.id,
-        quick_result: 'not_good',
-        failure_reason: data.failure_reason,
-        notes: data.notes,
-        gps_lat: data.gps_lat,
-        gps_lng: data.gps_lng,
-        photo_paths: data.photo_paths,
-      });
-      
-      await createFinding.mutateAsync({
-        session_id: sessionId,
-        session_asset_id: sessionAsset.id,
-        asset_id: asset.id,
-        classification: 'observation',
-        risk_level: 'medium',
-        description: `${asset.asset_code}: ${data.failure_reason}${data.notes ? ` - ${data.notes}` : ''}`,
-      });
-      
-      setShowFailureDialog(false);
-    } catch (error) {
-      console.error('Failed to record failure:', error);
-    }
-  };
 
   
   
@@ -368,13 +334,6 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
         </div>
       )}
       
-      <FailureReasonDialog
-        open={showFailureDialog}
-        onOpenChange={setShowFailureDialog}
-        onSubmit={handleFailureSubmit}
-        isLoading={isLoading}
-        assetCode={asset.asset_code}
-      />
     </>
   );
 }
