@@ -1,42 +1,42 @@
 
 
-# Fix: Remove Auto-Hide on Part Click — Add Explicit Confirm Button
+# Implement: Remove Auto-Hide + Add Explicit Confirm Button
 
-## Problem
-When a user clicks Pass/Fail on a part, `handleConditionChange` fires with `allComplete=true` once all parts are answered, which immediately calls `onComplete()` — collapsing/hiding the asset. This prevents users from reviewing results or selecting Partial before confirming.
+The plan was already approved. Here is exactly what will be changed in `QuickInspectionCard.tsx`:
 
-## Solution
-Remove all automatic `onComplete()` calls from condition-change and partial handlers. Add an explicit **"Confirm Inspection"** button at the bottom of `QuickInspectionCard` that the user must click to finalize.
+## Changes to `QuickInspectionCard.tsx`
 
-## Changes
+### 1. Add new imports and state
+- Import `ShieldCheck` icon
+- Add `confirmed` state (`useState(false)`)
+- Compute `finalConditionLabel` and `confirmButtonColor` based on derived/manual condition
 
-### 1. QuickInspectionCard — Remove auto-complete, add Confirm button
-**File:** `src/features/incidents/components/inspections/sessions/QuickInspectionCard.tsx`
+### 2. Remove auto-complete calls
+- **Line 55-57**: Remove `if (allComplete) { onComplete?.(); }` from `handleConditionChange`
+- **Line 101**: Remove `onComplete?.()` from `handlePartial`
+- Keep `onComplete?.()` only in `handleNotAccessible`
 
-- **Remove** the `if (allComplete) { onComplete?.(); }` block inside `handleConditionChange` (lines 55-57)
-- **Remove** `onComplete?.()` from `handlePartial` (line 101)
-- **Keep** `onComplete?.()` only in `handleNotAccessible` (that's the one shortcut)
-- **Add** a `confirmed` state to prevent double-submit
-- **Add** a `handleConfirm` function that:
-  - Guards: if `!partsAllComplete || !finalCondition` → show toast warning
-  - Saves the final `quick_result` to DB
-  - Sets `confirmed = true`
-  - Calls `onComplete?.()`
-- **Render** a prominent Confirm button below the parts checklist:
-  - Label shows the derived condition (e.g., "Confirm — Good Condition" or "Confirm — Not Good")
+### 3. Add `handleConfirm` function
+```typescript
+const handleConfirm = async () => {
+  if (!partsAllComplete) { toast.warning(...); return; }
+  const finalResult = manualOverride ? 'partial' : (derivedCondition || 'good');
+  await recordInspection.mutateAsync({ session_asset_id, quick_result: finalResult });
+  setConfirmed(true);
+  toast.success('Inspection confirmed successfully.');
+  onComplete?.();
+};
+```
+
+### 4. UI changes
+- Wrap Card with `confirmed` state: green border + "Inspected ✓" overlay badge when confirmed
+- Disable all buttons and checklist after confirmation (`confirmed && "pointer-events-none opacity-60"`)
+- Add a full-width **Confirm Inspection** button below the parts checklist:
   - Green when good, red when not_good, amber when partial
-  - Disabled when: not all parts complete, or already confirmed, or loading
-  - Full-width, large touch target (`h-12`)
-- After confirmation, show a green "Inspected ✓" badge and disable all interaction
+  - Disabled when parts incomplete or already confirmed
+  - Label: "Confirm — Good Condition" / "Confirm — Not Good" / "Confirm — Partial"
+  - Hidden when `isNotAccessible` or `confirmed`
 
-### 2. No changes to AssetPartInspectionCard
-The child component already correctly reports `(condition, allComplete, hasCriticalFail)` on every change. No modification needed.
-
-### 3. No changes to AreaSessionWorkspace
-The `onComplete` callback in the workspace already handles auto-advancing to the next asset. It just won't fire until the user explicitly confirms.
-
-## Files Modified
-| File | Change |
-|------|--------|
-| `QuickInspectionCard.tsx` | Remove auto-complete calls, add Confirm button with validation |
+### No other files changed
+`AssetPartInspectionCard` and `AreaSessionWorkspace` remain unchanged.
 
