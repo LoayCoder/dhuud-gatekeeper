@@ -26,6 +26,7 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
   const [hasCriticalFail, setHasCriticalFail] = useState(false);
   const [hasFails, setHasFails] = useState(false);
   const [derivedCondition, setDerivedCondition] = useState<'good' | 'not_good' | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
   
   const recordInspection = useRecordAssetInspection();
   const createFinding = useCreateFinding();
