@@ -77,10 +77,11 @@ export function useInspectionSession(sessionId: string | undefined) {
 
 // Hook: Get all assets in session
 export function useSessionAssets(sessionId: string | undefined) {
+    const { profile } = useAuth();
     return useQuery({
         queryKey: ['session-assets', sessionId],
         queryFn: async () => {
-            if (!sessionId) return [];
+            if (!sessionId || !profile?.tenant_id) return [];
 
             const { data, error } = await supabase
                 .from('inspection_session_assets')
@@ -95,6 +96,8 @@ export function useSessionAssets(sessionId: string | undefined) {
           )
         `)
                 .eq('session_id', sessionId)
+                .eq('tenant_id', profile.tenant_id)
+                .is('deleted_at', null)
                 .order('created_at', { ascending: true });
 
             if (error) throw error;
