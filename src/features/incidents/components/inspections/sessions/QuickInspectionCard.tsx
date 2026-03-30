@@ -313,34 +313,70 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
         </div>
       )}
 
-      {/* Confirm Inspection Button — explicit finalization */}
+      {/* Confirm Inspection Buttons — conditional based on derived condition */}
       {!isNotAccessible && !confirmed && (
-        <div className="mt-4">
-          <Button
-            type="button"
-            className={cn(
-              "w-full h-12 text-base font-semibold transition-all duration-200",
-              !partsAllComplete && "opacity-50",
-              manualOverride
-                ? "bg-amber-500 hover:bg-amber-600 text-white"
-                : derivedCondition === 'not_good'
-                  ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-                  : "bg-green-600 hover:bg-green-700 text-white"
-            )}
-            onClick={handleConfirm}
-            disabled={!partsAllComplete || isLoading}
-          >
-            {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin me-2" />
-            ) : (
+        <div className="mt-4 space-y-2">
+          {/* All parts pass → single green confirm */}
+          {derivedCondition === 'good' && (
+            <Button
+              type="button"
+              className="w-full h-12 text-base font-semibold bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => handleConfirm('good')}
+              disabled={!partsAllComplete || isLoading}
+            >
+              {isLoading ? <Loader2 className="h-5 w-5 animate-spin me-2" /> : <ShieldCheck className="h-5 w-5 me-2" />}
+              {t('inspectionSessions.confirmGood', 'Confirm — Good Condition')}
+            </Button>
+          )}
+
+          {/* Failures exist, no critical → two options */}
+          {derivedCondition === 'not_good' && !hasCriticalFail && (
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                className="h-12 text-sm font-semibold bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                onClick={() => handleConfirm('not_good')}
+                disabled={!partsAllComplete || isLoading}
+              >
+                {isLoading ? <Loader2 className="h-5 w-5 animate-spin me-2" /> : <XCircle className="h-5 w-5 me-2" />}
+                {t('inspectionSessions.confirmFail', 'Confirm — Fail')}
+              </Button>
+              <Button
+                type="button"
+                className="h-12 text-sm font-semibold bg-amber-500 hover:bg-amber-600 text-white"
+                onClick={() => handleConfirm('partial')}
+                disabled={!partsAllComplete || isLoading}
+              >
+                {isLoading ? <Loader2 className="h-5 w-5 animate-spin me-2" /> : <AlertTriangle className="h-5 w-5 me-2" />}
+                {t('inspectionSessions.confirmPartial', 'Confirm — Partial')}
+              </Button>
+            </div>
+          )}
+
+          {/* Critical failure → single red confirm only */}
+          {derivedCondition === 'not_good' && hasCriticalFail && (
+            <Button
+              type="button"
+              className="w-full h-12 text-base font-semibold bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              onClick={() => handleConfirm('not_good')}
+              disabled={!partsAllComplete || isLoading}
+            >
+              {isLoading ? <Loader2 className="h-5 w-5 animate-spin me-2" /> : <XCircle className="h-5 w-5 me-2" />}
+              {t('inspectionSessions.confirmNotGood', 'Confirm — Not Good')}
+            </Button>
+          )}
+
+          {/* Parts not yet complete — disabled placeholder */}
+          {!derivedCondition && (
+            <Button
+              type="button"
+              className="w-full h-12 text-base font-semibold opacity-50"
+              disabled
+            >
               <ShieldCheck className="h-5 w-5 me-2" />
-            )}
-            {manualOverride
-              ? t('inspectionSessions.confirmPartial', 'Confirm — Partial')
-              : derivedCondition === 'not_good'
-                ? t('inspectionSessions.confirmNotGood', 'Confirm — Not Good')
-                : t('inspectionSessions.confirmGood', 'Confirm — Good Condition')}
-          </Button>
+              {t('inspectionSessions.confirmInspection', 'Confirm Inspection')}
+            </Button>
+          )}
         </div>
       )}
       
