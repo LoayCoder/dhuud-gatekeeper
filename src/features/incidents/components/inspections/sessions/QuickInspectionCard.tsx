@@ -164,13 +164,13 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
     return null;
   };
 
-  // Condition indicator buttons — Good and Not Good are READ-ONLY indicators
+  // Condition indicator buttons — Good and Not Good are READ-ONLY, Not Accessible is action
   const conditionButtons = [
     {
       key: 'good' as const,
       icon: CheckCircle,
       label: t('inspectionSessions.quickGood'),
-      onClick: undefined, // Read-only indicator
+      onClick: undefined,
       isIndicator: true,
       selectedClasses: 'bg-green-600 text-white ring-2 ring-green-600 ring-offset-2 cursor-default',
       unselectedClasses: 'text-green-700/40 border-green-300/40 cursor-default opacity-50',
@@ -179,19 +179,10 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
       key: 'not_good' as const,
       icon: XCircle,
       label: t('inspectionSessions.quickNotGood'),
-      onClick: undefined, // Read-only indicator
+      onClick: undefined,
       isIndicator: true,
       selectedClasses: 'bg-destructive text-destructive-foreground ring-2 ring-destructive ring-offset-2 cursor-default',
       unselectedClasses: 'text-destructive/40 border-destructive/20 cursor-default opacity-50',
-    },
-    {
-      key: 'partial' as const,
-      icon: AlertTriangle,
-      label: t('inspectionSessions.quickPartial', 'Partial'),
-      onClick: handlePartial,
-      isIndicator: false,
-      selectedClasses: 'bg-amber-500 hover:bg-amber-600 text-white ring-2 ring-amber-500 ring-offset-2',
-      unselectedClasses: 'text-amber-700 border-amber-300 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-700 dark:hover:bg-amber-950',
     },
     {
       key: 'not_accessible' as const,
