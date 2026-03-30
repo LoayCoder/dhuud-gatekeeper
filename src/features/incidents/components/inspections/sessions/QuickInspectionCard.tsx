@@ -245,12 +245,12 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
             </div>
           )}
 
-          {/* Condition Buttons — Good/Not Good are indicators, Partial/Not Accessible are actions */}
-          <div className="grid grid-cols-4 gap-2 pt-1">
+          {/* Condition Buttons — Good/Not Good are indicators, Not Accessible is action */}
+          <div className="grid grid-cols-3 gap-2 pt-1">
             {conditionButtons.map((btn) => {
               const isSelected = currentResult === btn.key;
               const Icon = btn.icon;
-              const isDisabled = isLoading || confirmed || btn.isIndicator || (btn.key === 'partial' && !canSelectPartial);
+              const isDisabled = isLoading || confirmed || btn.isIndicator;
               return (
                 <Button
                   key={btn.key}
