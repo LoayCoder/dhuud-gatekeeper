@@ -1,140 +1,162 @@
 
 
-# Deep End-to-End Audit & Remediation Plan — Inspection Module
+# Deep End-to-End Audit & Remediation — Inspection Module (Round 3)
 
-## Executive Summary
+## Summary
 
-Full audit across 20+ files reveals **14 issues** (4 High, 6 Medium, 4 Low) spanning security gaps, duplicate implementations, lifecycle bugs, missing soft-delete filters, cache mismatches, and dead code. This plan provides exact fixes for each.
+After three prior audit rounds that addressed the most critical issues (tenant_id filters, duplicate hooks, lifecycle count bugs, access control, polling optimization), this fourth-pass audit focuses on remaining gaps found through full dependency tracing. The module is now in substantially better shape — the issues below are narrower in scope.
 
 ---
 
-## Issues by Severity
+## Issues Found
 
-### HIGH SEVERITY
+### HIGH
 
-#### H1: Duplicate `useCompleteAreaSession` — Two Competing Implementations
-**Root cause:** Two separate files export the same hook name with different logic.
-- `src/hooks/use-session-lifecycle.ts` — checks `area_inspection_responses` for `['non_conformance', 'observation', 'fail']`
-- `src/hooks/use-area-inspections/use-area-inspection-mutations.ts` — checks `area_inspection_responses` for `['fail']` only
+#### H1: `useCompleteSession` Parts Summary Query Missing `deleted_at` Filter
+**File:** `use-session-lifecycle-mutations.ts` line 300-303
 
-`AreaSessionWorkspace` imports from `use-session-lifecycle.ts`. The other is exported from the area-inspections barrel and used in tests.
+The secondary query fetching session asset IDs for part-level aggregation lacks `.is('deleted_at', null)`, meaning soft-deleted session assets inflate the parts summary stored in `ai_summary`.
 
-**Fix:** Remove `useCompleteAreaSession` from `use-area-inspection-mutations.ts` and its barrel export. The `use-session-lifecycle.ts` version is canonical and already has the correct failure-detection logic. Update the test file to import from `use-session-lifecycle.ts`.
-
-**Affected files:** `use-area-inspection-mutations.ts`, `use-area-inspections/index.ts`, `use-area-inspections.test.ts`
-
-#### H2: Sync-Back Query Missing `deleted_at` + `tenant_id` Filters
-**Root cause:** `useRecordAssetInspection` onSuccess sync-back (line 242) queries `inspection_session_assets` without `.is('deleted_at', null)` or `.eq('tenant_id', ...)`, inflating counters with soft-deleted records.
-
-**Fix:** Add both filters to the sync-back query.
-
-**Affected file:** `use-session-lifecycle-mutations.ts`
-
-#### H3: `useCompleteSession` Missing `deleted_at` on Session Assets Count
-**Root cause:** Line 299 counts failed session assets but doesn't exclude soft-deleted ones, potentially marking sessions as `completed_with_open_actions` when deleted assets had failures.
-
-**Fix:** Already has `.is('deleted_at', null)` ✓ — verified this was fixed in the previous audit round.
-
-#### H4: `canVerifyActions` Allows Any Authenticated User to Verify
-**Root cause:** Both `AreaSessionWorkspace.tsx` (line 149) and `AuditSessionWorkspace.tsx` (line 77) set `canVerifyActions = !!profile`, meaning any logged-in user can verify/reject corrective actions.
-
-**Fix:** Restrict to session inspector + HSSE roles:
 ```typescript
-const canVerifyActions = !!profile && (
-  session?.inspector_id === user?.id ||
-  hasRole('hsse_officer') || hasRole('hsse_manager') || hasRole('admin')
-);
+// Current (line 300-303)
+const { data: sessionAssetIds } = await supabase
+    .from('inspection_session_assets')
+    .select('id')
+    .eq('session_id', sessionId);
+// Missing: .is('deleted_at', null)
 ```
 
-**Affected files:** `AreaSessionWorkspace.tsx`, `AuditSessionWorkspace.tsx`
+**Fix:** Add `.is('deleted_at', null)` to this query.
 
----
+#### H2: `useStartSession` Uses `as any` for Snapshot Extraction (4 instances)
+**File:** `use-session-lifecycle-mutations.ts` lines 92-93, 172-173
 
-### MEDIUM SEVERITY
+Both asset-mode code paths extract `building.name` and `type.name` via `(asset.building as any)?.name`. The Supabase select returns these as nested objects, but TypeScript doesn't know the shape.
 
-#### M1: `useAreaInspectionResponses` Missing `deleted_at` Filter
-**Root cause:** Query at line 78-94 of `use-area-inspection-queries.ts` fetches all responses including soft-deleted ones. This affects area checklist rendering — deleted responses show up.
-
-**Fix:** Add `.is('deleted_at', null)` to the query.
-
-#### M2: `useSessionPartsProgress` Missing `deleted_at` on Session Assets Sub-query
-**Root cause:** Line 23-26 of `use-session-parts-progress.ts` queries session assets without soft-delete filter, inflating expected part counts.
-
-**Fix:** Add `.is('deleted_at', null)` to the session assets select.
-
-#### M3: `useAreaChecklistProgress` Aggressive 2s Polling (Unconditional)
-**Root cause:** Line 162 of `use-area-inspection-queries.ts` polls every 2 seconds regardless of session status.
-
-**Fix:** Make polling conditional — accept session status parameter:
+**Fix:** Add inline type assertions:
 ```typescript
-refetchInterval: status === 'in_progress' ? 5000 : false
+asset_location_snapshot: (asset.building as { name: string } | null)?.name || null,
+asset_type_snapshot: (asset.type as { name: string } | null)?.name || null,
 ```
 
-#### M4: `useSessionPartsProgress` 5s Polling (Unconditional)
-**Root cause:** Line 106 polls regardless of session status.
+#### H3: `useSessionProgress` Polls Unconditionally at 5s
+**File:** `use-inspection-session-queries.ts` line 214
 
-**Fix:** Same conditional polling pattern.
+The hook has `refetchInterval: 5000` without checking session status. It should only poll during `in_progress`.
 
-#### M5: `useCanCloseSession` 10s Polling (Unconditional)
-**Root cause:** Line 34 of `use-session-lifecycle.ts` polls even for closed sessions.
-
-**Fix:** Conditional polling based on session status.
-
-#### M6: Stubs File Exports Competing `useInspectionSessionStats`
-**Root cause:** `use-inspection-stubs.ts` exports `useInspectionSessionStats` (returns hardcoded zeros). `use-inspection-dashboard.ts` exports the real implementation. The barrel `features/incidents/index.ts` exports stubs first, then overrides with real hooks — but `useInspectionSessionStats` from stubs is NOT overridden because the real one is in a separate file.
-
-**Fix:** Verify the `InspectionDashboard.tsx` imports from the correct source (it does — imports from `use-inspection-dashboard`). Add the dashboard hooks to the override exports in `features/incidents/index.ts` to prevent future confusion, or remove the stub versions.
+**Fix:** Accept optional `sessionStatus` parameter and use `refetchInterval: sessionStatus === 'in_progress' ? 5000 : false`.
 
 ---
 
-### LOW SEVERITY
+### MEDIUM
 
-#### L1: `as any` Casts in `AreaSessionWorkspace.tsx`
-Lines 110, 129, 139-145, 160, 170, 194, 233 — multiple `as any` casts for `execution_mode`, `branch_id`, `building_id`, etc.
+#### M1: Stub File Still Exports Competing Hooks
+**File:** `use-inspection-stubs.ts` exports ~40 hooks that shadow canonical implementations. While the barrel file (`features/incidents/index.ts`) re-exports canonical hooks *after* stubs (lines 204-258), the stubs still create confusion:
+- `useMyInspectionActions` (stub line 186) returns empty array — but the real one is in `use-action-queries.ts`
+- `useSessionActions` (stub line 315) returns empty array — real one in `use-action-queries.ts`
+- `useVerifyAction` (stub line 282) is a no-op — real one in `use-action-mutations.ts`
+- `useUpdateInspectionActionStatus` (stub line 596) is a no-op — real one in `use-action-mutations.ts`
+- `useCreateActionFromFinding` (stub line 621) is a no-op — real one in `use-action-mutations.ts`
 
-**Fix:** Extend the `InspectionSession` type to include `execution_mode`, `branch_id`, `subtype_id` fields that are actually used.
+The barrel does NOT override these inspection-action hooks because the override section (lines 204-258) only covers `use-inspections` and `use-inspection-sessions` hooks.
 
-#### L2: Duplicate Session Actions Query Key Check
-`use-action-queries.ts` line 13-14 has duplicated null-check:
+**Impact:** Any component importing `useMyInspectionActions`, `useSessionActions`, `useVerifyAction`, `useUpdateInspectionActionStatus`, or `useCreateActionFromFinding` from `@/features/incidents` will get the **stub** (empty/no-op) instead of the real implementation — unless they import directly from the action hooks file.
+
+**Fix:** Add explicit re-exports for all inspection-action hooks in `features/incidents/index.ts` after the stubs line:
 ```typescript
-if (!sessionId || !profile?.tenant_id) return [];
-if (!sessionId || !profile?.tenant_id) return [];
+export {
+  useSessionActions,
+  useMyInspectionActions,
+} from './hooks/use-inspection-actions/use-action-queries';
+export {
+  useCreateActionFromFinding,
+  useVerifyAction,
+  useUpdateActionStatus,
+  useUpdateInspectionActionStatus,
+} from './hooks/use-inspection-actions/use-action-mutations';
+export {
+  useCreateSessionAction,
+} from './hooks/use-inspection-actions/use-create-session-action';
+export {
+  useSessionFailedAssets,
+} from './hooks/use-inspection-actions/use-session-failed-assets';
 ```
 
-**Fix:** Remove the duplicate line.
+#### M2: `useInspectionSchedules` Missing `tenant_id` Filter
+**File:** `use-schedule-queries.ts` line 12-43
 
-#### L3: `useRefreshSessionAssets` Missing `deleted_at` on Existing Assets Query
-Line 198-201 of `use-session-asset-mutations.ts` queries existing session assets without `deleted_at` filter.
+The schedules query filters by `deleted_at` but doesn't explicitly filter by `tenant_id`. Defense-in-depth requires it.
 
-**Fix:** Add `.is('deleted_at', null)`.
+**Fix:** Add `.eq('tenant_id', profile.tenant_id)` to the query.
 
-#### L4: `useSessionAssetByAssetId` Missing `deleted_at` Filter
-Line 150-164 — QR scan lookup doesn't exclude soft-deleted session assets.
+#### M3: `useInspectionTemplateCategories` Missing `tenant_id` Filter
+**File:** `use-inspection-categories.ts` line 30-35
 
-**Fix:** Add `.is('deleted_at', null)`.
+Categories query lacks explicit tenant filter.
+
+**Fix:** Add `.or(`tenant_id.eq.${profile.tenant_id},tenant_id.is.null`)` to include system categories + tenant-specific ones.
+
+#### M4: `useInspectionTemplates` Missing `tenant_id` Filter
+**File:** `use-inspection-template-hooks.ts` line 18-43
+
+Templates query has no `tenant_id` filter. This is a defense-in-depth gap.
+
+**Fix:** Add `.eq('tenant_id', profile.tenant_id)`.
+
+#### M5: `useAddAssetToSession` Missing `deleted_at` on Existing Check
+**File:** `use-session-asset-mutations.ts` lines 114-119
+
+The duplicate-check query doesn't exclude soft-deleted session assets, so re-adding a previously deleted asset would fail.
+
+**Fix:** Add `.is('deleted_at', null)` to the existing-check query.
 
 ---
 
-## Dependency Map
+### LOW
 
-```text
-AreaSessionWorkspace.tsx
-  ├── use-session-lifecycle.ts (useCompleteAreaSession, useCloseAreaSession, useReopenAreaSession, useCanCloseSession)
-  ├── use-inspection-session-queries.ts (useSessionProgress, useSessionAssets)
-  ├── use-session-parts-progress.ts (useSessionPartsProgress)
-  ├── use-area-inspection-queries.ts (useAreaChecklistProgress, useAreaInspectionResponses)
-  └── use-area-inspection-mutations.ts (useCompleteAreaSession ← DUPLICATE, remove)
+#### L1: `useInspectionSchedules` Uses `as never` Cast
+**File:** `use-schedule-queries.ts` line 12 — `from('inspection_schedules' as never)`
 
-SessionWorkspace.tsx
-  └── use-inspection-session-queries.ts (useSessionProgress)
-  └── use-session-lifecycle-mutations.ts (useCompleteSession, useRecordAssetInspection)
+This indicates the table isn't in generated types yet. Functional but fragile.
 
-InspectionSessionsDashboard.tsx
-  └── use-inspection-session-queries.ts (useInspectionSessions)
+#### L2: `staleTime: 0, gcTime: 0` on Templates Query
+**File:** `use-inspection-template-hooks.ts` lines 46-47
 
-InspectionDashboard.tsx
-  └── use-inspection-dashboard.ts (useInspectionSessionStats, etc.)
-```
+Disabling all caching defeats React Query's purpose. This was added as a hotfix but should be revisited.
+
+#### L3: Import Statement at EOF
+**File:** `use-session-lifecycle-mutations.ts` line 424
+
+`import type { RecordInspectionInput } from './types';` is at the end of the file instead of the top. Non-standard.
+
+---
+
+## Verified Working Correctly
+
+| Area | Status |
+|------|--------|
+| Session creation (two-step draft + start) | ✅ |
+| Asset-mode execution with snapshots | ✅ |
+| Area-mode checklist responses | ✅ |
+| `useCompleteAreaSession` failure detection | ✅ |
+| `useCompleteSession` count pattern (fixed in prior audit) | ✅ |
+| `canVerifyActions` role restriction | ✅ |
+| `useSessionProgress` tenant_id + deleted_at | ✅ |
+| `useSessionAssets` tenant_id + deleted_at | ✅ |
+| `useAreaInspectionResponses` deleted_at | ✅ |
+| `useAreaChecklistProgress` conditional polling | ✅ |
+| `useCanCloseSession` conditional polling | ✅ |
+| Soft delete via SECURITY DEFINER RPC | ✅ |
+| Session sync-back with deleted_at filter | ✅ |
+| Corrective action creation with failure snapshot | ✅ |
+| Offline area inspection queue | ✅ |
+| Schedule CRUD with soft deletes | ✅ |
+| Categories CRUD with soft deletes | ✅ |
+| Template CRUD with full hierarchy | ✅ |
+| Export dropdown | ✅ |
+| QR scanner asset lookup with deleted_at | ✅ |
+| Post-confirm lock + auto-advance | ✅ |
+| Critical fail blocks partial option | ✅ |
 
 ---
 
@@ -142,47 +164,11 @@ InspectionDashboard.tsx
 
 | # | File | Changes |
 |---|------|---------|
-| 1 | `use-session-lifecycle-mutations.ts` | Add `deleted_at` + `tenant_id` to sync-back query |
-| 2 | `use-area-inspection-mutations.ts` | Remove duplicate `useCompleteAreaSession` |
-| 3 | `use-area-inspections/index.ts` | Remove `useCompleteAreaSession` export |
-| 4 | `use-area-inspection-queries.ts` | Add `deleted_at` filter to `useAreaInspectionResponses`; conditional polling on `useAreaChecklistProgress` |
-| 5 | `use-session-parts-progress.ts` | Add `deleted_at` filter; conditional polling |
-| 6 | `use-session-lifecycle.ts` | Conditional polling on `useCanCloseSession` |
-| 7 | `AreaSessionWorkspace.tsx` | Restrict `canVerifyActions` to inspector/HSSE roles; reduce `as any` |
-| 8 | `AuditSessionWorkspace.tsx` | Restrict `canVerifyActions` to inspector/HSSE roles |
-| 9 | `use-action-queries.ts` | Remove duplicate null-check |
-| 10 | `use-session-asset-mutations.ts` | Add `deleted_at` to `useRefreshSessionAssets` + `useSessionAssetByAssetId` sub-queries |
-| 11 | `use-inspection-session-queries.ts` | Add `deleted_at` to `useSessionAssetByAssetId` |
-| 12 | `InspectionSession` type (`types.ts`) | Add `execution_mode`, `branch_id` fields |
-| 13 | `use-area-inspections.test.ts` | Update import source for `useCompleteAreaSession` |
-
----
-
-## Security Validation Summary
-
-| Check | Status |
-|-------|--------|
-| `tenant_id` on session queries | ✅ Fixed in prior audit |
-| `tenant_id` on session asset queries | ✅ Fixed in prior audit |
-| `deleted_at` on all queries | ⚠️ 5 missing — fixed in this plan |
-| `canVerifyActions` role restriction | ⚠️ Open to all — fixed in this plan |
-| RLS defense-in-depth | ✅ Explicit filters + RLS |
-| Sync-back counter isolation | ⚠️ Missing filters — fixed in this plan |
-
----
-
-## End-to-End Test Checklist
-
-1. Create asset-mode session → start → inspect all assets (pass/fail/partial/not_accessible) → complete → verify status matches failures
-2. Create area-mode session → start → respond to all items → complete → verify status
-3. Session with zero failures completes as `closed`
-4. Session with failures completes as `completed_with_open_actions`
-5. Create corrective action from failed session → assign → execute → verify → close
-6. Reopen closed session → re-inspect → complete again
-7. Soft-delete a session asset → verify progress counts exclude it
-8. Non-HSSE user cannot verify actions
-9. Inspector can verify actions
-10. Dashboard KPIs reflect accurate session stats
-11. Area checklist polling stops after session completion
-12. QR scan finds correct asset (not soft-deleted ones)
+| 1 | `use-session-lifecycle-mutations.ts` | Add `deleted_at` filter to parts summary query (line 300); fix `as any` to typed assertions (lines 92-93, 172-173); move import to top |
+| 2 | `use-inspection-session-queries.ts` | Make `useSessionProgress` polling conditional on session status |
+| 3 | `features/incidents/index.ts` | Add explicit re-exports for all inspection-action hooks to override stubs |
+| 4 | `use-schedule-queries.ts` | Add `tenant_id` filter to `useInspectionSchedules` |
+| 5 | `use-inspection-categories.ts` | Add tenant scoping to categories query |
+| 6 | `use-inspection-template-hooks.ts` | Add `tenant_id` filter to templates query |
+| 7 | `use-session-asset-mutations.ts` | Add `deleted_at` filter to duplicate-check in `useAddAssetToSession` |
 
