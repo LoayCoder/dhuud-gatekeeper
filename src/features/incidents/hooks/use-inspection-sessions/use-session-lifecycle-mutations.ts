@@ -290,7 +290,6 @@ export function useCompleteSession() {
                 .from('inspection_session_assets')
                 .select('id', { count: 'exact', head: true })
                 .eq('session_id', sessionId)
-                .is('deleted_at', null)
                 .in('quick_result', ['not_good', 'partial']);
 
             const hasOpenActions = (failedCount ?? 0) > 0;
