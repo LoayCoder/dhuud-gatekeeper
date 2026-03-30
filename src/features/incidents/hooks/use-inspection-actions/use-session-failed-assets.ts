@@ -44,7 +44,7 @@ export function useSessionFailedAssets(sessionId: string | undefined, enabled = 
       // Fetch failed part results for these session assets
       const sessionAssetIds = sessionAssets.map((sa: any) => sa.id);
       const { data: failedParts } = await supabase
-        .from('asset_inspection_part_results')
+        .from('asset_inspection_part_results' as never)
         .select(`
           inspection_id,
           part:asset_type_parts!asset_inspection_part_results_part_id_fkey(name)
