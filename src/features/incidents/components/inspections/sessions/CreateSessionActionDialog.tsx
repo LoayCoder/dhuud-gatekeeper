@@ -79,8 +79,11 @@ export function CreateSessionActionDialog({
 
   const [users, setUsers] = useState<Array<{ id: string; full_name: string }>>([]);
   const [departments, setDepartments] = useState<Array<{ id: string; name: string }>>([]);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  const safeFailedAssets = Array.isArray(failedAssets) ? failedAssets.filter(Boolean) : [];
   const createAction = useCreateSessionAction();
 
   const form = useForm<FormValues>({
@@ -101,25 +104,38 @@ export function CreateSessionActionDialog({
   useEffect(() => {
     if (!open || !profile?.tenant_id) return;
 
-    const loadData = async () => {
-      const [usersRes, deptsRes] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('id, full_name')
-          .eq('tenant_id', profile.tenant_id)
-          .eq('is_active', true)
-          .is('deleted_at', null)
-          .order('full_name'),
-        supabase
-          .from('departments')
-          .select('id, name')
-          .eq('tenant_id', profile.tenant_id)
-          .is('deleted_at', null)
-          .order('name'),
-      ]);
+    setIsLoadingData(true);
+    setLoadError(null);
 
-      if (usersRes.data) setUsers(usersRes.data);
-      if (deptsRes.data) setDepartments(deptsRes.data);
+    const loadData = async () => {
+      try {
+        const [usersRes, deptsRes] = await Promise.all([
+          supabase
+            .from('profiles')
+            .select('id, full_name')
+            .eq('tenant_id', profile.tenant_id)
+            .eq('is_active', true)
+            .is('deleted_at', null)
+            .order('full_name'),
+          supabase
+            .from('departments')
+            .select('id, name')
+            .eq('tenant_id', profile.tenant_id)
+            .is('deleted_at', null)
+            .order('name'),
+        ]);
+
+        if (usersRes.error) throw usersRes.error;
+        if (deptsRes.error) throw deptsRes.error;
+
+        setUsers(usersRes.data || []);
+        setDepartments(deptsRes.data || []);
+      } catch (err) {
+        console.error('[CreateSessionActionDialog] Failed to load form data:', err);
+        setLoadError('Failed to load form data. Please try again.');
+      } finally {
+        setIsLoadingData(false);
+      }
     };
 
     loadData();
