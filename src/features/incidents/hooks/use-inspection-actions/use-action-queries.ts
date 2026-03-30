@@ -38,7 +38,7 @@ export function useMyInspectionActions(sourceType?: 'inspection' | 'audit') {
         queryFn: async () => {
             if (!user?.id || !profile?.tenant_id) return [];
 
-            let query = supabase.from('corrective_actions' as never)
+            let query = supabase.from('corrective_actions')
                 .select(`
           id, reference_id, title, description, status, priority, due_date, 
           assigned_to, session_id, source_finding_id, source_type,

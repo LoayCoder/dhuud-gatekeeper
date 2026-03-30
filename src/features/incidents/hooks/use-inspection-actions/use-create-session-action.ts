@@ -28,6 +28,15 @@ export function useCreateSessionAction() {
     mutationFn: async (input: CreateSessionActionInput) => {
       if (!profile?.tenant_id) throw new Error('No tenant');
 
+      // Fetch session branch_id for RLS compliance
+      const { data: session, error: sessionError } = await supabase
+        .from('inspection_sessions')
+        .select('branch_id')
+        .eq('id', input.sessionId)
+        .single();
+
+      if (sessionError) throw new Error('Could not load session context');
+
       // Build failure context snapshot
       const failureSnapshot = input.failedAssets.map((fa) => ({
         asset_id: fa.asset_id,
@@ -41,9 +50,10 @@ export function useCreateSessionAction() {
       }));
 
       const { data: action, error: actionError } = await supabase
-        .from('corrective_actions' as never)
+        .from('corrective_actions')
         .insert({
           tenant_id: profile.tenant_id,
+          branch_id: session?.branch_id || null,
           title: input.title,
           description: input.description,
           priority: input.priority || 'medium',
@@ -56,8 +66,9 @@ export function useCreateSessionAction() {
           source_type: 'inspection',
           status: 'assigned',
           failure_context_snapshot: failureSnapshot,
-        } as never)
+        })
         .select()
+        .throwOnError()
         .single();
 
       if (actionError) throw actionError;
@@ -95,10 +106,16 @@ export function useCreateSessionAction() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['session-actions'] });
       queryClient.invalidateQueries({ queryKey: ['session-closure-status'] });
+      queryClient.invalidateQueries({ queryKey: ['session-failed-assets'] });
       toast({ title: t('actions.createdSuccess') });
     },
-    onError: () => {
-      toast({ title: t('common.error'), variant: 'destructive' });
+    onError: (error) => {
+      console.error('[CreateSessionAction] Failed:', error);
+      toast({
+        title: t('common.error'),
+        description: (error as Error).message || 'Failed to create action',
+        variant: 'destructive',
+      });
     },
   });
 }
