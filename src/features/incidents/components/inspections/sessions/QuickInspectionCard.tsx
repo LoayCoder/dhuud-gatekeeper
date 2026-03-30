@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { CheckCircle, XCircle, Ban, MapPin, Clock, Loader2, AlertTriangle } from 'lucide-react';
+import { CheckCircle, XCircle, Ban, MapPin, Clock, Loader2, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
