@@ -118,7 +118,8 @@ function AreaSessionWorkspaceContent() {
   const closeSession = useCloseAreaSession();
   const reopenSession = useReopenAreaSession();
   const deleteSession = useDeleteSession();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
+  const { hasRole } = useUserRoles();
   
   // Self-healing: backfill missing checklist responses for area-mode sessions
   useBackfillAreaResponses(
@@ -146,13 +147,12 @@ function AreaSessionWorkspaceContent() {
   );
   
   // Check if user can verify actions — restrict to inspector or HSSE roles
-  const { user } = useAuth();
   const canVerifyActions = !!profile && (
     session?.inspector_id === user?.id ||
-    profile?.role === 'hsse_officer' ||
-    profile?.role === 'hsse_manager' ||
-    profile?.role === 'admin' ||
-    profile?.role === 'super_admin'
+    hasRole('hsse_officer') ||
+    hasRole('hsse_manager') ||
+    hasRole('admin') ||
+    hasRole('super_admin')
   );
   
   // Create a map of responses by template_item_id for quick lookup (area mode)

@@ -72,14 +72,15 @@ function AuditSessionWorkspaceContent() {
   const reopenSession = useReopenAreaSession();
   const deleteSession = useDeleteSession();
   const { profile, user } = useAuth();
+  const { hasRole } = useUserRoles();
   
   // Check if user can verify actions — restrict to inspector or HSSE roles
   const canVerifyActions = !!profile && (
     session?.inspector_id === user?.id ||
-    profile?.role === 'hsse_officer' ||
-    profile?.role === 'hsse_manager' ||
-    profile?.role === 'admin' ||
-    profile?.role === 'super_admin'
+    hasRole('hsse_officer') ||
+    hasRole('hsse_manager') ||
+    hasRole('admin') ||
+    hasRole('super_admin')
   );
   
   // Create response map for quick lookup
