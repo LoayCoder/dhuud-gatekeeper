@@ -97,7 +97,6 @@ export function useSessionAssets(sessionId: string | undefined) {
         `)
                 .eq('session_id', sessionId)
                 .eq('tenant_id', profile.tenant_id)
-                .is('deleted_at', null)
                 .order('created_at', { ascending: true });
 
             if (error) throw error;
@@ -129,7 +128,6 @@ export function useUninspectedAssets(sessionId: string | undefined) {
         `)
                 .eq('session_id', sessionId)
                 .eq('tenant_id', profile.tenant_id)
-                .is('deleted_at', null)
                 .is('quick_result', null)
                 .order('created_at', { ascending: true });
 
@@ -161,7 +159,6 @@ export function useSessionAssetByAssetId(sessionId: string | undefined, assetId:
         `)
                 .eq('session_id', sessionId)
                 .eq('asset_id', assetId)
-                .is('deleted_at', null)
                 .maybeSingle();
 
             if (error) throw error;
@@ -183,8 +180,7 @@ export function useSessionProgress(sessionId: string | undefined, sessionStatus?
                 .from('inspection_session_assets')
                 .select('quick_result')
                 .eq('session_id', sessionId)
-                .eq('tenant_id', profile.tenant_id)
-                .is('deleted_at', null);
+                .eq('tenant_id', profile.tenant_id);
 
             if (error) throw error;
 
