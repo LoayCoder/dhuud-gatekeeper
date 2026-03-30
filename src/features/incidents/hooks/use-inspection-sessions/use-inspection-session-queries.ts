@@ -172,15 +172,18 @@ export function useSessionAssetByAssetId(sessionId: string | undefined, assetId:
 
 // Hook: Get session progress stats — derived from inspection_session_assets (source of truth)
 export function useSessionProgress(sessionId: string | undefined) {
+    const { profile } = useAuth();
     return useQuery({
         queryKey: ['session-progress', sessionId],
         queryFn: async () => {
-            if (!sessionId) return null;
+            if (!sessionId || !profile?.tenant_id) return null;
 
             const { data, error } = await supabase
                 .from('inspection_session_assets')
                 .select('quick_result')
-                .eq('session_id', sessionId);
+                .eq('session_id', sessionId)
+                .eq('tenant_id', profile.tenant_id)
+                .is('deleted_at', null);
 
             if (error) throw error;
 
