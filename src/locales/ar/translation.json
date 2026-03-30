@@ -5551,7 +5551,11 @@
     },
     "maxPhotosReached": "الحد الأقصى {{max}} صور مسموح بها",
     "photosCount": "{{count}} من {{max}} صور",
-    "saveFirstForPhotos": "احفظ الاستجابة أولاً لإضافة الصور"
+    "saveFirstForPhotos": "احفظ الاستجابة أولاً لإضافة الصور",
+    "confirmFail": "تأكيد — فشل",
+    "confirmPartial": "تأكيد — جزئي",
+    "confirmFailed": "فشل في تأكيد التفتيش. يرجى المحاولة مرة أخرى.",
+    "inspectionConfirmed": "تم تأكيد التفتيش بنجاح."
   },
   "securityAudit": {
     "title": "سجل تدقيق الأمان",
