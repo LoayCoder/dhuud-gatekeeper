@@ -256,7 +256,7 @@ export function CreateSessionActionDialog({
           </h4>
           <ScrollArea className="max-h-[200px]">
             <div className="space-y-2">
-              {failedAssets.map((fa) => (
+              {safeFailedAssets.map((fa) => (
                 <div key={fa.id} className="p-3 border rounded-lg bg-muted/30 space-y-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <Badge variant="outline" className="font-mono text-xs">
