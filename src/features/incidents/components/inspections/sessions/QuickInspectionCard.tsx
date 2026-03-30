@@ -73,38 +73,6 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
     }
   };
   
-  const handleFailureSubmit = async (data: { 
-    failure_reason: string; 
-    notes: string; 
-    gps_lat?: number; 
-    gps_lng?: number;
-    photo_paths?: string[];
-  }) => {
-    try {
-      await recordInspection.mutateAsync({
-        session_asset_id: sessionAsset.id,
-        quick_result: 'not_good',
-        failure_reason: data.failure_reason,
-        notes: data.notes,
-        gps_lat: data.gps_lat,
-        gps_lng: data.gps_lng,
-        photo_paths: data.photo_paths,
-      });
-      
-      await createFinding.mutateAsync({
-        session_id: sessionId,
-        session_asset_id: sessionAsset.id,
-        asset_id: asset.id,
-        classification: 'observation',
-        risk_level: 'medium',
-        description: `${asset.asset_code}: ${data.failure_reason}${data.notes ? ` - ${data.notes}` : ''}`,
-      });
-      
-      setShowFailureDialog(false);
-    } catch (error) {
-      console.error('Failed to record failure:', error);
-    }
-  };
 
   
   
