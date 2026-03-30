@@ -298,7 +298,7 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
           </div>
 
           {/* Validation hint */}
-          {!partsAllComplete && !isNotAccessible && currentResult !== 'not_accessible' && (
+          {!partsAllComplete && !isNotAccessible && (
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <AlertTriangle className="h-3 w-3 text-warning" />
               {t('inspectionSessions.completeAllPartsHint', 'Complete all checklist parts to finalize this asset.')}
