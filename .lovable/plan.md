@@ -1,46 +1,38 @@
 
 
-# Backfill All Part Results for Session INS-2026-0004
+# Fix: Complete Button Not Showing for Asset-Mode Area Sessions
 
-## Current State
-- **Session:** `INS-2026-0004` (id: `f36b5d1b-...`), status: `in_progress`, 58 assets, all inspected
-- **Parts per asset:** 6 parts (subtype `206d07fa...` — fire extinguisher parts)
-- **Expected total:** 58 × 6 = **348 part results**
-- **Currently exists:** 58 results (9 assets fully done, 4 assets with 1/6, 45 assets with 0/6)
+## Root Cause
 
-## What Needs to Happen
-Insert **290 missing part result rows** into `asset_inspection_part_results`:
-- **45 assets × 6 parts** = 270 new rows (assets with zero results)
-- **4 assets × 5 parts** = 20 new rows (assets missing 5 of 6 parts)
+The `can_close_area_session` RPC and `useCompleteAreaSession` hook only check `area_inspection_responses` for progress and failures. But when a session runs in **asset mode** (`execution_mode = 'asset'`), data lives in `inspection_session_assets`, not `area_inspection_responses`. This means:
 
-All inserted with `result = 'pass'`, tenant_id `e30ae1a5-...`, responded_by the inspector `9e5ae1f2-...`.
+1. **`can_close_area_session` RPC**: Returns `all_items_responded = false` because it counts area responses (7) vs template items, ignoring the 58 fully inspected session assets.
+2. **`useCompleteAreaSession` hook**: Checks `area_inspection_responses` for failures, missing the `not_good`/`partial` results in `inspection_session_assets`.
 
-## The 6 Part IDs
-1. `51dcadc3-...` — Agent Rating / Certification
-2. `d254dd8d-...` — Discharge Mechanism
-3. `6cfdf5db-...` — Cooling Capability
-4. `6e19a4a0-...` — Cylinder Body Integrity
-5. `531820a1-...` — Service / Inspection Label
-6. `fb96b6f2-...` — Mounting / Stand Secure
+Result: The "Complete Session" button never appears for asset-mode sessions, and corrective actions can never be created.
 
-## Execution
-A single SQL INSERT using a cross join of session asset IDs × part IDs, excluding combinations that already exist. This will be run via the database insert tool.
+## Fix Plan
 
-## Technical Detail
+### 1. Update `can_close_area_session` RPC — Make it mode-aware
 
-```sql
-INSERT INTO asset_inspection_part_results (inspection_id, part_id, tenant_id, result, responded_by, responded_at)
-SELECT sa.id, p.id, 'e30ae1a5-7eab-4776-bd0b-bb0b391e68e8', 'pass', '9e5ae1f2-c51d-4afd-9386-b45d06c13a61', now()
-FROM inspection_session_assets sa
-CROSS JOIN asset_type_parts p
-WHERE sa.session_id = 'f36b5d1b-2f64-4000-b931-af7157afaee6'
-  AND p.subtype_id = '206d07fa-f557-4954-a79c-7d751ea9cf64'
-  AND p.deleted_at IS NULL
-  AND NOT EXISTS (
-    SELECT 1 FROM asset_inspection_part_results pr
-    WHERE pr.inspection_id = sa.id AND pr.part_id = p.id AND pr.deleted_at IS NULL
-  );
-```
+Modify the database function to detect `execution_mode`. When mode is `'asset'`:
+- Count total from `inspection_session_assets` where `session_id` matches
+- Count responded from `inspection_session_assets` where `quick_result IS NOT NULL`
+- Check findings/actions from `corrective_actions` linked via `session_id` instead of `area_inspection_findings`
 
-This inserts exactly the 290 missing rows without duplicating existing ones.
+When mode is `'area'` (or null): keep existing logic unchanged.
+
+### 2. Update `useCompleteAreaSession` hook — Make it mode-aware
+
+In `src/hooks/use-session-lifecycle.ts`, before checking failures:
+- Fetch the session's `execution_mode`
+- If `'asset'`: check `inspection_session_assets` for `not_good`/`partial` results
+- If `'area'`: keep existing `area_inspection_responses` check
+
+### Files to Change
+
+| # | File | Change |
+|---|------|--------|
+| 1 | Database migration | Update `can_close_area_session` RPC to branch on `execution_mode` |
+| 2 | `src/hooks/use-session-lifecycle.ts` | Update `useCompleteAreaSession` to check correct table based on execution mode |
 
