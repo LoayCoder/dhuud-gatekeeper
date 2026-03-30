@@ -20,7 +20,6 @@ interface QuickInspectionCardProps {
 export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: QuickInspectionCardProps) {
   const { t, i18n } = useTranslation();
   const [showFailureDialog, setShowFailureDialog] = useState(false);
-  const [manualOverride, setManualOverride] = useState(false);
   // Track parts inspection state from child
   const [partsAllComplete, setPartsAllComplete] = useState(false);
   const [hasCriticalFail, setHasCriticalFail] = useState(false);
@@ -32,37 +31,18 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
   const createFinding = useCreateFinding();
   
   // Auto-derive callback from parts checklist — receives completion + critical info
-  const handleConditionChange = useCallback(async (condition: 'good' | 'not_good', allComplete: boolean, criticalFail: boolean) => {
+  const handleConditionChange = useCallback((condition: 'good' | 'not_good', allComplete: boolean, criticalFail: boolean) => {
     setDerivedCondition(condition);
     setPartsAllComplete(allComplete);
     setHasCriticalFail(criticalFail);
     setHasFails(condition === 'not_good');
-
-    // If user manually set partial but now has critical fail, force back to auto
-    if (manualOverride && criticalFail) {
-      setManualOverride(false);
-    }
-    
-    // Don't override if user manually selected partial
-    if (manualOverride) return;
-    
-    try {
-      await recordInspection.mutateAsync({
-        session_asset_id: sessionAsset.id,
-        quick_result: condition,
-      });
-      
-    } catch (error) {
-      console.error('Failed to auto-set condition:', error);
-    }
-  }, [manualOverride, sessionAsset.id, recordInspection, onComplete]);
+  }, []);
 
   const asset = sessionAsset.asset;
   if (!asset) return null;
 
   // Not Accessible — keeps current direct-save behavior
   const handleNotAccessible = async () => {
-    setManualOverride(true);
     try {
       await recordInspection.mutateAsync({
         session_asset_id: sessionAsset.id,
@@ -74,42 +54,16 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
     }
   };
 
-  // Partial — manual override, only when conditions are met
-  const handlePartial = async () => {
+  // Explicit confirm — accepts the final result to save
+  const handleConfirm = async (result: 'good' | 'not_good' | 'partial') => {
     if (!partsAllComplete) {
       toast.warning(t('inspectionSessions.completeAllParts', 'Please complete all inspection parts before finalizing this asset.'));
       return;
     }
-    if (!hasFails) {
-      toast.warning(t('inspectionSessions.partialRequiresFails', 'Partial condition requires at least one failed part.'));
-      return;
-    }
-    if (hasCriticalFail) {
-      toast.error(t('inspectionSessions.criticalFailForced', 'Critical failure detected — condition is forced to Not Good.'));
-      return;
-    }
-    setManualOverride(true);
     try {
       await recordInspection.mutateAsync({
         session_asset_id: sessionAsset.id,
-        quick_result: 'partial',
-      });
-    } catch (error) {
-      console.error('Failed to record inspection:', error);
-    }
-  };
-
-  // Explicit confirm — the only way to finalize an asset (except Not Accessible)
-  const handleConfirm = async () => {
-    if (!partsAllComplete) {
-      toast.warning(t('inspectionSessions.completeAllParts', 'Please complete all inspection parts before finalizing this asset.'));
-      return;
-    }
-    const finalResult = manualOverride ? 'partial' : (derivedCondition || 'good');
-    try {
-      await recordInspection.mutateAsync({
-        session_asset_id: sessionAsset.id,
-        quick_result: finalResult,
+        quick_result: result,
       });
       setConfirmed(true);
       toast.success(t('inspectionSessions.inspectionConfirmed', 'Inspection confirmed successfully.'));
@@ -158,8 +112,6 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
   const currentResult = sessionAsset.quick_result;
   const isNotAccessible = currentResult === 'not_accessible';
 
-  // Partial button availability
-  const canSelectPartial = partsAllComplete && hasFails && !hasCriticalFail;
 
   const getResultBadge = () => {
     if (currentResult === 'good') {
@@ -200,13 +152,13 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
     return null;
   };
 
-  // Condition indicator buttons — Good and Not Good are READ-ONLY indicators
+  // Condition indicator buttons — Good and Not Good are READ-ONLY, Not Accessible is action
   const conditionButtons = [
     {
       key: 'good' as const,
       icon: CheckCircle,
       label: t('inspectionSessions.quickGood'),
-      onClick: undefined, // Read-only indicator
+      onClick: undefined,
       isIndicator: true,
       selectedClasses: 'bg-green-600 text-white ring-2 ring-green-600 ring-offset-2 cursor-default',
       unselectedClasses: 'text-green-700/40 border-green-300/40 cursor-default opacity-50',
@@ -215,19 +167,10 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
       key: 'not_good' as const,
       icon: XCircle,
       label: t('inspectionSessions.quickNotGood'),
-      onClick: undefined, // Read-only indicator
+      onClick: undefined,
       isIndicator: true,
       selectedClasses: 'bg-destructive text-destructive-foreground ring-2 ring-destructive ring-offset-2 cursor-default',
       unselectedClasses: 'text-destructive/40 border-destructive/20 cursor-default opacity-50',
-    },
-    {
-      key: 'partial' as const,
-      icon: AlertTriangle,
-      label: t('inspectionSessions.quickPartial', 'Partial'),
-      onClick: handlePartial,
-      isIndicator: false,
-      selectedClasses: 'bg-amber-500 hover:bg-amber-600 text-white ring-2 ring-amber-500 ring-offset-2',
-      unselectedClasses: 'text-amber-700 border-amber-300 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-700 dark:hover:bg-amber-950',
     },
     {
       key: 'not_accessible' as const,
@@ -290,12 +233,12 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
             </div>
           )}
 
-          {/* Condition Buttons — Good/Not Good are indicators, Partial/Not Accessible are actions */}
-          <div className="grid grid-cols-4 gap-2 pt-1">
+          {/* Condition Buttons — Good/Not Good are indicators, Not Accessible is action */}
+          <div className="grid grid-cols-3 gap-2 pt-1">
             {conditionButtons.map((btn) => {
               const isSelected = currentResult === btn.key;
               const Icon = btn.icon;
-              const isDisabled = isLoading || confirmed || btn.isIndicator || (btn.key === 'partial' && !canSelectPartial);
+              const isDisabled = isLoading || confirmed || btn.isIndicator;
               return (
                 <Button
                   key={btn.key}
@@ -358,34 +301,70 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
         </div>
       )}
 
-      {/* Confirm Inspection Button — explicit finalization */}
+      {/* Confirm Inspection Buttons — conditional based on derived condition */}
       {!isNotAccessible && !confirmed && (
-        <div className="mt-4">
-          <Button
-            type="button"
-            className={cn(
-              "w-full h-12 text-base font-semibold transition-all duration-200",
-              !partsAllComplete && "opacity-50",
-              manualOverride
-                ? "bg-amber-500 hover:bg-amber-600 text-white"
-                : derivedCondition === 'not_good'
-                  ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-                  : "bg-green-600 hover:bg-green-700 text-white"
-            )}
-            onClick={handleConfirm}
-            disabled={!partsAllComplete || isLoading}
-          >
-            {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin me-2" />
-            ) : (
+        <div className="mt-4 space-y-2">
+          {/* All parts pass → single green confirm */}
+          {derivedCondition === 'good' && (
+            <Button
+              type="button"
+              className="w-full h-12 text-base font-semibold bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => handleConfirm('good')}
+              disabled={!partsAllComplete || isLoading}
+            >
+              {isLoading ? <Loader2 className="h-5 w-5 animate-spin me-2" /> : <ShieldCheck className="h-5 w-5 me-2" />}
+              {t('inspectionSessions.confirmGood', 'Confirm — Good Condition')}
+            </Button>
+          )}
+
+          {/* Failures exist, no critical → two options */}
+          {derivedCondition === 'not_good' && !hasCriticalFail && (
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                className="h-12 text-sm font-semibold bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                onClick={() => handleConfirm('not_good')}
+                disabled={!partsAllComplete || isLoading}
+              >
+                {isLoading ? <Loader2 className="h-5 w-5 animate-spin me-2" /> : <XCircle className="h-5 w-5 me-2" />}
+                {t('inspectionSessions.confirmFail', 'Confirm — Fail')}
+              </Button>
+              <Button
+                type="button"
+                className="h-12 text-sm font-semibold bg-amber-500 hover:bg-amber-600 text-white"
+                onClick={() => handleConfirm('partial')}
+                disabled={!partsAllComplete || isLoading}
+              >
+                {isLoading ? <Loader2 className="h-5 w-5 animate-spin me-2" /> : <AlertTriangle className="h-5 w-5 me-2" />}
+                {t('inspectionSessions.confirmPartial', 'Confirm — Partial')}
+              </Button>
+            </div>
+          )}
+
+          {/* Critical failure → single red confirm only */}
+          {derivedCondition === 'not_good' && hasCriticalFail && (
+            <Button
+              type="button"
+              className="w-full h-12 text-base font-semibold bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              onClick={() => handleConfirm('not_good')}
+              disabled={!partsAllComplete || isLoading}
+            >
+              {isLoading ? <Loader2 className="h-5 w-5 animate-spin me-2" /> : <XCircle className="h-5 w-5 me-2" />}
+              {t('inspectionSessions.confirmNotGood', 'Confirm — Not Good')}
+            </Button>
+          )}
+
+          {/* Parts not yet complete — disabled placeholder */}
+          {!derivedCondition && (
+            <Button
+              type="button"
+              className="w-full h-12 text-base font-semibold opacity-50"
+              disabled
+            >
               <ShieldCheck className="h-5 w-5 me-2" />
-            )}
-            {manualOverride
-              ? t('inspectionSessions.confirmPartial', 'Confirm — Partial')
-              : derivedCondition === 'not_good'
-                ? t('inspectionSessions.confirmNotGood', 'Confirm — Not Good')
-                : t('inspectionSessions.confirmGood', 'Confirm — Good Condition')}
-          </Button>
+              {t('inspectionSessions.confirmInspection', 'Confirm Inspection')}
+            </Button>
+          )}
         </div>
       )}
       
