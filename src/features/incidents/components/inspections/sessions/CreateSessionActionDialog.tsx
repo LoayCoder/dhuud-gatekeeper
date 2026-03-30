@@ -63,7 +63,7 @@ const formSchema = z.object({
   due_date: z.date(),
   priority: z.enum(['low', 'medium', 'high', 'critical']),
   action_type: z.enum(['corrective', 'preventive']),
-  category: z.enum(['operations', 'maintenance', 'training', 'procedural', 'equipment']),
+  category: z.enum(['engineering', 'administrative', 'ppe', 'training', 'procedures_update', 'environmental']),
 });
 
 type FormValues = z.infer<typeof formSchema>;
