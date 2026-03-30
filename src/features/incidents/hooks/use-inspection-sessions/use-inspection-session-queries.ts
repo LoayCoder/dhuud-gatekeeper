@@ -210,7 +210,7 @@ export function useSessionProgress(sessionId: string | undefined) {
             };
         },
         enabled: !!sessionId,
-        refetchInterval: 2000,
+        refetchInterval: 5000,
     });
 }
 

@@ -336,13 +336,6 @@ export function QuickInspectionCard({ sessionAsset, sessionId, onComplete }: Qui
         </div>
       )}
       
-      <FailureReasonDialog
-        open={showFailureDialog}
-        onOpenChange={setShowFailureDialog}
-        onSubmit={handleFailureSubmit}
-        isLoading={isLoading}
-        assetCode={asset.asset_code}
-      />
     </>
   );
 }

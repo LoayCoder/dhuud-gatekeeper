@@ -103,6 +103,6 @@ export function useSessionPartsProgress(sessionId: string | undefined) {
       };
     },
     enabled: !!sessionId,
-    refetchInterval: 3000,
+    refetchInterval: 5000,
   });
 }

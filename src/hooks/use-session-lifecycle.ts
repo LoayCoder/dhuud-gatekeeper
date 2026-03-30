@@ -31,7 +31,7 @@ export function useCanCloseSession(sessionId: string | undefined) {
       return data as unknown as SessionClosureStatus;
     },
     enabled: !!sessionId,
-    refetchInterval: 5000, // Poll every 5s to get updated status
+    refetchInterval: 10000,
   });
 }
 
@@ -40,10 +40,22 @@ export function useCompleteAreaSession() {
   
   return useMutation({
     mutationFn: async ({ sessionId }: { sessionId: string }) => {
+      // Check if there are any failed area inspection responses
+      const { count: failedCount } = await supabase
+        .from('area_inspection_responses')
+        .select('id', { count: 'exact', head: true })
+        .eq('session_id', sessionId)
+        .is('deleted_at', null)
+        .in('result', ['non_conformance', 'observation', 'fail']);
+
+      const hasOpenActions = (failedCount ?? 0) > 0;
+
       const { error } = await supabase
         .from('inspection_sessions')
         .update({ 
-          status: 'completed_with_open_actions',
+          status: hasOpenActions ? 'completed_with_open_actions' : 'closed',
+          completed_at: new Date().toISOString(),
+          closed_at: hasOpenActions ? null : new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
         .eq('id', sessionId);
@@ -52,7 +64,8 @@ export function useCompleteAreaSession() {
       return sessionId;
     },
     onSuccess: (sessionId) => {
-      queryClient.invalidateQueries({ queryKey: ['area-session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['inspection-session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['inspection-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['session-closure-status', sessionId] });
       queryClient.invalidateQueries({ queryKey: ['area-sessions'] });
     },
@@ -88,7 +101,8 @@ export function useCloseAreaSession() {
       return sessionId;
     },
     onSuccess: (sessionId) => {
-      queryClient.invalidateQueries({ queryKey: ['area-session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['inspection-session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['inspection-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['session-closure-status', sessionId] });
       queryClient.invalidateQueries({ queryKey: ['area-sessions'] });
     },
@@ -113,7 +127,8 @@ export function useReopenAreaSession() {
       return sessionId;
     },
     onSuccess: (sessionId) => {
-      queryClient.invalidateQueries({ queryKey: ['area-session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['inspection-session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['inspection-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['session-closure-status', sessionId] });
       queryClient.invalidateQueries({ queryKey: ['area-sessions'] });
     },
