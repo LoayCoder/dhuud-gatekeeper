@@ -61,7 +61,7 @@ export function useCreateSessionAction() {
           assigned_to: input.assigned_to,
           responsible_department_id: input.responsible_department_id,
           action_type: input.action_type || 'corrective',
-          category: input.category || 'operations',
+          category: input.category || 'administrative',
           session_id: input.sessionId,
           source_type: 'inspection',
           status: 'assigned',
