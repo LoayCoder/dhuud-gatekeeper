@@ -5946,6 +5946,7 @@ export type Database = {
           disputed_by: string | null
           due_date: string | null
           escalation_level: number | null
+          failure_context_snapshot: Json | null
           finding_id: string | null
           id: string
           incident_id: string | null
@@ -5999,6 +6000,7 @@ export type Database = {
           disputed_by?: string | null
           due_date?: string | null
           escalation_level?: number | null
+          failure_context_snapshot?: Json | null
           finding_id?: string | null
           id?: string
           incident_id?: string | null
@@ -6052,6 +6054,7 @@ export type Database = {
           disputed_by?: string | null
           due_date?: string | null
           escalation_level?: number | null
+          failure_context_snapshot?: Json | null
           finding_id?: string | null
           id?: string
           incident_id?: string | null
