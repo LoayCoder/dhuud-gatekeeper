@@ -26,3 +26,4 @@ export { SessionActionsPanel } from './SessionActionsPanel';
 export { ActionEvidenceSection } from './ActionEvidenceSection';
 export { SwipeInspectionItem } from './SwipeInspectionItem';
 export { BulkSwipeInspection } from './BulkSwipeInspection';
+export { CreateSessionActionDialog } from './CreateSessionActionDialog';

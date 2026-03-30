@@ -447,7 +447,7 @@ function AreaSessionWorkspaceContent() {
           />
           
           {/* Session Actions Panel */}
-          <SessionActionsPanel sessionId={sessionId!} canVerify={canVerifyActions} />
+          <SessionActionsPanel sessionId={sessionId!} canVerify={canVerifyActions} sessionStatus={session.status} />
         </div>
         
         {/* Session Metadata */}
