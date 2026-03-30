@@ -107,7 +107,7 @@ function AreaSessionWorkspaceContent() {
   const { data: closureStatus, isLoading: closureLoading } = useCanCloseSession(sessionId, session?.status);
   
   // Asset-mode hooks
-  const executionMode = (session as any)?.execution_mode as string | null | undefined;
+  const executionMode = session?.execution_mode;
   const isAssetMode = executionMode === 'asset';
   const { data: allAssets = [] } = useSessionAssets(isAssetMode ? sessionId : undefined);
   const { data: assetProgress } = useAssetSessionProgress(isAssetMode ? sessionId : undefined);
