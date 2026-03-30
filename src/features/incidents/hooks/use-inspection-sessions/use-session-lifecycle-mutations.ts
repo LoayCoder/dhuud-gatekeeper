@@ -300,7 +300,8 @@ export function useCompleteSession() {
             const { data: sessionAssetIds } = await supabase
                 .from('inspection_session_assets')
                 .select('id')
-                .eq('session_id', sessionId);
+                .eq('session_id', sessionId)
+                .is('deleted_at', null);
 
             let partsSummary = { total: 0, passed: 0, failed: 0, na: 0 };
             if (sessionAssetIds && sessionAssetIds.length > 0) {
