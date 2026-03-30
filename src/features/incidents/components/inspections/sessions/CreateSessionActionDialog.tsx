@@ -169,7 +169,7 @@ export function CreateSessionActionDialog({
           finding_classification: 'major_nc',
           finding_risk_level: 'high',
           checklist_item_question: `Session-level failures: ${failureSummary}`,
-          finding_description: `${failedAssets.length} assets failed inspection`,
+          finding_description: `${safeFailedAssets.length} assets failed inspection`,
           failure_notes: failureSummary,
         },
       });
