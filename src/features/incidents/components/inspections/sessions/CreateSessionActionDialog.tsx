@@ -518,6 +518,8 @@ export function CreateSessionActionDialog({
             </DialogFooter>
           </form>
         </Form>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
