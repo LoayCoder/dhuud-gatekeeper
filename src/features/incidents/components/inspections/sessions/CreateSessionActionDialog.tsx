@@ -201,11 +201,13 @@ export function CreateSessionActionDialog({
       priority: values.priority,
       action_type: values.action_type,
       category: values.category,
-      failedAssets,
+      failedAssets: safeFailedAssets,
     });
 
     onOpenChange(false);
   };
+
+  if (!open) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -217,12 +219,36 @@ export function CreateSessionActionDialog({
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
             {t('actions.failedAssetsContext', {
-              count: failedAssets.length,
-              defaultValue: `${failedAssets.length} failed asset(s) detected`,
+              count: safeFailedAssets.length,
+              defaultValue: `${safeFailedAssets.length} failed asset(s) detected`,
             })}
           </p>
         </DialogHeader>
 
+        {isLoadingData ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <span className="ms-2 text-sm text-muted-foreground">Loading form data...</span>
+          </div>
+        ) : loadError ? (
+          <div className="text-center py-8 space-y-2">
+            <AlertTriangle className="h-8 w-8 text-destructive mx-auto" />
+            <p className="text-sm text-destructive">{loadError}</p>
+            <Button variant="outline" size="sm" onClick={() => {
+              setLoadError(null);
+              // Re-trigger load
+              const event = new Event('reload');
+              window.dispatchEvent(event);
+            }}>
+              {t('common.retry', { defaultValue: 'Retry' })}
+            </Button>
+          </div>
+        ) : safeFailedAssets.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-sm text-muted-foreground">No failed assets found for this session.</p>
+          </div>
+        ) : (
+          <>
         {/* Step 1: Failed Assets Summary (Read-only) */}
         <div className="space-y-2">
           <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
