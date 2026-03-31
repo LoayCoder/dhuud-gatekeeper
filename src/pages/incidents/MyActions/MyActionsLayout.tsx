@@ -198,8 +198,9 @@ export function MyActionsLayout({ viewProps }: { viewProps: MyActionsViewProps }
         open={!!viewProps.selectedActionDetail}
         onOpenChange={(open) => { if (!open) viewProps.setSelectedActionDetail(null); }}
         onStartWork={handleStartWork}
-        onSubmitForVerification={handleMarkCompleted}
+        onSubmitInline={viewProps.handleSubmitInline}
         onRequestExtension={(a) => setExtensionRequestAction(a)}
+        isSubmitting={submittingActionIds.has(viewProps.selectedActionDetail?.id || '')}
       />
     </div>
   );
