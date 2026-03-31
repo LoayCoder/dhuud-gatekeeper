@@ -59,6 +59,7 @@ export function useMyActions() {
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
   const [extensionRequestAction, setExtensionRequestAction] = useState<ActionForDialog | null>(null);
   const [submittingActionIds, setSubmittingActionIds] = useState<Set<string>>(new Set());
+  const [selectedActionDetail, setSelectedActionDetail] = useState<ActionForDialog | null>(null);
 
   const approvalsState = useMyApprovalsState();
 
