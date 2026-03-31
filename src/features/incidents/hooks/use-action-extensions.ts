@@ -86,19 +86,40 @@ export function useRequestExtension() {
           .eq('id', actionId)
           .single();
 
-        // Find HSSE experts/officers for this tenant
-        const { data: roleData } = await supabase
-          .from('roles')
-          .select('id')
-          .in('code', ['hsse_officer', 'hsse_manager']);
+        // Find HSSE experts/officers for this tenant using RPC
+        const { data: hsseUsers } = await supabase.rpc('get_users_by_role_codes', {
+          p_tenant_id: profile.tenant_id,
+          p_role_codes: ['hsse_officer', 'hsse_manager'],
+        }).throwOnError().catch(() => ({ data: null }));
 
-        const roleIds = roleData?.map(r => r.id) || [];
+        // Fallback: direct query if RPC doesn't exist
+        let recipients: Array<{ email: string; full_name: string }> = [];
+        if (!hsseUsers) {
+          const { data: roles } = await supabase
+            .from('roles')
+            .select('id')
+            .in('code', ['hsse_officer', 'hsse_manager'] as string[]);
 
-        const { data: hsseUsers } = await (supabase
-          .from('user_role_assignments')
-          .select('user_id, profiles!inner(email, full_name)')
-          .eq('tenant_id', profile.tenant_id)
-          .in('role_id', roleIds) as any);
+          if (roles && roles.length > 0) {
+            const rIds = roles.map(r => r.id);
+            const { data: assignments } = await supabase
+              .from('user_role_assignments')
+              .select('user_id')
+              .eq('tenant_id', profile.tenant_id)
+              .in('role_id', rIds as string[]);
+
+            if (assignments && assignments.length > 0) {
+              const userIds = assignments.map(a => a.user_id);
+              const { data: profiles } = await supabase
+                .from('profiles')
+                .select('email, full_name')
+                .in('id', userIds as string[]);
+              recipients = (profiles || []).filter(p => p.email) as Array<{ email: string; full_name: string }>;
+            }
+          }
+        } else {
+          recipients = (hsseUsers as Array<{ email: string; full_name: string }>).filter((u: any) => u.email);
+        }
 
         for (const hsseUser of hsseUsers || []) {
           const hsseProfile = hsseUser.profiles as any;
