@@ -1,50 +1,44 @@
 
 
-# Fix: Action Detail Sheet — Translation Error, Missing Context & Summary
+# Fix: Duplicate Submission Flow in Action Verification
 
-## Problems Identified
+## Problem
+When the user views an `in_progress` action in the **ActionDetailSheet**, they can upload evidence directly there. When they click "Submit for Verification", the sheet closes and opens a **second dialog** (`ActionWorkflowDialog`) that again asks for completion notes and evidence uploads — creating a confusing duplicate flow.
 
-1. **Translation Error (visible in screenshot):** `t('actions.timeline')` returns an object `{ assigned, inProgress, pendingVerification, closed }` instead of a string. The text "key 'actions.timeline (en)' returned an object instead of string" renders literally on screen.
+## Root Cause
+The "Submit for Verification" button in `ActionDetailSheet` (line 421) calls `onSubmitForVerification(action)` which maps to `handleMarkCompleted` in `useMyActions.ts` (line 84). This closes the sheet and opens the `ActionWorkflowDialog` in `complete` mode — a separate dialog that duplicates the evidence upload and notes fields already present in the detail sheet.
 
-2. **No Failure Context / Asset Details:** The `failure_context_snapshot` (JSONB) is stored on every inspection action during creation (containing failed asset names, codes, locations, failed parts, and inspector notes), but it is never fetched by the queries nor displayed in the Action Detail Sheet. The assignee has no idea what assets failed or what needs fixing.
+## Solution: Submit Inline from the Detail Sheet
+Replace the "Submit for Verification" button in `ActionDetailSheet` with an **inline submission form** (completion notes + optional overdue justification). Evidence is already uploaded via the `ActionEvidenceSection` in the sheet — no need for a second upload step. The `ActionWorkflowDialog` remains for the **Start Work** flow only.
 
-3. **Missing Action Summary:** No summary section explaining the scope of work — the assignee sees only a title and description but no structured breakdown of what went wrong.
+### File 1: `src/pages/incidents/MyActions/ActionDetailSheet.tsx`
+- Replace the `canComplete && onSubmitForVerification` button block (lines 420-424) with an inline collapsible submission form:
+  - Completion Notes textarea (required)
+  - Overdue Justification textarea (conditional, if action is overdue)
+  - Submit button that calls a new `onSubmitInline` callback directly
+- Add state: `showSubmitForm`, `completionNotes`, `overdueJustification`
+- Add a new prop: `onSubmitInline?: (action: ActionForDialog, data: { notes: string; overdueJustification?: string }) => void`
+- Remove `onSubmitForVerification` prop entirely
 
-## Root Causes
+### File 2: `src/pages/incidents/MyActions/MyActionsLayout.tsx`
+- Remove `onSubmitForVerification={handleMarkCompleted}` from `ActionDetailSheet`
+- Add `onSubmitInline` prop that calls the mutation directly (no evidence files since they're already uploaded via the sheet's `ActionEvidenceSection`)
+- Wire it to a new handler that does the status update without re-opening the workflow dialog
 
-| Issue | Root Cause |
-|-------|-----------|
-| Translation error | `actions.timeline` is a nested object in `translation.json` (line 3039). Code at `ActionDetailSheet.tsx:188` calls `t('actions.timeline')` expecting a string. |
-| No context data | Neither `useMyInspectionActions` nor `getMyCorrectiveActions` selects `failure_context_snapshot` from `corrective_actions`. |
-| No context UI | `ActionDetailSheet.tsx` has no section to render the failure context snapshot. |
+### File 3: `src/pages/incidents/MyActions/hooks/useMyActions.ts`
+- Add a new `handleSubmitInline` function that:
+  - Takes action + notes + optional overdueJustification (no files — already uploaded)
+  - Calls `updateInspectionStatus` or `updateStatus` with status `completed`
+  - Manages `submittingActionIds` state
+  - Closes the detail sheet on success
+- Export it from the hook
 
-## Implementation Plan
-
-### File 1: `src/locales/en/translation.json`
-- Rename nested `actions.timeline` object to `actions.timelineSteps` (used nowhere else currently)
-- Add `actions.timeline` as a simple string: `"timeline": "Timeline"`
-- Add new keys: `actions.failureContext`, `actions.failedAssets`, `actions.failedParts`, `actions.inspectorNotes`, `actions.noDetailsAvailable`
-
-### File 2: `src/locales/ar/translation.json`
-- Same structural fix for Arabic translations
-
-### File 3: `src/features/incidents/hooks/use-inspection-actions/use-action-queries.ts`
-- Add `failure_context_snapshot` to the `useMyInspectionActions` select clause
-
-### File 4: `src/features/incidents/services/incidentQueryService.ts`
-- Add `failure_context_snapshot` to the `getMyCorrectiveActions` select clause
-
-### File 5: `src/pages/incidents/MyActions/types.ts`
-- Add `failure_context_snapshot` field to `ActionForDialog` interface
-
-### File 6: `src/pages/incidents/MyActions/ActionDetailSheet.tsx`
-- Add a **Failure Context** section between the description and the status grid
-- Render each failed asset as a compact card showing: asset code, asset name, location, quick result badge, failure reason, failed parts list, and inspector notes
-- Only show this section when `failure_context_snapshot` exists and has entries
-- Use HSSE color coding (red for not_good, amber for partial)
+### What stays unchanged
+- `ActionWorkflowDialog` remains for `Start Work` mode (mode=`start`)
+- `ActionEvidenceSection` in the detail sheet handles all evidence uploads
+- All mutation logic, `.throwOnError()`, and notification triggers remain intact
 
 ## Expected Result
-- Translation error gone — "Timeline" header renders as text
-- Assignee sees full structured breakdown of failed assets, their locations, what parts failed, and why
-- Reviewer sees the same context when verifying actions
+- User opens action detail → sees evidence already uploaded → clicks "Submit for Verification" → inline form appears for notes → submits → done. **One screen, no duplicate dialog.**
+- Start Work flow continues to use the `ActionWorkflowDialog` as before.
 
