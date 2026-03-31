@@ -7,18 +7,21 @@ import {
   ArrowUpRight,
   Calendar,
   Eye,
+  ClipboardList,
 } from 'lucide-react';
 import { ActionModuleCard } from '../ActionModuleCard';
 import { ActionListSheet } from '../ActionListSheet';
 import { InspectionActionsList } from './InspectionActionsList';
+import { InspectionApprovalsList } from './InspectionApprovalsList';
 import { useMyInspectionActions } from '@/features/incidents';
+import { usePendingActionApprovals } from '@/hooks/use-pending-approvals';
 import type { ActionCenterStats } from '@/features/incidents';
 
 interface InspectionsModuleProps {
   stats: ActionCenterStats['inspections'];
 }
 
-type SheetType = 'my-actions' | null;
+type SheetType = 'my-actions' | 'approvals' | null;
 
 export function InspectionsModule({ stats }: InspectionsModuleProps) {
   const { t } = useTranslation();
@@ -29,6 +32,10 @@ export function InspectionsModule({ stats }: InspectionsModuleProps) {
     (a) => a.status !== 'completed' && a.status !== 'verified' && a.status !== 'closed'
   );
 
+  // Count inspection-sourced actions pending verification
+  const { data: allPendingActions } = usePendingActionApprovals();
+  const inspectionApprovalCount = (allPendingActions || []).filter((a) => a.session_id != null).length;
+
   return (
     <>
       <ActionModuleCard
@@ -36,12 +43,13 @@ export function InspectionsModule({ stats }: InspectionsModuleProps) {
         description={t('actionCenter.modules.inspections.description', 'Scheduled and ad-hoc inspections with follow-up actions')}
         icon={ClipboardCheck}
         iconColorClass="text-success"
-        attentionCount={stats.overdue + stats.pendingActions}
+        attentionCount={stats.overdue + stats.pendingActions + inspectionApprovalCount}
         hasCritical={stats.overdue > 0}
         kpis={[
           { label: t('actionCenter.kpi.overdue', 'Overdue'), value: stats.overdue, colorClass: 'text-destructive' },
           { label: t('actionCenter.kpi.scheduled', 'Scheduled'), value: stats.scheduled, colorClass: 'text-warning' },
           { label: t('actionCenter.kpi.pendingActions', 'Pending Actions'), value: stats.pendingActions, colorClass: 'text-info', onClick: () => setOpenSheet('my-actions') },
+          { label: t('actionCenter.kpi.pendingVerification', 'Pending Verification'), value: inspectionApprovalCount, colorClass: 'text-warning', onClick: () => setOpenSheet('approvals') },
           { label: t('actionCenter.kpi.total', 'Total'), value: stats.total },
         ]}
         actionLinks={[
@@ -65,6 +73,15 @@ export function InspectionsModule({ stats }: InspectionsModuleProps) {
             isExpanded: openSheet === 'my-actions',
           },
           {
+            label: t('actionCenter.actions.pendingApprovals', 'Pending Approvals'),
+            icon: ClipboardList,
+            badge: inspectionApprovalCount,
+            badgeVariant: 'destructive',
+            showOnlyWithBadge: false,
+            onExpand: () => setOpenSheet(openSheet === 'approvals' ? null : 'approvals'),
+            isExpanded: openSheet === 'approvals',
+          },
+          {
             label: t('actionCenter.actions.schedules', 'Schedules'),
             href: '/inspections/schedules',
             icon: Calendar,
@@ -85,6 +102,17 @@ export function InspectionsModule({ stats }: InspectionsModuleProps) {
         badge={openActions.length}
       >
         <InspectionActionsList sourceType="inspection" />
+      </ActionListSheet>
+
+      <ActionListSheet
+        open={openSheet === 'approvals'}
+        onOpenChange={(open) => setOpenSheet(open ? 'approvals' : null)}
+        title={t('actionCenter.sheet.inspectionApprovals', 'Inspection Action Approvals')}
+        description={t('actionCenter.sheet.inspectionApprovalsDesc', 'Inspection actions pending your verification')}
+        badge={inspectionApprovalCount}
+        badgeVariant="destructive"
+      >
+        <InspectionApprovalsList />
       </ActionListSheet>
     </>
   );

@@ -36,7 +36,7 @@ export function usePendingActionApprovals() {
                 .select(`
           id, reference_id, title, description, status, priority, category, 
           due_date, completed_date, incident_id, assigned_to,
-          responsible_department_id, created_at,
+          responsible_department_id, created_at, session_id,
           linked_cause_type, linked_root_cause_id, completion_notes,
           assigned_user:profiles!corrective_actions_assigned_to_fkey(id, full_name),
           department:departments!corrective_actions_responsible_department_id_fkey(id, name),

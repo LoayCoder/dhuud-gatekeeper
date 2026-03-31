@@ -36,6 +36,7 @@ export interface PendingActionApproval {
     assigned_to: string | null;
     responsible_department_id: string | null;
     created_at: string | null;
+    session_id: string | null;
     linked_cause_type: string | null;
     linked_root_cause_id: string | null;
     completion_notes: string | null;
