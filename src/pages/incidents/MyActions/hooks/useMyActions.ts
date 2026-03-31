@@ -97,8 +97,6 @@ export function useMyActions() {
     const mode = actionDialogMode;
 
     setSubmittingActionIds(prev => new Set(prev).add(actionId));
-    setActionDialogOpen(false);
-    setActionDialogAction(null);
 
     try {
       for (const file of data.files) {
