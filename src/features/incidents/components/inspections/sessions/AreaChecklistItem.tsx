@@ -17,9 +17,11 @@ import {
   ChevronUp,
   Star,
   ImageIcon,
+  ShieldAlert,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSaveAreaResponse, type AreaInspectionResponse } from '@/hooks/use-area-inspections';
+import { useCreateAreaFinding } from '@/hooks/use-area-findings';
 import type { TemplateItem } from '@/features/incidents';
 import { InspectionPhotoUpload } from './InspectionPhotoUpload';
 import { cn } from '@/lib/utils';
