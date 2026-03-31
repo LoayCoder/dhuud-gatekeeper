@@ -432,11 +432,51 @@ export function ActionDetailSheet({
                     {t('investigation.actions.startWork', 'Start Work')}
                   </Button>
                 )}
-                {canComplete && onSubmitForVerification && (
-                  <Button onClick={() => { onSubmitForVerification(action); onOpenChange(false); }}>
+                {canComplete && onSubmitInline && !showSubmitForm && (
+                  <Button onClick={() => setShowSubmitForm(true)}>
                     <FileCheck className="h-4 w-4 me-2" />
                     {t('actions.submitForVerification', 'Submit for Verification')}
                   </Button>
+                )}
+                {canComplete && showSubmitForm && (
+                  <div className="space-y-3 rounded-md border p-3 bg-muted/30">
+                    <h4 className="text-sm font-semibold">{t('actions.completionNotes', 'Completion Notes')}</h4>
+                    <Textarea
+                      placeholder={t('actions.completionNotesPlaceholder', 'Describe the work completed...')}
+                      value={completionNotes}
+                      onChange={(e) => setCompletionNotes(e.target.value)}
+                      rows={3}
+                    />
+                    {isOverdue && (
+                      <>
+                        <h4 className="text-sm font-semibold text-warning">{t('actions.overdueJustification', 'Overdue Justification')}</h4>
+                        <Textarea
+                          placeholder={t('actions.overdueJustificationPlaceholder', 'Explain why this action is overdue...')}
+                          value={overdueJustification}
+                          onChange={(e) => setOverdueJustification(e.target.value)}
+                          rows={2}
+                        />
+                      </>
+                    )}
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => { setShowSubmitForm(false); setCompletionNotes(''); setOverdueJustification(''); }}
+                        disabled={isSubmitting}
+                      >
+                        {t('common.cancel', 'Cancel')}
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={handleInlineSubmit}
+                        disabled={!completionNotes.trim() || isSubmitting}
+                      >
+                        {isSubmitting && <Loader2 className="h-4 w-4 me-1 animate-spin" />}
+                        {t('actions.submitForVerification', 'Submit for Verification')}
+                      </Button>
+                    </div>
+                  </div>
                 )}
                 {(canStart || canComplete) && action.due_date && onRequestExtension && (
                   <Button variant="outline" onClick={() => { onRequestExtension(action); onOpenChange(false); }}>

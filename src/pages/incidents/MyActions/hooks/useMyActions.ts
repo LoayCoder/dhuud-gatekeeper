@@ -234,6 +234,7 @@ export function useMyActions() {
     actionDialogOpen, setActionDialogOpen, handleActionDialogConfirm,
     extensionRequestAction, setExtensionRequestAction, handleRequestExtension,
     showClosedActions, setShowClosedActions, handleStartWork, handleMarkCompleted,
+    handleSubmitInline,
     handleFilterClick, allActions, updateStatus, uploadEvidence, submittingActionIds,
     getDaysInfo, updateInspectionStatus, approveGatePass: approvalsState.approveGatePass,
     selectedActionDetail, setSelectedActionDetail,
