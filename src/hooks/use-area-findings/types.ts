@@ -29,6 +29,10 @@ export interface AreaFinding {
         status: string;
     };
     response?: {
+        notes: string | null;
+        gps_lat: number | null;
+        gps_lng: number | null;
+        photo_paths: unknown | null;
         template_item?: {
             question: string;
             question_ar: string | null;
