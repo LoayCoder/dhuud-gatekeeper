@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PlayCircle, CheckCircle2, CalendarPlus, Clock, AlertTriangle, ChevronDown, ChevronUp, FileCheck, RotateCcw } from 'lucide-react';
+import { PlayCircle, CheckCircle2, CalendarPlus, Clock, AlertTriangle, ChevronDown, ChevronUp, FileCheck, RotateCcw, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getStatusIcon, getPriorityBadgeVariant } from '../helpers';
 import { Link } from 'react-router-dom';
