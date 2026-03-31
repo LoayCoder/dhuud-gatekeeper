@@ -81,10 +81,14 @@ function InspectionSessionsDashboardContent() {
           <h1 className="text-2xl font-bold">{t('inspectionSessions.title')}</h1>
           <p className="text-muted-foreground">{t('inspectionSessions.description')}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button variant="outline" onClick={() => setShowAreaDialog(true)}>
             <MapPinned className="me-2 h-4 w-4" />
             {t('inspectionSessions.newAreaInspection')}
+          </Button>
+          <Button variant="outline" onClick={() => setShowAuditDialog(true)}>
+            <Shield className="me-2 h-4 w-4" />
+            {t('inspectionSessions.newAudit', 'New Audit')}
           </Button>
           <Button onClick={() => setShowCreateDialog(true)}>
             <Plus className="me-2 h-4 w-4" />
