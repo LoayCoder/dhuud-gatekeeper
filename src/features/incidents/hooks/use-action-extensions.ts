@@ -86,39 +86,30 @@ export function useRequestExtension() {
           .eq('id', actionId)
           .single();
 
-        // Find HSSE experts/officers for this tenant using RPC
-        const { data: hsseUsers } = await supabase.rpc('get_users_by_role_codes', {
-          p_tenant_id: profile.tenant_id,
-          p_role_codes: ['hsse_officer', 'hsse_manager'],
-        }).throwOnError().catch(() => ({ data: null }));
+        // Find HSSE experts/officers for this tenant
+        const hsseCodes = ['hsse_officer', 'hsse_manager'];
+        const { data: roles } = await supabase
+          .from('roles')
+          .select('id')
+          .in('code', hsseCodes as string[]);
 
-        // Fallback: direct query if RPC doesn't exist
         let recipients: Array<{ email: string; full_name: string }> = [];
-        if (!hsseUsers) {
-          const { data: roles } = await supabase
-            .from('roles')
-            .select('id')
-            .in('code', ['hsse_officer', 'hsse_manager'] as string[]);
+        if (roles && roles.length > 0) {
+          const rIds = roles.map(r => r.id);
+          const { data: assignments } = await supabase
+            .from('user_role_assignments')
+            .select('user_id')
+            .eq('tenant_id', profile.tenant_id)
+            .in('role_id', rIds as string[]);
 
-          if (roles && roles.length > 0) {
-            const rIds = roles.map(r => r.id);
-            const { data: assignments } = await supabase
-              .from('user_role_assignments')
-              .select('user_id')
-              .eq('tenant_id', profile.tenant_id)
-              .in('role_id', rIds as string[]);
-
-            if (assignments && assignments.length > 0) {
-              const userIds = assignments.map(a => a.user_id);
-              const { data: profiles } = await supabase
-                .from('profiles')
-                .select('email, full_name')
-                .in('id', userIds as string[]);
-              recipients = (profiles || []).filter(p => p.email) as Array<{ email: string; full_name: string }>;
-            }
+          if (assignments && assignments.length > 0) {
+            const userIds = assignments.map(a => a.user_id);
+            const { data: hsseProfiles } = await supabase
+              .from('profiles')
+              .select('email, full_name')
+              .in('id', userIds as string[]);
+            recipients = (hsseProfiles || []).filter(p => p.email) as Array<{ email: string; full_name: string }>;
           }
-        } else {
-          recipients = (hsseUsers as Array<{ email: string; full_name: string }>).filter((u: any) => u.email);
         }
 
         for (const hsseUser of hsseUsers || []) {
