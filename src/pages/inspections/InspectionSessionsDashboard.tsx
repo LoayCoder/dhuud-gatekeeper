@@ -13,7 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ModuleGate } from '@/components';
 import { useInspectionSessions, useDeleteSession, type InspectionSession } from '@/features/incidents';
 // @ts-ignore - type compat
-import { CreateSessionDialog, CreateAreaSessionDialog, EditSessionDialog, SessionStatusBadge } from '@/features/incidents';
+import { CreateSessionDialog, CreateAreaSessionDialog, CreateAuditSessionDialog, EditSessionDialog, SessionStatusBadge } from '@/features/incidents';
 import { toast } from 'sonner';
 
 function InspectionSessionsDashboardContent() {
