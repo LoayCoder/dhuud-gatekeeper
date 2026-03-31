@@ -273,7 +273,7 @@ export function ActionDetailSheet({
           </div>
 
           {/* Verification UI for reviewer when action is pending verification */}
-          {isPendingVerification && (
+          {showVerificationUI && (
             <>
               <Separator />
               <div className="space-y-3">

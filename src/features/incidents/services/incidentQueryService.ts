@@ -276,7 +276,8 @@ export const updateMyActionStatus = async ({
     const { error } = await supabase
         .from('corrective_actions')
         .update(updateData)
-        .eq('id', id);
+        .eq('id', id)
+        .throwOnError();
 
     if (error) throw error;
     return { id, status };
