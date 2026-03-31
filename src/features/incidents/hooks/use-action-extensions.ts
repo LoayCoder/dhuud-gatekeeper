@@ -197,7 +197,8 @@ export function useApproveExtension() {
       const { error: requestError } = await supabase
         .from('action_extension_requests')
         .update(requestUpdateData)
-        .eq('id', requestId);
+        .eq('id', requestId)
+        .throwOnError();
 
       if (requestError) throw requestError;
 
