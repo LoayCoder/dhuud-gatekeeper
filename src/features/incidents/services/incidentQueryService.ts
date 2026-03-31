@@ -280,6 +280,76 @@ export const updateMyActionStatus = async ({
         .throwOnError();
 
     if (error) throw error;
+
+    // Send notification to reviewer when action is submitted for verification
+    if (status === 'completed') {
+        try {
+            const { data: action } = await supabase
+                .from('corrective_actions')
+                .select('title, reference_id, incident_id, session_id, assigned_to')
+                .eq('id', id)
+                .single();
+
+            const { data: assigneeProfile } = await supabase
+                .from('profiles')
+                .select('full_name')
+                .eq('id', action?.assigned_to || '')
+                .single();
+
+            const assigneeName = assigneeProfile?.full_name || 'Team Member';
+
+            let reviewerEmail: string | null = null;
+            let reviewerName: string | null = null;
+
+            if (action?.incident_id) {
+                const { data: incident } = await supabase
+                    .from('incidents')
+                    .select('reporter_id')
+                    .eq('id', action.incident_id)
+                    .single();
+                if (incident?.reporter_id) {
+                    const { data: reporterProfile } = await supabase
+                        .from('profiles')
+                        .select('email, full_name')
+                        .eq('id', incident.reporter_id)
+                        .single();
+                    reviewerEmail = reporterProfile?.email || null;
+                    reviewerName = reporterProfile?.full_name || null;
+                }
+            } else if (action?.session_id) {
+                const { data: session } = await supabase
+                    .from('inspection_sessions')
+                    .select('inspector_id')
+                    .eq('id', action.session_id)
+                    .single();
+                if (session?.inspector_id) {
+                    const { data: inspectorProfile } = await supabase
+                        .from('profiles')
+                        .select('email, full_name')
+                        .eq('id', session.inspector_id)
+                        .single();
+                    reviewerEmail = inspectorProfile?.email || null;
+                    reviewerName = inspectorProfile?.full_name || null;
+                }
+            }
+
+            if (reviewerEmail) {
+                await supabase.functions.invoke('send-action-email', {
+                    body: {
+                        type: 'action_submitted_for_verification',
+                        recipient_email: reviewerEmail,
+                        recipient_name: reviewerName || 'Reviewer',
+                        action_title: action?.title || 'Corrective Action',
+                        action_reference: action?.reference_id,
+                        assignee_name: assigneeName,
+                    },
+                });
+            }
+        } catch (emailError) {
+            console.error('[IncidentAction] Submission notification failed:', emailError);
+        }
+    }
+
     return { id, status };
 };
 
