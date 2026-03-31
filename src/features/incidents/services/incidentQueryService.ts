@@ -304,14 +304,14 @@ export const updateMyActionStatus = async ({
             if (action?.incident_id) {
                 const { data: incident } = await supabase
                     .from('incidents')
-                    .select('reported_by')
+                    .select('reporter_id')
                     .eq('id', action.incident_id)
                     .single();
-                if (incident?.reported_by) {
+                if (incident?.reporter_id) {
                     const { data: reporterProfile } = await supabase
                         .from('profiles')
                         .select('email, full_name')
-                        .eq('id', incident.reported_by)
+                        .eq('id', incident.reporter_id)
                         .single();
                     reviewerEmail = reporterProfile?.email || null;
                     reviewerName = reporterProfile?.full_name || null;
