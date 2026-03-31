@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StatusDot } from '@/components/ui/status-badge';
-import { User, Calendar } from 'lucide-react';
+import { User, Calendar, AlertTriangle } from 'lucide-react';
 import { ActionListTable, type ActionListColumn } from '../ActionListTable';
 import { usePendingActionApprovals } from '@/hooks/use-pending-approvals';
 import type { PendingActionApproval } from '@/hooks/use-pending-approvals';
