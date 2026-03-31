@@ -5,3 +5,4 @@ export { InspectionItemCard } from './InspectionItemCard';
 export { InspectionHistoryTab } from './InspectionHistoryTab';
 export { RecentInspectionsCard } from './RecentInspectionsCard';
 export { InspectionStatsCard } from './InspectionStatsCard';
+export { TemplateChecklistEditor } from './TemplateChecklistEditor';
