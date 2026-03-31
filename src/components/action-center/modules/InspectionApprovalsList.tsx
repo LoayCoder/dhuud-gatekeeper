@@ -5,7 +5,7 @@ import { User, Calendar } from 'lucide-react';
 import { ActionListTable, type ActionListColumn } from '../ActionListTable';
 import { usePendingActionApprovals } from '@/hooks/use-pending-approvals';
 import type { PendingActionApproval } from '@/hooks/use-pending-approvals';
-import { ActionDetailSheet } from '@/components/actions/ActionDetailSheet';
+import { ActionDetailSheet } from '@/pages/incidents/MyActions/ActionDetailSheet';
 import { cn } from '@/lib/utils';
 
 export function InspectionApprovalsList() {
