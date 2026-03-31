@@ -35,5 +35,6 @@ export interface InspectionAction {
         reference_id?: string;
         name?: string | null;
         session_type?: string;
+        inspector?: { full_name: string; job_title?: string | null } | null;
     } | null;
 }

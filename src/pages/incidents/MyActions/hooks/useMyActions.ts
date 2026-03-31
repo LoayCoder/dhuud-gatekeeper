@@ -64,8 +64,21 @@ export function useMyActions() {
   const approvalsState = useMyApprovalsState();
 
   const allActions = [
-    ...(incidentActions || []).map(a => ({ ...a, source: 'incident' as const })),
-    ...(inspectionActions || []).map(a => ({ ...a, source: 'inspection' as const })),
+    ...(incidentActions || []).map(a => {
+      const incident = a.incident as any;
+      return {
+        ...a,
+        source: 'incident' as const,
+        reviewer_name: incident?.reporter?.full_name || null,
+        reviewer_job_title: incident?.reporter?.job_title || null,
+      };
+    }),
+    ...(inspectionActions || []).map(a => ({
+      ...a,
+      source: 'inspection' as const,
+      reviewer_name: (a as any).session?.inspector?.full_name || null,
+      reviewer_job_title: (a as any).session?.inspector?.job_title || null,
+    })),
   ];
 
   const pendingWitness = (witnessStatements || []).filter((w: any) => w.status !== 'completed');

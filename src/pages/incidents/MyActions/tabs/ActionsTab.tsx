@@ -91,6 +91,13 @@ export function ActionsTab({ viewProps }: { viewProps: MyActionsViewProps }) {
                     ? String(t('actions.pendingVerification', 'Pending Verification'))
                     : String(t(`investigation.actionStatus.${action.status}`, action.status))}
                 </Badge>
+                {action.status === 'completed' && (
+                  <span className="flex items-center gap-1 text-xs text-info">
+                    <User className="h-3 w-3" />
+                    {t('actions.pendingWith', 'Pending with')}: {action.reviewer_name || t('actions.hsseReviewer', 'HSSE Reviewer')}
+                    {action.reviewer_job_title && <span className="text-muted-foreground">· {action.reviewer_job_title}</span>}
+                  </span>
+                )}
                 {action.due_date && (
                   <span className={cn('flex items-center gap-1', daysInfo?.isOverdue ? 'text-destructive font-medium' : daysInfo?.isDueSoon ? 'text-warning' : '')}>
                     <Clock className="h-3 w-3" />

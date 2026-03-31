@@ -3056,7 +3056,11 @@
     "closedActions": "Closed Actions",
     "close": "Close",
     "rejectedBy": "Rejected by",
-    "rejectionReason": "Rejection Reason"
+    "rejectionReason": "Rejection Reason",
+    "pendingWith": "Pending with",
+    "reviewer": "Reviewer",
+    "hsseReviewer": "HSSE Reviewer",
+    "selfApprovalBlocked": "You cannot verify your own action"
   },
   "hsseDashboard": {
     "title": "HSSE Event Dashboard",

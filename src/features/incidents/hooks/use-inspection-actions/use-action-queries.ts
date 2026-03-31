@@ -47,7 +47,7 @@ export function useMyInspectionActions(sourceType?: 'inspection' | 'audit') {
            started_at, progress_notes, completion_notes, overdue_justification, source_type,
            failure_context_snapshot,
           rejected_by_profile:profiles!corrective_actions_rejected_by_fkey(id, full_name),
-          session:inspection_sessions!corrective_actions_session_id_fkey(session_type)
+          session:inspection_sessions!corrective_actions_session_id_fkey(session_type, inspector:profiles!inspection_sessions_inspector_id_fkey(full_name, job_title))
         `)
                 .eq('assigned_to', user.id)
                 .eq('tenant_id', profile.tenant_id)

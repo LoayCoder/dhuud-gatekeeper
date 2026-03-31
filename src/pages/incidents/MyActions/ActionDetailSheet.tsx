@@ -159,6 +159,12 @@ export function ActionDetailSheet({
                   {t('actions.pendingVerification', 'Pending Verification')}
                 </span>
               </div>
+              {(action.reviewer_name) && (
+                <p className="text-xs text-muted-foreground mt-1.5 ms-6">
+                  {t('actions.pendingWith', 'Pending with')}: <span className="font-medium text-foreground">{action.reviewer_name}</span>
+                  {action.reviewer_job_title && <span> · {action.reviewer_job_title}</span>}
+                </p>
+              )}
             </div>
           )}
 

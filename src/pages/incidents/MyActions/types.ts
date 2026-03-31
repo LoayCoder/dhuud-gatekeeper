@@ -36,6 +36,8 @@ export interface ActionForDialog {
     failed_parts?: string[];
   }> | null;
   overdue_justification?: string | null;
+  reviewer_name?: string | null;
+  reviewer_job_title?: string | null;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- broad prop bag consumed by layout
