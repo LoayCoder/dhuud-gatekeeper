@@ -26,13 +26,14 @@ interface ActionDetailSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onStartWork?: (action: ActionForDialog) => void;
-  onSubmitForVerification?: (action: ActionForDialog) => void;
+  onSubmitInline?: (action: ActionForDialog, data: { notes: string; overdueJustification?: string }) => void;
   onRequestExtension?: (action: ActionForDialog) => void;
+  isSubmitting?: boolean;
 }
 
 export function ActionDetailSheet({
   action, open, onOpenChange,
-  onStartWork, onSubmitForVerification, onRequestExtension,
+  onStartWork, onSubmitInline, onRequestExtension, isSubmitting,
 }: ActionDetailSheetProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
