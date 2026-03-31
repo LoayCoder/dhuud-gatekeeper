@@ -87,11 +87,18 @@ export function useRequestExtension() {
           .single();
 
         // Find HSSE experts/officers for this tenant
+        const { data: roleData } = await supabase
+          .from('roles')
+          .select('id')
+          .in('code', ['hsse_officer', 'hsse_manager']);
+
+        const roleIds = roleData?.map(r => r.id) || [];
+
         const { data: hsseUsers } = await supabase
           .from('user_role_assignments')
           .select('user_id, profiles!inner(email, full_name)')
           .eq('tenant_id', profile.tenant_id)
-          .in('role_id', (await supabase.from('roles').select('id').in('code', ['hsse_officer', 'hsse_manager'])).data?.map(r => r.id) || []);
+          .in('role_id', roleIds);
 
         for (const hsseUser of hsseUsers || []) {
           const hsseProfile = hsseUser.profiles as any;
