@@ -150,10 +150,34 @@ export function TemplateChecklistEditor({ templateId }: TemplateChecklistEditorP
               </Badge>
             )}
           </CardTitle>
-          <Button size="sm" onClick={openAddDialog}>
-            <Plus className="h-4 w-4 me-1" />
-            {t('inspections.addItem', 'Add Item')}
-          </Button>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <Button size="sm" variant="outline" onClick={handleDownloadTemplate}>
+              <Download className="h-4 w-4 me-1" />
+              {t('inspections.downloadTemplate', 'Download Template')}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+            >
+              <Upload className="h-4 w-4 me-1" />
+              {isUploading
+                ? t('common.loading', 'Loading...')
+                : t('inspections.bulkUpload', 'Bulk Upload')}
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls"
+              className="hidden"
+              onChange={handleBulkUpload}
+            />
+            <Button size="sm" onClick={openAddDialog}>
+              <Plus className="h-4 w-4 me-1" />
+              {t('inspections.addItem', 'Add Item')}
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="pt-0 space-y-2">
