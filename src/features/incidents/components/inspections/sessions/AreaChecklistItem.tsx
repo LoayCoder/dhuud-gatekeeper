@@ -62,8 +62,10 @@ export function AreaChecklistItem({
   const [isSaving, setIsSaving] = useState(false);
   const [photoCount, setPhotoCount] = useState(0);
   const [showPhotos, setShowPhotos] = useState(false);
+  const [findingCreated, setFindingCreated] = useState(false);
   
   const saveResponse = useSaveAreaResponse();
+  const createFinding = useCreateAreaFinding();
   
   // Debounced save
   const saveDebounced = useCallback(
