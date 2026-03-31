@@ -200,5 +200,6 @@ export function useMyActions() {
     showClosedActions, setShowClosedActions, handleStartWork, handleMarkCompleted,
     handleFilterClick, allActions, updateStatus, uploadEvidence, submittingActionIds,
     getDaysInfo, updateInspectionStatus, approveGatePass: approvalsState.approveGatePass,
+    selectedActionDetail, setSelectedActionDetail,
   };
 }
