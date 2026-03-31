@@ -16,10 +16,10 @@ interface ActionWorkflowTimelineProps {
 }
 
 const WORKFLOW_STAGES = [
-  { key: 'assigned', icon: ClipboardList, labelKey: 'actions.timeline.assigned' },
-  { key: 'in_progress', icon: PlayCircle, labelKey: 'actions.timeline.inProgress' },
-  { key: 'pending_verification', icon: FileCheck, labelKey: 'actions.timeline.pendingVerification' },
-  { key: 'closed', icon: CheckCircle2, labelKey: 'actions.timeline.closed' },
+  { key: 'assigned', icon: ClipboardList, labelKey: 'actions.timelineSteps.assigned' },
+  { key: 'in_progress', icon: PlayCircle, labelKey: 'actions.timelineSteps.inProgress' },
+  { key: 'pending_verification', icon: FileCheck, labelKey: 'actions.timelineSteps.pendingVerification' },
+  { key: 'closed', icon: CheckCircle2, labelKey: 'actions.timelineSteps.closed' },
 ] as const;
 
 // Map status to stage index

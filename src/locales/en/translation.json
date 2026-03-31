@@ -3036,12 +3036,19 @@
     "statusWillChange": "Status will change to:",
     "confirmAndSubmit": "Confirm & Submit",
     "proceedToConfirm": "Continue",
-    "timeline": {
+    "timeline": "Timeline",
+    "timelineSteps": {
       "assigned": "Assigned",
       "inProgress": "In Progress",
       "pendingVerification": "Pending Verification",
       "closed": "Closed"
     },
+    "failureContext": "Failure Context",
+    "failedAssets": "Failed Assets",
+    "failedParts": "Failed Parts",
+    "inspectorNotes": "Inspector Notes",
+    "failureReason": "Failure Reason",
+    "noDetailsAvailable": "No details available",
     "dueSoon": "Due Soon",
     "daysRemaining": "{{days}} days remaining",
     "dueToday": "Due Today",
