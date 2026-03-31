@@ -419,7 +419,7 @@ function AuditSessionWorkspaceContent() {
           )}
           
           {/* Findings Panel */}
-          {(findingsCount?.total ?? 0) > 0 && (
+          {(session.status === 'in_progress' || (findingsCount?.total ?? 0) > 0) && (
             <FindingsPanel
               sessionId={sessionId!}
               isLocked={isCompleted}
