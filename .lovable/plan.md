@@ -1,33 +1,53 @@
 
 
-# No Code Changes Needed — Dependencies Must Be Reinstalled
+# Add Inspection Approvals to Action Center
 
-## Analysis
+## Problem
+The Inspections card in `/action-center` only has "My Actions" — there is no way for reviewers to see and verify/close inspection-sourced corrective actions directly from the Action Center. The approval workflow is only accessible via the My Actions page's Approvals tab.
 
-After thorough review of all 11 files from the approved plan, **every change has already been implemented**:
+## Solution
+Mirror the pattern already used by the Incidents module card (which has "My Actions", "Pending Approvals", and "Investigations" sheets) and add a **Pending Approvals** action link + sheet to the Inspections module card.
 
-| Phase | File | Status |
-|-------|------|--------|
-| DB trigger | `20260331085331_*.sql` | ✅ Done |
-| Self-approval guard | `use-pending-approval-mutations.ts` (line 41) | ✅ Done |
-| Incident query joins | `incidentQueryService.ts` (line 228) | ✅ Done |
-| Inspection query joins | `use-action-queries.ts` (line 50) | ✅ Done |
-| ActionForDialog types | `types.ts` (lines 39-40) | ✅ Done |
-| InspectionAction types | `types.ts` (line 38) | ✅ Done |
-| Reviewer mapping | `useMyActions.ts` (lines 72-80) | ✅ Done |
-| Action card UI | `ActionsTab.tsx` (lines 94-100) | ✅ Done |
-| Detail sheet banner | `ActionDetailSheet.tsx` (lines 154-168) | ✅ Done |
-| EN translations | `pendingWith`, `reviewer`, `hsseReviewer` | ✅ Done |
-| AR translations | Same keys in Arabic | ✅ Done |
+## Changes
 
-## The Actual Problem
+### 1. Add `session_id` to Pending Action Approvals query & type
 
-The build errors are **not related to these features**. They are sandbox environment issues:
+**`src/hooks/use-pending-approvals/types.ts`** — Add `session_id: string | null` to `PendingActionApproval`
 
-- `Cannot find module 'react-i18next'` — missing `node_modules`
-- `Cannot find package 'vite-plugin-pwa'` — same root cause
+**`src/hooks/use-pending-approvals/use-pending-approval-queries.ts`** — Add `session_id` to the select list in `usePendingActionApprovals` query (line 37)
 
-## Fix
+### 2. Create `InspectionApprovalsList` component
 
-Run `bun install` in the project directory to restore all dependencies. No code changes are required.
+**New file: `src/components/action-center/modules/InspectionApprovalsList.tsx`**
+
+- Uses `usePendingActionApprovals()` hook
+- Filters to actions where `session_id IS NOT NULL` (inspection-sourced)
+- Displays columns: Title/Reference, Status, Assignee, Due Date
+- On row click: opens the ActionDetailSheet inline (same pattern as the fix for ApprovalsTab)
+- Shows "Pending with" reviewer info and verify/return actions
+
+### 3. Update `InspectionsModule` to include Pending Approvals
+
+**`src/components/action-center/modules/InspectionsModule.tsx`**
+
+- Import `usePendingActionApprovals` and filter to inspection-sourced (`session_id != null`)
+- Add `SheetType` option: `'my-actions' | 'approvals' | null`
+- Add new KPI: "Pending Verification" with count and click handler
+- Add new action link: "Pending Approvals" with badge count (following Incidents pattern)
+- Add new `ActionListSheet` for approvals, rendering `InspectionApprovalsList`
+
+### 4. Translation keys
+
+**`en/translation.json`** — Add:
+- `actionCenter.sheet.inspectionApprovals`: "Inspection Action Approvals"
+- `actionCenter.sheet.inspectionApprovalsDesc`: "Inspection actions pending your verification"
+
+**`ar/translation.json`** — Arabic equivalents
+
+## Files Modified (5)
+1. `src/hooks/use-pending-approvals/types.ts` — add `session_id`
+2. `src/hooks/use-pending-approvals/use-pending-approval-queries.ts` — add `session_id` to select
+3. `src/components/action-center/modules/InspectionApprovalsList.tsx` — new component
+4. `src/components/action-center/modules/InspectionsModule.tsx` — add approvals sheet + KPI
+5. `src/locales/en/translation.json` + `ar/translation.json` — new keys
 
