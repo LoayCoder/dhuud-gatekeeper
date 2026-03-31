@@ -66,10 +66,54 @@ export function useRequestExtension() {
           current_due_date: currentDueDate,
           requested_due_date: requestedDueDate,
           extension_reason: reason,
-          status: 'pending_hsse', // Goes directly to HSSE Expert
-        });
+          status: 'pending_hsse',
+        })
+        .throwOnError();
 
       if (error) throw error;
+
+      // Notify HSSE experts about the extension request
+      try {
+        const { data: requesterProfile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .single();
+
+        const { data: actionData } = await supabase
+          .from('corrective_actions')
+          .select('title, reference_id')
+          .eq('id', actionId)
+          .single();
+
+        // Find HSSE experts/officers for this tenant
+        const { data: hsseUsers } = await supabase
+          .from('user_role_assignments')
+          .select('user_id, profiles!inner(email, full_name)')
+          .eq('tenant_id', profile.tenant_id)
+          .in('role_id', (await supabase.from('roles').select('id').in('code', ['hsse_officer', 'hsse_manager'])).data?.map(r => r.id) || []);
+
+        for (const hsseUser of hsseUsers || []) {
+          const hsseProfile = hsseUser.profiles as any;
+          if (hsseProfile?.email) {
+            await supabase.functions.invoke('send-action-email', {
+              body: {
+                type: 'extension_requested',
+                recipient_email: hsseProfile.email,
+                recipient_name: hsseProfile.full_name || 'HSSE Expert',
+                action_title: actionData?.title || 'Corrective Action',
+                action_reference: actionData?.reference_id,
+                requester_name: requesterProfile?.full_name || 'Team Member',
+                current_due_date: currentDueDate,
+                requested_due_date: requestedDueDate,
+                extension_reason: reason,
+              },
+            });
+          }
+        }
+      } catch (emailError) {
+        console.error('[ExtensionRequest] Email notification failed:', emailError);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['extension-requests'] });
