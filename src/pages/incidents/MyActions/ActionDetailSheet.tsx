@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
@@ -6,12 +6,15 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
 import {
   PlayCircle, FileCheck, CalendarPlus, AlertTriangle, Clock,
-  CheckCircle2, RotateCcw, FileText,
+  CheckCircle2, RotateCcw, FileText, ShieldCheck, XCircle, Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getStatusIcon, getPriorityBadgeVariant, formatFallbackLabel } from './helpers';
+import { ActionEvidenceSection } from '@/features/incidents/components/inspections/sessions/ActionEvidenceSection';
+import { useVerifyAction } from '@/features/incidents';
 import type { ActionForDialog } from './types';
 
 interface ActionDetailSheetProps {
@@ -29,20 +32,41 @@ export function ActionDetailSheet({
 }: ActionDetailSheetProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
+  const verifyAction = useVerifyAction();
+  const [verifyMode, setVerifyMode] = useState<'approve' | 'reject' | null>(null);
+  const [verifyNotes, setVerifyNotes] = useState('');
 
   if (!action) return null;
 
   const isClosed = action.status === 'closed' || action.status === 'verified';
   const canStart = action.status === 'assigned' || action.status === 'pending' || action.status === 'returned_for_correction';
   const canComplete = action.status === 'in_progress';
+  const isPendingVerification = action.status === 'completed';
   const isOverdue = action.due_date ? new Date(action.due_date) < new Date() : false;
   const isReturned = action.status === 'returned_for_correction';
 
-  // Access extended fields if available
-  const ext = action as unknown as Record<string, unknown>;
+  const handleVerify = async (approved: boolean) => {
+    if (!approved && !verifyNotes.trim()) return;
+    await verifyAction.mutateAsync({
+      actionId: action.id,
+      approved,
+      verification_notes: verifyNotes || undefined,
+    });
+    setVerifyMode(null);
+    setVerifyNotes('');
+    onOpenChange(false);
+  };
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen) {
+      setVerifyMode(null);
+      setVerifyNotes('');
+    }
+    onOpenChange(newOpen);
+  };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent side={direction === 'rtl' ? 'left' : 'right'} dir={direction} className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2 text-start">
@@ -66,14 +90,26 @@ export function ActionDetailSheet({
                   {t('actions.returnedForCorrection', 'Returned for Correction')}
                 </span>
               </div>
-              {ext.last_return_reason && (
-                <p className="text-sm text-muted-foreground">{String(ext.last_return_reason)}</p>
+              {action.last_return_reason && (
+                <p className="text-sm text-muted-foreground">{action.last_return_reason}</p>
               )}
-              {ext.return_count && (
+              {action.return_count && (
                 <p className="text-xs text-muted-foreground">
-                  {t('actions.returnCount', 'Return count')}: {String(ext.return_count)}
+                  {t('actions.returnCount', 'Return count')}: {action.return_count}
                 </p>
               )}
+            </div>
+          )}
+
+          {/* Pending Verification banner */}
+          {isPendingVerification && (
+            <div className="rounded-md bg-info/10 border border-info/30 p-3">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-info" />
+                <span className="text-sm font-medium text-info">
+                  {t('actions.pendingVerification', 'Pending Verification')}
+                </span>
+              </div>
             </div>
           )}
 
@@ -81,7 +117,7 @@ export function ActionDetailSheet({
           <div className="space-y-3">
             {action.description && (
               <div>
-                <Label>{t('common.description', 'Description')}</Label>
+                <DetailLabel>{t('common.description', 'Description')}</DetailLabel>
                 <p className="text-sm text-muted-foreground mt-1">{action.description}</p>
               </div>
             )}
@@ -104,9 +140,9 @@ export function ActionDetailSheet({
                   </span>
                 </Detail>
               )}
-              {ext.reference_id && (
+              {action.reference_id && (
                 <Detail label={t('common.reference', 'Reference')}>
-                  <span className="font-mono text-xs">{String(ext.reference_id)}</span>
+                  <span className="font-mono text-xs">{action.reference_id}</span>
                 </Detail>
               )}
             </div>
@@ -118,81 +154,159 @@ export function ActionDetailSheet({
           <div className="space-y-2">
             <h4 className="text-sm font-semibold">{t('actions.timeline', 'Timeline')}</h4>
             <div className="space-y-2 text-xs">
-              {ext.created_at && (
+              {action.created_at && (
                 <TimelineEntry
                   icon={<FileText className="h-3 w-3" />}
                   label={t('actions.created', 'Created')}
-                  date={String(ext.created_at)}
+                  date={action.created_at}
                   lang={i18n.language}
                 />
               )}
-              {ext.started_at && (
+              {action.started_at && (
                 <TimelineEntry
                   icon={<PlayCircle className="h-3 w-3 text-info" />}
                   label={t('actions.workStarted', 'Work Started')}
-                  date={String(ext.started_at)}
+                  date={action.started_at}
                   lang={i18n.language}
                 />
               )}
-              {ext.completed_date && (
+              {action.completed_date && (
                 <TimelineEntry
                   icon={<FileCheck className="h-3 w-3 text-primary" />}
                   label={t('actions.submitted', 'Submitted for Verification')}
-                  date={String(ext.completed_date)}
+                  date={action.completed_date}
                   lang={i18n.language}
                 />
               )}
-              {ext.verified_at && (
+              {action.verified_at && (
                 <TimelineEntry
                   icon={<CheckCircle2 className="h-3 w-3 text-success" />}
                   label={t('actions.verified', 'Verified & Closed')}
-                  date={String(ext.verified_at)}
+                  date={action.verified_at}
                   lang={i18n.language}
                 />
               )}
-              {ext.rejected_at && (
+              {action.rejected_at && (
                 <TimelineEntry
                   icon={<RotateCcw className="h-3 w-3 text-warning" />}
                   label={t('actions.returned', 'Returned')}
-                  date={String(ext.rejected_at)}
+                  date={action.rejected_at}
                   lang={i18n.language}
-                  note={ext.last_return_reason ? String(ext.last_return_reason) : undefined}
+                  note={action.last_return_reason ?? undefined}
                 />
               )}
             </div>
           </div>
 
           {/* Notes sections */}
-          {ext.progress_notes && (
+          {action.progress_notes && (
             <>
               <Separator />
               <div>
                 <h4 className="text-sm font-semibold mb-1">{t('actions.progressNotes', 'Progress Notes')}</h4>
-                <p className="text-sm text-muted-foreground">{String(ext.progress_notes)}</p>
+                <p className="text-sm text-muted-foreground">{action.progress_notes}</p>
               </div>
             </>
           )}
-          {ext.completion_notes && (
+          {action.completion_notes && (
             <>
               <Separator />
               <div>
                 <h4 className="text-sm font-semibold mb-1">{t('actions.completionNotes', 'Completion Notes')}</h4>
-                <p className="text-sm text-muted-foreground">{String(ext.completion_notes)}</p>
+                <p className="text-sm text-muted-foreground">{action.completion_notes}</p>
               </div>
             </>
           )}
-          {ext.verification_notes && (
+          {action.verification_notes && (
             <>
               <Separator />
               <div>
                 <h4 className="text-sm font-semibold mb-1">{t('actions.verificationNotes', 'Verification Notes')}</h4>
-                <p className="text-sm text-muted-foreground">{String(ext.verification_notes)}</p>
+                <p className="text-sm text-muted-foreground">{action.verification_notes}</p>
               </div>
             </>
           )}
 
-          {/* Action Buttons */}
-          {!isClosed && (
+          <Separator />
+
+          {/* Evidence Section */}
+          <div>
+            <h4 className="text-sm font-semibold mb-2">{t('actions.evidence', 'Evidence')}</h4>
+            <ActionEvidenceSection
+              actionId={action.id}
+              sessionId={action.session_id || action.incident_id || undefined}
+              isLocked={isClosed}
+            />
+          </div>
+
+          {/* Verification UI for reviewer when action is pending verification */}
+          {isPendingVerification && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold">{t('actions.reviewAction', 'Review Action')}</h4>
+
+                {verifyMode === null ? (
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => setVerifyMode('approve')}
+                    >
+                      <CheckCircle2 className="h-4 w-4 me-1" />
+                      {t('actions.verifyAndClose', 'Verify & Close')}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="flex-1"
+                      onClick={() => setVerifyMode('reject')}
+                    >
+                      <XCircle className="h-4 w-4 me-1" />
+                      {t('actions.returnForCorrection', 'Return for Correction')}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Textarea
+                      placeholder={
+                        verifyMode === 'approve'
+                          ? t('actions.verificationNotesPlaceholder', 'Optional verification notes...')
+                          : t('actions.rejectionReasonPlaceholder', 'Reason for returning (required)...')
+                      }
+                      value={verifyNotes}
+                      onChange={(e) => setVerifyNotes(e.target.value)}
+                      rows={3}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => { setVerifyMode(null); setVerifyNotes(''); }}
+                        disabled={verifyAction.isPending}
+                      >
+                        {t('common.cancel', 'Cancel')}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={verifyMode === 'approve' ? 'default' : 'destructive'}
+                        onClick={() => handleVerify(verifyMode === 'approve')}
+                        disabled={verifyAction.isPending || (verifyMode === 'reject' && !verifyNotes.trim())}
+                      >
+                        {verifyAction.isPending && <Loader2 className="h-4 w-4 me-1 animate-spin" />}
+                        {verifyMode === 'approve'
+                          ? t('actions.confirmApprove', 'Confirm Approval')
+                          : t('actions.confirmReturn', 'Confirm Return')}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Assignee Action Buttons */}
+          {!isClosed && !isPendingVerification && (
             <>
               <Separator />
               <div className="flex flex-col gap-2">
@@ -223,14 +337,14 @@ export function ActionDetailSheet({
   );
 }
 
-function Label({ children }: { children: React.ReactNode }) {
+function DetailLabel({ children }: { children: React.ReactNode }) {
   return <p className="text-xs font-medium text-muted-foreground">{children}</p>;
 }
 
 function Detail({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <Label>{label}</Label>
+      <DetailLabel>{label}</DetailLabel>
       <div className="mt-0.5">{children}</div>
     </div>
   );
