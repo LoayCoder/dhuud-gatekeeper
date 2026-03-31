@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PlayCircle, CheckCircle2, CalendarPlus, Clock, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { PlayCircle, CheckCircle2, CalendarPlus, Clock, AlertTriangle, ChevronDown, ChevronUp, FileCheck, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getStatusIcon, getPriorityBadgeVariant } from '../helpers';
 import { Link } from 'react-router-dom';
@@ -16,7 +16,7 @@ export function ActionsTab({ viewProps }: { viewProps: MyActionsViewProps }) {
     isLoading, displayedActiveActions, displayedClosedActions,
     handleStartWork, handleMarkCompleted, submittingActionIds,
     getDaysInfo, showClosedActions, setShowClosedActions,
-    setExtensionRequestAction,
+    setExtensionRequestAction, setSelectedActionDetail,
   } = viewProps;
 
   if (isLoading) {
@@ -43,8 +43,28 @@ export function ActionsTab({ viewProps }: { viewProps: MyActionsViewProps }) {
     const isClosed = action.status === 'closed' || action.status === 'verified';
 
     return (
-      <Card key={action.id} className={cn('transition-all', daysInfo?.isOverdue && !isClosed ? 'border-destructive/50' : '')}>
+      <Card
+        key={action.id}
+        className={cn(
+          'transition-all cursor-pointer hover:shadow-md',
+          daysInfo?.isOverdue && !isClosed ? 'border-destructive/50' : '',
+          action.status === 'returned_for_correction' ? 'border-warning/50' : ''
+        )}
+        onClick={() => setSelectedActionDetail?.(action)}
+      >
         <CardContent className="p-4">
+          {/* Return feedback banner */}
+          {action.status === 'returned_for_correction' && (
+            <div className="rounded-md bg-warning/10 border border-warning/30 p-2 mb-3 flex items-start gap-2">
+              <RotateCcw className="h-3.5 w-3.5 text-warning mt-0.5 shrink-0" />
+              <div>
+                <p className="text-xs font-medium text-warning">{t('actions.returnedForCorrection', 'Returned for Correction')}</p>
+                {action.last_return_reason && (
+                  <p className="text-xs text-muted-foreground line-clamp-1">{action.last_return_reason}</p>
+                )}
+              </div>
+            </div>
+          )}
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0 space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
@@ -84,7 +104,7 @@ export function ActionsTab({ viewProps }: { viewProps: MyActionsViewProps }) {
               </div>
             </div>
             {!isClosed && (
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
                 {canStart && (
                   <Button size="sm" onClick={() => handleStartWork(action)} disabled={isSubmitting}>
                     <PlayCircle className="h-4 w-4 me-1" />
@@ -93,8 +113,8 @@ export function ActionsTab({ viewProps }: { viewProps: MyActionsViewProps }) {
                 )}
                 {canComplete && (
                   <Button size="sm" variant="default" onClick={() => handleMarkCompleted(action)} disabled={isSubmitting}>
-                    <CheckCircle2 className="h-4 w-4 me-1" />
-                    {t('investigation.actions.markCompleted', 'Mark Completed')}
+                    <FileCheck className="h-4 w-4 me-1" />
+                    {t('actions.submitForVerification', 'Submit for Verification')}
                   </Button>
                 )}
                 {(canStart || canComplete) && action.due_date && (

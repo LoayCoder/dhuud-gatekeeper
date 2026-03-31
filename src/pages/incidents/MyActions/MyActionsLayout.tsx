@@ -14,6 +14,9 @@ import { InspectionsTab } from './tabs/InspectionsTab';
 import { WitnessTab } from './tabs/WitnessTab';
 import { ReportedTab } from './tabs/ReportedTab';
 import { ApprovalsTab } from './tabs/ApprovalsTab';
+import { ActionWorkflowDialog } from './ActionWorkflowDialog';
+import { ExtensionRequestDialog } from './ExtensionRequestDialog';
+import { ActionDetailSheet } from './ActionDetailSheet';
 import type { MyActionsViewProps } from './types';
 
 export function MyActionsLayout({ viewProps }: { viewProps: MyActionsViewProps }) {
@@ -171,6 +174,33 @@ export function MyActionsLayout({ viewProps }: { viewProps: MyActionsViewProps }
           </TabsContent>
         )}
       </Tabs>
+
+      {/* Action Workflow Dialog (Start Work / Submit for Verification) */}
+      <ActionWorkflowDialog
+        open={actionDialogOpen}
+        onOpenChange={setActionDialogOpen}
+        action={actionDialogAction}
+        mode={actionDialogMode}
+        onConfirm={handleActionDialogConfirm}
+        isSubmitting={false}
+      />
+
+      {/* Extension Request Dialog */}
+      <ExtensionRequestDialog
+        action={extensionRequestAction}
+        open={!!extensionRequestAction}
+        onOpenChange={(open) => { if (!open) setExtensionRequestAction(null); }}
+      />
+
+      {/* Action Detail Sheet */}
+      <ActionDetailSheet
+        action={viewProps.selectedActionDetail}
+        open={!!viewProps.selectedActionDetail}
+        onOpenChange={(open) => { if (!open) viewProps.setSelectedActionDetail(null); }}
+        onStartWork={handleStartWork}
+        onSubmitForVerification={handleMarkCompleted}
+        onRequestExtension={(a) => setExtensionRequestAction(a)}
+      />
     </div>
   );
 }
