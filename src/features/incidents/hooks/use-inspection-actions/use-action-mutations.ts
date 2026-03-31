@@ -185,6 +185,7 @@ export function useVerifyAction() {
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['session-actions'] });
             queryClient.invalidateQueries({ queryKey: ['my-inspection-actions'] });
+            queryClient.invalidateQueries({ queryKey: ['my-corrective-actions'] });
             queryClient.invalidateQueries({ queryKey: ['area-findings'] });
             queryClient.invalidateQueries({ queryKey: ['session-closure-status'] });
 
