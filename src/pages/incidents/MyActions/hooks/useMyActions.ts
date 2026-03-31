@@ -88,6 +88,40 @@ export function useMyActions() {
     setActionDialogOpen(true);
   };
 
+  const handleSubmitInline = async (action: ActionForDialog, data: { notes: string; overdueJustification?: string }) => {
+    if (submittingActionIds.has(action.id)) return;
+    const actionId = action.id;
+    const isInspectionAction = action.source === 'inspection';
+
+    setSubmittingActionIds(prev => new Set(prev).add(actionId));
+    try {
+      if (isInspectionAction) {
+        await updateInspectionStatus.mutateAsync({
+          id: actionId,
+          status: 'completed',
+          completionNotes: data.notes,
+          overdueJustification: data.overdueJustification,
+        });
+      } else {
+        await updateStatus.mutateAsync({
+          id: actionId,
+          status: 'completed',
+          completionNotes: data.notes,
+          overdueJustification: data.overdueJustification,
+        });
+      }
+      setSelectedActionDetail(null);
+    } catch (error) {
+      console.error('[MyActions] Inline submit failed:', error);
+    } finally {
+      setSubmittingActionIds(prev => {
+        const next = new Set(prev);
+        next.delete(actionId);
+        return next;
+      });
+    }
+  };
+
   const handleActionDialogConfirm = async (data: { notes: string; overdueJustification?: string; files: File[] }) => {
     if (!actionDialogAction) return;
     const actionId = actionDialogAction.id;
