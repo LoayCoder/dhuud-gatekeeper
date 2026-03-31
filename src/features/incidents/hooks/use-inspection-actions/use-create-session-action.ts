@@ -31,7 +31,7 @@ export function useCreateSessionAction() {
       // Fetch session branch_id for RLS compliance
       const { data: session, error: sessionError } = await supabase
         .from('inspection_sessions')
-        .select('branch_id')
+        .select('branch_id, inspector_id')
         .eq('id', input.sessionId)
         .single();
 
