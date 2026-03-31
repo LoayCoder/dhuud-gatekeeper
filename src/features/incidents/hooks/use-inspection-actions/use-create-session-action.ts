@@ -31,7 +31,7 @@ export function useCreateSessionAction() {
       // Fetch session branch_id for RLS compliance
       const { data: session, error: sessionError } = await supabase
         .from('inspection_sessions')
-        .select('branch_id')
+        .select('branch_id, inspector_id')
         .eq('id', input.sessionId)
         .single();
 
@@ -103,11 +103,20 @@ export function useCreateSessionAction() {
 
       return action;
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['session-actions'] });
       queryClient.invalidateQueries({ queryKey: ['session-closure-status'] });
       queryClient.invalidateQueries({ queryKey: ['session-failed-assets'] });
       toast({ title: t('actions.createdSuccess') });
+
+      // Warn if inspector assigned to themselves (SoD conflict)
+      if (variables.assigned_to && variables.assigned_to === profile?.id) {
+        toast({
+          title: t('actions.selfAssignWarning', 'Self-assignment notice'),
+          description: t('actions.selfAssignWarningDesc', 'You assigned this action to yourself. An HSSE officer/manager will need to verify it since the inspector cannot self-verify.'),
+          variant: 'default',
+        });
+      }
     },
     onError: (error) => {
       console.error('[CreateSessionAction] Failed:', error);

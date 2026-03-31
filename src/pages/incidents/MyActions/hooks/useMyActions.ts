@@ -73,12 +73,16 @@ export function useMyActions() {
         reviewer_job_title: incident?.reporter?.job_title || null,
       };
     }),
-    ...(inspectionActions || []).map(a => ({
-      ...a,
-      source: 'inspection' as const,
-      reviewer_name: (a as any).session?.inspector?.full_name || null,
-      reviewer_job_title: (a as any).session?.inspector?.job_title || null,
-    })),
+    ...(inspectionActions || []).map(a => {
+      const inspector = (a as any).session?.inspector;
+      const isSelfAssigned = inspector?.id && a.assigned_to === inspector.id;
+      return {
+        ...a,
+        source: 'inspection' as const,
+        reviewer_name: isSelfAssigned ? t('actions.hsseReviewer', 'HSSE Reviewer') : (inspector?.full_name || null),
+        reviewer_job_title: isSelfAssigned ? null : (inspector?.job_title || null),
+      };
+    }),
   ];
 
   const pendingWitness = (witnessStatements || []).filter((w: any) => w.status !== 'completed');
