@@ -40,6 +40,8 @@ export function TemplateChecklistEditor({ templateId }: TemplateChecklistEditorP
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<TemplateItemFormValues>({
     resolver: zodResolver(templateItemSchema),
