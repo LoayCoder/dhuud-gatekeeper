@@ -1,39 +1,63 @@
+# Fix Area Inspection Checklist Management Gaps
 
+## Problem
 
-# Fix: Inspection Dashboard Showing All Zeros
+Area and Audit inspection templates have **no UI to manage checklist items**. The `TemplateItemBuilder` component returns `null` for non-asset templates (line 181: `if (!showMatchingAssets) return null`). The CRUD hooks exist (`useCreateTemplateItem`, `useUpdateTemplateItem`, `useDeleteTemplateItem`) but nothing calls them. This means:
 
-## Root Cause
+- Admins cannot add/edit/delete checklist questions for Area and Audit templates
+- Starting an Area and Audit session with no items throws an error
+- The template detail view shows nothing when expanded for area/audit templates
 
-The inspection dashboard hooks (`useInspectionSessionStats`, `useComplianceTrend`, `useFindingsDistribution`, `useOverdueInspectionsCount`, `useRecentFindings`) have **two implementations**:
+## Solution
 
-1. **Stubs** in `src/features/incidents/hooks/use-inspection-stubs.ts` — return hardcoded zeros/empty arrays
-2. **Real implementations** in `src/features/incidents/hooks/use-inspection-dashboard.ts` — call actual RPCs
+Extend `TemplateItemBuilder` to render a **checklist item editor** for area/audit templates (and optionally for asset templates too). This editor will allow CRUD operations on `inspection_template_items`.
 
-The barrel file `src/features/incidents/index.ts` exports stubs on line 202 (`export * from './hooks/use-inspection-stubs'`) but **never overrides them** with the real dashboard hooks. The dashboard page imports from `@/features/incidents`, so it gets the stubs.
+## Changes
 
-Database has 3 real sessions (2 in_progress, 1 completed_with_open_actions) but the UI shows zeros because the stubs never query the database.
+### 1. Create `TemplateChecklistEditor` component
 
-## Fix
+**New file: `src/features/incidents/components/inspections/TemplateChecklistEditor.tsx**`
 
-**File: `src/features/incidents/index.ts`**
+- Displays existing checklist items in a sortable list (by `sort_order`)
+- Each item shows: question, response type badge, critical/required badges, edit/delete buttons
+- "Add Item" button opens an inline form or dialog using the existing `templateItemSchema`
+- Form fields: question (EN), question (AR), response type (pass_fail, yes_no, rating, numeric, text), min/max values (for numeric), rating scale, is_critical, is_required, instructions (EN/AR)
+- Uses `useTemplateItems(templateId)` to fetch, `useCreateTemplateItem`, `useUpdateTemplateItem`, `useDeleteTemplateItem` for mutations
+- Drag-to-reorder support via sort_order updates
 
-Add explicit re-exports of the real dashboard hooks after line 274, following the same override pattern used for other hooks:
+### 2. Update `TemplateItemBuilder` to show checklist editor for area/audit
 
-```typescript
-// Override stub dashboard hooks with real implementations
-export {
-  useInspectionSessionStats,
-  useComplianceTrend,
-  useFindingsDistribution,
-  useOverdueInspectionsCount,
-  useRecentFindings,
-} from './hooks/use-inspection-dashboard';
-```
+**File: `src/features/incidents/components/inspections/TemplateItemBuilder.tsx**`
 
-This overrides the stub exports with the real RPC-backed implementations — same pattern already used for `useSessionActions`, `useMyInspectionActions`, etc.
+- Remove the `if (!showMatchingAssets) return null` early return (line 181)
+- For `area` and `audit` template types: render `TemplateChecklistEditor`
+- For `asset` type: keep existing matching assets table AND also show the checklist editor below it (asset inspections also use template items for per-part checklists)
+
+### 3. Translation keys
+
+**Files: `en/translation.json`, `ar/translation.json**`
+
+Add keys for:
+
+- `inspections.addChecklistItem` — "Add Checklist Item"
+- `inspections.editChecklistItem` — "Edit Checklist Item"  
+- `inspections.checklistItems` — "Checklist Items"
+- `inspections.noChecklistItems` — "No checklist items. Add items to define what inspectors will check."
+- `inspections.responseType` — "Response Type"
+- `inspections.critical` — "Critical"
+- `inspections.required` — "Required"
+- `inspections.itemAdded` / `itemUpdated` / `itemDeleted` — toast messages
+
+## Technical Details
+
+- The `TemplateChecklistEditor` uses existing hooks from `use-inspection-template-hooks.ts` — no new database changes needed
+- `useCreateTemplateItem` expects: `{ template_id, question, question_ar, response_type, min_value, max_value, rating_scale, is_critical, is_required, instructions, instructions_ar, sort_order }`
+- The `templateItemSchema` in `TemplateItemBuilderSchema.ts` already validates the form
+- Response types supported: `pass_fail`, `yes_no`, `rating`, `numeric`, `text`
 
 ## Files Changed
-1. `src/features/incidents/index.ts` — add 7 lines to re-export real dashboard hooks
 
-No database changes, no new files needed.
-
+1. `src/features/incidents/components/inspections/TemplateChecklistEditor.tsx` — **new** (checklist CRUD UI)
+2. `src/features/incidents/components/inspections/TemplateItemBuilder.tsx` — integrate checklist editor
+3. `src/features/incidents/components/inspections/index.ts` — export new component
+4. Translation files — new keys
