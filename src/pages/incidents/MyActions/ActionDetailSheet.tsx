@@ -15,6 +15,9 @@ import { cn } from '@/lib/utils';
 import { getStatusIcon, getPriorityBadgeVariant, formatFallbackLabel } from './helpers';
 import { ActionEvidenceSection } from '@/features/incidents/components/inspections/sessions/ActionEvidenceSection';
 import { useVerifyAction } from '@/features/incidents';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import type { ActionForDialog } from './types';
 
 interface ActionDetailSheetProps {
@@ -32,9 +35,38 @@ export function ActionDetailSheet({
 }: ActionDetailSheetProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
+  const { user } = useAuth();
   const verifyAction = useVerifyAction();
   const [verifyMode, setVerifyMode] = useState<'approve' | 'reject' | null>(null);
   const [verifyNotes, setVerifyNotes] = useState('');
+
+  // Role-based check: can current user verify actions?
+  const { data: canVerify } = useQuery({
+    queryKey: ['can-verify-action', user?.id, action?.id],
+    queryFn: async () => {
+      if (!user?.id || !action) return false;
+      // Self-approval prevention: assignee cannot verify their own action
+      if (action.assigned_to === user.id) return false;
+      // Check if user has inspector/HSSE role
+      const { data: hasRole } = await supabase.rpc('has_role_by_code', {
+        p_user_id: user.id,
+        p_role_code: 'hsse_officer',
+      });
+      if (hasRole) return true;
+      const { data: hasManagerRole } = await supabase.rpc('has_role_by_code', {
+        p_user_id: user.id,
+        p_role_code: 'hsse_manager',
+      });
+      if (hasManagerRole) return true;
+      const { data: hasAdminRole } = await supabase.rpc('has_role_by_code', {
+        p_user_id: user.id,
+        p_role_code: 'admin',
+      });
+      return !!hasAdminRole;
+    },
+    enabled: !!user?.id && !!action && action.status === 'completed',
+    refetchOnMount: 'always',
+  });
 
   if (!action) return null;
 
@@ -44,6 +76,7 @@ export function ActionDetailSheet({
   const isPendingVerification = action.status === 'completed';
   const isOverdue = action.due_date ? new Date(action.due_date) < new Date() : false;
   const isReturned = action.status === 'returned_for_correction';
+  const showVerificationUI = isPendingVerification && canVerify;
 
   const handleVerify = async (approved: boolean) => {
     if (!approved && !verifyNotes.trim()) return;
