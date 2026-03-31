@@ -40,11 +40,11 @@ export function useMyInspectionActions(sourceType?: 'inspection' | 'audit') {
 
             let query = supabase.from('corrective_actions')
                 .select(`
-          id, reference_id, title, description, status, priority, due_date, 
-          assigned_to, session_id, source_finding_id, source_type,
-          verified_by, verified_at, verification_notes, created_at,
-          completed_date, return_count, rejection_notes, last_return_reason, rejected_at,
-          started_at, progress_notes, completion_notes, overdue_justification,
+           id, reference_id, title, description, status, priority, due_date, 
+           assigned_to, session_id, source_finding_id, source_type,
+           verified_by, verified_at, verification_notes, created_at,
+           completed_date, return_count, rejection_notes, last_return_reason, rejected_at,
+           started_at, progress_notes, completion_notes, overdue_justification, source_type,
           rejected_by_profile:profiles!corrective_actions_rejected_by_fkey(id, full_name),
           session:inspection_sessions!corrective_actions_session_id_fkey(session_type)
         `)

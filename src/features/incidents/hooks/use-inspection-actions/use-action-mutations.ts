@@ -216,7 +216,8 @@ export function useUpdateActionStatus() {
 
             const { error } = await supabase.from('corrective_actions')
                 .update(updateData)
-                .eq('id', input.actionId);
+                .eq('id', input.actionId)
+                .throwOnError();
 
             if (error) throw error;
         },

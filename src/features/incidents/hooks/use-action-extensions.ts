@@ -207,7 +207,8 @@ export function useApproveExtension() {
         const { error: actionError } = await supabase
           .from('corrective_actions')
           .update({ due_date: newDueDate })
-          .eq('id', actionId);
+          .eq('id', actionId)
+          .throwOnError();
 
         if (actionError) throw actionError;
       }

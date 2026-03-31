@@ -4,6 +4,7 @@ import { CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 export const getStatusIcon = (status: string | null) => {
   switch (status) {
     case 'completed': return <CheckCircle2 className="h-4 w-4 text-success" />;
+    case 'closed': return <CheckCircle2 className="h-4 w-4 text-success" />;
     case 'in_progress': return <Clock className="h-4 w-4 text-info" />;
     case 'verified': return <CheckCircle2 className="h-4 w-4 text-primary" />;
     case 'approved': return <CheckCircle2 className="h-4 w-4 text-primary" />;
