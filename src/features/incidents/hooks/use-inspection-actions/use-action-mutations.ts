@@ -42,7 +42,8 @@ export function useCreateActionFromFinding() {
                     status: 'assigned',
                 })
                 .select()
-                .single();
+                .single()
+                .throwOnError();
 
             if (actionError) throw actionError;
 
