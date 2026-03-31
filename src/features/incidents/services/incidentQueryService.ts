@@ -221,6 +221,9 @@ export const getMyCorrectiveActions = async ({
       id, reference_id, title, description, status, priority, due_date, incident_id, 
       created_at, completed_date, released_at, return_count,
       rejection_notes, last_return_reason, rejected_at,
+      started_at, progress_notes, completion_notes, overdue_justification,
+      verified_by, verified_at, verification_notes, session_id, source_type,
+      assigned_to,
       rejected_by_profile:profiles!corrective_actions_rejected_by_fkey(id, full_name),
       incident:incidents!corrective_actions_incident_id_fkey(event_type)
     `)
