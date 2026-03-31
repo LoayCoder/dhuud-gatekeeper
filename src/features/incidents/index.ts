@@ -273,3 +273,12 @@ export {
 export {
   useSessionFailedAssets,
 } from './hooks/use-inspection-actions/use-session-failed-assets';
+
+// Override stub dashboard hooks with real implementations
+export {
+  useInspectionSessionStats,
+  useComplianceTrend,
+  useFindingsDistribution,
+  useOverdueInspectionsCount,
+  useRecentFindings,
+} from './hooks/use-inspection-dashboard';
