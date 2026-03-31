@@ -17,12 +17,18 @@ export function useCreateAreaFinding() {
             if (!profile?.tenant_id || !user?.id) throw new Error('Not authenticated');
 
             // Check if finding already exists for this response
-            const { data: existing } = await supabase
-                .from('area_inspection_findings')
-                .select('id, session_id')
-                .eq('response_id', input.response_id)
-                .is('deleted_at', null)
-                .maybeSingle();
+            // Skip dedup check for manual findings (no response_id)
+            let existing = null;
+            if (input.response_id) {
+                const { data } = await supabase
+                    .from('area_inspection_findings')
+                    .select('id, session_id')
+                    .eq('response_id', input.response_id)
+                    .neq('status', 'closed')
+                    .is('deleted_at', null)
+                    .maybeSingle();
+                existing = data;
+            }
 
             if (existing) {
                 return existing as { id: string; session_id: string };
