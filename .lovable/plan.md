@@ -1,53 +1,64 @@
 
 
-# Add Inspection Approvals to Action Center
+# Why LUAY IBRAHIM Appears as Both Assignee and Reviewer — And How to Fix
 
-## Problem
-The Inspections card in `/action-center` only has "My Actions" — there is no way for reviewers to see and verify/close inspection-sourced corrective actions directly from the Action Center. The approval workflow is only accessible via the My Actions page's Approvals tab.
+## What Happened
 
-## Solution
-Mirror the pattern already used by the Incidents module card (which has "My Actions", "Pending Approvals", and "Investigations" sheets) and add a **Pending Approvals** action link + sheet to the Inspections module card.
+For action **INS-2026-0004-ACT-0001**:
 
-## Changes
+1. LUAY IBRAHIM was assigned as the **inspector** of the inspection session
+2. When the corrective action was created from that session, LUAY was also set as the **assignee** (`assigned_to`)
+3. The "Pending with" reviewer logic resolves the reviewer as the **Session Inspector** — which is also LUAY
 
-### 1. Add `session_id` to Pending Action Approvals query & type
+So the system correctly shows "Pending with: LUAY IBRAHIM" because that's the inspector. But the **self-verification guard** (line 54 in ActionDetailSheet) blocks LUAY from verifying because `assigned_to === user.id`.
 
-**`src/hooks/use-pending-approvals/types.ts`** — Add `session_id: string | null` to `PendingActionApproval`
+**Result:** Nobody can close this action through the normal flow — the designated reviewer IS the assignee.
 
-**`src/hooks/use-pending-approvals/use-pending-approval-queries.ts`** — Add `session_id` to the select list in `usePendingActionApprovals` query (line 37)
+## Root Cause
 
-### 2. Create `InspectionApprovalsList` component
+The action creation flow (`use-create-session-action.ts`) does not prevent the inspector from assigning actions to themselves. When inspector === assignee, the verification workflow deadlocks.
 
-**New file: `src/components/action-center/modules/InspectionApprovalsList.tsx`**
+## Fix (2 changes)
 
-- Uses `usePendingActionApprovals()` hook
-- Filters to actions where `session_id IS NOT NULL` (inspection-sourced)
-- Displays columns: Title/Reference, Status, Assignee, Due Date
-- On row click: opens the ActionDetailSheet inline (same pattern as the fix for ApprovalsTab)
-- Shows "Pending with" reviewer info and verify/return actions
+### 1. Reviewer Fallback Logic — Detect Conflict & Resolve Alternative Reviewer
 
-### 3. Update `InspectionsModule` to include Pending Approvals
+**Files:** `useMyActions.ts` (line 76-80) and `InspectionApprovalsList.tsx`
 
-**`src/components/action-center/modules/InspectionsModule.tsx`**
+When `session.inspector_id === action.assigned_to`:
+- Do NOT show the inspector as reviewer
+- Instead show fallback: "HSSE Officer / Manager" with translation key `actions.hsseReviewer`
+- This tells the assignee that an HSSE officer/manager/admin will verify it (not the inspector)
 
-- Import `usePendingActionApprovals` and filter to inspection-sourced (`session_id != null`)
-- Add `SheetType` option: `'my-actions' | 'approvals' | null`
-- Add new KPI: "Pending Verification" with count and click handler
-- Add new action link: "Pending Approvals" with badge count (following Incidents pattern)
-- Add new `ActionListSheet` for approvals, rendering `InspectionApprovalsList`
+### 2. Pending Approvals Query — Ensure Non-Inspector Verifiers See the Action
 
-### 4. Translation keys
+**File:** `use-pending-approval-queries.ts` (line 46-48)
 
-**`en/translation.json`** — Add:
-- `actionCenter.sheet.inspectionApprovals`: "Inspection Action Approvals"
-- `actionCenter.sheet.inspectionApprovalsDesc`: "Inspection actions pending your verification"
+Currently the query fetches all `status = 'completed'` actions for verifiers. This already works — any HSSE officer/manager/admin who is NOT the assignee can see and verify the action. No query change needed.
 
-**`ar/translation.json`** — Arabic equivalents
+### 3. ActionDetailSheet — Already Correct
 
-## Files Modified (5)
-1. `src/hooks/use-pending-approvals/types.ts` — add `session_id`
-2. `src/hooks/use-pending-approvals/use-pending-approval-queries.ts` — add `session_id` to select
-3. `src/components/action-center/modules/InspectionApprovalsList.tsx` — new component
-4. `src/components/action-center/modules/InspectionsModule.tsx` — add approvals sheet + KPI
-5. `src/locales/en/translation.json` + `ar/translation.json` — new keys
+Line 54 already blocks self-verification: `if (action.assigned_to === user.id) return false`. Any other authorized user (HSSE officer, HSSE manager, admin) who is NOT LUAY can open this action and verify/close it.
+
+## How to Close This Action NOW
+
+Another user with one of these roles must verify it:
+- **HSSE Officer** (not LUAY)
+- **HSSE Manager** (not LUAY)  
+- **Another Admin** (not LUAY)
+
+That person goes to **Action Center → Inspections → Pending Approvals**, finds the action, opens it, and clicks "Verify & Close".
+
+## Preventive Fix (Optional)
+
+**File:** `use-create-session-action.ts`
+
+Add a warning or validation when creating an action where `assigned_to` equals the session's `inspector_id`, alerting the user that someone else will need to verify this action since the inspector cannot self-verify their own assignment.
+
+## Summary of Code Changes
+
+| File | Change |
+|------|--------|
+| `useMyActions.ts` | Add conflict check: if inspector === assignee, show "HSSE Reviewer" instead of inspector name |
+| `InspectionApprovalsList.tsx` | Same conflict-aware reviewer display |
+| (Optional) `use-create-session-action.ts` | Warn when assigning to self as inspector |
 
