@@ -280,6 +280,59 @@ export const updateMyActionStatus = async ({
         .throwOnError();
 
     if (error) throw error;
+
+    // Send notification to reviewer when action is submitted for verification
+    if (status === 'completed') {
+        try {
+            const { data: action } = await supabase
+                .from('corrective_actions')
+                .select('title, reference_id, incident_id, session_id, assigned_to, profiles!corrective_actions_assigned_to_fkey(full_name)')
+                .eq('id', id)
+                .single();
+
+            const assigneeName = (action?.profiles as any)?.full_name || 'Team Member';
+
+            // Find the incident creator or session inspector to notify
+            let reviewerEmail: string | null = null;
+            let reviewerName: string | null = null;
+
+            if (action?.incident_id) {
+                const { data: incident } = await supabase
+                    .from('incidents')
+                    .select('reported_by, profiles!incidents_reported_by_fkey(email, full_name)')
+                    .eq('id', action.incident_id)
+                    .single();
+                const incidentProfile = (incident?.profiles as any);
+                reviewerEmail = incidentProfile?.email;
+                reviewerName = incidentProfile?.full_name;
+            } else if (action?.session_id) {
+                const { data: session } = await supabase
+                    .from('inspection_sessions')
+                    .select('inspector_id, profiles!inspection_sessions_inspector_id_fkey(email, full_name)')
+                    .eq('id', action.session_id)
+                    .single();
+                const sessionProfile = (session?.profiles as any);
+                reviewerEmail = sessionProfile?.email;
+                reviewerName = sessionProfile?.full_name;
+            }
+
+            if (reviewerEmail) {
+                await supabase.functions.invoke('send-action-email', {
+                    body: {
+                        type: 'action_submitted_for_verification',
+                        recipient_email: reviewerEmail,
+                        recipient_name: reviewerName || 'Reviewer',
+                        action_title: action?.title || 'Corrective Action',
+                        action_reference: action?.reference_id,
+                        assignee_name: assigneeName,
+                    },
+                });
+            }
+        } catch (emailError) {
+            console.error('[IncidentAction] Submission notification failed:', emailError);
+        }
+    }
+
     return { id, status };
 };
 
