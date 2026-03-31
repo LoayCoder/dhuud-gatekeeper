@@ -137,6 +137,137 @@ export function TemplateChecklistEditor({ templateId }: TemplateChecklistEditorP
   const responseTypeLabel = (type: string) =>
     t(`inspections.responseTypes.${type}`, type.replace('_', '/'));
 
+  async function handleDownloadTemplate() {
+    const exampleData = [
+      {
+        question: 'Is the fire extinguisher accessible?',
+        question_ar: 'هل طفاية الحريق متاحة؟',
+        response_type: 'pass_fail',
+        min_value: '',
+        max_value: '',
+        rating_scale: '',
+        is_critical: 'TRUE',
+        is_required: 'TRUE',
+        instructions: 'Check physical access to extinguisher',
+        instructions_ar: 'تحقق من الوصول الفعلي لطفاية الحريق',
+      },
+      {
+        question: 'Rate the cleanliness of the area',
+        question_ar: 'قيّم نظافة المنطقة',
+        response_type: 'rating',
+        min_value: '',
+        max_value: '',
+        rating_scale: '5',
+        is_critical: 'FALSE',
+        is_required: 'TRUE',
+        instructions: 'Rate from 1 (poor) to 5 (excellent)',
+        instructions_ar: 'قيّم من 1 (ضعيف) إلى 5 (ممتاز)',
+      },
+      {
+        question: 'Measure the temperature (°C)',
+        question_ar: 'قس درجة الحرارة (°م)',
+        response_type: 'numeric',
+        min_value: '0',
+        max_value: '100',
+        rating_scale: '',
+        is_critical: 'FALSE',
+        is_required: 'FALSE',
+        instructions: 'Use calibrated thermometer',
+        instructions_ar: 'استخدم مقياس حرارة معاير',
+      },
+    ];
+    await writeExcelAndDownload(
+      [{ name: 'Checklist Items', data: exampleData, columnWidths: [40, 40, 15, 10, 10, 12, 10, 10, 35, 35] }],
+      'checklist_template.xlsx'
+    );
+  }
+
+  async function handleBulkUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (fileInputRef.current) fileInputRef.current.value = '';
+
+    setIsUploading(true);
+    try {
+      const buffer = await file.arrayBuffer();
+      const rows = await readExcelAsObjects<Record<string, unknown>>(buffer);
+
+      if (!rows.length) {
+        toast({ title: t('inspections.bulkUploadError', 'No data found in file'), variant: 'destructive' });
+        setIsUploading(false);
+        return;
+      }
+
+      const validTypes = new Set(RESPONSE_TYPES as readonly string[]);
+      const errors: string[] = [];
+      const validRows: Array<{
+        question: string; question_ar: string; response_type: string;
+        min_value?: number; max_value?: number; rating_scale: number;
+        is_critical: boolean; is_required: boolean;
+        instructions?: string; instructions_ar?: string;
+      }> = [];
+
+      rows.forEach((row, idx) => {
+        const rowNum = idx + 2;
+        const question = String(row.question ?? '').trim();
+        const responseType = String(row.response_type ?? '').trim().toLowerCase();
+
+        if (!question) {
+          errors.push(t('inspections.bulkUploadRowError', 'Row {{row}}: {{error}}', { row: rowNum, error: t('inspections.questionRequired', 'Question is required') }));
+          return;
+        }
+        if (!validTypes.has(responseType)) {
+          errors.push(t('inspections.bulkUploadRowError', 'Row {{row}}: {{error}}', { row: rowNum, error: t('inspections.invalidResponseType', 'Invalid response type') }));
+          return;
+        }
+
+        const parseBool = (v: unknown) => {
+          if (typeof v === 'boolean') return v;
+          const s = String(v ?? '').trim().toLowerCase();
+          return s === 'true' || s === '1' || s === 'yes';
+        };
+
+        validRows.push({
+          question,
+          question_ar: String(row.question_ar ?? '').trim(),
+          response_type: responseType,
+          min_value: row.min_value !== '' && row.min_value != null ? Number(row.min_value) : undefined,
+          max_value: row.max_value !== '' && row.max_value != null ? Number(row.max_value) : undefined,
+          rating_scale: row.rating_scale ? Number(row.rating_scale) : 5,
+          is_critical: parseBool(row.is_critical),
+          is_required: parseBool(row.is_required),
+          instructions: String(row.instructions ?? '').trim() || undefined,
+          instructions_ar: String(row.instructions_ar ?? '').trim() || undefined,
+        });
+      });
+
+      if (errors.length) {
+        toast({ title: errors.join('\n'), variant: 'destructive' });
+      }
+
+      if (!validRows.length) {
+        setIsUploading(false);
+        return;
+      }
+
+      let startOrder = (items?.length ?? 0) + 1;
+      for (const row of validRows) {
+        await createItem.mutateAsync({
+          template_id: templateId,
+          sort_order: startOrder++,
+          ...row,
+        });
+      }
+
+      toast({ title: t('inspections.bulkUploadSuccess', '{{count}} items imported successfully', { count: validRows.length }) });
+    } catch (err) {
+      console.error('[BulkUpload] Error:', err);
+      toast({ title: t('common.error', 'Error'), variant: 'destructive' });
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
   return (
     <Card>
       <CardHeader className="pb-3">
