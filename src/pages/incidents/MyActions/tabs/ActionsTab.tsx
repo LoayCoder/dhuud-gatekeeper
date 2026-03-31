@@ -16,7 +16,7 @@ export function ActionsTab({ viewProps }: { viewProps: MyActionsViewProps }) {
     isLoading, displayedActiveActions, displayedClosedActions,
     handleStartWork, handleMarkCompleted, submittingActionIds,
     getDaysInfo, showClosedActions, setShowClosedActions,
-    setExtensionRequestAction,
+    setExtensionRequestAction, setSelectedActionDetail,
   } = viewProps;
 
   if (isLoading) {
