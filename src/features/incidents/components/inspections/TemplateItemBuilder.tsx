@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, MapPin, Package, Calendar } from 'lucide-react';
+import { TemplateChecklistEditor } from './TemplateChecklistEditor';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ActionListTable, type ActionListColumn } from '@/components/action-center/ActionListTable';
