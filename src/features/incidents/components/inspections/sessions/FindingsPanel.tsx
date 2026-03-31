@@ -31,11 +31,15 @@ import {
   Link2,
   ExternalLink,
   Plus,
+  MapPin,
+  StickyNote,
+  Camera,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
   useAreaFindings,
+  useCreateAreaFinding,
   useUpdateAreaFinding,
   useCloseAreaFinding,
   type AreaFinding,
@@ -72,11 +76,20 @@ export function FindingsPanel({ sessionId, isLocked }: FindingsPanelProps) {
   const [editForm, setEditForm] = useState({
     classification: '' as AreaFinding['classification'],
     risk_level: '' as AreaFinding['risk_level'],
+    description: '',
     recommendation: '',
   });
   const [actionDialogFinding, setActionDialogFinding] = useState<AreaFinding | null>(null);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [addForm, setAddForm] = useState({
+    classification: 'observation' as AreaFinding['classification'],
+    risk_level: 'medium' as AreaFinding['risk_level'],
+    description: '',
+    recommendation: '',
+  });
   
   const { data: findings = [], isLoading } = useAreaFindings(sessionId);
+  const createFinding = useCreateAreaFinding();
   const updateFinding = useUpdateAreaFinding();
   const closeFinding = useCloseAreaFinding();
   
@@ -90,6 +103,7 @@ export function FindingsPanel({ sessionId, isLocked }: FindingsPanelProps) {
     setEditForm({
       classification: finding.classification,
       risk_level: finding.risk_level,
+      description: finding.description || '',
       recommendation: finding.recommendation || '',
     });
   };
@@ -102,10 +116,28 @@ export function FindingsPanel({ sessionId, isLocked }: FindingsPanelProps) {
       sessionId,
       classification: editForm.classification,
       risk_level: editForm.risk_level,
+      description: editForm.description || undefined,
       recommendation: editForm.recommendation || undefined,
     });
     
     setEditingFinding(null);
+  };
+
+  const handleAddFinding = async () => {
+    await createFinding.mutateAsync({
+      session_id: sessionId,
+      classification: addForm.classification,
+      risk_level: addForm.risk_level,
+      description: addForm.description || undefined,
+      recommendation: addForm.recommendation || undefined,
+    });
+    setShowAddDialog(false);
+    setAddForm({
+      classification: 'observation',
+      risk_level: 'medium',
+      description: '',
+      recommendation: '',
+    });
   };
   
   const handleCloseFinding = async (findingId: string) => {
@@ -132,6 +164,75 @@ export function FindingsPanel({ sessionId, isLocked }: FindingsPanelProps) {
   const openCount = findings.filter(f => f.status === 'open').length;
   const actionCount = findings.filter(f => f.status === 'action_assigned').length;
   const closedCount = findings.filter(f => f.status === 'closed').length;
+
+  // Classification/Risk select shared component
+  const renderClassificationRiskFields = (
+    form: { classification: string; risk_level: string; description: string; recommendation: string },
+    setForm: (fn: (prev: typeof form) => typeof form) => void,
+  ) => (
+    <>
+      {/* Classification */}
+      <div className="space-y-2">
+        <Label>{t('inspections.findings.classification')}</Label>
+        <Select 
+          value={form.classification} 
+          onValueChange={(v) => setForm(prev => ({ ...prev, classification: v as AreaFinding['classification'] }))}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent dir={direction}>
+            <SelectItem value="observation">{t('inspections.findings.classification.observation')}</SelectItem>
+            <SelectItem value="ofi">{t('inspections.findings.classification.ofi')}</SelectItem>
+            <SelectItem value="minor_nc">{t('inspections.findings.classification.minor_nc')}</SelectItem>
+            <SelectItem value="major_nc">{t('inspections.findings.classification.major_nc')}</SelectItem>
+            <SelectItem value="critical_nc">{t('inspections.findings.classification.critical_nc')}</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      {/* Risk Level */}
+      <div className="space-y-2">
+        <Label>{t('inspections.findings.riskLevel')}</Label>
+        <Select 
+          value={form.risk_level} 
+          onValueChange={(v) => setForm(prev => ({ ...prev, risk_level: v as AreaFinding['risk_level'] }))}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent dir={direction}>
+            <SelectItem value="low">{t('inspections.findings.riskLevel.low')}</SelectItem>
+            <SelectItem value="medium">{t('inspections.findings.riskLevel.medium')}</SelectItem>
+            <SelectItem value="high">{t('inspections.findings.riskLevel.high')}</SelectItem>
+            <SelectItem value="critical">{t('inspections.findings.riskLevel.critical')}</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Description */}
+      <div className="space-y-2">
+        <Label>{t('inspections.findings.description')}</Label>
+        <Textarea
+          value={form.description}
+          onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
+          placeholder={t('inspections.findings.descriptionPlaceholder')}
+          rows={3}
+        />
+      </div>
+      
+      {/* Recommendation */}
+      <div className="space-y-2">
+        <Label>{t('inspections.findings.recommendation')}</Label>
+        <Textarea
+          value={form.recommendation}
+          onChange={(e) => setForm(prev => ({ ...prev, recommendation: e.target.value }))}
+          placeholder={t('inspections.findings.recommendationPlaceholder')}
+          rows={3}
+        />
+      </div>
+    </>
+  );
   
   return (
     <>
@@ -146,18 +247,33 @@ export function FindingsPanel({ sessionId, isLocked }: FindingsPanelProps) {
               )}
             </CardTitle>
             
-            {/* Status Filter */}
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent dir={direction}>
-                <SelectItem value="all">{t('common.all')} ({findings.length})</SelectItem>
-                <SelectItem value="open">{t('inspections.findings.statusOpen')} ({openCount})</SelectItem>
-                <SelectItem value="action_assigned">{t('inspections.findings.statusActionAssigned')} ({actionCount})</SelectItem>
-                <SelectItem value="closed">{t('inspections.findings.statusClosed')} ({closedCount})</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2">
+              {/* Add Finding Button */}
+              {!isLocked && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAddDialog(true)}
+                  className="gap-1"
+                >
+                  <Plus className="h-4 w-4" />
+                  {t('inspections.findings.addFinding')}
+                </Button>
+              )}
+
+              {/* Status Filter */}
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent dir={direction}>
+                  <SelectItem value="all">{t('common.all')} ({findings.length})</SelectItem>
+                  <SelectItem value="open">{t('inspections.findings.statusOpen')} ({openCount})</SelectItem>
+                  <SelectItem value="action_assigned">{t('inspections.findings.statusActionAssigned')} ({actionCount})</SelectItem>
+                  <SelectItem value="closed">{t('inspections.findings.statusClosed')} ({closedCount})</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardHeader>
         
@@ -173,6 +289,10 @@ export function FindingsPanel({ sessionId, isLocked }: FindingsPanelProps) {
             filteredFindings.map((finding) => {
               const config = CLASSIFICATION_CONFIG[finding.classification] || CLASSIFICATION_CONFIG.observation;
               const Icon = config.icon;
+              const responseData = finding.response;
+              const hasGPS = responseData?.gps_lat && responseData?.gps_lng;
+              const hasNotes = responseData?.notes;
+              const hasPhotos = responseData?.photo_paths && Array.isArray(responseData.photo_paths) && (responseData.photo_paths as string[]).length > 0;
               
               return (
                 <div
@@ -220,11 +340,42 @@ export function FindingsPanel({ sessionId, isLocked }: FindingsPanelProps) {
                           />
                         </div>
                         <p className="text-sm">{getQuestionText(finding)}</p>
+
+                        {/* Description */}
+                        {finding.description && (
+                          <p className="text-sm font-medium">
+                            {finding.description}
+                          </p>
+                        )}
                         
                         {finding.recommendation && (
                           <p className="text-sm text-muted-foreground italic">
                             {t('inspections.findings.recommendation')}: {finding.recommendation}
                           </p>
+                        )}
+
+                        {/* GPS / Notes / Photos indicators */}
+                        {(hasGPS || hasNotes || hasPhotos) && (
+                          <div className="flex items-center gap-3 pt-1 text-xs text-muted-foreground">
+                            {hasGPS && (
+                              <span className="flex items-center gap-1">
+                                <MapPin className="h-3 w-3" />
+                                {Number(responseData.gps_lat).toFixed(4)}, {Number(responseData.gps_lng).toFixed(4)}
+                              </span>
+                            )}
+                            {hasNotes && (
+                              <span className="flex items-center gap-1">
+                                <StickyNote className="h-3 w-3" />
+                                {responseData.notes}
+                              </span>
+                            )}
+                            {hasPhotos && (
+                              <span className="flex items-center gap-1">
+                                <Camera className="h-3 w-3" />
+                                {(responseData.photo_paths as string[]).length} {t('inspections.findings.photos')}
+                              </span>
+                            )}
+                          </div>
                         )}
                         
                         {/* Linked Action */}
@@ -295,55 +446,7 @@ export function FindingsPanel({ sessionId, isLocked }: FindingsPanelProps) {
           </DialogHeader>
           
           <div className="space-y-4 py-4">
-            {/* Classification */}
-            <div className="space-y-2">
-              <Label>{t('inspections.findings.classification')}</Label>
-              <Select 
-                value={editForm.classification} 
-                onValueChange={(v) => setEditForm(prev => ({ ...prev, classification: v as AreaFinding['classification'] }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent dir={direction}>
-                  <SelectItem value="observation">{t('inspections.findings.classification.observation')}</SelectItem>
-                  <SelectItem value="ofi">{t('inspections.findings.classification.ofi')}</SelectItem>
-                  <SelectItem value="minor_nc">{t('inspections.findings.classification.minor_nc')}</SelectItem>
-                  <SelectItem value="major_nc">{t('inspections.findings.classification.major_nc')}</SelectItem>
-                  <SelectItem value="critical_nc">{t('inspections.findings.classification.critical_nc')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {/* Risk Level */}
-            <div className="space-y-2">
-              <Label>{t('inspections.findings.riskLevel')}</Label>
-              <Select 
-                value={editForm.risk_level} 
-                onValueChange={(v) => setEditForm(prev => ({ ...prev, risk_level: v as AreaFinding['risk_level'] }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent dir={direction}>
-                  <SelectItem value="low">{t('inspections.findings.riskLevel.low')}</SelectItem>
-                  <SelectItem value="medium">{t('inspections.findings.riskLevel.medium')}</SelectItem>
-                  <SelectItem value="high">{t('inspections.findings.riskLevel.high')}</SelectItem>
-                  <SelectItem value="critical">{t('inspections.findings.riskLevel.critical')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {/* Recommendation */}
-            <div className="space-y-2">
-              <Label>{t('inspections.findings.recommendation')}</Label>
-              <Textarea
-                value={editForm.recommendation}
-                onChange={(e) => setEditForm(prev => ({ ...prev, recommendation: e.target.value }))}
-                placeholder={t('inspections.findings.recommendationPlaceholder')}
-                rows={3}
-              />
-            </div>
+            {renderClassificationRiskFields(editForm, setEditForm)}
           </div>
           
           <DialogFooter>
@@ -353,6 +456,29 @@ export function FindingsPanel({ sessionId, isLocked }: FindingsPanelProps) {
             <Button onClick={handleSaveEdit} disabled={updateFinding.isPending}>
               {updateFinding.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
               {t('common.save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Finding Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent dir={direction}>
+          <DialogHeader>
+            <DialogTitle>{t('inspections.findings.addFinding')}</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {renderClassificationRiskFields(addForm, setAddForm)}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button onClick={handleAddFinding} disabled={createFinding.isPending || !addForm.description}>
+              {createFinding.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+              {t('inspections.findings.addFinding')}
             </Button>
           </DialogFooter>
         </DialogContent>
