@@ -1,44 +1,110 @@
 
 
-# Fix: Duplicate Submission Flow in Action Verification
+# Enforce Reviewer Separation & Display "Pending Verification With"
 
-## Problem
-When the user views an `in_progress` action in the **ActionDetailSheet**, they can upload evidence directly there. When they click "Submit for Verification", the sheet closes and opens a **second dialog** (`ActionWorkflowDialog`) that again asks for completion notes and evidence uploads — creating a confusing duplicate flow.
+## Phase 1: DB-Level Self-Approval Prevention
 
-## Root Cause
-The "Submit for Verification" button in `ActionDetailSheet` (line 421) calls `onSubmitForVerification(action)` which maps to `handleMarkCompleted` in `useMyActions.ts` (line 84). This closes the sheet and opens the `ActionWorkflowDialog` in `complete` mode — a separate dialog that duplicates the evidence upload and notes fields already present in the detail sheet.
+**New migration:** Create a BEFORE UPDATE trigger on `corrective_actions` that rejects any update setting `verified_by` equal to `assigned_to`.
 
-## Solution: Submit Inline from the Detail Sheet
-Replace the "Submit for Verification" button in `ActionDetailSheet` with an **inline submission form** (completion notes + optional overdue justification). Evidence is already uploaded via the `ActionEvidenceSection` in the sheet — no need for a second upload step. The `ActionWorkflowDialog` remains for the **Start Work** flow only.
+```sql
+CREATE OR REPLACE FUNCTION prevent_self_verification()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.verified_by IS NOT NULL AND NEW.verified_by = NEW.assigned_to THEN
+    RAISE EXCEPTION 'Self-verification is not allowed';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
-### File 1: `src/pages/incidents/MyActions/ActionDetailSheet.tsx`
-- Replace the `canComplete && onSubmitForVerification` button block (lines 420-424) with an inline collapsible submission form:
-  - Completion Notes textarea (required)
-  - Overdue Justification textarea (conditional, if action is overdue)
-  - Submit button that calls a new `onSubmitInline` callback directly
-- Add state: `showSubmitForm`, `completionNotes`, `overdueJustification`
-- Add a new prop: `onSubmitInline?: (action: ActionForDialog, data: { notes: string; overdueJustification?: string }) => void`
-- Remove `onSubmitForVerification` prop entirely
+CREATE TRIGGER trg_prevent_self_verification
+  BEFORE UPDATE ON corrective_actions
+  FOR EACH ROW EXECUTE FUNCTION prevent_self_verification();
+```
 
-### File 2: `src/pages/incidents/MyActions/MyActionsLayout.tsx`
-- Remove `onSubmitForVerification={handleMarkCompleted}` from `ActionDetailSheet`
-- Add `onSubmitInline` prop that calls the mutation directly (no evidence files since they're already uploaded via the sheet's `ActionEvidenceSection`)
-- Wire it to a new handler that does the status update without re-opening the workflow dialog
+## Phase 2: Fix Self-Approval Gap in Pending Approvals Mutation
 
-### File 3: `src/pages/incidents/MyActions/hooks/useMyActions.ts`
-- Add a new `handleSubmitInline` function that:
-  - Takes action + notes + optional overdueJustification (no files — already uploaded)
-  - Calls `updateInspectionStatus` or `updateStatus` with status `completed`
-  - Manages `submittingActionIds` state
-  - Closes the detail sheet on success
-- Export it from the hook
+**File: `src/hooks/use-pending-approvals/use-pending-approval-mutations.ts`**
+- Add `assigned_to` to the select query (line 31)
+- Add guard after fetch: `if (action?.assigned_to === user.id) throw new Error('Cannot verify your own action');`
 
-### What stays unchanged
-- `ActionWorkflowDialog` remains for `Start Work` mode (mode=`start`)
-- `ActionEvidenceSection` in the detail sheet handles all evidence uploads
-- All mutation logic, `.throwOnError()`, and notification triggers remain intact
+## Phase 3: Fetch Reviewer Info in Queries
 
-## Expected Result
-- User opens action detail → sees evidence already uploaded → clicks "Submit for Verification" → inline form appears for notes → submits → done. **One screen, no duplicate dialog.**
-- Start Work flow continues to use the `ActionWorkflowDialog` as before.
+**File: `src/features/incidents/services/incidentQueryService.ts` — `getMyCorrectiveActions`**
+- Expand incident join to include reporter profile:
+  ```
+  incident:incidents!corrective_actions_incident_id_fkey(
+    event_type, reporter_id,
+    reporter:profiles!incidents_reporter_id_fkey(full_name, job_title)
+  )
+  ```
+
+**File: `src/features/incidents/hooks/use-inspection-actions/use-action-queries.ts` — `useMyInspectionActions`**
+- Expand session join to include inspector profile:
+  ```
+  session:inspection_sessions!corrective_actions_session_id_fkey(
+    session_type,
+    inspector:profiles!inspection_sessions_inspector_id_fkey(full_name, job_title)
+  )
+  ```
+
+## Phase 4: Update Types
+
+**`src/pages/incidents/MyActions/types.ts`** — Add `reviewer_name?: string | null` and `reviewer_job_title?: string | null` to `ActionForDialog`
+
+**`src/features/incidents/hooks/use-inspection-actions/types.ts`** — Update `session` type to include `inspector?: { full_name: string; job_title?: string | null } | null`
+
+## Phase 5: Map Reviewer Data in useMyActions.ts
+
+When building `allActions` (line 66-69), extract reviewer info:
+- Incident actions: `reviewer_name` from `a.incident?.reporter?.full_name`
+- Inspection actions: `reviewer_name` from `a.session?.inspector?.full_name`
+- Fallback: "HSSE Reviewer"
+
+## Phase 6: Display Reviewer on Action Card
+
+**File: `src/pages/incidents/MyActions/tabs/ActionsTab.tsx`**
+- When `action.status === 'completed'`, add below the status badge:
+  ```
+  👤 Pending with: [reviewer_name] · [reviewer_job_title]
+  ```
+- Fallback text if reviewer missing: "HSSE Reviewer"
+
+## Phase 7: Display Reviewer on Detail Sheet Banner
+
+**File: `src/pages/incidents/MyActions/ActionDetailSheet.tsx`**
+- Enhance the "Pending Verification" banner (lines 154-163) to show:
+  ```
+  Pending with: [reviewer_name] · [reviewer_job_title]
+  ```
+
+## Phase 8: Translation Keys
+
+**`src/locales/en/translation.json` & `ar/translation.json`**
+- `actions.pendingWith`: "Pending with" / "بانتظار"
+- `actions.reviewer`: "Reviewer" / "المراجع"
+- `actions.hsseReviewer`: "HSSE Reviewer" / "مراجع السلامة"
+- `actions.selfApprovalBlocked`: "You cannot verify your own action" / "لا يمكنك التحقق من الإجراء الخاص بك"
+
+## Security Summary
+
+| Layer | Protection | Status |
+|-------|-----------|--------|
+| DB trigger | Rejects `verified_by = assigned_to` | New |
+| Inspection mutation | `assigned_to === user.id` check | Already exists |
+| Pending approvals mutation | Self-approval guard | New (gap fix) |
+| UI (ActionDetailSheet) | `canVerify` query excludes assignee | Already exists |
+
+## Files Modified (11 total)
+1. DB Migration — trigger
+2. `use-pending-approval-mutations.ts` — self-approval guard
+3. `incidentQueryService.ts` — expand joins
+4. `use-action-queries.ts` — expand session join
+5. `types.ts` (MyActions) — reviewer fields
+6. `types.ts` (inspection-actions) — session type
+7. `useMyActions.ts` — map reviewer
+8. `ActionsTab.tsx` — show reviewer on card
+9. `ActionDetailSheet.tsx` — show reviewer in banner
+10. `en/translation.json` — new keys
+11. `ar/translation.json` — new keys
 
