@@ -14,6 +14,9 @@ import { InspectionsTab } from './tabs/InspectionsTab';
 import { WitnessTab } from './tabs/WitnessTab';
 import { ReportedTab } from './tabs/ReportedTab';
 import { ApprovalsTab } from './tabs/ApprovalsTab';
+import { ActionWorkflowDialog } from './ActionWorkflowDialog';
+import { ExtensionRequestDialog } from './ExtensionRequestDialog';
+import { ActionDetailSheet } from './ActionDetailSheet';
 import type { MyActionsViewProps } from './types';
 
 export function MyActionsLayout({ viewProps }: { viewProps: MyActionsViewProps }) {
