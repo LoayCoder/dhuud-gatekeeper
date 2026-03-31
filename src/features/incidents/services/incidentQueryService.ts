@@ -286,34 +286,51 @@ export const updateMyActionStatus = async ({
         try {
             const { data: action } = await supabase
                 .from('corrective_actions')
-                .select('title, reference_id, incident_id, session_id, assigned_to, profiles!corrective_actions_assigned_to_fkey(full_name)')
+                .select('title, reference_id, incident_id, session_id, assigned_to')
                 .eq('id', id)
                 .single();
 
-            const assigneeName = (action?.profiles as any)?.full_name || 'Team Member';
+            const { data: assigneeProfile } = await supabase
+                .from('profiles')
+                .select('full_name')
+                .eq('id', action?.assigned_to || '')
+                .single();
 
-            // Find the incident creator or session inspector to notify
+            const assigneeName = assigneeProfile?.full_name || 'Team Member';
+
             let reviewerEmail: string | null = null;
             let reviewerName: string | null = null;
 
             if (action?.incident_id) {
                 const { data: incident } = await supabase
                     .from('incidents')
-                    .select('reported_by, profiles!incidents_reported_by_fkey(email, full_name)')
+                    .select('reported_by')
                     .eq('id', action.incident_id)
                     .single();
-                const incidentProfile = (incident?.profiles as any);
-                reviewerEmail = incidentProfile?.email;
-                reviewerName = incidentProfile?.full_name;
+                if (incident?.reported_by) {
+                    const { data: reporterProfile } = await supabase
+                        .from('profiles')
+                        .select('email, full_name')
+                        .eq('id', incident.reported_by)
+                        .single();
+                    reviewerEmail = reporterProfile?.email || null;
+                    reviewerName = reporterProfile?.full_name || null;
+                }
             } else if (action?.session_id) {
                 const { data: session } = await supabase
                     .from('inspection_sessions')
-                    .select('inspector_id, profiles!inspection_sessions_inspector_id_fkey(email, full_name)')
+                    .select('inspector_id')
                     .eq('id', action.session_id)
                     .single();
-                const sessionProfile = (session?.profiles as any);
-                reviewerEmail = sessionProfile?.email;
-                reviewerName = sessionProfile?.full_name;
+                if (session?.inspector_id) {
+                    const { data: inspectorProfile } = await supabase
+                        .from('profiles')
+                        .select('email, full_name')
+                        .eq('id', session.inspector_id)
+                        .single();
+                    reviewerEmail = inspectorProfile?.email || null;
+                    reviewerName = inspectorProfile?.full_name || null;
+                }
             }
 
             if (reviewerEmail) {
