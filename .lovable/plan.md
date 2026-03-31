@@ -1,81 +1,80 @@
 
 
-# Fix Area Inspection Findings: Display, Input, and Data Recording
+# Audit Report: Inspections & Audits Module — Gaps & Fixes
 
-## Root Causes Identified
+## Summary
 
-1. **Findings query returns empty** (main bug): The `useAreaFindings` query uses PostgREST FK-hint joins like `profiles!area_inspection_findings_created_by_fkey`, but the `area_inspection_findings` table has **zero foreign key constraints**. PostgREST silently fails, returning no data. This is why the Findings card shows "All (0)" despite findings existing in the database.
+After thorough code review across all workspace pages, hooks, mutations, session creation dialogs, findings, lifecycle, dashboard, analytics, schedules, exports, and templates, here are the remaining gaps:
 
-2. **Finding auto-close race condition**: When a user changes result from pass to fail, the save mutation first closes any existing finding (pass/na branch), then tries to create a new one. But the dedup check (`SELECT id WHERE response_id = X AND deleted_at IS NULL`) finds the closed finding and skips creation. Result: finding stays closed forever.
+---
 
-3. **No description input**: The FindingsPanel edit dialog only has classification, risk_level, and recommendation fields — no `description` textarea for the inspector to write what they observed.
+## GAP 1: No "Create Audit Session" Button on Sessions Dashboard (CRITICAL)
 
-4. **No manual "Add Finding" button**: Users cannot create ad-hoc findings (e.g., something spotted that isn't tied to a specific checklist item).
+The `InspectionSessionsDashboard.tsx` has buttons for **Asset** (`CreateSessionDialog`) and **Area** (`CreateAreaSessionDialog`) sessions, but **no button for Audit sessions**. The `CreateAuditSessionDialog` component exists but is never rendered on the dashboard.
 
-5. **GPS/notes/photos not visible on findings**: The checklist response stores GPS/notes/photos, but findings don't surface this data.
+**Fix:** Add a third button and dialog state for `CreateAuditSessionDialog` in `InspectionSessionsDashboard.tsx`.
 
-## Solution
+---
 
-### 1. Database Migration: Add Missing Foreign Keys
-Add FK constraints so PostgREST joins work:
+## GAP 2: Audit Workspace — No Sticky Completion Bar (MODERATE)
 
-```sql
-ALTER TABLE area_inspection_findings
-  ADD CONSTRAINT area_inspection_findings_created_by_fkey 
-    FOREIGN KEY (created_by) REFERENCES profiles(id),
-  ADD CONSTRAINT area_inspection_findings_closed_by_fkey 
-    FOREIGN KEY (closed_by) REFERENCES profiles(id),
-  ADD CONSTRAINT area_inspection_findings_corrective_action_id_fkey 
-    FOREIGN KEY (corrective_action_id) REFERENCES corrective_actions(id),
-  ADD CONSTRAINT area_inspection_findings_response_id_fkey 
-    FOREIGN KEY (response_id) REFERENCES area_inspection_responses(id),
-  ADD CONSTRAINT area_inspection_findings_session_id_fkey 
-    FOREIGN KEY (session_id) REFERENCES inspection_sessions(id);
-```
+The Area workspace has a sticky bottom bar showing progress + "Complete Inspection" button. The **Audit workspace** has no equivalent — users must scroll to the sidebar to find the status card's complete button.
 
-### 2. Fix Finding Dedup Logic
-**File: `src/hooks/use-area-inspections/use-area-inspection-mutations.ts`**
+**Fix:** Add a sticky completion bar to `AuditSessionWorkspace.tsx` (same pattern as Area workspace), showing `progress.responded / progress.total` and a "Complete Audit" button.
 
-In the fail branch (line 242-263), change the dedup check to exclude closed findings:
-```sql
-.eq('response_id', responseRecord.id)
-.neq('status', 'closed')  -- ADD THIS
-.is('deleted_at', null)
-```
+---
 
-If no open finding exists, either reopen the closed one or create a new one.
+## GAP 3: Audit Workspace — FindingsPanel Only Shows After Completion (MODERATE)
 
-### 3. Add Description Field to Edit Dialog
-**File: `src/features/incidents/components/inspections/sessions/FindingsPanel.tsx`**
+In `AuditSessionWorkspace.tsx` line 422: `{(findingsCount?.total ?? 0) > 0 && (...)}`. This means findings are invisible during `in_progress` even though the audit save mutation auto-creates findings on non-conforming items.
 
-- Add `description` to the `editForm` state
-- Add a `description` textarea field in the edit dialog (before recommendation)
-- Pass `description` in the `handleSaveEdit` call
+**Fix:** Change condition to also show during `in_progress`: `{(session.status === 'in_progress' || (findingsCount?.total ?? 0) > 0) && (...)}` — matching the Area workspace pattern.
 
-### 4. Add "Add Finding" Button for Manual/Ad-hoc Findings
-**File: `src/features/incidents/components/inspections/sessions/FindingsPanel.tsx`**
+---
 
-- Add a "+" button in the FindingsPanel header (next to the filter)
-- Opens a dialog with: description, classification, risk_level, recommendation
-- Calls `useCreateAreaFinding` with `response_id` set to a placeholder or null (need to make response_id nullable or use a sentinel)
-- This requires a DB migration to make `response_id` nullable on `area_inspection_findings`
+## GAP 4: Audit Finding Dedup — Missing `.neq('status', 'closed')` (BUG)
 
-### 5. Surface GPS/Notes/Photos from Response on Finding Cards
-**File: `src/features/incidents/components/inspections/sessions/FindingsPanel.tsx`**
+In `use-audit-session-mutations.ts` line 143-148, the audit save mutation's finding dedup check does NOT exclude closed findings (unlike the area mutation which was fixed). This causes the same race condition: changing conforming → non-conforming → conforming → non-conforming will fail to create a new finding.
 
-- Extend the `useAreaFindings` query to also fetch `response:area_inspection_responses(notes, gps_lat, gps_lng, photo_paths)` (already joined, just add columns)
-- Display GPS coordinates, notes, and photo thumbnails on each finding card
-- Update the `AreaFinding` type to include these response fields
+**Fix:** Add `.neq('status', 'closed')` to the existing finding check in `useSaveAuditResponse`.
 
-### 6. Fix `can_close_area_session` RPC Error
-The RPC `can_close_area_session` fails with `column iti.is_active does not exist`. Fix by removing or replacing this column reference in the RPC function.
+---
 
-## Files Changed
+## GAP 5: Audit Workspace — Missing Session Export Data (MINOR)
 
-1. **Database migration** — Add FK constraints, make `response_id` nullable, fix `can_close_area_session` RPC
-2. `src/hooks/use-area-inspections/use-area-inspection-mutations.ts` — Fix dedup logic
-3. `src/features/incidents/components/inspections/sessions/FindingsPanel.tsx` — Add description field, manual finding button, show GPS/notes/photos
-4. `src/hooks/use-area-findings/types.ts` — Extend `AreaFinding` type with response data
-5. `src/hooks/use-area-findings/use-findings-queries.ts` — Add response columns to query
-6. Translation files — New keys for add finding dialog
+`AuditSessionWorkspace.tsx` passes `responses` to `SessionExportDropdown` but does NOT pass `templateItems`, so CSV/Excel exports lack question text columns.
+
+**Fix:** Pass `templateItems` prop to `SessionExportDropdown`.
+
+---
+
+## GAP 6: Audit Scoring Card Not Populated Correctly (VERIFY)
+
+`AuditScoringCard` and `AuditProgressCard` rely on `useAuditProgress` and `useNCCounts`. These hooks exist and use RPCs. This should work if the RPCs exist — but the `can_close_area_session` RPC had a column error previously. Need to verify `get_audit_progress` and `get_audit_nc_counts` RPCs exist and function.
+
+**Action:** Verify these RPCs exist in DB. If they don't, create them.
+
+---
+
+## Files to Change
+
+1. **`src/pages/inspections/InspectionSessionsDashboard.tsx`** — Add Create Audit Session button + dialog
+2. **`src/pages/inspections/AuditSessionWorkspace.tsx`** — Add sticky completion bar, fix FindingsPanel visibility condition, pass templateItems to export
+3. **`src/hooks/use-audit-sessions/use-audit-session-mutations.ts`** — Fix finding dedup to exclude closed findings
+4. **`src/locales/en/translation.json`** + **`src/locales/ar/translation.json`** — New keys for audit completion bar
+5. **Database migration (if needed)** — Verify/create audit progress RPCs
+
+## No Changes Needed (Verified Working)
+
+- Template checklist editor with CRUD and bulk Excel import
+- Area inspection checklist with GPS, photos, notes, auto-save
+- Area findings auto-creation on fail with dedup fix
+- FindingsPanel with manual add, edit, description, GPS/notes/photos display
+- SLA countdown timers on findings
+- Session lifecycle (complete, close, reopen)
+- Corrective action creation from findings
+- Session export (PDF, CSV, Excel)
+- Dashboard with real RPC-backed stats (overriding stubs)
+- Inspection schedules
+- Inspection analytics
 
