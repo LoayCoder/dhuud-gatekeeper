@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   PlayCircle, FileCheck, CalendarPlus, AlertTriangle, Clock,
   CheckCircle2, RotateCcw, FileText, ShieldCheck, XCircle, Loader2,
+  Wrench, MapPin,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getStatusIcon, getPriorityBadgeVariant, formatFallbackLabel } from './helpers';
