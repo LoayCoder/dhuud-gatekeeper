@@ -39,7 +39,7 @@ export function ActionDetailSheet({
   const isReturned = action.status === 'returned_for_correction';
 
   // Access extended fields if available
-  const ext = action as Record<string, unknown>;
+  const ext = action as unknown as Record<string, unknown>;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
