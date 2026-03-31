@@ -41,6 +41,9 @@ export function ActionDetailSheet({
   const verifyAction = useVerifyAction();
   const [verifyMode, setVerifyMode] = useState<'approve' | 'reject' | null>(null);
   const [verifyNotes, setVerifyNotes] = useState('');
+  const [showSubmitForm, setShowSubmitForm] = useState(false);
+  const [completionNotes, setCompletionNotes] = useState('');
+  const [overdueJustification, setOverdueJustification] = useState('');
 
   // Role-based check: can current user verify actions?
   const { data: canVerify } = useQuery({
