@@ -94,11 +94,11 @@ export function useRequestExtension() {
 
         const roleIds = roleData?.map(r => r.id) || [];
 
-        const { data: hsseUsers } = await supabase
+        const { data: hsseUsers } = await (supabase
           .from('user_role_assignments')
           .select('user_id, profiles!inner(email, full_name)')
           .eq('tenant_id', profile.tenant_id)
-          .in('role_id', roleIds);
+          .in('role_id', roleIds) as any);
 
         for (const hsseUser of hsseUsers || []) {
           const hsseProfile = hsseUser.profiles as any;
