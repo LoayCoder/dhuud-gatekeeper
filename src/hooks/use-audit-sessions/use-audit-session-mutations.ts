@@ -144,6 +144,7 @@ export function useSaveAuditResponse() {
                     .from('area_inspection_findings')
                     .select('id')
                     .eq('response_id', responseRecord.id)
+                    .neq('status', 'closed')
                     .is('deleted_at', null)
                     .maybeSingle();
 

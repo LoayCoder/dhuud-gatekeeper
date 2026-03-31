@@ -428,6 +428,41 @@ function AuditSessionWorkspaceContent() {
           )}
         </div>
       </div>
+      
+      {/* Sticky Completion Bar */}
+      {session.status === 'in_progress' && progress && (
+        <div className="sticky bottom-0 z-30 bg-background border-t shadow-lg p-4">
+          <div className="container mx-auto flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between text-sm mb-1">
+                  <span className="text-muted-foreground">{t('audits.auditProgress', 'Audit Progress')}</span>
+                  <span className="font-medium">{progress.responded}/{progress.total}</span>
+                </div>
+                <div className="bg-secondary rounded-full h-2">
+                  <div 
+                    className="bg-primary rounded-full h-2 transition-all"
+                    style={{ width: `${progress.total > 0 ? Math.round((progress.responded / progress.total) * 100) : 0}%` }}
+                  />
+                </div>
+              </div>
+              {progress.percentage > 0 && (
+                <Badge variant={progress.isPassing ? 'default' : 'destructive'} className="shrink-0">
+                  {Math.round(progress.percentage)}%
+                </Badge>
+              )}
+            </div>
+            <Button
+              onClick={() => { setCompletionMode('complete'); setShowCompletionDialog(true); }}
+              disabled={!canComplete || completeSession.isPending}
+              className="shrink-0"
+            >
+              <CheckCircle2 className="me-2 h-4 w-4" />
+              {t('audits.completeAudit', 'Complete Audit')}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

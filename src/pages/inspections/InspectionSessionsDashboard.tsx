@@ -241,6 +241,7 @@ function InspectionSessionsDashboardContent() {
       
       <CreateSessionDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
       <CreateAreaSessionDialog open={showAreaDialog} onOpenChange={setShowAreaDialog} />
+      <CreateAuditSessionDialog open={showAuditDialog} onOpenChange={setShowAuditDialog} />
       
       {selectedSession && (
         <EditSessionDialog 
