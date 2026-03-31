@@ -23,6 +23,7 @@ export function useAreaFindings(sessionId: string | undefined) {
           closer:profiles!area_inspection_findings_closed_by_fkey(full_name),
           corrective_action:corrective_actions(id, title, status),
           response:area_inspection_responses(
+            notes, gps_lat, gps_lng, photo_paths,
             template_item:inspection_template_items(question, question_ar)
           )
         `)

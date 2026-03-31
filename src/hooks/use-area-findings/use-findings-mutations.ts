@@ -39,7 +39,7 @@ export function useCreateAreaFinding() {
                 .insert({
                     tenant_id: profile.tenant_id,
                     session_id: input.session_id,
-                    response_id: input.response_id,
+                    response_id: input.response_id || null,
                     reference_id: '', // Will be set by trigger
                     classification: input.classification || 'observation',
                     risk_level: input.risk_level || 'medium',
