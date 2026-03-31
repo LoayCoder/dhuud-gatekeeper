@@ -156,6 +156,73 @@ export function ActionDetailSheet({
               </div>
             )}
 
+            {/* Failure Context Section */}
+            {action.failure_context_snapshot && action.failure_context_snapshot.length > 0 && (
+              <div className="space-y-2">
+                <DetailLabel>{t('actions.failureContext', 'Failure Context')}</DetailLabel>
+                <div className="space-y-2">
+                  {action.failure_context_snapshot.map((asset, idx) => (
+                    <div
+                      key={asset.asset_id || idx}
+                      className={cn(
+                        'rounded-md border p-3 space-y-1.5 text-sm',
+                        asset.quick_result === 'not_good'
+                          ? 'border-destructive/30 bg-destructive/5'
+                          : 'border-warning/30 bg-warning/5'
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 font-medium">
+                          <Wrench className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                          <span>{asset.asset_name || asset.asset_code}</span>
+                        </div>
+                        <Badge
+                          variant={asset.quick_result === 'not_good' ? 'destructive' : 'outline'}
+                          className="text-[10px] flex-shrink-0"
+                        >
+                          {formatFallbackLabel(asset.quick_result)}
+                        </Badge>
+                      </div>
+
+                      {asset.asset_code && asset.asset_name && (
+                        <p className="text-xs text-muted-foreground font-mono">{asset.asset_code}</p>
+                      )}
+
+                      {asset.location && (
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <MapPin className="h-3 w-3 flex-shrink-0" />
+                          <span>{asset.location}</span>
+                        </div>
+                      )}
+
+                      {asset.failure_reason && (
+                        <div className="text-xs">
+                          <span className="font-medium text-muted-foreground">{t('actions.failureReason', 'Failure Reason')}:</span>{' '}
+                          <span>{asset.failure_reason}</span>
+                        </div>
+                      )}
+
+                      {asset.failed_parts && asset.failed_parts.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          <span className="text-xs font-medium text-muted-foreground">{t('actions.failedParts', 'Failed Parts')}:</span>
+                          {asset.failed_parts.map((part) => (
+                            <Badge key={part} variant="outline" className="text-[10px]">{part}</Badge>
+                          ))}
+                        </div>
+                      )}
+
+                      {asset.notes && (
+                        <div className="text-xs">
+                          <span className="font-medium text-muted-foreground">{t('actions.inspectorNotes', 'Inspector Notes')}:</span>{' '}
+                          <span className="italic">{asset.notes}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-3 text-sm">
               <Detail label={t('common.status', 'Status')}>
                 <Badge variant="outline">{formatFallbackLabel(action.status)}</Badge>
