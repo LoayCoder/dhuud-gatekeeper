@@ -86,8 +86,10 @@ export function ActionsTab({ viewProps }: { viewProps: MyActionsViewProps }) {
                 <p className="text-sm text-muted-foreground line-clamp-2">{action.description}</p>
               )}
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <Badge variant="outline" className="text-xs">
-                  {String(t(`investigation.actionStatus.${action.status}`, action.status))}
+                <Badge variant={action.status === 'completed' ? 'default' : 'outline'} className="text-xs">
+                  {action.status === 'completed'
+                    ? String(t('actions.pendingVerification', 'Pending Verification'))
+                    : String(t(`investigation.actionStatus.${action.status}`, action.status))}
                 </Badge>
                 {action.due_date && (
                   <span className={cn('flex items-center gap-1', daysInfo?.isOverdue ? 'text-destructive font-medium' : daysInfo?.isDueSoon ? 'text-warning' : '')}>
