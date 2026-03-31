@@ -111,7 +111,7 @@ export function InspectionApprovalsList() {
             completion_notes: selectedAction.completion_notes,
           }}
           open={!!selectedAction}
-          onClose={() => setSelectedAction(null)}
+          onOpenChange={(open) => { if (!open) setSelectedAction(null); }}
         />
       )}
     </>
