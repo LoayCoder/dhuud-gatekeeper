@@ -2373,7 +2373,11 @@
       "daysRemaining": "{{days}} أيام متبقية",
       "dueToday": "مستحق اليوم",
       "activeActions": "الإجراءات النشطة",
-      "closedActions": "الإجراءات المغلقة"
+      "closedActions": "الإجراءات المغلقة",
+      "pendingWith": "بانتظار",
+      "reviewer": "المراجع",
+      "hsseReviewer": "مراجع السلامة",
+      "selfApprovalBlocked": "لا يمكنك التحقق من الإجراء الخاص بك"
     },
     "profile": {
       "title": "إعدادات الحساب",

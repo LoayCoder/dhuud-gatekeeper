@@ -28,7 +28,7 @@ export function useVerifyAction() {
             const { data: action, error: fetchError } = await supabase
                 .from('corrective_actions')
                 .select(`
-          id, title, return_count, incident_id,
+          id, title, return_count, incident_id, assigned_to,
           assigned_user:profiles!corrective_actions_assigned_to_fkey(id, full_name, email),
           incident:incidents!corrective_actions_incident_id_fkey(id, reference_id)
         `)
@@ -36,6 +36,11 @@ export function useVerifyAction() {
                 .single();
 
             if (fetchError) throw fetchError;
+
+            // Self-approval prevention: assignee cannot verify their own action
+            if (action?.assigned_to === user.id) {
+                throw new Error('You cannot verify your own action');
+            }
 
             const updateData = approved
                 ? {

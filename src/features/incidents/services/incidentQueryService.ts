@@ -225,7 +225,7 @@ export const getMyCorrectiveActions = async ({
       verified_by, verified_at, verification_notes, session_id, source_type,
       assigned_to, failure_context_snapshot,
       rejected_by_profile:profiles!corrective_actions_rejected_by_fkey(id, full_name),
-      incident:incidents!corrective_actions_incident_id_fkey(event_type)
+      incident:incidents!corrective_actions_incident_id_fkey(event_type, reporter_id, reporter:profiles!incidents_reporter_id_fkey(full_name, job_title))
     `)
         .eq('assigned_to', userId)
         .eq('tenant_id', tenantId)
