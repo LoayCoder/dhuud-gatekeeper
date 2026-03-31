@@ -114,9 +114,19 @@ export function useVerifyAction() {
             // Fetch action details for return_count increment and email notifications
             const { data: action } = await supabase
                 .from('corrective_actions')
-                .select('title, return_count, assigned_to, incident_id, profiles!corrective_actions_assigned_to_fkey(email, full_name)')
+                .select('title, return_count, assigned_to, incident_id, status, profiles!corrective_actions_assigned_to_fkey(email, full_name)')
                 .eq('id', input.actionId)
                 .single();
+
+            // Self-approval prevention (server-side)
+            if (action?.assigned_to === user.id) {
+                throw new Error('Cannot verify your own action');
+            }
+
+            // Status transition guard: only 'completed' actions can be verified
+            if (action?.status !== 'completed') {
+                throw new Error(`Cannot verify action in status "${action?.status}". Action must be in "completed" status.`);
+            }
 
             const currentReturnCount = action?.return_count || 0;
 
@@ -146,9 +156,8 @@ export function useVerifyAction() {
 
             const { error } = await supabase.from('corrective_actions')
                 .update(updateData)
-                .eq('id', input.actionId);
-
-            if (error) throw error;
+                .eq('id', input.actionId)
+                .throwOnError();
 
             // Send email notifications
             const assigneeProfile = action?.profiles as any;
@@ -176,6 +185,7 @@ export function useVerifyAction() {
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['session-actions'] });
             queryClient.invalidateQueries({ queryKey: ['my-inspection-actions'] });
+            queryClient.invalidateQueries({ queryKey: ['my-corrective-actions'] });
             queryClient.invalidateQueries({ queryKey: ['area-findings'] });
             queryClient.invalidateQueries({ queryKey: ['session-closure-status'] });
 
@@ -262,7 +272,8 @@ export function useUpdateInspectionActionStatus() {
 
             const { error } = await supabase.from('corrective_actions')
                 .update(updateData)
-                .eq('id', id);
+                .eq('id', id)
+                .throwOnError();
 
             if (error) throw error;
             return { id, status };

@@ -97,8 +97,6 @@ export function useMyActions() {
     const mode = actionDialogMode;
 
     setSubmittingActionIds(prev => new Set(prev).add(actionId));
-    setActionDialogOpen(false);
-    setActionDialogAction(null);
 
     try {
       for (const file of data.files) {
@@ -125,8 +123,12 @@ export function useMyActions() {
           overdueJustification: data.overdueJustification,
         });
       }
+      // Close dialog only after successful mutations
+      setActionDialogOpen(false);
+      setActionDialogAction(null);
     } catch (error) {
-      // handled by mutation hooks
+      // handled by mutation hooks — but keep dialog open so user can retry
+      console.error('[MyActions] Action dialog confirm failed:', error);
     } finally {
       setSubmittingActionIds(prev => {
         const next = new Set(prev);

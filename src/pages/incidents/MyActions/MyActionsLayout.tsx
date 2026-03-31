@@ -182,7 +182,7 @@ export function MyActionsLayout({ viewProps }: { viewProps: MyActionsViewProps }
         action={actionDialogAction}
         mode={actionDialogMode}
         onConfirm={handleActionDialogConfirm}
-        isSubmitting={false}
+        isSubmitting={submittingActionIds.has(actionDialogAction?.id || '')}
       />
 
       {/* Extension Request Dialog */}
