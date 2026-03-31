@@ -233,6 +233,7 @@ function AuditSessionWorkspaceContent() {
                 status: f.status,
                 description: f.description,
               }))}
+              templateItems={templateItems as unknown as Parameters<typeof SessionExportDropdown>[0]['templateItems']}
             />
           )}
           {session.status !== 'closed' && (
