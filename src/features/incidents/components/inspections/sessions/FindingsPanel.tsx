@@ -166,9 +166,16 @@ export function FindingsPanel({ sessionId, isLocked }: FindingsPanelProps) {
   const closedCount = findings.filter(f => f.status === 'closed').length;
 
   // Classification/Risk select shared component
+  type FormState = {
+    classification: AreaFinding['classification'];
+    risk_level: AreaFinding['risk_level'];
+    description: string;
+    recommendation: string;
+  };
+
   const renderClassificationRiskFields = (
-    form: { classification: string; risk_level: string; description: string; recommendation: string },
-    setForm: (fn: (prev: typeof form) => typeof form) => void,
+    form: FormState,
+    setForm: (fn: (prev: FormState) => FormState) => void,
   ) => (
     <>
       {/* Classification */}
