@@ -21,6 +21,7 @@ function InspectionSessionsDashboardContent() {
   const direction = i18n.dir();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showAreaDialog, setShowAreaDialog] = useState(false);
+  const [showAuditDialog, setShowAuditDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedSession, setSelectedSession] = useState<InspectionSession | null>(null);
