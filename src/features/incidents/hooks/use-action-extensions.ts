@@ -112,23 +112,20 @@ export function useRequestExtension() {
           }
         }
 
-        for (const hsseUser of hsseUsers || []) {
-          const hsseProfile = hsseUser.profiles as any;
-          if (hsseProfile?.email) {
-            await supabase.functions.invoke('send-action-email', {
-              body: {
-                type: 'extension_requested',
-                recipient_email: hsseProfile.email,
-                recipient_name: hsseProfile.full_name || 'HSSE Expert',
-                action_title: actionData?.title || 'Corrective Action',
-                action_reference: actionData?.reference_id,
-                requester_name: requesterProfile?.full_name || 'Team Member',
-                current_due_date: currentDueDate,
-                requested_due_date: requestedDueDate,
-                extension_reason: reason,
-              },
-            });
-          }
+        for (const recipient of recipients) {
+          await supabase.functions.invoke('send-action-email', {
+            body: {
+              type: 'extension_requested',
+              recipient_email: recipient.email,
+              recipient_name: recipient.full_name || 'HSSE Expert',
+              action_title: actionData?.title || 'Corrective Action',
+              action_reference: actionData?.reference_id,
+              requester_name: requesterProfile?.full_name || 'Team Member',
+              current_due_date: currentDueDate,
+              requested_due_date: requestedDueDate,
+              extension_reason: reason,
+            },
+          });
         }
       } catch (emailError) {
         console.error('[ExtensionRequest] Email notification failed:', emailError);
