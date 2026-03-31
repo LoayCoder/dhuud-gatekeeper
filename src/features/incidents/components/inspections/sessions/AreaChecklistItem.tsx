@@ -74,7 +74,7 @@ export function AreaChecklistItem({
       
       setIsSaving(true);
       try {
-        const savedResponse = await saveResponse.mutateAsync({
+        await saveResponse.mutateAsync({
           session_id: sessionId,
           template_item_id: item.id,
           result: data.result || result || undefined,
@@ -85,18 +85,10 @@ export function AreaChecklistItem({
           gps_accuracy: gpsCoords?.accuracy,
         });
         
-        // Auto-create finding on fail result
+        // The save mutation auto-creates findings on fail
         const effectiveResult = data.result || result;
-        if (effectiveResult === 'fail' && savedResponse?.id) {
-          try {
-            await createFinding.mutateAsync({
-              session_id: sessionId,
-              response_id: savedResponse.id,
-            });
-            setFindingCreated(true);
-          } catch {
-            // Finding creation is best-effort; dedup handled in hook
-          }
+        if (effectiveResult === 'fail') {
+          setFindingCreated(true);
         }
       } catch (error: unknown) {
         toast.error(error instanceof Error ? error.message : 'Error');
@@ -104,7 +96,7 @@ export function AreaChecklistItem({
         setIsSaving(false);
       }
     },
-    [sessionId, item.id, result, responseValue, notes, gpsCoords, isLocked, saveResponse, createFinding]
+    [sessionId, item.id, result, responseValue, notes, gpsCoords, isLocked, saveResponse]
   );
   
   // Auto-save on result change
