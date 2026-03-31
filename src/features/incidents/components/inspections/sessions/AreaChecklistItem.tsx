@@ -352,6 +352,40 @@ export function AreaChecklistItem({
           )}
         </div>
         
+        {/* Finding Badge */}
+        {result === 'fail' && (findingCreated || response?.result === 'fail') && (
+          <div className="flex items-center gap-2">
+            <Badge variant="destructive" className="gap-1">
+              <ShieldAlert className="h-3 w-3" />
+              {t('inspections.findingRecorded')}
+            </Badge>
+          </div>
+        )}
+        
+        {/* Manual Create Finding (edge case: fail but no finding) */}
+        {result === 'fail' && !findingCreated && response?.id && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              try {
+                await createFinding.mutateAsync({
+                  session_id: sessionId,
+                  response_id: response.id,
+                });
+                setFindingCreated(true);
+                toast.success(t('inspections.findingRecorded'));
+              } catch {
+                toast.error('Error creating finding');
+              }
+            }}
+            disabled={createFinding.isPending}
+          >
+            <ShieldAlert className="h-4 w-4 me-1" />
+            {t('inspections.createFinding')}
+          </Button>
+        )}
+        
         {/* GPS & Notes Actions */}
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
           {/* GPS Button */}
