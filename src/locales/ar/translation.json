@@ -5371,12 +5371,19 @@
     "statusWillChange": "ستتغير الحالة إلى:",
     "confirmAndSubmit": "تأكيد وإرسال",
     "proceedToConfirm": "متابعة",
-    "timeline": {
+    "timeline": "الجدول الزمني",
+    "timelineSteps": {
       "assigned": "مسند",
       "inProgress": "قيد التنفيذ",
       "pendingVerification": "في انتظار التحقق",
       "closed": "مغلق"
     },
+    "failureContext": "سياق الخلل",
+    "failedAssets": "الأصول المعطلة",
+    "failedParts": "الأجزاء المعطلة",
+    "inspectorNotes": "ملاحظات المفتش",
+    "failureReason": "سبب الخلل",
+    "noDetailsAvailable": "لا توجد تفاصيل متاحة",
     "dueSoon": "مستحقة قريباً",
     "daysRemaining": "{{days}} يوم متبقي",
     "dueToday": "مستحقة اليوم",

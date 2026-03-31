@@ -25,6 +25,16 @@ export interface ActionForDialog {
   last_returned_at?: string | null;
   progress_notes?: string | null;
   completion_notes?: string | null;
+  failure_context_snapshot?: Array<{
+    asset_id?: string;
+    asset_code?: string;
+    asset_name?: string;
+    location?: string;
+    quick_result?: string;
+    failure_reason?: string | null;
+    notes?: string | null;
+    failed_parts?: string[];
+  }> | null;
   overdue_justification?: string | null;
 }
 
