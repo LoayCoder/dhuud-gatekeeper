@@ -99,8 +99,19 @@ export function ActionDetailSheet({
     if (!newOpen) {
       setVerifyMode(null);
       setVerifyNotes('');
+      setShowSubmitForm(false);
+      setCompletionNotes('');
+      setOverdueJustification('');
     }
     onOpenChange(newOpen);
+  };
+
+  const handleInlineSubmit = () => {
+    if (!completionNotes.trim() || !onSubmitInline) return;
+    onSubmitInline(action, {
+      notes: completionNotes,
+      overdueJustification: overdueJustification.trim() || undefined,
+    });
   };
 
   return (
