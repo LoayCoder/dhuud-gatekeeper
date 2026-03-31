@@ -2,7 +2,7 @@ import { useState } from 'react';
 // Inspection Sessions Dashboard - Type imports fixed for Vite bundling
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Plus, ClipboardList, Calendar, User, MapPin, MoreVertical, Pencil, Trash2, MapPinned } from 'lucide-react';
+import { Plus, ClipboardList, Calendar, User, MapPin, MoreVertical, Pencil, Trash2, MapPinned, Shield } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ModuleGate } from '@/components';
 import { useInspectionSessions, useDeleteSession, type InspectionSession } from '@/features/incidents';
 // @ts-ignore - type compat
-import { CreateSessionDialog, CreateAreaSessionDialog, EditSessionDialog, SessionStatusBadge } from '@/features/incidents';
+import { CreateSessionDialog, CreateAreaSessionDialog, CreateAuditSessionDialog, EditSessionDialog, SessionStatusBadge } from '@/features/incidents';
 import { toast } from 'sonner';
 
 function InspectionSessionsDashboardContent() {
@@ -21,6 +21,7 @@ function InspectionSessionsDashboardContent() {
   const direction = i18n.dir();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showAreaDialog, setShowAreaDialog] = useState(false);
+  const [showAuditDialog, setShowAuditDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedSession, setSelectedSession] = useState<InspectionSession | null>(null);
@@ -80,10 +81,14 @@ function InspectionSessionsDashboardContent() {
           <h1 className="text-2xl font-bold">{t('inspectionSessions.title')}</h1>
           <p className="text-muted-foreground">{t('inspectionSessions.description')}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button variant="outline" onClick={() => setShowAreaDialog(true)}>
             <MapPinned className="me-2 h-4 w-4" />
             {t('inspectionSessions.newAreaInspection')}
+          </Button>
+          <Button variant="outline" onClick={() => setShowAuditDialog(true)}>
+            <Shield className="me-2 h-4 w-4" />
+            {t('inspectionSessions.newAudit', 'New Audit')}
           </Button>
           <Button onClick={() => setShowCreateDialog(true)}>
             <Plus className="me-2 h-4 w-4" />
@@ -236,6 +241,7 @@ function InspectionSessionsDashboardContent() {
       
       <CreateSessionDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
       <CreateAreaSessionDialog open={showAreaDialog} onOpenChange={setShowAreaDialog} />
+      <CreateAuditSessionDialog open={showAuditDialog} onOpenChange={setShowAuditDialog} />
       
       {selectedSession && (
         <EditSessionDialog 
