@@ -690,8 +690,34 @@ function AreaSessionWorkspaceContent() {
         </Card>
       )}
       
-      {/* Findings Panel */}
-      {(findingsCount?.total ?? 0) > 0 && (
+      {/* Sticky Completion Bar - Area mode, in_progress */}
+      {!isAssetMode && session.status === 'in_progress' && progress && (
+        <div className="sticky bottom-0 z-40 bg-background/95 backdrop-blur border-t p-4 -mx-4 sm:-mx-6 lg:-mx-8">
+          <div className="container mx-auto flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4 text-sm">
+              <span className="font-medium">
+                {t('inspections.answeredCount', { answered: progress.responded, total: progress.total })}
+              </span>
+              {progress.failed > 0 && (
+                <Badge variant="destructive" className="gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  {t('inspections.findingsCountLabel', { count: progress.failed })}
+                </Badge>
+              )}
+            </div>
+            <Button
+              onClick={() => { setCompletionMode('complete'); setShowCompletionDialog(true); }}
+              disabled={!canComplete}
+            >
+              <CheckCircle className="h-4 w-4 me-2" />
+              {t('inspections.completeInspection')}
+            </Button>
+          </div>
+        </div>
+      )}
+      
+      {/* Findings Panel — show when session is active or has findings */}
+      {(session.status === 'in_progress' || (findingsCount?.total ?? 0) > 0) && (
         <FindingsPanel
           sessionId={sessionId!}
           isLocked={isCompleted}
