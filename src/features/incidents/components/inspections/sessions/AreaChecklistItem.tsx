@@ -17,9 +17,11 @@ import {
   ChevronUp,
   Star,
   ImageIcon,
+  ShieldAlert,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSaveAreaResponse, type AreaInspectionResponse } from '@/hooks/use-area-inspections';
+import { useCreateAreaFinding } from '@/hooks/use-area-findings';
 import type { TemplateItem } from '@/features/incidents';
 import { InspectionPhotoUpload } from './InspectionPhotoUpload';
 import { cn } from '@/lib/utils';
@@ -60,8 +62,10 @@ export function AreaChecklistItem({
   const [isSaving, setIsSaving] = useState(false);
   const [photoCount, setPhotoCount] = useState(0);
   const [showPhotos, setShowPhotos] = useState(false);
+  const [findingCreated, setFindingCreated] = useState(false);
   
   const saveResponse = useSaveAreaResponse();
+  const createFinding = useCreateAreaFinding();
   
   // Debounced save
   const saveDebounced = useCallback(
@@ -80,6 +84,12 @@ export function AreaChecklistItem({
           gps_lng: gpsCoords?.lng,
           gps_accuracy: gpsCoords?.accuracy,
         });
+        
+        // The save mutation auto-creates findings on fail
+        const effectiveResult = data.result || result;
+        if (effectiveResult === 'fail') {
+          setFindingCreated(true);
+        }
       } catch (error: unknown) {
         toast.error(error instanceof Error ? error.message : 'Error');
       } finally {
@@ -333,6 +343,40 @@ export function AreaChecklistItem({
             />
           )}
         </div>
+        
+        {/* Finding Badge */}
+        {result === 'fail' && (findingCreated || response?.result === 'fail') && (
+          <div className="flex items-center gap-2">
+            <Badge variant="destructive" className="gap-1">
+              <ShieldAlert className="h-3 w-3" />
+              {t('inspections.findingRecorded')}
+            </Badge>
+          </div>
+        )}
+        
+        {/* Manual Create Finding (edge case: fail but no finding) */}
+        {result === 'fail' && !findingCreated && response?.id && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              try {
+                await createFinding.mutateAsync({
+                  session_id: sessionId,
+                  response_id: response.id,
+                });
+                setFindingCreated(true);
+                toast.success(t('inspections.findingRecorded'));
+              } catch {
+                toast.error('Error creating finding');
+              }
+            }}
+            disabled={createFinding.isPending}
+          >
+            <ShieldAlert className="h-4 w-4 me-1" />
+            {t('inspections.createFinding')}
+          </Button>
+        )}
         
         {/* GPS & Notes Actions */}
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
