@@ -29,6 +29,10 @@ export interface AreaFinding {
         status: string;
     };
     response?: {
+        notes: string | null;
+        gps_lat: number | null;
+        gps_lng: number | null;
+        photo_paths: unknown | null;
         template_item?: {
             question: string;
             question_ar: string | null;
@@ -38,7 +42,7 @@ export interface AreaFinding {
 
 export interface CreateAreaFindingInput {
     session_id: string;
-    response_id: string;
+    response_id?: string;
     classification?: 'minor_nc' | 'major_nc' | 'critical_nc' | 'observation' | 'ofi';
     risk_level?: 'low' | 'medium' | 'high' | 'critical';
     description?: string;

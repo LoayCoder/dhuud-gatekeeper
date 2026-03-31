@@ -733,7 +733,7 @@ export type Database = {
           last_escalated_at: string | null
           recommendation: string | null
           reference_id: string
-          response_id: string
+          response_id: string | null
           risk_level: string | null
           session_id: string
           status: string | null
@@ -757,7 +757,7 @@ export type Database = {
           last_escalated_at?: string | null
           recommendation?: string | null
           reference_id: string
-          response_id: string
+          response_id?: string | null
           risk_level?: string | null
           session_id: string
           status?: string | null
@@ -781,7 +781,7 @@ export type Database = {
           last_escalated_at?: string | null
           recommendation?: string | null
           reference_id?: string
-          response_id?: string
+          response_id?: string | null
           risk_level?: string | null
           session_id?: string
           status?: string | null

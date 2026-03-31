@@ -17,12 +17,18 @@ export function useCreateAreaFinding() {
             if (!profile?.tenant_id || !user?.id) throw new Error('Not authenticated');
 
             // Check if finding already exists for this response
-            const { data: existing } = await supabase
-                .from('area_inspection_findings')
-                .select('id, session_id')
-                .eq('response_id', input.response_id)
-                .is('deleted_at', null)
-                .maybeSingle();
+            // Skip dedup check for manual findings (no response_id)
+            let existing = null;
+            if (input.response_id) {
+                const { data } = await supabase
+                    .from('area_inspection_findings')
+                    .select('id, session_id')
+                    .eq('response_id', input.response_id)
+                    .neq('status', 'closed')
+                    .is('deleted_at', null)
+                    .maybeSingle();
+                existing = data;
+            }
 
             if (existing) {
                 return existing as { id: string; session_id: string };
@@ -33,7 +39,7 @@ export function useCreateAreaFinding() {
                 .insert({
                     tenant_id: profile.tenant_id,
                     session_id: input.session_id,
-                    response_id: input.response_id,
+                    response_id: input.response_id || null,
                     reference_id: '', // Will be set by trigger
                     classification: input.classification || 'observation',
                     risk_level: input.risk_level || 'medium',
@@ -50,6 +56,7 @@ export function useCreateAreaFinding() {
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['area-findings', data.session_id] });
+            queryClient.invalidateQueries({ queryKey: ['area-findings-count', data.session_id] });
         },
     });
 }

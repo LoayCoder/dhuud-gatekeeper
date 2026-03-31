@@ -6956,7 +6956,12 @@
       "riskLevel.low": "منخفض",
       "riskLevel.medium": "متوسط",
       "riskLevel.high": "عالي",
-      "riskLevel.critical": "حرج"
+      "riskLevel.critical": "حرج",
+      "addFinding": "إضافة نتيجة",
+      "description": "الوصف",
+      "descriptionPlaceholder": "صف النتيجة أو الملاحظة...",
+      "photos": "صورة/صور",
+      "findingCreated": "تم إنشاء النتيجة بنجاح"
     },
     "session": {
       "status": "حالة الجلسة",
