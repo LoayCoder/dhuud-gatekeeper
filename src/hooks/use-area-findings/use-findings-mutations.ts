@@ -56,6 +56,7 @@ export function useCreateAreaFinding() {
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['area-findings', data.session_id] });
+            queryClient.invalidateQueries({ queryKey: ['area-findings-count', data.session_id] });
         },
     });
 }
