@@ -7378,7 +7378,12 @@
       "riskLevel.low": "Low",
       "riskLevel.medium": "Medium",
       "riskLevel.high": "High",
-      "riskLevel.critical": "Critical"
+      "riskLevel.critical": "Critical",
+      "addFinding": "Add Finding",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe the finding or observation...",
+      "photos": "photo(s)",
+      "findingCreated": "Finding created successfully"
     },
     "session": {
       "status": "Session Status",
