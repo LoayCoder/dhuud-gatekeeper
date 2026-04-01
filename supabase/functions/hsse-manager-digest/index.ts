@@ -136,7 +136,7 @@ Deno.serve(async (req) => {
     console.log(`Digest complete: ${emailsSent} emails sent`);
 
     return new Response(JSON.stringify({ success: true, emails_sent: emailsSent }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Digest error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(JSON.stringify({ error: errorMessage }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });

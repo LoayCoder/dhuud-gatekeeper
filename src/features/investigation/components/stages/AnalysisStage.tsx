@@ -1,4 +1,4 @@
-﻿
+
 import { useState } from "react";
 import { useInvestigationContext } from "@/features/investigation/context/InvestigationContext";
 import { RCAPanel } from '@/features/investigation';
@@ -36,15 +36,15 @@ export function AnalysisStage() {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-3 lg:w-[600px]">
                     <TabsTrigger value="rca">
-                        <BrainCircuit className="h-4 w-4 mr-2" />
+                        <BrainCircuit className="h-4 w-4 me-2" />
                         {t('investigation.tabs.rca', 'Root Cause Analysis')}
                     </TabsTrigger>
                     <TabsTrigger value="actions">
-                        <CheckSquare className="h-4 w-4 mr-2" />
+                        <CheckSquare className="h-4 w-4 me-2" />
                         {t('investigation.tabs.actions', 'Corrective Actions')}
                     </TabsTrigger>
                     <TabsTrigger value="submit">
-                        <Send className="h-4 w-4 mr-2" />
+                        <Send className="h-4 w-4 me-2" />
                         {t('investigation.tabs.submit', 'Complete & Submit')}
                     </TabsTrigger>
                 </TabsList>

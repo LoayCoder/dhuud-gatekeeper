@@ -10,7 +10,7 @@ interface SubmissionSuccessDialogProps {
   open: boolean;
   referenceId: string;
   incidentId: string;
-  onViewIncident: () => void;
+  onViewIncident?: () => void;
   redirectSeconds?: number;
 }
 
@@ -43,10 +43,15 @@ export function SubmissionSuccessDialog({
       
       setProgress(newProgress);
       setCountdown(Math.ceil(remaining / 1000));
+
+      if (remaining <= 0) {
+        clearInterval(interval);
+        onViewIncident?.();
+      }
     }, 50);
 
     return () => clearInterval(interval);
-  }, [open, redirectSeconds]);
+  }, [open, redirectSeconds, onViewIncident]);
 
   return (
     <Dialog open={open}>

@@ -4,7 +4,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
 export async function getRiskAssessmentDetails(assessmentId: string, tenantId: string) {
-  const { data, error } = await supabase.from('risk_assessment_details').select('*').eq('risk_assessment_id', assessmentId).eq('tenant_id', tenantId).is('deleted_at', null).order('sort_order');
+  const { data, error } = await supabase.from('risk_assessment_details').select('id, tenant_id, risk_assessment_id, hazard_description, hazard_description_ar, hazard_category, likelihood, severity, initial_risk_score, existing_controls, additional_controls, responsible_person, target_completion_date, residual_likelihood, residual_severity, residual_risk_score, ai_suggested, ai_confidence, sort_order, created_at, updated_at, deleted_at, control_hierarchy_level, control_status, job_step_description, job_step_number, number_exposed, persons_at_risk, required_ppe').eq('risk_assessment_id', assessmentId).eq('tenant_id', tenantId).is('deleted_at', null).order('sort_order');
   if (error) throw error;
   return data || [];
 }
@@ -34,7 +34,7 @@ export async function bulkCreateRiskDetails(assessmentId: string, hazards: any[]
 }
 
 export async function getRiskAssessmentTeam(assessmentId: string, tenantId: string) {
-  const { data, error } = await supabase.from('risk_assessment_team').select('*').eq('risk_assessment_id', assessmentId).eq('tenant_id', tenantId).is('deleted_at', null);
+  const { data, error } = await supabase.from('risk_assessment_team').select('id, tenant_id, risk_assessment_id, worker_id, user_id, role, role_ar, signed_at, is_required, created_at, updated_at').eq('risk_assessment_id', assessmentId).eq('tenant_id', tenantId).is('deleted_at', null);
   if (error) throw error;
   return data || [];
 }
@@ -60,7 +60,7 @@ export async function removeTeamMember(memberId: string) {
 }
 
 export async function getRiskAssessments(tenantId: string, _filters?: any) {
-  const { data, error } = await supabase.from('risk_assessments').select('*').eq('tenant_id', tenantId).is('deleted_at', null).order('created_at', { ascending: false });
+  const { data, error } = await supabase.from('risk_assessments').select('id, tenant_id, assessment_number, activity_name, activity_name_ar, activity_type, activity_description, status, location, branch_id, contractor_id, project_id, assessment_date, valid_until, next_review_date, overall_risk_rating, created_by, approved_by, approved_at, rejection_reason, revision_number, template_id, ai_risk_score, ai_confidence_level, created_at, updated_at, deleted_at').eq('tenant_id', tenantId).is('deleted_at', null).order('created_at', { ascending: false });
   if (error) throw error;
   return data || [];
 }
@@ -72,7 +72,7 @@ export async function createRiskAssessment(data: any, tenantId: string, userId: 
 }
 
 export async function getRiskAssessment(id: string, tenantId: string) {
-  const { data, error } = await supabase.from('risk_assessments').select('*').eq('id', id).eq('tenant_id', tenantId).single();
+  const { data, error } = await supabase.from('risk_assessments').select('id, tenant_id, assessment_number, activity_name, activity_name_ar, activity_type, activity_description, status, location, branch_id, contractor_id, project_id, assessment_date, valid_until, next_review_date, overall_risk_rating, scope_description, boundaries, risk_tolerance, review_frequency, permit_requirements, work_environment, applicable_legislation, management_approval_required, worker_consultation_date, worker_consultation_notes, union_representative_consulted, acceptance_justification, template_id, previous_version_id, revision_reason, created_by, approved_by, approved_at, rejection_reason, revision_number, ai_risk_score, ai_confidence_level, created_at, updated_at, deleted_at').eq('id', id).eq('tenant_id', tenantId).single();
   if (error) throw error;
   return data;
 }

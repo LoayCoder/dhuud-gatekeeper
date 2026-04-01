@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Pencil, Trash2, ChevronDown, ChevronUp, Loader2, Layers, Tag, FolderTree, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -203,7 +203,7 @@ export function AssetCategoryManagement() {
                           )}
                         </div>
                         <div className="text-sm text-muted-foreground mt-1">
-                          {t('assetCategories.typesCount', { count: categoryTypes.length })} â€¢{' '}
+                          {t('assetCategories.typesCount', { count: categoryTypes.length })} •{' '}
                           {t('assetCategories.assetsCount', { count: assetCount })}
                         </div>
                       </div>
@@ -305,7 +305,7 @@ export function AssetCategoryManagement() {
                                         )}
                                       </div>
                                       <div className="text-xs text-muted-foreground mt-0.5">
-                                        {t('assetCategories.subtypesCount', { count: typeSubtypes.length })} â€¢{' '}
+                                        {t('assetCategories.subtypesCount', { count: typeSubtypes.length })} •{' '}
                                         {t('assetCategories.assetsCount', { count: typeAssetCount })}
                                       </div>
                                     </div>

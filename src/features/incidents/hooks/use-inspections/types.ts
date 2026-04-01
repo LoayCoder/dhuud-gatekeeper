@@ -16,8 +16,14 @@ export interface InspectionTemplate {
     // Location filters
     category_id: string | null;
     type_id: string | null;
+    subtype_id: string | null;
     branch_id: string | null;
     site_id: string | null;
+    building_id: string | null;
+    inspection_category_id: string | null;
+    area_type: string | null;
+    standard_reference: string | null;
+    passing_score_percentage: number | null;
     version: number;
     is_active: boolean;
     created_by: string | null;
@@ -26,8 +32,10 @@ export interface InspectionTemplate {
     items?: TemplateItem[];
     category?: { name: string; name_ar: string | null };
     type?: { name: string; name_ar: string | null };
+    subtype?: { name: string; name_ar: string | null };
     branch?: { name: string };
     site?: { name: string };
+    building?: { name: string; name_ar: string | null };
 }
 
 export interface TemplateItem {

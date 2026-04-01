@@ -1,4 +1,4 @@
-﻿import { useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,7 @@ export function IncidentInfoCard({ incident, isLocked, onEditLocation }: Inciden
         {Icon && <Icon className="h-3 w-3" />}
         {label}
       </p>
-      <div className="text-sm">{value || 'â€”'}</div>
+      <div className="text-sm">{value || '—'}</div>
     </div>
   );
 

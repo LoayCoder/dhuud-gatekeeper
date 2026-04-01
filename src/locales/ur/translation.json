@@ -1,4 +1,11 @@
 {
+  "speech": {
+    "startRecording": "بولیں",
+    "stopRecording": "رکیں",
+    "listeningIn": "{{language}} میں سن رہا ہے",
+    "autoHint": "عربی کے لیے، بہتر نتائج کے لیے عربی منتخب کریں",
+    "speechLanguage": "تقریر کی زبان"
+  },
   "hsseDashboard": {
     "title": "HSSE ایونٹ ڈیش بورڈ",
     "subtitle": "حفاظتی کارکردگی اور خطرے کے تجزیات کی حقیقی وقت میں مرئیت",
@@ -61,7 +68,12 @@
     "probability": "امکان",
     "branchRiskScores": "شاخ کے خطرے کے اسکور",
     "departmentRiskScores": "شعبہ کے خطرے کے اسکور",
-    "riskLevel": "خطرے کی سطح",
+    "riskLevel": {
+      "critical": "نازک",
+      "high": "زیادہ",
+      "medium": "درمیانی",
+      "low": "کم"
+    },
     "behavioralInsights": "رویے کی بصیرت",
     "eventTypes": {
       "observation": "مشاہدہ",
@@ -142,12 +154,6 @@
     "departmentAnalytics": "شعبہ کے تجزیات",
     "highRiskDepts": "زیادہ خطرہ",
     "actionOverdueRate": "شعبہ کے لحاظ سے تاخیر کی شرح",
-    "riskLevel": {
-      "critical": "نازک",
-      "high": "زیادہ",
-      "medium": "درمیانی",
-      "low": "کم"
-    },
     "safetyKPIs": "حفاظتی کارکردگی کے اشارے",
     "kpiPeriod": "موجودہ دورانیہ",
     "closureRate": "واقعات بند کرنے کی شرح",
@@ -208,13 +214,25 @@
       "health": "صحت (بیماری / ایکسپوژر)",
       "process_safety": "پراسیس سیفٹی (LOPC / آگ)",
       "environment": "ماحولیات (رساؤ / اخراج)",
-      "security": "سیکیورٹی (لوگ / اثاثے)",
+      "security": "سیکیورٹی",
       "property_asset": "جائیداد اور اثاثوں کا نقصان",
       "road_traffic": "روڈ ٹریفک / گاڑی",
       "quality_service": "معیار / سروس اثر",
       "community_third_party": "کمیونٹی / تھرڈ پارٹی اثر",
       "compliance_regulatory": "تعمیل / ریگولیٹری خلاف ورزی",
-      "emergency_crisis": "ایمرجنسی / کرائسز ایکٹیویشن"
+      "emergency_crisis": "ایمرجنسی / کرائسز ایکٹیویشن",
+      "nearMiss": "قریب حادثہ",
+      "near_miss": "قریب حادثہ",
+      "unsafeAct": "غیر محفوظ عمل",
+      "unsafe_act": "غیر محفوظ عمل",
+      "propertyDamage": "املاک کا نقصان",
+      "property_damage": "املاک کا نقصان",
+      "environmental": "ماحولیاتی کیس",
+      "firstAid": "ابتدائی طبی امداد",
+      "first_aid": "ابتدائی طبی امداد",
+      "medicalTreatment": "طبی علاج",
+      "medical_treatment": "طبی علاج",
+      "fire": "آگ"
     },
     "subtypes": {
       "safety": {
@@ -346,19 +364,19 @@
       "critical": "نازک"
     },
     "status": {
-      "submitted": "جمع کرایا",
-      "pending_review": "جائزے کے منتظر",
-      "investigation_pending": "تحقیقات زیر التوا",
+      "submitted": "جمع شدہ",
+      "pending_review": "جائزہ کے منتظر",
+      "investigation_pending": "تحقیقات کے منتظر",
       "investigation_in_progress": "زیر تحقیقات",
       "closed": "بند",
       "expert_screening": "ماہر کی جانچ",
       "returned_to_reporter": "رپورٹر کو واپس",
       "expert_rejected": "ماہر نے مسترد کیا",
-      "no_investigation_required": "تحقیق کی ضرورت نہیں",
-      "pending_manager_approval": "مینیجر کی منظوری کا انتظار",
+      "no_investigation_required": "تحقیقات کی ضرورت نہیں",
+      "pending_manager_approval": "مینیجر کی منظوری کے منتظر",
       "manager_rejected": "مینیجر نے مسترد کیا",
-      "hsse_manager_escalation": "HSSE مینیجر کو بڑھایا گیا",
-      "pending_dept_rep_approval": "محکمہ نمائندہ کی منظوری کا انتظار",
+      "hsse_manager_escalation": "HSSE مینیجر کو تصعید",
+      "pending_dept_rep_approval": "محکمہ نمائندہ کی منظوری کے منتظر",
       "observation_actions_pending": "کاروائیاں جاری ہیں",
       "pending_closure": "بند ہونے کے منتظر",
       "pending_closure_approval": "مینیجر کی منظوری کا انتظار",
@@ -451,7 +469,6 @@
     "gpsDetectedFromSite": "GPS سائٹ سے خودکار پتہ لگایا گیا",
     "withinMeters": "{{distance}} میٹر کے اندر",
     "noSiteNearby": "آپ کے مقام کے 500 میٹر کے اندر کوئی سائٹ نہیں ملی",
-    "locationDetails": "مقام کی تفصیلات",
     "locationDetailsPlaceholder": "مثلاً: عمارت اے، منزل 2، داخلی دروازے کے قریب",
     "locationDetailsDescription": "اختیاری: سائٹ کے اندر مخصوص مقام بیان کریں",
     "responsibleDepartment": "ذمہ دار محکمہ",
@@ -465,21 +482,6 @@
     "observationTypes": {
       "unsafeAct": "غیر محفوظ عمل",
       "unsafeCondition": "غیر محفوظ حالت"
-    },
-    "incidentTypes": {
-      "nearMiss": "قریب حادثہ",
-      "near_miss": "قریب حادثہ",
-      "unsafeAct": "غیر محفوظ عمل",
-      "unsafe_act": "غیر محفوظ عمل",
-      "propertyDamage": "املاک کا نقصان",
-      "property_damage": "املاک کا نقصان",
-      "environmental": "ماحولیاتی کیس",
-      "firstAid": "ابتدائی طبی امداد",
-      "first_aid": "ابتدائی طبی امداد",
-      "medicalTreatment": "طبی علاج",
-      "medical_treatment": "طبی علاج",
-      "fire": "آگ",
-      "security": "سیکیورٹی"
     },
     "hsseEventType": "واقعہ کی قسم",
     "incidentCategory": "حادثہ کی قسم",
@@ -594,21 +596,6 @@
         "erpWeatherOther": "ERP فعال (موسم/دیگر)"
       }
     },
-    "status": {
-      "submitted": "جمع شدہ",
-      "pending_review": "جائزہ کے منتظر",
-      "investigation_pending": "تحقیقات کے منتظر",
-      "investigation_in_progress": "زیر تحقیقات",
-      "closed": "بند",
-      "expert_screening": "ماہر کی جانچ",
-      "returned_to_reporter": "رپورٹر کو واپس",
-      "expert_rejected": "ماہر نے مسترد کیا",
-      "no_investigation_required": "تحقیقات کی ضرورت نہیں",
-      "pending_manager_approval": "مینیجر کی منظوری کے منتظر",
-      "manager_rejected": "مینیجر نے مسترد کیا",
-      "hsse_manager_escalation": "HSSE مینیجر کو تصعید",
-      "pending_dept_rep_approval": "محکمہ نمائندہ کی منظوری کے منتظر"
-    },
     "quickCapture": {
       "title": "فوری کیپچر",
       "aiComingSoon": "AI سے چلنے والا - جلد آ رہا ہے",
@@ -651,7 +638,8 @@
       "evidence": "ثبوت",
       "witnesses": "گواہان",
       "rca": "بنیادی وجہ کا تجزیہ",
-      "actions": "اصلاحی اقدامات"
+      "actions": "اصلاحی اقدامات",
+      "overview": "جائزہ"
     },
     "evidence": {
       "title": "ثبوت کا انتظام",
@@ -900,8 +888,8 @@
       "occurredAt": "واقعہ کا وقت",
       "location": "مقام",
       "site": "سائٹ",
-"investigatorAssignment": "تفتیش کار کی تفویض",
-        "awaitingExpertAssignment": "ایچ ایس ایس ای ماہر اس کیس کے لیے تفتیش کار کا تعین کرے گا۔",
+      "investigatorAssignment": "تفتیش کار کی تفویض",
+      "awaitingExpertAssignment": "ایچ ایس ایس ای ماہر اس کیس کے لیے تفتیش کار کا تعین کرے گا۔",
       "assignInvestigator": "تفتیش کار مقرر کریں",
       "selectInvestigator": "تفتیش کار منتخب کریں",
       "currentInvestigator": "موجودہ تفتیش کار",
@@ -981,9 +969,6 @@
       "button": "جائزے کے لیے تحقیقات جمع کرائیں",
       "note": "تمام مقرر کردہ ایکشن مالکان کو ای میل کے ذریعے مطلع کیا جائے گا",
       "success": "تحقیقات جائزے کے لیے جمع ہو گئیں"
-    },
-    "tabs": {
-      "overview": "جائزہ"
     },
     "severityAssessment": "شدت کا جائزہ",
     "actualSeverity": "اصل شدت",
@@ -1200,7 +1185,7 @@
     "pageNotFound": "افسوس! صفحہ نہیں ملا",
     "returnHome": "ہوم پر واپس جائیں"
   },
-"common": {
+  "common": {
     "loading": "لوڈ ہو رہا ہے...",
     "phone": "فون",
     "save": "محفوظ کریں",
@@ -1248,9 +1233,6 @@
     "description": "تفصیل",
     "create": "بنائیں",
     "update": "اپ ڈیٹ",
-    "view": "دیکھیں",
-    "details": "تفصیلات",
-    "all": "سب",
     "none": "کوئی نہیں",
     "select": "منتخب کریں",
     "selectOptional": "منتخب کریں (اختیاری)",
@@ -1801,7 +1783,6 @@
     "executiveReport": "ایگزیکٹو رپورٹ",
     "actionSlaSettings": "ایکشن SLA سیٹنگز",
     "manhoursManagement": "مین آورز مینجمنٹ",
-    
     "menuAccess": "مینو تک رسائی"
   },
   "actions": {
@@ -1962,6 +1943,8 @@
     "result_good": "اچھا",
     "result_not_good": "اچھا نہیں",
     "result_not_accessible": "دستیاب نہیں",
+    "result_partial": "جزوی",
+    "quickPartial": "جزوی",
     "pending": "زیر التوا",
     "passed": "کامیاب",
     "failed": "ناکام",
@@ -2354,7 +2337,9 @@
         "noRoutes": "کوئی گشت راستے نہیں ملے",
         "noRoutesDescription": "شروع کرنے کے لیے پہلا گشت راستہ بنائیں",
         "edit": "ترمیم",
-        "delete": "حذف"
+        "delete": "حذف",
+        "checkpointRadius": "GPS رداس (میٹر)",
+        "checkpointRadiusHint": "گارڈ کو چیک پوائنٹ لاگ کرنے کے لیے اس فاصلے میں ہونا چاہیے"
       },
       "execution": {
         "title": "فعال گشت",
@@ -2450,25 +2435,6 @@
         "incomplete": "نامکمل",
         "pending": "زیر التوا",
         "missed": "چھوٹ گیا"
-      },
-      "routes": {
-        "title": "گشت کے راستے",
-        "description": "گشت کے راستے بنائیں اور ان کا انتظام کریں",
-        "create": "راستہ بنائیں",
-        "createTitle": "نیا راستہ بنائیں",
-        "createDescription": "چیک پوائنٹس کے ساتھ نیا گشت راستہ متعین کریں",
-        "name": "راستے کا نام",
-        "namePlaceholder": "راستے کا نام درج کریں",
-        "routeDescription": "تفصیل",
-        "descriptionPlaceholder": "گشت کے راستے کی وضاحت کریں",
-        "estimatedDuration": "تخمینی مدت (منٹ)",
-        "checkpoints": "چیک پوائنٹس",
-        "noRoutes": "کوئی گشت راستے نہیں ملے",
-        "noRoutesDescription": "شروع کرنے کے لیے پہلا گشت راستہ بنائیں",
-        "edit": "ترمیم",
-        "delete": "حذف",
-        "checkpointRadius": "GPS رداس (میٹر)",
-        "checkpointRadiusHint": "گارڈ کو چیک پوائنٹ لاگ کرنے کے لیے اس فاصلے میں ہونا چاہیے"
       }
     },
     "contractors": {
@@ -2779,6 +2745,15 @@
       "batteryCritical": "بیٹری نازک!",
       "chargeSoon": "براہ کرم فوری طور پر اپنا آلہ چارج کریں",
       "chargeWhenPossible": "جب ممکن ہو چارج کریں"
+    },
+    "gate": {
+      "alreadyOnSite": "پہلے سے سائٹ پر موجود",
+      "alreadyOnSiteDesc": "یہ شخص {{time}} سے سائٹ پر موجود ہے"
+    },
+    "workerScanHistory": {
+      "title": "آج کے ورکر اسکینز",
+      "noScans": "آج کوئی ورکر اسکین نہیں",
+      "exitedAt": "باہر نکلا"
     }
   },
   "dashboard": {
@@ -3034,7 +3009,7 @@
     "organizationalAssignment": "تنظیمی تفویض",
     "fullBranchAccess": "تمام شاخوں تک مکمل رسائی",
     "fullBranchAccessDescription": "ایک شاخ کی بجائے تمام تنظیمی شاخوں تک رسائی دیں",
-    "allBranches": "تمام شاخیں (مکمل رسائی)",
+    "allBranches": "تمام برانچز",
     "filters": "فلٹرز",
     "filterByType": "قسم کے مطابق فلٹر",
     "filterByStatus": "حیثیت کے مطابق فلٹر",
@@ -3042,7 +3017,6 @@
     "filterByDivision": "ڈویژن کے مطابق فلٹر",
     "allTypes": "تمام اقسام",
     "allStatuses": "تمام حیثیتیں",
-    "allBranches": "تمام برانچز",
     "allDivisions": "تمام ڈویژنز",
     "active": "فعال",
     "inactive": "غیر فعال",
@@ -3965,7 +3939,8 @@
       "sync": "مطابقت پذیری کی اطلاعات",
       "update": "اپڈیٹس اور منظوریاں",
       "info": "معلوماتی الرٹس",
-      "error": "سیکیورٹی اور خرابی کے الرٹس"
+      "error": "سیکیورٹی اور خرابی کے الرٹس",
+      "urgent": "فوری SLA الرٹس"
     },
     "categoryDescription": {
       "sync": "جب آف لائن تبدیلیاں مطابقت پذیر ہوں تو اطلاعات",
@@ -3973,13 +3948,6 @@
       "info": "عمومی معلومات اور حیثیت کی اپڈیٹس",
       "error": "سیکیورٹی الرٹس، خرابیاں، اور اہم انتباہات",
       "urgent": "اہم SLA تصعیدات اور تاخیر شدہ اقدامات جن پر فوری توجہ درکار ہے"
-    },
-    "category": {
-      "sync": "مطابقت پذیری کی اطلاعات",
-      "update": "اپڈیٹس اور منظوریاں",
-      "info": "معلوماتی الرٹس",
-      "error": "سیکیورٹی اور خرابی کے الرٹس",
-      "urgent": "فوری SLA الرٹس"
     },
     "digestPreferences": "ڈائجسٹ ای میل ترجیحات",
     "digestPreferencesDescription": "روزانہ ڈائجسٹ ای میلز کب اور کیسے وصول کریں ترتیب دیں",
@@ -4100,11 +4068,52 @@
     "reset": "ڈیفالٹ پر ری سیٹ کریں",
     "saveSuccess": "دستاویز کی ترتیبات کامیابی سے محفوظ ہو گئیں",
     "saveError": "دستاویز کی ترتیبات محفوظ کرنے میں ناکامی",
-    "tabs": { "header": "ہیڈر", "footer": "فوٹر", "watermark": "واٹر مارک" },
-    "header": { "primaryText": "بنیادی متن", "primaryTextPlaceholder": "مثال: سیفٹی ڈیپارٹمنٹ", "secondaryText": "ثانوی متن", "secondaryTextPlaceholder": "مثال: ISO 45001", "logoPosition": "لوگو کی پوزیشن", "positionLeft": "بائیں", "positionCenter": "درمیان", "positionRight": "دائیں", "showLogo": "لوگو دکھائیں", "bgColor": "پس منظر کا رنگ", "textColor": "متن کا رنگ" },
-    "footer": { "text": "فوٹر متن", "textPlaceholder": "مثال: خفیہ", "showPageNumbers": "صفحہ نمبر دکھائیں", "showDatePrinted": "پرنٹ کی تاریخ دکھائیں", "bgColor": "پس منظر کا رنگ", "textColor": "متن کا رنگ" },
-    "watermark": { "enabled": "واٹر مارک فعال کریں", "text": "واٹر مارک متن", "textPlaceholder": "مثال: خفیہ، ڈرافٹ", "opacity": "شفافیت" },
-    "preview": { "title": "لائیو پیش نظارہ", "description": "دیکھیں کہ آپ کی دستاویزات کیسی نظر آئیں گی", "sampleTitle": "نمونہ دستاویز عنوان", "fieldLabel": "فیلڈ لیبل", "fieldValue": "نمونہ قدر", "dateLabel": "تاریخ", "locationLabel": "مقام", "locationValue": "نمونہ مقام", "signature": "دستخط:", "date": "تاریخ:", "pageNumber": "صفحہ {{page}}", "hint": "یہ آپ کی دستاویز کی ترتیب کا تخمینہ دکھاتا ہے" }
+    "tabs": {
+      "header": "ہیڈر",
+      "footer": "فوٹر",
+      "watermark": "واٹر مارک"
+    },
+    "header": {
+      "primaryText": "بنیادی متن",
+      "primaryTextPlaceholder": "مثال: سیفٹی ڈیپارٹمنٹ",
+      "secondaryText": "ثانوی متن",
+      "secondaryTextPlaceholder": "مثال: ISO 45001",
+      "logoPosition": "لوگو کی پوزیشن",
+      "positionLeft": "بائیں",
+      "positionCenter": "درمیان",
+      "positionRight": "دائیں",
+      "showLogo": "لوگو دکھائیں",
+      "bgColor": "پس منظر کا رنگ",
+      "textColor": "متن کا رنگ"
+    },
+    "footer": {
+      "text": "فوٹر متن",
+      "textPlaceholder": "مثال: خفیہ",
+      "showPageNumbers": "صفحہ نمبر دکھائیں",
+      "showDatePrinted": "پرنٹ کی تاریخ دکھائیں",
+      "bgColor": "پس منظر کا رنگ",
+      "textColor": "متن کا رنگ"
+    },
+    "watermark": {
+      "enabled": "واٹر مارک فعال کریں",
+      "text": "واٹر مارک متن",
+      "textPlaceholder": "مثال: خفیہ، ڈرافٹ",
+      "opacity": "شفافیت"
+    },
+    "preview": {
+      "title": "لائیو پیش نظارہ",
+      "description": "دیکھیں کہ آپ کی دستاویزات کیسی نظر آئیں گی",
+      "sampleTitle": "نمونہ دستاویز عنوان",
+      "fieldLabel": "فیلڈ لیبل",
+      "fieldValue": "نمونہ قدر",
+      "dateLabel": "تاریخ",
+      "locationLabel": "مقام",
+      "locationValue": "نمونہ مقام",
+      "signature": "دستخط:",
+      "date": "تاریخ:",
+      "pageNumber": "صفحہ {{page}}",
+      "hint": "یہ آپ کی دستاویز کی ترتیب کا تخمینہ دکھاتا ہے"
+    }
   },
   "upload": {
     "uploading": "اپ لوڈ ہو رہا ہے...",
@@ -4857,9 +4866,9 @@
     "createTemplate": "آڈٹ ٹیمپلیٹ بنائیں",
     "templateType": "ٹیمپلیٹ کی قسم",
     "types": {
-      "asset": "اثاثہ",
-      "area": "علاقہ/سائٹ",
-      "audit": "تعمیل آڈٹ"
+      "asset": "اثاثہ معائنہ",
+      "area": "علاقہ معائنہ",
+      "audit": "آڈٹ"
     },
     "standardReference": "معیار کا حوالہ",
     "standards": {
@@ -4893,11 +4902,6 @@
       "minorNc": "معمولی عدم مطابقت",
       "majorNc": "بڑی عدم مطابقت",
       "criticalNc": "نازک عدم مطابقت"
-    },
-    "types": {
-      "asset": "اثاثہ معائنہ",
-      "area": "علاقہ معائنہ",
-      "audit": "آڈٹ"
     },
     "sessionStarted": "آڈٹ سیشن شروع ہوگیا",
     "sessionCompleted": "آڈٹ سیشن مکمل ہوگیا",
@@ -5470,9 +5474,9 @@
       "searchPlaceholder": "کارکنان تلاش کریں...",
       "company": "کمپنی",
       "name": "نام",
-      "nationalId": "قومی شناختی نمبر",
+      "nationalId": "قومی شناخت",
       "nationality": "قومیت",
-      "induction": "انڈکشن",
+      "induction": "تعارف",
       "noWorkers": "کوئی کارکن نہیں ملا",
       "selectAll": "سب منتخب کریں",
       "selectWorker": "{{name}} منتخب کریں",
@@ -5513,18 +5517,31 @@
       "selectProject": "انڈکشن کے لیے پروجیکٹ منتخب کریں",
       "eligibleWorkers": "اہل کارکنان",
       "noEligibleWorkers": "کوئی اہل کارکن نہیں۔ کارکنان کو منظور شدہ ہونا چاہیے اور موبائل نمبر ہونا چاہیے۔",
-      "sendInduction": "انڈکشن بھیجیں",
+      "sendInduction": "تعارفی ویڈیو بھیجیں",
       "inductionSent": "انڈکشنز کامیابی سے بھیجی گئیں",
       "inductionFailed": "انڈکشنز بھیجنے میں ناکامی",
       "languageBreakdown": "زبان کی تقسیم",
       "languageBreakdownDesc": "ہر کارکن کو اپنی مقررہ زبان میں انڈکشن پیغام ملے گا",
       "templateNotice": "پیغامات نوٹیفکیشن ٹیمپلیٹس استعمال کرتے ہیں۔ ہر زبان کے لیے واٹس ایپ ٹیمپلیٹس میں ٹیمپلیٹس بنائیں۔",
       "messageDelayTitle": "پیغام کی تاخیر",
-      "noPendingApprovals": "کوئی زیر التوا منظوری نہیں"
+      "noPendingApprovals": "کوئی زیر التوا منظوری نہیں",
+      "details": "تفصیلات",
+      "qrCode": "QR کوڈ",
+      "personalInfo": "ذاتی معلومات",
+      "mobile": "موبائل",
+      "preferredLanguage": "ترجیحی زبان",
+      "approvalRequiredForQr": "QR کوڈ بنانے سے پہلے کارکن کی منظوری ضروری ہے",
+      "safetyInduction": "حفاظتی تعارف",
+      "inductionDescription": "کارکن کی ترجیحی زبان کی بنیاد پر واٹس ایپ کے ذریعے حفاظتی تعارفی ویڈیو بھیجیں۔",
+      "status": {
+        "pending": "زیر التواء",
+        "approved": "منظور",
+        "rejected": "مسترد"
+      }
     },
     "projects": {
       "title": "ٹھیکیدار پروجیکٹس",
-      "description": "ٹھیکیدار پروجیکٹس اور اسائنمنٹس کا انتظام کریں",
+      "description": "تفصیل",
       "addProject": "پروجیکٹ شامل کریں",
       "editProject": "پروجیکٹ میں ترمیم کریں",
       "noProjects": "کوئی پروجیکٹ نہیں ملا",
@@ -5542,8 +5559,7 @@
       "endDate": "اختتام کی تاریخ",
       "status": "حیثیت",
       "location": "مقام",
-      "schedule": "شیڈول",
-      "description": "تفصیل"
+      "schedule": "شیڈول"
     },
     "workerStatus": {
       "pending": "زیر التوا",
@@ -5553,13 +5569,45 @@
       "revoked": "منسوخ"
     },
     "induction": {
-      "expired": "ختم ہو گئی",
+      "expired": "ختم ہو گیا",
       "expiresInDays": "{{days}} دنوں میں ختم",
       "valid": "درست",
       "notCompleted": "مکمل نہیں",
       "expiredWarning": "انڈکشن ختم ہو گئی",
       "expiringSoonWarning": "انڈکشن جلد ختم ہو رہی ہے",
-      "expiryDate": "اختتام: {{date}}"
+      "expiryDate": "اختتام: {{date}}",
+      "title": "تعارفی ویڈیوز",
+      "description": "ٹھیکیدار کارکنوں کے لیے حفاظتی تعارفی ویڈیوز کا انتظام",
+      "addVideo": "ویڈیو شامل کریں",
+      "editVideo": "ویڈیو میں ترمیم کریں",
+      "deleteVideo": "ویڈیو حذف کریں",
+      "videoTitle": "ویڈیو کا عنوان",
+      "videoTitleAr": "ویڈیو کا عنوان (عربی)",
+      "videoUrl": "ویڈیو URL",
+      "thumbnailUrl": "تھمب نیل URL",
+      "duration": "دورانیہ (سیکنڈ)",
+      "validityPeriod": "درستگی کی مدت (دن)",
+      "language": "زبان",
+      "isActive": "فعال",
+      "status": "تعارف کی حیثیت",
+      "notSent": "نہیں بھیجا گیا",
+      "sent": "بھیجا گیا",
+      "viewed": "دیکھا گیا",
+      "completed": "مکمل",
+      "pending": "زیر التواء",
+      "sentAt": "بھیجنے کی تاریخ",
+      "viewedAt": "دیکھنے کی تاریخ",
+      "completedAt": "مکمل ہونے کی تاریخ",
+      "expiresAt": "ختم ہونے کی تاریخ",
+      "noInductionSent": "ابھی تک اس کارکن کو کوئی تعارف نہیں بھیجا گیا۔",
+      "sendVideo": "تعارفی ویڈیو بھیجیں",
+      "send": "تعارفی ویڈیو بھیجیں",
+      "resend": "تعارفی ویڈیو دوبارہ بھیجیں",
+      "compliance": "تعارف کی تعمیل",
+      "completionRate": "تکمیل کی شرح",
+      "expiringSoon": "جلد ختم ہو رہا ہے",
+      "expiredInductions": "ختم شدہ تعارف",
+      "pendingInductions": "زیر التواء تعارف"
     },
     "nav": {
       "dashboard": "ڈیش بورڈ",
@@ -5734,62 +5782,6 @@
       "noVideoAvailable": "اس زبان کے لیے کوئی تعارفی ویڈیو دستیاب نہیں"
     },
     "inductionVideos": "تعارفی ویڈیوز",
-    "induction": {
-      "title": "تعارفی ویڈیوز",
-      "description": "ٹھیکیدار کارکنوں کے لیے حفاظتی تعارفی ویڈیوز کا انتظام",
-      "addVideo": "ویڈیو شامل کریں",
-      "editVideo": "ویڈیو میں ترمیم کریں",
-      "deleteVideo": "ویڈیو حذف کریں",
-      "videoTitle": "ویڈیو کا عنوان",
-      "videoTitleAr": "ویڈیو کا عنوان (عربی)",
-      "videoUrl": "ویڈیو URL",
-      "thumbnailUrl": "تھمب نیل URL",
-      "duration": "دورانیہ (سیکنڈ)",
-      "validityPeriod": "درستگی کی مدت (دن)",
-      "language": "زبان",
-      "isActive": "فعال",
-      "status": "تعارف کی حیثیت",
-      "notSent": "نہیں بھیجا گیا",
-      "sent": "بھیجا گیا",
-      "viewed": "دیکھا گیا",
-      "completed": "مکمل",
-      "expired": "ختم ہو گیا",
-      "pending": "زیر التواء",
-      "sentAt": "بھیجنے کی تاریخ",
-      "viewedAt": "دیکھنے کی تاریخ",
-      "completedAt": "مکمل ہونے کی تاریخ",
-      "expiresAt": "ختم ہونے کی تاریخ",
-      "noInductionSent": "ابھی تک اس کارکن کو کوئی تعارف نہیں بھیجا گیا۔",
-      "sendVideo": "تعارفی ویڈیو بھیجیں",
-      "send": "تعارفی ویڈیو بھیجیں",
-      "resend": "تعارفی ویڈیو دوبارہ بھیجیں",
-      "compliance": "تعارف کی تعمیل",
-      "completionRate": "تکمیل کی شرح",
-      "expiringSoon": "جلد ختم ہو رہا ہے",
-      "expiredInductions": "ختم شدہ تعارف",
-      "pendingInductions": "زیر التواء تعارف"
-    },
-    "workers": {
-      "details": "تفصیلات",
-      "qrCode": "QR کوڈ",
-      "induction": "تعارف",
-      "personalInfo": "ذاتی معلومات",
-      "nationalId": "قومی شناخت",
-      "nationality": "قومیت",
-      "mobile": "موبائل",
-      "company": "کمپنی",
-      "preferredLanguage": "ترجیحی زبان",
-      "rejectionReason": "مسترد کرنے کی وجہ",
-      "approvalRequiredForQr": "QR کوڈ بنانے سے پہلے کارکن کی منظوری ضروری ہے",
-      "safetyInduction": "حفاظتی تعارف",
-      "inductionDescription": "کارکن کی ترجیحی زبان کی بنیاد پر واٹس ایپ کے ذریعے حفاظتی تعارفی ویڈیو بھیجیں۔",
-      "sendInduction": "تعارفی ویڈیو بھیجیں",
-      "status": {
-        "pending": "زیر التواء",
-        "approved": "منظور",
-        "rejected": "مسترد"
-      }
-    },
     "portal": {
       "dashboard": "ٹھیکیدار پورٹل",
       "welcome": "ٹھیکیدار پورٹل میں خوش آمدید",
@@ -6257,12 +6249,24 @@
       "step5": "کنٹرول کے اقدامات",
       "step6": "حتمی جائزہ"
     },
-    "step1": { "title": "سرگرمی کی تفصیلات" },
-    "step2": { "title": "AI خطرے کا تجزیہ" },
-    "step3": { "title": "تشخیص ٹیم" },
-    "step4": { "title": "خطرات کی شناخت" },
-    "step5": { "title": "کنٹرول کے اقدامات اور بقایا خطرہ" },
-    "step6": { "title": "حتمی جائزہ" },
+    "step1": {
+      "title": "سرگرمی کی تفصیلات"
+    },
+    "step2": {
+      "title": "AI خطرے کا تجزیہ"
+    },
+    "step3": {
+      "title": "تشخیص ٹیم"
+    },
+    "step4": {
+      "title": "خطرات کی شناخت"
+    },
+    "step5": {
+      "title": "کنٹرول کے اقدامات اور بقایا خطرہ"
+    },
+    "step6": {
+      "title": "حتمی جائزہ"
+    },
     "activity": {
       "name": "سرگرمی کا نام",
       "namePlaceholder": "مثلاً، گرم کام - ویلڈنگ آپریشنز",
@@ -6363,7 +6367,14 @@
       "hazards": "خطرات",
       "team": "ٹیم ممبران",
       "controls": "کنٹرولز",
-      "rating": "درجہ بندی"
+      "rating": "درجہ بندی",
+      "highRisk": "زیادہ/نازک",
+      "totalHazards": "کل خطرات",
+      "improved": "بہتر",
+      "avgReduction": "اوسط کمی",
+      "overallReduction": "مجموعی کمی",
+      "riskReductionProgress": "خطرے میں کمی کی پیشرفت",
+      "noHazards": "تجزیہ کرنے کے لیے کوئی خطرات نہیں"
     },
     "team": {
       "requirement": "خطرے کی تشخیص ایک اہل ٹیم کے ذریعے کی جانی چاہیے جس میں سپروائزر، سیفٹی نمائندہ، اور ورکر نمائندہ شامل ہوں۔",
@@ -6512,30 +6523,10 @@
       "totalInitial": "ابتدائی",
       "totalResidual": "بقایا",
       "reduction": "کمی"
-    },
-    "summary": {
-      "hazards": "خطرات",
-      "team": "ٹیم ممبران",
-      "controls": "کنٹرولز",
-      "rating": "درجہ بندی",
-      "highRisk": "زیادہ/نازک",
-      "totalHazards": "کل خطرات",
-      "improved": "بہتر",
-      "avgReduction": "اوسط کمی",
-      "overallReduction": "مجموعی کمی",
-      "riskReductionProgress": "خطرے میں کمی کی پیشرفت",
-      "noHazards": "تجزیہ کرنے کے لیے کوئی خطرات نہیں"
     }
   },
-  "security": {
-    "gate": {
-      "alreadyOnSite": "پہلے سے سائٹ پر موجود",
-      "alreadyOnSiteDesc": "یہ شخص {{time}} سے سائٹ پر موجود ہے"
-    },
-    "workerScanHistory": {
-      "title": "آج کے ورکر اسکینز",
-      "noScans": "آج کوئی ورکر اسکین نہیں",
-      "exitedAt": "باہر نکلا"
-    }
+  "actionCenter": {
+    "adminOverride": "ایڈمن اوور رائیڈ",
+    "adminOverrideTooltip": "آپ یہ آئٹم ایڈمن مراعات کی وجہ سے دیکھ رہے ہیں، براہ راست تفویض کی وجہ سے نہیں"
   }
 }

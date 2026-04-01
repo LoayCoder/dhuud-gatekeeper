@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -111,11 +111,11 @@ export function HSSEExpertRejectionReviewCard({ incident, onComplete }: HSSEExpe
           <div className="flex items-center gap-2 text-sm pt-2 border-t border-border/50">
             <MapPin className={cn(
               "h-4 w-4 flex-shrink-0",
-              (incident.site?.name || incident.latitude) ? "text-green-500" : "text-amber-500"
+              (incident.site?.name || incident.latitude) ? "text-success" : "text-warning"
             )} />
             <span className={cn(
               !(incident.site?.name || incident.branch?.name || incident.location || incident.latitude) 
-                ? "text-amber-600 dark:text-amber-400" 
+                ? "text-warning" 
                 : "text-muted-foreground"
             )}>
               {incident.site?.name || 
@@ -184,7 +184,7 @@ export function HSSEExpertRejectionReviewCard({ incident, onComplete }: HSSEExpe
         <div className="flex flex-col sm:flex-row gap-3 pt-2">
           <Button
             variant="outline"
-            className="flex-1 flex items-center justify-center gap-2 text-red-600 border-red-300 hover:bg-red-50"
+            className="flex-1 flex items-center justify-center gap-2 text-destructive border-destructive/30 hover:bg-destructive/5"
             onClick={handleRejectRejection}
             disabled={rejectionReview.isPending}
           >
@@ -197,7 +197,7 @@ export function HSSEExpertRejectionReviewCard({ incident, onComplete }: HSSEExpe
           </Button>
           
           <Button
-            className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+            className="flex-1 flex items-center justify-center gap-2 bg-success hover:bg-success/90 text-success-foreground"
             onClick={handleApproveRejection}
             disabled={rejectionReview.isPending}
           >

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -350,10 +350,12 @@ export function RCAPanel({
           <p className="text-muted-foreground mb-4">
             {t('investigation.rca.noInvestigation', 'No investigation has been started for this incident.')}
           </p>
-          <Button onClick={() => createInvestigation.mutateAsync(incidentId)} disabled={createInvestigation.isPending}>
-            {createInvestigation.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
-            {t('investigation.startInvestigation', 'Start Investigation')}
-          </Button>
+          {canEditProp !== false && (
+            <Button onClick={() => createInvestigation.mutateAsync(incidentId)} disabled={createInvestigation.isPending}>
+              {createInvestigation.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+              {t('investigation.startInvestigation', 'Start Investigation')}
+            </Button>
+          )}
         </CardContent>
       </Card>
     );

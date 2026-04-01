@@ -35,10 +35,31 @@ export function useReporterResponse() {
             const { handleReporterResponse } = await import('@/features/incidents');
             return handleReporterResponse(input, user.id, profile.tenant_id);
         },
-        onSuccess: (_, variables) => {
+        onSuccess: async (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['incidents'] }); queryClient.invalidateQueries({ queryKey: ['incident'] });
             const messages: Record<string, string> = { resubmit: "Event resubmitted for review", resubmit_to_expert: "Event resubmitted to HSSE Expert for re-screening", confirm_rejection: "Rejection confirmed, event closed", dispute_rejection: "Dispute submitted to HSSE Manager" };
             toast({ title: "Success", description: messages[variables.action] });
+
+            // Trigger AI re-analysis on resubmission to update stale classifications
+            if (variables.action === 'resubmit' || variables.action === 'resubmit_to_expert') {
+                try {
+                    const { data: incidentData } = await supabase
+                        .from('incidents')
+                        .select('description')
+                        .eq('id', variables.incidentId)
+                        .single();
+                    
+                    if (incidentData?.description) {
+                        await supabase.functions.invoke('analyze-observation', {
+                            body: { incidentId: variables.incidentId, description: incidentData.description, responseLanguage: 'en' }
+                        });
+                        // Refresh to pick up any updated AI classifications
+                        queryClient.invalidateQueries({ queryKey: ['incident', variables.incidentId] });
+                    }
+                } catch (e) {
+                    console.error('[ReporterResponse] AI re-analysis failed (non-blocking):', e);
+                }
+            }
         },
         onError: (error) => { toast({ title: "Error", description: error.message, variant: "destructive" }); },
     });

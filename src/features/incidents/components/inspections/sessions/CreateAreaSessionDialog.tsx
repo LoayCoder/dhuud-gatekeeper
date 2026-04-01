@@ -4,17 +4,19 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CalendarIcon, Loader2, Plus, X } from 'lucide-react';
+import { CalendarIcon, Loader2, Plus, X, AlertTriangle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { NativeSelect } from '@/components/ui/native-select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { useAreaTemplates, useCreateAreaSession, useStartAreaSession } from '@/hooks/use-area-inspections';
+import { useTemplateItemCount } from '@/hooks/use-template-item-count';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
@@ -58,12 +60,10 @@ export function CreateAreaSessionDialog({ open, onOpenChange }: CreateAreaSessio
   const watchedBuilding = form.watch('buildingId');
   const watchedPeriodDate = form.watch('periodDate');
 
-  // Attendees kept as useState (dynamic array with input buffer)
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [newAttendeeName, setNewAttendeeName] = useState<string>('');
   const [newAttendeeRole, setNewAttendeeRole] = useState<string>('');
   
-  // Lookup data
   const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
   const [sites, setSites] = useState<{ id: string; name: string; branch_id: string | null }[]>([]);
   const [buildings, setBuildings] = useState<{ id: string; name: string; site_id: string }[]>([]);
@@ -73,7 +73,10 @@ export function CreateAreaSessionDialog({ open, onOpenChange }: CreateAreaSessio
   const createSession = useCreateAreaSession();
   const startSession = useStartAreaSession();
   
-  // Fetch location hierarchy
+  const watchedTemplateId = form.watch('templateId');
+  const { data: itemCount, isLoading: itemCountLoading } = useTemplateItemCount(watchedTemplateId || undefined);
+  const hasNoItems = !itemCountLoading && watchedTemplateId && itemCount === 0;
+  
   useEffect(() => {
     if (!profile?.tenant_id) return;
     
@@ -94,7 +97,6 @@ export function CreateAreaSessionDialog({ open, onOpenChange }: CreateAreaSessio
     fetchData();
   }, [profile?.tenant_id]);
   
-  // Filter cascading dropdowns
   const filteredSites = watchedBranch 
     ? sites.filter(s => s.branch_id === watchedBranch)
     : sites;
@@ -107,7 +109,6 @@ export function CreateAreaSessionDialog({ open, onOpenChange }: CreateAreaSessio
     ? floorsZones.filter(f => f.building_id === watchedBuilding)
     : floorsZones;
 
-  // Cascade handlers
   const handleBranchChange = (value: string) => {
     form.setValue('branchId', value === '__all__' ? '' : value);
     form.setValue('siteId', '');
@@ -162,7 +163,7 @@ export function CreateAreaSessionDialog({ open, onOpenChange }: CreateAreaSessio
       
       toast({ title: t('common.success'), description: t('inspectionSessions.sessionCreated') });
       onOpenChange(false);
-      navigate(`/inspections/sessions/${session.id}`);
+      navigate(`/inspections/sessions/${session.id}/area`);
     } catch (error: unknown) {
       toast({ title: t('common.error'), description: error instanceof Error ? error.message : 'Error', variant: 'destructive' });
     }
@@ -179,7 +180,7 @@ export function CreateAreaSessionDialog({ open, onOpenChange }: CreateAreaSessio
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-            {/* Area Template */}
+            {/* Area Template — stable options, keep Radix */}
             <FormField
               control={form.control}
               name="templateId"
@@ -200,6 +201,12 @@ export function CreateAreaSessionDialog({ open, onOpenChange }: CreateAreaSessio
                       ))}
                     </SelectContent>
                   </Select>
+                  {hasNoItems && (
+                    <p className="text-sm text-destructive flex items-center gap-1 mt-1">
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      {t('inspectionSessions.templateHasNoItems')}
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -238,77 +245,64 @@ export function CreateAreaSessionDialog({ open, onOpenChange }: CreateAreaSessio
               )}
             />
             
-            {/* Location Hierarchy — 4-level cascade */}
+            {/* Branch — native select (cascading) */}
             <div className="space-y-2">
               <Label>{t('orgStructure.branch')} ({t('common.optional')})</Label>
-              <Select value={watchedBranch || "__all__"} onValueChange={handleBranchChange} dir={direction}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('inspectionSessions.allSites')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">{t('common.all')}</SelectItem>
-                  {branches.map((branch) => (
-                    <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <NativeSelect
+                value={watchedBranch || '__all__'}
+                onChange={handleBranchChange}
+                placeholder={t('common.all')}
+                options={branches.map(b => ({ value: b.id, label: b.name }))}
+                dir={direction}
+              />
             </div>
             
+            {/* Site — native select (cascading) */}
             <div className="space-y-2">
               <Label>{t('inspectionSessions.selectSite')} ({t('common.optional')})</Label>
-              <Select value={watchedSite || "__all__"} onValueChange={handleSiteChange} dir={direction}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('inspectionSessions.allSites')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">{t('inspectionSessions.allSites')}</SelectItem>
-                  {filteredSites.map((site) => (
-                    <SelectItem key={site.id} value={site.id}>{site.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <NativeSelect
+                value={form.watch('siteId') || '__all__'}
+                onChange={(v) => handleSiteChange(v)}
+                placeholder={t('inspectionSessions.allSites')}
+                options={filteredSites.map(s => ({ value: s.id, label: s.name }))}
+                dir={direction}
+              />
             </div>
             
+            {/* Building — native select (cascading) */}
             <div className="space-y-2">
               <Label>{t('inspectionSessions.selectBuilding')} ({t('common.optional')})</Label>
-              <Select value={watchedBuilding || "__all__"} onValueChange={handleBuildingChange} dir={direction} disabled={!watchedSite}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('common.all')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">{t('common.all')}</SelectItem>
-                  {filteredBuildings.map((building) => (
-                    <SelectItem key={building.id} value={building.id}>{building.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <NativeSelect
+                value={watchedBuilding || '__all__'}
+                onChange={handleBuildingChange}
+                placeholder={t('common.all')}
+                options={filteredBuildings.map(b => ({ value: b.id, label: b.name }))}
+                disabled={!watchedSite}
+                dir={direction}
+              />
             </div>
             
+            {/* Floor/Zone — native select (cascading) */}
             <FormField
               control={form.control}
               name="floorZoneId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('inspectionSessions.selectFloor')} ({t('common.optional')})</FormLabel>
-                  <Select value={field.value || "__all__"} onValueChange={(v) => field.onChange(v === "__all__" ? "" : v)} dir={direction} disabled={!watchedBuilding}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('common.all')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="__all__">{t('common.all')}</SelectItem>
-                      {filteredFloorsZones.map((floor) => (
-                        <SelectItem key={floor.id} value={floor.id}>{floor.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <NativeSelect
+                    value={field.value || '__all__'}
+                    onChange={(v) => field.onChange(v === '__all__' ? '' : v)}
+                    placeholder={t('common.all')}
+                    options={filteredFloorsZones.map(f => ({ value: f.id, label: f.name }))}
+                    disabled={!watchedBuilding}
+                    dir={direction}
+                  />
                   <FormMessage />
                 </FormItem>
               )}
             />
             
-            {/* Weather Conditions */}
+            {/* Weather Conditions — stable options, keep Radix */}
             <FormField
               control={form.control}
               name="weatherConditions"
@@ -354,7 +348,7 @@ export function CreateAreaSessionDialog({ open, onOpenChange }: CreateAreaSessio
               )}
             />
             
-            {/* Attendees (kept as useState — dynamic array with input buffer) */}
+            {/* Attendees */}
             <div className="space-y-2">
               <Label>{t('inspectionSessions.attendees')} ({t('common.optional')})</Label>
               
@@ -409,7 +403,7 @@ export function CreateAreaSessionDialog({ open, onOpenChange }: CreateAreaSessio
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
                 {t('common.cancel')}
               </Button>
-              <Button type="submit" disabled={isLoading || !form.watch('templateId')}>
+              <Button type="submit" disabled={isLoading || !watchedTemplateId || !!hasNoItems}>
                 {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
                 {t('inspectionSessions.startInspection')}
               </Button>

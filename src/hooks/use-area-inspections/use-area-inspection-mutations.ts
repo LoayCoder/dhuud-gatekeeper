@@ -244,6 +244,7 @@ export function useSaveAreaResponse() {
                     .from('area_inspection_findings')
                     .select('id')
                     .eq('response_id', responseRecord.id)
+                    .neq('status', 'closed')
                     .is('deleted_at', null)
                     .maybeSingle();
 
@@ -282,49 +283,6 @@ export function useSaveAreaResponse() {
             queryClient.invalidateQueries({ queryKey: ['area-checklist-progress', sessionId] });
             queryClient.invalidateQueries({ queryKey: ['area-findings', sessionId] });
             queryClient.invalidateQueries({ queryKey: ['area-findings-count', sessionId] });
-        },
-    });
-}
-
-/**
- * Complete area inspection session
- */
-export function useCompleteAreaSession() {
-    const queryClient = useQueryClient();
-    const { t } = useTranslation();
-
-    return useMutation({
-        mutationFn: async (sessionId: string) => {
-            // Check if there are any failed items
-            const { count: failedResponsesCount } = await supabase
-                .from('area_inspection_responses')
-                .select('id', { count: 'exact', head: true })
-                .eq('session_id', sessionId)
-                .eq('result', 'fail');
-
-            const hasOpenActions = (failedResponsesCount || 0) > 0;
-
-            const { data, error } = await supabase
-                .from('inspection_sessions')
-                .update({
-                    status: hasOpenActions ? 'completed_with_open_actions' : 'closed',
-                    completed_at: new Date().toISOString(),
-                    closed_at: hasOpenActions ? null : new Date().toISOString(),
-                })
-                .eq('id', sessionId)
-                .select()
-                .single();
-
-            if (error) throw error;
-            return data;
-        },
-        onSuccess: (_, sessionId) => {
-            queryClient.invalidateQueries({ queryKey: ['inspection-sessions'] });
-            queryClient.invalidateQueries({ queryKey: ['inspection-session', sessionId] });
-            toast.success(t('inspections.sessionCompleted'));
-        },
-        onError: (error: Error) => {
-            toast.error(error.message);
         },
     });
 }

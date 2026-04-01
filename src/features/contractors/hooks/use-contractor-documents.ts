@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -67,6 +68,7 @@ export function useContractorDocuments(filters: ContractorDocumentFilters = {}) 
 
 export function useUploadContractorDocument() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { profile } = useAuth();
 
   return useMutation({
@@ -118,7 +120,7 @@ export function useUploadContractorDocument() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contractor-documents"] });
-      toast.success("Document uploaded");
+      toast.success(t("contractors.messages.documentUploaded", "Document uploaded"));
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -128,6 +130,7 @@ export function useUploadContractorDocument() {
 
 export function useDeleteContractorDocument() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   return useMutation({
     mutationFn: async (documentId: string) => {
@@ -140,7 +143,7 @@ export function useDeleteContractorDocument() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contractor-documents"] });
-      toast.success("Document deleted");
+      toast.success(t("contractors.messages.documentDeleted", "Document deleted"));
     },
     onError: (error: Error) => {
       toast.error(error.message);

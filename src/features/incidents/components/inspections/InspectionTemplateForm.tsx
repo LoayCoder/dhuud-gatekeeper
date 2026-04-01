@@ -55,8 +55,10 @@ const templateSchema = z.object({
   requires_gps: z.boolean().default(false),
   category_id: z.string().optional(),
   type_id: z.string().optional(),
+  subtype_id: z.string().optional(),
   branch_id: z.string().optional(),
   site_id: z.string().optional(),
+  building_id: z.string().optional(),
   is_active: z.boolean().default(true),
 });
 
@@ -104,8 +106,10 @@ export function InspectionTemplateForm({
       requires_gps: false,
       category_id: undefined,
       type_id: undefined,
+      subtype_id: undefined,
       branch_id: undefined,
       site_id: undefined,
+      building_id: undefined,
       is_active: true,
     },
   });
@@ -193,8 +197,10 @@ export function InspectionTemplateForm({
         requires_gps: template?.requires_gps || false,
         category_id: template?.category_id || undefined,
         type_id: template?.type_id || undefined,
+        subtype_id: template?.subtype_id || undefined,
         branch_id: template?.branch_id || undefined,
         site_id: template?.site_id || undefined,
+        building_id: template?.building_id || undefined,
         is_active: template?.is_active ?? true,
       });
     }
@@ -260,6 +266,8 @@ export function InspectionTemplateForm({
   });
   
   const selectedCategoryId = form.watch('category_id');
+  const selectedTypeId = form.watch('type_id');
+  const selectedSiteId = form.watch('site_id');
   
   const { data: assetTypes } = useQuery({
     queryKey: ['asset-types', selectedCategoryId],
@@ -275,6 +283,45 @@ export function InspectionTemplateForm({
       return data;
     },
     enabled: !!selectedCategoryId && templateType === 'asset',
+  });
+
+  // Fetch asset subtypes based on selected type
+  const { data: assetSubtypes } = useQuery({
+    queryKey: ['asset-subtypes', selectedTypeId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('asset_subtypes')
+        .select('id, name, name_ar')
+        .eq('type_id', selectedTypeId!)
+        .eq('is_active', true)
+        .is('deleted_at', null)
+        .order('name');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedTypeId && templateType === 'asset',
+  });
+
+  // Fetch buildings based on selected site
+  const { data: buildings } = useQuery({
+    queryKey: ['buildings', profile?.tenant_id, selectedSiteId],
+    queryFn: async () => {
+      let query = supabase
+        .from('buildings')
+        .select('id, name, name_ar')
+        .eq('tenant_id', profile!.tenant_id)
+        .is('deleted_at', null)
+        .order('name');
+      
+      if (selectedSiteId) {
+        query = query.eq('site_id', selectedSiteId);
+      }
+      
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!profile?.tenant_id,
   });
   
   // Check if template code already exists for the tenant
@@ -314,8 +361,10 @@ export function InspectionTemplateForm({
       area_type: templateType === 'area' ? data.area_type : undefined,
       category_id: templateType === 'asset' ? data.category_id : undefined,
       type_id: templateType === 'asset' ? data.type_id : undefined,
+      subtype_id: templateType === 'asset' ? data.subtype_id : undefined,
       branch_id: data.branch_id || undefined,
       site_id: data.site_id || undefined,
+      building_id: data.building_id || undefined,
     });
     form.reset();
   };
@@ -527,6 +576,7 @@ export function InspectionTemplateForm({
                             onValueChange={(val) => {
                               field.onChange(val || undefined);
                               form.setValue('type_id', undefined);
+                              form.setValue('subtype_id', undefined);
                             }}
                             dir={direction}
                           >
@@ -556,7 +606,10 @@ export function InspectionTemplateForm({
                           <FormLabel>{t('inspections.linkedType')}</FormLabel>
                           <Select
                             value={field.value || ''}
-                            onValueChange={(val) => field.onChange(val || undefined)}
+                            onValueChange={(val) => {
+                              field.onChange(val || undefined);
+                              form.setValue('subtype_id', undefined);
+                            }}
                             disabled={!selectedCategoryId}
                             dir={direction}
                           >
@@ -569,6 +622,36 @@ export function InspectionTemplateForm({
                               {assetTypes?.map((type) => (
                                 <SelectItem key={type.id} value={type.id}>
                                   {direction === 'rtl' ? type.name_ar || type.name : type.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="subtype_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('inspections.linkedSubtype', 'Subtype')}</FormLabel>
+                          <Select
+                            value={field.value || ''}
+                            onValueChange={(val) => field.onChange(val || undefined)}
+                            disabled={!selectedTypeId}
+                            dir={direction}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('common.selectOptional')} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {assetSubtypes?.map((subtype) => (
+                                <SelectItem key={subtype.id} value={subtype.id}>
+                                  {direction === 'rtl' ? subtype.name_ar || subtype.name : subtype.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -666,6 +749,7 @@ export function InspectionTemplateForm({
                         onValueChange={(val) => {
                           field.onChange(val || undefined);
                           form.setValue('site_id', undefined);
+                          form.setValue('building_id', undefined);
                         }}
                         dir={direction}
                       >
@@ -695,7 +779,10 @@ export function InspectionTemplateForm({
                       <FormLabel>{t('inspections.linkedSite')}</FormLabel>
                       <Select
                         value={field.value || ''}
-                        onValueChange={(val) => field.onChange(val || undefined)}
+                        onValueChange={(val) => {
+                          field.onChange(val || undefined);
+                          form.setValue('building_id', undefined);
+                        }}
                         dir={direction}
                       >
                         <FormControl>
@@ -707,6 +794,36 @@ export function InspectionTemplateForm({
                           {sites?.map((site) => (
                             <SelectItem key={site.id} value={site.id}>
                               {site.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="building_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('inspections.linkedBuilding', 'Building')}</FormLabel>
+                      <Select
+                        value={field.value || ''}
+                        onValueChange={(val) => field.onChange(val || undefined)}
+                        disabled={!selectedSiteId}
+                        dir={direction}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={t('common.selectOptional')} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {buildings?.map((building) => (
+                            <SelectItem key={building.id} value={building.id}>
+                              {direction === 'rtl' ? building.name_ar || building.name : building.name}
                             </SelectItem>
                           ))}
                         </SelectContent>

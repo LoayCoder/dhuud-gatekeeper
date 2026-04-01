@@ -1,4 +1,4 @@
-﻿
+
 import { useInvestigationContext } from "@/features/investigation/context/InvestigationContext";
 import { useTranslation } from "react-i18next";
 import { TeamInvestigationAssignmentStep } from '@/features/investigation';

@@ -30,6 +30,7 @@ export function useInspectionTemplateCategories() {
       const { data, error } = await supabase
         .from('inspection_template_categories')
         .select('id, code, name, name_ar, description, description_ar, icon, color, sort_order, is_active, is_system')
+        .or(`tenant_id.eq.${profile!.tenant_id},tenant_id.is.null`)
         .is('deleted_at', null)
         .eq('is_active', true)
         .order('sort_order');

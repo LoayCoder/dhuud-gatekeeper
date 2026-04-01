@@ -1,4 +1,4 @@
-﻿import { StakeholderRole, EventType, NotificationMatrixRule } from '@/features/notifications';
+import { StakeholderRole, EventType, NotificationMatrixRule } from '@/features/notifications';
 
 export interface RuleFormState {
   stakeholder_role: StakeholderRole | '';

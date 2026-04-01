@@ -4,18 +4,20 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CalendarIcon, Loader2, Plus, X, Shield, Users } from 'lucide-react';
+import { CalendarIcon, Loader2, Plus, X, Shield, Users, AlertTriangle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { NativeSelect } from '@/components/ui/native-select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { useAuditTemplates, useCreateAuditSession, useStartAuditSession } from '@/hooks/use-audit-sessions';
+import { useTemplateItemCount } from '@/hooks/use-template-item-count';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
@@ -56,12 +58,10 @@ export function CreateAuditSessionDialog({ open, onOpenChange }: CreateAuditSess
   const watchedTemplateId = form.watch('templateId');
   const watchedPeriodDate = form.watch('periodDate');
 
-  // Audit team kept as useState (dynamic array with input buffer)
   const [auditTeam, setAuditTeam] = useState<TeamMember[]>([]);
   const [newMemberName, setNewMemberName] = useState<string>('');
   const [newMemberRole, setNewMemberRole] = useState<string>('');
   
-  // Lookup data
   const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
   const [sites, setSites] = useState<{ id: string; name: string; branch_id: string | null }[]>([]);
   const [buildings, setBuildings] = useState<{ id: string; name: string; site_id: string }[]>([]);
@@ -70,9 +70,11 @@ export function CreateAuditSessionDialog({ open, onOpenChange }: CreateAuditSess
   const createSession = useCreateAuditSession();
   const startSession = useStartAuditSession();
   
+  const { data: itemCount, isLoading: itemCountLoading } = useTemplateItemCount(watchedTemplateId || undefined);
+  const hasNoItems = !itemCountLoading && watchedTemplateId && itemCount === 0;
+  
   const selectedTemplate = templates.find(t => t.id === watchedTemplateId);
   
-  // Fetch location hierarchy
   useEffect(() => {
     if (!profile?.tenant_id) return;
     
@@ -99,7 +101,6 @@ export function CreateAuditSessionDialog({ open, onOpenChange }: CreateAuditSess
     ? buildings.filter(b => b.site_id === watchedSite)
     : buildings;
 
-  // Cascade handlers
   const handleBranchChange = (value: string) => {
     form.setValue('branchId', value === '__all__' ? '' : value);
     form.setValue('siteId', '');
@@ -146,7 +147,7 @@ export function CreateAuditSessionDialog({ open, onOpenChange }: CreateAuditSess
       
       toast({ title: t('common.success'), description: t('audits.sessionCreated') });
       onOpenChange(false);
-      navigate(`/inspections/audit/${session.id}`);
+      navigate(`/inspections/sessions/${session.id}/audit`);
     } catch (error: unknown) {
       toast({ title: t('common.error'), description: error instanceof Error ? error.message : 'Error', variant: 'destructive' });
     }
@@ -166,7 +167,7 @@ export function CreateAuditSessionDialog({ open, onOpenChange }: CreateAuditSess
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-            {/* Audit Template */}
+            {/* Audit Template — stable options, keep Radix */}
             <FormField
               control={form.control}
               name="templateId"
@@ -192,6 +193,12 @@ export function CreateAuditSessionDialog({ open, onOpenChange }: CreateAuditSess
                       ))}
                     </SelectContent>
                   </Select>
+                  {hasNoItems && (
+                    <p className="text-sm text-destructive flex items-center gap-1 mt-1">
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      {t('inspectionSessions.templateHasNoItems')}
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -246,58 +253,46 @@ export function CreateAuditSessionDialog({ open, onOpenChange }: CreateAuditSess
               )}
             />
             
-            {/* Location Hierarchy — 3-level cascade */}
+            {/* Location Hierarchy — native selects (cascading) */}
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>{t('orgStructure.branch')} ({t('common.optional')})</Label>
-                <Select value={watchedBranch || "__all__"} onValueChange={handleBranchChange} dir={direction}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('common.all')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__all__">{t('common.all')}</SelectItem>
-                    {branches.map((branch) => (
-                      <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <NativeSelect
+                  value={watchedBranch || '__all__'}
+                  onChange={handleBranchChange}
+                  placeholder={t('common.all')}
+                  options={branches.map(b => ({ value: b.id, label: b.name }))}
+                  dir={direction}
+                />
               </div>
               
               <div className="space-y-2">
                 <Label>{t('inspectionSessions.selectSite')} ({t('common.optional')})</Label>
-                <Select value={watchedSite || "__all__"} onValueChange={handleSiteChange} dir={direction}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('common.all')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__all__">{t('common.all')}</SelectItem>
-                    {filteredSites.map((site) => (
-                      <SelectItem key={site.id} value={site.id}>{site.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <NativeSelect
+                  value={form.watch('siteId') || '__all__'}
+                  onChange={handleSiteChange}
+                  placeholder={t('common.all')}
+                  options={filteredSites.map(s => ({ value: s.id, label: s.name }))}
+                  dir={direction}
+                />
               </div>
             </div>
             
+            {/* Building — native select (cascading) */}
             <FormField
               control={form.control}
               name="buildingId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('inspectionSessions.selectBuilding')} ({t('common.optional')})</FormLabel>
-                  <Select value={field.value || "__all__"} onValueChange={(v) => field.onChange(v === "__all__" ? "" : v)} dir={direction} disabled={!watchedSite}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('common.all')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="__all__">{t('common.all')}</SelectItem>
-                      {filteredBuildings.map((building) => (
-                        <SelectItem key={building.id} value={building.id}>{building.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <NativeSelect
+                    value={field.value || '__all__'}
+                    onChange={(v) => field.onChange(v === '__all__' ? '' : v)}
+                    placeholder={t('common.all')}
+                    options={filteredBuildings.map(b => ({ value: b.id, label: b.name }))}
+                    disabled={!watchedSite}
+                    dir={direction}
+                  />
                   <FormMessage />
                 </FormItem>
               )}
@@ -341,7 +336,7 @@ export function CreateAuditSessionDialog({ open, onOpenChange }: CreateAuditSess
               )}
             />
             
-            {/* Audit Team (kept as useState — dynamic array with input buffer) */}
+            {/* Audit Team */}
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
@@ -399,7 +394,7 @@ export function CreateAuditSessionDialog({ open, onOpenChange }: CreateAuditSess
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
                 {t('common.cancel')}
               </Button>
-              <Button type="submit" disabled={isLoading || !watchedTemplateId}>
+              <Button type="submit" disabled={isLoading || !watchedTemplateId || !!hasNoItems}>
                 {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
                 {t('audits.startAudit')}
               </Button>

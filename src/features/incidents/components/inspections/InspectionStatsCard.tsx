@@ -60,18 +60,18 @@ export function InspectionStatsCard() {
         <Progress value={stats.complianceRate} className="h-2" />
         
         <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="p-2 rounded-lg bg-green-500/10">
-            <CheckCircle className="h-4 w-4 text-green-600 mx-auto mb-1" />
+          <div className="p-2 rounded-lg bg-success/10">
+            <CheckCircle className="h-4 w-4 text-success mx-auto mb-1" />
             <p className="text-sm font-medium">{stats.passed}</p>
             <p className="text-xs text-muted-foreground">{t('inspections.results.pass')}</p>
           </div>
-          <div className="p-2 rounded-lg bg-yellow-500/10">
-            <AlertTriangle className="h-4 w-4 text-yellow-600 mx-auto mb-1" />
+          <div className="p-2 rounded-lg bg-warning/10">
+            <AlertTriangle className="h-4 w-4 text-warning mx-auto mb-1" />
             <p className="text-sm font-medium">{stats.partial}</p>
             <p className="text-xs text-muted-foreground">{t('inspections.results.partial')}</p>
           </div>
-          <div className="p-2 rounded-lg bg-red-500/10">
-            <XCircle className="h-4 w-4 text-red-600 mx-auto mb-1" />
+          <div className="p-2 rounded-lg bg-destructive/10">
+            <XCircle className="h-4 w-4 text-destructive mx-auto mb-1" />
             <p className="text-sm font-medium">{stats.failed}</p>
             <p className="text-xs text-muted-foreground">{t('inspections.results.fail')}</p>
           </div>

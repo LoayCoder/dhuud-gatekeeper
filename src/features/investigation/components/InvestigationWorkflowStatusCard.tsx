@@ -1,4 +1,4 @@
-﻿import { useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -106,18 +106,32 @@ export function InvestigationWorkflowStatusCard({
         'pending_hsse_validation',
         'pending_hsse_manager_closure',
         'pending_final_closure',
-        'upgraded_to_incident'
+        'upgraded_to_incident',
+        'pending_hsse_expert_review',
+        'pending_hsse_rejection_review',
+        'pending_hsse_escalation_review',
+        'pending_consultant_screening',
+        'pending_consultant_review',
+        'pending_consultant_actions',
+        'pending_consultant_verification',
+        'pending_site_client_approval',
+        'pending_site_client_action_approval',
+        'contractor_action_implementation',
+        'pending_contractor_action',
+        'pending_contractor_implementation',
+        'pending_action_dispute_review',
       ].includes(status);
       
+      const deptRepCurrentStatuses = ['pending_dept_rep_approval', 'pending_dept_rep_review', 'pending_dept_rep_mandatory_action'];
       steps.push({
         key: 'dept_rep',
         label: t('workflow.steps.deptRepReview', 'Department Rep Review'),
         icon: <ClipboardCheck className="h-5 w-5" />,
-        status: status === 'pending_dept_rep_approval' ? 'current' : 
+        status: deptRepCurrentStatuses.includes(status) ? 'current' : 
                 deptRepCompleted ? 'completed' : 'pending',
         actorName: workflowActors?.dept_rep?.full_name,
         timestamp: workflowActors?.dept_rep?.timestamp,
-        description: status === 'pending_dept_rep_approval' 
+        description: deptRepCurrentStatuses.includes(status)
           ? t('workflow.descriptions.awaitingDeptRep', 'Awaiting department representative review')
           : deptRepCompleted ? t('workflow.descriptions.deptRepApproved', 'Reviewed and approved') : undefined
       });
@@ -453,7 +467,7 @@ export function InvestigationWorkflowStatusCard({
                         <span className="text-sm font-medium">{step.actorName}</span>
                         {step.timestamp && (
                           <span className="text-xs text-muted-foreground">
-                            â€¢ {formatDate(step.timestamp)}
+                            • {formatDate(step.timestamp)}
                           </span>
                         )}
                       </div>

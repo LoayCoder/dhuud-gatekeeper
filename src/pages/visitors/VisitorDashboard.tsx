@@ -1,4 +1,4 @@
-﻿import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -164,7 +164,7 @@ export default function VisitorDashboard() {
                         </div>
                         <div className="text-sm text-muted-foreground mt-1">
                           <span>{request.visitor?.company_name}</span>
-                          {request.site && <span> â€¢ {request.site.name}</span>}
+                          {request.site && <span> • {request.site.name}</span>}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           {format(new Date(request.valid_from), 'PPp')} - {format(new Date(request.valid_until), 'PPp')}

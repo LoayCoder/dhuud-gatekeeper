@@ -1,63 +1,80 @@
 
-# Fix "Take Action" Button for Department Representative
 
-## Problem
-When Khalid Al Shuhail (Department Representative) views an incident and clicks "Take Action" in the CurrentOwnerCard, nothing happens. Two root causes:
+# Audit Report: Inspections & Audits Module — Gaps & Fixes
 
-1. **The "Take Action" button has no `onClick` handler** -- it's purely cosmetic (line 105 of `CurrentOwnerCard.tsx`).
-2. **The `pending_dept_rep_review` status is missing from `renderWorkflowCards()`** in `InvestigationWorkspace.tsx` -- so the actual DeptRepApprovalCard never renders for that status.
+## Summary
 
-## What Changes
+After thorough code review across all workspace pages, hooks, mutations, session creation dialogs, findings, lifecycle, dashboard, analytics, schedules, exports, and templates, here are the remaining gaps:
 
-### 1. Add `pending_dept_rep_review` to `renderWorkflowCards()` (InvestigationWorkspace.tsx)
+---
 
-The switch statement at line 380 only handles `pending_dept_rep_approval`. The newer `pending_dept_rep_review` status (used for non-contractor observations) is not mapped, so no workflow action card appears.
+## GAP 1: No "Create Audit Session" Button on Sessions Dashboard (CRITICAL)
 
-**Fix:** Add `pending_dept_rep_review` as a case that falls through to the same `DeptRepApprovalCard`:
+The `InspectionSessionsDashboard.tsx` has buttons for **Asset** (`CreateSessionDialog`) and **Area** (`CreateAreaSessionDialog`) sessions, but **no button for Audit sessions**. The `CreateAuditSessionDialog` component exists but is never rendered on the dashboard.
 
-```typescript
-case 'pending_dept_rep_review':
-case 'pending_dept_rep_approval':
-  return (
-    <DeptRepApprovalCard
-      incident={incidentData}
-      onComplete={handleRefresh}
-    />
-  );
-```
+**Fix:** Add a third button and dialog state for `CreateAuditSessionDialog` in `InspectionSessionsDashboard.tsx`.
 
-### 2. Wire "Take Action" Button to Scroll to Workflow Card (CurrentOwnerCard.tsx)
+---
 
-The "Take Action" button should scroll the user down to the workflow action card (e.g., `DeptRepApprovalCard`) so they can perform the actual approval/rejection.
+## GAP 2: Audit Workspace — No Sticky Completion Bar (MODERATE)
 
-**Fix:** Add an `onClick` handler that scrolls to the workflow card section:
+The Area workspace has a sticky bottom bar showing progress + "Complete Inspection" button. The **Audit workspace** has no equivalent — users must scroll to the sidebar to find the status card's complete button.
 
-```typescript
-<Button
-  size="lg"
-  className="shadow-lg px-8"
-  onClick={() => {
-    // Scroll to the workflow action card
-    const workflowCard = document.querySelector('[data-workflow-card]');
-    if (workflowCard) {
-      workflowCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }}
->
-  Take Action
-  <ArrowRight className="h-4 w-4 ml-2" />
-</Button>
-```
+**Fix:** Add a sticky completion bar to `AuditSessionWorkspace.tsx` (same pattern as Area workspace), showing `progress.responded / progress.total` and a "Complete Audit" button.
 
-And add a `data-workflow-card` attribute to the wrapper div in `renderWorkflowCards()` output so the scroll target is discoverable.
+---
 
-### 3. Localize the Button Text
+## GAP 3: Audit Workspace — FindingsPanel Only Shows After Completion (MODERATE)
 
-Replace the hardcoded "Take Action" text with a translation key: `t('workflow.currentOwner.takeAction', 'Take Action')`. Also localize "Send Reminder" and "Escalate" buttons in the same card. Add Arabic translations.
+In `AuditSessionWorkspace.tsx` line 422: `{(findingsCount?.total ?? 0) > 0 && (...)}`. This means findings are invisible during `in_progress` even though the audit save mutation auto-creates findings on non-conforming items.
 
-## Files Modified
+**Fix:** Change condition to also show during `in_progress`: `{(session.status === 'in_progress' || (findingsCount?.total ?? 0) > 0) && (...)}` — matching the Area workspace pattern.
 
-1. **`src/pages/incidents/InvestigationWorkspace.tsx`** -- Add `pending_dept_rep_review` case to `renderWorkflowCards()`, wrap workflow card output with `data-workflow-card` attribute
-2. **`src/components/investigation/CurrentOwnerCard.tsx`** -- Add `onClick` scroll handler to "Take Action" button, localize button texts
-3. **`src/locales/en/translation.json`** -- Add `workflow.currentOwner.takeAction`, `workflow.currentOwner.sendReminder`, `workflow.currentOwner.escalate`
-4. **`src/locales/ar/translation.json`** -- Add Arabic translations for the same keys
+---
+
+## GAP 4: Audit Finding Dedup — Missing `.neq('status', 'closed')` (BUG)
+
+In `use-audit-session-mutations.ts` line 143-148, the audit save mutation's finding dedup check does NOT exclude closed findings (unlike the area mutation which was fixed). This causes the same race condition: changing conforming → non-conforming → conforming → non-conforming will fail to create a new finding.
+
+**Fix:** Add `.neq('status', 'closed')` to the existing finding check in `useSaveAuditResponse`.
+
+---
+
+## GAP 5: Audit Workspace — Missing Session Export Data (MINOR)
+
+`AuditSessionWorkspace.tsx` passes `responses` to `SessionExportDropdown` but does NOT pass `templateItems`, so CSV/Excel exports lack question text columns.
+
+**Fix:** Pass `templateItems` prop to `SessionExportDropdown`.
+
+---
+
+## GAP 6: Audit Scoring Card Not Populated Correctly (VERIFY)
+
+`AuditScoringCard` and `AuditProgressCard` rely on `useAuditProgress` and `useNCCounts`. These hooks exist and use RPCs. This should work if the RPCs exist — but the `can_close_area_session` RPC had a column error previously. Need to verify `get_audit_progress` and `get_audit_nc_counts` RPCs exist and function.
+
+**Action:** Verify these RPCs exist in DB. If they don't, create them.
+
+---
+
+## Files to Change
+
+1. **`src/pages/inspections/InspectionSessionsDashboard.tsx`** — Add Create Audit Session button + dialog
+2. **`src/pages/inspections/AuditSessionWorkspace.tsx`** — Add sticky completion bar, fix FindingsPanel visibility condition, pass templateItems to export
+3. **`src/hooks/use-audit-sessions/use-audit-session-mutations.ts`** — Fix finding dedup to exclude closed findings
+4. **`src/locales/en/translation.json`** + **`src/locales/ar/translation.json`** — New keys for audit completion bar
+5. **Database migration (if needed)** — Verify/create audit progress RPCs
+
+## No Changes Needed (Verified Working)
+
+- Template checklist editor with CRUD and bulk Excel import
+- Area inspection checklist with GPS, photos, notes, auto-save
+- Area findings auto-creation on fail with dedup fix
+- FindingsPanel with manual add, edit, description, GPS/notes/photos display
+- SLA countdown timers on findings
+- Session lifecycle (complete, close, reopen)
+- Corrective action creation from findings
+- Session export (PDF, CSV, Excel)
+- Dashboard with real RPC-backed stats (overriding stubs)
+- Inspection schedules
+- Inspection analytics
+

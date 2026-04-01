@@ -6,6 +6,8 @@
  * with duplicated and potentially conflicting status logic.
  */
 
+import { isRoleBlocked, isRoleAllowed, getApprovalRule } from './approval-authorization-matrix';
+
 export interface WorkflowOwner {
   role: string;
   roleKey: string;
@@ -34,6 +36,7 @@ export const CONTRACTOR_CONSULTANT_STATUSES = [
   'pending_consultant_review',     // Consultant reviewing actions
   'pending_consultant_actions',    // Consultant creating actions
   'pending_action_dispute_review', // Consultant reviewing action dispute from contractor
+  'pending_consultant_verification', // Consultant verifying completed contractor actions
 ] as const;
 
 /**
@@ -59,6 +62,8 @@ export const CONTRACTOR_STATUSES = [
 export const HSSE_EXPERT_STATUSES = [
   'pending_hsse_expert_review',
   'pending_hsse_expert_approval',
+  'pending_hsse_rejection_review',
+  'pending_hsse_validation',
 ] as const;
 
 /**
@@ -67,6 +72,7 @@ export const HSSE_EXPERT_STATUSES = [
 export const HSSE_MANAGER_STATUSES = [
   'pending_hsse_manager_closure',
   'pending_hsse_manager_approval',
+  'pending_hsse_escalation_review',
 ] as const;
 
 /**
@@ -75,6 +81,8 @@ export const HSSE_MANAGER_STATUSES = [
 export const DEPT_REP_STATUSES = [
   'pending_dept_rep_approval',
   'pending_dept_rep_review',
+  'pending_dept_rep_mandatory_action',
+  'pending_dept_rep_incident_review',
 ] as const;
 
 // ============================================
@@ -170,16 +178,24 @@ export function getWorkflowOwner(status: string, isContractor: boolean): Workflo
 }
 
 /**
- * Check if a user role can act on the current workflow status
+ * Check if a user role can act on the current workflow status.
+ * Uses the central approval authorization matrix when available,
+ * falls back to owner-matching for statuses not yet in the matrix.
  */
 export function canRoleActOnStatus(role: string, status: string, isContractor: boolean): boolean {
+  const normalizedRole = role.toLowerCase().replace(/[^a-z_]/g, '');
+  
+  // Check against the central approval matrix
+  const rule = getApprovalRule(status, isContractor);
+  if (rule) {
+    if (isRoleBlocked(status, normalizedRole, isContractor)) return false;
+    return isRoleAllowed(status, normalizedRole, isContractor);
+  }
+
+  // Fallback: match against workflow owner for statuses not in the matrix
   const owner = getWorkflowOwner(status, isContractor);
   if (!owner) return false;
-  
-  // Normalize role names for comparison
-  const normalizedRole = role.toLowerCase().replace(/[^a-z_]/g, '');
   const normalizedOwnerRole = owner.role.toLowerCase().replace(/[^a-z_]/g, '');
-  
   return normalizedRole === normalizedOwnerRole;
 }
 
@@ -230,6 +246,7 @@ export function getStatusDisplayLabel(status: string, isArabic: boolean = false)
     pending_consultant_review: { en: 'Consultant Review', ar: 'مراجعة المستشار' },
     pending_consultant_actions: { en: 'Creating Actions', ar: 'إنشاء الإجراءات' },
     pending_action_dispute_review: { en: 'Dispute Review', ar: 'مراجعة النزاع' },
+    pending_consultant_verification: { en: 'Consultant Verification', ar: 'تحقق المستشار' },
     
     // Site Client steps
     pending_site_client_approval: { en: 'Site Client Approval', ar: 'موافقة عميل الموقع' },
@@ -243,10 +260,35 @@ export function getStatusDisplayLabel(status: string, isArabic: boolean = false)
     // HSSE steps
     pending_hsse_expert_review: { en: 'HSSE Expert Review', ar: 'مراجعة خبير السلامة' },
     pending_hsse_manager_closure: { en: 'HSSE Manager Closure', ar: 'إغلاق مدير السلامة' },
+    pending_hsse_rejection_review: { en: 'HSSE Rejection Review', ar: 'مراجعة رفض السلامة' },
+    pending_hsse_escalation_review: { en: 'HSSE Escalation Review', ar: 'مراجعة تصعيد السلامة' },
+    pending_hsse_validation: { en: 'HSSE Validation', ar: 'التحقق من السلامة' },
     
     // Department Rep steps
     pending_dept_rep_approval: { en: 'Dept Rep Approval', ar: 'موافقة ممثل القسم' },
     pending_dept_rep_review: { en: 'Dept Rep Review', ar: 'مراجعة ممثل القسم' },
+    pending_dept_rep_mandatory_action: { en: 'Dept Rep Mandatory Action', ar: 'إجراء إلزامي لممثل القسم' },
+    pending_dept_rep_incident_review: { en: 'Dept Rep Incident Review', ar: 'مراجعة حوادث ممثل القسم' },
+    
+    // Incident-specific statuses
+    pending_department_manager_approval: { en: 'Dept Manager Approval', ar: 'موافقة مدير القسم' },
+    pending_clinic_review: { en: 'Clinic Review', ar: 'مراجعة العيادة' },
+    pending_legal_review: { en: 'Legal Review', ar: 'مراجعة قانونية' },
+    investigation_pending: { en: 'Awaiting Assignment', ar: 'في انتظار التعيين' },
+    investigation_in_progress: { en: 'Investigation In Progress', ar: 'التحقيق جارٍ' },
+    pending_no_investigation_approval: { en: 'No Investigation Approval', ar: 'موافقة عدم التحقيق' },
+    pending_expert_screening: { en: 'Expert Screening', ar: 'فحص الخبير' },
+    pending_manager_approval: { en: 'Manager Approval', ar: 'موافقة المدير' },
+    
+    // Observation-specific
+    returned_to_reporter: { en: 'Returned to Reporter', ar: 'أُعيد للمبلغ' },
+    upgraded_to_incident: { en: 'Upgraded to Incident', ar: 'تم الترقية إلى حادث' },
+    observation_actions_pending: { en: 'Actions Pending', ar: 'إجراءات معلقة' },
+    under_investigation: { en: 'Under Investigation', ar: 'تحت التحقيق' },
+    monitoring_30_day: { en: '30-Day Monitoring', ar: 'مراقبة 30 يوم' },
+    monitoring_60_day: { en: '60-Day Monitoring', ar: 'مراقبة 60 يوم' },
+    monitoring_90_day: { en: '90-Day Monitoring', ar: 'مراقبة 90 يوم' },
+    pending_final_closure: { en: 'Final Closure', ar: 'الإغلاق النهائي' },
     
     // Terminal states
     closed: { en: 'Closed', ar: 'مغلق' },

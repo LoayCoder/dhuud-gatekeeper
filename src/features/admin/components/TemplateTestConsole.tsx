@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Send, CheckCircle, XCircle, Loader2, Eye, MessageSquare, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -33,9 +33,7 @@ interface TestResult {
   channel?: string;
 }
 
-// Realistic sample values for common template variables
 const REALISTIC_SAMPLES: Record<string, string> = {
-  // Common
   reference_id: 'INC-2025-0042',
   title: 'Equipment Malfunction in Zone B',
   description: 'Hydraulic pump failure detected during routine inspection',
@@ -43,47 +41,32 @@ const REALISTIC_SAMPLES: Record<string, string> = {
   site_name: 'Main Facility',
   department: 'Operations',
   action_link: 'https://app.example.com/incidents/123',
-  
-  // Incidents
   incident_id: 'abc123-def456',
   risk_level: 'Level 3 (Serious)',
   reported_by: 'Ahmed Al-Rashid',
   incident_time: '2025-12-26 14:30',
   event_type: 'Near Miss',
   incident_type: 'Near Miss',
-  
-  // Inspections
   inspection_date: '2025-12-26',
   inspector_name: 'Mohammed Hassan',
-  
-  // Actions
   due_date: '2025-01-15',
   assigned_to: 'Sara Al-Malki',
   priority: 'High',
-  
-  // Contractors
   contractor_name: 'ABC Construction LLC',
   permit_type: 'Hot Work Permit',
   valid_until: '2025-12-31',
   company_name: 'XYZ Industries',
   worker_name: 'Khalid Omar',
-  
-  // Assets
   asset_name: 'Fire Extinguisher #FE-042',
   asset_type: 'Fire Safety Equipment',
-  
-  // Alerts & Notifications
   alert_time: '2025-12-26 09:15',
   notification_type: 'Safety Alert',
   expiry_date: '2025-12-31',
-  
-  // Users
   user_name: 'Admin User',
   recipient_name: 'Mohammed Ahmed',
   sender_name: 'HSSE Department',
 };
 
-// Helper to get realistic sample value for a variable key
 const getRealisticSample = (key: string): string => {
   return REALISTIC_SAMPLES[key] || `[${key}]`;
 };
@@ -104,7 +87,6 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
 
   const selectedTemplate = templates.find((t) => t.slug === selectedSlug);
 
-  // Determine available channels for selected template
   const availableChannels = selectedTemplate ? {
     whatsapp: selectedTemplate.channel_type === 'whatsapp' || selectedTemplate.channel_type === 'both',
     email: selectedTemplate.channel_type === 'email' || selectedTemplate.channel_type === 'both',
@@ -116,7 +98,7 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
       setJsonError(null);
       return true;
     } catch {
-      setJsonError('Invalid JSON format');
+      setJsonError(t('templates.invalidJson'));
       return false;
     }
   };
@@ -175,7 +157,6 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
             tenant_id: tenantId,
           },
         });
-
         if (error) throw error;
         setTestResult({ ...data, channel: 'whatsapp' });
       } else {
@@ -187,14 +168,13 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
             tenant_id: tenantId,
           },
         });
-
         if (error) throw error;
         setTestResult({ ...data, channel: 'email' });
       }
     } catch (error: unknown) {
       setTestResult({
         success: false,
-        error: (error as Error).message || 'Failed to send message',
+        error: (error as Error).message || t('templates.failedToSend', 'Failed to send message'),
         channel: testChannel,
       });
     } finally {
@@ -202,16 +182,6 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
     }
   };
 
-  const generateSampleJson = () => {
-    if (!selectedTemplate) return;
-    const sample: Record<string, string> = {};
-    (selectedTemplate.variable_keys || []).forEach((key) => {
-      sample[key] = getRealisticSample(key);
-    });
-    setJsonData(JSON.stringify(sample, null, 2));
-  };
-
-  // Auto-select channel and generate sample JSON when template changes
   const handleTemplateChange = (slug: string) => {
     setSelectedSlug(slug);
     const template = templates.find(t => t.slug === slug);
@@ -221,7 +191,6 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
       } else if (template.channel_type === 'whatsapp') {
         setTestChannel('whatsapp');
       }
-      // Auto-generate sample JSON with realistic values
       const sample: Record<string, string> = {};
       (template.variable_keys || []).forEach((key) => {
         sample[key] = getRealisticSample(key);
@@ -236,34 +205,34 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Send className="h-5 w-5" />
-          Test Console
+          {t('templates.testConsole')}
         </CardTitle>
         <CardDescription>
-          Test your templates by sending real messages
+          {t('templates.testConsoleDesc')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label>Select Template</Label>
+          <Label>{t('templates.selectTemplateLabel')}</Label>
           <Select value={selectedSlug} onValueChange={handleTemplateChange}>
             <SelectTrigger>
-              <SelectValue placeholder="Choose a template..." />
+              <SelectValue placeholder={t('templates.chooseTemplate')} />
             </SelectTrigger>
             <SelectContent>
-              {templates.map((t) => (
-                <SelectItem key={t.id} value={t.slug}>
+              {templates.map((tmpl) => (
+                <SelectItem key={tmpl.id} value={tmpl.slug}>
                   <span className="flex items-center gap-2">
-                    {t.channel_type === 'whatsapp' && <MessageSquare className="h-3 w-3" />}
-                    {t.channel_type === 'email' && <Mail className="h-3 w-3" />}
-                    {t.channel_type === 'both' && (
+                    {tmpl.channel_type === 'whatsapp' && <MessageSquare className="h-3 w-3" />}
+                    {tmpl.channel_type === 'email' && <Mail className="h-3 w-3" />}
+                    {tmpl.channel_type === 'both' && (
                       <>
                         <MessageSquare className="h-3 w-3" />
                         <Mail className="h-3 w-3" />
                       </>
                     )}
-                    {t.slug}
+                    {tmpl.slug}
                     <Badge variant="outline" className="text-xs">
-                      {t.category}
+                      {tmpl.category}
                     </Badge>
                   </span>
                 </SelectItem>
@@ -274,10 +243,9 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
 
         {selectedTemplate && (
           <>
-            {/* Channel Toggle */}
             {(availableChannels.whatsapp && availableChannels.email) && (
               <div className="space-y-2">
-                <Label>Test Channel</Label>
+                <Label>{t('templates.testChannel')}</Label>
                 <Tabs value={testChannel} onValueChange={(v) => setTestChannel(v as 'whatsapp' | 'email')}>
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="whatsapp" className="flex items-center gap-2">
@@ -293,10 +261,9 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
               </div>
             )}
 
-            {/* Recipient Input */}
             {testChannel === 'whatsapp' && availableChannels.whatsapp && (
               <div className="space-y-2">
-                <Label>Phone Number</Label>
+                <Label>{t('templates.phoneNumber')}</Label>
                 <Input
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
@@ -307,7 +274,7 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
 
             {testChannel === 'email' && availableChannels.email && (
               <div className="space-y-2">
-                <Label>Email Address</Label>
+                <Label>{t('templates.emailAddress')}</Label>
                 <Input
                   type="email"
                   value={emailAddress}
@@ -319,14 +286,21 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label>Data Object (JSON)</Label>
+                <Label>{t('templates.dataObject')}</Label>
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={generateSampleJson}
+                  onClick={() => {
+                    if (!selectedTemplate) return;
+                    const sample: Record<string, string> = {};
+                    (selectedTemplate.variable_keys || []).forEach((key) => {
+                      sample[key] = getRealisticSample(key);
+                    });
+                    setJsonData(JSON.stringify(sample, null, 2));
+                  }}
                 >
-                  Generate Sample
+                  {t('templates.generateSample')}
                 </Button>
               </div>
               <Textarea
@@ -343,7 +317,7 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
                 <p className="text-sm text-destructive">{jsonError}</p>
               )}
               <div className="text-xs text-muted-foreground">
-                Expected keys: {selectedTemplate.variable_keys?.join(', ') || 'none'}
+                {t('templates.expectedKeys')}: {selectedTemplate.variable_keys?.join(', ') || t('templates.none')}
               </div>
             </div>
 
@@ -351,7 +325,7 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
               <CardHeader className="py-2">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <Eye className="h-4 w-4" />
-                  Preview
+                  {t('templates.preview')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="py-2">
@@ -365,7 +339,7 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
                   <div className="bg-background border rounded-md overflow-hidden">
                     {selectedTemplate.email_subject && (
                       <div className="bg-muted/50 px-3 py-2 border-b">
-                        <p className="text-xs text-muted-foreground">Subject:</p>
+                        <p className="text-xs text-muted-foreground">{t('templates.subject')}</p>
                         <p className="font-medium text-sm">{getPreviewSubject()}</p>
                       </div>
                     )}
@@ -382,14 +356,14 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
         <div className="flex items-center gap-4">
           {testChannel === 'whatsapp' && availableChannels.whatsapp && (
             <div className="space-y-2">
-              <Label>Gateway</Label>
+              <Label>{t('templates.gateway')}</Label>
               <Select value={gateway} onValueChange={(v: 'wasender' | 'official') => setGateway(v)}>
                 <SelectTrigger className="w-40">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="wasender">WaSender</SelectItem>
-                  <SelectItem value="official">Official (Meta)</SelectItem>
+                  <SelectItem value="official">{t('templates.officialMeta')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -413,7 +387,7 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
             ) : (
               <Mail className="h-4 w-4 me-2" />
             )}
-            Send Test {testChannel === 'whatsapp' ? 'WhatsApp' : 'Email'}
+            {testChannel === 'whatsapp' ? t('templates.sendTestWhatsApp') : t('templates.sendTestEmail')}
           </Button>
         </div>
 
@@ -429,11 +403,11 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
                 {testResult.success ? (
                   <div className="space-y-1">
                     <p className="font-medium">
-                      {testResult.channel === 'email' ? 'Email' : 'Message'} sent successfully!
+                      {testResult.channel === 'email' ? t('templates.emailSentSuccess') : t('templates.messageSentSuccess')}
                     </p>
-                    <p className="text-sm">Message ID: {testResult.messageId}</p>
+                    <p className="text-sm">{t('templates.messageId')}: {testResult.messageId}</p>
                     {testResult.gateway && (
-                      <p className="text-sm">Gateway: {testResult.gateway}</p>
+                      <p className="text-sm">{t('templates.gatewayUsed')}: {testResult.gateway}</p>
                     )}
                   </div>
                 ) : (

@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import {
@@ -50,11 +50,11 @@ export default function GuardAttendance() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'all' | 'checked_in' | 'pending' | 'issues'>('all');
   const [dateFilter, setDateFilter] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const { data: attendance, isLoading, refetch } = useGuardAttendance({
     date: dateFilter,
-    status: statusFilter || undefined,
+    status: statusFilter !== 'all' ? statusFilter : undefined,
   });
 
   const { data: stats, isLoading: statsLoading } = useAttendanceStats();
@@ -238,7 +238,7 @@ export default function GuardAttendance() {
                   <SelectValue placeholder={t('common.allStatus', 'All Status')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t('common.all', 'All')}</SelectItem>
+                  <SelectItem value="all">{t('common.all', 'All')}</SelectItem>
                   <SelectItem value="checked_in">{t('security.checkedIn', 'Checked In')}</SelectItem>
                   <SelectItem value="checked_out">{t('security.checkedOut', 'Checked Out')}</SelectItem>
                   <SelectItem value="approved">{t('common.approved', 'Approved')}</SelectItem>
@@ -275,7 +275,7 @@ export default function GuardAttendance() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t('common.guard', 'Guard')}</TableHead>
-                    <TableHead>{t('security.zone', 'Zone')}</TableHead>
+                    <TableHead>{t('security.zoneName', 'Zone')}</TableHead>
                     <TableHead>{t('security.checkIn', 'Check In')}</TableHead>
                     <TableHead>{t('security.checkOut', 'Check Out')}</TableHead>
                     <TableHead>{t('security.hoursWorked', 'Hours')}</TableHead>
@@ -326,7 +326,7 @@ export default function GuardAttendance() {
                               </div>
                               {record.late_minutes > 0 && (
                                 <Badge variant="destructive" className="text-xs">
-                                  {record.late_minutes}m late
+                                  {t('security.mLate', { minutes: record.late_minutes })}
                                 </Badge>
                               )}
                             </div>
@@ -341,8 +341,8 @@ export default function GuardAttendance() {
                                 {format(new Date(record.check_out_at), 'HH:mm')}
                               </div>
                               {record.overtime_minutes > 0 && (
-                                <Badge variant="outline" className="text-xs border-success text-success">
-                                  +{record.overtime_minutes}m
+                              <Badge variant="outline" className="text-xs border-success text-success">
+                                  {t('security.overtime', '{{minutes}} min overtime', { minutes: record.overtime_minutes })}
                                 </Badge>
                               )}
                             </div>

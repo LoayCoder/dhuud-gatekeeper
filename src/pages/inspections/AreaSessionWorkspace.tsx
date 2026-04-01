@@ -1,13 +1,21 @@
-import { useState } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Pencil, Trash2, MapPin, Cloud, Users, Download, Zap } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, MapPin, Cloud, Users, Zap, AlertTriangle, Search, CheckCircle, XCircle, Ban, Cog, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { ModuleGate } from '@/components';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,11 +30,16 @@ import {
   useInspectionSession,
   useDeleteSession,
   useStartSession,
+  useSessionAssets,
+  useSessionPartsProgress,
+  useSessionProgress as useAssetSessionProgress,
 } from '@/features/incidents';
 import {
   useAreaChecklistProgress,
   useAreaInspectionResponses,
   useAreaTemplate,
+  useBackfillAreaResponses,
+  useBackfillAreaAssets,
 } from '@/hooks/use-area-inspections';
 import { useAreaFindingsCount } from '@/hooks/use-area-findings';
 import { useCanCloseSession, useCompleteAreaSession, useCloseAreaSession } from '@/hooks/use-session-lifecycle';
@@ -42,9 +55,34 @@ import {
   SessionExportDropdown,
   SessionActionsPanel,
   BulkSwipeInspection,
+  SessionProgressCard,
+  QuickInspectionCard,
 } from '@/features/incidents';
 import { useReopenAreaSession } from '@/hooks/use-session-lifecycle';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSessionProgress } from '@/features/incidents/hooks/use-inspection-sessions/use-inspection-session-queries';
+import { usePartsForAsset } from '@/features/assets';
+import { usePartInspectionResults } from '@/hooks/use-part-inspection-results';
+import { useUserRoles } from '@/features/users';
+import { ScannerDialog } from '@/components/ui/scanner-dialog';
+
+/** Inline component to show parts completion count for a session asset */
+function AssetPartsCount({ sessionAssetId, typeId, subtypeId }: { sessionAssetId: string; typeId?: string; subtypeId?: string | null }) {
+  const { data: parts } = usePartsForAsset(typeId || '', subtypeId || null);
+  const { data: results } = usePartInspectionResults(sessionAssetId);
+
+  const totalParts = parts?.length || 0;
+  const completedParts = results?.length || 0;
+
+  if (totalParts === 0) return null;
+
+  return (
+    <Badge variant="outline" className="text-xs gap-1">
+      <Cog className="h-3 w-3" />
+      {completedParts}/{totalParts}
+    </Badge>
+  );
+}
 
 function AreaSessionWorkspaceContent() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -57,28 +95,93 @@ function AreaSessionWorkspaceContent() {
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
   const [completionMode, setCompletionMode] = useState<'complete' | 'close'>('complete');
   const [showSwipeMode, setShowSwipeMode] = useState(false);
-  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showScanner, setShowScanner] = useState(false);
+  const [expandedAssetId, setExpandedAssetId] = useState<string | undefined>(undefined);
+  const assetRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const { data: session, isLoading: sessionLoading } = useInspectionSession(sessionId);
-  const { data: progress } = useAreaChecklistProgress(sessionId);
+  const { data: progress } = useAreaChecklistProgress(sessionId, session?.status);
   const { data: templateItems = [] } = useTemplateItems(session?.template_id);
   const { data: responses = [] } = useAreaInspectionResponses(sessionId);
   const { data: areaTemplate } = useAreaTemplate(session?.template_id);
   const { data: findingsCount } = useAreaFindingsCount(sessionId);
-  const { data: closureStatus, isLoading: closureLoading } = useCanCloseSession(sessionId);
+  const { data: closureStatus, isLoading: closureLoading } = useCanCloseSession(sessionId, session?.status);
+  
+  // Asset-mode hooks
+  const executionMode = session?.execution_mode;
+  const isAssetMode = executionMode === 'asset';
+  const { data: allAssets = [] } = useSessionAssets(isAssetMode ? sessionId : undefined);
+  const { data: assetProgress } = useAssetSessionProgress(isAssetMode ? sessionId : undefined);
+  const { data: partsProgress } = useSessionPartsProgress(isAssetMode ? sessionId : undefined);
   
   const startSession = useStartSession();
   const completeSession = useCompleteAreaSession();
   const closeSession = useCloseAreaSession();
   const reopenSession = useReopenAreaSession();
   const deleteSession = useDeleteSession();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
+  const { hasRole } = useUserRoles();
   
-  // Check if user can verify actions (for now, allow all authenticated users)
-  // TODO: Implement proper HSSE role check when role structure is available
-  const canVerifyActions = !!profile;
+  // Self-healing: backfill missing checklist responses for area-mode sessions
+  useBackfillAreaResponses(
+    !isAssetMode ? sessionId : undefined,
+    session?.template_id,
+    session?.tenant_id,
+    session?.status,
+    session?.branch_id ?? null
+  );
   
-  // Create a map of responses by template_item_id for quick lookup
+  // Self-healing: backfill missing assets for legacy sessions without execution_mode
+  useBackfillAreaAssets(
+    sessionId,
+    session?.tenant_id,
+    session?.status,
+    executionMode,
+    session ? {
+      branch_id: session?.branch_id,
+      site_id: session?.site_id,
+      building_id: session?.building_id,
+      category_id: session?.category_id,
+      type_id: session?.type_id,
+      subtype_id: session?.subtype_id,
+    } : undefined
+  );
+  
+  // Check if user can verify actions — restrict to inspector or HSSE roles
+  const canVerifyActions = !!profile && (
+    session?.inspector_id === user?.id ||
+    hasRole('hsse_officer') ||
+    hasRole('hsse_manager') ||
+    hasRole('admin') ||
+    hasRole('super_admin')
+  );
+  
+  // Create a map of responses by template_item_id for quick lookup (area mode)
   const responseMap = new Map(responses.map(r => [r.template_item_id, r]));
+  
+  // Sort assets for asset mode: uninspected first, then by code; filter by search
+  const sortedAssets = useMemo(() => {
+    if (!isAssetMode) return [];
+    let filtered = allAssets;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      filtered = allAssets.filter((sa: any) => {
+        const asset = sa.asset;
+        if (!asset) return false;
+        return (
+          asset.asset_code?.toLowerCase().includes(q) ||
+          asset.name?.toLowerCase().includes(q) ||
+          asset.building?.name?.toLowerCase().includes(q)
+        );
+      });
+    }
+    return [...filtered].sort((a: any, b: any) => {
+      const aInspected = a.quick_result !== null ? 1 : 0;
+      const bInspected = b.quick_result !== null ? 1 : 0;
+      if (aInspected !== bInspected) return aInspected - bInspected;
+      return (a.asset?.asset_code || '').localeCompare(b.asset?.asset_code || '');
+    });
+  }, [allAssets, searchQuery, isAssetMode]);
   
   const handleStartSession = async () => {
     if (!sessionId) return;
@@ -132,6 +235,31 @@ function AreaSessionWorkspaceContent() {
       toast.error(error?.message || 'Error');
     }
   };
+
+  const handleScanResult = useCallback((scannedText: string) => {
+    const text = scannedText.trim().toLowerCase();
+    const match = allAssets.find((sa: any) => {
+      const asset = sa.asset;
+      if (!asset) return false;
+      return (
+        asset.asset_code?.toLowerCase() === text ||
+        asset.id?.toLowerCase() === text ||
+        sa.id?.toLowerCase() === text
+      );
+    });
+
+    if (match) {
+      setShowScanner(false);
+      setSearchQuery('');
+      setExpandedAssetId(match.id);
+      setTimeout(() => {
+        assetRefs.current[match.id]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+      toast.success(t('inspectionSessions.assetFound', 'Asset found'));
+    } else {
+      toast.error(t('inspectionSessions.assetNotInSession', 'Asset not found in this session'));
+    }
+  }, [allAssets, t]);
   
   if (sessionLoading) {
     return (
@@ -159,7 +287,9 @@ function AreaSessionWorkspaceContent() {
   }
   
   const isCompleted = session.status === 'completed_with_open_actions' || session.status === 'closed';
-  const canComplete = progress && progress.responded === progress.total && progress.total > 0;
+  const canComplete = isAssetMode
+    ? assetProgress && assetProgress.inspected_count > 0 && assetProgress.inspected_count === assetProgress.total_assets
+    : progress && progress.responded === progress.total && progress.total > 0;
   
   // Parse attendees from session
   const attendees = Array.isArray(session.attendees) ? session.attendees : [];
@@ -182,7 +312,11 @@ function AreaSessionWorkspaceContent() {
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold">{session.reference_id}</h1>
               <SessionStatusBadge status={session.status} />
-              <Badge variant="outline">{t('inspections.areaInspection')}</Badge>
+              <Badge variant="outline">
+                {isAssetMode
+                  ? t('inspections.assetInspection')
+                  : t('inspections.areaInspection')}
+              </Badge>
             </div>
             <p className="text-muted-foreground">
               {i18n.language === 'ar' && session.template?.name_ar 
@@ -193,8 +327,8 @@ function AreaSessionWorkspaceContent() {
         </div>
         
         <div className="flex items-center gap-2">
-          {/* Swipe Mode Button - only show when session is in progress */}
-          {session.status === 'in_progress' && (
+          {/* Swipe Mode Button - only for area mode when in progress */}
+          {!isAssetMode && session.status === 'in_progress' && (
             <Button 
               variant="outline" 
               onClick={() => setShowSwipeMode(true)}
@@ -209,8 +343,8 @@ function AreaSessionWorkspaceContent() {
               session={session}
               responses={responses}
               findings={[]}
-            templateItems={templateItems as unknown as Parameters<typeof SessionExportDropdown>[0]['templateItems']}
-            isAreaSession={true}
+              templateItems={templateItems as unknown as Parameters<typeof SessionExportDropdown>[0]['templateItems']}
+              isAreaSession={!isAssetMode}
             />
           )}
           {session.status !== 'closed' && (
@@ -226,15 +360,17 @@ function AreaSessionWorkspaceContent() {
         </div>
       </div>
       
-      {/* Bulk Swipe Inspection Dialog */}
-      <BulkSwipeInspection
-        open={showSwipeMode}
-        onOpenChange={setShowSwipeMode}
-        items={templateItems}
-        responses={responses}
-        sessionId={sessionId!}
-        isLocked={isCompleted}
-      />
+      {/* Bulk Swipe Inspection Dialog (area mode only) */}
+      {!isAssetMode && (
+        <BulkSwipeInspection
+          open={showSwipeMode}
+          onOpenChange={setShowSwipeMode}
+          items={templateItems}
+          responses={responses}
+          sessionId={sessionId!}
+          isLocked={isCompleted}
+        />
+      )}
       
       {/* Edit Dialog */}
       {session && (
@@ -277,15 +413,31 @@ function AreaSessionWorkspaceContent() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Progress */}
         <div className="lg:col-span-2 space-y-6">
-          {progress && (
-            <AreaProgressCard
-              total={progress.total}
-              responded={progress.responded}
-              passed={progress.passed}
-              failed={progress.failed}
-              na={progress.na}
-              percentage={progress.percentage}
-            />
+          {isAssetMode ? (
+            /* Asset-mode progress */
+            assetProgress && (
+              <SessionProgressCard
+                total={assetProgress.total_assets}
+                inspected={assetProgress.inspected_count}
+                passed={assetProgress.passed_count}
+                failed={assetProgress.failed_count}
+                notAccessible={assetProgress.not_accessible_count}
+                compliancePercentage={assetProgress.compliance_percentage}
+                partsProgress={partsProgress}
+              />
+            )
+          ) : (
+            /* Area-mode progress */
+            progress && (
+              <AreaProgressCard
+                total={progress.total}
+                responded={progress.responded}
+                passed={progress.passed}
+                failed={progress.failed}
+                na={progress.na}
+                percentage={progress.percentage}
+              />
+            )
           )}
           
           {/* Status Card */}
@@ -303,7 +455,7 @@ function AreaSessionWorkspaceContent() {
           />
           
           {/* Session Actions Panel */}
-          <SessionActionsPanel sessionId={sessionId!} canVerify={canVerifyActions} />
+          <SessionActionsPanel sessionId={sessionId!} canVerify={canVerifyActions} sessionStatus={session.status} />
         </div>
         
         {/* Session Metadata */}
@@ -355,35 +507,217 @@ function AreaSessionWorkspaceContent() {
         </Card>
       </div>
       
-      {/* Checklist Items */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('inspections.checklistItems')}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {templateItems.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
-              {t('inspections.noItems')}
-            </p>
-          ) : (
-            templateItems.map((item) => (
-              <AreaChecklistItem
-                key={item.id}
-                item={item}
-                response={responseMap.get(item.id)}
-                sessionId={sessionId!}
-                tenantId={session.tenant_id}
-                isLocked={isCompleted}
-                requiresPhotos={requiresPhotos}
-                requiresGps={requiresGps}
+      {/* ===== ASSET MODE: Asset Accordion ===== */}
+      {isAssetMode && (
+        <>
+          {/* Search Bar + Scan Button */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={t('inspectionSessions.searchAssets')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="ps-9"
               />
-            ))
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              className="shrink-0 h-10 w-10"
+              onClick={() => setShowScanner(true)}
+            >
+              <QrCode className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Scanner Dialog */}
+          <ScannerDialog
+            open={showScanner}
+            onOpenChange={setShowScanner}
+            onScan={handleScanResult}
+            title={t('inspectionSessions.scanAsset', 'Scan Asset')}
+            description={t('inspectionSessions.scanAssetDescription', 'Scan QR code to find asset in session')}
+          />
+
+          {/* Asset Accordion */}
+          <Accordion type="single" collapsible className="space-y-2" value={expandedAssetId} onValueChange={setExpandedAssetId}>
+            {sortedAssets.map((sa: any) => {
+              const asset = sa.asset;
+              if (!asset) return null;
+
+              const resultColor = sa.quick_result === 'good' 
+                ? 'border-success/50 bg-success/5' 
+                : sa.quick_result === 'not_good' 
+                  ? 'border-destructive/50 bg-destructive/5' 
+                  : sa.quick_result === 'partial'
+                    ? 'border-warning/50 bg-warning/5'
+                    : sa.quick_result === 'not_accessible' 
+                      ? 'border-muted/50 bg-muted/5' 
+                      : '';
+
+              return (
+                <div key={sa.id} ref={(el) => { assetRefs.current[sa.id] = el; }}>
+                <AccordionItem value={sa.id} className={cn("border rounded-lg px-0", resultColor)}>
+                  <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                    <div className="flex flex-1 items-center justify-between me-2">
+                      <div className="flex flex-col items-start gap-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-sm">{asset.asset_code}</span>
+                          {sa.quick_result && (
+                            <Badge 
+                              variant={
+                                sa.quick_result === 'good' ? 'default' 
+                                : sa.quick_result === 'not_good' ? 'destructive' 
+                                : sa.quick_result === 'partial' ? 'secondary'
+                                : 'secondary'
+                              }
+                              className={cn(
+                                "text-xs py-0",
+                                sa.quick_result === 'good' && 'bg-success text-success-foreground',
+                                sa.quick_result === 'partial' && 'bg-warning text-warning-foreground',
+                              )}
+                            >
+                              {sa.quick_result === 'good' && <CheckCircle className="h-3 w-3 me-1" />}
+                              {sa.quick_result === 'not_good' && <XCircle className="h-3 w-3 me-1" />}
+                              {sa.quick_result === 'not_accessible' && <Ban className="h-3 w-3 me-1" />}
+                              {t(`inspectionSessions.result_${sa.quick_result}`)}
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground">{asset.name}</span>
+                        {asset.building && (
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {asset.building.name}
+                            {asset.floor_zone && ` / ${asset.floor_zone.name}`}
+                          </span>
+                        )}
+                      </div>
+                      <AssetPartsCount
+                        sessionAssetId={sa.id}
+                        typeId={asset.type?.id}
+                        subtypeId={asset.subtype_id}
+                      />
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4">
+                    <QuickInspectionCard
+                      sessionAsset={sa}
+                      sessionId={sessionId!}
+                      onComplete={() => {
+                        // Auto-advance to next uninspected asset
+                        const nextUninspected = sortedAssets.find(
+                          (a: any) => a.id !== sa.id && !a.quick_result
+                        );
+                        if (nextUninspected) {
+                          setExpandedAssetId(nextUninspected.id);
+                          setTimeout(() => {
+                            assetRefs.current[nextUninspected.id]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          }, 200);
+                        } else {
+                          setExpandedAssetId(undefined);
+                          toast.success(t('inspectionSessions.allAssetsInspected', 'All assets have been inspected!'));
+                        }
+                      }}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+                </div>
+              );
+            })}
+          </Accordion>
+
+          {sortedAssets.length === 0 && (
+            <Card>
+              <CardContent className="py-8 text-center">
+                <p className="text-muted-foreground">
+                  {searchQuery ? t('common.noResults') : t('inspectionSessions.noAssetsInSession')}
+                </p>
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
+
+          {/* Mobile Scan FAB */}
+          <Button
+            size="lg"
+            className={cn(
+              'fixed bottom-20 z-50 rounded-full shadow-lg',
+              'h-14 w-14 p-0',
+              'sm:hidden',
+              direction === 'rtl' ? 'left-4' : 'right-4',
+            )}
+            onClick={() => setShowScanner(true)}
+          >
+            <QrCode className="h-6 w-6" />
+            <span className="sr-only">{t('inspectionSessions.scanAsset', 'Scan Asset')}</span>
+          </Button>
+        </>
+      )}
       
-      {/* Findings Panel */}
-      {(findingsCount?.total ?? 0) > 0 && (
+      {/* ===== AREA MODE: Flat Checklist ===== */}
+      {!isAssetMode && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('inspections.checklistItems')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {templateItems.length === 0 ? (
+              <div className="text-center py-12 space-y-3">
+                <AlertTriangle className="h-10 w-10 text-warning mx-auto" />
+                <p className="text-muted-foreground font-medium">
+                  {t('inspections.templateHasNoItems')}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {t('inspections.addItemsToTemplate')}
+                </p>
+              </div>
+            ) : (
+              templateItems.map((item) => (
+                <AreaChecklistItem
+                  key={item.id}
+                  item={item}
+                  response={responseMap.get(item.id)}
+                  sessionId={sessionId!}
+                  tenantId={session.tenant_id}
+                  isLocked={isCompleted}
+                  requiresPhotos={requiresPhotos}
+                  requiresGps={requiresGps}
+                />
+              ))
+            )}
+          </CardContent>
+        </Card>
+      )}
+      
+      {/* Sticky Completion Bar - Area mode, in_progress */}
+      {!isAssetMode && session.status === 'in_progress' && progress && (
+        <div className="sticky bottom-0 z-40 bg-background/95 backdrop-blur border-t p-4 -mx-4 sm:-mx-6 lg:-mx-8">
+          <div className="container mx-auto flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4 text-sm">
+              <span className="font-medium">
+                {t('inspections.answeredCount', { answered: progress.responded, total: progress.total })}
+              </span>
+              {progress.failed > 0 && (
+                <Badge variant="destructive" className="gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  {t('inspections.findingsCountLabel', { count: progress.failed })}
+                </Badge>
+              )}
+            </div>
+            <Button
+              onClick={() => { setCompletionMode('complete'); setShowCompletionDialog(true); }}
+              disabled={!canComplete}
+            >
+              <CheckCircle className="h-4 w-4 me-2" />
+              {t('inspections.completeInspection')}
+            </Button>
+          </div>
+        </div>
+      )}
+      
+      {/* Findings Panel — show when session is active or has findings */}
+      {(session.status === 'in_progress' || (findingsCount?.total ?? 0) > 0) && (
         <FindingsPanel
           sessionId={sessionId!}
           isLocked={isCompleted}
@@ -400,4 +734,3 @@ export default function AreaSessionWorkspace() {
     </ModuleGate>
   );
 }
-

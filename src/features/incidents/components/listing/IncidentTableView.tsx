@@ -1,4 +1,4 @@
-﻿import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import {
   FileText,
@@ -202,14 +202,14 @@ export function IncidentTableView({
                 </TableCell>
                 <TableCell>
                   <span className="text-sm text-muted-foreground truncate block max-w-[140px]">
-                    {incident.branch?.name || incident.site?.name || 'â€”'}
+                    {incident.branch?.name || incident.site?.name || '—'}
                   </span>
                 </TableCell>
                 <TableCell>
                   <span className="text-sm text-muted-foreground">
                     {incident.occurred_at
                       ? formatDistanceToNow(new Date(incident.occurred_at), { addSuffix: true })
-                      : 'â€”'}
+                      : '—'}
                   </span>
                 </TableCell>
                 {hasHSSEAccess && (

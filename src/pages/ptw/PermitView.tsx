@@ -1,4 +1,4 @@
-﻿import { useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -95,7 +95,7 @@ export default function PermitView() {
               </Badge>
             </div>
             <p className="text-muted-foreground">
-              {permit.permit_type?.name} â€¢ {permit.project?.name}
+              {permit.permit_type?.name} • {permit.project?.name}
             </p>
           </div>
         </div>

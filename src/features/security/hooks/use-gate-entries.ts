@@ -64,7 +64,7 @@ export function useGateEntries(filters?: GateEntryFilters) {
     queryFn: async () => {
       if (!tenantId) return [];
 
-      const { getGateEntries } = await import('@/services/security/gateQRService');
+      const { getGateEntries } = await import('@/features/security/services/gateQRService');
       return getGateEntries(tenantId, filters);
     },
     enabled: !!tenantId,
@@ -82,7 +82,7 @@ export function useCreateGateEntry() {
     mutationFn: async (entry: CreateGateEntryParams) => {
       if (!tenantId) throw new Error('No tenant ID');
 
-      const { createGateEntry } = await import('@/services/security/gateQRService');
+      const { createGateEntry } = await import('@/features/security/services/gateQRService');
       return createGateEntry(entry, tenantId, user?.id);
     },
     onSuccess: () => {
@@ -106,7 +106,7 @@ export function useRecordExit() {
 
   return useMutation({
     mutationFn: async (entryId: string) => {
-      const { recordExit } = await import('@/services/security/gateQRService');
+      const { recordExit } = await import('@/features/security/services/gateQRService');
       return recordExit(entryId);
     },
     onSuccess: () => {
@@ -144,7 +144,7 @@ export function useSendWhatsAppNotification() {
     }) => {
       if (!tenantId) throw new Error('No tenant ID');
 
-      const { sendGateWhatsAppNotification } = await import('@/services/security/gateQRService');
+      const { sendGateWhatsAppNotification } = await import('@/features/security/services/gateQRService');
       return sendGateWhatsAppNotification({ ...params, tenantId });
     },
     onSuccess: () => {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Eye, MessageSquare, Mail } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { SYSTEM_VARIABLES } from '../constants';
 
 export function TemplatePreview({ state }: { state: any }) {
+  const { t } = useTranslation();
   const {
     showWhatsAppFields, showEmailFields, getPreviewMessage, getPreviewSubject,
     formData, previewData, setPreviewData
@@ -17,7 +19,7 @@ export function TemplatePreview({ state }: { state: any }) {
       <CardHeader className="py-3">
         <CardTitle className="text-sm flex items-center gap-2">
           <Eye className="h-4 w-4" />
-          Live Preview
+          {t('templates.livePreview')}
         </CardTitle>
       </CardHeader>
       <CardContent className="py-3">
@@ -41,7 +43,7 @@ export function TemplatePreview({ state }: { state: any }) {
             <TabsContent value="whatsapp">
               <div className="bg-[#e5ddd5] p-4 rounded-md">
                 <div className="bg-[#dcf8c6] p-3 rounded-lg max-w-sm ms-auto shadow-sm whitespace-pre-wrap text-sm">
-                  {getPreviewMessage() || 'Enter message content to see preview...'}
+                  {getPreviewMessage() || t('templates.enterContentPreview')}
                 </div>
               </div>
             </TabsContent>
@@ -51,13 +53,13 @@ export function TemplatePreview({ state }: { state: any }) {
             <TabsContent value="email">
               <div className="bg-background border rounded-md overflow-hidden">
                 <div className="bg-muted/50 px-4 py-2 border-b">
-                  <p className="text-xs text-muted-foreground">Subject:</p>
+                  <p className="text-xs text-muted-foreground">{t('templates.subject')}</p>
                   <p className="font-medium text-sm">
-                    {getPreviewSubject() || 'No subject set'}
+                    {getPreviewSubject() || t('templates.noSubjectSet')}
                   </p>
                 </div>
                 <div className="p-4 whitespace-pre-wrap text-sm">
-                  {getPreviewMessage() || 'Enter message content to see preview...'}
+                  {getPreviewMessage() || t('templates.enterContentPreview')}
                 </div>
               </div>
             </TabsContent>
@@ -66,7 +68,7 @@ export function TemplatePreview({ state }: { state: any }) {
 
         {formData.variable_keys.length > 0 && (
           <div className="mt-3 space-y-2">
-            <Label className="text-xs text-muted-foreground">Test Values:</Label>
+            <Label className="text-xs text-muted-foreground">{t('templates.testValues')}</Label>
             <div className="grid grid-cols-2 gap-2">
               {formData.variable_keys.map((key: string) => {
                 const sysVar = SYSTEM_VARIABLES.find(v => v.key === key);

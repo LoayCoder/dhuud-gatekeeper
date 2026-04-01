@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -33,11 +33,11 @@ interface TeamTaskAssignmentPanelProps {
   isTeamLeader: boolean;
 }
 
-const TASK_TYPES = [
-  { value: 'evidence_collection', icon: Camera, label: 'Evidence Collection' },
-  { value: 'witness_interview', icon: Users, label: 'Witness Interview' },
-  { value: 'property_assessment', icon: FileSearch, label: 'Property Assessment' },
-  { value: 'injury_documentation', icon: Stethoscope, label: 'Injury Documentation' },
+const getTaskTypes = (t: (key: string, fallback: string) => string) => [
+  { value: 'evidence_collection', icon: Camera, label: t('investigation.taskTypes.evidenceCollection', 'Evidence Collection') },
+  { value: 'witness_interview', icon: Users, label: t('investigation.taskTypes.witnessInterview', 'Witness Interview') },
+  { value: 'property_assessment', icon: FileSearch, label: t('investigation.taskTypes.propertyAssessment', 'Property Assessment') },
+  { value: 'injury_documentation', icon: Stethoscope, label: t('investigation.taskTypes.injuryDocumentation', 'Injury Documentation') },
 ];
 
 /**
@@ -50,6 +50,7 @@ export function TeamTaskAssignmentPanel({
 }: TeamTaskAssignmentPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
+  const TASK_TYPES = getTaskTypes(t);
 
   const form = useForm<TeamTaskAssignmentValues>({
     resolver: zodResolver(teamTaskAssignmentSchema),
@@ -105,11 +106,11 @@ export function TeamTaskAssignmentPanel({
   const getTaskStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge variant="default" className="bg-green-100 text-green-800"><CheckCircle2 className="h-3 w-3 me-1" />Completed</Badge>;
+        return <Badge variant="default" className="bg-green-100 text-green-800"><CheckCircle2 className="h-3 w-3 me-1" />{t('common.completed', 'Completed')}</Badge>;
       case 'in_progress':
-        return <Badge variant="secondary"><Clock className="h-3 w-3 me-1" />In Progress</Badge>;
+        return <Badge variant="secondary"><Clock className="h-3 w-3 me-1" />{t('common.inProgress', 'In Progress')}</Badge>;
       default:
-        return <Badge variant="outline"><AlertTriangle className="h-3 w-3 me-1" />Pending</Badge>;
+        return <Badge variant="outline"><AlertTriangle className="h-3 w-3 me-1" />{t('common.pending', 'Pending')}</Badge>;
     }
   };
 
@@ -188,7 +189,7 @@ export function TeamTaskAssignmentPanel({
                         <SelectItem key={type.value} value={type.value}>
                           <div className="flex items-center gap-2">
                             <type.icon className="h-4 w-4" />
-                            {t(`workflow.teamTasks.types.${type.value}`, type.label)}
+                            {String(t(`workflow.teamTasks.types.${type.value}`, type.label))}
                           </div>
                         </SelectItem>
                       ))}

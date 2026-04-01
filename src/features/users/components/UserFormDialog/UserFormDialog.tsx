@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Loader2, User, Shield, Building2, Briefcase, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';

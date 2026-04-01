@@ -7,6 +7,7 @@ export const approveGatePass = async (passId: string, action: "approve" | "rejec
       id, is_public_request, public_requester_name, public_requester_phone,
       public_requester_email, public_requester_company, material_description,
       pass_date, reference_number, public_access_token, tenant_id, branch_id,
+      requested_by,
       tenants(slug)
     `)
         .eq("id", passId)
@@ -21,6 +22,28 @@ export const approveGatePass = async (passId: string, action: "approve" | "rejec
 
     if (error) throw error;
     const newStatus = data as string;
+
+    // Trigger in-app notification for internal gate pass approvals
+    if (!gatePass?.is_public_request && newStatus === "approved" && gatePass?.requested_by) {
+        try {
+            await supabase.from("hsse_notifications").insert([{
+                tenant_id: gatePass.tenant_id,
+                branch_id: gatePass.branch_id,
+                title_en: `Gate Pass ${gatePass.reference_number} Approved`,
+                title_ar: `تم اعتماد تصريح البوابة ${gatePass.reference_number}`,
+                body_en: `Your gate pass request ${gatePass.reference_number} has been approved.`,
+                body_ar: `تمت الموافقة على طلب تصريح البوابة ${gatePass.reference_number}.`,
+                notification_type: 'informational',
+                target_audience: 'all_users',
+                priority: 'low',
+                is_active: true,
+                send_push_notification: true,
+                created_by: userId,
+            }]);
+        } catch (notifyErr) {
+            console.error("[Gate Pass] Failed to send internal approval notification:", notifyErr);
+        }
+    }
 
     if (gatePass?.is_public_request && (newStatus === "approved" || newStatus === "rejected" || newStatus === "pending_security_approval")) {
         const tenantSlug = (gatePass.tenants as { slug: string } | null)?.slug || "";

@@ -1,4 +1,4 @@
-﻿import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import {
   FileText,
@@ -196,7 +196,7 @@ export function IncidentCardEnhanced({
             <span className="truncate">
               {[incident.branch?.name, incident.site?.name, incident.location]
                 .filter(Boolean)
-                .join(' â€º ')}
+                .join(' › ')}
             </span>
           </div>
         )}

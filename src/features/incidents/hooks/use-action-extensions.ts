@@ -66,10 +66,70 @@ export function useRequestExtension() {
           current_due_date: currentDueDate,
           requested_due_date: requestedDueDate,
           extension_reason: reason,
-          status: 'pending_hsse', // Goes directly to HSSE Expert
-        });
+          status: 'pending_hsse',
+        })
+        .throwOnError();
 
       if (error) throw error;
+
+      // Notify HSSE experts about the extension request
+      try {
+        const { data: requesterProfile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .single();
+
+        const { data: actionData } = await supabase
+          .from('corrective_actions')
+          .select('title, reference_id')
+          .eq('id', actionId)
+          .single();
+
+        // Find HSSE experts/officers for this tenant
+        const hsseCodes = ['hsse_officer', 'hsse_manager'];
+        const { data: roles } = await supabase
+          .from('roles')
+          .select('id')
+          .in('code', hsseCodes as string[]);
+
+        let recipients: Array<{ email: string; full_name: string }> = [];
+        if (roles && roles.length > 0) {
+          const rIds = roles.map(r => r.id);
+          const { data: assignments } = await supabase
+            .from('user_role_assignments')
+            .select('user_id')
+            .eq('tenant_id', profile.tenant_id)
+            .in('role_id', rIds as string[]);
+
+          if (assignments && assignments.length > 0) {
+            const userIds = assignments.map(a => a.user_id);
+            const { data: hsseProfiles } = await supabase
+              .from('profiles')
+              .select('email, full_name')
+              .in('id', userIds as string[]);
+            recipients = (hsseProfiles || []).filter(p => p.email) as Array<{ email: string; full_name: string }>;
+          }
+        }
+
+        for (const recipient of recipients) {
+          await supabase.functions.invoke('send-action-email', {
+            body: {
+              type: 'extension_requested',
+              recipient_email: recipient.email,
+              recipient_name: recipient.full_name || 'HSSE Expert',
+              action_title: actionData?.title || 'Corrective Action',
+              action_reference: actionData?.reference_id,
+              requester_name: requesterProfile?.full_name || 'Team Member',
+              current_due_date: currentDueDate,
+              requested_due_date: requestedDueDate,
+              extension_reason: reason,
+            },
+          });
+        }
+      } catch (emailError) {
+        console.error('[ExtensionRequest] Email notification failed:', emailError);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['extension-requests'] });
@@ -153,7 +213,8 @@ export function useApproveExtension() {
       const { error: requestError } = await supabase
         .from('action_extension_requests')
         .update(requestUpdateData)
-        .eq('id', requestId);
+        .eq('id', requestId)
+        .throwOnError();
 
       if (requestError) throw requestError;
 
@@ -162,7 +223,8 @@ export function useApproveExtension() {
         const { error: actionError } = await supabase
           .from('corrective_actions')
           .update({ due_date: newDueDate })
-          .eq('id', actionId);
+          .eq('id', actionId)
+          .throwOnError();
 
         if (actionError) throw actionError;
       }

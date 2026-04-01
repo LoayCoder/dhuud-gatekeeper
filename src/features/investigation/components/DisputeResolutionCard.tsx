@@ -57,9 +57,9 @@ export function DisputeResolutionCard({ incident, investigation, onComplete }: D
 
   if (checkingPermission) {
     return (
-      <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-900/10">
+      <Card className="border-warning/30 bg-warning/5">
         <CardContent className="py-6 flex items-center justify-center">
-          <Loader2 className="h-5 w-5 animate-spin text-amber-600" />
+          <Loader2 className="h-5 w-5 animate-spin text-warning" />
         </CardContent>
       </Card>
     );
@@ -67,9 +67,9 @@ export function DisputeResolutionCard({ incident, investigation, onComplete }: D
 
   if (!canMediate) {
     return (
-      <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-900/10">
+      <Card className="border-warning/30 bg-warning/5">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-amber-800 dark:text-amber-300">
+          <CardTitle className="flex items-center gap-2 text-warning">
             <Gavel className="h-5 w-5" />
             {t('workflow.dispute.pendingTitle', 'Dispute Under Mediation')}
           </CardTitle>
@@ -110,33 +110,33 @@ export function DisputeResolutionCard({ incident, investigation, onComplete }: D
       label: t('workflow.dispute.override', 'Override Rejection'),
       description: t('workflow.dispute.overrideDesc', 'Agree with investigator. Proceed to closure despite manager objection.'),
       icon: CheckCircle,
-      color: 'text-green-600',
+      color: 'text-success',
     },
     {
       value: 'maintain_rejection' as const,
       label: t('workflow.dispute.maintain', 'Maintain Rejection'),
       description: t('workflow.dispute.maintainDesc', 'Agree with manager. Investigation must be reworked.'),
       icon: XCircle,
-      color: 'text-red-600',
+      color: 'text-destructive',
     },
     {
       value: 'partial_rework' as const,
       label: t('workflow.dispute.partialRework', 'Partial Rework'),
       description: t('workflow.dispute.partialReworkDesc', 'Some aspects need revision. Investigation reopened with specific scope.'),
       icon: RotateCcw,
-      color: 'text-amber-600',
+      color: 'text-warning',
     },
   ];
 
   return (
-    <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-900/10">
+    <Card className="border-warning/30 bg-warning/5">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-amber-800 dark:text-amber-300">
+          <CardTitle className="flex items-center gap-2 text-warning">
             <Gavel className="h-5 w-5" />
             {t('workflow.dispute.title', 'Dispute Resolution')}
           </CardTitle>
-          <Badge variant="outline" className="border-amber-300 text-amber-700">
+          <Badge variant="outline" className="border-warning/30 text-warning">
             {categoryLabel}
           </Badge>
         </div>
@@ -151,7 +151,7 @@ export function DisputeResolutionCard({ incident, investigation, onComplete }: D
             <Label className="text-muted-foreground">
               {t('workflow.dispute.managerReason', 'Manager\'s Rejection Reason')}
             </Label>
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800">
+            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
               <p className="text-sm">{incident.manager_rejection_reason || t('common.notProvided', 'Not provided')}</p>
             </div>
           </div>
@@ -159,7 +159,7 @@ export function DisputeResolutionCard({ incident, investigation, onComplete }: D
             <Label className="text-muted-foreground">
               {t('workflow.dispute.investigatorResponse', 'Investigator\'s Dispute Notes')}
             </Label>
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-900/20 dark:border-blue-800">
+            <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
               <p className="text-sm">{incident.mediation_notes || t('common.notProvided', 'Not provided')}</p>
             </div>
           </div>
@@ -191,7 +191,7 @@ export function DisputeResolutionCard({ incident, investigation, onComplete }: D
                   key={option.value}
                   className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
                     selectedDecision === option.value
-                      ? 'border-amber-400 bg-amber-100/50 dark:bg-amber-900/20'
+                      ? 'border-warning bg-warning/10'
                       : 'border-border hover:bg-muted/50'
                   }`}
                   onClick={() => setSelectedDecision(option.value)}

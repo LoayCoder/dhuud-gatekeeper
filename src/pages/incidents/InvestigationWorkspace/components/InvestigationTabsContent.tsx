@@ -9,7 +9,8 @@ import {
   HeartPulse,
   Wrench,
   Scale,
-  Leaf
+  Leaf,
+  History
 } from "lucide-react";
 import {
   EvidenceManager,
@@ -33,7 +34,7 @@ import { SpecialistDataReviewCard } from '@/features/investigation';
 interface InvestigationTabsContentProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  isTabLocked: (tab: string) => boolean;
+  isTabUnlocked: (tab: string) => boolean;
   selectedIncidentId: string;
   selectedIncident: any;
   investigation: any;
@@ -58,7 +59,7 @@ interface InvestigationTabsContentProps {
 export function InvestigationTabsContent({
   activeTab,
   setActiveTab,
-  isTabLocked,
+  isTabUnlocked,
   selectedIncidentId,
   selectedIncident,
   investigation,
@@ -99,41 +100,50 @@ export function InvestigationTabsContent({
             <span className="hidden sm:inline font-medium">{t('investigation.tabs.overview', 'Overview')}</span>
           </button>
 
-          {isTabLocked('evidence') && (
+          {investigationAllowed && isTabUnlocked('evidence') && (
             <button onClick={() => { const el = document.getElementById('evidence'); const y = (el?.getBoundingClientRect().top || 0) + window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('evidence'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'evidence' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}>
-              <FileSearch className="h-4 w-4" /> Evidence
+              <FileSearch className="h-4 w-4" /> {t('investigation.tabs.evidence', 'Evidence')}
             </button>
           )}
-          {isTabLocked('witnesses') && (
+          {investigationAllowed && isTabUnlocked('witnesses') && (
             <button onClick={() => { const el = document.getElementById('witnesses'); const y = (el?.getBoundingClientRect().top || 0) + window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('witnesses'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'witnesses' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}>
-              <Users className="h-4 w-4" /> Witnesses
+              <Users className="h-4 w-4" /> {t('investigation.tabs.witnesses', 'Witnesses')}
             </button>
           )}
-          {isTabLocked('rca') && (
+          {investigationAllowed && isTabUnlocked('rca') && (
             <button onClick={() => { const el = document.getElementById('rca'); const y = (el?.getBoundingClientRect().top || 0) + window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('rca'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'rca' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}>
-              <Search className="h-4 w-4" /> RCA
+              <Search className="h-4 w-4" /> {t('investigation.tabs.rca', 'RCA')}
             </button>
           )}
-          {isTabLocked('actions') && (
+          {investigationAllowed && isTabUnlocked('actions') && (
             <button onClick={() => { const el = document.getElementById('actions'); const y = (el?.getBoundingClientRect().top || 0) + window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('actions'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'actions' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}>
-              <ListChecks className="h-4 w-4" /> Actions
+              <ListChecks className="h-4 w-4" /> {t('investigation.tabs.actions', 'Actions')}
             </button>
           )}
-          {selectedIncident?.has_injury && isTabLocked('injuries') && (
+          {investigationAllowed && selectedIncident?.has_injury && isTabUnlocked('injuries') && (
             <button onClick={() => { const el = document.getElementById('injuries'); const y = (el?.getBoundingClientRect().top || 0) + window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('injuries'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'injuries' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}>
-              <HeartPulse className="h-4 w-4" /> Injuries
+              <HeartPulse className="h-4 w-4" /> {t('investigation.tabs.injuries', 'Injuries')}
             </button>
           )}
-          {selectedIncident?.has_damage && isTabLocked('property-damage') && (
+          {investigationAllowed && selectedIncident?.has_damage && isTabUnlocked('property-damage') && (
             <button onClick={() => { const el = document.getElementById('property-damage'); const y = (el?.getBoundingClientRect().top || 0) + window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('property-damage'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'property-damage' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}>
-              <Wrench className="h-4 w-4" /> Property Damage
+              <Wrench className="h-4 w-4" /> {t('investigation.tabs.propertyDamage', 'Property Damage')}
             </button>
           )}
-          {canAccessGovernance && isTabLocked('governance') && (
+          {investigationAllowed && (selectedIncident?.event_type === 'environmental' || selectedIncident?.event_type === 'environment' ||
+            ['oil_chemical_spill_land', 'spill_to_water', 'air_emission', 'soil_contamination', 'waste_mismanagement', 'wildlife_impact', 'non_compliant_discharge'].includes(selectedIncident?.subtype || '')) && isTabUnlocked('environmental-impact') && (
+            <button onClick={() => { const el = document.getElementById('environmental-impact'); const y = (el?.getBoundingClientRect().top || 0) + window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('environmental-impact'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'environmental-impact' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}>
+              <Leaf className="h-4 w-4" /> {t('investigation.tabs.environmentalImpact', 'Environmental Impact')}
+            </button>
+          )}
+          {canAccessGovernance && investigationAllowed && isTabUnlocked('governance') && (
             <button onClick={() => { const el = document.getElementById('governance'); const y = (el?.getBoundingClientRect().top || 0) + window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('governance'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'governance' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}>
-              <Scale className="h-4 w-4" /> Governance
+              <Scale className="h-4 w-4" /> {t('investigation.tabs.governance', 'Governance')}
             </button>
           )}
+          <button onClick={() => { const el = document.getElementById('audit-log'); const y = (el?.getBoundingClientRect().top || 0) + window.scrollY - 100; window.scrollTo({ top: y, behavior: 'smooth' }); setActiveTab('audit-log'); }} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2", activeTab === 'audit-log' ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted text-muted-foreground")}>
+            <History className="h-4 w-4" /> {t('investigation.tabs.auditLog', 'Audit Log')}
+          </button>
         </nav>
       </div>
 
@@ -151,7 +161,7 @@ export function InvestigationTabsContent({
           />
         </section>
 
-        {investigationAllowed && isTabLocked('evidence') && (
+        {investigationAllowed && isTabUnlocked('evidence') && (
           <section id="evidence" className="scroll-mt-32 pt-6 border-t border-border/40">
             <h3 className="text-xl font-semibold mb-6 flex items-center gap-2"><FileSearch className="h-5 w-5 text-primary" /> {t('investigation.tabs.evidence', 'Evidence')}</h3>
             <EvidenceManager
@@ -162,7 +172,7 @@ export function InvestigationTabsContent({
           </section>
         )}
 
-        {investigationAllowed && isTabLocked('witnesses') && (
+        {investigationAllowed && isTabUnlocked('witnesses') && (
           <section id="witnesses" className="scroll-mt-32 pt-6 border-t border-border/40">
             <h3 className="text-xl font-semibold mb-6 flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> {t('investigation.tabs.witnesses', 'Witnesses')}</h3>
             <WitnessPanel
@@ -174,7 +184,7 @@ export function InvestigationTabsContent({
           </section>
         )}
 
-        {investigationAllowed && isTabLocked('rca') && (
+        {investigationAllowed && isTabUnlocked('rca') && (
           <section id="rca" className="scroll-mt-32 pt-6 border-t border-border/40">
             <h3 className="text-xl font-semibold mb-6 flex items-center gap-2"><Search className="h-5 w-5 text-primary" /> {t('investigation.tabs.rca', 'Root Cause Analysis')}</h3>
             <RCAPanel
@@ -184,12 +194,13 @@ export function InvestigationTabsContent({
               incidentDescription={selectedIncident?.description}
               incidentSeverity={selectedIncident?.severity}
               incidentEventType={selectedIncident?.event_type}
+              incidentEventSubtype={selectedIncident?.subtype}
               canEdit={editAccess.canEdit}
             />
           </section>
         )}
 
-        {investigationAllowed && isTabLocked('actions') && (
+        {investigationAllowed && isTabUnlocked('actions') && (
           <section id="actions" className="scroll-mt-32 pt-6 border-t border-border/40 space-y-4">
             <h3 className="text-xl font-semibold mb-6 flex items-center gap-2"><ListChecks className="h-5 w-5 text-primary" /> {t('investigation.tabs.actions', 'Corrective Actions')}</h3>
             <CauseCoverageIndicator incidentId={selectedIncidentId} />
@@ -200,7 +211,7 @@ export function InvestigationTabsContent({
               openDialogTrigger={showActionDialog}
               onDialogTriggered={() => setShowActionDialog(false)}
             />
-            {editAccess.canEdit && incidentData?.status === 'investigation_in_progress' && (
+            {editAccess.canEdit && (incidentData?.status === 'investigation_in_progress' || incidentData?.status === 'under_investigation') && (
               <SubmitInvestigationCard
                 incidentId={selectedIncidentId}
                 onSubmitted={handleRefresh}
@@ -209,7 +220,7 @@ export function InvestigationTabsContent({
           </section>
         )}
 
-        {investigationAllowed && selectedIncident?.has_injury && isTabLocked('injuries') && (
+        {investigationAllowed && selectedIncident?.has_injury && isTabUnlocked('injuries') && (
           <section id="injuries" className="scroll-mt-32 pt-6 border-t border-border/40 space-y-4">
             <h3 className="text-xl font-semibold mb-6 flex items-center gap-2"><HeartPulse className="h-5 w-5 text-primary" /> {t('investigation.tabs.injuries', 'Injuries')}</h3>
             {incidentData && (
@@ -231,7 +242,7 @@ export function InvestigationTabsContent({
           </section>
         )}
 
-        {investigationAllowed && selectedIncident?.has_damage && isTabLocked('property-damage') && (
+        {investigationAllowed && selectedIncident?.has_damage && isTabUnlocked('property-damage') && (
           <section id="property-damage" className="scroll-mt-32 pt-6 border-t border-border/40 space-y-4">
             <h3 className="text-xl font-semibold mb-6 flex items-center gap-2"><Wrench className="h-5 w-5 text-primary" /> {t('investigation.tabs.propertyDamage', 'Property Damage')}</h3>
             {incidentData && (
@@ -254,7 +265,7 @@ export function InvestigationTabsContent({
         )}
 
         {/* Environmental Impact Tab Content */}
-        {investigationAllowed && isTabLocked('environmental-impact') && (selectedIncident?.event_type === 'environmental' ||
+        {investigationAllowed && isTabUnlocked('environmental-impact') && (selectedIncident?.event_type === 'environmental' ||
           selectedIncident?.event_type === 'environment' ||
           ['oil_chemical_spill_land', 'spill_to_water', 'air_emission', 'soil_contamination',
             'waste_mismanagement', 'wildlife_impact', 'non_compliant_discharge'].includes(selectedIncident?.subtype || '')) && (
@@ -279,10 +290,10 @@ export function InvestigationTabsContent({
             </section>
           )}
 
-        {canAccessGovernance && investigationAllowed && isTabLocked('governance') && (
+        {canAccessGovernance && investigationAllowed && isTabUnlocked('governance') && (
           <section id="governance" className="scroll-mt-32 pt-6 border-t border-border/40 space-y-4">
             <h3 className="text-xl font-semibold mb-6 flex items-center gap-2"><Scale className="h-5 w-5 text-primary" /> {t('investigation.tabs.governance', 'Governance')}</h3>
-            {status === 'investigation_in_progress' && (incidentData as Record<string, unknown>)?.related_contractor_company_id && investigation && (
+            {(status === 'investigation_in_progress' || status === 'under_investigation') && (incidentData as Record<string, unknown>)?.related_contractor_company_id && investigation && (
               <>
                 <InvestigatorViolationIdentificationCard
                   incident={incidentData}

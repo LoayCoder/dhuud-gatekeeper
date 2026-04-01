@@ -1,4 +1,4 @@
-﻿export * from './components/actions/ActionProgressDialog';
+export * from './components/actions/ActionProgressDialog';
 export * from './components/actions/ActionSLABadge';
 export * from './components/actions/ActionWorkflowTimeline';
 export * from './components/actions/DelegateVerifierDialog';
@@ -200,6 +200,39 @@ export * from './hooks/use-action-evidence';
 export * from './hooks/use-action-extensions';
 export * from './hooks/use-observation-trends';
 export * from './hooks/use-inspection-stubs';
+// Override stubs with real implementations where they exist
+export {
+  useAssetInspections,
+  useInspection,
+  useInspectionResponses,
+  useStartInspection,
+  useSaveInspectionResponse,
+  useCompleteInspection,
+  useCancelInspection,
+  useRecentInspections,
+  useInspectionStats,
+} from './hooks/use-inspections/use-inspection-hooks';
+export {
+  useInspectionTemplates,
+  useInspectionTemplate,
+  useTemplateItems,
+  useTemplatesForAsset,
+  useCreateTemplate,
+  useUpdateTemplate,
+  useDeleteTemplate,
+  useBulkUpdateTemplateStatus,
+  useBulkDeleteTemplates,
+  useCreateTemplateItem,
+  useUpdateTemplateItem,
+  useDeleteTemplateItem,
+  useGenerateItemsFromParts,
+  useMatchingAssets,
+} from './hooks/use-inspections/use-inspection-template-hooks';
+export type {
+  AssetInspection,
+  TemplateItem,
+  InspectionResponse,
+} from './hooks/use-inspections/types';
 // Re-export only hooks from use-inspection-sessions that aren't in stubs
 export {
   useInspectionSessions,
@@ -209,12 +242,43 @@ export {
   useSessionAssetByAssetId,
   useSessionProgress,
   useSessionFindings,
+  useCreateSession,
+  useStartSession,
+  useRecordAssetInspection,
+  useCreateFinding,
   useCompleteSession,
   useCloseSession,
   useDeleteSession,
   useUpdateFinding,
   useAddAssetToSession,
   useRefreshSessionAssets,
+  useSessionPartsProgress,
 } from './hooks/use-inspection-sessions';
 // Re-export types with explicit names to avoid collision
-export type { InspectionSession, SessionAsset, InspectionFinding, CreateSessionInput, RecordInspectionInput } from './hooks/use-inspection-sessions';
+export type { InspectionSession, SessionAsset, InspectionFinding, CreateSessionInput, RecordInspectionInput, SessionPartsProgress } from './hooks/use-inspection-sessions';
+// Override stub inspection-action hooks with real implementations
+export {
+  useSessionActions,
+  useMyInspectionActions,
+} from './hooks/use-inspection-actions/use-action-queries';
+export {
+  useCreateActionFromFinding,
+  useVerifyAction,
+  useUpdateActionStatus,
+  useUpdateInspectionActionStatus,
+} from './hooks/use-inspection-actions/use-action-mutations';
+export {
+  useCreateSessionAction,
+} from './hooks/use-inspection-actions/use-create-session-action';
+export {
+  useSessionFailedAssets,
+} from './hooks/use-inspection-actions/use-session-failed-assets';
+
+// Override stub dashboard hooks with real implementations
+export {
+  useInspectionSessionStats,
+  useComplianceTrend,
+  useFindingsDistribution,
+  useOverdueInspectionsCount,
+  useRecentFindings,
+} from './hooks/use-inspection-dashboard';

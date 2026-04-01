@@ -156,7 +156,7 @@ export function ThreatMapWidget() {
     targetMarkerRef.current.bindPopup(`
       <div style="text-align: center;">
         <div style="font-weight: 600; margin-bottom: 4px;">${t('admin.yourLocation', 'Your Location')}</div>
-        <div style="font-size: 12px; color: #888;">Protected Server</div>
+        <div style="font-size: 12px; color: #888;">${t('admin.protectedServer', 'Protected Server')}</div>
       </div>
     `);
     

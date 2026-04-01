@@ -7,6 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { 
   Dialog,
   DialogContent,
   DialogDescription,
@@ -113,6 +119,7 @@ export function ConsultantReviewCard({
 
       toast.success(t('workflow.consultant.claimed', 'Task claimed successfully'));
       queryClient.invalidateQueries({ queryKey: ['incident', incidentId] });
+      queryClient.invalidateQueries({ queryKey: ['workflow-actors', incidentId] });
     } catch (error) {
       console.error('Error claiming task:', error);
       toast.error(t('common.error', 'Failed to claim task'));
@@ -136,7 +143,7 @@ export function ConsultantReviewCard({
             </CardDescription>
           </div>
           <Button onClick={handleClaim} disabled={isClaiming}>
-            {isClaiming && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isClaiming && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
             {t('workflow.consultant.claimBtn', 'Claim Task')}
           </Button>
         </CardContent>
@@ -287,18 +294,31 @@ export function ConsultantReviewCard({
                 {t('workflow.createAction', 'Create Action')}
               </Button>
 
-              <Button
-                onClick={handleSubmit}
-                disabled={!canSubmit || isPending}
-                className="flex-1 gap-2"
-              >
-                {isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-                {t('workflow.consultant.submitToSiteClient', 'Submit to Site Client')}
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="flex-1">
+                      <Button
+                        onClick={handleSubmit}
+                        disabled={!canSubmit || isPending}
+                        className="w-full gap-2"
+                      >
+                        {isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Send className="h-4 w-4" />
+                        )}
+                        {t('workflow.consultant.submitToSiteClient', 'Submit to Site Client')}
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  {!canSubmit && (
+                    <TooltipContent>
+                      <p>{t('workflow.consultant.submitTooltip', 'Add at least one corrective action and fill in review notes to enable submission')}</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-border/50">

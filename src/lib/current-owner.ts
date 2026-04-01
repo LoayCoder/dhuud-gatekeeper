@@ -8,6 +8,7 @@ export interface CurrentOwnerInfo {
     roleCategory: RoleCategory;
     isUnassigned: boolean;
     actionRequired: string;
+    warningMessage: string | null;
 }
 
 /**
@@ -27,7 +28,8 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         role,
         roleCategory: getRoleCategory(role),
         isUnassigned,
-        actionRequired
+        actionRequired,
+        warningMessage: isUnassigned ? `Contact admin to assign a ${role}` : null,
     });
 
     switch (status) {
@@ -35,6 +37,7 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         case "pending_dept_rep_incident_review":
         case "pending_dept_rep_approval":
         case "pending_dept_rep_review":
+        case "pending_dept_rep_mandatory_action":
             return buildOwner(
                 incident.approval_manager?.full_name || null,
                 "Department Representative",
@@ -45,6 +48,7 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         case "pending_manager_approval":
         case "pending_no_investigation_approval":
         case "pending_department_manager_approval":
+        case "pending_department_manager_violation_approval":
             return buildOwner(
                 incident.approval_manager?.full_name || null,
                 "Department Manager",
@@ -54,14 +58,24 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         // HSSE Expert Queue
         case "expert_screening":
         case "pending_expert_screening":
+            if (incident.related_contractor_company_id || incident.related_contractor_company) {
+                const consultantName = incident.approval_manager?.full_name || null;
+                return buildOwner(consultantName, "Contractor Consultant", !consultantName);
+            }
+            const expertName = incident.approval_manager?.full_name || null;
+            return buildOwner(expertName, "HSSE Expert", !expertName);
+
         case "investigation_pending":
         case "pending_investigator_assignment":
         case "pending_hsse_expert_review":
+        case "pending_hsse_rejection_review":
             return buildOwner(null, "HSSE Expert", true);
 
         // HSSE Manager Queue
         case "hsse_manager_escalation":
         case "pending_hsse_escalation_review":
+        case "pending_hsse_manager_closure":
+        case "pending_escalation_approval":
             return buildOwner(null, "HSSE Manager", true);
 
         // Investigation Stage (Assigned Investigator)
@@ -79,6 +93,8 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         case "pending_consultant_screening":
         case "pending_consultant_review":
         case "pending_consultant_verification":
+        case "pending_consultant_actions":
+        case "pending_action_dispute_review":
             return buildOwner(
                 incident.approval_manager?.full_name || null,
                 "Contractor Consultant",
@@ -87,6 +103,8 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
 
         // Contractor Implementation & Observations actions
         case "pending_contractor_implementation":
+        case "contractor_action_implementation":
+        case "pending_contractor_action":
         case "observation_actions_pending":
             if (incident.related_contractor_company_id || incident.related_contractor_company?.company_name) {
                 return buildOwner(
@@ -99,11 +117,21 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
 
         // Site Client Approval
         case "pending_site_client_approval":
+        case "pending_site_client_action_approval":
             return buildOwner(null, "Site Client Rep", true);
+
+        // Contractor Site Rep Approval
+        case "pending_contractor_site_rep_approval":
+            return buildOwner(null, "Contractor Site Rep", true);
+
+        // HSSE Violation Review
+        case "pending_hsse_violation_review":
+            return buildOwner(null, "HSSE Expert", true);
 
         // Compliance & Dispute
         case "dispute_resolution":
         case "pending_contractor_dispute_review":
+        case "pending_legal_review":
             return buildOwner(null, "Legal & Compliance", true);
 
         // Monitoring & Closure Verification Stages
@@ -113,7 +141,20 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         case "pending_final_closure":
         case "pending_closure":
         case "pending_hsse_validation":
+        case "pending_hsse_incident_validation":
             return buildOwner(null, "HSSE Team", true);
+
+        // Clinic Review
+        case "pending_clinic_review":
+            return buildOwner(null, "Clinic User", true);
+
+        // Contract Controller Approval
+        case "pending_contract_controller_approval":
+            return buildOwner(null, "Contract Controller", true);
+
+        // OSHA Reportable — requires HSSE Expert action
+        case "osha_reportable":
+            return buildOwner(null, "HSSE Expert", true);
 
         // Closed / Completed (No one is pending)
         case "closed":
@@ -124,9 +165,21 @@ export function getCurrentOwner(incident: Partial<IncidentWithDetails> | null): 
         case "expert_rejected":
         case "manager_rejected":
         case "dept_rep_rejected":
-        case "returned_to_reporter":
-        case "submitted": // Note: Submitted incidents might immediately hit 'pending_dept_rep_review' but if staying 'submitted', no action is actively assigned
+        case "upgraded_to_incident":
+        case "rejected_invalid":
+        case "contractor_violation_enforced":
+        case "contractor_violation_approved_fine":
+        case "contractor_violation_cancelled":
+        case "contractor_violation_warning":
+        case "contractor_violation_terminated":
             return null;
+
+        case "returned_to_reporter":
+            return buildOwner(null, "Reporter", true);
+
+        // Submitted observations are pending HSSE Expert / Dept Rep routing
+        case "submitted":
+            return buildOwner(null, "HSSE Expert", true);
 
         default:
             return null;

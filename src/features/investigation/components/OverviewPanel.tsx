@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Loader2, UserCheck, Play, CheckCircle2, Circle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -42,6 +42,7 @@ export function OverviewPanel({
   const { isAdmin } = useAuth();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editMode, setEditMode] = useState<'location' | 'contractor'>('location');
+  const [isStarting, setIsStarting] = useState(false);
 
   const handleEditLocation = () => {
     setEditMode('location');
@@ -71,7 +72,7 @@ export function OverviewPanel({
   return (
     <div className="space-y-6" dir={direction}>
       {/* Investigation Progress Summary - NEW */}
-      {(incident.status === 'investigation_pending' || incident.status === 'investigation_in_progress') && (
+      {(incident.status === 'investigation_pending' || incident.status === 'investigation_in_progress' || (incident.status as string) === 'under_investigation') && (
         <Card className="border-primary/20 shadow-sm bg-gradient-to-br from-card to-primary/5">
           <CardHeader className="pb-3 border-b bg-muted/20">
             <div className="flex justify-between items-center">
@@ -99,10 +100,12 @@ export function OverviewPanel({
                   <p className="text-muted-foreground text-sm max-w-sm mt-1 mb-4">
                     {t('investigation.overview.readyToStartDesc', 'Review the basic info below, then click start to unlock evidence, witness, and RCA tools.')}
                   </p>
-                  <Button size="lg" onClick={onStartInvestigation} className="gap-2 group shadow-sm transition-all hover:shadow-md">
-                    <Play className="h-4 w-4 fill-current group-hover:scale-110 transition-transform" />
-                    {t('investigation.overview.startBtn', 'Start Investigation')}
-                  </Button>
+                  {canApprove && (
+                    <Button size="lg" onClick={() => { setIsStarting(true); onStartInvestigation?.(); }} disabled={isStarting} className="gap-2 group shadow-sm transition-all hover:shadow-md">
+                      <Play className="h-4 w-4 fill-current group-hover:scale-110 transition-transform" />
+                      {isStarting ? t('investigation.overview.starting', 'Starting...') : t('investigation.overview.startBtn', 'Start Investigation')}
+                    </Button>
+                  )}
                 </div>
               </div>
             ) : (

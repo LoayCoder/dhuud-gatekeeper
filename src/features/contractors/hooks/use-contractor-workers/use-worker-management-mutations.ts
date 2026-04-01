@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -6,6 +7,7 @@ import { toast } from "sonner";
 // Stage 1 Rejection by Contractor Consultant/Admin
 export function useRejectWorker() {
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
     const { user } = useAuth();
 
     return useMutation({
@@ -15,7 +17,7 @@ export function useRejectWorker() {
             });
 
             if (!hasAccess) {
-                throw new Error("Only Contractor Consultants or Contractor Admins can reject workers at this stage");
+                throw new Error(t("contractors.messages.noApprovalAccess", "Only Contractor Consultants or Contractor Admins can reject workers at this stage"));
             }
 
             const { data: workerInfo } = await supabase
@@ -37,7 +39,7 @@ export function useRejectWorker() {
         onSuccess: async (data) => {
             queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
             queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
-            toast.success("Worker rejected");
+            toast.success(t("contractors.messages.workerRejected", "Worker rejected"));
 
             try {
                 await supabase.functions.invoke("contractor-audit-log", {
@@ -77,6 +79,7 @@ export function useRejectWorker() {
 
 export function useBulkApproveWorkers() {
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
 
     return useMutation({
         mutationFn: async (workerIds: string[]) => {
@@ -92,7 +95,7 @@ export function useBulkApproveWorkers() {
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
             queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
-            toast.success(`${data.length} workers approved`);
+            toast.success(t("contractors.messages.workersApproved", "{{count}} workers approved", { count: data.length }));
         },
         onError: (error: Error) => {
             toast.error(error.message);
@@ -102,6 +105,7 @@ export function useBulkApproveWorkers() {
 
 export function useBulkRejectWorkers() {
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
 
     return useMutation({
         mutationFn: async ({ workerIds, reason }: { workerIds: string[]; reason: string }) => {
@@ -117,7 +121,7 @@ export function useBulkRejectWorkers() {
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
             queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
-            toast.success(`${data.length} workers rejected`);
+            toast.success(t("contractors.messages.workersRejected", "{{count}} workers rejected", { count: data.length }));
         },
         onError: (error: Error) => {
             toast.error(error.message);
@@ -127,6 +131,7 @@ export function useBulkRejectWorkers() {
 
 export function useDeleteContractorWorker() {
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
 
     return useMutation({
         mutationFn: async (workerId: string) => {
@@ -141,11 +146,11 @@ export function useDeleteContractorWorker() {
             queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
             queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
             queryClient.invalidateQueries({ queryKey: ["contractor-site-rep"] });
-            toast.success("Worker deleted");
+            toast.success(t("contractors.messages.workerDeleted", "Worker deleted"));
         },
         onError: (error: Error) => {
             if (error.message.includes('contractor_site_representatives_worker_id_fkey')) {
-                toast.error("Cannot delete: This worker is a Site Representative. Please change the company status to Expired first.");
+                toast.error(t("contractors.messages.cannotDeleteSiteRep", "Cannot delete: This worker is a Site Representative. Please change the company status to Expired first."));
             } else {
                 toast.error(error.message);
             }
@@ -155,6 +160,7 @@ export function useDeleteContractorWorker() {
 
 export function useUpdateWorkerStatus() {
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
 
     return useMutation({
         mutationFn: async ({ workerId, status, reason }: { workerId: string; status: string; reason?: string }) => {
@@ -188,7 +194,7 @@ export function useUpdateWorkerStatus() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
             queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
-            toast.success("Worker status updated");
+            toast.success(t("contractors.messages.workerStatusUpdated", "Worker status updated"));
         },
         onError: (error: Error) => {
             toast.error(error.message);

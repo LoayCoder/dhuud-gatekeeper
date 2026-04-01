@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AlertTriangle, RefreshCw, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -14,6 +15,7 @@ interface SessionFallbackUIProps {
  */
 export function SessionFallbackUI({ error, resetError }: SessionFallbackUIProps) {
   const [isDismissed, setIsDismissed] = useState(false);
+  const { t } = useTranslation();
 
   const handleReload = () => {
     window.location.reload();
@@ -32,11 +34,10 @@ export function SessionFallbackUI({ error, resetError }: SessionFallbackUIProps)
     <div className="fixed top-0 inset-x-0 z-50 p-4">
       <Alert variant="destructive" className="relative bg-destructive/95 backdrop-blur-sm">
         <AlertTriangle className="h-4 w-4" />
-        <AlertTitle className="font-semibold">Session Management Error</AlertTitle>
+        <AlertTitle className="font-semibold">{t('session.managementError', 'Session Management Error')}</AlertTitle>
         <AlertDescription className="mt-2">
           <p className="text-sm mb-3">
-            There was an issue with session management. Some features like session timeout 
-            and concurrent login detection may not work properly.
+            {t('session.managementErrorDescription', 'There was an issue with session management. Some features like session timeout and concurrent login detection may not work properly.')}
           </p>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -46,7 +47,7 @@ export function SessionFallbackUI({ error, resetError }: SessionFallbackUIProps)
               className="bg-background/10 hover:bg-background/20 border-background/20"
             >
               <RefreshCw className="h-3.5 w-3.5 me-1.5" />
-              Reload Page
+              {t('common.reloadPage', 'Reload Page')}
             </Button>
             <Button
               variant="ghost"
@@ -54,12 +55,12 @@ export function SessionFallbackUI({ error, resetError }: SessionFallbackUIProps)
               onClick={handleDismiss}
               className="hover:bg-background/10"
             >
-              Continue Anyway
+              {t('common.continueAnyway', 'Continue Anyway')}
             </Button>
           </div>
           {error && process.env.NODE_ENV === 'development' && (
             <details className="mt-3 text-xs opacity-70">
-              <summary className="cursor-pointer">Error Details</summary>
+              <summary className="cursor-pointer">{t('common.errorDetails', 'Error Details')}</summary>
               <pre className="mt-1 p-2 bg-background/10 rounded text-[10px] overflow-auto max-h-20">
                 {error.message}
               </pre>
@@ -69,7 +70,7 @@ export function SessionFallbackUI({ error, resetError }: SessionFallbackUIProps)
         <button
           onClick={handleDismiss}
           className="absolute top-3 end-3 p-1 rounded-sm opacity-70 hover:opacity-100 transition-opacity"
-          aria-label="Dismiss"
+          aria-label={t('common.dismiss', 'Dismiss')}
         >
           <X className="h-4 w-4" />
         </button>

@@ -187,7 +187,7 @@ function InspectionDashboardContent() {
                         {t(`inspectionDashboard.classifications.${finding.classification}`)}
                       </StatusBadge>
                       <Button variant="ghost" size="sm" asChild>
-                        <Link to={`/inspections/sessions/area/${(finding as unknown as Record<string, unknown> & { session?: { id?: string } }).session?.id || ''}`}>
+                        <Link to={`/inspections/sessions/${(finding as unknown as Record<string, unknown> & { session?: { id?: string } }).session?.id || ''}/area`}>
                           {t('common.view')}
                         </Link>
                       </Button>

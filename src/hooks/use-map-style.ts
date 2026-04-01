@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { MAP_STYLES, MapStyleKey } from '@/features/assets';
 
 export function useMapStyle(storageKey = 'map-style') {

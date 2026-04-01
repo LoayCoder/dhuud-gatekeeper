@@ -20,12 +20,17 @@ export function useInspectionTemplates(templateType?: 'asset' | 'area' | 'audit'
                 .select(`
           id, tenant_id, code, name, name_ar, description,
           template_type, scope_description, estimated_duration_minutes, requires_photos, requires_gps,
-          category_id, type_id, branch_id, site_id, version, is_active, created_by, created_at, updated_at,
+          category_id, type_id, subtype_id, branch_id, site_id, building_id,
+          inspection_category_id, area_type, standard_reference, passing_score_percentage,
+          version, is_active, created_by, created_at, updated_at,
           category:asset_categories(name, name_ar),
           type:asset_types(name, name_ar),
+          subtype:asset_subtypes(name, name_ar),
           branch:branches(name),
-          site:sites(name)
+          site:sites(name),
+          building:buildings(name, name_ar)
         `)
+                .eq('tenant_id', profile!.tenant_id)
                 .is('deleted_at', null)
                 .order('name');
 
@@ -54,11 +59,16 @@ export function useInspectionTemplate(templateId: string | undefined) {
                 .from('inspection_templates')
                 .select(`
           id, tenant_id, code, name, name_ar, description,
-          category_id, type_id, branch_id, site_id, version, is_active, created_by, created_at, updated_at,
+          template_type, scope_description, estimated_duration_minutes, requires_photos, requires_gps,
+          category_id, type_id, subtype_id, branch_id, site_id, building_id,
+          inspection_category_id, area_type, standard_reference, passing_score_percentage,
+          version, is_active, created_by, created_at, updated_at,
           category:asset_categories(name, name_ar),
           type:asset_types(name, name_ar),
+          subtype:asset_subtypes(name, name_ar),
           branch:branches(name),
-          site:sites(name)
+          site:sites(name),
+          building:buildings(name, name_ar)
         `)
                 .eq('id', templateId!)
                 .single();
@@ -88,21 +98,44 @@ export function useTemplateItems(templateId: string | undefined) {
     });
 }
 
-export function useTemplatesForAsset(categoryId: string | undefined, typeId: string | undefined) {
+export function useTemplatesForAsset(params: {
+    categoryId?: string;
+    typeId?: string;
+    subtypeId?: string;
+    branchId?: string;
+    siteId?: string;
+    buildingId?: string;
+}) {
+    const { categoryId, typeId, subtypeId, branchId, siteId, buildingId } = params;
+
     return useQuery({
-        queryKey: ['templates-for-asset', categoryId, typeId],
+        queryKey: ['templates-for-asset', categoryId, typeId, subtypeId, branchId, siteId, buildingId],
         queryFn: async () => {
             let query = supabase
                 .from('inspection_templates')
                 .select('id, name, name_ar, code, description')
                 .eq('is_active', true)
+                .eq('template_type', 'asset')
                 .is('deleted_at', null);
 
-            // Filter by category/type if set, or get templates with no category/type (universal)
-            if (categoryId || typeId) {
-                query = query.or(
-                    `category_id.is.null,category_id.eq.${categoryId || '00000000-0000-0000-0000-000000000000'}`
-                );
+            // Hierarchical matching: template field is NULL (universal) OR matches asset value
+            if (categoryId) {
+                query = query.or(`category_id.is.null,category_id.eq.${categoryId}`);
+            }
+            if (typeId) {
+                query = query.or(`type_id.is.null,type_id.eq.${typeId}`);
+            }
+            if (subtypeId) {
+                query = query.or(`subtype_id.is.null,subtype_id.eq.${subtypeId}`);
+            }
+            if (branchId) {
+                query = query.or(`branch_id.is.null,branch_id.eq.${branchId}`);
+            }
+            if (siteId) {
+                query = query.or(`site_id.is.null,site_id.eq.${siteId}`);
+            }
+            if (buildingId) {
+                query = query.or(`building_id.is.null,building_id.eq.${buildingId}`);
             }
 
             const { data, error } = await query.order('name');
@@ -134,8 +167,10 @@ export function useCreateTemplate() {
             requires_gps?: boolean;
             category_id?: string;
             type_id?: string;
+            subtype_id?: string;
             branch_id?: string;
             site_id?: string;
+            building_id?: string;
             is_active?: boolean;
         }) => {
             // Fetch tenant_id at mutation time to avoid race condition
@@ -201,8 +236,10 @@ export function useUpdateTemplate() {
             requires_gps?: boolean;
             category_id?: string | null;
             type_id?: string | null;
+            subtype_id?: string | null;
             branch_id?: string | null;
             site_id?: string | null;
+            building_id?: string | null;
             is_active?: boolean;
         }) => {
             const { data: result, error } = await supabase
@@ -400,6 +437,146 @@ export function useUpdateTemplateItem() {
         onError: (error: Error) => {
             toast.error(error.message);
         },
+    });
+}
+
+export function useGenerateItemsFromParts() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ templateId, typeId, subtypeId }: {
+            templateId: string;
+            typeId?: string | null;
+            subtypeId?: string | null;
+        }) => {
+            // Fetch tenant_id
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error('Not authenticated');
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('tenant_id')
+                .eq('user_id', user.id)
+                .single();
+            if (!profile?.tenant_id) throw new Error('No tenant found');
+
+            // Fetch matching asset_type_parts
+            let query = supabase
+                .from('asset_type_parts')
+                .select('id, name, name_ar, default_response_type, is_critical, sort_order, description, description_ar')
+                .eq('is_active', true)
+                .is('deleted_at', null)
+                .order('sort_order', { ascending: true })
+                .order('name', { ascending: true });
+
+            if (subtypeId) {
+                query = query.eq('subtype_id', subtypeId).is('type_id', null);
+            } else if (typeId) {
+                query = query.eq('type_id', typeId).is('subtype_id', null);
+            } else {
+                throw new Error('Either typeId or subtypeId is required');
+            }
+
+            const { data: parts, error: partsError } = await query;
+            if (partsError) throw partsError;
+            if (!parts || parts.length === 0) throw new Error('No asset parts found for this type/subtype');
+
+            // Map response types: asset_type_parts uses 'condition_rating' but template items use 'rating'
+            const mapResponseType = (rt: string) => {
+                if (rt === 'condition_rating') return 'rating';
+                if (rt === 'numeric') return 'numeric';
+                return 'pass_fail';
+            };
+
+            // Bulk insert as template items
+            const items = parts.map((part, index) => ({
+                template_id: templateId,
+                tenant_id: profile.tenant_id,
+                question: part.name,
+                question_ar: part.name_ar || null,
+                response_type: mapResponseType(part.default_response_type),
+                is_critical: part.is_critical,
+                is_required: true,
+                sort_order: part.sort_order ?? (index + 1),
+                rating_scale: part.default_response_type === 'condition_rating' ? 5 : 5,
+                instructions: part.description || null,
+                instructions_ar: part.description_ar || null,
+            }));
+
+            const { error: insertError } = await supabase
+                .from('inspection_template_items')
+                .insert(items);
+            if (insertError) throw insertError;
+
+            return { count: items.length };
+        },
+        onSuccess: (result, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['template-items', variables.templateId] });
+            toast.success(`Generated ${result.count} checklist items from asset parts`);
+        },
+        onError: (error: Error) => {
+            toast.error(error.message);
+        },
+    });
+}
+
+/**
+ * Hook: Query hsse_assets matching a template's hierarchy scope.
+ * Used to show a "matching assets" preview in the template editor.
+ */
+export function useMatchingAssets(params: {
+    branchId?: string | null;
+    siteId?: string | null;
+    buildingId?: string | null;
+    categoryId?: string | null;
+    typeId?: string | null;
+    subtypeId?: string | null;
+    enabled?: boolean;
+}) {
+    const { profile } = useAuth();
+    const { branchId, siteId, buildingId, categoryId, typeId, subtypeId, enabled = true } = params;
+
+    const hasScope = !!(branchId || siteId || buildingId || categoryId || typeId || subtypeId);
+
+    return useQuery({
+        queryKey: ['matching-assets', branchId, siteId, buildingId, categoryId, typeId, subtypeId],
+        queryFn: async () => {
+            if (!profile?.tenant_id) return { count: 0, sample: [] };
+
+            let query = supabase
+                .from('hsse_assets')
+                .select('id, name, asset_code, status, subtype_id, last_inspection_date, next_inspection_due, category:asset_categories(name, name_ar), building:buildings(name, name_ar), type:asset_types(name, name_ar), subtype:asset_subtypes(name, name_ar), floor_zone:floors_zones(name)', { count: 'exact' })
+                .eq('tenant_id', profile.tenant_id)
+                .is('deleted_at', null);
+
+            if (branchId) query = query.eq('branch_id', branchId);
+            if (siteId) query = query.eq('site_id', siteId);
+            if (buildingId) query = query.eq('building_id', buildingId);
+            if (categoryId) query = query.eq('category_id', categoryId);
+            if (typeId) query = query.eq('type_id', typeId);
+            if (subtypeId) query = query.eq('subtype_id', subtypeId);
+
+            const { data, count, error } = await query.order('asset_code');
+            if (error) throw error;
+
+            return {
+                count: count ?? 0,
+                assets: (data || []) as Array<{
+                    id: string;
+                    name: string;
+                    asset_code: string;
+                    status: string | null;
+                    subtype_id: string | null;
+                    last_inspection_date: string | null;
+                    next_inspection_due: string | null;
+                    category?: { name: string; name_ar: string | null } | null;
+                    building?: { name: string; name_ar: string | null } | null;
+                    type?: { name: string; name_ar: string | null } | null;
+                    subtype?: { name: string; name_ar: string | null } | null;
+                    floor_zone?: { name: string } | null;
+                }>,
+            };
+        },
+        enabled: enabled && hasScope && !!profile?.tenant_id,
     });
 }
 

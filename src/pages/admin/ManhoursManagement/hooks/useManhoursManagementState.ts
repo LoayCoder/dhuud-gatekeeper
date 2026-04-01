@@ -6,7 +6,7 @@ import { useManhours, useCreateManhour, useUpdateManhour, useDeleteManhour, useM
 import { useBranches } from '@/hooks/use-branches';
 import { useSites } from '@/hooks/use-sites';
 import { useDepartmentsByBranch } from '@/hooks/use-departments-by-site';
-import * as XLSX from 'xlsx';
+import { readExcelAsObjects, writeExcelAndDownload } from '@/lib/exceljs-utils';
 import { ManhourFormData, ImportRow, defaultFormData, getDefaultWorkingDays } from '../types';
 
 export function useManhoursManagementState() {
@@ -148,7 +148,7 @@ export function useManhoursManagementState() {
   };
 
   // Excel Import Functions
-  const downloadTemplate = () => {
+  const downloadTemplate = async () => {
     const template = [
       {
         period_date: format(new Date(), 'yyyy-MM-dd'),
@@ -161,81 +161,63 @@ export function useManhoursManagementState() {
       },
     ];
 
-    const ws = XLSX.utils.json_to_sheet(template);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Manhours Template');
-    
-    // Set column widths
-    ws['!cols'] = [
-      { wch: 12 }, // period_date
-      { wch: 10 }, // period_type
-      { wch: 15 }, // employee_hours
-      { wch: 15 }, // contractor_hours
-      { wch: 20 }, // branch_name
-      { wch: 20 }, // site_name
-      { wch: 30 }, // notes
-    ];
-
-    XLSX.writeFile(wb, 'manhours_template.xlsx');
+    await writeExcelAndDownload([{
+      name: 'Manhours Template',
+      data: template,
+      columnWidths: [12, 10, 15, 15, 20, 20, 30],
+    }], 'manhours_template.xlsx');
     toast.success(t('admin.manhours.templateDownloaded', 'Template downloaded'));
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const data = event.target?.result;
-        const workbook = XLSX.read(data, { type: 'binary' });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(sheet) as Record<string, unknown>[];
+    try {
+      const buffer = await file.arrayBuffer();
+      const jsonData = await readExcelAsObjects<Record<string, unknown>>(buffer);
 
-        // Validate and transform data
-        const validatedData: ImportRow[] = jsonData.map((row) => {
-          const errors: string[] = [];
-          
-          // Validate period_date
-          const periodDate = row.period_date as string;
-          if (!periodDate || isNaN(Date.parse(periodDate))) {
-            errors.push(t('admin.manhours.invalidDate', 'Invalid date'));
-          }
+      // Validate and transform data
+      const validatedData: ImportRow[] = jsonData.map((row) => {
+        const errors: string[] = [];
+        
+        // Validate period_date
+        const periodDate = row.period_date as string;
+        if (!periodDate || isNaN(Date.parse(periodDate))) {
+          errors.push(t('admin.manhours.invalidDate', 'Invalid date'));
+        }
 
-          // Validate period_type
-          const periodType = (row.period_type as string)?.toLowerCase();
-          if (!['daily', 'weekly', 'monthly'].includes(periodType)) {
-            errors.push(t('admin.manhours.invalidPeriodType', 'Invalid period type'));
-          }
+        // Validate period_type
+        const periodType = (row.period_type as string)?.toLowerCase();
+        if (!['daily', 'weekly', 'monthly'].includes(periodType)) {
+          errors.push(t('admin.manhours.invalidPeriodType', 'Invalid period type'));
+        }
 
-          // Validate hours
-          const employeeHours = Number(row.employee_hours) || 0;
-          const contractorHours = Number(row.contractor_hours) || 0;
-          if (employeeHours < 0 || contractorHours < 0) {
-            errors.push(t('admin.manhours.negativeHours', 'Hours cannot be negative'));
-          }
+        // Validate hours
+        const employeeHours = Number(row.employee_hours) || 0;
+        const contractorHours = Number(row.contractor_hours) || 0;
+        if (employeeHours < 0 || contractorHours < 0) {
+          errors.push(t('admin.manhours.negativeHours', 'Hours cannot be negative'));
+        }
 
-          return {
-            period_date: periodDate,
-            period_type: periodType,
-            employee_hours: employeeHours,
-            contractor_hours: contractorHours,
-            branch_name: row.branch_name as string || '',
-            site_name: row.site_name as string || '',
-            notes: row.notes as string || '',
-            isValid: errors.length === 0,
-            errors,
-          };
-        });
+        return {
+          period_date: periodDate,
+          period_type: periodType,
+          employee_hours: employeeHours,
+          contractor_hours: contractorHours,
+          branch_name: row.branch_name as string || '',
+          site_name: row.site_name as string || '',
+          notes: row.notes as string || '',
+          isValid: errors.length === 0,
+          errors,
+        };
+      });
 
-        setImportData(validatedData);
-        setIsImportDialogOpen(true);
-      } catch (error) {
-        toast.error(t('admin.manhours.importParseError', 'Failed to parse Excel file'));
-      }
-    };
-    reader.readAsBinaryString(file);
+      setImportData(validatedData);
+      setIsImportDialogOpen(true);
+    } catch (error) {
+      toast.error(t('admin.manhours.importParseError', 'Failed to parse Excel file'));
+    }
 
     // Reset input
     if (fileInputRef.current) {

@@ -69,7 +69,7 @@ export function TemplateBulkActionsToolbar({
             className="gap-1.5 text-destructive hover:text-destructive"
           >
             <Trash2 className="h-4 w-4" />
-            {t('Delete')}
+            {t('templates.delete')}
           </Button>
         </div>
 
@@ -92,7 +92,7 @@ export function TemplateBulkActionsToolbar({
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onDelete} className="text-destructive">
                 <Trash2 className="h-4 w-4 me-2" />
-                {t('Delete')}
+                {t('templates.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -106,7 +106,7 @@ export function TemplateBulkActionsToolbar({
         className="gap-1.5"
       >
         <X className="h-4 w-4" />
-        <span className="hidden sm:inline">{t('Clear')}</span>
+        <span className="hidden sm:inline">{t('templates.clear')}</span>
       </Button>
     </div>
   );

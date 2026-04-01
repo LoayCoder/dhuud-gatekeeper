@@ -18,6 +18,8 @@ export {
     useCreateAreaSession,
     useStartAreaSession,
     useSaveAreaResponse,
-    useCompleteAreaSession,
     useUpdateAreaSession,
 } from './use-area-inspection-mutations';
+
+export { useBackfillAreaResponses } from './use-backfill-area-responses';
+export { useBackfillAreaAssets } from './use-backfill-area-assets';

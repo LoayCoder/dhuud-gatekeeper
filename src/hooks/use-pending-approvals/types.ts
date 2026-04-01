@@ -10,6 +10,7 @@ export interface PendingIncidentApproval {
     event_type: string | null;
     created_at: string | null;
     reporter?: { id: string; full_name: string | null } | null;
+    approval_manager?: { id: string; full_name: string | null } | null;
     // Location fields
     location?: string | null;
     location_city?: string | null;
@@ -17,6 +18,8 @@ export interface PendingIncidentApproval {
     longitude?: number | null;
     site?: { id: string; name: string; latitude?: number | null; longitude?: number | null } | null;
     branch?: { id: string; name: string } | null;
+    // Admin override indicator
+    isAdminOverride?: boolean;
 }
 
 export interface PendingActionApproval {
@@ -33,6 +36,7 @@ export interface PendingActionApproval {
     assigned_to: string | null;
     responsible_department_id: string | null;
     created_at: string | null;
+    session_id: string | null;
     linked_cause_type: string | null;
     linked_root_cause_id: string | null;
     completion_notes: string | null;

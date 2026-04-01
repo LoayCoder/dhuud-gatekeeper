@@ -1,4 +1,4 @@
-﻿export * from './components/RiskAssessmentWizard/components/WizardNavigation';
+export * from './components/RiskAssessmentWizard/components/WizardNavigation';
 export * from './components/RiskAssessmentWizard/components/WizardStep1';
 export * from './components/RiskAssessmentWizard/components/WizardStep2';
 export * from './components/RiskAssessmentWizard/components/WizardStep3';

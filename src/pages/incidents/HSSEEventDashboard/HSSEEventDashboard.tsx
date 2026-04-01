@@ -190,7 +190,7 @@ export default function HSSEEventDashboard() {
   const { data: daysSince, refetch: refetchDays } = useDaysSinceLastRecordable(branchId || undefined, undefined);
 
   // Trend data
-  const { data: trendData, isLoading: trendLoading, refetch: refetchTrend } = useKPIHistoricalTrend(undefined, undefined, branchId || undefined, undefined);
+  const { data: trendData, isLoading: trendLoading, refetch: refetchTrend } = useKPIHistoricalTrend(startDateStr || undefined, endDateStr || undefined, branchId || undefined, undefined);
   const { data: periodComparison, refetch: refetchComparison } = useKPIPeriodComparison('month', branchId || undefined, undefined);
 
   // Prefetch dashboard data for improved performance

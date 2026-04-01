@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -70,16 +70,16 @@ export function ContractControllerApprovalCard({ incident, onComplete }: Contrac
   };
   
   return (
-    <Card className="border-green-500/50 bg-green-500/5" dir={direction}>
+    <Card className="border-success/30 bg-success/5" dir={direction}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Wallet className="h-5 w-5 text-green-600" />
+            <Wallet className="h-5 w-5 text-success" />
             <CardTitle className="text-lg">
               {t('workflow.violation.contractControllerApproval', 'Contract Controller - Fine Approval')}
             </CardTitle>
           </div>
-          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+          <Badge variant="outline" className="bg-success/10 text-success border-success/30">
             {t('workflow.pendingApproval', 'Pending Approval')}
           </Badge>
         </div>
@@ -91,7 +91,7 @@ export function ContractControllerApprovalCard({ incident, onComplete }: Contrac
         {/* Violation & Fine Summary */}
         <div className="rounded-lg bg-muted/50 p-4 space-y-3">
           <div className="flex items-center gap-2">
-            <Building2 className="h-4 w-4 text-amber-600" />
+            <Building2 className="h-4 w-4 text-warning" />
             <span className="font-medium">
               {incident.related_contractor_company?.company_name}
             </span>
@@ -142,7 +142,7 @@ export function ContractControllerApprovalCard({ incident, onComplete }: Contrac
         </div>
         
         {/* Warning */}
-        <div className="flex items-start gap-2 text-sm text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200">
+        <div className="flex items-start gap-2 text-sm text-warning bg-warning/10 p-3 rounded-lg border border-warning/30">
           <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
           <span>
             {t('workflow.violation.fineApprovalWarning', 'Approving this fine will finalize the violation and make it enforceable.')}
@@ -153,7 +153,7 @@ export function ContractControllerApprovalCard({ incident, onComplete }: Contrac
         <div className="flex gap-3 pt-2">
           <Button
             variant="outline"
-            className="flex-1 flex items-center justify-center gap-2 text-red-600 border-red-300 hover:bg-red-50"
+            className="flex-1 flex items-center justify-center gap-2 text-destructive border-destructive/30 hover:bg-destructive/10"
             onClick={handleReject}
             disabled={contractControllerApproval.isPending}
           >
@@ -166,7 +166,7 @@ export function ContractControllerApprovalCard({ incident, onComplete }: Contrac
           </Button>
           
           <Button
-            className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700"
+            className="flex-1 flex items-center justify-center gap-2 bg-success hover:bg-success/90 text-success-foreground"
             onClick={handleApprove}
             disabled={contractControllerApproval.isPending}
           >

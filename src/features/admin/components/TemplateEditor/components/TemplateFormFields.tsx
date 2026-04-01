@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,7 @@ import { Languages, Loader2 } from 'lucide-react';
 import { CHANNEL_OPTIONS, CATEGORIES } from '../constants';
 
 export function TemplateFormFields({ state }: { state: any }) {
+  const { t } = useTranslation();
   const {
     formData, setFormData, showWhatsAppFields, showEmailFields,
     handleTranslate, canTranslate, isTranslating, emailSubjectRef,
@@ -17,7 +19,7 @@ export function TemplateFormFields({ state }: { state: any }) {
     <>
       {/* Channel Type Selector */}
       <div className="space-y-2">
-        <Label>Channel Type</Label>
+        <Label>{t('templates.channelType')}</Label>
         <div className="flex gap-2">
           {CHANNEL_OPTIONS.map((option) => (
             <Button
@@ -37,7 +39,7 @@ export function TemplateFormFields({ state }: { state: any }) {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="slug">Slug (Unique ID)</Label>
+          <Label htmlFor="slug">{t('templates.slugUniqueId')}</Label>
           <Input
             id="slug"
             value={formData.slug}
@@ -49,7 +51,7 @@ export function TemplateFormFields({ state }: { state: any }) {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="category">Category</Label>
+          <Label htmlFor="category">{t('templates.category')}</Label>
           <Select
             value={formData.category}
             onValueChange={(value) => setFormData({ ...formData, category: value })}
@@ -71,7 +73,7 @@ export function TemplateFormFields({ state }: { state: any }) {
       <div className="grid grid-cols-2 gap-4">
         {showWhatsAppFields && (
           <div className="space-y-2">
-            <Label htmlFor="gateway">WhatsApp Gateway</Label>
+            <Label htmlFor="gateway">{t('templates.whatsappGateway')}</Label>
             <Select
               value={formData.default_gateway}
               onValueChange={(value: 'official' | 'wasender') =>
@@ -83,13 +85,13 @@ export function TemplateFormFields({ state }: { state: any }) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="wasender">WaSender</SelectItem>
-                <SelectItem value="official">Official (Meta)</SelectItem>
+                <SelectItem value="official">{t('templates.officialMeta')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
         )}
         <div className="space-y-2">
-          <Label htmlFor="language">Language</Label>
+          <Label htmlFor="language">{t('templates.languageLabel')}</Label>
           <div className="flex gap-2">
             <Select
               value={formData.language}
@@ -117,7 +119,7 @@ export function TemplateFormFields({ state }: { state: any }) {
               size="icon"
               onClick={handleTranslate}
               disabled={!canTranslate || isTranslating}
-              title="Translate content to selected language"
+              title={t('templates.translateContent')}
             >
               {isTranslating ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -128,12 +130,12 @@ export function TemplateFormFields({ state }: { state: any }) {
           </div>
           {formData.category === 'visitors' && (
             <p className="text-xs text-muted-foreground">
-              Visitor templates support Arabic and English only
+              {t('templates.visitorLangHint')}
             </p>
           )}
           {canTranslate && !isTranslating && (
             <p className="text-xs text-muted-foreground">
-              Click the translate button to auto-translate content
+              {t('templates.translateHint')}
             </p>
           )}
         </div>
@@ -141,21 +143,21 @@ export function TemplateFormFields({ state }: { state: any }) {
 
       {showWhatsAppFields && formData.default_gateway === 'official' && (
         <div className="space-y-2">
-          <Label htmlFor="meta_template_name">Meta Template Name</Label>
+          <Label htmlFor="meta_template_name">{t('templates.metaTemplateName')}</Label>
           <Input
             id="meta_template_name"
             value={formData.meta_template_name || ''}
             onChange={(e) =>
               setFormData({ ...formData, meta_template_name: e.target.value })
             }
-            placeholder="Template name from Meta Business Manager"
+            placeholder={t('templates.metaTemplatePlaceholder')}
           />
         </div>
       )}
 
       {showEmailFields && (
         <div className="space-y-2">
-          <Label htmlFor="email_subject">Email Subject</Label>
+          <Label htmlFor="email_subject">{t('templates.emailSubject')}</Label>
           <Input
             ref={emailSubjectRef}
             id="email_subject"
@@ -170,7 +172,7 @@ export function TemplateFormFields({ state }: { state: any }) {
             className={`transition-all ${activeDropTarget === 'subject' ? 'ring-2 ring-primary ring-offset-2' : ''}`}
           />
           <p className="text-xs text-muted-foreground">
-            Click on the field, then click a variable to insert it. Or drag and drop.
+            {t('templates.emailSubjectHint')}
           </p>
         </div>
       )}

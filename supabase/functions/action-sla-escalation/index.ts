@@ -209,7 +209,7 @@ Deno.serve(async (req) => {
       escalations_sent: escalations.length,
       whatsapp_sent: whatsAppSent.length 
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("SLA escalation error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(JSON.stringify({ error: errorMessage }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });

@@ -26,6 +26,8 @@ export interface MyAssignedInvestigation {
     severity_v2: string | null;
     event_type: string | null;
     site?: { name: string } | null;
+    reporter?: { full_name: string | null } | null;
+    approval_manager?: { full_name: string | null } | null;
   } | null;
 }
 
@@ -59,7 +61,7 @@ export function useMyAssignedInvestigations() {
         (data || []).map(async (inv) => {
           const { data: incident } = await supabase
             .from('incidents')
-            .select('id, reference_id, title, status, severity_v2, event_type')
+            .select('id, reference_id, title, status, severity_v2, event_type, reporter:profiles!incidents_reporter_id_fkey(full_name), approval_manager:profiles!incidents_approval_manager_id_fkey(full_name)')
             .eq('id', inv.incident_id)
             .eq('tenant_id', profile.tenant_id)
             .single();
@@ -69,9 +71,16 @@ export function useMyAssignedInvestigations() {
       );
 
       // Filter to only show active investigations (not terminal statuses)
+      const terminalStatuses = [
+        'closed', 'investigation_closed', 'no_investigation_required',
+        'closed_rejected_approved_by_hsse', 'contractor_violation_cancelled',
+        'contractor_violation_terminated', 'contractor_violation_warning',
+        'dept_rep_rejected', 'expert_rejected', 'manager_rejected',
+        'upgraded_to_incident'
+      ];
       const activeInvestigations = investigationsWithIncidents.filter(inv => {
         const status = inv.incident?.status;
-        return status && !['closed', 'rejected', 'rejected_invalid'].includes(status);
+        return status && !terminalStatuses.includes(status);
       });
 
       return activeInvestigations as MyAssignedInvestigation[];

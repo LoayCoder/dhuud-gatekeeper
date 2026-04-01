@@ -4,7 +4,7 @@ import type { Investigation, CorrectiveAction, IncidentAuditLog, FiveWhyEntry, R
 export const getInvestigation = async (incidentId: string) => {
     const { data: invData, error: invError } = await supabase
         .from('investigations')
-        .select('*')
+        .select('id, incident_id, investigator_id, started_at, completed_at, immediate_cause, underlying_cause, root_cause, contributing_factors, contributing_factors_list, findings_summary, five_whys, root_causes, ai_summary, ai_summary_generated_at, ai_summary_language, tenant_id, created_at, updated_at, assigned_by, assigned_at, assignment_notes, branch_id')
         .eq('incident_id', incidentId)
         .is('deleted_at', null)
         .maybeSingle();
@@ -14,7 +14,7 @@ export const getInvestigation = async (incidentId: string) => {
 
     const { data: rcaData, error: rcaError } = await supabase
         .from('incident_rca')
-        .select('*')
+        .select('id, incident_id, five_whys, root_causes, contributing_factors, immediate_causes, underlying_causes, is_locked, locked_by, locked_at, tenant_id, created_at, updated_at')
         .eq('incident_id', incidentId)
         .maybeSingle();
 
@@ -103,10 +103,88 @@ export const getCorrectiveActions = async (incidentId: string) => {
 export const getIncidentAuditLogs = async (incidentId: string) => {
     const { data, error } = await supabase
         .from('incident_audit_logs')
-        .select('*')
+        .select('id, action, actor_id, incident_id, old_value, new_value, details, ip_address, created_at, tenant_id, branch_id')
         .eq('incident_id', incidentId)
         .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data as IncidentAuditLog[];
+    if (!data || data.length === 0) return [] as IncidentAuditLog[];
+
+    // Collect unique UUIDs to resolve
+    const actorIds = new Set<string>();
+    const branchIds = new Set<string>();
+    const userIds = new Set<string>(); // for assigned_to, investigator_id, etc.
+
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const USER_FIELDS = ['assigned_to', 'investigator_id', 'reporter_id', 'approval_manager_id', 'actor_id', 'verified_by', 'rejected_by', 'locked_by'];
+    const BRANCH_FIELDS = ['branch_id'];
+
+    for (const log of data) {
+        if (log.actor_id) actorIds.add(log.actor_id);
+        if (log.details && typeof log.details === 'object' && !Array.isArray(log.details)) {
+            for (const [key, val] of Object.entries(log.details as Record<string, unknown>)) {
+                if (typeof val === 'string' && UUID_RE.test(val)) {
+                    if (USER_FIELDS.includes(key)) userIds.add(val);
+                    else if (BRANCH_FIELDS.includes(key)) branchIds.add(val);
+                }
+            }
+        }
+    }
+
+    // Merge actor IDs into user IDs for a single lookup
+    for (const id of actorIds) userIds.add(id);
+
+    // Batch resolve
+    const profileMap = new Map<string, string>();
+    const branchMap = new Map<string, string>();
+
+    if (userIds.size > 0) {
+        const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, full_name')
+            .in('id', Array.from(userIds));
+        if (profiles) {
+            for (const p of profiles) {
+                if (p.full_name) profileMap.set(p.id, p.full_name);
+            }
+        }
+    }
+
+    if (branchIds.size > 0) {
+        const { data: branches } = await supabase
+            .from('branches')
+            .select('id, name')
+            .in('id', Array.from(branchIds));
+        if (branches) {
+            for (const b of branches) {
+                branchMap.set(b.id, b.name);
+            }
+        }
+    }
+
+    // Enrich logs
+    return data.map(log => {
+        const enriched: IncidentAuditLog = {
+            ...log,
+            actor_name: log.actor_id ? (profileMap.get(log.actor_id) || null) : null,
+        } as IncidentAuditLog;
+
+        if (log.details && typeof log.details === 'object' && !Array.isArray(log.details)) {
+            const resolved: Record<string, string> = {};
+            for (const [key, val] of Object.entries(log.details as Record<string, unknown>)) {
+                if (typeof val === 'string' && UUID_RE.test(val)) {
+                    if (USER_FIELDS.includes(key) && profileMap.has(val)) {
+                        resolved[key] = profileMap.get(val)!;
+                    } else if (BRANCH_FIELDS.includes(key) && branchMap.has(val)) {
+                        resolved[key] = branchMap.get(val)!;
+                    }
+                }
+            }
+            if (Object.keys(resolved).length > 0) {
+                enriched.resolved_details = resolved;
+            }
+        }
+
+        return enriched;
+    });
 };

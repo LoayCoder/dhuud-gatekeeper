@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import {
@@ -63,12 +63,12 @@ import { CCTVEventsList } from '@/features/security';
 export default function CCTVManagement() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'cameras' | 'events'>('cameras');
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [editingCamera, setEditingCamera] = useState<CCTVCamera | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
 
   const { data: cameras, isLoading, refetch } = useCCTVCameras({
-    status: statusFilter || undefined,
+    status: statusFilter && statusFilter !== 'all' ? statusFilter : undefined,
   });
   const { data: stats, isLoading: statsLoading } = useCameraStats();
   const deleteMutation = useDeleteCamera();
@@ -254,7 +254,7 @@ export default function CCTVManagement() {
                     <SelectValue placeholder={t('common.allStatus', 'All Status')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">{t('common.all', 'All')}</SelectItem>
+                    <SelectItem value="all">{t('common.all', 'All')}</SelectItem>
                     <SelectItem value="online">{t('common.online', 'Online')}</SelectItem>
                     <SelectItem value="offline">{t('common.offline', 'Offline')}</SelectItem>
                     <SelectItem value="maintenance">{t('common.maintenance', 'Maintenance')}</SelectItem>

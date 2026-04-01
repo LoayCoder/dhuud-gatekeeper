@@ -1,4 +1,4 @@
-﻿import { useCallback } from 'react';
+import { useCallback } from 'react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -183,11 +183,6 @@ export function useQuickObservationCardHandlers(state: any) {
           id: offlineId,
           referenceId: t('offline.pendingSync'),
         });
-        
-        // Navigate back after delay
-        setTimeout(() => {
-          state.onCancel?.();
-        }, 3000);
       } else {
         setHasSubmitted(false);
         toast.error(t('offline.failedToSaveOffline'));
@@ -297,15 +292,11 @@ export function useQuickObservationCardHandlers(state: any) {
           }
         }
         
-        // Show success dialog and auto-redirect after 3 seconds
+        // Show success dialog - dialog handles auto-redirect via countdown
         setSubmittedObservation({
           id: data.id,
           referenceId: data.reference_id || '',
         });
-        
-        setTimeout(() => {
-          navigate(`/incidents/${data.id}`);
-        }, 3000);
       },
       onError: () => {
         // Reset submission guard on error

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { GripVertical, ListFilter, X, Plus, AlertTriangle } from 'lucide-react';
@@ -9,6 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { SYSTEM_VARIABLES } from '../constants';
 
 export function TemplateVariablesSidebar({ state }: { state: any }) {
+  const { t } = useTranslation();
   const {
     showAllVariables, setShowAllVariables, formData, filteredVariables,
     handleDragStart, handleVariableClick, removeVariable,
@@ -23,7 +25,7 @@ export function TemplateVariablesSidebar({ state }: { state: any }) {
           <div className="flex items-center justify-between">
             <Label className="flex items-center gap-2">
               <GripVertical className="h-4 w-4 text-muted-foreground" />
-              Variables
+              {t('templates.variables')}
             </Label>
             <Button
               type="button"
@@ -33,13 +35,13 @@ export function TemplateVariablesSidebar({ state }: { state: any }) {
               className="h-6 px-2 text-xs"
             >
               <ListFilter className="h-3 w-3 me-1" />
-              {showAllVariables ? 'Filter' : 'All'}
+              {showAllVariables ? t('templates.filter') : t('templates.all')}
             </Button>
           </div>
           <div className="text-xs text-muted-foreground mb-1">
             {showAllVariables 
-              ? `All ${SYSTEM_VARIABLES.length} variables` 
-              : `${filteredVariables.length} for ${formData.category}`}
+              ? t('templates.allVariablesCount', { count: SYSTEM_VARIABLES.length })
+              : t('templates.filteredVariablesCount', { count: filteredVariables.length, category: formData.category })}
           </div>
           <ScrollArea className="h-[200px] border rounded-md p-2">
             <div className="flex flex-col gap-1.5">
@@ -62,7 +64,7 @@ export function TemplateVariablesSidebar({ state }: { state: any }) {
             </div>
           </ScrollArea>
           <p className="text-xs text-muted-foreground">
-            Click or drag to insert
+            {t('templates.clickOrDragToInsert')}
           </p>
         </div>
         
@@ -71,7 +73,7 @@ export function TemplateVariablesSidebar({ state }: { state: any }) {
 
       {/* Active Variables */}
       <div className="space-y-2 mt-4">
-        <Label>Active Variable Mappings</Label>
+        <Label>{t('templates.activeVariableMappings')}</Label>
         
         {/* Event type warning for HSSE categories */}
         {(formData.category === 'incidents' || formData.category === 'observations') && 
@@ -79,7 +81,7 @@ export function TemplateVariablesSidebar({ state }: { state: any }) {
           <Alert variant="default" className="border-amber-500 bg-amber-50 dark:bg-amber-950/30">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <AlertDescription className="text-amber-700 dark:text-amber-400">
-              <strong>Recommended:</strong> Add <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">event_type</code> variable to show if this is an Incident, Observation, Near Miss, etc.
+              <strong>{t('templates.recommended')}</strong> {t('templates.recommendedEventType')}
             </AlertDescription>
           </Alert>
         )}
@@ -87,7 +89,7 @@ export function TemplateVariablesSidebar({ state }: { state: any }) {
         <div className="flex flex-wrap gap-2 mb-2">
           {formData.variable_keys.length === 0 ? (
             <span className="text-sm text-muted-foreground">
-              No variables added yet. Click or drag from the sidebar.
+              {t('templates.noVariablesAdded')}
             </span>
           ) : (
             formData.variable_keys.map((key: string, index: number) => (
@@ -111,7 +113,7 @@ export function TemplateVariablesSidebar({ state }: { state: any }) {
           <Input
             value={newVariable}
             onChange={(e) => setNewVariable(e.target.value.replace(/\s+/g, '_'))}
-            placeholder="custom_variable_name"
+            placeholder={t('templates.customVariablePlaceholder')}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
@@ -122,7 +124,7 @@ export function TemplateVariablesSidebar({ state }: { state: any }) {
           />
           <Button type="button" variant="outline" onClick={addVariable}>
             <Plus className="h-4 w-4 me-1" />
-            Add Custom
+            {t('templates.addCustom')}
           </Button>
         </div>
       </div>

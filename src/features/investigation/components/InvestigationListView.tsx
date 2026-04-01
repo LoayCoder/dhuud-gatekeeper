@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -47,14 +47,25 @@ export function InvestigationListView() {
         return severity.toUpperCase().split('_')[0];
     };
 
-    // Mock progress calculation for list view (in a real app, this might come from a DB aggregate)
-    const getMockProgress = (id: string, status: string) => {
-        if (status === 'submitted' || status === 'pending_manager_approval') return 10;
-        if (status === 'investigation_pending') return 25;
-        if (status === 'investigation_in_progress') return 60;
-        if (status === 'pending_closure') return 90;
-        if (status === 'closed') return 100;
-        return 0;
+    // Status-weighted progress: maps workflow stages to meaningful completion percentages
+    const getInvestigationProgress = (_id: string, status: string): number => {
+        // Stage 1: Initial submission / triage (0-15%)
+        if (['submitted', 'returned_to_reporter', 'pending_dept_rep_incident_review', 'pending_dept_rep_approval'].includes(status)) return 10;
+        // Stage 2: Manager/expert screening (15-30%)
+        if (['pending_manager_approval', 'pending_department_manager_approval', 'pending_expert_screening', 'expert_screening', 'pending_hsse_expert_review'].includes(status)) return 25;
+        // Stage 3: Investigation assignment (30-40%)
+        if (['pending_investigator_assignment', 'investigation_pending'].includes(status)) return 35;
+        // Stage 4: Active investigation (40-70%)
+        if (['investigation_in_progress', 'under_investigation'].includes(status)) return 60;
+        // Stage 5: Investigation closed, pending actions/review (70-85%)
+        if (['investigation_closed', 'pending_hsse_validation', 'pending_hsse_incident_validation', 'observation_actions_pending'].includes(status)) return 80;
+        // Stage 6: Pending closure (85-95%)
+        if (['pending_closure', 'pending_final_closure', 'pending_hsse_manager_closure'].includes(status)) return 90;
+        // Stage 7: Closed/terminal (100%)
+        if (['closed', 'closed_rejected_approved_by_hsse', 'no_investigation_required'].includes(status)) return 100;
+        // Rejected/escalated states
+        if (['dept_rep_rejected', 'manager_rejected', 'expert_rejected', 'hsse_enforced'].includes(status)) return 100;
+        return 15; // Default for any unmapped status
     };
 
     return (
@@ -149,7 +160,7 @@ export function InvestigationListView() {
                         const sla = calculateInvestigationSLA(incident.created_at || new Date().toISOString(), severity);
 
                         // Dynamic progress based on status (simulated)
-                        const mockProgress = getMockProgress(incident.id, incident.status || '');
+                        const mockProgress = getInvestigationProgress(incident.id, incident.status || '');
                         const isComplete = incident.status === 'closed';
 
                         return (
@@ -166,7 +177,7 @@ export function InvestigationListView() {
                                     <div className="p-5 md:w-1/3 border-b md:border-b-0 md:border-r bg-muted/10">
                                         <div className="flex items-center gap-2 mb-3">
                                             <Badge className={cn("px-2 py-0.5 border shadow-sm font-bold tracking-wider rounded-md", priorityColor)} variant="outline">
-                                                {severity && (priorityColor.includes('red') ? 'ðŸ”´ ' : priorityColor.includes('yellow') || priorityColor.includes('orange') ? 'ðŸŸ¡ ' : 'ðŸ”µ ')}
+                                                {severity && (priorityColor.includes('red') ? '🔴 ' : priorityColor.includes('yellow') || priorityColor.includes('orange') ? '🟡 ' : '🔵 ')}
                                                 {priorityLabel}
                                             </Badge>
                                             <span className="font-mono text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
@@ -199,8 +210,8 @@ export function InvestigationListView() {
                                                 )}>
                                                     {sla.status === 'red' ? <AlertCircle className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
                                                     {sla.isOverdue
-                                                        ? t('investigation.sla.overdueBy', { count: Math.abs(sla.daysRemaining), defaultValue: `Overdue by ${Math.abs(sla.daysRemaining)} days âš ï¸` })
-                                                        : t('investigation.sla.dueIn', { count: sla.daysRemaining, defaultValue: `Due in ${sla.daysRemaining} days` })
+                                                        ? t('investigation.sla.overdueBy', { count: Math.abs(sla.daysRemaining), defaultValue: 'Overdue by {{count}} days ⚠️' })
+                                                        : t('investigation.sla.dueIn', { count: sla.daysRemaining, defaultValue: 'Due in {{count}} days' })
                                                     }
                                                 </div>
                                             )}
@@ -235,4 +246,3 @@ export function InvestigationListView() {
         </div>
     );
 }
-

@@ -21,7 +21,7 @@ export default function Achievements() {
 
     if (isLoading || !stats) {
         return (
-            <EnterprisePage title="Achievements" description="Your HSSE Journey">
+            <EnterprisePage title={t('achievements.title', 'Achievements')} description={t('achievements.hsseJourney', 'Your HSSE Journey')}>
                 <div className="animate-pulse space-y-4">
                     <div className="h-48 bg-muted/20 rounded-xl" />
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -39,13 +39,13 @@ export default function Achievements() {
 
     return (
         <EnterprisePage
-            title="Achievements"
-            description="Track your HSSE contributions and earn rewards"
+            title={t('achievements.title', 'Achievements')}
+            description={t('achievements.description', 'Track your HSSE contributions and earn rewards')}
             className="space-y-8"
         >
             {/* Hero Section */}
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white p-8 shadow-xl">
-                <div className="absolute top-0 right-0 p-8 opacity-10">
+                <div className="absolute top-0 end-0 p-8 opacity-10">
                     <Trophy className="w-64 h-64" />
                 </div>
 
@@ -54,29 +54,29 @@ export default function Achievements() {
                     <div className="relative flex-shrink-0">
                         <div className="w-32 h-32 rounded-full border-4 border-white/30 flex items-center justify-center bg-white/10 backdrop-blur-sm">
                             <div className="text-center">
-                                <span className="block text-xs uppercase tracking-widest opacity-80">Level</span>
+                                <span className="block text-xs uppercase tracking-widest opacity-80">{t('achievements.level', 'Level')}</span>
                                 <span className="block text-5xl font-bold">{level}</span>
                             </div>
                         </div>
-                        <div className="absolute -bottom-2 -right-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow-lg border border-yellow-200">
-                            {rank.company === 1 ? '🏆 Top 1' : `Rank #${rank.company}`}
+                        <div className="absolute -bottom-2 -end-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow-lg border border-yellow-200">
+                            {rank.company === 1 ? `🏆 ${t('achievements.top1', 'Top 1')}` : `${t('achievements.rank', 'Rank')} #${rank.company}`}
                         </div>
                     </div>
 
                     {/* Stats */}
-                    <div className="flex-1 space-y-4 text-center md:text-left">
+                    <div className="flex-1 space-y-4 text-center md:text-start">
                         <div>
-                            <h2 className="text-3xl font-bold">HSSE Champion</h2>
-                            <p className="text-indigo-100">Keep up the great work! You are making a difference.</p>
+                            <h2 className="text-3xl font-bold">{t('achievements.hsseChampion', 'HSSE Champion')}</h2>
+                            <p className="text-indigo-100">{t('achievements.keepUpGreatWork', 'Keep up the great work! You are making a difference.')}</p>
                         </div>
 
                         <div className="space-y-2 max-w-md">
                             <div className="flex justify-between text-sm font-medium">
-                                <span>{totalPoints} Points</span>
-                                <span>{nextLevelPoints} Points</span>
+                                <span>{totalPoints} {t('achievements.points', 'Points')}</span>
+                                <span>{nextLevelPoints} {t('achievements.points', 'Points')}</span>
                             </div>
                             <Progress value={progressPercent} className="h-3 bg-black/20" indicatorClassName="bg-yellow-400" />
-                            <p className="text-xs text-indigo-200 text-right">{nextLevelPoints - totalPoints} points to Level {level + 1}</p>
+                            <p className="text-xs text-indigo-200 text-end">{t('achievements.pointsToNextLevel', '{{points}} points to Level {{level}}', { points: nextLevelPoints - totalPoints, level: level + 1 })}</p>
                         </div>
                     </div>
 
@@ -85,12 +85,12 @@ export default function Achievements() {
                         <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl text-center min-w-[100px]">
                             <Start className="w-6 h-6 mx-auto mb-2 text-yellow-300" />
                             <div className="text-2xl font-bold">{badges.filter(b => b.unlocked).length}</div>
-                            <div className="text-xs opacity-80">Badges</div>
+                            <div className="text-xs opacity-80">{t('achievements.badges', 'Badges')}</div>
                         </div>
                         <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl text-center min-w-[100px]">
                             <Target className="w-6 h-6 mx-auto mb-2 text-green-300" />
                             <div className="text-2xl font-bold">{totalPoints}</div>
-                            <div className="text-xs opacity-80">Total Pts</div>
+                            <div className="text-xs opacity-80">{t('achievements.totalPts', 'Total Pts')}</div>
                         </div>
                     </div>
                 </div>
@@ -100,7 +100,7 @@ export default function Achievements() {
             <div className="space-y-4">
                 <h3 className="text-xl font-semibold flex items-center gap-2">
                     <Medal className="w-5 h-5 text-primary" />
-                    Badges Collection
+                    {t('achievements.badgesCollection', 'Badges Collection')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {badges.map((badge) => (
@@ -117,12 +117,12 @@ export default function Achievements() {
                             </div>
                             {badge.unlocked ? (
                                 <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full">
-                                    Unlocked
+                                    {t('achievements.unlocked', 'Unlocked')}
                                 </span>
                             ) : (
                                 <div className="w-full space-y-1">
                                     <div className="flex justify-between text-[10px] text-muted-foreground uppercase">
-                                        <span>Progress</span>
+                                        <span>{t('common.progress', 'Progress')}</span>
                                         <span>{badge.progress} / {badge.totalRequired}</span>
                                     </div>
                                     <Progress value={(badge.progress / badge.totalRequired) * 100} className="h-1.5" />
@@ -138,7 +138,7 @@ export default function Achievements() {
                 <Card className="p-6 space-y-4">
                     <h3 className="font-semibold flex items-center gap-2">
                         <Zap className="w-5 h-5 text-yellow-500" />
-                        Recent Activity
+                        {t('achievements.recentActivity', 'Recent Activity')}
                     </h3>
                     <div className="space-y-4">
                         {recentHistory.map((item, i) => (
@@ -155,7 +155,7 @@ export default function Achievements() {
                             </div>
                         ))}
                         {recentHistory.length === 0 && (
-                            <p className="text-sm text-muted-foreground text-center py-4">No recent activity.</p>
+                            <p className="text-sm text-muted-foreground text-center py-4">{t('achievements.noRecentActivity', 'No recent activity.')}</p>
                         )}
                     </div>
                 </Card>
@@ -163,14 +163,14 @@ export default function Achievements() {
                 <Card className="p-6 space-y-4">
                     <h3 className="font-semibold flex items-center gap-2">
                         <Crown className="w-5 h-5 text-orange-500" />
-                        Leaderboard Position
+                        {t('achievements.leaderboardPosition', 'Leaderboard Position')}
                     </h3>
                     <div className="p-6 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 rounded-xl text-center space-y-2 border border-orange-100 dark:border-orange-900/30">
-                        <p className="text-muted-foreground">You are currently ranked</p>
+                        <p className="text-muted-foreground">{t('achievements.currentlyRanked', 'You are currently ranked')}</p>
                         <div className="text-4xl font-bold text-orange-600 dark:text-orange-400">#{rank.company}</div>
-                        <p className="text-sm text-muted-foreground">in the entire company</p>
+                        <p className="text-sm text-muted-foreground">{t('achievements.inEntireCompany', 'in the entire company')}</p>
                         <div className="pt-4">
-                            <p className="text-xs text-orange-600/80 italic">"Top 5% of contributors!"</p>
+                            <p className="text-xs text-orange-600/80 italic">{t('achievements.topContributors', '"Top 5% of contributors!"')}</p>
                         </div>
                     </div>
                 </Card>

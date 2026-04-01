@@ -1,4 +1,4 @@
-﻿import { ReactNode } from 'react';
+import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useModuleAccess, ModuleCode } from '@/hooks/use-module-access';
 import { useUserRoles } from '@/features/users';

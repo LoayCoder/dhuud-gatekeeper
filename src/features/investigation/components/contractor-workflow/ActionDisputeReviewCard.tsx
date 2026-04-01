@@ -14,8 +14,7 @@ import {
   Loader2,
   RefreshCw
 } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
-const useConsultantResolveActionDispute = () => useMutation({ mutationFn: async (p: any) => p });
+import { useConsultantResolveActionDispute } from '@/features/incidents/hooks/use-action-dispute';
 
 interface ActionDisputeReviewCardProps {
   incidentId: string;
@@ -23,6 +22,7 @@ interface ActionDisputeReviewCardProps {
   disputeReason?: string;
   contractorComments?: string;
   onResolved?: () => void;
+  onComplete?: () => void;
 }
 
 export function ActionDisputeReviewCard({
@@ -30,7 +30,8 @@ export function ActionDisputeReviewCard({
   status,
   disputeReason,
   contractorComments,
-  onResolved
+  onResolved,
+  onComplete
 }: ActionDisputeReviewCardProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
@@ -57,7 +58,9 @@ export function ActionDisputeReviewCard({
       decision: decisionMap[resolution],
       notes: notes.trim() || undefined
     }, {
-      onSuccess: onResolved
+      onSuccess: () => {
+        (onResolved || onComplete)?.();
+      }
     });
   };
 

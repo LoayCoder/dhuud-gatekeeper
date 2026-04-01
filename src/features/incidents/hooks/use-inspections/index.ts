@@ -19,6 +19,8 @@ export {
     useCreateTemplateItem,
     useUpdateTemplateItem,
     useDeleteTemplateItem,
+    useGenerateItemsFromParts,
+    useMatchingAssets,
 } from './use-inspection-template-hooks';
 
 export {

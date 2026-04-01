@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Loader2, Users } from 'lucide-react';
 import { useSecurityTeams, SecurityTeam } from '@/features/security';

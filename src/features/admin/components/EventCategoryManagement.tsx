@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { ChevronDown, ChevronRight, ChevronLeft, Settings2, Search, AlertCircle } from 'lucide-react';

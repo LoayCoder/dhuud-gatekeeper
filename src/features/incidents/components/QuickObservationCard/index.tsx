@@ -1,2 +1,2 @@
-﻿export * from './QuickObservationCard';
+export * from './QuickObservationCard';
 

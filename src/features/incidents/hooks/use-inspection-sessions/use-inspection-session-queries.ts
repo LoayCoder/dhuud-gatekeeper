@@ -14,6 +14,7 @@ export function useInspectionSessions(filters?: {
     return useQuery({
         queryKey: ['inspection-sessions', filters],
         queryFn: async () => {
+            if (!profile?.tenant_id) return [];
             let query = supabase
                 .from('inspection_sessions')
                 .select(`
@@ -24,6 +25,7 @@ export function useInspectionSessions(filters?: {
           type:asset_types(name, name_ar),
           inspector:profiles!inspection_sessions_inspector_id_fkey(full_name)
         `)
+                .eq('tenant_id', profile.tenant_id)
                 .is('deleted_at', null)
                 .order('created_at', { ascending: false });
 
@@ -75,10 +77,11 @@ export function useInspectionSession(sessionId: string | undefined) {
 
 // Hook: Get all assets in session
 export function useSessionAssets(sessionId: string | undefined) {
+    const { profile } = useAuth();
     return useQuery({
         queryKey: ['session-assets', sessionId],
         queryFn: async () => {
-            if (!sessionId) return [];
+            if (!sessionId || !profile?.tenant_id) return [];
 
             const { data, error } = await supabase
                 .from('inspection_session_assets')
@@ -93,6 +96,7 @@ export function useSessionAssets(sessionId: string | undefined) {
           )
         `)
                 .eq('session_id', sessionId)
+                .eq('tenant_id', profile.tenant_id)
                 .order('created_at', { ascending: true });
 
             if (error) throw error;
@@ -104,10 +108,11 @@ export function useSessionAssets(sessionId: string | undefined) {
 
 // Hook: Get uninspected assets in session
 export function useUninspectedAssets(sessionId: string | undefined) {
+    const { profile } = useAuth();
     return useQuery({
         queryKey: ['session-assets-uninspected', sessionId],
         queryFn: async () => {
-            if (!sessionId) return [];
+            if (!sessionId || !profile?.tenant_id) return [];
 
             const { data, error } = await supabase
                 .from('inspection_session_assets')
@@ -122,6 +127,7 @@ export function useUninspectedAssets(sessionId: string | undefined) {
           )
         `)
                 .eq('session_id', sessionId)
+                .eq('tenant_id', profile.tenant_id)
                 .is('quick_result', null)
                 .order('created_at', { ascending: true });
 
@@ -162,24 +168,46 @@ export function useSessionAssetByAssetId(sessionId: string | undefined, assetId:
     });
 }
 
-// Hook: Get session progress stats
-export function useSessionProgress(sessionId: string | undefined) {
+// Hook: Get session progress stats — derived from inspection_session_assets (source of truth)
+export function useSessionProgress(sessionId: string | undefined, sessionStatus?: string) {
+    const { profile } = useAuth();
     return useQuery({
         queryKey: ['session-progress', sessionId],
         queryFn: async () => {
-            if (!sessionId) return null;
+            if (!sessionId || !profile?.tenant_id) return null;
 
             const { data, error } = await supabase
-                .from('inspection_sessions')
-                .select('total_assets, inspected_count, passed_count, failed_count, not_accessible_count, compliance_percentage')
-                .eq('id', sessionId)
-                .single();
+                .from('inspection_session_assets')
+                .select('quick_result')
+                .eq('session_id', sessionId)
+                .eq('tenant_id', profile.tenant_id);
 
             if (error) throw error;
-            return data;
+
+            const rows = data || [];
+            const total_assets = rows.length;
+            const inspected_count = rows.filter(r => r.quick_result !== null).length;
+            const passed_count = rows.filter(r => r.quick_result === 'good').length;
+            const failed_count = rows.filter(r => r.quick_result === 'not_good').length;
+            const not_accessible_count = rows.filter(r => r.quick_result === 'not_accessible').length;
+            const partial_count = rows.filter(r => r.quick_result === 'partial').length;
+
+            const denominator = passed_count + failed_count + partial_count;
+            const compliance_percentage = denominator > 0
+                ? Math.round((passed_count / denominator) * 100)
+                : null;
+
+            return {
+                total_assets,
+                inspected_count,
+                passed_count,
+                failed_count,
+                not_accessible_count,
+                compliance_percentage,
+            };
         },
         enabled: !!sessionId,
-        refetchInterval: 2000, // Poll every 2 seconds during active inspection
+        refetchInterval: sessionStatus === 'in_progress' ? 5000 : false,
     });
 }
 

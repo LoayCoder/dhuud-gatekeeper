@@ -733,7 +733,7 @@ export type Database = {
           last_escalated_at: string | null
           recommendation: string | null
           reference_id: string
-          response_id: string
+          response_id: string | null
           risk_level: string | null
           session_id: string
           status: string | null
@@ -757,7 +757,7 @@ export type Database = {
           last_escalated_at?: string | null
           recommendation?: string | null
           reference_id: string
-          response_id: string
+          response_id?: string | null
           risk_level?: string | null
           session_id: string
           status?: string | null
@@ -781,7 +781,7 @@ export type Database = {
           last_escalated_at?: string | null
           recommendation?: string | null
           reference_id?: string
-          response_id?: string
+          response_id?: string | null
           risk_level?: string | null
           session_id?: string
           status?: string | null
@@ -1929,7 +1929,7 @@ export type Database = {
             foreignKeyName: "asset_inspection_part_results_inspection_id_fkey"
             columns: ["inspection_id"]
             isOneToOne: false
-            referencedRelation: "asset_inspections"
+            referencedRelation: "inspection_session_assets"
             referencedColumns: ["id"]
           },
           {
@@ -5946,6 +5946,7 @@ export type Database = {
           disputed_by: string | null
           due_date: string | null
           escalation_level: number | null
+          failure_context_snapshot: Json | null
           finding_id: string | null
           id: string
           incident_id: string | null
@@ -5999,6 +6000,7 @@ export type Database = {
           disputed_by?: string | null
           due_date?: string | null
           escalation_level?: number | null
+          failure_context_snapshot?: Json | null
           finding_id?: string | null
           id?: string
           incident_id?: string | null
@@ -6052,6 +6054,7 @@ export type Database = {
           disputed_by?: string | null
           due_date?: string | null
           escalation_level?: number | null
+          failure_context_snapshot?: Json | null
           finding_id?: string | null
           id?: string
           incident_id?: string | null
@@ -12512,7 +12515,11 @@ export type Database = {
       }
       inspection_session_assets: {
         Row: {
+          asset_code_snapshot: string | null
           asset_id: string
+          asset_location_snapshot: string | null
+          asset_name_snapshot: string | null
+          asset_type_snapshot: string | null
           branch_id: string | null
           created_at: string | null
           failure_reason: string | null
@@ -12529,7 +12536,11 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          asset_code_snapshot?: string | null
           asset_id: string
+          asset_location_snapshot?: string | null
+          asset_name_snapshot?: string | null
+          asset_type_snapshot?: string | null
           branch_id?: string | null
           created_at?: string | null
           failure_reason?: string | null
@@ -12546,7 +12557,11 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          asset_code_snapshot?: string | null
           asset_id?: string
+          asset_location_snapshot?: string | null
+          asset_name_snapshot?: string | null
+          asset_type_snapshot?: string | null
           branch_id?: string | null
           created_at?: string | null
           failure_reason?: string | null
@@ -12620,6 +12635,7 @@ export type Database = {
           compliance_percentage: number | null
           created_at: string | null
           deleted_at: string | null
+          execution_mode: string | null
           failed_count: number | null
           floor_zone_id: string | null
           gps_boundary: Json | null
@@ -12637,6 +12653,7 @@ export type Database = {
           site_id: string | null
           started_at: string | null
           status: string
+          subtype_id: string | null
           template_id: string
           tenant_id: string
           total_assets: number | null
@@ -12656,6 +12673,7 @@ export type Database = {
           compliance_percentage?: number | null
           created_at?: string | null
           deleted_at?: string | null
+          execution_mode?: string | null
           failed_count?: number | null
           floor_zone_id?: string | null
           gps_boundary?: Json | null
@@ -12673,6 +12691,7 @@ export type Database = {
           site_id?: string | null
           started_at?: string | null
           status?: string
+          subtype_id?: string | null
           template_id: string
           tenant_id: string
           total_assets?: number | null
@@ -12692,6 +12711,7 @@ export type Database = {
           compliance_percentage?: number | null
           created_at?: string | null
           deleted_at?: string | null
+          execution_mode?: string | null
           failed_count?: number | null
           floor_zone_id?: string | null
           gps_boundary?: Json | null
@@ -12709,6 +12729,7 @@ export type Database = {
           site_id?: string | null
           started_at?: string | null
           status?: string
+          subtype_id?: string | null
           template_id?: string
           tenant_id?: string
           total_assets?: number | null
@@ -12757,6 +12778,13 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_sessions_subtype_id_fkey"
+            columns: ["subtype_id"]
+            isOneToOne: false
+            referencedRelation: "asset_subtypes"
             referencedColumns: ["id"]
           },
           {
@@ -12949,6 +12977,7 @@ export type Database = {
         Row: {
           area_type: string | null
           branch_id: string | null
+          building_id: string | null
           category_id: string | null
           code: string
           created_at: string | null
@@ -12967,6 +12996,7 @@ export type Database = {
           scope_description: string | null
           site_id: string | null
           standard_reference: string | null
+          subtype_id: string | null
           template_type: string
           tenant_id: string
           type_id: string | null
@@ -12976,6 +13006,7 @@ export type Database = {
         Insert: {
           area_type?: string | null
           branch_id?: string | null
+          building_id?: string | null
           category_id?: string | null
           code: string
           created_at?: string | null
@@ -12994,6 +13025,7 @@ export type Database = {
           scope_description?: string | null
           site_id?: string | null
           standard_reference?: string | null
+          subtype_id?: string | null
           template_type?: string
           tenant_id: string
           type_id?: string | null
@@ -13003,6 +13035,7 @@ export type Database = {
         Update: {
           area_type?: string | null
           branch_id?: string | null
+          building_id?: string | null
           category_id?: string | null
           code?: string
           created_at?: string | null
@@ -13021,6 +13054,7 @@ export type Database = {
           scope_description?: string | null
           site_id?: string | null
           standard_reference?: string | null
+          subtype_id?: string | null
           template_type?: string
           tenant_id?: string
           type_id?: string | null
@@ -13033,6 +13067,13 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_templates_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
             referencedColumns: ["id"]
           },
           {
@@ -13061,6 +13102,13 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_templates_subtype_id_fkey"
+            columns: ["subtype_id"]
+            isOneToOne: false
+            referencedRelation: "asset_subtypes"
             referencedColumns: ["id"]
           },
           {
@@ -21877,6 +21925,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          mfa_grace_until: string | null
           mfa_verified_at: string | null
           requires_setup: boolean
           tenant_id: string
@@ -21886,6 +21935,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          mfa_grace_until?: string | null
           mfa_verified_at?: string | null
           requires_setup?: boolean
           tenant_id: string
@@ -21895,6 +21945,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          mfa_grace_until?: string | null
           mfa_verified_at?: string | null
           requires_setup?: boolean
           tenant_id?: string
@@ -25283,6 +25334,10 @@ export type Database = {
         Args: { _incident_id: string; _user_id: string }
         Returns: boolean
       }
+      can_start_investigation: {
+        Args: { p_incident_id: string; p_user_id: string }
+        Returns: boolean
+      }
       can_view_incident: {
         Args: { _incident_reporter_id: string; _user_id: string }
         Returns: boolean
@@ -25871,6 +25926,15 @@ export type Database = {
           role_code: string
           role_name: string
         }[]
+      }
+      get_hsse_dashboard_summary: {
+        Args: {
+          p_branch_id?: string
+          p_end_date?: string
+          p_site_id?: string
+          p_start_date?: string
+        }
+        Returns: Json
       }
       get_hsse_event_dashboard_stats:
         | {

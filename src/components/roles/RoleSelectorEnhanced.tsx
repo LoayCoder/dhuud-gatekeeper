@@ -1,4 +1,4 @@
-﻿import { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check, ChevronDown, Shield, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';

@@ -19,21 +19,9 @@ export type { AuditLogEntry, AuditLogInsert, AuditLogFilter, AuditActionType, Au
 export { createDiffAuditEntry } from '@/types/audit.types';
 
 /**
- * Get client IP address (best effort)
+ * Client IP is not resolved on the client (Zero Trust policy).
+ * The server-side edge function / RLS context captures IP from request headers.
  */
-async function getClientIP(): Promise<string | null> {
-  try {
-    // Try to get IP from a public API (works in most cases)
-    const response = await fetch('https://api.ipify.org?format=json', { 
-      signal: AbortSignal.timeout(2000) 
-    });
-    const data = await response.json();
-    return data.ip || null;
-  } catch {
-    // Fallback - IP will be captured by edge function if needed
-    return null;
-  }
-}
 
 /**
  * Hook to log audit entries
@@ -66,8 +54,8 @@ export function useAuditLog() {
         }
       }
 
-      // Try to get IP address
-      const ip_address = entry.ip_address || await getClientIP();
+      // IP is captured server-side; pass null from client
+      const ip_address = entry.ip_address || null;
 
       const auditEntry = {
         who_id: userId,

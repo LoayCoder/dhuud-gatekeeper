@@ -4,8 +4,8 @@
  * for bulk importing asset categories, types, subtypes, and inspectable parts.
  */
 
-import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
+import { readExcelAsObjects, writeExcelAndDownload, writeExcelAoaAndDownload } from './exceljs-utils';
 
 // Hierarchy levels
 export type HierarchyLevel = 'Category' | 'Type' | 'Subtype' | 'Part';
@@ -176,15 +176,15 @@ function validateRow(row: Partial<ParsedHierarchyRow>, allRows: Partial<ParsedHi
 /**
  * Parse an Excel/CSV file containing asset hierarchy data
  */
-export function parseHierarchyFile(data: ArrayBuffer): ParseResult {
+export async function parseHierarchyFile(data: ArrayBuffer): Promise<ParseResult> {
   try {
-    const workbook = XLSX.read(data, { type: 'array' });
-    const sheetName = workbook.SheetNames.find(name => 
-      name.toLowerCase() !== 'instructions' && name.toLowerCase() !== 'lookups'
-    ) || workbook.SheetNames[0];
-    
-    const sheet = workbook.Sheets[sheetName];
-    const jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' });
+    const jsonData = await readExcelAsObjects<Record<string, unknown>>(data, {
+      sheetSelector: (names) => {
+        return names.find(name => 
+          name.toLowerCase() !== 'instructions' && name.toLowerCase() !== 'lookups'
+        ) || names[0];
+      }
+    });
     
     if (jsonData.length === 0) {
       return {
@@ -303,7 +303,7 @@ export function parseHierarchyFile(data: ArrayBuffer): ParseResult {
 /**
  * Generate and download an Excel template for asset hierarchy import
  */
-export function downloadHierarchyTemplate(): void {
+export async function downloadHierarchyTemplate(): Promise<void> {
   // Instructions sheet
   const instructionsData = [
     ['Asset Hierarchy Import Template'],
@@ -404,34 +404,41 @@ export function downloadHierarchyTemplate(): void {
     },
   ];
   
-  // Create workbook
-  const wb = XLSX.utils.book_new();
+  // Write instructions as AOA and hierarchy as objects
+  await writeExcelAoaAndDownload([
+    { name: 'Instructions', data: instructionsData },
+  ], '__temp__');
   
-  // Add instructions sheet
-  const wsInstructions = XLSX.utils.aoa_to_sheet(instructionsData);
-  XLSX.utils.book_append_sheet(wb, wsInstructions, 'Instructions');
+  // Actually we need both sheets in one file, use writeExcelAndDownload for the hierarchy
+  // and combine. Let's use the combined approach:
+  const ExcelJS = (await import('exceljs')).default;
+  const workbook = new ExcelJS.Workbook();
   
-  // Add hierarchy sheet
-  const wsHierarchy = XLSX.utils.json_to_sheet(hierarchyData);
+  // Instructions sheet
+  const instrSheet = workbook.addWorksheet('Instructions');
+  instructionsData.forEach(row => instrSheet.addRow(row));
+  
+  // Hierarchy sheet
+  const hierSheet = workbook.addWorksheet('Hierarchy');
+  const headers = Object.keys(hierarchyData[0]);
+  const headerRow = hierSheet.addRow(headers);
+  headerRow.eachCell(cell => { cell.font = { bold: true }; });
+  hierarchyData.forEach(row => hierSheet.addRow(headers.map(h => row[h as keyof typeof row] ?? '')));
   
   // Set column widths
-  wsHierarchy['!cols'] = [
-    { wch: 12 },  // Level
-    { wch: 15 },  // Code
-    { wch: 25 },  // Name (EN)
-    { wch: 25 },  // Name (AR)
-    { wch: 35 },  // Description (EN)
-    { wch: 35 },  // Description (AR)
-    { wch: 15 },  // Parent Code
-    { wch: 12 },  // Is Critical
-    { wch: 18 },  // Response Type
-    { wch: 12 },  // Sort Order
-  ];
+  const colWidths = [12, 15, 25, 25, 35, 35, 15, 12, 18, 12];
+  colWidths.forEach((w, i) => { hierSheet.getColumn(i + 1).width = w; });
   
-  XLSX.utils.book_append_sheet(wb, wsHierarchy, 'Hierarchy');
-  
-  // Download file
-  XLSX.writeFile(wb, 'asset_hierarchy_import_template.xlsx');
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'asset_hierarchy_import_template.xlsx';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
 
 /**
@@ -585,29 +592,13 @@ export async function exportAssetHierarchy(): Promise<boolean> {
       });
     });
 
-    // Create workbook
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(exportData);
-
-    // Set column widths
-    ws['!cols'] = [
-      { wch: 12 },  // Level
-      { wch: 20 },  // Code
-      { wch: 30 },  // Name (EN)
-      { wch: 30 },  // Name (AR)
-      { wch: 40 },  // Description (EN)
-      { wch: 40 },  // Description (AR)
-      { wch: 20 },  // Parent Code
-      { wch: 12 },  // Is Critical
-      { wch: 18 },  // Response Type
-      { wch: 12 },  // Sort Order
-    ];
-
-    XLSX.utils.book_append_sheet(wb, ws, 'Hierarchy');
-
-    // Download file
+    // Create workbook and download
     const timestamp = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(wb, `asset_hierarchy_export_${timestamp}.xlsx`);
+    await writeExcelAndDownload([{
+      name: 'Hierarchy',
+      data: exportData,
+      columnWidths: [12, 20, 30, 30, 40, 40, 20, 12, 18, 12],
+    }], `asset_hierarchy_export_${timestamp}.xlsx`);
     
     return true;
   } catch (error) {

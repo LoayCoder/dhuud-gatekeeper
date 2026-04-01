@@ -39,7 +39,7 @@ export function useRiskAssessmentDetails(assessmentId: string | undefined) {
       if (!tenantId || !assessmentId) return [];
 
       const { supabase } = await import("@/integrations/supabase/client");
-      const { data, error } = await supabase.from('risk_assessment_details').select('*').eq('risk_assessment_id', assessmentId).eq('tenant_id', tenantId).is('deleted_at', null).order('sort_order');
+      const { data, error } = await supabase.from('risk_assessment_details').select('id, tenant_id, risk_assessment_id, hazard_description, hazard_description_ar, hazard_category, likelihood, severity, initial_risk_score, existing_controls, additional_controls, responsible_person, target_completion_date, residual_likelihood, residual_severity, residual_risk_score, ai_suggested, ai_confidence, sort_order, created_at, updated_at, deleted_at, control_hierarchy_level, control_status, job_step_description, job_step_number, number_exposed, persons_at_risk, required_ppe').eq('risk_assessment_id', assessmentId).eq('tenant_id', tenantId).is('deleted_at', null).order('sort_order');
       if (error) throw error;
       return (data || []) as RiskAssessmentDetail[];
     },

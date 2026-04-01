@@ -42,7 +42,8 @@ export function useCreateActionFromFinding() {
                     status: 'assigned',
                 })
                 .select()
-                .single();
+                .single()
+                .throwOnError();
 
             if (actionError) throw actionError;
 
@@ -111,6 +112,32 @@ export function useVerifyAction() {
         }) => {
             if (!user?.id) throw new Error('No user');
 
+            // Fetch action details for return_count increment and email notifications
+            const { data: action } = await supabase
+                .from('corrective_actions')
+                .select('title, return_count, assigned_to, incident_id, status, profiles!corrective_actions_assigned_to_fkey(email, full_name)')
+                .eq('id', input.actionId)
+                .single();
+
+            // Self-approval prevention (server-side)
+            if (action?.assigned_to === user.id) {
+                throw new Error('Cannot verify your own action');
+            }
+
+            // Status transition guard: only 'completed' actions can be verified
+            if (action?.status !== 'completed') {
+                throw new Error(`Cannot verify action in status "${action?.status}". Action must be in "completed" status.`);
+            }
+
+            const currentReturnCount = action?.return_count || 0;
+
+            // Fetch verifier profile name for email context
+            const { data: verifierProfile } = await supabase
+                .from('profiles')
+                .select('full_name')
+                .eq('id', user.id)
+                .single();
+
             const updateData = input.approved
                 ? {
                     status: 'closed',
@@ -125,17 +152,41 @@ export function useVerifyAction() {
                     rejection_notes: input.verification_notes,
                     last_returned_at: new Date().toISOString(),
                     last_return_reason: input.verification_notes,
+                    return_count: currentReturnCount + 1,
                 };
 
             const { error } = await supabase.from('corrective_actions')
                 .update(updateData)
-                .eq('id', input.actionId);
+                .eq('id', input.actionId)
+                .throwOnError();
 
-            if (error) throw error;
+            // Send email notifications
+            const assigneeProfile = action?.profiles as any;
+            const assigneeEmail = assigneeProfile?.email;
+            if (assigneeEmail) {
+                try {
+                    const emailType = input.approved ? 'action_closed' : 'action_returned';
+                    await supabase.functions.invoke('send-action-email', {
+                        body: {
+                            type: emailType,
+                            recipient_email: assigneeEmail,
+                            recipient_name: assigneeProfile?.full_name || 'Team Member',
+                            action_title: action?.title || 'Corrective Action',
+                            incident_reference: null,
+                            verifier_name: verifierProfile?.full_name || 'HSSE Verifier',
+                            rejection_notes: input.verification_notes || undefined,
+                            verification_notes: input.verification_notes || undefined,
+                        },
+                    });
+                } catch (emailError) {
+                    console.error('[InspectionVerify] Email notification failed:', emailError);
+                }
+            }
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['session-actions'] });
             queryClient.invalidateQueries({ queryKey: ['my-inspection-actions'] });
+            queryClient.invalidateQueries({ queryKey: ['my-corrective-actions'] });
             queryClient.invalidateQueries({ queryKey: ['area-findings'] });
             queryClient.invalidateQueries({ queryKey: ['session-closure-status'] });
 
@@ -165,7 +216,8 @@ export function useUpdateActionStatus() {
 
             const { error } = await supabase.from('corrective_actions')
                 .update(updateData)
-                .eq('id', input.actionId);
+                .eq('id', input.actionId)
+                .throwOnError();
 
             if (error) throw error;
         },
@@ -222,9 +274,59 @@ export function useUpdateInspectionActionStatus() {
 
             const { error } = await supabase.from('corrective_actions')
                 .update(updateData)
-                .eq('id', id);
+                .eq('id', id)
+                .throwOnError();
 
             if (error) throw error;
+
+            // Send notification to reviewer when action is submitted for verification
+            if (status === 'completed') {
+                try {
+                    const { data: action } = await supabase
+                        .from('corrective_actions')
+                        .select('title, reference_id, session_id, assigned_to')
+                        .eq('id', id)
+                        .single();
+
+                    const { data: assigneeProfile } = await supabase
+                        .from('profiles')
+                        .select('full_name')
+                        .eq('id', action?.assigned_to || '')
+                        .single();
+
+                    if (action?.session_id) {
+                        const { data: session } = await supabase
+                            .from('inspection_sessions')
+                            .select('inspector_id')
+                            .eq('id', action.session_id)
+                            .single();
+
+                        if (session?.inspector_id) {
+                            const { data: inspectorProfile } = await supabase
+                                .from('profiles')
+                                .select('email, full_name')
+                                .eq('id', session.inspector_id)
+                                .single();
+
+                            if (inspectorProfile?.email) {
+                                await supabase.functions.invoke('send-action-email', {
+                                    body: {
+                                        type: 'action_submitted_for_verification',
+                                        recipient_email: inspectorProfile.email,
+                                        recipient_name: inspectorProfile.full_name || 'Reviewer',
+                                        action_title: action?.title || 'Corrective Action',
+                                        action_reference: action?.reference_id,
+                                        assignee_name: assigneeProfile?.full_name || 'Team Member',
+                                    },
+                                });
+                            }
+                        }
+                    }
+                } catch (emailError) {
+                    console.error('[InspectionAction] Submission notification failed:', emailError);
+                }
+            }
+
             return { id, status };
         },
         // Optimistic update

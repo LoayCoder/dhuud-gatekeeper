@@ -29,19 +29,20 @@ function getEmptyStats(): ActionCenterStats {
 export function useActionCenterStats() {
     const { user, profile } = useAuth();
     const tenantId = profile?.tenant_id;
+    const userId = user?.id;
 
     return useQuery({
-        queryKey: ['action-center-stats', tenantId, user?.id],
+        queryKey: ['action-center-stats', tenantId, userId],
         queryFn: async (): Promise<ActionCenterStats> => {
-            if (!tenantId || !user?.id) return getEmptyStats();
+            if (!tenantId || !userId) return getEmptyStats();
             const now = new Date().toISOString();
 
             const [incidentStats, correctiveActionStats, gatePassStats, inspectionStats, contractorStats, inductionStats, userStats] =
                 await Promise.all([
-                    fetchIncidentStats(tenantId),
-                    fetchCorrectiveActionStats(tenantId, now),
-                    fetchGatePassStats(tenantId, now),
-                    fetchInspectionStats(tenantId),
+                    fetchIncidentStats(tenantId, userId),
+                    fetchCorrectiveActionStats(tenantId, now, userId),
+                    fetchGatePassStats(tenantId, now, userId),
+                    fetchInspectionStats(tenantId, userId),
                     fetchContractorStats(tenantId),
                     fetchInductionStats(tenantId),
                     fetchUserStats(tenantId),
@@ -94,6 +95,8 @@ export function useActionCenterStats() {
             };
 
             const totalOverdue = correctiveActionStats.incidentOverdue + correctiveActionStats.observationOverdue + correctiveActionStats.inspectionOverdue + (inductionStats.overdue || 0);
+            // Note: incidentStats.pendingApprovals is 0 here (RPC-based count is in the module).
+            // We add a placeholder; the real count is injected by ActionCenterStatsBar via usePendingIncidentApprovals.
             const totalPendingApprovals = (incidentStats.pendingApprovals || 0) + gatePassStats.pendingApprovals + contractorStats.pendingApprovals;
             const totalInProgress = correctiveActionStats.incidentInProgress + correctiveActionStats.observationInProgress + correctiveActionStats.inspectionInProgress + gatePassStats.active;
             const totalActions = totalOverdue + totalPendingApprovals + totalInProgress +
@@ -106,7 +109,7 @@ export function useActionCenterStats() {
                 summary: { totalOverdue, totalPendingApprovals, totalInProgress, totalActions },
             };
         },
-        enabled: !!tenantId && !!user?.id,
+        enabled: !!tenantId && !!userId,
         refetchInterval: 60000,
         staleTime: 30000,
     });

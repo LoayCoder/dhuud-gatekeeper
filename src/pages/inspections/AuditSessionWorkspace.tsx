@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Pencil, Trash2, MapPin, Users, Shield, Download } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, MapPin, Users, Shield, Download, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -28,6 +28,7 @@ import {
   useStartAuditSession,
   useCompleteAuditSession,
 } from '@/hooks/use-audit-sessions';
+import { useUserRoles } from '@/features/users';
 import { useCanCloseSession, useCloseAreaSession } from '@/hooks/use-session-lifecycle';
 import {
   SessionStatusBadge,
@@ -71,10 +72,17 @@ function AuditSessionWorkspaceContent() {
   const closeSession = useCloseAreaSession();
   const reopenSession = useReopenAreaSession();
   const deleteSession = useDeleteSession();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
+  const { hasRole } = useUserRoles();
   
-  // Check if user can verify actions (for now, allow all authenticated users)
-  const canVerifyActions = !!profile;
+  // Check if user can verify actions — restrict to inspector or HSSE roles
+  const canVerifyActions = !!profile && (
+    session?.inspector_id === user?.id ||
+    hasRole('hsse_officer') ||
+    hasRole('hsse_manager') ||
+    hasRole('admin') ||
+    hasRole('super_admin')
+  );
   
   // Create response map for quick lookup
   const responseMap = useMemo(() => {
@@ -225,6 +233,7 @@ function AuditSessionWorkspaceContent() {
                 status: f.status,
                 description: f.description,
               }))}
+              templateItems={templateItems as unknown as Parameters<typeof SessionExportDropdown>[0]['templateItems']}
             />
           )}
           {session.status !== 'closed' && (
@@ -326,7 +335,7 @@ function AuditSessionWorkspaceContent() {
           />
           
           {/* Session Actions Panel */}
-          <SessionActionsPanel sessionId={sessionId!} canVerify={canVerifyActions} />
+          <SessionActionsPanel sessionId={sessionId!} canVerify={canVerifyActions} sessionStatus={session.status} />
           
           {/* Audit Info Card */}
           <Card>
@@ -411,7 +420,7 @@ function AuditSessionWorkspaceContent() {
           )}
           
           {/* Findings Panel */}
-          {(findingsCount?.total ?? 0) > 0 && (
+          {(session.status === 'in_progress' || (findingsCount?.total ?? 0) > 0) && (
             <FindingsPanel
               sessionId={sessionId!}
               isLocked={isCompleted}
@@ -419,6 +428,41 @@ function AuditSessionWorkspaceContent() {
           )}
         </div>
       </div>
+      
+      {/* Sticky Completion Bar */}
+      {session.status === 'in_progress' && progress && (
+        <div className="sticky bottom-0 z-30 bg-background border-t shadow-lg p-4">
+          <div className="container mx-auto flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between text-sm mb-1">
+                  <span className="text-muted-foreground">{t('audits.auditProgress', 'Audit Progress')}</span>
+                  <span className="font-medium">{progress.responded}/{progress.total}</span>
+                </div>
+                <div className="bg-secondary rounded-full h-2">
+                  <div 
+                    className="bg-primary rounded-full h-2 transition-all"
+                    style={{ width: `${progress.total > 0 ? Math.round((progress.responded / progress.total) * 100) : 0}%` }}
+                  />
+                </div>
+              </div>
+              {progress.percentage > 0 && (
+                <Badge variant={progress.isPassing ? 'default' : 'destructive'} className="shrink-0">
+                  {Math.round(progress.percentage)}%
+                </Badge>
+              )}
+            </div>
+            <Button
+              onClick={() => { setCompletionMode('complete'); setShowCompletionDialog(true); }}
+              disabled={!canComplete || completeSession.isPending}
+              className="shrink-0"
+            >
+              <CheckCircle2 className="me-2 h-4 w-4" />
+              {t('audits.completeAudit', 'Complete Audit')}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

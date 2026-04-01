@@ -18,7 +18,7 @@ export interface SessionClosureStatus {
   }>;
 }
 
-export function useCanCloseSession(sessionId: string | undefined) {
+export function useCanCloseSession(sessionId: string | undefined, sessionStatus?: string) {
   return useQuery({
     queryKey: ['session-closure-status', sessionId],
     queryFn: async () => {
@@ -31,7 +31,7 @@ export function useCanCloseSession(sessionId: string | undefined) {
       return data as unknown as SessionClosureStatus;
     },
     enabled: !!sessionId,
-    refetchInterval: 5000, // Poll every 5s to get updated status
+    refetchInterval: sessionStatus === 'in_progress' || sessionStatus === 'completed_with_open_actions' ? 10000 : false,
   });
 }
 
@@ -40,10 +40,43 @@ export function useCompleteAreaSession() {
   
   return useMutation({
     mutationFn: async ({ sessionId }: { sessionId: string }) => {
+      // Fetch session to determine execution mode
+      const { data: session } = await supabase
+        .from('inspection_sessions')
+        .select('execution_mode')
+        .eq('id', sessionId)
+        .single();
+
+      const executionMode = session?.execution_mode ?? 'area';
+      let hasOpenActions = false;
+
+      if (executionMode === 'asset') {
+        // Asset mode: check inspection_session_assets for failures
+        const { count: failedCount } = await supabase
+          .from('inspection_session_assets')
+          .select('id', { count: 'exact', head: true })
+          .eq('session_id', sessionId)
+          .in('quick_result', ['not_good', 'partial']);
+
+        hasOpenActions = (failedCount ?? 0) > 0;
+      } else {
+        // Area mode: check area_inspection_responses for failures
+        const { count: failedCount } = await supabase
+          .from('area_inspection_responses')
+          .select('id', { count: 'exact', head: true })
+          .eq('session_id', sessionId)
+          .is('deleted_at', null)
+          .in('result', ['non_conformance', 'observation', 'fail']);
+
+        hasOpenActions = (failedCount ?? 0) > 0;
+      }
+
       const { error } = await supabase
         .from('inspection_sessions')
         .update({ 
-          status: 'completed_with_open_actions',
+          status: hasOpenActions ? 'completed_with_open_actions' : 'closed',
+          completed_at: new Date().toISOString(),
+          closed_at: hasOpenActions ? null : new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
         .eq('id', sessionId);
@@ -52,7 +85,8 @@ export function useCompleteAreaSession() {
       return sessionId;
     },
     onSuccess: (sessionId) => {
-      queryClient.invalidateQueries({ queryKey: ['area-session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['inspection-session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['inspection-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['session-closure-status', sessionId] });
       queryClient.invalidateQueries({ queryKey: ['area-sessions'] });
     },
@@ -88,7 +122,8 @@ export function useCloseAreaSession() {
       return sessionId;
     },
     onSuccess: (sessionId) => {
-      queryClient.invalidateQueries({ queryKey: ['area-session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['inspection-session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['inspection-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['session-closure-status', sessionId] });
       queryClient.invalidateQueries({ queryKey: ['area-sessions'] });
     },
@@ -113,7 +148,8 @@ export function useReopenAreaSession() {
       return sessionId;
     },
     onSuccess: (sessionId) => {
-      queryClient.invalidateQueries({ queryKey: ['area-session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['inspection-session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['inspection-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['session-closure-status', sessionId] });
       queryClient.invalidateQueries({ queryKey: ['area-sessions'] });
     },

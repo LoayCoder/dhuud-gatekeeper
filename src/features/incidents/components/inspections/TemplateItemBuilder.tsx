@@ -1,397 +1,225 @@
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, GripVertical, Trash2, Edit, AlertTriangle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { AlertTriangle, MapPin, Package, Calendar } from 'lucide-react';
+import { TemplateChecklistEditor } from './TemplateChecklistEditor';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import {
-  TemplateItem,
-  useTemplateItems,
-  useCreateTemplateItem,
-  useUpdateTemplateItem,
-  useDeleteTemplateItem,
-} from '@/features/incidents';
-import i18n from '@/i18n';
-import { templateItemSchema, TemplateItemFormValues } from './TemplateItemBuilderSchema';
+import { ActionListTable, type ActionListColumn } from '@/components/action-center/ActionListTable';
+import { useMatchingAssets } from '@/features/incidents/hooks/use-inspections/use-inspection-template-hooks';
+import { format } from 'date-fns';
 
 interface TemplateItemBuilderProps {
   templateId: string;
+  templateType?: 'asset' | 'area' | 'audit';
+  typeId?: string | null;
+  subtypeId?: string | null;
+  branchId?: string | null;
+  siteId?: string | null;
+  buildingId?: string | null;
+  categoryId?: string | null;
 }
 
-const RESPONSE_TYPES = [
-  { value: 'pass_fail', label: 'inspections.responseTypes.pass_fail' },
-  { value: 'yes_no', label: 'inspections.responseTypes.yes_no' },
-  { value: 'rating', label: 'inspections.responseTypes.rating' },
-  { value: 'numeric', label: 'inspections.responseTypes.numeric' },
-  { value: 'text', label: 'inspections.responseTypes.text' },
-];
+interface AssetRow extends Record<string, unknown> {
+  id: string;
+  name: string;
+  display_name: string;
+  asset_code: string;
+  category_name: string;
+  type_name: string;
+  subtype_name: string;
+  zone_name: string;
+  building_name: string;
+  status: string;
+  last_inspection: string;
+  next_due: string;
+}
 
-const DEFAULT_VALUES: TemplateItemFormValues = {
-  question: '',
-  question_ar: '',
-  response_type: 'pass_fail',
-  min_value: '',
-  max_value: '',
-  rating_scale: '5',
-  is_critical: false,
-  is_required: true,
-  instructions: '',
-  instructions_ar: '',
+const statusVariantMap: Record<string, 'success' | 'warning' | 'destructive' | 'secondary'> = {
+  active: 'success',
+  under_maintenance: 'warning',
+  out_of_service: 'destructive',
+  disposed: 'destructive',
+  pending_disposal: 'warning',
+  inactive: 'secondary',
 };
 
-export function TemplateItemBuilder({ templateId }: TemplateItemBuilderProps) {
-  const { t } = useTranslation();
-  const direction = i18n.dir();
-  
-  const { data: items, isLoading } = useTemplateItems(templateId);
-  const createItem = useCreateTemplateItem();
-  const updateItem = useUpdateTemplateItem();
-  const deleteItem = useDeleteTemplateItem();
-  
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<TemplateItem | null>(null);
-  const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
+function formatDateSafe(dateStr: string | null): string {
+  if (!dateStr) return '';
+  try {
+    return format(new Date(dateStr), 'dd MMM yyyy');
+  } catch {
+    return '';
+  }
+}
 
-  const form = useForm<TemplateItemFormValues>({
-    resolver: zodResolver(templateItemSchema),
-    defaultValues: DEFAULT_VALUES,
+export function TemplateItemBuilder({ templateId, templateType, typeId, subtypeId, branchId, siteId, buildingId, categoryId }: TemplateItemBuilderProps) {
+  const { t } = useTranslation();
+
+  const showMatchingAssets = templateType === 'asset';
+  const { data: matchingData, isLoading: matchingLoading } = useMatchingAssets({
+    branchId,
+    siteId,
+    buildingId,
+    categoryId,
+    typeId,
+    subtypeId,
+    enabled: showMatchingAssets,
   });
 
-  const watchedResponseType = form.watch('response_type');
-  
-  const resetForm = () => {
-    form.reset(DEFAULT_VALUES);
-    setEditingItem(null);
-  };
-  
-  const handleOpenAdd = () => {
-    resetForm();
-    setEditDialogOpen(true);
-  };
-  
-  const handleOpenEdit = (item: TemplateItem) => {
-    setEditingItem(item);
-    form.reset({
-      question: item.question,
-      question_ar: item.question_ar || '',
-      response_type: item.response_type,
-      min_value: item.min_value?.toString() || '',
-      max_value: item.max_value?.toString() || '',
-      rating_scale: item.rating_scale?.toString() || '5',
-      is_critical: item.is_critical,
-      is_required: item.is_required,
-      instructions: item.instructions || '',
-      instructions_ar: item.instructions_ar || '',
+  const rows = useMemo<AssetRow[]>(() => {
+    if (!matchingData?.assets) return [];
+    return matchingData.assets.map((a: any) => {
+      // Strip category prefix (before " - ") and asset code (in parentheses like "(code-2026-0063)")
+      const parts = (a.name ?? '').split(' - ');
+      let baseName = parts.length > 1 ? parts.slice(1).join(' - ') : a.name ?? '';
+      // Remove inline asset code pattern e.g. "(fire_safety-2026-0063)"
+      baseName = baseName.replace(/\s*\([^)]*-\d{4}-\d+\)\s*/g, '').trim();
+      const zoneLabel = a.floor_zone?.name ? ` – ${a.floor_zone.name}` : '';
+      const subtypeLabel = a.subtype?.name ? ` (${a.subtype.name})` : '';
+      const displayName = `${baseName}${zoneLabel}${subtypeLabel}`;
+
+      return {
+        id: a.id,
+        name: a.name ?? '',
+        display_name: displayName,
+        asset_code: a.asset_code ?? '',
+        category_name: a.category?.name ?? '',
+        type_name: a.type?.name ?? '',
+        subtype_name: a.subtype?.name ?? '',
+        zone_name: a.floor_zone?.name ?? '',
+        building_name: a.building?.name ?? '',
+        status: a.status ?? 'active',
+        last_inspection: formatDateSafe(a.last_inspection_date),
+        next_due: formatDateSafe(a.next_inspection_due),
+      };
     });
-    setEditDialogOpen(true);
-  };
-  
-  const handleSave = async (values: TemplateItemFormValues) => {
-    const data = {
-      question: values.question,
-      question_ar: values.question_ar || undefined,
-      response_type: values.response_type,
-      min_value: values.min_value ? parseFloat(values.min_value) : undefined,
-      max_value: values.max_value ? parseFloat(values.max_value) : undefined,
-      rating_scale: parseInt(values.rating_scale || '5') || 5,
-      is_critical: values.is_critical,
-      is_required: values.is_required,
-      instructions: values.instructions || undefined,
-      instructions_ar: values.instructions_ar || undefined,
-    };
-    
-    if (editingItem) {
-      await updateItem.mutateAsync({
-        id: editingItem.id,
-        template_id: templateId,
-        ...data,
-      });
-    } else {
-      await createItem.mutateAsync({
-        template_id: templateId,
-        sort_order: (items?.length || 0) + 1,
-        ...data,
-      });
-    }
-    
-    setEditDialogOpen(false);
-    resetForm();
-  };
-  
-  const handleDelete = async () => {
-    if (deletingItemId) {
-      await deleteItem.mutateAsync(deletingItemId);
-      setDeleteDialogOpen(false);
-      setDeletingItemId(null);
-    }
-  };
-  
-  const getResponseTypeLabel = (type: string) => {
-    const found = RESPONSE_TYPES.find(rt => rt.value === type);
-    return found ? t(found.label) : type;
-  };
-  
-  if (isLoading) {
-    return <div className="p-4 text-muted-foreground">{t('common.loading')}</div>;
+  }, [matchingData]);
+
+  const columns = useMemo<ActionListColumn<AssetRow>[]>(() => [
+    {
+      key: 'display_name',
+      label: t('common.asset', 'Asset'),
+      primary: true,
+      sortable: true,
+      render: (item) => (
+        <div className="flex flex-col gap-0.5">
+          <span className="font-medium text-sm leading-tight">{item.display_name}</span>
+          <span className="text-[10px] text-muted-foreground font-mono">
+            {t('assets.assetId', 'Asset ID')}: {item.asset_code}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: 'status',
+      label: t('common.status', 'Status'),
+      sortable: true,
+      render: (item) => {
+        const variant = statusVariantMap[item.status] ?? 'secondary';
+        const label = item.status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        return <Badge variant={variant} className="text-[10px] capitalize">{label}</Badge>;
+      },
+    },
+    {
+      key: 'category_name',
+      label: t('assets.category', 'Category'),
+      expandable: true,
+      render: (item) => item.category_name
+        ? <span className="text-xs">{item.category_name}</span>
+        : <span className="text-xs text-muted-foreground">—</span>,
+    },
+    {
+      key: 'type_name',
+      label: t('assets.type', 'Type'),
+      expandable: true,
+      render: (item) => (
+        <span className="text-xs text-muted-foreground">
+          {item.type_name}{item.subtype_name ? ` / ${item.subtype_name}` : ''}
+          {!item.type_name && !item.subtype_name ? '—' : ''}
+        </span>
+      ),
+    },
+    {
+      key: 'building_name',
+      label: t('common.building', 'Building'),
+      expandable: true,
+      render: (item) => item.building_name
+        ? <span className="text-xs">{item.building_name}</span>
+        : <span className="text-xs text-muted-foreground">—</span>,
+    },
+    {
+      key: 'zone_name',
+      label: t('common.zone', 'Zone'),
+      expandable: true,
+      render: (item) => item.zone_name ? (
+        <span className="inline-flex items-center gap-1 text-xs">
+          <MapPin className="h-3 w-3" /> {item.zone_name}
+        </span>
+      ) : <span className="text-xs text-muted-foreground">—</span>,
+    },
+    {
+      key: 'last_inspection',
+      label: t('inspections.lastInspection', 'Last Inspection'),
+      expandable: true,
+      render: (item) => item.last_inspection ? (
+        <span className="inline-flex items-center gap-1 text-xs">
+          <Calendar className="h-3 w-3" /> {item.last_inspection}
+        </span>
+      ) : <span className="text-xs text-muted-foreground">—</span>,
+    },
+    {
+      key: 'next_due',
+      label: t('inspections.nextDue', 'Next Due'),
+      expandable: true,
+      render: (item) => item.next_due ? (
+        <span className="inline-flex items-center gap-1 text-xs">
+          <Calendar className="h-3 w-3" /> {item.next_due}
+        </span>
+      ) : <span className="text-xs text-muted-foreground">—</span>,
+    },
+  ], [t]);
+
+  if (!showMatchingAssets) {
+    return <TemplateChecklistEditor templateId={templateId} />;
   }
-  
+
+  const totalCount = matchingData?.count ?? 0;
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg">{t('inspections.items')}</CardTitle>
-        <Button size="sm" onClick={handleOpenAdd}>
-          <Plus className="h-4 w-4 me-1" />
-          {t('inspections.addItem')}
-        </Button>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        {items?.length === 0 ? (
-          <p className="text-muted-foreground text-sm py-4 text-center">
-            {t('inspections.noItems')}
-          </p>
-        ) : (
-          items?.map((item, index) => (
-            <div
-              key={item.id}
-              className="flex items-start gap-3 p-3 border rounded-lg bg-muted/30"
-            >
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <GripVertical className="h-4 w-4" />
-                <span className="text-sm font-medium">{index + 1}</span>
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start gap-2">
-                  <p className="font-medium text-sm">
-                    {direction === 'rtl' && item.question_ar ? item.question_ar : item.question}
-                  </p>
-                  {item.is_critical && (
-                    <Badge variant="destructive" className="shrink-0">
-                      <AlertTriangle className="h-3 w-3 me-1" />
-                      {t('inspections.critical')}
-                    </Badge>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                  <Badge variant="outline">{getResponseTypeLabel(item.response_type)}</Badge>
-                  {item.is_required && <Badge variant="secondary">{t('common.required')}</Badge>}
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => handleOpenEdit(item)}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-destructive hover:text-destructive"
-                  onClick={() => {
-                    setDeletingItemId(item.id);
-                    setDeleteDialogOpen(true);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          ))
-        )}
-      </CardContent>
-      
-      {/* Edit/Add Dialog */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" dir={direction}>
-          <DialogHeader>
-            <DialogTitle>
-              {editingItem ? t('inspections.editItem') : t('inspections.addItem')}
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t('inspections.question')} (EN)</Label>
-                <Textarea
-                  {...form.register('question')}
-                  rows={2}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('inspections.question')} (AR)</Label>
-                <Textarea
-                  {...form.register('question_ar')}
-                  rows={2}
-                  dir="rtl"
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>{t('inspections.responseType')}</Label>
-              <Select
-                value={watchedResponseType}
-                onValueChange={(val) => form.setValue('response_type', val)}
-                dir={direction}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {RESPONSE_TYPES.map((rt) => (
-                    <SelectItem key={rt.value} value={rt.value}>
-                      {t(rt.label)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {watchedResponseType === 'numeric' && (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>{t('inspections.minValue')}</Label>
-                  <Input
-                    type="number"
-                    {...form.register('min_value')}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>{t('inspections.maxValue')}</Label>
-                  <Input
-                    type="number"
-                    {...form.register('max_value')}
-                  />
-                </div>
-              </div>
+    <div className="space-y-4">
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+            <Package className="h-5 w-5 text-muted-foreground" />
+            {t('inspections.matchingAssets', 'Matching Assets')}
+            {!matchingLoading && matchingData && (
+              <Badge variant="secondary" className="text-xs">
+                {totalCount}
+              </Badge>
             )}
-            
-            {watchedResponseType === 'rating' && (
-              <div className="space-y-2">
-                <Label>{t('inspections.ratingScale')}</Label>
-                <Select
-                  value={form.watch('rating_scale')}
-                  onValueChange={(val) => form.setValue('rating_scale', val)}
-                  dir={direction}
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="3">1-3</SelectItem>
-                    <SelectItem value="5">1-5</SelectItem>
-                    <SelectItem value="10">1-10</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t('inspections.instructions')} (EN)</Label>
-                <Textarea
-                  {...form.register('instructions')}
-                  rows={2}
-                  placeholder={t('inspections.instructionsPlaceholder')}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('inspections.instructions')} (AR)</Label>
-                <Textarea
-                  {...form.register('instructions_ar')}
-                  rows={2}
-                  dir="rtl"
-                />
-              </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          {!matchingLoading && totalCount === 0 ? (
+            <div className="py-3 text-center">
+              <AlertTriangle className="h-5 w-5 text-warning mx-auto mb-1" />
+              <p className="text-xs text-muted-foreground">
+                {t('inspections.noMatchingAssets', 'No assets match this template scope. Check the category, type, site, and building filters.')}
+              </p>
             </div>
-            
-            <div className="flex items-center justify-between border rounded-lg p-3">
-              <Label>{t('inspections.critical')}</Label>
-              <Switch
-                checked={form.watch('is_critical')}
-                onCheckedChange={(val) => form.setValue('is_critical', val)}
-              />
-            </div>
-            
-            <div className="flex items-center justify-between border rounded-lg p-3">
-              <Label>{t('common.required')}</Label>
-              <Switch
-                checked={form.watch('is_required')}
-                onCheckedChange={(val) => form.setValue('is_required', val)}
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
-              {t('common.cancel')}
-            </Button>
-            <Button
-              onClick={form.handleSubmit(handleSave)}
-              disabled={!form.watch('question') || createItem.isPending || updateItem.isPending}
-            >
-              {t('common.save')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Delete Confirmation */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent dir={direction}>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('inspections.deleteItemConfirm')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {t('common.delete')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </Card>
+          ) : (
+            <ActionListTable<AssetRow>
+              items={rows}
+              columns={columns}
+              isLoading={matchingLoading}
+              emptyIcon={<AlertTriangle className="h-10 w-10 mb-2 opacity-40" />}
+              emptyMessage={t('inspections.noMatchingAssets', 'No assets match this template scope.')}
+              searchableFields={['display_name', 'asset_code', 'category_name', 'type_name', 'subtype_name', 'zone_name', 'building_name']}
+            />
+          )}
+        </CardContent>
+      </Card>
+      <TemplateChecklistEditor templateId={templateId} />
+    </div>
   );
 }

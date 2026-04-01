@@ -57,13 +57,8 @@ async function fetchMyActivity(userId: string): Promise<ActivityItem[]> {
     .order('created_at', { ascending: false })
     .limit(3);
 
-  const observationsPromise = client.from('observations')
-    .select('id, title, status, created_at, reference_id')
-    .eq('reported_by', userId)
-    .is('deleted_at', null)
-    .order('created_at', { ascending: false })
-    .limit(3)
-    .catch((): ActivityResult => ({ data: [] }));
+  // Observations table does not exist yet — return empty gracefully
+  const observationsPromise = Promise.resolve({ data: [] } as ActivityResult);
 
   const [incidentsRes, actionsRes, observationsRes] = await Promise.all([
     incidentsPromise,

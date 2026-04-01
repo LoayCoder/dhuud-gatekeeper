@@ -1,0 +1,1 @@
+UPDATE public.tenant_user_mfa_status SET mfa_grace_until = (now() + interval '24 hours')::timestamptz, updated_at = now() WHERE user_id = '9e5ae1f2-c51d-4afd-9386-b45d06c13a61' AND tenant_id = 'e30ae1a5-7eab-4776-bd0b-bb0b391e68e8'

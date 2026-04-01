@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { HSSENotificationCenter } from '@/components/notifications/HSSENotificationCenter';
 
 const LANGUAGES = [
   { code: 'ar', label: 'العربية', dir: 'rtl' },
@@ -61,6 +62,9 @@ export function HeaderControls({ showLogout = false, className }: HeaderControls
 
   return (
     <div className={cn("flex items-center gap-1", className)}>
+      {/* Notifications */}
+      <HSSENotificationCenter />
+
       {/* Language Selector */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

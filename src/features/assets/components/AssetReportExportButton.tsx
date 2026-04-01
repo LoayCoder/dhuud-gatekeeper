@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FileText, Download, Loader2, ChevronDown, ImageIcon, History, DollarSign } from 'lucide-react';
 import { logger } from '@/lib/logger';

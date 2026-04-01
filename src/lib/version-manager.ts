@@ -4,7 +4,7 @@
  * RESILIENT: Never blocks React from mounting
  */
 
-const VERSION_STORAGE_KEY = 'app-version';
+const VERSION_STORAGE_KEY = 'app-current-version';
 const VERSION_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 interface VersionInfo {
@@ -87,10 +87,17 @@ export async function clearAllCaches(): Promise<void> {
       }));
     }
     
-    // Unregister service workers
+    // Unregister service workers (preserve OneSignal)
     if ('serviceWorker' in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(registrations.map(r => r.unregister()));
+      await Promise.all(registrations.map(r => {
+        const swUrl = r.active?.scriptURL || r.installing?.scriptURL || r.waiting?.scriptURL || '';
+        if (swUrl.includes('OneSignalSDKWorker')) {
+          console.log('[Version Manager] Preserving OneSignal service worker');
+          return Promise.resolve();
+        }
+        return r.unregister();
+      }));
     }
     
     console.log('[Version Manager] All caches cleared');

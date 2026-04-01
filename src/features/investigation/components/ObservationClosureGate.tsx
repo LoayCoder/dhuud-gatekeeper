@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Observation Closure Gate Component
  * 
  * Controls observation closure based on severity level:
@@ -35,8 +35,9 @@ export function ObservationClosureGate({ incident, onComplete }: ObservationClos
   const severityConfig = getSeverityConfig(severity);
   const incidentStatus = incident.status as string;
   
-  // Only show for observations pending final closure
-  if (incident.event_type !== 'observation' || incidentStatus !== 'pending_final_closure') {
+  // Only show for observations pending HSSE Manager closure or final closure
+  const validClosureStatuses = ['pending_final_closure', 'pending_hsse_manager_closure'];
+  if (incident.event_type !== 'observation' || !validClosureStatuses.includes(incidentStatus)) {
     return null;
   }
   

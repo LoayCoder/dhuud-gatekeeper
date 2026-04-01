@@ -1,4 +1,4 @@
-﻿export * from './components/analytics/CompletionRateChart';
+export * from './components/analytics/CompletionRateChart';
 export * from './components/analytics/FindingsTrendChart';
 export * from './components/analytics/SLAComplianceChart';
 export * from './components/analytics/TopIssuesChart';

@@ -2,6 +2,7 @@ import React, { Component, ErrorInfo, ReactNode } from "react";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import i18n from "@/i18n";
 
 interface Props {
     children: ReactNode;
@@ -36,13 +37,15 @@ export class ErrorBoundary extends Component<Props, State> {
                 return this.props.fallback;
             }
 
+            const t = i18n.t.bind(i18n);
+
             return (
                 <div className="p-6 max-w-4xl mx-auto space-y-4">
                     <Alert variant="destructive">
                         <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>Something went wrong</AlertTitle>
+                        <AlertTitle>{t('common.somethingWentWrong', 'Something went wrong')}</AlertTitle>
                         <AlertDescription>
-                            The application encountered an error. Please try refreshing the page.
+                            {t('common.errorEncountered', 'The application encountered an error. Please try refreshing the page.')}
                         </AlertDescription>
                     </Alert>
 
@@ -54,7 +57,7 @@ export class ErrorBoundary extends Component<Props, State> {
                     </div>
 
                     <Button onClick={() => window.location.reload()}>
-                        Refresh Page
+                        {t('common.refreshPage', 'Refresh Page')}
                     </Button>
                 </div>
             );

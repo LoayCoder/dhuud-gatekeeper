@@ -1,0 +1,1 @@
+ALTER TABLE corrective_actions ADD COLUMN IF NOT EXISTS failure_context_snapshot jsonb DEFAULT NULL;

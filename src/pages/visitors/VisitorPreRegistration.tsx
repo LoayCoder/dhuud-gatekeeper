@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,48 +28,43 @@ import { NATIONALITIES } from '@/lib/nationalities';
 import { isValidPhoneNumber } from "react-phone-number-input";
 import { DhuudPhoneInput } from "@/components/ui/phone-input";
 
-const formSchema = z.object({
-  full_name: z.string().min(2, 'Name is required'),
-  phone: z.string().refine((val) => isValidPhoneNumber(val), { message: 'Valid phone number is required' }),
-  company_name: z.string().min(1, 'Company name is required'),
-  national_id: z.string().min(1, 'National ID is required'),
-  nationality: z.string().min(1, 'Nationality is required'),
-  branch_id: z.string().min(1, 'Branch is required'),
-  site_id: z.string().min(1, 'Site is required'),
+const getFormSchema = (t: (key: string, fallback: string) => string) => z.object({
+  full_name: z.string().min(2, t('visitors.validation.nameRequired', 'Name is required')),
+  phone: z.string().refine((val) => isValidPhoneNumber(val), { message: t('visitors.validation.phoneRequired', 'Valid phone number is required') }),
+  company_name: z.string().min(1, t('visitors.validation.companyRequired', 'Company name is required')),
+  national_id: z.string().min(1, t('visitors.validation.nationalIdRequired', 'National ID is required')),
+  nationality: z.string().min(1, t('visitors.validation.nationalityRequired', 'Nationality is required')),
+  branch_id: z.string().min(1, t('visitors.validation.branchRequired', 'Branch is required')),
+  site_id: z.string().min(1, t('visitors.validation.siteRequired', 'Site is required')),
   department_id: z.string().optional(),
-  // Separate date and time fields
-  start_date: z.string().min(1, 'Start date is required'),
-  start_time: z.string().min(1, 'Start time is required'),
-  end_date: z.string().min(1, 'End date is required'),
-  end_time: z.string().min(1, 'End time is required'),
-  notes: z.string().min(1, 'Purpose of visit is required'),
-  // User type and host fields
+  start_date: z.string().min(1, t('visitors.validation.startDateRequired', 'Start date is required')),
+  start_time: z.string().min(1, t('visitors.validation.startTimeRequired', 'Start time is required')),
+  end_date: z.string().min(1, t('visitors.validation.endDateRequired', 'End date is required')),
+  end_time: z.string().min(1, t('visitors.validation.endTimeRequired', 'End time is required')),
+  notes: z.string().min(1, t('visitors.validation.purposeRequired', 'Purpose of visit is required')),
   user_type: z.enum(['internal', 'external']),
   host_id: z.string().optional(),
   host_name: z.string().optional(),
-  host_phone: z.string().optional().refine((val) => !val || isValidPhoneNumber(val), { message: 'Valid phone number is required' }),
-  host_email: z.string().email('Valid email is required'),
+  host_phone: z.string().optional().refine((val) => !val || isValidPhoneNumber(val), { message: t('visitors.validation.phoneRequired', 'Valid phone number is required') }),
+  host_email: z.string().email(t('visitors.validation.emailRequired', 'Valid email is required')),
 }).refine((data) => {
-  // For internal users, host_id is required
   if (data.user_type === 'internal') {
     return !!data.host_id;
   }
-  // For external users, host_name and host_phone are required
   return !!data.host_name && !!data.host_phone;
 }, {
-  message: 'Host information is required',
+  message: t('visitors.validation.hostRequired', 'Host information is required'),
   path: ['host_id'],
 }).refine((data) => {
-  // Validate end datetime is after start datetime
   const startDateTime = new Date(`${data.start_date}T${data.start_time}`);
   const endDateTime = new Date(`${data.end_date}T${data.end_time}`);
   return endDateTime > startDateTime;
 }, {
-  message: 'End date/time must be after start date/time',
+  message: t('visitors.validation.endAfterStart', 'End date/time must be after start date/time'),
   path: ['end_time'],
 });
 
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = z.infer<ReturnType<typeof getFormSchema>>;
 
 // Helper to get current date in YYYY-MM-DD format
 const getCurrentDate = () => new Date().toISOString().split('T')[0];
@@ -111,6 +106,8 @@ export default function VisitorPreRegistration() {
     now.setHours(now.getHours() + hoursToAdd);
     return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   };
+
+  const formSchema = useMemo(() => getFormSchema(t), [t]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),

@@ -21,6 +21,7 @@ export function useInspectionSchedules(filters?: ScheduleFilters) {
           site:sites(id, name),
           building:buildings(id, name)
         `)
+                .eq('tenant_id', profile!.tenant_id)
                 .is('deleted_at', null)
                 .order('next_due', { ascending: true, nullsFirst: false });
 

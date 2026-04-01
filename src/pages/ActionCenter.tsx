@@ -1,8 +1,9 @@
-﻿import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { useModuleAccess } from '@/hooks/use-module-access';
 import { useUserRoles } from '@/features/users';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActionCenterStats } from '@/features/incidents';
+import { usePendingIncidentApprovals } from '@/hooks/use-pending-approvals';
 import { EnterprisePage } from '@/components/layout/EnterprisePage';
 import { SectionHeader } from '@/components/ui/section-header';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -27,6 +28,17 @@ export default function ActionCenter() {
   const { hasModule } = useModuleAccess();
   const { hasRole, hasRoleInCategory } = useUserRoles();
   const { data: stats, isLoading } = useActionCenterStats();
+  const { data: pendingIncidentApprovals } = usePendingIncidentApprovals();
+
+  // Enrich stats with real pending incident/observation approvals count
+  const enrichedStats = stats ? {
+    ...stats,
+    summary: {
+      ...stats.summary,
+      totalPendingApprovals: stats.summary.totalPendingApprovals + (pendingIncidentApprovals?.length || 0),
+      totalActions: stats.summary.totalActions + (pendingIncidentApprovals?.length || 0),
+    }
+  } : stats;
 
   // Module access checks
   const hasHSSEAccess = hasModule('hsse_core') || hasModule('incidents');
@@ -62,8 +74,9 @@ export default function ActionCenter() {
   return (
     <EnterprisePage
       title={t('actionCenter.title', 'Action Center')}
-      description={t('actionCenter.description', 'Unified operational hub â€” execute tasks across all modules from one place')}
+      description={t('actionCenter.description', 'Unified operational hub — execute tasks across all modules from one place')}
       titleIcon={Zap}
+      className="pb-[env(safe-area-inset-bottom)]"
     >
       {/* Cross-Module KPI Summary */}
       <section className="space-y-3">
@@ -71,8 +84,8 @@ export default function ActionCenter() {
           title={t('actionCenter.overview', 'Overview')}
           description={t('actionCenter.overviewDesc', 'Cross-module summary of items requiring attention')}
         />
-        <ActionCenterStatsBar stats={stats} isLoading={isLoading} />
-        {/* Notification delivery status â€” admin only */}
+        <ActionCenterStatsBar stats={enrichedStats} isLoading={isLoading} />
+        {/* Notification delivery status — admin only */}
         {isAdmin && <NotificationPipelineStatus />}
       </section>
 

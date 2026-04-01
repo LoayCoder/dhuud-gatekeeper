@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAssetTransfers, type AssetTransfer } from '@/features/assets';
 import { TransferApprovalDialog } from './TransferApprovalDialog';
@@ -247,7 +247,7 @@ export function TransferHistoryTab({ assetId, assetName }: TransferHistoryTabPro
                   <div className="flex items-center gap-2 text-success">
                     <CheckCircle className="h-4 w-4" />
                     <span>
-                      {t('assets.transfer.approvedBy')}: {transfer.approved_by_profile?.full_name} â€¢{' '}
+                      {t('assets.transfer.approvedBy')}: {transfer.approved_by_profile?.full_name} •{' '}
                       {format(new Date(transfer.approved_at), 'PPp')}
                     </span>
                   </div>
@@ -258,7 +258,7 @@ export function TransferHistoryTab({ assetId, assetName }: TransferHistoryTabPro
                   <div className="flex items-center gap-2 text-success">
                     <CheckCircle className="h-4 w-4" />
                     <span>
-                      {t('assets.transfer.completedBy')}: {transfer.completed_by_profile?.full_name} â€¢{' '}
+                      {t('assets.transfer.completedBy')}: {transfer.completed_by_profile?.full_name} •{' '}
                       {format(new Date(transfer.completed_at), 'PPp')}
                     </span>
                   </div>

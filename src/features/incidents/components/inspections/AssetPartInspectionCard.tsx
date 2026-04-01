@@ -1,12 +1,14 @@
-﻿/**
+/**
  * Asset Part Inspection Card
  * 
  * Card component for inspecting individual parts of an asset during inspection.
  * Uses smart lookup to fetch parts from subtype if exists, otherwise from type.
- * Displays all defined parts with quick Pass/Fail/N/A toggles.
+ * Displays all defined parts with quick Pass/Fail/N/A toggles in stacked layout.
+ * Auto-derives overall condition from part results via onConditionChange callback.
+ * Reports completion status and critical fail flags on every change.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   Cog, 
@@ -45,6 +47,8 @@ interface AssetPartInspectionCardProps {
   assetTypeName: string;
   assetTypeNameAr?: string | null;
   readOnly?: boolean;
+  /** Called on every part change with derived condition, completion status, and critical fail flag */
+  onConditionChange?: (condition: 'good' | 'not_good', allComplete: boolean, hasCriticalFail: boolean) => void;
 }
 
 interface PartRowProps {
@@ -71,6 +75,13 @@ function PartRow({
   const [showNotes, setShowNotes] = useState(!!currentNotes);
   const [notes, setNotes] = useState(currentNotes || '');
 
+  // Auto-expand notes when Fail is selected
+  useEffect(() => {
+    if (currentResult === 'fail' && !showNotes) {
+      setShowNotes(true);
+    }
+  }, [currentResult]);
+
   const displayName = isRTL && part.name_ar ? part.name_ar : part.name;
 
   const handleNotesBlur = () => {
@@ -85,105 +96,125 @@ function PartRow({
     return `${part.content_count} ${label}`;
   };
 
+  // Color-coded left border based on result
+  const borderClass = currentResult === 'pass'
+    ? 'border-s-4 border-s-green-500 bg-green-500/5'
+    : currentResult === 'fail' && part.is_critical
+    ? 'border-2 border-destructive bg-destructive/5'
+    : currentResult === 'fail'
+    ? 'border-s-4 border-s-destructive bg-destructive/5'
+    : currentResult === 'na'
+    ? 'border-s-4 border-s-muted-foreground/40 bg-muted/30'
+    : '';
+
   return (
     <div className={cn(
-      "border rounded-lg p-3 space-y-2 transition-colors",
-      currentResult === 'fail' && part.is_critical && "border-destructive bg-destructive/5",
-      currentResult === 'pass' && "border-green-500/50 bg-green-500/5",
-      currentResult === 'fail' && !part.is_critical && "border-orange-500/50 bg-orange-500/5",
+      "border rounded-lg p-3 space-y-3 transition-all duration-200",
+      borderClass,
     )}>
-      {/* Part Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 flex-wrap">
+      {/* Row 1: Part name + badges */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 flex-wrap min-w-0">
           <span className="font-medium text-sm">{displayName}</span>
           {part.is_critical && (
-            <Badge variant="destructive" className="text-xs gap-1">
+            <Badge variant="destructive" className="text-xs gap-1 shrink-0">
               <AlertTriangle className="h-3 w-3" />
               {t('assetParts.critical', 'Critical')}
             </Badge>
           )}
           {part.content_count && (
-            <Badge variant="outline" className="text-xs gap-1">
+            <Badge variant="outline" className="text-xs gap-1 shrink-0">
               <Package className="h-3 w-3" />
               {getContentCountDisplay()}
             </Badge>
           )}
         </div>
-
-        {/* Result Buttons */}
-        <div className="flex items-center gap-1">
-          {isSaving && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground me-2" />}
-          
-          <Button
-            type="button"
-            variant={currentResult === 'pass' ? 'default' : 'outline'}
-            size="sm"
-            className={cn(
-              "h-8 px-3 gap-1",
-              currentResult === 'pass' && "bg-green-600 hover:bg-green-700"
-            )}
-            onClick={() => onResultChange(part.id, 'pass')}
-            disabled={readOnly || isSaving}
-          >
-            <Check className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('assetParts.pass', 'Pass')}</span>
-          </Button>
-          
-          <Button
-            type="button"
-            variant={currentResult === 'fail' ? 'default' : 'outline'}
-            size="sm"
-            className={cn(
-              "h-8 px-3 gap-1",
-              currentResult === 'fail' && "bg-destructive hover:bg-destructive/90"
-            )}
-            onClick={() => onResultChange(part.id, 'fail')}
-            disabled={readOnly || isSaving}
-          >
-            <X className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('assetParts.fail', 'Fail')}</span>
-          </Button>
-          
-          <Button
-            type="button"
-            variant={currentResult === 'na' ? 'default' : 'outline'}
-            size="sm"
-            className={cn(
-              "h-8 px-3 gap-1",
-              currentResult === 'na' && "bg-muted-foreground hover:bg-muted-foreground/90"
-            )}
-            onClick={() => onResultChange(part.id, 'na')}
-            disabled={readOnly || isSaving}
-          >
-            <Minus className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('assetParts.na', 'N/A')}</span>
-          </Button>
-
-          {/* Notes Toggle */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={() => setShowNotes(!showNotes)}
-            disabled={readOnly}
-          >
-            <MessageSquare className={cn("h-4 w-4", notes && "text-primary")} />
-          </Button>
-        </div>
+        {isSaving && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />}
       </div>
 
-      {/* Notes Input */}
-      {showNotes && (
-        <Textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          onBlur={handleNotesBlur}
-          placeholder={t('assetParts.addNotes', 'Add notes for this part...')}
-          className="text-sm resize-none"
-          rows={2}
+      {/* Row 2: Action buttons — stacked below name */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Button
+          type="button"
+          variant={currentResult === 'pass' ? 'default' : 'outline'}
+          size="sm"
+          className={cn(
+            "h-10 min-w-[60px] gap-1.5 transition-all duration-200",
+            currentResult === 'pass'
+              ? "bg-green-600 hover:bg-green-700 ring-2 ring-green-600/30"
+              : "text-green-700 border-green-300 hover:bg-green-50 dark:text-green-400 dark:border-green-700"
+          )}
+          onClick={() => onResultChange(part.id, 'pass')}
+          disabled={readOnly || isSaving}
+        >
+          <Check className="h-4 w-4" />
+          <span>{t('assetParts.pass', 'Pass')}</span>
+        </Button>
+        
+        <Button
+          type="button"
+          variant={currentResult === 'fail' ? 'default' : 'outline'}
+          size="sm"
+          className={cn(
+            "h-10 min-w-[60px] gap-1.5 transition-all duration-200",
+            currentResult === 'fail'
+              ? "bg-destructive hover:bg-destructive/90 ring-2 ring-destructive/30"
+              : "text-destructive border-destructive/30 hover:bg-destructive/5"
+          )}
+          onClick={() => onResultChange(part.id, 'fail')}
+          disabled={readOnly || isSaving}
+        >
+          <X className="h-4 w-4" />
+          <span>{t('assetParts.fail', 'Fail')}</span>
+        </Button>
+        
+        <Button
+          type="button"
+          variant={currentResult === 'na' ? 'default' : 'outline'}
+          size="sm"
+          className={cn(
+            "h-10 min-w-[60px] gap-1.5 transition-all duration-200",
+            currentResult === 'na'
+              ? "bg-muted-foreground hover:bg-muted-foreground/90 ring-2 ring-muted-foreground/30"
+              : "text-muted-foreground border-muted-foreground/30 hover:bg-muted/50"
+          )}
+          onClick={() => onResultChange(part.id, 'na')}
+          disabled={readOnly || isSaving}
+        >
+          <Minus className="h-4 w-4" />
+          <span>{t('assetParts.na', 'N/A')}</span>
+        </Button>
+
+        {/* Notes Toggle — visually distinct */}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className={cn(
+            "h-10 min-w-[44px] gap-1.5 ms-auto transition-all duration-200",
+            notes ? "text-primary bg-primary/5" : "text-muted-foreground"
+          )}
+          onClick={() => setShowNotes(!showNotes)}
           disabled={readOnly}
-        />
+        >
+          <MessageSquare className={cn("h-4 w-4", notes && "fill-primary/20")} />
+          {notes && <span className="text-xs">{t('assetParts.hasNotes', '•')}</span>}
+        </Button>
+      </div>
+
+      {/* Notes Input — expandable */}
+      {showNotes && (
+        <div className="animate-in slide-in-from-top-2 duration-200">
+          <Textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            onBlur={handleNotesBlur}
+            placeholder={t('assetParts.addNotes', 'Add notes for this part...')}
+            className="text-sm resize-none"
+            rows={2}
+            disabled={readOnly}
+          />
+        </div>
       )}
     </div>
   );
@@ -196,12 +227,17 @@ export function AssetPartInspectionCard({
   assetTypeName,
   assetTypeNameAr,
   readOnly = false,
+  onConditionChange,
 }: AssetPartInspectionCardProps) {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.dir() === 'rtl';
   const [isExpanded, setIsExpanded] = useState(true);
   const [localResults, setLocalResults] = useState<Record<string, { result: PartInspectionResult; notes: string }>>({});
   const [savingPartId, setSavingPartId] = useState<string | null>(null);
+  // Track last derived condition to avoid duplicate callbacks
+  const lastDerivedRef = useRef<string | null>(null);
+  const lastCompleteRef = useRef<boolean | null>(null);
+  const lastCriticalRef = useRef<boolean | null>(null);
 
   const displayTypeName = isRTL && assetTypeNameAr ? assetTypeNameAr : assetTypeName;
 
@@ -224,12 +260,35 @@ export function AssetPartInspectionCard({
     }
   }, [existingResults]);
 
+  // Auto-derive overall condition on every part change — report to parent always
+  const deriveCondition = (results: Record<string, { result: PartInspectionResult; notes: string }>) => {
+    if (!parts || parts.length === 0 || !onConditionChange) return;
+    
+    const answeredParts = parts.filter(p => results[p.id]?.result);
+    const allComplete = answeredParts.length === parts.length;
+    const hasFail = answeredParts.some(p => results[p.id]?.result === 'fail');
+    const hasCriticalFail = parts.some(p => p.is_critical && results[p.id]?.result === 'fail');
+    const derived = hasFail ? 'not_good' : 'good';
+    
+    // Fire callback on every change (even incomplete) so parent knows status
+    if (lastDerivedRef.current !== derived || lastCompleteRef.current !== allComplete || lastCriticalRef.current !== hasCriticalFail) {
+      lastDerivedRef.current = derived;
+      lastCompleteRef.current = allComplete;
+      lastCriticalRef.current = hasCriticalFail;
+      onConditionChange(derived, allComplete, hasCriticalFail);
+    }
+  };
+
   const handleResultChange = async (partId: string, result: PartInspectionResult) => {
     // Optimistic update
-    setLocalResults((prev) => ({
-      ...prev,
-      [partId]: { ...prev[partId], result, notes: prev[partId]?.notes || '' },
-    }));
+    const newResults = {
+      ...localResults,
+      [partId]: { ...localResults[partId], result, notes: localResults[partId]?.notes || '' },
+    };
+    setLocalResults(newResults);
+
+    // Derive condition after update
+    deriveCondition(newResults);
 
     setSavingPartId(partId);
     try {
@@ -282,9 +341,9 @@ export function AssetPartInspectionCard({
           <Skeleton className="h-6 w-48" />
         </CardHeader>
         <CardContent className="space-y-3">
-          <Skeleton className="h-16 w-full" />
-          <Skeleton className="h-16 w-full" />
-          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
         </CardContent>
       </Card>
     );
@@ -337,7 +396,7 @@ export function AssetPartInspectionCard({
         </CardHeader>
 
         <CollapsibleContent>
-          <CardContent className="space-y-2 pt-0">
+          <CardContent className="space-y-3 pt-0">
             {parts.map((part) => (
               <PartRow
                 key={part.id}
@@ -356,4 +415,3 @@ export function AssetPartInspectionCard({
     </Card>
   );
 }
-

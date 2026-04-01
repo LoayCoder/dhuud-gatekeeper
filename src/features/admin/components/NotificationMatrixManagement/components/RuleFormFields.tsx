@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { User, Users, Mail, MessageCircle, Smartphone, ChevronRight } from 'lucide-react';
 import { Label } from '@/components/ui/label';

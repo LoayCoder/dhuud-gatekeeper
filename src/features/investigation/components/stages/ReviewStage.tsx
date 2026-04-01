@@ -1,4 +1,4 @@
-﻿
+
 import { useInvestigationContext } from "@/features/investigation/context/InvestigationContext";
 import { ApprovalWorkflowBanner } from '@/features/investigation';
 import { IncidentClosureRequestDialog } from '@/features/investigation';

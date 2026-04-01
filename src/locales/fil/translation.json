@@ -1,4 +1,11 @@
 {
+  "speech": {
+    "startRecording": "Magsalita",
+    "stopRecording": "Itigil",
+    "listeningIn": "Nakikinig sa {{language}}",
+    "autoHint": "Para sa Arabic, piliin ang Arabic para sa pinakamahusay na resulta",
+    "speechLanguage": "Wika ng pagsasalita"
+  },
   "hsseDashboard": {
     "title": "HSSE Event Dashboard",
     "subtitle": "Real-time na visibility sa safety performance at risk analytics",
@@ -61,7 +68,12 @@
     "probability": "posibilidad",
     "branchRiskScores": "Branch Risk Scores",
     "departmentRiskScores": "Department Risk Scores",
-    "riskLevel": "Antas ng Panganib",
+    "riskLevel": {
+      "critical": "Kritikal",
+      "high": "Mataas",
+      "medium": "Katamtaman",
+      "low": "Mababa"
+    },
     "behavioralInsights": "Behavioral Insights",
     "eventTypes": {
       "observation": "Obserbasyon",
@@ -142,12 +154,6 @@
     "departmentAnalytics": "Analytics ng Departamento",
     "highRiskDepts": "Mataas na Panganib",
     "actionOverdueRate": "Rate ng Nahuling Aksyon ayon sa Departamento",
-    "riskLevel": {
-      "critical": "Kritikal",
-      "high": "Mataas",
-      "medium": "Katamtaman",
-      "low": "Mababa"
-    },
     "safetyKPIs": "Mga Tagapagpahiwatig ng Pagganap sa Kaligtasan",
     "kpiPeriod": "Kasalukuyang Panahon",
     "closureRate": "Rate ng Pagsasara ng Pangyayari",
@@ -237,17 +243,17 @@
     "status": {
       "submitted": "Naisumite",
       "pending_review": "Naghihintay ng Pagsusuri",
-      "investigation_pending": "Paghihintay ng Imbestigasyon",
-      "investigation_in_progress": "Sinisiyasat",
+      "investigation_pending": "Naghihintay ng Imbestigasyon",
+      "investigation_in_progress": "Isinisiyasat",
       "closed": "Sarado",
       "expert_screening": "Pagsusuri ng Eksperto",
       "returned_to_reporter": "Ibinalik sa Nag-ulat",
       "expert_rejected": "Tinanggihan ng Eksperto",
-      "no_investigation_required": "Walang Imbestigasyon Kailangan",
-      "pending_manager_approval": "Naghihintay ng Apruba ng Manager",
+      "no_investigation_required": "Hindi Kailangan ng Imbestigasyon",
+      "pending_manager_approval": "Naghihintay ng Pag-apruba ng Manager",
       "manager_rejected": "Tinanggihan ng Manager",
-      "hsse_manager_escalation": "Itinaas sa HSSE Manager",
-      "pending_dept_rep_approval": "Naghihintay ng Apruba ng Dept. Rep.",
+      "hsse_manager_escalation": "Iniangat sa HSSE Manager",
+      "pending_dept_rep_approval": "Naghihintay ng Pag-apruba ng Dept. Rep.",
       "observation_actions_pending": "Mga Aksyon sa Progreso",
       "pending_closure": "Naghihintay ng Pagsasara",
       "pending_closure_approval": "Naghihintay ng Apruba ng Manager",
@@ -288,7 +294,7 @@
     "notFound": "Hindi nahanap ang insidente",
     "backToList": "Bumalik sa Listahan ng mga Insidente",
     "reportedBy": "Ini-ulat ni",
-    "locationDetails": "Mga Detalye ng Lokasyon",
+    "locationDetails": "Detalye ng Lokasyon",
     "viewOnMap": "Tingnan sa Mapa",
     "linkedEvent": "Naka-link sa Espesyal na Kaganapan",
     "attachments": "Mga Kalakip",
@@ -343,7 +349,6 @@
     "gpsDetectedFromSite": "Awtomatikong natukoy mula sa GPS site",
     "withinMeters": "sa loob ng {{distance}}m",
     "noSiteNearby": "Walang nahanap na site sa loob ng 500m mula sa iyong lokasyon",
-    "locationDetails": "Detalye ng Lokasyon",
     "locationDetailsPlaceholder": "hal., Building A, Floor 2, Malapit sa pasukan",
     "locationDetailsDescription": "Opsyonal: ilarawan ang partikular na lokasyon sa loob ng site",
     "responsibleDepartment": "Responsableng Departamento",
@@ -586,21 +591,6 @@
         "erpWeatherOther": "ERP activated (Weather/Other)"
       }
     },
-    "status": {
-      "submitted": "Naisumite",
-      "pending_review": "Naghihintay ng Pagsusuri",
-      "investigation_pending": "Naghihintay ng Imbestigasyon",
-      "investigation_in_progress": "Isinisiyasat",
-      "closed": "Sarado",
-      "expert_screening": "Pagsusuri ng Eksperto",
-      "returned_to_reporter": "Ibinalik sa Nag-ulat",
-      "expert_rejected": "Tinanggihan ng Eksperto",
-      "no_investigation_required": "Hindi Kailangan ng Imbestigasyon",
-      "pending_manager_approval": "Naghihintay ng Pag-apruba ng Manager",
-      "manager_rejected": "Tinanggihan ng Manager",
-      "hsse_manager_escalation": "Iniangat sa HSSE Manager",
-      "pending_dept_rep_approval": "Naghihintay ng Pag-apruba ng Dept. Rep."
-    },
     "quickCapture": {
       "title": "Quick Capture",
       "aiComingSoon": "AI Powered - Coming Soon",
@@ -643,7 +633,8 @@
       "evidence": "Ebidensya",
       "witnesses": "Mga Saksi",
       "rca": "Root Cause Analysis",
-      "actions": "Mga Corrective Action"
+      "actions": "Mga Corrective Action",
+      "overview": "Pangkalahatang-tanaw"
     },
     "evidence": {
       "title": "Pamamahala ng Ebidensya",
@@ -892,8 +883,8 @@
       "occurredAt": "Oras ng Pangyayari",
       "location": "Lokasyon",
       "site": "Site",
-"investigatorAssignment": "Pagtatalaga ng Imbestigador",
-        "awaitingExpertAssignment": "Ang HSSE Expert ay magtatalaga ng investigator para sa kasong ito.",
+      "investigatorAssignment": "Pagtatalaga ng Imbestigador",
+      "awaitingExpertAssignment": "Ang HSSE Expert ay magtatalaga ng investigator para sa kasong ito.",
       "assignInvestigator": "Italaga ang Imbestigador",
       "selectInvestigator": "Pumili ng imbestigador",
       "currentInvestigator": "Kasalukuyang Imbestigador",
@@ -973,9 +964,6 @@
       "button": "Isumite ang Imbestigasyon para sa Pagsusuri",
       "note": "Lahat ng itinalagang may-ari ng aksyon ay aabisuhan sa pamamagitan ng email",
       "success": "Naisumite ang imbestigasyon para sa pagsusuri"
-    },
-    "tabs": {
-      "overview": "Pangkalahatang-tanaw"
     },
     "severityAssessment": "Pagtatasa ng Kalubhaan",
     "actualSeverity": "Aktwal na Kalubhaan",
@@ -1192,7 +1180,7 @@
     "pageNotFound": "Oops! Hindi nahanap ang page",
     "returnHome": "Bumalik sa Home"
   },
-"common": {
+  "common": {
     "loading": "Naglo-load...",
     "phone": "Telepono",
     "save": "I-save",
@@ -1240,9 +1228,6 @@
     "description": "Paglalarawan",
     "create": "Lumikha",
     "update": "I-update",
-    "view": "Tingnan",
-    "details": "Mga Detalye",
-    "all": "Lahat",
     "none": "Wala",
     "select": "Pumili",
     "selectOptional": "Pumili (Opsyonal)",
@@ -1793,7 +1778,6 @@
     "executiveReport": "Executive Report",
     "actionSlaSettings": "Action SLA Settings",
     "manhoursManagement": "Manhours Management",
-    
     "menuAccess": "Menu Access"
   },
   "actions": {
@@ -1954,6 +1938,8 @@
     "result_good": "Maganda",
     "result_not_good": "Hindi Maganda",
     "result_not_accessible": "Hindi Accessible",
+    "result_partial": "Partial",
+    "quickPartial": "Partial",
     "pending": "Pending",
     "passed": "Pumasa",
     "failed": "Bumagsak",
@@ -2756,6 +2742,15 @@
       "batteryCritical": "Kritikal ang Baterya!",
       "chargeSoon": "Paki-charge ang iyong device kaagad",
       "chargeWhenPossible": "I-charge kapag posible"
+    },
+    "gate": {
+      "alreadyOnSite": "Nasa Site Na",
+      "alreadyOnSiteDesc": "Ang taong ito ay nasa site na mula {{time}}"
+    },
+    "workerScanHistory": {
+      "title": "Mga Scan ng Worker Ngayon",
+      "noScans": "Walang worker scans ngayon",
+      "exitedAt": "Lumabas"
     }
   },
   "dashboard": {
@@ -3011,7 +3006,7 @@
     "organizationalAssignment": "Organizational Assignment",
     "fullBranchAccess": "Buong Access sa Lahat ng Branch",
     "fullBranchAccessDescription": "Magbigay ng access sa lahat ng organizational branch sa halip na isang branch lamang",
-    "allBranches": "Lahat ng Branch (Buong Access)",
+    "allBranches": "Lahat ng Branch",
     "filters": "Mga Filter",
     "filterByType": "I-filter ayon sa Uri",
     "filterByStatus": "I-filter ayon sa Status",
@@ -3019,7 +3014,6 @@
     "filterByDivision": "I-filter ayon sa Division",
     "allTypes": "Lahat ng Uri",
     "allStatuses": "Lahat ng Status",
-    "allBranches": "Lahat ng Branch",
     "allDivisions": "Lahat ng Division",
     "active": "Aktibo",
     "inactive": "Hindi Aktibo",
@@ -3942,7 +3936,8 @@
       "sync": "Mga Sync Notification",
       "update": "Mga Update at Approval",
       "info": "Mga Impormasyon na Alerto",
-      "error": "Mga Security at Error na Alerto"
+      "error": "Mga Security at Error na Alerto",
+      "urgent": "Mga Urgent SLA Alerto"
     },
     "categoryDescription": {
       "sync": "Mga notification kapag na-sync ang mga offline na pagbabago",
@@ -3950,13 +3945,6 @@
       "info": "Pangkalahatang impormasyon at mga update sa status",
       "error": "Mga security alert, error, at kritikal na babala",
       "urgent": "Mga kritikal na SLA escalation at overdue na aksyon na nangangailangan ng agarang pansin"
-    },
-    "category": {
-      "sync": "Mga Sync Notification",
-      "update": "Mga Update at Approval",
-      "info": "Mga Impormasyon na Alerto",
-      "error": "Mga Security at Error na Alerto",
-      "urgent": "Mga Urgent SLA Alerto"
     },
     "digestPreferences": "Mga Preference sa Digest Email",
     "digestPreferencesDescription": "I-configure kung kailan at paano ka makakatanggap ng araw-araw na digest email",
@@ -4077,11 +4065,52 @@
     "reset": "I-reset sa Default",
     "saveSuccess": "Matagumpay na na-save ang mga setting ng dokumento",
     "saveError": "Nabigong i-save ang mga setting ng dokumento",
-    "tabs": { "header": "Header", "footer": "Footer", "watermark": "Watermark" },
-    "header": { "primaryText": "Pangunahing Text", "primaryTextPlaceholder": "hal. Safety Department", "secondaryText": "Pangalawang Text", "secondaryTextPlaceholder": "hal. ISO 45001", "logoPosition": "Posisyon ng Logo", "positionLeft": "Kaliwa", "positionCenter": "Gitna", "positionRight": "Kanan", "showLogo": "Ipakita ang Logo", "bgColor": "Kulay ng Background", "textColor": "Kulay ng Text" },
-    "footer": { "text": "Text ng Footer", "textPlaceholder": "hal. Confidential", "showPageNumbers": "Ipakita ang Numero ng Pahina", "showDatePrinted": "Ipakita ang Petsa ng Print", "bgColor": "Kulay ng Background", "textColor": "Kulay ng Text" },
-    "watermark": { "enabled": "I-enable ang Watermark", "text": "Text ng Watermark", "textPlaceholder": "hal. CONFIDENTIAL, DRAFT", "opacity": "Opacity" },
-    "preview": { "title": "Live na Preview", "description": "Tingnan kung paano magmumukhang ang iyong mga dokumento", "sampleTitle": "SAMPLE NA PAMAGAT NG DOKUMENTO", "fieldLabel": "Label ng Field", "fieldValue": "Sample na Halaga", "dateLabel": "Petsa", "locationLabel": "Lokasyon", "locationValue": "Sample na Lokasyon", "signature": "Lagda:", "date": "Petsa:", "pageNumber": "Pahina {{page}}", "hint": "Ipinapakita ng preview na ito ang tantiya ng layout ng iyong dokumento" }
+    "tabs": {
+      "header": "Header",
+      "footer": "Footer",
+      "watermark": "Watermark"
+    },
+    "header": {
+      "primaryText": "Pangunahing Text",
+      "primaryTextPlaceholder": "hal. Safety Department",
+      "secondaryText": "Pangalawang Text",
+      "secondaryTextPlaceholder": "hal. ISO 45001",
+      "logoPosition": "Posisyon ng Logo",
+      "positionLeft": "Kaliwa",
+      "positionCenter": "Gitna",
+      "positionRight": "Kanan",
+      "showLogo": "Ipakita ang Logo",
+      "bgColor": "Kulay ng Background",
+      "textColor": "Kulay ng Text"
+    },
+    "footer": {
+      "text": "Text ng Footer",
+      "textPlaceholder": "hal. Confidential",
+      "showPageNumbers": "Ipakita ang Numero ng Pahina",
+      "showDatePrinted": "Ipakita ang Petsa ng Print",
+      "bgColor": "Kulay ng Background",
+      "textColor": "Kulay ng Text"
+    },
+    "watermark": {
+      "enabled": "I-enable ang Watermark",
+      "text": "Text ng Watermark",
+      "textPlaceholder": "hal. CONFIDENTIAL, DRAFT",
+      "opacity": "Opacity"
+    },
+    "preview": {
+      "title": "Live na Preview",
+      "description": "Tingnan kung paano magmumukhang ang iyong mga dokumento",
+      "sampleTitle": "SAMPLE NA PAMAGAT NG DOKUMENTO",
+      "fieldLabel": "Label ng Field",
+      "fieldValue": "Sample na Halaga",
+      "dateLabel": "Petsa",
+      "locationLabel": "Lokasyon",
+      "locationValue": "Sample na Lokasyon",
+      "signature": "Lagda:",
+      "date": "Petsa:",
+      "pageNumber": "Pahina {{page}}",
+      "hint": "Ipinapakita ng preview na ito ang tantiya ng layout ng iyong dokumento"
+    }
   },
   "upload": {
     "uploading": "Nag-a-upload...",
@@ -4834,9 +4863,9 @@
     "createTemplate": "Lumikha ng Audit Template",
     "templateType": "Uri ng Template",
     "types": {
-      "asset": "Asset",
-      "area": "Lugar/Site",
-      "audit": "Compliance Audit"
+      "asset": "Inspeksyon ng Asset",
+      "area": "Inspeksyon ng Lugar",
+      "audit": "Audit"
     },
     "standardReference": "Standard Reference",
     "standards": {
@@ -4870,11 +4899,6 @@
       "minorNc": "Minor NC",
       "majorNc": "Major NC",
       "criticalNc": "Critical NC"
-    },
-    "types": {
-      "asset": "Inspeksyon ng Asset",
-      "area": "Inspeksyon ng Lugar",
-      "audit": "Audit"
     },
     "sessionStarted": "Nagsimula na ang audit session",
     "sessionCompleted": "Nakumpleto na ang audit session",
@@ -5490,18 +5514,31 @@
       "selectProject": "Pumili ng Proyekto para sa Induction",
       "eligibleWorkers": "Mga Kwalipikadong Manggagawa",
       "noEligibleWorkers": "Walang kwalipikadong manggagawa. Kailangang aprubado ang mga manggagawa at may mobile number.",
-      "sendInduction": "Ipadala ang Induction",
+      "sendInduction": "Ipadala ang Induction Video",
       "inductionSent": "Matagumpay na naipadala ang mga induction",
       "inductionFailed": "Nabigong ipadala ang mga induction",
       "languageBreakdown": "Breakdown ng Wika",
       "languageBreakdownDesc": "Matatanggap ng bawat manggagawa ang induction message sa kanilang itinalagang wika",
       "templateNotice": "Gumagamit ang mga mensahe ng notification templates. Lumikha ng mga template sa WhatsApp Templates para sa bawat wika.",
       "messageDelayTitle": "Pagkaantala ng Mensahe",
-      "noPendingApprovals": "Walang nakabinbing pag-apruba"
+      "noPendingApprovals": "Walang nakabinbing pag-apruba",
+      "details": "Mga Detalye",
+      "qrCode": "QR Code",
+      "personalInfo": "Personal na Impormasyon",
+      "mobile": "Mobile",
+      "preferredLanguage": "Gustong Wika",
+      "approvalRequiredForQr": "Kailangang ma-approve ang manggagawa bago makabuo ng QR code",
+      "safetyInduction": "Safety Induction",
+      "inductionDescription": "Magpadala ng safety induction video sa manggagawa sa pamamagitan ng WhatsApp batay sa kanilang gustong wika.",
+      "status": {
+        "pending": "Nakabinbin",
+        "approved": "Inaporoba",
+        "rejected": "Tinanggihan"
+      }
     },
     "projects": {
       "title": "Mga Proyekto ng Kontratista",
-      "description": "Pamahalaan ang mga proyekto at assignment ng kontratista",
+      "description": "Paglalarawan",
       "addProject": "Magdagdag ng Proyekto",
       "editProject": "I-edit ang Proyekto",
       "noProjects": "Walang nahanap na proyekto",
@@ -5519,8 +5556,7 @@
       "endDate": "Petsa ng Pagtatapos",
       "status": "Katayuan",
       "location": "Lokasyon",
-      "schedule": "Iskedyul",
-      "description": "Paglalarawan"
+      "schedule": "Iskedyul"
     },
     "workerStatus": {
       "pending": "Naghihintay",
@@ -5530,13 +5566,45 @@
       "revoked": "Binawi"
     },
     "induction": {
-      "expired": "Nag-expire na",
+      "expired": "Nag-expire",
       "expiresInDays": "Mag-e-expire sa {{days}} araw",
       "valid": "Valid",
       "notCompleted": "Hindi Kumpleto",
       "expiredWarning": "Nag-expire ang Induction",
       "expiringSoonWarning": "Malapit Nang Mag-expire ang Induction",
-      "expiryDate": "Mag-e-expire: {{date}}"
+      "expiryDate": "Mag-e-expire: {{date}}",
+      "title": "Mga Induction Video",
+      "description": "Pamahalaan ang mga safety induction video para sa mga contractor worker",
+      "addVideo": "Magdagdag ng Video",
+      "editVideo": "I-edit ang Video",
+      "deleteVideo": "Tanggalin ang Video",
+      "videoTitle": "Pamagat ng Video",
+      "videoTitleAr": "Pamagat ng Video (Arabic)",
+      "videoUrl": "Video URL",
+      "thumbnailUrl": "Thumbnail URL",
+      "duration": "Tagal (segundo)",
+      "validityPeriod": "Validity Period (araw)",
+      "language": "Wika",
+      "isActive": "Aktibo",
+      "status": "Status ng Induction",
+      "notSent": "Hindi pa Naipadala",
+      "sent": "Naipadala",
+      "viewed": "Napanood",
+      "completed": "Kumpleto",
+      "pending": "Nakabinbin",
+      "sentAt": "Petsa ng Pagpapadala",
+      "viewedAt": "Petsa ng Panonood",
+      "completedAt": "Petsa ng Pagkumpleto",
+      "expiresAt": "Petsa ng Pag-expire",
+      "noInductionSent": "Wala pang induction na naipadala sa manggagawang ito.",
+      "sendVideo": "Ipadala ang Induction Video",
+      "send": "Ipadala ang Induction Video",
+      "resend": "Ipadala Muli ang Induction Video",
+      "compliance": "Pagsunod sa Induction",
+      "completionRate": "Rate ng Pagkumpleto",
+      "expiringSoon": "Malapit nang Mag-expire",
+      "expiredInductions": "Mga Nag-expire na Induction",
+      "pendingInductions": "Mga Nakabinbing Induction"
     },
     "nav": {
       "dashboard": "Dashboard",
@@ -5711,62 +5779,6 @@
       "noVideoAvailable": "Walang induction video na magagamit para sa wikang ito"
     },
     "inductionVideos": "Mga Induction Video",
-    "induction": {
-      "title": "Mga Induction Video",
-      "description": "Pamahalaan ang mga safety induction video para sa mga contractor worker",
-      "addVideo": "Magdagdag ng Video",
-      "editVideo": "I-edit ang Video",
-      "deleteVideo": "Tanggalin ang Video",
-      "videoTitle": "Pamagat ng Video",
-      "videoTitleAr": "Pamagat ng Video (Arabic)",
-      "videoUrl": "Video URL",
-      "thumbnailUrl": "Thumbnail URL",
-      "duration": "Tagal (segundo)",
-      "validityPeriod": "Validity Period (araw)",
-      "language": "Wika",
-      "isActive": "Aktibo",
-      "status": "Status ng Induction",
-      "notSent": "Hindi pa Naipadala",
-      "sent": "Naipadala",
-      "viewed": "Napanood",
-      "completed": "Kumpleto",
-      "expired": "Nag-expire",
-      "pending": "Nakabinbin",
-      "sentAt": "Petsa ng Pagpapadala",
-      "viewedAt": "Petsa ng Panonood",
-      "completedAt": "Petsa ng Pagkumpleto",
-      "expiresAt": "Petsa ng Pag-expire",
-      "noInductionSent": "Wala pang induction na naipadala sa manggagawang ito.",
-      "sendVideo": "Ipadala ang Induction Video",
-      "send": "Ipadala ang Induction Video",
-      "resend": "Ipadala Muli ang Induction Video",
-      "compliance": "Pagsunod sa Induction",
-      "completionRate": "Rate ng Pagkumpleto",
-      "expiringSoon": "Malapit nang Mag-expire",
-      "expiredInductions": "Mga Nag-expire na Induction",
-      "pendingInductions": "Mga Nakabinbing Induction"
-    },
-    "workers": {
-      "details": "Mga Detalye",
-      "qrCode": "QR Code",
-      "induction": "Induction",
-      "personalInfo": "Personal na Impormasyon",
-      "nationalId": "National ID",
-      "nationality": "Nasyonalidad",
-      "mobile": "Mobile",
-      "company": "Kumpanya",
-      "preferredLanguage": "Gustong Wika",
-      "rejectionReason": "Dahilan ng Pagtanggi",
-      "approvalRequiredForQr": "Kailangang ma-approve ang manggagawa bago makabuo ng QR code",
-      "safetyInduction": "Safety Induction",
-      "inductionDescription": "Magpadala ng safety induction video sa manggagawa sa pamamagitan ng WhatsApp batay sa kanilang gustong wika.",
-      "sendInduction": "Ipadala ang Induction Video",
-      "status": {
-        "pending": "Nakabinbin",
-        "approved": "Inaporoba",
-        "rejected": "Tinanggihan"
-      }
-    },
     "portal": {
       "dashboard": "Contractor Portal",
       "welcome": "Maligayang pagdating sa Contractor Portal",
@@ -6234,12 +6246,24 @@
       "step5": "Mga Hakbang sa Pagkontrol",
       "step6": "Huling Pagsusuri"
     },
-    "step1": { "title": "Mga Detalye ng Gawain" },
-    "step2": { "title": "AI Pagsusuri ng Panganib" },
-    "step3": { "title": "Koponan ng Pagsusuri" },
-    "step4": { "title": "Pagtukoy ng Panganib" },
-    "step5": { "title": "Mga Hakbang sa Pagkontrol at Natitirang Panganib" },
-    "step6": { "title": "Huling Pagsusuri" },
+    "step1": {
+      "title": "Mga Detalye ng Gawain"
+    },
+    "step2": {
+      "title": "AI Pagsusuri ng Panganib"
+    },
+    "step3": {
+      "title": "Koponan ng Pagsusuri"
+    },
+    "step4": {
+      "title": "Pagtukoy ng Panganib"
+    },
+    "step5": {
+      "title": "Mga Hakbang sa Pagkontrol at Natitirang Panganib"
+    },
+    "step6": {
+      "title": "Huling Pagsusuri"
+    },
     "activity": {
       "name": "Pangalan ng Gawain",
       "namePlaceholder": "hal., Hot Work - Welding Operations",
@@ -6340,7 +6364,14 @@
       "hazards": "Mga Panganib",
       "team": "Mga Miyembro ng Koponan",
       "controls": "Mga Kontrol",
-      "rating": "Rating"
+      "rating": "Rating",
+      "highRisk": "Mataas/Kritikal",
+      "totalHazards": "Kabuuang Panganib",
+      "improved": "Pinabuti",
+      "avgReduction": "Avg. Pagbabawas",
+      "overallReduction": "Kabuuang Pagbabawas",
+      "riskReductionProgress": "Progreso ng Pagbabawas ng Panganib",
+      "noHazards": "Walang panganib na suriin"
     },
     "team": {
       "requirement": "Ang mga pagsusuri ng panganib ay dapat isagawa ng isang may kakayahang koponan kasama ang superbisor, kinatawan ng kaligtasan, at kinatawan ng manggagawa.",
@@ -6489,30 +6520,10 @@
       "totalInitial": "Paunang",
       "totalResidual": "Natitira",
       "reduction": "Pagbabawas"
-    },
-    "summary": {
-      "hazards": "Mga Panganib",
-      "team": "Mga Miyembro ng Koponan",
-      "controls": "Mga Kontrol",
-      "rating": "Rating",
-      "highRisk": "Mataas/Kritikal",
-      "totalHazards": "Kabuuang Panganib",
-      "improved": "Pinabuti",
-      "avgReduction": "Avg. Pagbabawas",
-      "overallReduction": "Kabuuang Pagbabawas",
-      "riskReductionProgress": "Progreso ng Pagbabawas ng Panganib",
-      "noHazards": "Walang panganib na suriin"
     }
   },
-  "security": {
-    "gate": {
-      "alreadyOnSite": "Nasa Site Na",
-      "alreadyOnSiteDesc": "Ang taong ito ay nasa site na mula {{time}}"
-    },
-    "workerScanHistory": {
-      "title": "Mga Scan ng Worker Ngayon",
-      "noScans": "Walang worker scans ngayon",
-      "exitedAt": "Lumabas"
-    }
+  "actionCenter": {
+    "adminOverride": "Admin Override",
+    "adminOverrideTooltip": "Nakikita mo ang item na ito dahil sa admin privileges, hindi dahil sa direktang assignment"
   }
 }

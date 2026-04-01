@@ -10,21 +10,32 @@ import {
   CheckCircle2, 
   XCircle,
   AlertTriangle,
-  User
+  User,
+  Plus
 } from 'lucide-react';
 import { useSessionActions, InspectionAction } from '@/features/incidents';
+import { useSessionFailedAssets } from '@/features/incidents/hooks/use-inspection-actions/use-session-failed-assets';
 import { ActionVerificationDialog } from './ActionVerificationDialog';
+import { CreateSessionActionDialog } from './CreateSessionActionDialog';
 
 interface SessionActionsPanelProps {
   sessionId: string;
   canVerify?: boolean;
+  sessionStatus?: string;
 }
 
-export function SessionActionsPanel({ sessionId, canVerify = false }: SessionActionsPanelProps) {
+export function SessionActionsPanel({ sessionId, canVerify = false, sessionStatus }: SessionActionsPanelProps) {
   const { t } = useTranslation();
   const { data: actions, isLoading } = useSessionActions(sessionId);
   const [selectedAction, setSelectedAction] = useState<InspectionAction | null>(null);
   const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+
+  const isSessionCompleted = sessionStatus === 'completed_with_open_actions' || sessionStatus === 'closed';
+  const { data: failedAssets } = useSessionFailedAssets(sessionId, isSessionCompleted);
+
+  const hasFailures = (failedAssets?.length ?? 0) > 0;
+  const canCreateAction = isSessionCompleted && hasFailures;
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -44,13 +55,13 @@ export function SessionActionsPanel({ sessionId, canVerify = false }: SessionAct
     switch (status) {
       case 'verified':
       case 'closed':
-        return 'default';
+        return 'default' as const;
       case 'rejected':
-        return 'destructive';
+        return 'destructive' as const;
       case 'completed':
-        return 'secondary';
+        return 'secondary' as const;
       default:
-        return 'outline';
+        return 'outline' as const;
     }
   };
 
@@ -87,11 +98,18 @@ export function SessionActionsPanel({ sessionId, canVerify = false }: SessionAct
               <ClipboardCheck className="h-5 w-5" />
               {t('actions.sessionActions')}
             </CardTitle>
-            {openActions.length > 0 && (
-              <Badge variant="secondary">
-                {openActions.length} {t('actions.open')}
-              </Badge>
-            )}
+            <div className="flex items-center gap-2">
+              {openActions.length > 0 && (
+                <Badge variant="secondary">
+                  {openActions.length} {t('actions.open')}
+                </Badge>
+              )}
+              {actions && actions.length > 0 && (
+                <Badge variant="outline">
+                  {actions.length} {t('actions.total', { defaultValue: 'Total' })}
+                </Badge>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -162,6 +180,25 @@ export function SessionActionsPanel({ sessionId, canVerify = false }: SessionAct
               </p>
             </div>
           )}
+
+          {/* Create Corrective Action button */}
+          {canCreateAction && (
+            <Button
+              className="w-full mt-3"
+              variant="destructive"
+              onClick={() => setCreateDialogOpen(true)}
+            >
+              <Plus className="h-4 w-4 me-2" />
+              {t('actions.createCorrectiveAction', { defaultValue: 'Create Corrective Action' })}
+            </Button>
+          )}
+
+          {/* Show info when session not yet completed */}
+          {!isSessionCompleted && (
+            <p className="text-xs text-muted-foreground text-center mt-3">
+              {t('actions.completeSessionFirst', { defaultValue: 'Complete the inspection session to create corrective actions' })}
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -170,6 +207,15 @@ export function SessionActionsPanel({ sessionId, canVerify = false }: SessionAct
         onOpenChange={setVerifyDialogOpen}
         action={selectedAction}
       />
+
+      {failedAssets && (
+        <CreateSessionActionDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          sessionId={sessionId}
+          failedAssets={failedAssets}
+        />
+      )}
     </>
   );
 }

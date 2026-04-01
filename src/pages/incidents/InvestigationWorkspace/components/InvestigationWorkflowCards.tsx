@@ -1,3 +1,8 @@
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowUpCircle, ExternalLink, ArrowLeft } from "lucide-react";
 import type { SeverityLevelV2 } from "@/lib/hsse-severity-levels";
 import {
   HSSEExpertScreeningCard,
@@ -19,10 +24,14 @@ import {
   HSSEIncidentValidationCard,
   DeptManagerIncidentApprovalCard,
   ClinicReviewCard,
-  TeamInvestigationAssignmentStep
+  TeamInvestigationAssignmentStep,
+  HSSEExpertRejectionReviewCard,
+  ObservationClosureGate,
+  HSSEObservationValidationCard,
+  ContractorSiteRepAcknowledgeCard,
 } from '@/features/investigation';
 import { ActionDisputeReviewCard, ConsultantReviewCard, SiteClientActionApprovalCard } from '@/features/investigation';
-import { HSSEEnforcementBanner } from '@/features/investigation';
+import { HSSEEnforcementBanner, HSSEViolationReviewCard } from '@/features/investigation';
 import type { IncidentWithDetails } from '@/features/incidents';
 
 interface InvestigationWorkflowCardsProps {
@@ -40,15 +49,46 @@ export function InvestigationWorkflowCards({
   handleCreateAction,
   handleRefresh
 }: InvestigationWorkflowCardsProps) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   if (!incidentData) return null;
 
   // Cast status to string to handle new enum values not yet in generated types
   const currentStatus = incidentData.status as string;
 
-  switch (currentStatus) {
+  // Source observation backlink for escalated incidents
+  const sourceObservationId = (incidentData as unknown as Record<string, unknown>).source_observation_id as string | null;
+  
+  const sourceObservationBanner = sourceObservationId ? (
+    <Card className="border-muted bg-muted/30">
+      <CardContent className="p-3 flex items-center gap-3">
+        <ArrowLeft className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
+        <span className="text-sm text-muted-foreground flex-1">
+          {t('workflow.sourceObservation', 'Escalated from observation')}
+        </span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(`/incidents/${sourceObservationId}`)}
+        >
+          {t('workflow.viewSourceObservation', 'View Observation')}
+        </Button>
+      </CardContent>
+    </Card>
+  ) : null;
+  const renderCard = () => { switch (currentStatus) {
     case 'submitted':
+    case 'pending_expert_screening':
       return (
         <HSSEExpertScreeningCard
+          incident={incidentData}
+          onComplete={handleRefresh}
+        />
+      );
+
+    case 'pending_no_investigation_approval':
+      return (
+        <DeptManagerIncidentApprovalCard
           incident={incidentData}
           onComplete={handleRefresh}
         />
@@ -58,7 +98,6 @@ export function InvestigationWorkflowCards({
       return (
         <ReporterCorrectionBanner
           incident={incidentData}
-          onEdit={() => {/* TODO: Navigate to edit form */ }}
           onComplete={handleRefresh}
         />
       );
@@ -81,6 +120,7 @@ export function InvestigationWorkflowCards({
 
     case 'pending_dept_rep_review':
     case 'pending_dept_rep_approval':
+    case 'pending_dept_rep_mandatory_action':
       // Observations go through DeptRepApprovalCard (full access with actions)
       return (
         <DeptRepApprovalCard
@@ -116,6 +156,7 @@ export function InvestigationWorkflowCards({
         />
       );
 
+    case 'pending_investigator_assignment':
     case 'investigation_pending': {
       // Check severity for team investigation requirement
       const severityLevel = (incidentData.severity_v2 as string) || (incidentData.severity as string);
@@ -138,6 +179,50 @@ export function InvestigationWorkflowCards({
         />
       );
     }
+
+    case 'osha_reportable':
+      return (
+        <HSSEExpertScreeningCard
+          incident={incidentData}
+          onComplete={handleRefresh}
+        />
+      );
+
+    case 'pending_contractor_site_rep_approval':
+      return (
+        <ContractorSiteRepAcknowledgeCard
+          incident={incidentData}
+          onComplete={handleRefresh}
+        />
+      );
+
+    case 'pending_hsse_violation_review':
+      return (
+        <HSSEViolationReviewCard
+          incident={incidentData}
+          onComplete={handleRefresh}
+        />
+      );
+
+    case 'pending_escalation_approval':
+      return (
+        <HSSEManagerEscalationCard
+          incident={incidentData}
+          onComplete={handleRefresh}
+        />
+      );
+
+    case 'dept_rep_rejected':
+      return (
+        <RejectionConfirmationCard
+          incident={incidentData}
+          onComplete={handleRefresh}
+        />
+      );
+
+    case 'investigation_in_progress':
+    case 'under_investigation':
+      return null;
 
     case 'pending_department_manager_approval':
       return (
@@ -173,12 +258,65 @@ export function InvestigationWorkflowCards({
       );
 
     case 'upgraded_to_incident':
-      // Show info that observation was upgraded - could show link to new incident
-      return null;
+      // Show info that observation was upgraded with link to the new incident
+      return (
+        <Card className="border-info/30 bg-info/5">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-info/10">
+                <ArrowUpCircle className="h-5 w-5 text-info" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-foreground">
+                  {t('workflow.upgradedToIncident.title', 'Upgraded to Incident')}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {t('workflow.upgradedToIncident.description', 'This observation has been escalated and converted to a full incident for investigation.')}
+                </p>
+              </div>
+              {incidentData.upgraded_to_incident_id && (
+                <Button
+                  variant="outline"
+                  className="shrink-0"
+                  onClick={() => navigate(`/incidents/${incidentData.upgraded_to_incident_id}`)}
+                >
+                  <ExternalLink className="h-4 w-4 me-2" />
+                  {t('workflow.upgradedToIncident.viewIncident', 'View Incident')}
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      );
+
+    case 'pending_hsse_rejection_review':
+      return (
+        <HSSEExpertRejectionReviewCard
+          incident={incidentData}
+          onComplete={handleRefresh}
+        />
+      );
+
+    case 'pending_hsse_manager_closure':
+      return (
+        <ObservationClosureGate
+          incident={incidentData}
+          onComplete={handleRefresh}
+        />
+      );
+
+    case 'observation_actions_pending':
+      // Actions are in progress - show validation card for HSSE to monitor
+      return (
+        <HSSEObservationValidationCard
+          incident={incidentData}
+          onComplete={handleRefresh}
+        />
+      );
 
     case 'pending_hsse_validation':
       return (
-        <HSSEValidationCard
+        <HSSEObservationValidationCard
           incident={incidentData}
           onComplete={handleRefresh}
         />
@@ -222,6 +360,7 @@ export function InvestigationWorkflowCards({
         />
       );
 
+    case 'pending_closure':
     case 'pending_final_closure':
     case 'pending_hsse_incident_validation':
       return (
@@ -252,6 +391,7 @@ export function InvestigationWorkflowCards({
       );
 
     case 'pending_site_client_approval':
+    case 'pending_site_client_action_approval':
       return (
         <SiteClientActionApprovalCard
           incidentId={incidentData.id}
@@ -261,11 +401,41 @@ export function InvestigationWorkflowCards({
         />
       );
 
+    case 'contractor_action_implementation':
+    case 'pending_contractor_action':
+    case 'pending_contractor_implementation':
+      return (
+        <ConsultantReviewCard
+          incidentId={incidentData.id}
+          status={currentStatus}
+          assigneeId={incidentData.approval_manager_id}
+          severityLevel={incidentData.severity_v2 ? incidentData.severity_v2 as SeverityLevelV2 : undefined}
+          hasActions={actionsCount > 0}
+          actionsCount={actionsCount}
+          onActionCreated={handleCreateAction}
+          onComplete={handleRefresh}
+        />
+      );
+
+    case 'pending_consultant_verification':
+      return (
+        <ConsultantReviewCard
+          incidentId={incidentData.id}
+          status={currentStatus}
+          assigneeId={incidentData.approval_manager_id}
+          severityLevel={incidentData.severity_v2 ? incidentData.severity_v2 as SeverityLevelV2 : undefined}
+          hasActions={actionsCount > 0}
+          actionsCount={actionsCount}
+          onActionCreated={handleCreateAction}
+          onComplete={handleRefresh}
+        />
+      );
+
     // Removing duplicate pending_dept_rep_review case
 
     case 'pending_hsse_expert_review':
       return (
-        <HSSEValidationCard
+        <HSSEObservationValidationCard
           incident={incidentData}
           onComplete={handleRefresh}
         />
@@ -293,5 +463,15 @@ export function InvestigationWorkflowCards({
 
     default:
       return null;
-  }
+  }};
+
+  const card = renderCard();
+  if (!card && !sourceObservationBanner) return null;
+  
+  return (
+    <div className="space-y-3">
+      {sourceObservationBanner}
+      {card}
+    </div>
+  );
 }

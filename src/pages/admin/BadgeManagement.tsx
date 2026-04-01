@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EnterprisePage } from '@/components/layout/EnterprisePage';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

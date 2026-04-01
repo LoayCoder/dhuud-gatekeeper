@@ -234,7 +234,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     return new Response(JSON.stringify({ success: result.success, messageId: result.messageId, whatsappSentCount }), { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } });
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Error in send-incident-email:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
     return new Response(JSON.stringify({ error: message }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });

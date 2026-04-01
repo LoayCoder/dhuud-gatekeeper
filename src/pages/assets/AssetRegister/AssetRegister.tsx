@@ -1,4 +1,4 @@
-﻿import { ArrowLeft, Package, MapPin, Settings, Calendar, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Package, MapPin, Settings, Calendar, Save, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';

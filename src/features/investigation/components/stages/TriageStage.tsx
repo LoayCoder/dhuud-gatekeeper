@@ -1,4 +1,5 @@
-﻿
+
+import { useNavigate } from "react-router-dom";
 import { useInvestigationContext } from "@/features/investigation/context/InvestigationContext";
 import {
     HSSEExpertScreeningCard,
@@ -12,7 +13,8 @@ import {
     HSSEValidationCard,
     LegalReviewCard,
     DisputeResolutionCard,
-    MonitoringCheckCard
+    MonitoringCheckCard,
+    HSSEExpertRejectionReviewCard
 } from '@/features/investigation';
 import { NoInvestigationApprovalCard } from '@/features/investigation';
 import { IncidentWithDetails } from '@/features/incidents';
@@ -20,6 +22,7 @@ import type { ViolationIncidentFields } from '../../types/investigationTypes';
 
 export function TriageStage() {
     const { incident, refresh } = useInvestigationContext();
+    const navigate = useNavigate();
 
     if (!incident) return null;
 
@@ -40,7 +43,7 @@ export function TriageStage() {
             return (
                 <ReporterCorrectionBanner
                     incident={typedIncident}
-                    onEdit={() => {/* TODO: Navigate to edit form */ }}
+                    onEdit={() => navigate(`/incidents/report?edit=${incident.id}`)}
                     onComplete={refresh}
                 />
             );
@@ -62,6 +65,8 @@ export function TriageStage() {
             );
 
         case 'pending_dept_rep_approval':
+        case 'pending_dept_rep_mandatory_action':
+        case 'pending_dept_rep_review':
             return (
                 <DeptRepApprovalCard
                     incident={typedIncident}
@@ -102,10 +107,36 @@ export function TriageStage() {
                 />
             );
 
-        // New incident workflow statuses that fit in "Triage/Review" bucket
         case 'pending_legal_review':
             return (
                 <LegalReviewCard
+                    incident={typedIncident}
+                    onComplete={refresh}
+                />
+            );
+
+        case 'pending_hsse_rejection_review':
+            return (
+                <HSSEExpertRejectionReviewCard
+                    incident={typedIncident as unknown as IncidentWithDetails}
+                    onComplete={refresh}
+                />
+            );
+
+        case 'pending_hsse_validation':
+        case 'pending_hsse_expert_review':
+        case 'observation_actions_pending':
+            return (
+                <HSSEValidationCard
+                    incident={incident as IncidentWithDetails}
+                    onComplete={refresh}
+                />
+            );
+
+        case 'pending_hsse_manager_closure':
+        case 'pending_final_closure':
+            return (
+                <MonitoringCheckCard
                     incident={typedIncident}
                     onComplete={refresh}
                 />

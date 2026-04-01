@@ -60,7 +60,7 @@ export default function SLAAnalytics() {
 
     const columns: ExportColumn[] = [
       { key: 'department', label: t('common.department', 'Department') },
-      { key: 'total_actions', label: t('sla.totalActions', 'Total Actions') },
+      { key: 'total_actions', label: t('sla.totalActionsCount', 'Total Actions') },
       { key: 'completed_on_time', label: t('sla.onTime', 'On Time') },
       { key: 'breached', label: t('sla.breached', 'Breached') },
       { key: 'compliance_rate', label: t('sla.complianceRate', 'Compliance Rate') },
@@ -153,7 +153,7 @@ export default function SLAAnalytics() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('sla.totalActions', 'Total Actions')}</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('sla.totalActionsCount', 'Total Actions')}</CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>

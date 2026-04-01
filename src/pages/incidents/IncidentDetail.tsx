@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Calendar, Building, Building2, MapPin, ExternalLink, Tag, HeartPulse, Users, Crown } from 'lucide-react';
+import { AlertTriangle, Calendar, Building, Building2, MapPin, ExternalLink, Tag, HeartPulse, Users, Crown, ArrowRight } from 'lucide-react';
 import { IncidentAttachmentsSection } from '@/features/incidents';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useIncident, useDeleteIncident } from '@/features/incidents';
+import { getCurrentOwner as getCurrentOwnerFromLib } from '@/lib/current-owner';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
@@ -25,7 +26,6 @@ import { useState } from 'react';
 import { generateIncidentReportPDF } from '@/lib/generate-incident-report-pdf';
 import { toast } from 'sonner';
 import { getSubtypeTranslation, snakeToCamel, getHsseEventTypeForSubtype } from '@/lib/hsse-translation-utils';
-import { HSSEValidationCard } from '@/features/investigation';
 import { ObservationClosureGate } from '@/features/investigation';
 import { HSSEExpertRejectionReviewCard } from '@/features/investigation';
 import { ContractorViolationSection } from '@/features/investigation';
@@ -54,7 +54,8 @@ export default function IncidentDetail() {
   const direction = i18n.dir();
   const navigate = useNavigate();
   const location = useLocation();
-  const { data: incident, isLoading } = useIncident(id);
+  const { data: incident, isLoading, refetch: refetchIncident } = useIncident(id);
+  const handleRefresh = () => { refetchIncident(); };
   const { isAdmin, profile } = useAuth();
 
   // Fetch tenant name for legal evidence metadata
@@ -109,59 +110,9 @@ export default function IncidentDetail() {
     enabled: !!teamMemberIds && teamMemberIds.length > 0
   });
 
-  // Get current owner based on incident status
-  const getCurrentOwner = () => {
-    if (!incident) return null;
-  const status = incident.status as string;
-
-    if (status === 'submitted' || status === 'pending_review') {
-      return { role: t('incidents.workflowOwners.hsse_expert', 'HSSE Expert'), name: null };
-    }
-    // Contractor Consultant screening statuses (expert_screening is legacy)
-    if (status === 'expert_screening' || status === 'pending_consultant_screening' ||
-      status === 'pending_consultant_review' || status === 'pending_consultant_actions') {
-      return { role: t('incidents.workflowOwners.consultant', 'Contractor Consultant'), name: null };
-    }
-    if (status === 'pending_manager_approval' || status === 'hsse_manager_escalation') {
-      return { role: t('incidents.workflowOwners.department_manager', 'Department Manager'), name: null };
-    }
-    if (status === 'pending_dept_rep_approval') {
-      return { role: t('incidents.workflowOwners.department_rep', 'Department Representative'), name: null };
-    }
-    if (status === 'pending_department_manager_approval') {
-      return { role: t('incidents.workflowOwners.department_manager', 'Department Manager'), name: null };
-    }
-    if (status === 'pending_clinic_review') {
-      return { role: t('incidents.workflowOwners.clinic_team', 'Clinic Team'), name: null };
-    }
-    if (status === 'investigation_in_progress' || status === 'investigation_pending') {
-      const inv = investigation?.investigator as { full_name?: string } | null;
-      const investigatorName = inv?.full_name;
-      return {
-        role: t('incidents.workflowOwners.investigator', 'Investigator'),
-        name: investigatorName || null
-      };
-    }
-    if (status === 'pending_closure' || status === 'pending_final_closure' || status === 'observation_actions_pending') {
-      return { role: t('incidents.workflowOwners.hsse_manager', 'HSSE Manager'), name: null };
-    }
-    if (status === 'closed' || status === 'no_investigation_required' || status === 'investigation_closed' || status === 'hsse_enforced') {
-      return null;
-    }
-    // New contractor workflow statuses
-    if (status === 'pending_consultant_screening' || status === 'pending_action_dispute_review') {
-      return { role: t('incidents.workflowOwners.consultant', 'Contractor Consultant'), name: null };
-    }
-    if (status === 'pending_dept_rep_review') {
-      return { role: t('incidents.workflowOwners.department_rep', 'Department Representative'), name: null };
-    }
-    if (status === 'pending_hsse_expert_review') {
-      return { role: t('incidents.workflowOwners.hsse_expert', 'HSSE Expert'), name: null };
-    }
-    return { role: t('incidents.workflowOwners.awaiting_assignment', 'Awaiting Assignment'), name: null };
-  };
-
-  const currentOwner = getCurrentOwner();
+  // Get current owner using centralized resolver
+  const ownerInfo = getCurrentOwnerFromLib(incident as any);
+  const currentOwner = ownerInfo ? { role: ownerInfo.role, name: ownerInfo.name } : null;
 
   // Determine back navigation path based on where user came from
   const searchParams = new URLSearchParams(location.search);
@@ -287,6 +238,10 @@ export default function IncidentDetail() {
           branch_id: incident.branch_id,
           site_id: incident.site_id,
           related_contractor_company_id: incident.related_contractor_company_id,
+          approval_manager: incident.approval_manager,
+          
+          investigations: incident.investigations,
+          related_contractor_company: incident.related_contractor_company,
         }}
         backPath={backPath}
         isAdmin={isAdmin}
@@ -340,20 +295,37 @@ export default function IncidentDetail() {
       {/* Workflow Approval Cards - Keep them above tabs for visibility/actionability */}
       {incident.event_type === 'observation' && (
         <>
-          <HSSEValidationCard incident={incident} onComplete={() => window.location.reload()} />
-          <HSSEObservationValidationCard incident={incident} onComplete={() => window.location.reload()} />
-          <ObservationClosureGate incident={incident} onComplete={() => window.location.reload()} />
-          <HSSEExpertRejectionReviewCard incident={incident} onComplete={() => window.location.reload()} />
+          <HSSEObservationValidationCard incident={incident} onComplete={handleRefresh} />
+          <ObservationClosureGate incident={incident} onComplete={handleRefresh} />
+          <HSSEExpertRejectionReviewCard incident={incident} onComplete={handleRefresh} />
         </>
       )}
 
       {incident.related_contractor_company_id && !ext.consultant_assigned_id && (
         <>
-          <DeptManagerViolationApprovalCard incident={incident} onComplete={() => window.location.reload()} />
-          <ContractControllerApprovalCard incident={incident} onComplete={() => window.location.reload()} />
-          <ContractorSiteRepAcknowledgeCard incident={incident} onComplete={() => window.location.reload()} />
-          <HSSEViolationReviewCard incident={incident} onComplete={() => window.location.reload()} />
+          <DeptManagerViolationApprovalCard incident={incident} onComplete={handleRefresh} />
+          <ContractControllerApprovalCard incident={incident} onComplete={handleRefresh} />
+          <ContractorSiteRepAcknowledgeCard incident={incident} onComplete={handleRefresh} />
+          <HSSEViolationReviewCard incident={incident} onComplete={handleRefresh} />
         </>
+      )}
+
+      {/* Investigation Workspace CTA for active incidents */}
+      {incident.event_type !== 'observation' && !['closed', 'investigation_closed', 'no_investigation_required', 'dept_rep_rejected', 'manager_rejected', 'expert_rejected'].includes(String(incident.status)) && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="flex items-center justify-between py-4">
+            <div>
+              <p className="font-medium text-foreground">{t('investigation.workspace.ctaTitle', 'Manage this incident in the Investigation Workspace')}</p>
+              <p className="text-sm text-muted-foreground">{t('investigation.workspace.ctaDescription', 'Access workflow actions, approvals, and investigation tools')}</p>
+            </div>
+            <Button asChild variant="default" size="sm">
+              <Link to={`/incidents/investigate?incident=${incident.id}`}>
+                {t('investigation.workspace.open', 'Open Workspace')}
+                <ArrowRight className="h-4 w-4 ms-2 rtl:rotate-180" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
       {/* Main Content Layout */}

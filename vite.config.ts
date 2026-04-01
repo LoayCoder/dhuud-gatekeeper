@@ -8,6 +8,9 @@ import { versionUpdatePlugin } from "./scripts/update-version";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  define: {
+    '__APP_VERSION__': JSON.stringify(Date.now().toString()),
+  },
   server: {
     host: "::",
     port: 8080,
@@ -19,15 +22,23 @@ export default defineConfig(({ mode }) => ({
     // PWA Plugin with Workbox - simplified config
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
+      injectRegister: false,
       includeAssets: ['favicon.ico', 'placeholder.svg', 'sw-version.js'],
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: ['index.html'],
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        navigateFallbackDenylist: [/^\/version\.json/, /^\/~oauth/],
         runtimeCaching: [
+          {
+            urlPattern: /\/version\.json$/,
+            handler: 'NetworkOnly',
+            options: {
+              cacheName: 'version-check',
+            },
+          },
           {
             urlPattern: /^https:\/\/xdlowvfzhvjzbtgvurzj\.supabase\.co\/rest\/v1\/.*/i,
             handler: 'NetworkFirst',
@@ -65,7 +76,7 @@ export default defineConfig(({ mode }) => ({
       },
       manifest: false,
       devOptions: {
-        enabled: mode === 'development',
+        enabled: false,
         type: 'module',
       },
     }),
@@ -101,14 +112,26 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        // NO manualChunks - let Rollup handle dependency order automatically
-        // This prevents ALL chunk loading order issues
         chunkFileNames: 'assets/[name]-[hash]-v5.js',
         entryFileNames: 'assets/[name]-[hash]-v5.js',
         assetFileNames: 'assets/[name]-[hash]-v5.[ext]',
+        manualChunks: {
+          'vendor-excel': ['exceljs'],
+          'vendor-pdf': ['jspdf', 'docx'],
+          'vendor-maps': ['leaflet', 'react-leaflet', '@react-leaflet/core'],
+          'vendor-charts': ['recharts'],
+          'vendor-ui': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-select',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-accordion',
+            '@radix-ui/react-tooltip',
+          ],
+        },
       },
     },
-    // Ensure consistent module deduplication
     commonjsOptions: {
       include: [/node_modules/],
       transformMixedEsModules: true,

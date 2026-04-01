@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -9,6 +10,7 @@ import { toast } from "sonner";
  */
 export function useCancelGatePass() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { user, profile } = useAuth();
   const tenantId = profile?.tenant_id;
 
@@ -77,7 +79,7 @@ export function useCancelGatePass() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["material-gate-passes"] });
       queryClient.invalidateQueries({ queryKey: ["my-gate-passes"] });
-      toast.success(`Gate pass ${data.reference_number} cancelled`);
+      toast.success(t("contractors.messages.gatePassCancelled", "Gate pass {{ref}} cancelled", { ref: data.reference_number }));
     },
     onError: (error: Error) => {
       toast.error(error.message);

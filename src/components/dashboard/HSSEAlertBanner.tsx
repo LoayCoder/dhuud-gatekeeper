@@ -1,4 +1,4 @@
-﻿import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Bell, Info, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useHSSENotificationsUser, HSSENotification } from '@/features/incidents';

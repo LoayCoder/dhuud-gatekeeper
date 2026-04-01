@@ -28,3 +28,6 @@ export {
     useRefreshSessionAssets,
 } from './use-session-asset-mutations';
 
+export { useSessionPartsProgress } from './use-session-parts-progress';
+export type { SessionPartsProgress } from './use-session-parts-progress';
+

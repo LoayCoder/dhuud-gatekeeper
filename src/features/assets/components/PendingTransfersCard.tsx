@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePendingTransfers, type AssetTransfer } from '@/features/assets';
 import { TransferApprovalDialog } from './TransferApprovalDialog';
@@ -99,7 +99,7 @@ export function PendingTransfersCard() {
                       {transfer.asset?.name || transfer.asset?.asset_code}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {transfer.requested_by_profile?.full_name} â€¢{' '}
+                      {transfer.requested_by_profile?.full_name} •{' '}
                       {format(new Date(transfer.requested_at), 'MMM d, HH:mm')}
                     </p>
                   </div>

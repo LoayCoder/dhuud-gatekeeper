@@ -146,11 +146,19 @@ const [searchParams, setSearchParams] = useSearchParams();
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("common.all", "All")}</SelectItem>
+                      <SelectItem value="pending_contractor_approval">{t("contractors.passStatus.pendingContractor", "Pending Contractor")}</SelectItem>
                       <SelectItem value="pending_pm_approval">{t("contractors.passStatus.pendingPM", "Pending PM")}</SelectItem>
+                      <SelectItem value="pending_dept_ack">{t("contractors.passStatus.pendingDeptAck", "Pending Dept Ack")}</SelectItem>
+                      <SelectItem value="pending_club_mgmt_ack">{t("contractors.passStatus.pendingClubMgmt", "Pending Club Mgmt")}</SelectItem>
+                      <SelectItem value="pending_security_approval">{t("contractors.passStatus.pendingSecurity", "Pending Security")}</SelectItem>
                       <SelectItem value="pending_safety_approval">{t("contractors.passStatus.pendingSafety", "Pending Safety")}</SelectItem>
                       <SelectItem value="approved">{t("contractors.passStatus.approved", "Approved")}</SelectItem>
+                      <SelectItem value="used">{t("contractors.passStatus.used", "Used")}</SelectItem>
                       <SelectItem value="rejected">{t("contractors.passStatus.rejected", "Rejected")}</SelectItem>
+                      <SelectItem value="expired">{t("contractors.passStatus.expired", "Expired")}</SelectItem>
+                      <SelectItem value="cancelled">{t("contractors.passStatus.cancelled", "Cancelled")}</SelectItem>
                       <SelectItem value="completed">{t("contractors.passStatus.completed", "Completed")}</SelectItem>
+                      <SelectItem value="pending_resubmission">{t("contractors.passStatus.pendingResubmission", "Pending Resubmission")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

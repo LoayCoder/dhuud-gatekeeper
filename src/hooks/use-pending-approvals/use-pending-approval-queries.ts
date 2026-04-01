@@ -36,7 +36,7 @@ export function usePendingActionApprovals() {
                 .select(`
           id, reference_id, title, description, status, priority, category, 
           due_date, completed_date, incident_id, assigned_to,
-          responsible_department_id, created_at,
+          responsible_department_id, created_at, session_id,
           linked_cause_type, linked_root_cause_id, completion_notes,
           assigned_user:profiles!corrective_actions_assigned_to_fkey(id, full_name),
           department:departments!corrective_actions_responsible_department_id_fkey(id, name),
@@ -169,6 +169,8 @@ export function useCanAccessApprovals() {
 // Fetch incidents pending manager approval for the current user
 export function usePendingIncidentApprovals() {
     const { profile, user, isLoading: authLoading } = useAuth();
+    const { hasRole } = useUserRoles();
+    const isAdmin = hasRole('admin');
 
     return useQuery({
         queryKey: ['pending-incident-approvals', profile?.tenant_id, user?.id],
@@ -210,6 +212,8 @@ export function usePendingIncidentApprovals() {
           location, location_city, latitude, longitude,
           reporter:profiles!incidents_reporter_id_fkey(id, full_name),
           reporter_id,
+          approval_manager:profiles!incidents_approval_manager_id_fkey(id, full_name),
+          approval_manager_id,
           site:sites!incidents_site_id_fkey(id, name, latitude, longitude),
           branch:branches!incidents_branch_id_fkey(id, name)
         `)
@@ -245,6 +249,10 @@ export function usePendingIncidentApprovals() {
                     logger.debug('[PendingApprovals] can_approve_investigation result:', incident.reference_id, canApprove);
 
                     if (canApprove) {
+                        // Determine if this is an admin override (user is admin but not the assigned owner)
+                        const isOverride = isAdmin && 
+                            incident.approval_manager_id !== user.id;
+
                         approvableIncidents.push({
                             id: incident.id,
                             reference_id: incident.reference_id,
@@ -254,6 +262,8 @@ export function usePendingIncidentApprovals() {
                             event_type: incident.event_type,
                             created_at: incident.created_at,
                             reporter: incident.reporter as { id: string; full_name: string | null } | null,
+                            approval_manager: incident.approval_manager as { id: string; full_name: string | null } | null,
+                            isAdminOverride: isOverride,
                         });
                     }
                 } catch (err) {

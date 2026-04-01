@@ -23,7 +23,8 @@ const STATUS_CATEGORIES: Record<string, StatusCategory> = {
   // Open/Submitted states - Info
   'submitted': 'open',
   'pending_review': 'open',
-  'expert_screening': 'open',
+  'expert_screening': 'action_required',
+  'pending_expert_screening': 'action_required',
 
   // NEW: Consultant/Dept Rep initial review stages
   'pending_consultant_screening': 'open',
@@ -33,6 +34,7 @@ const STATUS_CATEGORIES: Record<string, StatusCategory> = {
   'investigation_pending': 'investigation',
   'investigation_in_progress': 'investigation',
   'under_investigation': 'investigation',
+  'pending_investigator_assignment': 'investigation',
 
   // Action Required (pending approvals) - Warning
   'pending_manager_approval': 'action_required',
@@ -46,8 +48,17 @@ const STATUS_CATEGORIES: Record<string, StatusCategory> = {
   'pending_hsse_expert_review': 'action_required',
   'pending_action_dispute_review': 'action_required',
   'pending_contractor_implementation': 'action_required',
-  'pending_no_investigation_approval': 'action_required',       // C4: new gate
-  'pending_escalation_approval': 'action_required',             // Spec: obs→incident escalation
+  'pending_no_investigation_approval': 'action_required',
+  'pending_escalation_approval': 'action_required',
+  'pending_dept_rep_mandatory_action': 'action_required',
+  'pending_consultant_actions': 'action_required',
+  'pending_consultant_verification': 'action_required',
+  'pending_site_client_action_approval': 'action_required',
+  'contractor_action_implementation': 'action_required',
+  'pending_contractor_action': 'action_required',
+  'pending_hsse_rejection_review': 'action_required',
+  'pending_department_manager_violation_approval': 'action_required',
+  'pending_contract_controller_approval': 'action_required',
 
   // Monitoring - Pending
   'monitoring_30_day': 'pending_closure',
@@ -58,18 +69,25 @@ const STATUS_CATEGORIES: Record<string, StatusCategory> = {
   'observation_actions_pending': 'pending_closure',
   'pending_closure': 'pending_closure',
   'pending_final_closure': 'pending_closure',
+  'pending_hsse_validation': 'pending_closure',
+  'pending_hsse_incident_validation': 'pending_closure',
+  'pending_hsse_manager_closure': 'pending_closure',
 
   // Rejected/Returned - Destructive
   'expert_rejected': 'rejected',
   'manager_rejected': 'rejected',
   'returned_to_reporter': 'rejected',
-  'dept_rep_rejected': 'rejected',                              // Spec: dept rep rejection
+  'dept_rep_rejected': 'rejected',
 
   // Compliance
-  'osha_reportable': 'action_required',                         // C10: OSHA flagged
+  'osha_reportable': 'action_required',
   'pending_legal_review': 'action_required',
   'dispute_resolution': 'action_required',
   'pending_contractor_dispute_review': 'action_required',
+
+  // Contractor violation & escalation — action required
+  'pending_contractor_site_rep_approval': 'action_required',
+  'pending_hsse_violation_review': 'action_required',
 
   // Closed - Success
   'closed': 'closed',
@@ -77,13 +95,27 @@ const STATUS_CATEGORIES: Record<string, StatusCategory> = {
   'investigation_closed': 'closed',
   'hsse_enforced': 'closed',
   'closed_rejected_approved_by_hsse': 'closed',
+  'contractor_violation_enforced': 'closed',
+  'contractor_violation_approved_fine': 'closed',
+  'contractor_violation_cancelled': 'closed',
+  'contractor_violation_warning': 'closed',
+  'contractor_violation_terminated': 'closed',
+  'upgraded_to_incident': 'closed',
+
+  // Rejected — invalid
+  'rejected_invalid': 'rejected',
 };
 
 // Closed statuses (for filtering)
-const CLOSED_STATUSES = ['closed', 'no_investigation_required', 'investigation_closed', 'closed_rejected_approved_by_hsse'];
+const CLOSED_STATUSES = [
+  'closed', 'no_investigation_required', 'investigation_closed', 'closed_rejected_approved_by_hsse',
+  'hsse_enforced', 'contractor_violation_enforced', 'contractor_violation_approved_fine',
+  'contractor_violation_cancelled', 'contractor_violation_warning', 'contractor_violation_terminated',
+  'upgraded_to_incident',
+];
 
 // Rejected statuses (for filtering)
-const REJECTED_STATUSES = ['expert_rejected', 'manager_rejected', 'dept_rep_rejected'];
+const REJECTED_STATUSES = ['expert_rejected', 'manager_rejected', 'dept_rep_rejected', 'rejected_invalid'];
 
 /**
  * Human-readable display labels for all incident statuses.
@@ -217,6 +249,7 @@ const ACTION_VERBS: Record<string, string> = {
   pending_dept_rep_approval: "Pending approval",
   pending_department_manager_approval: "Pending approval",
   pending_site_client_approval: "Pending Site Client approval",
+  pending_escalation_approval: "Pending escalation approval",
 
   investigation_pending: "Assigning investigator",
   pending_investigator_assignment: "Assigning investigator",
@@ -226,22 +259,50 @@ const ACTION_VERBS: Record<string, string> = {
   observation_actions_pending: "Implementing corrective actions",
   pending_contractor_implementation: "Contractor implementing actions",
   pending_consultant_actions: "Consultant taking action",
+  pending_consultant_verification: "Verifying consultant actions",
+  pending_site_client_action_approval: "Pending site client action approval",
+  contractor_action_implementation: "Contractor implementing actions",
+  pending_contractor_action: "Pending contractor action",
+  pending_dept_rep_mandatory_action: "Dept rep mandatory action required",
 
   pending_closure: "Verifying closure",
   pending_final_closure: "Verifying final closure",
   pending_hsse_validation: "Verifying closure",
+  pending_hsse_incident_validation: "Verifying incident closure",
+  pending_hsse_manager_closure: "Pending HSSE manager closure",
+
+  pending_clinic_review: "Awaiting clinic review",
+  pending_department_manager_violation_approval: "Pending violation approval",
+  pending_contract_controller_approval: "Pending contract controller approval",
+  pending_hsse_rejection_review: "Reviewing rejection",
+  osha_reportable: "OSHA report required",
+
+  monitoring_30_day: "Monitoring in progress (30 day)",
+  monitoring_60_day: "Monitoring in progress (60 day)",
+  monitoring_90_day: "Monitoring in progress (90 day)",
 
   hsse_manager_escalation: "Reviewing escalation",
   pending_hsse_escalation_review: "Reviewing escalation",
 
   dispute_resolution: "Resolving dispute",
   pending_contractor_dispute_review: "Reviewing dispute",
+  pending_action_dispute_review: "Reviewing action dispute",
 
   closed: "Closed",
   no_investigation_required: "Closed (No Investigation)",
   investigation_closed: "Closed",
   closed_rejected_approved_by_hsse: "Closed",
   hsse_enforced: "Enforced",
+
+  contractor_violation_enforced: "Violation enforced",
+  contractor_violation_approved_fine: "Fine approved",
+  contractor_violation_cancelled: "Violation cancelled",
+  contractor_violation_warning: "Warning issued",
+  contractor_violation_terminated: "Contract terminated",
+  upgraded_to_incident: "Escalated to incident",
+  rejected_invalid: "Rejected as invalid",
+  pending_contractor_site_rep_approval: "Pending contractor site rep approval",
+  pending_hsse_violation_review: "Reviewing violation",
 };
 
 export function getActionVerb(status: string | null | undefined): string {

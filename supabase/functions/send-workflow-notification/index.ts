@@ -901,7 +901,7 @@ serve(async (req: Request) => {
     }
 
     return new Response(JSON.stringify({ success: true, action, recipientCount: recipients.length, sentCount: result.sentCount, whatsappSentCount, language: recipientLang }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Error in send-workflow-notification:", error);
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }

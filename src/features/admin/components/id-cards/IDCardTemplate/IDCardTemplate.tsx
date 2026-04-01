@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { IDCardTemplateProps } from "./types";
 import { CARD_WIDTH_PX, CARD_HEIGHT_PX } from "./utils";
 import { IDCardFront } from "./IDCardFront";

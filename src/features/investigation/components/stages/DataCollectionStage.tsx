@@ -1,4 +1,4 @@
-﻿
+
 import { useState } from "react";
 import { useInvestigationContext } from "@/features/investigation/context/InvestigationContext";
 import { EvidenceManager } from '@/features/investigation';
@@ -29,15 +29,15 @@ export function DataCollectionStage() {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
                     <TabsTrigger value="overview">
-                        <Info className="h-4 w-4 mr-2" />
+                        <Info className="h-4 w-4 me-2" />
                         {t('investigation.tabs.overview', 'Overview')}
                     </TabsTrigger>
                     <TabsTrigger value="evidence">
-                        <FileText className="h-4 w-4 mr-2" />
+                        <FileText className="h-4 w-4 me-2" />
                         {t('investigation.tabs.evidence', 'Evidence')}
                     </TabsTrigger>
                     <TabsTrigger value="witnesses">
-                        <Users className="h-4 w-4 mr-2" />
+                        <Users className="h-4 w-4 me-2" />
                         {t('investigation.tabs.witnesses', 'Witnesses')}
                     </TabsTrigger>
                 </TabsList>
@@ -103,7 +103,7 @@ function StageTransitionButton({ incidentId }: { incidentId: string }) {
 
     return (
         <Button onClick={handleProceed} disabled={updateInvestigation.isPending}>
-            {updateInvestigation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <ArrowRight className="h-4 w-4 mr-2" />}
+            {updateInvestigation.isPending ? <Loader2 className="h-4 w-4 me-2 animate-spin" /> : <ArrowRight className="h-4 w-4 me-2 rtl:rotate-180" />}
             {t('investigation.stages.proceedToAnalysis', 'Proceed to Root Cause Analysis')}
         </Button>
     );

@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FileText, Plus, History, Clock, CheckCircle, XCircle, AlertCircle, Plane } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -132,7 +132,7 @@ export default function ShiftHandover() {
                   <div>
                     <div className="font-medium text-sm">{handover.outgoing_guard?.full_name}</div>
                     <div className="text-xs text-muted-foreground">
-                      {getTypeBadge(handover.handover_type)} â€¢ {format(new Date(handover.shift_date), 'PP')}
+                      {getTypeBadge(handover.handover_type)} • {format(new Date(handover.shift_date), 'PP')}
                     </div>
                   </div>
                   <Button size="sm" onClick={() => setSelectedHandover(handover.id)}>
@@ -190,7 +190,7 @@ export default function ShiftHandover() {
                           {getStatusBadge(handover.status)}
                         </div>
                         <div className="text-sm text-muted-foreground mt-1">
-                          {format(new Date(handover.shift_date), 'PPP')} â€¢ {handover.zone?.zone_name || 'No zone'}
+                          {format(new Date(handover.shift_date), 'PPP')} • {handover.zone?.zone_name || 'No zone'}
                         </div>
                         {handover.rejection_reason && (
                           <div className="text-sm text-destructive mt-1 flex items-center gap-1">

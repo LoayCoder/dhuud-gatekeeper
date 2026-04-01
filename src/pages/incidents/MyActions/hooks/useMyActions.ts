@@ -59,12 +59,30 @@ export function useMyActions() {
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
   const [extensionRequestAction, setExtensionRequestAction] = useState<ActionForDialog | null>(null);
   const [submittingActionIds, setSubmittingActionIds] = useState<Set<string>>(new Set());
+  const [selectedActionDetail, setSelectedActionDetail] = useState<ActionForDialog | null>(null);
 
   const approvalsState = useMyApprovalsState();
 
   const allActions = [
-    ...(incidentActions || []).map(a => ({ ...a, source: 'incident' as const })),
-    ...(inspectionActions || []).map(a => ({ ...a, source: 'inspection' as const })),
+    ...(incidentActions || []).map(a => {
+      const incident = a.incident as any;
+      return {
+        ...a,
+        source: 'incident' as const,
+        reviewer_name: incident?.reporter?.full_name || null,
+        reviewer_job_title: incident?.reporter?.job_title || null,
+      };
+    }),
+    ...(inspectionActions || []).map(a => {
+      const inspector = (a as any).session?.inspector;
+      const isSelfAssigned = inspector?.id && a.assigned_to === inspector.id;
+      return {
+        ...a,
+        source: 'inspection' as const,
+        reviewer_name: isSelfAssigned ? t('actions.hsseReviewer', 'HSSE Reviewer') : (inspector?.full_name || null),
+        reviewer_job_title: isSelfAssigned ? null : (inspector?.job_title || null),
+      };
+    }),
   ];
 
   const pendingWitness = (witnessStatements || []).filter((w: any) => w.status !== 'completed');
@@ -87,6 +105,40 @@ export function useMyActions() {
     setActionDialogOpen(true);
   };
 
+  const handleSubmitInline = async (action: ActionForDialog, data: { notes: string; overdueJustification?: string }) => {
+    if (submittingActionIds.has(action.id)) return;
+    const actionId = action.id;
+    const isInspectionAction = action.source === 'inspection';
+
+    setSubmittingActionIds(prev => new Set(prev).add(actionId));
+    try {
+      if (isInspectionAction) {
+        await updateInspectionStatus.mutateAsync({
+          id: actionId,
+          status: 'completed',
+          completionNotes: data.notes,
+          overdueJustification: data.overdueJustification,
+        });
+      } else {
+        await updateStatus.mutateAsync({
+          id: actionId,
+          status: 'completed',
+          completionNotes: data.notes,
+          overdueJustification: data.overdueJustification,
+        });
+      }
+      setSelectedActionDetail(null);
+    } catch (error) {
+      console.error('[MyActions] Inline submit failed:', error);
+    } finally {
+      setSubmittingActionIds(prev => {
+        const next = new Set(prev);
+        next.delete(actionId);
+        return next;
+      });
+    }
+  };
+
   const handleActionDialogConfirm = async (data: { notes: string; overdueJustification?: string; files: File[] }) => {
     if (!actionDialogAction) return;
     const actionId = actionDialogAction.id;
@@ -96,8 +148,6 @@ export function useMyActions() {
     const mode = actionDialogMode;
 
     setSubmittingActionIds(prev => new Set(prev).add(actionId));
-    setActionDialogOpen(false);
-    setActionDialogAction(null);
 
     try {
       for (const file of data.files) {
@@ -124,8 +174,12 @@ export function useMyActions() {
           overdueJustification: data.overdueJustification,
         });
       }
+      // Close dialog only after successful mutations
+      setActionDialogOpen(false);
+      setActionDialogAction(null);
     } catch (error) {
-      // handled by mutation hooks
+      // handled by mutation hooks — but keep dialog open so user can retry
+      console.error('[MyActions] Action dialog confirm failed:', error);
     } finally {
       setSubmittingActionIds(prev => {
         const next = new Set(prev);
@@ -197,7 +251,9 @@ export function useMyActions() {
     actionDialogOpen, setActionDialogOpen, handleActionDialogConfirm,
     extensionRequestAction, setExtensionRequestAction, handleRequestExtension,
     showClosedActions, setShowClosedActions, handleStartWork, handleMarkCompleted,
+    handleSubmitInline,
     handleFilterClick, allActions, updateStatus, uploadEvidence, submittingActionIds,
     getDaysInfo, updateInspectionStatus, approveGatePass: approvalsState.approveGatePass,
+    selectedActionDetail, setSelectedActionDetail,
   };
 }

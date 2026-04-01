@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Unified Workflow Tracker
  * Single consistent timeline UI for all observations
  * Replaces separate contractor/department trackers with unified stages
@@ -55,9 +55,10 @@ interface WorkflowStep {
 const SUBMITTED_STATUSES = ['submitted'];
 const REVIEW_STATUSES = [
   'pending_consultant_screening', 'expert_screening',
-  'pending_dept_rep_approval', 'pending_dept_rep_review'
+  'pending_dept_rep_approval', 'pending_dept_rep_review',
+  'pending_dept_rep_mandatory_action'
 ];
-const EXPERT_REVIEW_STATUSES = ['pending_hsse_expert_review', 'pending_hsse_validation'];
+const EXPERT_REVIEW_STATUSES = ['pending_hsse_expert_review', 'pending_hsse_validation', 'pending_hsse_escalation_review', 'pending_hsse_rejection_review'];
 const APPROVAL_STATUSES = [
   'pending_site_client_approval', 'pending_manager_approval',
   'pending_department_manager_approval'
@@ -65,8 +66,10 @@ const APPROVAL_STATUSES = [
 const ACTION_STATUSES = [
   'pending_contractor_implementation', 'contractor_action_implementation',
   'pending_consultant_verification', 'observation_actions_pending',
-  'pending_action_completion', 'pending_action_verification'
+  'pending_action_completion', 'pending_action_verification',
+  'pending_consultant_actions'
 ];
+const CLOSURE_STATUSES = ['pending_hsse_manager_closure', 'pending_final_closure'];
 const CLOSED_STATUSES = ['closed', 'hsse_enforced'];
 
 export function UnifiedWorkflowTracker({
@@ -102,7 +105,7 @@ export function UnifiedWorkflowTracker({
     
     // If we're past this step (current status is in a later stage)
     const allLaterStatuses = nextSteps.flat();
-    if (allLaterStatuses.includes(status) || CLOSED_STATUSES.includes(status)) {
+    if (allLaterStatuses.includes(status) || CLOSURE_STATUSES.includes(status) || CLOSED_STATUSES.includes(status)) {
       return 'completed';
     }
     
@@ -181,7 +184,7 @@ export function UnifiedWorkflowTracker({
       key: 'actions',
       label: t('workflow.unified.actions', 'Actions'),
       icon: <Clock className="h-4 w-4" />,
-      status: getStepStatus(ACTION_STATUSES, [CLOSED_STATUSES]),
+      status: getStepStatus(ACTION_STATUSES, [CLOSURE_STATUSES, CLOSED_STATUSES]),
       actorName: workflowActors?.implementer?.full_name,
     });
     
@@ -190,11 +193,15 @@ export function UnifiedWorkflowTracker({
       key: 'closed',
       label: status === 'hsse_enforced' 
         ? t('workflow.unified.enforced', 'Enforced')
-        : t('workflow.unified.closed', 'Closed'),
+        : CLOSURE_STATUSES.includes(status)
+          ? t('workflow.unified.pendingClosure', 'Pending Closure')
+          : t('workflow.unified.closed', 'Closed'),
       icon: status === 'hsse_enforced' ? <Shield className="h-4 w-4" /> : <Lock className="h-4 w-4" />,
       status: CLOSED_STATUSES.includes(status) 
         ? (status === 'hsse_enforced' ? 'enforced' : 'completed')
-        : 'pending',
+        : CLOSURE_STATUSES.includes(status)
+          ? 'current'
+          : 'pending',
       actorName: workflowActors?.closure_approver?.full_name,
     });
     
@@ -218,6 +225,9 @@ export function UnifiedWorkflowTracker({
     }
     if (ACTION_STATUSES.includes(status)) {
       return isContractor ? t('roles.contractor', 'Contractor') : t('roles.action_owner', 'Action Owner');
+    }
+    if (CLOSURE_STATUSES.includes(status)) {
+      return t('roles.hsse_manager', 'HSSE Manager');
     }
     return null;
   };
@@ -265,7 +275,7 @@ export function UnifiedWorkflowTracker({
           </div>
           <div className="flex items-center gap-2">
             {isContractor && (
-              <Badge variant="outline" className="bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200">
+              <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30">
                 {t('workflow.unified.contractorTag', 'Contractor')}
               </Badge>
             )}

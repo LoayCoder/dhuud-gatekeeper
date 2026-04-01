@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import {
@@ -90,7 +90,7 @@ export function IncidentDetailHeader({
     incident.branch?.name,
     incident.site?.name,
     incident.location,
-  ].filter(Boolean).join(' â€º ');
+  ].filter(Boolean).join(' › ');
 
   // Calculate SLA for the detail view header
   let slaInfo = null;
@@ -106,11 +106,11 @@ export function IncidentDetailHeader({
       )}
     >
       {/* Decorative background element for modern look */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-background/0 to-muted/20 rounded-bl-full pointer-events-none -mr-10 -mt-10 blur-2xl" />
+      <div className="absolute top-0 end-0 w-64 h-64 bg-gradient-to-br from-background/0 to-muted/20 rounded-bl-full pointer-events-none -me-10 -mt-10 blur-2xl" />
 
       {/* Top Row - Back & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4 relative z-10">
-        <Button asChild variant="ghost" size="sm" className="gap-2 -ml-2 text-muted-foreground hover:text-foreground">
+        <Button asChild variant="ghost" size="sm" className="gap-2 -ms-2 text-muted-foreground hover:text-foreground">
           <Link to={backPath}>
             <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
             {t('incidents.backToList', 'Back')}
@@ -127,8 +127,8 @@ export function IncidentDetailHeader({
             )}>
               {slaInfo.status === 'red' ? <AlertCircle className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
               {slaInfo.isOverdue
-                ? t('investigation.sla.overdueBy', { count: Math.abs(slaInfo.daysRemaining), defaultValue: `${Math.abs(slaInfo.daysRemaining)}d OVERDUE` })
-                : t('investigation.sla.daysRemaining', { count: slaInfo.daysRemaining, defaultValue: `${slaInfo.daysRemaining}d ${slaInfo.hoursRemaining}h REMAINING` })
+                ? t('investigation.sla.overdueBy', { count: Math.abs(slaInfo.daysRemaining), defaultValue: '{{count}}d OVERDUE' })
+                : t('investigation.sla.daysRemaining', { days: slaInfo.daysRemaining, hours: slaInfo.hoursRemaining, defaultValue: '{{days}}d {{hours}}h REMAINING' })
               }
             </div>
           )}
@@ -233,9 +233,6 @@ export function IncidentDetailHeader({
 
         {/* Right Side: Assignment */}
         <div className="shrink-0 bg-background/60 p-3 sm:p-4 rounded-lg border shadow-sm backdrop-blur-sm xl:min-w-[280px]">
-          <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-            Pending With
-          </div>
           <ResponsibleUserBadge incident={incident as unknown} showTitle={false} className="text-sm font-medium" />
         </div>
       </div>

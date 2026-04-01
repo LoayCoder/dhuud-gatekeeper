@@ -1,4 +1,4 @@
-﻿/**
+/**
  * HSSE Incident Validation Card
  * 
  * Displayed for HSSE users when an incident is awaiting final validation before closure.
@@ -40,7 +40,7 @@ export function HSSEIncidentValidationCard({ incident, onComplete }: HSSEInciden
   const validateMutation = useHSSEValidateIncident();
   
   // Only show for incidents awaiting HSSE validation
-  const validStatuses = ['pending_final_closure', 'pending_hsse_incident_validation'];
+  const validStatuses = ['pending_closure', 'pending_final_closure', 'pending_hsse_incident_validation'];
   if (!validStatuses.includes(incident.status as string)) {
     return null;
   }

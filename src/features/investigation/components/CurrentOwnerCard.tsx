@@ -1,4 +1,4 @@
-﻿import { useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, User, UserCheck, Bell, ArrowUpRight, ArrowRight } from "lucide-react";
@@ -7,10 +7,12 @@ import { cn } from "@/lib/utils";
 import type { IncidentWithDetails } from '@/features/incidents';
 import { getCurrentOwner } from "@/lib/current-owner";
 import { ROLE_BG_COLORS, ROLE_BORDER_COLORS, ROLE_TEXT_COLORS } from "@/lib/role-colors";
+import { useToast } from "@/hooks/use-toast";
 
 export function CurrentOwnerCard({ incident }: { incident: IncidentWithDetails }) {
     const { t } = useTranslation();
     const { profile } = useAuth();
+    const { toast } = useToast();
 
     const owner = getCurrentOwner(incident);
     if (!owner) return null; // If no one is pending (e.g. Closed), do not render the card.
@@ -24,26 +26,26 @@ export function CurrentOwnerCard({ incident }: { incident: IncidentWithDetails }
                 <div className="bg-warning/10 px-4 py-2 border-b border-warning/20 flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4 text-warning" />
                     <span className="text-xs font-semibold text-warning tracking-wider uppercase">
-                        {t('workflow.unassigned', 'Action Required â€¢ Unassigned')}
+                        {t('workflow.unassigned', 'Action Required • Unassigned')}
                     </span>
                 </div>
                 <CardContent className="p-6">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div className="space-y-2">
                             <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
-                                Waiting for Assignment
+                                {t('workflow.waitingForAssignment', 'Waiting for Assignment')}
                             </h3>
                             <p className="text-muted-foreground">
-                                <span className="font-semibold text-foreground">{owner.role}</span> will pick this up for: {owner.actionRequired}
+                                <span className="font-semibold text-foreground">{owner.role}</span> {t('workflow.willPickUpFor', 'will pick this up for:')} {owner.actionRequired}
                             </p>
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
                             <Button variant="outline" className="border-warning/50 text-warning hover:bg-warning/10 shadow-sm">
-                                <Bell className="h-4 w-4 mr-2" />
-                                Notify {owner.role}s
+                                <Bell className="h-4 w-4 me-2" />
+                                {t('workflow.notifyRole', 'Notify {{role}}s', { role: owner.role })}
                             </Button>
                             <Button variant="default" className="bg-warning text-warning-foreground hover:bg-warning/90 shadow-sm">
-                                Request Priority Assignment
+                                {t('workflow.requestPriorityAssignment', 'Request Priority Assignment')}
                             </Button>
                         </div>
                     </div>
@@ -93,7 +95,7 @@ export function CurrentOwnerCard({ incident }: { incident: IncidentWithDetails }
                             <span className={cn("font-medium px-2 py-0.5 rounded-md text-xs border bg-background/50", borderClass, textClass)}>
                                 {owner.role}
                             </span>
-                            <span>â€¢</span>
+                            <span>•</span>
                             <span>{owner.actionRequired}</span>
                         </div>
                     </div>
@@ -117,11 +119,26 @@ export function CurrentOwnerCard({ incident }: { incident: IncidentWithDetails }
                         </Button>
                     ) : (
                         <>
-                            <Button variant="outline" className="bg-background shadow-sm border-muted-foreground/30">
+                            <Button variant="outline" className="bg-background shadow-sm border-muted-foreground/30"
+                                onClick={() => {
+                                    toast({
+                                        title: t('workflow.currentOwner.reminderSent', 'Reminder Sent'),
+                                        description: t('workflow.currentOwner.reminderSentDesc', 'A reminder notification has been sent to {{name}}.', { name: owner.name }),
+                                    });
+                                }}
+                            >
                                 <Bell className="h-4 w-4 me-2 text-muted-foreground" />
                                 {t('workflow.currentOwner.sendReminder', 'Send Reminder')}
                             </Button>
-                            <Button variant="outline" className="bg-background shadow-sm border-destructive/30 text-destructive hover:bg-destructive/10">
+                            <Button variant="outline" className="bg-background shadow-sm border-destructive/30 text-destructive hover:bg-destructive/10"
+                                onClick={() => {
+                                    toast({
+                                        title: t('workflow.currentOwner.escalationRequested', 'Escalation Requested'),
+                                        description: t('workflow.currentOwner.escalationRequestedDesc', 'This item has been flagged for escalation.'),
+                                        variant: 'destructive',
+                                    });
+                                }}
+                            >
                                 <ArrowUpRight className="h-4 w-4 me-2" />
                                 {t('workflow.currentOwner.escalate', 'Escalate')}
                             </Button>

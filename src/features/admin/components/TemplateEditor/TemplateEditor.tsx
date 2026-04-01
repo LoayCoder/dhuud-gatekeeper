@@ -1,4 +1,5 @@
-﻿import React from 'react';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -20,6 +21,7 @@ import { TemplatePreview } from './components/TemplatePreview';
 
 export function TemplateEditor(props: TemplateEditorProps) {
   const { open, onOpenChange, template, isLoading } = props;
+  const { t } = useTranslation();
   const state = useTemplateEditor(props);
 
   return (
@@ -27,28 +29,21 @@ export function TemplateEditor(props: TemplateEditorProps) {
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="ltr">
         <DialogHeader>
           <DialogTitle>
-            {template ? 'Edit Template' : 'Create Template'}
+            {template ? t('templates.editTemplate') : t('templates.createTemplate')}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={state.handleSubmit} className="space-y-4">
           <TemplateFormFields state={state} />
 
-          {/* Need to interleave the VariablesSidebar and the message editor */}
           <div className="grid grid-cols-[220px_1fr] gap-4">
-             {/* Note: The Grid wrapper is half populated by Sidebar's internal grid, wait, no.
-                 We should probably just inline the TextArea here to keep refs simple.
-             */}
              <div className="col-span-2">
                 <TemplateVariablesSidebar state={state} />
              </div>
           </div>
           
-          {/* We must extract the Textarea here since the Sidebar and Editor should be side-by-side. 
-              Let's adjust.
-          */}
           <div className="space-y-2 mt-4">
-             <Label htmlFor="content_pattern">Message Content</Label>
+             <Label htmlFor="content_pattern">{t('templates.messageContent')}</Label>
              <Textarea
                ref={state.textareaRef}
                id="content_pattern"
@@ -59,7 +54,7 @@ export function TemplateEditor(props: TemplateEditorProps) {
                onFocus={() => state.setActiveDropTarget('content')}
                onDrop={state.handleDrop}
                onDragOver={state.handleDragOver}
-               placeholder="ðŸš¨ New {{event_type}}: {{title}}&#10;&#10;ðŸ“ Location: {{location}}&#10;âš ï¸ Risk: {{risk_level}}&#10;ðŸ‘¤ Reported by: {{reported_by}}"
+               placeholder="🚨 New {{event_type}}: {{title}}&#10;&#10;📍 Location: {{location}}&#10;⚠️ Risk: {{risk_level}}&#10;👤 Reported by: {{reported_by}}"
                rows={6}
                required
                className={`font-mono text-sm transition-all ${state.activeDropTarget === 'content' ? 'ring-2 ring-primary ring-offset-2' : ''}`}
@@ -77,15 +72,15 @@ export function TemplateEditor(props: TemplateEditorProps) {
                 state.setFormData({ ...state.formData, is_active: checked })
               }
             />
-            <Label htmlFor="is_active">Active</Label>
+            <Label htmlFor="is_active">{t('templates.active')}</Label>
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t('templates.cancel')}
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Saving...' : 'Save Template'}
+              {isLoading ? t('templates.saving') : t('templates.saveTemplate')}
             </Button>
           </DialogFooter>
         </form>
@@ -93,4 +88,3 @@ export function TemplateEditor(props: TemplateEditorProps) {
     </Dialog>
   );
 }
-

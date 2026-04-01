@@ -352,6 +352,54 @@ export default function MFASetup() {
                     {t('mfaSetup.beginSetup')}
                     <ChevronRight className="h-4 w-4 ms-2" />
                   </Button>
+                  
+                  {/* Skip for now - sets 24h grace period */}
+                  <Button 
+                    variant="ghost" 
+                    className="w-full text-muted-foreground"
+                    disabled={loading}
+                    onClick={async () => {
+                      try {
+                        const { data: { user: currentUser } } = await supabase.auth.getUser();
+                        if (currentUser) {
+                          const { data: profileData } = await supabase
+                            .from('profiles')
+                            .select('tenant_id')
+                            .eq('user_id', currentUser.id)
+                            .is('deleted_at', null)
+                            .single();
+                          
+                          if (profileData?.tenant_id) {
+                            const graceUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+                            await supabase
+                              .from('tenant_user_mfa_status')
+                              .upsert({
+                                user_id: currentUser.id,
+                                tenant_id: profileData.tenant_id,
+                                requires_setup: true,
+                                mfa_grace_until: graceUntil,
+                                updated_at: new Date().toISOString()
+                              }, { onConflict: 'user_id,tenant_id' });
+                          }
+                        }
+                        toast({
+                          title: t('mfaSetup.skippedTitle', 'Skipped for now'),
+                          description: t('mfaSetup.skippedDescription', 'You can set up 2FA later from your profile settings.'),
+                        });
+                        // Refresh auth context so ProtectedRoute sees the grace period
+                        await refreshProfile();
+                        navigate('/');
+                      } catch (err) {
+                        console.error('Failed to set MFA grace period:', err);
+                        navigate('/');
+                      }
+                    }}
+                  >
+                    {t('mfaSetup.skipForNow', 'Skip for now')}
+                  </Button>
+                  <p className="text-xs text-muted-foreground text-center">
+                    {t('mfaSetup.skipNote', 'You can set this up later from your profile settings.')}
+                  </p>
                 </CardContent>
               </>
             )}

@@ -36,7 +36,7 @@ import {
   useBulkUpdateTemplateStatus,
   useBulkDeleteTemplates,
   type InspectionTemplate,
-} from '@/features/incidents/hooks/use-inspection-stubs';
+} from '@/features/incidents';
 import { InspectionTemplateForm, TemplateItemBuilder } from '@/features/incidents';
 import { TemplateBulkActionsToolbar } from '@/features/admin';
 import { cn } from '@/lib/utils';
@@ -90,13 +90,13 @@ export default function InspectionTemplates() {
   const clearSelection = () => setSelectedIds(new Set());
 
   const handleCreate = async (data: Record<string, unknown>) => {
-    await createTemplate.mutateAsync(data);
+    await createTemplate.mutateAsync(data as unknown as Parameters<typeof createTemplate.mutateAsync>[0]);
     setFormOpen(false);
   };
 
   const handleUpdate = async (data: Record<string, unknown>) => {
     if (editingTemplate) {
-      await updateTemplate.mutateAsync({ id: editingTemplate.id, ...data });
+      await updateTemplate.mutateAsync({ id: editingTemplate.id, ...data } as unknown as Parameters<typeof updateTemplate.mutateAsync>[0]);
       setEditingTemplate(null);
     }
   };
@@ -346,7 +346,16 @@ export default function InspectionTemplates() {
 
                     <CollapsibleContent>
                       <div className="border-t p-4">
-                        <TemplateItemBuilder templateId={template.id} />
+                        <TemplateItemBuilder
+                          templateId={template.id}
+                          templateType={template.template_type}
+                          typeId={template.type_id}
+                          subtypeId={template.subtype_id}
+                          branchId={template.branch_id}
+                          siteId={template.site_id}
+                          buildingId={template.building_id}
+                          categoryId={template.category_id}
+                        />
                       </div>
                     </CollapsibleContent>
                   </div>

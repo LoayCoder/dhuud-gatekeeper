@@ -32,7 +32,9 @@ export interface InspectionAction {
         description: string | null;
     } | null;
     session?: {
-        reference_id: string;
-        name: string | null;
+        reference_id?: string;
+        name?: string | null;
+        session_type?: string;
+        inspector?: { full_name: string; job_title?: string | null } | null;
     } | null;
 }

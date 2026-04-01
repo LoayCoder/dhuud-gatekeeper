@@ -41,7 +41,7 @@ serve(async (req: Request) => {
         } else {
           throw new Error(result.error || 'Email send failed');
         }
-      } catch (sendError: unknown) {
+      } catch (sendError) {
         const newRetryCount = emailLog.retry_count + 1;
         const isLastRetry = newRetryCount >= MAX_RETRIES;
         const nextRetryAt = !isLastRetry && newRetryCount < RETRY_DELAYS.length ? new Date(Date.now() + RETRY_DELAYS[newRetryCount] * 1000).toISOString() : null;
@@ -51,7 +51,7 @@ serve(async (req: Request) => {
     }
 
     return new Response(JSON.stringify({ success: true, processed: emails.length, successCount, failureCount, permanentlyFailedCount }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Error:", error);
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Unknown" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
