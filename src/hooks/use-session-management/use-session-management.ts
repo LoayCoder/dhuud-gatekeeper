@@ -145,8 +145,7 @@ export function useSessionManagement() {
                     error.message?.includes('AUTH_SESSION_EXPIRED');
                 if (isAuthExpired) {
                     localStorage.removeItem(SESSION_TOKEN_KEY);
-                    // Force clear the stale session from Supabase client
-                    await supabase.auth.signOut({ scope: 'local' });
+                    // Do NOT call signOut here - it causes cascading re-renders and blank screens.
                     return { valid: false, reason: 'auth_session_expired' };
                 }
                 logger.error('Session validation failed:', error);
