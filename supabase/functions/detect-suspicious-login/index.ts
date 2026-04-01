@@ -332,7 +332,7 @@ serve(async (req) => {
     const clientIP = getClientIP(req);
 
     // If authenticated, use caller identity; otherwise use body email (for failed logins)
-    const effectiveUserId = caller?.userId || body.user_id || null;
+    const effectiveUserId = caller?.userId || body.user_id || undefined;
     const effectiveEmail = caller?.email || body.email;
     
     if (!effectiveEmail) {
