@@ -1,0 +1,303 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - region "Notifications alt+T"
+    - generic [ref=e4]:
+      - generic [ref=e8]:
+        - generic [ref=e10]:
+          - img "Company Logo" [ref=e12]
+          - button "Toggle sidebar" [ref=e13] [cursor=pointer]:
+            - img [ref=e14]
+        - generic [ref=e17]:
+          - list [ref=e20]:
+            - listitem [ref=e21]:
+              - link "Overview" [ref=e22] [cursor=pointer]:
+                - /url: /
+                - img [ref=e23]
+                - generic [ref=e28]: Overview
+          - button "SaaS Management" [ref=e31] [cursor=pointer]:
+            - img [ref=e32]
+            - generic [ref=e36]: SaaS Management
+            - img [ref=e37]
+          - button "Survey System" [ref=e41] [cursor=pointer]:
+            - img [ref=e42]
+            - generic [ref=e45]: Survey System
+            - img [ref=e46]
+          - button "First Aider" [ref=e50] [cursor=pointer]:
+            - img [ref=e51]
+            - generic [ref=e56]: First Aider
+            - img [ref=e57]
+          - generic [ref=e60]:
+            - button "Workload Intelligence" [expanded] [ref=e61] [cursor=pointer]:
+              - img [ref=e62]
+              - generic [ref=e66]: Workload Intelligence
+              - img [ref=e68]
+            - generic [ref=e71]:
+              - link "My Workload" [ref=e73] [cursor=pointer]:
+                - /url: /my-workload
+                - generic [ref=e75]: My Workload
+              - link "Strategic Objectives" [ref=e76] [cursor=pointer]:
+                - /url: /admin/workload/objectives
+                - generic [ref=e78]: Strategic Objectives
+              - link "Workload Dashboard" [ref=e79] [cursor=pointer]:
+                - /url: /admin/workload/dashboard
+                - generic [ref=e81]: Workload Dashboard
+              - link "Team Workload" [ref=e82] [cursor=pointer]:
+                - /url: /admin/workload/team
+                - generic [ref=e84]: Team Workload
+              - link "Task Connectors" [ref=e85] [cursor=pointer]:
+                - /url: /admin/workload/connectors
+                - generic [ref=e87]: Task Connectors
+              - link "Representative Tasks" [ref=e88] [cursor=pointer]:
+                - /url: /admin/workload/representative
+                - generic [ref=e90]: Representative Tasks
+              - link "Initiative Portfolio" [ref=e91] [cursor=pointer]:
+                - /url: /admin/workload/portfolio
+                - generic [ref=e93]: Initiative Portfolio
+              - link "Executive Dashboard" [ref=e94] [cursor=pointer]:
+                - /url: /admin/workload/executive
+                - generic [ref=e96]: Executive Dashboard
+              - link "Performance Analytics" [ref=e97] [cursor=pointer]:
+                - /url: /tasks/analytics
+                - generic [ref=e99]: Performance Analytics
+              - link "Recurring Tasks" [ref=e100] [cursor=pointer]:
+                - /url: /tasks/recurring
+                - generic [ref=e102]: Recurring Tasks
+              - link "Overdue Tasks" [ref=e103] [cursor=pointer]:
+                - /url: /admin/workload/overdue
+                - generic [ref=e105]: Overdue Tasks
+              - link "Escalation & Governance" [ref=e106] [cursor=pointer]:
+                - /url: /admin/workload/escalation
+                - generic [ref=e108]: Escalation & Governance
+              - link "System Health" [ref=e109] [cursor=pointer]:
+                - /url: /admin/workload/system-health
+                - generic [ref=e111]: System Health
+          - button "Recognition & Awards" [ref=e114] [cursor=pointer]:
+            - img [ref=e115]
+            - generic [ref=e121]: Recognition & Awards
+            - img [ref=e122]
+          - list [ref=e126]:
+            - listitem [ref=e127]:
+              - link "AI Governance" [ref=e128] [cursor=pointer]:
+                - /url: /admin/ai-governance
+                - img [ref=e129]
+                - generic [ref=e139]: AI Governance
+          - button "Operations" [ref=e142] [cursor=pointer]:
+            - img [ref=e143]
+            - generic [ref=e148]: Operations
+            - img [ref=e149]
+          - button "Settings" [ref=e153] [cursor=pointer]:
+            - img [ref=e154]
+            - generic [ref=e157]: Settings
+            - img [ref=e158]
+          - button "Help" [ref=e162] [cursor=pointer]:
+            - img [ref=e163]
+            - generic [ref=e166]: Help
+            - img [ref=e167]
+        - link "Luay Dhuud Luay Dhuud" [ref=e170] [cursor=pointer]:
+          - /url: /settings/profile
+          - img "Luay Dhuud" [ref=e172]
+          - generic [ref=e173]: Luay Dhuud
+          - img [ref=e174]
+      - generic [ref=e176]:
+        - banner [ref=e177]:
+          - button "Toggle sidebar" [ref=e178] [cursor=pointer]:
+            - img
+            - generic [ref=e179]: Toggle sidebar
+          - navigation "breadcrumb" [ref=e180]:
+            - list [ref=e181]:
+              - listitem [ref=e182]:
+                - link "Dashboard" [ref=e183] [cursor=pointer]:
+                  - /url: /
+                - listitem [ref=e184]:
+                  - img [ref=e185]
+              - listitem [ref=e187]:
+                - generic [ref=e188]: Workload Intelligence
+                - listitem [ref=e189]:
+                  - img [ref=e190]
+              - listitem [ref=e192]:
+                - link "Team Workload" [disabled] [ref=e193]
+          - generic [ref=e194]:
+            - button "9" [ref=e195] [cursor=pointer]:
+              - img
+              - generic [ref=e196]: "9"
+            - button "Select language" [ref=e197] [cursor=pointer]:
+              - img
+            - button "Toggle theme" [ref=e198] [cursor=pointer]:
+              - img
+            - button "LU" [ref=e199] [cursor=pointer]:
+              - generic [ref=e201]: LU
+        - main [ref=e202]:
+          - generic [ref=e204]:
+            - generic [ref=e205]:
+              - generic [ref=e206]:
+                - heading "Team Command Center" [level=1] [ref=e207]
+                - paragraph [ref=e208]: Monitor team workload, risk alerts, and objective alignment
+              - generic [ref=e209]:
+                - button "Quick Assign" [ref=e210] [cursor=pointer]:
+                  - img
+                  - text: Quick Assign
+                - button "Create Task" [ref=e211] [cursor=pointer]:
+                  - img
+                  - text: Create Task
+            - generic [ref=e212]:
+              - generic [ref=e213]:
+                - generic [ref=e214]:
+                  - heading "Team Size" [level=3] [ref=e215]
+                  - img [ref=e217]
+                - generic [ref=e223]: "3"
+              - generic [ref=e224]:
+                - generic [ref=e225]:
+                  - heading "At Risk" [level=3] [ref=e226]
+                  - img [ref=e228]
+                - generic [ref=e231]: "0"
+              - generic [ref=e232]:
+                - generic [ref=e233]:
+                  - heading "Objectives" [level=3] [ref=e234]
+                  - img [ref=e236]
+                - generic [ref=e240]: "1"
+              - generic [ref=e241]:
+                - generic [ref=e242]:
+                  - heading "Active Initiatives" [level=3] [ref=e243]
+                  - img [ref=e245]
+                - generic [ref=e249]: "1"
+            - generic [ref=e250]:
+              - generic [ref=e251]:
+                - heading "Workload Distribution" [level=3] [ref=e253]:
+                  - img [ref=e254]
+                  - text: Workload Distribution
+                - img [ref=e259]:
+                  - generic [ref=e264]:
+                    - generic [ref=e266]: Underutilized
+                    - generic [ref=e268]: Healthy
+                    - generic [ref=e270]: High Load
+                    - generic [ref=e272]: Burnout Risk
+                  - generic [ref=e274]:
+                    - generic [ref=e276]: "0"
+                    - generic [ref=e278]: "0.5"
+                    - generic [ref=e280]: "1"
+                    - generic [ref=e282]: "1.5"
+                    - generic [ref=e284]: "2"
+              - generic [ref=e292]:
+                - heading "Execution Metrics" [level=3] [ref=e294]:
+                  - img [ref=e295]
+                  - text: Execution Metrics
+                - generic [ref=e298]:
+                  - generic [ref=e299]:
+                    - paragraph [ref=e300]: "0"
+                    - paragraph [ref=e301]: Team Velocity
+                  - generic [ref=e302]:
+                    - paragraph [ref=e303]: 0%
+                    - paragraph [ref=e304]: Completion Rate
+                  - generic [ref=e305]:
+                    - paragraph [ref=e306]: 86%
+                    - paragraph [ref=e307]: Overdue Rate
+            - generic [ref=e308]:
+              - generic [ref=e310]:
+                - heading "Department Tasks" [level=3] [ref=e311]
+                - generic [ref=e312]: 0 tasks
+              - generic [ref=e313]:
+                - generic [ref=e314]:
+                  - textbox "Search" [active] [ref=e315]: E2E-TEST-TASK-1775041149847
+                  - combobox [ref=e316] [cursor=pointer]:
+                    - generic: All
+                    - img [ref=e317]
+                  - combobox [ref=e319] [cursor=pointer]:
+                    - generic: All
+                    - img [ref=e320]
+                  - combobox [ref=e322] [cursor=pointer]:
+                    - generic: All
+                    - img [ref=e323]
+                  - combobox [ref=e325] [cursor=pointer]:
+                    - generic: All
+                    - img [ref=e326]
+                - generic [ref=e328]:
+                  - generic [ref=e329]:
+                    - img [ref=e330]
+                    - textbox "Search team members..." [ref=e333]
+                  - combobox [ref=e334] [cursor=pointer]:
+                    - generic: Sort by Overdue
+                    - img [ref=e335]
+                - generic [ref=e337]:
+                  - heading "LUAY HSSE 0 Active 0 Completed 0 Overdue 0 P1 Avg Progress 0%" [level=3] [ref=e339]:
+                    - button "LUAY HSSE 0 Active 0 Completed 0 Overdue 0 P1 Avg Progress 0%" [ref=e340] [cursor=pointer]:
+                      - generic [ref=e341]:
+                        - generic [ref=e343]:
+                          - generic [ref=e345]: LUAY
+                          - generic [ref=e347]: HSSE
+                        - generic [ref=e348]:
+                          - generic [ref=e349]:
+                            - generic [ref=e350]: "0"
+                            - paragraph [ref=e351]: Active
+                          - generic [ref=e352]:
+                            - generic [ref=e353]: "0"
+                            - paragraph [ref=e354]: Completed
+                          - generic [ref=e355]:
+                            - generic [ref=e356]: "0"
+                            - paragraph [ref=e357]: Overdue
+                          - generic [ref=e358]:
+                            - generic [ref=e359]: "0"
+                            - paragraph [ref=e360]: P1
+                          - generic [ref=e361]:
+                            - generic [ref=e362]:
+                              - generic [ref=e363]: Avg Progress
+                              - generic [ref=e364]: 0%
+                            - progressbar [ref=e365]
+                      - img [ref=e367]
+                  - heading "Abdullah Alshahri 0 Active 0 Completed 0 Overdue 0 P1 Avg Progress 0%" [level=3] [ref=e370]:
+                    - button "Abdullah Alshahri 0 Active 0 Completed 0 Overdue 0 P1 Avg Progress 0%" [ref=e371] [cursor=pointer]:
+                      - generic [ref=e372]:
+                        - generic [ref=e376]: Abdullah Alshahri
+                        - generic [ref=e377]:
+                          - generic [ref=e378]:
+                            - generic [ref=e379]: "0"
+                            - paragraph [ref=e380]: Active
+                          - generic [ref=e381]:
+                            - generic [ref=e382]: "0"
+                            - paragraph [ref=e383]: Completed
+                          - generic [ref=e384]:
+                            - generic [ref=e385]: "0"
+                            - paragraph [ref=e386]: Overdue
+                          - generic [ref=e387]:
+                            - generic [ref=e388]: "0"
+                            - paragraph [ref=e389]: P1
+                          - generic [ref=e390]:
+                            - generic [ref=e391]:
+                              - generic [ref=e392]: Avg Progress
+                              - generic [ref=e393]: 0%
+                            - progressbar [ref=e394]
+                      - img [ref=e396]
+                  - heading "Test User 0 Active 0 Completed 0 Overdue 0 P1 Avg Progress 0%" [level=3] [ref=e399]:
+                    - button "Test User 0 Active 0 Completed 0 Overdue 0 P1 Avg Progress 0%" [ref=e400] [cursor=pointer]:
+                      - generic [ref=e401]:
+                        - generic [ref=e405]: Test User
+                        - generic [ref=e406]:
+                          - generic [ref=e407]:
+                            - generic [ref=e408]: "0"
+                            - paragraph [ref=e409]: Active
+                          - generic [ref=e410]:
+                            - generic [ref=e411]: "0"
+                            - paragraph [ref=e412]: Completed
+                          - generic [ref=e413]:
+                            - generic [ref=e414]: "0"
+                            - paragraph [ref=e415]: Overdue
+                          - generic [ref=e416]:
+                            - generic [ref=e417]: "0"
+                            - paragraph [ref=e418]: P1
+                          - generic [ref=e419]:
+                            - generic [ref=e420]:
+                              - generic [ref=e421]: Avg Progress
+                              - generic [ref=e422]: 0%
+                            - progressbar [ref=e423]
+                      - img [ref=e425]
+            - generic [ref=e427]:
+              - heading "Objective Alignment" [level=3] [ref=e429]
+              - generic [ref=e431]:
+                - generic [ref=e432]:
+                  - generic [ref=e433]: Test OBJECTIVE
+                  - generic [ref=e434]: 0%
+                - progressbar [ref=e435]
+  - generic [ref=e437]: "0"
+```
