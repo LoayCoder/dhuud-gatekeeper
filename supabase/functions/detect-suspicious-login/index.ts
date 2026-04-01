@@ -24,15 +24,15 @@ async function verifyCallerAuth(req: Request): Promise<{ userId: string; email: 
     global: { headers: { Authorization: authHeader } },
   });
 
-  const token = authHeader.replace('Bearer ', '');
-  const { data, error } = await supabaseAuth.auth.getClaims(token);
+  const { data: { user }, error } = await supabaseAuth.auth.getUser();
 
-  if (error || !data?.claims?.sub) {
+  if (error || !user?.id) {
     return null;
   }
 
   return {
-    userId: data.claims.sub as string,
+    userId: user.id,
+    email: user.email || '',
     email: (data.claims.email as string) || '',
   };
 }
