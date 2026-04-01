@@ -48,11 +48,13 @@ export function useSessionHelpers() {
             // Then validate the token is actually valid server-side
             const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
             if (userError || !validatedUser) {
+                logger.debug('Auth session invalid server-side:', userError?.message);
                 return false;
             }
 
             return true;
         } catch {
+            logger.debug('hasValidAuthSession check failed, treating as invalid');
             return false;
         }
     }, []);
