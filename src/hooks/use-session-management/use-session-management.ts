@@ -268,10 +268,9 @@ export function useSessionManagement() {
                     error.message?.includes('auth_session_expired') ||
                     error.message?.includes('AUTH_SESSION_EXPIRED');
                 if (isAuthExpired) {
-                    logger.debug('Auth session expired during heartbeat, clearing local state');
+                    logger.debug('Auth session expired during heartbeat, clearing local state only');
                     localStorage.removeItem(SESSION_TOKEN_KEY);
-                    // Force clear the stale session from Supabase client
-                    await supabase.auth.signOut({ scope: 'local' });
+                    // Do NOT call signOut here - it causes cascading re-renders and blank screens.
                     return;
                 }
                 logger.error('Session heartbeat error:', error);
