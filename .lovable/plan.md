@@ -1,88 +1,59 @@
 
 
-# Audit of Your Remaining Issues List — Verified Assessment
+# Documentation Cleanup Plan
 
-## 🔴 HIGH PRIORITY — Status Check
+## What We're Doing
+Cleaning up the root directory by keeping 12 specific .md files, deleting the rest, and removing ~90 temporary dev scripts/logs.
 
-### 1. "Incident Closure Blocked — RCA locking not enforced, frontend doesn't use incident_rca table"
-**STATUS: RESOLVED** — This is no longer accurate.
+## Files to KEEP in Root (12 .md files)
 
-Evidence found:
-- `investigationQueryService.ts` fetches from `incident_rca` table with `is_locked`, `locked_by`, `locked_at`
-- `investigationMutationService.ts` has both `lockRCA()` and `unlockRCA()` calling RPCs `lock_rca` and `unlock_rca`
-- `useLockRCA` and `useUnlockRCA` hooks exist and are used in `RCAPanel.tsx`
-- `workflow-validation.ts` checks `incident_rca.is_locked` before allowing closure
-- The investigation query maps `is_rca_locked`, `rca_locked_by`, `rca_locked_at` into the Investigation object
+| File | Reason |
+|------|--------|
+| `README.md` | GitHub requirement |
+| `AGENTS.md` | AI agent context (referenced by project-knowledge) |
+| `ACCEPTANCE_CRITERIA.md` | Acceptance criteria |
+| `ARCHITECTURE.md` | System architecture |
+| `HSSE_INCIDENT_LIFECYCLE_WORKFLOW.md` | Workflow documentation |
+| `IMPLEMENTATION_PLAN.md` | Implementation plan |
+| `HSSE-Audit-Execution-Plan.md` | Audit execution plan |
+| `HSSE-Audit-Report-Branch-Mainv1-OfflineMood.md` | Branch audit report |
+| `HSSE-E2E-Tests-Documentation.md` | E2E test documentation |
+| `HSSE-Optimized-Execution-Plan.md` | Optimized execution plan |
+| `AUDIT_REPORT_UPDATED.md` | Updated audit report |
 
-**Verdict: Fixed. Remove from list.**
+Note: User mentioned `CLEANUP_DOCS_GUIDE.md` but it doesn't exist in the project. Will skip.
 
----
+## Files to DELETE — Outdated .md (14 files)
 
-### 2. "RLS Data Leakage — incident_rca table, all users can see sensitive root cause data"
-**STATUS: STILL OPEN** — Confirmed.
+`ARCHITECTURE_COMPLIANCE_AUDIT.md`, `AUDIT_REPORT.md`, `AUDIT_REPORT_2026-02.md`, `FINAL_AUDIT_REPORT.md`, `FIX_AND_ASSURANCE_PLAN.md`, `GATE_PASS_AUDIT_REPORT.md`, `GATE_PASS_FIX_REPORT.md`, `I18N_AUDIT_REPORT.md`, `ROLE_AUDIT_REPORT.md`, `SECURITY_HEADERS.md`, `TRANSLATION_AUDIT.md`, `TRANSLATION_AUDIT_REPORT_2025.md`, `WORKFLOW_AUDIT_REPORT.md`, `WORKFLOW_AUDIT_REPORT_CONTRACTOR.md`, `ZERO_TRUST_AUDIT_REPORT.md`
 
-The current RLS policy is:
-```sql
-CREATE POLICY "incident_rca_tenant_isolation_select" ON public.incident_rca
-  FOR SELECT USING (tenant_id = (SELECT tenant_id FROM profiles WHERE id = auth.uid()));
-```
-This allows ANY authenticated user in the tenant to read ALL root cause data. Per the FIX_AND_ASSURANCE_PLAN.md, SELECT should be restricted to HSSE roles, Admins, and the incident's approval_manager.
+## Files to DELETE — Temporary Dev Scripts (~90 files)
 
-**Verdict: Still open. Needs stricter RLS policy.**
+All `.cjs`, `.mjs`, `.py`, `.ps1`, `.sh` one-off scripts (e.g., `split-*.cjs`, `fix_*.cjs`, `refactor-*.cjs`, `replace-*.cjs`, `tally.py`, `run_stats.sh`, etc.)
 
----
+All temporary output/log files: `*.txt` (tsc.txt, eslint.txt, log.txt, etc.), `*.json` reports (eslint-report.json, large_files.json, etc.), `error-context.md`, `medium_forms_report.md`
 
-### 3. "Type Safety — Extensive use of `any` types in src/hooks/*.ts"
-**STATUS: MOSTLY RESOLVED** — Only 6 files in `src/hooks/` use `as any`, all with eslint-disable comments for tables not yet in generated types (`offline_scan_queue`, `tenant_document_settings`, `asset_purchase_requests`, `badge_definitions`). These are intentional workarounds, not careless typing.
+Backup source files: `original_gate_qr.tsx`, `original_user_form.tsx`
 
-**Verdict: Low risk. These are known schema-gap workarounds, not systemic type unsafety. Downgrade to LOW.**
+One-off TypeScript debug scripts: `check_*.ts`, `debug_data.ts`, `test_*.ts`, `test_*.js`, `verify_rpc.ts`, `simple_check.ts`
 
----
+## Files to KEEP in Root (non-.md, required by build)
 
-## 🟡 MEDIUM PRIORITY — Status Check
+`package.json`, `package-lock.json`, `bun.lock`, `bun.lockb`, `index.html`, `vite.config.ts`, `tsconfig.json`, `tsconfig.app.json`, `tsconfig.node.json`, `tailwind.config.ts`, `postcss.config.js`, `eslint.config.js`, `components.json`, `vitest.config.ts`, `playwright.config.ts`, `playwright-fixture.ts`, `.env`, `.gitignore`
 
-### 4. "Action Evidence Weakness — No hard-block if evidence is missing"
-**STATUS: RESOLVED** — Confirmed fixed.
+## Files to KEEP in docs/
 
-In `ActionProgressDialog.tsx`:
-```typescript
-const hasMinimumEvidence = evidenceCount > 0 || uploadingFiles.length > 0;
-const isValid = mode === 'start'
-  ? notes.trim().length >= 5 && hasMinimumEvidence
-  : notes.trim().length >= 10 && hasMinimumEvidence && ...;
-```
-The submit button is `disabled={!isValid}`, which includes the evidence check. A red message also shows when evidence is missing.
+`docs/AI_LOGIN_PROMPT.md`, `docs/FRONTEND_PRD.md` — no changes needed.
 
-**Verdict: Fixed. Remove from list.**
+## Summary
 
----
+| Category | Before | After |
+|----------|--------|-------|
+| Root .md files | 27 | 12 |
+| Temp scripts/logs | ~90 | 0 |
+| docs/ files | 2 | 2 (unchanged) |
 
-### 5. "Investigation UI doesn't display new RCA fields"
-**STATUS: RESOLVED** — The `RCAPanel.tsx` component imports and uses `useLockRCA`, `useUnlockRCA`, and the investigation query returns RCA fields from `incident_rca`. The RCA tab displays five whys, root causes, contributing factors, immediate/underlying causes.
+## Implementation
 
-**Verdict: Fixed. Remove from list.**
-
----
-
-## 🟢 LOW PRIORITY
-
-### 6. "Documentation files need cleanup/consolidation"
-**STATUS: STILL OPEN** — `FIX_AND_ASSURANCE_PLAN.md` is outdated (lists issues as "In Progress" that are now resolved).
-
-**Verdict: Still open but low priority.**
-
----
-
-## Updated Remaining Issues (Actual)
-
-| Priority | Issue | Location | Description |
-|----------|-------|----------|-------------|
-| 🔴 HIGH | RLS Data Leakage | `incident_rca` table | SELECT policy allows all tenant users to read sensitive RCA data. Needs role-restricted policy. |
-| 🟢 LOW | Type workarounds | 6 files in `src/hooks/` | Intentional `as any` for tables not yet in generated types. Resolve when types are regenerated. |
-| 🟢 LOW | Stale documentation | `FIX_AND_ASSURANCE_PLAN.md` | Lists resolved issues as "In Progress". Needs update or removal. |
-
-### Summary
-- 3 of 5 code issues are **already fixed** (RCA locking, action evidence, investigation UI)
-- 1 genuine security gap remains (RLS on `incident_rca`)
-- Type safety concern is minor (6 intentional workarounds)
+Delete all identified files in a single batch. No content merging needed since user wants to keep originals as-is.
 
