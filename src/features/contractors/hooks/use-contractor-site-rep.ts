@@ -126,10 +126,48 @@ export function useUpsertSiteRep() {
         return created;
       }
     },
-    onSuccess: (_, { companyId }) => {
+    onSuccess: async (result, { companyId, data }) => {
+      // Sync to contractor_representatives table for invitation compatibility
+      try {
+        if (profile?.tenant_id) {
+          const { data: existingRep } = await supabase
+            .from("contractor_representatives")
+            .select("id")
+            .eq("company_id", companyId)
+            .eq("is_primary", true)
+            .is("deleted_at", null)
+            .maybeSingle();
+
+          const repData = {
+            full_name: data.full_name,
+            email: data.email || null,
+            mobile_number: data.mobile_number,
+            is_primary: true as const,
+          };
+
+          if (existingRep) {
+            await supabase
+              .from("contractor_representatives")
+              .update(repData)
+              .eq("id", existingRep.id);
+          } else {
+            await supabase
+              .from("contractor_representatives")
+              .insert({
+                tenant_id: profile.tenant_id,
+                company_id: companyId,
+                ...repData,
+              });
+          }
+        }
+      } catch (syncError) {
+        console.warn("[useUpsertSiteRep] Failed to sync to contractor_representatives:", syncError);
+      }
+
       queryClient.invalidateQueries({ queryKey: ["contractor-site-rep", companyId] });
       queryClient.invalidateQueries({ queryKey: ["contractor-companies"] });
       queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
+      queryClient.invalidateQueries({ queryKey: ["contractor-representatives-for-linking", companyId] });
     },
     onError: (error) => {
       console.error("[useUpsertSiteRep] Error:", error);
