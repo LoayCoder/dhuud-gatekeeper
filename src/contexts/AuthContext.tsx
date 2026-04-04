@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // MULTI-TENANT: Query by user_id (not id) and optionally filter by tenant
     let query = supabase
       .from('profiles')
-      .select('id, full_name, avatar_url, tenant_id, preferred_language, assigned_branch_id, assigned_site_id, assigned_department_id, contractor_company_name, is_deleted, is_active')
+      .select('id, full_name, avatar_url, tenant_id, preferred_language, assigned_branch_id, assigned_site_id, assigned_department_id, contractor_company_name, is_deleted, is_active, has_full_branch_access, is_super_admin')
       .eq('user_id', userId) // Multi-tenant: use user_id
       .eq('is_deleted', false)
       .eq('is_active', true);
