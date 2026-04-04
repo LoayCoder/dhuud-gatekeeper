@@ -1,59 +1,35 @@
 
 
-# Documentation Cleanup Plan
+# Fix Playwright Tests — Ready to Run
 
-## What We're Doing
-Cleaning up the root directory by keeping 12 specific .md files, deleting the rest, and removing ~90 temporary dev scripts/logs.
+## Issues Found
 
-## Files to KEEP in Root (12 .md files)
+1. **`playwright.config.ts` has duplicate lines** (lines 33-36 repeat lines 29-32) — causes syntax error
+2. **`global-setup.ts` uses wrong email** — `luay.dhuud.com` (missing `@`) vs test file uses `luay@dhuud.com`
+3. **`global-setup.ts` uses wrong selectors** — `input[type="email"]` but login page uses `#email` (id-based)
+4. **`hsse-complete.spec.ts` uses wrong selectors** — `input[name="email"]` but login page has no `name` attribute, only `id="email"`
+5. **No `.auth` directory created** — global setup saves to `tests/.auth/` which may not exist
+6. **`global-teardown.ts` uses test import incorrectly** — imports `test as teardown` from `@playwright/test` but teardown files should export a function, not use test()
 
-| File | Reason |
-|------|--------|
-| `README.md` | GitHub requirement |
-| `AGENTS.md` | AI agent context (referenced by project-knowledge) |
-| `ACCEPTANCE_CRITERIA.md` | Acceptance criteria |
-| `ARCHITECTURE.md` | System architecture |
-| `HSSE_INCIDENT_LIFECYCLE_WORKFLOW.md` | Workflow documentation |
-| `IMPLEMENTATION_PLAN.md` | Implementation plan |
-| `HSSE-Audit-Execution-Plan.md` | Audit execution plan |
-| `HSSE-Audit-Report-Branch-Mainv1-OfflineMood.md` | Branch audit report |
-| `HSSE-E2E-Tests-Documentation.md` | E2E test documentation |
-| `HSSE-Optimized-Execution-Plan.md` | Optimized execution plan |
-| `AUDIT_REPORT_UPDATED.md` | Updated audit report |
+## Plan
 
-Note: User mentioned `CLEANUP_DOCS_GUIDE.md` but it doesn't exist in the project. Will skip.
+### Step 1: Fix `playwright.config.ts`
+Remove duplicate lines 33-36. The valid config ends at line 32.
 
-## Files to DELETE — Outdated .md (14 files)
+### Step 2: Fix `tests/global-setup.ts`
+- Fix email: `luay.dhuud.com` → `luay@dhuud.com`
+- Fix selectors: use `#email` and `#password` instead of `input[type="email"]` and `input[type="password"]`
+- Ensure `tests/.auth/` directory is created before saving state
 
-`ARCHITECTURE_COMPLIANCE_AUDIT.md`, `AUDIT_REPORT.md`, `AUDIT_REPORT_2026-02.md`, `FINAL_AUDIT_REPORT.md`, `FIX_AND_ASSURANCE_PLAN.md`, `GATE_PASS_AUDIT_REPORT.md`, `GATE_PASS_FIX_REPORT.md`, `I18N_AUDIT_REPORT.md`, `ROLE_AUDIT_REPORT.md`, `SECURITY_HEADERS.md`, `TRANSLATION_AUDIT.md`, `TRANSLATION_AUDIT_REPORT_2025.md`, `WORKFLOW_AUDIT_REPORT.md`, `WORKFLOW_AUDIT_REPORT_CONTRACTOR.md`, `ZERO_TRUST_AUDIT_REPORT.md`
+### Step 3: Fix `tests/global-teardown.ts`
+Convert to a simple export default function (standard Playwright global teardown pattern).
 
-## Files to DELETE — Temporary Dev Scripts (~90 files)
+### Step 4: Fix `tests/hsse-complete.spec.ts` login helper
+Change selectors from `input[name="email"]` / `input[name="password"]` to `#email` / `#password` to match actual login page.
 
-All `.cjs`, `.mjs`, `.py`, `.ps1`, `.sh` one-off scripts (e.g., `split-*.cjs`, `fix_*.cjs`, `refactor-*.cjs`, `replace-*.cjs`, `tally.py`, `run_stats.sh`, etc.)
-
-All temporary output/log files: `*.txt` (tsc.txt, eslint.txt, log.txt, etc.), `*.json` reports (eslint-report.json, large_files.json, etc.), `error-context.md`, `medium_forms_report.md`
-
-Backup source files: `original_gate_qr.tsx`, `original_user_form.tsx`
-
-One-off TypeScript debug scripts: `check_*.ts`, `debug_data.ts`, `test_*.ts`, `test_*.js`, `verify_rpc.ts`, `simple_check.ts`
-
-## Files to KEEP in Root (non-.md, required by build)
-
-`package.json`, `package-lock.json`, `bun.lock`, `bun.lockb`, `index.html`, `vite.config.ts`, `tsconfig.json`, `tsconfig.app.json`, `tsconfig.node.json`, `tailwind.config.ts`, `postcss.config.js`, `eslint.config.js`, `components.json`, `vitest.config.ts`, `playwright.config.ts`, `playwright-fixture.ts`, `.env`, `.gitignore`
-
-## Files to KEEP in docs/
-
-`docs/AI_LOGIN_PROMPT.md`, `docs/FRONTEND_PRD.md` — no changes needed.
+### Step 5: Create `tests/.auth/.gitkeep`
+Ensure the auth directory exists for storage state files.
 
 ## Summary
-
-| Category | Before | After |
-|----------|--------|-------|
-| Root .md files | 27 | 12 |
-| Temp scripts/logs | ~90 | 0 |
-| docs/ files | 2 | 2 (unchanged) |
-
-## Implementation
-
-Delete all identified files in a single batch. No content merging needed since user wants to keep originals as-is.
+5 files fixed, all selector mismatches resolved, config syntax error removed. After this, `npx playwright test` will be runnable.
 
