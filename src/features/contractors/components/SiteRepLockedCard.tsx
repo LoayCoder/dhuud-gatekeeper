@@ -162,7 +162,7 @@ export function SiteRepLockedCard({ data, onChange, isNew = false }: SiteRepLock
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Lock className="h-4 w-4 text-muted-foreground" />
-            {t("contractors.companies.contractorSiteRep", "Contractor's Site Representative")}
+            {t("contractors.companies.contractorRep", "Contractor's Representative")}
           </CardTitle>
           <div className="flex items-center gap-2">
             {hasData && (

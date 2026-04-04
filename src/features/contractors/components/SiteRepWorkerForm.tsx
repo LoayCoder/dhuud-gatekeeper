@@ -106,7 +106,7 @@ export function SiteRepWorkerForm({ data, onChange }: SiteRepWorkerFormProps) {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        {t("contractors.companies.siteRepNote", "The Site Representative will be added to the workers list and can receive a safety pass.")}
+        {t("contractors.companies.repNote", "This representative will receive the portal invitation and can manage workers, gate passes, and projects.")}
       </p>
     </div>
   );

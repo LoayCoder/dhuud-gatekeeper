@@ -243,7 +243,7 @@ export function useSyncPersonnelToWorkers() {
     },
     onSuccess: (_, { companyId }) => {
       queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
-      queryClient.invalidateQueries({ queryKey: ["contractor-site-rep", companyId] });
+      queryClient.invalidateQueries({ queryKey: ["contractor-rep", companyId] });
       queryClient.invalidateQueries({ queryKey: ["contractor-safety-officers", companyId] });
       queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
     },
