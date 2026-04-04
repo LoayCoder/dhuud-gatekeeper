@@ -306,7 +306,7 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  {t("contractors.companies.contractorSiteRep", "Contractor's Site Representative")}
+                  {t("contractors.companies.contractorRep", "Contractor's Representative")}
                   {siteRep && (
                     <Badge variant="default" className="ms-auto text-xs">
                       {t("common.active", "Active")}
