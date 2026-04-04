@@ -1,43 +1,48 @@
 
 
-# Fix: Revert Incorrect Site Rep → Company Rep Sync and Fix Invitation Logic
+# Fix: Personnel Form Saves to `contractor_representatives` Only
 
 ## Problem
+The Personnel tab form currently saves to `contractor_site_representatives` — wrong table. The person entered here (e.g., islam@gbrksa.com) is a **company representative** who needs portal access. The "Send Portal Invitation" button queries `contractor_representatives`, so the invitation fails.
 
-The previous fix incorrectly treated `contractor_site_representatives` and `contractor_representatives` as the same entity. They are **different users**:
+## Solution
 
-- **`contractor_representatives`** = company representatives who receive portal invitations
-- **`contractor_site_representatives`** = on-site personnel (different role, different people)
+### Step 1: Rewrite sync logic in `use-sync-personnel-to-workers.ts`
+**Lines 26-82** — Replace the `contractor_site_representatives` upsert with a `contractor_representatives` upsert:
+- Match on `company_id` + `is_primary = true` + `deleted_at IS NULL`
+- Upsert `full_name`, `national_id`, `mobile_number`, `email` into `contractor_representatives`
+- Set `is_primary = true` so the invitation handler finds this person
+- Keep the `contractor_workers` sync (lines 84-154) unchanged for gate pass integration
 
-The previous changes:
-1. Made `handleSendPortalInvitation` prefer site reps over company reps — **wrong**
-2. Added sync logic in `useUpsertSiteRep` that overwrites company rep data with site rep data — **data corruption**
+### Step 2: Update `use-contractor-site-rep.ts` to read from `contractor_representatives`
+- `useContractorSiteRep` → query `contractor_representatives` where `is_primary = true` instead of `contractor_site_representatives`
+- `useUpsertSiteRep` → upsert into `contractor_representatives` instead of `contractor_site_representatives`
+- Remove `useSyncSiteRepToWorker` (no longer needed — worker sync handled in Step 1)
 
-For GBR: there is no company representative in `contractor_representatives`. The correct behavior is to show a clear message telling the admin to add a company representative first.
+### Step 3: Update `CompanyFormDialog.tsx` loading logic
+- Line 108: `useContractorSiteRep` already returns the data — since we changed it in Step 2 to read from `contractor_representatives`, the form will now load from the correct table automatically
+- No other changes needed in this file
 
-## Fix
+### Step 4: Update labels in `SiteRepWorkerForm.tsx`
+- Change heading from "Contractor's Site Representative" → "Contractor's Representative"
+- Update note text: "This representative will receive the portal invitation and can manage workers, gate passes, and projects."
 
-### Step 1: Revert invitation handler to use only `contractor_representatives`
-
-In `CompanyDetailDialog.tsx`, change `handleSendPortalInvitation` back to only look at `representatives` (from `contractor_representatives`). Remove the `siteRepFromTable` fallback logic. Show a clear error message: "No company representative found. Please add a company representative with an email first."
-
-### Step 2: Remove the sync logic from `useUpsertSiteRep`
-
-In `use-contractor-site-rep.ts`, remove the `onSuccess` sync block (lines 129–165) that copies site rep data into `contractor_representatives`. These are different people — syncing them corrupts company rep data.
-
-### Step 3: Update the Edge Function — no changes needed
-
-The edge function already correctly queries `contractor_representatives` only. No changes required there.
+### Step 5: Update labels in `SiteRepLockedCard.tsx`
+- Same label change as Step 4
 
 ## Files Changed
 
 | File | Change |
 |------|--------|
-| `src/features/contractors/components/CompanyDetailDialog.tsx` | Revert invitation handler to use only `contractor_representatives` |
-| `src/features/contractors/hooks/use-contractor-site-rep.ts` | Remove sync-to-contractor_representatives logic from `onSuccess` |
+| `use-sync-personnel-to-workers.ts` | Replace `contractor_site_representatives` upsert with `contractor_representatives` upsert (is_primary=true) |
+| `use-contractor-site-rep.ts` | Read/write `contractor_representatives` (is_primary=true) instead of `contractor_site_representatives` |
+| `SiteRepWorkerForm.tsx` | Update labels and note text |
+| `SiteRepLockedCard.tsx` | Update labels |
 
-## Impact
-- Company rep data will no longer be overwritten by site rep data
-- Invitation will correctly target company representatives only
-- Admin gets a clear message to add a company representative if none exists for a company like GBR
+## End-to-End Flow After Fix
+1. Admin fills Personnel form for GBR with islam@gbrksa.com
+2. On save → data written to `contractor_representatives` with `is_primary = true`
+3. Admin clicks "Send Portal Invitation" in Company Detail
+4. Invitation handler finds islam@gbrksa.com in `contractor_representatives` → sends email
+5. Islam receives invitation, creates account, logs into Contractor Portal
 
