@@ -1,50 +1,50 @@
 
 
-# Fix: Login Page Infinite Refresh Loop
+# Fix: "No site representative found to invite" for GBR Company
 
 ## Root Cause
 
-The Login page has a **cascading re-render loop** caused by three interacting problems:
+The system has **two separate tables** for contractor representatives:
 
-### Problem 1: `onAuthStateChange` triggers on every token event
-The `useEffect` at line 82 subscribes to `onAuthStateChange` and calls `checkMFAAndNavigate()` on **every** auth event (including `TOKEN_REFRESHED`, `INITIAL_SESSION`). Each call to `checkMFAAndNavigate` makes 3 Supabase API calls (`getUser`, `mfa.getAuthenticatorAssuranceLevel`, `mfa.listFactors`). If any of these fail (network timing, race condition), it calls `signOut()` — which triggers **another** `onAuthStateChange` event, creating a loop.
+1. **`contractor_site_representatives`** — where the Personnel tab saves site rep data (has the GBR rep: إسلام محمد / islam@gbrksa.com)
+2. **`contractor_representatives`** — where the "Send Portal Invitation" button looks for `is_primary = true` records
 
-### Problem 2: `useEffect` dependency on `showMFADialog`
-The `useEffect` at line 56 depends on `showMFADialog`. When MFA dialog state changes, the entire subscription is torn down and recreated, causing a new `INITIAL_SESSION` event, which calls `checkMFAAndNavigate` again.
+The invitation handler at line 127 queries `contractor_representatives` and finds zero rows, so it shows "No site representative found to invite." The data exists, just in the wrong table from the invitation code's perspective.
 
-### Problem 3: `checkExistingSession` + `onAuthStateChange` race
-Both `checkExistingSession()` (line 63) and `onAuthStateChange` (line 85) call `checkMFAAndNavigate()` in parallel when there's an existing session. Two simultaneous `getUser()` + `signOut()` calls race against each other, causing rapid state flips.
+## Fix
 
-**On www.dhuud.com (production):** The user has a valid session cookie. On page load, `checkExistingSession` runs → finds session → calls `checkMFAAndNavigate` → navigates to `/` → ProtectedRoute redirects to `/mfa-setup` or back to login → loop.
+### Step 1: Update `handleSendPortalInvitation` to use `contractor_site_representatives`
 
-## Fix Plan
+In `CompanyDetailDialog.tsx`, modify the invitation handler to use the `siteRepFromTable` data (already fetched from `contractor_site_representatives` at line 34) instead of searching `representatives` (from `contractor_representatives`).
 
-### Step 1: Add navigation guard to prevent re-triggering (Login.tsx)
-- Add a `hasNavigated` ref that is set to `true` once `navigate()` is called
-- Skip `checkMFAAndNavigate` if `hasNavigated.current` is true
-- This breaks the loop immediately
+Replace:
+```typescript
+const primaryRep = representatives.find(r => r.is_primary);
+if (!primaryRep) {
+  toast.error(...);
+  return;
+}
+```
 
-### Step 2: Filter auth events in `onAuthStateChange` (Login.tsx)
-- Only react to `SIGNED_IN` event, not `TOKEN_REFRESHED` or `INITIAL_SESSION`
-- The initial session check is already handled by `checkExistingSession`
+With logic that uses `siteRepFromTable` (which has `id`, `email`, `full_name`) as the invitation target. Fall back to `representatives.find(r => r.is_primary)` if the site rep table is empty.
 
-### Step 3: Remove `showMFADialog` from useEffect deps (Login.tsx)
-- Use a ref for `showMFADialog` in the auth change listener instead of depending on it
-- This prevents re-subscribing and re-triggering the initial session check
+### Step 2: Update the invitation button visibility condition
 
-### Step 4: Remove aggressive `signOut()` on MFA check errors (Login.tsx)
-- In `checkMFAAndNavigate`, instead of calling `signOut()` on AAL errors, just return without navigating
-- Only sign out if the session itself is invalid (getUser fails), not if MFA metadata checks fail
+Line 366 already checks `siteRep && siteRep.email`, but the handler ignores this data. Align the handler to use the same `siteRepFromTable` source.
+
+### Step 3: Also sync site rep data to `contractor_representatives`
+
+When a site rep is saved via the Personnel tab (using `useUpsertSiteRep`), also upsert a matching row into `contractor_representatives` with `is_primary = true`. This ensures both tables stay in sync for any other code that queries `contractor_representatives`.
 
 ## Files Changed
 
 | File | Change |
 |------|--------|
-| `src/pages/Login.tsx` | Add `hasNavigated` ref, filter auth events, fix deps, soften error handling |
+| `src/features/contractors/components/CompanyDetailDialog.tsx` | Use `siteRepFromTable` in `handleSendPortalInvitation` |
+| `src/features/contractors/hooks/use-contractor-site-rep.ts` | Add sync to `contractor_representatives` in `useUpsertSiteRep` |
 
 ## Impact
-- Login page stops looping immediately
-- Existing session detection still works (single check on mount)
-- MFA flow preserved (dialog still shows when needed)
-- No security regression — invalid sessions still get cleared
+- GBR's islam@gbrksa.com will receive the portal invitation immediately
+- Future site rep saves will sync to both tables
+- No data migration needed — the fix uses the existing data
 
