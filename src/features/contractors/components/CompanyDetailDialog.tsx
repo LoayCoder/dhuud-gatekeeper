@@ -337,14 +337,14 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
                         />
                       )}
                     </div>
-                    {(siteRep.mobile_number || siteRep.phone) && (
+                    {siteRep.mobile_number && (
                       <button
                         type="button"
-                        onClick={() => window.location.href = `tel:${siteRep.mobile_number || siteRep.phone}`}
+                        onClick={() => window.location.href = `tel:${siteRep.mobile_number}`}
                         className="flex items-center gap-2 ps-6 text-primary hover:underline"
                       >
                         <Phone className="h-4 w-4" />
-                        {siteRep.mobile_number || siteRep.phone}
+                        {siteRep.mobile_number}
                       </button>
                     )}
                     {siteRep.email && (
