@@ -33,7 +33,6 @@ async function verifyCallerAuth(req: Request): Promise<{ userId: string; email: 
   return {
     userId: user.id,
     email: user.email || '',
-    email: (data.claims.email as string) || '',
   };
 }
 
