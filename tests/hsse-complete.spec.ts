@@ -93,8 +93,8 @@ async function login(page: Page, userKey: keyof typeof TEST_USERS) {
   await page.addInitScript(() => localStorage.setItem('app-whats-new-seen-at', Date.now().toString()));
   await page.goto('/login');
   await closeAnyDialog(page);
-  await page.fill('input[name="email"]', user.email);
-  await page.fill('input[name="password"]', user.password);
+  await page.fill('#email', user.email);
+  await page.fill('#password', user.password);
   await page.click('button[type="submit"]');
   await page.waitForTimeout(2000);
   await closeAnyDialog(page);
