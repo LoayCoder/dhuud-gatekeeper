@@ -84,9 +84,9 @@ export function useUpdateContractorCompany() {
                 })
                 .eq("id", id)
                 .select()
-                .single();
+                .single()
+                .throwOnError();
 
-            if (error) throw error;
             return result;
         },
         onSuccess: () => {
