@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,21 +53,32 @@ export default function Login() {
     password: z.string().min(1, t('auth.passwordRequired')),
   });
 
+  // Ref to track if we've already navigated away - prevents re-entry loops
+  const hasNavigated = useRef(false);
+  // Ref to track MFA dialog state inside auth listener without causing re-subscriptions
+  const showMFADialogRef = useRef(false);
+  
+  // Keep the ref in sync with state
+  useEffect(() => {
+    showMFADialogRef.current = showMFADialog;
+  }, [showMFADialog]);
+
   useEffect(() => {
     // Pre-fill email if coming from invitation
     if (invitationEmail) {
       setEmail(invitationEmail);
     }
 
+    // Reset navigation guard on mount
+    hasNavigated.current = false;
+
     // Check if already logged in - but VALIDATE the session first
     const checkExistingSession = async () => {
+      if (hasNavigated.current) return;
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        // CRITICAL: Validate the session is actually valid server-side before MFA check
-        // This prevents "missing sub claim" errors from stale local sessions
         const { data: { user }, error } = await supabase.auth.getUser();
         if (error || !user) {
-          // Session is stale/invalid - clear it silently and stay on login page
           logger.debug('Stale session detected, clearing...');
           await supabase.auth.signOut({ scope: 'local' });
           return;
@@ -79,23 +90,24 @@ export default function Login() {
 
     checkExistingSession();
 
-    // Listen for auth changes - but don't auto-navigate if MFA is pending
+    // Listen for auth changes - ONLY react to SIGNED_IN events
+    // Initial session is already handled by checkExistingSession above
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session && !showMFADialog) {
-        // Validate session before MFA check
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (!error && user) {
-          checkMFAAndNavigate();
-        }
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session && !hasNavigated.current && !showMFADialogRef.current) {
+        checkMFAAndNavigate();
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, invitationEmail, showMFADialog]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate, invitationEmail]);
 
   const checkMFAAndNavigate = async () => {
+    // Guard: only navigate once
+    if (hasNavigated.current) return;
+
     try {
       // CRITICAL: Validate session is still valid before any MFA operations
       const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -110,9 +122,8 @@ export default function Login() {
       const { data: aal, error: aalError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
 
       if (aalError) {
-        // MFA check failed - likely invalid session
-        logger.warn('AAL check failed:', aalError.message);
-        await supabase.auth.signOut({ scope: 'local' });
+        // MFA metadata check failed - don't aggressively sign out, just stay on login
+        logger.warn('AAL check failed (non-fatal):', aalError.message);
         return;
       }
 
@@ -121,6 +132,7 @@ export default function Login() {
         const isTrusted = await checkTrustedDevice(user.id);
         if (isTrusted) {
           // Device is trusted, skip MFA
+          hasNavigated.current = true;
           navigate(returnTo);
           return;
         }
@@ -129,8 +141,8 @@ export default function Login() {
         const { data: factors, error: factorsError } = await supabase.auth.mfa.listFactors();
 
         if (factorsError) {
-          logger.warn('Failed to list MFA factors:', factorsError.message);
-          await supabase.auth.signOut({ scope: 'local' });
+          // Factors check failed - don't sign out, just stay
+          logger.warn('Failed to list MFA factors (non-fatal):', factorsError.message);
           return;
         }
 
@@ -146,12 +158,12 @@ export default function Login() {
 
       // No MFA required or already at AAL2
       if (aal?.currentLevel === 'aal2' || aal?.nextLevel !== 'aal2') {
+        hasNavigated.current = true;
         navigate(returnTo);
       }
     } catch (err) {
       logger.error('Error in checkMFAAndNavigate:', err);
-      // Clear session on any error to prevent stuck state
-      await supabase.auth.signOut({ scope: 'local' });
+      // Don't sign out on unexpected errors - just stay on login page
     }
   };
 
@@ -248,6 +260,7 @@ export default function Login() {
     checkPasswordBreach(passwordRef.current);
     passwordRef.current = '';
 
+    hasNavigated.current = true;
     navigate(returnTo);
   };
 
@@ -423,6 +436,7 @@ export default function Login() {
               title: t('auth.welcomeBack'),
               description: t('auth.loginSuccess'),
             });
+            hasNavigated.current = true;
             navigate(returnTo);
             return;
           }
@@ -511,6 +525,7 @@ export default function Login() {
           title: t('auth.welcomeBack'),
           description: t('auth.biometricSuccess'),
         });
+        hasNavigated.current = true;
         navigate(returnTo);
       }
     } catch (error) {
