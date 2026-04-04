@@ -9,9 +9,20 @@ setup('global setup: create authenticated state for User 1 (Manager)', async ({ 
   const context = await browser.newContext();
   const page = await context.newPage();
   
+  // Inject localStorage to bypass "What's New" modal
+  await page.addInitScript(() => {
+    localStorage.setItem('app-whats-new-seen-at', Date.now().toString());
+  });
+
   // Navigate to login
-  const baseUrl = process.env.E2E_BASE_URL || 'http://localhost:5173';
+  const baseUrl = process.env.E2E_BASE_URL || 'http://localhost:8080';
   await page.goto(`${baseUrl}/login`);
+  
+  // Quick check for the modal
+  const closeButton = page.locator('button:has-text("Close"), button:has-text("Got it"), button:has-text("إغلاق")').first();
+  if (await closeButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await closeButton.click();
+  }
   
   // Fill credentials for User 1
   await page.fill('input[type="email"], input[name="email"]', 'luay.dhuud.com');
@@ -38,8 +49,19 @@ setup('global setup: create authenticated state for User 2', async ({ browser })
   const context = await browser.newContext();
   const page = await context.newPage();
   
-  const baseUrl = process.env.E2E_BASE_URL || 'http://localhost:5173';
+  // Inject localStorage to bypass "What's New" modal
+  await page.addInitScript(() => {
+    localStorage.setItem('app-whats-new-seen-at', Date.now().toString());
+  });
+
+  const baseUrl = process.env.E2E_BASE_URL || 'http://localhost:8080';
   await page.goto(`${baseUrl}/login`);
+  
+  // Quick check for the modal
+  const closeButton = page.locator('button:has-text("Close"), button:has-text("Got it"), button:has-text("إغلاق")').first();
+  if (await closeButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await closeButton.click();
+  }
   
   await page.fill('input[type="email"], input[name="email"]', 'Loay.smartphoto@gmail.com');
   await page.fill('input[type="password"], input[name="password"]', '1410Loay1410');
@@ -56,8 +78,19 @@ setup('global setup: create authenticated state for User 3', async ({ browser })
   const context = await browser.newContext();
   const page = await context.newPage();
   
-  const baseUrl = process.env.E2E_BASE_URL || 'http://localhost:5173';
+  // Inject localStorage to bypass "What's New" modal
+  await page.addInitScript(() => {
+    localStorage.setItem('app-whats-new-seen-at', Date.now().toString());
+  });
+
+  const baseUrl = process.env.E2E_BASE_URL || 'http://localhost:8080';
   await page.goto(`${baseUrl}/login`);
+  
+  // Quick check for the modal
+  const closeButton = page.locator('button:has-text("Close"), button:has-text("Got it"), button:has-text("إغلاق")').first();
+  if (await closeButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await closeButton.click();
+  }
   
   await page.fill('input[type="email"], input[name="email"]', '1st.arabcoder@gmail.com');
   await page.fill('input[type="password"], input[name="password"]', '1410Loay1410');

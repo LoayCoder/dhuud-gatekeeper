@@ -1,0 +1,290 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e4]:
+    - generic [ref=e8]:
+      - list [ref=e10]:
+        - listitem [ref=e11]:
+          - generic [ref=e12]:
+            - button "Icon Dhuud Platform Enterprise HSSE" [ref=e13] [cursor=pointer]:
+              - img "Icon" [ref=e15]
+              - generic [ref=e16]:
+                - generic [ref=e17]: Dhuud Platform
+                - generic [ref=e18]: Enterprise HSSE
+            - button "Notifications" [ref=e19] [cursor=pointer]:
+              - img
+      - generic [ref=e21]:
+        - generic [ref=e22]: Platform
+        - list [ref=e24]:
+          - listitem [ref=e25]:
+            - link "Dashboard" [ref=e26] [cursor=pointer]:
+              - /url: /
+              - img [ref=e27]
+              - generic [ref=e32]: Dashboard
+          - listitem [ref=e33]:
+            - button "HSSE Management" [expanded] [ref=e34] [cursor=pointer]:
+              - img [ref=e35]
+              - generic [ref=e37]: HSSE Management
+              - img [ref=e38]
+            - list [ref=e41]:
+              - listitem [ref=e42]:
+                - generic [ref=e43] [cursor=pointer]:
+                  - img [ref=e44]
+                  - generic [ref=e46]: HSSE Events
+                  - img [ref=e47]
+                - list [ref=e50]:
+                  - listitem [ref=e51]:
+                    - link "Report Event" [ref=e52] [cursor=pointer]:
+                      - /url: /incidents/report
+                      - img [ref=e53]
+                      - generic [ref=e55]: Report Event
+                  - listitem [ref=e56]:
+                    - link "My Actions" [ref=e57] [cursor=pointer]:
+                      - /url: /incidents/my-actions
+                      - img [ref=e58]
+                      - generic [ref=e62]: My Actions
+              - listitem [ref=e63]:
+                - generic [ref=e64] [cursor=pointer]:
+                  - img [ref=e65]
+                  - generic [ref=e67]: Security
+                  - img [ref=e68]
+          - listitem [ref=e70]:
+            - button "My Gate Passes" [ref=e71] [cursor=pointer]:
+              - img [ref=e72]
+              - generic [ref=e77]: My Gate Passes
+              - img [ref=e78]
+          - listitem [ref=e80]:
+            - button "Training" [ref=e81] [cursor=pointer]:
+              - img [ref=e82]
+              - generic [ref=e85]: Training
+              - img [ref=e86]
+          - listitem [ref=e88]:
+            - button "Settings" [ref=e89] [cursor=pointer]:
+              - img [ref=e90]
+              - generic [ref=e93]: Settings
+              - img [ref=e94]
+      - list [ref=e97]:
+        - listitem [ref=e98]:
+          - button "Dhuud Platform Install App" [ref=e99] [cursor=pointer]:
+            - img "Dhuud Platform" [ref=e100]
+            - generic [ref=e101]: Install App
+            - img [ref=e102]
+        - listitem [ref=e105]:
+          - generic [ref=e106]:
+            - button "My Account Abdullah" [ref=e107] [cursor=pointer]:
+              - img [ref=e110]
+              - generic [ref=e114]:
+                - generic [ref=e115]: My Account
+                - generic [ref=e116]: Abdullah
+              - img [ref=e117]
+            - button "Toggle Theme" [ref=e119] [cursor=pointer]:
+              - img
+              - generic [ref=e120]: Toggle Theme
+      - button "Toggle Sidebar" [ref=e121]
+    - main [ref=e122]:
+      - generic [ref=e123]:
+        - generic [ref=e124]:
+          - button "Toggle Sidebar" [ref=e125] [cursor=pointer]:
+            - img
+            - generic [ref=e126]: Toggle Sidebar
+          - generic [ref=e127]: Dhuud Platform
+        - generic [ref=e128]:
+          - button "Notifications" [ref=e129] [cursor=pointer]:
+            - img
+            - generic [ref=e130]: "4"
+          - button "Change language" [ref=e131] [cursor=pointer]:
+            - img
+            - generic [ref=e132]: Change language
+      - main [ref=e133]:
+        - generic [ref=e134]:
+          - generic [ref=e135]:
+            - generic [ref=e136]:
+              - img [ref=e138]
+              - generic [ref=e140]:
+                - paragraph [ref=e141]: You have 4 new HSSE notifications
+                - paragraph [ref=e142]: Cyber Explorer
+            - button [ref=e144] [cursor=pointer]:
+              - img
+          - generic [ref=e145]:
+            - generic [ref=e146]:
+              - generic [ref=e147]:
+                - generic [ref=e148]:
+                  - heading "HSSE Events" [level=1] [ref=e149]
+                  - generic [ref=e150]: "4"
+                - paragraph [ref=e151]: Report and track safety observations and incidents.
+              - generic [ref=e152]:
+                - group [ref=e153]:
+                  - radio "Card view" [checked] [ref=e154] [cursor=pointer]:
+                    - img [ref=e155]
+                  - radio "Table view" [ref=e160] [cursor=pointer]:
+                    - img [ref=e161]
+                - link "Report Safety Incident" [ref=e162] [cursor=pointer]:
+                  - /url: /incidents/report
+                  - img
+                  - text: Report Safety Incident
+            - generic [ref=e164]:
+              - button "2 Open" [ref=e165] [cursor=pointer]:
+                - generic [ref=e166]:
+                  - img [ref=e169]
+                  - generic [ref=e173]: "2"
+                  - paragraph [ref=e174]: Open
+              - button "1 Critical" [ref=e175] [cursor=pointer]:
+                - generic [ref=e176]:
+                  - img [ref=e179]
+                  - generic [ref=e183]: "1"
+                  - paragraph [ref=e184]: Critical
+              - button "3 Overdue Actions" [ref=e185] [cursor=pointer]:
+                - generic [ref=e186]:
+                  - img [ref=e189]
+                  - generic [ref=e194]: "3"
+                  - paragraph [ref=e195]: Overdue Actions
+              - button "1 Pending Approvals" [ref=e196] [cursor=pointer]:
+                - generic [ref=e197]:
+                  - img [ref=e200]
+                  - generic [ref=e205]: "1"
+                  - paragraph [ref=e206]: Pending Approvals
+            - generic [ref=e208]:
+              - generic [ref=e209]:
+                - img [ref=e210]
+                - heading "Filters" [level=3] [ref=e212]
+              - button [ref=e214] [cursor=pointer]:
+                - img
+            - generic [ref=e216]:
+              - generic [ref=e218]:
+                - generic [ref=e220]:
+                  - generic [ref=e221]:
+                    - img [ref=e222]
+                    - text: Pending Dept. Rep. Approval
+                  - generic [ref=e226]:
+                    - img [ref=e227]
+                    - text: Overdue
+                - generic [ref=e231]:
+                  - generic [ref=e232]: Pending With
+                  - generic [ref=e233]:
+                    - generic [ref=e234]:
+                      - img [ref=e235]
+                      - text: No user assigned to this role
+                    - generic [ref=e237]: Contact admin to assign a Department Representative
+                - generic [ref=e238]:
+                  - link "worker not wearining ppr in confice spaces" [ref=e239] [cursor=pointer]:
+                    - /url: /incidents/ba657534-578d-4077-9dea-e4b097565e29
+                    - heading "worker not wearining ppr in confice spaces" [level=3] [ref=e240]
+                  - generic [ref=e241]:
+                    - img [ref=e242]
+                    - generic [ref=e245]: OBS-2026-0007
+                - generic [ref=e246]:
+                  - generic [ref=e247]: Observation
+                  - generic [ref=e248]: Level 3 - Serious
+                - generic [ref=e249]:
+                  - img [ref=e250]
+                  - generic [ref=e253]: Eastern Province Ops › Room 01
+                - generic [ref=e254]:
+                  - generic [ref=e255]:
+                    - img [ref=e256]
+                    - text: about 1 month ago
+                  - link "View Details" [ref=e258] [cursor=pointer]:
+                    - /url: /incidents/ba657534-578d-4077-9dea-e4b097565e29
+                    - text: View Details
+                    - img
+              - generic [ref=e260]:
+                - generic [ref=e262]:
+                  - generic [ref=e263]:
+                    - img [ref=e264]
+                    - text: Under Investigation
+                  - generic [ref=e267]:
+                    - img [ref=e268]
+                    - text: Overdue
+                - generic [ref=e272]:
+                  - generic [ref=e273]: Pending With
+                  - generic [ref=e274]:
+                    - generic [ref=e275]:
+                      - img [ref=e276]
+                      - text: No user assigned to this role
+                    - generic [ref=e278]: Contact admin to assign a Investigator
+                - generic [ref=e279]:
+                  - link "Worker performed tasks on third-floor balcony." [ref=e280] [cursor=pointer]:
+                    - /url: /incidents/a6623839-d35e-4c30-b017-a3975eb8ae9a
+                    - heading "Worker performed tasks on third-floor balcony." [level=3] [ref=e281]
+                  - generic [ref=e282]:
+                    - img [ref=e283]
+                    - generic [ref=e286]: INC-2025-0006
+                - generic [ref=e287]:
+                  - generic [ref=e288]: Incident
+                  - generic [ref=e289]: Level 4 - Major
+                - generic [ref=e290]:
+                  - img [ref=e291]
+                  - generic [ref=e294]: Eastern Province Ops › Room 01 › 24.952915, 46.575897
+                - generic [ref=e295]:
+                  - generic [ref=e296]:
+                    - img [ref=e297]
+                    - text: 3 months ago
+                  - link "View Details" [ref=e299] [cursor=pointer]:
+                    - /url: /incidents/a6623839-d35e-4c30-b017-a3975eb8ae9a
+                    - text: View Details
+                    - img
+              - generic [ref=e301]:
+                - generic [ref=e303]:
+                  - generic [ref=e304]:
+                    - img [ref=e305]
+                    - text: Under Investigation
+                  - generic [ref=e308]:
+                    - img [ref=e309]
+                    - text: Overdue
+                - generic [ref=e313]:
+                  - generic [ref=e314]: Pending With
+                  - generic [ref=e315]:
+                    - generic [ref=e316]:
+                      - img [ref=e317]
+                      - text: No user assigned to this role
+                    - generic [ref=e319]: Contact admin to assign a Investigator
+                - generic [ref=e320]:
+                  - link "Forklift near-collision with pedestrian in warehouse aisle" [ref=e321] [cursor=pointer]:
+                    - /url: /incidents/5a22bd20-f122-4ac9-8a74-cdf7d1b594c1
+                    - heading "Forklift near-collision with pedestrian in warehouse aisle" [level=3] [ref=e322]
+                  - generic [ref=e323]:
+                    - img [ref=e324]
+                    - generic [ref=e327]: INC-2025-0003
+                - generic [ref=e328]:
+                  - generic [ref=e329]: Incident
+                  - generic [ref=e330]: Level 1 - Low
+                - generic [ref=e331]:
+                  - img [ref=e332]
+                  - generic [ref=e335]: Eastern Province Ops › Al-Khobar Refinery › 24.934297, 46.645108
+                - generic [ref=e336]:
+                  - generic [ref=e337]:
+                    - img [ref=e338]
+                    - text: 4 months ago
+                  - link "View Details" [ref=e340] [cursor=pointer]:
+                    - /url: /incidents/5a22bd20-f122-4ac9-8a74-cdf7d1b594c1
+                    - text: View Details
+                    - img
+              - generic [ref=e342]:
+                - generic [ref=e345]:
+                  - img [ref=e346]
+                  - text: Closed
+                - generic [ref=e349]:
+                  - link "Wet floor at main entrance; install warning signs." [ref=e350] [cursor=pointer]:
+                    - /url: /incidents/d60d43d1-3893-4df1-be1f-fd3366820d81
+                    - heading "Wet floor at main entrance; install warning signs." [level=3] [ref=e351]
+                  - generic [ref=e352]:
+                    - img [ref=e353]
+                    - generic [ref=e356]: OBS-2025-0001
+                - generic [ref=e357]:
+                  - generic [ref=e358]: Observation
+                  - generic [ref=e359]: Level 2 - Moderate
+                - generic [ref=e360]:
+                  - img [ref=e361]
+                  - generic [ref=e364]: Eastern Province Ops › Al-Khobar Refinery › 24.934169, 46.644601
+                - generic [ref=e365]:
+                  - generic [ref=e366]:
+                    - img [ref=e367]
+                    - text: 4 months ago
+                  - link "View Details" [ref=e369] [cursor=pointer]:
+                    - /url: /incidents/d60d43d1-3893-4df1-be1f-fd3366820d81
+                    - text: View Details
+                    - img
+```
