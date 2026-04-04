@@ -289,9 +289,9 @@ export function useApproveCompany() {
                 })
                 .eq("id", companyId)
                 .select("id, company_name, tenant_id")
-                .single();
+                .single()
+                .throwOnError();
 
-            if (error) throw error;
             return data;
         },
         onSuccess: async (data) => {
