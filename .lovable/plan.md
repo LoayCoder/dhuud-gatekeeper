@@ -1,50 +1,43 @@
 
 
-# Fix: "No site representative found to invite" for GBR Company
+# Fix: Revert Incorrect Site Rep → Company Rep Sync and Fix Invitation Logic
 
-## Root Cause
+## Problem
 
-The system has **two separate tables** for contractor representatives:
+The previous fix incorrectly treated `contractor_site_representatives` and `contractor_representatives` as the same entity. They are **different users**:
 
-1. **`contractor_site_representatives`** — where the Personnel tab saves site rep data (has the GBR rep: إسلام محمد / islam@gbrksa.com)
-2. **`contractor_representatives`** — where the "Send Portal Invitation" button looks for `is_primary = true` records
+- **`contractor_representatives`** = company representatives who receive portal invitations
+- **`contractor_site_representatives`** = on-site personnel (different role, different people)
 
-The invitation handler at line 127 queries `contractor_representatives` and finds zero rows, so it shows "No site representative found to invite." The data exists, just in the wrong table from the invitation code's perspective.
+The previous changes:
+1. Made `handleSendPortalInvitation` prefer site reps over company reps — **wrong**
+2. Added sync logic in `useUpsertSiteRep` that overwrites company rep data with site rep data — **data corruption**
+
+For GBR: there is no company representative in `contractor_representatives`. The correct behavior is to show a clear message telling the admin to add a company representative first.
 
 ## Fix
 
-### Step 1: Update `handleSendPortalInvitation` to use `contractor_site_representatives`
+### Step 1: Revert invitation handler to use only `contractor_representatives`
 
-In `CompanyDetailDialog.tsx`, modify the invitation handler to use the `siteRepFromTable` data (already fetched from `contractor_site_representatives` at line 34) instead of searching `representatives` (from `contractor_representatives`).
+In `CompanyDetailDialog.tsx`, change `handleSendPortalInvitation` back to only look at `representatives` (from `contractor_representatives`). Remove the `siteRepFromTable` fallback logic. Show a clear error message: "No company representative found. Please add a company representative with an email first."
 
-Replace:
-```typescript
-const primaryRep = representatives.find(r => r.is_primary);
-if (!primaryRep) {
-  toast.error(...);
-  return;
-}
-```
+### Step 2: Remove the sync logic from `useUpsertSiteRep`
 
-With logic that uses `siteRepFromTable` (which has `id`, `email`, `full_name`) as the invitation target. Fall back to `representatives.find(r => r.is_primary)` if the site rep table is empty.
+In `use-contractor-site-rep.ts`, remove the `onSuccess` sync block (lines 129–165) that copies site rep data into `contractor_representatives`. These are different people — syncing them corrupts company rep data.
 
-### Step 2: Update the invitation button visibility condition
+### Step 3: Update the Edge Function — no changes needed
 
-Line 366 already checks `siteRep && siteRep.email`, but the handler ignores this data. Align the handler to use the same `siteRepFromTable` source.
-
-### Step 3: Also sync site rep data to `contractor_representatives`
-
-When a site rep is saved via the Personnel tab (using `useUpsertSiteRep`), also upsert a matching row into `contractor_representatives` with `is_primary = true`. This ensures both tables stay in sync for any other code that queries `contractor_representatives`.
+The edge function already correctly queries `contractor_representatives` only. No changes required there.
 
 ## Files Changed
 
 | File | Change |
 |------|--------|
-| `src/features/contractors/components/CompanyDetailDialog.tsx` | Use `siteRepFromTable` in `handleSendPortalInvitation` |
-| `src/features/contractors/hooks/use-contractor-site-rep.ts` | Add sync to `contractor_representatives` in `useUpsertSiteRep` |
+| `src/features/contractors/components/CompanyDetailDialog.tsx` | Revert invitation handler to use only `contractor_representatives` |
+| `src/features/contractors/hooks/use-contractor-site-rep.ts` | Remove sync-to-contractor_representatives logic from `onSuccess` |
 
 ## Impact
-- GBR's islam@gbrksa.com will receive the portal invitation immediately
-- Future site rep saves will sync to both tables
-- No data migration needed — the fix uses the existing data
+- Company rep data will no longer be overwritten by site rep data
+- Invitation will correctly target company representatives only
+- Admin gets a clear message to add a company representative if none exists for a company like GBR
 
