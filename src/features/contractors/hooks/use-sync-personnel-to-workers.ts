@@ -184,7 +184,8 @@ export function useSyncPersonnelToWorkers() {
               approved_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             })
-            .eq("id", existingWorker.id);
+            .eq("id", existingWorker.id)
+            .throwOnError();
 
           if (updateError) {
             console.error("[useSyncPersonnelToWorkers] Error updating safety officer worker:", updateError);
