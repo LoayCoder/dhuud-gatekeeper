@@ -1,23 +1,18 @@
 
 
-# Fix: "Failed to Load Application" — Stale Vite Cache
+# Fix: Vite Dependency Cache Not Regenerated
 
 ## Root Cause
-
-The Vite dependency pre-bundle cache (`node_modules/.vite/deps/`) has a stale browser hash. The browser is requesting modules with hash `?v=336c510b` but the current Vite cache has hash `57d0ed94`. This mismatch causes every ES module import to fail silently, triggering the `onerror` handler on the main `<script>` tag ("Main module failed to load").
-
-This is NOT a code bug — it's a stale dev cache. The build succeeds and all files serve correctly from the dev server, but the hash mismatch breaks module resolution.
+The previous fix deleted `node_modules/.vite/deps/` but the Vite dev server never completed re-optimization. Only a partial temp folder (`deps_temp_6b86385f`) exists. Every ES module import fails because the pre-bundled deps aren't available, causing "Main module failed to load."
 
 ## Fix
 
-### Step 1: Clear Vite dep cache and force rebuild
-- Delete `node_modules/.vite/deps/` directory
-- Make a trivial comment change in `src/App.tsx` (line 1: change `v3` → `v4`) to force the dev server to restart and regenerate the dep cache with fresh hashes
+### Step 1: Clean up stale temp cache
+Delete `node_modules/.vite/` entirely (including the orphaned temp folder).
 
-That single change will trigger a dev server restart, which regenerates the Vite dependency cache with matching hashes, and the app will load normally.
+### Step 2: Force Vite to re-optimize
+Bump the comment in `src/App.tsx` line 1 from `v4` → `v5`. This triggers a full dev server restart which will regenerate the dependency cache from scratch.
 
-## Technical Detail
-- File changed: `src/App.tsx` line 1 (comment only)
-- Cache cleared: `node_modules/.vite/deps/` (auto-regenerated on restart)
-- No functional code changes needed
+## Result
+Vite will re-run dependency pre-bundling on restart, creating a fresh `deps/` folder with correct hashes, and the app will load normally.
 
