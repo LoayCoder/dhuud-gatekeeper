@@ -237,103 +237,104 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const submitData = {
-      ...formData,
-      client_site_rep_id: formData.client_site_rep_id || null,
-      assigned_branch_id: formData.assigned_branch_id || null,
-      assigned_department_id: formData.assigned_department_id || null,
-      assigned_section_id: formData.assigned_section_id || null,
-      contract_start_date: formData.contract_start_date || null,
-      contract_end_date: formData.contract_end_date || null,
-      safety_officers_count: safetyOfficers.length,
-      // No legacy site rep fields - data goes to contractor_site_representatives table only
-    };
+    try {
+      const submitData = {
+        ...formData,
+        client_site_rep_id: formData.client_site_rep_id || null,
+        assigned_branch_id: formData.assigned_branch_id || null,
+        assigned_department_id: formData.assigned_department_id || null,
+        assigned_section_id: formData.assigned_section_id || null,
+        contract_start_date: formData.contract_start_date || null,
+        contract_end_date: formData.contract_end_date || null,
+        safety_officers_count: safetyOfficers.length,
+      };
 
-    let companyId: string;
+      let companyId: string;
 
-    if (isEditing) {
-      await updateCompany.mutateAsync({ id: company.id, data: submitData });
-      companyId = company.id;
-    } else {
-      const result = await createCompany.mutateAsync(submitData);
-      companyId = result.id;
-    }
-
-    // Sync site rep and safety officers to contractor_workers table
-    if (profile?.tenant_id) {
-      await syncPersonnel.mutateAsync({
-        companyId,
-        tenantId: profile.tenant_id,
-        siteRep: siteRepData.full_name && siteRepData.national_id ? siteRepData : null,
-        safetyOfficers: safetyOfficers.filter(o => o.full_name && o.national_id),
-      });
-    }
-
-    // Send notifications for new companies
-    if (profile?.tenant_id && !isEditing) {
-      const hasContactsWithPhones = 
-        siteRepData.mobile_number || 
-        safetyOfficers.some(o => o.mobile_number);
-
-      // Build recipients list for welcome notification
-      const welcomeRecipients: Array<{ name: string; phone: string; email?: string }> = [];
-      
-      if (siteRepData.mobile_number) {
-        welcomeRecipients.push({
-          name: siteRepData.full_name,
-          phone: siteRepData.mobile_number,
-          email: siteRepData.email || undefined,
-        });
+      if (isEditing) {
+        await updateCompany.mutateAsync({ id: company.id, data: submitData });
+        companyId = company.id;
+      } else {
+        const result = await createCompany.mutateAsync(submitData);
+        companyId = result.id;
       }
-      
-      safetyOfficers.filter(o => o.mobile_number).forEach(o => {
-        welcomeRecipients.push({
-          name: o.full_name,
-          phone: o.mobile_number,
-          email: o.email || undefined,
-        });
-      });
 
-      // Send welcome notification (in background)
-      if (welcomeRecipients.length > 0) {
-        supabase.functions.invoke('send-contractor-welcome', {
-          body: {
-            tenant_id: profile.tenant_id,
-            company_id: companyId,
-            company_name: formData.company_name,
-            contract_end_date: formData.contract_end_date || undefined,
-            recipients: welcomeRecipients,
-          },
-        }).catch(err => {
-          console.warn('[CompanyFormDialog] Failed to send welcome notification:', err);
+      // Sync site rep and safety officers to contractor_workers table
+      if (profile?.tenant_id) {
+        await syncPersonnel.mutateAsync({
+          companyId,
+          tenantId: profile.tenant_id,
+          siteRep: siteRepData.full_name && siteRepData.national_id ? siteRepData : null,
+          safetyOfficers: safetyOfficers.filter(o => o.full_name && o.national_id),
         });
       }
 
-      // Send ID cards via WhatsApp/Email
-      if (hasContactsWithPhones) {
-        sendIdCards.mutate({
-          company_id: companyId,
-          tenant_id: profile.tenant_id,
-          company_name: formData.company_name,
-          contract_end_date: formData.contract_end_date || undefined,
-          site_rep: siteRepData.mobile_number ? {
+      // Send notifications for new companies
+      if (profile?.tenant_id && !isEditing) {
+        const hasContactsWithPhones = 
+          siteRepData.mobile_number || 
+          safetyOfficers.some(o => o.mobile_number);
+
+        const welcomeRecipients: Array<{ name: string; phone: string; email?: string }> = [];
+        
+        if (siteRepData.mobile_number) {
+          welcomeRecipients.push({
             name: siteRepData.full_name,
             phone: siteRepData.mobile_number,
             email: siteRepData.email || undefined,
-          } : undefined,
-          safety_officers: safetyOfficers
-            .filter(o => o.mobile_number)
-            .map(o => ({
-              id: o.id,
-              name: o.full_name,
-              phone: o.mobile_number,
-              email: o.email || undefined,
-            })),
+          });
+        }
+        
+        safetyOfficers.filter(o => o.mobile_number).forEach(o => {
+          welcomeRecipients.push({
+            name: o.full_name,
+            phone: o.mobile_number,
+            email: o.email || undefined,
+          });
         });
-      }
-    }
 
-    onOpenChange(false);
+        if (welcomeRecipients.length > 0) {
+          supabase.functions.invoke('send-contractor-welcome', {
+            body: {
+              tenant_id: profile.tenant_id,
+              company_id: companyId,
+              company_name: formData.company_name,
+              contract_end_date: formData.contract_end_date || undefined,
+              recipients: welcomeRecipients,
+            },
+          }).catch(err => {
+            console.warn('[CompanyFormDialog] Failed to send welcome notification:', err);
+          });
+        }
+
+        if (hasContactsWithPhones) {
+          sendIdCards.mutate({
+            company_id: companyId,
+            tenant_id: profile.tenant_id,
+            company_name: formData.company_name,
+            contract_end_date: formData.contract_end_date || undefined,
+            site_rep: siteRepData.mobile_number ? {
+              name: siteRepData.full_name,
+              phone: siteRepData.mobile_number,
+              email: siteRepData.email || undefined,
+            } : undefined,
+            safety_officers: safetyOfficers
+              .filter(o => o.mobile_number)
+              .map(o => ({
+                id: o.id,
+                name: o.full_name,
+                phone: o.mobile_number,
+                email: o.email || undefined,
+              })),
+          });
+        }
+      }
+
+      onOpenChange(false);
+    } catch (error: unknown) {
+      console.error('[CompanyFormDialog] Submit failed:', error);
+      toast.error(error instanceof Error ? error.message : t("contractors.messages.saveFailed", "Failed to save company"));
+    }
   };
 
   const handleChange = (field: keyof FormData, value: string | number) => {

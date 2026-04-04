@@ -361,9 +361,9 @@ export function useRejectCompany() {
                 })
                 .eq("id", companyId)
                 .select("id, company_name, tenant_id")
-                .single();
+                .single()
+                .throwOnError();
 
-            if (error) throw error;
             return { ...data, reason, createdBy: companyData?.created_by };
         },
         onSuccess: async (data) => {
