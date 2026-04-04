@@ -242,7 +242,8 @@ export function useSyncPersonnelToWorkers() {
               is_primary: officer.is_primary || false,
               updated_at: new Date().toISOString(),
             })
-            .eq("id", existingOfficerRecord.id);
+            .eq("id", existingOfficerRecord.id)
+            .throwOnError();
         } else {
           // Create new safety officer record
           await supabase
