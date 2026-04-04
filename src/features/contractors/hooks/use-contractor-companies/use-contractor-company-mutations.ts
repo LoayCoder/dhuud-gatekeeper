@@ -207,9 +207,8 @@ export function useCheckExpiredContracts() {
                 .lt("contract_end_date", today)
                 .eq("status", "active")
                 .is("deleted_at", null)
-                .select("id");
-
-            if (error) throw error;
+                .select("id")
+                .throwOnError();
             return data;
         },
         onSuccess: (data) => {
