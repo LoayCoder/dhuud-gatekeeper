@@ -436,6 +436,7 @@ export default function Login() {
               title: t('auth.welcomeBack'),
               description: t('auth.loginSuccess'),
             });
+            hasNavigated.current = true;
             navigate(returnTo);
             return;
           }
