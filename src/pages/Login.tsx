@@ -260,6 +260,7 @@ export default function Login() {
     checkPasswordBreach(passwordRef.current);
     passwordRef.current = '';
 
+    hasNavigated.current = true;
     navigate(returnTo);
   };
 
