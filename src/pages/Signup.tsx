@@ -132,6 +132,11 @@ export default function Signup() {
         assigned_department_id?: string;
         assigned_section_id?: string;
         role_ids?: string[];
+        // Contractor representative metadata
+        type?: string;
+        company_id?: string;
+        representative_id?: string;
+        company_name?: string;
       }
 
       const inviteData = inviteResult as unknown as {
@@ -141,6 +146,7 @@ export default function Signup() {
         metadata?: InviteMetadata;
       };
       const metadata = inviteData.metadata || {};
+      const isContractorRep = metadata.type === 'contractor_representative';
 
       // 2. Sign up user
       const redirectUrl = `${window.location.origin}/`;
@@ -191,7 +197,34 @@ export default function Signup() {
         }
 
         // 4. Assign roles if present in metadata
-        if (metadata.role_ids && metadata.role_ids.length > 0) {
+        if (isContractorRep) {
+          // For contractor representatives: link user to contractor_representatives and assign contractor_site_rep role
+          if (metadata.representative_id) {
+            const { error: linkError } = await supabase
+              .from('contractor_representatives')
+              .update({ user_id: authData.user.id })
+              .eq('id', metadata.representative_id);
+
+            if (linkError) {
+              console.error('Failed to link contractor representative:', linkError);
+            }
+          }
+
+          // Assign contractor_site_rep role
+          const { data: roleData } = await supabase
+            .from('roles')
+            .select('id')
+            .eq('code', 'contractor_site_rep')
+            .single();
+
+          if (roleData?.id) {
+            await supabase.from('user_role_assignments').insert({
+              user_id: authData.user.id,
+              role_id: roleData.id,
+              tenant_id: inviteData.tenant_id,
+            });
+          }
+        } else if (metadata.role_ids && metadata.role_ids.length > 0) {
           const roleAssignments = metadata.role_ids.map((roleId: string) => ({
             user_id: authData.user!.id,
             role_id: roleId,
@@ -212,10 +245,12 @@ export default function Signup() {
 
         toast({
           title: t('signup.accountCreated'),
-          description: t('signup.setupMfaMessage'),
+          description: isContractorRep 
+            ? t('signup.contractorAccountReady', 'Your contractor portal account is ready.')
+            : t('signup.setupMfaMessage'),
         });
 
-        // Auto-login the user and redirect to MFA setup
+        // Auto-login the user
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: invitationEmail,
           password,
@@ -225,8 +260,8 @@ export default function Signup() {
           // If auto-login fails, redirect to login
           navigate('/login');
         } else {
-          // Redirect to mandatory MFA setup
-          navigate('/mfa-setup');
+          // Redirect contractor reps to contractor portal, others to MFA setup
+          navigate(isContractorRep ? '/contractor-portal' : '/mfa-setup');
         }
       }
     } catch (err) {
