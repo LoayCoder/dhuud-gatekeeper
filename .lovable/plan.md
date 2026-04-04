@@ -1,45 +1,35 @@
 
 
-# Fix: Full Branch Access Not Working + Branch/Roles Display
+# Remaining Fix: Worker Management Mutations Missing `.throwOnError()`
 
-## Root Cause
+## Status of Previous Fixes
 
-The `AuthContext.fetchProfile` query (line 80 of `AuthContext.tsx`) does NOT select `has_full_branch_access` or `is_super_admin`:
+| Fix | Status |
+|-----|--------|
+| `.throwOnError()` on company mutations | ✅ Already done |
+| `.throwOnError()` on personnel sync | ✅ Already done |
+| RLS policies → `assigned_branch_id` (companies) | ✅ Already done |
+| RLS policies → `assigned_branch_id` (workers) | ✅ Already done |
+| CompanyFormDialog try/catch | ✅ Already done |
+| **Worker management mutations `.throwOnError()`** | ❌ **Not done** |
 
-```
-.select('id, full_name, avatar_url, tenant_id, preferred_language, assigned_branch_id, assigned_site_id, assigned_department_id, contractor_company_name, is_deleted, is_active')
-```
+## What Remains
 
-This means `BranchContext` always evaluates `hasFullBranchAccess` as `false`, so:
-- Users with "Full Access to All Branches" are treated as single-branch users
-- The branch switcher doesn't show "All Branches" option
-- Frontend queries filter by the user's (null) assigned branch, hiding DGC companies
-- The User Management table shows "-" for branch because the RPC returns NULL `branch_name` for full-access users (since `assigned_branch_id` is NULL by design)
+**File:** `src/features/contractors/hooks/use-contractor-workers/use-worker-management-mutations.ts`
+
+5 mutations still use the old `if (error) throw error` pattern instead of `.throwOnError()`:
+
+1. **`useRejectWorker`** (lines 29-34) — worker info SELECT missing `.throwOnError()`, update missing `.throwOnError()`
+2. **`useBulkApproveWorkers`** (lines 86-90) — update+select missing `.throwOnError()`
+3. **`useBulkRejectWorkers`** (lines 112-116) — update+select missing `.throwOnError()`
+4. **`useDeleteContractorWorker`** (lines 138-141) — update missing `.throwOnError()`
+5. **`useUpdateWorkerStatus`** (lines 184-189) — update+select missing `.throwOnError()`
 
 ## Plan
 
-### Step 1: Add missing columns to AuthContext profile query
-Add `has_full_branch_access` and `is_super_admin` to the `.select()` in `AuthContext.tsx` line 80.
+### Step 1: Add `.throwOnError()` to all 5 worker mutations
 
-### Step 2: Update RPC to show branch info for full-access/multi-branch users
-Modify `get_users_with_roles_paginated` to:
-- Return `'All Branches'` as `branch_name` when `has_full_branch_access = true`
-- For users with multiple branch assignments (via `user_branch_assignments`), aggregate branch names
+Replace the `if (error) throw error` pattern with `.throwOnError()` on every Supabase chain in this file. Remove the now-redundant `error` destructuring and manual throw.
 
-### Step 3: Update table UI for "All Branches" display
-In `UserManagementTable.tsx` line 114, show "All Branches" badge when `has_full_branch_access` is true instead of "-".
-
-## Files Changed
-
-| File | Change |
-|------|--------|
-| `src/contexts/AuthContext.tsx` | Add `has_full_branch_access, is_super_admin` to select |
-| DB migration | Update `get_users_with_roles_paginated` RPC |
-| `src/pages/admin/UserManagement/UserManagementTable.tsx` | Show "All Branches" badge |
-
-## Impact
-- Full-access users will see all branches' data (including GBR DGC)
-- Branch column will show "All Branches" instead of "-"
-- Multi-branch users will see their assigned branch names
-- No security changes — RLS already handles this correctly via `can_access_branch()`
+No other files need changes — the rest of the audit is clean.
 
