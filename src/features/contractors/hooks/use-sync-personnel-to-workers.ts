@@ -129,13 +129,6 @@ export function useSyncPersonnelToWorkers() {
             console.error("[useSyncPersonnelToWorkers] Error creating site rep worker:", insertError);
           } else {
             results.siteRepWorkerId = newWorker.id;
-            // Link worker to site rep record
-            if (results.siteRepId) {
-              await supabase
-                .from("contractor_site_representatives")
-                .update({ worker_id: newWorker.id })
-                .eq("id", results.siteRepId);
-            }
           }
         }
       }
