@@ -46,7 +46,8 @@ export function useSyncPersonnelToWorkers() {
               photo_path: siteRep.photo_path,
               status: 'active',
             })
-            .eq("id", existingSiteRepRecord.id);
+            .eq("id", existingSiteRepRecord.id)
+            .throwOnError();
 
           if (updateError) {
             console.error("[useSyncPersonnelToWorkers] Error updating site rep record:", updateError);
