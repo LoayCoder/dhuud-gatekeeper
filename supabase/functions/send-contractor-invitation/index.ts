@@ -19,6 +19,17 @@ interface InvitationRequest {
   tenant_id: string;
 }
 
+function generateInvitationCode(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  const arr = new Uint8Array(8);
+  crypto.getRandomValues(arr);
+  for (let i = 0; i < 8; i++) {
+    code += chars[arr[i] % chars.length];
+  }
+  return code;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -38,7 +49,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get representative and company details including preferred_language
+    // Get representative and company details
     const { data: rep, error: repError } = await supabase
       .from('contractor_representatives')
       .select('full_name, email, mobile_number, company:contractor_companies(company_name)')
@@ -87,12 +98,51 @@ Deno.serve(async (req) => {
     // Get localized translations
     const t = getTranslations(CONTRACTOR_TRANSLATIONS, userLanguage).invitation;
 
-    // Generate portal access token
-    const portalToken = crypto.randomUUID();
+    // Generate unique invitation code
+    const invitationCode = generateInvitationCode();
+
+    // Set expiry to 7 days from now
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    // Create invitation record in invitations table
+    const { error: inviteInsertError } = await supabase
+      .from('invitations')
+      .insert({
+        code: invitationCode,
+        email: rep.email,
+        full_name: rep.full_name || null,
+        tenant_id,
+        expires_at: expiresAt.toISOString(),
+        metadata: {
+          type: 'contractor_representative',
+          company_id,
+          representative_id,
+          company_name: companyName,
+        },
+        delivery_channel: 'email',
+        used: false,
+      });
+
+    if (inviteInsertError) {
+      console.error('Failed to create invitation record:', inviteInsertError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to create invitation', details: inviteInsertError.message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Build the invite URL with code
+    const inviteUrl = `${appUrl}/invite?code=${invitationCode}`;
 
     // Build localized email content
     const subject = replaceVariables(t.subject, { tenant: tenantName });
     const bodyText = replaceVariables(t.body, { tenant: tenantName, company: companyName });
+
+    const codeLabel = rtl ? 'رمز الدعوة' : 'Invitation Code';
+    const codeInstruction = rtl
+      ? 'استخدم هذا الرمز للتسجيل وإنشاء حسابك:'
+      : 'Use this code to register and create your account:';
 
     const emailContent = `
       <div style="background: linear-gradient(135deg, #1a56db 0%, #3b82f6 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
@@ -114,6 +164,13 @@ Deno.serve(async (req) => {
             </tr>
           </table>
         </div>
+
+        <!-- Invitation Code Box -->
+        <div style="background: #eef2ff; border: 2px dashed #1a56db; border-radius: 12px; padding: 24px; margin: 24px 0; text-align: center;">
+          <p style="margin: 0 0 8px; font-size: 14px; color: #64748b;">${codeInstruction}</p>
+          <p style="margin: 0 0 4px; font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">${codeLabel}</p>
+          <p style="margin: 0; font-size: 32px; font-weight: bold; color: #1a56db; letter-spacing: 4px; font-family: monospace;">${invitationCode}</p>
+        </div>
         
         <p><strong>${t.features}</strong></p>
         <ul style="margin: 16px 0; padding-${rtl ? 'right' : 'left'}: 20px;">
@@ -123,7 +180,7 @@ Deno.serve(async (req) => {
           <li style="margin: 8px 0;">${t.feature4}</li>
         </ul>
         
-        ${emailButton(t.button, `${appUrl}/contractor-portal`, "#1a56db", rtl)}
+        ${emailButton(t.button, inviteUrl, "#1a56db", rtl)}
       </div>
     `;
 
@@ -145,7 +202,7 @@ Deno.serve(async (req) => {
       new_value: { 
         email: rep.email, 
         company_id, 
-        portal_token: portalToken,
+        invitation_code: invitationCode,
         email_sent: emailResult.success,
         email_error: emailResult.error,
         language: userLanguage
@@ -164,7 +221,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Contractor invitation sent to ${rep.email} for company ${companyName} in ${userLanguage}`);
+    console.log(`Contractor invitation sent to ${rep.email} for company ${companyName} with code ${invitationCode}`);
 
     return new Response(
       JSON.stringify({
@@ -175,7 +232,7 @@ Deno.serve(async (req) => {
           email: rep.email,
           company: companyName,
         },
-        portal_token: portalToken,
+        invitation_code: invitationCode,
         language: userLanguage,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
