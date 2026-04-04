@@ -322,7 +322,7 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
                         <User className="h-4 w-4 text-muted-foreground" />
                         {siteRep.full_name}
                       </div>
-                      {(siteRep.phone || siteRep.mobile_number) && getSiteRepPersonData() && (
+                      {siteRep.mobile_number && getSiteRepPersonData() && (
                         <IDCardActionButton
                           cardType="contractor_rep"
                           entityId={siteRep.id || company.id}
