@@ -141,8 +141,8 @@ export function useUpsertSiteRep() {
           const repData = {
             full_name: data.full_name,
             email: data.email || null,
-            phone: data.mobile_number,
-            is_primary: true,
+            mobile_number: data.mobile_number,
+            is_primary: true as const,
           };
 
           if (existingRep) {
