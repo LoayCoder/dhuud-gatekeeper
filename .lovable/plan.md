@@ -1,33 +1,45 @@
 
 
-# Fix: App Loading + Branch/Roles Showing "-"
+# Fix: Full Branch Access Not Working + Branch/Roles Display
 
-## Two Issues
+## Root Cause
 
-### Issue 1: App Fails to Load (503 on module)
-The Vite dev server is returning 503 for `ptw.routes.tsx` due to stale HMR timestamps. The WebSocket connection also fails (503). This needs a clean server restart by deleting `node_modules/.vite` and making a change to `vite.config.ts` (config changes force full server restarts, unlike source file changes which only trigger HMR).
+The `AuthContext.fetchProfile` query (line 80 of `AuthContext.tsx`) does NOT select `has_full_branch_access` or `is_super_admin`:
 
-### Issue 2: Branch & Roles Columns
-After investigating the database, the data IS correct — users like LUAY IBRAHIM have `branch_name = RGC` and multiple roles (admin, manager, etc.), while some users (Abdullah Alazwari, Faisal Alsaleh) genuinely have no branch and only `normal_user` role (which is filtered out, showing "-"). The RPC `get_users_with_roles_paginated` returns this data correctly.
+```
+.select('id, full_name, avatar_url, tenant_id, preferred_language, assigned_branch_id, assigned_site_id, assigned_department_id, contractor_company_name, is_deleted, is_active')
+```
 
-However, there may be a timing issue: the app isn't loading at all right now, so we can't verify the table rendering. Once Issue 1 is fixed, we need to verify.
+This means `BranchContext` always evaluates `hasFullBranchAccess` as `false`, so:
+- Users with "Full Access to All Branches" are treated as single-branch users
+- The branch switcher doesn't show "All Branches" option
+- Frontend queries filter by the user's (null) assigned branch, hiding DGC companies
+- The User Management table shows "-" for branch because the RPC returns NULL `branch_name` for full-access users (since `assigned_branch_id` is NULL by design)
 
 ## Plan
 
-### Step 1: Force clean Vite restart
-- Delete `node_modules/.vite/` entirely
-- Add `optimizeDeps.force: true` temporarily in `vite.config.ts` to force dependency re-optimization on next start
-- Bump the version comment in `src/App.tsx` line 1 to `v6`
+### Step 1: Add missing columns to AuthContext profile query
+Add `has_full_branch_access` and `is_super_admin` to the `.select()` in `AuthContext.tsx` line 80.
 
-### Step 2: Verify Branch/Roles display after app loads
-Once the app loads, check if Branch and Roles render correctly. If they still show "-", investigate the RPC response in the browser network tab.
+### Step 2: Update RPC to show branch info for full-access/multi-branch users
+Modify `get_users_with_roles_paginated` to:
+- Return `'All Branches'` as `branch_name` when `has_full_branch_access = true`
+- For users with multiple branch assignments (via `user_branch_assignments`), aggregate branch names
 
-### Step 3 (if needed): Add fallback display for users with `has_full_branch_access`
-Users with `has_full_branch_access = true` may not have a specific `assigned_branch_id`. The table should show "All Branches" instead of "-" for these users. This is a display improvement.
+### Step 3: Update table UI for "All Branches" display
+In `UserManagementTable.tsx` line 114, show "All Branches" badge when `has_full_branch_access` is true instead of "-".
 
-## Summary
-- 1 config change to force Vite restart
-- 1 comment bump to trigger rebuild
-- Cache cleanup
-- Verify Branch/Roles display once app loads
+## Files Changed
+
+| File | Change |
+|------|--------|
+| `src/contexts/AuthContext.tsx` | Add `has_full_branch_access, is_super_admin` to select |
+| DB migration | Update `get_users_with_roles_paginated` RPC |
+| `src/pages/admin/UserManagement/UserManagementTable.tsx` | Show "All Branches" badge |
+
+## Impact
+- Full-access users will see all branches' data (including GBR DGC)
+- Branch column will show "All Branches" instead of "-"
+- Multi-branch users will see their assigned branch names
+- No security changes — RLS already handles this correctly via `can_access_branch()`
 
