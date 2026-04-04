@@ -30,7 +30,7 @@ export function SiteRepWorkerForm({ data, onChange }: SiteRepWorkerFormProps) {
   return (
     <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
       <h4 className="font-medium text-sm">
-        {t("contractors.companies.contractorSiteRep", "Contractor's Site Representative")}
+        {t("contractors.companies.contractorRep", "Contractor's Representative")}
       </h4>
       
       <div className="flex justify-center">
