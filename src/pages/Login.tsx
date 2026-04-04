@@ -525,6 +525,7 @@ export default function Login() {
           title: t('auth.welcomeBack'),
           description: t('auth.biometricSuccess'),
         });
+        hasNavigated.current = true;
         navigate(returnTo);
       }
     } catch (error) {
