@@ -255,7 +255,8 @@ export function useSyncPersonnelToWorkers() {
               phone: officer.mobile_number || officer.phone,
               email: officer.email || null,
               is_primary: officer.is_primary || false,
-            });
+            })
+            .throwOnError();
         }
       }
 
