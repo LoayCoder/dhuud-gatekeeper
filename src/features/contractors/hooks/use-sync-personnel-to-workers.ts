@@ -46,7 +46,8 @@ export function useSyncPersonnelToWorkers() {
               photo_path: siteRep.photo_path,
               status: 'active',
             })
-            .eq("id", existingSiteRepRecord.id);
+            .eq("id", existingSiteRepRecord.id)
+            .throwOnError();
 
           if (updateError) {
             console.error("[useSyncPersonnelToWorkers] Error updating site rep record:", updateError);
@@ -70,7 +71,8 @@ export function useSyncPersonnelToWorkers() {
               status: 'active',
             })
             .select("id")
-            .single();
+            .single()
+            .throwOnError();
 
           if (insertError) {
             console.error("[useSyncPersonnelToWorkers] Error creating site rep record:", insertError);
@@ -102,7 +104,8 @@ export function useSyncPersonnelToWorkers() {
               approved_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             })
-            .eq("id", existingWorker.id);
+            .eq("id", existingWorker.id)
+            .throwOnError();
 
           if (updateError) {
             console.error("[useSyncPersonnelToWorkers] Error updating site rep worker:", updateError);
@@ -133,7 +136,8 @@ export function useSyncPersonnelToWorkers() {
               approved_at: new Date().toISOString(),
             })
             .select("id")
-            .single();
+            .single()
+            .throwOnError();
 
           if (insertError) {
             console.error("[useSyncPersonnelToWorkers] Error creating site rep worker:", insertError);
@@ -180,7 +184,8 @@ export function useSyncPersonnelToWorkers() {
               approved_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             })
-            .eq("id", existingWorker.id);
+            .eq("id", existingWorker.id)
+            .throwOnError();
 
           if (updateError) {
             console.error("[useSyncPersonnelToWorkers] Error updating safety officer worker:", updateError);
@@ -205,7 +210,8 @@ export function useSyncPersonnelToWorkers() {
               approved_at: new Date().toISOString(),
             })
             .select("id")
-            .single();
+            .single()
+            .throwOnError();
 
           if (insertError) {
             console.error("[useSyncPersonnelToWorkers] Error creating safety officer worker:", insertError);
@@ -236,7 +242,8 @@ export function useSyncPersonnelToWorkers() {
               is_primary: officer.is_primary || false,
               updated_at: new Date().toISOString(),
             })
-            .eq("id", existingOfficerRecord.id);
+            .eq("id", existingOfficerRecord.id)
+            .throwOnError();
         } else {
           // Create new safety officer record
           await supabase
@@ -248,7 +255,8 @@ export function useSyncPersonnelToWorkers() {
               phone: officer.mobile_number || officer.phone,
               email: officer.email || null,
               is_primary: officer.is_primary || false,
-            });
+            })
+            .throwOnError();
         }
       }
 
