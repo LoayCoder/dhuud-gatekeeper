@@ -24,17 +24,18 @@ export function useRejectWorker() {
                 .from("contractor_workers")
                 .select("company_id")
                 .eq("id", workerId)
-                .single();
+                .single()
+                .throwOnError();
 
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from("contractor_workers")
                 .update({ approval_status: "rejected", rejection_reason: reason })
                 .eq("id", workerId)
                 .select("id, full_name, tenant_id")
-                .single();
+                .single()
+                .throwOnError();
 
-            if (error) throw error;
-            return { ...data, reason, companyId: workerInfo?.company_id };
+            return { ...data!, reason, companyId: workerInfo?.company_id };
         },
         onSuccess: async (data) => {
             queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
@@ -83,14 +84,14 @@ export function useBulkApproveWorkers() {
 
     return useMutation({
         mutationFn: async (workerIds: string[]) => {
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from("contractor_workers")
                 .update({ approval_status: "approved", approved_at: new Date().toISOString() })
                 .in("id", workerIds)
-                .select();
+                .select()
+                .throwOnError();
 
-            if (error) throw error;
-            return data;
+            return data!;
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
@@ -109,14 +110,14 @@ export function useBulkRejectWorkers() {
 
     return useMutation({
         mutationFn: async ({ workerIds, reason }: { workerIds: string[]; reason: string }) => {
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from("contractor_workers")
                 .update({ approval_status: "rejected", rejection_reason: reason })
                 .in("id", workerIds)
-                .select();
+                .select()
+                .throwOnError();
 
-            if (error) throw error;
-            return data;
+            return data!;
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
@@ -135,12 +136,11 @@ export function useDeleteContractorWorker() {
 
     return useMutation({
         mutationFn: async (workerId: string) => {
-            const { error } = await supabase
+            await supabase
                 .from("contractor_workers")
                 .update({ deleted_at: new Date().toISOString() })
-                .eq("id", workerId);
-
-            if (error) throw error;
+                .eq("id", workerId)
+                .throwOnError();
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
@@ -181,14 +181,14 @@ export function useUpdateWorkerStatus() {
                 updates.rejection_reason = reason || null;
             }
 
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from("contractor_workers")
                 .update(updates)
                 .eq("id", workerId)
                 .select()
-                .single();
+                .single()
+                .throwOnError();
 
-            if (error) throw error;
             return data;
         },
         onSuccess: () => {
