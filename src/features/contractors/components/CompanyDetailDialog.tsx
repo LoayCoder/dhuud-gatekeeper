@@ -123,19 +123,13 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
   const handleSendPortalInvitation = async () => {
     if (!company || company.status !== 'active') return;
     
-    // Use siteRepFromTable (contractor_site_representatives) as primary source,
-    // fall back to contractor_representatives for backwards compatibility
-    const inviteTarget = siteRepFromTable && siteRepFromTable.email
-      ? { id: siteRepFromTable.id, email: siteRepFromTable.email, full_name: siteRepFromTable.full_name }
-      : (() => {
-          const primaryRep = representatives.find(r => r.is_primary);
-          return primaryRep ? { id: primaryRep.id, email: primaryRep.email, full_name: primaryRep.full_name } : null;
-        })();
-
-    if (!inviteTarget || !inviteTarget.email) {
-      toast.error(t("contractors.invitation.noSiteRep", "No site representative found to invite"));
+    // Only use contractor_representatives (company reps) for portal invitations
+    const primaryRep = representatives.find(r => r.is_primary);
+    if (!primaryRep || !primaryRep.email) {
+      toast.error(t("contractors.invitation.noCompanyRep", "No company representative found. Please add a company representative with an email first."));
       return;
     }
+    const inviteTarget = { id: primaryRep.id, email: primaryRep.email, full_name: primaryRep.full_name };
     
     setSendingInvitation(true);
     try {
