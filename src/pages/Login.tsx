@@ -105,6 +105,9 @@ export default function Login() {
   }, [navigate, invitationEmail]);
 
   const checkMFAAndNavigate = async () => {
+    // Guard: only navigate once
+    if (hasNavigated.current) return;
+
     try {
       // CRITICAL: Validate session is still valid before any MFA operations
       const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -119,9 +122,8 @@ export default function Login() {
       const { data: aal, error: aalError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
 
       if (aalError) {
-        // MFA check failed - likely invalid session
-        logger.warn('AAL check failed:', aalError.message);
-        await supabase.auth.signOut({ scope: 'local' });
+        // MFA metadata check failed - don't aggressively sign out, just stay on login
+        logger.warn('AAL check failed (non-fatal):', aalError.message);
         return;
       }
 
@@ -130,6 +132,7 @@ export default function Login() {
         const isTrusted = await checkTrustedDevice(user.id);
         if (isTrusted) {
           // Device is trusted, skip MFA
+          hasNavigated.current = true;
           navigate(returnTo);
           return;
         }
@@ -138,8 +141,8 @@ export default function Login() {
         const { data: factors, error: factorsError } = await supabase.auth.mfa.listFactors();
 
         if (factorsError) {
-          logger.warn('Failed to list MFA factors:', factorsError.message);
-          await supabase.auth.signOut({ scope: 'local' });
+          // Factors check failed - don't sign out, just stay
+          logger.warn('Failed to list MFA factors (non-fatal):', factorsError.message);
           return;
         }
 
@@ -155,12 +158,12 @@ export default function Login() {
 
       // No MFA required or already at AAL2
       if (aal?.currentLevel === 'aal2' || aal?.nextLevel !== 'aal2') {
+        hasNavigated.current = true;
         navigate(returnTo);
       }
     } catch (err) {
       logger.error('Error in checkMFAAndNavigate:', err);
-      // Clear session on any error to prevent stuck state
-      await supabase.auth.signOut({ scope: 'local' });
+      // Don't sign out on unexpected errors - just stay on login page
     }
   };
 
