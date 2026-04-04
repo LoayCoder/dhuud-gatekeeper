@@ -58,7 +58,7 @@ export function SiteRepLockedCard({ data, onChange, isNew = false }: SiteRepLock
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <User className="h-4 w-4" />
-              {t("contractors.companies.contractorSiteRep", "Contractor's Site Representative")}
+               {t("contractors.companies.contractorRep", "Contractor's Representative")}
             </CardTitle>
             <div className="flex gap-1">
               <Button type="button" variant="ghost" size="sm" onClick={handleCancel}>
@@ -147,9 +147,9 @@ export function SiteRepLockedCard({ data, onChange, isNew = false }: SiteRepLock
             </div>
           </div>
 
-          <p className="text-xs text-muted-foreground">
-            {t("contractors.companies.siteRepRequired", "Each company must have exactly ONE site representative. This field is required.")}
-          </p>
+           <p className="text-xs text-muted-foreground">
+             {t("contractors.companies.repRequired", "Each company must have exactly ONE representative. This person will receive the portal invitation.")}
+           </p>
         </CardContent>
       </Card>
     );
@@ -162,7 +162,7 @@ export function SiteRepLockedCard({ data, onChange, isNew = false }: SiteRepLock
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Lock className="h-4 w-4 text-muted-foreground" />
-            {t("contractors.companies.contractorSiteRep", "Contractor's Site Representative")}
+            {t("contractors.companies.contractorRep", "Contractor's Representative")}
           </CardTitle>
           <div className="flex items-center gap-2">
             {hasData && (

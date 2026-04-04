@@ -322,7 +322,7 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
                         <User className="h-4 w-4 text-muted-foreground" />
                         {siteRep.full_name}
                       </div>
-                      {(siteRep.phone || siteRep.mobile_number) && getSiteRepPersonData() && (
+                      {siteRep.mobile_number && getSiteRepPersonData() && (
                         <IDCardActionButton
                           cardType="contractor_rep"
                           entityId={siteRep.id || company.id}
@@ -333,18 +333,18 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
                             name: company.company_name,
                             nameAr: company.company_name_ar || undefined,
                           }}
-                          recipientPhone={siteRep.mobile_number || siteRep.phone || undefined}
+                          recipientPhone={siteRep.mobile_number || undefined}
                         />
                       )}
                     </div>
-                    {(siteRep.mobile_number || siteRep.phone) && (
+                    {siteRep.mobile_number && (
                       <button
                         type="button"
-                        onClick={() => window.location.href = `tel:${siteRep.mobile_number || siteRep.phone}`}
+                        onClick={() => window.location.href = `tel:${siteRep.mobile_number}`}
                         className="flex items-center gap-2 ps-6 text-primary hover:underline"
                       >
                         <Phone className="h-4 w-4" />
-                        {siteRep.mobile_number || siteRep.phone}
+                        {siteRep.mobile_number}
                       </button>
                     )}
                     {siteRep.email && (
