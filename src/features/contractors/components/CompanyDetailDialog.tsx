@@ -123,9 +123,16 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
   const handleSendPortalInvitation = async () => {
     if (!company || company.status !== 'active') return;
     
-    // Find the primary representative (site rep)
-    const primaryRep = representatives.find(r => r.is_primary);
-    if (!primaryRep) {
+    // Use siteRepFromTable (contractor_site_representatives) as primary source,
+    // fall back to contractor_representatives for backwards compatibility
+    const inviteTarget = siteRepFromTable && siteRepFromTable.email
+      ? { id: siteRepFromTable.id, email: siteRepFromTable.email, full_name: siteRepFromTable.full_name }
+      : (() => {
+          const primaryRep = representatives.find(r => r.is_primary);
+          return primaryRep ? { id: primaryRep.id, email: primaryRep.email, full_name: primaryRep.full_name } : null;
+        })();
+
+    if (!inviteTarget || !inviteTarget.email) {
       toast.error(t("contractors.invitation.noSiteRep", "No site representative found to invite"));
       return;
     }
@@ -135,7 +142,7 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
       const { data, error } = await supabase.functions.invoke('send-contractor-invitation', {
         body: {
           company_id: company.id,
-          representative_id: primaryRep.id,
+          representative_id: inviteTarget.id,
           tenant_id: company.tenant_id,
         },
       });
@@ -143,7 +150,7 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
       if (error) throw error;
       
       toast.success(
-        t("contractors.invitation.sent", "Portal invitation sent to {{email}}", { email: primaryRep.email })
+        t("contractors.invitation.sent", "Portal invitation sent to {{email}}", { email: inviteTarget.email })
       );
       
       queryClient.invalidateQueries({ queryKey: ["contractor-representatives-for-linking"] });
