@@ -22,62 +22,55 @@ export function useSyncPersonnelToWorkers() {
         officerWorkerIds: [],
       };
 
-      // Sync Site Representative to BOTH contractor_site_representatives AND contractor_workers
+      // Sync Representative to contractor_representatives (primary source for portal invitations)
       if (siteRep && siteRep.full_name && siteRep.national_id) {
-        // 1. Sync to contractor_site_representatives table (new primary source)
-        const { data: existingSiteRepRecord } = await supabase
-          .from("contractor_site_representatives")
+        // 1. Sync to contractor_representatives table (primary rep for portal invitations)
+        const { data: existingRepRecord } = await supabase
+          .from("contractor_representatives")
           .select("id")
           .eq("company_id", companyId)
+          .eq("is_primary", true)
           .is("deleted_at", null)
           .maybeSingle();
 
-        if (existingSiteRepRecord) {
-          // Update existing site rep record
+        if (existingRepRecord) {
           const { error: updateError } = await supabase
-            .from("contractor_site_representatives")
+            .from("contractor_representatives")
             .update({
               full_name: siteRep.full_name,
               national_id: siteRep.national_id,
               mobile_number: siteRep.mobile_number || siteRep.phone || "N/A",
-              phone: siteRep.phone || null,
               email: siteRep.email || null,
-              nationality: siteRep.nationality || null,
-              photo_path: siteRep.photo_path,
-              status: 'active',
+              updated_at: new Date().toISOString(),
             })
-            .eq("id", existingSiteRepRecord.id)
+            .eq("id", existingRepRecord.id)
             .throwOnError();
 
           if (updateError) {
-            console.error("[useSyncPersonnelToWorkers] Error updating site rep record:", updateError);
+            console.error("[useSyncPersonnelToWorkers] Error updating rep record:", updateError);
           } else {
-            results.siteRepId = existingSiteRepRecord.id;
+            results.siteRepId = existingRepRecord.id;
           }
         } else {
-          // Create new site rep record
-          const { data: newSiteRepRecord, error: insertError } = await supabase
-            .from("contractor_site_representatives")
+          const { data: newRepRecord, error: insertError } = await supabase
+            .from("contractor_representatives")
             .insert({
               tenant_id: tenantId,
               company_id: companyId,
               full_name: siteRep.full_name,
               national_id: siteRep.national_id,
               mobile_number: siteRep.mobile_number || siteRep.phone || "N/A",
-              phone: siteRep.phone || null,
               email: siteRep.email || null,
-              nationality: siteRep.nationality || null,
-              photo_path: siteRep.photo_path,
-              status: 'active',
+              is_primary: true,
             })
             .select("id")
             .single()
             .throwOnError();
 
           if (insertError) {
-            console.error("[useSyncPersonnelToWorkers] Error creating site rep record:", insertError);
+            console.error("[useSyncPersonnelToWorkers] Error creating rep record:", insertError);
           } else {
-            results.siteRepId = newSiteRepRecord.id;
+            results.siteRepId = newRepRecord.id;
           }
         }
 
