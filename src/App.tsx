@@ -1,4 +1,4 @@
-// App component - force rebuild v6
+// App component - force rebuild v7
 import { Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppProviders } from "@/providers/AppProviders";
