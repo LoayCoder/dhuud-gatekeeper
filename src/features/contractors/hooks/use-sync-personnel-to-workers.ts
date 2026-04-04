@@ -71,7 +71,8 @@ export function useSyncPersonnelToWorkers() {
               status: 'active',
             })
             .select("id")
-            .single();
+            .single()
+            .throwOnError();
 
           if (insertError) {
             console.error("[useSyncPersonnelToWorkers] Error creating site rep record:", insertError);
