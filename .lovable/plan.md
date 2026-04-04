@@ -1,48 +1,56 @@
 
 
-# Fix: Personnel Form Saves to `contractor_representatives` Only
+# Fix: Contractor Invitation Must Use the Same Invitation Code Flow as Employees
 
 ## Problem
-The Personnel tab form currently saves to `contractor_site_representatives` — wrong table. The person entered here (e.g., islam@gbrksa.com) is a **company representative** who needs portal access. The "Send Portal Invitation" button queries `contractor_representatives`, so the invitation fails.
+
+Currently, the `send-contractor-invitation` edge function sends a generic email with a direct link to `/contractor-portal`. It does NOT:
+1. Create a record in the `invitations` table (with a unique code)
+2. Include an invitation code in the email
+3. Route the contractor to the `/invite` → `/signup` flow
+
+This means the contractor representative has no way to set up their account. Employees use the `invitations` table + `lookup_invitation` RPC + InviteGatekeeper page + Signup page — contractors should follow the same process.
 
 ## Solution
 
-### Step 1: Rewrite sync logic in `use-sync-personnel-to-workers.ts`
-**Lines 26-82** — Replace the `contractor_site_representatives` upsert with a `contractor_representatives` upsert:
-- Match on `company_id` + `is_primary = true` + `deleted_at IS NULL`
-- Upsert `full_name`, `national_id`, `mobile_number`, `email` into `contractor_representatives`
-- Set `is_primary = true` so the invitation handler finds this person
-- Keep the `contractor_workers` sync (lines 84-154) unchanged for gate pass integration
+### Step 1: Update `send-contractor-invitation` edge function
 
-### Step 2: Update `use-contractor-site-rep.ts` to read from `contractor_representatives`
-- `useContractorSiteRep` → query `contractor_representatives` where `is_primary = true` instead of `contractor_site_representatives`
-- `useUpsertSiteRep` → upsert into `contractor_representatives` instead of `contractor_site_representatives`
-- Remove `useSyncSiteRepToWorker` (no longer needed — worker sync handled in Step 1)
+Modify the edge function to:
+- Generate a unique invitation code (e.g., 8-char alphanumeric)
+- Insert a record into the `invitations` table with: `code`, `email`, `full_name`, `tenant_id`, `expires_at` (e.g., 7 days), `metadata` containing `{ type: 'contractor_representative', company_id, representative_id }`
+- Change the email CTA button URL from `/contractor-portal` to `/invite?code={CODE}` so the recipient lands on the InviteGatekeeper page
+- Include the invitation code visibly in the email body (so the user can also enter it manually)
 
-### Step 3: Update `CompanyFormDialog.tsx` loading logic
-- Line 108: `useContractorSiteRep` already returns the data — since we changed it in Step 2 to read from `contractor_representatives`, the form will now load from the correct table automatically
-- No other changes needed in this file
+### Step 2: Update `lookup_invitation` RPC handling (if needed)
 
-### Step 4: Update labels in `SiteRepWorkerForm.tsx`
-- Change heading from "Contractor's Site Representative" → "Contractor's Representative"
-- Update note text: "This representative will receive the portal invitation and can manage workers, gate passes, and projects."
+Check that `lookup_invitation` returns the invitation data correctly for contractor invitations. The existing RPC should work since contractor invitations will use the same `invitations` table. The `metadata.type = 'contractor_representative'` field will distinguish them from employee invitations.
 
-### Step 5: Update labels in `SiteRepLockedCard.tsx`
-- Same label change as Step 4
+### Step 3: Update Signup flow to handle contractor role assignment
+
+In the Signup page (`src/pages/Signup.tsx`), after account creation:
+- Check `invitation.metadata.type === 'contractor_representative'`
+- If so, link the new user to the `contractor_representatives` record by setting `user_id` on the matching `contractor_representatives` row
+- Assign the appropriate role (e.g., `contractor_representative` or similar)
+
+### Step 4: Update post-login routing
+
+After a contractor representative logs in, they should be redirected to `/contractor-portal` instead of `/dashboard`. This may require checking if the user has a `contractor_representatives` link and routing accordingly.
 
 ## Files Changed
 
 | File | Change |
 |------|--------|
-| `use-sync-personnel-to-workers.ts` | Replace `contractor_site_representatives` upsert with `contractor_representatives` upsert (is_primary=true) |
-| `use-contractor-site-rep.ts` | Read/write `contractor_representatives` (is_primary=true) instead of `contractor_site_representatives` |
-| `SiteRepWorkerForm.tsx` | Update labels and note text |
-| `SiteRepLockedCard.tsx` | Update labels |
+| `supabase/functions/send-contractor-invitation/index.ts` | Create `invitations` record with code; update email to include code and link to `/invite?code={CODE}` |
+| `src/pages/Signup.tsx` | After signup, check invitation metadata for contractor type and link user to `contractor_representatives` |
+| `src/pages/Login.tsx` or routing logic | Add post-login redirect to `/contractor-portal` for contractor reps |
 
 ## End-to-End Flow After Fix
-1. Admin fills Personnel form for GBR with islam@gbrksa.com
-2. On save → data written to `contractor_representatives` with `is_primary = true`
-3. Admin clicks "Send Portal Invitation" in Company Detail
-4. Invitation handler finds islam@gbrksa.com in `contractor_representatives` → sends email
-5. Islam receives invitation, creates account, logs into Contractor Portal
+
+1. Admin clicks "Send Portal Invitation" for GBR
+2. Edge function creates an `invitations` record with code `ABC12345`, email `islam@gbrksa.com`, metadata `{ type: 'contractor_representative', company_id: '...' }`
+3. Islam receives email with code `ABC12345` and a button linking to `/invite?code=ABC12345`
+4. Islam clicks the link → lands on InviteGatekeeper → code is validated → redirected to Signup
+5. Islam creates account (email pre-filled, sets password)
+6. On signup, system links Islam's user to `contractor_representatives` table
+7. Islam logs in → routed to `/contractor-portal`
 
