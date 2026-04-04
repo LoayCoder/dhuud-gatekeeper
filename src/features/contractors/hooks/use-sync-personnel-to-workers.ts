@@ -136,7 +136,8 @@ export function useSyncPersonnelToWorkers() {
               approved_at: new Date().toISOString(),
             })
             .select("id")
-            .single();
+            .single()
+            .throwOnError();
 
           if (insertError) {
             console.error("[useSyncPersonnelToWorkers] Error creating site rep worker:", insertError);
