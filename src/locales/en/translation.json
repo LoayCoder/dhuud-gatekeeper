@@ -11788,8 +11788,7 @@
       "noInvestigations": "No active investigations assigned to you"
     },
     "adminOverride": "Admin Override",
-    "adminOverrideTooltip": "You can act on this item due to admin privileges, even though it is assigned to another user"
-    },
+    "adminOverrideTooltip": "You can act on this item due to admin privileges, even though it is assigned to another user",
     "table": {
       "search": "Search...",
       "noResults": "No results found",

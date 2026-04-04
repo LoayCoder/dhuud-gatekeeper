@@ -46,6 +46,13 @@ const DEFAULT_SLA_CONFIGS: Record<string, Omit<FindingSLAConfig, 'id' | 'tenant_
     escalation_days_after: 5,
     second_escalation_days_after: 10,
   },
+  ofi: {
+    classification: 'ofi',
+    target_days: 30,
+    warning_days_before: 5,
+    escalation_days_after: 5,
+    second_escalation_days_after: 10,
+  },
 };
 
 export function useFindingSLAConfigs() {
