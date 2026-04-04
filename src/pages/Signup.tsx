@@ -132,6 +132,11 @@ export default function Signup() {
         assigned_department_id?: string;
         assigned_section_id?: string;
         role_ids?: string[];
+        // Contractor representative metadata
+        type?: string;
+        company_id?: string;
+        representative_id?: string;
+        company_name?: string;
       }
 
       const inviteData = inviteResult as unknown as {
@@ -141,6 +146,7 @@ export default function Signup() {
         metadata?: InviteMetadata;
       };
       const metadata = inviteData.metadata || {};
+      const isContractorRep = metadata.type === 'contractor_representative';
 
       // 2. Sign up user
       const redirectUrl = `${window.location.origin}/`;
