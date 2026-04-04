@@ -333,7 +333,7 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
                             name: company.company_name,
                             nameAr: company.company_name_ar || undefined,
                           }}
-                          recipientPhone={siteRep.mobile_number || siteRep.phone || undefined}
+                          recipientPhone={siteRep.mobile_number || undefined}
                         />
                       )}
                     </div>
