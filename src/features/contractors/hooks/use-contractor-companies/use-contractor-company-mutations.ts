@@ -39,10 +39,10 @@ export function useCreateContractorCompany() {
                     assigned_department_id: data.assigned_department_id as string | undefined,
                     assigned_section_id: data.assigned_section_id as string | undefined,
                 })
-                .select()
-                .single();
+            .select()
+                .single()
+                .throwOnError();
 
-            if (error) throw error;
             return result;
         },
         onSuccess: () => {
