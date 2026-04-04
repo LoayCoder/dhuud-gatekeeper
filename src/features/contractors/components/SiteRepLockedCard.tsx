@@ -147,9 +147,9 @@ export function SiteRepLockedCard({ data, onChange, isNew = false }: SiteRepLock
             </div>
           </div>
 
-          <p className="text-xs text-muted-foreground">
-            {t("contractors.companies.siteRepRequired", "Each company must have exactly ONE site representative. This field is required.")}
-          </p>
+           <p className="text-xs text-muted-foreground">
+             {t("contractors.companies.repRequired", "Each company must have exactly ONE representative. This person will receive the portal invitation.")}
+           </p>
         </CardContent>
       </Card>
     );
