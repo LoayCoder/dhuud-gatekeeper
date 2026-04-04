@@ -178,9 +178,9 @@ export function useChangeContractorStatus() {
                 .update(updateData)
                 .eq("id", id)
                 .select()
-                .single();
+                .single()
+                .throwOnError();
 
-            if (error) throw error;
             return data;
         },
         onSuccess: () => {
