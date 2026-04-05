@@ -30,6 +30,7 @@ interface PortalWorker {
 function ContractorPortalWorkersContent() {
   const { t } = useTranslation();
   const { company, workers, isLoading } = useContractorPortalData();
+  const { data: blacklistedIds } = useBlacklistNationalIds();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -142,10 +143,25 @@ function ContractorPortalWorkersContent() {
                   {filteredWorkers.map((worker) => (
                     <TableRow key={worker.id}>
                       <TableCell>
-                        <div>
-                          <p className="font-medium">{worker.full_name}</p>
-                          {worker.full_name_ar && (
-                            <p className="text-sm text-muted-foreground">{worker.full_name_ar}</p>
+                        <div className="flex items-center gap-2">
+                          <div>
+                            <p className="font-medium">{worker.full_name}</p>
+                            {worker.full_name_ar && (
+                              <p className="text-sm text-muted-foreground">{worker.full_name_ar}</p>
+                            )}
+                          </div>
+                          {blacklistedIds?.has(worker.national_id) && (
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Badge variant="destructive" className="gap-1">
+                                  <ShieldAlert className="h-3 w-3" />
+                                  {t("contractors.workers.blacklisted", "Blacklisted")}
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {t("contractors.workers.blacklistedTooltip", "This worker is on the security blacklist")}
+                              </TooltipContent>
+                            </Tooltip>
                           )}
                         </div>
                       </TableCell>
@@ -183,6 +199,7 @@ function ContractorPortalWorkersContent() {
               open={isFormOpen}
               onOpenChange={setIsFormOpen}
               companyId={company.id}
+              blacklistedIds={blacklistedIds}
             />
             <ContractorWorkerEditForm
               open={!!editingWorker}
