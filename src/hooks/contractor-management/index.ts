@@ -1,4 +1,18 @@
-import { useQuery } from '@tanstack/react-query';
+// Re-export real implementations from the contractor feature module
+export {
+  useContractorPortalData,
+  useContractorGatePasses,
+  useContractorRepresentative,
+  useCreateContractorWorker,
+  useContractorPortalProjects,
+  useContractorPortalWorkers,
+  useContractorPortalGatePasses,
+  useContractorPortalStats,
+  useContractorPortalCreateWorker,
+} from "@/features/contractors/hooks/use-contractor-portal";
+
+// Types re-exported for backward compatibility
+export type { GatePass } from "@/features/contractors/hooks/use-contractor-portal";
 
 export interface InductionVideo {
   id: string;
@@ -20,27 +34,7 @@ export interface ContractorWorker {
   [key: string]: any;
 }
 
-export function useContractorPortalData() {
-  return { data: null, isLoading: false, company: null, projects: [] as ContractorProject[], workers: [] as ContractorWorker[] };
-}
-
-export interface GatePass {
-  id: string;
-  reference_number: string;
-  pass_date: string;
-  pass_type: string;
-  vehicle_plate: string | null;
-  status: string;
-  [key: string]: unknown;
-}
-
-export function useContractorGatePasses(companyId?: string) {
-  return useQuery({
-    queryKey: ['contractor-gate-passes', companyId],
-    queryFn: async () => [] as GatePass[],
-    enabled: !!companyId,
-  });
-}
+import { useQuery } from '@tanstack/react-query';
 
 export function useInductionVideos() {
   return useQuery({
