@@ -1,50 +1,42 @@
 
 
-# Add Contractor Portal to Sidebar & Home Page
+# Integrate Blacklist Checks into Contractor Portal Workers Page
 
-## Overview
-Make the Contractor Portal accessible from both the sidebar menu and the home page action cards for users with the `contractor` role category (contractor representatives) and admin/superadmin users.
+## Problem
+The Contractor Portal (`/contractor-portal/workers`) has no blacklist integration. A contractor representative can submit workers who are on the security blacklist without any warning. The admin-facing `/contractors/workers` page already has full integration.
 
 ## Changes
 
-### 1. Add Contractor Portal to Sidebar Menu
-**File:** `src/components/layout/sidebar/menu/useContractorsPTWMenu.ts`
+### 1. Add blacklist lookup to Contractor Portal Workers page
+**File:** `src/pages/contractor-portal/Workers.tsx`
 
-Add a new "Contractor Portal" top-level group (separate from the existing admin-facing "Contractors" section) with 5 sub-items: Dashboard, Workers, Projects, Gate Passes, Activity Log. Use the existing `contractor_portal_*` menu codes from the route registry.
+- Import `useBlacklistNationalIds` from `@/features/security`
+- Query blacklisted national IDs for the tenant
+- Pass `blacklistedIds` set to the worker list/table component
+- Show a destructive badge or alert on blacklisted workers
+- Disable "Add Worker" submission if the entered national ID is blacklisted (with a clear warning message)
 
-### 2. Unhide Contractor Portal Routes
-**File:** `src/config/route-registry.ts`
+### 2. Add blacklist check to worker creation form (Contractor Portal)
+**File:** The contractor portal's add worker form component
 
-Remove `hidden: true` and `hiddenReason` from all 5 contractor portal routes (lines 1031-1080) so the sidebar auto-generation can pick them up.
+- Before submission, check if the worker's `national_id` exists in the blacklist set
+- If blacklisted, show an inline error: "This worker is on the security blacklist and cannot be added"
+- Block form submission for blacklisted national IDs
 
-### 3. Add Contractor Portal Menu Group
-**File:** `src/config/menu-groups.ts`
+### 3. Show blacklist status in worker list
+**File:** The contractor portal's worker list/table component
 
-Add a new `contractor_portal` menu group entry (with `Building2` icon, sortOrder ~11) so it appears in the menu group hierarchy.
+- Add a visual indicator (destructive badge with shield icon) for any worker whose `national_id` is in the blacklist
+- Show tooltip with "This worker is on the security blacklist"
 
-### 4. Add Contractor Portal Home Card
-**File:** `src/config/home-actions.ts`
+### What this does NOT do
+- Contractor reps cannot add/remove from blacklist (that remains a security/admin action)
+- Contractor reps only see that a worker is blacklisted, not the reason (security-sensitive)
 
-Add a new card:
-- id: `contractor-portal`
-- labelKey: `home.cards.contractorPortal`
-- icon: `Building2`
-- path: `/contractor-portal`
-- colorScheme: `primary`
-- categories: `['contractor']` — a new RoleCardCategory
-
-### 5. Extend RoleCardCategory
-**File:** `src/config/home-actions.ts`
-
-Add `'contractor'` to the `RoleCardCategory` type union.
-
-### 6. Update useHomeActions to Support Contractor Category
-**File:** `src/hooks/use-home-actions.ts`
-
-Add a check for `hasRoleInCategory('contractor')` to add the `'contractor'` category to `userCategories`, similar to how `security` and `hsse` are handled. Also add admin/superadmin fallback so admins see the card too.
-
-## Result
-- Contractor reps and admins see "Contractor Portal" in the sidebar under its own section
-- Contractor reps see a "Contractor Portal" action card on the home page
-- All access remains gated by the existing `ContractorPortalRoute` wrapper and menu access system
+## Files to modify
+| File | Change |
+|------|--------|
+| `src/pages/contractor-portal/Workers.tsx` | Import `useBlacklistNationalIds`, pass to child components |
+| Contractor portal worker list component | Add blacklist badge indicators |
+| Contractor portal add worker form | Add pre-submission blacklist check with error message |
 
