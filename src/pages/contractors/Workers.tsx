@@ -34,8 +34,10 @@ import {
   useBulkRejectWorkers,
   useDeleteContractorWorker,
   useUpdateWorkerStatus,
+  useApproveWorkerEdits,
   ContractorWorker,
 } from "@/features/contractors/hooks/use-contractor-workers";
+import { useContractorRepPermissions } from "@/features/contractors/hooks/use-contractor-rep-permissions";
 import { useContractorCompanies } from "@/features/contractors/hooks/use-contractor-companies";
 import { useSecurityBlacklist, useAddToBlacklist } from '@/features/security';
 import { ShieldCheck } from "lucide-react";
@@ -88,6 +90,8 @@ export default function Workers() {
   const addToBlacklist = useAddToBlacklist();
   const deleteWorker = useDeleteContractorWorker();
   const updateWorkerStatus = useUpdateWorkerStatus();
+  const approveEdits = useApproveWorkerEdits();
+  const permissions = useContractorRepPermissions();
 
   // Create blacklist lookup maps
   const blacklistedIds = useMemo(
@@ -257,6 +261,7 @@ export default function Workers() {
                       <SelectItem value="pending">{t("contractors.workerStatus.pending", "Pending")}</SelectItem>
                       <SelectItem value="approved">{t("contractors.workerStatus.approved", "Approved")}</SelectItem>
                       <SelectItem value="rejected">{t("contractors.workerStatus.rejected", "Rejected")}</SelectItem>
+                      <SelectItem value="pending_edits">{t("contractors.workers.pendingEdits", "Pending Edits")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
