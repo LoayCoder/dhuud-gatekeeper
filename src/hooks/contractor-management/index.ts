@@ -11,8 +11,16 @@ export {
   useContractorPortalCreateWorker,
 } from "@/features/contractors/hooks/use-contractor-portal";
 
-// Types re-exported for backward compatibility
-export type { GatePass } from "@/features/contractors/hooks/use-contractor-portal";
+// GatePass type for backward compatibility
+export interface GatePass {
+  id: string;
+  reference_number: string;
+  pass_date: string;
+  pass_type: string;
+  vehicle_plate: string | null;
+  status: string;
+  [key: string]: unknown;
+}
 
 export interface InductionVideo {
   id: string;
