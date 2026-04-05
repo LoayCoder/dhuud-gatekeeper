@@ -1,4 +1,5 @@
 import { useForm } from "react-hook-form";
+import { ShieldAlert } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
@@ -50,6 +51,7 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, bl
   const isBlacklisted = blacklistedIds?.has(watchedNationalId) ?? false;
 
   const onSubmit = async (data: WorkerFormData) => {
+    if (blacklistedIds?.has(data.national_id)) return;
     await createWorker.mutateAsync({
       company_id: companyId,
       full_name: data.full_name,
@@ -72,7 +74,18 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, bl
               <FormItem><FormLabel>{t("contractors.workers.name", "Full Name")} *</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
             )} />
             <FormField control={form.control} name="national_id" render={({ field }) => (
-              <FormItem><FormLabel>{t("contractors.workers.nationalId", "National ID")} *</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+              <FormItem>
+                <FormLabel>{t("contractors.workers.nationalId", "National ID")} *</FormLabel>
+                <FormControl><Input {...field} /></FormControl>
+                {isBlacklisted && (
+                  <p className="text-sm text-destructive flex items-center gap-1 mt-1">
+                    <ShieldAlert className="h-4 w-4" />
+                    {t("contractors.workers.blacklistedError", "This worker is on the security blacklist and cannot be added")}
+                  </p>
+                )}
+                <FormMessage />
+              </FormItem>
+            )} />
             )} />
             <FormField control={form.control} name="mobile_number" render={({ field }) => (
               <FormItem><FormLabel>{t("contractors.workers.mobile", "Mobile Number")} *</FormLabel><FormControl><Input {...field} type="tel" /></FormControl><FormMessage /></FormItem>
