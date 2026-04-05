@@ -31,6 +31,10 @@ export interface ContractorWorker {
     security_rejection_reason?: string | null;
     // Who submitted the worker
     submitted_by?: string | null;
+    // Edit re-approval tracking
+    edit_pending_approval?: boolean;
+    edited_by?: string | null;
+    edited_at?: string | null;
 }
 
 export interface ContractorWorkerFilters {
