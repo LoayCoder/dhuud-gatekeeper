@@ -11,6 +11,10 @@ export {
   useContractorPortalCreateWorker,
 } from "@/features/contractors/hooks/use-contractor-portal";
 
+// Induction videos hook (stub — real implementation in features/contractors)
+export { useInductionVideos } from "./use-induction-videos";
+export type { InductionVideo } from "./use-induction-videos";
+
 // GatePass type for backward compatibility
 export interface GatePass {
   id: string;
@@ -22,31 +26,12 @@ export interface GatePass {
   [key: string]: unknown;
 }
 
-export interface InductionVideo {
-  id: string;
-  title: string;
-  url: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- consumed by downstream components expecting indexable type
-  [key: string]: any;
-}
-
 export interface ContractorProject {
   id: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ContractorWorker {
   id: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
-}
-
-import { useQuery } from '@tanstack/react-query';
-
-export function useInductionVideos() {
-  return useQuery({
-    queryKey: ['induction-videos'],
-    queryFn: async () => [] as InductionVideo[],
-  });
+  [key: string]: unknown;
 }
