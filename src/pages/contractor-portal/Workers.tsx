@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import ContractorPortalLayout from "@/components/contractor-portal/ContractorPortalLayout";
@@ -34,13 +35,16 @@ function ContractorPortalWorkersContent() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [editingWorker, setEditingWorker] = useState<PortalWorker | null>(null);
 
-  const filteredWorkers = workers?.filter(worker => 
-    worker.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    worker.national_id.includes(searchQuery) ||
-    worker.mobile_number.includes(searchQuery)
-  ) || [];
+  const filteredWorkers = workers?.filter(worker => {
+    const matchesSearch = worker.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      worker.national_id.includes(searchQuery) ||
+      worker.mobile_number.includes(searchQuery);
+    const matchesStatus = statusFilter === "all" || worker.approval_status === statusFilter;
+    return matchesSearch && matchesStatus;
+  }) || [];
 
   const getStatusBadge = (status: string, editPending?: boolean) => {
     // Show edit pending badge if applicable
@@ -114,6 +118,17 @@ function ContractorPortalWorkersContent() {
                   className="ps-9"
                 />
               </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("common.allStatuses", "All Statuses")}</SelectItem>
+                  <SelectItem value="pending">{t("common.pending", "Pending")}</SelectItem>
+                  <SelectItem value="approved">{t("common.approved", "Approved")}</SelectItem>
+                  <SelectItem value="rejected">{t("common.rejected", "Rejected")}</SelectItem>
+                </SelectContent>
+              </Select>
               <div className="text-sm text-muted-foreground">
                 {filteredWorkers.length} {t("contractors.workers.title", "workers")}
               </div>
