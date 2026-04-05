@@ -74,9 +74,9 @@ export default function Workers() {
   const [pendingStatusChange, setPendingStatusChange] = useState<string>("");
   const [workerToBlacklist, setWorkerToBlacklist] = useState<ContractorWorker | null>(null);
 
-  const { data: workers = [], isLoading } = useContractorWorkers({
+  const { data: allWorkers = [], isLoading } = useContractorWorkers({
     search: search || undefined,
-    approvalStatus: statusFilter !== "all" ? statusFilter : undefined,
+    approvalStatus: statusFilter !== "all" && statusFilter !== "pending_edits" ? statusFilter : undefined,
     companyId: companyFilter !== "all" ? companyFilter : undefined,
   });
 
@@ -290,11 +290,19 @@ export default function Workers() {
                 onStatusChange={handleStatusChange}
                 onAddToBlacklist={handleAddToBlacklist}
                 onDelete={(worker) => setWorkerToDelete(worker)}
+                onApproveEdits={(worker) => approveEdits.mutate(worker.id)}
                 selectedIds={selectedWorkerIds}
                 onSelectionChange={setSelectedWorkerIds}
                 showSelection={showSelection}
                 blacklistedIds={blacklistedIds}
                 blacklistReasons={blacklistReasons}
+                permissions={{
+                  canEdit: permissions.canEditBasicInfo,
+                  canChangeStatus: permissions.canChangeStatus,
+                  canBlacklist: permissions.canBlacklist,
+                  canDelete: permissions.canDelete,
+                  canApproveEdits: permissions.canApproveEdits,
+                }}
               />
             </CardContent>
           </Card>
