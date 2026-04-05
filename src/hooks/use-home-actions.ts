@@ -22,6 +22,11 @@ export function useHomeActions() {
       cats.add('hsse');
     }
     
+    // Check for contractor roles
+    if (hasRoleInCategory('contractor')) {
+      cats.add('contractor');
+    }
+    
     return cats;
   }, [userRoles, hasRoleInCategory]);
 
