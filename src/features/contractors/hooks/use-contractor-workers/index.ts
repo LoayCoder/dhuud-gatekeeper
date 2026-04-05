@@ -28,4 +28,5 @@ export {
     useBulkRejectWorkers,
     useDeleteContractorWorker,
     useUpdateWorkerStatus,
+    useApproveWorkerEdits,
 } from './use-worker-management-mutations';

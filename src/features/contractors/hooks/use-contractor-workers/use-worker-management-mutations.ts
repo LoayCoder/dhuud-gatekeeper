@@ -201,3 +201,54 @@ export function useUpdateWorkerStatus() {
         },
     });
 }
+
+export function useApproveWorkerEdits() {
+    const queryClient = useQueryClient();
+    const { t } = useTranslation();
+    const { user, profile } = useAuth();
+
+    return useMutation({
+        mutationFn: async (workerId: string) => {
+            const { data: hasAccess } = await supabase.rpc("has_document_controller_access", {
+                p_user_id: user?.id,
+            });
+
+            if (!hasAccess) {
+                throw new Error(t("contractors.messages.noDocControllerAccess", "Only Document Controllers can approve worker edits"));
+            }
+
+            const { data } = await supabase
+                .from("contractor_workers")
+                .update({ edit_pending_approval: false })
+                .eq("id", workerId)
+                .select("id, full_name, tenant_id")
+                .single()
+                .throwOnError();
+
+            return data!;
+        },
+        onSuccess: async (data) => {
+            queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
+            queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
+            toast.success(t("contractors.messages.workerEditsApproved", "Worker edits approved"));
+
+            try {
+                await supabase.functions.invoke("contractor-audit-log", {
+                    body: {
+                        entity_type: "contractor_worker",
+                        entity_id: data.id,
+                        action: "worker_edits_approved",
+                        old_value: { edit_pending_approval: true },
+                        new_value: { edit_pending_approval: false, full_name: data.full_name },
+                        tenant_id: data.tenant_id,
+                    },
+                });
+            } catch (e) {
+                console.error("Failed to log audit event:", e);
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message);
+        },
+    });
+}
