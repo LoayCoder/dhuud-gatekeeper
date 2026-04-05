@@ -14,11 +14,11 @@ interface ContractorPortalLayoutProps {
 }
 
 const navItems = [
-  { path: "/contractor-portal", icon: LayoutDashboard, labelKey: "contractorPortal.nav.dashboard" },
-  { path: "/contractor-portal/workers", icon: Users, labelKey: "contractorPortal.nav.workers" },
-  { path: "/contractor-portal/projects", icon: FolderKanban, labelKey: "contractorPortal.nav.projects" },
-  { path: "/contractor-portal/gate-passes", icon: Truck, labelKey: "contractorPortal.nav.gatePasses" },
-  { path: "/contractor-portal/activity-log", icon: History, labelKey: "contractorPortal.nav.activityLog" },
+  { path: "/contractor-portal", icon: LayoutDashboard, labelKey: "contractorPortal.nav.dashboard", fallback: "Dashboard" },
+  { path: "/contractor-portal/workers", icon: Users, labelKey: "contractorPortal.nav.workers", fallback: "Workers" },
+  { path: "/contractor-portal/projects", icon: FolderKanban, labelKey: "contractorPortal.nav.projects", fallback: "Projects" },
+  { path: "/contractor-portal/gate-passes", icon: Truck, labelKey: "contractorPortal.nav.gatePasses", fallback: "Gate Passes" },
+  { path: "/contractor-portal/activity-log", icon: History, labelKey: "contractorPortal.nav.activityLog", fallback: "Activity Log" },
 ];
 
 export default function ContractorPortalLayout({ children }: ContractorPortalLayoutProps) {
