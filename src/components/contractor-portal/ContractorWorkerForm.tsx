@@ -1,4 +1,5 @@
 import { useForm } from "react-hook-form";
+import { ShieldAlert } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
@@ -25,6 +26,7 @@ interface ContractorWorkerFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   companyId: string;
+  blacklistedIds?: Set<string>;
 }
 
 const LANGUAGES = [
@@ -35,7 +37,7 @@ const LANGUAGES = [
   { value: "fil", label: "Filipino" },
 ];
 
-export default function ContractorWorkerForm({ open, onOpenChange, companyId }: ContractorWorkerFormProps) {
+export default function ContractorWorkerForm({ open, onOpenChange, companyId, blacklistedIds }: ContractorWorkerFormProps) {
   const { t, i18n } = useTranslation();
   const createWorker = useCreateContractorWorker();
   const isRTL = i18n.dir() === 'rtl';
@@ -45,7 +47,11 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId }: 
     defaultValues: { full_name: "", national_id: "", mobile_number: "", nationality: "", preferred_language: "ar" },
   });
 
+  const watchedNationalId = form.watch("national_id");
+  const isBlacklisted = blacklistedIds?.has(watchedNationalId) ?? false;
+
   const onSubmit = async (data: WorkerFormData) => {
+    if (blacklistedIds?.has(data.national_id)) return;
     await createWorker.mutateAsync({
       company_id: companyId,
       full_name: data.full_name,
@@ -68,7 +74,17 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId }: 
               <FormItem><FormLabel>{t("contractors.workers.name", "Full Name")} *</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
             )} />
             <FormField control={form.control} name="national_id" render={({ field }) => (
-              <FormItem><FormLabel>{t("contractors.workers.nationalId", "National ID")} *</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+              <FormItem>
+                <FormLabel>{t("contractors.workers.nationalId", "National ID")} *</FormLabel>
+                <FormControl><Input {...field} /></FormControl>
+                {isBlacklisted && (
+                  <p className="text-sm text-destructive flex items-center gap-1 mt-1">
+                    <ShieldAlert className="h-4 w-4" />
+                    {t("contractors.workers.blacklistedError", "This worker is on the security blacklist and cannot be added")}
+                  </p>
+                )}
+                <FormMessage />
+              </FormItem>
             )} />
             <FormField control={form.control} name="mobile_number" render={({ field }) => (
               <FormItem><FormLabel>{t("contractors.workers.mobile", "Mobile Number")} *</FormLabel><FormControl><Input {...field} type="tel" /></FormControl><FormMessage /></FormItem>
@@ -107,7 +123,7 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId }: 
             )} />
             <div className="flex justify-end gap-2 pt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
-              <Button type="submit" disabled={createWorker.isPending}>{createWorker.isPending ? t("common.saving", "Saving...") : t("common.save", "Save")}</Button>
+              <Button type="submit" disabled={createWorker.isPending || isBlacklisted}>{createWorker.isPending ? t("common.saving", "Saving...") : t("common.save", "Save")}</Button>
             </div>
           </form>
         </Form>
