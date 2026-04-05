@@ -80,6 +80,13 @@ export default function Workers() {
     companyId: companyFilter !== "all" ? companyFilter : undefined,
   });
 
+  const workers = useMemo(() => {
+    if (statusFilter === "pending_edits") {
+      return allWorkers.filter(w => w.edit_pending_approval === true);
+    }
+    return allWorkers;
+  }, [allWorkers, statusFilter]);
+
   const { data: pendingApprovals = [] } = usePendingWorkerApprovals();
   const { data: pendingSecurityApprovals = [] } = usePendingSecurityApprovals();
   const { data: companies = [] } = useContractorCompanies({ status: "active" });
