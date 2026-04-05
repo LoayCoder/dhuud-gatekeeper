@@ -86,7 +86,6 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, bl
                 <FormMessage />
               </FormItem>
             )} />
-            )} />
             <FormField control={form.control} name="mobile_number" render={({ field }) => (
               <FormItem><FormLabel>{t("contractors.workers.mobile", "Mobile Number")} *</FormLabel><FormControl><Input {...field} type="tel" /></FormControl><FormMessage /></FormItem>
             )} />
