@@ -1,40 +1,28 @@
 
 
-# Fix: GBR Representative Data Missing After Migration
+# Enable Super Admin for Both Admin Accounts
 
-## Root Cause
+## What
+Set `is_super_admin = true` on the `profiles` table for both admin accounts so they can access all areas of the system, including the Contractor Portal.
 
-The previous changes updated the code to read/write from `contractor_representatives` instead of `contractor_site_representatives`. However, the existing data for islam@gbrksa.com was never migrated. The record exists only in `contractor_site_representatives` (company_id `4f28d657-...`), so the UI now shows "Not assigned".
+## Accounts
+| Email | User ID |
+|-------|---------|
+| `luay@dhuud.com` | `dda8d485-7107-4fbe-a558-a449a1d95f6a` |
+| `Luay.Madkhali@golfsaudi.com` | `9e5ae1f2-c51d-4afd-9386-b45d06c13a61` |
 
-## Solution
+## Technical Details
 
-### Step 1: Database migration — copy existing site reps to contractor_representatives
-
-Create a migration that copies all records from `contractor_site_representatives` (where `deleted_at IS NULL`) into `contractor_representatives` with `is_primary = true`, skipping any company that already has a primary rep. This is a one-time data migration to preserve existing data.
+Single SQL update using the data insert tool:
 
 ```sql
-INSERT INTO contractor_representatives (tenant_id, company_id, full_name, national_id, mobile_number, email, is_primary)
-SELECT tenant_id, company_id, full_name, national_id, mobile_number, email, true
-FROM contractor_site_representatives
-WHERE deleted_at IS NULL
-  AND company_id NOT IN (
-    SELECT company_id FROM contractor_representatives WHERE is_primary = true AND deleted_at IS NULL
-  );
+UPDATE profiles
+SET is_super_admin = true
+WHERE id IN (
+  'dda8d485-7107-4fbe-a558-a449a1d95f6a',
+  '9e5ae1f2-c51d-4afd-9386-b45d06c13a61'
+);
 ```
 
-### Step 2: Fix label in CompanyDetailDialog.tsx
-
-Line 309: Change `"Contractor's Site Representative"` → `"Contractor's Representative"`.
-
-## Files Changed
-
-| File | Change |
-|------|--------|
-| Database migration | One-time data copy from `contractor_site_representatives` → `contractor_representatives` |
-| `CompanyDetailDialog.tsx` line 309 | Update label to "Contractor's Representative" |
-
-## After Fix
-- islam@gbrksa.com will appear in the Personnel tab for GBR
-- All other companies with site reps in the old table will also be migrated
-- "Send Portal Invitation" will find the correct record
+No code or schema changes required — only a data update.
 
