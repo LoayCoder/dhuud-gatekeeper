@@ -27,6 +27,7 @@ interface WorkerListTableProps {
   onStatusChange: (worker: ContractorWorker, status: string) => void;
   onAddToBlacklist: (worker: ContractorWorker) => void;
   onDelete: (worker: ContractorWorker) => void;
+  onApproveEdits?: (worker: ContractorWorker) => void;
   selectedIds?: string[];
   onSelectionChange?: (ids: string[]) => void;
   showSelection?: boolean;
@@ -42,6 +43,7 @@ export function WorkerListTable({
   onStatusChange,
   onAddToBlacklist,
   onDelete,
+  onApproveEdits,
   selectedIds = [],
   onSelectionChange,
   showSelection = false,
@@ -301,6 +303,7 @@ export function WorkerListTable({
                     onStatusChange={(status) => onStatusChange(worker, status)}
                     onAddToBlacklist={() => onAddToBlacklist(worker)}
                     onDelete={() => onDelete(worker)}
+                    onApproveEdits={onApproveEdits ? () => onApproveEdits(worker) : undefined}
                     permissions={permissions}
                   />
                 </TableCell>
