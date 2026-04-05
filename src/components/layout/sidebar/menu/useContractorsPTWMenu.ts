@@ -14,6 +14,45 @@ export function useContractorsPTWMenu() {
   const location = useLocation();
   
   return [
+    {
+      title: t('navigation.contractorPortal', 'Contractor Portal'),
+      icon: Building2,
+      menuCode: 'contractor_portal',
+      isActive: location.pathname.startsWith("/contractor-portal"),
+      items: [
+        {
+          title: t('contractorPortal.nav.dashboard', 'Dashboard'),
+          url: "/contractor-portal",
+          icon: LayoutDashboard,
+          menuCode: 'contractor_portal_dashboard',
+        },
+        {
+          title: t('contractorPortal.nav.workers', 'Workers'),
+          url: "/contractor-portal/workers",
+          icon: Users,
+          menuCode: 'contractor_portal_workers',
+        },
+        {
+          title: t('contractorPortal.nav.projects', 'Projects'),
+          url: "/contractor-portal/projects",
+          icon: Briefcase,
+          menuCode: 'contractor_portal_projects',
+        },
+        {
+          title: t('contractorPortal.nav.gatePasses', 'Gate Passes'),
+          url: "/contractor-portal/gate-passes",
+          icon: FileWarning,
+          menuCode: 'contractor_portal_gate_passes',
+        },
+        {
+          title: t('contractorPortal.nav.activityLog', 'Activity Log'),
+          url: "/contractor-portal/activity-log",
+          icon: History,
+          menuCode: 'contractor_portal_activity_log',
+        },
+      ],
+    },
+
 
     {
       title: t('navigation.contractors', 'Contractors'),
