@@ -261,17 +261,40 @@ export function useContractorPortalCreateWorker() {
 
 // Combined hook for portal data - provides company, projects, workers in one query
 export function useContractorPortalData() {
+  const { profile, isAdmin } = useAuth();
   const rep = useContractorRepresentative();
-  const companyId = rep.data?.company?.id;
+  
+  // For admins without a rep record, fetch first company as fallback
+  const adminFallbackCompany = useQuery({
+    queryKey: ["contractor-portal-admin-fallback-company", profile?.tenant_id],
+    queryFn: async () => {
+      if (!profile?.tenant_id) return null;
+      const { data, error } = await supabase
+        .from("contractor_companies")
+        .select("id, company_name, company_name_ar, status, email, phone")
+        .eq("tenant_id", profile.tenant_id)
+        .is("deleted_at", null)
+        .order("company_name")
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!isAdmin && !rep.data && !rep.isLoading && !!profile?.tenant_id,
+  });
+
+  const company = rep.data?.company || (isAdmin ? adminFallbackCompany.data : null);
+  const companyId = company?.id;
+
   const projects = useContractorPortalProjects(companyId);
   const workers = useContractorPortalWorkers(companyId);
 
   return {
     representative: rep.data,
-    company: rep.data?.company,
+    company,
     projects: projects.data,
     workers: workers.data,
-    isLoading: rep.isLoading || projects.isLoading || workers.isLoading,
+    isLoading: rep.isLoading || projects.isLoading || workers.isLoading || (isAdmin && adminFallbackCompany.isLoading),
     isError: rep.isError || projects.isError || workers.isError,
   };
 }

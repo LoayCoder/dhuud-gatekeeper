@@ -20,7 +20,7 @@ interface ContractorPortalRouteProps {
  */
 export function ContractorPortalRoute({ children }: ContractorPortalRouteProps) {
   const { data: rep, isLoading, error } = useContractorRepresentative();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
@@ -40,8 +40,8 @@ export function ContractorPortalRoute({ children }: ContractorPortalRouteProps) 
     return <PageLoader />;
   }
 
-  // Super admin can access everything
-  if (isSuperAdmin) {
+  // Super admin or tenant admin can access everything
+  if (isSuperAdmin || isAdmin) {
     return <>{children}</>;
   }
 
