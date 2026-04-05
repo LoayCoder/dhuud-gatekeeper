@@ -269,16 +269,27 @@ export function useContractorPortalData() {
     queryKey: ["contractor-portal-admin-fallback-company", profile?.tenant_id],
     queryFn: async () => {
       if (!profile?.tenant_id) return null;
-      const { data, error } = await supabase
+      // Pick a company that has workers/projects for a meaningful admin preview
+      const { data: companies, error } = await supabase
         .from("contractor_companies")
         .select("id, company_name, company_name_ar, status, email, phone")
         .eq("tenant_id", profile.tenant_id)
         .is("deleted_at", null)
-        .order("company_name")
-        .limit(1)
-        .maybeSingle();
+        .order("company_name");
       if (error) throw error;
-      return data;
+      if (!companies || companies.length === 0) return null;
+
+      // Try to find a company with workers
+      for (const co of companies) {
+        const { count } = await supabase
+          .from("contractor_workers")
+          .select("id", { count: "exact", head: true })
+          .eq("company_id", co.id)
+          .is("deleted_at", null);
+        if (count && count > 0) return co;
+      }
+      // Fallback to first company
+      return companies[0];
     },
     enabled: !!isAdmin && !rep.data && !rep.isLoading && !!profile?.tenant_id,
   });
