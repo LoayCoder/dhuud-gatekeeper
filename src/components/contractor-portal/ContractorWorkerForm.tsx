@@ -25,6 +25,7 @@ interface ContractorWorkerFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   companyId: string;
+  blacklistedIds?: Set<string>;
 }
 
 const LANGUAGES = [
@@ -35,7 +36,7 @@ const LANGUAGES = [
   { value: "fil", label: "Filipino" },
 ];
 
-export default function ContractorWorkerForm({ open, onOpenChange, companyId }: ContractorWorkerFormProps) {
+export default function ContractorWorkerForm({ open, onOpenChange, companyId, blacklistedIds }: ContractorWorkerFormProps) {
   const { t, i18n } = useTranslation();
   const createWorker = useCreateContractorWorker();
   const isRTL = i18n.dir() === 'rtl';
@@ -44,6 +45,9 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId }: 
     resolver: zodResolver(workerSchema),
     defaultValues: { full_name: "", national_id: "", mobile_number: "", nationality: "", preferred_language: "ar" },
   });
+
+  const watchedNationalId = form.watch("national_id");
+  const isBlacklisted = blacklistedIds?.has(watchedNationalId) ?? false;
 
   const onSubmit = async (data: WorkerFormData) => {
     await createWorker.mutateAsync({
