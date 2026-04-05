@@ -34,8 +34,10 @@ import {
   useBulkRejectWorkers,
   useDeleteContractorWorker,
   useUpdateWorkerStatus,
+  useApproveWorkerEdits,
   ContractorWorker,
 } from "@/features/contractors/hooks/use-contractor-workers";
+import { useContractorRepPermissions } from "@/features/contractors/hooks/use-contractor-rep-permissions";
 import { useContractorCompanies } from "@/features/contractors/hooks/use-contractor-companies";
 import { useSecurityBlacklist, useAddToBlacklist } from '@/features/security';
 import { ShieldCheck } from "lucide-react";
@@ -72,11 +74,18 @@ export default function Workers() {
   const [pendingStatusChange, setPendingStatusChange] = useState<string>("");
   const [workerToBlacklist, setWorkerToBlacklist] = useState<ContractorWorker | null>(null);
 
-  const { data: workers = [], isLoading } = useContractorWorkers({
+  const { data: allWorkers = [], isLoading } = useContractorWorkers({
     search: search || undefined,
-    approvalStatus: statusFilter !== "all" ? statusFilter : undefined,
+    approvalStatus: statusFilter !== "all" && statusFilter !== "pending_edits" ? statusFilter : undefined,
     companyId: companyFilter !== "all" ? companyFilter : undefined,
   });
+
+  const workers = useMemo(() => {
+    if (statusFilter === "pending_edits") {
+      return allWorkers.filter(w => w.edit_pending_approval === true);
+    }
+    return allWorkers;
+  }, [allWorkers, statusFilter]);
 
   const { data: pendingApprovals = [] } = usePendingWorkerApprovals();
   const { data: pendingSecurityApprovals = [] } = usePendingSecurityApprovals();
@@ -88,6 +97,8 @@ export default function Workers() {
   const addToBlacklist = useAddToBlacklist();
   const deleteWorker = useDeleteContractorWorker();
   const updateWorkerStatus = useUpdateWorkerStatus();
+  const approveEdits = useApproveWorkerEdits();
+  const permissions = useContractorRepPermissions();
 
   // Create blacklist lookup maps
   const blacklistedIds = useMemo(
@@ -257,6 +268,7 @@ export default function Workers() {
                       <SelectItem value="pending">{t("contractors.workerStatus.pending", "Pending")}</SelectItem>
                       <SelectItem value="approved">{t("contractors.workerStatus.approved", "Approved")}</SelectItem>
                       <SelectItem value="rejected">{t("contractors.workerStatus.rejected", "Rejected")}</SelectItem>
+                      <SelectItem value="pending_edits">{t("contractors.workers.pendingEdits", "Pending Edits")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -285,11 +297,19 @@ export default function Workers() {
                 onStatusChange={handleStatusChange}
                 onAddToBlacklist={handleAddToBlacklist}
                 onDelete={(worker) => setWorkerToDelete(worker)}
+                onApproveEdits={(worker) => approveEdits.mutate(worker.id)}
                 selectedIds={selectedWorkerIds}
                 onSelectionChange={setSelectedWorkerIds}
                 showSelection={showSelection}
                 blacklistedIds={blacklistedIds}
                 blacklistReasons={blacklistReasons}
+                permissions={{
+                  canEdit: permissions.canEditBasicInfo,
+                  canChangeStatus: permissions.canChangeStatus,
+                  canBlacklist: permissions.canBlacklist,
+                  canDelete: permissions.canDelete,
+                  canApproveEdits: permissions.canApproveEdits,
+                }}
               />
             </CardContent>
           </Card>

@@ -20,6 +20,7 @@ export function useContractorWorkers(filters: ContractorWorkerFilters = {}) {
           id, tenant_id, company_id, full_name, full_name_ar, national_id, nationality,
           mobile_number, photo_path, preferred_language, approval_status, approved_at,
           rejection_reason, created_at, worker_type, safety_officer_id,
+          edit_pending_approval, edited_by, edited_at,
           company:contractor_companies(company_name, assigned_branch_id),
           latest_induction:worker_inductions(id, status, expires_at)
         `)
