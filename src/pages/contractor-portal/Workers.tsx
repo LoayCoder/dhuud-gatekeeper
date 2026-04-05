@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, Users, Search, CheckCircle, Clock, XCircle, AlertTriangle, Pencil, Upload } from "lucide-react";
+import { Plus, Users, Search, CheckCircle, Clock, XCircle, AlertTriangle, Pencil, Upload, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import ContractorWorkerEditForm from "@/components/contractor-portal/ContractorW
 import ContractorWorkerBulkImport from "@/components/contractor-portal/ContractorWorkerBulkImport";
 import { useContractorPortalData } from "@/hooks/contractor-management/index";
 import { ContractorPortalRoute } from "@/components/access-control";
+import { useBlacklistNationalIds } from "@/features/security";
 
 interface PortalWorker {
   id: string;
