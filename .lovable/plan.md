@@ -1,85 +1,74 @@
 
 
-# Contractor Portal E2E Review: Critical Issues Found
+# QA Remediation Plan: Contractor Portal Critical Issues
 
-## Critical Bug Discovered
+## Issues Found
 
-**All 4 portal pages (Dashboard, Workers, Projects, Gate Passes) import from a STUB module** (`src/hooks/contractor-management/index.ts`) that returns hardcoded empty data:
+### Issue 1: Runtime Error — "Rendered more hooks than during the previous render"
+**Severity:** Critical (portal crashes on load)
 
-```typescript
-// This is what all pages currently use:
-export function useContractorPortalData() {
-  return { data: null, isLoading: false, company: null, projects: [] as ContractorProject[], workers: [] as ContractorWorker[] };
-}
+**Root cause:** The previous code change replaced stub functions (1 hook each) with real implementations (8+ hooks each) in `src/hooks/contractor-management/index.ts`. Hot Module Replacement (HMR) swapped the function reference without remounting the component, causing React to detect a different hook count on re-render.
 
-export function useContractorGatePasses(companyId?: string) {
-  return useQuery({ queryFn: async () => [] as GatePass[], ... });
-}
+**Fix:** A hard refresh resolves the HMR issue. However, to prevent it from recurring, the barrel file should not mix re-exports with local hook definitions. The `useInductionVideos` function with its `useQuery` import at line 45-51 sits after the re-exports, which is fine syntactically but creates module initialization complexity. Moving it to a separate file or ensuring clean separation prevents future HMR issues.
+
+**Action:** Extract `useInductionVideos` into its own file `src/hooks/contractor-management/use-induction-videos.ts` and re-export it from the barrel.
+
+### Issue 2: All `contractor_representatives` have `user_id = NULL`
+**Severity:** High
+
+No contractor representative has been linked to an auth user — the invitation flow has never been executed. This means `useContractorRepresentative()` (which queries `WHERE user_id = auth.uid()`) always returns `null` for everyone, including actual reps.
+
+**Impact:** Even after fixing the hooks, contractor reps cannot see their own company data. Only admins (via the fallback) can see anything.
+
+**Action:** No code change needed — this is a data/process issue. The admin fallback already handles this for admin users. Contractor reps will get linked when invitations are sent and accepted.
+
+### Issue 3: All `material_gate_passes` have `company_id = NULL`
+**Severity:** High
+
+Every gate pass in the database has `company_id` set to `NULL`. The portal query filters by `company_id`, so the Gate Passes page will always show zero results even with correct hooks.
+
+**Action:** No code change for now — the gate passes were created before company_id was added to the table. Existing data needs a backfill migration to set `company_id` based on the project's company. New gate passes created through the portal form already set `company_id`.
+
+### Issue 4: Projects data is sparse
+Only 4 companies have projects (2, 2, 1, 3 respectively). The admin fallback picks the first company alphabetically, which may not have projects or workers.
+
+**Action:** No code change — this is test data availability.
+
+## Implementation Plan
+
+### Step 1: Fix barrel file to prevent HMR hook mismatch
+Create `src/hooks/contractor-management/use-induction-videos.ts` with the `useInductionVideos` hook, then clean up the barrel file to only have re-exports and type definitions (no hook function bodies).
+
+### Step 2: Backfill gate pass `company_id` from projects
+Database migration:
+```sql
+UPDATE material_gate_passes mgp
+SET company_id = cp.company_id
+FROM contractor_projects cp
+WHERE mgp.project_id = cp.id
+  AND mgp.company_id IS NULL
+  AND mgp.deleted_at IS NULL;
 ```
 
-The **real implementation** exists at `src/features/contractors/hooks/use-contractor-portal.ts` with proper Supabase queries, but no page uses it.
+### Step 3: Verify admin fallback loads meaningful data
+Ensure the admin fallback query in `useContractorPortalData` picks a company that actually has workers/projects (e.g., company `6b9331ad` with 25 workers, or `668e020b` with 33 workers) rather than just the first alphabetically.
 
-## Additional Issues Found
-
-1. **No contractor rep has `user_id` linked** — all `contractor_representatives` records have `user_id = NULL`, meaning even after fixing the import, the `useContractorRepresentative()` hook (which queries by `user_id`) will return `null` for all reps. The invitation flow that links `user_id` has not been used yet.
-
-2. **islam@gbrksa.com** rep record exists but has no `user_id` linked — portal won't show their company data even with correct hooks.
-
-## Fix Plan
-
-### Step 1: Fix the stub module to re-export real hooks
-
-**File:** `src/hooks/contractor-management/index.ts`
-
-Replace the stub functions with re-exports from the real implementation:
-
-```typescript
-export {
-  useContractorPortalData,
-  useContractorGatePasses,
-  useContractorRepresentative,
-  useContractorPortalCreateWorker as useCreateContractorWorker,
-} from "@/features/contractors/hooks/use-contractor-portal";
-
-// Keep the InductionVideo type/hook if needed elsewhere
-export { useInductionVideos } from "./use-induction-videos"; // or inline stub
-```
-
-This single change fixes all 4 pages (Dashboard, Workers, Projects, Gate Passes) plus Activity Log (which already uses the correct import).
-
-### Step 2: Fix ContractorPortalRoute admin bypass
-
-**File:** `src/components/access-control/ContractorPortalRoute.tsx`
-
-Add `isAdmin` check alongside `isSuperAdmin` so admin accounts can review the portal:
-
-```typescript
-const { user, isAdmin } = useAuth();
-// ...
-if (isSuperAdmin || isAdmin) {
-  return <>{children}</>;
-}
-```
-
-### Step 3: Ensure `useContractorPortalData` works for admins
-
-The `useContractorPortalData` hook chains from `useContractorRepresentative` (which queries by `user_id`). For admins who are NOT contractor reps, this returns `null` and no data loads.
-
-Add a fallback: when the user is an admin and no rep record is found, allow selecting/viewing any company's data. Or, for the admin review scenario, provide a query parameter to specify which company to view.
-
-**Simpler approach for now:** When admin accesses `/contractor-portal`, show all companies data or the first company, since the purpose is review access.
+**Change in `use-contractor-portal.ts`:** Order fallback query by worker count or pick a company with active projects.
 
 ## Files Changed
 
 | File | Change |
 |------|--------|
-| `src/hooks/contractor-management/index.ts` | Replace stubs with re-exports from real hooks |
-| `src/components/access-control/ContractorPortalRoute.tsx` | Add `isAdmin` bypass |
-| `src/features/contractors/hooks/use-contractor-portal.ts` | Add admin fallback in `useContractorPortalData` to load data without requiring a rep record |
+| `src/hooks/contractor-management/use-induction-videos.ts` | New file — extract `useInductionVideos` hook |
+| `src/hooks/contractor-management/index.ts` | Remove inline hook, re-export from new file |
+| `src/features/contractors/hooks/use-contractor-portal.ts` | Improve admin fallback to pick company with data |
+| Database migration | Backfill `company_id` on `material_gate_passes` |
 
-## Expected Result After Fix
+## Post-Fix Expected State
 
-- Admin accounts can access all contractor portal pages
-- Pages load real data from the database (projects, workers, gate passes, audit logs)
-- Contractor representatives (once `user_id` is linked via invitation flow) will see only their company's data
+- Admin users see dashboard with real company data (workers, projects)
+- Gate passes page shows backfilled passes for the selected company
+- No runtime errors on page load or navigation
+- Activity log works (already uses correct imports)
+- Contractor reps remain blocked until invitation flow links their `user_id`
 
