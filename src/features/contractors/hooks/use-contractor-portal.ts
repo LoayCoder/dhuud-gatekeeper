@@ -289,7 +289,7 @@ export function useContractorPortalData() {
         if (count && count > 0) return co;
       }
       // Fallback to first company
-      return data;
+      return companies[0];
     },
     enabled: !!isAdmin && !rep.data && !rep.isLoading && !!profile?.tenant_id,
   });
