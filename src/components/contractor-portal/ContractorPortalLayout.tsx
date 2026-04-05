@@ -71,7 +71,7 @@ export default function ContractorPortalLayout({ children }: ContractorPortalLay
                 )}
               >
                 <item.icon className="h-4 w-4" />
-                {t(item.labelKey, item.labelKey.split(".").pop())}
+                {t(item.labelKey, item.fallback)}
               </Link>
             ))}
           </nav>
