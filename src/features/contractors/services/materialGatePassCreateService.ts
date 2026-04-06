@@ -172,22 +172,47 @@ export const createGatePass = async (data: CreateGatePassData, tenantId: string,
         }).catch(err => console.error('Failed to notify dept reps:', err));
     }
 
-    // Audit log: gate pass created
-    supabase.functions.invoke('contractor-audit-log', {
-        body: {
-            entity_type: 'material_gate_pass',
-            entity_id: result.id,
-            action: 'gate_pass_created',
-            tenant_id: tenantId,
-            new_value: {
-                reference_number,
-                pass_type: data.pass_type,
-                project_id: data.project_id,
-                is_internal_request: data.is_internal_request,
-                items_count: data.items.length,
-            },
+    // Audit log: gate pass created (with fallback direct insert)
+    const auditPayload = {
+        entity_type: 'material_gate_pass' as const,
+        entity_id: result.id,
+        action: 'gate_pass_created',
+        tenant_id: tenantId,
+        new_value: {
+            reference_number,
+            pass_type: data.pass_type,
+            project_id: data.project_id,
+            is_internal_request: data.is_internal_request,
+            items_count: data.items.length,
         },
-    }).catch(err => console.error('[GatePass] Audit log failed:', err));
+    };
+    supabase.functions.invoke('contractor-audit-log', { body: auditPayload })
+        .then(res => {
+            if (res.error) {
+                console.warn('[GatePass] Audit edge fn failed, using fallback:', res.error);
+                supabase.from('contractor_module_audit_logs').insert({
+                    tenant_id: tenantId,
+                    entity_type: auditPayload.entity_type,
+                    entity_id: auditPayload.entity_id,
+                    action: auditPayload.action,
+                    actor_id: userId,
+                    actor_type: 'user',
+                    new_value: auditPayload.new_value,
+                }).then(({ error }) => { if (error) console.error('[GatePass] Audit fallback failed:', error); });
+            }
+        })
+        .catch(err => {
+            console.warn('[GatePass] Audit edge fn error, using fallback:', err);
+            supabase.from('contractor_module_audit_logs').insert({
+                tenant_id: tenantId,
+                entity_type: auditPayload.entity_type,
+                entity_id: auditPayload.entity_id,
+                action: auditPayload.action,
+                actor_id: userId,
+                actor_type: 'user',
+                new_value: auditPayload.new_value,
+            }).then(({ error }) => { if (error) console.error('[GatePass] Audit fallback failed:', error); });
+        });
 
     return result;
 };
