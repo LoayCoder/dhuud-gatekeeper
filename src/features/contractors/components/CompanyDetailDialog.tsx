@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -33,6 +33,25 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
   const { data: safetyOfficersFromTable = [] } = useContractorSafetyOfficers(company?.id ?? null);
   const { data: siteRepFromTable } = useContractorSiteRep(company?.id ?? null);
   const [sendingInvitation, setSendingInvitation] = useState(false);
+  const [siteRepPhotoUrl, setSiteRepPhotoUrl] = useState<string | undefined>(undefined);
+
+  // Generate signed URL for site rep photo
+  useEffect(() => {
+    if (!siteRepFromTable?.photo_path) {
+      setSiteRepPhotoUrl(undefined);
+      return;
+    }
+    if (siteRepFromTable.photo_path.startsWith("http")) {
+      setSiteRepPhotoUrl(siteRepFromTable.photo_path);
+      return;
+    }
+    supabase.storage
+      .from("worker-photos")
+      .createSignedUrl(siteRepFromTable.photo_path, 3600)
+      .then(({ data }) => {
+        if (data?.signedUrl) setSiteRepPhotoUrl(data.signedUrl);
+      });
+  }, [siteRepFromTable?.photo_path]);
 
   // Fetch contractor representatives for user linking
   const { data: representatives = [] } = useQuery({
@@ -100,6 +119,7 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
     return {
       id: siteRep.id || 'site_rep',
       fullName: siteRep.full_name || '',
+      photo: siteRepPhotoUrl || undefined,
       company: company.company_name,
       companyAr: company.company_name_ar || undefined,
       role: t("contractors.companies.siteRepresentative", "Site Representative"),

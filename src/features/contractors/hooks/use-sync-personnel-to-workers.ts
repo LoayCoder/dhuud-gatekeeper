@@ -41,6 +41,9 @@ export function useSyncPersonnelToWorkers() {
               national_id: siteRep.national_id,
               mobile_number: siteRep.mobile_number || siteRep.phone || "N/A",
               email: siteRep.email || null,
+              photo_path: siteRep.photo_path || null,
+              nationality: siteRep.nationality || null,
+              phone: siteRep.phone || null,
               updated_at: new Date().toISOString(),
             })
             .eq("id", existingRepRecord.id)
@@ -61,6 +64,9 @@ export function useSyncPersonnelToWorkers() {
               national_id: siteRep.national_id,
               mobile_number: siteRep.mobile_number || siteRep.phone || "N/A",
               email: siteRep.email || null,
+              photo_path: siteRep.photo_path || null,
+              nationality: siteRep.nationality || null,
+              phone: siteRep.phone || null,
               is_primary: true,
             })
             .select("id")
