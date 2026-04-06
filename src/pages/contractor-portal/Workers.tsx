@@ -169,7 +169,7 @@ function ContractorPortalWorkersContent() {
                               onClick={() => {
                                 const mapped: ContractorWorker = {
                                   id: worker.id,
-                                  tenant_id: company?.tenant_id || '',
+                                  tenant_id: '',
                                   company_id: company?.id || '',
                                   full_name: worker.full_name,
                                   full_name_ar: worker.full_name_ar || null,
