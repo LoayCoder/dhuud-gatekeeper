@@ -1,59 +1,29 @@
 
 
-# Fix PTW Creation — Empty Project & Permit Type Dropdowns
+# Fix PTW Dropdowns — Root Cause Found
 
-## Root Causes Found
+## The Problem
 
-### Issue 1: Permit Types — tenant_id filter mismatch (PRIMARY BLOCKER)
-- **Service**: `getPTWTypes()` in `ptwPermitService.ts` filters `.eq('tenant_id', tenantId)`
-- **Database**: ALL 8 ptw_types rows have `tenant_id = NULL` — they are global/system-level types
-- **Result**: The query returns 0 rows because `NULL != tenantId`
-- **RLS**: The SELECT policy correctly handles this: `(tenant_id IS NULL) OR (tenant_id = get_auth_tenant_id())`
-- **Fix**: Change the service query to use `.or('tenant_id.eq.${tenantId},tenant_id.is.null')` instead of `.eq('tenant_id', tenantId)` to match global types AND tenant-specific types
+There is a **module resolution conflict**. Two files compete for the `@/hooks/ptw` import path:
 
-### Issue 2: Projects — likely working but needs empty-state handling
-- **Database**: 20+ ptw_projects exist for tenant `9290e913-...`
-- **RLS**: SELECT policy uses `tenant_id = get_auth_tenant_id()` — correct
-- **Service**: `getPTWProjects()` filters by tenant_id correctly
-- **Hook**: Uses `useBranchFilter()` which may further filter results based on branch context
-- **Potential issue**: If user has no branch selected or branch filter is restrictive, results may be empty
-- **Fix**: Verify the branch filter isn't over-filtering; add clear empty-state messages
-
-## Implementation Plan
-
-### Step 1: Fix `getPTWTypes` query filter
-**File**: `src/features/ptw/services/ptwPermitService.ts`
-
-Change line 7 from:
-```typescript
-.eq('tenant_id', tenantId)
-```
-To:
-```typescript
-.or(`tenant_id.eq.${tenantId},tenant_id.is.null`)
+```text
+src/hooks/ptw.ts          ← STUB file (returns empty arrays)
+src/hooks/ptw/index.ts    ← Real re-exports (wired to database)
 ```
 
-This matches both global system types (tenant_id=NULL) and any tenant-specific custom types.
+When TypeScript/Vite resolves `import { usePTWTypes } from "@/hooks/ptw"`, the **file** (`ptw.ts`) wins over the **directory** (`ptw/index.ts`). This means every PTW page gets the stub hooks that return `[]` — making all dropdowns empty despite data existing in the database.
 
-### Step 2: Add empty-state messages in PermitBasicsStep
-**File**: `src/features/ptw/components/wizard/PermitBasicsStep.tsx`
+## The Fix
 
-- Add empty-state message for permit types: "No permit types configured. Please contact your administrator."
-- The project empty-state message already exists (line 110-114) — verify it renders correctly
+**Delete `src/hooks/ptw.ts`** (the stub file). This lets `src/hooks/ptw/index.ts` take over, which already re-exports the real hooks connected to the database.
 
-### Step 3: Add error logging for silent failures
-**File**: `src/features/ptw/components/wizard/PermitBasicsStep.tsx`
+### Single change:
+- **Delete** `src/hooks/ptw.ts`
 
-- Log errors from `usePTWTypes` and `usePTWProjects` hooks to console for debugging
-- Show error states in the UI when queries fail
+No other files need modification. The barrel file `src/hooks/ptw/index.ts` already exports everything the stub did (`usePTWTypes`, `usePTWProjects`, `useProjectClearances`, `useApproveClearanceCheck`, `useRejectClearanceCheck`, `useCreatePTWProject`, etc.) — wired to real Supabase queries.
 
-## Files Changed
-
-| File | Change |
-|------|--------|
-| `src/features/ptw/services/ptwPermitService.ts` | Fix tenant_id filter to include NULL (global) types |
-| `src/features/ptw/components/wizard/PermitBasicsStep.tsx` | Add permit type empty-state, error handling |
-
-## No database or migration changes needed
-Data exists in both tables. This is purely a frontend query filter bug.
+### Quick verification after fix:
+- All 15+ files that import from `@/hooks/ptw` will resolve to `src/hooks/ptw/index.ts`
+- Permit Type dropdown will show 8 types (Hot Work, Lifting, Confined Space, etc.)
+- Project dropdown will show active projects for the tenant
 
