@@ -124,6 +124,37 @@ const SEVERITY_EMOJI: Record<string, string> = {
 // Maximum photos to attach per notification
 const MAX_PHOTOS_PER_NOTIFICATION = 5;
 
+// Throttling configuration to prevent Resend rate-limit (5 req/sec) failures
+const THROTTLE_CONFIG = {
+  emailDelayMs: 250,      // Delay between email sends (250ms = max ~4/sec, under 5/sec limit)
+  whatsappDelayMs: 150,    // Delay between WhatsApp sends
+  pushDelayMs: 50,         // Delay between push sends (lightweight)
+  batchSize: 4,            // Process this many emails before a longer pause
+  batchPauseMs: 1200,      // Pause after each batch (lets rate-limit window reset)
+};
+
+let emailSendCount = 0; // Track emails sent in current dispatch run
+
+/**
+ * Throttle helper: delay + batch pause for emails
+ */
+async function throttleSend(channel: string): Promise<void> {
+  if (channel === 'email') {
+    emailSendCount++;
+    // After every batch, take a longer pause to let rate-limit window reset
+    if (emailSendCount > 0 && emailSendCount % THROTTLE_CONFIG.batchSize === 0) {
+      console.log(`[Throttle] Email batch pause after ${emailSendCount} sends (${THROTTLE_CONFIG.batchPauseMs}ms)`);
+      await new Promise(r => setTimeout(r, THROTTLE_CONFIG.batchPauseMs));
+    } else {
+      await new Promise(r => setTimeout(r, THROTTLE_CONFIG.emailDelayMs));
+    }
+  } else if (channel === 'whatsapp') {
+    await new Promise(r => setTimeout(r, THROTTLE_CONFIG.whatsappDelayMs));
+  } else if (channel === 'push') {
+    await new Promise(r => setTimeout(r, THROTTLE_CONFIG.pushDelayMs));
+  }
+}
+
 /**
  * Find default template from database by slug pattern
  * Priority: tenant-specific template → null (use fallback)
