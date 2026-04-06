@@ -99,9 +99,25 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
   });
 
   const watchedBranchId = form.watch("branch_id");
+  const watchedPMId = form.watch("project_manager_id");
 
   // Fetch project managers filtered by branch
   const { data: managers = [] } = useProjectManagers(watchedBranchId || undefined);
+
+  // Auto-fill department when PM is selected
+  useEffect(() => {
+    if (!watchedPMId) return;
+    supabase
+      .from("profiles")
+      .select("assigned_department_id")
+      .eq("id", watchedPMId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.assigned_department_id) {
+          form.setValue("department_id", data.assigned_department_id);
+        }
+      });
+  }, [watchedPMId, form]);
 
   // Cascading filters
   const filteredSites = useMemo(() => {
@@ -111,7 +127,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
 
   const filteredCompanies = useMemo(() => {
     if (!watchedBranchId) return [];
-    return companies.filter((c: any) => c.assigned_branch_id === watchedBranchId);
+    return companies.filter((c: any) => !c.assigned_branch_id || c.assigned_branch_id === watchedBranchId);
   }, [companies, watchedBranchId]);
 
   const filteredDepartments = useMemo(() => {
