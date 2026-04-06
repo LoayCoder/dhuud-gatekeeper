@@ -247,7 +247,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                       <Select
                         value={field.value}
                         onValueChange={field.onChange}
-                        disabled={!watchedBranchId}
+                        disabled={!watchedBranchId || isCompleted}
                       >
                         <SelectTrigger><SelectValue placeholder={t("common.selectSite", "Select site")} /></SelectTrigger>
                         <SelectContent>
@@ -267,7 +267,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <>
-                      <Select value={field.value} onValueChange={field.onChange} disabled={!watchedBranchId || isEditing}>
+                      <Select value={field.value} onValueChange={field.onChange} disabled={!watchedBranchId || isCompleted}>
                         <SelectTrigger><SelectValue placeholder={t("contractors.projects.selectCompany", "Select company")} /></SelectTrigger>
                         <SelectContent>
                           {filteredCompanies.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>)}
@@ -287,7 +287,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <>
-                      <Select value={field.value} onValueChange={field.onChange} disabled={!watchedBranchId}>
+                      <Select value={field.value} onValueChange={field.onChange} disabled={!watchedBranchId || isCompleted}>
                         <SelectTrigger><SelectValue placeholder={t("contractors.projects.selectProjectManager", "Select project manager")} /></SelectTrigger>
                         <SelectContent>
                           {managers.map((m) => <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>)}
@@ -309,7 +309,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                     <Select
                       value={field.value}
                       onValueChange={field.onChange}
-                      disabled={!watchedBranchId}
+                      disabled={!watchedBranchId || isCompleted}
                     >
                       <SelectTrigger><SelectValue placeholder={t("common.selectDepartment", "Select department")} /></SelectTrigger>
                       <SelectContent>
@@ -329,7 +329,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                 </div>
                 <div className="space-y-2">
                   <Label>{t("contractors.projects.name", "Project Name")} *</Label>
-                  <Input {...form.register("project_name")} />
+                  <Input {...form.register("project_name")} disabled={isCompleted} />
                   {form.formState.errors.project_name && <span className="text-destructive text-sm">{form.formState.errors.project_name.message}</span>}
                 </div>
               </div>
@@ -338,12 +338,12 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>{t("contractors.projects.startDate", "Start Date")} *</Label>
-                  <Input type="date" {...form.register("start_date")} />
+                  <Input type="date" {...form.register("start_date")} disabled={isCompleted} />
                   {form.formState.errors.start_date && <span className="text-destructive text-sm">{form.formState.errors.start_date.message}</span>}
                 </div>
                 <div className="space-y-2">
                   <Label>{t("contractors.projects.endDate", "End Date")} *</Label>
-                  <Input type="date" {...form.register("end_date")} />
+                  <Input type="date" {...form.register("end_date")} disabled={isCompleted} />
                   {form.formState.errors.end_date && <span className="text-destructive text-sm">{form.formState.errors.end_date.message}</span>}
                 </div>
               </div>
@@ -351,7 +351,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
               {/* 8. Notes */}
               <div className="space-y-2">
                 <Label>{t("contractors.projects.notes", "Notes")}</Label>
-                <Textarea {...form.register("notes")} />
+                <Textarea {...form.register("notes")} disabled={isCompleted} />
               </div>
             </TabsContent>
 
@@ -412,7 +412,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
 
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
-            <Button type="submit" disabled={createProject.isPending || updateProject.isPending}>
+            <Button type="submit" disabled={isCompleted || createProject.isPending || updateProject.isPending}>
               {(createProject.isPending || updateProject.isPending) && <Loader2 className="h-4 w-4 animate-spin me-2" />}
               {isEditing ? t("common.save", "Save") : t("common.create", "Create")}
             </Button>
