@@ -181,10 +181,10 @@ export default function ContractorHSSESections({
                   <div
                     key={obs.id}
                     className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => navigateToIncident(obs.id)}
+                    onClick={() => openDetail(obs.id)}
                     role="button"
                     tabIndex={0}
-                    onKeyDown={(e) => e.key === 'Enter' && navigateToIncident(obs.id)}
+                    onKeyDown={(e) => e.key === 'Enter' && openDetail(obs.id)}
                   >
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm truncate">{obs.title}</p>
@@ -225,10 +225,10 @@ export default function ContractorHSSESections({
                   <div
                     key={inc.id}
                     className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => navigateToIncident(inc.id)}
+                    onClick={() => openDetail(inc.id)}
                     role="button"
                     tabIndex={0}
-                    onKeyDown={(e) => e.key === 'Enter' && navigateToIncident(inc.id)}
+                    onKeyDown={(e) => e.key === 'Enter' && openDetail(inc.id)}
                   >
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm truncate">{inc.title}</p>
@@ -271,10 +271,10 @@ export default function ContractorHSSESections({
                     <div
                       key={action.id}
                       className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors ${isOverdue ? 'border-destructive/50 bg-destructive/5' : ''}`}
-                      onClick={() => navigateToIncident(action.incident_id)}
+                      onClick={() => openDetail(action.incident_id)}
                       role="button"
                       tabIndex={0}
-                      onKeyDown={(e) => e.key === 'Enter' && navigateToIncident(action.incident_id)}
+                      onKeyDown={(e) => e.key === 'Enter' && openDetail(action.incident_id)}
                     >
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-sm truncate">{action.title}</p>
@@ -324,10 +324,10 @@ export default function ContractorHSSESections({
                   <div
                     key={v.id}
                     className={`flex items-center justify-between p-3 border rounded-lg ${v.incident_id ? 'cursor-pointer hover:bg-muted/50' : ''} transition-colors`}
-                    onClick={() => v.incident_id && navigateToIncident(v.incident_id)}
+                    onClick={() => v.incident_id && openDetail(v.incident_id)}
                     role={v.incident_id ? "button" : undefined}
                     tabIndex={v.incident_id ? 0 : undefined}
-                    onKeyDown={(e) => v.incident_id && e.key === 'Enter' && navigateToIncident(v.incident_id)}
+                    onKeyDown={(e) => v.incident_id && e.key === 'Enter' && openDetail(v.incident_id)}
                   >
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm truncate">
