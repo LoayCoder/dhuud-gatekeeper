@@ -1,55 +1,69 @@
 
-# Gate Pass Remaining Issues — Fix Plan
 
-## Issues & Root Causes
+# Fix Gate Pass Remaining Issues
 
-| # | Issue | Real Status | Root Cause |
-|---|-------|-------------|------------|
-| 1 | **WhatsApp never sent for gate passes** | 🔴 Broken | `materialGatePassActionService.ts` sends `{ phone, message }` but `send-gate-whatsapp` expects `{ mobile_number, notification_type }` — field name mismatch causes silent failure |
-| 2 | **company_id NULL on all passes** | 🟡 By Design | `company_id` is optional in `CreateGatePassData` — internal users can create passes without a company. Not a bug for internal passes, but public passes should populate it from `public_requester_company` |
-| 3 | **project_id NULL on all passes** | 🟡 By Design | Same — optional field. Dept rep notification is gated on `project_id`, so it never fires |
-| 4 | **111 orphaned gate_entry_logs** | ✅ Not a Bug | These are visitor/employee/contractor/delivery entries (not material gate pass entries). The `material_gate_pass_id` column exists and is correctly set when a gate pass entry is recorded via `verifyGatePass()` |
-| 5 | **Edge function logs show zero** | 🔴 Confirmed | `contractor-audit-log` and `send-gate-whatsapp` are never successfully invoked for gate passes |
+## Summary
 
----
+Four issues need fixing. One (orphaned entry logs) is actually not a bug.
 
-## Fix Plan
+## Issue Analysis
 
-### Fix 1: Gate Pass WhatsApp Notification (CRITICAL)
+| # | Issue | Verdict |
+|---|-------|---------|
+| 1 | WhatsApp never sent for gate passes | **Bug** — field name mismatch between caller and edge function |
+| 2 | company_id/project_id NULL on all passes | **By design** — both are optional fields for internal requests |
+| 3 | 111 orphaned gate_entry_logs | **Not a bug** — these are visitor/employee/contractor/delivery entries, not gate pass entries |
+| 4 | Edge functions show zero invocations | **Bug** — consequence of issue #1, plus audit function may not be deployed |
 
-**Problem:** `materialGatePassActionService.ts` line 106-112 sends:
+## Changes
+
+### 1. Fix `send-gate-whatsapp/index.ts` — Add `gate_pass_status` notification type
+
+The edge function only handles visitor notification types. Gate pass code sends `{ phone, message }` but the function expects `{ mobile_number, notification_type }`.
+
+- Add `'gate_pass_status'` to the `notification_type` union in the interface
+- Add `message`, `gate_pass_id`, `reference_number` fields to the interface
+- Add an early handler block: when `notification_type === 'gate_pass_status'`, send the provided `message` as a plain text WhatsApp via WaSender, log to `auto_notification_logs`, and return
+- This keeps the existing visitor logic untouched
+
+### 2. Fix `materialGatePassActionService.ts` — Correct field names
+
+Line 106-112 currently sends:
 ```js
-{ phone: "...", message: "...", tenant_id: "..." }
+{ phone: requesterProfile.phone_number, message, tenant_id }
 ```
-But `send-gate-whatsapp` destructures `mobile_number` and `notification_type` — `phone` is ignored, `mobile_number` is undefined, function fails silently.
 
-**Solution:** Add a `gate_pass_status` notification type to `send-gate-whatsapp` that accepts `phone`/`message` or change the caller to use the WaSender shared utility directly. The cleanest fix:
+Change to:
+```js
+{
+  mobile_number: requesterProfile.phone_number,
+  notification_type: 'gate_pass_status',
+  message,
+  tenant_id: gatePass.tenant_id,
+  gate_pass_id: gatePass.id,
+  reference_number: gatePass.reference_number,
+}
+```
 
-- Add `notification_type: 'gate_pass_status'` handling in `send-gate-whatsapp/index.ts`
-- Update the caller in `materialGatePassActionService.ts` to send `mobile_number` instead of `phone` and include `notification_type: 'gate_pass_status'`
-- Log delivery to `auto_notification_logs`
+### 3. Fix `materialGatePassCreateService.ts` — Remove project_id gate on dept rep notification
 
-### Fix 2: Dept Rep Notification Without project_id
+Line 168: `if (result?.project_id && tenantId)` blocks notification when no project is set (which is all 11 passes).
 
-**Problem:** Line 168 in create service: `if (result?.project_id && tenantId)` — skips notification when no project.
+Change to: `if (tenantId)` — always attempt to notify dept reps for internal passes. The edge function `notify-dept-rep-gate-pass` should handle the case where no project exists by falling back to branch-based lookup.
 
-**Solution:** Remove the `project_id` gate. Send dept rep notification based on branch assignment instead. Change the condition to fire whenever an internal gate pass is created, using branch_id to find the responsible dept rep.
+### 4. Deploy edge functions
 
-### Fix 3: Verify contractor-audit-log Edge Function Deployment
+Deploy `contractor-audit-log`, `send-gate-whatsapp`, and `notify-public-gate-pass` then verify with curl test calls.
 
-**Action:** Deploy the edge function and test it with a curl call to confirm it's reachable and working.
+### No changes needed for orphaned entry logs
 
-### Fix 4: No Code Change Needed for Orphaned Logs
+The 111 `gate_entry_logs` break down as: 22 employee, 35 visitor, 24 contractor, 24 delivery, 6 worker entries. None are material gate pass entries. The `material_gate_pass_id` column exists and is correctly populated when `verifyGatePass()` records an entry. This is expected behavior.
 
-The 111 `gate_entry_logs` are visitor/employee entries — they correctly have `material_gate_pass_id = NULL`. This is expected behavior, not a bug.
-
----
-
-## Technical Changes
+## Files to Edit
 
 | File | Change |
 |------|--------|
-| `supabase/functions/send-gate-whatsapp/index.ts` | Add `gate_pass_status` notification type that sends a plain text WhatsApp message and logs to `auto_notification_logs` |
-| `src/features/contractors/services/materialGatePassActionService.ts` | Fix field names: `phone` → `mobile_number`, add `notification_type: 'gate_pass_status'` |
-| `src/features/contractors/services/materialGatePassCreateService.ts` | Remove `project_id` gate on dept rep notification — use branch_id instead |
-| Edge function deploy | Deploy `contractor-audit-log` and `send-gate-whatsapp` |
+| `supabase/functions/send-gate-whatsapp/index.ts` | Add `gate_pass_status` handler with WaSender text send + logging |
+| `src/features/contractors/services/materialGatePassActionService.ts` | Fix field names in WhatsApp invoke call |
+| `src/features/contractors/services/materialGatePassCreateService.ts` | Remove `project_id` requirement for dept rep notification |
+
