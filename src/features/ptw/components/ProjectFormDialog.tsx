@@ -293,12 +293,18 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
                         <SelectValue placeholder={t("ptw.project.selectContractorProject", "Select contractor project")} />
                       </SelectTrigger>
                       <SelectContent>
-                        {contractorProjects?.map((project) => (
-                          <SelectItem key={project.id} value={project.id}>
-                            <span className="font-medium">{project.project_code}</span>
-                            <span className="text-muted-foreground ms-2">- {project.project_name}</span>
-                          </SelectItem>
-                        ))}
+                        {contractorProjects && contractorProjects.length > 0 ? (
+                          contractorProjects.map((project) => (
+                            <SelectItem key={project.id} value={project.id}>
+                              <span className="font-medium">{project.project_code}</span>
+                              <span className="text-muted-foreground ms-2">- {project.project_name}</span>
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <div className="p-3 text-sm text-muted-foreground text-center">
+                            No contractor projects available. Create one in Contractor Management first.
+                          </div>
+                        )}
                       </SelectContent>
                     </Select>
                   )}
