@@ -92,8 +92,11 @@ export function useUpsertSiteRep() {
             national_id: data.national_id,
             mobile_number: data.mobile_number,
             email: data.email || null,
+            photo_path: data.photo_path || null,
+            nationality: data.nationality || null,
+            phone: data.phone || null,
             updated_at: new Date().toISOString(),
-          })
+          } as any)
           .eq("id", existing.id)
           .select()
           .single();
@@ -111,8 +114,11 @@ export function useUpsertSiteRep() {
             national_id: data.national_id,
             mobile_number: data.mobile_number,
             email: data.email || null,
+            photo_path: data.photo_path || null,
+            nationality: data.nationality || null,
+            phone: data.phone || null,
             is_primary: true,
-          })
+          } as any)
           .select()
           .single();
 

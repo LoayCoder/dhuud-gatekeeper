@@ -154,9 +154,9 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
             full_name: siteRepFromTable.full_name || "",
             national_id: siteRepFromTable.national_id || "",
             mobile_number: siteRepFromTable.mobile_number || "",
-            nationality: "",
-            photo_path: null,
-            phone: "",
+            nationality: (siteRepFromTable as any).nationality || "",
+            photo_path: (siteRepFromTable as any).photo_path || null,
+            phone: (siteRepFromTable as any).phone || "",
             email: siteRepFromTable.email || "",
           });
         } else {
