@@ -174,9 +174,9 @@ export const createGatePass = async (data: CreateGatePassData, tenantId: string,
 
     // Audit log: gate pass created (with fallback direct insert)
     const auditPayload = {
-        entity_type: 'material_gate_pass' as const,
+        entity_type: 'gate_pass',
         entity_id: result.id,
-        action: 'gate_pass_created',
+        action: 'created',
         tenant_id: tenantId,
         new_value: {
             reference_number,
@@ -192,11 +192,11 @@ export const createGatePass = async (data: CreateGatePassData, tenantId: string,
                 console.warn('[GatePass] Audit edge fn failed, using fallback:', res.error);
                 supabase.from('contractor_module_audit_logs').insert({
                     tenant_id: tenantId,
-                    entity_type: auditPayload.entity_type,
+                    entity_type: 'gate_pass',
                     entity_id: auditPayload.entity_id,
-                    action: auditPayload.action,
+                    action: 'created',
                     actor_id: userId,
-                    actor_type: 'user',
+                    actor_type: 'admin',
                     new_value: auditPayload.new_value,
                 }).then(({ error }) => { if (error) console.error('[GatePass] Audit fallback failed:', error); });
             }
@@ -205,11 +205,11 @@ export const createGatePass = async (data: CreateGatePassData, tenantId: string,
             console.warn('[GatePass] Audit edge fn error, using fallback:', err);
             supabase.from('contractor_module_audit_logs').insert({
                 tenant_id: tenantId,
-                entity_type: auditPayload.entity_type,
+                entity_type: 'gate_pass',
                 entity_id: auditPayload.entity_id,
-                action: auditPayload.action,
+                action: 'created',
                 actor_id: userId,
-                actor_type: 'user',
+                actor_type: 'admin',
                 new_value: auditPayload.new_value,
             }).then(({ error }) => { if (error) console.error('[GatePass] Audit fallback failed:', error); });
         });

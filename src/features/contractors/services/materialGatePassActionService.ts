@@ -24,9 +24,9 @@ export const approveGatePass = async (passId: string, action: "approve" | "rejec
     const newStatus = data as string;
 
     // Audit log: gate pass approved/rejected (with fallback direct insert)
-    const auditAction = action === 'approve' ? 'gate_pass_approved' : 'gate_pass_rejected';
+    const auditAction = action === 'approve' ? 'approved' : 'rejected';
     const auditBody = {
-        entity_type: 'material_gate_pass' as const,
+        entity_type: 'gate_pass',
         entity_id: passId,
         action: auditAction,
         tenant_id: gatePass?.tenant_id,
@@ -37,11 +37,11 @@ export const approveGatePass = async (passId: string, action: "approve" | "rejec
             if (res.error && gatePass?.tenant_id) {
                 supabase.from('contractor_module_audit_logs').insert({
                     tenant_id: gatePass.tenant_id,
-                    entity_type: auditBody.entity_type,
+                    entity_type: 'gate_pass',
                     entity_id: passId,
                     action: auditAction,
                     actor_id: userId,
-                    actor_type: 'user',
+                    actor_type: 'admin',
                     new_value: auditBody.new_value,
                 }).then(({ error }) => { if (error) console.error('[GatePass] Audit fallback failed:', error); });
             }
@@ -51,11 +51,11 @@ export const approveGatePass = async (passId: string, action: "approve" | "rejec
             if (gatePass?.tenant_id) {
                 supabase.from('contractor_module_audit_logs').insert({
                     tenant_id: gatePass.tenant_id,
-                    entity_type: auditBody.entity_type,
+                    entity_type: 'gate_pass',
                     entity_id: passId,
                     action: auditAction,
                     actor_id: userId,
-                    actor_type: 'user',
+                    actor_type: 'admin',
                     new_value: auditBody.new_value,
                 }).then(({ error }) => { if (error) console.error('[GatePass] Audit fallback failed:', error); });
             }

@@ -32,7 +32,27 @@ Deno.serve(async (req) => {
       const { data: { user } } = await supabase.auth.getUser(token);
       if (user) {
         actorId = user.id;
-        actorType = 'user';
+        // Resolve actor_type from user's role
+        const { data: roleData } = await supabase
+          .from('user_role_assignments')
+          .select('role_code')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .limit(1)
+          .single();
+        
+        const roleCode = roleData?.role_code || '';
+        if (roleCode.includes('admin') || roleCode.includes('manager')) {
+          actorType = 'admin';
+        } else if (roleCode.includes('contractor') || roleCode.includes('rep')) {
+          actorType = 'contractor_rep';
+        } else if (roleCode.includes('security') || roleCode.includes('supervisor')) {
+          actorType = 'supervisor';
+        } else if (roleCode.includes('guard')) {
+          actorType = 'guard';
+        } else {
+          actorType = 'admin'; // safe default for authenticated users
+        }
       }
     }
 
