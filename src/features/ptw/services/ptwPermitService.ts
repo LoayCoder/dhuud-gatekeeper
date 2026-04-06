@@ -121,7 +121,7 @@ export async function createPTWPermit(data: {
         throw new Error("Failed to validate permit request");
     }
 
-    if (!validationResult?.is_valid) {
+    if (!validationResult?.isValid) {
         const errorMessages = validationResult?.errors?.map((e: { message: string }) => e.message).join("; ") || "Validation failed";
         throw new Error(errorMessages);
     }
