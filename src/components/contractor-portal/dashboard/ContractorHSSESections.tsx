@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
-import { Eye, AlertTriangle, ClipboardList, Scale, Clock, AlertCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Eye, AlertTriangle, ClipboardList, Scale, Clock, AlertCircle, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -24,11 +25,6 @@ const SEVERITY_COLORS: Record<string, string> = {
   level_3: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
   level_4: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
   level_5: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-  L1: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  L2: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  L3: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  L4: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-  L5: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
 };
 
 function severityLabel(sev: string): string {
@@ -59,6 +55,7 @@ export default function ContractorHSSESections({
   isLoading,
 }: ContractorHSSESectionsProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   if (isLoading) {
     return (
@@ -72,6 +69,10 @@ export default function ContractorHSSESections({
       </div>
     );
   }
+
+  const navigateToIncident = (id: string) => {
+    navigate(`/incidents/${id}`);
+  };
 
   return (
     <div className="space-y-6">
@@ -125,12 +126,12 @@ export default function ContractorHSSESections({
               {(actions?.overdue || 0) > 0 && (
                 <span className="text-destructive font-medium flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  {actions.overdue} {t("contractorPortal.hsse.overdue", "overdue")}
+                  {actions!.overdue} {t("contractorPortal.hsse.overdue", "overdue")}
                 </span>
               )}
               {(actions?.upcoming || 0) > 0 && (
                 <span className="text-warning font-medium">
-                  {actions.upcoming} {t("contractorPortal.hsse.dueSoon", "due soon")}
+                  {actions!.upcoming} {t("contractorPortal.hsse.dueSoon", "due soon")}
                 </span>
               )}
             </div>
@@ -174,7 +175,14 @@ export default function ContractorHSSESections({
             ) : (
               <div className="space-y-3">
                 {observations.recent.map(obs => (
-                  <div key={obs.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div
+                    key={obs.id}
+                    className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => navigateToIncident(obs.id)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && navigateToIncident(obs.id)}
+                  >
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm truncate">{obs.title}</p>
                       <p className="text-xs text-muted-foreground">{formatDate(obs.occurred_at)}</p>
@@ -186,6 +194,7 @@ export default function ContractorHSSESections({
                         </Badge>
                       )}
                       <StatusBadge status={obs.status} />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
                     </div>
                   </div>
                 ))}
@@ -210,7 +219,14 @@ export default function ContractorHSSESections({
             ) : (
               <div className="space-y-3">
                 {incidents.recent.map(inc => (
-                  <div key={inc.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div
+                    key={inc.id}
+                    className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => navigateToIncident(inc.id)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && navigateToIncident(inc.id)}
+                  >
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm truncate">{inc.title}</p>
                       <p className="text-xs text-muted-foreground">{formatDate(inc.occurred_at)}</p>
@@ -222,6 +238,7 @@ export default function ContractorHSSESections({
                         </Badge>
                       )}
                       <StatusBadge status={inc.status} />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
                     </div>
                   </div>
                 ))}
@@ -250,7 +267,11 @@ export default function ContractorHSSESections({
                   return (
                     <div
                       key={action.id}
-                      className={`flex items-center justify-between p-3 border rounded-lg ${isOverdue ? 'border-destructive/50 bg-destructive/5' : ''}`}
+                      className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors ${isOverdue ? 'border-destructive/50 bg-destructive/5' : ''}`}
+                      onClick={() => navigateToIncident(action.incident_id)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === 'Enter' && navigateToIncident(action.incident_id)}
                     >
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-sm truncate">{action.title}</p>
@@ -271,6 +292,7 @@ export default function ContractorHSSESections({
                           </Badge>
                         )}
                         <StatusBadge status={action.status} />
+                        <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
                       </div>
                     </div>
                   );
@@ -296,7 +318,14 @@ export default function ContractorHSSESections({
             ) : (
               <div className="space-y-3">
                 {violations.recent.map(v => (
-                  <div key={v.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div
+                    key={v.id}
+                    className={`flex items-center justify-between p-3 border rounded-lg ${v.incident_id ? 'cursor-pointer hover:bg-muted/50' : ''} transition-colors`}
+                    onClick={() => v.incident_id && navigateToIncident(v.incident_id)}
+                    role={v.incident_id ? "button" : undefined}
+                    tabIndex={v.incident_id ? 0 : undefined}
+                    onKeyDown={(e) => v.incident_id && e.key === 'Enter' && navigateToIncident(v.incident_id)}
+                  >
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm truncate">
                         {v.violation_type_name || t("contractorPortal.hsse.violation", "Violation")}
@@ -312,6 +341,7 @@ export default function ContractorHSSESections({
                       <Badge variant={v.final_status === 'pending' || !v.final_status ? 'secondary' : 'outline'}>
                         {(v.final_status || 'pending').replace(/_/g, ' ')}
                       </Badge>
+                      {v.incident_id && <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />}
                     </div>
                   </div>
                 ))}

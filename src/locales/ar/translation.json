@@ -12274,6 +12274,25 @@
       "bulk": {
         "selectAll": "تحديد الكل"
       }
+    },
+    "hsse": {
+      "observations": "الملاحظات",
+      "incidents": "الحوادث",
+      "actions": "الإجراءات التصحيحية",
+      "violations": "المخالفات",
+      "highSeverity": "شديدة الخطورة (م٣+)",
+      "overdue": "متأخرة",
+      "dueSoon": "مستحقة قريباً",
+      "activeViolations": "نشطة",
+      "recentObservations": "أحدث الملاحظات",
+      "recentIncidents": "أحدث الحوادث",
+      "correctiveActions": "الإجراءات التصحيحية",
+      "violationsDetail": "المخالفات والعقوبات",
+      "noObservations": "لا توجد ملاحظات مسجلة",
+      "noIncidents": "لا توجد حوادث مسجلة",
+      "noActions": "لا توجد إجراءات تصحيحية",
+      "noViolations": "لا توجد مخالفات مسجلة",
+      "violation": "مخالفة"
     }
   },
   "gatePasses": {
