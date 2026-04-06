@@ -1,49 +1,51 @@
 
 
-# Fix: ID Card Send via WhatsApp/Email Failing
+# Fix: WhatsApp ID Card Sending — Wrong API Domain
 
 ## Root Cause
 
-The network logs reveal the exact error: uploading the generated card image to the `id-cards` storage bucket returns **403 — "new row violates row-level security policy"**.
+The edge function logs show the exact error:
 
-The `id-cards` bucket has SELECT and INSERT policies but **no UPDATE policy**. The code uses `upsert: true` (which requires UPDATE permission when the file already exists). After the first failed attempt creates a partial record, every subsequent attempt fails because it tries to update an existing object.
+```
+TypeError: error sending request for url (https://api.wasender.net/v1/messages/send-image): 
+client error (Connect): received fatal alert: UnrecognisedName
+```
 
-This means `uploadToStorage()` returns `null` → `result.frontImageUrl` is undefined → the toast shows "Failed to generate card" and WhatsApp sending never executes.
+The `send-id-card-notification` edge function uses **the wrong WaSender API domain and endpoints**:
+- Wrong: `https://api.wasender.net/v1/messages/send-image`
+- Correct: `https://wasenderapi.com/api/send-message`
+
+The project already has a well-tested shared utility at `supabase/functions/_shared/wasender-whatsapp.ts` with the correct API URL, phone formatting, retry logic, and media support. But the ID card notification function **does not use it** — it has its own inline WhatsApp code pointing at a non-existent domain.
 
 ## Fix
 
-### Step 1: Database Migration — Add UPDATE policy to `id-cards` bucket
+### Single file change: `supabase/functions/send-id-card-notification/index.ts`
 
-```sql
-CREATE POLICY "Tenant users can update ID cards"
-ON storage.objects FOR UPDATE
-TO authenticated
-USING (
-  bucket_id = 'id-cards'
-  AND (storage.foldername(name))[1] = (
-    SELECT profiles.tenant_id::text FROM profiles WHERE profiles.id = auth.uid()
-  )
-)
-WITH CHECK (
-  bucket_id = 'id-cards'
-  AND (storage.foldername(name))[1] = (
-    SELECT profiles.tenant_id::text FROM profiles WHERE profiles.id = auth.uid()
-  )
-);
+Replace the inline WaSender HTTP calls (lines 84-121) with imports from the shared utility:
+
+```typescript
+import { sendWaSenderMediaMessage, sendWaSenderTextMessage } from "../_shared/wasender-whatsapp.ts";
 ```
 
-### Step 2: Add fallback in `use-id-card-generator.ts`
+Then replace the manual fetch calls with:
+1. `sendWaSenderMediaMessage(phone, card_image_url, caption)` for the image+caption
+2. `sendWaSenderTextMessage(phone, textMessage)` as the fallback
 
-If `saveToStorage` fails (e.g. bucket doesn't exist yet), fall back to using the data URL directly so the user can still download/print even if WhatsApp send requires the uploaded URL.
+This also fixes:
+- Phone number formatting (the shared utility handles country code detection properly)
+- Rate limit retry logic (built into the shared utility)
+- Remove the now-unnecessary inline `WASENDER_API_KEY` check (shared utility handles it)
 
-Currently the code returns `{ success: false }` when upload fails. Instead, keep the data URL as `frontImageUrl` so download/print still works, and only fail WhatsApp if the upload specifically failed.
+### Deploy
 
-### Summary
+Redeploy `send-id-card-notification` edge function after the change.
 
-| File | Change |
+## Summary
+
+| Item | Detail |
 |------|--------|
-| DB Migration | Add UPDATE policy for `id-cards` storage bucket |
-| `src/hooks/use-id-card-generator.ts` | Graceful fallback when upload fails — use data URL for download/print |
-
-No edge function changes needed — the `send-id-card-notification` function itself works fine; it just never gets called because the image upload fails before reaching that step.
+| File | `supabase/functions/send-id-card-notification/index.ts` |
+| Change | Replace inline wrong-URL WaSender code with shared utility imports |
+| Deploy | Redeploy edge function |
+| No DB changes | — |
 
