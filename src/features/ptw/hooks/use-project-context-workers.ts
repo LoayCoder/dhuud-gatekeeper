@@ -11,19 +11,31 @@ export interface ProjectContextWorker {
   is_assigned: boolean;
 }
 
+export interface ProjectContextResult {
+  workers: ProjectContextWorker[];
+  isInternalWork: boolean;
+}
+
 export function useProjectContextWorkers(projectId: string | undefined) {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
 
   return useQuery({
     queryKey: ["project-context-workers", tenantId, projectId],
-    queryFn: async (): Promise<ProjectContextWorker[]> => {
-      if (!tenantId || !projectId) return [];
+    queryFn: async (): Promise<ProjectContextResult> => {
+      if (!tenantId || !projectId) return { workers: [], isInternalWork: false };
 
       const { getProjectContextWorkers } = await import("@/features/ptw/services/ptwProjectService");
       const { project, workers, assignments } = await getProjectContextWorkers(projectId, tenantId);
 
-      if (!project) return [];
+      if (!project) return { workers: [], isInternalWork: false };
+
+      const isInternalWork = !!(project as any).is_internal_work;
+
+      // Internal projects return no workers — that's expected
+      if (isInternalWork || !workers || workers.length === 0) {
+        return { workers: [], isInternalWork };
+      }
 
       let assignedWorkerIds = new Set<string>();
 
@@ -31,22 +43,24 @@ export function useProjectContextWorkers(projectId: string | undefined) {
         assignedWorkerIds = new Set(assignments.map(a => a.worker_id));
       }
 
-      return (workers || []).map(worker => ({
+      const mappedWorkers = (workers || []).map(worker => ({
         ...worker,
-        is_assigned: project.linked_contractor_project_id
+        is_assigned: (project as any).linked_contractor_project_id
           ? assignedWorkerIds.has(worker.id)
           : true,
       }));
+
+      return { workers: mappedWorkers, isInternalWork };
     },
     enabled: !!tenantId && !!projectId,
   });
 }
 
 export function useAssignedProjectWorkers(projectId: string | undefined) {
-  const { data: workers, ...rest } = useProjectContextWorkers(projectId);
+  const { data, ...rest } = useProjectContextWorkers(projectId);
 
   return {
     ...rest,
-    data: workers?.filter(w => w.is_assigned) || [],
+    data: data?.workers?.filter(w => w.is_assigned) || [],
   };
 }
