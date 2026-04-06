@@ -269,7 +269,7 @@ Deno.serve(async (req) => {
 </body>
 </html>`;
 
-    // Send email via Resend
+    // Send email via Resend API directly
     if (!resendApiKey) {
       console.error("RESEND_API_KEY not configured, cannot send email");
       return new Response(JSON.stringify({ error: "RESEND_API_KEY not configured" }), {
@@ -278,15 +278,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    const GATEWAY_URL = "https://connector-gateway.lovable.dev/resend";
-    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
-
-    const emailResponse = await fetch(`${GATEWAY_URL}/emails`, {
+    const emailResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${lovableApiKey}`,
-        "X-Connection-Api-Key": resendApiKey,
+        "Authorization": `Bearer ${resendApiKey}`,
       },
       body: JSON.stringify({
         from: "DHUUD System <onboarding@resend.dev>",
