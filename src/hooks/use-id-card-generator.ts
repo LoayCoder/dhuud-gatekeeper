@@ -3,6 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import html2canvas from "html2canvas";
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { IDCardTemplate } from "@/features/admin/components/id-cards/IDCardTemplate/IDCardTemplate";
 import type { 
   IDCardType, 
   IDCardPersonData, 
@@ -24,37 +27,126 @@ interface GenerateCardOptions {
   recipientPhone?: string;
 }
 
+/**
+ * Wait for all <img> elements inside a container to finish loading.
+ */
+function waitForImages(container: HTMLElement, timeoutMs = 5000): Promise<void> {
+  const images = Array.from(container.querySelectorAll('img'));
+  if (images.length === 0) return Promise.resolve();
+
+  return new Promise<void>((resolve) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (!settled) { settled = true; resolve(); }
+    }, timeoutMs);
+
+    let loaded = 0;
+    const total = images.length;
+    const onDone = () => {
+      loaded++;
+      if (loaded >= total && !settled) {
+        settled = true;
+        clearTimeout(timer);
+        resolve();
+      }
+    };
+    images.forEach((img) => {
+      if (img.complete && img.naturalWidth > 0) {
+        onDone();
+      } else {
+        img.addEventListener('load', onDone, { once: true });
+        img.addEventListener('error', onDone, { once: true });
+      }
+    });
+  });
+}
+
+/**
+ * Render an IDCardTemplate React component off-screen, capture it with html2canvas,
+ * and return a PNG data URL.
+ */
+async function renderCardSide(
+  cardType: IDCardType,
+  personData: IDCardPersonData,
+  tenantData: IDCardTenantData,
+  settings: TenantIDCardSettings,
+  side: 'front' | 'back',
+  language: 'en' | 'ar',
+): Promise<string | null> {
+  // Create hidden container
+  const wrapper = document.createElement('div');
+  wrapper.style.position = 'absolute';
+  wrapper.style.left = '-9999px';
+  wrapper.style.top = '-9999px';
+  // Prevent any overflow clipping
+  wrapper.style.overflow = 'visible';
+  document.body.appendChild(wrapper);
+
+  try {
+    // Render the React component into the hidden container
+    const root = createRoot(wrapper);
+
+    await new Promise<void>((resolve) => {
+      root.render(
+        React.createElement(IDCardTemplate, {
+          cardType,
+          personData,
+          tenantData,
+          settings,
+          side,
+          language,
+          scale: 1,
+        })
+      );
+      // Give React a tick to flush the render
+      requestAnimationFrame(() => {
+        setTimeout(resolve, 50);
+      });
+    });
+
+    // Wait for images (photos, logos) to load
+    await waitForImages(wrapper);
+
+    // Find the rendered card element
+    const cardEl = wrapper.firstElementChild as HTMLElement;
+    if (!cardEl) {
+      console.error('No card element rendered');
+      return null;
+    }
+
+    // Capture with html2canvas at 3x for print quality
+    const canvas = await html2canvas(cardEl, {
+      scale: 3,
+      backgroundColor: '#FFFFFF',
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+    });
+
+    const dataUrl = canvas.toDataURL('image/png', 1.0);
+
+    // Cleanup React root
+    root.unmount();
+
+    return dataUrl;
+  } catch (error) {
+    console.error('Error rendering card side:', error);
+    return null;
+  } finally {
+    document.body.removeChild(wrapper);
+  }
+}
+
 export function useIDCardGenerator() {
   const { t } = useTranslation();
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSending, setIsSending] = useState(false);
-
-  const generateCardImage = useCallback(async (
-    container: HTMLElement,
-    options: { scale?: number; backgroundColor?: string } = {}
-  ): Promise<string | null> => {
-    try {
-      const canvas = await html2canvas(container, {
-        scale: options.scale || 3, // High resolution for print
-        backgroundColor: options.backgroundColor || '#FFFFFF',
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-      });
-
-      return canvas.toDataURL('image/png', 1.0);
-    } catch (error) {
-      console.error('Error generating card image:', error);
-      return null;
-    }
-  }, []);
 
   const uploadToStorage = useCallback(async (
     dataUrl: string,
     path: string
   ): Promise<string | null> => {
     try {
-      // Convert data URL to blob
       const response = await fetch(dataUrl);
       const blob = await response.blob();
 
@@ -70,7 +162,6 @@ export function useIDCardGenerator() {
         return null;
       }
 
-      // Get signed URL (valid for 1 year)
       const { data: signedData } = await supabase.storage
         .from('id-cards')
         .createSignedUrl(data.path, 365 * 24 * 60 * 60);
@@ -88,76 +179,56 @@ export function useIDCardGenerator() {
     setIsGenerating(true);
 
     try {
-      // Fetch card settings
       const settings = await fetchIDCardSettings(options.tenantId, options.cardType);
       
       if (!settings) {
         return { success: false, error: 'Failed to fetch card settings' };
       }
 
-      // Import the template renderer dynamically
-      const { renderIDCardToHTML } = await import('./id-card-html-renderer');
-      
-      // Create temporary container
-      const container = document.createElement('div');
-      container.style.position = 'absolute';
-      container.style.left = '-9999px';
-      container.style.top = '-9999px';
-      document.body.appendChild(container);
-
       const language = options.language || 'en';
       const result: IDCardGenerateResult = { success: true };
 
-      try {
-        // Render and capture front side
-        container.innerHTML = renderIDCardToHTML({
-          cardType: options.cardType,
-          personData: options.personData,
-          tenantData: options.tenantData,
-          settings: settings as TenantIDCardSettings,
-          side: 'front',
-          language,
-        });
+      // Render front side using the actual React component
+      const frontImage = await renderCardSide(
+        options.cardType,
+        options.personData,
+        options.tenantData,
+        settings as TenantIDCardSettings,
+        'front',
+        language,
+      );
 
-        const frontImage = await generateCardImage(container.firstElementChild as HTMLElement);
-        
-        if (frontImage && options.saveToStorage) {
-          const frontPath = `${options.tenantId}/${options.cardType}/${options.entityId}_front.png`;
-          const uploadedUrl = await uploadToStorage(frontImage, frontPath);
-          // Use uploaded URL if available, otherwise fall back to data URL for download/print
-          result.frontImageUrl = uploadedUrl || frontImage;
-          result.frontImagePath = frontPath;
-        } else if (frontImage) {
-          result.frontImageUrl = frontImage;
-        }
-
-        // Render and capture back side if enabled
-        if (settings.back_enabled) {
-          container.innerHTML = renderIDCardToHTML({
-            cardType: options.cardType,
-            personData: options.personData,
-            tenantData: options.tenantData,
-            settings: settings as TenantIDCardSettings,
-            side: 'back',
-            language,
-          });
-
-          const backImage = await generateCardImage(container.firstElementChild as HTMLElement);
-          
-          if (backImage && options.saveToStorage) {
-            const backPath = `${options.tenantId}/${options.cardType}/${options.entityId}_back.png`;
-            const uploadedBackUrl = await uploadToStorage(backImage, backPath);
-            result.backImageUrl = uploadedBackUrl || backImage;
-            result.backImagePath = backPath;
-          } else if (backImage) {
-            result.backImageUrl = backImage;
-          }
-        }
-
-        return result;
-      } finally {
-        document.body.removeChild(container);
+      if (frontImage && options.saveToStorage) {
+        const frontPath = `${options.tenantId}/${options.cardType}/${options.entityId}_front.png`;
+        const uploadedUrl = await uploadToStorage(frontImage, frontPath);
+        result.frontImageUrl = uploadedUrl || frontImage;
+        result.frontImagePath = frontPath;
+      } else if (frontImage) {
+        result.frontImageUrl = frontImage;
       }
+
+      // Render back side if enabled
+      if (settings.back_enabled) {
+        const backImage = await renderCardSide(
+          options.cardType,
+          options.personData,
+          options.tenantData,
+          settings as TenantIDCardSettings,
+          'back',
+          language,
+        );
+
+        if (backImage && options.saveToStorage) {
+          const backPath = `${options.tenantId}/${options.cardType}/${options.entityId}_back.png`;
+          const uploadedBackUrl = await uploadToStorage(backImage, backPath);
+          result.backImageUrl = uploadedBackUrl || backImage;
+          result.backImagePath = backPath;
+        } else if (backImage) {
+          result.backImageUrl = backImage;
+        }
+      }
+
+      return result;
     } catch (error) {
       console.error('Error generating ID card:', error);
       return { 
@@ -167,7 +238,7 @@ export function useIDCardGenerator() {
     } finally {
       setIsGenerating(false);
     }
-  }, [generateCardImage, uploadToStorage]);
+  }, [uploadToStorage]);
 
   const downloadCard = useCallback((
     dataUrl: string,
