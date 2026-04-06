@@ -20,7 +20,7 @@ import { format } from "date-fns";
 import { ClearanceDocumentUpload } from "./ClearanceDocumentUpload";
 
 /** Extended clearance check with optional joined fields from the database */
-interface ClearanceCheckWithDetails extends PTWClearanceCheck {
+interface ClearanceCheckWithDetails extends Omit<PTWClearanceCheck, 'project_id'> {
   approver?: { full_name?: string } | null;
   approved_at?: string | null;
   project_id?: string | null;
