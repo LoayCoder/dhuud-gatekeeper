@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FolderKanban, Calendar, MapPin, Users, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,10 +7,13 @@ import ContractorPortalLayout from "@/components/contractor-portal/ContractorPor
 import { useContractorPortalData } from "@/hooks/contractor-management/index";
 import { format } from "date-fns";
 import { ContractorPortalRoute } from "@/components/access-control";
+import { ProjectDetailDialog } from "@/features/contractors/components/ProjectDetailDialog";
+import type { ContractorPortalProject } from "@/features/contractors/hooks/use-contractor-portal";
 
 function ContractorPortalProjectsContent() {
   const { t } = useTranslation();
   const { projects, isLoading, isError } = useContractorPortalData();
+  const [selectedProject, setSelectedProject] = useState<ContractorPortalProject | null>(null);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -56,7 +60,11 @@ function ContractorPortalProjectsContent() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {projects?.map((project) => (
-              <Card key={project.id}>
+              <Card
+                key={project.id}
+                className="cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => setSelectedProject(project as ContractorPortalProject)}
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div>
@@ -89,11 +97,16 @@ function ContractorPortalProjectsContent() {
           </div>
         )}
       </div>
+
+      <ProjectDetailDialog
+        open={!!selectedProject}
+        onOpenChange={(open) => !open && setSelectedProject(null)}
+        project={selectedProject}
+      />
     </ContractorPortalLayout>
   );
 }
 
-// Wrapped export with access control
 export default function ContractorPortalProjects() {
   return (
     <ContractorPortalRoute>
