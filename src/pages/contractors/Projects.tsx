@@ -19,7 +19,6 @@ import { useContractorCompanies } from "@/features/contractors/hooks/use-contrac
 
 export default function Projects() {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const initialStatus = searchParams.get("status") || "all";
   
@@ -36,22 +35,6 @@ export default function Projects() {
   const [companyFilter, setCompanyFilter] = useState<string>("all");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<ContractorProject | null>(null);
-  const [isSeeding, setIsSeeding] = useState(false);
-
-  const handleSeedData = async () => {
-    setIsSeeding(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("seed-comprehensive-test-data");
-      if (error) throw error;
-      toast.success(t("common.seedSuccess", `Seeded ${data.results?.contractors?.projects || 0} test projects`));
-      queryClient.invalidateQueries({ queryKey: ["contractor-projects"] });
-    } catch (error) {
-      console.error("Seed error:", error);
-      toast.error(t("common.seedError", "Failed to seed test data"));
-    } finally {
-      setIsSeeding(false);
-    }
-  };
 
   const { data: projects = [], isLoading } = useContractorProjects({
     search: search || undefined,
