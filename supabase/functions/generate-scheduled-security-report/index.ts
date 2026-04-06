@@ -128,7 +128,7 @@ serve(async (req: Request) => {
 
         // Send email
         const emailResult = await resend.emails.send({
-          from: "DHUUD Security <noreply@resend.dev>",
+          from: "DHUUD Security <noreply@dhuud.com>",
           to: uniqueEmails,
           subject: `${config.report_name} - ${new Date().toLocaleDateString()}`,
           html: emailHtml,
