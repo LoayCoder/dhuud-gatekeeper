@@ -229,6 +229,17 @@ export default function Workers() {
               </Badge>
             )}
           </TabsTrigger>
+          {permissions.isDocumentController && (
+            <TabsTrigger value="pending_edits" className="flex items-center gap-2">
+              <FileEdit className="h-4 w-4" />
+              {t("contractors.workers.pendingEdits", "Pending Edits")}
+              {allWorkers.filter(w => w.edit_pending_approval).length > 0 && (
+                <Badge variant="secondary" className="ms-1">
+                  {allWorkers.filter(w => w.edit_pending_approval).length}
+                </Badge>
+              )}
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="all" className="mt-4">
@@ -326,6 +337,41 @@ export default function Workers() {
         <TabsContent value="security" className="mt-4">
           <WorkerSecurityApprovalQueue />
         </TabsContent>
+
+        {permissions.isDocumentController && (
+          <TabsContent value="pending_edits" className="mt-4">
+            <Card>
+              <CardHeader className="pb-4">
+                <p className="text-sm text-muted-foreground">
+                  {t("contractors.workers.pendingEditsDescription", "Workers whose details were edited and require Document Controller re-approval.")}
+                </p>
+              </CardHeader>
+              <CardContent>
+                <WorkerListTable
+                  workers={allWorkers.filter(w => w.edit_pending_approval)}
+                  isLoading={isLoading}
+                  onEdit={(worker) => setEditingWorker(worker)}
+                  onStatusChange={handleStatusChange}
+                  onAddToBlacklist={handleAddToBlacklist}
+                  onDelete={(worker) => setWorkerToDelete(worker)}
+                  onApproveEdits={(worker) => approveEdits.mutate(worker.id)}
+                  selectedIds={selectedWorkerIds}
+                  onSelectionChange={setSelectedWorkerIds}
+                  showSelection={false}
+                  blacklistedIds={blacklistedIds}
+                  blacklistReasons={blacklistReasons}
+                  permissions={{
+                    canEdit: permissions.canEditBasicInfo,
+                    canChangeStatus: permissions.canChangeStatus,
+                    canBlacklist: permissions.canBlacklist,
+                    canDelete: permissions.canDelete,
+                    canApproveEdits: permissions.canApproveEdits,
+                  }}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
 
       <WorkerFormDialog
