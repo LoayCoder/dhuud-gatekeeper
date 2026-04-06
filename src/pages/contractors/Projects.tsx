@@ -57,10 +57,6 @@ export default function Projects() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleSeedData} disabled={isSeeding}>
-            {isSeeding ? <Loader2 className="h-4 w-4 me-2 animate-spin" /> : <Database className="h-4 w-4 me-2" />}
-            {t("common.seedTestData", "Seed Test Data")}
-          </Button>
           <Button onClick={() => setIsCreateOpen(true)}>
             <Plus className="h-4 w-4 me-2" />
             {t("contractors.projects.addProject", "Add Project")}
