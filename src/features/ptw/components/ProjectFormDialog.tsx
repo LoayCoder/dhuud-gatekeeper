@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSites } from "@/hooks/use-sites";
 import { useCreatePTWProject } from "@/hooks/ptw";
 import { useContractorCompanies, useContractorProjects } from "@/hooks/contractor-management";
+import { useProjectManagers } from "@/features/contractors/hooks/use-project-managers";
 import { LocationBoundaryPicker } from "@/components/shared/LocationBoundaryPicker";
 import { toast } from "sonner";
 import { Loader2, Link2, X, Building2, Users } from "lucide-react";
@@ -31,6 +32,7 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
   const { data: sites } = useSites();
   const { data: contractors } = useContractorCompanies();
   const { data: contractorProjects } = useContractorProjects();
+  const { data: projectManagers } = useProjectManagers();
   const createProject = useCreatePTWProject();
 
   const [formData, setFormData] = useState({
@@ -41,6 +43,7 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
     contractor_company_id: "",
     linked_contractor_project_id: "",
     is_internal_work: false,
+    project_manager_id: "",
     start_date: "",
     end_date: "",
     latitude: null as number | null,
@@ -144,6 +147,7 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
         contractor_company_id: formData.is_internal_work ? undefined : formData.contractor_company_id || undefined,
         linked_contractor_project_id: formData.is_internal_work ? undefined : formData.linked_contractor_project_id || undefined,
         is_internal_work: formData.is_internal_work,
+        project_manager_id: formData.project_manager_id || undefined,
         start_date: formData.start_date,
         end_date: formData.end_date,
       });
@@ -165,6 +169,7 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
       contractor_company_id: "",
       linked_contractor_project_id: "",
       is_internal_work: false,
+      project_manager_id: "",
       start_date: "",
       end_date: "",
       latitude: null,
@@ -453,6 +458,28 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
                   />
                   {errors.end_date && <p className="text-sm text-destructive">{errors.end_date}</p>}
                 </div>
+              </div>
+
+              {/* Project Manager */}
+              <div className="space-y-2">
+                <Label htmlFor="project_manager_id">
+                  {t("ptw.project.projectManager", "Project Manager")}
+                </Label>
+                <Select
+                  value={formData.project_manager_id}
+                  onValueChange={(value) => setFormData({ ...formData, project_manager_id: value })}
+                >
+                  <SelectTrigger id="project_manager_id">
+                    <SelectValue placeholder={t("ptw.project.selectPM", "Select project manager")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projectManagers?.map((pm) => (
+                      <SelectItem key={pm.id} value={pm.id}>
+                        {pm.full_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </TabsContent>
 
