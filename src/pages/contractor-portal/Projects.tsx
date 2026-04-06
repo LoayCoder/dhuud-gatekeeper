@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FolderKanban, Calendar, MapPin, Users, AlertCircle } from "lucide-react";
+import { FolderKanban, Calendar, MapPin, Users, AlertCircle, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import ContractorPortalLayout from "@/components/contractor-portal/ContractorPortalLayout";
 import { useContractorPortalData } from "@/hooks/contractor-management/index";
 import { format } from "date-fns";
 import { ContractorPortalRoute } from "@/components/access-control";
 import { ProjectDetailDialog } from "@/features/contractors/components/ProjectDetailDialog";
+import { ProjectFormDialog } from "@/features/contractors/components/ProjectFormDialog";
 import type { ContractorPortalProject } from "@/features/contractors/hooks/use-contractor-portal";
 
 function ContractorPortalProjectsContent() {
