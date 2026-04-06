@@ -25194,6 +25194,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      auto_expire_pending_gate_passes: { Args: never; Returns: number }
       bulk_restore_assets: { Args: { p_asset_ids: string[] }; Returns: number }
       bulk_soft_delete_assets: {
         Args: { p_asset_ids: string[] }
