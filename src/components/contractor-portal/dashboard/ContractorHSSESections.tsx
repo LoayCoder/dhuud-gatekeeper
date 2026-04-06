@@ -19,12 +19,22 @@ interface ContractorHSSESectionsProps {
 }
 
 const SEVERITY_COLORS: Record<string, string> = {
+  level_1: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  level_2: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  level_3: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+  level_4: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+  level_5: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
   L1: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
   L2: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
   L3: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
   L4: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
   L5: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
 };
+
+function severityLabel(sev: string): string {
+  const map: Record<string, string> = { level_1: 'L1', level_2: 'L2', level_3: 'L3', level_4: 'L4', level_5: 'L5' };
+  return map[sev] || sev;
+}
 
 function formatDate(d: string | null) {
   if (!d) return "—";
