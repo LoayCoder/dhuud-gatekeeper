@@ -1,53 +1,72 @@
 
 
-# Contractor Portal Projects Page — Gap & Silent Failure Audit
+# Project Form: Branch-First Cascading Filters + Auto-Generated Code
 
-## Issues Found
+## Summary
+Restructure the "Add Project" form so Branch is selected first, then all downstream fields (Site, Company, Project Manager, Department) filter based on the selected branch. The Project Code field becomes auto-generated with the pattern `{BRANCH_CODE}-{YEAR}-{SERIAL}` and is read-only.
 
-### 1. **CRASH: `end_date` can be null** (Critical)
-The `ContractorPortalProject` type defines `end_date: string | null`, but the page calls `format(new Date(project.end_date), "PP")` directly on line 56. If `end_date` is null, `new Date(null)` produces an invalid date and `format()` throws an error, crashing the card.
+## Changes
 
-**Fix:** Add a null guard: show "Ongoing" or similar when `end_date` is null.
+### 1. `ProjectFormDialog.tsx` — Reorder fields & add cascading logic
 
-### 2. **No error state handling** (Silent Failure)
-`useContractorPortalData()` returns `isError` but the Projects page never checks it. If the query fails, the page silently shows "No projects assigned" instead of an error message — misleading the user.
+**Field order** (matching the reference image):
+1. **Branch** * (first field, required)
+2. **Site** (filtered by branch)
+3. **Company** * (filtered by branch via `assigned_branch_id`)
+4. **Project Manager** * (filtered: profiles linked to the branch)
+5. **Department** (filtered by branch, including hybrid `branch_id=null`)
+6. **Code** * (auto-generated, read-only)
+7. **Project Name** *
+8. **Start Date** * / **End Date** *
+9. **Notes**
 
-**Fix:** Add an error state before the empty check, showing a card with a retry-friendly error message.
+**Cascading reset logic** — when branch changes:
+- Reset `site_id`, `company_id`, `project_manager_id`, `department_id`
+- Regenerate `project_code`
 
-### 3. **Missing status cases in badge** (Minor)
-The `getStatusBadge` function handles `active`, `completed`, `on_hold` but the admin side uses `planned` and `cancelled` statuses too. These fall to the `default` case showing raw status text without proper styling.
+**Company filtering**: Filter the `companies` array by `assigned_branch_id === watchedBranchId`.
 
-**Fix:** Add `planned` and `cancelled` cases.
+**Project Manager filtering**: Filter `managers` by branch. We'll need to update `useProjectManagers` to accept an optional `branchId` param and join `user_branch_assignments` to filter by branch.
 
-### 4. **Project manager shows placeholder text**
-In `useContractorPortalProjects`, the `project_manager` field is hardcoded to `{ full_name: "Project Manager" }` instead of fetching the actual name via a join. This is a data gap — though the Projects page doesn't display the manager name, it would be wrong if it ever did.
+**Auto-generated code logic**:
+- Find selected branch name from branches array
+- Build: `{BRANCH_SHORT}-{YYYY}-{NNN}` where `NNN` is a zero-padded serial
+- Query existing projects with same prefix to determine next serial number
+- Set `project_code` via `form.setValue()` whenever branch changes
+- Make the Code input `readOnly`
 
-**Fix:** Add a profiles join to the query: `project_manager:profiles!contractor_projects_project_manager_id_fkey(full_name)`.
+### 2. `use-project-managers.ts` — Add branch filtering
 
-### 5. **No project detail view** (Feature Gap)
-Unlike workers (which now have a detail modal), clicking a project card does nothing. There's no way to see project details like notes, site, branch, or assigned workers.
+Add optional `branchId` parameter. When provided, join `user_branch_assignments` to only return managers assigned to that branch:
 
-**Fix (optional, noted as gap):** Add a click handler to open a project detail dialog — but this can be deferred if not in scope.
+```sql
+profiles.id, profiles.full_name, profiles.email
+FROM profiles
+INNER JOIN user_branch_assignments ON profiles.id = user_branch_assignments.user_id
+WHERE user_branch_assignments.branch_id = branchId
+  AND user_branch_assignments.deleted_at IS NULL
+  AND profiles.tenant_id = tenantId
+  AND profiles.is_active = true
+```
 
-## Plan
+### 3. `projectFormSchema.ts` — Make branch_id required
 
-### File: `src/pages/contractor-portal/Projects.tsx`
+Change `branch_id` from optional to required: `z.string().min(1, 'Branch is required')`.
 
-| Change | Detail |
-|--------|--------|
-| Add error state | Check `isError` from `useContractorPortalData()`, show error card with message |
-| Guard `end_date` null | Wrap date format in conditional: `project.end_date ? format(...) : t("common.ongoing", "Ongoing")` |
-| Add missing status badges | Add `planned` (blue/info) and `cancelled` (destructive) cases |
+### 4. Auto-code generation helper
 
-### File: `src/features/contractors/hooks/use-contractor-portal.ts`
+Create a small async function `generateProjectCode(branchName: string, tenantId: string)`:
+- Builds prefix: first 3 chars of branch name uppercased + `-` + current year
+- Queries `contractor_projects` for `project_code LIKE '{prefix}%'` count
+- Returns `{prefix}-{(count+1).toString().padStart(3, '0')}`
 
-| Change | Detail |
-|--------|--------|
-| Fix project manager join | Replace placeholder with actual join: `project_manager:profiles!contractor_projects_project_manager_id_fkey(full_name)` |
-| Remove manual mapping | Remove the `.map()` that adds fake project_manager data |
+## Files
 
-### Summary of changes
-- 2 files modified
-- No new files, no DB changes
-- Fixes 1 crash, 1 silent failure, 1 data quality issue, 1 cosmetic gap
+| File | Change |
+|------|--------|
+| `projectFormSchema.ts` | Make `branch_id` required |
+| `ProjectFormDialog.tsx` | Reorder fields, add company/manager branch filtering, auto-generate code |
+| `use-project-managers.ts` | Add optional `branchId` filter with `user_branch_assignments` join |
+
+No database changes needed — all data relationships already exist.
 
