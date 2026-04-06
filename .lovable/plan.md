@@ -1,63 +1,72 @@
 
 
-# Fix ID Card Export to Match Preview
+# Fix: Empty Dropdowns in Project Creation Form
 
-## Problem
+## Root Causes Found
 
-The ID card **preview** (what you see in the dialog) uses the React `IDCardTemplate` component with proper portrait/landscape layouts, local QR codes, and correct sizing. But the **download, print, and WhatsApp send** all use a completely separate file — `src/hooks/id-card-html-renderer.ts` — which is a hardcoded HTML string builder with a simplified landscape-only layout. This is why exported cards look broken (clipped QR codes, wrong proportions, missing layout features).
+### 1. Company Dropdown — Empty
+The `filteredCompanies` filter on line 114 requires `assigned_branch_id === watchedBranchId`. However, 9 of 22 active companies have `assigned_branch_id = NULL`, so they're excluded entirely. Companies without a branch assignment should still appear (they're not branch-restricted).
 
-## Solution
+### 2. Project Manager Dropdown — Empty
+`useProjectManagers(branchId)` queries `user_branch_assignments` with a Supabase join: `.select("user_id, profiles!inner(id, full_name, email)")`. But there is **no foreign key** from `user_branch_assignments.user_id` to `profiles.id` in the database. PostgREST cannot resolve the join, so it returns empty results silently (the hook uses `as any` to bypass TypeScript errors).
 
-Eliminate the HTML renderer entirely. Instead, capture the actual React `IDCardTemplate` component (the same one shown in the preview) using `html2canvas`. This guarantees the exported image is pixel-identical to what users see.
+### 3. Department Not Auto-Filled
+No auto-fill logic exists in `ProjectFormDialog.tsx`. When a Project Manager is selected, nothing happens to the Department field. The `profiles` table has an `assigned_department_id` column that should be used.
 
-## Steps
+## Fixes
 
-### Step 1: Rewrite `use-id-card-generator.ts` — render React component off-screen
+### Step 1: Add missing FK — `user_branch_assignments.user_id → profiles.id`
+Database migration to add the foreign key so PostgREST can resolve the join.
 
-Instead of importing `renderIDCardToHTML` and injecting raw HTML, the `generateCard` function will:
-
-1. Create a hidden container (`position: absolute; left: -9999px`)
-2. Use `ReactDOM.createRoot` to render the actual `IDCardTemplate` component into it
-3. Wait for images (photo, logo) to load via `onload` promises
-4. Capture with `html2canvas` at 3x scale
-5. Clean up the container
-
-This removes the dependency on `id-card-html-renderer.ts` entirely.
-
-### Step 2: Delete `src/hooks/id-card-html-renderer.ts`
-
-No longer needed — the React component is the single source of truth for both preview and export.
-
-### Step 3: Add image-load waiting utility
-
-Before capturing with `html2canvas`, wait for all `<img>` elements inside the card to finish loading. This prevents blank photos/logos in the exported image.
-
-```text
-Flow:
-  Preview Dialog (IDCardTemplate) ──── same component ────┐
-                                                          │
-  Download/Print/WhatsApp ─── render IDCardTemplate ──────┤
-                               off-screen into DOM        │
-                                    │                     │
-                            wait for images to load       │
-                                    │                     │
-                            html2canvas capture ──────────┘
-                                    │
-                            PNG data URL
+```sql
+ALTER TABLE public.user_branch_assignments
+  ADD CONSTRAINT user_branch_assignments_user_id_fkey
+  FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
 ```
 
-## Technical Details
+### Step 2: Fix `useProjectManagers` — use explicit two-step query as fallback
+Even with the FK, update the hook to be more resilient: query `user_branch_assignments` for user IDs, then fetch profiles separately. This avoids relying on PostgREST relationship inference.
 
-| Item | Current | After fix |
-|------|---------|-----------|
-| Renderer for export | `id-card-html-renderer.ts` (HTML strings) | `IDCardTemplate` React component |
-| QR code in export | External API (`qrserver.com`) | Local `QRCodeSVG` (same as preview) |
-| Portrait support | Broken (wrong layout) | Correct (uses `PortraitFrontLayout`) |
-| Image loading | No wait | Explicit `img.onload` promises |
+### Step 3: Fix Company filtering — include NULL branch companies
+In `ProjectFormDialog.tsx`, change `filteredCompanies` to include companies where `assigned_branch_id` is null OR matches the selected branch:
+
+```typescript
+const filteredCompanies = useMemo(() => {
+  if (!watchedBranchId) return [];
+  return companies.filter((c: any) => 
+    !c.assigned_branch_id || c.assigned_branch_id === watchedBranchId
+  );
+}, [companies, watchedBranchId]);
+```
+
+### Step 4: Add Department auto-fill on PM selection
+Fetch the selected PM's `assigned_department_id` from profiles and auto-fill the department field:
+
+```typescript
+// Watch project_manager_id changes
+const watchedPMId = form.watch("project_manager_id");
+
+useEffect(() => {
+  if (!watchedPMId) return;
+  // Fetch PM's department from profiles
+  supabase.from("profiles")
+    .select("assigned_department_id")
+    .eq("id", watchedPMId)
+    .maybeSingle()
+    .then(({ data }) => {
+      if (data?.assigned_department_id) {
+        form.setValue("department_id", data.assigned_department_id);
+      }
+    });
+}, [watchedPMId]);
+```
+
+## Summary
 
 | Step | File | Change |
 |------|------|--------|
-| 1 | `src/hooks/use-id-card-generator.ts` | Rewrite `generateCard` to render React component off-screen |
-| 2 | `src/hooks/id-card-html-renderer.ts` | Delete file |
-| 3 | `src/hooks/use-id-card-generator.ts` | Add image-load waiting before canvas capture |
+| 1 | Migration | Add FK `user_branch_assignments.user_id → profiles.id` |
+| 2 | `use-project-managers.ts` | Rewrite branch-filtered query to use two-step approach |
+| 3 | `ProjectFormDialog.tsx` | Include null-branch companies in filter |
+| 4 | `ProjectFormDialog.tsx` | Auto-fill department on PM selection |
 
