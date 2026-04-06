@@ -1,5 +1,7 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -63,21 +65,39 @@ export function IDCardActionButton({
   const { data: settings, isLoading: settingsLoading } = useIDCardSettingsByType(tenantId, cardType);
   const { generateCard, sendViaWhatsApp, isGenerating } = useIDCardGenerator();
 
-  // Default tenant data if not provided
-  const tenantData: IDCardTenantData = providedTenantData || {
+  // Auto-fetch tenant branding (logo, name, brand_color)
+  const { data: tenantBranding } = useQuery({
+    queryKey: ['tenant-branding-idcard', tenantId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('tenants')
+        .select('id, name, short_name, logo_light_url, brand_color')
+        .eq('id', tenantId)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!tenantId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Build tenantData from branding, with provided overrides for non-empty fields
+  const tenantData: IDCardTenantData = {
     id: tenantId,
-    name: '',
-    nameAr: '',
-    logoUrl: undefined,
+    name: (providedTenantData?.name && providedTenantData.name !== '')
+      ? providedTenantData.name
+      : (tenantBranding?.name || ''),
+    nameAr: providedTenantData?.nameAr || tenantBranding?.short_name || undefined,
+    logoUrl: providedTenantData?.logoUrl || tenantBranding?.logo_light_url || undefined,
   };
 
-  // Default settings if not loaded
+  // Use tenant brand_color as accent fallback
+  const brandAccent = tenantBranding?.brand_color || '#1e40af';
   const cardSettings: TenantIDCardSettings = (settings as TenantIDCardSettings) || {
     id: '',
     tenant_id: tenantId,
     card_type: cardType,
     front_bg_color: '#FFFFFF',
-    front_accent_color: '#1e40af',
+    front_accent_color: brandAccent,
     front_text_color: '#1f2937',
     show_photo: true,
     show_qr_code: true,

@@ -43,7 +43,7 @@ export function LandscapeFrontLayout({
       <div
         style={{
           backgroundColor: settings.front_accent_color,
-          padding: `${6 * scale}px ${10 * scale}px`,
+          padding: `${8 * scale}px ${10 * scale}px`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -55,8 +55,9 @@ export function LandscapeFrontLayout({
           <img
             src={tenantData.logoUrl}
             alt="Logo"
+            crossOrigin="anonymous"
             style={{
-              height: 24 * scale,
+              height: 30 * scale,
               width: 'auto',
               objectFit: 'contain',
             }}
@@ -68,10 +69,11 @@ export function LandscapeFrontLayout({
           <div
             style={{
               color: '#FFFFFF',
-              fontSize: 9 * scale,
-              fontWeight: 600,
+              fontSize: 11 * scale,
+              fontWeight: 700,
               flex: 1,
               textAlign: isRTL ? 'right' : 'left',
+              lineHeight: 1.3,
             }}
           >
             {bilingualTenantName}
@@ -83,9 +85,9 @@ export function LandscapeFrontLayout({
           style={{
             backgroundColor: 'rgba(255,255,255,0.2)',
             color: '#FFFFFF',
-            padding: `${2 * scale}px ${8 * scale}px`,
+            padding: `${3 * scale}px ${8 * scale}px`,
             borderRadius: 4 * scale,
-            fontSize: 6 * scale,
+            fontSize: 7 * scale,
             fontWeight: 600,
             textTransform: 'uppercase',
           }}
@@ -98,7 +100,7 @@ export function LandscapeFrontLayout({
       <div
         style={{
           flex: 1,
-          padding: `${8 * scale}px ${10 * scale}px`,
+          padding: `${10 * scale}px ${12 * scale}px`,
           display: 'flex',
           gap: 10 * scale,
         }}
@@ -113,13 +115,14 @@ export function LandscapeFrontLayout({
               overflow: 'hidden',
               flexShrink: 0,
               backgroundColor: '#f3f4f6',
-              border: `1px solid ${settings.front_accent_color}`,
+              border: `2px solid ${settings.front_accent_color}`,
             }}
           >
             {personData.photo ? (
               <img
                 src={personData.photo}
                 alt="Photo"
+                crossOrigin="anonymous"
                 style={{
                   width: '100%',
                   height: '100%',
@@ -155,14 +158,14 @@ export function LandscapeFrontLayout({
             flex: 1,
             display: 'flex',
             flexDirection: 'column',
-            gap: 3 * scale,
+            gap: 4 * scale,
             minWidth: 0,
           }}
         >
           {/* Name - Bilingual (always show both) */}
            <div
             style={{
-              fontSize: 10 * scale,
+              fontSize: 12 * scale,
               fontWeight: 700,
               color: settings.front_text_color,
               lineHeight: 1.2,
@@ -176,7 +179,7 @@ export function LandscapeFrontLayout({
           {personData.fullNameAr && (
             <div
               style={{
-                fontSize: 9 * scale,
+                fontSize: 10 * scale,
                 fontWeight: 600,
                 color: settings.front_text_color,
                 opacity: 0.85,
@@ -203,7 +206,7 @@ export function LandscapeFrontLayout({
                   key={field}
                   style={{
                     display: 'flex',
-                    fontSize: 7 * scale,
+                    fontSize: 8 * scale,
                     color: settings.front_text_color,
                     gap: 4 * scale,
                   }}
@@ -211,7 +214,7 @@ export function LandscapeFrontLayout({
                   <span style={{ opacity: 0.7 }}>
                     {FIELD_LABELS[field][language]}:
                   </span>
-                  <span style={{ fontWeight: 500 }}>{value}</span>
+                  <span style={{ fontWeight: 600 }}>{value}</span>
                 </div>
               );
             })}
@@ -283,4 +286,3 @@ export function LandscapeFrontLayout({
     </div>
   );
 }
-

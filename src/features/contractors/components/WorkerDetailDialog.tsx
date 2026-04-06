@@ -361,7 +361,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
                           tenantId={worker.tenant_id}
                           tenantData={{
                             id: worker.tenant_id,
-                            name: worker.company?.company_name || '',
+                            name: '',
                           }}
                           recipientPhone={worker.mobile_number}
                         />

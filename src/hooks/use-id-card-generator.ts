@@ -104,6 +104,14 @@ async function renderCardSide(
       });
     });
 
+    // Set crossOrigin on all images for CORS compatibility
+    const allImgs = wrapper.querySelectorAll('img');
+    allImgs.forEach((img) => {
+      if (!img.crossOrigin) {
+        img.crossOrigin = 'anonymous';
+      }
+    });
+
     // Wait for images (photos, logos) to load
     await waitForImages(wrapper);
 

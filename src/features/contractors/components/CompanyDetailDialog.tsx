@@ -351,8 +351,7 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
                           tenantId={company.tenant_id}
                           tenantData={{
                             id: company.tenant_id,
-                            name: company.company_name,
-                            nameAr: company.company_name_ar || undefined,
+                            name: '',
                           }}
                           recipientPhone={siteRep.mobile_number || undefined}
                         />
@@ -433,8 +432,7 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
                             tenantId={company.tenant_id}
                             tenantData={{
                               id: company.tenant_id,
-                              name: company.company_name,
-                              nameAr: company.company_name_ar || undefined,
+                              name: '',
                             }}
                             recipientPhone={officer.phone}
                           />
