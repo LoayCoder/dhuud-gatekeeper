@@ -3,21 +3,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 export type ContractorAuditAction =
-  | "worker_created"
-  | "worker_edited_by_rep"
-  | "worker_approved"
-  | "worker_rejected"
-  | "worker_status_changed"
-  | "worker_blacklisted"
-  | "worker_deleted"
-  | "worker_edit_approved"
-  | "gate_pass_created"
-  | "gate_pass_approved"
-  | "gate_pass_rejected"
-  | "gate_pass_resubmitted";
+  | "created"
+  | "updated"
+  | "deleted"
+  | "approved"
+  | "rejected"
+  | "suspended"
+  | "activated"
+  | "revoked"
+  | "assigned"
+  | "removed"
+  | "sent"
+  | "viewed"
+  | "acknowledged"
+  | "verified"
+  | "expired";
 
 interface AuditLogParams {
-  entityType: "contractor_worker" | "contractor_company" | "material_gate_pass";
+  entityType: "contractor_company" | "contractor_worker" | "gate_pass";
   entityId: string;
   action: ContractorAuditAction;
   oldValue?: Record<string, unknown>;
