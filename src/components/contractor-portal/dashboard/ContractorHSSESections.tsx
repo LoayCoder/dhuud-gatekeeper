@@ -182,7 +182,7 @@ export default function ContractorHSSESections({
                     <div className="flex items-center gap-2 ms-2">
                       {obs.severity_v2 && (
                         <Badge className={SEVERITY_COLORS[obs.severity_v2] || ""} variant="outline">
-                          {obs.severity_v2}
+                          {severityLabel(obs.severity_v2)}
                         </Badge>
                       )}
                       <StatusBadge status={obs.status} />
@@ -218,7 +218,7 @@ export default function ContractorHSSESections({
                     <div className="flex items-center gap-2 ms-2">
                       {inc.severity_v2 && (
                         <Badge className={SEVERITY_COLORS[inc.severity_v2] || ""} variant="outline">
-                          {inc.severity_v2}
+                          {severityLabel(inc.severity_v2)}
                         </Badge>
                       )}
                       <StatusBadge status={inc.status} />
