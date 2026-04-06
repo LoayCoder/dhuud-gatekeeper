@@ -146,14 +146,18 @@ export function useRiskAssessmentForm(projectId?: string, contractorId?: string,
       const calculatedRating = overallRating || calculateOverallRisk();
       const managementApprovalRequired = calculatedRating === "high" || calculatedRating === "critical";
 
+      // Sanitize FK IDs — empty strings must become null to avoid FK violations
+      const finalContractorId = (isProjectLinked ? selectedContractorId : contractorId)?.trim() || null;
+      const finalProjectId = (isProjectLinked ? selectedProjectId : projectId)?.trim() || null;
+
       // Insert risk assessment with compliance fields
       const { data: assessment, error: assessmentError } = await supabase
         .from("risk_assessments")
         .insert({
           tenant_id: profile.tenant_id,
           assessment_number: assessmentNumber,
-          contractor_id: isProjectLinked ? selectedContractorId || null : contractorId || null,
-          project_id: isProjectLinked ? selectedProjectId || null : projectId || null,
+          contractor_id: finalContractorId,
+          project_id: finalProjectId,
           activity_name: activityName,
           activity_name_ar: null,
           activity_description: activityDescription,
