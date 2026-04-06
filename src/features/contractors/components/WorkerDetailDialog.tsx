@@ -75,6 +75,11 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
     ? new Date(latestInduction.expires_at) < new Date() 
     : false;
 
+  // Photo gate: worker must have a verified photo before induction/QR/ID
+  const isPhotoVerified = !!worker.photo_path && !!worker.photo_verified_at;
+  const isApprovedOrSecurityApproved = worker.approval_status === "approved" || worker.security_approval_status === "approved";
+  const needsPhotoGate = isApprovedOrSecurityApproved && !isPhotoVerified;
+
   const handleGenerateQR = async () => {
     if (!selectedProjectId) {
       toast.error(t("contractors.messages.selectProject", "Please select a project first"));
