@@ -7,6 +7,7 @@ const coordinateSchema = z.object({
 
 export const projectFormSchema = z.object({
     // Required fields
+    branch_id: z.string().min(1, 'Branch is required'),
     company_id: z.string().min(1, 'Company is required'),
     project_code: z.string().min(1, 'Project code is required'),
     project_name: z.string().min(1, 'Project name is required'),
@@ -18,7 +19,6 @@ export const projectFormSchema = z.object({
     project_name_ar: z.string().optional().default(''),
     location_description: z.string().optional().default(''),
     notes: z.string().optional().default(''),
-    branch_id: z.string().optional().default(''),
     site_id: z.string().optional().default(''),
     department_id: z.string().optional().default(''),
 
