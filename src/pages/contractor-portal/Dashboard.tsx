@@ -33,7 +33,7 @@ function ContractorPortalDashboardContent() {
     <ContractorPortalLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold truncate">
+          <h1 className="text-xl sm:text-2xl font-bold leading-tight break-words">
             {t("contractorPortal.dashboard.welcome", "Welcome")}, {company?.company_name}
           </h1>
           <p className="text-muted-foreground">
@@ -138,12 +138,12 @@ function ContractorPortalDashboardContent() {
               ) : (
                 <div className="space-y-3">
                   {activeProjects.slice(0, 5).map((project) => (
-                    <div key={project.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <p className="font-medium">{project.project_name}</p>
-                        <p className="text-sm text-muted-foreground">{project.project_code}</p>
+                    <div key={project.id} className="flex flex-col gap-3 p-3 border rounded-lg sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="font-medium break-words">{project.project_name}</p>
+                        <p className="text-sm text-muted-foreground break-words">{project.project_code}</p>
                       </div>
-                      <Badge variant="outline">
+                      <Badge variant="outline" className="self-start">
                         {project.assigned_workers_count} {t("contractors.workers.title", "Workers")}
                       </Badge>
                     </div>
@@ -163,21 +163,21 @@ function ContractorPortalDashboardContent() {
             <CardContent>
               <div className="space-y-3">
                 {pendingWorkers.length > 0 && (
-                  <div className="flex items-center justify-between p-3 border border-warning/50 bg-warning/10 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-warning" />
-                      <span>{t("contractorPortal.dashboard.workersAwaitingApproval", "Workers awaiting approval")}</span>
+                  <div className="flex flex-col gap-3 p-3 border border-warning/50 bg-warning/10 rounded-lg sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-start gap-2 min-w-0">
+                      <Users className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+                      <span className="break-words text-sm">{t("contractorPortal.dashboard.workersAwaitingApproval", "Workers awaiting approval")}</span>
                     </div>
-                    <Badge variant="outline">{pendingWorkers.length}</Badge>
+                    <Badge variant="outline" className="self-start">{pendingWorkers.length}</Badge>
                   </div>
                 )}
                 {pendingGatePasses.length > 0 && (
-                  <div className="flex items-center justify-between p-3 border border-warning/50 bg-warning/10 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Truck className="h-4 w-4 text-warning" />
-                      <span>{t("contractorPortal.dashboard.gatePassesPending", "Gate passes pending")}</span>
+                  <div className="flex flex-col gap-3 p-3 border border-warning/50 bg-warning/10 rounded-lg sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-start gap-2 min-w-0">
+                      <Truck className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+                      <span className="break-words text-sm">{t("contractorPortal.dashboard.gatePassesPending", "Gate passes pending")}</span>
                     </div>
-                    <Badge variant="outline">{pendingGatePasses.length}</Badge>
+                    <Badge variant="outline" className="self-start">{pendingGatePasses.length}</Badge>
                   </div>
                 )}
                 {pendingWorkers.length === 0 && pendingGatePasses.length === 0 && (

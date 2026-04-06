@@ -4,6 +4,7 @@ import { Eye, AlertTriangle, ClipboardList, Scale, Clock, AlertCircle, ChevronRi
 import ContractorIncidentDetailDialog from "./ContractorIncidentDetailDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import type {
   HSSEObservationStats,
@@ -43,7 +44,13 @@ function StatusBadge({ status }: { status: string }) {
   const label = status.replace(/_/g, " ");
   const isTerminal = ["closed", "verified", "investigation_closed"].includes(status);
   return (
-    <Badge variant={isTerminal ? "default" : "outline"} className={isTerminal ? "bg-green-600" : ""}>
+    <Badge
+      variant={isTerminal ? "default" : "outline"}
+      className={cn(
+        "max-w-full whitespace-normal break-words text-start leading-4 h-auto py-1",
+        isTerminal ? "bg-green-600" : ""
+      )}
+    >
       {label}
     </Badge>
   );
@@ -186,14 +193,14 @@ export default function ContractorHSSESections({
                     tabIndex={0}
                     onKeyDown={(e) => e.key === 'Enter' && openDetail(obs.id)}
                   >
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium text-sm truncate min-w-0 flex-1">{obs.title}</p>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180 shrink-0 ms-2" />
+                    <div className="flex items-start justify-between gap-2 min-w-0">
+                      <p className="font-medium text-sm leading-5 break-words min-w-0 flex-1">{obs.title}</p>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180 shrink-0 mt-0.5" />
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5">{formatDate(obs.occurred_at)}</p>
-                    <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    <div className="flex flex-wrap items-start gap-1.5 mt-1.5">
                       {obs.severity_v2 && (
-                        <Badge className={SEVERITY_COLORS[obs.severity_v2] || ""} variant="outline">
+                        <Badge className={cn("max-w-full whitespace-normal break-words text-start leading-4 h-auto py-1", SEVERITY_COLORS[obs.severity_v2] || "")} variant="outline">
                           {severityLabel(obs.severity_v2)}
                         </Badge>
                       )}
@@ -230,14 +237,14 @@ export default function ContractorHSSESections({
                     tabIndex={0}
                     onKeyDown={(e) => e.key === 'Enter' && openDetail(inc.id)}
                   >
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium text-sm truncate min-w-0 flex-1">{inc.title}</p>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180 shrink-0 ms-2" />
+                    <div className="flex items-start justify-between gap-2 min-w-0">
+                      <p className="font-medium text-sm leading-5 break-words min-w-0 flex-1">{inc.title}</p>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180 shrink-0 mt-0.5" />
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5">{formatDate(inc.occurred_at)}</p>
-                    <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    <div className="flex flex-wrap items-start gap-1.5 mt-1.5">
                       {inc.severity_v2 && (
-                        <Badge className={SEVERITY_COLORS[inc.severity_v2] || ""} variant="outline">
+                        <Badge className={cn("max-w-full whitespace-normal break-words text-start leading-4 h-auto py-1", SEVERITY_COLORS[inc.severity_v2] || "")} variant="outline">
                           {severityLabel(inc.severity_v2)}
                         </Badge>
                       )}
@@ -276,22 +283,19 @@ export default function ContractorHSSESections({
                       tabIndex={0}
                       onKeyDown={(e) => e.key === 'Enter' && openDetail(action.incident_id)}
                     >
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium text-sm truncate min-w-0 flex-1">{action.title}</p>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180 shrink-0 ms-2" />
+                      <div className="flex items-start justify-between gap-2 min-w-0">
+                        <p className="font-medium text-sm leading-5 break-words min-w-0 flex-1">{action.title}</p>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180 shrink-0 mt-0.5" />
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                      <div className="flex flex-col gap-1 text-xs text-muted-foreground mt-0.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
                         <span>{formatDate(action.due_date)}</span>
                         {action.assignee_name && (
-                          <>
-                            <span>·</span>
-                            <span>{action.assignee_name}</span>
-                          </>
+                          <span className="break-words">{action.assignee_name}</span>
                         )}
                       </div>
-                      <div className="flex flex-wrap gap-1.5 mt-1.5">
+                      <div className="flex flex-wrap items-start gap-1.5 mt-1.5">
                         {isOverdue && (
-                          <Badge variant="destructive" className="text-xs">
+                          <Badge variant="destructive" className="text-xs max-w-full whitespace-normal break-words text-start leading-4 h-auto py-1">
                             {t("contractorPortal.hsse.overdue", "overdue")}
                           </Badge>
                         )}
@@ -329,20 +333,20 @@ export default function ContractorHSSESections({
                     tabIndex={v.incident_id ? 0 : undefined}
                     onKeyDown={(e) => v.incident_id && e.key === 'Enter' && openDetail(v.incident_id)}
                   >
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium text-sm truncate min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2 min-w-0">
+                      <p className="font-medium text-sm leading-5 break-words min-w-0 flex-1">
                         {v.violation_type_name || t("contractorPortal.hsse.violation", "Violation")}
                       </p>
-                      {v.incident_id && <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180 shrink-0 ms-2" />}
+                      {v.incident_id && <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180 shrink-0 mt-0.5" />}
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5">{formatDate(v.created_at)}</p>
-                    <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    <div className="flex flex-wrap items-start gap-1.5 mt-1.5">
                       {v.total_fine_amount != null && v.total_fine_amount > 0 && (
-                        <Badge variant="outline" className="text-destructive border-destructive/30">
+                        <Badge variant="outline" className="max-w-full whitespace-normal break-words text-start leading-4 h-auto py-1 text-destructive border-destructive/30">
                           SAR {v.total_fine_amount.toLocaleString()}
                         </Badge>
                       )}
-                      <Badge variant={v.final_status === 'pending' || !v.final_status ? 'secondary' : 'outline'}>
+                      <Badge variant={v.final_status === 'pending' || !v.final_status ? 'secondary' : 'outline'} className="max-w-full whitespace-normal break-words text-start leading-4 h-auto py-1">
                         {(v.final_status || 'pending').replace(/_/g, ' ')}
                       </Badge>
                     </div>
