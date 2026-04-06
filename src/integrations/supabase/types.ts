@@ -14486,6 +14486,7 @@ export type Database = {
           start_date: string | null
           status: string
           submission_ip: string | null
+          submitted_at: string | null
           tenant_id: string
           time_window_end: string | null
           time_window_start: string | null
@@ -14565,6 +14566,7 @@ export type Database = {
           start_date?: string | null
           status?: string
           submission_ip?: string | null
+          submitted_at?: string | null
           tenant_id: string
           time_window_end?: string | null
           time_window_start?: string | null
@@ -14644,6 +14646,7 @@ export type Database = {
           start_date?: string | null
           status?: string
           submission_ip?: string | null
+          submitted_at?: string | null
           tenant_id?: string
           time_window_end?: string | null
           time_window_start?: string | null

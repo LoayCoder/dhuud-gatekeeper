@@ -53,6 +53,7 @@ export const createGatePass = async (data: CreateGatePassData, tenantId: string,
             requested_by: userId,
             reference_number,
             status: data.is_internal_request ? "pending_dept_approval" : "pending_contractor_approval",
+            submitted_at: new Date().toISOString(),
         })
         .select()
         .single();
@@ -174,9 +175,10 @@ export const createGatePass = async (data: CreateGatePassData, tenantId: string,
     // Audit log: gate pass created
     supabase.functions.invoke('contractor-audit-log', {
         body: {
-            entity_type: 'gate_pass',
+            entity_type: 'material_gate_pass',
             entity_id: result.id,
             action: 'gate_pass_created',
+            tenant_id: tenantId,
             new_value: {
                 reference_number,
                 pass_type: data.pass_type,
