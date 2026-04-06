@@ -5677,6 +5677,8 @@ export type Database = {
           national_id: string
           nationality: string | null
           photo_path: string | null
+          photo_verified_at: string | null
+          photo_verified_by: string | null
           preferred_language: string
           rejection_reason: string | null
           safety_officer_id: string | null
@@ -5710,6 +5712,8 @@ export type Database = {
           national_id: string
           nationality?: string | null
           photo_path?: string | null
+          photo_verified_at?: string | null
+          photo_verified_by?: string | null
           preferred_language?: string
           rejection_reason?: string | null
           safety_officer_id?: string | null
@@ -5743,6 +5747,8 @@ export type Database = {
           national_id?: string
           nationality?: string | null
           photo_path?: string | null
+          photo_verified_at?: string | null
+          photo_verified_by?: string | null
           preferred_language?: string
           rejection_reason?: string | null
           safety_officer_id?: string | null
@@ -5779,6 +5785,13 @@ export type Database = {
           {
             foreignKeyName: "contractor_workers_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_photo_verified_by_fkey"
+            columns: ["photo_verified_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
