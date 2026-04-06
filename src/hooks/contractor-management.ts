@@ -69,7 +69,7 @@ export function useContractorProjects() {
         .is('deleted_at', null)
         .order('project_name');
       if (error) throw error;
-      return data as ContractorProjectRecord[];
+      return data as unknown as ContractorProjectRecord[];
     },
     enabled: !!tenantId,
   });
