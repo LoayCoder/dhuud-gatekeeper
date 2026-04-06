@@ -81,12 +81,12 @@ export function useContractorPortalObservations(companyId: string | undefined) {
 
       const { data, error } = await supabase
         .from("incidents")
-        .select("id, title, incident_date, status, severity_v2")
+        .select("id, title, occurred_at, status, severity_v2")
         .eq("related_contractor_company_id", companyId)
         .eq("tenant_id", tenantId)
         .eq("event_type", "observation")
         .is("deleted_at", null)
-        .order("incident_date", { ascending: false })
+        .order("occurred_at", { ascending: false })
         .limit(100);
 
       if (error) throw error;
@@ -115,12 +115,12 @@ export function useContractorPortalIncidents(companyId: string | undefined) {
 
       const { data, error } = await supabase
         .from("incidents")
-        .select("id, title, incident_date, status, severity_v2")
+        .select("id, title, occurred_at, status, severity_v2")
         .eq("related_contractor_company_id", companyId)
         .eq("tenant_id", tenantId)
         .eq("event_type", "incident")
         .is("deleted_at", null)
-        .order("incident_date", { ascending: false })
+        .order("occurred_at", { ascending: false })
         .limit(100);
 
       if (error) throw error;
