@@ -131,7 +131,7 @@ export function useContractorPortalIncidents(companyId: string | undefined) {
       for (const item of items) {
         const sev = item.severity_v2 || 'unknown';
         bySeverity[sev] = (bySeverity[sev] || 0) + 1;
-        if (['L3', 'L4', 'L5'].includes(sev)) highSeverityCount++;
+        if (['level_3', 'level_4', 'level_5', 'L3', 'L4', 'L5'].includes(sev)) highSeverityCount++;
       }
 
       return {
