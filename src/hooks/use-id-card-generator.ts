@@ -123,7 +123,9 @@ export function useIDCardGenerator() {
         
         if (frontImage && options.saveToStorage) {
           const frontPath = `${options.tenantId}/${options.cardType}/${options.entityId}_front.png`;
-          result.frontImageUrl = await uploadToStorage(frontImage, frontPath) || undefined;
+          const uploadedUrl = await uploadToStorage(frontImage, frontPath);
+          // Use uploaded URL if available, otherwise fall back to data URL for download/print
+          result.frontImageUrl = uploadedUrl || frontImage;
           result.frontImagePath = frontPath;
         } else if (frontImage) {
           result.frontImageUrl = frontImage;
@@ -144,7 +146,8 @@ export function useIDCardGenerator() {
           
           if (backImage && options.saveToStorage) {
             const backPath = `${options.tenantId}/${options.cardType}/${options.entityId}_back.png`;
-            result.backImageUrl = await uploadToStorage(backImage, backPath) || undefined;
+            const uploadedBackUrl = await uploadToStorage(backImage, backPath);
+            result.backImageUrl = uploadedBackUrl || backImage;
             result.backImagePath = backPath;
           } else if (backImage) {
             result.backImageUrl = backImage;
