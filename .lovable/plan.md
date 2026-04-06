@@ -1,68 +1,70 @@
 
+Fix the contractor representative ID card photo flow in the actual save path and the actual preview path.
 
-# Fix: Contractor Representative Photo Not Persisting
+What is broken now
+- The attached preview is showing the fallback placeholder, not the uploaded photo.
+- `IDCardPreviewDialog` and the card generator already support photos, but only when `personData.photo` is provided.
+- In `src/features/contractors/components/CompanyDetailDialog.tsx`, `getSiteRepPersonData()` does not pass any photo at all, so the contractor representative ID card always falls back to initials.
+- The company form still saves through `useSyncPersonnelToWorkers()` from `CompanyFormDialog.tsx`. In that hook, the `contractor_representatives` update/insert still omits `photo_path`, so saving the company clears the representative photo from the main representative record. That is why reopening Edit shows no photo.
 
-## Root Cause
+Implementation plan
 
-Three cascading failures prevent the photo from being saved and displayed:
+1. Fix representative persistence in the real save flow
+- File: `src/features/contractors/hooks/use-sync-personnel-to-workers.ts`
+- Add these fields to the `contractor_representatives` update/insert payload:
+  - `photo_path: siteRep.photo_path || null`
+  - `nationality: siteRep.nationality || null`
+  - `phone: siteRep.phone || null`
+- Keep the existing `contractor_workers.photo_path` sync.
 
-### Bug 1: Database column missing (CRITICAL)
-The `contractor_representatives` table has **no `photo_path` column**. The form collects it, but the upsert mutation in `use-contractor-site-rep.ts` never writes it — because the column doesn't exist.
+2. Fix representative typing/query for safe UI access
+- File: `src/features/contractors/hooks/use-contractor-site-rep.ts`
+- Replace `select("*")` with an explicit select list.
+- Extend `ContractorSiteRep` to include:
+  - `photo_path`
+  - `phone`
+  - `nationality`
+  - optionally `full_name_ar`
+- This avoids relying on hidden fields and makes the photo available cleanly to the dialog.
 
-### Bug 2: Photo discarded on load
-In `CompanyFormDialog.tsx` line 158, when loading an existing rep, `photo_path` is **hardcoded to `null`**:
-```typescript
-photo_path: null,  // ← always null, even if photo existed
+3. Pass a real photo URL into the ID card preview
+- File: `src/features/contractors/components/CompanyDetailDialog.tsx`
+- Add signed URL loading for the representative photo from the `worker-photos` bucket.
+- Store that signed URL in local state.
+- Update `getSiteRepPersonData()` to pass:
+  - `photo: siteRepPhotoUrl || undefined`
+  - optionally `fullNameAr` if available
+- No change is needed in `IDCardPreviewDialog` or the ID card templates, because they already render the photo correctly once `personData.photo` is set.
+
+4. Optional same-pass parity fix
+- Safety officer ID cards use the same pattern and currently also do not pass photo data from `CompanyDetailDialog`.
+- If we want complete consistency, extend safety officer photo mapping in the same change.
+
+Files
+- `src/features/contractors/hooks/use-sync-personnel-to-workers.ts`
+- `src/features/contractors/hooks/use-contractor-site-rep.ts`
+- `src/features/contractors/components/CompanyDetailDialog.tsx`
+- Optional: `src/features/contractors/hooks/use-contractor-safety-officers.ts`
+
+Expected result
+- Upload representative photo, save, reopen edit: photo remains saved.
+- Open Contractor Representative ID card preview: real photo appears.
+- Download / print / WhatsApp card also includes the photo because all outputs reuse the same `personData.photo`.
+
+Technical detail
+```text
+Current flow:
+CompanyFormDialog
+  -> useSyncPersonnelToWorkers()
+  -> contractor_representatives saved without photo_path
+  -> CompanyDetailDialog builds personData without photo
+  -> ID card preview shows placeholder
+
+Fixed flow:
+CompanyFormDialog
+  -> useSyncPersonnelToWorkers() saves photo_path
+  -> useContractorSiteRep returns photo_path
+  -> CompanyDetailDialog creates signed URL
+  -> getSiteRepPersonData() includes photo
+  -> preview / PNG / WhatsApp all show the real photo
 ```
-
-### Bug 3: Upsert ignores photo_path
-The `useUpsertSiteRep` mutation only writes `full_name`, `national_id`, `mobile_number`, `email`. It never includes `photo_path` in the update or insert payload.
-
-### Bug 4: Missing columns for nationality/phone
-The table also lacks `nationality` and `phone` columns, which are collected in the form but silently dropped.
-
-### Impact on ID Card
-The ID card reads photo from the synced `contractor_workers` record. Since `siteRep.photo_path` is always null (Bug 2), the worker record also gets `photo_path: null` during sync → ID card shows no photo.
-
-## Plan
-
-### Step 1: Database Migration — Add missing columns
-
-```sql
-ALTER TABLE public.contractor_representatives 
-  ADD COLUMN IF NOT EXISTS photo_path text,
-  ADD COLUMN IF NOT EXISTS nationality text,
-  ADD COLUMN IF NOT EXISTS phone text;
-```
-
-### Step 2: `use-contractor-site-rep.ts` — Include photo_path, nationality, phone in upsert
-
-Both the **update** and **insert** branches must include:
-- `photo_path: data.photo_path || null`
-- `nationality: data.nationality || null`
-- `phone: data.phone || null`
-
-### Step 3: `CompanyFormDialog.tsx` — Load photo_path from database
-
-Change line 158 from `photo_path: null` to:
-```typescript
-photo_path: siteRepFromTable.photo_path || null,
-nationality: siteRepFromTable.nationality || "",
-phone: siteRepFromTable.phone || "",
-```
-
-### Step 4: `SiteRepLockedCard.tsx` — Display photo from storage
-
-The locked card currently uses `data.photo_path` as a direct `<img src>`. But `photo_path` is a Supabase Storage path (e.g., `worker-photos/xxx.jpg`), not a URL. Add a `useEffect` to generate a signed URL from the storage path, matching the pattern used in `WorkerDetailDialog.tsx`.
-
-## Files
-
-| File | Change |
-|------|--------|
-| **DB Migration** | Add `photo_path`, `nationality`, `phone` columns to `contractor_representatives` |
-| `use-contractor-site-rep.ts` | Include all 3 new fields in update/insert |
-| `CompanyFormDialog.tsx` | Load `photo_path`, `nationality`, `phone` from fetched data |
-| `SiteRepLockedCard.tsx` | Generate signed URL for photo display |
-
-No other files need changes — the sync function (`use-sync-personnel-to-workers.ts`) already passes `siteRep.photo_path` to the worker record, and the ID card reads from the worker record. Once the photo persists, both will work.
-
