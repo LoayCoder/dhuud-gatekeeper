@@ -53,6 +53,7 @@ export const createGatePass = async (data: CreateGatePassData, tenantId: string,
             requested_by: userId,
             reference_number,
             status: data.is_internal_request ? "pending_dept_approval" : "pending_contractor_approval",
+            submitted_at: new Date().toISOString(),
         })
         .select()
         .single();
