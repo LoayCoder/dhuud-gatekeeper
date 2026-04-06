@@ -163,7 +163,32 @@ function ContractorPortalWorkersContent() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <div>
-                            <p className="font-medium">{worker.full_name}</p>
+                            <button
+                              type="button"
+                              className="font-medium text-start hover:underline hover:text-primary cursor-pointer bg-transparent border-none p-0"
+                              onClick={() => {
+                                const mapped: ContractorWorker = {
+                                  id: worker.id,
+                                  tenant_id: company?.tenant_id || '',
+                                  company_id: company?.id || '',
+                                  full_name: worker.full_name,
+                                  full_name_ar: worker.full_name_ar || null,
+                                  national_id: worker.national_id,
+                                  nationality: worker.nationality || null,
+                                  mobile_number: worker.mobile_number,
+                                  photo_path: null,
+                                  preferred_language: worker.preferred_language,
+                                  approval_status: worker.approval_status,
+                                  approved_at: null,
+                                  rejection_reason: null,
+                                  created_at: new Date().toISOString(),
+                                  company: company ? { company_name: company.company_name } : null,
+                                };
+                                setSelectedWorker(mapped);
+                              }}
+                            >
+                              {worker.full_name}
+                            </button>
                             {worker.full_name_ar && (
                               <p className="text-sm text-muted-foreground">{worker.full_name_ar}</p>
                             )}
