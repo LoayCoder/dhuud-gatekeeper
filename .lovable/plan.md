@@ -1,29 +1,20 @@
 
 
-# Fix: Risk Assessment Silent Failures
+# Fix: 404 After Risk Assessment Submission
 
-## Issues Found
+## Problem
 
-### Issue 1 — CRITICAL: Status never set on submission
-The `saveAssessment` function accepts a `status` parameter (`"draft"` or `"under_review"`) but **never includes it in the database insert** (lines 156-181 of `useRiskAssessmentForm.ts`). The DB column defaults to `'draft'`, so clicking "Submit for Review" silently saves the assessment as a draft. The user sees a success toast but the status is wrong.
-
-### Issue 2 — Minor: Redundant assessment number generation
-Line 143 manually generates `assessment_number`, but the DB trigger `trg_generate_assessment_number` overwrites it on insert. Not a failure, but dead code that could confuse maintainers.
+After successfully submitting a risk assessment, the app navigates to `/risk-assessments/{id}` — but no route exists for that path. Only `/risk-assessments` (list) and `/risk-assessments/create` are defined. There is no detail/view page for a single risk assessment.
 
 ## Fix
 
-**File: `src/features/risk-assessment/components/RiskAssessmentWizard/hooks/useRiskAssessmentForm.ts`**
+Change the post-submission navigation in `useRiskAssessmentForm.ts` from `/risk-assessments/${assessment.id}` to `/risk-assessments` (the list page).
 
-### Change 1 — Add `status` to the insert payload (lines 156-181)
-Add `status: status,` (or just `status,`) to the `.insert({...})` object so the parameter is actually used.
+This is the correct behavior until a detail view page is built — the user sees the success toast and lands on the list where their new assessment appears.
 
-### Change 2 — Remove redundant assessment number (line 143)
-Remove the manual `assessmentNumber` generation and the `assessment_number` field from the insert, since the trigger handles it automatically. Alternatively, keep it as a fallback — the trigger overwrites it anyway, so it's harmless but unnecessary.
-
-## Files Changed
+## File Changed
 
 | File | Change |
 |------|--------|
-| `useRiskAssessmentForm.ts` | Add `status` field to the risk_assessments insert payload |
-| `useRiskAssessmentForm.ts` | (Optional) Remove redundant `assessment_number` generation |
+| `src/features/risk-assessment/components/RiskAssessmentWizard/hooks/useRiskAssessmentForm.ts` (line 255) | Change `navigate(\`/risk-assessments/${assessment.id}\`)` → `navigate("/risk-assessments")` |
 
