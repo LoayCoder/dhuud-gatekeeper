@@ -503,6 +503,8 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
                 </Button>
               </CardContent>
             </Card>
+            </>
+            )}
           </TabsContent>
         </Tabs>
       </DialogContent>
