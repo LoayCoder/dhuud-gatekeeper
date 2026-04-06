@@ -1,42 +1,53 @@
 
 
-# Contractor Portal: Worker Detail View Integration
+# Contractor Portal Projects Page — Gap & Silent Failure Audit
 
-## Summary
-Add a worker detail modal to `/contractor-portal/workers` that reuses the existing `WorkerDetailDialog` component in view-only mode. Clicking a worker name opens the detail dialog showing all worker info (photo, details, documents, QR, induction) but with admin actions (edit, status change, delete) disabled.
+## Issues Found
 
-## Approach
+### 1. **CRASH: `end_date` can be null** (Critical)
+The `ContractorPortalProject` type defines `end_date: string | null`, but the page calls `format(new Date(project.end_date), "PP")` directly on line 56. If `end_date` is null, `new Date(null)` produces an invalid date and `format()` throws an error, crashing the card.
 
-Rather than creating new `WorkerDetailView` and `WorkerDetailModal` components, we will **reuse the existing `WorkerDetailDialog`** which already has full functionality. We add a `readOnly` prop to control which actions are available.
+**Fix:** Add a null guard: show "Ongoing" or similar when `end_date` is null.
 
-## Changes
+### 2. **No error state handling** (Silent Failure)
+`useContractorPortalData()` returns `isError` but the Projects page never checks it. If the query fails, the page silently shows "No projects assigned" instead of an error message — misleading the user.
 
-### 1. Update `WorkerDetailDialog.tsx` — Add `readOnly` prop
-- Add optional `readOnly?: boolean` prop to the interface
-- When `readOnly=true`: hide the "Quick Onboard" card, disable send induction button, hide document upload actions (show documents read-only)
-- The detail view (personal info, status, QR display, induction status) remains fully visible
+**Fix:** Add an error state before the empty check, showing a card with a retry-friendly error message.
 
-### 2. Update `src/pages/contractor-portal/Workers.tsx` — Add click handler + dialog
-- Add `selectedWorker` state (`ContractorWorker | null`)
-- Make the worker name in the table row clickable (cursor-pointer, underline on hover)
-- Import and render `WorkerDetailDialog` with `readOnly={true}`
-- Map the portal's `PortalWorker` type to the `ContractorWorker` type expected by the dialog (add missing fields with defaults like `tenant_id`, `company_id`, `company` from the portal context)
+### 3. **Missing status cases in badge** (Minor)
+The `getStatusBadge` function handles `active`, `completed`, `on_hold` but the admin side uses `planned` and `cancelled` statuses too. These fall to the `default` case showing raw status text without proper styling.
 
-### 3. Type alignment
-The portal uses `useContractorPortalData()` which returns workers with a subset of `ContractorWorker` fields. We need to ensure the worker object passed to `WorkerDetailDialog` includes at minimum: `id`, `tenant_id`, `company_id`, `full_name`, `full_name_ar`, `national_id`, `nationality`, `mobile_number`, `photo_path`, `preferred_language`, `approval_status`, `created_at`, `company`.
+**Fix:** Add `planned` and `cancelled` cases.
 
-We'll cast/extend the portal worker data with company context already available from `useContractorPortalData()`.
+### 4. **Project manager shows placeholder text**
+In `useContractorPortalProjects`, the `project_manager` field is hardcoded to `{ full_name: "Project Manager" }` instead of fetching the actual name via a join. This is a data gap — though the Projects page doesn't display the manager name, it would be wrong if it ever did.
 
-## Technical Details
+**Fix:** Add a profiles join to the query: `project_manager:profiles!contractor_projects_project_manager_id_fkey(full_name)`.
 
-| File | Change |
-|------|--------|
-| `WorkerDetailDialog.tsx` | Add `readOnly` prop; conditionally hide admin actions |
-| `src/pages/contractor-portal/Workers.tsx` | Add selectedWorker state, clickable name, render `WorkerDetailDialog` with `readOnly={true}` |
+### 5. **No project detail view** (Feature Gap)
+Unlike workers (which now have a detail modal), clicking a project card does nothing. There's no way to see project details like notes, site, branch, or assigned workers.
 
-## What the user sees
-- In `/contractor-portal/workers`, clicking a worker name opens the same detail modal used in `/contractors/workers`
-- All info is visible: photo, personal details, documents, QR code, induction status
-- Admin-only actions (onboard, send induction, edit) are hidden
-- The portal edit button (pencil icon) remains separate for the contractor's own edit flow
+**Fix (optional, noted as gap):** Add a click handler to open a project detail dialog — but this can be deferred if not in scope.
+
+## Plan
+
+### File: `src/pages/contractor-portal/Projects.tsx`
+
+| Change | Detail |
+|--------|--------|
+| Add error state | Check `isError` from `useContractorPortalData()`, show error card with message |
+| Guard `end_date` null | Wrap date format in conditional: `project.end_date ? format(...) : t("common.ongoing", "Ongoing")` |
+| Add missing status badges | Add `planned` (blue/info) and `cancelled` (destructive) cases |
+
+### File: `src/features/contractors/hooks/use-contractor-portal.ts`
+
+| Change | Detail |
+|--------|--------|
+| Fix project manager join | Replace placeholder with actual join: `project_manager:profiles!contractor_projects_project_manager_id_fkey(full_name)` |
+| Remove manual mapping | Remove the `.map()` that adds fake project_manager data |
+
+### Summary of changes
+- 2 files modified
+- No new files, no DB changes
+- Fixes 1 crash, 1 silent failure, 1 data quality issue, 1 cosmetic gap
 
