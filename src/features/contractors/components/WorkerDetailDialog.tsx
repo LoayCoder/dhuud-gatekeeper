@@ -26,9 +26,10 @@ interface WorkerDetailDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   worker: ContractorWorker | null;
+  readOnly?: boolean;
 }
 
-export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailDialogProps) {
+export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = false }: WorkerDetailDialogProps) {
   const { t } = useTranslation();
   const [isGeneratingQR, setIsGeneratingQR] = useState(false);
   const [isSendingInduction, setIsSendingInduction] = useState(false);
@@ -267,17 +268,18 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ContractorDocumentUpload workerId={worker.id} />
+                <ContractorDocumentUpload workerId={worker.id} canManage={!readOnly} />
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="qr" className="mt-4 space-y-4">
-            {needsPhotoGate ? (
+            {needsPhotoGate && !readOnly ? (
               <WorkerPhotoGate worker={worker} onVerified={() => window.location.reload()} />
             ) : worker.approval_status === "approved" ? (
               <>
-                {/* Quick Onboard Card */}
+                {/* Quick Onboard Card - hidden in readOnly mode */}
+                {!readOnly && (
                 <Card className="border-primary/20 bg-primary/5">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm flex items-center gap-2">
@@ -328,6 +330,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
                     </Button>
                   </CardContent>
                 </Card>
+                )}
 
                 {/* ID Card & QR Code Display */}
                 <Card>
@@ -337,7 +340,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
                         <CreditCard className="h-4 w-4" />
                         {t("contractors.workers.idCard", "ID Card")}
                       </span>
-                      {existingQRCode && (
+                      {existingQRCode && !readOnly && (
                         <IDCardActionButton
                           cardType="worker"
                           entityId={worker.id}
@@ -377,7 +380,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
                       } : null}
                       onGenerateQR={handleGenerateQR}
                       isGenerating={isGeneratingQR}
-                      disabled={!selectedProjectId}
+                      disabled={!selectedProjectId || readOnly}
                     />
                   </CardContent>
                 </Card>
@@ -395,7 +398,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
           </TabsContent>
 
           <TabsContent value="induction" className="mt-4 space-y-4">
-            {needsPhotoGate ? (
+            {needsPhotoGate && !readOnly ? (
               <WorkerPhotoGate worker={worker} onVerified={() => window.location.reload()} />
             ) : (
             <>
@@ -448,7 +451,8 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
               </CardContent>
             </Card>
 
-            {/* Send Induction Card */}
+            {/* Send Induction Card - hidden in readOnly mode */}
+            {!readOnly && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">{t("contractors.induction.sendVideo", "Send Induction Video")}</CardTitle>
@@ -503,6 +507,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
                 </Button>
               </CardContent>
             </Card>
+            )}
             </>
             )}
           </TabsContent>

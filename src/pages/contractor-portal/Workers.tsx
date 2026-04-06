@@ -12,9 +12,11 @@ import ContractorPortalLayout from "@/components/contractor-portal/ContractorPor
 import ContractorWorkerForm from "@/components/contractor-portal/ContractorWorkerForm";
 import ContractorWorkerEditForm from "@/components/contractor-portal/ContractorWorkerEditForm";
 import ContractorWorkerBulkImport from "@/components/contractor-portal/ContractorWorkerBulkImport";
+import { WorkerDetailDialog } from "@/features/contractors/components/WorkerDetailDialog";
 import { useContractorPortalData } from "@/hooks/contractor-management/index";
 import { ContractorPortalRoute } from "@/components/access-control";
 import { useBlacklistNationalIds } from "@/features/security";
+import type { ContractorWorker } from "@/features/contractors/hooks/use-contractor-workers";
 
 interface PortalWorker {
   id: string;
@@ -37,6 +39,7 @@ function ContractorPortalWorkersContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [editingWorker, setEditingWorker] = useState<PortalWorker | null>(null);
+  const [selectedWorker, setSelectedWorker] = useState<ContractorWorker | null>(null);
 
   const filteredWorkers = workers?.filter(worker => {
     const matchesSearch = worker.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -160,7 +163,32 @@ function ContractorPortalWorkersContent() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <div>
-                            <p className="font-medium">{worker.full_name}</p>
+                            <button
+                              type="button"
+                              className="font-medium text-start hover:underline hover:text-primary cursor-pointer bg-transparent border-none p-0"
+                              onClick={() => {
+                                const mapped: ContractorWorker = {
+                                  id: worker.id,
+                                  tenant_id: '',
+                                  company_id: company?.id || '',
+                                  full_name: worker.full_name,
+                                  full_name_ar: worker.full_name_ar || null,
+                                  national_id: worker.national_id,
+                                  nationality: worker.nationality || null,
+                                  mobile_number: worker.mobile_number,
+                                  photo_path: null,
+                                  preferred_language: worker.preferred_language,
+                                  approval_status: worker.approval_status,
+                                  approved_at: null,
+                                  rejection_reason: null,
+                                  created_at: new Date().toISOString(),
+                                  company: company ? { company_name: company.company_name } : null,
+                                };
+                                setSelectedWorker(mapped);
+                              }}
+                            >
+                              {worker.full_name}
+                            </button>
                             {worker.full_name_ar && (
                               <p className="text-sm text-muted-foreground">{worker.full_name_ar}</p>
                             )}
@@ -229,6 +257,13 @@ function ContractorPortalWorkersContent() {
             />
           </>
         )}
+
+        <WorkerDetailDialog
+          open={!!selectedWorker}
+          onOpenChange={(open) => !open && setSelectedWorker(null)}
+          worker={selectedWorker}
+          readOnly
+        />
       </div>
     </ContractorPortalLayout>
   );
