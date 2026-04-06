@@ -1,27 +1,27 @@
 
 
-# Fix: Update Email Sender Domain to dhuud.com
+# Fix: Last Remaining Resend Test Domain
 
 ## Problem
-Two edge functions still hardcode the Resend test domain (`onboarding@resend.dev`) instead of your verified `dhuud.com` domain:
-1. `generate-daily-issues-report/index.ts` — Daily report emails
-2. `mfa-backup-codes/index.ts` — MFA security alert emails
 
-The shared email sender (`_shared/email-sender.ts`) already uses `noreply@dhuud.com` correctly.
+One edge function still uses the Resend test domain:
 
-## Changes
+- **`supabase/functions/generate-scheduled-security-report/index.ts`** line 131: `from: "DHUUD Security <noreply@resend.dev>"`
 
-### Step 1: Update `generate-daily-issues-report/index.ts`
-Change `from: "DHUUD System <onboarding@resend.dev>"` to `from: "DHUUD System <noreply@dhuud.com>"`
+All other functions already use `noreply@dhuud.com` correctly:
+- `_shared/email-sender.ts` — ✅ `noreply@dhuud.com`
+- `generate-daily-issues-report/index.ts` — ✅ `noreply@dhuud.com`
+- `mfa-backup-codes/index.ts` — ✅ `noreply@dhuud.com`
 
-### Step 2: Update `mfa-backup-codes/index.ts`
-Change `from: "DHUUD Security <onboarding@resend.dev>"` to `from: "DHUUD Security <noreply@dhuud.com>"`
+## Fix
 
-### Step 3: Redeploy both edge functions
+### Step 1: Update `generate-scheduled-security-report/index.ts`
+Change `from: "DHUUD Security <noreply@resend.dev>"` to `from: "DHUUD Security <noreply@dhuud.com>"`
+
+### Step 2: Redeploy the edge function
 
 | Step | File | Change |
 |------|------|--------|
-| 1 | `generate-daily-issues-report/index.ts` | Update from address to `noreply@dhuud.com` |
-| 2 | `mfa-backup-codes/index.ts` | Update from address to `noreply@dhuud.com` |
-| 3 | Deploy | Redeploy both functions |
+| 1 | `generate-scheduled-security-report/index.ts` | Update from address to `noreply@dhuud.com` |
+| 2 | Deploy | Redeploy the function |
 
