@@ -86,11 +86,57 @@ serve(async (req) => {
       visit_reference,
       entry_time,
       exit_time,
+      message,
+      gate_pass_id,
+      reference_number,
     } = requestData;
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // === Gate Pass Status Notification (plain text) ===
+    if (notification_type === 'gate_pass_status') {
+      if (!mobile_number || !message) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'mobile_number and message are required for gate_pass_status' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log(`[WhatsApp] Sending gate_pass_status to ${mobile_number}, ref=${reference_number}`);
+      const result = await sendWhatsAppText(mobile_number, message);
+
+      // Log to auto_notification_logs for audit
+      if (result.messageId) {
+        await logNotificationSent({
+          tenant_id,
+          channel: 'whatsapp',
+          provider: result.provider,
+          provider_message_id: result.messageId,
+          to_address: mobile_number,
+          template_name: 'gate_pass_status',
+          status: 'pending',
+          related_entity_type: 'gate_pass',
+          related_entity_id: gate_pass_id || undefined,
+          metadata: {
+            notification_type: 'gate_pass_status',
+            reference_number,
+            gate_pass_id,
+          }
+        });
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: result.success,
+          message_id: result.messageId,
+          provider: result.provider,
+          notification_type: 'gate_pass_status',
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     // Get visitor nationality for language resolution
     let visitorNationality: string | null = null;
