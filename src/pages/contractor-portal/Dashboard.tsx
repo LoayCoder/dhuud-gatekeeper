@@ -33,7 +33,7 @@ function ContractorPortalDashboardContent() {
     <ContractorPortalLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-xl sm:text-2xl font-bold truncate">
             {t("contractorPortal.dashboard.welcome", "Welcome")}, {company?.company_name}
           </h1>
           <p className="text-muted-foreground">
@@ -42,7 +42,7 @@ function ContractorPortalDashboardContent() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">

@@ -47,11 +47,11 @@ function ContractorPortalGatePassesContent() {
       case "approved":
         return <Badge className="bg-green-500"><CheckCircle className="h-3 w-3 me-1" />{t("common.approved", "Approved")}</Badge>;
       case "pending_contractor_approval":
-        return <Badge variant="outline" className="text-warning border-warning"><Clock className="h-3 w-3 me-1" />{t("contractors.gatePasses.pendingContractor", "Pending Consultant")}</Badge>;
+        return <Badge variant="outline" className="text-warning border-warning"><Clock className="h-3 w-3 me-1" /><span className="hidden sm:inline">{t("contractors.gatePasses.pendingContractor", "Pending Consultant")}</span><span className="sm:hidden">{t("common.pending", "Pending")}</span></Badge>;
       case "pending_club_mgmt_ack":
-        return <Badge variant="outline" className="text-blue-500 border-blue-500"><AlertCircle className="h-3 w-3 me-1" />{t("contractors.gatePasses.pendingClubMgmt", "Pending Golf Club")}</Badge>;
+        return <Badge variant="outline" className="text-blue-500 border-blue-500"><AlertCircle className="h-3 w-3 me-1" /><span className="hidden sm:inline">{t("contractors.gatePasses.pendingClubMgmt", "Pending Golf Club")}</span><span className="sm:hidden">{t("common.pending", "Pending")}</span></Badge>;
       case "pending_security_approval":
-        return <Badge variant="outline" className="text-purple-500 border-purple-500"><Shield className="h-3 w-3 me-1" />{t("contractors.gatePasses.pendingSecurity", "Pending Security")}</Badge>;
+        return <Badge variant="outline" className="text-purple-500 border-purple-500"><Shield className="h-3 w-3 me-1" /><span className="hidden sm:inline">{t("contractors.gatePasses.pendingSecurity", "Pending Security")}</span><span className="sm:hidden">{t("common.pending", "Pending")}</span></Badge>;
       case "rejected":
         return <Badge variant="destructive"><XCircle className="h-3 w-3 me-1" />{t("common.rejected", "Rejected")}</Badge>;
       case "used":
@@ -80,22 +80,23 @@ function ContractorPortalGatePassesContent() {
 
   return (
     <ContractorPortalLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 sm:space-y-6">
+        {/* Page Header — stacks on mobile */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <Truck className="h-8 w-8 text-primary" />
+            <Truck className="h-6 w-6 sm:h-8 sm:w-8 text-primary flex-shrink-0" />
             <div>
-              <h1 className="text-2xl font-bold">{t("contractorPortal.gatePasses.title", "Gate Passes")}</h1>
-              <p className="text-muted-foreground">{t("contractorPortal.gatePasses.description", "Request and track material gate passes")}</p>
+              <h1 className="text-xl sm:text-2xl font-bold">{t("contractorPortal.gatePasses.title", "Gate Passes")}</h1>
+              <p className="text-sm text-muted-foreground hidden sm:block">{t("contractorPortal.gatePasses.description", "Request and track material gate passes")}</p>
             </div>
           </div>
-          <Button onClick={() => setIsFormOpen(true)} disabled={activeProjects.length === 0}>
-            <Plus className="h-4 w-4 me-2" />
+          <Button size="sm" onClick={() => setIsFormOpen(true)} disabled={activeProjects.length === 0}>
+            <Plus className="h-4 w-4 me-1 sm:me-2" />
             {t("contractorPortal.gatePasses.requestPass", "Request Pass")}
           </Button>
         </div>
 
-{activeProjects.length === 0 && (
+        {activeProjects.length === 0 && (
           <Alert variant="default" className="border-warning bg-warning/10">
             <AlertTriangle className="h-4 w-4 text-warning" />
             <AlertDescription>
@@ -105,14 +106,14 @@ function ContractorPortalGatePassesContent() {
         )}
 
         <Card>
-          <CardHeader>
-            <div className="flex items-center gap-4 flex-wrap">
-              <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <CardHeader className="pb-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+              <div className="relative flex-1 sm:max-w-sm">
                 <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input placeholder={t("common.search", "Search...")} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="ps-9" />
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <Filter className="h-4 w-4 me-2 text-muted-foreground" />
                   <SelectValue placeholder={t("common.filterByStatus", "Filter by status")} />
                 </SelectTrigger>
@@ -144,48 +145,77 @@ function ContractorPortalGatePassesContent() {
             ) : filteredPasses.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">{t("contractorPortal.gatePasses.noPasses", "No gate passes")}</div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("contractors.gatePasses.reference", "Reference")}</TableHead>
-                    <TableHead>{t("contractors.gatePasses.date", "Date")}</TableHead>
-                    <TableHead>{t("contractors.gatePasses.type", "Type")}</TableHead>
-                    <TableHead>{t("contractors.gatePasses.project", "Project")}</TableHead>
-                    <TableHead>{t("contractors.gatePasses.material", "Material")}</TableHead>
-                    <TableHead>{t("contractors.gatePasses.vehicle", "Vehicle")}</TableHead>
-                    <TableHead>{t("common.status", "Status")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                {/* Desktop Table */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("contractors.gatePasses.reference", "Reference")}</TableHead>
+                        <TableHead>{t("contractors.gatePasses.date", "Date")}</TableHead>
+                        <TableHead>{t("contractors.gatePasses.type", "Type")}</TableHead>
+                        <TableHead>{t("contractors.gatePasses.project", "Project")}</TableHead>
+                        <TableHead>{t("contractors.gatePasses.material", "Material")}</TableHead>
+                        <TableHead>{t("contractors.gatePasses.vehicle", "Vehicle")}</TableHead>
+                        <TableHead>{t("common.status", "Status")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredPasses.map((pass) => (
+                        <TableRow
+                          key={pass.id}
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => setSelectedPass(pass)}
+                        >
+                          <TableCell className="font-mono">{pass.reference_number}</TableCell>
+                          <TableCell>{format(new Date(pass.pass_date), "PP")}</TableCell>
+                          <TableCell className="capitalize">{pass.pass_type?.replace(/_/g, " ") || "-"}</TableCell>
+                          <TableCell>{pass.project?.project_name || "-"}</TableCell>
+                          <TableCell className="max-w-[200px] truncate">{pass.material_description || "-"}</TableCell>
+                          <TableCell>{pass.vehicle_plate || "-"}</TableCell>
+                          <TableCell>{getStatusBadge(pass.status)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Mobile Card List */}
+                <div className="md:hidden space-y-3">
                   {filteredPasses.map((pass) => (
-                    <TableRow
+                    <div
                       key={pass.id}
-                      className="cursor-pointer hover:bg-muted/50"
+                      className="border rounded-lg p-3 space-y-2 active:bg-muted/50 transition-colors cursor-pointer"
                       onClick={() => setSelectedPass(pass)}
                     >
-                      <TableCell className="font-mono">{pass.reference_number}</TableCell>
-                      <TableCell>{format(new Date(pass.pass_date), "PP")}</TableCell>
-                      <TableCell className="capitalize">{pass.pass_type?.replace(/_/g, " ") || "-"}</TableCell>
-                      <TableCell>{pass.project?.project_name || "-"}</TableCell>
-                      <TableCell className="max-w-[200px] truncate">{pass.material_description || "-"}</TableCell>
-                      <TableCell>{pass.vehicle_plate || "-"}</TableCell>
-                      <TableCell>{getStatusBadge(pass.status)}</TableCell>
-                    </TableRow>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-mono font-medium text-sm">{pass.reference_number}</p>
+                          <p className="text-xs text-muted-foreground">{format(new Date(pass.pass_date), "PP")}</p>
+                        </div>
+                        {getStatusBadge(pass.status)}
+                      </div>
+                      {pass.material_description && (
+                        <p className="text-sm text-muted-foreground truncate">{pass.material_description}</p>
+                      )}
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{pass.project?.project_name || "-"}</span>
+                        {pass.vehicle_plate && <span className="font-mono">{pass.vehicle_plate}</span>}
+                      </div>
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
 
-        {/* Gate Pass Detail Dialog */}
         <GatePassDetailDialog
           pass={selectedPass}
           open={!!selectedPass}
           onOpenChange={(open) => { if (!open) setSelectedPass(null); }}
         />
 
-        {/* Gate Pass Form Dialog */}
         {company && (
           <GatePassFormDialog
             open={isFormOpen}

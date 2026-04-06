@@ -50,12 +50,12 @@ function ContractorPortalWorkersContent() {
   }) || [];
 
   const getStatusBadge = (status: string, editPending?: boolean) => {
-    // Show edit pending badge if applicable
     if (editPending && status === "approved") {
       return (
         <Badge variant="outline" className="border-amber-500 text-amber-600 dark:text-amber-400 gap-1">
           <AlertTriangle className="h-3 w-3" />
-          {t("contractorPortal.workers.changesPendingReview", "Changes Pending Review")}
+          <span className="hidden sm:inline">{t("contractorPortal.workers.changesPendingReview", "Changes Pending Review")}</span>
+          <span className="sm:hidden">{t("common.pending", "Pending")}</span>
         </Badge>
       );
     }
@@ -72,6 +72,27 @@ function ContractorPortalWorkersContent() {
     }
   };
 
+  const openWorkerDetail = (worker: PortalWorker) => {
+    const mapped: ContractorWorker = {
+      id: worker.id,
+      tenant_id: '',
+      company_id: company?.id || '',
+      full_name: worker.full_name,
+      full_name_ar: worker.full_name_ar || null,
+      national_id: worker.national_id,
+      nationality: worker.nationality || null,
+      mobile_number: worker.mobile_number,
+      photo_path: null,
+      preferred_language: worker.preferred_language,
+      approval_status: worker.approval_status,
+      approved_at: null,
+      rejection_reason: null,
+      created_at: new Date().toISOString(),
+      company: company ? { company_name: company.company_name } : null,
+    };
+    setSelectedWorker(mapped);
+  };
+
   if (isLoading) {
     return (
       <ContractorPortalLayout>
@@ -84,35 +105,39 @@ function ContractorPortalWorkersContent() {
 
   return (
     <ContractorPortalLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 sm:space-y-6">
+        {/* Page Header — stacks on mobile */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <Users className="h-8 w-8 text-primary" />
+            <Users className="h-6 w-6 sm:h-8 sm:w-8 text-primary flex-shrink-0" />
             <div>
-              <h1 className="text-2xl font-bold">
+              <h1 className="text-xl sm:text-2xl font-bold">
                 {t("contractorPortal.workers.title", "Workers")}
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-sm text-muted-foreground hidden sm:block">
                 {t("contractorPortal.workers.description", "Manage your company's workers")}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => setIsBulkImportOpen(true)}>
-              <Upload className="h-4 w-4 me-2" />
-              {t("contractorPortal.workers.bulkImport", "Bulk Import")}
+            <Button variant="outline" size="sm" onClick={() => setIsBulkImportOpen(true)} className="flex-1 sm:flex-none">
+              <Upload className="h-4 w-4 me-1 sm:me-2" />
+              <span className="hidden sm:inline">{t("contractorPortal.workers.bulkImport", "Bulk Import")}</span>
+              <span className="sm:hidden">{t("common.import", "Import")}</span>
             </Button>
-            <Button onClick={() => setIsFormOpen(true)}>
-              <Plus className="h-4 w-4 me-2" />
-              {t("contractorPortal.workers.addWorker", "Add Worker")}
+            <Button size="sm" onClick={() => setIsFormOpen(true)} className="flex-1 sm:flex-none">
+              <Plus className="h-4 w-4 me-1 sm:me-2" />
+              <span className="hidden sm:inline">{t("contractorPortal.workers.addWorker", "Add Worker")}</span>
+              <span className="sm:hidden">{t("common.add", "Add")}</span>
             </Button>
           </div>
         </div>
 
         <Card>
-          <CardHeader>
-            <div className="flex items-center gap-4">
-              <div className="relative flex-1 max-w-sm">
+          <CardHeader className="pb-3">
+            {/* Search/Filter — stacks on mobile */}
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+              <div className="relative flex-1 sm:max-w-sm">
                 <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder={t("common.search", "Search...")}
@@ -121,19 +146,21 @@ function ContractorPortalWorkersContent() {
                   className="ps-9"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("common.allStatuses", "All Statuses")}</SelectItem>
-                  <SelectItem value="pending">{t("common.pending", "Pending")}</SelectItem>
-                  <SelectItem value="approved">{t("common.approved", "Approved")}</SelectItem>
-                  <SelectItem value="rejected">{t("common.rejected", "Rejected")}</SelectItem>
-                </SelectContent>
-              </Select>
-              <div className="text-sm text-muted-foreground">
-                {filteredWorkers.length} {t("contractors.workers.title", "workers")}
+              <div className="flex items-center gap-2">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-[160px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("common.allStatuses", "All Statuses")}</SelectItem>
+                    <SelectItem value="pending">{t("common.pending", "Pending")}</SelectItem>
+                    <SelectItem value="approved">{t("common.approved", "Approved")}</SelectItem>
+                    <SelectItem value="rejected">{t("common.rejected", "Rejected")}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  {filteredWorkers.length} {t("contractors.workers.title", "workers")}
+                </span>
               </div>
             </div>
           </CardHeader>
@@ -146,92 +173,120 @@ function ContractorPortalWorkersContent() {
                 }
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("contractors.workers.name", "Name")}</TableHead>
-                    <TableHead>{t("contractors.workers.nationalId", "National ID")}</TableHead>
-                    <TableHead>{t("contractors.workers.mobile", "Mobile")}</TableHead>
-                    <TableHead>{t("contractors.workers.nationality", "Nationality")}</TableHead>
-                    <TableHead>{t("common.status", "Status")}</TableHead>
-                    <TableHead className="text-end">{t("common.actions", "Actions")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredWorkers.map((worker) => (
-                    <TableRow key={worker.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div>
-                            <button
-                              type="button"
-                              className="font-medium text-start hover:underline hover:text-primary cursor-pointer bg-transparent border-none p-0"
-                              onClick={() => {
-                                const mapped: ContractorWorker = {
-                                  id: worker.id,
-                                  tenant_id: '',
-                                  company_id: company?.id || '',
-                                  full_name: worker.full_name,
-                                  full_name_ar: worker.full_name_ar || null,
-                                  national_id: worker.national_id,
-                                  nationality: worker.nationality || null,
-                                  mobile_number: worker.mobile_number,
-                                  photo_path: null,
-                                  preferred_language: worker.preferred_language,
-                                  approval_status: worker.approval_status,
-                                  approved_at: null,
-                                  rejection_reason: null,
-                                  created_at: new Date().toISOString(),
-                                  company: company ? { company_name: company.company_name } : null,
-                                };
-                                setSelectedWorker(mapped);
-                              }}
-                            >
-                              {worker.full_name}
-                            </button>
-                            {worker.full_name_ar && (
-                              <p className="text-sm text-muted-foreground">{worker.full_name_ar}</p>
-                            )}
-                          </div>
-                          {blacklistedIds?.has(worker.national_id) && (
+              <>
+                {/* Desktop Table */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("contractors.workers.name", "Name")}</TableHead>
+                        <TableHead>{t("contractors.workers.nationalId", "National ID")}</TableHead>
+                        <TableHead>{t("contractors.workers.mobile", "Mobile")}</TableHead>
+                        <TableHead>{t("contractors.workers.nationality", "Nationality")}</TableHead>
+                        <TableHead>{t("common.status", "Status")}</TableHead>
+                        <TableHead className="text-end">{t("common.actions", "Actions")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredWorkers.map((worker) => (
+                        <TableRow key={worker.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div>
+                                <button
+                                  type="button"
+                                  className="font-medium text-start hover:underline hover:text-primary cursor-pointer bg-transparent border-none p-0"
+                                  onClick={() => openWorkerDetail(worker as PortalWorker)}
+                                >
+                                  {worker.full_name}
+                                </button>
+                                {worker.full_name_ar && (
+                                  <p className="text-sm text-muted-foreground">{worker.full_name_ar}</p>
+                                )}
+                              </div>
+                              {blacklistedIds?.has(worker.national_id) && (
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <Badge variant="destructive" className="gap-1">
+                                      <ShieldAlert className="h-3 w-3" />
+                                      {t("contractors.workers.blacklisted", "Blacklisted")}
+                                    </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    {t("contractors.workers.blacklistedTooltip", "This worker is on the security blacklist")}
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-mono">{worker.national_id}</TableCell>
+                          <TableCell>{worker.mobile_number}</TableCell>
+                          <TableCell>{worker.nationality || "-"}</TableCell>
+                          <TableCell>{getStatusBadge(worker.approval_status, worker.edit_pending_approval)}</TableCell>
+                          <TableCell className="text-end">
                             <Tooltip>
-                              <TooltipTrigger>
-                                <Badge variant="destructive" className="gap-1">
-                                  <ShieldAlert className="h-3 w-3" />
-                                  {t("contractors.workers.blacklisted", "Blacklisted")}
-                                </Badge>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => setEditingWorker(worker as PortalWorker)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
                               </TooltipTrigger>
                               <TooltipContent>
-                                {t("contractors.workers.blacklistedTooltip", "This worker is on the security blacklist")}
+                                {t("common.edit", "Edit")}
                               </TooltipContent>
                             </Tooltip>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Mobile Card List */}
+                <div className="md:hidden space-y-3">
+                  {filteredWorkers.map((worker) => (
+                    <div
+                      key={worker.id}
+                      className="border rounded-lg p-3 space-y-2 active:bg-muted/50 transition-colors"
+                      onClick={() => openWorkerDetail(worker as PortalWorker)}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium truncate">{worker.full_name}</p>
+                          {worker.full_name_ar && (
+                            <p className="text-sm text-muted-foreground truncate">{worker.full_name_ar}</p>
                           )}
                         </div>
-                      </TableCell>
-                      <TableCell className="font-mono">{worker.national_id}</TableCell>
-                      <TableCell>{worker.mobile_number}</TableCell>
-                      <TableCell>{worker.nationality || "-"}</TableCell>
-                      <TableCell>{getStatusBadge(worker.approval_status, worker.edit_pending_approval)}</TableCell>
-                      <TableCell className="text-end">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setEditingWorker(worker as PortalWorker)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            {t("common.edit", "Edit")}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TableCell>
-                    </TableRow>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          {blacklistedIds?.has(worker.national_id) && (
+                            <Badge variant="destructive" className="gap-1 text-xs">
+                              <ShieldAlert className="h-3 w-3" />
+                            </Badge>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingWorker(worker as PortalWorker);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm text-muted-foreground font-mono">{worker.national_id}</span>
+                        {getStatusBadge(worker.approval_status, worker.edit_pending_approval)}
+                      </div>
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
@@ -269,7 +324,6 @@ function ContractorPortalWorkersContent() {
   );
 }
 
-// Wrapped export with access control
 export default function ContractorPortalWorkers() {
   return (
     <ContractorPortalRoute>
