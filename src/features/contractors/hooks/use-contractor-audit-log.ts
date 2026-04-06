@@ -17,7 +17,7 @@ export type ContractorAuditAction =
   | "gate_pass_resubmitted";
 
 interface AuditLogParams {
-  entityType: "contractor_worker" | "contractor_company";
+  entityType: "contractor_worker" | "contractor_company" | "material_gate_pass";
   entityId: string;
   action: ContractorAuditAction;
   oldValue?: Record<string, unknown>;
