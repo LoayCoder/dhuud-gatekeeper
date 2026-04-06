@@ -273,7 +273,9 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
           </TabsContent>
 
           <TabsContent value="qr" className="mt-4 space-y-4">
-            {worker.approval_status === "approved" ? (
+            {needsPhotoGate ? (
+              <WorkerPhotoGate worker={worker} onVerified={() => window.location.reload()} />
+            ) : worker.approval_status === "approved" ? (
               <>
                 {/* Quick Onboard Card */}
                 <Card className="border-primary/20 bg-primary/5">
