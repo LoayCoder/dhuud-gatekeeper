@@ -1,80 +1,64 @@
 
 
-# Worker Photo Gate: Mandatory Photo Before Induction & ID Card
+# Fix Workers Page: Branch Filter, Status Change, and Responsive Card Layout
 
-## Problem
-After Security Approval, a worker can proceed to Induction or ID Card generation without a photo. Photo must be a mandatory gate in the workflow: Security Approval → Photo Capture → Induction → ID Card.
+## Problems Identified
 
-## Current State
-- `contractor_workers` table already has `photo_path`, `id_card_image_path`, `id_card_generated_at`
-- `WorkerPhotoUpload.tsx` component exists with camera capture + file upload to `worker-photos` bucket
-- `WorkerDetailDialog.tsx` shows QR/Onboard and Induction tabs but does NOT enforce photo requirement
-- No `photo_verified_by` / `photo_verified_at` columns exist yet
+1. **Branch filter not applied**: `useContractorWorkers` imports `useBranchFilter` but never applies it to the query. Workers from all branches show regardless of the selected branch (e.g., "DGC" in the header).
+
+2. **Change Status not functional**: The `ChangeWorkerStatusDialog` opens and the mutation fires, but the `useUpdateWorkerStatus` mutation does NOT include `approved_by` when approving, and does NOT handle `suspended` status. More critically, the dialog's `onConfirm` prop passes `(status, reason)` but the mutation key uses `workerId` from `workerToChangeStatus` — this chain is correct but the mutation lacks `.throwOnError()` which means RLS failures are silently swallowed.
+
+3. **Table layout not responsive**: The current `WorkerListTable` uses a traditional `<Table>` with 10+ columns, which is unusable on smaller screens. Needs expandable card layout.
 
 ## Changes
 
-### 1. Database Migration — Add photo verification columns
-Add `photo_verified_by` (UUID, FK to profiles) and `photo_verified_at` (timestamptz) to `contractor_workers`. These track who verified the photo and when, separate from upload.
+### 1. Apply branch filter in worker query
+**File:** `src/features/contractors/hooks/use-contractor-workers/use-contractor-worker-queries.ts`
 
-### 2. Update ContractorWorker type
-**File:** `src/features/contractors/hooks/use-contractor-workers/types.ts`
+In `useContractorWorkers`, after `useBranchFilter()`, apply the branch filter to the query using the company's `assigned_branch_id`:
+- Destructure `branchIds` and `isAllBranchesMode` from `useBranchFilter()`
+- If not in all-branches mode and branchIds exist, filter workers by joining through `contractor_companies.assigned_branch_id` using `.in()` on the company relation, OR filter directly on a sub-select
+- Since `contractor_workers` doesn't have a direct `branch_id`, filter via the company's `assigned_branch_id`: fetch company IDs matching the branch first, then filter workers by those company IDs. Alternatively, use an RPC or inline filter on the joined company data post-fetch.
 
-Add `photo_verified_by`, `photo_verified_at` fields. Update the query in `use-contractor-worker-queries.ts` to select them.
+The pragmatic approach: after fetching, client-side filter workers whose `company.assigned_branch_id` is in `branchIds`. This is simpler and the query already joins `contractor_companies(company_name, assigned_branch_id)`.
 
-### 3. Create WorkerPhotoGate component
-**File:** `src/features/contractors/components/WorkerPhotoGate.tsx`
+### 2. Fix Change Status mutation reliability
+**File:** `src/features/contractors/hooks/use-contractor-workers/use-worker-management-mutations.ts`
 
-A gate component that:
-- If `photo_path` exists and `photo_verified_at` is set → shows photo with green checkmark and "Continue" button
-- If no photo → shows warning alert + embedded `WorkerPhotoUpload` component (reuses existing)
-- Auto-verifies on upload (sets `photo_verified_by` and `photo_verified_at` via a mutation)
+In `useUpdateWorkerStatus`:
+- Add `approved_by: user?.id` when status is `approved`
+- Add handling for `suspended` status (set `rejection_reason`)
+- The mutation already has `.throwOnError()` — good. But the `useAuth` hook is not imported in this function. Add `const { user } = useAuth();` and include `approved_by`.
 
-### 4. Create useVerifyWorkerPhoto mutation
-**File:** `src/features/contractors/hooks/use-contractor-workers/use-worker-photo-mutations.ts`
-
-Mutation that sets `photo_verified_by` and `photo_verified_at` on the worker record after photo upload. Logs to audit trail via existing `useContractorAuditLog`.
-
-### 5. Enforce photo gate in WorkerDetailDialog
-**File:** `src/features/contractors/components/WorkerDetailDialog.tsx`
-
-- In the "QR & Onboard" tab: if worker is security-approved but has no verified photo, show `WorkerPhotoGate` instead of the onboard/QR section
-- In the "Induction" tab: if no verified photo, show a locked state with message "Photo required before induction"
-- ID Card button: disable if no verified photo, with tooltip explaining why
-
-### 6. Add photo status indicator to WorkerListTable
+### 3. Convert WorkerListTable to responsive card layout
 **File:** `src/features/contractors/components/WorkerListTable.tsx`
 
-Show a small camera icon/badge next to workers who are security-approved but missing a photo, so admins can quickly spot who needs a photo.
+Replace the `<Table>` with a responsive layout:
+- On `md+` screens: keep the existing table view
+- On smaller screens: render expandable cards showing key info (photo, name, company, status) with an expand button to reveal full details (national ID, nationality, induction, role, actions)
+- Each card is a self-contained unit with avatar, name, company badge, status badge, and an actions dropdown
+- Use `Collapsible` from shadcn for the expand/collapse behavior
+- Maintain all existing props and selection checkboxes
 
-## Workflow After Implementation
+### 4. Add branch filter dropdown to Workers page filters
+**File:** `src/pages/contractors/Workers.tsx`
 
-```text
-Security Approval ✅
-    ↓
-Photo Gate (WorkerDetailDialog checks photo_path + photo_verified_at)
-    ├── No photo → Show WorkerPhotoGate (upload/camera)
-    └── Photo verified ✅ → Unlock:
-            ├── Induction tab (send video)
-            └── QR/Onboard + ID Card generation
-```
+- Import `useBranchFilter` and add a Branch filter `<Select>` alongside the existing Company and Status filters
+- This provides explicit branch filtering in the UI, complementing the global branch selector in the header
 
 ## Technical Details
-- Reuses existing `WorkerPhotoUpload` component (camera + file upload + compression)
-- Reuses existing `worker-photos` storage bucket
-- Photo verification is auto-set on upload (no separate manual verification step unless needed later)
-- All gates are client-side UI enforcement; the DB trigger approach is optional for later hardening
-- RTL-compatible using logical properties (`ms-`, `me-`, `text-start`)
-- Audit trail via existing `useContractorAuditLog` hook
 
-## Files Summary
-| File | Action |
+- Branch filtering uses `company.assigned_branch_id` per the memory note about contractor data integrity
+- The responsive card layout uses Tailwind's `hidden md:block` / `block md:hidden` pattern
+- RTL-compatible using logical properties (`ms-`, `me-`, `text-start`, `text-end`)
+- All existing functionality (selection, bulk actions, blacklist indicators) preserved in both views
+
+## Files to Modify
+
+| File | Change |
 |------|--------|
-| DB migration | Add `photo_verified_by`, `photo_verified_at` columns |
-| `types.ts` | Add photo verification fields |
-| `use-contractor-worker-queries.ts` | Select new fields |
-| `use-worker-photo-mutations.ts` | NEW — verify photo mutation |
-| `WorkerPhotoGate.tsx` | NEW — gate component |
-| `WorkerDetailDialog.tsx` | Enforce photo gate before induction/QR/ID |
-| `WorkerListTable.tsx` | Photo status indicator |
-| `index.ts` (barrel) | Export new hook |
+| `use-contractor-worker-queries.ts` | Apply branch filter to worker results |
+| `use-worker-management-mutations.ts` | Add `approved_by`, import `useAuth` |
+| `WorkerListTable.tsx` | Add responsive card layout with expand/collapse |
+| `Workers.tsx` | Minor: no branch dropdown needed since header selector works once query is fixed |
 
