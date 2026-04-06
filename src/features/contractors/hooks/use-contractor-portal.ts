@@ -65,7 +65,8 @@ export function useContractorPortalProjects(companyId: string | undefined) {
         .select(`
           id, project_code, project_name, project_name_ar, status, start_date,
           end_date, assigned_workers_count, required_safety_officers, location_description,
-          project_manager_id, company_id, site:sites(name)
+          project_manager_id, company_id, site:sites(name),
+          project_manager:profiles!contractor_projects_project_manager_id_fkey(full_name)
         `)
         .eq("company_id", companyId)
         .eq("tenant_id", tenantId)
@@ -74,27 +75,7 @@ export function useContractorPortalProjects(companyId: string | undefined) {
 
       if (error) throw error;
       
-      // Map to include project_manager placeholder (actual name fetched by dialog if needed)
-      const projects = (data || []) as Array<{
-        id: string;
-        project_code: string;
-        project_name: string;
-        project_name_ar: string | null;
-        status: string;
-        start_date: string;
-        end_date: string | null;
-        assigned_workers_count: number;
-        required_safety_officers: number | null;
-        location_description: string | null;
-        project_manager_id: string | null;
-        company_id: string;
-        site: { name: string } | null;
-      }>;
-      
-      return projects.map(p => ({
-        ...p,
-        project_manager: p.project_manager_id ? { full_name: "Project Manager" } : null,
-      }));
+      return (data || []) as unknown as ContractorPortalProject[];
     },
     enabled: !!companyId && !!tenantId,
   });
