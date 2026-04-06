@@ -395,6 +395,10 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
           </TabsContent>
 
           <TabsContent value="induction" className="mt-4 space-y-4">
+            {needsPhotoGate ? (
+              <WorkerPhotoGate worker={worker} onVerified={() => window.location.reload()} />
+            ) : (
+            <>
             {/* Induction Status Card */}
             <Card>
               <CardHeader className="pb-2">
