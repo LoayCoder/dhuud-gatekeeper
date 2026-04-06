@@ -151,8 +151,10 @@ export default function Workers() {
 
   // Individual worker action handlers
   const handleStatusChange = (worker: ContractorWorker, status: string) => {
-    setWorkerToChangeStatus(worker);
-    setPendingStatusChange(status);
+    setTimeout(() => {
+      setWorkerToChangeStatus(worker);
+      setPendingStatusChange(status);
+    }, 0);
   };
 
   const handleConfirmStatusChange = (status: string, reason?: string) => {
