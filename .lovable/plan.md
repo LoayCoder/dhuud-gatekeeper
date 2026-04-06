@@ -1,40 +1,35 @@
 
 
-# Fix Mobile Overflow in Contractor Portal HSSE Cards
+# Fix Empty "Link to Contractor Project" Dropdown in PTW
 
 ## Problem
 
-The list items inside Recent Observations, Recent Incidents, Corrective Actions, and Violations cards use a single horizontal `flex justify-between` row. On mobile, the badges (severity, status, overdue) and chevron on the right side overflow horizontally, forcing the user to scroll left/right.
+The PTW `ProjectFormDialog` imports `useContractorCompanies` and `useContractorProjects` from `src/hooks/contractor-management.ts` — a **stub file** that always returns empty arrays. The real data-fetching hooks exist in `src/features/contractors/hooks/`.
 
 ## Solution
 
-Restructure each list item from a single horizontal row to a **stacked layout on mobile**: title and date on top, badges wrapped below. This eliminates horizontal overflow entirely.
+Replace the stub implementations in `src/hooks/contractor-management.ts` with proper re-exports from the real hooks, adapting the interface to match what the PTW form expects.
 
 ## Changes
 
-### Single file: `ContractorHSSESections.tsx`
+### Single file: `src/hooks/contractor-management.ts`
 
-For all 4 detail card sections (Observations, Incidents, Actions, Violations), change each list item from:
+- Remove the stub `useContractorCompanies` and `useContractorProjects` functions
+- Import and re-export the real hooks from `src/features/contractors/hooks/use-contractor-companies.ts` and `src/features/contractors/hooks/use-contractor-projects.ts`
+- The real `useContractorCompanies` accepts a filters object `{ status?: string }` — adapt the re-export to pass the correct shape
+- The real `useContractorProjects` accepts a filters object — re-export directly
+- Keep the `useCreateContractorWorker` mutation as-is (it's functional)
+- Export the `ContractorCompany` and `ContractorProjectRecord` type interfaces so existing PTW imports don't break
 
-```text
-[Title + Date] ←→ [Severity Badge] [Status Badge] [Chevron]  (one row, overflows)
-```
+### Verify: `src/features/ptw/components/ProjectFormDialog.tsx`
 
-To:
+- Line 14 imports `useContractorCompanies, useContractorProjects` from `@/hooks/contractor-management` — no change needed if the re-exports match the current call signatures (both called with no arguments)
+- The real `useContractorProjects()` called with no args returns all projects for the tenant — this is the desired behavior
+- The real `useContractorCompanies()` called with no args also works (no filters)
 
-```text
-[Title]                                    [Chevron]
-[Date]
-[Severity Badge] [Status Badge]                      (wrapped, fits mobile)
-```
+## Technical Notes
 
-Specifically:
-- Change outer `flex items-center justify-between` to a vertical stack layout
-- Move the title row to have just title text + chevron (flex between)
-- Put date below title
-- Wrap badges in a `flex flex-wrap gap-1.5 mt-1.5` row below the date
-- Remove `ms-2` from badge containers since they're no longer side-by-side with title
-- Keep all click handlers, accessibility, and RTL support intact
-
-This is a CSS-only restructure — no logic, data, or functionality changes.
+- No database changes needed
+- No new dependencies
+- The fix is a wiring issue — connecting existing real hooks to the PTW form
 
