@@ -1,81 +1,72 @@
 
 
-# Improve ID Card Generation — Tenant Logo, Branding & Layout
+# Mobile-Responsive Contractor Portal — Full Overhaul
 
 ## Summary
 
-Fix ID card generation so cards display the tenant's logo (e.g., Golf Saudi), use the tenant's brand colors as accent colors, show the company name clearly, handle photos properly, and utilize card space better.
+Make all 5 contractor portal tabs (Dashboard, Workers, Gate Passes, Projects, Activity Log) and the shared layout fully mobile-responsive at 390px viewport width.
 
-## Root Causes Identified
+## Problems Identified
 
-1. **Missing tenant logo**: `IDCardActionButton` callers pass `tenantData` without `logoUrl` — e.g., `{ id: tenantId, name: companyName }` with no logo. The component never auto-fetches tenant branding from the `tenants` table.
-2. **Wrong tenant name**: Callers pass the *contractor company name* as `tenantData.name` instead of the actual *tenant organization name* (e.g., "Golf Saudi").
-3. **No brand color integration**: Default accent colors are hardcoded (`#1e40af`, `#f97316`). The tenant's `brand_color` from the `tenants` table is never applied.
-4. **Photo rendering issues**: Photos render but may fail during `html2canvas` capture due to CORS. The `crossOrigin` attribute is missing from `<img>` tags.
-5. **Small font sizes & cramped layout**: Header tenant name at `9px * scale`, field labels at `7px * scale` — too small. Spaces between sections are tight.
+1. **Layout header**: Logo + title + nav + logout all crammed in one row; logout text visible on mobile wastes space
+2. **Mobile nav bar**: Horizontal scroll of 5 tabs with text + icons — overflows, hard to tap
+3. **Workers page**: Page header with title + 2 buttons in a single `flex justify-between` row — buttons overflow. Table with 6 columns is unusable on mobile
+4. **Gate Passes page**: Same header overflow issue. Table with 7 columns is completely unreadable on mobile
+5. **Activity Log page**: Table with 5 columns, no mobile card layout
+6. **Dashboard page**: Stats grid `md:grid-cols-2 lg:grid-cols-4` is fine but header text `text-2xl` could be smaller on mobile
+7. **Projects page**: Card grid is already responsive — mostly fine
 
 ## Changes
 
-### 1. Auto-fetch tenant branding in `IDCardActionButton`
-**File**: `src/features/admin/components/id-cards/IDCardActionButton.tsx`
+### 1. `ContractorPortalLayout.tsx` — Mobile header & bottom nav
 
-- Add a query to fetch `name, name_ar, logo_light_url, brand_color` from the `tenants` table using `tenantId`
-- Build `tenantData` from this query result:
-  - `name` → tenant name (not company name)
-  - `nameAr` → tenant name_ar
-  - `logoUrl` → `logo_light_url`
-- If `providedTenantData` has values, merge (provided takes precedence for non-empty fields)
-- Use tenant `brand_color` as override for `front_accent_color` in settings when no custom setting exists in `tenant_id_card_settings`
+- **Header**: On mobile, hide the title subtitle text, show only logo + portal label. Move logout to icon-only (no text). Keep notification bell
+- **Mobile nav**: Convert from horizontal scroll bar below header to a **fixed bottom tab bar** (like native apps). Icon-only on very small screens, icon + short label on slightly larger. This frees up vertical space and is standard mobile UX
+- Bottom bar: `fixed bottom-0 inset-x-0 z-50 border-t bg-background` with 5 equal-width items, safe-area padding (`pb-[env(safe-area-inset-bottom)]`)
+- Add `pb-20` to `<main>` on mobile to account for bottom bar height
 
-### 2. Add `crossOrigin="anonymous"` to all `<img>` tags in card layouts
-**Files**: `LandscapeFrontLayout.tsx`, `PortraitFrontLayout.tsx`
+### 2. `Workers.tsx` — Mobile card layout
 
-- Add `crossOrigin: 'anonymous'` to photo `<img>` style/attribute for CORS compatibility during html2canvas capture
-- Add `crossOrigin: 'anonymous'` to logo `<img>` as well
+- **Page header**: Stack vertically on mobile. Title row, then buttons row below (`flex flex-col gap-3` on mobile, `flex-row justify-between` on `sm:+`)
+- **Search/filter bar**: Stack search + select + count vertically on mobile (`flex flex-col gap-2`, `sm:flex-row`)
+- **Table → Cards**: Hide `<Table>` on mobile (`hidden md:block`). Add a mobile card list (`md:hidden`) showing: name, national ID, status badge, edit button. Each card is a tappable div that opens the detail dialog
 
-### 3. Improve header layout — larger logo, clearer tenant name
-**Files**: `LandscapeFrontLayout.tsx`, `PortraitFrontLayout.tsx`
+### 3. `GatePasses.tsx` — Mobile card layout
 
-**Landscape**:
-- Increase logo height from `24 * scale` → `30 * scale`
-- Increase tenant name font from `9 * scale` → `11 * scale`
-- Increase header padding from `6px` → `8px` vertical
-- Card type badge font from `6 * scale` → `7 * scale`
+- **Page header**: Same vertical stacking pattern as Workers
+- **Search/filter**: Stack vertically on mobile
+- **Table → Cards**: Hide table on mobile. Mobile cards show: reference number, date, status badge, material description (truncated). Tappable to open detail dialog
 
-**Portrait**:
-- Increase logo height from `20 * scale` → `28 * scale`
-- Increase tenant name font from `7 * scale` → `9 * scale`
-- Card type badge font from `5 * scale` → `6 * scale`
+### 4. `ActivityLog.tsx` — Mobile timeline/card layout
 
-### 4. Better space utilization for fields
-**Files**: `LandscapeFrontLayout.tsx`, `PortraitFrontLayout.tsx`
+- **Filter header**: Already responsive (`flex-col sm:flex-row`) — OK
+- **`ContractorAuditLogTable.tsx`**: Add mobile card layout (`md:hidden`) alongside hidden table (`hidden md:block`). Each card: date, action badge, entity, actor, details
 
-**Landscape**:
-- Name font from `10 * scale` → `12 * scale`
-- Field labels from `7 * scale` → `8 * scale`
-- Increase content padding
+### 5. `Dashboard.tsx` — Minor tweaks
 
-**Portrait**:
-- Name font already `11 * scale` — keep
-- Field labels from `7 * scale` → `8 * scale`
-- Reduce excess photo padding to give fields more room
+- Stats grid: Change to `grid-cols-2` on mobile (already works with `md:grid-cols-2 lg:grid-cols-4` but currently single column on mobile — change to `grid-cols-2 lg:grid-cols-4`)
+- Welcome text: `text-xl sm:text-2xl`
+- Projects/Pending sections: Already `lg:grid-cols-2` — fine
 
-### 5. Update callers to stop passing incorrect tenantData
-**Files**: `CompanyDetailDialog.tsx`, `WorkerDetailDialog.tsx`, `VisitorDetailDialog.tsx`
+### 6. `ContractorHSSESections.tsx` — Already grid-based, mostly fine
 
-- Since the button now auto-fetches tenant branding, simplify callers to only pass `tenantId`
-- Remove incorrect `tenantData` overrides that were setting company name as tenant name
+- Ensure inner list items don't overflow on mobile
 
-### 6. Render engine CORS fix
-**File**: `src/hooks/use-id-card-generator.ts`
+## Files to Edit
 
-- In `renderCardSide`, after React render and before `html2canvas`, set `crossOrigin = 'anonymous'` on all img elements inside the container
-- This ensures photos and logos load correctly during capture
+| File | Change |
+|------|--------|
+| `ContractorPortalLayout.tsx` | Bottom tab bar for mobile, compact header |
+| `Workers.tsx` | Stacked header, mobile card list replacing table |
+| `GatePasses.tsx` | Stacked header, mobile card list replacing table |
+| `ContractorAuditLogTable.tsx` | Mobile card layout |
+| `Dashboard.tsx` | 2-col stats grid on mobile, smaller heading |
+| `ActivityLog.tsx` | Minor filter layout tweak |
 
 ## Technical Notes
 
-- Tenant branding query uses existing `tenants` table columns: `name`, `name_ar`, `logo_light_url`, `brand_color`
-- The `brand_color` is used as fallback accent color only when no custom `tenant_id_card_settings` record exists for that card type
-- `html2canvas` with `useCORS: true` is already set, but individual `<img>` elements need `crossOrigin="anonymous"` for it to work
-- No database changes needed
+- All layouts use CSS logical properties (`ms-`, `me-`, `ps-`, `pe-`, `text-start`, `text-end`)
+- Bottom nav uses `pb-[env(safe-area-inset-bottom)]` for notched devices
+- Mobile card patterns follow existing `WorkerListTable` dual-layout convention (per memory context)
+- No database or backend changes needed
 
