@@ -1,38 +1,68 @@
 
 
-# Fix Project Form Edit Rules
+# Fix: Contractor Representative Photo Not Persisting
 
-## Issues
-1. **Project Code**: Already read-only — correct, no change needed.
-2. **Branch, Company disabled on edit**: Currently `disabled={isEditing}` blocks editing even for active projects. Should only block for completed/cancelled.
-3. **No completed/cancelled guard**: Users can edit projects in any status. Completed/cancelled projects should be fully read-only.
+## Root Cause
 
-## Changes
+Three cascading failures prevent the photo from being saved and displayed:
 
-### File: `src/features/contractors/components/ProjectFormDialog.tsx`
+### Bug 1: Database column missing (CRITICAL)
+The `contractor_representatives` table has **no `photo_path` column**. The form collects it, but the upsert mutation in `use-contractor-site-rep.ts` never writes it — because the column doesn't exist.
 
-1. **Add `isCompleted` flag** derived from project status:
-   ```typescript
-   const isCompleted = project?.status === 'completed' || project?.status === 'cancelled';
-   ```
+### Bug 2: Photo discarded on load
+In `CompanyFormDialog.tsx` line 158, when loading an existing rep, `photo_path` is **hardcoded to `null`**:
+```typescript
+photo_path: null,  // ← always null, even if photo existed
+```
 
-2. **Branch select**: Change `disabled={isEditing}` → `disabled={isCompleted}`. When branch changes on an active project, still reset downstream fields and regenerate code.
+### Bug 3: Upsert ignores photo_path
+The `useUpsertSiteRep` mutation only writes `full_name`, `national_id`, `mobile_number`, `email`. It never includes `photo_path` in the update or insert payload.
 
-3. **Company select**: Change `disabled={!watchedBranchId || isEditing}` → `disabled={!watchedBranchId || isCompleted}`.
+### Bug 4: Missing columns for nationality/phone
+The table also lacks `nationality` and `phone` columns, which are collected in the form but silently dropped.
 
-4. **Project Manager, Site, Department**: Already enabled when branch is selected. Add `|| isCompleted` to their disabled conditions.
+### Impact on ID Card
+The ID card reads photo from the synced `contractor_workers` record. Since `siteRep.photo_path` is always null (Bug 2), the worker record also gets `photo_path: null` during sync → ID card shows no photo.
 
-5. **Project Name, Start Date, End Date, Notes**: Add `disabled={isCompleted}` or `readOnly`.
+## Plan
 
-6. **Save button**: `disabled={isCompleted}` — hide or disable when completed.
+### Step 1: Database Migration — Add missing columns
 
-7. **Project Code**: Remains `readOnly` always (no change).
+```sql
+ALTER TABLE public.contractor_representatives 
+  ADD COLUMN IF NOT EXISTS photo_path text,
+  ADD COLUMN IF NOT EXISTS nationality text,
+  ADD COLUMN IF NOT EXISTS phone text;
+```
 
-8. **Branch change in edit mode**: Allow changing branch for active projects, which resets downstream fields and regenerates code — same as create mode.
+### Step 2: `use-contractor-site-rep.ts` — Include photo_path, nationality, phone in upsert
 
-### Summary
-- 1 file modified
-- No DB changes
-- Active projects: all fields editable except Code
-- Completed/cancelled: entire form read-only, Save disabled
+Both the **update** and **insert** branches must include:
+- `photo_path: data.photo_path || null`
+- `nationality: data.nationality || null`
+- `phone: data.phone || null`
+
+### Step 3: `CompanyFormDialog.tsx` — Load photo_path from database
+
+Change line 158 from `photo_path: null` to:
+```typescript
+photo_path: siteRepFromTable.photo_path || null,
+nationality: siteRepFromTable.nationality || "",
+phone: siteRepFromTable.phone || "",
+```
+
+### Step 4: `SiteRepLockedCard.tsx` — Display photo from storage
+
+The locked card currently uses `data.photo_path` as a direct `<img src>`. But `photo_path` is a Supabase Storage path (e.g., `worker-photos/xxx.jpg`), not a URL. Add a `useEffect` to generate a signed URL from the storage path, matching the pattern used in `WorkerDetailDialog.tsx`.
+
+## Files
+
+| File | Change |
+|------|--------|
+| **DB Migration** | Add `photo_path`, `nationality`, `phone` columns to `contractor_representatives` |
+| `use-contractor-site-rep.ts` | Include all 3 new fields in update/insert |
+| `CompanyFormDialog.tsx` | Load `photo_path`, `nationality`, `phone` from fetched data |
+| `SiteRepLockedCard.tsx` | Generate signed URL for photo display |
+
+No other files need changes — the sync function (`use-sync-personnel-to-workers.ts`) already passes `siteRep.photo_path` to the worker record, and the ID card reads from the worker record. Once the photo persists, both will work.
 
