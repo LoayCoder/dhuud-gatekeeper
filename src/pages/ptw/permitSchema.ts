@@ -17,8 +17,8 @@ export const permitFormSchema = z.object({
     job_description: z.string().min(1),
 
     // Step 2
-    worker_ids: z.array(z.string()).min(1),
-    permit_holder_id: z.string().min(1),
+    worker_ids: z.array(z.string()).default([]),
+    permit_holder_id: z.string().optional(),
 
     // Step 3 — dynamic, keep flexible
     operational_data: z.record(z.unknown()).optional()

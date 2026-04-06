@@ -180,14 +180,19 @@ export async function getMobilizationProject(projectId: string, tenantId: string
 export async function getProjectContextWorkers(projectId: string, tenantId: string) {
     const { data: project, error: projectError } = await supabase
         .from("ptw_projects")
-        .select("contractor_company_id, linked_contractor_project_id")
+        .select("contractor_company_id, linked_contractor_project_id, is_internal_work")
         .eq("id", projectId)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
         .single();
 
-    if (projectError || !project?.contractor_company_id) {
+    if (projectError || !project) {
         return { project: null, workers: [], assignments: null };
+    }
+
+    // Internal projects have no contractor workers
+    if (project.is_internal_work || !project.contractor_company_id) {
+        return { project, workers: [], assignments: null };
     }
 
     const { data: workers, error: workersError } = await supabase
