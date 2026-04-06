@@ -228,15 +228,15 @@ export function useContractorPortalViolations(companyId: string | undefined) {
         `)
         .eq("contractor_company_id", companyId)
         .eq("tenant_id", tenantId)
+        .is("deleted_at", null)
         .order("created_at", { ascending: false })
         .limit(100);
 
       if (error) throw error;
       const items = data || [];
 
-      // Compute occurrence-based fine: group by violation_type_id, sort by created_at
+      // Compute occurrence-based fine: group by violation_type_id, sort by created_at ascending
       const occurrenceMap = new Map<string, number>();
-      // Sort ascending by date for occurrence counting
       const sortedForOccurrence = [...items].sort(
         (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       );
@@ -244,7 +244,6 @@ export function useContractorPortalViolations(companyId: string | undefined) {
         const typeId = v.violation_type_id || 'unknown';
         const count = (occurrenceMap.get(typeId) || 0) + 1;
         occurrenceMap.set(typeId, count);
-        // Store occurrence on the item
         (v as any)._occurrence = count;
       }
 
@@ -265,9 +264,9 @@ export function useContractorPortalViolations(companyId: string | undefined) {
           const occurrence = (v as any)._occurrence || 1;
           let fineAmount: number | null = null;
           if (vt) {
-            if (occurrence === 1) fineAmount = vt.first_fine_amount;
-            else if (occurrence === 2) fineAmount = vt.second_fine_amount;
-            else fineAmount = vt.third_fine_amount;
+            if (occurrence === 1) fineAmount = vt.first_fine_amount ?? null;
+            else if (occurrence === 2) fineAmount = vt.second_fine_amount ?? null;
+            else fineAmount = vt.third_fine_amount ?? null;
           }
 
           return {
