@@ -63,6 +63,18 @@ export function DetailsTab({
 
   return (
     <div className="space-y-4 pe-4">
+      {/* Rejection Reason Banner */}
+      {data.status === "rejected" && (passDetails as GatePassDetailExtended & { rejection_notes?: string })?.rejection_notes && (
+        <div className="p-4 rounded-lg border border-destructive/50 bg-destructive/10">
+          <h4 className="text-sm font-semibold text-destructive mb-1">
+            {t("contractors.gatePassDetail.rejectionReason", "Rejection Reason")}
+          </h4>
+          <p className="text-sm text-destructive/90">
+            {(passDetails as GatePassDetailExtended & { rejection_notes?: string }).rejection_notes}
+          </p>
+        </div>
+      )}
+
       {/* Header Section */}
       <div className="flex items-start justify-between p-4 rounded-lg border bg-muted/30">
         <div>
