@@ -1,83 +1,81 @@
 
 
-# Gate Pass Sequence is NOT Tenant-Scoped — Fix Required
+# Integrate Observations, Incidents, Actions & Violations into Contractor Portal Dashboard
 
-## Finding
+## Summary
 
-The `gate_pass_ref_seq` is a **single global PostgreSQL sequence** shared by all tenants. This means:
+Add four new HSSE accountability sections to the Contractor Portal Dashboard, giving contractors full visibility into observations, incidents, corrective actions, and violations linked to their company via `related_contractor_company_id`.
 
-- Tenant A creates pass → gets sequence 1
-- Tenant B creates pass → gets sequence 2 (skipping 1)
-- Numbers have gaps per tenant and leak cross-tenant volume info
+## Architecture
 
-The `public_gate_pass_ref_sequence` has the same problem for public passes.
+### New Hook: `useContractorPortalHSSEStats`
 
-## Fix: Replace Global Sequence with Per-Tenant Counter
+Create a single hook in `src/features/contractors/hooks/use-contractor-portal-hsse.ts` that accepts `companyId` and returns aggregated stats for all four modules. Uses 4 parallel `useQuery` calls:
 
-PostgreSQL sequences are global objects — you can't have one per tenant. The correct approach is a **counter table**.
+| Query | Table | Filter |
+|-------|-------|--------|
+| Observations | `incidents` | `event_type = 'observation'`, `related_contractor_company_id = companyId`, `deleted_at IS NULL` |
+| Incidents | `incidents` | `event_type = 'incident'`, `related_contractor_company_id = companyId`, `deleted_at IS NULL` |
+| Actions | `corrective_actions` joined via `incident_id` → `incidents.related_contractor_company_id` | Two-step: fetch incident IDs first, then actions |
+| Violations | `contractor_violation_summary` | `contractor_company_id = companyId` |
 
-### 1. Migration: Create `gate_pass_counters` table
+The hook computes: totals, open/closed counts, overdue actions (where `due_date < now()` and status not closed), severity breakdowns, and active violations.
 
-```sql
-CREATE TABLE public.gate_pass_counters (
-  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-  counter_type TEXT NOT NULL DEFAULT 'internal', -- 'internal' or 'public'
-  current_value BIGINT NOT NULL DEFAULT 0,
-  PRIMARY KEY (tenant_id, counter_type)
-);
+### New Component: `ContractorPortalHSSESections`
 
-ALTER TABLE public.gate_pass_counters ENABLE ROW LEVEL SECURITY;
-```
+Create `src/components/contractor-portal/dashboard/ContractorHSSESections.tsx` with four card sections using the existing `Card` component pattern already in the dashboard.
 
-### 2. Migration: Create `next_gate_pass_ref` function (tenant-scoped)
+### Dashboard Integration
 
-```sql
-CREATE OR REPLACE FUNCTION public.next_gate_pass_ref(p_tenant_id UUID, p_counter_type TEXT DEFAULT 'internal')
-RETURNS BIGINT
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  v_next BIGINT;
-BEGIN
-  INSERT INTO gate_pass_counters (tenant_id, counter_type, current_value)
-  VALUES (p_tenant_id, p_counter_type, 1)
-  ON CONFLICT (tenant_id, counter_type)
-  DO UPDATE SET current_value = gate_pass_counters.current_value + 1
-  RETURNING current_value INTO v_next;
-  
-  RETURN v_next;
-END;
-$$;
-```
+Add the new sections to `src/pages/contractor-portal/Dashboard.tsx` below the existing stats grid, using data from the new hook.
 
-This uses `INSERT ... ON CONFLICT ... UPDATE` (upsert) which is atomic and race-condition safe.
+## UI Sections
 
-### 3. Backfill counters from existing passes
+### 1. Observations Card
+- **Total** observations count
+- **Open** vs **Closed** breakdown (using `isOpenStatus`/`isClosedStatus` from `incident-status-colors.ts`)
+- Recent 5 observations list (title, date, status badge, severity)
+- Click → navigate to detail
 
-Count existing passes per tenant and seed the counters so new passes continue from the correct number.
+### 2. Incidents Card
+- **Total** incidents count
+- **Severity breakdown** (L1–L5 badges with HSSE colors)
+- High severity alert banner if any L3+ exist
+- Recent 5 incidents list
 
-### 4. Update `materialGatePassCreateService.ts`
+### 3. Corrective Actions Card
+- **Assigned** actions count
+- **Overdue** actions with red highlight (`due_date < now()` and not closed)
+- **Upcoming** deadlines (next 7 days)
+- Each row: title, assignee, due date, status
 
-Replace:
-```ts
-supabase.rpc("nextval_gate_pass_ref")
-```
-With:
-```ts
-supabase.rpc("next_gate_pass_ref", { p_tenant_id: tenantId, p_counter_type: 'internal' })
-```
+### 4. Violations Card
+- **Total** violations count
+- **Active** (where `final_status` is NULL or pending)
+- **Final status** breakdown (approved/enforced/cancelled)
+- Fine amounts from joined `violation_types` table (using `first_fine_amount`, `second_fine_amount`, `third_fine_amount` based on occurrence)
 
-### 5. Update `submit_public_gate_pass` SQL function
+## Security
 
-Replace `nextval('public_gate_pass_ref_sequence')` with a call to `next_gate_pass_ref(v_tenant_id, 'public')`.
+- All queries filter by `companyId` derived from the authenticated contractor representative's linked company (already resolved by `useContractorPortalData`)
+- Admin fallback uses the same company resolution logic
+- RLS on `incidents` and `contractor_violation_summary` already enforces tenant isolation
 
-## Files to Edit
+## Files to Create/Edit
 
-| File | Change |
+| File | Action |
 |------|--------|
-| New migration | Create `gate_pass_counters` table, `next_gate_pass_ref` function, backfill |
-| `materialGatePassCreateService.ts` | Call `next_gate_pass_ref` with tenant_id |
-| Migration (update `submit_public_gate_pass`) | Use tenant-scoped counter for public passes |
+| `src/features/contractors/hooks/use-contractor-portal-hsse.ts` | **Create** — hook with 4 queries |
+| `src/components/contractor-portal/dashboard/ContractorHSSESections.tsx` | **Create** — 4 section components |
+| `src/pages/contractor-portal/Dashboard.tsx` | **Edit** — import and render HSSE sections below existing content |
+| `src/features/contractors/hooks/use-contractor-portal.ts` | **Edit** — re-export new hook |
+| `src/hooks/contractor-management/index.ts` | **Edit** — re-export new hook |
+
+## Technical Notes
+
+- Uses `isOpenStatus()` and `isClosedStatus()` from `src/lib/incident-status-colors.ts` for consistent status classification
+- Severity uses `severity_v2` field (L1–L5)
+- Actions require a two-step query: first get contractor incident IDs, then fetch `corrective_actions` with `incident_id.in(ids)`
+- Violations join `violation_types` for fine/penalty display
+- All Tailwind classes use logical properties (`ms-`, `me-`, `ps-`, `pe-`, `text-start`)
 
