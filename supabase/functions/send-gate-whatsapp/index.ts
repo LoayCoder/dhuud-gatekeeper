@@ -417,7 +417,7 @@ Please show the QR code at the gate`;
       }
       
       // Generate verification URL
-      const appUrl = Deno.env.get('APP_URL') || Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.lovable.app') || 'https://app.example.com';
+      const appUrl = Deno.env.get('APP_URL') || 'https://www.dhuud.com';
       const verificationUrl = qrCodeToken ? `${appUrl}/visitor-pass/${qrCodeToken}` : '';
       
       console.log(`[WhatsApp] Sending enhanced welcome to ${mobile_number}`);

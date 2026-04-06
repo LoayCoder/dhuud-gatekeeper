@@ -155,7 +155,7 @@ Deno.serve(async (req) => {
         const durationMin = Math.round((selectedVideo.duration_seconds || 0) / 60);
         
         // Build the induction portal URL instead of direct video URL
-        const appUrl = Deno.env.get('APP_URL') || 'https://xdlowvfzhvjzbtgvurzj.lovableproject.com';
+        const appUrl = Deno.env.get('APP_URL') || 'https://www.dhuud.com';
         const inductionPortalUrl = `${appUrl}/worker-induction/${induction.id}`;
         
         console.log(`[Onboard] Induction portal URL: ${inductionPortalUrl}`);

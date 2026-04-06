@@ -17,6 +17,7 @@ const corsHeaders = {
 
 const SUPABASE_PROJECT_URL = 'https://xdlowvfzhvjzbtgvurzj.supabase.co';
 const LOVABLE_PREVIEW_URL = 'https://8feca61a-47e3-4736-9ecf-c70ee7c6acc3.lovableproject.com';
+const DHUUD_DOMAIN = 'https://www.dhuud.com';
 
 // Content Security Policy configuration
 const getCSPHeader = () => {

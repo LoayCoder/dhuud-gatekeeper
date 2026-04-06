@@ -113,7 +113,7 @@ export function EditInvitationDialog({
             code: invitation.code,
             tenantName: tenant?.name || 'DHUUD Platform',
             expiresAt: invitation.expires_at,
-            inviteUrl: window.location.origin,
+            inviteUrl: getAppUrl(),
           },
         });
 

@@ -365,7 +365,7 @@ Deno.serve(async (req) => {
     const estimatedCompletionTime = new Date(Date.now() + estimatedSeconds * 1000).toISOString();
 
     // Get app URL
-    const appUrl = Deno.env.get("APP_URL") || "https://xdlowvfzhvjzbtgvurzj.lovableproject.com";
+    const appUrl = Deno.env.get("APP_URL") || "https://www.dhuud.com";
 
     // Start background task
     Promise.resolve().then(() =>

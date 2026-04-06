@@ -114,7 +114,7 @@ export function useUserManagementSaveActions(state: ReturnType<typeof import('./
 
           if (deliveryChannel === 'email' || deliveryChannel === 'both') {
             const { error: emailError } = await supabase.functions.invoke('send-invitation-email', {
-              body: { email: data.email, code: inviteCode, tenantName: tenant?.name || 'DHUUD Platform', expiresAt: expiresAt.toISOString(), inviteUrl: window.location.origin },
+              body: { email: data.email, code: inviteCode, tenantName: tenant?.name || 'DHUUD Platform', expiresAt: expiresAt.toISOString(), inviteUrl: getAppUrl() },
             });
             if (emailError) { logger.error('Failed to send invitation email:', emailError); }
             else { emailSent = true; await supabase.from('invitations').update({ email_sent_at: new Date().toISOString(), delivery_status: 'sent' }).eq('id', invitationData.id); }
@@ -122,7 +122,7 @@ export function useUserManagementSaveActions(state: ReturnType<typeof import('./
 
           if ((deliveryChannel === 'whatsapp' || deliveryChannel === 'both') && data.phone_number) {
             const { data: waResult, error: waError } = await supabase.functions.invoke('send-invitation-whatsapp', {
-              body: { invitation_id: invitationData.id, phone_number: data.phone_number, code: inviteCode, tenant_name: tenant?.name || 'DHUUD Platform', expires_at: expiresAt.toISOString(), full_name: data.full_name, invite_url: window.location.origin },
+              body: { invitation_id: invitationData.id, phone_number: data.phone_number, code: inviteCode, tenant_name: tenant?.name || 'DHUUD Platform', expires_at: expiresAt.toISOString(), full_name: data.full_name, invite_url: getAppUrl() },
             });
             if (waError || !waResult?.success) { logger.error('Failed to send WhatsApp invitation:', waError || waResult?.error); }
             else { whatsappSent = true; }
