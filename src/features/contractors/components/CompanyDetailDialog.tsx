@@ -119,7 +119,7 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
     return {
       id: siteRep.id || 'site_rep',
       fullName: siteRep.full_name || '',
-      fullNameAr: undefined,
+      fullNameAr: siteRep.full_name_ar || undefined,
       photo: siteRepPhotoUrl || undefined,
       company: company.company_name,
       companyAr: company.company_name_ar || undefined,
