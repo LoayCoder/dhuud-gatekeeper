@@ -19,7 +19,7 @@ async function sendBackupCodeUsedEmail(email: string, userName: string | null) {
   
   try {
     await resend.emails.send({
-      from: "DHUUD Security <onboarding@resend.dev>",
+      from: "DHUUD Security <noreply@dhuud.com>",
       to: [email],
       subject: "Security Alert: Backup Code Used",
       html: `
