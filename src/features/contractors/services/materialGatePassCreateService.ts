@@ -16,10 +16,18 @@ export const createGatePass = async (data: CreateGatePassData, tenantId: string,
         throw new Error(permission.reason || "You do not have permission to create this gate pass");
     }
 
+    // Fetch tenant short_name for reference prefix
+    const { data: tenantData } = await supabase
+        .from("tenants")
+        .select("short_name")
+        .eq("id", tenantId)
+        .single();
+    const prefix = tenantData?.short_name || 'GP';
+
     const year = new Date().getFullYear();
     const { data: seqResult, error: seqError } = await supabase.rpc("nextval_gate_pass_ref" as never, {} as never);
     const sequence = seqError ? Date.now() % 100000 : Number(seqResult);
-    const reference_number = `GP-${year}-${String(sequence).padStart(5, "0")}`;
+    const reference_number = `${prefix}-${year}-${String(sequence).padStart(5, "0")}`;
 
     const materialDescription = data.items
         .map((item) => {

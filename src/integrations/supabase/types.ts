@@ -22033,6 +22033,7 @@ export type Database = {
           secondary_color_dark: string | null
           security_scan_enabled: boolean | null
           session_timeout_minutes: number | null
+          short_name: string | null
           sidebar_icon_dark_url: string | null
           sidebar_icon_light_url: string | null
           slug: string
@@ -22096,6 +22097,7 @@ export type Database = {
           secondary_color_dark?: string | null
           security_scan_enabled?: boolean | null
           session_timeout_minutes?: number | null
+          short_name?: string | null
           sidebar_icon_dark_url?: string | null
           sidebar_icon_light_url?: string | null
           slug: string
@@ -22159,6 +22161,7 @@ export type Database = {
           secondary_color_dark?: string | null
           security_scan_enabled?: boolean | null
           session_timeout_minutes?: number | null
+          short_name?: string | null
           sidebar_icon_dark_url?: string | null
           sidebar_icon_light_url?: string | null
           slug?: string
@@ -26932,33 +26935,60 @@ export type Database = {
         }
         Returns: Json
       }
-      submit_public_gate_pass: {
-        Args: {
-          p_branch_id: string
-          p_client_ip?: string
-          p_driver_mobile?: string
-          p_driver_name?: string
-          p_end_date?: string
-          p_items?: Json
-          p_material_description?: string
-          p_notify_email?: boolean
-          p_notify_sms?: boolean
-          p_notify_whatsapp?: boolean
-          p_pass_date?: string
-          p_pass_type?: string
-          p_quantity?: string
-          p_requester_company?: string
-          p_requester_email?: string
-          p_requester_name: string
-          p_requester_phone: string
-          p_start_date?: string
-          p_tenant_slug: string
-          p_vehicle_plate?: string
-          p_vehicle_plate_letters?: string
-          p_vehicle_plate_numbers?: string
-        }
-        Returns: Json
-      }
+      submit_public_gate_pass:
+        | {
+            Args: {
+              p_branch_id?: string
+              p_driver_mobile?: string
+              p_driver_name?: string
+              p_end_date?: string
+              p_items?: Json
+              p_material_description?: string
+              p_notify_email?: boolean
+              p_notify_sms?: boolean
+              p_notify_whatsapp?: boolean
+              p_pass_date?: string
+              p_pass_type?: string
+              p_quantity?: string
+              p_requester_company?: string
+              p_requester_email?: string
+              p_requester_name?: string
+              p_requester_phone?: string
+              p_start_date?: string
+              p_tenant_slug: string
+              p_vehicle_plate?: string
+              p_vehicle_plate_letters?: string
+              p_vehicle_plate_numbers?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_branch_id: string
+              p_client_ip?: string
+              p_driver_mobile?: string
+              p_driver_name?: string
+              p_end_date?: string
+              p_items?: Json
+              p_material_description?: string
+              p_notify_email?: boolean
+              p_notify_sms?: boolean
+              p_notify_whatsapp?: boolean
+              p_pass_date?: string
+              p_pass_type?: string
+              p_quantity?: string
+              p_requester_company?: string
+              p_requester_email?: string
+              p_requester_name: string
+              p_requester_phone: string
+              p_start_date?: string
+              p_tenant_slug: string
+              p_vehicle_plate?: string
+              p_vehicle_plate_letters?: string
+              p_vehicle_plate_numbers?: string
+            }
+            Returns: Json
+          }
       toggle_event_category: {
         Args: {
           p_category_id: string
