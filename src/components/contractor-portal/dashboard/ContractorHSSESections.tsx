@@ -353,6 +353,12 @@ export default function ContractorHSSESections({
           </CardContent>
         </Card>
       </div>
+
+      <ContractorIncidentDetailDialog
+        incidentId={selectedIncidentId}
+        companyId={companyId}
+        onClose={() => setSelectedIncidentId(null)}
+      />
     </div>
   );
 }

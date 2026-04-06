@@ -84,7 +84,7 @@ export default function ContractorIncidentDetailDialog({
       const { data, error } = await supabase
         .from("incidents")
         .select(
-          "id, title, reference_id, event_type, subtype, incident_type, description, occurred_at, status, severity_v2, location, media_attachments, immediate_actions, has_injury, injury_classification, has_damage, branch:branches(name), site:sites(name)"
+          "id, title, reference_id, event_type, subtype, incident_type, description, occurred_at, status, severity_v2, location, media_attachments, immediate_actions, has_injury, injury_classification, has_damage"
         )
         .eq("id", incidentId!)
         .eq("related_contractor_company_id", companyId)
@@ -95,6 +95,31 @@ export default function ContractorIncidentDetailDialog({
         return null;
       }
       return data;
+    },
+    enabled: !!incidentId && !!companyId,
+  });
+
+  // Fetch branch/site separately to avoid deep type instantiation
+  const { data: branchSite } = useQuery({
+    queryKey: ["contractor-incident-branch", incidentId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("incidents")
+        .select("branch_id, site_id")
+        .eq("id", incidentId!)
+        .maybeSingle();
+      if (!data) return null;
+      let branchName: string | null = null;
+      let siteName: string | null = null;
+      if (data.branch_id) {
+        const { data: b } = await supabase.from("branches").select("name").eq("id", data.branch_id).maybeSingle();
+        branchName = b?.name || null;
+      }
+      if (data.site_id) {
+        const { data: s } = await supabase.from("sites").select("name").eq("id", data.site_id).maybeSingle();
+        siteName = s?.name || null;
+      }
+      return { branchName, siteName };
     },
     enabled: !!incidentId && !!companyId,
   });

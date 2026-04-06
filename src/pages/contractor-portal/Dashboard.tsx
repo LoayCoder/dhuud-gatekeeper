@@ -197,6 +197,7 @@ function ContractorPortalDashboardContent() {
           actions={hsse.actions}
           violations={hsse.violations}
           isLoading={hsse.isLoading}
+          companyId={company?.id || ""}
         />
       </div>
     </ContractorPortalLayout>
