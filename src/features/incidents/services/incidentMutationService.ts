@@ -126,20 +126,7 @@ export const createIncident = async (data: IncidentFormData) => {
         });
     }
 
-    // Fire-and-forget: send workflow notification for observation-specific transitions
-    if (isObservation && data.closed_on_spot_data?.closed_on_spot !== true) {
-        // Observation needs review — notify the assigned reviewer via workflow notification
-        const notifyStatus = initialStatus; // 'submitted' for observations
-        supabase.functions.invoke('send-workflow-notification', {
-            body: {
-                incident_id: 'PENDING', // Will be replaced after insert
-                event_type: 'observation',
-                new_status: notifyStatus,
-                actor_id: freshUserId,
-                tenant_id: profile.tenant_id,
-            }
-        }).catch(() => {}); // Fire-and-forget placeholder — real call below after insert
-    }
+
 
     const { data: incident, error } = await supabase
         .from('incidents')
