@@ -142,7 +142,7 @@ export default function ProjectClearance() {
               <div>
                 <p className="text-xs text-muted-foreground">{t("ptw.clearance.contractor", "Contractor")}</p>
                 <p className="font-medium text-sm">
-                  {(project as Record<string, unknown> & { contractor_company?: { company_name?: string } })?.contractor_company?.company_name || t("common.na", "N/A")}
+                  {project?.contractor_company?.company_name || t("common.na", "N/A")}
                 </p>
               </div>
             </div>
@@ -154,7 +154,7 @@ export default function ProjectClearance() {
               <div>
                 <p className="text-xs text-muted-foreground">{t("ptw.clearance.site", "Site")}</p>
                 <p className="font-medium text-sm">
-                  {(project as Record<string, unknown> & { site?: { name?: string } })?.site?.name || t("common.na", "N/A")}
+                  {project?.site?.name || t("common.na", "N/A")}
                 </p>
               </div>
             </div>
@@ -166,7 +166,7 @@ export default function ProjectClearance() {
               <div>
                 <p className="text-xs text-muted-foreground">{t("ptw.clearance.projectManager", "Project Manager")}</p>
                 <p className="font-medium text-sm">
-                  {(project as Record<string, unknown> & { project_manager?: { full_name?: string } })?.project_manager?.full_name || t("common.na", "N/A")}
+                  {project?.project_manager?.full_name || t("common.na", "N/A")}
                 </p>
               </div>
             </div>
@@ -178,8 +178,8 @@ export default function ProjectClearance() {
               <div>
                 <p className="text-xs text-muted-foreground">{t("ptw.clearance.duration", "Duration")}</p>
                 <p className="font-medium text-sm">
-                  {(project as Record<string, unknown>)?.start_date && (project as Record<string, unknown>)?.end_date 
-                    ? `${format(new Date(String((project as Record<string, unknown>).start_date)), "MMM d")} - ${format(new Date(String((project as Record<string, unknown>).end_date)), "MMM d, yyyy")}`
+                  {project?.start_date && project?.end_date 
+                    ? `${format(new Date(project.start_date), "MMM d")} - ${format(new Date(project.end_date), "MMM d, yyyy")}`
                     : t("common.na", "N/A")
                   }
                 </p>
