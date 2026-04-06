@@ -1,22 +1,19 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FolderKanban, Calendar, MapPin, Users, AlertCircle, Plus } from "lucide-react";
+import { FolderKanban, Calendar, MapPin, Users, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import ContractorPortalLayout from "@/components/contractor-portal/ContractorPortalLayout";
 import { useContractorPortalData } from "@/hooks/contractor-management/index";
 import { format } from "date-fns";
 import { ContractorPortalRoute } from "@/components/access-control";
 import { ProjectDetailDialog } from "@/features/contractors/components/ProjectDetailDialog";
-import { ProjectFormDialog } from "@/features/contractors/components/ProjectFormDialog";
 import type { ContractorPortalProject } from "@/features/contractors/hooks/use-contractor-portal";
 
 function ContractorPortalProjectsContent() {
   const { t } = useTranslation();
   const { projects, isLoading, isError } = useContractorPortalData();
   const [selectedProject, setSelectedProject] = useState<ContractorPortalProject | null>(null);
-  const [showAddProject, setShowAddProject] = useState(false);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -50,18 +47,12 @@ function ContractorPortalProjectsContent() {
   return (
     <ContractorPortalLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <FolderKanban className="h-8 w-8 text-primary" />
-            <div>
-              <h1 className="text-2xl font-bold">{t("contractorPortal.projects.title", "Projects")}</h1>
-              <p className="text-muted-foreground">{t("contractorPortal.projects.description", "View your assigned projects")}</p>
-            </div>
+        <div className="flex items-center gap-3">
+          <FolderKanban className="h-8 w-8 text-primary" />
+          <div>
+            <h1 className="text-2xl font-bold">{t("contractorPortal.projects.title", "Projects")}</h1>
+            <p className="text-muted-foreground">{t("contractorPortal.projects.description", "View your assigned projects")}</p>
           </div>
-          <Button onClick={() => setShowAddProject(true)}>
-            <Plus className="h-4 w-4 me-2" />
-            {t("contractors.projects.addProject", "Add Project")}
-          </Button>
         </div>
 
         {projects?.length === 0 ? (
@@ -111,11 +102,6 @@ function ContractorPortalProjectsContent() {
         open={!!selectedProject}
         onOpenChange={(open) => !open && setSelectedProject(null)}
         project={selectedProject}
-      />
-      <ProjectFormDialog
-        open={showAddProject}
-        onOpenChange={setShowAddProject}
-        project={null}
       />
     </ContractorPortalLayout>
   );
