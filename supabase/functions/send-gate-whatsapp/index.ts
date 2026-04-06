@@ -16,7 +16,12 @@ interface WhatsAppRequest {
   tenant_id: string;
   
   // Notification type
-  notification_type?: 'visitor_welcome' | 'host_notification' | 'visitor_badge_link' | 'host_arrival' | 'host_departure';
+  notification_type?: 'visitor_welcome' | 'host_notification' | 'visitor_badge_link' | 'host_arrival' | 'host_departure' | 'gate_pass_status';
+  
+  // For gate_pass_status — plain text message
+  message?: string;
+  gate_pass_id?: string;
+  reference_number?: string;
   
   // For visitor welcome (enhanced with 7 variables)
   visitor_name?: string;

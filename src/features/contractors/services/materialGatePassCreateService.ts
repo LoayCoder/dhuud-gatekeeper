@@ -165,12 +165,13 @@ export const createGatePass = async (data: CreateGatePassData, tenantId: string,
         }
     }
 
-    if (result?.project_id && tenantId) {
+    if (tenantId) {
         supabase.functions.invoke('notify-dept-rep-gate-pass', {
             body: {
                 gate_pass_id: result.id,
-                project_id: result.project_id,
+                project_id: result.project_id || null,
                 tenant_id: tenantId,
+                branch_id: result.branch_id || null,
                 reference_number: result.reference_number,
                 material_description: result.material_description,
                 requester_name: requesterName,

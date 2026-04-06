@@ -105,9 +105,12 @@ export const approveGatePass = async (passId: string, action: "approve" | "rejec
 
                 await supabase.functions.invoke("send-gate-whatsapp", {
                     body: {
-                        phone: requesterProfile.phone_number,
+                        mobile_number: requesterProfile.phone_number,
+                        notification_type: 'gate_pass_status',
                         message,
                         tenant_id: gatePass.tenant_id,
+                        gate_pass_id: gatePass.id,
+                        reference_number: gatePass.reference_number,
                     },
                 });
             }
