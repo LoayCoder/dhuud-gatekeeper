@@ -261,12 +261,12 @@ export default function ContractorIncidentDetailDialog({
                           <span className="truncate">{incident.location}</span>
                         </div>
                       )}
-                      {(incident.branch as any)?.name && (
+                      {branchSite?.branchName && (
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Building className="h-4 w-4 shrink-0" />
                           <span>
-                            {(incident.branch as any).name}
-                            {(incident.site as any)?.name && ` · ${(incident.site as any).name}`}
+                            {branchSite.branchName}
+                            {branchSite.siteName && ` · ${branchSite.siteName}`}
                           </span>
                         </div>
                       )}
