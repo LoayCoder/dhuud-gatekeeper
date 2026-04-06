@@ -1,81 +1,59 @@
 
 
-# Integrate Observations, Incidents, Actions & Violations into Contractor Portal Dashboard
+# Fix QA Release Blockers for Contractor Portal HSSE Dashboard
 
 ## Summary
 
-Add four new HSSE accountability sections to the Contractor Portal Dashboard, giving contractors full visibility into observations, incidents, corrective actions, and violations linked to their company via `related_contractor_company_id`.
+Address the 4 release blockers identified in the QA checklist, plus severity format consistency.
 
-## Architecture
+## Release Blockers
 
-### New Hook: `useContractorPortalHSSEStats`
+### 1. Severity Format Inconsistency (🔴 High — #57)
 
-Create a single hook in `src/features/contractors/hooks/use-contractor-portal-hsse.ts` that accepts `companyId` and returns aggregated stats for all four modules. Uses 4 parallel `useQuery` calls:
+**Current**: Hook checks for both `level_N` and `LN` formats in high severity detection. DB confirms all values use `level_N` format only.
 
-| Query | Table | Filter |
-|-------|-------|--------|
-| Observations | `incidents` | `event_type = 'observation'`, `related_contractor_company_id = companyId`, `deleted_at IS NULL` |
-| Incidents | `incidents` | `event_type = 'incident'`, `related_contractor_company_id = companyId`, `deleted_at IS NULL` |
-| Actions | `corrective_actions` joined via `incident_id` → `incidents.related_contractor_company_id` | Two-step: fetch incident IDs first, then actions |
-| Violations | `contractor_violation_summary` | `contractor_company_id = companyId` |
+**Fix**: Remove dead `L3/L4/L5` checks from the hook. The `severityLabel()` function in the UI component already maps `level_N` → `LN` correctly for display — no change needed there.
 
-The hook computes: totals, open/closed counts, overdue actions (where `due_date < now()` and status not closed), severity breakdowns, and active violations.
+**File**: `use-contractor-portal-hsse.ts` line 134 — remove `'L3', 'L4', 'L5'` from the array.
 
-### New Component: `ContractorPortalHSSESections`
+### 2. Violation Fine Calculation Missing (🔴 High — #56)
 
-Create `src/components/contractor-portal/dashboard/ContractorHSSESections.tsx` with four card sections using the existing `Card` component pattern already in the dashboard.
+**Current**: `total_fine_amount` is always `null` in the violations query. The fine lives on `violation_types` table (`first_fine_amount`, `second_fine_amount`, `third_fine_amount`) and depends on occurrence number.
 
-### Dashboard Integration
+**Fix**: In the violations hook, after fetching violations with joined `violation_type`, count occurrences per `(contractor_company_id, violation_type_id)` to determine which fine tier applies (1st/2nd/3rd), then set `total_fine_amount` accordingly.
 
-Add the new sections to `src/pages/contractor-portal/Dashboard.tsx` below the existing stats grid, using data from the new hook.
+**File**: `use-contractor-portal-hsse.ts` — update violations query to include fine columns from `violation_types` join and compute occurrence-based fine.
 
-## UI Sections
+### 3. Drill-Down Navigation Missing (🟠 Medium — #55)
 
-### 1. Observations Card
-- **Total** observations count
-- **Open** vs **Closed** breakdown (using `isOpenStatus`/`isClosedStatus` from `incident-status-colors.ts`)
-- Recent 5 observations list (title, date, status badge, severity)
-- Click → navigate to detail
+**Current**: Clicking observation/incident/action/violation items does nothing.
 
-### 2. Incidents Card
-- **Total** incidents count
-- **Severity breakdown** (L1–L5 badges with HSSE colors)
-- High severity alert banner if any L3+ exist
-- Recent 5 incidents list
+**Fix**: Add `onClick` with `useNavigate` to each list item:
+- Observations/Incidents → `/incidents/{id}` (the investigation workspace)
+- Actions → `/incidents/{incident_id}` (actions live within the incident view)
+- Violations → no standalone page exists; link to the parent incident via `incident_id`
 
-### 3. Corrective Actions Card
-- **Assigned** actions count
-- **Overdue** actions with red highlight (`due_date < now()` and not closed)
-- **Upcoming** deadlines (next 7 days)
-- Each row: title, assignee, due date, status
+**File**: `ContractorHSSESections.tsx` — add `useNavigate` and cursor-pointer + click handlers.
 
-### 4. Violations Card
-- **Total** violations count
-- **Active** (where `final_status` is NULL or pending)
-- **Final status** breakdown (approved/enforced/cancelled)
-- Fine amounts from joined `violation_types` table (using `first_fine_amount`, `second_fine_amount`, `third_fine_amount` based on occurrence)
+### 4. Arabic Translations Incomplete (🟠 Medium — #58)
 
-## Security
+**Current**: All labels use English fallbacks via `t("key", "Fallback")`.
 
-- All queries filter by `companyId` derived from the authenticated contractor representative's linked company (already resolved by `useContractorPortalData`)
-- Admin fallback uses the same company resolution logic
-- RLS on `incidents` and `contractor_violation_summary` already enforces tenant isolation
+**Fix**: Add Arabic translation keys for all HSSE dashboard strings to the Arabic locale file.
 
-## Files to Create/Edit
+**File**: Locale JSON file for Arabic.
 
-| File | Action |
-|------|--------|
-| `src/features/contractors/hooks/use-contractor-portal-hsse.ts` | **Create** — hook with 4 queries |
-| `src/components/contractor-portal/dashboard/ContractorHSSESections.tsx` | **Create** — 4 section components |
-| `src/pages/contractor-portal/Dashboard.tsx` | **Edit** — import and render HSSE sections below existing content |
-| `src/features/contractors/hooks/use-contractor-portal.ts` | **Edit** — re-export new hook |
-| `src/hooks/contractor-management/index.ts` | **Edit** — re-export new hook |
+## Files to Edit
+
+| File | Changes |
+|------|---------|
+| `src/features/contractors/hooks/use-contractor-portal-hsse.ts` | Remove dead severity formats; add fine calculation logic to violations |
+| `src/components/contractor-portal/dashboard/ContractorHSSESections.tsx` | Add drill-down navigation; add `useNavigate` + click handlers + cursor styles |
+| Arabic locale file | Add ~15 translation keys for HSSE dashboard labels |
 
 ## Technical Notes
 
-- Uses `isOpenStatus()` and `isClosedStatus()` from `src/lib/incident-status-colors.ts` for consistent status classification
-- Severity uses `severity_v2` field (L1–L5)
-- Actions require a two-step query: first get contractor incident IDs, then fetch `corrective_actions` with `incident_id.in(ids)`
-- Violations join `violation_types` for fine/penalty display
-- All Tailwind classes use logical properties (`ms-`, `me-`, `ps-`, `pe-`, `text-start`)
+- Fine calculation: group violations by `violation_type_id`, sort by `created_at`, assign occurrence index (1st/2nd/3rd+), pick corresponding `first_fine_amount`/`second_fine_amount`/`third_fine_amount`
+- Navigation targets use existing routes — no new pages needed
+- Violation drill-down goes to parent incident since violations don't have a standalone page
 
