@@ -11359,7 +11359,27 @@
       "noIncidents": "No incidents recorded",
       "noActions": "No corrective actions",
       "noViolations": "No violations recorded",
-      "violation": "Violation"
+      "violation": "Violation",
+      "modal": {
+        "notFound": "Not found",
+        "noAccess": "You don't have access to this record",
+        "overview": "Overview",
+        "immediateActions": "Immediate Actions Taken",
+        "injuryReported": "Injury Reported",
+        "damageReported": "Damage Reported",
+        "investigation": "Investigation",
+        "noInvestigation": "Investigation details are not available yet",
+        "findings": "Findings Summary",
+        "immediateCause": "Immediate Cause",
+        "rootCause": "Root Cause",
+        "contributingFactors": "Contributing Factors",
+        "rcaImmediateCauses": "RCA - Immediate Causes",
+        "investigator": "Investigator",
+        "started": "Started",
+        "completed": "Completed",
+        "correctiveActions": "Corrective Actions",
+        "noActions": "No corrective actions assigned"
+      }
     }
   },
   "sla": {
