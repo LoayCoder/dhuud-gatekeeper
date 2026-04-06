@@ -18,25 +18,28 @@ export function useProjectManagers(branchId?: string) {
       if (!tenantId) return [];
 
       if (branchId) {
-        // Filter by branch via user_branch_assignments
-        const { data, error } = await supabase
+        // Two-step query: get user IDs from branch assignments, then fetch profiles
+        const { data: assignments, error: assignError } = await supabase
           .from("user_branch_assignments" as any)
-          .select("user_id, profiles!inner(id, full_name, email)")
+          .select("user_id")
           .eq("branch_id", branchId)
           .is("deleted_at", null);
 
-        if (error) throw error;
+        if (assignError) throw assignError;
 
-        const seen = new Set<string>();
-        const result: ProjectManager[] = [];
-        for (const row of (data as any[]) ?? []) {
-          const p = row.profiles as { id: string; full_name: string; email: string | null } | null;
-          if (p && !seen.has(p.id)) {
-            seen.add(p.id);
-            result.push({ id: p.id, full_name: p.full_name, email: p.email });
-          }
-        }
-        return result.sort((a, b) => (a.full_name ?? "").localeCompare(b.full_name ?? ""));
+        const userIds = [...new Set((assignments as any[] ?? []).map((a: any) => a.user_id).filter(Boolean))];
+        if (userIds.length === 0) return [];
+
+        const { data: profiles, error: profileError } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .in("id", userIds)
+          .eq("tenant_id", tenantId)
+          .eq("is_active", true)
+          .order("full_name");
+
+        if (profileError) throw profileError;
+        return (profiles ?? []) as ProjectManager[];
       }
 
       // No branch filter — return all active profiles in tenant
