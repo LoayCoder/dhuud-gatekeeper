@@ -45,6 +45,39 @@ export const approveGatePass = async (passId: string, action: "approve" | "rejec
         }
     }
 
+    // Send WhatsApp notification to the requester on approval/rejection
+    if (!gatePass?.is_public_request && gatePass?.requested_by && (newStatus === "approved" || newStatus === "rejected")) {
+        try {
+            // Fetch requester's phone number
+            const { data: requesterProfile } = await supabase
+                .from("profiles")
+                .select("mobile_number, preferred_language, full_name")
+                .eq("id", gatePass.requested_by)
+                .single();
+
+            if (requesterProfile?.mobile_number) {
+                const lang = requesterProfile.preferred_language || 'en';
+                const isApproved = newStatus === "approved";
+                const statusText = isApproved
+                    ? (lang === 'ar' ? 'تمت الموافقة ✅' : 'Approved ✅')
+                    : (lang === 'ar' ? 'مرفوض ❌' : 'Rejected ❌');
+                const message = lang === 'ar'
+                    ? `🚛 تصريح بوابة ${gatePass.reference_number}\n\nالحالة: ${statusText}\nالوصف: ${gatePass.material_description || '-'}\n${notes ? `ملاحظات: ${notes}` : ''}`
+                    : `🚛 Gate Pass ${gatePass.reference_number}\n\nStatus: ${statusText}\nDescription: ${gatePass.material_description || '-'}\n${notes ? `Notes: ${notes}` : ''}`;
+
+                await supabase.functions.invoke("send-gate-whatsapp", {
+                    body: {
+                        phone: requesterProfile.mobile_number,
+                        message,
+                        tenant_id: gatePass.tenant_id,
+                    },
+                });
+            }
+        } catch (whatsappErr) {
+            console.error("[Gate Pass] Failed to send WhatsApp approval/rejection notification:", whatsappErr);
+        }
+    }
+
     if (gatePass?.is_public_request && (newStatus === "approved" || newStatus === "rejected" || newStatus === "pending_security_approval")) {
         const tenantSlug = (gatePass.tenants as { slug: string } | null)?.slug || "";
         const eventType = newStatus === "approved" ? "approved" : newStatus === "rejected" ? "rejected" : "acknowledged";
