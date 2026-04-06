@@ -71,7 +71,7 @@ export function IDCardActionButton({
     queryFn: async () => {
       const { data } = await supabase
         .from('tenants')
-        .select('id, name, name_ar, logo_light_url, brand_color')
+        .select('id, name, short_name, logo_light_url, brand_color')
         .eq('id', tenantId)
         .maybeSingle();
       return data;
@@ -86,7 +86,7 @@ export function IDCardActionButton({
     name: (providedTenantData?.name && providedTenantData.name !== '')
       ? providedTenantData.name
       : (tenantBranding?.name || ''),
-    nameAr: providedTenantData?.nameAr || tenantBranding?.name_ar || undefined,
+    nameAr: providedTenantData?.nameAr || tenantBranding?.short_name || undefined,
     logoUrl: providedTenantData?.logoUrl || tenantBranding?.logo_light_url || undefined,
   };
 
