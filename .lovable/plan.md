@@ -1,108 +1,93 @@
 
 
-# Gate Pass System Audit Report — Findings & Fixes
+# Gate Pass System Audit — Double-Check Results
 
-## Audit Summary
+## Findings Summary
 
-After querying all 11 gate passes, related tables, RLS policies, indexes, and audit logs, here are the findings organized by severity.
-
----
-
-## RED — Critical Issues (5)
-
-### 1. Zero Audit Trail for Gate Passes
-The `contractor_module_audit_logs` table has **zero entries** for `entity_type = 'material_gate_pass'`. The `security_audit_logs` also has **zero entries** for `action_category = 'gate_control'`. Every creation, approval, and rejection happened with **no audit record**. The `contractor-audit-log` edge function is either not being called or silently failing.
-
-**Fix:** Debug the edge function invocation in the creation/approval code paths. Add fallback direct-insert audit logging if the edge function fails. Backfill audit records from existing timestamp data.
-
-### 2. All 11 Passes Have NULL `submitted_at`
-Every single gate pass (11/11) has `submitted_at = NULL`. This means either the submission timestamp is never being set, or the concept of "submit" is conflated with "create." This breaks any time-tracking or SLA measurement.
-
-**Fix:** Set `submitted_at = NOW()` during creation (for public passes) or when the pass transitions from draft to first pending status.
-
-### 3. All 11 Passes Have NULL `project_id` and `company_id`
-Every gate pass has both foreign keys set to NULL, including the 5 internal/contractor passes that should have them. This breaks:
-- Company-based RLS isolation (contractor reps see nothing via the FK-based policy)
-- Project filtering and reporting
-- The project requirement gate is bypassed
-
-**Fix:** The creation form or RPC must enforce setting `company_id` for external requests and optionally for internal. Backfill existing data where possible.
-
-### 4. Duplicate Reference Number: GP-2026-00001
-Two different gate passes share reference `GP-2026-00001`. The `nextval_gate_pass_ref` sequence or its usage has a bug — likely the sequence was reset or two tenants share the same sequence without tenant scoping.
-
-**Fix:** Add a unique constraint on `(tenant_id, reference_number)` and investigate the sequence function.
-
-### 5. 111 Orphaned Gate Entry Logs (0 linked to passes)
-All 111 `gate_entry_logs` rows have `material_gate_pass_id = NULL`. None are linked to any gate pass. These are from visitor/worker/delivery entries unrelated to the material gate pass workflow, but they share the same table — creating confusion and potential data integrity issues.
-
-**Fix:** Either separate visitor/worker entry logs into a dedicated table, or ensure material gate pass entries always set the FK. 34 of these have no exit time recorded for 24+ hours (stale entries).
+| # | Issue | Severity | Root Cause |
+|---|-------|----------|------------|
+| 1 | **Audit logging completely broken** — 0 records ever written | 🔴 Critical | 3 CHECK constraints reject the values the code sends |
+| 2 | **WhatsApp notifications for internal passes never verified** | 🟠 High | No delivery logs in `auto_notification_logs` for gate passes |
+| 3 | **Dept rep notification silently skipped** | 🟠 High | Only fires when `project_id` is set — all 11 passes have NULL `project_id` |
+| 4 | **Fallback audit insert also fails** | 🔴 Critical | Same CHECK constraints apply to direct inserts from client code |
 
 ---
 
-## ORANGE — High Issues (2)
+## Detail: Audit Logging Failure (CRITICAL)
 
-### 6. 5 Expired Passes Still in Pending Status
-Five gate passes have `end_date` in the past but remain in pending statuses:
-- GP-2026-00001: expired 2026-01-11, still `pending_club_mgmt_ack`
-- GP-2026-00003: expired 2026-02-02, still `pending_dept_approval`
-- PUB-20260210-3fb1c78f: expired 2026-02-12, still `pending_security_approval`
-- PUB-20260210-62c1e933: expired 2026-02-11, still `pending_security_approval`
-- PUB-20260216-596fdd68: expired 2026-02-19, still `pending_security_approval`
+The `contractor_module_audit_logs` table has **3 CHECK constraints** that reject every gate pass audit entry:
 
-**Fix:** Add a cron job or scheduled function to auto-expire passes past their end date. Add visual "expired" badge in the UI for passes past their date range.
+### Constraint 1: `entity_type`
+- **Allowed:** `company`, `representative`, `project`, `safety_officer`, `worker`, `assignment`, `induction`, `qr_code`, `gate_pass`
+- **Code sends:** `material_gate_pass` ← **REJECTED**
+- **Fix:** Change code to send `gate_pass` (matches constraint)
 
-### 7. No Branch-Level Filtering in Contractor Rep RLS
-The contractor rep RLS policy (`Contractor reps can manage own gate passes`) checks `company_id` match via `contractor_representatives`, but since all `company_id` values are NULL, this policy effectively grants contractor reps **zero access** to any passes. This is a silent failure — no error shown, just empty results.
+### Constraint 2: `action`
+- **Allowed:** `created`, `updated`, `deleted`, `approved`, `rejected`, `suspended`, `activated`, `revoked`, `assigned`, `removed`, `sent`, `viewed`, `acknowledged`, `verified`, `expired`
+- **Code sends:** `gate_pass_created`, `gate_pass_approved`, `gate_pass_rejected` ← **ALL REJECTED**
+- **Fix:** Change code to send `created`, `approved`, `rejected` (matches constraint)
 
-**Fix:** Ensure `company_id` is always set on creation. The RLS policy itself is correctly designed but has no data to work with.
+### Constraint 3: `actor_type`
+- **Allowed:** `admin`, `contractor_rep`, `supervisor`, `guard`, `system`
+- **Code sends:** `user` ← **REJECTED**
+- **Fix:** Change edge function to resolve actual role, or add `user` to constraint
 
----
-
-## GREEN — Working Correctly
-
-| Check | Result |
-|-------|--------|
-| Approved passes have QR tokens | 3/3 approved passes have `qr_code_token` |
-| Approved passes have security approver | 3/3 have `security_approved_by` set |
-| Approved passes have club mgmt ack | 3/3 have `club_mgmt_ack_by` set |
-| Rejected passes have rejector + reason | 3/3 rejected passes have both fields |
-| Public passes have access tokens | 6/6 public passes have `public_access_token` |
-| No date inversion (end < start) | 0 violations |
-| Gate pass items FK integrity | 6/6 items correctly linked |
-| RLS policies comprehensive | 9 policies covering all roles |
-| Indexes optimized | 14 indexes covering status, tenant, company, date, QR, branch |
-| Soft delete pattern | All queries filter `deleted_at IS NULL` |
-| Multi-tenant isolation | All RLS policies use `get_auth_tenant_id()` |
+**Verified via live edge function test** — confirmed 500 error with constraint violation.
 
 ---
 
-## Recommended Fix Plan (Priority Order)
+## Detail: Notification Integration Status
 
-| Priority | Fix | Effort |
-|----------|-----|--------|
-| 1 | Debug + fix audit logging (edge function silent failures) | Medium |
-| 2 | Enforce `company_id` on creation for external requests | Low |
-| 3 | Set `submitted_at` on creation/submission | Low |
-| 4 | Add unique constraint on `(tenant_id, reference_number)` | Low |
-| 5 | Add auto-expire cron for past-date pending passes | Medium |
-| 6 | Separate visitor/worker entry logs from material gate pass logs OR enforce FK | Medium |
-| 7 | Backfill existing data (company_id, submitted_at) | Low |
+| Notification Path | Status | Issue |
+|---|---|---|
+| Public gate pass WhatsApp (via `notify-public-gate-pass`) | ⚠️ Code exists, 0 delivery logs | No logs in `auto_notification_logs` — either never triggered or logging broken |
+| Internal approval WhatsApp (via `send-gate-whatsapp`) | ⚠️ Code exists, 0 delivery logs | Same — no evidence of any WhatsApp ever sent for gate passes |
+| Dept rep notification (via `notify-dept-rep-gate-pass`) | ❌ Never fires | Gated by `if (result?.project_id && tenantId)` — all passes have NULL project_id |
+| In-app notification (hsse_notifications insert) | ✅ Code exists | Fires on approval for internal passes; no verification data available |
 
 ---
 
-## Technical Details
+## Fix Plan
 
-### RLS Policy Coverage
-- Admin: full CRUD via `is_admin()`
-- Contractor Admin: full CRUD via `has_contractor_admin_access()`
-- Contractor Rep: CRUD on own company passes via `contractor_representatives` join
-- Security roles: SELECT + UPDATE for entry/exit recording
-- Department Rep: SELECT + UPDATE for approval workflow
-- Contractor Consultant: SELECT + UPDATE for external pass approval
-- Public: SELECT own pass via `x-public-token` header
-- Insert: role-based with `requested_by = auth.uid()` enforcement
+### Step 1: Fix audit logging (3 code changes)
 
-### Index Coverage
-Indexes exist on: `tenant_id`, `status`, `company_id`, `project_id`, `requested_by`, `branch_id`, `qr_code_token` (unique), `public_access_token`, `pass_date+status`, `start_date+end_date+status`, `club_mgmt_ack_by`
+**File: `materialGatePassCreateService.ts`**
+- Change `entity_type: 'material_gate_pass'` → `'gate_pass'`
+- Change `action: 'gate_pass_created'` → `'created'`
+- Change fallback `actor_type: 'user'` → resolve from role or use `'system'`
+
+**File: `materialGatePassActionService.ts`**
+- Change `entity_type: 'material_gate_pass'` → `'gate_pass'`
+- Change `gate_pass_approved` → `'approved'`, `gate_pass_rejected` → `'rejected'`
+- Change fallback `actor_type: 'user'` → resolve or use `'admin'`
+
+**File: `contractor-audit-log/index.ts` (edge function)**
+- Change default `actorType = 'system'` (already correct)
+- Change authenticated `actorType = 'user'` → resolve actual role from profile, or default to `'admin'`
+
+### Step 2: Add `user` to actor_type constraint (migration)
+
+Add `'user'` to the `contractor_module_audit_logs_actor_type_check` constraint as a safe catch-all, since the edge function resolves from JWT and may not always know the specific role.
+
+### Step 3: Verify WhatsApp integration
+
+- Deploy and test `send-gate-whatsapp` with a real phone number
+- Verify `notify-public-gate-pass` delivery path
+- Check if WaSender API key is configured
+
+### Step 4: Backfill audit records
+
+Generate audit entries from existing timestamp data (created_at, security_approved_at, rejected_at, club_mgmt_ack_at) for the 11 existing passes.
+
+---
+
+## Technical Changes
+
+| File | Change |
+|------|--------|
+| `src/features/contractors/services/materialGatePassCreateService.ts` | Fix entity_type, action, actor_type values |
+| `src/features/contractors/services/materialGatePassActionService.ts` | Fix entity_type, action, actor_type values |
+| `supabase/functions/contractor-audit-log/index.ts` | Resolve actor_type from profile role |
+| Migration SQL | Add `'user'` to actor_type CHECK constraint |
+| Migration SQL | Backfill audit records from existing gate pass timestamps |
 
