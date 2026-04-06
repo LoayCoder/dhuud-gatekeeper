@@ -25,7 +25,7 @@ export const createGatePass = async (data: CreateGatePassData, tenantId: string,
     const prefix = tenantData?.short_name || 'GP';
 
     const year = new Date().getFullYear();
-    const { data: seqResult, error: seqError } = await supabase.rpc("nextval_gate_pass_ref" as never, {} as never);
+    const { data: seqResult, error: seqError } = await supabase.rpc("next_gate_pass_ref" as never, { p_tenant_id: tenantId, p_counter_type: 'internal' } as never);
     const sequence = seqError ? Date.now() % 100000 : Number(seqResult);
     const reference_number = `${prefix}-${year}-${String(sequence).padStart(5, "0")}`;
 
