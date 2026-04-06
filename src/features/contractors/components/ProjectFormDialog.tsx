@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { projectFormSchema, ProjectFormValues } from "./projectFormSchema";
@@ -16,6 +16,8 @@ import { useProjectManagers } from "@/features/contractors/hooks/use-project-man
 import { useTenantBranches, useTenantSites, useTenantDepartments } from "@/hooks/use-org-hierarchy";
 import { LocationBoundaryPicker } from "@/components/shared/LocationBoundaryPicker";
 import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Coordinate {
   lat: number;
@@ -38,12 +40,32 @@ type ExtendedProject = ContractorProject & {
   geofence_radius_meters?: number;
 };
 
+async function generateProjectCode(branchName: string, tenantId: string): Promise<string> {
+  const shortCode = branchName.trim().substring(0, 3).toUpperCase();
+  const year = new Date().getFullYear();
+  const prefix = `${shortCode}-${year}`;
+
+  const { count, error } = await supabase
+    .from("contractor_projects")
+    .select("id", { count: "exact", head: true })
+    .eq("tenant_id", tenantId)
+    .like("project_code", `${prefix}-%`);
+
+  if (error) {
+    console.error("[generateProjectCode] Error:", error);
+    return `${prefix}-001`;
+  }
+
+  const serial = ((count ?? 0) + 1).toString().padStart(3, "0");
+  return `${prefix}-${serial}`;
+}
+
 export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDialogProps) {
   const { t } = useTranslation();
+  const { profile } = useAuth();
   const createProject = useCreateContractorProject();
   const updateProject = useUpdateContractorProject();
   const { data: companies = [] } = useContractorCompanies({ status: "active" });
-  const { data: managers = [] } = useProjectManagers();
   const { data: branches = [] } = useTenantBranches();
   const { data: sites = [] } = useTenantSites();
   const { data: departments = [] } = useTenantDepartments();
@@ -56,6 +78,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectFormSchema),
     defaultValues: {
+      branch_id: extProject?.branch_id ?? "",
       company_id: extProject?.company_id ?? "",
       project_code: extProject?.project_code ?? "",
       project_name: extProject?.project_name ?? "",
@@ -65,7 +88,6 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
       location_description: extProject?.location_description ?? "",
       notes: extProject?.notes ?? "",
       project_manager_id: extProject?.project_manager_id ?? "",
-      branch_id: extProject?.branch_id ?? "",
       site_id: extProject?.site_id ?? "",
       department_id: extProject?.department_id ?? "",
       latitude: extProject?.latitude ?? null,
@@ -77,13 +99,20 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
 
   const watchedBranchId = form.watch("branch_id");
 
-  // Cascading filters: Sites filtered by selected branch
+  // Fetch project managers filtered by branch
+  const { data: managers = [] } = useProjectManagers(watchedBranchId || undefined);
+
+  // Cascading filters
   const filteredSites = useMemo(() => {
     if (!watchedBranchId) return [];
     return sites.filter(s => s.branch_id === watchedBranchId);
   }, [sites, watchedBranchId]);
 
-  // Cascading filters: Departments filtered by selected branch (including hybrid departments with branch_id = null)
+  const filteredCompanies = useMemo(() => {
+    if (!watchedBranchId) return [];
+    return companies.filter((c: any) => c.assigned_branch_id === watchedBranchId);
+  }, [companies, watchedBranchId]);
+
   const filteredDepartments = useMemo(() => {
     if (!watchedBranchId) return [];
     return departments.filter(d =>
@@ -103,6 +132,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
   useEffect(() => {
     if (extProject) {
       form.reset({
+        branch_id: extProject.branch_id || "",
         company_id: extProject.company_id,
         project_code: extProject.project_code,
         project_name: extProject.project_name,
@@ -112,7 +142,6 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
         location_description: extProject.location_description || "",
         notes: extProject.notes || "",
         project_manager_id: extProject.project_manager_id || "",
-        branch_id: extProject.branch_id || "",
         site_id: extProject.site_id || "",
         department_id: extProject.department_id || "",
         latitude: extProject.latitude ?? null,
@@ -122,20 +151,33 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
       });
     } else {
       form.reset({
-        company_id: "", project_code: "", project_name: "", project_name_ar: "",
+        branch_id: "", company_id: "", project_code: "", project_name: "", project_name_ar: "",
         start_date: "", end_date: "", location_description: "", notes: "", project_manager_id: "",
-        branch_id: "", site_id: "", department_id: "",
+        site_id: "", department_id: "",
         latitude: null, longitude: null, boundary_polygon: null, geofence_radius_meters: 100
       });
     }
     setActiveTab("details");
   }, [extProject, open, form]);
 
-  const handleBranchChange = (value: string) => {
+  const handleBranchChange = useCallback(async (value: string) => {
     form.setValue("branch_id", value);
     form.setValue("site_id", "");
+    form.setValue("company_id", "");
+    form.setValue("project_manager_id", "");
     form.setValue("department_id", "");
-  };
+
+    // Auto-generate project code
+    if (value && profile?.tenant_id) {
+      const branch = branches.find(b => b.id === value);
+      if (branch) {
+        const code = await generateProjectCode(branch.name, profile.tenant_id);
+        form.setValue("project_code", code);
+      }
+    } else {
+      form.setValue("project_code", "");
+    }
+  }, [form, branches, profile?.tenant_id]);
 
   const onSubmit = form.handleSubmit(async (data) => {
     const submitData = {
@@ -174,60 +216,27 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
             </TabsList>
 
             <TabsContent value="details" className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label>{t("contractors.projects.company", "Company")} *</Label>
-                <Controller
-                  name="company_id"
-                  control={form.control}
-                  render={({ field, fieldState }) => (
-                    <>
-                      <Select value={field.value} onValueChange={field.onChange} disabled={isEditing}>
-                        <SelectTrigger><SelectValue placeholder={t("contractors.projects.selectCompany", "Select company")} /></SelectTrigger>
-                        <SelectContent>
-                          {companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      {fieldState.error && <span className="text-destructive text-sm">{fieldState.error.message}</span>}
-                    </>
-                  )}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t("contractors.projects.projectManager", "Project Manager")} *</Label>
-                <Controller
-                  name="project_manager_id"
-                  control={form.control}
-                  render={({ field, fieldState }) => (
-                    <>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger><SelectValue placeholder={t("contractors.projects.selectProjectManager", "Select project manager")} /></SelectTrigger>
-                        <SelectContent>
-                          {managers.map((m) => <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      {fieldState.error && <span className="text-destructive text-sm">{fieldState.error.message}</span>}
-                    </>
-                  )}
-                />
-              </div>
-
-              {/* Branch, Site, Department Row */}
+              {/* 1. Branch (required, first) */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>{t("common.branch", "Branch")} *</Label>
                   <Controller
                     name="branch_id"
                     control={form.control}
-                    render={({ field }) => (
-                      <Select value={field.value} onValueChange={handleBranchChange}>
-                        <SelectTrigger><SelectValue placeholder={t("common.selectBranch", "Select branch")} /></SelectTrigger>
-                        <SelectContent>
-                          {branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
+                    render={({ field, fieldState }) => (
+                      <>
+                        <Select value={field.value} onValueChange={handleBranchChange} disabled={isEditing}>
+                          <SelectTrigger><SelectValue placeholder={t("common.selectBranch", "Select branch")} /></SelectTrigger>
+                          <SelectContent>
+                            {branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        {fieldState.error && <span className="text-destructive text-sm">{fieldState.error.message}</span>}
+                      </>
                     )}
                   />
                 </div>
+                {/* 2. Site (filtered by branch) */}
                 <div className="space-y-2">
                   <Label>{t("common.site", "Site")}</Label>
                   <Controller
@@ -248,6 +257,48 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                   />
                 </div>
               </div>
+
+              {/* 3. Company (filtered by branch) */}
+              <div className="space-y-2">
+                <Label>{t("contractors.projects.company", "Company")} *</Label>
+                <Controller
+                  name="company_id"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <>
+                      <Select value={field.value} onValueChange={field.onChange} disabled={!watchedBranchId || isEditing}>
+                        <SelectTrigger><SelectValue placeholder={t("contractors.projects.selectCompany", "Select company")} /></SelectTrigger>
+                        <SelectContent>
+                          {filteredCompanies.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      {fieldState.error && <span className="text-destructive text-sm">{fieldState.error.message}</span>}
+                    </>
+                  )}
+                />
+              </div>
+
+              {/* 4. Project Manager (filtered by branch) */}
+              <div className="space-y-2">
+                <Label>{t("contractors.projects.projectManager", "Project Manager")} *</Label>
+                <Controller
+                  name="project_manager_id"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <>
+                      <Select value={field.value} onValueChange={field.onChange} disabled={!watchedBranchId}>
+                        <SelectTrigger><SelectValue placeholder={t("contractors.projects.selectProjectManager", "Select project manager")} /></SelectTrigger>
+                        <SelectContent>
+                          {managers.map((m) => <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      {fieldState.error && <span className="text-destructive text-sm">{fieldState.error.message}</span>}
+                    </>
+                  )}
+                />
+              </div>
+
+              {/* 5. Department (filtered by branch) */}
               <div className="space-y-2">
                 <Label>{t("common.department", "Department")}</Label>
                 <Controller
@@ -267,10 +318,12 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                   )}
                 />
               </div>
+
+              {/* 6. Code (auto-generated, read-only) + Project Name */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>{t("contractors.projects.code", "Project Code")} *</Label>
-                  <Input {...form.register("project_code")} />
+                  <Input {...form.register("project_code")} readOnly className="bg-muted" />
                   {form.formState.errors.project_code && <span className="text-destructive text-sm">{form.formState.errors.project_code.message}</span>}
                 </div>
                 <div className="space-y-2">
@@ -279,6 +332,8 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                   {form.formState.errors.project_name && <span className="text-destructive text-sm">{form.formState.errors.project_name.message}</span>}
                 </div>
               </div>
+
+              {/* 7. Start / End dates */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>{t("contractors.projects.startDate", "Start Date")} *</Label>
@@ -291,6 +346,8 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                   {form.formState.errors.end_date && <span className="text-destructive text-sm">{form.formState.errors.end_date.message}</span>}
                 </div>
               </div>
+
+              {/* 8. Notes */}
               <div className="space-y-2">
                 <Label>{t("contractors.projects.notes", "Notes")}</Label>
                 <Textarea {...form.register("notes")} />
