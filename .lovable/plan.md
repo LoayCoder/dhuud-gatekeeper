@@ -1,36 +1,59 @@
 
 
-# E2E Gate Pass Lifecycle — Gap Analysis & Implementation Plan
+# Fix: Email Throttling + WhatsApp Status Check
 
-## Current State Summary
+## Problems
 
-The gate pass system is a **material movement** pass system (not a worker-based gate pass). Key observations:
+1. **Email rate limiting**: The `dispatch-incident-notification` edge function sends emails to all recipients in a tight loop with no delay. Resend's free tier allows max 5 emails/second. When an incident triggers notifications to 6+ stakeholders, the later emails fail with "Too many requests".
 
-- **`material_gate_passes`** table tracks material in/out passes, NOT worker-linked passes
-- Gate passes are linked to **projects** and **companies**, not individual workers
-- The workflow is: `pending_contractor_approval` → `pending_club_mgmt_ack` → `pending_security_approval` → `approved` → `used` → `completed`
-- Photo requirements are on **items** (material photos), not worker photos
-- ID Card generation is a **separate** worker workflow, not part of gate pass lifecycle
-- Induction is also a **separate** worker workflow
+2. **WhatsApp broken**: WaSender subscription is paused — this requires the user to resume their subscription at wasenderapi.com. No code fix can resolve this.
 
-## Completed Fixes
+## Implementation Plan
 
-### ✅ Performance Indexes Added
-- `idx_material_gate_passes_company_id` — speeds up contractor rep queries
-- `idx_material_gate_passes_status` — speeds up admin status filtering
-- `idx_material_gate_passes_requested_by` — speeds up "my passes" queries
-- `idx_material_gate_passes_tenant_id` — speeds up RLS checks
+### Step 1: Add Inter-Send Delay to Email Sender
+**File:** `supabase/functions/_shared/email-sender.ts`
 
-### ✅ Audit Trail Fixed
-- `materialGatePassCreateService.ts` — now passes `tenant_id` and uses correct `entity_type: 'material_gate_pass'`
-- `materialGatePassActionService.ts` — same fixes for approve/reject actions
-- Audit logs write to `contractor_module_audit_logs` table (verified)
+Add rate-limit retry logic to `sendEmail()`:
+- If Resend returns HTTP 429 or error contains "Too many requests", wait and retry
+- Add a configurable delay constant (e.g., 250ms between sends)
+- Max 2 retries with exponential backoff (250ms → 500ms → 1000ms)
 
-### ✅ Lifecycle Tracking
-- Added `submitted_at` column to `material_gate_passes`
-- Set on creation in `materialGatePassCreateService.ts`
+This mirrors the existing pattern in `wasender-whatsapp.ts` which already has retry logic for rate limits.
 
-### ✅ UI Improvements (Previous Round)
-- "No Active Projects" warning with link to projects page
-- Rejection reason prominently displayed in red banner
-- Gate pass action types added to audit hook
+### Step 2: Add Inter-Recipient Delay in Dispatch Loop
+**File:** `supabase/functions/dispatch-incident-notification/index.ts`
+
+Add a small delay (200ms) between each email send in the main dispatch loop (line ~652, the `for...of` loop over recipients/channels). This proactively avoids hitting Resend's rate limit instead of relying solely on retry.
+
+### Step 3: Redeploy Edge Functions
+Deploy both `dispatch-incident-notification` and any functions using the shared email sender.
+
+### Step 4: WhatsApp — User Action Required
+Inform the user that WaSender subscription needs to be resumed. This is an account-level issue, not a code issue.
+
+## Technical Details
+
+**Email throttle approach in `email-sender.ts`:**
+```typescript
+// Add retry on 429
+if (error?.statusCode === 429 && retryCount < MAX_RETRIES) {
+  await sleep(RETRY_DELAY_MS * (retryCount + 1));
+  return sendEmail(options, retryCount + 1);
+}
+```
+
+**Dispatch loop delay (between channel sends):**
+```typescript
+// After each email send, add small delay to stay under rate limit
+if (channel === 'email' && status === 'sent') {
+  await new Promise(r => setTimeout(r, 200));
+}
+```
+
+| Step | File | Change |
+|------|------|--------|
+| 1 | `_shared/email-sender.ts` | Add retry logic for 429 errors |
+| 2 | `dispatch-incident-notification/index.ts` | Add 200ms delay between email sends |
+| 3 | Deploy | Redeploy edge functions |
+| 4 | User action | Resume WaSender subscription |
+
