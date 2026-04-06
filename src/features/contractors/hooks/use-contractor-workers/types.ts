@@ -35,6 +35,9 @@ export interface ContractorWorker {
     edit_pending_approval?: boolean;
     edited_by?: string | null;
     edited_at?: string | null;
+    // Photo verification fields
+    photo_verified_by?: string | null;
+    photo_verified_at?: string | null;
 }
 
 export interface ContractorWorkerFilters {
