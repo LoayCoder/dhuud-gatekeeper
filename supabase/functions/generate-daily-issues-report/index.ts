@@ -285,7 +285,7 @@ Deno.serve(async (req) => {
         "Authorization": `Bearer ${resendApiKey}`,
       },
       body: JSON.stringify({
-        from: "DHUUD System <onboarding@resend.dev>",
+        from: "DHUUD System <noreply@dhuud.com>",
         to: [recipientEmail],
         subject: `DHUUD Daily Report — ${reportDate} | ${newIncCount} new incidents, ${totalFailed} failed notifications`,
         html,
