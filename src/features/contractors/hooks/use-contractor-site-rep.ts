@@ -8,6 +8,7 @@ export interface ContractorSiteRep {
   id: string;
   company_id: string;
   full_name: string;
+  full_name_ar: string | null;
   national_id: string | null;
   mobile_number: string;
   email: string | null;
@@ -43,7 +44,7 @@ export function useContractorSiteRep(companyId: string | null) {
 
       const { data, error } = await supabase
         .from("contractor_representatives")
-        .select("id, company_id, full_name, national_id, mobile_number, email, is_primary, user_id, photo_path, phone, nationality, created_at, updated_at")
+        .select("id, company_id, full_name, full_name_ar, national_id, mobile_number, email, is_primary, user_id, photo_path, phone, nationality, created_at, updated_at")
         .eq("company_id", companyId)
         .eq("is_primary", true)
         .is("deleted_at", null)
