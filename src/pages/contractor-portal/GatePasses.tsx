@@ -95,14 +95,11 @@ function ContractorPortalGatePassesContent() {
           </Button>
         </div>
 
-        {activeProjects.length === 0 && (
+{activeProjects.length === 0 && (
           <Alert variant="default" className="border-warning bg-warning/10">
             <AlertTriangle className="h-4 w-4 text-warning" />
-            <AlertDescription className="flex items-center justify-between">
+            <AlertDescription>
               <span>{t("contractorPortal.gatePasses.noActiveProjects", "No active projects. You need an active project to create a gate pass.")}</span>
-              <Button variant="link" className="p-0 h-auto text-primary" onClick={() => navigate("/contractor-portal/projects")}>
-                {t("contractorPortal.gatePasses.createProject", "Create a project →")}
-              </Button>
             </AlertDescription>
           </Alert>
         )}
