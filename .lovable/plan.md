@@ -1,72 +1,54 @@
 
 
-# Project Form: Branch-First Cascading Filters + Auto-Generated Code
+# Contractor Portal Gate Passes — E2E Audit & Fixes
 
-## Summary
-Restructure the "Add Project" form so Branch is selected first, then all downstream fields (Site, Company, Project Manager, Department) filter based on the selected branch. The Project Code field becomes auto-generated with the pattern `{BRANCH_CODE}-{YEAR}-{SERIAL}` and is read-only.
+## Issues Found
 
-## Changes
+### 1. **No Detail View** (Critical Gap)
+The gate passes table rows are not clickable. There is no `GatePassDetailDialog` integration — unlike admin pages (`PendingApprovals.tsx`, `GatePassApprovalQueue.tsx`) which all use it. Users cannot view pass details, approval timeline, items, or photos.
 
-### 1. `ProjectFormDialog.tsx` — Reorder fields & add cascading logic
+### 2. **No Error State** (Silent Failure)
+`useContractorGatePasses` returns `{ data }` but the page never destructures `isError` or `isLoading` from the gate passes query. If the query fails, the page shows "No gate passes" — misleading.
 
-**Field order** (matching the reference image):
-1. **Branch** * (first field, required)
-2. **Site** (filtered by branch)
-3. **Company** * (filtered by branch via `assigned_branch_id`)
-4. **Project Manager** * (filtered: profiles linked to the branch)
-5. **Department** (filtered by branch, including hybrid `branch_id=null`)
-6. **Code** * (auto-generated, read-only)
-7. **Project Name** *
-8. **Start Date** * / **End Date** *
-9. **Notes**
+### 3. **Missing Status: `expired`** (Data Gap)
+`getStatusBadge` handles 7 statuses but omits `expired` — a valid lifecycle status. Expired passes render as raw text with no icon or color.
 
-**Cascading reset logic** — when branch changes:
-- Reset `site_id`, `company_id`, `project_manager_id`, `department_id`
-- Regenerate `project_code`
+### 4. **No Status Filter** (Feature Gap)
+Only a text search exists. No dropdown to filter by status (pending, approved, rejected, expired). The admin-side `GatePassListTable` has full filtering — the portal does not.
 
-**Company filtering**: Filter the `companies` array by `assigned_branch_id === watchedBranchId`.
+### 5. **No Project Column** (Data Gap)
+The query fetches `project:contractor_projects(project_name)` but the table doesn't display it. Users can't tell which project a pass belongs to.
 
-**Project Manager filtering**: Filter `managers` by branch. We'll need to update `useProjectManagers` to accept an optional `branchId` param and join `user_branch_assignments` to filter by branch.
+### 6. **No Material Description Column**
+The most important field — what materials are being moved — is not shown in the table.
 
-**Auto-generated code logic**:
-- Find selected branch name from branches array
-- Build: `{BRANCH_SHORT}-{YYYY}-{NNN}` where `NNN` is a zero-padded serial
-- Query existing projects with same prefix to determine next serial number
-- Set `project_code` via `form.setValue()` whenever branch changes
-- Make the Code input `readOnly`
+### 7. **Missing `isLoading` for Gate Passes Query**
+The page shows a loader for `useContractorPortalData` loading, but once that resolves, the gate passes query fires separately. There's a flash of "No gate passes" before data arrives.
 
-### 2. `use-project-managers.ts` — Add branch filtering
+### 8. **No Photo Gate Enforcement on Form** (Per Test Case 18)
+`GatePassFormDialog` does not check worker `photo_verified_at`. However, gate passes are material passes (not worker passes) — they track materials/vehicles, not worker entry. **Photo gate enforcement is not applicable here** — it applies to worker onboarding, not material gate passes. This test case is N/A.
 
-Add optional `branchId` parameter. When provided, join `user_branch_assignments` to only return managers assigned to that branch:
+## Plan
 
-```sql
-profiles.id, profiles.full_name, profiles.email
-FROM profiles
-INNER JOIN user_branch_assignments ON profiles.id = user_branch_assignments.user_id
-WHERE user_branch_assignments.branch_id = branchId
-  AND user_branch_assignments.deleted_at IS NULL
-  AND profiles.tenant_id = tenantId
-  AND profiles.is_active = true
-```
+### File: `src/pages/contractor-portal/GatePasses.tsx`
 
-### 3. `projectFormSchema.ts` — Make branch_id required
+| Change | Detail |
+|--------|--------|
+| Add detail dialog | Import `GatePassDetailDialog`, add `selectedPass` state, make rows clickable |
+| Add error state | Destructure `isError`/`isLoading` from gate passes query, show error card |
+| Add loading state for passes | Show skeleton while gate passes query is loading |
+| Add status filter | Add a Select dropdown to filter by status |
+| Add `expired` status badge | Add case for `expired` with gray styling |
+| Add Project & Material columns | Show project name and material description in table |
 
-Change `branch_id` from optional to required: `z.string().min(1, 'Branch is required')`.
+### File: `src/features/contractors/hooks/use-contractor-portal.ts`
 
-### 4. Auto-code generation helper
+| Change | Detail |
+|--------|--------|
+| Expand gate passes select | Add `material_description`, `is_internal_request`, `requested_by`, `rejection_reason` to enable detail dialog |
 
-Create a small async function `generateProjectCode(branchName: string, tenantId: string)`:
-- Builds prefix: first 3 chars of branch name uppercased + `-` + current year
-- Queries `contractor_projects` for `project_code LIKE '{prefix}%'` count
-- Returns `{prefix}-{(count+1).toString().padStart(3, '0')}`
-
-## Files
-
-| File | Change |
-|------|--------|
-| `projectFormSchema.ts` | Make `branch_id` required |
-| `ProjectFormDialog.tsx` | Reorder fields, add company/manager branch filtering, auto-generate code |
-| `use-project-managers.ts` | Add optional `branchId` filter with `user_branch_assignments` join |
-
-No database changes needed — all data relationships already exist.
+### Summary
+- 2 files modified
+- No new files, no DB changes
+- Fixes: 1 silent failure, 1 missing detail view, 1 missing status, 3 missing columns, 1 missing filter
 
