@@ -47,9 +47,14 @@ export function PermitBasicsStep({ data, onChange }: PermitBasicsStepProps) {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar" || i18n.language === "ur";
   
-  const { data: permitTypes, isLoading: typesLoading } = usePTWTypes();
-  const { data: projects, isLoading: projectsLoading } = usePTWProjects();
+  const { data: permitTypes, isLoading: typesLoading, error: typesError } = usePTWTypes();
+  const { data: projects, isLoading: projectsLoading, error: projectsError } = usePTWProjects();
   const { data: sites, isLoading: sitesLoading } = useSites();
+
+  useEffect(() => {
+    if (typesError) console.error('[PTW] Failed to load permit types:', typesError);
+    if (projectsError) console.error('[PTW] Failed to load projects:', projectsError);
+  }, [typesError, projectsError]);
   
   // Mobilization status check for selected project
   const { data: mobilizationStatus, isLoading: mobilizationLoading } = useMobilizationCheck(data.project_id);
@@ -152,6 +157,16 @@ export function PermitBasicsStep({ data, onChange }: PermitBasicsStepProps) {
               })}
             </SelectContent>
           </Select>
+        )}
+        {permitTypes?.length === 0 && !typesLoading && (
+          <p className="text-sm text-muted-foreground">
+            {t("ptw.form.noPermitTypes", "No permit types configured. Please contact your administrator.")}
+          </p>
+        )}
+        {typesError && (
+          <p className="text-sm text-destructive">
+            {t("ptw.form.permitTypesError", "Failed to load permit types. Please try again.")}
+          </p>
         )}
         {/* Type Indicators */}
         {selectedType && (
