@@ -124,6 +124,37 @@ const SEVERITY_EMOJI: Record<string, string> = {
 // Maximum photos to attach per notification
 const MAX_PHOTOS_PER_NOTIFICATION = 5;
 
+// Throttling configuration to prevent Resend rate-limit (5 req/sec) failures
+const THROTTLE_CONFIG = {
+  emailDelayMs: 250,      // Delay between email sends (250ms = max ~4/sec, under 5/sec limit)
+  whatsappDelayMs: 150,    // Delay between WhatsApp sends
+  pushDelayMs: 50,         // Delay between push sends (lightweight)
+  batchSize: 4,            // Process this many emails before a longer pause
+  batchPauseMs: 1200,      // Pause after each batch (lets rate-limit window reset)
+};
+
+let emailSendCount = 0; // Track emails sent in current dispatch run
+
+/**
+ * Throttle helper: delay + batch pause for emails
+ */
+async function throttleSend(channel: string): Promise<void> {
+  if (channel === 'email') {
+    emailSendCount++;
+    // After every batch, take a longer pause to let rate-limit window reset
+    if (emailSendCount > 0 && emailSendCount % THROTTLE_CONFIG.batchSize === 0) {
+      console.log(`[Throttle] Email batch pause after ${emailSendCount} sends (${THROTTLE_CONFIG.batchPauseMs}ms)`);
+      await new Promise(r => setTimeout(r, THROTTLE_CONFIG.batchPauseMs));
+    } else {
+      await new Promise(r => setTimeout(r, THROTTLE_CONFIG.emailDelayMs));
+    }
+  } else if (channel === 'whatsapp') {
+    await new Promise(r => setTimeout(r, THROTTLE_CONFIG.whatsappDelayMs));
+  } else if (channel === 'push') {
+    await new Promise(r => setTimeout(r, THROTTLE_CONFIG.pushDelayMs));
+  }
+}
+
 /**
  * Find default template from database by slug pattern
  * Priority: tenant-specific template → null (use fallback)
@@ -646,8 +677,9 @@ Deno.serve(async (req) => {
     const notificationType = getNotificationType(event_type);
     console.log(`[Dispatch] Notification type: ${notificationType}`);
 
-    // 9. Send notifications (per-recipient language)
+    // 9. Send notifications (per-recipient language) with throttling
     const results: NotificationResult[] = [];
+    emailSendCount = 0; // Reset email counter for this dispatch run
 
     for (const recipient of processedRecipients) {
       // Determine recipient's language (default to English if not set)
@@ -722,6 +754,9 @@ Deno.serve(async (req) => {
               status = result.success ? 'sent' : 'failed';
               errorMsg = result.error;
               providerMessageId = result.messageId;
+              
+              // Throttle between WhatsApp sends
+              await throttleSend('whatsapp');
             }
           } else if (channel === 'email') {
             if (!recipient.email) {
@@ -806,10 +841,8 @@ Deno.serve(async (req) => {
               errorMsg = result.error;
               providerMessageId = result.messageId;
               
-              // Proactive throttle: 200ms delay between email sends to stay under Resend rate limit (5/sec)
-              if (status === 'sent') {
-                await new Promise(r => setTimeout(r, 200));
-              }
+              // Throttle between email sends to prevent Resend rate-limit (5/sec)
+              await throttleSend('email');
             }
           } else if (channel === 'push') {
             // STEP 1: Check matrix-assigned push template (NEW!)
@@ -865,6 +898,9 @@ Deno.serve(async (req) => {
               status = 'failed';
               errorMsg = pushError instanceof Error ? pushError.message : 'Push failed';
             }
+            
+            // Throttle between push sends
+            await throttleSend('push');
           }
 
           // Build message_content for retry capability (store on failure so retries can re-send)
