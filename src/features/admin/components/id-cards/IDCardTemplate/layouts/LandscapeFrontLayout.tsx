@@ -19,8 +19,8 @@ export function LandscapeFrontLayout({
   isRTL,
   getFieldValue,
 }: LayoutProps) {
-  const qrSize = Math.round(height * 0.55);
-  const photoSize = Math.round(height * 0.45);
+  const qrSize = Math.round(height * 0.45);
+  const photoSize = Math.round(height * 0.35);
 
   return (
     <div
@@ -136,11 +136,14 @@ export function LandscapeFrontLayout({
                   justifyContent: 'center',
                   backgroundColor: settings.front_accent_color,
                   color: '#FFFFFF',
-                  fontSize: 24 * scale,
+                  fontSize: 18 * scale,
                   fontWeight: 700,
                 }}
               >
-                {personData.fullName.charAt(0).toUpperCase()}
+                <svg width={28 * scale} height={28 * scale} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
               </div>
             )}
           </div>
@@ -157,12 +160,15 @@ export function LandscapeFrontLayout({
           }}
         >
           {/* Name - Bilingual (always show both) */}
-          <div
+           <div
             style={{
               fontSize: 10 * scale,
               fontWeight: 700,
               color: settings.front_text_color,
               lineHeight: 1.2,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
             }}
           >
             {personData.fullName}
@@ -176,6 +182,9 @@ export function LandscapeFrontLayout({
                 opacity: 0.85,
                 direction: 'rtl',
                 marginTop: 1 * scale,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
               }}
             >
               {personData.fullNameAr}
