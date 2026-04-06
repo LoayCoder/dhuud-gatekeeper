@@ -155,6 +155,7 @@ export function useRiskAssessmentForm(projectId?: string, contractorId?: string,
         .from("risk_assessments")
         .insert({
           tenant_id: profile.tenant_id,
+          status,
           assessment_number: assessmentNumber,
           contractor_id: finalContractorId,
           project_id: finalProjectId,
