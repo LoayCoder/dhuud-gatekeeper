@@ -52,6 +52,7 @@ export interface HSSEActionStats {
     status: string;
     assigned_to: string | null;
     assignee_name?: string;
+    incident_id: string;
   }>;
 }
 
@@ -131,7 +132,7 @@ export function useContractorPortalIncidents(companyId: string | undefined) {
       for (const item of items) {
         const sev = item.severity_v2 || 'unknown';
         bySeverity[sev] = (bySeverity[sev] || 0) + 1;
-        if (['level_3', 'level_4', 'level_5', 'L3', 'L4', 'L5'].includes(sev)) highSeverityCount++;
+        if (['level_3', 'level_4', 'level_5'].includes(sev)) highSeverityCount++;
       }
 
       return {
@@ -169,7 +170,7 @@ export function useContractorPortalActions(companyId: string | undefined) {
       // Step 2: Get corrective actions for those incidents
       const { data: actions, error: actErr } = await supabase
         .from("corrective_actions")
-        .select("id, title, due_date, status, assigned_to, assignee:profiles!corrective_actions_assigned_to_fkey(full_name)")
+        .select("id, title, due_date, status, assigned_to, incident_id, assignee:profiles!corrective_actions_assigned_to_fkey(full_name)")
         .in("incident_id", incidentIds)
         .is("deleted_at", null)
         .order("due_date", { ascending: true })
@@ -202,6 +203,7 @@ export function useContractorPortalActions(companyId: string | undefined) {
           status: a.status,
           assigned_to: a.assigned_to,
           assignee_name: (a.assignee as any)?.full_name || undefined,
+          incident_id: a.incident_id,
         })),
       };
     },
@@ -222,7 +224,7 @@ export function useContractorPortalViolations(companyId: string | undefined) {
         .from("contractor_violation_summary")
         .select(`
           id, incident_id, violation_type_id, final_status, created_at,
-          violation_type:violation_types(name, name_ar)
+          violation_type:violation_types(name, name_ar, first_fine_amount, second_fine_amount, third_fine_amount)
         `)
         .eq("contractor_company_id", companyId)
         .eq("tenant_id", tenantId)
@@ -231,6 +233,20 @@ export function useContractorPortalViolations(companyId: string | undefined) {
 
       if (error) throw error;
       const items = data || [];
+
+      // Compute occurrence-based fine: group by violation_type_id, sort by created_at
+      const occurrenceMap = new Map<string, number>();
+      // Sort ascending by date for occurrence counting
+      const sortedForOccurrence = [...items].sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
+      for (const v of sortedForOccurrence) {
+        const typeId = v.violation_type_id || 'unknown';
+        const count = (occurrenceMap.get(typeId) || 0) + 1;
+        occurrenceMap.set(typeId, count);
+        // Store occurrence on the item
+        (v as any)._occurrence = count;
+      }
 
       const byFinalStatus: Record<string, number> = {};
       let active = 0;
@@ -244,15 +260,26 @@ export function useContractorPortalViolations(companyId: string | undefined) {
         total: items.length,
         active,
         byFinalStatus,
-        recent: items.slice(0, 5).map(v => ({
-          id: v.id,
-          incident_id: v.incident_id,
-          violation_type_id: v.violation_type_id,
-          violation_type_name: (v.violation_type as any)?.name || undefined,
-          final_status: v.final_status,
-          total_fine_amount: null,
-          created_at: v.created_at,
-        })),
+        recent: items.slice(0, 5).map(v => {
+          const vt = v.violation_type as any;
+          const occurrence = (v as any)._occurrence || 1;
+          let fineAmount: number | null = null;
+          if (vt) {
+            if (occurrence === 1) fineAmount = vt.first_fine_amount;
+            else if (occurrence === 2) fineAmount = vt.second_fine_amount;
+            else fineAmount = vt.third_fine_amount;
+          }
+
+          return {
+            id: v.id,
+            incident_id: v.incident_id,
+            violation_type_id: v.violation_type_id,
+            violation_type_name: vt?.name || undefined,
+            final_status: v.final_status,
+            total_fine_amount: fineAmount,
+            created_at: v.created_at,
+          };
+        }),
       };
     },
     enabled: !!companyId && !!tenantId,
