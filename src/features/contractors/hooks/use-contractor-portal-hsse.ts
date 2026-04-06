@@ -22,7 +22,7 @@ export interface HSSEObservationStats {
   recent: Array<{
     id: string;
     title: string;
-    incident_date: string;
+    occurred_at: string | null;
     status: string;
     severity_v2: string | null;
   }>;
@@ -35,7 +35,7 @@ export interface HSSEIncidentStats {
   recent: Array<{
     id: string;
     title: string;
-    incident_date: string;
+    occurred_at: string | null;
     status: string;
     severity_v2: string | null;
   }>;
@@ -221,7 +221,7 @@ export function useContractorPortalViolations(companyId: string | undefined) {
       const { data, error } = await supabase
         .from("contractor_violation_summary")
         .select(`
-          id, incident_id, violation_type_id, final_status, total_fine_amount, created_at,
+          id, incident_id, violation_type_id, final_status, created_at,
           violation_type:violation_types(name, name_ar)
         `)
         .eq("contractor_company_id", companyId)
@@ -250,7 +250,7 @@ export function useContractorPortalViolations(companyId: string | undefined) {
           violation_type_id: v.violation_type_id,
           violation_type_name: (v.violation_type as any)?.name || undefined,
           final_status: v.final_status,
-          total_fine_amount: v.total_fine_amount,
+          total_fine_amount: null,
           created_at: v.created_at,
         })),
       };
