@@ -897,6 +897,9 @@ Deno.serve(async (req) => {
               status = 'failed';
               errorMsg = pushError instanceof Error ? pushError.message : 'Push failed';
             }
+            
+            // Throttle between push sends
+            await throttleSend('push');
           }
 
           // Build message_content for retry capability (store on failure so retries can re-send)
