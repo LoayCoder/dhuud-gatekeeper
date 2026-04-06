@@ -240,10 +240,6 @@ Deno.serve(async (req) => {
     }
 
     // ========== STEP 3: GENERATE QR IMAGE AND SEND VIA WHATSAPP ==========
-    // Wait 30 seconds to avoid WaSender rate limit
-    console.log('[Onboard] Step 3: Waiting 30 seconds for WhatsApp rate limit...');
-    await new Promise(resolve => setTimeout(resolve, 30000));
-    
     console.log('[Onboard] Step 3: Generating QR image and sending to worker...');
 
     // Generate QR code image and upload to storage
