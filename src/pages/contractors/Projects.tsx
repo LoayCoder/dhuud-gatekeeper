@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
-import { FolderKanban, Plus, Search, Filter, Database, Loader2 } from "lucide-react";
+import { FolderKanban, Plus, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,13 +16,9 @@ import { ProjectListTable } from '@/features/contractors';
 import { ProjectFormDialog } from '@/features/contractors';
 import { useContractorProjects, ContractorProject } from "@/features/contractors/hooks/use-contractor-projects";
 import { useContractorCompanies } from "@/features/contractors/hooks/use-contractor-companies";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
 
 export default function Projects() {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const initialStatus = searchParams.get("status") || "all";
   
@@ -39,22 +35,6 @@ export default function Projects() {
   const [companyFilter, setCompanyFilter] = useState<string>("all");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<ContractorProject | null>(null);
-  const [isSeeding, setIsSeeding] = useState(false);
-
-  const handleSeedData = async () => {
-    setIsSeeding(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("seed-comprehensive-test-data");
-      if (error) throw error;
-      toast.success(t("common.seedSuccess", `Seeded ${data.results?.contractors?.projects || 0} test projects`));
-      queryClient.invalidateQueries({ queryKey: ["contractor-projects"] });
-    } catch (error) {
-      console.error("Seed error:", error);
-      toast.error(t("common.seedError", "Failed to seed test data"));
-    } finally {
-      setIsSeeding(false);
-    }
-  };
 
   const { data: projects = [], isLoading } = useContractorProjects({
     search: search || undefined,
@@ -77,10 +57,6 @@ export default function Projects() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleSeedData} disabled={isSeeding}>
-            {isSeeding ? <Loader2 className="h-4 w-4 me-2 animate-spin" /> : <Database className="h-4 w-4 me-2" />}
-            {t("common.seedTestData", "Seed Test Data")}
-          </Button>
           <Button onClick={() => setIsCreateOpen(true)}>
             <Plus className="h-4 w-4 me-2" />
             {t("contractors.projects.addProject", "Add Project")}
