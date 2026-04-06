@@ -23,6 +23,16 @@ export const approveGatePass = async (passId: string, action: "approve" | "rejec
     if (error) throw error;
     const newStatus = data as string;
 
+    // Audit log: gate pass approved/rejected
+    supabase.functions.invoke('contractor-audit-log', {
+        body: {
+            entity_type: 'gate_pass',
+            entity_id: passId,
+            action: action === 'approve' ? 'gate_pass_approved' : 'gate_pass_rejected',
+            new_value: { status: newStatus, notes },
+        },
+    }).catch(err => console.error('[GatePass] Audit log failed:', err));
+
     // Trigger in-app notification for internal gate pass approvals
     if (!gatePass?.is_public_request && newStatus === "approved" && gatePass?.requested_by) {
         try {
