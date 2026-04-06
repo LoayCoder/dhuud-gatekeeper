@@ -67,7 +67,7 @@ export const approveGatePass = async (passId: string, action: "approve" | "rejec
 
                 await supabase.functions.invoke("send-gate-whatsapp", {
                     body: {
-                        phone: requesterProfile.mobile_number,
+                        phone: requesterProfile.phone_number,
                         message,
                         tenant_id: gatePass.tenant_id,
                     },
