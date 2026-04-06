@@ -753,6 +753,9 @@ Deno.serve(async (req) => {
               status = result.success ? 'sent' : 'failed';
               errorMsg = result.error;
               providerMessageId = result.messageId;
+              
+              // Throttle between WhatsApp sends
+              await throttleSend('whatsapp');
             }
           } else if (channel === 'email') {
             if (!recipient.email) {
