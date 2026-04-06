@@ -93,14 +93,14 @@ export default function PTWDashboard() {
       />
 
       {/* Charts Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         <PermitStatusChart data={statusData} isLoading={isLoading} />
         <PermitTypeChart data={typeData} isLoading={isLoading} />
         <PermitTrendChart data={trendData} isLoading={isLoading} />
       </div>
 
       {/* Quick Actions & Recent Permits */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
         {/* Quick Actions */}
         <Card>
           <CardHeader>
@@ -164,8 +164,8 @@ export default function PTWDashboard() {
                         <IconComponent className="h-4 w-4" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{permit.reference_id}</p>
-                        <p className="text-xs text-muted-foreground truncate">
+                        <p className="text-sm font-medium break-words whitespace-normal">{permit.reference_id}</p>
+                        <p className="text-xs text-muted-foreground break-words whitespace-normal">
                           {permit.permit_type?.name} • {permit.project?.name}
                         </p>
                       </div>

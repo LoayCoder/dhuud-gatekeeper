@@ -231,18 +231,19 @@ export default function CreatePermit() {
       </Card>
 
       {/* Navigation */}
-      <div className="flex justify-between">
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
         <Button
           variant="outline"
           onClick={handleBack}
           disabled={currentStep === 1}
+          className="w-full sm:w-auto min-h-[48px]"
         >
           <ArrowLeft className="me-2 h-4 w-4 rtl:rotate-180" />
           {t("common.back", "Back")}
         </Button>
 
         {currentStep < STEPS.length ? (
-          <Button onClick={handleNext} disabled={!canProceed()}>
+          <Button onClick={handleNext} disabled={!canProceed()} className="w-full sm:w-auto min-h-[48px]">
             {t("common.next", "Next")}
             <ArrowRight className="ms-2 h-4 w-4 rtl:rotate-180" />
           </Button>
@@ -250,6 +251,7 @@ export default function CreatePermit() {
           <Button
             onClick={handleSubmit}
             disabled={createPermit.isPending}
+            className="w-full sm:w-auto min-h-[48px]"
           >
             {createPermit.isPending
               ? t("common.submitting", "Submitting...")
