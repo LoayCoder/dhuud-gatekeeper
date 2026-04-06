@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
-import { FolderKanban, Plus, Search, Filter, Database, Loader2 } from "lucide-react";
+import { FolderKanban, Plus, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,9 +16,6 @@ import { ProjectListTable } from '@/features/contractors';
 import { ProjectFormDialog } from '@/features/contractors';
 import { useContractorProjects, ContractorProject } from "@/features/contractors/hooks/use-contractor-projects";
 import { useContractorCompanies } from "@/features/contractors/hooks/use-contractor-companies";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
 
 export default function Projects() {
   const { t } = useTranslation();
