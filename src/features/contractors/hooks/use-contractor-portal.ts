@@ -127,9 +127,21 @@ export function useContractorPortalGatePasses(companyId: string | undefined) {
         .from("material_gate_passes")
         .select(`
           id, reference_number, pass_type, quantity,
-          vehicle_plate, driver_name, pass_date, status,
-          pm_approved_at, safety_approved_at, created_at,
-          project:contractor_projects(project_name)
+          material_description, vehicle_plate, driver_name,
+          driver_mobile, pass_date, start_date, end_date,
+          time_window_start, time_window_end, status,
+          requested_by, is_internal_request,
+          pm_approved_by, pm_approved_at, pm_notes,
+          safety_approved_by, safety_approved_at, safety_notes,
+          rejected_by, rejected_at, rejection_reason,
+          guard_verified_by, guard_verified_at,
+          entry_time, exit_time, created_at,
+          project_id, company_id, approval_from_id,
+          is_public_request,
+          project:contractor_projects(project_name, company:contractor_companies(company_name)),
+          company:contractor_companies(company_name),
+          approval_from:profiles!material_gate_passes_approval_from_id_fkey(full_name),
+          requester:profiles!material_gate_passes_requested_by_fkey(full_name)
         `)
         .eq("company_id", companyId)
         .eq("tenant_id", tenantId)
