@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ShieldAlert, AlertTriangle, Building, ShieldCheck, HardHat, Clock } from "lucide-react";
+import { ShieldAlert, AlertTriangle, Building, ShieldCheck, HardHat, Clock, Camera } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ContractorWorker } from "@/features/contractors/hooks/use-contractor-workers";
@@ -241,6 +241,18 @@ export function WorkerListTable({
                           {blacklistReasons[worker.national_id] && (
                             <p className="text-xs">{blacklistReasons[worker.national_id]}</p>
                           )}
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                    {/* Photo missing indicator for security-approved workers */}
+                    {!isBlacklisted && (worker.approval_status === 'approved' || (worker as any).security_approval_status === 'approved') && !worker.photo_path && (
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Camera className="h-4 w-4 text-amber-500" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="font-medium">{t("contractors.workers.photoMissing", "Photo Required")}</p>
+                          <p className="text-xs">{t("contractors.workers.photoMissingDesc", "Worker needs a photo before induction")}</p>
                         </TooltipContent>
                       </Tooltip>
                     )}
