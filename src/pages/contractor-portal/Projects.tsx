@@ -50,12 +50,18 @@ function ContractorPortalProjectsContent() {
   return (
     <ContractorPortalLayout>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <FolderKanban className="h-8 w-8 text-primary" />
-          <div>
-            <h1 className="text-2xl font-bold">{t("contractorPortal.projects.title", "Projects")}</h1>
-            <p className="text-muted-foreground">{t("contractorPortal.projects.description", "View your assigned projects")}</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <FolderKanban className="h-8 w-8 text-primary" />
+            <div>
+              <h1 className="text-2xl font-bold">{t("contractorPortal.projects.title", "Projects")}</h1>
+              <p className="text-muted-foreground">{t("contractorPortal.projects.description", "View your assigned projects")}</p>
+            </div>
           </div>
+          <Button onClick={() => setShowAddProject(true)}>
+            <Plus className="h-4 w-4 me-2" />
+            {t("contractors.projects.addProject", "Add Project")}
+          </Button>
         </div>
 
         {projects?.length === 0 ? (
