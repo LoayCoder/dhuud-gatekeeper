@@ -677,8 +677,9 @@ Deno.serve(async (req) => {
     const notificationType = getNotificationType(event_type);
     console.log(`[Dispatch] Notification type: ${notificationType}`);
 
-    // 9. Send notifications (per-recipient language)
+    // 9. Send notifications (per-recipient language) with throttling
     const results: NotificationResult[] = [];
+    emailSendCount = 0; // Reset email counter for this dispatch run
 
     for (const recipient of processedRecipients) {
       // Determine recipient's language (default to English if not set)
