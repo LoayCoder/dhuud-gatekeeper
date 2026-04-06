@@ -123,7 +123,9 @@ export function useIDCardGenerator() {
         
         if (frontImage && options.saveToStorage) {
           const frontPath = `${options.tenantId}/${options.cardType}/${options.entityId}_front.png`;
-          result.frontImageUrl = await uploadToStorage(frontImage, frontPath) || undefined;
+          const uploadedUrl = await uploadToStorage(frontImage, frontPath);
+          // Use uploaded URL if available, otherwise fall back to data URL for download/print
+          result.frontImageUrl = uploadedUrl || frontImage;
           result.frontImagePath = frontPath;
         } else if (frontImage) {
           result.frontImageUrl = frontImage;
