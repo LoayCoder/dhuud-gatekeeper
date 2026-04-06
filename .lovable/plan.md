@@ -1,72 +1,67 @@
 
 
-# Automatic Retry for Failed Notifications — Implementation Plan
+# Daily Issues Report + Notification Health Summary
 
-## Current State
+## What We're Building
 
-- **Email**: Already has rate-limit retry (429) with exponential backoff in `email-sender.ts` (max 2 retries, 250ms base)
-- **WhatsApp**: Already has rate-limit retry in `wasender-whatsapp.ts` (max 3 retries, 5.5s delay)
-- **Gap**: Both only retry **within the same request**. If the send still fails after retries (e.g., WaSender subscription paused, Resend 500 error, network timeout), the failure is logged to `auto_notification_logs` with `status='failed'` and **never retried again**
-- **`auto_notification_logs`** already has `attempt_count` (default 1) and `retry_at` columns — designed for retry but never used
+Extend the daily 8:00 AM report to `Loay.smartphoto@gmail.com` to include not just incidents/issues, but also a **Notification Delivery Health** section showing failed notifications, retry stats, and channel-level success rates.
 
-## Plan
+## Steps
 
-### Step 1: Create `retry-failed-notifications` Edge Function
+### Step 1: Create `generate-daily-issues-report` Edge Function
 
-New edge function that:
-1. Queries `auto_notification_logs` for failed notifications eligible for retry:
-   - `status = 'failed'`
-   - `attempt_count < 5` (max 5 total attempts)
-   - `retry_at IS NULL OR retry_at <= NOW()` (respects backoff schedule)
-   - `created_at > NOW() - INTERVAL '24 hours'` (don't retry ancient failures)
-2. For each failed notification, re-sends via the appropriate channel (email/WhatsApp/push)
-3. On success: updates `status = 'sent'`, `sent_at = NOW()`, increments `attempt_count`
-4. On failure: increments `attempt_count`, sets `retry_at` with exponential backoff:
-   - Attempt 2: retry after 2 minutes
-   - Attempt 3: retry after 10 minutes
-   - Attempt 4: retry after 30 minutes
-   - Attempt 5: retry after 2 hours (final attempt)
-5. After attempt 5: updates `status = 'permanently_failed'`
-6. Processes max 20 notifications per run to stay within Edge Function timeout
+A new Edge Function that queries and emails a report with two sections:
 
-### Step 2: Update Dispatch to Set `retry_at` on Failure
+**Section A — Incidents Summary (last 24h)**
+- Query `incidents` table for new incidents (created in last 24h)
+- Query open/unresolved incidents (any age)
+- Group by severity (L1-L5) and status
+- List each new incident: reference_id, title, severity, status, location, occurred_at
 
-In `dispatch-incident-notification/index.ts`, when logging a failed send to `auto_notification_logs`, set `retry_at = NOW() + INTERVAL '2 minutes'` so the retry function picks it up on the next cycle.
+**Section B — Notification Delivery Health (last 24h)**
+- Query `auto_notification_logs` for last 24h stats:
+  - Total sent vs failed by channel (email, push, WhatsApp)
+  - Failed notifications with error messages
+  - Retry attempts (attempt_count > 1)
+  - Permanently failed (attempt_count >= 5)
+- Query `email_send_log` (if exists) for email-specific stats:
+  - Sent, failed, DLQ, suppressed counts
 
-### Step 3: Schedule via pg_cron
+**Email format:** Professional HTML with DHUUD branding, dark blue header, tables for data.
 
-Add a pg_cron job to invoke `retry-failed-notifications` every 5 minutes.
+### Step 2: Schedule via pg_cron
 
-### Step 4: Store Retry Context
+Add a pg_cron job: `0 8 * * *` (daily at 8:00 AM) calling the edge function via `net.http_post`.
 
-The retry function needs the original message content to re-send. Update the dispatch function to populate `message_content` in `auto_notification_logs` for failed sends (currently always NULL). This stores the rendered message so retries don't need to re-fetch incident data and re-render templates.
+### Step 3: Deploy
+
+Deploy the new edge function.
 
 ## Technical Details
 
-**Backoff schedule** (exponential):
-```
-Attempt 1: immediate (original send)
-Attempt 2: +2 min
-Attempt 3: +10 min
-Attempt 4: +30 min
-Attempt 5: +2 hours (final)
-```
-
-**Edge function query:**
+**Key queries:**
 ```sql
-SELECT * FROM auto_notification_logs
-WHERE status = 'failed'
-  AND attempt_count < 5
-  AND (retry_at IS NULL OR retry_at <= NOW())
-  AND created_at > NOW() - INTERVAL '24 hours'
-ORDER BY created_at ASC
-LIMIT 20
+-- New incidents (24h)
+SELECT id, reference_id, title, severity_level, status, location, occurred_at
+FROM incidents WHERE created_at > NOW() - INTERVAL '24 hours' AND deleted_at IS NULL
+
+-- Notification health (24h)
+SELECT channel, status, count(*), 
+  count(*) FILTER (WHERE attempt_count > 1) as retried
+FROM auto_notification_logs 
+WHERE created_at > NOW() - INTERVAL '24 hours'
+GROUP BY channel, status
+
+-- Failed notification details
+SELECT channel, event_type, error_message, attempt_count, created_at
+FROM auto_notification_logs
+WHERE status = 'failed' AND created_at > NOW() - INTERVAL '24 hours'
+ORDER BY created_at DESC LIMIT 20
 ```
 
-| Step | Files | Change |
-|------|-------|--------|
-| 1 | `supabase/functions/retry-failed-notifications/index.ts` | New edge function |
-| 2 | `supabase/functions/dispatch-incident-notification/index.ts` | Set `retry_at` + `message_content` on failure |
-| 3 | DB migration | pg_cron job every 5 min |
-| 4 | Deploy | Deploy both edge functions |
+| Step | File | Change |
+|------|------|--------|
+| 1 | `supabase/functions/generate-daily-issues-report/index.ts` | New edge function |
+| 2 | DB migration | pg_cron job at 8:00 AM daily |
+| 3 | Deploy | Deploy edge function |
 
