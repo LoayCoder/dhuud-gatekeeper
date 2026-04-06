@@ -459,6 +459,28 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
                   {errors.end_date && <p className="text-sm text-destructive">{errors.end_date}</p>}
                 </div>
               </div>
+
+              {/* Project Manager */}
+              <div className="space-y-2">
+                <Label htmlFor="project_manager_id">
+                  {t("ptw.project.projectManager", "Project Manager")}
+                </Label>
+                <Select
+                  value={formData.project_manager_id}
+                  onValueChange={(value) => setFormData({ ...formData, project_manager_id: value })}
+                >
+                  <SelectTrigger id="project_manager_id">
+                    <SelectValue placeholder={t("ptw.project.selectPM", "Select project manager")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projectManagers?.map((pm) => (
+                      <SelectItem key={pm.id} value={pm.id}>
+                        {pm.full_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </TabsContent>
 
             <TabsContent value="location" className="space-y-4 mt-4">
