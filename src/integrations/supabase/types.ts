@@ -7768,6 +7768,32 @@ export type Database = {
           },
         ]
       }
+      gate_pass_counters: {
+        Row: {
+          counter_type: string
+          current_value: number
+          tenant_id: string
+        }
+        Insert: {
+          counter_type?: string
+          current_value?: number
+          tenant_id: string
+        }
+        Update: {
+          counter_type?: string
+          current_value?: number
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gate_pass_counters_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gate_pass_item_photos: {
         Row: {
           branch_id: string | null
@@ -26729,6 +26755,10 @@ export type Database = {
       mark_badges_notified: {
         Args: { p_badge_ids: string[] }
         Returns: undefined
+      }
+      next_gate_pass_ref: {
+        Args: { p_counter_type?: string; p_tenant_id: string }
+        Returns: number
       }
       nextval_gate_pass_ref: { Args: never; Returns: number }
       point_in_polygon: {
