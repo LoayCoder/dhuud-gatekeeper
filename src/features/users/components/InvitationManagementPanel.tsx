@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { getAppUrl } from '@/lib/app-url';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -113,7 +114,7 @@ export function InvitationManagementPanel() {
   };
 
   const copyLink = async (code: string) => {
-    const link = `${window.location.origin}/signup?code=${code}`;
+    const link = `${getAppUrl()}/signup?code=${code}`;
     await navigator.clipboard.writeText(link);
     toast({ title: t('invitations.linkCopied', 'Invitation link copied') });
   };
@@ -133,7 +134,7 @@ export function InvitationManagementPanel() {
           code: invitation.code,
           tenantName: tenant?.name || 'DHUUD Platform',
           expiresAt: invitation.expires_at,
-          inviteUrl: window.location.origin,
+          inviteUrl: getAppUrl(),
         },
       });
 
@@ -190,7 +191,7 @@ export function InvitationManagementPanel() {
           tenant_name: tenant?.name || 'DHUUD Platform',
           expires_at: invitation.expires_at,
           full_name: invitation.full_name || (invitation.metadata as Record<string, unknown>)?.full_name,
-          invite_url: window.location.origin,
+          invite_url: getAppUrl(),
         },
       });
 

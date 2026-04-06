@@ -17,6 +17,7 @@ const corsHeaders = {
 
 const SUPABASE_PROJECT_URL = 'https://xdlowvfzhvjzbtgvurzj.supabase.co';
 const LOVABLE_PREVIEW_URL = 'https://8feca61a-47e3-4736-9ecf-c70ee7c6acc3.lovableproject.com';
+const DHUUD_DOMAIN = 'https://www.dhuud.com';
 
 // Content Security Policy configuration
 const getCSPHeader = () => {
@@ -37,7 +38,7 @@ const getCSPHeader = () => {
     `font-src 'self' https://fonts.gstatic.com data:`,
     
     // Connect - API endpoints, Supabase, WebSockets
-    `connect-src 'self' ${SUPABASE_PROJECT_URL} wss://*.supabase.co https://*.lovable.app`,
+    `connect-src 'self' ${SUPABASE_PROJECT_URL} ${DHUUD_DOMAIN} wss://*.supabase.co https://*.lovable.app https://*.dhuud.com`,
     
     // Media - audio/video from self and Supabase
     `media-src 'self' ${SUPABASE_PROJECT_URL} blob:`,
