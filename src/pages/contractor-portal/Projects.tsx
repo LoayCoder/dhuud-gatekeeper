@@ -16,6 +16,7 @@ function ContractorPortalProjectsContent() {
   const { t } = useTranslation();
   const { projects, isLoading, isError } = useContractorPortalData();
   const [selectedProject, setSelectedProject] = useState<ContractorPortalProject | null>(null);
+  const [showAddProject, setShowAddProject] = useState(false);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
