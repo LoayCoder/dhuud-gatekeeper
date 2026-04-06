@@ -26,7 +26,7 @@ interface TenantDetailDialogProps {
 
 export function TenantDetailDialog({ open, onOpenChange, tenant }: TenantDetailDialogProps) {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState('invitations');
+  const [activeTab, setActiveTab] = useState('general');
 
   if (!tenant) return null;
 
@@ -39,13 +39,17 @@ export function TenantDetailDialog({ open, onOpenChange, tenant }: TenantDetailD
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 overflow-hidden flex flex-col">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="general">{t('tenantManagement.detail.general', 'General')}</TabsTrigger>
             <TabsTrigger value="invitations">{t('tenantManagement.detail.invitations')}</TabsTrigger>
             <TabsTrigger value="modules">{t('tenantManagement.detail.modules')}</TabsTrigger>
             <TabsTrigger value="trial">{t('tenantManagement.detail.trial')}</TabsTrigger>
             <TabsTrigger value="security">{t('tenantManagement.detail.security')}</TabsTrigger>
             <TabsTrigger value="publicFeatures">{t('tenantManagement.detail.publicFeatures')}</TabsTrigger>
           </TabsList>
+          <TabsContent value="general" className="flex-1 overflow-auto mt-4">
+            <TenantGeneralSettings tenant={tenant} />
+          </TabsContent>
           <TabsContent value="invitations" className="flex-1 overflow-auto mt-4">
             <InvitationManagement tenant={tenant} />
           </TabsContent>
