@@ -167,7 +167,7 @@ export default function ContractorHSSESections({
                   <div key={obs.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm truncate">{obs.title}</p>
-                      <p className="text-xs text-muted-foreground">{formatDate(obs.incident_date)}</p>
+                      <p className="text-xs text-muted-foreground">{formatDate(obs.occurred_at)}</p>
                     </div>
                     <div className="flex items-center gap-2 ms-2">
                       {obs.severity_v2 && (
@@ -203,7 +203,7 @@ export default function ContractorHSSESections({
                   <div key={inc.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm truncate">{inc.title}</p>
-                      <p className="text-xs text-muted-foreground">{formatDate(inc.incident_date)}</p>
+                      <p className="text-xs text-muted-foreground">{formatDate(inc.occurred_at)}</p>
                     </div>
                     <div className="flex items-center gap-2 ms-2">
                       {inc.severity_v2 && (
