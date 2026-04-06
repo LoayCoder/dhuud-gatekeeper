@@ -100,6 +100,7 @@ export async function createPTWPermit(data: {
     floor_zone_id?: string;
     emergency_contact_name?: string;
     emergency_contact_number?: string;
+    branch_id?: string;
 }, tenantId: string, userId: string) {
     const { data: validationResult, error: validationError } = await supabase.functions.invoke(
         "validate-permit-request",
@@ -125,6 +126,19 @@ export async function createPTWPermit(data: {
         throw new Error(errorMessages);
     }
 
+    // Resolve branch_id from site if not provided
+    let branchId = data.branch_id || null;
+    if (!branchId && data.site_id) {
+        const { data: siteData } = await supabase
+            .from('sites')
+            .select('branch_id')
+            .eq('id', data.site_id)
+            .single();
+        if (siteData?.branch_id) {
+            branchId = siteData.branch_id;
+        }
+    }
+
     const insertData = {
         project_id: data.project_id!,
         type_id: data.type_id!,
@@ -141,6 +155,8 @@ export async function createPTWPermit(data: {
         emergency_contact_number: data.emergency_contact_number,
         tenant_id: tenantId,
         created_by: userId,
+        branch_id: branchId,
+        requested_at: new Date().toISOString(),
     };
 
     const { data: result, error } = await supabase
@@ -151,19 +167,21 @@ export async function createPTWPermit(data: {
 
     if (error) throw error;
 
+    // Insert worker assignments into junction table
     if (data.worker_ids && data.worker_ids.length > 0) {
-        const { error: updateError } = await supabase
-            .from("ptw_permits")
-            .update({
-                work_scope: JSON.stringify({
-                    worker_ids: data.worker_ids,
-                    permit_holder_id: data.permit_holder_id,
-                }),
-            })
-            .eq("id", result.id);
+        const workerRecords = data.worker_ids.map(workerId => ({
+            tenant_id: tenantId,
+            permit_id: result.id,
+            worker_id: workerId,
+            is_permit_holder: workerId === data.permit_holder_id,
+        }));
 
-        if (updateError) {
-            console.error("Failed to store worker assignments:", updateError);
+        const { error: workerError } = await supabase
+            .from("ptw_permit_workers" as never)
+            .insert(workerRecords as never);
+
+        if (workerError) {
+            console.error("Failed to store worker assignments:", workerError);
         }
     }
 
