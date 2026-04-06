@@ -13,6 +13,7 @@ import { TenantModuleControl } from './TenantModuleControl';
 import { TenantTrialControl } from './TenantTrialControl';
 import { TenantSecurityControl } from './TenantSecurityControl';
 import { TenantPublicFeaturesControl } from './TenantPublicFeaturesControl';
+import { TenantGeneralSettings } from './TenantGeneralSettings';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Tenant = Tables<'tenants'>;
