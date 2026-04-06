@@ -11341,6 +11341,25 @@
       "bulk": {
         "selectAll": "Select All"
       }
+    },
+    "hsse": {
+      "observations": "Observations",
+      "incidents": "Incidents",
+      "actions": "Corrective Actions",
+      "violations": "Violations",
+      "highSeverity": "high severity (L3+)",
+      "overdue": "overdue",
+      "dueSoon": "due soon",
+      "activeViolations": "active",
+      "recentObservations": "Recent Observations",
+      "recentIncidents": "Recent Incidents",
+      "correctiveActions": "Corrective Actions",
+      "violationsDetail": "Violations & Penalties",
+      "noObservations": "No observations recorded",
+      "noIncidents": "No incidents recorded",
+      "noActions": "No corrective actions",
+      "noViolations": "No violations recorded",
+      "violation": "Violation"
     }
   },
   "sla": {
