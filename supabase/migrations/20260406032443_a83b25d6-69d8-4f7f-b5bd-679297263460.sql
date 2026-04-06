@@ -1,0 +1,2 @@
+ALTER TABLE public.contractor_workers DROP CONSTRAINT contractor_workers_approval_status_check;
+ALTER TABLE public.contractor_workers ADD CONSTRAINT contractor_workers_approval_status_check CHECK (approval_status = ANY (ARRAY['pending'::text, 'approved'::text, 'rejected'::text, 'suspended'::text, 'revoked'::text, 'pending_security'::text]));
