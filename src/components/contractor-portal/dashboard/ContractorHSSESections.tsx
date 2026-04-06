@@ -180,24 +180,24 @@ export default function ContractorHSSESections({
                 {observations.recent.map(obs => (
                   <div
                     key={obs.id}
-                    className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                    className="p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
                     onClick={() => openDetail(obs.id)}
                     role="button"
                     tabIndex={0}
                     onKeyDown={(e) => e.key === 'Enter' && openDetail(obs.id)}
                   >
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-sm truncate">{obs.title}</p>
-                      <p className="text-xs text-muted-foreground">{formatDate(obs.occurred_at)}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium text-sm truncate min-w-0 flex-1">{obs.title}</p>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180 shrink-0 ms-2" />
                     </div>
-                    <div className="flex items-center gap-2 ms-2">
+                    <p className="text-xs text-muted-foreground mt-0.5">{formatDate(obs.occurred_at)}</p>
+                    <div className="flex flex-wrap gap-1.5 mt-1.5">
                       {obs.severity_v2 && (
                         <Badge className={SEVERITY_COLORS[obs.severity_v2] || ""} variant="outline">
                           {severityLabel(obs.severity_v2)}
                         </Badge>
                       )}
                       <StatusBadge status={obs.status} />
-                      <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
                     </div>
                   </div>
                 ))}
@@ -224,24 +224,24 @@ export default function ContractorHSSESections({
                 {incidents.recent.map(inc => (
                   <div
                     key={inc.id}
-                    className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                    className="p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
                     onClick={() => openDetail(inc.id)}
                     role="button"
                     tabIndex={0}
                     onKeyDown={(e) => e.key === 'Enter' && openDetail(inc.id)}
                   >
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-sm truncate">{inc.title}</p>
-                      <p className="text-xs text-muted-foreground">{formatDate(inc.occurred_at)}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium text-sm truncate min-w-0 flex-1">{inc.title}</p>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180 shrink-0 ms-2" />
                     </div>
-                    <div className="flex items-center gap-2 ms-2">
+                    <p className="text-xs text-muted-foreground mt-0.5">{formatDate(inc.occurred_at)}</p>
+                    <div className="flex flex-wrap gap-1.5 mt-1.5">
                       {inc.severity_v2 && (
                         <Badge className={SEVERITY_COLORS[inc.severity_v2] || ""} variant="outline">
                           {severityLabel(inc.severity_v2)}
                         </Badge>
                       )}
                       <StatusBadge status={inc.status} />
-                      <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
                     </div>
                   </div>
                 ))}
@@ -270,32 +270,32 @@ export default function ContractorHSSESections({
                   return (
                     <div
                       key={action.id}
-                      className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors ${isOverdue ? 'border-destructive/50 bg-destructive/5' : ''}`}
+                      className={`p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors ${isOverdue ? 'border-destructive/50 bg-destructive/5' : ''}`}
                       onClick={() => openDetail(action.incident_id)}
                       role="button"
                       tabIndex={0}
                       onKeyDown={(e) => e.key === 'Enter' && openDetail(action.incident_id)}
                     >
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-sm truncate">{action.title}</p>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>{formatDate(action.due_date)}</span>
-                          {action.assignee_name && (
-                            <>
-                              <span>·</span>
-                              <span>{action.assignee_name}</span>
-                            </>
-                          )}
-                        </div>
+                      <div className="flex items-center justify-between">
+                        <p className="font-medium text-sm truncate min-w-0 flex-1">{action.title}</p>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180 shrink-0 ms-2" />
                       </div>
-                      <div className="flex items-center gap-2 ms-2">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                        <span>{formatDate(action.due_date)}</span>
+                        {action.assignee_name && (
+                          <>
+                            <span>·</span>
+                            <span>{action.assignee_name}</span>
+                          </>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 mt-1.5">
                         {isOverdue && (
                           <Badge variant="destructive" className="text-xs">
                             {t("contractorPortal.hsse.overdue", "overdue")}
                           </Badge>
                         )}
                         <StatusBadge status={action.status} />
-                        <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
                       </div>
                     </div>
                   );
@@ -323,19 +323,20 @@ export default function ContractorHSSESections({
                 {violations.recent.map(v => (
                   <div
                     key={v.id}
-                    className={`flex items-center justify-between p-3 border rounded-lg ${v.incident_id ? 'cursor-pointer hover:bg-muted/50' : ''} transition-colors`}
+                    className={`p-3 border rounded-lg ${v.incident_id ? 'cursor-pointer hover:bg-muted/50' : ''} transition-colors`}
                     onClick={() => v.incident_id && openDetail(v.incident_id)}
                     role={v.incident_id ? "button" : undefined}
                     tabIndex={v.incident_id ? 0 : undefined}
                     onKeyDown={(e) => v.incident_id && e.key === 'Enter' && openDetail(v.incident_id)}
                   >
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-sm truncate">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium text-sm truncate min-w-0 flex-1">
                         {v.violation_type_name || t("contractorPortal.hsse.violation", "Violation")}
                       </p>
-                      <p className="text-xs text-muted-foreground">{formatDate(v.created_at)}</p>
+                      {v.incident_id && <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180 shrink-0 ms-2" />}
                     </div>
-                    <div className="flex items-center gap-2 ms-2">
+                    <p className="text-xs text-muted-foreground mt-0.5">{formatDate(v.created_at)}</p>
+                    <div className="flex flex-wrap gap-1.5 mt-1.5">
                       {v.total_fine_amount != null && v.total_fine_amount > 0 && (
                         <Badge variant="outline" className="text-destructive border-destructive/30">
                           SAR {v.total_fine_amount.toLocaleString()}
@@ -344,7 +345,6 @@ export default function ContractorHSSESections({
                       <Badge variant={v.final_status === 'pending' || !v.final_status ? 'secondary' : 'outline'}>
                         {(v.final_status || 'pending').replace(/_/g, ' ')}
                       </Badge>
-                      {v.incident_id && <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />}
                     </div>
                   </div>
                 ))}
