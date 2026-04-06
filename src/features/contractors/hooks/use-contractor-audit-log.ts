@@ -19,6 +19,22 @@ export type ContractorAuditAction =
   | "verified"
   | "expired";
 
+// Map legacy action names to valid CHECK constraint values
+const ACTION_MAP: Record<string, string> = {
+  worker_created: 'created',
+  worker_edited_by_rep: 'updated',
+  worker_approved: 'approved',
+  worker_rejected: 'rejected',
+  worker_status_changed: 'updated',
+  worker_blacklisted: 'suspended',
+  worker_deleted: 'deleted',
+  worker_edit_approved: 'approved',
+  gate_pass_created: 'created',
+  gate_pass_approved: 'approved',
+  gate_pass_rejected: 'rejected',
+  gate_pass_resubmitted: 'updated',
+};
+
 interface AuditLogParams {
   entityType: "contractor_company" | "contractor_worker" | "gate_pass";
   entityId: string;
