@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import { Eye, AlertTriangle, ClipboardList, Scale, Clock, AlertCircle, ChevronRight } from "lucide-react";
+import ContractorIncidentDetailDialog from "./ContractorIncidentDetailDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -17,6 +18,7 @@ interface ContractorHSSESectionsProps {
   actions: HSSEActionStats | undefined;
   violations: HSSEViolationStats | undefined;
   isLoading: boolean;
+  companyId: string;
 }
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -53,9 +55,10 @@ export default function ContractorHSSESections({
   actions,
   violations,
   isLoading,
+  companyId,
 }: ContractorHSSESectionsProps) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
 
   if (isLoading) {
     return (
@@ -70,8 +73,8 @@ export default function ContractorHSSESections({
     );
   }
 
-  const navigateToIncident = (id: string) => {
-    navigate(`/incidents/${id}`);
+  const openDetail = (id: string) => {
+    setSelectedIncidentId(id);
   };
 
   return (
