@@ -146,7 +146,8 @@ export function useIDCardGenerator() {
           
           if (backImage && options.saveToStorage) {
             const backPath = `${options.tenantId}/${options.cardType}/${options.entityId}_back.png`;
-            result.backImageUrl = await uploadToStorage(backImage, backPath) || undefined;
+            const uploadedBackUrl = await uploadToStorage(backImage, backPath);
+            result.backImageUrl = uploadedBackUrl || backImage;
             result.backImagePath = backPath;
           } else if (backImage) {
             result.backImageUrl = backImage;
