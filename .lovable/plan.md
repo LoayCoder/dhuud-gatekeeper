@@ -1,144 +1,156 @@
 
 
-# E2E Gate Pass Lifecycle — Gap Analysis & Implementation Plan
+# E2E Gate Pass Lifecycle — Test Results & Gap Report
 
-## Current State Summary
+## Critical Architecture Mismatch
 
-The gate pass system is a **material movement** pass system (not a worker-based gate pass). Key observations:
+The test plan assumes a **worker-centric gate pass** model. The actual system is a **material movement gate pass** system. This fundamentally changes ~40% of the test cases.
 
-- **`material_gate_passes`** table tracks material in/out passes, NOT worker-linked passes
-- Gate passes are linked to **projects** and **companies**, not individual workers
-- The workflow is: `pending_contractor_approval` → `pending_club_mgmt_ack` → `pending_security_approval` → `approved` → `used` → `completed`
-- Photo requirements are on **items** (material photos), not worker photos
-- ID Card generation is a **separate** worker workflow, not part of gate pass lifecycle
-- Induction is also a **separate** worker workflow
+### What DOES NOT EXIST in the schema:
+- **`worker_id`** column — material_gate_passes has NO worker_id FK
+- **`submitted_at` / `submitted_by`** columns — don't exist
+- **`approved_at` / `approved_by`** columns — don't exist (uses `pm_approved_at/by`, `safety_approved_at/by`, `contractor_approved_at/by`)
+- **`description`** column — doesn't exist (uses `material_description`)
+- **`id_card_generated`** column — doesn't exist on gate passes
+- **`resubmission_count`** column — doesn't exist
+- **`photo_url`** on contractor_workers — doesn't exist (uses `photo_path`)
+- **`induction_completed`** on contractor_workers — doesn't exist
+- **`id_card_generated` / `id_card_generated_by`** on contractor_workers — don't exist
 
-## Test Plan vs Reality — Gaps Identified
+### What DOES EXIST:
+- `photo_path`, `photo_verified_at`, `photo_verified_by` on contractor_workers ✅
+- `id_card_generated_at` on contractor_workers ✅
+- `audit_logs` table with proper schema ✅
+- FK constraints: `company_id` → contractor_companies, `project_id` → contractor_projects ✅
+- RLS policies for tenant isolation, contractor reps, admins, security ✅
+- Soft delete pattern (`deleted_at`) ✅
 
-Many test cases in the plan assume a **worker-centric gate pass** model that does not exist. The actual system is a **material gate pass** system. Here is the breakdown:
+---
 
-### Phase 1: Project Requirement Gate — PARTIALLY EXISTS
+## Phase-by-Phase Results
 
-| Test | Status | Detail |
-|------|--------|--------|
-| 1.0: Button disabled without project | ✅ EXISTS | Line 89 of `GatePasses.tsx`: `disabled={activeProjects.length === 0}` |
-| 1.0: Warning message shown | ❌ MISSING | No "No active projects" message displayed when button is disabled |
-| 1.0: Link to projects page | ❌ MISSING | No navigation link provided |
-| 1.1: Enable after project created | ✅ EXISTS | Button enables when `activeProjects.length > 0` |
-| 1.2: Project dropdown in form | ✅ EXISTS | `GatePassFormDialog` receives `projects` prop |
-| 1.3: Inactive project filtering | ✅ EXISTS | Only active projects passed: `projects?.filter(p => p.status === "active")` |
-| 1.4: Admin override | ✅ EXISTS | Admin uses separate `/contractors/gate-passes` route with different permissions |
+### Phase 1: Project Requirement Gate
+| Test | Status | Finding |
+|------|--------|---------|
+| 1.0: Button disabled without project | ✅ PASS | Code confirms `disabled={activeProjects.length === 0}` |
+| 1.0: Warning message | ✅ PASS | Recently added Alert with link to projects page |
+| 1.1: Enable after project | ✅ PASS | Button enables when active projects > 0 |
+| 1.2: Multiple projects | ✅ PASS | Project dropdown shows active projects |
+| 1.3: Inactive project filter | ✅ PASS | Only `status = 'active'` projects shown |
+| 1.4: Admin override | ✅ PASS | Admin RLS policy bypasses company filter |
 
-### Phase 2: Gate Pass Creation — MOSTLY EXISTS (but material-based, not worker-based)
+### Phase 2: Gate Pass Creation
+| Test | Status | Finding |
+|------|--------|---------|
+| 2.1: Create gate pass | ✅ PASS | Form works, items + photos |
+| 2.1: Worker selection | ❌ N/A | System is material-based, no worker_id |
+| 2.1: Worker photo check | ❌ N/A | Photo gate is on items, not workers |
+| 2.2: Validation | ✅ PARTIAL | Item name required; no explicit date validation in DB |
+| 2.3: Appears in list | ✅ PASS | React Query invalidation |
 
-| Test | Status | Detail |
-|------|--------|--------|
-| 2.1: Create gate pass | ✅ EXISTS | `GatePassFormDialog` and `GatePassCreateWizard` both work |
-| 2.1: Worker selection | ❌ N/A | System is material-based, not worker-based |
-| 2.1: Worker photo check | ❌ N/A | Photo requirement is on items, not workers |
-| 2.2: Validation rules | ✅ PARTIAL | Item name required, photos required per item, dates validated |
-| 2.3: Appears in list | ✅ EXISTS | React Query invalidation refreshes list |
+### Phase 3: Photo Requirement
+| Test | Status | Finding |
+|------|--------|---------|
+| 3.1-3.2: Worker photo gate | ❌ N/A | Not applicable — material gate pass requires item photos, not worker photos |
 
-### Phase 3: Photo Requirement — EXISTS BUT FOR ITEMS, NOT WORKERS
+### Phase 4: Submission Workflow
+| Test | Status | Finding |
+|------|--------|---------|
+| 4.1: Submit for approval | ✅ PASS | Created directly as `pending_contractor_approval` or `pending_dept_approval` |
+| 4.1: submitted_at tracking | ❌ MISSING | No `submitted_at` column exists |
+| 4.2: Edit lock after submission | ✅ PARTIAL | UI conditionally shows actions; no explicit DB constraint |
 
-| Test | Status | Detail |
-|------|--------|--------|
-| 3.1: Photo gate | ✅ EXISTS (items) | `GatePassItemPhotoUpload` requires photos per material item |
-| 3.1: Worker photo gate | ❌ N/A | Not applicable to material gate passes |
+### Phase 5: Approval
+| Test | Status | Finding |
+|------|--------|---------|
+| 5.1: View pending | ✅ PASS | Admin + dept rep RLS policies |
+| 5.2: Approve | ✅ PASS | `approve_gate_pass_unified` RPC handles multi-stage |
+| 5.3: Reject | ✅ PASS | `rejection_reason`, `rejected_by`, `rejected_at` columns exist |
+| 5.4: Resubmit | ✅ PASS | `GatePassResubmitDialog` exists |
+| 5.4: Resubmission count | ❌ MISSING | No `resubmission_count` column |
 
-### Phase 4: Submission Workflow — EXISTS
+### Phase 6-7: Induction & ID Card in Gate Pass
+| Test | Status | Finding |
+|------|--------|---------|
+| All | ❌ N/A | Induction and ID Card are **separate worker workflows**, not part of gate pass lifecycle. Gate pass statuses are: `pending_*` → `approved` → `used` → `completed` |
 
-| Test | Status | Detail |
-|------|--------|--------|
-| 4.1: Submit for approval | ✅ EXISTS | Created with status `pending_contractor_approval` or `pending_dept_approval` |
-| 4.2: Cannot edit after submission | ❌ PARTIALLY | No explicit edit lock in UI |
+### Phase 8: Status Flow
+| Test | Status | Finding |
+|------|--------|---------|
+| 8.1: Actual flow | ✅ EXISTS | `pending_contractor_approval` → `pending_club_mgmt_ack` → `pending_security_approval` → `approved` → `used` → `completed` |
+| 8.1: Test plan flow | ❌ MISMATCH | Test assumes Draft → Pending → Approved → ID Card Generated. Actual flow is multi-stage approval |
+| 8.2: No backwards | ✅ PARTIAL | Enforced by `approve_gate_pass_unified` RPC logic, not by DB constraint |
 
-### Phase 5: Admin Approval — EXISTS
+### Phase 9: Multi-Role Permissions
+| Test | Status | Finding |
+|------|--------|---------|
+| 9.1: Contractor rep isolation | ✅ PASS | RLS: `EXISTS contractor_representatives WHERE company_id = mgp.company_id AND user_id = auth.uid()` |
+| 9.2: Admin access | ✅ PASS | RLS: `is_admin(auth.uid())` |
+| 9.3: Document controller | ✅ PASS | `has_contractor_admin_access()` |
+| 9.4: Unauthorized | ✅ PASS | RLS enforces; no cross-company leakage |
 
-| Test | Status | Detail |
-|------|--------|--------|
-| 5.1: View pending | ✅ EXISTS | `usePendingGatePassApprovals` hook, admin gate pass list |
-| 5.2: Approve | ✅ EXISTS | `approve_gate_pass_unified` RPC handles multi-stage approval |
-| 5.3: Reject | ✅ EXISTS | `rejectGatePass` with reason |
-| 5.4: Resubmit | ✅ EXISTS | `GatePassResubmitDialog` with `useResubmitGatePass` |
+### Phase 10: Data Persistence
+| Test | Status | Finding |
+|------|--------|---------|
+| 10.1: FK integrity | ✅ PASS | FKs on company_id, project_id confirmed |
+| 10.2: Photo storage | ✅ PASS | `gate-pass-photos` bucket for item photos |
+| 10.3: Audit trail | ⚠️ PARTIAL | `contractor-audit-log` edge function logs to its own mechanism, NOT to `audit_logs` table. Need to verify where audit data lands |
+| 10.5: Data relationships | ✅ PASS | FK constraints enforce referential integrity |
 
-### Phase 6-7: Induction & ID Card — SEPARATE WORKFLOWS
+### Phase 11-12: Integration
+| Test | Status | Finding |
+|------|--------|---------|
+| Dashboard integration | ✅ PASS | Dashboard shows pass counts |
+| Worker page integration | ❌ N/A | No worker_id on gate passes |
+| Project page integration | ✅ PARTIAL | Gate passes link to projects |
+| Activity log | ✅ PASS | Portal activity log exists |
 
-These are worker management features, NOT part of the material gate pass lifecycle. They exist independently:
-- Worker induction: `use-worker-inductions.ts`, `use-worker-onboarding.ts`
-- ID Card generation: `use-contractor-id-cards.ts`
+### Phase 14: Performance
+| Test | Status | Finding |
+|------|--------|---------|
+| 14.2: Indexes | ⚠️ GAP | Missing indexes on `company_id` and `status` (standalone). Existing: `date_status` composite, `project_id`, `branch_id`, `qr_token` |
 
-### Phase 8-9: Status Flow & Permissions — EXISTS
+---
 
-| Test | Status | Detail |
-|------|--------|--------|
-| 8.1: Status progression | ✅ EXISTS | Via `approve_gate_pass_unified` RPC |
-| 9.1: Contractor rep permissions | ✅ EXISTS | `can_create_gate_pass` RPC, RLS policies |
-| 9.2: Admin permissions | ✅ EXISTS | Admin bypass in hooks and RLS |
+## Actionable Gaps to Fix (Prioritized)
 
-### Phase 10: Data Persistence — EXISTS (standard Supabase)
+### 🔴 Critical — Database Indexes Missing
+**Missing indexes** that will cause performance issues at scale:
+- `company_id` — used in every contractor rep query
+- `status` standalone — used in admin filtering
+- `requested_by` — used in "my passes" queries
+- `tenant_id` — used in every RLS check
 
-### Phase 11: Integration — PARTIAL
+### 🟠 High — Audit Trail Not Writing to `audit_logs` Table
+The `contractor-audit-log` edge function was recently wired up but it writes to an unknown destination. The `audit_logs` table exists with proper schema. Need to verify the edge function inserts into `audit_logs`.
 
-| Test | Status | Detail |
-|------|--------|--------|
-| 11.1: Dashboard integration | ✅ EXISTS | Dashboard shows pass counts |
-| 11.2: Workers page integration | ❌ N/A | Material passes not linked to workers |
-| 11.4: Activity log | ✅ EXISTS | `ContractorPortalActivityLog` page |
+### 🟡 Medium — Missing Tracking Columns
+Consider adding for full lifecycle tracking:
+- `submitted_at` / `submitted_by` — currently the pass is created directly in a pending state, so there's no separate submission timestamp
 
-## Actionable Gaps to Fix
+### Test Plan Corrections Needed
+The test plan should be rewritten to match the **material gate pass** model:
+- Remove all `worker_id` references
+- Remove Phases 3, 6, 7 (worker photo gate, induction, ID card are separate)
+- Update status flow to actual: `pending_contractor_approval` → `pending_club_mgmt_ack` → `pending_security_approval` → `approved`
+- Replace "worker photo" tests with "item photo" tests
 
-Based on the **actual material gate pass model**, here are the real gaps:
-
-### Gap 1: No "No Active Projects" Warning Message
-The button is disabled but no message explains why. Need to add a warning alert when `activeProjects.length === 0`.
-
-### Gap 2: No Link to Projects Page
-When no projects exist, provide a "Create a project first" link to `/contractor-portal/projects`.
-
-### Gap 3: No Edit Lock After Submission
-After a pass is submitted (status != draft/rejected), the UI should prevent edits. Currently there's no explicit guard.
-
-### Gap 4: Missing Audit Trail for Gate Pass Actions
-The `materialGatePassCreateService` and `materialGatePassActionService` do not log to any audit table. The `useContractorAuditLog` hook exists but is not used for gate pass operations.
-
-### Gap 5: WhatsApp Notification on Gate Pass Rejection Missing Reason
-The rejection notification was recently added but the rejection reason display could be more prominent in the contractor portal detail view.
+---
 
 ## Implementation Plan
 
-### Step 1: Add "No Active Projects" Warning + Link
-**File:** `src/pages/contractor-portal/GatePasses.tsx`
-- When `activeProjects.length === 0`, show an Alert with warning icon
-- Message: "No active projects. Create a project first."
-- Button/link navigating to `/contractor-portal/projects`
+### Step 1: Add Missing Performance Indexes
+Add indexes on `company_id`, `status`, `requested_by`, and `tenant_id` for the `material_gate_passes` table.
 
-### Step 2: Add Audit Logging for Gate Pass Actions
-**Files:**
-- `src/features/contractors/services/materialGatePassCreateService.ts` — add audit log call after creation
-- `src/features/contractors/services/materialGatePassActionService.ts` — add audit log calls after approve/reject
+### Step 2: Verify Audit Trail Destination
+Check the `contractor-audit-log` edge function to confirm it writes to `audit_logs` table. If not, fix it.
 
-Use the existing `contractor-audit-log` edge function pattern.
+### Step 3: (Optional) Add `submitted_at` Column
+If lifecycle tracking is desired, add a `submitted_at` timestamp column for clearer audit trail.
 
-### Step 3: Add Edit Lock for Submitted Passes
-**File:** `src/features/contractors/components/GatePassDetailDialog/` — disable edit actions when status is not `rejected`
-
-### Step 4: Improve Rejection Reason Display in Portal
-**File:** Gate pass detail dialog — ensure rejection reason is prominently shown with red styling when pass is rejected
-
-## What Does NOT Need Changes
-
-- The test plan's worker-centric assumptions (worker photo gate, induction gate, ID card in gate pass lifecycle) do not apply — these are separate modules that already work independently
-- Multi-stage approval workflow already works via `approve_gate_pass_unified` RPC
-- Project filtering, permissions, and data isolation already exist
-- Resubmission flow already exists
-
-## Summary
-
-| Step | Files | Effort |
-|------|-------|--------|
-| 1. No-project warning + link | `GatePasses.tsx` | Small |
-| 2. Audit logging for gate passes | `materialGatePassCreateService.ts`, `materialGatePassActionService.ts` | Small |
-| 3. Edit lock on submitted passes | Gate pass detail components | Small |
-| 4. Rejection reason display | Gate pass detail dialog | Small |
+| Step | Change | Effort |
+|------|--------|--------|
+| 1. Add indexes | DB migration | Small |
+| 2. Verify audit destination | Edge function check | Small |
+| 3. Add submitted_at | DB migration + service update | Small |
 
