@@ -189,6 +189,15 @@ function ContractorPortalDashboardContent() {
             </CardContent>
           </Card>
         </div>
+
+        {/* HSSE Accountability Sections */}
+        <ContractorHSSESections
+          observations={hsse.observations}
+          incidents={hsse.incidents}
+          actions={hsse.actions}
+          violations={hsse.violations}
+          isLoading={hsse.isLoading}
+        />
       </div>
     </ContractorPortalLayout>
   );
