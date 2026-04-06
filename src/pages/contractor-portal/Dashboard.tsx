@@ -33,7 +33,7 @@ function ContractorPortalDashboardContent() {
     <ContractorPortalLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-xl sm:text-2xl font-bold truncate">
             {t("contractorPortal.dashboard.welcome", "Welcome")}, {company?.company_name}
           </h1>
           <p className="text-muted-foreground">
