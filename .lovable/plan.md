@@ -1,77 +1,54 @@
 
 
-# PTW Module — Full Mobile-First Responsive Overhaul
+# Fix PTW Project Not Showing After Creation + Double Toast
 
-Applying the same mobile-first patterns established in the Contractor Portal to all PTW pages.
+## Problems Found
 
-## Pages to Update
+### Problem 1: Project created but not visible on Project Mobilization page
+**Root cause: Branch filter mismatch in the query service.**
 
-### 1. PTW Dashboard (`src/pages/ptw/PTWDashboard.tsx`)
-- Stats grid: already `grid-cols-2` on mobile — good
-- Charts grid: change to single column on mobile (`grid-cols-1 md:grid-cols-2 lg:grid-cols-3`)
-- Quick Actions + Recent Permits: stack vertically on mobile (`grid-cols-1 lg:grid-cols-2`)
-- Recent permit items: ensure text wraps with `break-words whitespace-normal` instead of truncating
+The `getPTWProjects` service (line 37-41 of `ptwProjectService.ts`) does **client-side** branch filtering after fetching data. It checks `project.site?.branch_id` against the user's active branch filter. However, the Supabase select query joins `site:sites(name, branch_id)` — the `branch_id` field must be included in the select for the filter to work.
 
-### 2. Permit Console (`src/pages/ptw/PermitConsole.tsx`)
-- Header: already has `flex-col` → `flex-row` pattern
-- Legend card: permit type chips should wrap properly on small screens
-- Map height: reduce from `h-[600px]` to `h-[350px] sm:h-[600px]` on mobile
-- Tabs: ensure touch-friendly sizing
+Looking at the data: the project (id `8439b57f`) has site `Club House` with branch `8a74df12` (RGC). The tenant has two branches: RGC and DGC. If the user's branch selector is set to a specific branch other than RGC, or if `branchIds` returns an empty array, the project gets filtered out.
 
-### 3. Permit List View (`src/features/ptw/components/PermitListView.tsx`)
-- **Replace table with card layout on mobile** (same dual-layout pattern as Contractor Portal workers table)
-- Desktop: keep existing table (`hidden md:block`)
-- Mobile: interactive cards (`block md:hidden`) showing reference, type icon, status badge, project name, and planned date
-- Each card is a tappable Link to the permit detail
-- Filters: stack vertically on mobile, full-width search
+**Most likely cause**: The user may not be in "All Branches" mode, or the `getBranchFilter()` returns an empty array before branch data loads, causing all projects to be filtered out. The query fires before branch context is ready.
 
-### 4. Create Permit Wizard (`src/pages/ptw/CreatePermit.tsx`)
-- Step indicators: already hide labels on mobile (`hidden sm:block`) — good
-- Step circles: reduce size on mobile
-- Navigation buttons: make full-width on mobile (`w-full sm:w-auto`)
-- Submit button: larger touch target on mobile (`min-h-[48px]`)
+**Fix**: Add `isLoading` check from `useBranchFilter` to the query's `enabled` condition so it waits for branch data to be ready before fetching.
 
-### 5. Permit View (`src/pages/ptw/PermitView.tsx`)
-- Layout: change 3-column grid to single column on mobile (`grid-cols-1 lg:grid-cols-3`)
-- Action buttons: full-width stacked on mobile instead of inline wrap
-- QR code card: center and reduce size on mobile
-- Info sections: single column grids on mobile
+### Problem 2: Double toast on project creation
+The `useCreatePTWProject` hook (line 87 in `use-ptw-projects.ts`) fires `toast.success("PTW Project created")`, and then `ProjectFormDialog.tsx` (line 151) also fires `toast.success("Project created successfully")`. This creates **two** success toasts.
 
-### 6. Project Mobilization (`src/pages/ptw/ProjectMobilization.tsx`)
-- Kanban board: already responsive with `md:grid-cols-2 lg:grid-cols-4`
-- On mobile (below `md`): show as vertically stacked status-grouped cards
-- ProjectCard: ensure text wraps (`break-words whitespace-normal`)
-- Header button: full-width on mobile
+**Fix**: Remove the toast from the hook's `onSuccess` since the form dialog already handles success/error messaging.
 
-### 7. Project Clearance (`src/pages/ptw/ProjectClearance.tsx`)
-- Context card grid: `grid-cols-2 md:grid-cols-4` (2-column on mobile, 4 on desktop)
-- Progress stats grid: `grid-cols-2 md:grid-cols-4`
-- Filter tabs: scrollable horizontally on mobile with `overflow-x-auto`
-- Back button + header: compact on mobile
-- Completion banner: stack vertically on mobile
+### Problem 3: "Work permit created" confusion
+The user mentions seeing "work permit created" — this is likely because the `useCreatePTWProject` hook toast says "PTW Project created" which may be misread/confused with "PTW permit created." Removing the duplicate toast fixes this.
 
-### 8. PTW Field Inspection (`src/pages/ptw/PTWFieldInspection.tsx`)
-- Already mobile-first design — minimal changes needed
-- Ensure safe-area bottom padding for the fixed submit button: `pb-[env(safe-area-inset-bottom)]`
-
-## Files Changed
+## Changes
 
 | File | Change |
 |------|--------|
-| `src/pages/ptw/PTWDashboard.tsx` | Stack charts and cards on mobile |
-| `src/pages/ptw/PermitConsole.tsx` | Responsive map height, touch-friendly tabs |
-| `src/features/ptw/components/PermitListView.tsx` | Add mobile card layout alongside table |
-| `src/pages/ptw/CreatePermit.tsx` | Full-width nav buttons, larger touch targets |
-| `src/pages/ptw/PermitView.tsx` | Single-column layout on mobile, stacked actions |
-| `src/pages/ptw/ProjectMobilization.tsx` | Stacked kanban on mobile, full-width button |
-| `src/pages/ptw/ProjectClearance.tsx` | 2-col context grid, scrollable tabs on mobile |
-| `src/pages/ptw/PTWFieldInspection.tsx` | Safe-area padding for fixed button |
+| `src/features/ptw/hooks/use-ptw-projects.ts` | Remove duplicate `toast.success` from `useCreatePTWProject` onSuccess. Add branch `isLoading` to `usePTWProjects` enabled condition. |
+| `src/features/ptw/hooks/use-ptw-projects.ts` | Import `useBranchFilter`'s `isLoading` and gate query on `!isLoading` |
 
-## Design Principles (from Contractor Portal)
-- Touch targets minimum 48px
-- Cards over tables on mobile
-- Wrapping over truncation for long text
-- `break-words` and `whitespace-normal` for badges/titles
-- Stacked layouts (flex-col) on mobile, inline (flex-row) on desktop
-- CSS logical properties only (ms-, me-, ps-, pe-, text-start, text-end)
+## Technical Details
+
+In `use-ptw-projects.ts`:
+
+1. Update `usePTWProjects` to wait for branch filter to be ready:
+```typescript
+const { branchIds, isAllBranchesMode, isLoading: branchLoading, queryKey: branchQueryKey } = useBranchFilter();
+
+return useQuery({
+  // ...existing config...
+  enabled: !!tenantId && !branchLoading,
+});
+```
+
+2. Remove toast from `useCreatePTWProject` onSuccess (keep only the query invalidation):
+```typescript
+onSuccess: () => {
+  queryClient.invalidateQueries({ queryKey: ["ptw-projects"] });
+  // Toast removed — handled by ProjectFormDialog
+},
+```
 
