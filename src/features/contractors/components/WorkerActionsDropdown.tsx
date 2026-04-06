@@ -117,7 +117,10 @@ export function WorkerActionsDropdown({
                   return (
                     <DropdownMenuItem
                       key={option.value}
-                      onClick={() => onStatusChange(option.value)}
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        onStatusChange(option.value);
+                      }}
                       disabled={isCurrentStatus}
                       className={isCurrentStatus ? "opacity-50" : ""}
                     >
