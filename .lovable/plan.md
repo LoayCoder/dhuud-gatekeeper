@@ -1,59 +1,61 @@
 
 
-# Fix QA Release Blockers for Contractor Portal HSSE Dashboard
+# Restrict Contractor Access & Add Incident Detail Modal
 
 ## Summary
 
-Address the 4 release blockers identified in the QA checklist, plus severity format consistency.
+Replace the current `navigate('/incidents/{id}')` drill-down with an in-portal detail modal that fetches and displays incident/observation data scoped to the contractor's company. No global page navigation occurs.
 
-## Release Blockers
+## Architecture
 
-### 1. Severity Format Inconsistency (🔴 High — #57)
+```text
+ContractorHSSESections.tsx
+  └── onClick → sets selectedIncidentId state
+        └── renders <ContractorIncidentDetailDialog>
+              ├── Overview (title, type, date, location, description, attachments)
+              ├── Investigation (summary, root cause — read-only)
+              └── Corrective Actions (list with status/due date)
+```
 
-**Current**: Hook checks for both `level_N` and `LN` formats in high severity detection. DB confirms all values use `level_N` format only.
+## Changes
 
-**Fix**: Remove dead `L3/L4/L5` checks from the hook. The `severityLabel()` function in the UI component already maps `level_N` → `LN` correctly for display — no change needed there.
+### 1. New Component: `ContractorIncidentDetailDialog.tsx`
+**Location**: `src/components/contractor-portal/dashboard/ContractorIncidentDetailDialog.tsx`
 
-**File**: `use-contractor-portal-hsse.ts` line 134 — remove `'L3', 'L4', 'L5'` from the array.
+A Dialog-based modal that receives an `incidentId` and `companyId`, then:
 
-### 2. Violation Fine Calculation Missing (🔴 High — #56)
+- Fetches incident data from `incidents` table filtered by `related_contractor_company_id = companyId` AND `id = incidentId` (double-gated: if the incident doesn't belong to the company, returns null and shows nothing)
+- Select fields: `id, title, reference_id, event_type, subtype, incident_type, description, occurred_at, status, severity_v2, location, media_attachments, immediate_actions, has_injury, injury_classification, has_damage`, plus joins for `branch(name)`, `site(name)`, `related_contractor_company(company_name)`
+- Fetches investigation summary from `investigations` table via `incident_id` — select only `scope, started_at, completed_at` and investigator name
+- Fetches RCA from `incident_rca` via `incident_id` — select only `immediate_cause, root_causes_summary` (RLS will gate access)
+- Fetches corrective actions from `corrective_actions` via `incident_id` — select `title, status, due_date, assigned_user:profiles(full_name)`
+- Renders in three sections with vertical scroll:
+  - **Overview**: type badge, severity, date, location, description, attachments (reuse `IncidentAttachmentsSection`)
+  - **Investigation**: summary card (graceful empty state if RCA not visible due to RLS)
+  - **Actions**: list with status badges, overdue highlighting
 
-**Current**: `total_fine_amount` is always `null` in the violations query. The fine lives on `violation_types` table (`first_fine_amount`, `second_fine_amount`, `third_fine_amount`) and depends on occurrence number.
+- Uses `DialogContent` with `dir={direction}` for RTL
+- All Tailwind uses logical properties (`ms-`, `me-`, `ps-`, `pe-`, `text-start`)
 
-**Fix**: In the violations hook, after fetching violations with joined `violation_type`, count occurrences per `(contractor_company_id, violation_type_id)` to determine which fine tier applies (1st/2nd/3rd), then set `total_fine_amount` accordingly.
+### 2. Update: `ContractorHSSESections.tsx`
+- Remove `useNavigate` import and `navigateToIncident` function
+- Add `useState<string | null>` for `selectedIncidentId`
+- Replace all `onClick={() => navigateToIncident(id)}` with `onClick={() => setSelectedIncidentId(id)}`
+- Render `<ContractorIncidentDetailDialog>` at bottom, passing `incidentId={selectedIncidentId}`, `companyId`, `onClose`
 
-**File**: `use-contractor-portal-hsse.ts` — update violations query to include fine columns from `violation_types` join and compute occurrence-based fine.
+### 3. Props Threading
+- `ContractorHSSESections` needs to receive `companyId` prop from its parent to pass to the dialog for the security filter
 
-### 3. Drill-Down Navigation Missing (🟠 Medium — #55)
-
-**Current**: Clicking observation/incident/action/violation items does nothing.
-
-**Fix**: Add `onClick` with `useNavigate` to each list item:
-- Observations/Incidents → `/incidents/{id}` (the investigation workspace)
-- Actions → `/incidents/{incident_id}` (actions live within the incident view)
-- Violations → no standalone page exists; link to the parent incident via `incident_id`
-
-**File**: `ContractorHSSESections.tsx` — add `useNavigate` and cursor-pointer + click handlers.
-
-### 4. Arabic Translations Incomplete (🟠 Medium — #58)
-
-**Current**: All labels use English fallbacks via `t("key", "Fallback")`.
-
-**Fix**: Add Arabic translation keys for all HSSE dashboard strings to the Arabic locale file.
-
-**File**: Locale JSON file for Arabic.
-
-## Files to Edit
-
-| File | Changes |
-|------|---------|
-| `src/features/contractors/hooks/use-contractor-portal-hsse.ts` | Remove dead severity formats; add fine calculation logic to violations |
-| `src/components/contractor-portal/dashboard/ContractorHSSESections.tsx` | Add drill-down navigation; add `useNavigate` + click handlers + cursor styles |
-| Arabic locale file | Add ~15 translation keys for HSSE dashboard labels |
+### 4. Security
+- Frontend: modal query double-checks `related_contractor_company_id = companyId`
+- Backend: existing RLS on `incidents` table already enforces tenant isolation
+- No navigation to `/incidents/*` routes from contractor portal
 
 ## Technical Notes
 
-- Fine calculation: group violations by `violation_type_id`, sort by `created_at`, assign occurrence index (1st/2nd/3rd+), pick corresponding `first_fine_amount`/`second_fine_amount`/`third_fine_amount`
-- Navigation targets use existing routes — no new pages needed
-- Violation drill-down goes to parent incident since violations don't have a standalone page
+- Reuse `IncidentAttachmentsSection` for media display inside the modal
+- Investigation/RCA data may return null due to RLS restrictions on `incident_rca` — show graceful "Not available" state
+- Corrective actions query reuses the same pattern as `IncidentActionsTab` but read-only (no "Add Action" button)
+- Dialog max-width: `max-w-3xl` with `max-h-[85vh] overflow-y-auto` for scrollable content
+- Arabic translations for new modal labels added to both locale files
 
