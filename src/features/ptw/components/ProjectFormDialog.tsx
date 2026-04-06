@@ -32,6 +32,7 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
   const { data: sites } = useSites();
   const { data: contractors } = useContractorCompanies();
   const { data: contractorProjects } = useContractorProjects();
+  const { data: projectManagers } = useProjectManagers();
   const createProject = useCreatePTWProject();
 
   const [formData, setFormData] = useState({
@@ -42,6 +43,7 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
     contractor_company_id: "",
     linked_contractor_project_id: "",
     is_internal_work: false,
+    project_manager_id: "",
     start_date: "",
     end_date: "",
     latitude: null as number | null,
@@ -145,6 +147,7 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
         contractor_company_id: formData.is_internal_work ? undefined : formData.contractor_company_id || undefined,
         linked_contractor_project_id: formData.is_internal_work ? undefined : formData.linked_contractor_project_id || undefined,
         is_internal_work: formData.is_internal_work,
+        project_manager_id: formData.project_manager_id || undefined,
         start_date: formData.start_date,
         end_date: formData.end_date,
       });
@@ -166,6 +169,7 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
       contractor_company_id: "",
       linked_contractor_project_id: "",
       is_internal_work: false,
+      project_manager_id: "",
       start_date: "",
       end_date: "",
       latitude: null,
