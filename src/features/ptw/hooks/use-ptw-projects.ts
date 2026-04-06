@@ -47,7 +47,7 @@ export interface PTWClearanceCheck {
 export function usePTWProjects(filters: PTWProjectFilters = {}) {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
-  const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
+  const { branchIds, isAllBranchesMode, isLoading: branchLoading, queryKey: branchQueryKey } = useBranchFilter();
 
   return useQuery({
     queryKey: ["ptw-projects", tenantId, filters, ...branchQueryKey],
