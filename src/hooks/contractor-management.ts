@@ -1,10 +1,9 @@
 // Re-exports real contractor hooks for use by PTW and other modules
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
-import { useContractorCompanies as useRealContractorCompanies } from '@/features/contractors/hooks/use-contractor-companies';
-import { useContractorProjects as useRealContractorProjects } from '@/features/contractors/hooks/use-contractor-projects';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Re-export types for backward compatibility
 export interface ContractorCompany {
@@ -26,13 +25,54 @@ export interface ContractorProjectRecord {
   [key: string]: unknown;
 }
 
-// Wrap real hooks to match the no-arg call signature used by PTW
+/**
+ * Safe wrapper that fetches contractor companies directly
+ * instead of relying on the feature hook (which needs BranchFilter context).
+ */
 export function useContractorCompanies() {
-  return useRealContractorCompanies();
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
+  return useQuery({
+    queryKey: ['contractor-companies-ptw', tenantId],
+    queryFn: async () => {
+      if (!tenantId) return [];
+      const { data, error } = await supabase
+        .from('contractor_companies')
+        .select('id, company_name, company_name_ar, status, tenant_id')
+        .eq('tenant_id', tenantId)
+        .is('deleted_at', null)
+        .eq('status', 'approved')
+        .order('company_name');
+      if (error) throw error;
+      return data as ContractorCompany[];
+    },
+    enabled: !!tenantId,
+  });
 }
 
+/**
+ * Safe wrapper that fetches contractor projects directly.
+ */
 export function useContractorProjects() {
-  return useRealContractorProjects();
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
+  return useQuery({
+    queryKey: ['contractor-projects-ptw', tenantId],
+    queryFn: async () => {
+      if (!tenantId) return [];
+      const { data, error } = await supabase
+        .from('contractor_projects')
+        .select('id, project_code, project_name, company_id, site_id, status, tenant_id, latitude, longitude, boundary_polygon, geofence_radius_meters')
+        .eq('tenant_id', tenantId)
+        .is('deleted_at', null)
+        .order('project_name');
+      if (error) throw error;
+      return data as unknown as ContractorProjectRecord[];
+    },
+    enabled: !!tenantId,
+  });
 }
 
 export function useCreateContractorWorker() {

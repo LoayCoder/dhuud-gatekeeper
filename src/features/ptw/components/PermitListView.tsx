@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { PTWPermit } from "@/hooks/ptw";
+import { PTWPermit } from "@/features/ptw/hooks/use-ptw-permits";
 import { format } from "date-fns";
 import { 
   Search, 

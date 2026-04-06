@@ -17445,6 +17445,65 @@ export type Database = {
           },
         ]
       }
+      ptw_permit_workers: {
+        Row: {
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          is_permit_holder: boolean | null
+          permit_id: string
+          tenant_id: string
+          worker_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_permit_holder?: boolean | null
+          permit_id: string
+          tenant_id: string
+          worker_id: string
+        }
+        Update: {
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_permit_holder?: boolean | null
+          permit_id?: string
+          tenant_id?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ptw_permit_workers_permit_id_fkey"
+            columns: ["permit_id"]
+            isOneToOne: false
+            referencedRelation: "ptw_permits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_permit_workers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_permit_workers_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_permit_workers_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ptw_permits: {
         Row: {
           activated_at: string | null
