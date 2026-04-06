@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, Truck, Search, CheckCircle, Clock, XCircle, AlertCircle, Shield, Timer, Filter } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Truck, Search, CheckCircle, Clock, XCircle, AlertCircle, Shield, Timer, Filter, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,6 +22,7 @@ const ALL_STATUSES = "all";
 
 function ContractorPortalGatePassesContent() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { company, projects, isLoading } = useContractorPortalData();
   const { data: gatePasses, isLoading: isLoadingPasses, isError } = useContractorGatePasses(company?.id);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -91,6 +94,18 @@ function ContractorPortalGatePassesContent() {
             {t("contractorPortal.gatePasses.requestPass", "Request Pass")}
           </Button>
         </div>
+
+        {activeProjects.length === 0 && (
+          <Alert variant="default" className="border-warning bg-warning/10">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            <AlertDescription className="flex items-center justify-between">
+              <span>{t("contractorPortal.gatePasses.noActiveProjects", "No active projects. You need an active project to create a gate pass.")}</span>
+              <Button variant="link" className="p-0 h-auto text-primary" onClick={() => navigate("/contractor-portal/projects")}>
+                {t("contractorPortal.gatePasses.createProject", "Create a project →")}
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
 
         <Card>
           <CardHeader>

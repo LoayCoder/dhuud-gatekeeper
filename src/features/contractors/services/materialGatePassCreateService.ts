@@ -171,5 +171,21 @@ export const createGatePass = async (data: CreateGatePassData, tenantId: string,
         }).catch(err => console.error('Failed to notify dept reps:', err));
     }
 
+    // Audit log: gate pass created
+    supabase.functions.invoke('contractor-audit-log', {
+        body: {
+            entity_type: 'gate_pass',
+            entity_id: result.id,
+            action: 'gate_pass_created',
+            new_value: {
+                reference_number,
+                pass_type: data.pass_type,
+                project_id: data.project_id,
+                is_internal_request: data.is_internal_request,
+                items_count: data.items.length,
+            },
+        },
+    }).catch(err => console.error('[GatePass] Audit log failed:', err));
+
     return result;
 };
