@@ -34,7 +34,7 @@ export function useContractorRepresentative() {
   });
 }
 
-interface ContractorPortalProject {
+export interface ContractorPortalProject {
   id: string;
   project_code: string;
   project_name: string;
@@ -47,7 +47,11 @@ interface ContractorPortalProject {
   location_description: string | null;
   project_manager_id: string | null;
   company_id: string;
+  notes: string | null;
+  geofence_radius_meters: number | null;
   site: { name: string } | null;
+  branch: { name: string } | null;
+  department: { name: string } | null;
   project_manager: { full_name: string } | null;
 }
 
@@ -65,7 +69,8 @@ export function useContractorPortalProjects(companyId: string | undefined) {
         .select(`
           id, project_code, project_name, project_name_ar, status, start_date,
           end_date, assigned_workers_count, required_safety_officers, location_description,
-          project_manager_id, company_id, site:sites(name),
+          project_manager_id, company_id, notes, geofence_radius_meters,
+          site:sites(name), branch:branches(name), department:departments(name),
           project_manager:profiles!contractor_projects_project_manager_id_fkey(full_name)
         `)
         .eq("company_id", companyId)
