@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { getAppUrl } from "@/lib/app-url";
 import { logger } from "@/lib/logger";
 import { toast } from "@/hooks/use-toast";
 import { getContractorType } from "@/lib/license-utils";

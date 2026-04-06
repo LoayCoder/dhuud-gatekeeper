@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { getAppUrl } from '@/lib/app-url';
 import { useTranslation } from 'react-i18next';
 import { useDropzone } from 'react-dropzone';
 import { supabase } from '@/integrations/supabase/client';
