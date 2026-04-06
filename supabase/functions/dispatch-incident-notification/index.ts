@@ -867,7 +867,26 @@ Deno.serve(async (req) => {
             }
           }
 
-          // Log to audit table with template tracking
+          // Build message_content for retry capability (store on failure so retries can re-send)
+          let storedMessageContent: string | null = null;
+          if (status === 'failed') {
+            if (channel === 'email') {
+              // Store subject + html as JSON for email retries
+              storedMessageContent = JSON.stringify({ subject: (typeof subject !== 'undefined' ? subject : ''), html: (typeof html !== 'undefined' ? html : '') });
+            } else if (channel === 'whatsapp') {
+              storedMessageContent = typeof message !== 'undefined' ? message : null;
+            } else if (channel === 'push') {
+              const pushPayloadForRetry = generatePushPayload(lang, incident, effectiveSeverity, isErpOverride);
+              storedMessageContent = JSON.stringify({
+                title: pushPayloadForRetry.title,
+                body: pushPayloadForRetry.body,
+                data: { type: 'incident', incident_id: incident.id, reference_id: incident.reference_id },
+                tag: `incident-${incident.id}`,
+              });
+            }
+          }
+
+          // Log to audit table with template tracking and retry context
           await supabase.from('auto_notification_logs').insert({
             tenant_id: incident.tenant_id,
             event_type,
@@ -884,6 +903,8 @@ Deno.serve(async (req) => {
             was_erp_override: isErpOverride,
             template_id: usedTemplateId,
             template_source: templateSource,
+            message_content: storedMessageContent,
+            retry_at: status === 'failed' ? new Date(Date.now() + 2 * 60 * 1000).toISOString() : null,
           });
 
           results.push({
@@ -914,6 +935,7 @@ Deno.serve(async (req) => {
             stakeholder_role: recipient.stakeholder_role,
             was_erp_override: isErpOverride,
             template_source: 'fallback',
+            retry_at: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
           });
 
           results.push({
