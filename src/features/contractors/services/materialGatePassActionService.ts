@@ -26,9 +26,10 @@ export const approveGatePass = async (passId: string, action: "approve" | "rejec
     // Audit log: gate pass approved/rejected
     supabase.functions.invoke('contractor-audit-log', {
         body: {
-            entity_type: 'gate_pass',
+            entity_type: 'material_gate_pass',
             entity_id: passId,
             action: action === 'approve' ? 'gate_pass_approved' : 'gate_pass_rejected',
+            tenant_id: gatePass?.tenant_id,
             new_value: { status: newStatus, notes },
         },
     }).catch(err => console.error('[GatePass] Audit log failed:', err));
