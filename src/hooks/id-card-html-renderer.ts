@@ -34,8 +34,8 @@ function renderFrontSide(options: IDCardRenderOptions): string {
   const height = isLandscape ? CARD_HEIGHT_PX : CARD_WIDTH_PX;
   const cardTypeLabel = CARD_TYPE_LABELS[cardType][language];
   
-  const qrSize = Math.round(height * 0.55);
-  const photoSize = Math.round(height * 0.45);
+  const qrSize = Math.round(height * 0.45);
+  const photoSize = Math.round(height * 0.35);
 
   const getFieldValue = (field: FrontFieldKey): string => {
     switch (field) {
@@ -92,7 +92,12 @@ function renderFrontSide(options: IDCardRenderOptions): string {
     <div style="width: ${photoSize}px; height: ${photoSize}px; border-radius: 4px; overflow: hidden; flex-shrink: 0; background-color: #f3f4f6; border: 1px solid ${settings.front_accent_color};">
       ${personData.photo 
         ? `<img src="${personData.photo}" style="width: 100%; height: 100%; object-fit: cover;" crossorigin="anonymous" />`
-        : `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: ${settings.front_accent_color}; color: #FFFFFF; font-size: 24px; font-weight: 700;">${personData.fullName.charAt(0).toUpperCase()}</div>`
+        : `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: ${settings.front_accent_color}; color: #FFFFFF;">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>`
       }
     </div>
   ` : '';
@@ -157,9 +162,10 @@ function renderFrontSide(options: IDCardRenderOptions): string {
         ${photoHTML}
         
         <div style="flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0;">
-          <div style="font-size: 11px; font-weight: 700; color: ${settings.front_text_color}; line-height: 1.2;">
+          <div style="font-size: 11px; font-weight: 700; color: ${settings.front_text_color}; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
             ${isRTL ? (personData.fullNameAr || personData.fullName) : personData.fullName}
           </div>
+          ${!isRTL && personData.fullNameAr ? `<div style="font-size: 9px; font-weight: 600; color: ${settings.front_text_color}; opacity: 0.85; direction: rtl; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${personData.fullNameAr}</div>` : ''}
           ${fieldsHTML}
         </div>
 
