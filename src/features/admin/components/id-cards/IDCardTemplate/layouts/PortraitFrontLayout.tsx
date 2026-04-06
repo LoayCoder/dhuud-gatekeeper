@@ -43,7 +43,7 @@ export function PortraitFrontLayout({
       <div
         style={{
           backgroundColor: settings.front_accent_color,
-          padding: `${6 * scale}px ${8 * scale}px`,
+          padding: `${7 * scale}px ${8 * scale}px`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -55,8 +55,9 @@ export function PortraitFrontLayout({
           <img
             src={tenantData.logoUrl}
             alt="Logo"
+            crossOrigin="anonymous"
             style={{
-              height: 20 * scale,
+              height: 28 * scale,
               width: 'auto',
               objectFit: 'contain',
             }}
@@ -68,13 +69,14 @@ export function PortraitFrontLayout({
           <div
             style={{
               color: '#FFFFFF',
-              fontSize: 7 * scale,
-              fontWeight: 600,
+              fontSize: 9 * scale,
+              fontWeight: 700,
               flex: 1,
               textAlign: 'center',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
+              lineHeight: 1.3,
             }}
           >
             {bilingualTenantName}
@@ -88,7 +90,7 @@ export function PortraitFrontLayout({
             color: '#FFFFFF',
             padding: `${2 * scale}px ${6 * scale}px`,
             borderRadius: 4 * scale,
-            fontSize: 5 * scale,
+            fontSize: 6 * scale,
             fontWeight: 600,
             textTransform: 'uppercase',
             whiteSpace: 'nowrap',
@@ -104,7 +106,7 @@ export function PortraitFrontLayout({
           style={{
             display: 'flex',
             justifyContent: 'center',
-            padding: `${10 * scale}px 0 ${6 * scale}px`,
+            padding: `${8 * scale}px 0 ${4 * scale}px`,
           }}
         >
           <div
@@ -121,6 +123,7 @@ export function PortraitFrontLayout({
               <img
                 src={personData.photo}
                 alt="Photo"
+                crossOrigin="anonymous"
                 style={{
                   width: '100%',
                   height: '100%',
@@ -206,7 +209,7 @@ export function PortraitFrontLayout({
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  fontSize: 7 * scale,
+                  fontSize: 8 * scale,
                   color: settings.front_text_color,
                   gap: 4 * scale,
                   borderBottom: `1px solid ${settings.front_accent_color}15`,
@@ -265,4 +268,3 @@ export function PortraitFrontLayout({
     </div>
   );
 }
-
