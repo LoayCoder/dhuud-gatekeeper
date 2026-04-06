@@ -112,6 +112,11 @@ function ContractorPortalProjectsContent() {
         onOpenChange={(open) => !open && setSelectedProject(null)}
         project={selectedProject}
       />
+      <ProjectFormDialog
+        open={showAddProject}
+        onOpenChange={setShowAddProject}
+        project={null}
+      />
     </ContractorPortalLayout>
   );
 }
