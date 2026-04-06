@@ -10,7 +10,11 @@ export type ContractorAuditAction =
   | "worker_status_changed"
   | "worker_blacklisted"
   | "worker_deleted"
-  | "worker_edit_approved";
+  | "worker_edit_approved"
+  | "gate_pass_created"
+  | "gate_pass_approved"
+  | "gate_pass_rejected"
+  | "gate_pass_resubmitted";
 
 interface AuditLogParams {
   entityType: "contractor_worker" | "contractor_company";
