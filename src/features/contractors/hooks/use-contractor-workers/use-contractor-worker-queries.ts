@@ -7,7 +7,7 @@ import type { ContractorWorker, ContractorWorkerFilters } from "./types";
 export function useContractorWorkers(filters: ContractorWorkerFilters = {}) {
     const { profile } = useAuth();
     const tenantId = profile?.tenant_id;
-    const { queryKey: branchQueryKey } = useBranchFilter();
+    const { queryKey: branchQueryKey, branchIds, isAllBranchesMode } = useBranchFilter();
 
     return useQuery({
         queryKey: ["contractor-workers", tenantId, filters, ...branchQueryKey],
@@ -39,8 +39,17 @@ export function useContractorWorkers(filters: ContractorWorkerFilters = {}) {
             const { data, error } = await query;
             if (error) throw error;
 
+            // Apply client-side branch filter via company.assigned_branch_id
+            let filteredData = data || [];
+            if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
+                filteredData = filteredData.filter((worker) => {
+                    const company = worker.company as unknown as { company_name: string; assigned_branch_id: string | null } | null;
+                    return company?.assigned_branch_id && branchIds.includes(company.assigned_branch_id);
+                });
+            }
+
             // Transform latest_induction array to single object (prioritize acknowledged, then most recent)
-            return (data || []).map((worker) => {
+            return filteredData.map((worker) => {
                 let bestInduction = null;
 
                 if (Array.isArray(worker.latest_induction) && worker.latest_induction.length > 0) {
