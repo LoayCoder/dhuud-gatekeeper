@@ -1,68 +1,63 @@
 
 
-# Fix All Links to Use dhuud.com Instead of Lovable Domain
+# Fix ID Card Export to Match Preview
 
 ## Problem
 
-1. **Invitation links use Lovable URL**: `window.location.origin` sends `8feca61a-...lovableproject.com` as the invite URL in WhatsApp/email messages instead of `https://www.dhuud.com`
-2. **Hardcoded Lovable fallbacks**: Several edge functions fall back to `lovableproject.com` URLs
-3. **Tenant-branded links**: You want Golf Saudi users to see their tenant name in links (e.g., `dhuud.com/golf-saudi/invite?code=...`) — this is partially possible for public pages but not practical for auth pages (login/signup must be shared)
+The ID card **preview** (what you see in the dialog) uses the React `IDCardTemplate` component with proper portrait/landscape layouts, local QR codes, and correct sizing. But the **download, print, and WhatsApp send** all use a completely separate file — `src/hooks/id-card-html-renderer.ts` — which is a hardcoded HTML string builder with a simplified landscape-only layout. This is why exported cards look broken (clipped QR codes, wrong proportions, missing layout features).
 
-## What Changes
+## Solution
 
-### Step 1: Create a shared `getAppUrl()` utility on the frontend
+Eliminate the HTML renderer entirely. Instead, capture the actual React `IDCardTemplate` component (the same one shown in the preview) using `html2canvas`. This guarantees the exported image is pixel-identical to what users see.
 
-Create a helper that always returns `https://www.dhuud.com` regardless of where the app is accessed from (preview, lovable, etc.):
+## Steps
 
-```typescript
-// src/lib/app-url.ts
-export function getAppUrl(): string {
-  return "https://www.dhuud.com";
-}
+### Step 1: Rewrite `use-id-card-generator.ts` — render React component off-screen
+
+Instead of importing `renderIDCardToHTML` and injecting raw HTML, the `generateCard` function will:
+
+1. Create a hidden container (`position: absolute; left: -9999px`)
+2. Use `ReactDOM.createRoot` to render the actual `IDCardTemplate` component into it
+3. Wait for images (photo, logo) to load via `onload` promises
+4. Capture with `html2canvas` at 3x scale
+5. Clean up the container
+
+This removes the dependency on `id-card-html-renderer.ts` entirely.
+
+### Step 2: Delete `src/hooks/id-card-html-renderer.ts`
+
+No longer needed — the React component is the single source of truth for both preview and export.
+
+### Step 3: Add image-load waiting utility
+
+Before capturing with `html2canvas`, wait for all `<img>` elements inside the card to finish loading. This prevents blank photos/logos in the exported image.
+
+```text
+Flow:
+  Preview Dialog (IDCardTemplate) ──── same component ────┐
+                                                          │
+  Download/Print/WhatsApp ─── render IDCardTemplate ──────┤
+                               off-screen into DOM        │
+                                    │                     │
+                            wait for images to load       │
+                                    │                     │
+                            html2canvas capture ──────────┘
+                                    │
+                            PNG data URL
 ```
 
-### Step 2: Replace all `window.location.origin` in invitation/link-sharing code
+## Technical Details
 
-Update these 7 files to use `getAppUrl()` instead of `window.location.origin` for outgoing links:
+| Item | Current | After fix |
+|------|---------|-----------|
+| Renderer for export | `id-card-html-renderer.ts` (HTML strings) | `IDCardTemplate` React component |
+| QR code in export | External API (`qrserver.com`) | Local `QRCodeSVG` (same as preview) |
+| Portrait support | Broken (wrong layout) | Correct (uses `PortraitFrontLayout`) |
+| Image loading | No wait | Explicit `img.onload` promises |
 
-| File | Lines affected |
-|------|---------------|
-| `src/features/users/components/InvitationManagementPanel.tsx` | Lines 116, 136, 193 |
-| `src/features/users/components/EditInvitationDialog.tsx` | Line 116 |
-| `src/features/users/components/BulkInvitationImportDialog.tsx` | Lines 299, 321 |
-| `src/components/tenants/InvitationManagement.tsx` | Lines 108, 205 |
-| `src/pages/admin/UserManagement/hooks/useUserManagementSaveActions.ts` | Lines 117, 125 |
-
-Note: `ForgotPassword.tsx` and `Signup.tsx` use `window.location.origin` for Supabase auth redirects — these must stay as-is since the redirect must go back to the current browser.
-
-### Step 3: Fix all hardcoded Lovable fallbacks in Edge Functions
-
-Replace `lovableproject.com` fallbacks with `https://www.dhuud.com`:
-
-| File | Current fallback | Fix to |
-|------|-----------------|--------|
-| `onboard-worker/index.ts` (line 158) | `lovableproject.com` | `https://www.dhuud.com` |
-| `send-bulk-induction/index.ts` (line 368) | `lovableproject.com` | `https://www.dhuud.com` |
-| `send-induction-video/index.ts` (line 233) | `lovableproject.com` | `https://www.dhuud.com` |
-| `send-gate-whatsapp/index.ts` (line 420) | `.lovable.app` fallback | `https://www.dhuud.com` |
-| `add-security-headers/index.ts` (line 19) | `lovableproject.com` constant | Add `dhuud.com` |
-
-### Step 4: Deploy affected edge functions
-
-Deploy all modified edge functions.
-
-## About Tenant-Branded Links
-
-For **public-facing pages** (gate pass request/tracking), the system already supports tenant slugs: `dhuud.com/golf-saudi/request`. These work today.
-
-For **auth pages** (signup, login, invite), tenant-branded URLs like `dhuud.com/golf-saudi/invite?code=X` would require significant routing changes. The simpler and more reliable approach is to keep `dhuud.com/invite?code=X` — the invitation itself already contains the tenant name (e.g., "Golf Saudi") in the message body, so the user knows which organization they're joining.
-
-## Summary
-
-| Step | Scope | Description |
-|------|-------|-------------|
-| 1 | Frontend utility | Create `getAppUrl()` returning `https://www.dhuud.com` |
-| 2 | 5 frontend files | Replace `window.location.origin` with `getAppUrl()` for outgoing links |
-| 3 | 5 edge functions | Fix Lovable domain fallbacks to `dhuud.com` |
-| 4 | Deploy | Redeploy affected edge functions |
+| Step | File | Change |
+|------|------|--------|
+| 1 | `src/hooks/use-id-card-generator.ts` | Rewrite `generateCard` to render React component off-screen |
+| 2 | `src/hooks/id-card-html-renderer.ts` | Delete file |
+| 3 | `src/hooks/use-id-card-generator.ts` | Add image-load waiting before canvas capture |
 
