@@ -1,29 +1,57 @@
 
 
-# Fix PTW Dropdowns — Root Cause Found
+# Empty Contractor Project Dropdown — Root Cause
 
-## The Problem
+## Finding: No Data Issue, Not a Code Bug
 
-There is a **module resolution conflict**. Two files compete for the `@/hooks/ptw` import path:
+The dropdown is working correctly. The query executes successfully (HTTP 200) and returns an empty array `[]` because **your tenant has no contractor projects**.
 
-```text
-src/hooks/ptw.ts          ← STUB file (returns empty arrays)
-src/hooks/ptw/index.ts    ← Real re-exports (wired to database)
+### Evidence from Network Requests
+
+| Item | Value |
+|------|-------|
+| Logged-in user | LUAY IBRAHIM - Admin (`luay.madkhali@golfsaudi.com`) |
+| User's tenant_id | `e30ae1a5-7eab-4776-bd0b-bb0b391e68e8` |
+| Contractor projects in this tenant | **0** |
+| Query response | HTTP 200, body: `[]` |
+
+The 8 test contractor projects that exist in the database belong to a **different tenant** (`9290e913-...`), so they are correctly filtered out by tenant isolation.
+
+## What Needs to Happen
+
+You need to **create contractor projects first** before they appear in the PTW "Link to Contractor Project" dropdown.
+
+### Path to create contractor projects:
+Navigate to the **Contractor Management → Projects** section and create projects there. Once projects exist for your tenant, they will automatically appear in the PTW project form dropdown.
+
+## Code Improvement (Optional)
+
+Add a helpful empty-state message in the dropdown so users understand why it's empty:
+
+**File**: `src/features/ptw/components/ProjectFormDialog.tsx`
+
+In the `<SelectContent>` for contractor projects (around line 296), add a fallback when `contractorProjects` is empty:
+
+```typescript
+<SelectContent>
+  {contractorProjects && contractorProjects.length > 0 ? (
+    contractorProjects.map((project) => (
+      <SelectItem key={project.id} value={project.id}>
+        <span className="font-medium">{project.project_code}</span>
+        <span className="text-muted-foreground ms-2">- {project.project_name}</span>
+      </SelectItem>
+    ))
+  ) : (
+    <div className="p-3 text-sm text-muted-foreground text-center">
+      No contractor projects available. Create one in Contractor Management first.
+    </div>
+  )}
+</SelectContent>
 ```
 
-When TypeScript/Vite resolves `import { usePTWTypes } from "@/hooks/ptw"`, the **file** (`ptw.ts`) wins over the **directory** (`ptw/index.ts`). This means every PTW page gets the stub hooks that return `[]` — making all dropdowns empty despite data existing in the database.
+## Files Changed
 
-## The Fix
-
-**Delete `src/hooks/ptw.ts`** (the stub file). This lets `src/hooks/ptw/index.ts` take over, which already re-exports the real hooks connected to the database.
-
-### Single change:
-- **Delete** `src/hooks/ptw.ts`
-
-No other files need modification. The barrel file `src/hooks/ptw/index.ts` already exports everything the stub did (`usePTWTypes`, `usePTWProjects`, `useProjectClearances`, `useApproveClearanceCheck`, `useRejectClearanceCheck`, `useCreatePTWProject`, etc.) — wired to real Supabase queries.
-
-### Quick verification after fix:
-- All 15+ files that import from `@/hooks/ptw` will resolve to `src/hooks/ptw/index.ts`
-- Permit Type dropdown will show 8 types (Hot Work, Lifting, Confined Space, etc.)
-- Project dropdown will show active projects for the tenant
+| File | Change |
+|------|--------|
+| `src/features/ptw/components/ProjectFormDialog.tsx` | Add empty-state message for contractor projects dropdown |
 
