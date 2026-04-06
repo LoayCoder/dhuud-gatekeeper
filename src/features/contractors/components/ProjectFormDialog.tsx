@@ -226,7 +226,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                     control={form.control}
                     render={({ field, fieldState }) => (
                       <>
-                        <Select value={field.value} onValueChange={handleBranchChange} disabled={isEditing}>
+                        <Select value={field.value} onValueChange={handleBranchChange} disabled={isCompleted}>
                           <SelectTrigger><SelectValue placeholder={t("common.selectBranch", "Select branch")} /></SelectTrigger>
                           <SelectContent>
                             {branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
