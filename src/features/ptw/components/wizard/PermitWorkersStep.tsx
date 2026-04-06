@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Search, Users, UserCheck, AlertTriangle } from "lucide-react";
+import { Search, Users, UserCheck, AlertTriangle, Info } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useProjectContextWorkers } from "@/features/ptw/hooks/use-project-context-workers";
 
@@ -23,11 +23,14 @@ export function PermitWorkersStep({ data, onChange }: PermitWorkersStepProps) {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   
-  const { data: workers, isLoading } = useProjectContextWorkers(data.project_id);
+  const { data: result, isLoading } = useProjectContextWorkers(data.project_id);
+  
+  const workers = result?.workers || [];
+  const isInternalWork = result?.isInternalWork || false;
   
   // Filter workers based on search query
   const filteredWorkers = useMemo(() => {
-    if (!workers) return [];
+    if (!workers.length) return [];
     if (!searchQuery.trim()) return workers;
     
     const query = searchQuery.toLowerCase();
@@ -84,7 +87,21 @@ export function PermitWorkersStep({ data, onChange }: PermitWorkersStepProps) {
     );
   }
 
-  if (!workers || workers.length === 0) {
+  // Internal projects: workers are optional
+  if (isInternalWork) {
+    return (
+      <div className="space-y-4">
+        <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30">
+          <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <AlertDescription className="text-blue-800 dark:text-blue-300">
+            {t("ptw.workers.internalProject", "This is an internal project. Worker selection is optional — your internal team will handle this work. You can proceed to the next step.")}
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (workers.length === 0) {
     return (
       <Alert variant="destructive">
         <AlertTriangle className="h-4 w-4" />
@@ -182,7 +199,7 @@ export function PermitWorkersStep({ data, onChange }: PermitWorkersStepProps) {
             className="border rounded-lg divide-y"
           >
             {selectedWorkerIds.map((id) => {
-              const worker = workers?.find((w) => w.id === id);
+              const worker = workers.find((w) => w.id === id);
               if (!worker) return null;
               
               return (
