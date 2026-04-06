@@ -257,6 +257,13 @@ function ContractorPortalWorkersContent() {
             />
           </>
         )}
+
+        <WorkerDetailDialog
+          open={!!selectedWorker}
+          onOpenChange={(open) => !open && setSelectedWorker(null)}
+          worker={selectedWorker}
+          readOnly
+        />
       </div>
     </ContractorPortalLayout>
   );
