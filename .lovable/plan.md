@@ -1,51 +1,29 @@
 
 
-# Fix: Risk Assessment "Failed to save assessment" — Foreign Key Violation on project_id
+# Fix: Risk Assessment Silent Failures
 
-## Problem
+## Issues Found
 
-The database error is:
-```
-insert or update on table "risk_assessments" violates foreign key constraint "risk_assessments_project_id_fkey"
-```
+### Issue 1 — CRITICAL: Status never set on submission
+The `saveAssessment` function accepts a `status` parameter (`"draft"` or `"under_review"`) but **never includes it in the database insert** (lines 156-181 of `useRiskAssessmentForm.ts`). The DB column defaults to `'draft'`, so clicking "Submit for Review" silently saves the assessment as a draft. The user sees a success toast but the status is wrong.
 
-`project_id` references `ptw_projects(id)`. When submitting a risk assessment, an empty string `""` or invalid UUID is being passed as `project_id` instead of `null`. This happens because `selectedProjectId` is initialized as `""` (line 44) and the `|| null` check doesn't catch empty strings in all code paths reliably.
-
-Similarly, `contractor_id` could have the same issue with `selectedContractorId` initialized as `""`.
+### Issue 2 — Minor: Redundant assessment number generation
+Line 143 manually generates `assessment_number`, but the DB trigger `trg_generate_assessment_number` overwrites it on insert. Not a failure, but dead code that could confuse maintainers.
 
 ## Fix
 
-**File: `src/features/risk-assessment/components/RiskAssessmentWizard/hooks/useRiskAssessmentForm.ts`** (lines 155-156)
+**File: `src/features/risk-assessment/components/RiskAssessmentWizard/hooks/useRiskAssessmentForm.ts`**
 
-Change:
-```typescript
-contractor_id: isProjectLinked ? selectedContractorId || null : contractorId || null,
-project_id: isProjectLinked ? selectedProjectId || null : projectId || null,
-```
+### Change 1 — Add `status` to the insert payload (lines 156-181)
+Add `status: status,` (or just `status,`) to the `.insert({...})` object so the parameter is actually used.
 
-To explicitly guard against empty strings:
-```typescript
-contractor_id: (isProjectLinked ? selectedContractorId : contractorId) || null,
-project_id: (isProjectLinked ? selectedProjectId : projectId) || null,
-```
-
-And add a safety conversion — ensure empty strings become `null`:
-```typescript
-contractor_id: (isProjectLinked ? selectedContractorId : contractorId) || null,
-project_id: (isProjectLinked ? selectedProjectId : projectId) || null,
-```
-
-Both already use `|| null`, but to be absolutely safe, we should also trim and validate:
-```typescript
-const finalProjectId = isProjectLinked ? (selectedProjectId?.trim() || null) : (projectId?.trim() || null);
-const finalContractorId = isProjectLinked ? (selectedContractorId?.trim() || null) : (contractorId?.trim() || null);
-```
-
-Then use `finalProjectId` and `finalContractorId` in the insert.
+### Change 2 — Remove redundant assessment number (line 143)
+Remove the manual `assessmentNumber` generation and the `assessment_number` field from the insert, since the trigger handles it automatically. Alternatively, keep it as a fallback — the trigger overwrites it anyway, so it's harmless but unnecessary.
 
 ## Files Changed
 
 | File | Change |
 |------|--------|
-| `src/features/risk-assessment/components/RiskAssessmentWizard/hooks/useRiskAssessmentForm.ts` | Sanitize `project_id` and `contractor_id` to ensure empty strings become `null` before insert |
+| `useRiskAssessmentForm.ts` | Add `status` field to the risk_assessments insert payload |
+| `useRiskAssessmentForm.ts` | (Optional) Remove redundant `assessment_number` generation |
 
