@@ -27,11 +27,10 @@ export function useProjectManagers(branchId?: string) {
 
         if (error) throw error;
 
-        // Deduplicate and filter active profiles within tenant
         const seen = new Set<string>();
         const result: ProjectManager[] = [];
-        for (const row of data ?? []) {
-          const p = row.profiles as unknown as { id: string; full_name: string; email: string | null };
+        for (const row of (data as any[]) ?? []) {
+          const p = row.profiles as { id: string; full_name: string; email: string | null } | null;
           if (p && !seen.has(p.id)) {
             seen.add(p.id);
             result.push({ id: p.id, full_name: p.full_name, email: p.email });
