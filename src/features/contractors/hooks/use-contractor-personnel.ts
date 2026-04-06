@@ -44,9 +44,10 @@ export function useContractorPersonnel(companyId: string | null | undefined) {
 
       // Fetch contractor site representative from dedicated table (ONLY SOURCE)
       const { data: siteRep } = await supabase
-        .from('contractor_site_representatives')
+        .from('contractor_representatives')
         .select('full_name, mobile_number, phone, email')
         .eq('company_id', companyId)
+        .eq('is_primary', true)
         .is('deleted_at', null)
         .maybeSingle();
 

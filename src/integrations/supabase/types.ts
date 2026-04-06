@@ -5167,6 +5167,9 @@ export type Database = {
           last_exit_at: string | null
           mobile_number: string
           national_id: string | null
+          nationality: string | null
+          phone: string | null
+          photo_path: string | null
           tenant_id: string
           updated_at: string
           user_id: string | null
@@ -5189,6 +5192,9 @@ export type Database = {
           last_exit_at?: string | null
           mobile_number: string
           national_id?: string | null
+          nationality?: string | null
+          phone?: string | null
+          photo_path?: string | null
           tenant_id: string
           updated_at?: string
           user_id?: string | null
@@ -5211,6 +5217,9 @@ export type Database = {
           last_exit_at?: string | null
           mobile_number?: string
           national_id?: string | null
+          nationality?: string | null
+          phone?: string | null
+          photo_path?: string | null
           tenant_id?: string
           updated_at?: string
           user_id?: string | null
