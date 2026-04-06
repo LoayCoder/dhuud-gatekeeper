@@ -20,7 +20,7 @@ export function useProjectManagers(branchId?: string) {
       if (branchId) {
         // Filter by branch via user_branch_assignments
         const { data, error } = await supabase
-          .from("user_branch_assignments")
+          .from("user_branch_assignments" as any)
           .select("user_id, profiles!inner(id, full_name, email)")
           .eq("branch_id", branchId)
           .is("deleted_at", null);
