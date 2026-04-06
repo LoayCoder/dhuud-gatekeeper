@@ -70,6 +70,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
   const { data: sites = [] } = useTenantSites();
   const { data: departments = [] } = useTenantDepartments();
   const isEditing = !!project;
+  const isCompleted = project?.status === 'completed' || project?.status === 'cancelled';
   const [showMap, setShowMap] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
 
