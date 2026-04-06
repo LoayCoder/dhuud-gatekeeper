@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSites } from "@/hooks/use-sites";
 import { useCreatePTWProject } from "@/hooks/ptw";
 import { useContractorCompanies, useContractorProjects } from "@/hooks/contractor-management";
+import { useProjectManagers } from "@/features/contractors/hooks/use-project-managers";
 import { LocationBoundaryPicker } from "@/components/shared/LocationBoundaryPicker";
 import { toast } from "sonner";
 import { Loader2, Link2, X, Building2, Users } from "lucide-react";
