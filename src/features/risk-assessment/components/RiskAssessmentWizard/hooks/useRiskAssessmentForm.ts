@@ -252,7 +252,7 @@ export function useRiskAssessmentForm(projectId?: string, contractorId?: string,
       if (onComplete) {
         onComplete(assessment.id);
       } else {
-        navigate(`/risk-assessments/${assessment.id}`);
+        navigate("/risk-assessments");
       }
     } catch (error) {
       console.error("Save error:", error);
