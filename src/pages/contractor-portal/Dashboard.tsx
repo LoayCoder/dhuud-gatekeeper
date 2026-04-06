@@ -5,11 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import ContractorPortalLayout from "@/components/contractor-portal/ContractorPortalLayout";
 import { useContractorPortalData, useContractorGatePasses } from "@/hooks/contractor-management/index";
 import { ContractorPortalRoute } from "@/components/access-control";
+import { useContractorPortalHSSEStats } from "@/features/contractors/hooks/use-contractor-portal-hsse";
+import ContractorHSSESections from "@/components/contractor-portal/dashboard/ContractorHSSESections";
 
 function ContractorPortalDashboardContent() {
   const { t } = useTranslation();
   const { company, projects, workers, isLoading } = useContractorPortalData();
   const { data: gatePasses } = useContractorGatePasses(company?.id);
+  const hsse = useContractorPortalHSSEStats(company?.id);
 
   const activeProjects = projects?.filter(p => p.status === "active") || [];
   const approvedWorkers = workers?.filter(w => w.approval_status === "approved") || [];
