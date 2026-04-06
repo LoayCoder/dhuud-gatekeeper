@@ -51,11 +51,11 @@ export const approveGatePass = async (passId: string, action: "approve" | "rejec
             // Fetch requester's phone number
             const { data: requesterProfile } = await supabase
                 .from("profiles")
-                .select("mobile_number, preferred_language, full_name")
+                .select("phone_number, preferred_language, full_name")
                 .eq("id", gatePass.requested_by)
                 .single();
 
-            if (requesterProfile?.mobile_number) {
+            if (requesterProfile?.phone_number) {
                 const lang = requesterProfile.preferred_language || 'en';
                 const isApproved = newStatus === "approved";
                 const statusText = isApproved
