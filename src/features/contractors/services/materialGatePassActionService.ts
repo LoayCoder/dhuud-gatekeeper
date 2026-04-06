@@ -23,16 +23,43 @@ export const approveGatePass = async (passId: string, action: "approve" | "rejec
     if (error) throw error;
     const newStatus = data as string;
 
-    // Audit log: gate pass approved/rejected
-    supabase.functions.invoke('contractor-audit-log', {
-        body: {
-            entity_type: 'material_gate_pass',
-            entity_id: passId,
-            action: action === 'approve' ? 'gate_pass_approved' : 'gate_pass_rejected',
-            tenant_id: gatePass?.tenant_id,
-            new_value: { status: newStatus, notes },
-        },
-    }).catch(err => console.error('[GatePass] Audit log failed:', err));
+    // Audit log: gate pass approved/rejected (with fallback direct insert)
+    const auditAction = action === 'approve' ? 'gate_pass_approved' : 'gate_pass_rejected';
+    const auditBody = {
+        entity_type: 'material_gate_pass' as const,
+        entity_id: passId,
+        action: auditAction,
+        tenant_id: gatePass?.tenant_id,
+        new_value: { status: newStatus, notes },
+    };
+    supabase.functions.invoke('contractor-audit-log', { body: auditBody })
+        .then(res => {
+            if (res.error && gatePass?.tenant_id) {
+                supabase.from('contractor_module_audit_logs').insert({
+                    tenant_id: gatePass.tenant_id,
+                    entity_type: auditBody.entity_type,
+                    entity_id: passId,
+                    action: auditAction,
+                    actor_id: userId,
+                    actor_type: 'user',
+                    new_value: auditBody.new_value,
+                }).then(({ error }) => { if (error) console.error('[GatePass] Audit fallback failed:', error); });
+            }
+        })
+        .catch(err => {
+            console.warn('[GatePass] Audit edge fn error, using fallback:', err);
+            if (gatePass?.tenant_id) {
+                supabase.from('contractor_module_audit_logs').insert({
+                    tenant_id: gatePass.tenant_id,
+                    entity_type: auditBody.entity_type,
+                    entity_id: passId,
+                    action: auditAction,
+                    actor_id: userId,
+                    actor_type: 'user',
+                    new_value: auditBody.new_value,
+                }).then(({ error }) => { if (error) console.error('[GatePass] Audit fallback failed:', error); });
+            }
+        });
 
     // Trigger in-app notification for internal gate pass approvals
     if (!gatePass?.is_public_request && newStatus === "approved" && gatePass?.requested_by) {
