@@ -161,6 +161,7 @@ export function useDeleteContractorWorker() {
 export function useUpdateWorkerStatus() {
     const queryClient = useQueryClient();
     const { t } = useTranslation();
+    const { user } = useAuth();
 
     return useMutation({
         mutationFn: async ({ workerId, status, reason }: { workerId: string; status: string; reason?: string }) => {
@@ -170,6 +171,7 @@ export function useUpdateWorkerStatus() {
 
             if (status === "approved") {
                 updates.approved_at = new Date().toISOString();
+                updates.approved_by = user?.id || null;
                 updates.rejection_reason = null;
             } else if (status === "rejected") {
                 updates.rejection_reason = reason || null;
@@ -177,6 +179,8 @@ export function useUpdateWorkerStatus() {
             } else if (status === "pending") {
                 updates.approved_at = null;
                 updates.rejection_reason = null;
+            } else if (status === "suspended") {
+                updates.rejection_reason = reason || null;
             } else if (status === "revoked") {
                 updates.rejection_reason = reason || null;
             }
