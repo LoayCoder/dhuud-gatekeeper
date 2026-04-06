@@ -34,7 +34,8 @@ import {
   Mountain,
   FileWarning,
   Eye,
-  MapPin
+  MapPin,
+  Calendar
 } from "lucide-react";
 
 interface PermitListViewProps {
