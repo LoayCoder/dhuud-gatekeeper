@@ -12,9 +12,11 @@ import ContractorPortalLayout from "@/components/contractor-portal/ContractorPor
 import ContractorWorkerForm from "@/components/contractor-portal/ContractorWorkerForm";
 import ContractorWorkerEditForm from "@/components/contractor-portal/ContractorWorkerEditForm";
 import ContractorWorkerBulkImport from "@/components/contractor-portal/ContractorWorkerBulkImport";
+import { WorkerDetailDialog } from "@/features/contractors/components/WorkerDetailDialog";
 import { useContractorPortalData } from "@/hooks/contractor-management/index";
 import { ContractorPortalRoute } from "@/components/access-control";
 import { useBlacklistNationalIds } from "@/features/security";
+import type { ContractorWorker } from "@/features/contractors/hooks/use-contractor-workers";
 
 interface PortalWorker {
   id: string;
@@ -37,6 +39,7 @@ function ContractorPortalWorkersContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [editingWorker, setEditingWorker] = useState<PortalWorker | null>(null);
+  const [selectedWorker, setSelectedWorker] = useState<ContractorWorker | null>(null);
 
   const filteredWorkers = workers?.filter(worker => {
     const matchesSearch = worker.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||

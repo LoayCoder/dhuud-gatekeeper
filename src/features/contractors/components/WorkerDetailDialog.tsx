@@ -268,7 +268,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ContractorDocumentUpload workerId={worker.id} readOnly={readOnly} />
+                <ContractorDocumentUpload workerId={worker.id} canManage={!readOnly} />
               </CardContent>
             </Card>
           </TabsContent>
