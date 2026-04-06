@@ -805,6 +805,11 @@ Deno.serve(async (req) => {
               status = result.success ? 'sent' : 'failed';
               errorMsg = result.error;
               providerMessageId = result.messageId;
+              
+              // Proactive throttle: 200ms delay between email sends to stay under Resend rate limit (5/sec)
+              if (status === 'sent') {
+                await new Promise(r => setTimeout(r, 200));
+              }
             }
           } else if (channel === 'push') {
             // STEP 1: Check matrix-assigned push template (NEW!)
