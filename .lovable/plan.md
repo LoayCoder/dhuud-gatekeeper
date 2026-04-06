@@ -1,59 +1,72 @@
 
 
-# Fix: Email Throttling + WhatsApp Status Check
+# Automatic Retry for Failed Notifications — Implementation Plan
 
-## Problems
+## Current State
 
-1. **Email rate limiting**: The `dispatch-incident-notification` edge function sends emails to all recipients in a tight loop with no delay. Resend's free tier allows max 5 emails/second. When an incident triggers notifications to 6+ stakeholders, the later emails fail with "Too many requests".
+- **Email**: Already has rate-limit retry (429) with exponential backoff in `email-sender.ts` (max 2 retries, 250ms base)
+- **WhatsApp**: Already has rate-limit retry in `wasender-whatsapp.ts` (max 3 retries, 5.5s delay)
+- **Gap**: Both only retry **within the same request**. If the send still fails after retries (e.g., WaSender subscription paused, Resend 500 error, network timeout), the failure is logged to `auto_notification_logs` with `status='failed'` and **never retried again**
+- **`auto_notification_logs`** already has `attempt_count` (default 1) and `retry_at` columns — designed for retry but never used
 
-2. **WhatsApp broken**: WaSender subscription is paused — this requires the user to resume their subscription at wasenderapi.com. No code fix can resolve this.
+## Plan
 
-## Implementation Plan
+### Step 1: Create `retry-failed-notifications` Edge Function
 
-### Step 1: Add Inter-Send Delay to Email Sender
-**File:** `supabase/functions/_shared/email-sender.ts`
+New edge function that:
+1. Queries `auto_notification_logs` for failed notifications eligible for retry:
+   - `status = 'failed'`
+   - `attempt_count < 5` (max 5 total attempts)
+   - `retry_at IS NULL OR retry_at <= NOW()` (respects backoff schedule)
+   - `created_at > NOW() - INTERVAL '24 hours'` (don't retry ancient failures)
+2. For each failed notification, re-sends via the appropriate channel (email/WhatsApp/push)
+3. On success: updates `status = 'sent'`, `sent_at = NOW()`, increments `attempt_count`
+4. On failure: increments `attempt_count`, sets `retry_at` with exponential backoff:
+   - Attempt 2: retry after 2 minutes
+   - Attempt 3: retry after 10 minutes
+   - Attempt 4: retry after 30 minutes
+   - Attempt 5: retry after 2 hours (final attempt)
+5. After attempt 5: updates `status = 'permanently_failed'`
+6. Processes max 20 notifications per run to stay within Edge Function timeout
 
-Add rate-limit retry logic to `sendEmail()`:
-- If Resend returns HTTP 429 or error contains "Too many requests", wait and retry
-- Add a configurable delay constant (e.g., 250ms between sends)
-- Max 2 retries with exponential backoff (250ms → 500ms → 1000ms)
+### Step 2: Update Dispatch to Set `retry_at` on Failure
 
-This mirrors the existing pattern in `wasender-whatsapp.ts` which already has retry logic for rate limits.
+In `dispatch-incident-notification/index.ts`, when logging a failed send to `auto_notification_logs`, set `retry_at = NOW() + INTERVAL '2 minutes'` so the retry function picks it up on the next cycle.
 
-### Step 2: Add Inter-Recipient Delay in Dispatch Loop
-**File:** `supabase/functions/dispatch-incident-notification/index.ts`
+### Step 3: Schedule via pg_cron
 
-Add a small delay (200ms) between each email send in the main dispatch loop (line ~652, the `for...of` loop over recipients/channels). This proactively avoids hitting Resend's rate limit instead of relying solely on retry.
+Add a pg_cron job to invoke `retry-failed-notifications` every 5 minutes.
 
-### Step 3: Redeploy Edge Functions
-Deploy both `dispatch-incident-notification` and any functions using the shared email sender.
+### Step 4: Store Retry Context
 
-### Step 4: WhatsApp — User Action Required
-Inform the user that WaSender subscription needs to be resumed. This is an account-level issue, not a code issue.
+The retry function needs the original message content to re-send. Update the dispatch function to populate `message_content` in `auto_notification_logs` for failed sends (currently always NULL). This stores the rendered message so retries don't need to re-fetch incident data and re-render templates.
 
 ## Technical Details
 
-**Email throttle approach in `email-sender.ts`:**
-```typescript
-// Add retry on 429
-if (error?.statusCode === 429 && retryCount < MAX_RETRIES) {
-  await sleep(RETRY_DELAY_MS * (retryCount + 1));
-  return sendEmail(options, retryCount + 1);
-}
+**Backoff schedule** (exponential):
+```
+Attempt 1: immediate (original send)
+Attempt 2: +2 min
+Attempt 3: +10 min
+Attempt 4: +30 min
+Attempt 5: +2 hours (final)
 ```
 
-**Dispatch loop delay (between channel sends):**
-```typescript
-// After each email send, add small delay to stay under rate limit
-if (channel === 'email' && status === 'sent') {
-  await new Promise(r => setTimeout(r, 200));
-}
+**Edge function query:**
+```sql
+SELECT * FROM auto_notification_logs
+WHERE status = 'failed'
+  AND attempt_count < 5
+  AND (retry_at IS NULL OR retry_at <= NOW())
+  AND created_at > NOW() - INTERVAL '24 hours'
+ORDER BY created_at ASC
+LIMIT 20
 ```
 
-| Step | File | Change |
-|------|------|--------|
-| 1 | `_shared/email-sender.ts` | Add retry logic for 429 errors |
-| 2 | `dispatch-incident-notification/index.ts` | Add 200ms delay between email sends |
-| 3 | Deploy | Redeploy edge functions |
-| 4 | User action | Resume WaSender subscription |
+| Step | Files | Change |
+|------|-------|--------|
+| 1 | `supabase/functions/retry-failed-notifications/index.ts` | New edge function |
+| 2 | `supabase/functions/dispatch-incident-notification/index.ts` | Set `retry_at` + `message_content` on failure |
+| 3 | DB migration | pg_cron job every 5 min |
+| 4 | Deploy | Deploy both edge functions |
 
