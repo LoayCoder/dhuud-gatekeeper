@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { FolderKanban, Calendar, MapPin, Users } from "lucide-react";
+import { FolderKanban, Calendar, MapPin, Users, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import ContractorPortalLayout from "@/components/contractor-portal/ContractorPortalLayout";
@@ -9,19 +9,35 @@ import { ContractorPortalRoute } from "@/components/access-control";
 
 function ContractorPortalProjectsContent() {
   const { t } = useTranslation();
-  const { projects, isLoading } = useContractorPortalData();
+  const { projects, isLoading, isError } = useContractorPortalData();
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "active": return <Badge className="bg-green-500">{t("common.active", "Active")}</Badge>;
+      case "active": return <Badge className="bg-success text-success-foreground">{t("common.active", "Active")}</Badge>;
       case "completed": return <Badge variant="secondary">{t("common.completed", "Completed")}</Badge>;
       case "on_hold": return <Badge variant="outline" className="text-warning border-warning">{t("common.onHold", "On Hold")}</Badge>;
+      case "planned": return <Badge variant="outline" className="text-info border-info">{t("contractors.projectStatus.planned", "Planned")}</Badge>;
+      case "cancelled": return <Badge variant="destructive">{t("contractors.projectStatus.cancelled", "Cancelled")}</Badge>;
       default: return <Badge variant="outline">{status}</Badge>;
     }
   };
 
   if (isLoading) {
     return <ContractorPortalLayout><div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div></ContractorPortalLayout>;
+  }
+
+  if (isError) {
+    return (
+      <ContractorPortalLayout>
+        <Card>
+          <CardContent className="py-8 text-center">
+            <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
+            <p className="text-destructive font-medium">{t("common.errorLoading", "Failed to load data")}</p>
+            <p className="text-muted-foreground text-sm mt-1">{t("common.tryAgainLater", "Please try again later")}</p>
+          </CardContent>
+        </Card>
+      </ContractorPortalLayout>
+    );
   }
 
   return (
@@ -53,7 +69,9 @@ function ContractorPortalProjectsContent() {
                 <CardContent className="space-y-3">
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span>{format(new Date(project.start_date), "PP")} - {format(new Date(project.end_date), "PP")}</span>
+                    <span>
+                      {format(new Date(project.start_date), "PP")} - {project.end_date ? format(new Date(project.end_date), "PP") : t("common.ongoing", "Ongoing")}
+                    </span>
                   </div>
                   {project.location_description && (
                     <div className="flex items-center gap-2 text-sm">
