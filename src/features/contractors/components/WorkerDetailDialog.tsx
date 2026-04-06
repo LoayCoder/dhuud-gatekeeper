@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, Phone, Globe, Calendar, FileText, QrCode, Video, CheckCircle, Clock, AlertTriangle, Send, FolderOpen, UserCheck, Loader2, CreditCard } from "lucide-react";
+import { Building2, Phone, Globe, Calendar, FileText, QrCode, Video, CheckCircle, Clock, AlertTriangle, Send, FolderOpen, UserCheck, Loader2, CreditCard, Camera, Lock } from "lucide-react";
 import { format } from "date-fns";
 import { ContractorWorker } from "@/features/contractors/hooks/use-contractor-workers";
 import { WorkerQRCode } from "./WorkerQRCode";
 import { ContractorDocumentUpload } from "./ContractorDocumentUpload";
+import { WorkerPhotoGate } from "./WorkerPhotoGate";
 import { IDCardActionButton } from '@/features/admin';
 import { useWorkerInductions } from "@/features/contractors/hooks/use-worker-inductions";
 import { useInductionVideos } from "@/features/contractors/hooks/use-induction-videos";
@@ -73,6 +74,11 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
   const isInductionExpired = latestInduction?.expires_at 
     ? new Date(latestInduction.expires_at) < new Date() 
     : false;
+
+  // Photo gate: worker must have a verified photo before induction/QR/ID
+  const isPhotoVerified = !!worker.photo_path && !!worker.photo_verified_at;
+  const isApprovedOrSecurityApproved = worker.approval_status === "approved" || worker.security_approval_status === "approved";
+  const needsPhotoGate = isApprovedOrSecurityApproved && !isPhotoVerified;
 
   const handleGenerateQR = async () => {
     if (!selectedProjectId) {
@@ -267,7 +273,9 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
           </TabsContent>
 
           <TabsContent value="qr" className="mt-4 space-y-4">
-            {worker.approval_status === "approved" ? (
+            {needsPhotoGate ? (
+              <WorkerPhotoGate worker={worker} onVerified={() => window.location.reload()} />
+            ) : worker.approval_status === "approved" ? (
               <>
                 {/* Quick Onboard Card */}
                 <Card className="border-primary/20 bg-primary/5">
@@ -387,6 +395,10 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
           </TabsContent>
 
           <TabsContent value="induction" className="mt-4 space-y-4">
+            {needsPhotoGate ? (
+              <WorkerPhotoGate worker={worker} onVerified={() => window.location.reload()} />
+            ) : (
+            <>
             {/* Induction Status Card */}
             <Card>
               <CardHeader className="pb-2">
@@ -491,6 +503,8 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
                 </Button>
               </CardContent>
             </Card>
+            </>
+            )}
           </TabsContent>
         </Tabs>
       </DialogContent>
