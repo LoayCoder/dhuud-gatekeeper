@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ShieldCheck, CheckCircle, XCircle, Clock, Building2, Phone, CreditCard, User, ShieldAlert, Video } from "lucide-react";
+import { ShieldCheck, CheckCircle, XCircle, Clock, Building2, Phone, CreditCard, User, ShieldAlert, Video, Eye } from "lucide-react";
 import { format } from "date-fns";
 import {
   usePendingSecurityApprovals,
@@ -23,6 +23,7 @@ import {
   useHasSecurityApprovalAccess,
   type ContractorWorker,
 } from "@/features/contractors/hooks/use-contractor-workers";
+import { WorkerApprovalDetailDialog } from "@/features/contractors/components/WorkerApprovalDetailDialog";
 import { PageLoader } from "@/components/ui/page-loader";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -38,6 +39,7 @@ export function WorkerSecurityApprovalQueue() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [selectedWorker, setSelectedWorker] = useState<ContractorWorker | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [viewWorker, setViewWorker] = useState<ContractorWorker | null>(null);
 
   const handleApprove = (worker: ContractorWorker) => {
     approveWorker.mutate(worker.id);
@@ -71,19 +73,11 @@ export function WorkerSecurityApprovalQueue() {
   };
 
   const getWorkerInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
+    return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
   };
 
-  if (isLoading || accessLoading) {
-    return <PageLoader />;
-  }
+  if (isLoading || accessLoading) return <PageLoader />;
 
-  // Access control: Only Security Supervisor or Security Manager can approve
   if (!hasSecurityAccess) {
     return (
       <Card>
@@ -135,18 +129,12 @@ export function WorkerSecurityApprovalQueue() {
       <Alert>
         <Video className="h-4 w-4" />
         <AlertDescription>
-          {t(
-            "contractors.securityApprovalNote",
-            "After approval, a safety induction video will be automatically sent to the worker."
-          )}
+          {t("contractors.securityApprovalNote", "After approval, a safety induction video will be automatically sent to the worker.")}
         </AlertDescription>
       </Alert>
 
       <p className="text-sm text-muted-foreground">
-        {t(
-          "contractors.securityApprovalDescription",
-          "These workers have been pre-approved by the Contractor Admin and require final security clearance."
-        )}
+        {t("contractors.securityApprovalDescription", "These workers have been pre-approved by the Contractor Admin and require final security clearance.")}
       </p>
 
       <div className="grid gap-4">
@@ -171,14 +159,18 @@ export function WorkerSecurityApprovalQueue() {
                     )}
                   </div>
                 </div>
-                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                  <Clock className="h-3 w-3 me-1" />
-                  {t("contractors.pendingSecurityReview", "Pending Security Review")}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="icon" onClick={() => setViewWorker(worker)}>
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                    <Clock className="h-3 w-3 me-1" />
+                    {t("contractors.pendingSecurityReview", "Pending Security Review")}
+                  </Badge>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Worker Details */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                 <div className="flex items-center gap-2">
                   <CreditCard className="h-4 w-4 text-muted-foreground" />
@@ -198,7 +190,6 @@ export function WorkerSecurityApprovalQueue() {
                 )}
               </div>
 
-              {/* Worker Type Badge */}
               {worker.worker_type && worker.worker_type !== "worker" && (
                 <Badge variant="secondary">
                   {worker.worker_type === "site_representative"
@@ -209,7 +200,6 @@ export function WorkerSecurityApprovalQueue() {
                 </Badge>
               )}
 
-              {/* Stage 1 Approval Info */}
               {worker.approved_at && (
                 <p className="text-xs text-muted-foreground">
                   {t("contractors.preApprovedAt", "Pre-approved by Contractor Admin/Consultant")}:{" "}
@@ -217,22 +207,12 @@ export function WorkerSecurityApprovalQueue() {
                 </p>
               )}
 
-              {/* Action Buttons */}
               <div className="flex items-center gap-3 pt-2">
-                <Button
-                  onClick={() => handleApprove(worker)}
-                  disabled={approveWorker.isPending}
-                  className="flex-1"
-                >
+                <Button onClick={() => handleApprove(worker)} disabled={approveWorker.isPending} className="flex-1">
                   <CheckCircle className="h-4 w-4 me-2" />
                   {t("contractors.grantSecurityClearance", "Grant Security Clearance")}
                 </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => openRejectDialog(worker)}
-                  disabled={rejectWorker.isPending}
-                  className="flex-1"
-                >
+                <Button variant="destructive" onClick={() => openRejectDialog(worker)} disabled={rejectWorker.isPending} className="flex-1">
                   <XCircle className="h-4 w-4 me-2" />
                   {t("contractors.returnToPending", "Return with Comments")}
                 </Button>
@@ -248,10 +228,7 @@ export function WorkerSecurityApprovalQueue() {
           <DialogHeader>
             <DialogTitle>{t("contractors.returnWorkerToPending", "Return Worker to Pending")}</DialogTitle>
             <DialogDescription>
-              {t(
-                "contractors.returnWorkerDescription",
-                "Please provide comments explaining the security concerns. The contractor will be notified and can address the issues."
-              )}
+              {t("contractors.returnWorkerDescription", "Please provide comments explaining the security concerns. The contractor will be notified and can address the issues.")}
             </DialogDescription>
           </DialogHeader>
           <Textarea
@@ -261,19 +238,21 @@ export function WorkerSecurityApprovalQueue() {
             rows={4}
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
-              {t("common.cancel", "Cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleReject}
-              disabled={!rejectionReason.trim() || rejectWorker.isPending}
-            >
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>{t("common.cancel", "Cancel")}</Button>
+            <Button variant="destructive" onClick={handleReject} disabled={!rejectionReason.trim() || rejectWorker.isPending}>
               {t("contractors.returnToPending", "Return with Comments")}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Full Detail Dialog */}
+      <WorkerApprovalDetailDialog
+        open={!!viewWorker}
+        onOpenChange={(open) => !open && setViewWorker(null)}
+        worker={viewWorker}
+        isSecurityStage
+      />
     </div>
   );
 }
