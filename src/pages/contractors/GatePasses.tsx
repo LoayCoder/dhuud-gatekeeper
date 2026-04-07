@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { GatePassListTable } from '@/features/contractors';
-import { GatePassFormDialog } from '@/features/contractors';
+import { GatePassCreateDialog } from '@/features/contractors/components/GatePassCreateDialog';
 import { GatePassApprovalQueue } from '@/features/contractors';
 import { TodayGatePasses } from '@/features/contractors';
 import {
@@ -183,12 +183,9 @@ const [searchParams, setSearchParams] = useSearchParams();
       </Tabs>
 
       {canCreate && (
-        <GatePassFormDialog
+        <GatePassCreateDialog
           open={isCreateOpen}
           onOpenChange={setIsCreateOpen}
-          projects={projects}
-          canCreateInternal={canCreateInternal}
-          canCreateExternal={canCreateExternal}
         />
       )}
     </div>
