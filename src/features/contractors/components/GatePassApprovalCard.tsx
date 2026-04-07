@@ -37,10 +37,8 @@ import {
     MaterialGatePass,
     useApproveGatePass
 } from "@/features/contractors/hooks/use-material-gate-passes";
-import {
-    useGatePassItems,
-    useGatePassPhotos,
-} from "@/features/contractors/hooks/use-gate-pass-details";
+import { useGatePassMedia } from "@/features/contractors/hooks/use-gate-pass-media";
+
 import { useSecurityZones } from '@/features/security/hooks/use-security-zones';
 import { GatePassPhoto as GatePassPhotoView } from "@/components/ui/gate-pass-photo";
 

@@ -21,11 +21,8 @@ import {
   UserCheck,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  useGatePassDetails,
-  useGatePassItems,
-  useGatePassPhotos,
-} from "@/features/contractors/hooks/use-gate-pass-details";
+import { useGatePassDetails } from "@/features/contractors/hooks/use-gate-pass-details";
+import { useGatePassMedia } from "@/features/contractors/hooks/use-gate-pass-media";
 import { GatePassPDFExportButton } from "../GatePassPDFExportButton";
 import { GatePassApprovalActions } from "../GatePassApprovalActions";
 import { GatePassDetailDialogProps, TimelineEvent } from "./types";
