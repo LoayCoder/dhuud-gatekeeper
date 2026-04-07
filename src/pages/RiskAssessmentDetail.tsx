@@ -1,14 +1,14 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Calendar, MapPin, AlertTriangle, Shield, Clock, User, FileText } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, AlertTriangle, Shield, Clock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRiskAssessment } from "@/features/risk-assessment/hooks/use-risk-assessments";
 import { useRiskAssessmentDetails } from "@/features/risk-assessment/hooks/use-risk-assessment-details";
 import { useRiskAssessmentTeam, type RiskAssessmentTeamMember } from "@/features/risk-assessment/hooks/use-risk-assessment-team";
+import { RiskAssessmentPDFExportButton } from "@/features/risk-assessment/components/RiskAssessmentPDFExportButton";
 import { format } from "date-fns";
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -76,13 +76,70 @@ export default function RiskAssessmentDetail() {
   const status = statusConfig[assessment.status] || { label: assessment.status, variant: "secondary" as const };
   const riskRating = assessment.overall_risk_rating ? riskRatingConfig[assessment.overall_risk_rating] : null;
 
+  // Cast to access resolved names from the service
+  const assessmentData = assessment as typeof assessment & {
+    created_by_name?: string | null;
+    approved_by_name?: string | null;
+    scope_description?: string | null;
+    applicable_legislation?: string[] | null;
+    risk_tolerance?: string | null;
+    acceptance_justification?: string | null;
+    review_frequency?: string | null;
+    next_review_date?: string | null;
+    activity_type?: string | null;
+    work_environment?: string | null;
+  };
+
+  // Map hazards for the PDF export component
+  const pdfHazards = hazards.map((h) => ({
+    id: h.id,
+    hazard_description: h.hazard_description || "",
+    likelihood: h.likelihood || 1,
+    severity: h.severity || 1,
+    residual_likelihood: h.residual_likelihood ?? undefined,
+    residual_severity: h.residual_severity ?? undefined,
+    existing_controls: Array.isArray(h.existing_controls)
+      ? h.existing_controls.map((c: unknown) =>
+          typeof c === "string" ? { description: c } : (c as { description: string })
+        )
+      : undefined,
+    additional_controls: Array.isArray(h.additional_controls)
+      ? h.additional_controls.map((c: unknown) =>
+          typeof c === "string" ? { description: c } : (c as { description: string; responsible?: string; target_date?: string })
+        )
+      : undefined,
+  }));
+
   return (
     <div className="container mx-auto p-4 space-y-4 max-w-4xl" dir={direction}>
-      {/* Back button */}
-      <Button variant="ghost" size="sm" onClick={() => navigate("/risk-assessments")} className="gap-2">
-        <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
-        {direction === "rtl" ? "العودة" : "Back"}
-      </Button>
+      {/* Top bar */}
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" size="sm" onClick={() => navigate("/risk-assessments")} className="gap-2">
+          <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+          {direction === "rtl" ? "العودة" : "Back"}
+        </Button>
+        <RiskAssessmentPDFExportButton
+          assessmentNumber={assessment.assessment_number}
+          activityName={direction === "rtl" && assessment.activity_name_ar ? assessment.activity_name_ar : assessment.activity_name}
+          activityDescription={assessment.activity_description || undefined}
+          location={assessment.location || undefined}
+          validUntil={assessment.valid_until || undefined}
+          activityType={assessmentData.activity_type || undefined}
+          workEnvironment={assessmentData.work_environment || undefined}
+          scopeDescription={assessmentData.scope_description || undefined}
+          applicableLegislation={assessmentData.applicable_legislation || undefined}
+          overallRiskRating={assessment.overall_risk_rating || undefined}
+          riskTolerance={assessmentData.risk_tolerance || undefined}
+          acceptanceJustification={assessmentData.acceptance_justification || undefined}
+          reviewFrequency={assessmentData.review_frequency || undefined}
+          nextReviewDate={assessmentData.next_review_date || undefined}
+          hazards={pdfHazards}
+          createdBy={assessmentData.created_by_name || undefined}
+          createdAt={assessment.created_at}
+          approvedBy={assessmentData.approved_by_name || undefined}
+          approvedAt={assessment.approved_at || undefined}
+        />
+      </div>
 
       {/* Header Card */}
       <Card>
@@ -124,13 +181,41 @@ export default function RiskAssessmentDetail() {
             {assessment.valid_until && (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Clock className="h-4 w-4 shrink-0" />
-                <span>Valid until: {format(new Date(assessment.valid_until), "dd MMM yyyy")}</span>
+                <span>{direction === "rtl" ? "صالح حتى:" : "Valid until:"} {format(new Date(assessment.valid_until), "dd MMM yyyy")}</span>
               </div>
             )}
             {assessment.ai_risk_score != null && (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Shield className="h-4 w-4 shrink-0" />
-                <span>AI Risk Score: {assessment.ai_risk_score}</span>
+                <span>{direction === "rtl" ? "درجة المخاطر AI:" : "AI Risk Score:"} {assessment.ai_risk_score}</span>
+              </div>
+            )}
+
+            {/* Created by */}
+            {assessmentData.created_by_name && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <User className="h-4 w-4 shrink-0" />
+                <span>
+                  {direction === "rtl" ? "أنشأ بواسطة:" : "Created by:"}{" "}
+                  <span className="text-foreground font-medium">{assessmentData.created_by_name}</span>
+                  {assessment.created_at && (
+                    <span className="ms-1 text-xs">({format(new Date(assessment.created_at), "dd MMM yyyy")})</span>
+                  )}
+                </span>
+              </div>
+            )}
+
+            {/* Approved / Reviewed by */}
+            {assessmentData.approved_by_name && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <User className="h-4 w-4 shrink-0" />
+                <span>
+                  {direction === "rtl" ? "تمت المراجعة بواسطة:" : "Reviewed by:"}{" "}
+                  <span className="text-foreground font-medium">{assessmentData.approved_by_name}</span>
+                  {assessment.approved_at && (
+                    <span className="ms-1 text-xs">({format(new Date(assessment.approved_at), "dd MMM yyyy")})</span>
+                  )}
+                </span>
               </div>
             )}
           </div>
@@ -181,14 +266,14 @@ export default function RiskAssessmentDetail() {
                   <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
                     {hazard.initial_risk_score != null && (
                       <span className={getRiskLevelClass(hazard.initial_risk_score)}>
-                        Initial: {hazard.likelihood}×{hazard.severity} = {hazard.initial_risk_score}
+                        {direction === "rtl" ? "أولي:" : "Initial:"} {hazard.likelihood}×{hazard.severity} = {hazard.initial_risk_score}
                       </span>
                     )}
                     {hazard.residual_risk_score != null && (
                       <>
                         <span>→</span>
                         <span className={getRiskLevelClass(hazard.residual_risk_score)}>
-                          Residual: {hazard.residual_likelihood}×{hazard.residual_severity} = {hazard.residual_risk_score}
+                          {direction === "rtl" ? "متبقي:" : "Residual:"} {hazard.residual_likelihood}×{hazard.residual_severity} = {hazard.residual_risk_score}
                         </span>
                       </>
                     )}
